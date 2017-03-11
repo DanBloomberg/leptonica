@@ -135,7 +135,7 @@
  *         a number times the value in src2.
  *
  *  Also included is a generalization of the so-called "hard light"
- *  blending: pixBlendHardLight().  We generalize by allowing a fraction \< 1.0
+ *  blending: pixBlendHardLight().  We generalize by allowing a fraction < 1.0
  *  of the blender to be admixed with the blendee.  The standard function
  *  does full mixing.
  * </pre>

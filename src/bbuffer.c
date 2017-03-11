@@ -353,8 +353,8 @@ l_int32  navail, nadd, nread, nwritten;
  *
  * <pre>
  * Notes:
- *      (1) reallocNew() copies all bb-\>nalloc bytes, even though
- *          only bb-\>n are data.
+ *      (1) reallocNew() copies all bb->nalloc bytes, even though
+ *          only bb->n are data.
  * </pre>
  */
 l_int32

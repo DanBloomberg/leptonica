@@ -484,7 +484,7 @@ PIXCMAP   *cmap;
  *                equal or exceed a threshold %threshdiff.
  *            (b) It must be at least %mindist (in an 8-connected way)
  *                from the nearest non-color pixel.
- *      (2) The distance constraint (b) is only applied if %mindist \> 1.
+ *      (2) The distance constraint (b) is only applied if %mindist > 1.
  *          For example, if %mindist == 2, the color pixels identified
  *          by (a) are eroded by a 3x3 Sel.  In general, the Sel size
  *          for erosion is 2 * (%mindist - 1) + 1.
@@ -1022,7 +1022,7 @@ PIXCMAP   *cmap;
  *          number of colors differs from the number of entries
  *          in the colormap, a warning is issued.
  *      (2) Use %factor == 1 to find the actual number of colors.
- *          Use %factor \> 1 to quickly find the approximate number of colors.
+ *          Use %factor > 1 to quickly find the approximate number of colors.
  *      (3) For d = 2, 4 or 8 bpp grayscale, this returns the number
  *          of colors found in the image in 'ncolors'.
  *      (4) For d = 32 bpp (rgb), if the number of colors is
@@ -1129,7 +1129,7 @@ PIXCMAP   *cmap;
  * Notes:
  *      (1) This finds the %ncolors most populated cubes in rgb colorspace,
  *          where the cube size depends on %sigbits as
- *               cube side = (256 \>\> sigbits)
+ *               cube side = (256 >> sigbits)
  *      (2) The rgb color components are found at the center of the cube.
  *      (3) The output array of colors can be displayed using
  *               pixDisplayColorArray(array, ncolors, ...);
@@ -1483,8 +1483,8 @@ getRGBFromIndex(l_uint32  index,
  * <pre>
  * Notes:
  *      (1) Pixels are identified as red if they satisfy two conditions:
- *          (a) The components satisfy (R-B)/B \> %fthresh   (red or dark fg)
- *          (b) The red component satisfied R \> 128  (red or light bg)
+ *          (a) The components satisfy (R-B)/B > %fthresh   (red or dark fg)
+ *          (b) The red component satisfied R > 128  (red or light bg)
  *          Masks are generated for (a) and (b), and the intersection
  *          gives the pixels that are red but not either light bg or
  *          dark fg.

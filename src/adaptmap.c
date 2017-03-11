@@ -1820,7 +1820,7 @@ PIX     *pixd, *piximi, *pixim2, *pixims, *pixs2, *pixb, *pixt1, *pixt2, *pixt3;
  *
  * <pre>
  * Notes:
- *     (1) bgval should typically be \> 120 and \< 240
+ *     (1) bgval should typically be > 120 and < 240
  *     (2) pixd is a normalization image; the original image is
  *       multiplied by pixd and the result is divided by 256.
  * </pre>

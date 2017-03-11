@@ -1359,7 +1359,7 @@ l_float32   fractdiff, avediff;
  *                you then get a useful measure for the rate of falloff
  *                of the distribution for larger differences.  For example,
  *                if %mindiff = 10 and you find that %avediff = 2.5, it
- *                says that of the pixels with diff \> 10, the average of
+ *                says that of the pixels with diff > 10, the average of
  *                their diffs is just mindiff + 2.5 = 12.5.  This is a
  *                fast falloff in the histogram with increasing difference.
  *      (2) The two images are aligned at the UL corner, and do not
@@ -1590,7 +1590,7 @@ PIX        *pixt1, *pixt2;
  *      (5) The returned value of fract can be compared to some threshold,
  *          which is application dependent.
  *      (6) This method is in analogy to the two-sided hausdorff transform,
- *          except here it is for d \> 1.  For d == 1 (see pixRankHaustest()),
+ *          except here it is for d > 1.  For d == 1 (see pixRankHaustest()),
  *          we verify that when one pix1 is dilated, it covers at least a
  *          given fraction of the pixels in pix2, and v.v.; in that
  *          case, the two pix are sufficiently similar.  Here, we
@@ -1866,7 +1866,7 @@ l_float32  mse;  /* mean squared error */
  *          threshold %minratio.  If set at 1.0, both images must be
  *          exactly the same size.  A typical value for %minratio is 0.9.
  *      (3) The comparison score between two images is a value in [0.0 .. 1.0].
- *          If the comparison score \>= %simthresh, the images are placed in
+ *          If the comparison score >= %simthresh, the images are placed in
  *          the same similarity class.  Default value for %simthresh is 0.25.
  *      (4) An array %nai of similarity class indices for pix in the
  *          input pixa is returned.
@@ -2690,7 +2690,7 @@ NUMA      *na1, *na2, *nadist, *nascore;
  *      (3) The lightest values in the histogram can be disregarded.
  *          Set %maxgray to the lightest value to be kept.  For example,
  *          to eliminate white (255), set %maxgray = 254.  %maxgray must
- *          be \>= 200.
+ *          be >= 200.
  *      (4) For an efficient representation of the histogram, normalize
  *          using a multiplicative factor so that the number in the
  *          maximum bucket is 255.  It then takes 256 bytes to store.

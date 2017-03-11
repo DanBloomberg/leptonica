@@ -480,7 +480,7 @@ PIXCMAP   *cmap;
  *          for this expansion, it returns 1 (treated as a warning);
  *          the caller should check the return value.
  *      (3) This can be used to determine if the new colors will fit in
- *          the cmap, using null for \&na.  Returns 0 if they fit; 2 if
+ *          the cmap, using null for &na.  Returns 0 if they fit; 2 if
  *          they don't fit.
  *      (4) The mapping table contains, for each gray color found, the
  *          index of the corresponding colorized pixel.  Non-gray

@@ -1123,9 +1123,9 @@ BOX  *boxd;
  *          returned parameter values are bogus.
  *      (2) This simplifies the selection of pixel locations within
  *          a given rectangle:
- *             for (i = ystart; i \< yend; i++ {
+ *             for (i = ystart; i < yend; i++ {
  *                 ...
- *                 for (j = xstart; j \< xend; j++ {
+ *                 for (j = xstart; j < xend; j++ {
  *                     ....
  * </pre>
  */
@@ -1238,7 +1238,7 @@ l_int32  x, y, w, h;
  *               boxd = boxAdjustSides(NULL, boxs, ...);   // new
  *               boxAdjustSides(boxs, boxs, ...);          // in-place
  *               boxAdjustSides(boxd, boxs, ...);          // other
- *      (1) New box dimensions are cropped at left and top to x \>= 0 and y \>= 0.
+ *      (1) New box dimensions are cropped at left and top to x >= 0 and y >= 0.
  *      (2) For example, to expand in-place by 20 pixels on each side, use
  *             boxAdjustSides(box, box, -20, 20, -20, 20);
  * </pre>
@@ -1742,8 +1742,8 @@ BOX     *box1, *box2;
  * <pre>
  * Notes:
  *      (1) This appends a clone of each indicated box in boxas to boxad
- *      (2) istart \< 0 is taken to mean 'read from the start' (istart = 0)
- *      (3) iend \< 0 means 'read to the end'
+ *      (2) istart < 0 is taken to mean 'read from the start' (istart = 0)
+ *      (3) iend < 0 means 'read to the end'
  *      (4) if boxas == NULL or has no boxes, this is a no-op.
  * </pre>
  */
@@ -1791,8 +1791,8 @@ BOX     *box;
  * <pre>
  * Notes:
  *      (1) This appends a clone of each indicated boxa in baas to baad
- *      (2) istart \< 0 is taken to mean 'read from the start' (istart = 0)
- *      (3) iend \< 0 means 'read to the end'
+ *      (2) istart < 0 is taken to mean 'read from the start' (istart = 0)
+ *      (3) iend < 0 means 'read to the end'
  *      (4) if baas == NULL, this is a no-op.
  * </pre>
  */

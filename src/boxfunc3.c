@@ -921,7 +921,7 @@ PIXA    *pixas;
  *      (6) The flag %remainder specifies whether we take a final bounding
  *          box for anything left after the maximum number of allowed
  *          rectangle is extracted.
- *      (7) So if %maxcomps \> 0, it specifies that we want no more than
+ *      (7) So if %maxcomps > 0, it specifies that we want no more than
  *          the first %maxcomps rectangles that satisfy the input
  *          criteria.  After this, we can get a final rectangle that
  *          bounds everything left over by setting %remainder == 1.
@@ -931,7 +931,7 @@ PIXA    *pixas;
  *          break the original c.c. into several c.c.
  *      (9) Summing up:
  *            * If %maxcomp == 0, the splitting proceeds as far as possible.
- *            * If %maxcomp \> 0, the splitting stops when %maxcomps are
+ *            * If %maxcomp > 0, the splitting stops when %maxcomps are
  *                found, or earlier if no more components can be selected.
  *            * If %remainder == 1 and components remain that cannot be
  *                selected, they are returned as a single final rectangle;
@@ -1295,7 +1295,7 @@ success:
  * Notes:
  *      (1) For example, this can be used to generate a pixa of
  *          vertical strips of width 10 from an image, using:
- *             pixGetDimensions(pix, \&w, \&h, NULL);
+ *             pixGetDimensions(pix, &w, &h, NULL);
  *             boxa = makeMosaicStrips(w, h, L_SCAN_HORIZONTAL, 10);
  *             pixa = pixClipRectangles(pix, boxa);
  *          All strips except the last will be the same width.  The
@@ -1514,7 +1514,7 @@ PIXA     *pixa;
  * Notes:
  *      (1) This selects a box near the top (first) and left (second)
  *          of the image, from the set of all boxes that have
- *                area \>= %areaslop * (area of biggest box),
+ *                area >= %areaslop * (area of biggest box),
  *          where %areaslop is some fraction; say ~ 0.9.
  *      (2) For all boxes satisfying the above condition, select
  *          the left-most box that is within %yslop (say, 20) pixels

@@ -88,7 +88,7 @@ static const l_uint32 rmask32[] = {0x0,
  *          translation.  You can consider them as pixels that are
  *          shifted in from outside the image.  This can be later
  *          overridden by the incolor parameter in higher-level functions
- *          that call this.  For example, for images with depth \> 1,
+ *          that call this.  For example, for images with depth > 1,
  *          these pixels are cleared to black; to be white they
  *          must later be SET to white.  See, e.g., pixRasteropVip().
  *      (2) This function scales the width to accommodate any depth,
@@ -303,7 +303,7 @@ l_int32    i, j;
  * <pre>
  * Notes:
  *      (1) This clears the pixels that are left exposed after the rasterop.
- *          Therefore, for Pix with depth \> 1, these pixels become black,
+ *          Therefore, for Pix with depth > 1, these pixels become black,
  *          and must be subsequently SET if they are to be white.
  *          For example, see pixRasteropHip().
  *      (2) This function performs clipping and calls shiftDataHorizontalLine()

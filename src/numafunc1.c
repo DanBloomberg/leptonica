@@ -2515,7 +2515,7 @@ l_float32  minval, maxval;
  * <pre>
  * Notes:
  *      (1) Set naout = nain for in-place; otherwise, set naout = NULL.
- *      (2) Source: Shell sort, modified from K\&R, 2nd edition, p.62.
+ *      (2) Source: Shell sort, modified from K&R, 2nd edition, p.62.
  *          Slow but simple O(n logn) sort.
  * </pre>
  */

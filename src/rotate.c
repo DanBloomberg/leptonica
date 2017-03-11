@@ -526,7 +526,7 @@ PIX  *pixt1, *pixt2, *pixt3, *pixt4, *pixd;
  *              pixt = pixGammaTRCWithAlpha(NULL, pixs, 1.0 / gamma, 0, 255);
  *              pixd = pixRotateWithAlpha(pixt, angle, NULL, fract);
  *              pixGammaTRCWithAlpha(pixd, pixd, gamma, 0, 255);
- *              pixDestroy(\&pixt);
+ *              pixDestroy(&pixt);
  *          This has the side-effect of producing artifacts in the very
  *          dark regions.
  *

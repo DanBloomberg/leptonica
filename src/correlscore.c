@@ -84,8 +84,8 @@
  *  pixels in the AND of the two bitmaps to the product of the number
  *  of ON pixels in each.  Denote the number of ON pixels in pix1
  *  by |1|, the number in pix2 by |2|, and the number in the AND
- *  of pix1 and pix2 by |1 \& 2|.  The correlation score is then
- *  (|1 \& 2|)**2 / (|1|*|2|).
+ *  of pix1 and pix2 by |1 & 2|.  The correlation score is then
+ *  (|1 & 2|)**2 / (|1|*|2|).
  *
  *  This score is compared with an input threshold, which can
  *  be modified depending on the weight of the template.
@@ -112,9 +112,9 @@
  *  the AND and implementation uses rasterop:
  *      pixt = pixCreateTemplate(pix1);
  *      pixRasterop(pixt, idelx, idely, wt, ht, PIX_SRC, pix2, 0, 0);
- *      pixRasterop(pixt, 0, 0, wi, hi, PIX_SRC \& PIX_DST, pix1, 0, 0);
- *      pixCountPixels(pixt, \&count, tab);
- *      pixDestroy(\&pixt);
+ *      pixRasterop(pixt, 0, 0, wi, hi, PIX_SRC & PIX_DST, pix1, 0, 0);
+ *      pixCountPixels(pixt, &count, tab);
+ *      pixDestroy(&pixt);
  *  However, here it is done in a streaming fashion, counting as it goes,
  *  and touching memory exactly once, giving a 3-4x speedup over the
  *  simple implementation.  This very fast correlation matcher was
@@ -393,8 +393,8 @@ l_uint32  *row1, *row2;
  *  pixels in the AND of the two bitmaps to the product of the number
  *  of ON pixels in each.  Denote the number of ON pixels in pix1
  *  by |1|, the number in pix2 by |2|, and the number in the AND
- *  of pix1 and pix2 by |1 \& 2|.  The correlation score is then
- *  (|1 \& 2|)**2 / (|1|*|2|).
+ *  of pix1 and pix2 by |1 & 2|.  The correlation score is then
+ *  (|1 & 2|)**2 / (|1|*|2|).
  *
  *  This score is compared with an input threshold, which can
  *  be modified depending on the weight of the template.

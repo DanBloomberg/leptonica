@@ -214,12 +214,12 @@ PIXCMAP  *cmap;
  *          If type == L_PAINT_LIGHT, use thresh = 0 if all pixels are to
  *          be colored (black pixels will be unaltered).
  *          In situations where there are a lot of black pixels,
- *          setting thresh \> 0 will make the function considerably
+ *          setting thresh > 0 will make the function considerably
  *          more efficient without affecting the final result.
  *          If type == L_PAINT_DARK, use thresh = 255 if all pixels
  *          are to be colored (white pixels will be unaltered).
  *          In situations where there are a lot of white pixels,
- *          setting thresh \< 255 will make the function considerably
+ *          setting thresh < 255 will make the function considerably
  *          more efficient without affecting the final result.
  * </pre>
  */
@@ -833,18 +833,18 @@ l_int32    srmap, sgmap, sbmap, drmap, dgmap, dbmap;
  *          %dstval, and rval is the red component of the src pixel.
  *          Then for all pixels in pixs, the mapping for the red
  *          component from pixs to pixd is:
- *             if (rd \<= rs)   (shift toward black)
- *                 rval --\> (rd/rs) * rval
- *             if (rd \> rs)    (shift toward white)
- *                (255 - rval) --\> ((255 - rs)/(255 - rd)) * (255 - rval)
- *          Thus if rd \<= rs, the red component of all pixels is
- *          mapped by the same fraction toward white, and if rd \> rs,
+ *             if (rd <= rs)   (shift toward black)
+ *                 rval --> (rd/rs) * rval
+ *             if (rd > rs)    (shift toward white)
+ *                (255 - rval) --> ((255 - rs)/(255 - rd)) * (255 - rval)
+ *          Thus if rd <= rs, the red component of all pixels is
+ *          mapped by the same fraction toward white, and if rd > rs,
  *          they are mapped by the same fraction toward black.
  *          This is essentially a different linear TRC (gamma = 1)
  *          for each component.  The source and target color inputs are
  *          just used to generate the three fractions.
  *      (2) Note that this mapping differs from that in
- *          pixLinearMapToTargetColor(), which maps rs --\> rd and does
+ *          pixLinearMapToTargetColor(), which maps rs --> rd and does
  *          a piecewise stretching in between.
  *      (3) For inplace operation, call it this way:
  *            pixFractionalShiftByComponent(pixs, pixs, ... )
@@ -950,7 +950,7 @@ PIXCMAP   *cmap;
  *          on a pix.  Each component is handled separately.  If
  *          the dest component is larger than the src, then the
  *          component is pushed toward 255 by the same fraction as
- *          the src --\> dest shift.
+ *          the src --> dest shift.
  * </pre>
  */
 l_int32
@@ -1006,9 +1006,9 @@ l_int32  rsval, rdval, gsval, gdval, bsval, bdval, rs, gs, bs;
  *      (1) This transformation leaves the hue invariant, while changing
  *          the saturation and intensity.  It can be used for that
  *          purpose in pixLinearMapToTargetColor().
- *      (2) %fraction is in the range [-1 .... +1].  If %fraction \< 0,
+ *      (2) %fraction is in the range [-1 .... +1].  If %fraction < 0,
  *          saturation is increased and brightness is reduced.  The
- *          opposite results if %fraction \> 0.  If %fraction == -1,
+ *          opposite results if %fraction > 0.  If %fraction == -1,
  *          the resulting pixel is black; %fraction == 1 results in white.
  * </pre>
  */

@@ -98,16 +98,16 @@
  *          PIX_SRC                             s
  *          PIX_NOT(PIX_SRC)                   ~s
  *          PIX_SRC | PIX_DST                   s | d
- *          PIX_SRC \& PIX_DST                   s \& d
+ *          PIX_SRC & PIX_DST                   s & d
  *          PIX_SRC ^ PIX_DST                   s ^ d
  *          PIX_NOT(PIX_SRC) | PIX_DST         ~s | d
- *          PIX_NOT(PIX_SRC) \& PIX_DST         ~s \& d
+ *          PIX_NOT(PIX_SRC) & PIX_DST         ~s & d
  *          PIX_NOT(PIX_SRC) ^ PIX_DST         ~s ^ d
  *          PIX_SRC | PIX_NOT(PIX_DST)          s | ~d
- *          PIX_SRC \& PIX_NOT(PIX_DST)          s \& ~d
+ *          PIX_SRC & PIX_NOT(PIX_DST)          s & ~d
  *          PIX_SRC ^ PIX_NOT(PIX_DST)          s ^ ~d
  *          PIX_NOT(PIX_SRC | PIX_DST)         ~(s | d)
- *          PIX_NOT(PIX_SRC \& PIX_DST)         ~(s \& d)
+ *          PIX_NOT(PIX_SRC & PIX_DST)         ~(s & d)
  *          PIX_NOT(PIX_SRC ^ PIX_DST)         ~(s ^ d)
  *
  *  Each of these is implemented with one of three low-level
@@ -129,16 +129,16 @@
  *         s            1      1      0      0
  *        ~s            0      1      0      1
  *       s | d          1      1      1      0
- *       s \& d          1      0      0      0
+ *       s & d          1      0      0      0
  *       s ^ d          0      1      1      0
  *      ~s | d          1      0      1      1
- *      ~s \& d          0      0      1      0
+ *      ~s & d          0      0      1      0
  *      ~s ^ d          1      0      0      1
  *       s | ~d         1      1      0      1
- *       s \& ~d         0      1      0      0
+ *       s & ~d         0      1      0      0
  *       s ^ ~d         1      0      0      1
  *      ~(s | d)        0      0      0      1
- *      ~(s \& d)        0      1      1      1
+ *      ~(s & d)        0      1      1      1
  *      ~(s ^ d)        1      0      0      1
  *
  *  Note that the following three operations are equivalent:
@@ -155,8 +155,8 @@
  *
  *         d            1      0      1      0    (indep. of s)
  *        ~d            0      1      0      1    (indep. of s)
- *        CLR           0      0      0      0    (indep. of both s \& d)
- *        SET           1      1      1      1    (indep. of both s \& d)
+ *        CLR           0      0      0      0    (indep. of both s & d)
+ *        SET           1      1      1      1    (indep. of both s & d)
  *
  *  As mentioned above, three of these are implemented by
  *  rasteropUniLow(), and one is a no-op.

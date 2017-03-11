@@ -1053,7 +1053,7 @@ BOXA    *boxae, *boxao, *boxalfe, *boxalfo, *boxame, *boxamo, *boxad;
  *          just do this:
  *              boxam = boxaWindowedMedian(boxas, halfwin, debug);
  *              boxad = boxaModifyWithBoxa(boxas, boxam, subflag, maxdiff);
- *              boxaDestroy(\&boxam);
+ *              boxaDestroy(&boxam);
  * </pre>
  */
 BOXA *

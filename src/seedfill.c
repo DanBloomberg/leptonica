@@ -103,16 +103,16 @@
  *      Note carefully that the mask we use delineates which pixels
  *      are allowed to be ON as the seed is filled.  We will call this
  *      a "filling mask".  As the seed expands, it is repeatedly
- *      ANDed with the filling mask: s \& fm.  The process can equivalently
+ *      ANDed with the filling mask: s & fm.  The process can equivalently
  *      be formulated using the inverse of the filling mask, which
  *      we will call a "blocking mask": bm = ~fm.   As the seed
  *      expands, the blocking mask is repeatedly used to prevent
  *      the seed from expanding into the blocking mask.  This is done
  *      by set subtracting the blocking mask from the expanded seed:
  *      s - bm.  Set subtraction of the blocking mask is equivalent
- *      to ANDing with the inverse of the blocking mask: s \& (~bm).
+ *      to ANDing with the inverse of the blocking mask: s & (~bm).
  *      But from the inverse relation between blocking and filling
- *      masks, this is equal to s \& fm, which proves the equivalence.
+ *      masks, this is equal to s & fm, which proves the equivalence.
  *
  *      For efficiency, the pixels can be taken in larger units
  *      for processing, but still in raster order.  It is natural
@@ -125,9 +125,9 @@
  *      in the line above be wa, and the previous word in the
  *      current line be wp.   Let t be a temporary word that
  *      is used in computation.  Note that masking is performed by
- *      w \& m.  (If we had instead used a "blocking" mask, we
+ *      w & m.  (If we had instead used a "blocking" mask, we
  *      would perform masking by the set subtraction operation,
- *      w - m, which is defined to be w \& ~m.)
+ *      w - m, which is defined to be w & ~m.)
  *
  *      The entire operation can be implemented with shifts,
  *      logical operations and tests.  For each word in the seed image
@@ -136,13 +136,13 @@
  *      Because wp is shifted one pixel to its right, "x" is ORed
  *      to the leftmost pixel of w.  We then clip to the ON pixels in
  *      the mask.  The result is
- *               t  \<--  (w | wa | x000... ) \& m
+ *               t  <--  (w | wa | x000... ) & m
  *      We've now finished taking data from above and to the left.
  *      The second step is to allow filling to propagate horizontally
  *      in t, always making sure that it is properly masked at each
  *      step.  So if filling can be done (i.e., t is neither all 0s
  *      nor all 1s), iteratively take:
- *           t  \<--  (t | (t \>\> 1) | (t \<\< 1)) \& m
+ *           t  <--  (t | (t >> 1) | (t << 1)) & m
  *      until t stops changing.  Then write t back into w.
  *
  *      Finally, the boundary conditions require we note that in doing
@@ -1631,10 +1631,10 @@ PTA       *pta;
  *          the result in a new pixd.  Otherwise, it is an in-place
  *          operation on pixm.  In no situation is pixs altered,
  *          because we do the filling with a copy of pixs.
- *      (2) If bordersize \> 0, it also clears all pixels within a
+ *      (2) If bordersize > 0, it also clears all pixels within a
  *          distance %bordersize of the edge of pixd.  This is here
  *          because pixLocalExtrema() typically finds local minima
- *          at the border.  Use %bordersize \>= 2 to remove these.
+ *          at the border.  Use %bordersize >= 2 to remove these.
  * </pre>
  */
 PIX *

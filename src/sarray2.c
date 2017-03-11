@@ -86,7 +86,7 @@
  * <pre>
  * Notes:
  *      (1) Set saout = sain for in-place; otherwise, set naout = NULL.
- *      (2) Shell sort, modified from K\&R, 2nd edition, p.62.
+ *      (2) Shell sort, modified from K&R, 2nd edition, p.62.
  *          Slow but simple O(n logn) sort.
  * </pre>
  */
@@ -417,7 +417,7 @@ RB_TYPE   key;
  *      (1) Generates a sarray with unique values.
  *      (2) The dnahash is built up with sad to assure uniqueness.
  *          It can be used to find if a string is in the set:
- *              sarrayFindValByHash(sad, dahash, str, \&index)
+ *              sarrayFindValByHash(sad, dahash, str, &index)
  *      (3) The hash of the string location is simple and fast.  It scales
  *          up with the number of buckets to insure a fairly random
  *          bucket selection input strings.

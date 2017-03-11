@@ -293,11 +293,11 @@ PIX       *pixd;
  * Notes:
  *      (1) This computes three measures of smoothness of the edge of a
  *          connected component:
- *            * jumps/length: (jpl) the number of jumps of size \>= %minjump,
+ *            * jumps/length: (jpl) the number of jumps of size >= %minjump,
  *              normalized to the length of the side
  *            * jump sum/length: (jspl) the sum of all jump lengths of
- *              size \>= %minjump, normalized to the length of the side
- *            * reversals/length: (rpl) the number of peak \<--\> valley
+ *              size >= %minjump, normalized to the length of the side
+ *            * reversals/length: (rpl) the number of peak <--> valley
  *              reversals, using %minreverse as a minimum deviation of
  *              the peak or valley from its preceding extremum,
  *              normalized to the length of the side

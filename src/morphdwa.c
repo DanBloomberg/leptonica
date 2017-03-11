@@ -70,7 +70,7 @@
  *          composite function is called.
  *
  *      (3) The extended composite function calls the composite function
- *          a number of times with size 63, and once with size \< 63.
+ *          a number of times with size 63, and once with size < 63.
  *          Because each operation with a size of 63 is done compositely
  *          with 7 x 9 (exactly 63), the net result is correct in
  *          length to within 2 pixels.
@@ -106,9 +106,9 @@
  *    (2) Make both the new Sels and dwa code outside the library,
  *        and link it directly to an executable:
  *        ~ Write a function to generate the new Sels in a Sela, and call
- *          fmorphautogen(sela, \<N\>, filename) to generate the code.
+ *          fmorphautogen(sela, <N>, filename) to generate the code.
  *        ~ Compile your program that uses the newly generated function
- *          pixMorphDwa_\<N\>(), and link to the two new C files.
+ *          pixMorphDwa_<N>(), and link to the two new C files.
  *
  *    (3) Make the new Sels in the library and use the dwa code outside it:
  *        ~ Add code in the library to generate your new brick Sels.
@@ -117,9 +117,9 @@
  *          a new Sela.)
  *        ~ Recompile the library.
  *        ~ Write a small program that generates the Sela and calls
- *          fmorphautogen(sela, \<N\>, filename) to generate the code.
+ *          fmorphautogen(sela, <N>, filename) to generate the code.
  *        ~ Compile your program that uses the newly generated function
- *          pixMorphDwa_\<N\>(), and link to the two new C files.
+ *          pixMorphDwa_<N>(), and link to the two new C files.
  *       As an example of this approach, see prog/dwamorph*_reg.c:
  *        ~ added selaAddDwaLinear() to sel2.c
  *        ~ wrote dwamorph1_reg.c, to generate the dwa code.
@@ -155,7 +155,7 @@
  *          with selaAddBasic().
  *      (2) A brick Sel has hits for all elements.
  *      (3) The origin of the Sel is at (x, y) = (hsize/2, vsize/2)
- *      (4) Do separably if both hsize and vsize are \> 1.
+ *      (4) Do separably if both hsize and vsize are > 1.
  *      (5) It is necessary that both horizontal and vertical Sels
  *          of the input size are defined in the basic sela.
  *      (6) There are three cases:
@@ -254,7 +254,7 @@ PIX     *pixt1, *pixt2, *pixt3;
  *          with selaAddBasic().
  *      (2) A brick Sel has hits for all elements.
  *      (3) The origin of the Sel is at (x, y) = (hsize/2, vsize/2)
- *      (4) Do separably if both hsize and vsize are \> 1.
+ *      (4) Do separably if both hsize and vsize are > 1.
  *      (5) It is necessary that both horizontal and vertical Sels
  *          of the input size are defined in the basic sela.
  *      (6) Note that we must always set or clear the border pixels
@@ -356,7 +356,7 @@ PIX     *pixt1, *pixt2, *pixt3;
  *          with selaAddBasic().
  *      (2) A brick Sel has hits for all elements.
  *      (3) The origin of the Sel is at (x, y) = (hsize/2, vsize/2)
- *      (4) Do separably if both hsize and vsize are \> 1.
+ *      (4) Do separably if both hsize and vsize are > 1.
  *      (5) It is necessary that both horizontal and vertical Sels
  *          of the input size are defined in the basic sela.
  *      (6) Note that we must always set or clear the border pixels
@@ -463,7 +463,7 @@ PIX     *pixt1, *pixt2, *pixt3;
  *          with selaAddBasic().
  *      (3) A brick Sel has hits for all elements.
  *      (4) The origin of the Sel is at (x, y) = (hsize/2, vsize/2)
- *      (5) Do separably if both hsize and vsize are \> 1.
+ *      (5) Do separably if both hsize and vsize are > 1.
  *      (6) It is necessary that both horizontal and vertical Sels
  *          of the input size are defined in the basic sela.
  *      (7) Note that we must always set or clear the border pixels
@@ -582,7 +582,7 @@ PIX     *pixt1, *pixt2, *pixt3;
  *          operation into two (brick + comb).
  *      (3) A brick Sel has hits for all elements.
  *      (4) The origin of the Sel is at (x, y) = (hsize/2, vsize/2)
- *      (5) Do separably if both hsize and vsize are \> 1.
+ *      (5) Do separably if both hsize and vsize are > 1.
  *      (6) It is necessary that both horizontal and vertical Sels
  *          of the input size are defined in the basic sela.
  *      (7) There are three cases:
@@ -715,7 +715,7 @@ PIX     *pixt1, *pixt2, *pixt3;
  *          operation into two (brick + comb).
  *      (3) A brick Sel has hits for all elements.
  *      (4) The origin of the Sel is at (x, y) = (hsize/2, vsize/2)
- *      (5) Do separably if both hsize and vsize are \> 1.
+ *      (5) Do separably if both hsize and vsize are > 1.
  *      (6) It is necessary that both horizontal and vertical Sels
  *          of the input size are defined in the basic sela.
  *      (7) There are three cases:
@@ -844,7 +844,7 @@ PIX     *pixt1, *pixt2, *pixt3;
  *          operation into two (brick + comb).
  *      (3) A brick Sel has hits for all elements.
  *      (4) The origin of the Sel is at (x, y) = (hsize/2, vsize/2)
- *      (5) Do separably if both hsize and vsize are \> 1.
+ *      (5) Do separably if both hsize and vsize are > 1.
  *      (6) It is necessary that both horizontal and vertical Sels
  *          of the input size are defined in the basic sela.
  *      (7) There are three cases:
@@ -1011,7 +1011,7 @@ PIX     *pixt1, *pixt2, *pixt3;
  *          operation into two (brick + comb).
  *      (3) A brick Sel has hits for all elements.
  *      (4) The origin of the Sel is at (x, y) = (hsize/2, vsize/2)
- *      (5) Do separably if both hsize and vsize are \> 1.
+ *      (5) Do separably if both hsize and vsize are > 1.
  *      (6) It is necessary that both horizontal and vertical Sels
  *          of the input size are defined in the basic sela.
  *      (7) There are three cases:
@@ -1536,10 +1536,10 @@ PIX     *pixt1, *pixt2, *pixt3;
  *          %size into a set of %n Sels of length 63 plus an extra
  *          Sel of length %extra.
  *      (3) For notation, let w == %size, n == %n, and e == %extra.
- *          We have 1 \< e \< 63.
+ *          We have 1 < e < 63.
  *
- *          Then if w \< 64, we have n = 0 and e = w.
- *          The general formula for w \> 63 is:
+ *          Then if w < 64, we have n = 0 and e = w.
+ *          The general formula for w > 63 is:
  *             w = 63 + (n - 1) * 62 + (e - 1)
  *
  *          Where did this come from?  Each successive convolution with
@@ -1547,7 +1547,7 @@ PIX     *pixt1, *pixt2, *pixt3;
  *          This accounts for using 62 for each additional Sel of size 63,
  *          and using (e - 1) for the additional Sel of size e.
  *
- *          Solving for n and e for w \> 63:
+ *          Solving for n and e for w > 63:
  *             n = 1 + Int((w - 63) / 62)
  *             e = w - 63 - (n - 1) * 62 + 1
  *

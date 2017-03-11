@@ -162,7 +162,7 @@
  *      But if the refcount of pixs is greater than 1, it just copies
  *      the data and decrements the ref count.
  *
- *  (3) Use pixSwapAndDestroy(pixd, \&pixs) to replace pixs by an
+ *  (3) Use pixSwapAndDestroy(pixd, &pixs) to replace pixs by an
  *      existing pixd.  This is similar to pixTransferAllData(), but
  *      simpler, in that it never makes any copies and if pixs is
  *      cloned, the other references are not changed by this operation.
@@ -172,7 +172,7 @@
  *      to convert from a pix to some other data structure with minimal
  *      heap allocation.  After the data is extracated, the pixels can
  *      be munged and used in another context.  However, the danger
- *      here is that the pix might have a refcount \> 1, in which case
+ *      here is that the pix might have a refcount > 1, in which case
  *      a copy of the data must be made and the input pix left unchanged.
  *      If there are no clones, the image data can be extracted without
  *      a copy, and the data ptr in the pix must be nulled before

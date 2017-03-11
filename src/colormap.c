@@ -647,7 +647,7 @@ pixcmapGetDepth(PIXCMAP  *cmap)
  *
  * <pre>
  * Notes:
- *      (1) On error, \&mindepth is returned as 0.
+ *      (1) On error, &mindepth is returned as 0.
  * </pre>
  */
 l_int32

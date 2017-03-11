@@ -450,7 +450,7 @@ PIX      *pixn, *pixm, *pixd, *pix1, *pix2, *pix3, *pix4;
  * <pre>
  * Notes:
  *      (1) The window width and height are 2 * %whsize + 1.  The minimum
- *          value for %whsize is 2; typically it is \>= 7..
+ *          value for %whsize is 2; typically it is >= 7..
  *      (2) For nx == ny == 1, this defaults to pixSauvolaBinarize().
  *      (3) Why a tiled version?
  *          (a) Because the mean value accumulator is a uint32, overflow
@@ -570,7 +570,7 @@ PIXTILING  *pt;
  * <pre>
  * Notes:
  *      (1) The window width and height are 2 * %whsize + 1.  The minimum
- *          value for %whsize is 2; typically it is \>= 7..
+ *          value for %whsize is 2; typically it is >= 7..
  *      (2) The local statistics, measured over the window, are the
  *          average and standard deviation.
  *      (3) The measurements of the mean and standard deviation are
@@ -582,7 +582,7 @@ PIXTILING  *pt;
  *          where:
  *            t = local threshold
  *            m = local mean
- *            k = %factor (\>= 0)   [ typ. 0.35 ]
+ *            k = %factor (>= 0)   [ typ. 0.35 ]
  *            s = local standard deviation, which is maximized at
  *                127.5 when half the samples are 0 and half are 255.
  *      (5) The basic idea of Niblack and Sauvola binarization is that
@@ -681,7 +681,7 @@ PIX     *pixg, *pixsc, *pixm, *pixms, *pixth, *pixd;
  *          where:
  *            t = local threshold
  *            m = local mean
- *            k = %factor (\>= 0)   [ typ. 0.35 ]
+ *            k = %factor (>= 0)   [ typ. 0.35 ]
  *            s = local standard deviation, which is maximized at
  *                127.5 when half the samples are 0 and half are 255.
  *      (2) See pixSauvolaBinarize() for other details.

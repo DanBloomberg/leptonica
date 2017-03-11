@@ -2325,7 +2325,7 @@ l_float32  *lines;
  *
  * <pre>
  * Notes:
- *      (1) For all values of fpix that are \<= thresh, sets the pixel
+ *      (1) For all values of fpix that are <= thresh, sets the pixel
  *          in pixd to 1.
  * </pre>
  */

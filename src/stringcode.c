@@ -613,7 +613,7 @@ l_int32  i, found;
  * Notes:
  *      (1) This is used to identify the type of serialized file;
  *          the first word in the file is the structname.
- *      (2) For valid structname, %found == true and %index \> 0.
+ *      (2) For valid structname, %found == true and %index > 0.
  * </pre>
  */
 static l_int32

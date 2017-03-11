@@ -58,7 +58,7 @@
  *     pixaccMultConst(pacc, 0.4);
  *     pixaccMultConstAccumulate(pacc, pix2, 0.6);  // Add in 0.6 of the second
  *     pixd = pixaccFinal(pacc, d);  // Get the result
- *     pixaccDestroy(\&pacc);
+ *     pixaccDestroy(&pacc);
  * </pre>
  */
 

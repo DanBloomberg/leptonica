@@ -925,8 +925,8 @@ L_RDID  *did;
  *      (1) This is called after the best path has been found through
  *          the trellis, in order to produce a correlation that can be used
  *          to evaluate the confidence we have in the identification.
- *          The correlation is |1 \& 2|^2 / (|1| * |2|).
- *          |1 \& 2| is given by the count array, |2| is found from
+ *          The correlation is |1 & 2|^2 / (|1| * |2|).
+ *          |1 & 2| is given by the count array, |2| is found from
  *          nasum_u[], and |1| is wsum returned from this function.
  * </pre>
  */

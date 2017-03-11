@@ -1437,7 +1437,7 @@ PIXA      *pixa, *pixat;
  *          pixWordBoxesByDilation() for further filtering of the word boxes.
  *      (2) For 75 to 150 ppi, the optimal dilation will be between 5 and 11.
  *          For 200 to 300 ppi, it is advisable to use a larger value
- *          for %maxdil, say between 10 and 20.  Setting maxdil \<= 0
+ *          for %maxdil, say between 10 and 20.  Setting maxdil <= 0
  *          results in a default dilation of 16.
  *      (3) The best size for dilating to get word masks is optionally returned.
  * </pre>
@@ -2181,7 +2181,7 @@ PTA      *ptaul;
  *      (2) The array fields ptac and ptact give the centroids of
  *          those components relative to the UL corner of each component.
  *          Here, we compute the difference in each component, round to
- *          nearest integer, and correct the box-\>x and box-\>y by
+ *          nearest integer, and correct the box->x and box->y by
  *          the appropriate integral difference.
  *      (3) The templates and stored instances are all bordered.
  * </pre>

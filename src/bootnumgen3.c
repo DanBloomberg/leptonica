@@ -39,7 +39,7 @@
  *       L_STRCODE  *strc;
  *       strc = strcodeCreate(103);   // arbitrary integer
  *       strcodeGenerate(strc, "recog/digits/bootnum3.pa", "PIXA");
- *       strcodeFinalize(\&strc, ".");
+ *       strcodeFinalize(&strc, ".");
  *
  *   The two output files, autogen.103.c and autogen.103.h, were
  *   then slightly edited and merged into this file.

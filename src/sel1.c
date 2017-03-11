@@ -1185,7 +1185,7 @@ SARRAY  *sa;
  * <pre>
  * Notes:
           These are the maximum shifts for the erosion operation.
- *        For example, when j \< cx, the shift of the image
+ *        For example, when j < cx, the shift of the image
  *        is +x to the cx.  This is a positive xp shift.
  * </pre>
  */

@@ -101,13 +101,13 @@
  *
  *      For example, to add an arbitrary data structure foo to the
  *      tail of a list, use
- *             listAddToTail(\&head, \&tail, pfoo);
+ *             listAddToTail(&head, &tail, pfoo);
  *      where head and tail are list cell ptrs and pfoo is
  *      a pointer to the foo object.
  *      And to remove an arbitrary data structure foo from a
  *      list, when you know the list cell element it is hanging from,
  *      use
- *             pfoo = listRemoveElement(\&head, elem)
+ *             pfoo = listRemoveElement(&head, elem)
  *      where head and elem are list cell ptrs and pfoo is a pointer
  *      to the foo object.  No casts are required for foo in
  *      either direction in ANSI C.  (However, casts are
@@ -118,8 +118,8 @@
  *      We use doubly-linked cells to simplify insertion
  *      and deletion, and to allow operations to proceed in either
  *      direction along the list.  With doubly-linked lists,
- *      it is tempting to make them circular, by setting head-\>prev
- *      to the tail of the list and tail-\>next to the head.
+ *      it is tempting to make them circular, by setting head->prev
+ *      to the tail of the list and tail->next to the head.
  *      The circular list costs nothing extra in storage, and
  *      allows operations to proceed from either end of the list
  *      with equal speed.  However, the circular link adds
@@ -137,15 +137,15 @@
  *      To run through a list forwards, use:
  *
  *          for (elem = head; elem; elem = nextelem) {
- *              nextelem = elem-\>next;   (in case we destroy elem)
- *              \<do something with elem-\>data\>
+ *              nextelem = elem->next;   (in case we destroy elem)
+ *              <do something with elem->data>
  *          }
  *
  *      To run through a list backwards, find the tail and use:
  *
  *          for (elem = tail; elem; elem = prevelem) {
- #              prevelem = elem-\>prev;  (in case we destroy elem)
- *              \<do something with elem-\>data\>
+ #              prevelem = elem->prev;  (in case we destroy elem)
+ *              <do something with elem->data>
  *          }
  *
  *      Even though these patterns are very simple, they are so common
@@ -153,11 +153,11 @@
  *      macros, this becomes:
  *
  *          L_BEGIN_LIST_FORWARD(head, elem)
- *              \<do something with elem-\>data\>
+ *              <do something with elem->data>
  *          L_END_LIST
  *
  *          L_BEGIN_LIST_REVERSE(tail, elem)
- *              \<do something with elem-\>data\>
+ *              <do something with elem->data>
  *          L_END_LIST
  *
  *      Note again that with macros, the application programmer does
@@ -171,20 +171,20 @@
  *      removing all items from the head of the list, you can use
  *
  *          while (head) {
- *              obj = listRemoveFromHead(\&head);
- *              \<do something with obj\>
+ *              obj = listRemoveFromHead(&head);
+ *              <do something with obj>
  *          }
  *
  *      Removing successive elements from the tail is equally simple:
  *
  *          while (tail) {
- *              obj = listRemoveFromTail(\&head, \&tail);
- *              \<do something with obj\>
+ *              obj = listRemoveFromTail(&head, &tail);
+ *              <do something with obj>
  *          }
  *
  *      When removing an arbitrary element from a list, use
  *
- *              obj = listRemoveElement(\&head, elem);
+ *              obj = listRemoveElement(&head, elem);
  *
  *      All the listRemove*() functions hand you the object,
  *      destroy the list cell to which it was attached, and
@@ -316,8 +316,8 @@ DLLIST  *cell, *head;
  * Notes:
  *      (1) This makes a new cell, attaches the data, and adds the
  *          cell to the tail of the list.
- *      (2) \&head is input to allow the list to be "cons'd" up from NULL.
- *      (3) \&tail is input to allow the tail to be updated
+ *      (2) &head is input to allow the list to be "cons'd" up from NULL.
+ *      (3) &tail is input to allow the tail to be updated
  *          for efficient sequential operation with this function.
  *      (4) We assume that if *phead and/or *ptail are not NULL,
  *          then they are valid addresses.  Therefore:
@@ -383,8 +383,8 @@ DLLIST  *cell, *head, *tail;
  *      (2) If you are searching through a list, looking for a condition
  *          to add an element, you can do something like this:
  *            L_BEGIN_LIST_FORWARD(head, elem)
- *                \<identify an elem to insert before\>
- *                listInsertBefore(\&head, elem, data);
+ *                <identify an elem to insert before>
+ *                listInsertBefore(&head, elem, data);
  *            L_END_LIST
  *
  * </pre>
@@ -447,8 +447,8 @@ DLLIST  *cell, *head;
  *      (2) If you are searching through a list, looking for a condition
  *          to add an element, you can do something like this:
  *            L_BEGIN_LIST_FORWARD(head, elem)
- *                \<identify an elem to insert after\>
- *                listInsertAfter(\&head, elem, data);
+ *                <identify an elem to insert after>
+ *                listInsertAfter(&head, elem, data);
  *            L_END_LIST
  * </pre>
  */
@@ -502,9 +502,9 @@ DLLIST  *cell, *head;
  * <pre>
  * Notes:
  *      (1) in ANSI C, it is not necessary to cast return to actual type; e.g.,
- *             pix = listRemoveElement(\&head, elem);
+ *             pix = listRemoveElement(&head, elem);
  *          but in ANSI C++, it is necessary to do the cast:
- *             pix = (Pix *)listRemoveElement(\&head, elem);
+ *             pix = (Pix *)listRemoveElement(&head, elem);
  * </pre>
  */
 void *
@@ -554,9 +554,9 @@ DLLIST  *head;
  * <pre>
  * Notes:
  *      (1) in ANSI C, it is not necessary to cast return to actual type; e.g.,
- *            pix = listRemoveFromHead(\&head);
+ *            pix = listRemoveFromHead(&head);
  *          but in ANSI C++, it is necessary to do the cast; e.g.,
- *            pix = (Pix *)listRemoveFromHead(\&head);
+ *            pix = (Pix *)listRemoveFromHead(&head);
  * </pre>
  */
 void *
@@ -594,7 +594,7 @@ void    *data;
  *
  * <pre>
  * Notes:
- *      (1) We include \&head so that it can be set to NULL if
+ *      (1) We include &head so that it can be set to NULL if
  *          if the only element in the list is removed.
  *      (2) The function is relying on the fact that if tail is
  *          not NULL, then is is a valid address.  You can use
@@ -602,9 +602,9 @@ void    *data;
  *          which case  the tail is found and updated, and the
  *          removed element is returned.
  *      (3) In ANSI C, it is not necessary to cast return to actual type; e.g.,
- *            pix = listRemoveFromTail(\&head, \&tail);
+ *            pix = listRemoveFromTail(&head, &tail);
  *          but in ANSI C++, it is necessary to do the cast; e.g.,
- *            pix = (Pix *)listRemoveFromTail(\&head, \&tail);
+ *            pix = (Pix *)listRemoveFromTail(&head, &tail);
  * </pre>
  */
 void *

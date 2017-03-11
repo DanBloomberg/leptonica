@@ -493,11 +493,11 @@ l_float32  sum, sumsq, val, mean, var;
  *          any or all of these derived arrays.
  *      (2) These statistical measures over the values in the
  *          rectangular window are:
- *            ~ average value: \<x\>  (nam)
- *            ~ average squared value: \<x*x\> (nams)
- *            ~ variance: \<(x - \<x\>)*(x - \<x\>)\> = \<x*x\> - \<x\>*\<x\>  (nav)
+ *            ~ average value: <x>  (nam)
+ *            ~ average squared value: <x*x> (nams)
+ *            ~ variance: <(x - <x>)*(x - <x>)> = <x*x> - <x>*<x>  (nav)
  *            ~ square-root of variance: (narv)
- *          where the brackets \< .. \> indicate that the average value is
+ *          where the brackets < .. > indicate that the average value is
  *          to be taken over the window.
  *      (3) Note that the variance is just the mean square difference from
  *          the mean value; and the square root of the variance is the
@@ -683,7 +683,7 @@ NUMA       *na1, *nad;
  *          are returned, where the variance is the average over the
  *          window of the mean square difference of the pixel value
  *          from the mean:
- *                \<(x - \<x\>)*(x - \<x\>)\> = \<x*x\> - \<x\>*\<x\>
+ *                <(x - <x>)*(x - <x>)> = <x*x> - <x>*<x>
  * </pre>
  */
 l_int32
@@ -748,7 +748,7 @@ NUMA       *nav, *narv;  /* variance and square root of variance */
  * Notes:
  *      (1) The requested window has width = 2 * %halfwin + 1.
  *      (2) If the input nas has less then 3 elements, return a copy.
- *      (3) If the filter is too small (%halfwin \<= 0), return a copy.
+ *      (3) If the filter is too small (%halfwin <= 0), return a copy.
  *      (4) If the filter is too large, it is reduced in size.
  *      (5) We add a mirrored border of size %halfwin to each end of
  *          the array to simplify the calculation by avoiding end-effects.
@@ -849,7 +849,7 @@ NUMA    *nad;
  *          the size of bins necessary to accommodate the input data,
  *          is returned.  It is one of the sequence:
  *                {1, 2, 5, 10, 20, 50, ...}.
- *      (3) If \&binstart is given, all values are accommodated,
+ *      (3) If &binstart is given, all values are accommodated,
  *          and the min value of the starting bin is returned.
  *          Otherwise, all negative values are discarded and
  *          the histogram bins start at 0.
@@ -1044,7 +1044,7 @@ NUMA      *nah;
  * <pre>
  * Notes:
  *      (1) This simple function generates a histogram of values
- *          from na, discarding all values \< 0.0 or greater than
+ *          from na, discarding all values < 0.0 or greater than
  *          min(%maxsize, maxval), where maxval is the maximum value in na.
  *          The histogram data is put in bins of size delx = %binsize,
  *          starting at x = 0.0.  We use as many bins as are
@@ -1227,7 +1227,7 @@ NUMA      *nad;
  *          Use %maxbins == 0 to force the bin size to be 1.
  *      (6) This optionally returns the median and one arbitrary rank value.
  *          If you need several rank values, return the histogram and use
- *               numaHistogramGetValFromRank(nah, rank, \&rval)
+ *               numaHistogramGetValFromRank(nah, rank, &rval)
  *          multiple times.
  * </pre>
  */
@@ -1671,10 +1671,10 @@ l_float32  startval, binsize, rankcount, total, sum, fract, val;
  *          array values, but any array of non-negative numbers will work.
  *      (3) The output arrays give the following mappings, where the
  *          input is a normalized histogram of array values:
- *             array values     --\>  rank bin number  (narbin)
- *             rank bin number  --\>  median array value in bin (nam)
- *             array values     --\>  cumulative norm = rank  (nar)
- *             rank bin number  --\>  array value at right bin edge (nabb)
+ *             array values     -->  rank bin number  (narbin)
+ *             rank bin number  -->  median array value in bin (nam)
+ *             array values     -->  cumulative norm = rank  (nar)
+ *             rank bin number  -->  array value at right bin edge (nabb)
  * </pre>
  */
 l_int32
@@ -1821,8 +1821,8 @@ l_float32  sum, midrank, endrank, val;
  * Notes:
  *      (1) Simple interface for getting a binned rank representation
  *          of an input array of values.  This returns two mappings:
- *             array value     --\>  rank bin number  (narbin)
- *             rank bin number --\>  median array value in each rank bin (nam)
+ *             array value     -->  rank bin number  (narbin)
+ *             rank bin number -->  median array value in each rank bin (nam)
  * </pre>
  */
 l_int32
@@ -2215,11 +2215,11 @@ NUMA       *na3;
  *         where each histogram is one row of the array.  The stats are
  *         then aggregated column-wise, between the histograms.
  *     (2) These stats are:
- *            ~ average value: \<v\>  (nam)
- *            ~ average squared value: \<v*v\> (nams)
- *            ~ variance: \<(v - \<v\>)*(v - \<v\>)\> = \<v*v\> - \<v\>*\<v\>  (nav)
+ *            ~ average value: <v>  (nam)
+ *            ~ average squared value: <v*v> (nams)
+ *            ~ variance: <(v - <v>)*(v - <v>)> = <v*v> - <v>*<v>  (nav)
  *            ~ square-root of variance: (narv)
- *         where the brackets \< .. \> indicate that the average value is
+ *         where the brackets < .. > indicate that the average value is
  *         to be taken over each column of the array.
  *     (3) The input histograms are optionally smoothed before these
  *         statistical operations.
@@ -2987,7 +2987,7 @@ l_float32  bestwidth, bestshift, bestscore;
  *      (3) To get a Haar-like result, use relweight = 1.0.  For detecting
  *          signals where you expect every other sample to be close to
  *          zero, as with barcodes or filtered text lines, you can
- *          use relweight \> 1.0.
+ *          use relweight > 1.0.
  * </pre>
  */
 l_int32

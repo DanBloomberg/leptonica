@@ -1208,7 +1208,7 @@ makeGaussianKernelSep(l_int32    halfheight,
  *      (4) The halfwidth and halfheight are typically equal, and
  *          are typically several times larger than the standard deviation.
  *      (5) The ratio is the ratio of standard deviations of the wide
- *          to narrow gaussian.  It must be \>= 1.0; 1.0 is a no-op.
+ *          to narrow gaussian.  It must be >= 1.0; 1.0 is a no-op.
  *      (6) Because the kernel is a null sum, it must be invoked without
  *          normalization in pixConvolve().
  * </pre>

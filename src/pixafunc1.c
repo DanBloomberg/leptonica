@@ -2079,7 +2079,7 @@ PIX     *pixs, *pixd;
  * Notes:
  *      (1) This 'flattens' the pixaa to a pixa, taking the pix in
  *          order in the first pixa, then the second, etc.
- *      (2) If \&naindex is defined, we generate a Numa that gives, for
+ *      (2) If &naindex is defined, we generate a Numa that gives, for
  *          each pix in the pixaa, the index of the pixa to which it belongs.
  * </pre>
  */

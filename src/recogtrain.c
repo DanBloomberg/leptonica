@@ -2391,7 +2391,7 @@ PIXA      *pixa1, *pixa2;
  *          (b) Both the input pix and the matching template.  In this case,
  *              pix2 and box will both be null.
  *      (2) If the bmf has been made (by a call to recogMakeBmf())
- *          and the index \>= 0, the text field, match score and index
+ *          and the index >= 0, the text field, match score and index
  *          will be rendered; otherwise their values will be ignored.
  * </pre>
  */

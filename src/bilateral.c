@@ -111,19 +111,19 @@ static void bilateralDestroy(L_BILATERAL **pbil);
  *      (2) We impose minimum values for range_stdev and ncomps to
  *          avoid nasty artifacts when either are too small.  We also
  *          impose a constraint on their product:
- *               ncomps * range_stdev \>= 100.
- *          So for values of range_stdev \>= 25, ncomps can be as small as 4.
+ *               ncomps * range_stdev >= 100.
+ *          So for values of range_stdev >= 25, ncomps can be as small as 4.
  *          Here is a qualitative, intuitive explanation for this constraint.
  *          Call the difference in k values between the J(k) == 'delta', where
  *              'delta' ~ 200 / ncomps
  *          Then this constraint is roughly equivalent to the condition:
- *              'delta' \< 2 * range_stdev
+ *              'delta' < 2 * range_stdev
  *          Note that at an intensity difference of (2 * range_stdev), the
  *          range part of the kernel reduces the effect by the factor 0.14.
  *          This constraint requires that we have a sufficient number of
  *          PCBs (i.e, a small enough 'delta'), so that for any value of
  *          image intensity I, there exists a k (and a PCB, J(k), such that
- *              |I - k| \< range_stdev
+ *              |I - k| < range_stdev
  *          Any fewer PCBs and we don't have enough to support this condition.
  *      (3) The upper limit of 30 on ncomps is imposed because the
  *          gain in accuracy is not worth the extra computation.

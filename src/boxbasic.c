@@ -789,7 +789,7 @@ boxaGetBox(BOXA    *boxa,
  * <pre>
  * Notes:
  *      (1) This returns NULL for an invalid box in a boxa.
- *          For a box to be valid, both the width and height must be \> 0.
+ *          For a box to be valid, both the width and height must be > 0.
  *      (2) We allow invalid boxes, with w = 0 or h = 0, as placeholders
  *          in boxa for which the index of the box in the boxa is important.
  *          This is an atypical situation; usually you want to put only
@@ -1158,7 +1158,7 @@ BOXA    *boxad;
  *             Boxa *boxa = boxaCreate(max);
  *             Box *box = boxCreate(...);
  *             boxaInitFull(boxa, box);
- *             boxDestroy(\&box);
+ *             boxDestroy(&box);
  *          If we have an existing boxa with a smaller ptr array, it can
  *          be reused for up to max boxes:
  *             boxaExtendArrayToSize(boxa, max);

@@ -195,7 +195,7 @@ l_int32  i;
  * Notes:
  *      (1) If valid == 1, the barcode is of the given format in the
  *          forward order; if valid == 2, it is backwards.
- *      (2) If the barcode needs to be reversed to read it, and \&reverse
+ *      (2) If the barcode needs to be reversed to read it, and &reverse
  *          is provided, a 1 is put into %reverse.
  *      (3) Add to this as more formats are supported.
  * </pre>

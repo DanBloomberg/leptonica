@@ -331,8 +331,8 @@ byteConvert4to3(l_uint8  *in4,
  * <pre>
  * Notes:
  *      (1) Ghostscript has a stack break if the last line of
- *          data only has a '\>', so we avoid the problem by
- *          always putting '~\>' on the last line.
+ *          data only has a '>', so we avoid the problem by
+ *          always putting '~>' on the last line.
  * </pre>
  */
 char *
@@ -467,7 +467,7 @@ l_int32   eof, index, nread, nbout, i;
  * <pre>
  * Notes:
  *      (1) We assume the data is properly encoded, so we do not check
- *          for invalid characters or the final '\>' character.
+ *          for invalid characters or the final '>' character.
  *      (2) We permit whitespace to be added to the encoding in an
  *          arbitrary way.
  * </pre>

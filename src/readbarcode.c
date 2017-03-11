@@ -76,7 +76,7 @@
  *  Codabar and UPCA.  To add another barcode format, it is necessary
  *  to make changes in readbarcode.h and bardecode.c.
  *  The program prog/barcodetest shows how to run from the top level
- *  (image --\> decoded data).
+ *  (image --> decoded data).
  * </pre>
  */
 

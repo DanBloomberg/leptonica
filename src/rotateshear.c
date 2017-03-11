@@ -103,7 +103,7 @@
  *  lost at the edges than when using pixRotationBySampling(), which
  *  only loses pixels because they are rotated out of the image.
  *  For larger rotations, use pixRotationBySampling() or, for
- *  more accuracy when d \> 1 bpp, pixRotateAM().
+ *  more accuracy when d > 1 bpp, pixRotateAM().
  *
  *  For small angles, when comparing the quality of rotation by
  *  sampling and by shear, you can see that rotation by sampling
@@ -129,7 +129,7 @@
  *      this will use 2-shear rotations, because 3-shears cause more
  *      visible artifacts in straight lines and, for small angles, the
  *      distortion in asperity ratio is small.
- *    * For d \> 1, shear is faster than sampling, which is faster than
+ *    * For d > 1, shear is faster than sampling, which is faster than
  *      area mapping.  However, area mapping gives the best results.
  *  These results are used in selecting the rotation methods in
  *  pixRotateShear().

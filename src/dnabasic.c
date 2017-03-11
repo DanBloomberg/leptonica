@@ -116,13 +116,13 @@
  *           (a) return a l_float64 and cast it to an l_int32
  *           (b) cast the return directly to (l_float64 *) to
  *               satisfy the function prototype, as in
- *                 l_dnaGetDValue(da, index, (l_float64 *)\&ival);   [ugly!]
+ *                 l_dnaGetDValue(da, index, (l_float64 *)&ival);   [ugly!]
  *
- *    (4) int \<--\> double conversions:
+ *    (4) int <--> double conversions:
  *
- *        Conversions go automatically from l_int32 --\> l_float64,
+ *        Conversions go automatically from l_int32 --> l_float64,
  *        without loss of precision.  You must cast (l_int32)
- *        to go from l_float64 --\> l_int32 because you're truncating
+ *        to go from l_float64 --> l_int32 because you're truncating
  *        to the integer value.
  *
  *    (5) As with other arrays in leptonica, the l_dna has both an allocated
@@ -352,7 +352,7 @@ L_DNA  *da;
  *
  * <pre>
  * Notes:
- *      (1) This removes unused ptrs above da-\>n.
+ *      (1) This removes unused ptrs above da->n.
  * </pre>
  */
 L_DNA *
@@ -488,7 +488,7 @@ l_dnaExtendArray(L_DNA  *da)
  *
  * <pre>
  * Notes:
- *      (1) This shifts da[i] --\> da[i + 1] for all i \>= index,
+ *      (1) This shifts da[i] --> da[i + 1] for all i >= index,
  *          and then inserts val as da[index].
  *      (2) It should not be used repeatedly on large arrays,
  *          because the function is O(n).
@@ -529,7 +529,7 @@ l_int32  i, n;
  *
  * <pre>
  * Notes:
- *      (1) This shifts da[i] --\> da[i - 1] for all i \> index.
+ *      (1) This shifts da[i] --> da[i - 1] for all i > index.
  *      (2) It should not be used repeatedly on large arrays,
  *          because the function is O(n).
  * </pre>
@@ -612,10 +612,10 @@ l_dnaGetCount(L_DNA  *da)
  *
  * <pre>
  * Notes:
- *      (1) If newcount \<= da-\>nalloc, this resets da-\>n.
+ *      (1) If newcount <= da->nalloc, this resets da->n.
  *          Using newcount = 0 is equivalent to l_dnaEmpty().
- *      (2) If newcount \> da-\>nalloc, this causes a realloc
- *          to a size da-\>nalloc = newcount.
+ *      (2) If newcount > da->nalloc, this causes a realloc
+ *          to a size da->nalloc = newcount.
  *      (3) All the previously unused values in da are set to 0.0.
  * </pre>
  */
