@@ -82,8 +82,7 @@ L_RECOG  *recog;
         pixDisplay(pix1, 100, 100);
         pix2 = GetBigComponent(pix1);
         if (debug) {
-            recogIdentifyMultiple(recog, pix2, 0, -1, -1, 0,
-                                  &boxa, NULL, &pixdb, 1);
+            recogIdentifyMultiple(recog, pix2, 0, 0, &boxa, NULL, &pixdb, 1);
             rchaExtract(recog->rcha, NULL, &nascore, NULL, NULL,
                         NULL, NULL, NULL);
             pixDisplay(pixdb, 300, 500);
@@ -93,8 +92,7 @@ L_RECOG  *recog;
             pixDestroy(&pixdb);
         } else {  /* just get the timing */
             startTimer();
-            recogIdentifyMultiple(recog, pix2, 0, -1, -1, 0,
-                                  &boxa, NULL, NULL, 0);
+            recogIdentifyMultiple(recog, pix2, 0, 0, &boxa, NULL, NULL, 0);
             fprintf(stderr, "Time: %5.3f\n", stopTimer());
         }
         pixDestroy(&pix1);

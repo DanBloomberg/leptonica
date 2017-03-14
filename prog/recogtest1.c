@@ -146,8 +146,7 @@ SARRAY    *sa, *satext;
         /* Split touching characters */
     fprintf(stderr, "Split touching\n");
     pixd = pixRead("recog/digits/page.590.png");  /* 590 or 306 */
-    recogIdentifyMultiple(recog1, pixd, 3, -1, -1, 0,
-                          &boxat, &pixa2, &pixdb, 1);
+    recogIdentifyMultiple(recog1, pixd, 0, 0, &boxat, &pixa2, &pixdb, 1);
     pixDisplay(pixdb, 800, 800);
     boxaWriteStream(stderr, boxat);
     pix1 = pixaDisplay(pixa2, 0, 0);

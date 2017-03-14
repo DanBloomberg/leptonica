@@ -304,7 +304,7 @@ PIX     *pix1, *pix2, *pix3, *pix4;
     pixDestroy(&pix1);
 
         /* Remove isolated noise, using as a criterion all components
-         * that are removed by a vertical opening of size 3. */
+         * that are removed by a vertical opening of size 5. */
     pix3 = pixMorphSequence(pix2, "o1.5", 0);  /* seed */
     pixSeedfillBinary(pix3, pix3, pix2, 8);  /* fill from seed; clip to pix2 */
     pixDestroy(&pix2);
@@ -622,9 +622,8 @@ L_RECOG   *recog;
         /* Get the range of widths of the scaled average templates */
     pixaSizeRange(recog->pixa, &recog->minwidth, NULL, &recog->maxwidth, NULL);
 
-       /* Get min and max splitting dimensions */
+       /* Get dimensions useful for splitting */
     recog->min_splitw = L_MAX(5, recog->minwidth_u - 5);
-    recog->min_splith = L_MAX(5, recog->minheight_u - 5);
     recog->max_splith = recog->maxheight_u + 12;  /* allow for skew */
 
     if (debug)
@@ -2129,8 +2128,8 @@ PIXA      *pixat, *pixadb;
     fprintf(stderr, "min/max width_u = (%d,%d); min/max height_u = (%d,%d)\n",
             recog->minwidth_u, recog->maxwidth_u,
             recog->minheight_u, recog->maxheight_u);
-    fprintf(stderr, "min splitw = %d, min/max splith = (%d,%d)\n",
-            recog->min_splitw, recog->min_splith, recog->max_splith);
+    fprintf(stderr, "min splitw = %d, max splith = %d\n",
+            recog->min_splitw, recog->max_splith);
 
     pixaDestroy(&recog->pixadb_ave);
 

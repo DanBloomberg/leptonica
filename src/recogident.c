@@ -100,6 +100,7 @@ static const l_int32    LeftRightPadding = 32;
 
     /* Parameters for filtering and sorting connected components in splitter */
 static const l_float32  MinFillFactor = 0.10;
+static const l_int32  DefaultMinHeight = 15;  /* min unscaled height */
 static const l_int32  MinOverlap1 = 6;  /* in pass 1 of boxaSort2d() */
 static const l_int32  MinOverlap2 = 6;  /* in pass 2 of boxaSort2d() */
 static const l_int32  MinHeightPass1 = 5;  /* min height to start pass 1 */
@@ -116,10 +117,11 @@ static L_RCH *rchCreate(l_int32 index, l_float32 score, char *text,
                         l_int32 width);
 static L_RCHA *rchaCreate();
 static l_int32 transferRchToRcha(L_RCH *rch, L_RCHA *rcha);
-static PIX *recogPreSplittingFilter(L_RECOG *recog, PIX *pixs,
+static PIX *recogPreSplittingFilter(L_RECOG *recog, PIX *pixs, l_int32 minh,
                                     l_float32 minaf, l_int32 debug);
-static l_int32 recogSplittingFilter(L_RECOG *recog, PIX *pixs, l_float32 minaf,
-                                    l_int32 *premove, l_int32 debug);
+static l_int32 recogSplittingFilter(L_RECOG *recog, PIX *pixs, l_int32 min,
+                                    l_float32 minaf, l_int32 *premove,
+                                    l_int32 debug);
 static void l_showIndicatorSplitValues(NUMA *na1, NUMA *na2, NUMA *na3,
                                        NUMA *na4, NUMA *na5, NUMA *na6);
 
@@ -129,36 +131,22 @@ static void l_showIndicatorSplitValues(NUMA *na1, NUMA *na2, NUMA *na3,
 /*!
  * \brief   recogIdentifyMultiple()
  *
- * \param[in]    recog with training finished
- * \param[in]    pixs containing typically a small number of characters
- * \param[in]    nitems to be identified in pix; use 0 if not known
- * \param[in]    minw remove components with width less than this;
- *                    use -1 for removing all noise components
- * \param[in]    minh remove components with height less than this;
- *                    use -1 for removing all noise components
- * \param[in]    skipsplit 1 to skip the splitting step
+ * \param[in]    recog      with training finished
+ * \param[in]    pixs       containing typically a small number of characters
+ * \param[in]    minh       remove shorter components; use 0 for default
+ * \param[in]    skipsplit  1 to skip the splitting step
  * \param[out]   pboxa [optional] locations of identified components
  * \param[out]   ppixa [optional] images of identified components
  * \param[out]   ppixdb [optional] debug pix: inputs and best fits
  * \param[in]    debugsplit 1 returns pix split debugging images
  * \return  0 if OK; 1 if nothing is found; 2 for other errors.
- *              Get a warning if nitems and the number found are both > 0,
- *              but not equal to each other.
  *
  * <pre>
  * Notes:
- *      (1) This filters the input pixa, looking for %nitems if requested.
- *          Set %nitems == 0 if you don't know how many chars to expect.
- *      (2) This bundles the filtered components into a pixa and calls
- *          recogIdentifyPixa().  If %nitems > 0, use %minw = -1 and
- *          %minh = -1 to remove all noise components.
- *      (3) Set %minw = 0 and %minh = 0 to get all noise components.
- *          Set %minw > 0 and/or %minh > 0 to retain selected noise components.
- *          All noise components are recognized as an empty string with
- *          a score of 0.0.
- *      (4) Splitting is relatively slow, because it tries to match all
+ *      (1) This filters the input pixa and calls recogIdentifyPixa()
+ *      (2) Splitting is relatively slow, because it tries to match all
  *          character templates to all locations.  This step can be skipped.
- *      (5) An attempt is made to order the (optionally) returned images
+ *      (3) An attempt is made to order the (optionally) returned images
  *          and boxes in 2-dimensional sorted order.  These can then
  *          be used to aggregate identified characters into numbers or words.
  *          One typically wants the pixa, which contains a boxa of the
@@ -168,8 +156,6 @@ static void l_showIndicatorSplitValues(NUMA *na1, NUMA *na2, NUMA *na3,
 l_int32
 recogIdentifyMultiple(L_RECOG  *recog,
                       PIX      *pixs,
-                      l_int32   nitems,
-                      l_int32   minw,
                       l_int32   minh,
                       l_int32   skipsplit,
                       BOXA    **pboxa,
@@ -181,7 +167,6 @@ l_int32  n;
 BOXA    *boxa;
 PIX     *pixb;
 PIXA    *pixa;
-NUMA    *naid;
 
     PROCNAME("recogIdentifyMultiple");
 
@@ -202,21 +187,17 @@ NUMA    *naid;
         pixb = pixClone(pixs);
 
         /* Noise removal and splitting of touching characters */
-    recogSplitIntoCharacters(recog, pixb, minw, minh, skipsplit,
-                             &boxa, &pixa, &naid, debugsplit);
+    recogSplitIntoCharacters(recog, pixb, minh, skipsplit, &boxa, &pixa,
+                             debugsplit);
     pixDestroy(&pixb);
     if (!pixa || (n = pixaGetCount(pixa)) == 0) {
         pixaDestroy(&pixa);
         boxaDestroy(&boxa);
-        numaDestroy(&naid);
         L_WARNING("nothing found\n", procName);
         return 1;
     }
 
-    if (nitems > 0 && n != nitems)
-        L_WARNING("Expected %d items; found %d\n", procName, nitems, n);
-
-    recogIdentifyPixa(recog, pixa, naid, ppixdb);
+    recogIdentifyPixa(recog, pixa, ppixdb);
     if (pboxa)
         *pboxa = boxa;
     else
@@ -225,8 +206,6 @@ NUMA    *naid;
         *ppixa = pixa;
     else
         pixaDestroy(&pixa);
-
-    numaDestroy(&naid);
     return 0;
 }
 
@@ -238,16 +217,12 @@ NUMA    *naid;
  * \brief   recogSplitIntoCharacters()
  *
  * \param[in]    recog
- * \param[in]    pixs 1 bpp, contains only mostly deskewed text
- * \param[in]    minw remove components with width less than this;
- *                    use -1 for default removing out of band components
- * \param[in]    minh remove components with height less than this;
- *                    use -1 for default removing out of band components
+ * \param[in]    pixs      1 bpp, contains only mostly deskewed text
+ * \param[in]    minh      remove shorter components; use 0 for default
  * \param[in]    skipsplit 1 to skip the splitting step
- * \param[out]   pboxa character bounding boxes
- * \param[out]   ppixa character images
- * \param[out]   pnaid indices of components to identify
- * \param[in]    debug 1 for results written to pixadb_split
+ * \param[out]   pboxa     character bounding boxes
+ * \param[out]   ppixa     character images
+ * \param[in]    debug     1 for results written to pixadb_split
  * \return  0 if OK, 1 on error or if no components are returned
  *
  * <pre>
@@ -257,20 +232,11 @@ NUMA    *naid;
  *          components based on document image decoding in recogDecode().
  *          The returned pixa includes the boxes from which the
  *          (possibly split) components are extracted.
- *      (2) If either %minw < 0 or %minh < 0, noise components are
- *          filtered out, and the returned %naid array is all 1.
- *          Otherwise, some noise components whose dimensions (w,h)
- *          satisfy w >= %minw and h >= %minh are allowed through, but
- *          they are identified in the returned %naid, where they are
- *          labeled by 0 to indicate that they are not to be run
- *          through identification.  Retaining the noise components
- *          provides spatial information that can help applications
- *          interpret the results.
- *      (3) In addition to optional filtering of the noise, the
- *          resulting components are put in row-major (2D) order,
- *          and the smaller of overlapping components are removed if
- *          they satisfy conditions of relative size and fractional overlap.
- *      (4) Note that the spliting function uses unscaled templates
+ *      (2) After noise filtering, the resulting components are put in
+ *          row-major (2D) order, and the smaller of overlapping
+ *          components are removed if they satisfy conditions of
+ *          relative size and fractional overlap.
+ *      (3) Note that the spliting function uses unscaled templates
  *          and does not bother returning the class results and scores.
  *          Thes are more accurately found later using the scaled templates.
  * </pre>
@@ -278,22 +244,18 @@ NUMA    *naid;
 l_int32
 recogSplitIntoCharacters(L_RECOG  *recog,
                          PIX      *pixs,
-                         l_int32   minw,
                          l_int32   minh,
                          l_int32   skipsplit,
                          BOXA    **pboxa,
                          PIXA    **ppixa,
-                         NUMA    **pnaid,
                          l_int32   debug)
 {
 static l_int32  ind = 0;
 char     buf[32];
-l_int32  empty, maxw, bw, ncomp, same, savenoise, scaling;
-l_int32  i, j, n, n3, xoff, yoff;
+l_int32  i, n, xoff, yoff, empty, maxw, bw, ncomp, scaling;
 BOX     *box, *box3;
-BOXA    *boxa1, *boxa2, *boxa3, *boxa4, *boxa5, *boxad;
+BOXA    *boxa1, *boxa2, *boxa3, *boxa4, *boxad;
 BOXAA   *baa;
-NUMA    *naid;
 PIX     *pix, *pix1, *pix2, *pix3;
 PIXA    *pixa;
 
@@ -303,15 +265,15 @@ PIXA    *pixa;
 
     if (pboxa) *pboxa = NULL;
     if (ppixa) *ppixa = NULL;
-    if (pnaid) *pnaid = NULL;
-    if (!pboxa || !ppixa || !pnaid)
-        return ERROR_INT("&boxa, &pixa and &naid not defined", procName, 1);
+    if (!pboxa || !ppixa)
+        return ERROR_INT("&boxa and &pixa not defined", procName, 1);
     if (!recog)
         return ERROR_INT("recog not defined", procName, 1);
     if (!recog->train_done)
         return ERROR_INT("training not finished", procName, 1);
     if (!pixs || pixGetDepth(pixs) != 1)
         return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+    if (minh <= 0) minh = DefaultMinHeight;
     pixZero(pixs, &empty);
     if (empty) return 1;
 
@@ -320,25 +282,9 @@ PIXA    *pixa;
     pix1 = pixMorphSequence(pixs, "c1.3", 0);
 
         /* Carefully filter out noise */
-    pix2 = recogPreSplittingFilter(recog, pix1, MinFillFactor, debug);
+    pix2 = recogPreSplittingFilter(recog, pix1, minh, MinFillFactor, debug);
 
-        /* Optionally, save a boxa of noise components, filtered
-         * according to input parameters %minw and %minh */
-    boxa3 = NULL;
-    savenoise = (minw >= 0 && minh >= 0);
-    if (savenoise) {  /* accept some noise comonents */
-        pixXor(pix1, pix1, pix2);  /* leave noise components only in pix1 */
-        pixZero(pix1, &empty);
-        if (!empty) {
-            boxa4 = pixConnComp(pix1, NULL, 8);
-            boxa3 = boxaSelectBySize(boxa4, minw, minh, L_SELECT_IF_BOTH,
-                                     L_SELECT_IF_GTE, NULL);
-            boxaDestroy(&boxa4);
-        }
-    }
-    pixDestroy(&pix1);
-
-        /* Get the 8-connected non-noise components to be split/identified */
+        /* Get the 8-connected components to be split/identified */
     boxa1 = pixConnComp(pix2, NULL, 8);
     pixDestroy(&pix2);
     ncomp = boxaGetCount(boxa1);
@@ -349,7 +295,7 @@ PIXA    *pixa;
         return 1;
     }
 
-        /* Save everything and split the large non-noise components */
+        /* Save everything and split the large components */
     boxa2 = boxaCreate(ncomp);
     maxw = recog->maxwidth_u + 5;
     scaling = (recog->scalew > 0 || recog->scaleh > 0) ? TRUE : FALSE;
@@ -365,29 +311,29 @@ PIXA    *pixa;
             pix = pixClipRectangle(pixs, box, NULL);
 #if SPLIT_WITH_DID
             if (!debug) {
-                boxa4 = recogDecode(recog, pix, 2, NULL);
+                boxa3 = recogDecode(recog, pix, 2, NULL);
             } else {
-                boxa4 = recogDecode(recog, pix, 2, &pix2);
+                boxa3 = recogDecode(recog, pix, 2, &pix2);
                 pixaAddPix(pixa, pix2, L_INSERT);
             }
 #else  /* use greedy splitting */
-            recogCorrelationBestRow(recog, pix, &boxa4, NULL, NULL,
+            recogCorrelationBestRow(recog, pix, &boxa3, NULL, NULL,
                                     NULL, debug);
             if (debug) {
                 pix2 = pixConvertTo32(pix);
-                pixRenderBoxaArb(pix2, boxa4, 2, 255, 0, 0);
+                pixRenderBoxaArb(pix2, boxa3, 2, 255, 0, 0);
                 pixaAddPix(pixa, pix2, L_INSERT);
             }
 #endif  /* SPLIT_WITH_DID */
             pixDestroy(&pix);
             boxDestroy(&box);
-            if (!boxa4) {
-              L_ERROR("boxa4 not found for component %d\n", procName, i);
+            if (!boxa3) {
+                L_ERROR("boxa3 not found for component %d\n", procName, i);
             } else {
-              boxa5 = boxaTransform(boxa4, xoff, yoff, 1.0, 1.0);
-              boxaJoin(boxa2, boxa5, 0, -1);
-              boxaDestroy(&boxa4);
-              boxaDestroy(&boxa5);
+                boxa4 = boxaTransform(boxa3, xoff, yoff, 1.0, 1.0);
+                boxaJoin(boxa2, boxa4, 0, -1);
+                boxaDestroy(&boxa3);
+                boxaDestroy(&boxa4);
             }
         }
     }
@@ -400,18 +346,13 @@ PIXA    *pixa;
         pixDestroy(&pix3);
     }
 
-        /* If the noise boxa was retained, add it back in, so we have
-         * a mixture of non-noise and noise components. */
-    if (boxa3)
-        boxaJoin(boxa2, boxa3, 0, -1);
-
         /* Do a 2D sort on the bounding boxes, and flatten the result to 1D.
          * For the 2D sort, to add a box to an existing boxa, we require
          * specified minimum vertical overlaps for the first two passes
          * of the 2D sort.  In pass 1, only components with sufficient
          * height can start a new boxa. */
     baa = boxaSort2d(boxa2, NULL, MinOverlap1, MinOverlap2, MinHeightPass1);
-    boxa4 = boxaaFlattenToBoxa(baa, NULL, L_CLONE);
+    boxa3 = boxaaFlattenToBoxa(baa, NULL, L_CLONE);
     boxaaDestroy(&baa);
     boxaDestroy(&boxa2);
 
@@ -422,36 +363,12 @@ PIXA    *pixa;
          * components are in a flattened 2D sort, we don't need to
          * look far ahead in the array to find all overlapping boxes;
          * 10 boxes is plenty. */
-    boxad = boxaHandleOverlaps(boxa4, L_COMBINE, 10, 0.5, 0.3, NULL);
-    boxaDestroy(&boxa4);
-
-        /* If savenoise == true and there are components in boxa3,
-         * use the full set of noise components in boxa3 to identify
-         * the remaining ones in boxad. */
-    n = boxaGetCount(boxad);
-    naid = numaMakeConstant(1, n);
-    if (savenoise && boxa3) {
-        n3 = boxaGetCount(boxa3);
-        for (i = 0; i < n; i++) {
-            box = boxaGetBox(boxad, i, L_CLONE);
-            for (j = 0; j < n3; j++) {
-                box3 = boxaGetBox(boxa3, j, L_CLONE);
-                boxEqual(box, box3, &same);
-                boxDestroy(&box3);
-                if (same) {
-                    numaSetValue(naid, i, 0);  /* label noise 0 */
-                    break;
-                }
-            }
-            boxDestroy(&box);
-        }
-    }
+    boxad = boxaHandleOverlaps(boxa3, L_COMBINE, 10, 0.5, 0.3, NULL);
     boxaDestroy(&boxa3);
 
         /* Extract and save the image pieces from the input image. */
     *ppixa = pixClipRectangles(pixs, boxad);
     *pboxa = boxad;
-    *pnaid = naid;
     return 0;
 }
 
@@ -552,7 +469,7 @@ l_int32    iter;
         boxGetGeometry(boxc, &bxc, NULL, &bwc, NULL);
 
             /* This is a single component; if noise, remove it */
-        recogSplittingFilter(recog, pixc, MinFillFactor, &remove, debug);
+        recogSplittingFilter(recog, pixc, 0, MinFillFactor, &remove, debug);
         if (debug)
             fprintf(stderr, "iter = %d, removed = %d\n", iter, remove);
         if (remove) {
@@ -942,7 +859,6 @@ PIX        *pixt, *pixt1, *pixt2;
  *
  * \param[in]    recog
  * \param[in]    pixa of 1 bpp images to match
- * \param[in]    naid [optional] indices of components to identify; can be null
  * \param[out]   ppixdb [optional] pix showing inputs and best fits
  * \return  0 if OK, 1 on error
  *
@@ -959,13 +875,11 @@ PIX        *pixt, *pixt1, *pixt2;
 l_int32
 recogIdentifyPixa(L_RECOG  *recog,
                   PIXA     *pixa,
-                  NUMA     *naid,
                   PIX     **ppixdb)
 {
 char      *text;
-l_int32    i, n, doit, fail, index, depth;
+l_int32    i, n, fail, index, depth;
 l_float32  score;
-NUMA      *naidt;
 PIX       *pix1, *pix2, *pix3;
 PIXA      *pixa1;
 L_RCH     *rch;
@@ -978,15 +892,9 @@ L_RCH     *rch;
     if (!pixa)
         return ERROR_INT("pixa not defined", procName, 1);
 
-        /* Set up the components to run through the recognizer */
-    n = pixaGetCount(pixa);
-    if (naid)
-        naidt = numaClone(naid);
-    else
-        naidt = numaMakeConstant(1, n);
-
         /* Run the recognizer on the set of images.  This writes
          * the text string into each pix in pixa. */
+    n = pixaGetCount(pixa);
     rchaDestroy(&recog->rcha);
     recog->rcha = rchaCreate();
     pixa1 = (ppixdb) ? pixaCreate(n) : NULL;
@@ -995,10 +903,7 @@ L_RCH     *rch;
         pix1 = pixaGetPix(pixa, i, L_CLONE);
         pix2 = NULL;
         fail = FALSE;
-        numaGetIValue(naidt, i, &doit);
-        if (!doit)
-            recogSkipIdentify(recog);
-        else if (!ppixdb)
+        if (!ppixdb)
             fail = recogIdentifyPix(recog, pix1, NULL);
         else
             fail = recogIdentifyPix(recog, pix1, &pix2);
@@ -1013,7 +918,7 @@ L_RCH     *rch;
         rchExtract(rch, NULL, NULL, &text, NULL, NULL, NULL, NULL);
         pixSetText(pix1, text);
         LEPT_FREE(text);
-        if (ppixdb && doit) {
+        if (ppixdb) {
             rchExtract(rch, &index, &score, NULL, NULL, NULL, NULL, NULL);
             pix3 = recogShowMatch(recog, pix2, NULL, NULL, index, score);
             if (i == 0) depth = pixGetDepth(pix3);
@@ -1023,7 +928,6 @@ L_RCH     *rch;
         transferRchToRcha(rch, recog->rcha);
         pixDestroy(&pix1);
     }
-    numaDestroy(&naidt);
 
         /* Package the images for debug */
     if (ppixdb) {
@@ -1094,9 +998,11 @@ PTA       *pta;
     if ((pix0 = recogProcessToIdentify(recog, pixs, 0)) == NULL)
         return ERROR_INT("no fg pixels in pix0", procName, 1);
 
+        /* Optionally scale and/or convert to fixed stroke width */
+    pix1 = recogModifyTemplate(recog, pix0);
+
         /* Do correlation at all positions within +-maxyshift of
          * the nominal centroid alignment. */
-    pix1 = recogModifyTemplate(recog, pix0);
     pixCountPixels(pix1, &area1, recog->sumtab);
     pixCentroid(pix1, recog->centtab, recog->sumtab, &x1, &y1);
     bestindex = bestsample = bestdelx = bestdely = bestwidth = 0;
@@ -1539,18 +1445,20 @@ PIX     *pix1, *pix2, *pixd;
  * \brief   recogPreSplittingFilter()
  *
  * \param[in]    recog
- * \param[in]    pixs 1 bpp, many connected components
- * \param[in]    minaf minimum area fraction (|fg|/(w*h)) to be retained
- * \param[in]    debug 1 to output indicator arrays
+ * \param[in]    pixs     1 bpp, many connected components
+ * \param[in]    minh     minimum height of components to be retained
+ * \param[in]    minaf    minimum area fraction (|fg|/(w*h)) to be retained
+ * \param[in]    debug    1 to output indicator arrays
  * \return  pixd with filtered components removed or NULL on error
  */
 static PIX *
 recogPreSplittingFilter(L_RECOG   *recog,
                         PIX       *pixs,
+                        l_int32    minh,
                         l_float32  minaf,
                         l_int32    debug)
 {
-l_int32  scaling, minsplitw, minsplith, maxsplith, maxasp;
+l_int32  scaling, minsplitw, maxsplith, maxasp;
 BOXA    *boxas;
 NUMA    *naw, *nah, *na1, *na1c, *na2, *na3, *na4, *na5, *na6, *na7;
 PIX     *pixd;
@@ -1564,15 +1472,14 @@ PIXA    *pixas;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
 
         /* If there is scaling, do not remove components based on the
-         * values of min_splitw, min_splith and max_splith. */
+         * values of min_splitw and max_splith. */
     scaling = (recog->scalew > 0 || recog->scaleh > 0) ? TRUE : FALSE;
     minsplitw = (scaling) ? 1 : recog->min_splitw - 3;
-    minsplith = (scaling) ? 1 : recog->min_splith - 3;
-    maxsplith = (scaling) ? 200 : recog->max_splith;
+    maxsplith = (scaling) ? 150 : recog->max_splith;
     maxasp = recog->max_wh_ratio;
 
         /* Generate an indicator array of connected components to remove:
-         *    small stuff
+         *    short stuff
          *    tall stuff
          *    components with large width/height ratio
          *    components with small area fill fraction  */
@@ -1580,7 +1487,7 @@ PIXA    *pixas;
     pixaFindDimensions(pixas, &naw, &nah);
     na1 = numaMakeThresholdIndicator(naw, minsplitw, L_SELECT_IF_LT);
     na1c = numaCopy(na1);
-    na2 = numaMakeThresholdIndicator(nah, minsplith, L_SELECT_IF_LT);
+    na2 = numaMakeThresholdIndicator(nah, minh, L_SELECT_IF_LT);
     na3 = numaMakeThresholdIndicator(nah, maxsplith, L_SELECT_IF_GT);
     na4 = pixaFindWidthHeightRatio(pixas);
     na5 = numaMakeThresholdIndicator(na4, maxasp, L_SELECT_IF_GT);
@@ -1614,15 +1521,17 @@ PIXA    *pixas;
  * \brief   recogSplittingFilter()
  *
  * \param[in]    recog
- * \param[in]    pixs 1 bpp, single connected component
- * \param[in]    minaf minimum area fraction (|fg|/(w*h)) to be retained
- * \param[out]   premove 0 to save, 1 to remove
- * \param[in]    debug 1 to output indicator arrays
+ * \param[in]    pixs     1 bpp, single connected component
+ * \param[in]    minh     minimum height of component; 0 for default
+ * \param[in]    minaf    minimum area fraction (|fg|/(w*h)) to be retained
+ * \param[out]   premove  0 to save, 1 to remove
+ * \param[in]    debug    1 to output indicator arrays
  * \return  0 if OK, 1 on error
  */
 static l_int32
 recogSplittingFilter(L_RECOG   *recog,
                      PIX       *pixs,
+                     l_int32    minh,
                      l_float32  minaf,
                      l_int32   *premove,
                      l_int32    debug)
@@ -1639,6 +1548,7 @@ l_float32  aspratio, fract;
         return ERROR_INT("recog not defined", procName, 1);
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
+    if (minh <= 0) minh = DefaultMinHeight;
 
         /* Remove from further consideration:
          *    small stuff
@@ -1650,8 +1560,8 @@ l_float32  aspratio, fract;
         *premove = 1;
         return 0;
     }
-    if (h < recog->min_splith) {
-        if (debug) L_INFO("h = %d < %d\n", procName, h, recog->min_splith);
+    if (h < minh) {
+        if (debug) L_INFO("h = %d < %d\n", procName, h, minh);
         *premove = 1;
         return 0;
     }

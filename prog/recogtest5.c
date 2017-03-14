@@ -80,7 +80,7 @@ L_RECOG  *recog;
         pix1 = pixaGetPix(pixa2, item, L_CLONE);
         pixDisplay(pix1, 100, 100);
         pix2 = GetBigComponent(pix1);
-        recogIdentifyMultiple(recog, pix2, 0, -1, -1, 0, NULL, &pixa3, NULL, 1);
+        recogIdentifyMultiple(recog, pix2, 0, 0, NULL, &pixa3, NULL, 1);
         pix3 = pixaDisplayTiledInColumns(pixa3, 1, 1.0, 20, 2);
         pixDisplay(pix3, 800, 100);
         pixDestroy(&pix1);

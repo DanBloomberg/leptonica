@@ -453,7 +453,6 @@ L_RECOG  *recog;
         /* Input default values for min component size for splitting.
          * These are overwritten when pixTrainingFinished() is called. */
     recog->min_splitw = 6;
-    recog->min_splith = 6;
     recog->max_splith = 60;
 
         /* Allocate the paa for the unscaled training bitmaps */

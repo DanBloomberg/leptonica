@@ -144,7 +144,6 @@ struct L_Recog {
     l_float32      max_wh_ratio; /*!< max width/height ratio to split        */
     l_float32      max_ht_ratio; /*!< max of max/min template height ratio   */
     l_int32        min_splitw;   /*!< min component width kept in splitting  */
-    l_int32        min_splith;   /*!< min component height kept in splitting */
     l_int32        max_splith;   /*!< max component height kept in splitting */
     struct Sarray *sa_text;      /*!< text array for arbitrary char set      */
     struct L_Dna  *dna_tochar;   /*!< index-to-char lut for arbitrary charset */
