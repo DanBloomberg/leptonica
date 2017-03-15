@@ -283,6 +283,7 @@ PIXA    *pixa;
 
         /* Carefully filter out noise */
     pix2 = recogPreSplittingFilter(recog, pix1, minh, MinFillFactor, debug);
+    pixDestroy(&pix1);
 
         /* Get the 8-connected components to be split/identified */
     boxa1 = pixConnComp(pix2, NULL, 8);
