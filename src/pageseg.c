@@ -584,7 +584,7 @@ BOXA    *ba1, *ba2;
          * one seed pixel.  Also clear out any components that are within
          * 10 pixels of the edge at 2x reduction. */
     flag = (showmorph) ? -1 : 0;  /* if showmorph == -1, write intermediate
-                                   * images to /tmp/seq_output_1.pdf */
+                                   * images to /tmp/lept/seq_output_1.pdf */
     pixb = pixConvertTo1(pixs, threshold);
     pixb2 = pixScale(pixb, 0.5, 0.5);
     pixseed = pixMorphSequence(pixb2, "o1.2 + c9.9 + o3.5", flag);
@@ -599,7 +599,8 @@ BOXA    *ba1, *ba2;
          * and close enough to the edge.  For each edge, if the block
          * is more than mindist from that edge, then clean 'erasedist'
          * pixels from the edge. */
-    pix1 = pixMorphSequence(pixm, "c50.50", flag - 1);
+    if (flag == -1) flag = -2;  /* write a pdf to /tmp/lept/seq_output_2.pdf */
+    pix1 = pixMorphSequence(pixm, "c50.50", flag);
     ba1 = pixConnComp(pix1, NULL, 8);
     ba2 = boxaSort(ba1, L_SORT_BY_AREA, L_SORT_DECREASING, NULL);
     pixGetDimensions(pix1, &w, &h, NULL);

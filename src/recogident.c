@@ -291,7 +291,6 @@ PIXA    *pixa;
     ncomp = boxaGetCount(boxa1);
     if (ncomp == 0) {
         boxaDestroy(&boxa1);
-        boxaDestroy(&boxa3);
         L_WARNING("all components removed\n", procName);
         return 1;
     }
