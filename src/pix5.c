@@ -2277,6 +2277,7 @@ l_float32  sum;
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
     sum = 0;
+    count = 0;
     if (direction == L_HORIZONTAL_LINE) {
         line = data + y1 * wpl;
         for (j = x1, count = 0; j <= x2; count++, j += factor) {

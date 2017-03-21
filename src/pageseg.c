@@ -1507,10 +1507,10 @@ PIX       *pix1, *pix2, *pixm;
         return ERROR_INT("edgecrop not in [0.0 ... 1.0)", procName, 1);
 
     pix1 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+    pixGetDimensions(pix1, &w, &h, NULL);
 
         /* Optionally crop inner part of image */
     if (edgecrop > 0.0) {
-        pixGetDimensions(pix1, &w, &h, NULL);
         box = boxCreate(0.5 * edgecrop * w, 0.5 * edgecrop * h,
                         (1.0 - edgecrop) * w, (1.0 - edgecrop) * h);
         pix2 = pixClipRectangle(pix1, box, NULL);

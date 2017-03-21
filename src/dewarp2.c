@@ -1447,6 +1447,7 @@ FPIX      *fpix;
         }
     }
     prev = 0;
+    last = 0;
     iend = n1 - 1;
     for (i = n1 - 1; i >= 0; i--) {
         numaGetIValue(na1, i, &ival);

@@ -1120,7 +1120,7 @@ PIX     *pix1, *pix2, *pix3, *pix4;
     } else if (newrow == 1) {
         top = bottom + space;
         left = 0;
-    } else if (n > 0) {
+    } else {  /* n > 0 */
         pixaGetBoxGeometry(pixa, n - 1, &bx, &by, &bw, NULL);
         top = by;
         left = bx + bw + space;

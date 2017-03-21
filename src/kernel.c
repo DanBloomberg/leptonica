@@ -775,7 +775,7 @@ L_KERNEL  *kel;
     nlines = sarrayGetCount(sa);
 
         /* Find the first data line. */
-    for (i = 0; i < nlines; i++) {
+    for (i = 0, first = 0; i < nlines; i++) {
         line = sarrayGetString(sa, i, L_NOCOPY);
         if (line[0] != '#') {
             first = i;

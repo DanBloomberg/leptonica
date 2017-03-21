@@ -403,10 +403,8 @@ PIX      *pixn, *pixm, *pixd, *pix1, *pix2, *pix3, *pix4;
          * which is stored as a single pixel in pix3. */
     pixGetDimensions(pixs, &w, &h, NULL);
     pixOtsuAdaptiveThreshold(pixs, w, h, 0, 0, scorefract, &pix3, NULL);
-    if (pix3 && pthresh) {
-        pixGetPixel(pix3, 0, 0, &val);
-        *pthresh = val;
-    }
+    pixGetPixel(pix3, 0, 0, &val);
+    if (pthresh) *pthresh = val;
     pixDestroy(&pix3);
 
         /* Threshold the background normalized images differentially,

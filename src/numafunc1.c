@@ -1735,6 +1735,8 @@ l_float32  *fax, *fay;
         *pyval = fay[0];
         return 0;
     }
+    im = 0;
+    dell = 0.0;
     for (i = 1; i < nx; i++) {
         delu = fax[i] - xval;
         if (delu >= 0.0) {  /* we've passed it */
