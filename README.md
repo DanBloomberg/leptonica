@@ -58,8 +58,8 @@ www.leptonica.org
   * _ANSI C_: automatically generated prototype header file
   * _Portable_: endian-independent; builds in Linux, macOS, MinGW, Cygwin, Windows
   * _Nearly thread-safe_: ref counting on some structs
-  * _Documentation_: large number of in-line comments; web pages for further background
-  * _Examples_: many programs provided to test and show usage of approx. 2200 functions in the library
+  * _Documentation_: large number of in-line comments; doxygen; web pages for further background
+  * _Examples_: many programs provided to test and show usage of approx. 2600 functions in the library
 
 
 ## Open Source Projects that use Leptonica ##

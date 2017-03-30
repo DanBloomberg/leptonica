@@ -51,6 +51,7 @@
  *           BOX      *boxClipToRectangle()
  *           l_int32   boxClipToRectangleParams()
  *           BOX      *boxRelocateOneSide()
+ *           BOXA     *boxaAdjustSides()
  *           BOX      *boxAdjustSides()
  *           BOXA     *boxaSetSide()
  *           BOXA     *boxaAdjustWidthToTarget()
@@ -1220,6 +1221,55 @@ l_int32  x, y, w, h;
 
 
 /*!
+ * \brief   boxaAdjustSides()
+ *
+ * \param[in]    boxas
+ * \param[in]    delleft, delright, deltop, delbot   changes in location of
+ *                                                   each side for each box
+ * \return  boxad, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) New box dimensions are cropped at left and top to x >= 0 and y >= 0.
+ *      (2) If the width or height of a box goes to 0, we generate a box with
+ *          w == 1 and h == 1, as a placeholder.
+ *      (3) See boxAdjustSides().
+ * </pre>
+ */
+BOXA *
+boxaAdjustSides(BOXA    *boxas,
+                l_int32  delleft,
+                l_int32  delright,
+                l_int32  deltop,
+                l_int32  delbot)
+{
+l_int32  n, i, x, y;
+BOX     *box1, *box2;
+BOXA    *boxad;
+
+    PROCNAME("boxaAdjustSides");
+
+    if (!boxas)
+        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+
+    n = boxaGetCount(boxas);
+    boxad = boxaCreate(n);
+    for (i = 0; i < n; i++) {
+        box1 = boxaGetBox(boxas, i, L_COPY);
+        box2 = boxAdjustSides(NULL, box1, delleft, delright, deltop, delbot);
+        if (!box2) {
+            boxGetGeometry(box1, &x, &y, NULL, NULL);
+            box2 = boxCreate(x, y, 1, 1);
+        }
+        boxaAddBox(boxad, box2, L_INSERT);
+        boxDestroy(&box1);
+    }
+
+    return boxad;
+}
+
+
+/*!
  * \brief   boxAdjustSides()
  *
  * \param[in]    boxd  [optional]; this can be null, equal to boxs,
@@ -1238,8 +1288,8 @@ l_int32  x, y, w, h;
  *               boxd = boxAdjustSides(NULL, boxs, ...);   // new
  *               boxAdjustSides(boxs, boxs, ...);          // in-place
  *               boxAdjustSides(boxd, boxs, ...);          // other
- *      (1) New box dimensions are cropped at left and top to x >= 0 and y >= 0.
- *      (2) For example, to expand in-place by 20 pixels on each side, use
+ *      (3) New box dimensions are cropped at left and top to x >= 0 and y >= 0.
+ *      (4) For example, to expand in-place by 20 pixels on each side, use
  *             boxAdjustSides(box, box, -20, 20, -20, 20);
  * </pre>
  */
@@ -1352,7 +1402,7 @@ BOX     *box;
  *
  * \param[in]    boxad use NULL to get a new one; same as boxas for in-place
  * \param[in]    boxas
- * \param[in]    sides L_ADJUST_LEFT, L_ADJUST_RIGHT, L_ADJUST_LEFTL_AND_RIGHT
+ * \param[in]    sides L_ADJUST_LEFT, L_ADJUST_RIGHT, L_ADJUST_LEFT_AND_RIGHT
  * \param[in]    target target width if differs by more than thresh
  * \param[in]    thresh min abs difference in width to cause adjustment
  * \return  boxad, or NULL on error
