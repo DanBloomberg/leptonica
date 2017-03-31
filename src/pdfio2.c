@@ -496,7 +496,7 @@ FILE    *fp;
 /*!
  * \brief   l_generateCIDataForPdf()
  *
- * \param[in]    fname
+ * \param[in]    fname [optional]; can be null
  * \param[in]    pix [optional]; can be null
  * \param[in]    quality for jpeg if transcoded; 75 is standard
  * \param[out]   pcid compressed data
@@ -504,11 +504,15 @@ FILE    *fp;
  *
  * <pre>
  * Notes:
- *      (1) Given an image file and optionally a pix raster of that data,
+ *      (1) You must set either filename or pix.
+ *      (2) Given an image file and optionally a pix raster of that data,
  *          this provides a CID that is compatible with PDF, preferably
  *          without transcoding.
- *      (2) The pix is included for efficiency, in case transcoding
+ *      (3) The pix is included for efficiency, in case transcoding
  *          is required and the pix is available to the caller.
+ *      (4) We don't try to open files named "stdin" or "-" for Tesseract
+ *          compatibility reasons. We may remove this restriction
+ *          in the future.
  * </pre>
  */
 l_int32
@@ -525,25 +529,33 @@ PIX          *pixt;
 
     if (!pcid)
         return ERROR_INT("&cid not defined", procName, 1);
-    *pcid = NULL;
-    if (!fname)
-        return ERROR_INT("fname not defined", procName, 1);
+    *pcid = cid = NULL;
+    if (!fname && !pix)
+        return ERROR_INT("neither fname nor pix are defined", procName, 1);
 
-    findFileFormat(fname, &format);
-    if (format == IFF_UNKNOWN)
-        L_WARNING("file %s format is unknown\n", procName, fname);
-    if (format == IFF_PS || format == IFF_LPDF) {
-        L_ERROR("file %s is unsupported format %d\n", procName, fname, format);
-        return 1;
+        /* If a compressed file is given that is not 'stdin', see if we
+         * can generate the pdf output without transcoding. */
+    if (fname && strcmp(fname, "-") && strcmp(fname, "stdin")) {
+        findFileFormat(fname, &format);
+        if (format == IFF_UNKNOWN)
+            L_WARNING("file %s format is unknown\n", procName, fname);
+        if (format == IFF_PS || format == IFF_LPDF) {
+            L_ERROR("file %s is unsupported format %d\n",
+                  procName, fname, format);
+            return 1;
+        }
+        if (format == IFF_JFIF_JPEG) {
+            cid = l_generateJpegData(fname, 0);
+        } else if (format == IFF_JP2) {
+            cid = l_generateJp2kData(fname);
+        } else if (format == IFF_PNG) {
+            cid = l_generateFlateDataPdf(fname, pix);
+        }
+
     }
 
-    if (format == IFF_JFIF_JPEG) {
-        cid = l_generateJpegData(fname, 0);
-    } else if (format == IFF_JP2) {
-        cid = l_generateJp2kData(fname);
-    } else if (format == IFF_PNG) {  /* use Jeff's special function for png */
-        cid = l_generateFlateDataPdf(fname, pix);
-    } else {  /* any other format ... */
+        /* Otherwise, use the pix to generate the pdf output */
+    if  (!cid) {
         if (!pix)
             pixt = pixRead(fname);
         else
@@ -555,7 +567,7 @@ PIX          *pixt;
         pixDestroy(&pixt);
     }
     if (!cid) {
-        L_ERROR("file %s format is %d; unreadable\n", procName, fname, format);
+        L_ERROR("totally kerflummoxed\n", procName);
         return 1;
     }
     *pcid = cid;

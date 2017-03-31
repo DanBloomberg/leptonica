@@ -137,7 +137,7 @@ PIXCMAP  *cmap, *cmapg;
 
         /* Extract text lines */
     pix1 = pixRead("feyn.tif");
-    pixa = pixExtractTextlineFrags(pix1, 150, 150, 0, 0, 5, 5, NULL);
+    pixa = pixExtractTextlines(pix1, 150, 150, 0, 0, 5, 5, NULL);
     boxa = pixaGetBoxa(pixa, L_CLONE);
     boxaWrite("/tmp/lept/misc/lines1.ba", boxa);
     pix2 = pixaDisplayRandomCmap(pixa, 0, 0);
@@ -150,7 +150,7 @@ PIXCMAP  *cmap, *cmapg;
     pixaDestroy(&pixa);
 
     pix1 = pixRead("arabic.png");
-    pixa = pixExtractTextlineFrags(pix1, 150, 150, 0, 0, 5, 5, NULL);
+    pixa = pixExtractTextlines(pix1, 150, 150, 0, 0, 5, 5, NULL);
     pix2 = pixaDisplayRandomCmap(pixa, 0, 0);
     pixcmapResetColor(pixGetColormap(pix2), 0, 255, 255, 255);
     pixDisplay(pix2, 400, 400);
@@ -160,7 +160,7 @@ PIXCMAP  *cmap, *cmapg;
     pixaDestroy(&pixa);
 
     pix1 = pixRead("arabic2.png");
-    pixa = pixExtractTextlineFrags(pix1, 150, 150, 0, 0, 5, 5, NULL);
+    pixa = pixExtractTextlines(pix1, 150, 150, 0, 0, 5, 5, NULL);
     pix2 = pixaDisplayRandomCmap(pixa, 0, 0);
     pixcmapResetColor(pixGetColormap(pix2), 0, 255, 255, 255);
     pixDisplay(pix2, 400, 800);
