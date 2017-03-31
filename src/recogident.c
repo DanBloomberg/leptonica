@@ -1000,6 +1000,9 @@ PTA       *pta;
 
         /* Optionally scale and/or convert to fixed stroke width */
     pix1 = recogModifyTemplate(recog, pix0);
+    pixDestroy(&pix0);
+    if (!pix1)
+        return ERROR_INT("no fg pixels in pix1", procName, 1);
 
         /* Do correlation at all positions within +-maxyshift of
          * the nominal centroid alignment. */
@@ -1094,7 +1097,6 @@ PTA       *pta;
         pixDestroy(&pix2);
     }
 
-    pixDestroy(&pix0);
     pixDestroy(&pix1);
     return 0;
 }

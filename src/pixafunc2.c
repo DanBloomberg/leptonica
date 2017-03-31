@@ -1079,7 +1079,7 @@ PIXA     *pixa1, *pixa2;
 
         /* Render the output pix */
     boxaGetExtent(boxa, &w, &h, NULL);
-    pixd = pixaDisplay(pixa2, w, h);
+    pixd = pixaDisplay(pixa2, w + spacing, h + spacing);
     pixSetResolution(pixd, res, res);
 
         /* Save the boxa in the text field of the output pix */

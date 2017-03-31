@@ -50,6 +50,7 @@
  *
  *      Extraction of lines of text
  *          PIXA     *pixExtractTextlines()
+ *          PIXA     *pixExtractTextlineFrags()
  *
  *      Decision text vs photo
  *          l_int32   pixDecideIfText()
@@ -916,13 +917,16 @@ PIX      *pix1, *pixdb;
  *
  * <pre>
  * Notes:
- *      (1) This first removes components from pixs that are either
- *          very wide (> %maxw) or very tall (> %maxh).
- *      (2) This function assumes that textlines have sufficient
+ *      (1) This function assumes that textlines have sufficient
  *          vertical separation and small enough skew so that a
  *          horizontal dilation sufficient to join words will not join
- *          textlines.  Images with multiple columns of text may have
- *          the textlines join across the space between columns.
+ *          textlines.  It aggressively joins textlines across multiple
+ *          columns, so if that is not desired, you must either (a) make
+ *          sure that %pixs is a single column of text or (b) use instead
+ *          pixExtractTextlineFrags(), which is more conservative
+ *          about joining text fragments that have vertical overlap.
+ *      (2) This first removes components from pixs that are either
+ *          very wide (> %maxw) or very tall (> %maxh).
  *      (3) For reasonable accuracy, the resolution of pixs should be
  *          at least 100 ppi.  For reasonable efficiency, the resolution
  *          should not exceed 600 ppi.
@@ -930,7 +934,7 @@ PIX      *pix1, *pixdb;
  *          image is horizontal text.
  *      (5) As an example, for a pix with resolution 300 ppi, a reasonable
  *          set of parameters is:
- *             pixExtractTextlines(pix, 150, 150);
+ *             pixExtractTextlines(pix, 150, 150, 0, 0, NULL);
  *      (6) The output pixa is composed of subimages, one for each textline,
  *          and the boxa in the pixa tells where in %pixs each textline goes.
  * </pre>
@@ -981,14 +985,13 @@ PIXA    *pixa1, *pixa2;
     pixDestroy(&pix1);
 
         /* Filter to solidify the text lines within the x-height region.
-         * The closing (csize) bridges gaps between words.  The opening
-         * removes isolated bridges between textlines. */
+         * The closing (csize) bridges gaps between words. */
     if ((res = pixGetXRes(pixs)) == 0) {
         L_INFO("Resolution is not set: setting to 300 ppi\n", procName);
         res = 300;
     }
     csize = L_MIN(120., 60.0 * res / 300.0);
-    snprintf(buf, sizeof(buf), "c%d.1 + o%d.1", csize, csize / 3);
+    snprintf(buf, sizeof(buf), "c%d.1", csize);
     pix3 = pixMorphCompSequence(pix2, buf, 0);
     if (pixadb) pixaAddPix(pixadb, pix3, L_COPY);
 
@@ -1005,6 +1008,11 @@ PIXA    *pixa1, *pixa2;
          * overlap) into a box representing a single text line. */
     baa1 = boxaSort2d(boxa1, NULL, -1, -1, 5);
     boxaaGetExtent(baa1, NULL, NULL, NULL, &boxa2);
+    if (pixadb) {
+        pix1 = pixConvertTo32(pix2);
+        pixRenderBoxaArb(pix1, boxa2, 2, 255, 0, 0);
+        pixaAddPix(pixadb, pix1, L_INSERT);
+    }
 
         /* Optionally adjust the sides of each text line box, and then
          * use the boxes to generate a pixa of the text lines. */
@@ -1024,6 +1032,151 @@ PIXA    *pixa1, *pixa2;
     boxaDestroy(&boxa3);
     boxaaDestroy(&baa1);
     return pixa2;
+}
+
+
+/*!
+ * \brief   pixExtractTextlineFrags()
+ *
+ * \param[in]    pixs any depth, assumed to have nearly horizontal text
+ * \param[in]    maxw, maxh initial filtering: remove any components in pixs
+ *                          with components larger than maxw or maxh
+ * \param[in]    minw, minh final filtering: remove extracted 'lines'
+ *                          with sizes smaller than minw or minh; use
+ *                          0 for default.
+ * \param[in]    adjw, adjh final adjustment of boxes representing each
+ *                          text line.  If > 0, these increase the box
+ *                          size at each edge by this amount.
+ * \param[in]    pixadb     pixa for saving intermediate steps; NULL to omit
+ * \return  pixa of textline images, including bounding boxes, or
+ *                    NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This function assumes that textline fragments have sufficient
+ *          vertical separation and small enough skew so that a
+ *          horizontal dilation sufficient to join words will not join
+ *          textlines.  It does not guarantee that horizontally adjacent
+ *          textline fragments on the same line will be joined.
+ *      (2) For images with multiple columns, it attempts to avoid joining
+ *          textlines across the space between columns.  If that is not
+ *          a concern, you can also use pixExtractTextlines(), which will
+ *          join them with alacrity.
+ *      (3) This first removes components from pixs that are either
+ *          wide (> %maxw) or tall (> %maxh).
+ *      (4) A final filtering operation removes small components, such
+ *          that width < %minw or height < %minh.
+ *      (5) For reasonable accuracy, the resolution of pixs should be
+ *          at least 100 ppi.  For reasonable efficiency, the resolution
+ *          should not exceed 600 ppi.
+ *      (6) This can be used to determine if some region of a scanned
+ *          image is horizontal text.
+ *      (7) As an example, for a pix with resolution 300 ppi, a reasonable
+ *          set of parameters is:
+ *             pixExtractTextlines(pix, 150, 150, 36, 20, 5, 5, NULL);
+ *          The defaults minw and minh for 300 ppi are about 36 and 20,
+ *          so the same result is obtained with:
+ *             pixExtractTextlines(pix, 150, 150, 0, 0, 5, 5, NULL);
+ *      (8) The output pixa is composed of subimages, one for each textline,
+ *          and the boxa in the pixa tells where in %pixs each textline goes.
+ * </pre>
+ */
+PIXA *
+pixExtractTextlineFrags(PIX     *pixs,
+                        l_int32  maxw,
+                        l_int32  maxh,
+                        l_int32  minw,
+                        l_int32  minh,
+                        l_int32  adjw,
+                        l_int32  adjh,
+                        PIXA    *pixadb)
+{
+char     buf[64];
+l_int32  res, csize, empty;
+BOXA    *boxa1, *boxa2, *boxa3;
+PIX     *pix1, *pix2, *pix3;
+PIXA    *pixa1, *pixa2, *pixa3;
+
+    PROCNAME("pixExtractTextlineFrags");
+
+    if (!pixs)
+        return (PIXA *)ERROR_PTR("pixs not defined", procName, NULL);
+
+        /* Binarize carefully, if necessary */
+    if (pixGetDepth(pixs) > 1) {
+        pix2 = pixConvertTo8(pixs, FALSE);
+        pix3 = pixCleanBackgroundToWhite(pix2, NULL, NULL, 1.0, 70, 190);
+        pix1 = pixThresholdToBinary(pix3, 150);
+        pixDestroy(&pix2);
+        pixDestroy(&pix3);
+    } else {
+        pix1 = pixClone(pixs);
+    }
+    pixZero(pix1, &empty);
+    if (empty) {
+        pixDestroy(&pix1);
+        L_INFO("no fg pixels in input image\n", procName);
+        return NULL;
+    }
+    if (pixadb) pixaAddPix(pixadb, pix1, L_COPY);
+
+        /* Remove any very tall or very wide connected components */
+    pix2 = pixSelectBySize(pix1, maxw, maxh, 8, L_SELECT_IF_BOTH,
+                           L_SELECT_IF_LT, NULL);
+    if (pixadb) pixaAddPix(pixadb, pix2, L_COPY);
+    pixDestroy(&pix1);
+
+        /* Filter to solidify the text lines within the x-height region.
+         * The closing (csize) bridges gaps between words.  The opening
+         * removes isolated bridges between textlines. */
+    if ((res = pixGetXRes(pixs)) == 0) {
+        L_INFO("Resolution is not set: setting to 300 ppi\n", procName);
+        res = 300;
+    }
+    csize = L_MIN(120., 60.0 * res / 300.0);
+    snprintf(buf, sizeof(buf), "c%d.1 + o%d.1", csize, csize / 3);
+    pix3 = pixMorphCompSequence(pix2, buf, 0);
+    if (pixadb) pixaAddPix(pixadb, pix3, L_COPY);
+
+        /* Extract the connected components.  These should be dilated lines */
+    boxa1 = pixConnComp(pix3, &pixa1, 4);
+    if (pixadb) {
+        pix1 = pixaDisplayRandomCmap(pixa1, 0, 0);
+        pixcmapResetColor(pixGetColormap(pix1), 0, 255, 255, 255);
+        pixaAddPix(pixadb, pix1, L_INSERT);
+    }
+
+        /* Set minw, minh if default is requested */
+    minw = (minw != 0) ? minw : (l_int32)(0.12 * res);
+    minh = (minh != 0) ? minh : (l_int32)(0.07 * res);
+
+        /* Remove line components that are too small */
+    pixa2 = pixaSelectBySize(pixa1, minw, minh, L_SELECT_IF_BOTH,
+                           L_SELECT_IF_GTE, NULL);
+    if (pixadb) {
+        pix1 = pixaDisplayRandomCmap(pixa2, 0, 0);
+        pixcmapResetColor(pixGetColormap(pix1), 0, 255, 255, 255);
+        pixaAddPix(pixadb, pix1, L_INSERT);
+    }
+
+        /* Selectively AND with the version before dilation, and save */
+    boxa2 = pixaGetBoxa(pixa2, L_CLONE);
+    boxa3 = boxaAdjustSides(boxa2, -adjw, adjw, -adjh, adjh);
+    pixa3 = pixClipRectangles(pix2, boxa3);
+    if (pixadb) {
+        pix1 = pixaDisplayRandomCmap(pixa3, 0, 0);
+        pixcmapResetColor(pixGetColormap(pix1), 0, 255, 255, 255);
+        pixaAddPix(pixadb, pix1, L_INSERT);
+    }
+
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixaDestroy(&pixa1);
+    pixaDestroy(&pixa2);
+    boxaDestroy(&boxa1);
+    boxaDestroy(&boxa2);
+    boxaDestroy(&boxa3);
+    return pixa3;
 }
 
 

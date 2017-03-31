@@ -421,7 +421,7 @@ PIX *
 recogModifyTemplate(L_RECOG  *recog,
                     PIX      *pixs)
 {
-l_int32  w, h;
+l_int32  w, h, empty;
 PIX     *pix1, *pix2;
 
     PROCNAME("recogModifyTemplate");
@@ -439,6 +439,8 @@ PIX     *pix1, *pix2;
     } else {
         pix1 = pixScaleToSize(pixs, recog->scalew, recog->scaleh);
     }
+    if (!pix1)
+        return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
 
         /* Then optionally convert to lines */
     if (recog->linew <= 0) {
@@ -447,7 +449,16 @@ PIX     *pix1, *pix2;
         pix2 = pixSetStrokeWidth(pix1, recog->linew, 1, 8);
     }
     pixDestroy(&pix1);
+    if (!pix2)
+        return (PIX *)ERROR_PTR("pix2 not made", procName, NULL);
 
+        /* Make sure we still have some pixels */
+    pixZero(pix2, &empty);
+    if (empty) {
+        pixDestroy(&pix2);
+        return (PIX *)ERROR_PTR("modified template has no pixels",
+                                procName, NULL);
+    }
     return pix2;
 }
 
@@ -850,11 +861,16 @@ L_RECOG   *recog;
                 pixd = recogModifyTemplate(recog, pix);
             else
                 pixd = pixClone(pix);
-            pixaaAddPix(recog->pixaa, i, pixd, NULL, L_INSERT);
-            pixCentroid(pixd, recog->centtab, recog->sumtab, &xave, &yave);
-            ptaaAddPt(recog->ptaa, i, xave, yave);
-            pixCountPixels(pixd, &area, recog->sumtab);
-            numaaAddNumber(recog->naasum, i, area);
+            if (pixd) {
+                pixaaAddPix(recog->pixaa, i, pixd, NULL, L_INSERT);
+                pixCentroid(pixd, recog->centtab, recog->sumtab, &xave, &yave);
+                ptaaAddPt(recog->ptaa, i, xave, yave);
+                pixCountPixels(pixd, &area, recog->sumtab);
+                numaaAddNumber(recog->naasum, i, area);
+            } else {
+                L_ERROR("failed: modified template for class %d, sample %d\n",
+                        procName, i, j);
+            }
             pixDestroy(&pix);
         }
         pixaDestroy(&pixa);
