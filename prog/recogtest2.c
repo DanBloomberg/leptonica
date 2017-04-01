@@ -54,6 +54,9 @@ l_int32 main(int    argc,
 {
 char     *fname;
 l_int32   i;
+BOXA     *boxa1;
+BOXAA    *baa;
+NUMAA    *naa;
 PIX      *pix1, *pix2;
 PIXA     *pixa1, *pixa2, *pixa3;
 L_RECOG  *recogboot, *recog1;
@@ -136,7 +139,7 @@ SARRAY   *sa;
         recogDestroy(&recog1);
     }
     recogDestroy(&recogboot);
-
+    sarrayDestroy(&sa);
 
 #if 0
     recogShowMatchesInRange(recog, recog->pixa_tr, 0.0, 1.0, 1);
@@ -158,6 +161,26 @@ SARRAY   *sa;
     pixWrite("/tmp/lept/recog/range.png", recog->pixdb_range, IFF_PNG);
 #endif
 
+    /* ----------------------------------------------------------- */
+    /*      Show operation of the default bootstrap recognizer     */
+    /* ----------------------------------------------------------- */
+
+    recog1 = recogMakeBootDigitRecog(40, 0, 1, 0);
+    pix1 = pixRead("test-87220.59.png");
+    pixDisplay(pix1, 0, 1000);
+    recogIdentifyMultiple(recog1, pix1, 0, 1, &boxa1, NULL, NULL, 0);
+    sa = recogExtractNumbers(recog1, boxa1, 0.8, -1, &baa, &naa);
+    pixa1 = showExtractNumbers(pix1, sa, baa, naa);
+    pix2 = pixaDisplayTiledInRows(pixa1, 32, 600, 1.0, 0, 20, 2);
+    pixDisplay(pix2, 0, 1200);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixaDestroy(&pixa1);
     sarrayDestroy(&sa);
+    boxaDestroy(&boxa1);
+    boxaaDestroy(&baa);
+    numaaDestroy(&naa);
+    recogDestroy(&recog1);
+
     return 0;
 }

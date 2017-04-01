@@ -979,7 +979,7 @@ PIXA     *pixan;
  *
  * <pre>
  * Notes:
- *      (1) This renders a pixa to a single image with 3 columns of
+ *      (1) This renders a pixa to a single image with &nx columns of
  *          subimages.  The background color is white, and each row
  *          is tiled such that the top of each pix is aligned and
  *          each pix is separated by 'spacing' from the next one.
