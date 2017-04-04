@@ -1745,6 +1745,7 @@ SARRAY    *satext, *sa, *saout;
  * \param[in]    sa     recognized text strings
  * \param[in]    baa    boxa array for location of characters in each string
  * \param[in]    naa    numa array for scores of characters in each string
+ * \param[out]   ppixdb  [optional] input pixs with identified chars outlined
  * \return  pixa   of identified strings with text and scores, or NULL on error
  *
  * <pre>
@@ -1752,21 +1753,22 @@ SARRAY    *satext, *sa, *saout;
  *      (1) This is a debugging routine on digit identification; e.g.:
  *            recogIdentifyMultiple(recog, pixs, 0, 1, &boxa, NULL, NULL, 0);
  *            sa = recogExtractNumbers(recog, boxa, 0.8, -1, &baa, &naa);
- *            pixa = showExtractNumbers(pixs, sa, baa, naa);
+ *            pixa = showExtractNumbers(pixs, sa, baa, naa, NULL);
  * </pre>
  */
 PIXA *
 showExtractNumbers(PIX     *pixs,
                    SARRAY  *sa,
                    BOXAA   *baa,
-                   NUMAA   *naa)
+                   NUMAA   *naa,
+                   PIX    **ppixdb)
 {
 char       buf[128];
 char      *textstr, *scorestr;
-l_int32    i, j, n, nchar;
+l_int32    i, j, n, nchar, len;
 l_float32  score;
 L_BMF     *bmf;
-BOX       *box;
+BOX       *box1, *box2;
 BOXA      *ba;
 NUMA      *na;
 PIX       *pix1, *pix2, *pix3, *pix4;
@@ -1774,6 +1776,7 @@ PIXA      *pixa;
 
     PROCNAME("showExtractNumbers");
 
+    if (ppixdb) *ppixdb = NULL;
     if (!pixs)
         return (PIXA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!sa)
@@ -1786,13 +1789,18 @@ PIXA      *pixa;
     n = sarrayGetCount(sa);
     pixa = pixaCreate(n);
     bmf = bmfCreate(NULL, 6);
+    if (ppixdb) *ppixdb = pixConvertTo8(pixs, 1);
     for (i = 0; i < n; i++) {
         textstr = sarrayGetString(sa, i, L_NOCOPY);
         ba = boxaaGetBoxa(baa, i, L_CLONE);
         na = numaaGetNuma(naa, i, L_CLONE);
-        boxaGetExtent(ba, NULL, NULL, &box);
-        pix1 = pixClipRectangle(pixs, box, NULL);
-        pix2 = pixAddBlackOrWhiteBorder(pix1, 35, 35, 5, 3, L_SET_WHITE);
+        boxaGetExtent(ba, NULL, NULL, &box1);
+        box2 = boxAdjustSides(NULL, box1, -5, 5, -5, 5);
+        if (ppixdb) pixRenderBoxArb(*ppixdb, box2, 3, 255, 0, 0);
+        pix1 = pixClipRectangle(pixs, box1, NULL);
+        len = strlen(textstr) + 1;
+        pix2 = pixAddBlackOrWhiteBorder(pix1, 14 * len, 14 * len,
+                                        5, 3, L_SET_WHITE);
         pix3 = pixConvertTo8(pix2, 1);
         nchar = numaGetCount(na); 
         scorestr = NULL;
@@ -1805,7 +1813,8 @@ PIXA      *pixa;
         snprintf(buf, sizeof(buf), "%s: %s\n", textstr, scorestr);
         pix4 = pixAddTextlines(pix3, bmf, buf, 0xff000000, L_ADD_BELOW);
         pixaAddPix(pixa, pix4, L_INSERT);
-        boxDestroy(&box);
+        boxDestroy(&box1);
+        boxDestroy(&box2);
         pixDestroy(&pix1);
         pixDestroy(&pix2);
         pixDestroy(&pix3);

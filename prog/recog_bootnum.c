@@ -34,19 +34,31 @@
  *   (2) Using these, as well as bootnum3.pa, it makes code for
  *       generating and compiling the the pixas, which are used by the
  *       boot digit recognizer.
- *       The output of the code generator is files such as bootnum101.*.
- *       These files are edited to combine the .c and .h files into
+ *       The output of the code generator is files such as autogen_101.*.
+ *       These files have been edited to combine the .c and .h files into
  *       a single .c file:
- *          bootnum101.*  -->  src/bootnumgen1.c
- *          bootnum102.*  -->  src/bootnumgen2.c
- *          bootnum103.*  -->  src/bootnumgen3.c
+ *          autogen_101.*  -->  src/bootnumgen1.c
+ *          autogen_102.*  -->  src/bootnumgen2.c
+ *          autogen_103.*  -->  src/bootnumgen3.c
+ *
+ *   To add another set of templates to bootnumgen1.c:
+ *      (a) Add a new .pa file: prog/recog/digits/digit_setN.pa (N > 15)
+ *      (b) Add code to MakeBootnum1() for this set, selecting with the
+ *          string those templates you want to use.
+ *      (c) Run recog_bootnum.
+ *          * This makes a new /tmp/lept/recog/digits/bootnum1.pa.
+ *            Replace prog/recog/digits/bootnum1.pa with this.
+ *          * This makes new files: /tmp/lept/auto/autogen.101.{h,c}.
+ *            The .h file is the only one we need to use.
+ *            Replace the encoded string in src/bootnumgen1.c with the
+ *            one in autogen.101.h, and recompile.
  */
 
 #include "allheaders.h"
 #include "bmfdata.h"
 
-PIXA  *MakeBootnum1(void);
-PIXA  *MakeBootnum2(void);
+static PIXA  *MakeBootnum1(void);
+static PIXA  *MakeBootnum2(void);
 
 l_int32 main(int    argc,
              char **argv)
@@ -98,6 +110,7 @@ L_STRCODE    *strc;
     /* ----------------------- Bootnum 2 --------------------- */
         /* Read bootnum 2 */
     pixa2 = pixaRead("recog/digits/bootnum2.pa");
+    pixaWrite("/tmp/lept/recog/digits/bootnum2.pa", pixa2);
     pix1 = pixaDisplayTiledWithText(pixa2, 1500, 1.0, 10, 2, 6, 0xff000000);
     pixDisplay(pix1, 100, 700);
     pixDestroy(&pix1);
@@ -245,6 +258,13 @@ PIXA        *pixa1, *pixa2, *pixa3;
 
     pixa1 = pixaRead("recog/digits/digit_set14.pa");
     str = "1, 14, 24, 37, 53, 62, 74, 83, 98, 114";
+    pixa2 = pixaSelectWithString(pixa1, str, NULL);
+    pixaJoin(pixa3, pixa2, 0, -1);
+    pixaDestroy(&pixa1);
+    pixaDestroy(&pixa2);
+
+    pixa1 = pixaRead("recog/digits/digit_set15.pa");
+    str = "0, 1, 3, 5, 7, 8, 13, 25, 35";
     pixa2 = pixaSelectWithString(pixa1, str, NULL);
     pixaJoin(pixa3, pixa2, 0, -1);
     pixaDestroy(&pixa1);
