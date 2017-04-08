@@ -1916,6 +1916,9 @@ PIX       *pixd;
     pixGetDimensions(pixs, &w, &h, NULL);
     pixGetDimensions(pixm, &wm, &hm, NULL);
     pixd = pixCreateTemplate(pixs);
+   	/*Loïc: check if the bitmap is allocated*/
+   	if (!pixd)
+		     return (PIX *)ERROR_PTR("pixd can not be allocated", procName, NULL);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
     for (i = 0; i < hm; i++) {
