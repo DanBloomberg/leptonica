@@ -1598,10 +1598,11 @@ l_int32  sx, sy, cx, cy, i, j;
  *             'x': hit
  *             'o': miss
  *             ' ': don't-care
- *      (2) Use an upper case char to indicate the origin of the Sel.
- *          When the origin falls on a don't-care, use 'C' as the uppecase
- *          for ' '.
- *      (3) The text can be input in a format that shows the 2D layout; e.g.,
+ *      (2) When the origin falls on a hit or miss, use an upper case
+ *          char (e.g., 'X' or 'O') to indicate it.  When the origin
+ *          falls on a don't-care, indicate this with a 'C'.
+ *      (3) The advantage of this method is that the text can be input
+ *          in a format that shows the 2D layout of the Sel; e.g.,
  * \code
  *              static const char *seltext = "x    "
  *                                           "x Oo "

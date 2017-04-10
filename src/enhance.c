@@ -1324,7 +1324,7 @@ pixUnsharpMaskingGray2D(PIX       *pixs,
 {
 l_int32     w, h, d, wpls, wpld, wplf, i, j, ival, sval;
 l_uint32   *datas, *datad, *lines, *lines0, *lines1, *lines2, *lined;
-l_float32   val, a[9];
+l_float32   val, norm, a[9];
 l_float32  *dataf, *linef, *linef0, *linef1, *linef2, *linef3, *linef4;
 PIX        *pixd;
 FPIX       *fpix;
@@ -1413,8 +1413,9 @@ FPIX       *fpix;
         linef4 = dataf + (i + 2) * wplf;
         lined = datad + i * wpld;
         lines = datas + i * wpls;
+        norm = 1.0 / (5.0 * L_MIN(L_MIN(5, i + 1), h - i));
         for (j = 2; j < w - 2; j++) {
-            val = 0.04 * (linef0[j] + linef1[j] + linef2[j] +
+            val = norm * (linef0[j] + linef1[j] + linef2[j] +
                           linef3[j] + linef4[j]);  /* L: lowpass filter value */
             sval = GET_DATA_BYTE(lines, j);   /* I: source pixel */
             ival = (l_int32)(sval + fract * (sval - val) + 0.5);
