@@ -46,6 +46,7 @@
  *           PIX        *pixPaintSelfThroughMask()
  *           PIX        *pixMakeMaskFromVal()
  *           PIX        *pixMakeMaskFromLUT()
+ *           PIX        *pixMakeArbMaskFromRGB()
  *           PIX        *pixSetUnderTransparency()
  *           PIX        *pixMakeAlphaFromMask()
  *           l_int32     pixGetColorNearMaskBoundary()
@@ -1033,6 +1034,49 @@ PIX       *pixd;
     }
 
     return pixd;
+}
+
+
+/*!
+ * \brief   pixMakeArbMaskFromRGB()
+ *
+ * \param[in]    pixs        32 bpp RGB
+ * \param[in]    rc, gc, bc  arithmetic factors; can be negative
+ * \param[in]    thresh      lower threshold on weighted sum of components
+ * \return  pixd 1 bpp mask, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This generates a 1 bpp mask image, where a 1 is written in
+ *          the mask for each pixel in pixs that satisfies
+ *               rc * rval + gc * gval + bc * bval >= thresh
+ *          where rval is the red component, etc.
+ *      (2) Unlike with pixConvertToGray(), there are no constraints
+ *          on the color coefficients, which can be negative.  For
+ *          example, a mask that discriminates against red and in favor
+ *          of blue will have rc < 0.0 and bc > 0.0.
+ * </pre>
+ */
+PIX *
+pixMakeArbMaskFromRGB(PIX       *pixs,
+                      l_float32  rc,
+                      l_float32  gc,
+                      l_float32  bc,
+                      l_float32  thresh)
+{
+PIX  *pix1, *pix2;
+
+    PROCNAME("pixMakeArbMaskFromRGB");
+
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+
+    if ((pix1 = pixConvertRGBToGrayArb(pixs, rc, gc, bc)) == NULL)
+        return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
+    pix2 = pixThresholdToBinary(pix1, thresh);
+    pixInvert(pix2, pix2);
+    pixDestroy(&pix1);
+    return pix2;
 }
 
 

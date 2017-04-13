@@ -1534,6 +1534,7 @@ LEPT_DLL extern l_int32 pixPaintThroughMask ( PIX *pixd, PIX *pixm, l_int32 x, l
 LEPT_DLL extern l_int32 pixPaintSelfThroughMask ( PIX *pixd, PIX *pixm, l_int32 x, l_int32 y, l_int32 searchdir, l_int32 mindist, l_int32 tilesize, l_int32 ntiles, l_int32 distblend );
 LEPT_DLL extern PIX * pixMakeMaskFromVal ( PIX *pixs, l_int32 val );
 LEPT_DLL extern PIX * pixMakeMaskFromLUT ( PIX *pixs, l_int32 *tab );
+LEPT_DLL extern PIX * pixMakeArbMaskFromRGB ( PIX *pixs, l_float32 rc, l_float32 gc, l_float32 bc, l_float32 thresh );
 LEPT_DLL extern PIX * pixSetUnderTransparency ( PIX *pixs, l_uint32 val, l_int32 debug );
 LEPT_DLL extern PIX * pixMakeAlphaFromMask ( PIX *pixs, l_int32 dist, BOX **pbox );
 LEPT_DLL extern l_int32 pixGetColorNearMaskBoundary ( PIX *pixs, PIX *pixm, BOX *box, l_int32 dist, l_uint32 *pval, l_int32 debug );
