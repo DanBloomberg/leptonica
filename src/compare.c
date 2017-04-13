@@ -618,11 +618,16 @@ PIX      *pixn;
     tab8 = makePixelSumTab8();
     pixCountPixels(pix1, &count1, tab8);
     pixCountPixels(pix2, &count2, tab8);
+    if (count1 == 0 || count2 == 0) {
+        LEPT_FREE(tab8);
+        return 0;
+    }
     pixn = pixAnd(NULL, pix1, pix2);
     pixCountPixels(pixn, &countn, tab8);
     *pval = (l_float32)countn * (l_float32)countn /
               ((l_float32)count1 * (l_float32)count2);
     LEPT_FREE(tab8);
+    pixDestroy(&pixn);
     return 0;
 }
 
