@@ -28,20 +28,14 @@
  * \file bmpio.c
  * <pre>
  *
- *      Read bmp from file
+ *      Read bmp
  *           PIX          *pixReadStreamBmp()
- *
- *      Write bmp to file
- *           l_int32       pixWriteStreamBmp()
- *
- *      Read/write to memory
  *           PIX          *pixReadMemBmp()
+ *
+ *      Write bmp
+ *           l_int32       pixWriteStreamBmp()
  *           l_int32       pixWriteMemBmp()
  *
- *    On systems like windows without fmemopen() and open_memstream(),
- *    we write data to a temp file and read it back for operations
- *    between pix and compressed-data, such as pixReadMemPng() and
- *    pixWriteMemPng().
  * </pre>
  */
 
@@ -69,13 +63,15 @@ static const l_int32  L_MAX_ALLOWED_NUM_COLORS = 256;
     /* Image dimension limits */
 static const l_int32  L_MAX_ALLOWED_WIDTH = 1000000;
 static const l_int32  L_MAX_ALLOWED_HEIGHT = 1000000;
-static const l_int64  L_MAX_ALLOWED_AREA = 400000000LL;
+static const l_int64  L_MAX_ALLOWED_PIXELS = 400000000LL;
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG     0
 #endif  /* ~NO_CONSOLE_IO */
 
-
+/*--------------------------------------------------------------*
+ *                              Read bmp                        *
+ *--------------------------------------------------------------*/
 /*!
  * \brief   pixReadStreamBmp()
  *
@@ -90,100 +86,85 @@ static const l_int64  L_MAX_ALLOWED_AREA = 400000000LL;
  * </pre>
  */
 PIX *
-pixReadStreamBmp(FILE  *fp)
+pixReadStreamBmp(FILE  *fp) 
 {
-l_uint16   sval;
-l_uint32   ival;
-l_int16    bfType, bfSize, bfFill1, bfReserved1, bfReserved2;
-l_int16    offset, bfFill2, biPlanes, depth, d;
-l_int32    biSize, width, height, xres, yres, compression;
-l_int32    imagebytes, biClrUsed, biClrImportant;
-size_t     filesize;
-l_uint8   *colormapBuf;
-l_int32    colormapEntries;
-l_int32    fileBpl, extrabytes;
-l_int32    pixWpl, pixBpl;
-l_int32    i, j, k;
-l_int64    area;
-l_uint8    pel[4];
-l_uint8   *data;
-l_uint32  *line, *pword;
-PIX        *pix, *pixt;
-PIXCMAP   *cmap;
+l_uint8  *data;
+size_t    size;
+PIX      *pix;
 
     PROCNAME("pixReadStreamBmp");
 
     if (!fp)
         return (PIX *)ERROR_PTR("fp not defined", procName, NULL);
 
-        /* Read bitmap file header */
-    if (fread((char *)&sval, 2, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 1 not read", procName, NULL);
-    bfType = convertOnBigEnd16(sval);
-    if (bfType != BMP_ID)
+        /* Read data from file and decode into Y,U,V arrays */
+    rewind(fp);
+    if ((data = l_binaryReadStream(fp, &size)) == NULL)
+        return (PIX *)ERROR_PTR("data not read", procName, NULL);
+
+    pix = pixReadMemBmp(data, size);
+    LEPT_FREE(data);
+    return pix;
+}
+
+
+/*!
+ * \brief   pixReadMemBmp()
+ *
+ * \param[in]    cdata    bmp data
+ * \param[in]    size     number of bytes of bmp datanumber of bytes in data
+ * \return  pix, or NULL on error
+ */
+PIX *
+pixReadMemBmp(const l_uint8  *cdata,
+              size_t          size)
+{
+l_uint8    pel[4];
+l_uint8   *cmapBuf, *fdata, *data;
+l_int16    bftype, offset, biplanes, depth, d;
+l_int32    width, height, xres, yres, compression, imagebytes;
+l_int32    cmapbytes, cmapEntries;
+l_int32    fdatabpl, extrabytes, pixWpl, pixBpl, i, j, k;
+l_uint32  *line, *pixdata, *pword;
+l_int64    npixels;
+BMP_FH    *bmpfh;
+BMP_IH    *bmpih;
+PIX       *pix, *pix1;
+PIXCMAP   *cmap;
+
+    PROCNAME("pixReadMemBmp");
+
+    if (!cdata)
+        return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
+    if (size < sizeof(BMP_FH) + sizeof(BMP_IH))
+        return (PIX *)ERROR_PTR("bmf size error", procName, NULL);
+
+        /* Verify this is an uncompressed bmp */
+    bmpfh = (BMP_FH *)cdata;
+    bftype = convertOnBigEnd16(bmpfh->bfType);
+    if (bftype != BMP_ID)
         return (PIX *)ERROR_PTR("not bmf format", procName, NULL);
-
-    if (fread((char *)&sval, 2, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 2 not read", procName, NULL);
-    bfSize = convertOnBigEnd16(sval);
-    if (fread((char *)&sval, 2, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 3 not read", procName, NULL);
-    bfFill1 = convertOnBigEnd16(sval);
-    if (fread((char *)&sval, 2, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 4 not read", procName, NULL);
-    bfReserved1 = convertOnBigEnd16(sval);
-    if (fread((char *)&sval, 2, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 5 not read", procName, NULL);
-    bfReserved2 = convertOnBigEnd16(sval);
-    if (fread((char *)&sval, 2, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 6 not read", procName, NULL);
-    offset = convertOnBigEnd16(sval);
-    if (fread((char *)&sval, 2, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 7 not read", procName, NULL);
-    bfFill2 = convertOnBigEnd16(sval);
-
-        /* Read bitmap info header */
-    if (fread((char *)&ival, 4, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 8 not read", procName, NULL);
-    biSize = convertOnBigEnd32(ival);
-    if (fread((char *)&ival, 4, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 9 not read", procName, NULL);
-    width = convertOnBigEnd32(ival);
-    if (fread((char *)&ival, 4, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 10 not read", procName, NULL);
-    height = convertOnBigEnd32(ival);
-    if (fread((char *)&sval, 2, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 11 not read", procName, NULL);
-    biPlanes = convertOnBigEnd16(sval);
-    if (fread((char *)&sval, 2, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 12 not read", procName, NULL);
-    depth = convertOnBigEnd16(sval);
-    if (fread((char *)&ival, 4, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 13 not read", procName, NULL);
-    compression = convertOnBigEnd32(ival);
-    if (fread((char *)&ival, 4, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 14 not read", procName, NULL);
-    imagebytes = convertOnBigEnd32(ival);
-    if (fread((char *)&ival, 4, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 15 not read", procName, NULL);
-    xres = convertOnBigEnd32(ival);
-    if (fread((char *)&ival, 4, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 16 not read", procName, NULL);
-    yres = convertOnBigEnd32(ival);
-    if (fread((char *)&ival, 4, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 17 not read", procName, NULL);
-    biClrUsed = convertOnBigEnd32(ival);
-    if (fread((char *)&ival, 4, 1, fp) != 1)
-        return (PIX *)ERROR_PTR("item 18 not read", procName, NULL);
-    biClrImportant = convertOnBigEnd32(ival);
-
+    bmpih = (BMP_IH *)(cdata + BMP_FHBYTES);
+    if (!bmpih)
+        return (PIX *)ERROR_PTR("bmpih not defined", procName, NULL);
+    compression = convertOnBigEnd32(bmpih->biCompression);
     if (compression != 0)
         return (PIX *)ERROR_PTR("cannot read compressed BMP files",
                                 procName, NULL);
 
+        /* Read the rest of the useful header information */
+    offset = convertOnBigEnd16(bmpfh->bfOffBits);
+    width = convertOnBigEnd32(bmpih->biWidth);
+    height = convertOnBigEnd32(bmpih->biHeight);
+    biplanes = convertOnBigEnd16(bmpih->biPlanes);
+    depth = convertOnBigEnd16(bmpih->biBitCount);
+    imagebytes = convertOnBigEnd32(bmpih->biSizeImage);
+    xres = convertOnBigEnd32(bmpih->biXPelsPerMeter);
+    yres = convertOnBigEnd32(bmpih->biYPelsPerMeter);
+
         /* Some sanity checking.  We impose limits on the image
          * dimensions and number of pixels.  We make sure the file
-         * is large enough to hold the amount of uncompressed data
+         * is the correct size to hold the amount of uncompressed data
          * that is specified in the header.  The number of colormap
          * entries is checked: it can be either 0 (no cmap) or some
          * number between 2 and 256.
@@ -198,46 +179,43 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("height < 1", procName, NULL);
     if (height > L_MAX_ALLOWED_HEIGHT)
         return (PIX *)ERROR_PTR("height too large", procName, NULL);
-    area = 1LL * width * height;
-    if (area > L_MAX_ALLOWED_AREA)
-        return (PIX *)ERROR_PTR("area too large", procName, NULL);
+    npixels = 1LL * width * height;
+    if (npixels > L_MAX_ALLOWED_PIXELS)
+        return (PIX *)ERROR_PTR("npixels too large", procName, NULL);
     if (depth != 1 && depth != 2 && depth != 4 && depth != 8 &&
         depth != 16 && depth != 24 && depth != 32)
         return (PIX *)ERROR_PTR("depth not in {1, 2, 4, 8, 16, 24, 32}",
                                 procName,NULL);
-    fileBpl = 4 * ((1LL * width * depth + 31)/32);
-    if (imagebytes != 0 && imagebytes != fileBpl * height)
+    fdatabpl = 4 * ((1LL * width * depth + 31)/32);
+    if (imagebytes != 0 && imagebytes != fdatabpl * height)
         return (PIX *)ERROR_PTR("invalid imagebytes", procName, NULL);
-    colormapEntries = (offset - BMP_FHBYTES - BMP_IHBYTES) / sizeof(RGBA_QUAD);
-    if (colormapEntries < 0 || colormapEntries == 1)
+    cmapbytes = offset - BMP_FHBYTES - BMP_IHBYTES;
+    cmapEntries = cmapbytes / sizeof(RGBA_QUAD);
+    if (cmapEntries < 0 || cmapEntries == 1)
         return (PIX *)ERROR_PTR("invalid: cmap size < 0 or 1", procName, NULL);
-    if (colormapEntries > L_MAX_ALLOWED_NUM_COLORS)
+    if (cmapEntries > L_MAX_ALLOWED_NUM_COLORS)
         return (PIX *)ERROR_PTR("invalid cmap: too large", procName,NULL);
-    filesize = fnbytesInFile(fp);
-    if (filesize < 1LL * fileBpl * height)
-        return (PIX *)ERROR_PTR("file too small to hold data", procName,NULL);
+    if (size != 1LL * offset + 1LL * fdatabpl * height)
+        return (PIX *)ERROR_PTR("size incommensurate with image data",
+                                procName,NULL);
 
         /* Handle the colormap */
-    colormapBuf = NULL;
-    if (colormapEntries > 0) {
-        if ((colormapBuf = (l_uint8 *)LEPT_CALLOC(colormapEntries,
-                                             sizeof(RGBA_QUAD))) == NULL)
-            return (PIX *)ERROR_PTR("colormapBuf alloc fail", procName, NULL );
+    cmapBuf = NULL;
+    if (cmapEntries > 0) {
+        if ((cmapBuf = (l_uint8 *)LEPT_CALLOC(cmapEntries, sizeof(RGBA_QUAD)))
+                 == NULL)
+            return (PIX *)ERROR_PTR("cmapBuf alloc fail", procName, NULL );
 
-            /* Read colormap */
-        if (fread(colormapBuf, sizeof(RGBA_QUAD), colormapEntries, fp)
-                 != colormapEntries) {
-            LEPT_FREE(colormapBuf);
-            return (PIX *)ERROR_PTR( "colormap read fail", procName, NULL);
-        }
+            /* Read the colormap entry data from bmp. The RGBA_QUAD colormap
+             * entries are used for both bmp and leptonica colormaps. */
+        memcpy(cmapBuf, cdata + BMP_FHBYTES + BMP_IHBYTES,
+               sizeof(RGBA_QUAD) * cmapEntries);
     }
 
         /* Make a 32 bpp pix if depth is 24 bpp */
-    d = depth;
-    if (depth == 24)
-        d = 32;
+    d = (depth == 24) ? 32 : depth;
     if ((pix = pixCreate(width, height, d)) == NULL) {
-        LEPT_FREE(colormapBuf);
+        LEPT_FREE(cmapBuf);
         return (PIX *)ERROR_PTR( "pix not made", procName, NULL);
     }
     pixSetXRes(pix, (l_int32)((l_float32)xres / 39.37 + 0.5));  /* to ppi */
@@ -246,25 +224,24 @@ PIXCMAP   *cmap;
     pixWpl = pixGetWpl(pix);
     pixBpl = 4 * pixWpl;
 
+        /* Convert the bmp colormap to a pixcmap */
     cmap = NULL;
-    if (colormapEntries > 0) {  /* import the colormap to the pix cmap */
+    if (cmapEntries > 0) {  /* import the colormap to the pix cmap */
         cmap = pixcmapCreate(L_MIN(d, 8));
         LEPT_FREE(cmap->array);  /* remove generated cmap array */
-        cmap->array  = (void *)colormapBuf;  /* and replace */
-        cmap->n = L_MIN(colormapEntries, 256);
+        cmap->array  = (void *)cmapBuf;  /* and replace */
+        cmap->n = L_MIN(cmapEntries, 256);
     }
     pixSetColormap(pix, cmap);
 
-        /* Seek to the start of the image data in the file */
-    fseek(fp, offset, 0);
-
+        /* Acquire the image data */
+    fdata = (l_uint8 *)cdata + offset;  /* start of the bmp image data */
+    pixdata = pixGetData(pix);
     if (depth != 24) {  /* typ. 1 or 8 bpp */
-        data = (l_uint8 *)pixGetData(pix) + pixBpl * (height - 1);
+        data = (l_uint8 *)pixdata + pixBpl * (height - 1);
         for (i = 0; i < height; i++) {
-            if (fread(data, 1, fileBpl, fp) != fileBpl) {
-                pixDestroy(&pix);
-                return (PIX *)ERROR_PTR("BMP read fail", procName, NULL);
-            }
+            memcpy(data, fdata, fdatabpl);
+            fdata += fdatabpl;
             data -= pixBpl;
         }
     } else {  /*  24 bpp file; 32 bpp pix
@@ -304,26 +281,21 @@ PIXCMAP   *cmap;
              *          3  (R)     2  (G)        1  (B)        0
              *      |-----------|------------|-----------|-----------|
              */
-        extrabytes = fileBpl - 3 * width;
-        line = pixGetData(pix) + pixWpl * (height - 1);
+        extrabytes = fdatabpl - 3 * width;
+        line = pixdata + pixWpl * (height - 1);
         for (i = 0; i < height; i++) {
             for (j = 0; j < width; j++) {
                 pword = line + j;
-                if (fread(&pel, 1, 3, fp) != 3) {
-                    pixDestroy(&pix);
-                    return (PIX *)ERROR_PTR("bmp(1) read fail", procName, NULL);
-                }
+                memcpy(&pel, fdata, 3);
+                fdata += 3;
                 *((l_uint8 *)pword + COLOR_RED) = pel[2];
                 *((l_uint8 *)pword + COLOR_GREEN) = pel[1];
                 *((l_uint8 *)pword + COLOR_BLUE) = pel[0];
             }
             if (extrabytes) {
                 for (k = 0; k < extrabytes; k++) {
-                    if (fread(&pel, 1, 1, fp) != 1) {
-                        pixDestroy(&pix);
-                        return (PIX *)ERROR_PTR("bmp(2) read fail",
-                                                procName, NULL);
-                    }
+                    memcpy(&pel, fdata, 1);
+                    fdata++;
                 }
             }
             line -= pixWpl;
@@ -343,54 +315,31 @@ PIXCMAP   *cmap;
          * Note: the alpha component here is 255 (opaque)
          * ---------------------------------------------- */
     if (depth == 1 && cmap) {
-        pixt = pixRemoveColormap(pix, REMOVE_CMAP_TO_BINARY);
+        pix1 = pixRemoveColormap(pix, REMOVE_CMAP_TO_BINARY);
         pixDestroy(&pix);
-        pix = pixt;  /* rename */
+        pix = pix1;  /* rename */
     }
 
     return pix;
 }
 
 
-
+/*--------------------------------------------------------------*
+ *                            Write bmp                         *
+ *--------------------------------------------------------------*/
 /*!
  * \brief   pixWriteStreamBmp()
  *
- * \param[in]    fp file stream opened for write
- * \param[in]    pix 1, 4, 8, 32 bpp
+ * \param[in]    fp     file stream
+ * \param[in]    pix    all depths
  * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) We position fp at the beginning of the stream, so it
- *          truncates any existing data
- *      (2) 2 bpp Bmp files are apparently not valid!.  We can
- *          write and read them, but nobody else can read ours.
- * </pre>
  */
 l_int32
 pixWriteStreamBmp(FILE  *fp,
                   PIX   *pix)
 {
-l_uint32    offbytes, filebytes, fileimagebytes;
-l_int32     width, height, depth, d, xres, yres;
-l_uint16    bfType, bfSize, bfFill1, bfReserved1, bfReserved2;
-l_uint16    bfOffBits, bfFill2, biPlanes, biBitCount;
-l_uint16    sval;
-l_uint32    biSize, biWidth, biHeight, biCompression, biSizeImage;
-l_uint32    biXPelsPerMeter, biYPelsPerMeter, biClrUsed, biClrImportant;
-l_int32     pixWpl, pixBpl, extrabytes, writeerror;
-l_int32     fileBpl, fileWpl;
-l_int32     i, j, k;
-l_int32     heapcm;  /* extra copy of cta on the heap ? 1 : 0 */
-l_uint8    *data;
-l_uint8     pel[4];
-l_uint32   *line, *pword;
-PIXCMAP    *cmap;
-l_uint8    *cta;          /* address of the bmp color table array */
-l_int32     cmaplen;      /* number of bytes in the bmp colormap */
-l_int32     ncolors, val, stepsize;
-RGBA_QUAD  *pquad;
+l_uint8  *data;
+size_t    size, nbytes;
 
     PROCNAME("pixWriteStreamBmp");
 
@@ -399,23 +348,83 @@ RGBA_QUAD  *pquad;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
 
-    width  = pixGetWidth(pix);
-    height = pixGetHeight(pix);
-    d  = pixGetDepth(pix);
+    pixWriteMemBmp(&data, &size, pix);
+    rewind(fp);
+    nbytes = fwrite(data, 1, size, fp);
+    free(data);
+    if (nbytes != size)
+        return ERROR_INT("Write error", procName, 1);
+    return 0;
+}
+
+
+/*!
+ * \brief   pixWriteMemBmp()
+ *
+ * \param[out]   pfdata   data of bmp formatted image
+ * \param[out]   pfsize    size of returned data
+ * \param[in]    pix      1, 4, 8, 32 bpp
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) 2 bpp bmp files are not valid in the spec.  We can
+ *          write and read them, but nobody else can.
+ *      (2) The transparency component in an rgb pix is ignored.
+ *          All 32 bpp pix have the bmp alpha component set to 255 (opaque).
+ *      (3) The bmp colormap entries, RGBA_QUAD, are the same as
+ *          the ones used for colormaps in leptonica.  This allows
+ *          a simple memcpy for bmp output.
+ * </pre>
+ */
+l_int32
+pixWriteMemBmp(l_uint8  **pfdata,
+               size_t    *pfsize,
+               PIX       *pix)
+{
+l_uint8     pel[4];
+l_uint8    *cta;          /* address of the bmp color table array */
+l_uint8    *fdata, *data, *fmdata;
+l_int32     cmaplen;      /* number of bytes in the bmp colormap */
+l_int32     ncolors, val, stepsize;
+l_int32     w, h, d, fdepth, xres, yres;
+l_int32     pixWpl, pixBpl, extrabytes, fBpl, fWpl, i, j, k;
+l_int32     heapcm;  /* extra copy of cta on the heap ? 1 : 0 */
+l_uint32    offbytes, fimagebytes;
+l_uint32   *line, *pword;
+size_t      fsize;
+BMP_FH     *bmpfh;
+BMP_IH     *bmpih;
+PIXCMAP    *cmap;
+RGBA_QUAD  *pquad;
+
+    PROCNAME("pixWriteMemBmp");
+
+    if (pfdata) *pfdata = NULL;
+    if (pfsize) *pfsize = 0;
+    if (!pfdata)
+        return ERROR_INT("&fdata not defined", procName, 1 );
+    if (!pfsize)
+        return ERROR_INT("&fsize not defined", procName, 1 );
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+
+    pixGetDimensions(pix, &w, &h, &d);
     if (d == 2)
         L_WARNING("writing 2 bpp bmp file; nobody else can read\n", procName);
-    depth = d;
-    if (d == 32)
-        depth = 24;
+    fdepth = (d == 32) ? 24 : d;
     xres = (l_int32)(39.37 * (l_float32)pixGetXRes(pix) + 0.5);  /* to ppm */
     yres = (l_int32)(39.37 * (l_float32)pixGetYRes(pix) + 0.5);  /* to ppm */
 
     pixWpl = pixGetWpl(pix);
     pixBpl = 4 * pixWpl;
-    fileWpl = (width * depth + 31) / 32;
-    fileBpl = 4 * fileWpl;
-    fileimagebytes = height * fileBpl;
+    fWpl = (w * fdepth + 31) / 32;
+    fBpl = 4 * fWpl;
+    fimagebytes = h * fBpl;
+    if (fimagebytes > 4LL * L_MAX_ALLOWED_PIXELS)
+        return ERROR_INT("image data is too large", procName, 1);
 
+        /* If not rgb, the bmp data is required to have a colormap */
     heapcm = 0;
     if (d == 32) {   /* 24 bpp rgb; no colormap */
         ncolors = 0;
@@ -430,7 +439,7 @@ RGBA_QUAD  *pquad;
             ncolors = 2;
             cta = (l_uint8 *)bwmap;
         } else {   /* d != 32; output grayscale version */
-            ncolors = 1 << depth;
+            ncolors = 1 << fdepth;
             cmaplen = ncolors * sizeof(RGBA_QUAD);
             heapcm = 1;
             cta = (l_uint8 *)LEPT_CALLOC(cmaplen, 1);
@@ -454,81 +463,59 @@ RGBA_QUAD  *pquad;
     }
 #endif  /* DEBUG */
 
-    fseek(fp, 0L, 0);
+    offbytes = BMP_FHBYTES + BMP_IHBYTES + cmaplen;
+    fsize = offbytes + fimagebytes;
+    fdata = (l_uint8 *)LEPT_CALLOC(fsize, 1);
+    *pfdata = fdata;
+    *pfsize = fsize;
 
         /* Convert to little-endian and write the file header data */
-    bfType = convertOnBigEnd16(BMP_ID);
-    offbytes = BMP_FHBYTES + BMP_IHBYTES + cmaplen;
-    filebytes = offbytes + fileimagebytes;
-    sval = filebytes & 0x0000ffff;
-    bfSize = convertOnBigEnd16(sval);
-    sval = (filebytes >> 16) & 0x0000ffff;
-    bfFill1 = convertOnBigEnd16(sval);
-    bfReserved1 = 0;
-    bfReserved2 = 0;
-    sval = offbytes & 0x0000ffff;
-    bfOffBits = convertOnBigEnd16(sval);
-    sval = (offbytes >> 16) & 0x0000ffff;
-    bfFill2 = convertOnBigEnd16(sval);
-    fwrite(&bfType, 1, 2, fp);
-    fwrite(&bfSize, 1, 2, fp);
-    fwrite(&bfFill1, 1, 2, fp);
-    fwrite(&bfReserved1, 1, 2, fp);
-    fwrite(&bfReserved2, 1, 2, fp);
-    fwrite(&bfOffBits, 1, 2, fp);
-    fwrite(&bfFill2, 1, 2, fp);
+    bmpfh = (BMP_FH *)fdata;
+    bmpfh->bfType = convertOnBigEnd16(BMP_ID);
+    bmpfh->bfSize = convertOnBigEnd16(fsize & 0x0000ffff);
+    bmpfh->bfFill1 = convertOnBigEnd16((fsize >> 16) & 0x0000ffff);
+    bmpfh->bfOffBits = convertOnBigEnd16(offbytes & 0x0000ffff);
+    bmpfh->bfFill2 = convertOnBigEnd16((offbytes >> 16) & 0x0000ffff);
 
         /* Convert to little-endian and write the info header data */
-    biSize = convertOnBigEnd32(BMP_IHBYTES);
-    biWidth = convertOnBigEnd32(width);
-    biHeight = convertOnBigEnd32(height);
-    biPlanes = convertOnBigEnd16(1);
-    biBitCount = convertOnBigEnd16(depth);
-    biCompression   = 0;
-    biSizeImage = convertOnBigEnd32(fileimagebytes);
-    biXPelsPerMeter = convertOnBigEnd32(xres);
-    biYPelsPerMeter = convertOnBigEnd32(yres);
-    biClrUsed = convertOnBigEnd32(ncolors);
-    biClrImportant = convertOnBigEnd32(ncolors);
-    fwrite(&biSize, 1, 4, fp);
-    fwrite(&biWidth, 1, 4, fp);
-    fwrite(&biHeight, 1, 4, fp);
-    fwrite(&biPlanes, 1, 2, fp);
-    fwrite(&biBitCount, 1, 2, fp);
-    fwrite(&biCompression, 1, 4, fp);
-    fwrite(&biSizeImage, 1, 4, fp);
-    fwrite(&biXPelsPerMeter, 1, 4, fp);
-    fwrite(&biYPelsPerMeter, 1, 4, fp);
-    fwrite(&biClrUsed, 1, 4, fp);
-    fwrite(&biClrImportant, 1, 4, fp);
+    bmpih = (BMP_IH *)(fdata + BMP_FHBYTES);
+    bmpih->biSize = convertOnBigEnd32(BMP_IHBYTES);
+    bmpih->biWidth = convertOnBigEnd32(w);
+    bmpih->biHeight = convertOnBigEnd32(h);
+    bmpih->biPlanes = convertOnBigEnd16(1);
+    bmpih->biBitCount = convertOnBigEnd16(fdepth);
+    bmpih->biSizeImage = convertOnBigEnd32(fimagebytes);
+    bmpih->biXPelsPerMeter = convertOnBigEnd32(xres);
+    bmpih->biYPelsPerMeter = convertOnBigEnd32(yres);
+    bmpih->biClrUsed = convertOnBigEnd32(ncolors);
+    bmpih->biClrImportant = convertOnBigEnd32(ncolors);
 
-        /* Write the colormap data and free the cta if necessary */
+        /* Copy the colormap data and free the cta if necessary */
     if (ncolors > 0) {
-        if (fwrite(cta, 1, cmaplen, fp) != cmaplen) {
-            if (heapcm) LEPT_FREE(cta);
-            return ERROR_INT("colormap write fail", procName, 1);
-        }
+        memcpy(fdata + BMP_FHBYTES + BMP_IHBYTES, cta, cmaplen);
         if (heapcm) LEPT_FREE(cta);
     }
 
         /* When you write a binary image with a colormap
          * that sets BLACK to 0, you must invert the data */
-    if (depth == 1 && cmap && ((l_uint8 *)(cmap->array))[0] == 0x0) {
+    if (fdepth == 1 && cmap && ((l_uint8 *)(cmap->array))[0] == 0x0) {
         pixInvert(pix, pix);
     }
 
+        /* An endian byte swap is also required */
     pixEndianByteSwap(pix);
 
-    writeerror = 0;
-    if (depth != 24) {   /* typ 1 or 8 bpp */
-        data = (l_uint8 *)pixGetData(pix) + pixBpl * (height - 1);
-        for (i = 0; i < height; i++) {
-            if (fwrite(data, 1, fileBpl, fp) != fileBpl)
-                writeerror = 1;
+        /* Transfer the data */
+    fmdata = fdata + offbytes;
+    if (fdepth != 24) {   /* typ 1 or 8 bpp */
+        data = (l_uint8 *)pixGetData(pix) + pixBpl * (h - 1);
+        for (i = 0; i < h; i++) {
+            memcpy(fmdata, data, fBpl);
             data -= pixBpl;
+            fmdata += fBpl;
         }
     } else {  /* 32 bpp pix; 24 bpp file
-             * See the comments in pixReadStreamBMP() to
+             * See the comments in pixReadStreamBmp() to
              * understand the logic behind the pixel ordering below.
              * Note that we have again done an endian swap on
              * little endian machines before arriving here, so that
@@ -536,126 +523,33 @@ RGBA_QUAD  *pquad;
                         Red         Green        Blue         --
                     |-----------|------------|-----------|-----------|
              */
-        extrabytes = fileBpl - 3 * width;
-        line = pixGetData(pix) + pixWpl * (height - 1);
-        for (i = 0; i < height; i++) {
-            for (j = 0; j < width; j++) {
+        extrabytes = fBpl - 3 * w;
+        line = pixGetData(pix) + pixWpl * (h - 1);
+        for (i = 0; i < h; i++) {
+            for (j = 0; j < w; j++) {
                 pword = line + j;
                 pel[2] = *((l_uint8 *)pword + COLOR_RED);
                 pel[1] = *((l_uint8 *)pword + COLOR_GREEN);
                 pel[0] = *((l_uint8 *)pword + COLOR_BLUE);
-                if (fwrite(&pel, 1, 3, fp) != 3)
-                    writeerror = 1;
+                memcpy(fmdata, &pel, 3);
+                fmdata += 3;
             }
             if (extrabytes) {
-                for (k = 0; k < extrabytes; k++)
-                    fwrite(&pel, 1, 1, fp);
+                for (k = 0; k < extrabytes; k++) {
+                    memcpy(fmdata, &pel, 1);
+                    fmdata++;
+                }
             }
             line -= pixWpl;
         }
     }
 
-        /* Restore to original state */
+        /* Restore pix to the original state */
     pixEndianByteSwap(pix);
-    if (depth == 1 && cmap && ((l_uint8 *)(cmap->array))[0] == 0x0)
+    if (d == 1 && cmap && ((l_uint8 *)(cmap->array))[0] == 0x0)
         pixInvert(pix, pix);
-
-    if (writeerror)
-        return ERROR_INT("image write fail", procName, 1);
-
     return 0;
 }
-
-
-/*---------------------------------------------------------------------*
- *                         Read/write to memory                        *
- *---------------------------------------------------------------------*/
-
-/*!
- * \brief   pixReadMemBmp()
- *
- * \param[in]    data const; bmp-encoded
- * \param[in]    size of data
- * \return  pix, or NULL on error
- *
- * <pre>
- * Notes:
- *      (1) The %size byte of %data must be a null character.
- * </pre>
- */
-PIX *
-pixReadMemBmp(const l_uint8  *data,
-              size_t          size)
-{
-FILE  *fp;
-PIX   *pix;
-
-    PROCNAME("pixReadMemBmp");
-
-    if (!data)
-        return (PIX *)ERROR_PTR("data not defined", procName, NULL);
-
-    if ((fp = fopenReadFromMemory(data, size)) == NULL)
-        return (PIX *)ERROR_PTR("stream not opened", procName, NULL);
-    pix = pixReadStreamBmp(fp);
-    fclose(fp);
-    if (!pix) L_ERROR("pix not read\n", procName);
-    return pix;
-}
-
-
-/*!
- * \brief   pixWriteMemBmp()
- *
- * \param[out]   pdata data of tiff compressed image
- * \param[out]   psize size of returned data
- * \param[in]    pix
- * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) See pixWriteStreamBmp() for usage.  This version writes to
- *          memory instead of to a file stream.
- * </pre>
- */
-l_int32
-pixWriteMemBmp(l_uint8  **pdata,
-               size_t    *psize,
-               PIX       *pix)
-{
-l_int32  ret;
-FILE    *fp;
-
-    PROCNAME("pixWriteMemBmp");
-
-    if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1 );
-    if (!psize)
-        return ERROR_INT("&size not defined", procName, 1 );
-    if (!pix)
-        return ERROR_INT("&pix not defined", procName, 1 );
-
-#if HAVE_FMEMOPEN
-    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
-    ret = pixWriteStreamBmp(fp, pix);
-#else
-    L_INFO("work-around: writing to a temp file\n", procName);
-  #ifdef _WIN32
-    if ((fp = fopenWriteWinTempfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
-  #else
-    if ((fp = tmpfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
-  #endif  /* _WIN32 */
-    ret = pixWriteStreamBmp(fp, pix);
-    rewind(fp);
-    *pdata = l_binaryReadStream(fp, psize);
-#endif  /* HAVE_FMEMOPEN */
-    fclose(fp);
-    return ret;
-}
-
 
 /* --------------------------------------------*/
 #endif  /* USE_BMPIO */

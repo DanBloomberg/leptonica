@@ -187,9 +187,9 @@ LEPT_DLL extern l_int32 bmfGetBaseline ( L_BMF *bmf, char chr, l_int32 *pbaselin
 LEPT_DLL extern PIXA * pixaGetFont ( const char *dir, l_int32 fontsize, l_int32 *pbl0, l_int32 *pbl1, l_int32 *pbl2 );
 LEPT_DLL extern l_int32 pixaSaveFont ( const char *indir, const char *outdir, l_int32 fontsize );
 LEPT_DLL extern PIX * pixReadStreamBmp ( FILE *fp );
+LEPT_DLL extern PIX * pixReadMemBmp ( const l_uint8 *cdata, size_t size );
 LEPT_DLL extern l_int32 pixWriteStreamBmp ( FILE *fp, PIX *pix );
-LEPT_DLL extern PIX * pixReadMemBmp ( const l_uint8 *data, size_t size );
-LEPT_DLL extern l_int32 pixWriteMemBmp ( l_uint8 **pdata, size_t *psize, PIX *pix );
+LEPT_DLL extern l_int32 pixWriteMemBmp ( l_uint8 **pfdata, size_t *pfsize, PIX *pix );
 LEPT_DLL extern PIXA * l_bootnum_gen1 ( void );
 LEPT_DLL extern PIXA * l_bootnum_gen2 ( void );
 LEPT_DLL extern PIXA * l_bootnum_gen3 ( void );
