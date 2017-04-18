@@ -1616,13 +1616,15 @@ PIX     *pixg, *pixd;
  * \brief   pixConvert16To8()
  *
  * \param[in]    pixs 16 bpp
- * \param[in]    type L_LS_BYTE, L_MS_BYTE, L_CLIP_TO_FF
+ * \param[in]    type L_LS_BYTE, L_MS_BYTE, L_AUTO_BYTE, L_CLIP_TO_FF
  * \return  pixd 8 bpp, or NULL on error
  *
  * <pre>
  * Notes:
- *      (1) For each dest pixel, use either the LSB, the MSB, or the
- *          min(val, 255) for each 16-bit src pixel.
+ *      (1) With L_AUTO_BYTE, if the max pixel value is greater than 255,
+ *          use the MSB; otherwise, use the LSB.
+ *      (2) With L_CLIP_TO_FF, use min(pixel-value, 0xff) for each
+ *          16-bit src pixel.
  * </pre>
  */
 PIX *
@@ -1630,7 +1632,7 @@ pixConvert16To8(PIX     *pixs,
                 l_int32  type)
 {
 l_uint16   dword;
-l_int32    w, h, wpls, wpld, i, j;
+l_int32    w, h, wpls, wpld, i, j, val, use_lsb;
 l_uint32   sword, first, second;
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
@@ -1641,7 +1643,8 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 16)
         return (PIX *)ERROR_PTR("pixs not 16 bpp", procName, NULL);
-    if (type != L_LS_BYTE && type != L_MS_BYTE && type != L_CLIP_TO_FF)
+    if (type != L_LS_BYTE && type != L_MS_BYTE &&
+        type != L_AUTO_BYTE && type != L_CLIP_TO_FF)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
@@ -1654,6 +1657,22 @@ PIX       *pixd;
     wpld = pixGetWpl(pixd);
     datad = pixGetData(pixd);
 
+    if (type == L_AUTO_BYTE) {
+        use_lsb = TRUE;
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            for (j = 0; j < wpls; j++) {
+                 val = GET_DATA_TWO_BYTES(lines, j);
+                 if (val > 255) {
+                     use_lsb = FALSE;
+                     break;
+                 }
+            }
+            if (!use_lsb) break;
+        }
+        type = (use_lsb) ? L_LS_BYTE : L_MS_BYTE;
+    }
+        
         /* Convert 2 pixels at a time */
     for (i = 0; i < h; i++) {
         lines = datas + i * wpls;
@@ -2282,7 +2301,7 @@ PIXCMAP  *cmap;
  *          as pixs.  It is always returned.
  *      (3) A simple unpacking might use val0 = 0 and val1 = 255, or v.v.
  *      (4) To have a colormap associated with the 8 bpp pixd,
- *          usepixConvert1To8Cmap().
+ *          use pixConvert1To8Cmap().
  * </pre>
  */
 PIX *
@@ -2383,8 +2402,7 @@ pixConvert2To8(PIX     *pixs,
                l_uint8  val3,
                l_int32  cmapflag)
 {
-l_int32    w, h, i, j, nbytes, wpls, wpld, dibit, ncolor;
-l_int32    rval, gval, bval, byte;
+l_int32    w, h, i, j, nbytes, wpls, wpld, dibit, byte;
 l_uint8    val[4];
 l_uint32   index;
 l_uint32  *tab, *datas, *datad, *lines, *lined;
@@ -2413,14 +2431,10 @@ PIXCMAP   *cmaps, *cmapd;
     wpld = pixGetWpl(pixd);
 
     if (cmapflag == TRUE) {  /* pixd will have a colormap */
-        cmapd = pixcmapCreate(8);  /* 8 bpp standard cmap */
         if (cmaps) {  /* use the existing colormap from pixs */
-            ncolor = pixcmapGetCount(cmaps);
-            for (i = 0; i < ncolor; i++) {
-                pixcmapGetColor(cmaps, i, &rval, &gval, &bval);
-                pixcmapAddColor(cmapd, rval, gval, bval);
-            }
+            cmapd = pixcmapConvertTo8(cmaps);
         } else {  /* make a colormap from the input values */
+            cmapd = pixcmapCreate(8);
             pixcmapAddColor(cmapd, val0, val0, val0);
             pixcmapAddColor(cmapd, val1, val1, val1);
             pixcmapAddColor(cmapd, val2, val2, val2);
@@ -2495,8 +2509,7 @@ PIX *
 pixConvert4To8(PIX     *pixs,
                l_int32  cmapflag)
 {
-l_int32    w, h, i, j, wpls, wpld, ncolor;
-l_int32    rval, gval, bval, byte, qbit;
+l_int32    w, h, i, j, wpls, wpld, byte, qbit;
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
 PIXCMAP   *cmaps, *cmapd;
@@ -2523,14 +2536,10 @@ PIXCMAP   *cmaps, *cmapd;
     wpld = pixGetWpl(pixd);
 
     if (cmapflag == TRUE) {  /* pixd will have a colormap */
-        cmapd = pixcmapCreate(8);
         if (cmaps) {  /* use the existing colormap from pixs */
-            ncolor = pixcmapGetCount(cmaps);
-            for (i = 0; i < ncolor; i++) {
-                pixcmapGetColor(cmaps, i, &rval, &gval, &bval);
-                pixcmapAddColor(cmapd, rval, gval, bval);
-            }
+            cmapd = pixcmapConvertTo8(cmaps);
         } else {  /* make a colormap with a linear trc */
+            cmapd = pixcmapCreate(8);
             for (i = 0; i < 16; i++)
                 pixcmapAddColor(cmapd, 17 * i, 17 * i, 17 * i);
         }

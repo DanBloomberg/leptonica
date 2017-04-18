@@ -112,7 +112,7 @@ PIX      *pix;
  * \brief   pixReadMemBmp()
  *
  * \param[in]    cdata    bmp data
- * \param[in]    size     number of bytes of bmp datanumber of bytes in data
+ * \param[in]    size     number of bytes of bmp-formatted data
  * \return  pix, or NULL on error
  */
 PIX *
@@ -234,7 +234,7 @@ PIXCMAP   *cmap;
     }
     pixSetColormap(pix, cmap);
 
-        /* Acquire the image data */
+        /* Acquire the image data.  Image origin for bmp is at lower right. */
     fdata = (l_uint8 *)cdata + offset;  /* start of the bmp image data */
     pixdata = pixGetData(pix);
     if (depth != 24) {  /* typ. 1 or 8 bpp */
@@ -363,16 +363,18 @@ size_t    size, nbytes;
  *
  * \param[out]   pfdata   data of bmp formatted image
  * \param[out]   pfsize    size of returned data
- * \param[in]    pix      1, 4, 8, 32 bpp
+ * \param[in]    pixs      1, 2, 4, 8, 16, 32 bpp
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) 2 bpp bmp files are not valid in the spec.  We can
- *          write and read them, but nobody else can.
- *      (2) The transparency component in an rgb pix is ignored.
+ *      (1) 2 bpp bmp files are not valid in the spec, and are
+ *          written as 8 bpp.
+ *      (2) pix with depth <= 8 bpp are written with a colormap.
+ *          16 bpp gray and 32 bpp rgb pix are written without a colormap.
+ *      (3) The transparency component in an rgb pix is ignored.
  *          All 32 bpp pix have the bmp alpha component set to 255 (opaque).
- *      (3) The bmp colormap entries, RGBA_QUAD, are the same as
+ *      (4) The bmp colormap entries, RGBA_QUAD, are the same as
  *          the ones used for colormaps in leptonica.  This allows
  *          a simple memcpy for bmp output.
  * </pre>
@@ -380,7 +382,7 @@ size_t    size, nbytes;
 l_int32
 pixWriteMemBmp(l_uint8  **pfdata,
                size_t    *pfsize,
-               PIX       *pix)
+               PIX       *pixs)
 {
 l_uint8     pel[4];
 l_uint8    *cta;          /* address of the bmp color table array */
@@ -395,6 +397,7 @@ l_uint32   *line, *pword;
 size_t      fsize;
 BMP_FH     *bmpfh;
 BMP_IH     *bmpih;
+PIX        *pix;
 PIXCMAP    *cmap;
 RGBA_QUAD  *pquad;
 
@@ -406,39 +409,48 @@ RGBA_QUAD  *pquad;
         return ERROR_INT("&fdata not defined", procName, 1 );
     if (!pfsize)
         return ERROR_INT("&fsize not defined", procName, 1 );
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
 
-    pixGetDimensions(pix, &w, &h, &d);
-    if (d == 2)
-        L_WARNING("writing 2 bpp bmp file; nobody else can read\n", procName);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d == 2) {
+        L_WARNING("2 bpp files can't be read; converting to 8 bpp\n", procName);
+        pix = pixConvert2To8(pixs, 0, 85, 170, 255, 1);
+        d = 8;
+    } else {
+        pix = pixCopy(NULL, pixs);
+    }
     fdepth = (d == 32) ? 24 : d;
-    xres = (l_int32)(39.37 * (l_float32)pixGetXRes(pix) + 0.5);  /* to ppm */
-    yres = (l_int32)(39.37 * (l_float32)pixGetYRes(pix) + 0.5);  /* to ppm */
+
+        /* Resolution is given in pixels/meter */
+    xres = (l_int32)(39.37 * (l_float32)pixGetXRes(pix) + 0.5);
+    yres = (l_int32)(39.37 * (l_float32)pixGetYRes(pix) + 0.5);
 
     pixWpl = pixGetWpl(pix);
     pixBpl = 4 * pixWpl;
     fWpl = (w * fdepth + 31) / 32;
     fBpl = 4 * fWpl;
     fimagebytes = h * fBpl;
-    if (fimagebytes > 4LL * L_MAX_ALLOWED_PIXELS)
+    if (fimagebytes > 4LL * L_MAX_ALLOWED_PIXELS) {
+        pixDestroy(&pix);
         return ERROR_INT("image data is too large", procName, 1);
+    }
 
-        /* If not rgb, the bmp data is required to have a colormap */
+        /* If not rgb or 16 bpp, the bmp data is required to have a colormap */
     heapcm = 0;
-    if (d == 32) {   /* 24 bpp rgb; no colormap */
+    if (d == 32 || d == 16) {   /* 24 bpp rgb or 16 bpp: no colormap */
         ncolors = 0;
         cmaplen = 0;
     } else if ((cmap = pixGetColormap(pix))) {   /* existing colormap */
         ncolors = pixcmapGetCount(cmap);
         cmaplen = ncolors * sizeof(RGBA_QUAD);
         cta = (l_uint8 *)cmap->array;
-    } else {   /* no existing colormap; make a binary or gray one */
+    } else {   /* no existing colormap; d <= 8; make a binary or gray one */
         if (d == 1) {
             cmaplen  = sizeof(bwmap);
             ncolors = 2;
             cta = (l_uint8 *)bwmap;
-        } else {   /* d != 32; output grayscale version */
+        } else {   /* d = 2,4,8; use a grayscale output colormap */
             ncolors = 1 << fdepth;
             cmaplen = ncolors * sizeof(RGBA_QUAD);
             heapcm = 1;
@@ -505,7 +517,7 @@ RGBA_QUAD  *pquad;
         /* An endian byte swap is also required */
     pixEndianByteSwap(pix);
 
-        /* Transfer the data */
+        /* Transfer the image data.  Image origin for bmp is at lower right. */
     fmdata = fdata + offbytes;
     if (fdepth != 24) {   /* typ 1 or 8 bpp */
         data = (l_uint8 *)pixGetData(pix) + pixBpl * (h - 1);
@@ -544,10 +556,7 @@ RGBA_QUAD  *pquad;
         }
     }
 
-        /* Restore pix to the original state */
-    pixEndianByteSwap(pix);
-    if (d == 1 && cmap && ((l_uint8 *)(cmap->array))[0] == 0x0)
-        pixInvert(pix, pix);
+    pixDestroy(&pix);
     return 0;
 }
 

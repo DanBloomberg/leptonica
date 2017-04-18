@@ -819,10 +819,11 @@ enum {
 enum {
     L_LS_BYTE = 1,              /*!< use LSB                               */
     L_MS_BYTE = 2,              /*!< use MSB                               */
-    L_CLIP_TO_FF = 3,           /*!< use max(val, 255)                     */
-    L_LS_TWO_BYTES = 4,         /*!< use two LSB                           */
-    L_MS_TWO_BYTES = 5,         /*!< use two MSB                           */
-    L_CLIP_TO_FFFF = 6          /*!< use max(val, 65535)                   */
+    L_AUTO_BYTE = 3,            /*!< use LSB if max(val) < 256; else MSB   */
+    L_CLIP_TO_FF = 4,           /*!< use max(val, 255)                     */
+    L_LS_TWO_BYTES = 5,         /*!< use two LSB                           */
+    L_MS_TWO_BYTES = 6,         /*!< use two MSB                           */
+    L_CLIP_TO_FFFF = 7          /*!< use max(val, 65535)                   */
 };
 
 

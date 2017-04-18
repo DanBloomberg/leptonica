@@ -189,7 +189,7 @@ LEPT_DLL extern l_int32 pixaSaveFont ( const char *indir, const char *outdir, l_
 LEPT_DLL extern PIX * pixReadStreamBmp ( FILE *fp );
 LEPT_DLL extern PIX * pixReadMemBmp ( const l_uint8 *cdata, size_t size );
 LEPT_DLL extern l_int32 pixWriteStreamBmp ( FILE *fp, PIX *pix );
-LEPT_DLL extern l_int32 pixWriteMemBmp ( l_uint8 **pfdata, size_t *pfsize, PIX *pix );
+LEPT_DLL extern l_int32 pixWriteMemBmp ( l_uint8 **pfdata, size_t *pfsize, PIX *pixs );
 LEPT_DLL extern PIXA * l_bootnum_gen1 ( void );
 LEPT_DLL extern PIXA * l_bootnum_gen2 ( void );
 LEPT_DLL extern PIXA * l_bootnum_gen3 ( void );
@@ -480,6 +480,8 @@ LEPT_DLL extern l_int32 pixcmapGetDistanceToColor ( PIXCMAP *cmap, l_int32 index
 LEPT_DLL extern l_int32 pixcmapGetRangeValues ( PIXCMAP *cmap, l_int32 select, l_int32 *pminval, l_int32 *pmaxval, l_int32 *pminindex, l_int32 *pmaxindex );
 LEPT_DLL extern PIXCMAP * pixcmapGrayToColor ( l_uint32 color );
 LEPT_DLL extern PIXCMAP * pixcmapColorToGray ( PIXCMAP *cmaps, l_float32 rwt, l_float32 gwt, l_float32 bwt );
+LEPT_DLL extern PIXCMAP * pixcmapConvertTo4 ( PIXCMAP *cmaps );
+LEPT_DLL extern PIXCMAP * pixcmapConvertTo8 ( PIXCMAP *cmaps );
 LEPT_DLL extern PIXCMAP * pixcmapRead ( const char *filename );
 LEPT_DLL extern PIXCMAP * pixcmapReadStream ( FILE *fp );
 LEPT_DLL extern PIXCMAP * pixcmapReadMem ( const l_uint8 *data, size_t size );

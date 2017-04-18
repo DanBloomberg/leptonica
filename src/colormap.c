@@ -68,6 +68,8 @@
  *      Colormap conversion
  *           PIXCMAP    *pixcmapGrayToColor()
  *           PIXCMAP    *pixcmapColorToGray()
+ *           PIXCMAP    *pixcmapConvertTo4()
+ *           PIXCMAP    *pixcmapConvertTo8()
  *
  *      Colormap I/O
  *           l_int32     pixcmapRead()
@@ -1506,6 +1508,78 @@ PIXCMAP   *cmapd;
 }
 
 
+/*!
+ * \brief   pixcmapConvertTo4()
+ *
+ * \param[in]    cmaps   colormap for 2 bpp pix
+ * \return  cmapd   (4 bpp)
+ *
+ * <pre>
+ * Notes:
+ *      (1) This converts a 2 bpp colormap to 4 bpp.  The colors
+ *          are the same; the output colormap entry array has size 16.
+ * </pre>
+ */
+PIXCMAP *
+pixcmapConvertTo4(PIXCMAP  *cmaps)
+{
+l_int32   i, n, rval, gval, bval;
+PIXCMAP  *cmapd;
+
+    PROCNAME("pixcmapConvertTo4");
+
+    if (!cmaps)
+        return (PIXCMAP *)ERROR_PTR("cmaps not defined", procName, NULL);
+    if (pixcmapGetDepth(cmaps) != 2)
+        return (PIXCMAP *)ERROR_PTR("cmaps not for 2 bpp pix", procName, NULL);
+
+    cmapd = pixcmapCreate(4);
+    n = pixcmapGetCount(cmaps);
+    for (i = 0; i < n; i++) {
+        pixcmapGetColor(cmaps, i, &rval, &gval, &bval);
+        pixcmapAddColor(cmapd, rval, gval, bval);
+    }
+    return cmapd;
+}
+
+
+/*!
+ * \brief   pixcmapConvertTo8()
+ *
+ * \param[in]    cmaps   colormap for 2 bpp or 4 bpp pix
+ * \return  cmapd   (8 bpp)
+ *
+ * <pre>
+ * Notes:
+ *      (1) This converts a 2 bpp or 4 bpp colormap to 8 bpp.  The colors
+ *          are the same; the output colormap entry array has size 256.
+ * </pre>
+ */
+PIXCMAP *
+pixcmapConvertTo8(PIXCMAP  *cmaps)
+{
+l_int32   i, n, depth, rval, gval, bval;
+PIXCMAP  *cmapd;
+
+    PROCNAME("pixcmapConvertTo8");
+
+    if (!cmaps)
+        return (PIXCMAP *)ERROR_PTR("cmaps not defined", procName, NULL);
+    depth = pixcmapGetDepth(cmaps);
+    if (depth == 8) return pixcmapCopy(cmaps);
+    if (depth != 2 && depth != 4)
+        return (PIXCMAP *)ERROR_PTR("cmaps not 2 or 4 bpp", procName, NULL);
+
+    cmapd = pixcmapCreate(8);
+    n = pixcmapGetCount(cmaps);
+    for (i = 0; i < n; i++) {
+        pixcmapGetColor(cmaps, i, &rval, &gval, &bval);
+        pixcmapAddColor(cmapd, rval, gval, bval);
+    }
+    return cmapd;
+}
+
+   
 /*-------------------------------------------------------------*
  *                         Colormap I/O                        *
  *-------------------------------------------------------------*/
