@@ -2584,6 +2584,9 @@ PIXA   *pixa;
  * Notes:
  *      (1) fopenTiffMemstream() does not work in append mode, so we
  *          must work-around with a temporary file.
+ *      (2) Getting a file stream from
+ *            open_memstream((char **)pdata, psize)
+ *          does not work with the tiff directory.
  * </pre>
  */
 l_int32
