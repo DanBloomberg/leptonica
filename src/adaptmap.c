@@ -1915,7 +1915,8 @@ PIX       *pixd;
     wpls = pixGetWpl(pixs);
     pixGetDimensions(pixs, &w, &h, NULL);
     pixGetDimensions(pixm, &wm, &hm, NULL);
-    pixd = pixCreateTemplate(pixs);
+    if ((pixd = pixCreateTemplate(pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
     for (i = 0; i < hm; i++) {
@@ -1988,7 +1989,8 @@ PIX       *pixd;
     h = pixGetHeight(pixs);
     wm = pixGetWidth(pixmr);
     hm = pixGetHeight(pixmr);
-    pixd = pixCreateTemplate(pixs);
+    if ((pixd = pixCreateTemplate(pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
     for (i = 0; i < hm; i++) {
@@ -2092,7 +2094,10 @@ PIX       *pixd;
         }
     }
 
-    pixd = pixCreateNoInit(w, h, 8);
+    if ((pixd = pixCreateNoInit(w, h, 8)) == NULL) {
+        LEPT_FREE(lut);
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     pixCopyResolution(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
@@ -2123,7 +2128,7 @@ PIX       *pixd;
         }
     }
 
-    if (lut) LEPT_FREE(lut);
+    LEPT_FREE(lut);
     return pixd;
 }
 
@@ -2836,7 +2841,8 @@ l_uint32  *data, *datamin, *datamax, *line, *tline, *linemin, *linemax;
     if (sx < 5 || sy < 5)
         return (PIX *)ERROR_PTR("sx and/or sy less than 5", procName, pixd);
 
-    pixd = pixCopy(pixd, pixs);
+    if ((pixd = pixCopy(pixd, pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     iaa = (l_int32 **)LEPT_CALLOC(256, sizeof(l_int32 *));
     pixGetDimensions(pixd, &w, &h, NULL);
 
