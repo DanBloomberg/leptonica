@@ -109,12 +109,11 @@
 #include <string.h>
 #include "allheaders.h"
 
-#include "memio.h"
-
 /* --------------------------------------------*/
 #if  HAVE_LIBPNG   /* defined in environ.h */
 /* --------------------------------------------*/
 
+#include "memio.h"
 #include "png.h"
 
 #if  HAVE_LIBZ
@@ -534,7 +533,7 @@ pixReadMemoryPng(const l_uint8*      user_data,
 	png_textp    text_ptr;  /* ptr to text_chunk */
 	PIX         *pix, *pixt;
 	PIXCMAP     *cmap;
-	struct MemIOData state;
+	MEMIODATA state;
 
 	PROCNAME("pixReadMemoryPng");
 
@@ -543,9 +542,11 @@ pixReadMemoryPng(const l_uint8*      user_data,
 	if (user_data_size < 1)
 		return (PIX *)ERROR_PTR("user_data_size not defined", procName, NULL);
 
+	state.m_Next = 0;
+	state.m_Count = 0;
+	state.m_Last = &state;
 	state.m_Buffer = (char*)user_data;
 	state.m_Size = user_data_size;
-	state.m_Count = 0;
 	pix = NULL;
 
 	/* Allocate the 3 data structures */
@@ -1672,7 +1673,7 @@ pixWriteMemoryPng(l_uint8**      user_data,
 	PIX         *pixt;
 	PIXCMAP     *cmap;
 	char        *text;
-	struct MemIOData state;
+	MEMIODATA state;
 
 	PROCNAME("pixWriteMemoryPng");
 
@@ -1685,10 +1686,11 @@ pixWriteMemoryPng(l_uint8**      user_data,
 
 	*user_data_size = 0;
 	*user_data = 0;
+
 	state.m_Buffer = 0;
-	state.m_Count = 0;
 	state.m_Size = 0;
 	state.m_Next = 0;
+	state.m_Count = 0;
 	state.m_Last = &state;
 
 	/* Allocate the 2 data structures */
@@ -1772,8 +1774,7 @@ pixWriteMemoryPng(l_uint8**      user_data,
 		if ((palette = (png_colorp)(LEPT_CALLOC(ncolors, sizeof(png_color))))
 			== NULL)
 		{
-			if (state.m_Buffer)
-				delete[] state.m_Buffer;
+			memio_free(&state);
 			return ERROR_INT("palette not made", procName, 1);
 		}
 
@@ -1833,9 +1834,7 @@ pixWriteMemoryPng(l_uint8**      user_data,
 		}
 		if (!pixt) {
 			png_destroy_write_struct(&png_ptr, &info_ptr);
-			if (state.m_Buffer)
-				delete[] state.m_Buffer;
-			L_INFO("DEBUG A pixt not made\n", procName);
+			memio_free(&state);
 			return ERROR_INT("pixt not made", procName, 1);
 		}
 
@@ -1843,9 +1842,7 @@ pixWriteMemoryPng(l_uint8**      user_data,
 		if ((row_pointers = (png_bytep *)LEPT_CALLOC(h, sizeof(png_bytep)))
 			== NULL)
 		{
-			if (state.m_Buffer)
-				delete[] state.m_Buffer;
-			L_INFO("DEBUG B\n", procName);
+			memio_free(&state);
 			return ERROR_INT("row-pointers not made", procName, 1);
 		}
 
@@ -1867,9 +1864,10 @@ pixWriteMemoryPng(l_uint8**      user_data,
 
 		memio_png_flush(&state);
 		*user_data = (l_uint8*)state.m_Buffer;
+		state.m_Buffer = 0;
 		*user_data_size = state.m_Count;
+		memio_free(&state);
 
-		L_INFO("DEBUG C\n", procName);
 		return 0;
 	}
 
@@ -1886,9 +1884,7 @@ pixWriteMemoryPng(l_uint8**      user_data,
 			* the pix has 4 spp or writing it is requested anyway */
 		if ((rowbuffer = (png_bytep)LEPT_CALLOC(w, 4)) == NULL)
 		{
-			if (state.m_Buffer)
-				delete[] state.m_Buffer;
-			L_INFO("DEBUG D\n", procName);
+			memio_free(&state);
 			return ERROR_INT("rowbuffer not made", procName, 1);
 		}
 
@@ -1916,8 +1912,9 @@ pixWriteMemoryPng(l_uint8**      user_data,
 
 	memio_png_flush(&state);
 	*user_data = (l_uint8*)state.m_Buffer;
+	state.m_Buffer = 0;
 	*user_data_size = state.m_Count;
-	L_INFO("DEBUG E\n", procName);
+	memio_free(&state);
 	return 0;
 }
 
