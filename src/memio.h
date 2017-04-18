@@ -1,14 +1,14 @@
 /*====================================================================*
 -  Copyright (C) 2017 Milner Technologies, Inc.  This content is a
 -  component of leptonica and is provided under the terms of the
--  leptonica license.
+-  Leptonica license.
 -
 -  Redistribution and use in source and binary forms, with or without
 -  modification, are permitted provided that the following conditions
 -  are met:
 -  1. Redistributions of source code must retain the above copyright
 -     notice, this list of conditions and the following disclaimer.
--  2. Redistributions in binary form must reproduce the leptonica
+-  2. Redistributions in binary form must reproduce the Leptonica
 -     copyright notice, this list of conditions and the following
 -     disclaimer in the documentation and/or other materials
 -     provided with the distribution.
@@ -32,8 +32,13 @@
 * libpng read/write callback replacements for performing memory I/O.
 * </pre>
 */
+
 #ifndef  LEPTONICA_MEMIO_H
 #define  LEPTONICA_MEMIO_H
+
+/* --------------------------------------------*/
+#if  HAVE_LIBPNG   /* defined in environ.h */
+/* --------------------------------------------*/
 
 #include <png.h>
 
@@ -42,7 +47,7 @@
 * A node in a linked list of memory buffers that hold I/O content.
 * </pre>
 */
-typedef struct MemIOData
+struct MemIOData
 {
 	/*
 	* <pre>Pointer to this node's I/O content.</pre>
@@ -62,17 +67,35 @@ typedef struct MemIOData
 	/*
 	* <pre>Pointer to the next node in the list.  Zero if this is the last node.</pre>
 	*/
-	MemIOData* m_Next;
+	struct MemIOData* m_Next;
 
 	/*
 	* <pre>Pointer to the last node in the linked list.  The last node is where new
 	* content is written.</pre>
 	*/
-	MemIOData* m_Last;
-} MemIOData;
+    struct MemIOData* m_Last;
+};
+
+typedef struct MemIOData MEMIODATA;
+
+#ifndef NO_PROTOS
+
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
 
 void memio_png_write_data(png_structp png_ptr, png_bytep data, png_size_t length);
-void memio_png_flush(MemIOData* thing);
+void memio_png_flush(MEMIODATA* pthing);
 void memio_png_read_data(png_structp png_ptr, png_bytep outBytes, png_size_t byteCountToRead);
+void memio_free(MEMIODATA* pthing);
+
+#ifdef __cplusplus
+}
+#endif  /* __cplusplus */
+#endif /* NO_PROTOS */
+
+/* --------------------------------------------*/
+#endif  /* HAVE_LIBPNG */
+/* --------------------------------------------*/
 
 #endif
