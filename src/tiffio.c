@@ -1132,6 +1132,11 @@ l_uint32   uval, uval2;
     return 0;
 }
 
+void 
+dummyHandler(const char* module, const char* fmt, va_list ap)
+{
+	// ignore errors and warnings (or handle them your own way)
+}
 
 /*--------------------------------------------------------------*
  *               Reading and writing multipage tiff             *
@@ -1182,6 +1187,9 @@ TIFF    *tif;
         return (PIX *)ERROR_PTR("fname not defined", procName, NULL);
     if (!poffset)
         return (PIX *)ERROR_PTR("&offset not defined", procName, NULL);
+
+	// disable warnings
+	TIFFSetWarningHandler(dummyHandler);
 
     if ((tif = TIFFOpen(fname, "r")) == NULL) {
         L_ERROR("tif open failed for %s\n", procName, fname);
@@ -2070,6 +2078,9 @@ fopenTiff(FILE        *fp,
     if (!modestring)
         return (TIFF *)ERROR_PTR("modestring not defined", procName, NULL);
 
+	// disable warnings
+	TIFFSetWarningHandler(dummyHandler);
+
     fseek(fp, 0, SEEK_SET);
     return TIFFClientOpen("TIFFstream", modestring, (thandle_t)fp,
                           lept_read_proc, lept_write_proc, lept_seek_proc,
@@ -2105,6 +2116,9 @@ TIFF  *tif;
         return (TIFF *)ERROR_PTR("filename not defined", procName, NULL);
     if (!modestring)
         return (TIFF *)ERROR_PTR("modestring not defined", procName, NULL);
+
+	// disable warnings
+	TIFFSetWarningHandler(dummyHandler);
 
     fname = genPathname(filename, NULL);
     tif = TIFFOpen(fname, modestring);
@@ -2382,6 +2396,9 @@ L_MEMSTREAM  *mstream;
         mstream = memstreamCreateForRead(*pdata, *pdatasize);
     else
         mstream = memstreamCreateForWrite(pdata, pdatasize);
+
+	// disable warnings
+	TIFFSetWarningHandler(dummyHandler);
 
     return TIFFClientOpen(filename, operation, (thandle_t)mstream,
                           tiffReadCallback, tiffWriteCallback,
