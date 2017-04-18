@@ -1,6 +1,6 @@
 /*====================================================================*
 -  Copyright (C) 2017 Milner Technologies, Inc.  This content is a
--  component of leptonica and is provided under the terms of the
+-  component of Leptonica and is provided under the terms of the
 -  leptonica license.
 -
 -  Redistribution and use in source and binary forms, with or without
@@ -8,7 +8,7 @@
 -  are met:
 -  1. Redistributions of source code must retain the above copyright
 -     notice, this list of conditions and the following disclaimer.
--  2. Redistributions in binary form must reproduce the leptonica
+-  2. Redistributions in binary form must reproduce the Leptonica
 -     copyright notice, this list of conditions and the following
 -     disclaimer in the documentation and/or other materials
 -     provided with the distribution.
@@ -31,9 +31,19 @@
 * <pre>
 * libpng read/write callback replacements for performing memory I/O.
 * </pre>
-*/#include <string.h>
-#include <assert.h>
+
+*/#ifdef  HAVE_CONFIG_H`
+#include "config_auto.h"
+#endif  /* HAVE_CONFIG_H */
+
+#include <string.h>
+
 #include "allheaders.h"
+
+/* --------------------------------------------*/
+#if  HAVE_LIBPNG   /* defined in environ.h */
+/* --------------------------------------------*/
+
 #include "memio.h"
 
 /* 
@@ -50,58 +60,77 @@
 void
 memio_png_write_data(png_structp png_ptr, png_bytep data, png_size_t len)
 {
-	MemIOData* thing;
+	MEMIODATA* thing;
+	MEMIODATA* last;
+	int written = 0;
+
 	PROCNAME("memio_png_write_data");
 
-	thing = (MemIOData*)png_get_io_ptr(png_ptr);
-	if (thing->m_Last->m_Buffer == 0)
+	thing = (struct MemIOData*)png_get_io_ptr(png_ptr);
+	last = (struct MemIOData*)thing->m_Last;
+	if (last->m_Buffer == 0)
 	{
 		if (len > BUFFER_SIZE)
 		{
-			thing->m_Last->m_Buffer = new char[len];
-			memcpy(thing->m_Last->m_Buffer, data, len);
-			thing->m_Last->m_Size = thing->m_Last->m_Count = len;
+#ifdef __cplusplus
+			last->m_Buffer = new char[len];
+#else
+			last->m_Buffer = LEPT_MALLOC(len);
+#endif  /* __cplusplus */
+			memcpy(last->m_Buffer, data, len);
+			last->m_Size = last->m_Count = len;
 			return;
 		}
 
-		thing->m_Last->m_Buffer = new char[BUFFER_SIZE];
-		thing->m_Last->m_Size = BUFFER_SIZE;
+#ifdef __cplusplus
+		last->m_Buffer = new char[BUFFER_SIZE];
+#else
+		last->m_Buffer = LEPT_MALLOC(BUFFER_SIZE);
+#endif  /* __cplusplus */
+		last->m_Size = BUFFER_SIZE;
 	}
 
-	int written = 0;
 	while (written < len)
 	{
-		if (thing->m_Last->m_Count == thing->m_Last->m_Size)
+		if (last->m_Count == last->m_Size)
 		{
-			MemIOData* next = new MemIOData;
-			next->m_Buffer = 0;
-			next->m_Count = 0;
-			next->m_Size = 0;
+#ifdef __cplusplus
+			MEMIODATA* next = new MEMIODATA;
+#else
+			MEMIODATA* next = LEPT_MALLOC(sizeof(MEMIODATA));
+#endif  /* __cplusplus */
 			next->m_Next = 0;
+			next->m_Count = 0;
 			next->m_Last = next;
 
-			thing->m_Last->m_Next = next;
-			thing->m_Last = next;
+			last->m_Next = next;
+			last = thing->m_Last = next;
 
-			thing->m_Last->m_Buffer = new char[BUFFER_SIZE];
-			thing->m_Last->m_Size = BUFFER_SIZE;
-			thing->m_Last->m_Count = 0;
+#ifdef __cplusplus
+			last->m_Buffer = new char[BUFFER_SIZE];
+#else
+			last->m_Buffer = LEPT_MALLOC(BUFFER_SIZE);
+#endif  /* __cplusplus */
+			last->m_Size = BUFFER_SIZE;
 		}
-			
-		int remainingSpace = thing->m_Last->m_Size - thing->m_Last->m_Count;
-		int remainingToWrite = len - written;
-		if (remainingSpace < remainingToWrite)
+		
+		/* following paragraph localizes vars only. */
 		{
-			memcpy(thing->m_Last->m_Buffer + thing->m_Last->m_Count, data + written, remainingSpace);
-			written += remainingSpace;
+			int remainingSpace = last->m_Size - last->m_Count;
+			int remainingToWrite = len - written;
+			if (remainingSpace < remainingToWrite)
+			{
+				memcpy(last->m_Buffer + last->m_Count, data + written, remainingSpace);
+				written += remainingSpace;
 
-			thing->m_Last->m_Count += remainingSpace;
-		}
-		else
-		{
-			memcpy(thing->m_Last->m_Buffer + thing->m_Last->m_Count, data + written, remainingToWrite);
-			written += remainingToWrite;
-			thing->m_Last->m_Count += remainingToWrite;
+				last->m_Count += remainingSpace;
+			}
+			else
+			{
+				memcpy(last->m_Buffer + last->m_Count, data + written, remainingToWrite);
+				written += remainingToWrite;
+				last->m_Count += remainingToWrite;
+			}
 		}
 	}
 }
@@ -113,12 +142,17 @@ memio_png_write_data(png_structp png_ptr, png_bytep data, png_size_t len)
 * </pre>
 */
 void
-memio_png_flush(MemIOData* thing)
+memio_png_flush(MEMIODATA* pthing)
 {
+	int amount = 0;
+	MEMIODATA* buffer = 0;
+	int copied = 0;
+	char* data = 0;
+
 	PROCNAME("memio_png_write_data");
 	
 	/* if the data was contained in one buffer just give the buffer to the user. */
-	if (thing->m_Next == 0)
+	if (pthing->m_Next == 0)
 	{
 		return;
 	}
@@ -126,8 +160,8 @@ memio_png_flush(MemIOData* thing)
 	/* consolidate multiple buffers into one new one. */
 
 	/* add the buffer sizes together. */
-	int amount = thing->m_Count;
-	MemIOData* buffer = thing->m_Next;
+	amount = pthing->m_Count;
+	buffer = pthing->m_Next;
 	while (buffer != 0)
 	{
 		amount += buffer->m_Count;
@@ -135,31 +169,49 @@ memio_png_flush(MemIOData* thing)
 	}
 
 	/* copy data to a new buffer. */
-	char* data = new char[amount];
-	memcpy(data, thing->m_Buffer, thing->m_Count);
-	int copied = thing->m_Count;
+#ifdef __cplusplus
+	data = new char[amount];
+#else
+	data = LEPT_MALLOC(amount);
+#endif  /* __cplusplus */
+	memcpy(data, pthing->m_Buffer, pthing->m_Count);
+	copied = pthing->m_Count;
 
-	delete[] thing->m_Buffer;
-	thing->m_Buffer = 0;
+#ifdef __cplusplus
+	delete[] pthing->m_Buffer;
+#else
+	LEPT_FREE(pthing->m_Buffer);
+#endif  /* __cplusplus */
+	pthing->m_Buffer = 0;
 	/* don't delete original "thing" because we don't control it. */
 
-	buffer = thing->m_Next;
+	buffer = pthing->m_Next;
+	pthing->m_Next = 0;
 	while (buffer != 0 && copied < amount)
 	{
+		MEMIODATA* old;
 		memcpy(data + copied, buffer->m_Buffer, buffer->m_Count);
 		copied += buffer->m_Count;
 
-		MemIOData* old = buffer;
+		old = buffer;
 		buffer = buffer->m_Next;
 
+#ifdef __cplusplus
 		delete[] old->m_Buffer;
 		delete old;
+#else
+		LEPT_FREE(old->m_Buffer);
+		LEPT_FREE(old);
+#endif  /* __cplusplus */
 	}
 	
+	/*
 	assert(copied == amount);
+	*/
 
-	thing->m_Buffer = data;
-	thing->m_Count = copied;
+	pthing->m_Buffer = data;
+	pthing->m_Count = copied;
+	pthing->m_Size = amount;
 	return;
 }
 
@@ -174,8 +226,53 @@ memio_png_read_data(png_structp png_ptr, png_bytep outBytes, png_size_t byteCoun
 {
 	PROCNAME("memio_png_read_data");
 
-	MemIOData* thing = (MemIOData*)png_get_io_ptr(png_ptr);
+	MEMIODATA* thing = (MEMIODATA*)png_get_io_ptr(png_ptr);
 
 	memcpy(outBytes, thing->m_Buffer + thing->m_Count, byteCountToRead);
 	thing->m_Count += byteCountToRead;
 }
+
+void
+memio_free(MEMIODATA* pthing)
+{
+	MEMIODATA* buffer;
+
+	PROCNAME("memio_free");
+	
+	if (pthing->m_Buffer != 0)
+	{
+#ifdef __cplusplus
+		delete[] pthing->m_Buffer;
+#else
+		LEPT_FREE(pthing->m_Buffer);
+#endif  /* __cplusplus */
+	}
+
+	pthing->m_Buffer = 0;
+	buffer = pthing->m_Next;
+	while (buffer != 0)
+	{
+		MEMIODATA* old = buffer;
+		buffer = buffer->m_Next;
+
+#ifdef __cplusplus
+		if (old->m_Buffer != 0)
+		{
+			delete[] old->m_Buffer;
+		}
+
+		delete old;
+#else
+		if (old->m_Buffer != 0)
+		{
+			LEPT_FREE(old->m_Buffer);
+		}
+
+		LEPT_FREE(old);
+#endif  /* __cplusplus */
+	}
+}
+
+/* --------------------------------------------*/
+#endif  /* HAVE_LIBPNG */
+/* --------------------------------------------*/
