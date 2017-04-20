@@ -45,6 +45,8 @@ set(VERSION_MINOR 74)
 set(VERSION_PATCH 1)
 set(VERSION_PLAIN ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
+option(BUILD_PROG "Build utility programs" OFF)
+
 if(NOT EXISTS ${PROJECT_SOURCE_DIR}/.cppan)
     find_package(GIF)
     find_package(JPEG)
@@ -131,5 +133,11 @@ add_subdirectory(prog)
 endif()
 
 add_subdirectory(src)
+
+get_target_property(leptonica_NAME leptonica NAME)
+get_target_property(leptonica_VERSION leptonica VERSION)
+get_target_property(leptonica_OUTPUT_NAME leptonica OUTPUT_NAME)
+configure_file(lept.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/lept.pc @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lept.pc DESTINATION lib/pkgconfig)
 
 ###############################################################################
