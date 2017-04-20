@@ -289,6 +289,7 @@ set (INSTALL_PROGS
     printimage printsplitimage printtiff
     splitimage2pdf xtractprotos
 )
+
 foreach(make_install ${INSTALL_PROGS})
     install(TARGETS ${make_install} RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 endforeach()
