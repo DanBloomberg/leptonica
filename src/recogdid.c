@@ -305,6 +305,9 @@ L_RDID  *did;
     if (!recog->train_done)
         return ERROR_INT("training not finished", procName, 1);
 
+    if (!recog->ave_done)
+        recogAverageSamples(&recog, 0);
+
         /* Binarize and crop to foreground if necessary */
     if ((pix1 = recogProcessToIdentify(recog, pixs, 0)) == NULL)
         return ERROR_INT("pix1 not made", procName, 1);
@@ -494,11 +497,8 @@ L_RDID     *did;
     if (did->fullarrays == 0)
         return ERROR_INT("did full arrays not made", procName, 1);
 
-        /* The score array is initialized to 0.0.  As we proceed to
-         * the left, the log likelihood for the partial paths goes
-         * negative, and we prune for the max (least negative) path.
-         * No matches will be computed until we reach x = min(setwidth);
-         * until then first == TRUE after looping over templates. */
+        /* Compute the minimum setwidth. Bad templates with very small
+         * width can cause havoc because the setwidth is too small. */
     w1 = did->size;
     narray = did->narray;
     spacetempl = narray;
@@ -508,10 +508,14 @@ L_RDID     *did;
         if (setw[i] < minsetw)
             minsetw = setw[i];
     }
-    if (minsetw <= 0) {
-        L_ERROR("minsetw <= 0; shouldn't happen\n", procName);
-        minsetw = 1;
-    }
+    if (minsetw <= 2)
+        return ERROR_INT("minsetw <= 2; bad templates", procName, 1);
+
+        /* The score array is initialized to 0.0.  As we proceed to
+         * the left, the log likelihood for the partial paths goes
+         * negative, and we prune for the max (least negative) path.
+         * No matches will be computed until we reach x = min(setwidth);
+         * until then first == TRUE after looping over templates. */
     didscore = did->trellisscore;
     didtempl = did->trellistempl;
     area2 = numaGetIArray(recog->nasum_u);
