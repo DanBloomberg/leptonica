@@ -280,3 +280,16 @@ add_prog_target(wordsinorder wordsinorder.c)
 add_prog_target(writemtiff writemtiff.c)
 add_prog_target(xtractprotos xtractprotos.c)
 add_prog_target(yuvtest yuvtest.c)
+
+set (INSTALL_PROGS
+    convertfilestopdf convertfilestops
+    convertformat
+    convertsegfilestopdf convertsegfilestops
+    converttopdf converttops fileinfo
+    printimage printsplitimage printtiff
+    splitimage2pdf xtractprotos
+)
+
+foreach(make_install ${INSTALL_PROGS})
+    install(TARGETS ${make_install} RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+endforeach()
