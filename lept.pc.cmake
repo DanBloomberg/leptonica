@@ -8,4 +8,4 @@ Description: An open source C library for efficient image processing and image a
 Version: @leptonica_VERSION@
 Libs: -L${libdir} -l@leptonica_OUTPUT_NAME@
 Libs.private:
-Cflags: -I${includedir} -I{includedir}/leptonica
+Cflags: -I${includedir} -I${includedir}/leptonica
