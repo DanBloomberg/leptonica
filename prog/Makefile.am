@@ -82,7 +82,7 @@ OTHER_PROGS = adaptmap_dark \
 	colorsegtest comparepages comparepixa \
 	comparetest concatpdf \
 	contrasttest converttogray \
-	cornertest croptest croptext \
+	cornertest corrupttest croptest croptext \
 	dewarprules dewarptest1 dewarptest2 \
 	dewarptest3 dewarptest4 dewarptest5 \
 	digitprep1 displayboxa displayboxes_on_pixa \

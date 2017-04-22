@@ -201,7 +201,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		convertformat.c \
 		convertsegfilestopdf.c convertsegfilestops.c \
 		converttogray.c converttopdf.c converttops.c \
-		cornertest.c croptest.c croptext.c \
+		cornertest.c corrupttest.c croptest.c croptext.c \
 		dewarprules.c dewarptest1.c dewarptest2.c \
 		dewarptest3.c dewarptest4.c dewarptest5.c \
 		digitprep1.c displayboxa.c displayboxes_on_pixa.c \
@@ -785,6 +785,9 @@ converttops:	converttops.o $(LEPTLIB)
 
 cornertest:	cornertest.o $(LEPTLIB)
 	$(CC) -o cornertest cornertest.o $(ALL_LIBS) $(EXTRALIBS)
+
+corrupttest:	corrupttest.o $(LEPTLIB)
+	$(CC) -o corrupttest corrupttest.o $(ALL_LIBS) $(EXTRALIBS)
 
 croptest:	croptest.o $(LEPTLIB)
 	$(CC) -o croptest croptest.o $(ALL_LIBS) $(EXTRALIBS)
