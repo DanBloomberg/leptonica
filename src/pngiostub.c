@@ -125,14 +125,14 @@ void l_pngSetReadStrip16To8(l_int32 flag)
 
 /* ----------------------------------------------------------------------*/
 
-PIX * pixReadMemPng(const l_uint8 *cdata, size_t size)
+PIX * pixReadMemPng(const l_uint8 *filedata, size_t filesize)
 {
     return (PIX * )ERROR_PTR("function not present", "pixReadMemPng", NULL);
 }
 
 /* ----------------------------------------------------------------------*/
 
-l_int32 pixWriteMemPng(l_uint8 **pdata, size_t *psize, PIX *pix,
+l_int32 pixWriteMemPng(l_uint8 **pfiledata, size_t *pfilesize, PIX *pix,
                        l_float32 gamma)
 {
     return ERROR_INT("function not present", "pixWriteMemPng", 1);

@@ -1936,8 +1936,8 @@ LEPT_DLL extern l_int32 pixWritePng ( const char *filename, PIX *pix, l_float32 
 LEPT_DLL extern l_int32 pixWriteStreamPng ( FILE *fp, PIX *pix, l_float32 gamma );
 LEPT_DLL extern l_int32 pixSetZlibCompression ( PIX *pix, l_int32 compval );
 LEPT_DLL extern void l_pngSetReadStrip16To8 ( l_int32 flag );
-LEPT_DLL extern PIX * pixReadMemPng ( const l_uint8 *data, size_t size );
-LEPT_DLL extern l_int32 pixWriteMemPng ( l_uint8 **pdata, size_t *psize, PIX *pix, l_float32 gamma );
+LEPT_DLL extern PIX * pixReadMemPng ( const l_uint8 *filedata, size_t filesize );
+LEPT_DLL extern l_int32 pixWriteMemPng ( l_uint8 **pfiledata, size_t *pfilesize, PIX *pix, l_float32 gamma );
 LEPT_DLL extern PIX * pixReadStreamPnm ( FILE *fp );
 LEPT_DLL extern l_int32 readHeaderPnm ( const char *filename, l_int32 *pw, l_int32 *ph, l_int32 *pd, l_int32 *ptype, l_int32 *pbps, l_int32 *pspp );
 LEPT_DLL extern l_int32 freadHeaderPnm ( FILE *fp, l_int32 *pw, l_int32 *ph, l_int32 *pd, l_int32 *ptype, l_int32 *pbps, l_int32 *pspp );

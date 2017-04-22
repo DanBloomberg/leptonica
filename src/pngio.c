@@ -1,5 +1,6 @@
 /*====================================================================*
  -  Copyright (C) 2001 Leptonica.  All rights reserved.
+ -  Copyright (C) 2017 Milner Technologies, Inc.
  -
  -  Redistribution and use in source and binary forms, with or without
  -  modification, are permitted provided that the following conditions
@@ -28,25 +29,37 @@
  * \file pngio.c
  * <pre>
  *
- *    Read png from file
+ *    Reading png through stream
  *          PIX        *pixReadStreamPng()
+ *
+ *    Reading png header
  *          l_int32     readHeaderPng()
  *          l_int32     freadHeaderPng()
  *          l_int32     readHeaderMemPng()
+ *
+ *    Reading png metadata
  *          l_int32     fgetPngResolution()
  *          l_int32     isPngInterlaced()
  *          l_int32     fgetPngColormapInfo()
  *
- *    Write png to file
+ *    Writing png through stream
  *          l_int32     pixWritePng()  [ special top level ]
  *          l_int32     pixWriteStreamPng()
  *          l_int32     pixSetZlibCompression()
  *
- *    Setting flag for special read mode
+ *    Set flag for special read mode
  *          void        l_pngSetReadStrip16To8()
  *
- *    Read/write to memory
+ *    Low-level memio utility (thanks to T. D. Hintz)
+ *          static void memio_png_write_data()
+ *          static void memio_png_flush()
+ *          static void memio_png_read_data()
+ *          static void memio_free()
+ *
+ *    Reading png from memory
  *          PIX        *pixReadMemPng()
+ *
+ *    Writing png to memory
  *          l_int32     pixWriteMemPng()
  *
  *    Documentation: libpng.txt and example.c
@@ -95,10 +108,12 @@
  *    Note: results can be non-deterministic if used with
  *    multi-threaded applications.
  *
- *    On systems like windows without fmemopen() and open_memstream(),
- *    we write data to a temp file and read it back for operations
- *    between pix and compressed-data, such as pixReadMemPng() and
- *    pixWriteMemPng().
+ *    Thanks to a memory buffering utility contributed by T. D. Hintz,
+ *    encoding png directly into memory (and decoding from memory)
+ *    is now enabled without the use of any temp files.  Unlike with webp,
+ *    it is necessary to preserve the stream interface to enable writing
+ *    pixa to memory.  So there are two independent but very similar
+ *    implementations of png reading and writing.
  * </pre>
  */
 
@@ -113,7 +128,6 @@
 #if  HAVE_LIBPNG   /* defined in environ.h */
 /* --------------------------------------------*/
 
-#include "memio.h"
 #include "png.h"
 
 #if  HAVE_LIBZ
@@ -122,15 +136,10 @@
 #define  Z_DEFAULT_COMPRESSION (-1)
 #endif  /* HAVE_LIBZ */
 
-#ifndef Z_DEFAULT_COMPRESSION
-#define  Z_DEFAULT_COMPRESSION (-1)
-#endif
-
 /* ------------------ Set default for read option -------------------- */
     /* Strip 16 bpp --> 8 bpp on reading png; default is for stripping.
      * If you don't strip, you can't read the gray-alpha spp = 2 images. */
 static l_int32   var_PNG_STRIP_16_TO_8 = 1;
-
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_READ     0
@@ -139,7 +148,7 @@ static l_int32   var_PNG_STRIP_16_TO_8 = 1;
 
 
 /*---------------------------------------------------------------------*
- *                              Reading png                            *
+ *                     Reading png through stream                      *
  *---------------------------------------------------------------------*/
 /*!
  * \brief   pixReadStreamPng()
@@ -480,367 +489,11 @@ PIXCMAP     *cmap;
     png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
     return pix;
 }
-/*!
-* \brief   pixReadStreamPng()
-*
-* \param[in]    fp file stream
-* \return  pix, or NULL on error
-*
-* <pre>
-* Notes:
-*      (1) If called from pixReadStream(), the stream is positioned
-*          at the beginning of the file.
-*      (2) To do sequential reads of png format images from a stream,
-*          use pixReadStreamPng()
-*      (3) Any image with alpha is converted to RGBA (spp = 4, with
-*          equal red, green and blue channels) on reading.
-*          There are three important cases with alpha:
-*          (a) grayscale-with-alpha (spp = 2), where bpp = 8, and each
-*              pixel has an associated alpha (transparency) value
-*              in the second component of the image data.
-*          (b) spp = 1, d = 1 with colormap and alpha in the trans array.
-*              Transparency is usually associated with the white background.
-*          (c) spp = 1, d = 8 with colormap and alpha in the trans array.
-*              Each color in the colormap has a separate transparency value.
-*      (4) We use the high level png interface, where the transforms are set
-*          up in advance and the header and image are read with a single
-*          call.  The more complicated interface, where the header is
-*          read first and the buffers for the raster image are user-
-*          allocated before reading the image, works for single images,
-*          but I could not get it to work properly for the successive
-*          png reads that are required by pixaReadStream().
-* </pre>
-*/
-PIX *
-pixReadMemoryPng(const l_uint8*      user_data,
-	size_t	user_data_size)
-{
-	l_uint8      byte;
-	l_int32      rval, gval, bval;
-	l_int32      i, j, k, index, ncolors, bitval;
-	l_int32      wpl, d, spp, cindex, tRNS;
-	l_uint32     png_transforms;
-	l_uint32    *data, *line, *ppixel;
-	int          num_palette, num_text, num_trans;
-	png_byte     bit_depth, color_type, channels;
-	png_uint_32  w, h, rowbytes;
-	png_uint_32  xres, yres;
-	png_bytep    rowptr, trans;
-	png_bytep   *row_pointers;
-	png_structp  png_ptr;
-	png_infop    info_ptr, end_info;
-	png_colorp   palette;
-	png_textp    text_ptr;  /* ptr to text_chunk */
-	PIX         *pix, *pixt;
-	PIXCMAP     *cmap;
-	MEMIODATA state;
-
-	PROCNAME("pixReadMemoryPng");
-
-	if (!user_data)
-		return (PIX *)ERROR_PTR("user_data not defined", procName, NULL);
-	if (user_data_size < 1)
-		return (PIX *)ERROR_PTR("user_data_size not defined", procName, NULL);
-
-	state.m_Next = 0;
-	state.m_Count = 0;
-	state.m_Last = &state;
-	state.m_Buffer = (char*)user_data;
-	state.m_Size = user_data_size;
-	pix = NULL;
-
-	/* Allocate the 3 data structures */
-	if ((png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
-		(png_voidp)NULL, NULL, NULL)) == NULL)
-		return (PIX *)ERROR_PTR("png_ptr not made", procName, NULL);
-
-	if ((info_ptr = png_create_info_struct(png_ptr)) == NULL) {
-		png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
-		return (PIX *)ERROR_PTR("info_ptr not made", procName, NULL);
-	}
-
-	if ((end_info = png_create_info_struct(png_ptr)) == NULL) {
-		png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
-		return (PIX *)ERROR_PTR("end_info not made", procName, NULL);
-	}
-
-	/* Set up png setjmp error handling */
-	if (setjmp(png_jmpbuf(png_ptr))) {
-		png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
-		return (PIX *)ERROR_PTR("internal png error", procName, NULL);
-	}
-
-	png_set_read_fn(png_ptr, &state, memio_png_read_data);
-
-	/* ---------------------------------------------------------- *
-	*  Set the transforms flags.  Whatever happens here,
-	*  NEVER invert 1 bpp using PNG_TRANSFORM_INVERT_MONO.
-	*  Also, do not use PNG_TRANSFORM_EXPAND, which would
-	*  expand all images with bpp < 8 to 8 bpp.
-	* ---------------------------------------------------------- */
-	/* To strip 16 --> 8 bit depth, use PNG_TRANSFORM_STRIP_16 */
-	if (var_PNG_STRIP_16_TO_8 == 1) {  /* our default */
-		png_transforms = PNG_TRANSFORM_STRIP_16;
-	}
-	else {
-		png_transforms = PNG_TRANSFORM_IDENTITY;
-		L_INFO("not stripping 16 --> 8 in png reading\n", procName);
-	}
-
-	/* Read it */
-	png_read_png(png_ptr, info_ptr, png_transforms, NULL);
-
-	row_pointers = png_get_rows(png_ptr, info_ptr);
-	w = png_get_image_width(png_ptr, info_ptr);
-	h = png_get_image_height(png_ptr, info_ptr);
-	bit_depth = png_get_bit_depth(png_ptr, info_ptr);
-	rowbytes = png_get_rowbytes(png_ptr, info_ptr);
-	color_type = png_get_color_type(png_ptr, info_ptr);
-	channels = png_get_channels(png_ptr, info_ptr);
-	spp = channels;
-	tRNS = png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) ? 1 : 0;
-
-	if (spp == 1) {
-		d = bit_depth;
-	}
-	else {  /* spp == 2 (gray + alpha), spp == 3 (rgb), spp == 4 (rgba) */
-		d = 4 * bit_depth;
-	}
-
-	/* Remove if/when this is implemented for all bit_depths */
-	if (spp == 3 && bit_depth != 8) {
-		fprintf(stderr, "Help: spp = 3 and depth = %d != 8\n!!", bit_depth);
-		png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
-		return (PIX *)ERROR_PTR("not implemented for this depth",
-			procName, NULL);
-	}
-
-	if (color_type == PNG_COLOR_TYPE_PALETTE ||
-		color_type == PNG_COLOR_MASK_PALETTE) {   /* generate a colormap */
-		png_get_PLTE(png_ptr, info_ptr, &palette, &num_palette);
-		cmap = pixcmapCreate(d);  /* spp == 1 */
-		for (cindex = 0; cindex < num_palette; cindex++) {
-			rval = palette[cindex].red;
-			gval = palette[cindex].green;
-			bval = palette[cindex].blue;
-			pixcmapAddColor(cmap, rval, gval, bval);
-		}
-	}
-	else {
-		cmap = NULL;
-	}
-
-	if ((pix = pixCreate(w, h, d)) == NULL) {
-		png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
-		return (PIX *)ERROR_PTR("pix not made", procName, NULL);
-	}
-	pixSetInputFormat(pix, IFF_PNG);
-	wpl = pixGetWpl(pix);
-	data = pixGetData(pix);
-	pixSetColormap(pix, cmap);
-	pixSetSpp(pix, spp);
-
-	if (spp == 1 && !tRNS) {  /* copy straight from buffer to pix */
-		for (i = 0; i < h; i++) {
-			line = data + i * wpl;
-			rowptr = row_pointers[i];
-			for (j = 0; j < rowbytes; j++) {
-				SET_DATA_BYTE(line, j, rowptr[j]);
-			}
-		}
-	}
-	else if (spp == 2) {  /* grayscale + alpha; convert to RGBA */
-		L_INFO("converting (gray + alpha) ==> RGBA\n", procName);
-		for (i = 0; i < h; i++) {
-			ppixel = data + i * wpl;
-			rowptr = row_pointers[i];
-			for (j = k = 0; j < w; j++) {
-				/* Copy gray value into r, g and b */
-				SET_DATA_BYTE(ppixel, COLOR_RED, rowptr[k]);
-				SET_DATA_BYTE(ppixel, COLOR_GREEN, rowptr[k]);
-				SET_DATA_BYTE(ppixel, COLOR_BLUE, rowptr[k++]);
-				SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL, rowptr[k++]);
-				ppixel++;
-			}
-		}
-		pixSetSpp(pix, 4);  /* we do not support 2 spp pix */
-	}
-	else if (spp == 3 || spp == 4) {
-		for (i = 0; i < h; i++) {
-			ppixel = data + i * wpl;
-			rowptr = row_pointers[i];
-			for (j = k = 0; j < w; j++) {
-				SET_DATA_BYTE(ppixel, COLOR_RED, rowptr[k++]);
-				SET_DATA_BYTE(ppixel, COLOR_GREEN, rowptr[k++]);
-				SET_DATA_BYTE(ppixel, COLOR_BLUE, rowptr[k++]);
-				if (spp == 4)
-					SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL, rowptr[k++]);
-				ppixel++;
-			}
-		}
-	}
-
-	/* Special spp == 1 cases with transparency:
-	*    (1) 8 bpp without colormap; assume full transparency
-	*    (2) 1 bpp with colormap + trans array (for alpha)
-	*    (3) 8 bpp with colormap + trans array (for alpha)
-	* These all require converting to RGBA */
-	if (spp == 1 && tRNS) {
-		if (!cmap) {
-			/* Case 1: make fully transparent RGBA image */
-			L_INFO("transparency, 1 spp, no colormap, no transparency array: "
-				"convention is fully transparent image\n", procName);
-			L_INFO("converting (fully transparent 1 spp) ==> RGBA\n", procName);
-			pixDestroy(&pix);
-			pix = pixCreate(w, h, 32);  /* init to alpha = 0 (transparent) */
-			pixSetSpp(pix, 4);
-		}
-		else {
-			L_INFO("converting (cmap + alpha) ==> RGBA\n", procName);
-
-			/* Grab the transparency array */
-			png_get_tRNS(png_ptr, info_ptr, &trans, &num_trans, NULL);
-			if (!trans) {  /* invalid png file */
-				pixDestroy(&pix);
-				png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
-				return (PIX *)ERROR_PTR("cmap, tRNS, but no transparency array",
-					procName, NULL);
-			}
-
-			/* Save the cmap and destroy the pix */
-			cmap = pixcmapCopy(pixGetColormap(pix));
-			ncolors = pixcmapGetCount(cmap);
-			pixDestroy(&pix);
-
-			/* Start over with 32 bit RGBA */
-			pix = pixCreate(w, h, 32);
-			wpl = pixGetWpl(pix);
-			data = pixGetData(pix);
-			pixSetSpp(pix, 4);
-
-#if DEBUG_READ
-			fprintf(stderr, "ncolors = %d, num_trans = %d\n",
-				ncolors, num_trans);
-			for (i = 0; i < ncolors; i++) {
-				pixcmapGetColor(cmap, i, &rval, &gval, &bval);
-				if (i < num_trans) {
-					fprintf(stderr, "(r,g,b,a) = (%d,%d,%d,%d)\n",
-						rval, gval, bval, trans[i]);
-				}
-				else {
-					fprintf(stderr, "(r,g,b,a) = (%d,%d,%d,<<255>>)\n",
-						rval, gval, bval);
-				}
-			}
-#endif  /* DEBUG_READ */
-
-			/* Extract the data and convert to RGBA */
-			if (d == 1) {
-				/* Case 2: 1 bpp with transparency (usually) behind white */
-				L_INFO("converting 1 bpp cmap with alpha ==> RGBA\n", procName);
-				if (num_trans == 1)
-					L_INFO("num_trans = 1; second color opaque by default\n",
-						procName);
-				for (i = 0; i < h; i++) {
-					ppixel = data + i * wpl;
-					rowptr = row_pointers[i];
-					for (j = 0, index = 0; j < rowbytes; j++) {
-						byte = rowptr[j];
-						for (k = 0; k < 8 && index < w; k++, index++) {
-							bitval = (byte >> (7 - k)) & 1;
-							pixcmapGetColor(cmap, bitval, &rval, &gval, &bval);
-							composeRGBPixel(rval, gval, bval, ppixel);
-							SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL,
-								bitval < num_trans ? trans[bitval] : 255);
-							ppixel++;
-						}
-					}
-				}
-			}
-			else if (d == 8) {
-				/* Case 3: 8 bpp with cmap and associated transparency */
-				L_INFO("converting 8 bpp cmap with alpha ==> RGBA\n", procName);
-				for (i = 0; i < h; i++) {
-					ppixel = data + i * wpl;
-					rowptr = row_pointers[i];
-					for (j = 0; j < w; j++) {
-						index = rowptr[j];
-						pixcmapGetColor(cmap, index, &rval, &gval, &bval);
-						composeRGBPixel(rval, gval, bval, ppixel);
-						/* Assume missing entries to be 255 (opaque)
-						* according to the spec:
-						* http://www.w3.org/TR/PNG/#11tRNS */
-						SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL,
-							index < num_trans ? trans[index] : 255);
-						ppixel++;
-					}
-				}
-			}
-			else {
-				L_ERROR("spp == 1, cmap, trans array, invalid depth: %d\n",
-					procName, d);
-			}
-			pixcmapDestroy(&cmap);
-		}
-	}
-
-#if  DEBUG_READ
-	if (cmap) {
-		for (i = 0; i < 16; i++) {
-			fprintf(stderr, "[%d] = %d\n", i,
-				((l_uint8 *)(cmap->array))[i]);
-		}
-	}
-#endif  /* DEBUG_READ */
-
-	/* Final adjustments for bpp = 1.
-	*   + If there is no colormap, the image must be inverted because
-	*     png stores black pixels as 0.
-	*   + We have already handled the case of cmapped, 1 bpp pix
-	*     with transparency, where the output pix is 32 bpp RGBA.
-	*     If there is no transparency but the pix has a colormap,
-	*     we remove the colormap, because functions operating on
-	*     1 bpp images in leptonica assume no colormap.
-	*   + The colormap must be removed in such a way that the pixel
-	*     values are not changed.  If the values are only black and
-	*     white, we return a 1 bpp image; if gray, return an 8 bpp pix;
-	*     otherwise, return a 32 bpp rgb pix.
-	*
-	* Note that we cannot use the PNG_TRANSFORM_INVERT_MONO flag
-	* to do the inversion, because that flag (since version 1.0.9)
-	* inverts 8 bpp grayscale as well, which we don't want to do.
-	* (It also doesn't work if there is a colormap.)
-	*
-	* Note that if the input png is a 1-bit with colormap and
-	* transparency, it has already been rendered as a 32 bpp,
-	* spp = 4 rgba pix.
-	*/
-	if (pixGetDepth(pix) == 1) {
-		if (!cmap) {
-			pixInvert(pix, pix);
-		}
-		else {
-			pixt = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
-			pixDestroy(&pix);
-			pix = pixt;
-		}
-	}
-
-	xres = png_get_x_pixels_per_meter(png_ptr, info_ptr);
-	yres = png_get_y_pixels_per_meter(png_ptr, info_ptr);
-	pixSetXRes(pix, (l_int32)((l_float32)xres / 39.37 + 0.5));  /* to ppi */
-	pixSetYRes(pix, (l_int32)((l_float32)yres / 39.37 + 0.5));  /* to ppi */
-
-																/* Get the text if there is any */
-	png_get_text(png_ptr, info_ptr, &text_ptr, &num_text);
-	if (num_text && text_ptr)
-		pixSetText(pix, text_ptr->text);
-
-	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
-	return pix;
-}
 
 
+/*---------------------------------------------------------------------*
+ *                          Reading png header                         *
+ *---------------------------------------------------------------------*/
 /*!
  * \brief   readHeaderPng()
  *
@@ -1035,6 +688,9 @@ l_uint32  *pword;
 }
 
 
+/*---------------------------------------------------------------------*
+ *                         Reading png metadata                        *
+ *---------------------------------------------------------------------*/
 /*
  *  fgetPngResolution()
  *
@@ -1231,7 +887,7 @@ png_infop    info_ptr;
 
 
 /*---------------------------------------------------------------------*
- *                              Writing png                            *
+ *                      Writing png through stream                     *
  *---------------------------------------------------------------------*/
 /*!
  * \brief   pixWritePng()
@@ -1572,350 +1228,6 @@ char        *text;
         LEPT_FREE(palette);
     png_destroy_write_struct(&png_ptr, &info_ptr);
     return 0;
-
-}
-
-
-/*!
-* \brief   pixWriteMemoryPng()
-*
-* \param[in]    user_data
-* \param[in]    user_data_size
-* \param[in]    pix
-* \param[in]    gamma use 0.0 if gamma is not defined
-* \return  0 if OK; 1 on error
-*
-* <pre>
-* Notes:
-*      (1) To do sequential writes of png format images to a stream,
-*          use pixWriteStreamPng() directly.
-*      (2) gamma is an optional png chunk.  If no gamma value is to be
-*          placed into the file, use gamma = 0.0.  Otherwise, if
-*          gamma > 0.0, its value is written into the header.
-*      (3) The use of gamma in png is highly problematic.  For an illuminating
-*          discussion, see:  http://hsivonen.iki.fi/png-gamma/
-*      (4) What is the effect/meaning of gamma in the png file?  This
-*          gamma, which we can call the 'source' gamma, is the
-*          inverse of the gamma that was used in enhance.c to brighten
-*          or darken images.  The 'source' gamma is supposed to indicate
-*          the intensity mapping that was done at the time the
-*          image was captured.  Display programs typically apply a
-*          'display' gamma of 2.2 to the output, which is intended
-*          to linearize the intensity based on the response of
-*          thermionic tubes (CRTs).  Flat panel LCDs have typically
-*          been designed to give a similar response as CRTs (call it
-*          "backward compatibility").  The 'display' gamma is
-*          in some sense the inverse of the 'source' gamma.
-*          jpeg encoders attached to scanners and cameras will lighten
-*          the pixels, applying a gamma corresponding to approximately
-*          a square-root relation of output vs input:
-*                output = input^(gamma)
-*          where gamma is often set near 0.4545  (1/gamma is 2.2).
-*          This is stored in the image file.  Then if the display
-*          program reads the gamma, it will apply a display gamma,
-*          typically about 2.2; the product is 1.0, and the
-*          display program produces a linear output.  This works because
-*          the dark colors were appropriately boosted by the scanner,
-*          as described by the 'source' gamma, so they should not
-*          be further boosted by the display program.
-*      (6) As an example, with xv and display, if no gamma is stored,
-*          the program acts as if gamma were 0.4545, multiplies this by 2.2,
-*          and does a linear rendering.  Taking this as a baseline
-*          brightness, if the stored gamma is:
-*              > 0.4545, the image is rendered lighter than baseline
-*              < 0.4545, the image is rendered darker than baseline
-*          In contrast, gqview seems to ignore the gamma chunk in png.
-*      (5) The only valid pixel depths in leptonica are 1, 2, 4, 8, 16
-*          and 32.  However, it is possible, and in some cases desirable,
-*          to write out a png file using an rgb pix that has 24 bpp.
-*          For example, the open source xpdf SplashBitmap class generates
-*          24 bpp rgb images.  Consequently, we enable writing 24 bpp pix.
-*          To generate such a pix, you can make a 24 bpp pix without data
-*          and assign the data array to the pix; e.g.,
-*              pix = pixCreateHeader(w, h, 24);
-*              pixSetData(pix, rgbdata);
-*          See pixConvert32To24() for an example, where we get rgbdata
-*          from the 32 bpp pix.  Caution: do not call pixSetPadBits(),
-*          because the alignment is wrong and you may erase part of the
-*          last pixel on each line.
-*      (6) If the pix has a colormap, it is written to file.  In most
-*          situations, the alpha component is 255 for each colormap entry,
-*          which is opaque and indicates that it should be ignored.
-*          However, if any alpha component is not 255, it is assumed that
-*          the alpha values are valid, and they are written to the png
-*          file in a tRNS segment.  On readback, the tRNS segment is
-*          identified, and the colormapped image with alpha is converted
-*          to a 4 spp rgba image.
-* </pre>
-*/
-l_int32
-pixWriteMemoryPng(l_uint8**      user_data,
-	size_t*	user_data_size,
-	PIX       *pix,
-	l_float32  gamma)
-{
-	l_int32  ret;
-	char         commentstring[] = "Comment";
-	l_int32      i, j, k;
-	l_int32      wpl, d, spp, cmflag, opaque;
-	l_int32      ncolors, compval;
-	l_int32     *rmap, *gmap, *bmap, *amap;
-	l_uint32    *data, *ppixel;
-	png_byte     bit_depth, color_type;
-	png_byte     alpha[256];
-	png_uint_32  w, h;
-	png_uint_32  xres, yres;
-	png_bytep   *row_pointers;
-	png_bytep    rowbuffer;
-	png_structp  png_ptr;
-	png_infop    info_ptr;
-	png_colorp   palette;
-	PIX         *pixt;
-	PIXCMAP     *cmap;
-	char        *text;
-	MEMIODATA state;
-
-	PROCNAME("pixWriteMemoryPng");
-
-	if (!user_data)
-		return ERROR_INT("user_data not defined", procName, 1);
-	if (!user_data_size)
-		return ERROR_INT("user_data_size not defined", procName, 1);
-	if (!pix)
-		return ERROR_INT("pix not defined", procName, 1);
-
-	*user_data_size = 0;
-	*user_data = 0;
-
-	state.m_Buffer = 0;
-	state.m_Size = 0;
-	state.m_Next = 0;
-	state.m_Count = 0;
-	state.m_Last = &state;
-
-	/* Allocate the 2 data structures */
-	if ((png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
-		(png_voidp)NULL, NULL, NULL)) == NULL)
-		return ERROR_INT("png_ptr not made", procName, 1);
-
-	if ((info_ptr = png_create_info_struct(png_ptr)) == NULL) {
-		png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-		return ERROR_INT("info_ptr not made", procName, 1);
-	}
-
-	/* Set up png setjmp error handling */
-	if (setjmp(png_jmpbuf(png_ptr))) {
-		png_destroy_write_struct(&png_ptr, &info_ptr);
-		return ERROR_INT("internal png error", procName, 1);
-	}
-
-	png_set_write_fn(png_ptr, &state, memio_png_write_data, (png_flush_ptr)NULL);
-
-	/* With best zlib compression (9), get between 1 and 10% improvement
-	* over default (6), but the compression is 3 to 10 times slower.
-	* Use the zlib default (6) as our default compression unless
-	* pix->special falls in the range [10 ... 19]; then subtract 10
-	* to get the compression value.  */
-	compval = Z_DEFAULT_COMPRESSION;
-	if (pix->special >= 10 && pix->special < 20)
-		compval = pix->special - 10;
-	png_set_compression_level(png_ptr, compval);
-
-	w = pixGetWidth(pix);
-	h = pixGetHeight(pix);
-	d = pixGetDepth(pix);
-	spp = pixGetSpp(pix);
-	if ((cmap = pixGetColormap(pix)))
-		cmflag = 1;
-	else
-		cmflag = 0;
-
-	/* Set the color type and bit depth. */
-	if (d == 32 && spp == 4) {
-		bit_depth = 8;
-		color_type = PNG_COLOR_TYPE_RGBA;   /* 6 */
-		cmflag = 0;  /* ignore if it exists */
-	}
-	else if (d == 24 || d == 32) {
-		bit_depth = 8;
-		color_type = PNG_COLOR_TYPE_RGB;   /* 2 */
-		cmflag = 0;  /* ignore if it exists */
-	}
-	else {
-		bit_depth = d;
-		color_type = PNG_COLOR_TYPE_GRAY;  /* 0 */
-	}
-	if (cmflag)
-		color_type = PNG_COLOR_TYPE_PALETTE;  /* 3 */
-
-#if  DEBUG_WRITE
-	fprintf(stderr, "cmflag = %d, bit_depth = %d, color_type = %d\n",
-		cmflag, bit_depth, color_type);
-#endif  /* DEBUG_WRITE */
-
-	png_set_IHDR(png_ptr, info_ptr, w, h, bit_depth, color_type,
-		PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
-		PNG_FILTER_TYPE_BASE);
-
-	/* Store resolution in ppm, if known */
-	xres = (png_uint_32)(39.37 * (l_float32)pixGetXRes(pix) + 0.5);
-	yres = (png_uint_32)(39.37 * (l_float32)pixGetYRes(pix) + 0.5);
-	if ((xres == 0) || (yres == 0))
-		png_set_pHYs(png_ptr, info_ptr, 0, 0, PNG_RESOLUTION_UNKNOWN);
-	else
-		png_set_pHYs(png_ptr, info_ptr, xres, yres, PNG_RESOLUTION_METER);
-
-	if (cmflag) {
-		pixcmapToArrays(cmap, &rmap, &gmap, &bmap, &amap);
-		ncolors = pixcmapGetCount(cmap);
-		pixcmapIsOpaque(cmap, &opaque);
-
-		/* Make and save the palette */
-		if ((palette = (png_colorp)(LEPT_CALLOC(ncolors, sizeof(png_color))))
-			== NULL)
-		{
-			memio_free(&state);
-			return ERROR_INT("palette not made", procName, 1);
-		}
-
-		for (i = 0; i < ncolors; i++) {
-			palette[i].red = (png_byte)rmap[i];
-			palette[i].green = (png_byte)gmap[i];
-			palette[i].blue = (png_byte)bmap[i];
-			alpha[i] = (png_byte)amap[i];
-		}
-
-		png_set_PLTE(png_ptr, info_ptr, palette, (int)ncolors);
-		if (!opaque)  /* alpha channel has some transparency; assume valid */
-			png_set_tRNS(png_ptr, info_ptr, (png_bytep)alpha,
-			(int)ncolors, NULL);
-		LEPT_FREE(rmap);
-		LEPT_FREE(gmap);
-		LEPT_FREE(bmap);
-		LEPT_FREE(amap);
-	}
-
-	/* 0.4545 is treated as the default by some image
-	* display programs (not gqview).  A value > 0.4545 will
-	* lighten an image as displayed by xv, display, etc. */
-	if (gamma > 0.0)
-		png_set_gAMA(png_ptr, info_ptr, (l_float64)gamma);
-
-	if ((text = pixGetText(pix))) {
-		png_text text_chunk;
-		text_chunk.compression = PNG_TEXT_COMPRESSION_NONE;
-		text_chunk.key = commentstring;
-		text_chunk.text = text;
-		text_chunk.text_length = strlen(text);
-#ifdef PNG_ITXT_SUPPORTED
-		text_chunk.itxt_length = 0;
-		text_chunk.lang = NULL;
-		text_chunk.lang_key = NULL;
-#endif
-		png_set_text(png_ptr, info_ptr, &text_chunk, 1);
-	}
-
-	/* Write header and palette info */
-	png_write_info(png_ptr, info_ptr);
-
-	if ((d != 32) && (d != 24)) {  /* not rgb color */
-								   /* Generate a temporary pix with bytes swapped.
-								   * For writing a 1 bpp image as png:
-								   *    ~ if no colormap, invert the data, because png writes
-								   *      black as 0
-								   *    ~ if colormapped, do not invert the data; the two RGBA
-								   *      colors can have any value.  */
-		if (d == 1 && !cmap) {
-			pixt = pixInvert(NULL, pix);
-			pixEndianByteSwap(pixt);
-		}
-		else {
-			pixt = pixEndianByteSwapNew(pix);
-		}
-		if (!pixt) {
-			png_destroy_write_struct(&png_ptr, &info_ptr);
-			memio_free(&state);
-			return ERROR_INT("pixt not made", procName, 1);
-		}
-
-		/* Make and assign array of image row pointers */
-		if ((row_pointers = (png_bytep *)LEPT_CALLOC(h, sizeof(png_bytep)))
-			== NULL)
-		{
-			memio_free(&state);
-			return ERROR_INT("row-pointers not made", procName, 1);
-		}
-
-		wpl = pixGetWpl(pixt);
-		data = pixGetData(pixt);
-		for (i = 0; i < h; i++)
-			row_pointers[i] = (png_bytep)(data + i * wpl);
-		png_set_rows(png_ptr, info_ptr, row_pointers);
-
-		/* Transfer the data */
-		png_write_image(png_ptr, row_pointers);
-		png_write_end(png_ptr, info_ptr);
-
-		if (cmflag)
-			LEPT_FREE(palette);
-		LEPT_FREE(row_pointers);
-		pixDestroy(&pixt);
-		png_destroy_write_struct(&png_ptr, &info_ptr);
-
-		memio_png_flush(&state);
-		*user_data = (l_uint8*)state.m_Buffer;
-		state.m_Buffer = 0;
-		*user_data_size = state.m_Count;
-		memio_free(&state);
-
-		return 0;
-	}
-
-	/* For rgb, compose and write a row at a time */
-	data = pixGetData(pix);
-	wpl = pixGetWpl(pix);
-	if (d == 24) {  /* See note 7 above: special case of 24 bpp rgb */
-		for (i = 0; i < h; i++) {
-			ppixel = data + i * wpl;
-			png_write_rows(png_ptr, (png_bytepp)&ppixel, 1);
-		}
-	}
-	else {  /* 32 bpp rgb and rgba.  Write out the alpha channel if either
-			* the pix has 4 spp or writing it is requested anyway */
-		if ((rowbuffer = (png_bytep)LEPT_CALLOC(w, 4)) == NULL)
-		{
-			memio_free(&state);
-			return ERROR_INT("rowbuffer not made", procName, 1);
-		}
-
-		for (i = 0; i < h; i++) {
-			ppixel = data + i * wpl;
-			for (j = k = 0; j < w; j++) {
-				rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_RED);
-				rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_GREEN);
-				rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_BLUE);
-				if (spp == 4)
-					rowbuffer[k++] = GET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL);
-				ppixel++;
-			}
-
-			png_write_rows(png_ptr, &rowbuffer, 1);
-		}
-		LEPT_FREE(rowbuffer);
-	}
-
-	png_write_end(png_ptr, info_ptr);
-
-	if (cmflag)
-		LEPT_FREE(palette);
-	png_destroy_write_struct(&png_ptr, &info_ptr); 
-
-	memio_png_flush(&state);
-	*user_data = (l_uint8*)state.m_Buffer;
-	state.m_Buffer = 0;
-	*user_data_size = state.m_Count;
-	memio_free(&state);
-	return 0;
 }
 
 
@@ -1958,7 +1270,7 @@ pixSetZlibCompression(PIX     *pix,
 
 
 /*---------------------------------------------------------------------*
- *             Setting flag for stripping 16 bits on reading           *
+ *              Set flag for stripping 16 bits on reading              *
  *---------------------------------------------------------------------*/
 /*!
  * \brief   l_pngSetReadStrip16To8()
@@ -1974,73 +1286,844 @@ l_pngSetReadStrip16To8(l_int32  flag)
 }
 
 
-/*---------------------------------------------------------------------*
- *                         Read/write to memory                        *
- *---------------------------------------------------------------------*/
+/*-------------------------------------------------------------------------*
+ *                               Memio utility                             *
+ *    libpng read/write callback replacements for performing memory I/O    *
+ *                                                                         *
+ *    Copyright (C) 2017 Milner Technologies, Inc.  This content is a      *
+ *    component of leptonica and is provided under the terms of the        *
+ *    Leptonica license.                                                   *
+ *-------------------------------------------------------------------------*/
 
+    /*! A node in a linked list of memory buffers that hold I/O content */
+struct MemIOData
+{
+    char*       m_Buffer;  /*!< pointer to this node's I/O content           */
+    l_int32     m_Count;   /*!< number of I/O content bytes read or written  */
+    l_int32     m_Size;    /*!< allocated size of m_buffer                   */
+    struct MemIOData  *m_Next;  /*!< pointer to the next node in the list;   */
+                                /*!< zero if this is the last node           */
+    struct MemIOData  *m_Last;  /*!< pointer to the last node in the linked  */
+                                /*!< list.  The last node is where new       */
+                                /*!< content is written.                     */
+};
+typedef struct MemIOData MEMIODATA;
+
+static void memio_png_write_data(png_structp png_ptr, png_bytep data,
+                                 png_size_t length);
+static void memio_png_flush(MEMIODATA* pthing);
+static void memio_png_read_data(png_structp png_ptr, png_bytep outBytes,
+                                png_size_t byteCountToRead);
+static void memio_free(MEMIODATA* pthing);
+
+static const l_int32  MEMIO_BUFFER_SIZE = 8192;  /*! buffer alloc size */
+
+/*
+ * \brief   memio_png_write_data()
+ *
+ * \param[in]     png_ptr
+ * \param[in]     data
+ * \param[in]     len     size of array data in bytes
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a libpng callback for writing an image into a
+ *          linked list of memory buffers.
+ * </pre>
+ */
+static void
+memio_png_write_data(png_structp  png_ptr,
+                     png_bytep    data,
+                     png_size_t   len)
+{
+MEMIODATA  *thing, *last;
+l_int32     written = 0;
+l_int32     remainingSpace, remainingToWrite;
+
+    PROCNAME("memio_png_write_data");
+
+    thing = (struct MemIOData*)png_get_io_ptr(png_ptr);
+    last = (struct MemIOData*)thing->m_Last;
+    if (last->m_Buffer == 0) {
+        if (len > MEMIO_BUFFER_SIZE) {
+            last->m_Buffer = (char *)LEPT_MALLOC(len);
+            memcpy(last->m_Buffer, data, len);
+            last->m_Size = last->m_Count = len;
+            return;
+        }
+
+        last->m_Buffer = (char *)LEPT_MALLOC(MEMIO_BUFFER_SIZE);
+        last->m_Size = MEMIO_BUFFER_SIZE;
+    }
+
+    while (written < len) {
+        if (last->m_Count == last->m_Size) {
+            MEMIODATA* next = (MEMIODATA *)LEPT_MALLOC(sizeof(MEMIODATA));
+            next->m_Next = 0;
+            next->m_Count = 0;
+            next->m_Last = next;
+
+            last->m_Next = next;
+            last = thing->m_Last = next;
+
+            last->m_Buffer = (char *)LEPT_MALLOC(MEMIO_BUFFER_SIZE);
+            last->m_Size = MEMIO_BUFFER_SIZE;
+        }
+		
+        remainingSpace = last->m_Size - last->m_Count;
+        remainingToWrite = len - written;
+        if (remainingSpace < remainingToWrite) {
+            memcpy(last->m_Buffer + last->m_Count, data + written,
+                   remainingSpace);
+            written += remainingSpace;
+            last->m_Count += remainingSpace;
+        } else {
+            memcpy(last->m_Buffer + last->m_Count, data + written,
+                   remainingToWrite);
+            written += remainingToWrite;
+            last->m_Count += remainingToWrite;
+        }
+    }
+}
+
+
+/*
+ * \brief   memio_png_flush()
+ *
+ * \param[in]     pthing
+ *
+ * <pre>
+ * Notes:
+ *      (1) This consolidates write buffers into a single buffer at the
+ *          haed of the link list of buffers.
+ * </pre>
+ */
+static void
+memio_png_flush(MEMIODATA  *pthing)
+{
+l_int32     amount = 0;
+l_int32     copied = 0;
+MEMIODATA  *buffer = 0;
+char       *data = 0;
+
+    PROCNAME("memio_png_flush");
+	
+	/* If the data is in one buffer, give the buffer to the user. */
+    if (pthing->m_Next == 0) return;
+
+	/* Consolidate multiple buffers into one new one; add the buffer
+         * sizes together. */
+    amount = pthing->m_Count;
+    buffer = pthing->m_Next;
+    while (buffer != 0) {
+        amount += buffer->m_Count;
+        buffer = buffer->m_Next;
+    }
+
+	/* Copy data to a new buffer. */
+    data = (char *)LEPT_MALLOC(amount);
+    memcpy(data, pthing->m_Buffer, pthing->m_Count);
+    copied = pthing->m_Count;
+
+    LEPT_FREE(pthing->m_Buffer);
+    pthing->m_Buffer = 0;
+
+	/* Don't delete original "thing" because we don't control it. */
+    buffer = pthing->m_Next;
+    pthing->m_Next = 0;
+    while (buffer != 0 && copied < amount) {
+        MEMIODATA* old;
+        memcpy(data + copied, buffer->m_Buffer, buffer->m_Count);
+        copied += buffer->m_Count;
+
+        old = buffer;
+        buffer = buffer->m_Next;
+
+        LEPT_FREE(old->m_Buffer);
+        LEPT_FREE(old);
+    }
+	
+    pthing->m_Buffer = data;
+    pthing->m_Count = copied;
+    pthing->m_Size = amount;
+    return;
+}
+
+
+/*
+ * \brief   memio_png_read_data()
+ *
+ * \param[in]     png_ptr
+ * \param[in]     outBytes
+ * \param[in]     byteCountToRead
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a libpng callback that reads an image from a single
+ *          memory buffer.
+ * </pre>
+ */
+static void 
+memio_png_read_data(png_structp  png_ptr,
+                    png_bytep    outBytes,
+                    png_size_t   byteCountToRead)
+{
+MEMIODATA  *thing;
+
+    PROCNAME("memio_png_read_data");
+
+    thing = (MEMIODATA *)png_get_io_ptr(png_ptr);
+    memcpy(outBytes, thing->m_Buffer + thing->m_Count, byteCountToRead);
+    thing->m_Count += byteCountToRead;
+}
+
+
+/*
+ * \brief   memio_free()
+ *
+ * \param[in]     pthing
+ *
+ * <pre>
+ * Notes:
+ *      (1) This frees all the write buffers in the linked list.  It must
+ *          be done before exiting the pixWriteMemPng().
+ * </pre>
+ */
+static void
+memio_free(MEMIODATA*  pthing)
+{
+MEMIODATA  *buffer, *old;
+
+    PROCNAME("memio_free");
+	
+    if (pthing->m_Buffer != 0)
+        LEPT_FREE(pthing->m_Buffer);
+
+    pthing->m_Buffer = 0;
+    buffer = pthing->m_Next;
+    while (buffer != 0) {
+        old = buffer;
+        buffer = buffer->m_Next;
+
+        if (old->m_Buffer != 0)
+            LEPT_FREE(old->m_Buffer);
+        LEPT_FREE(old);
+    }
+}
+
+
+/*---------------------------------------------------------------------*
+ *                       Reading png from memory                       *
+ *---------------------------------------------------------------------*/
 /*!
  * \brief   pixReadMemPng()
  *
- * \param[in]    data const; png-encoded
- * \param[in]    size of data
+ * \param[in]    filedata   png compressed data in memory
+ * \param[in]    filesize   number of bytes in data
  * \return  pix, or NULL on error
  *
  * <pre>
  * Notes:
- *      (1) The %size byte of %data must be a null character.
+ *      (1) See pixReastreamPng().
  * </pre>
  */
 PIX *
-pixReadMemPng(const l_uint8  *data,
-              size_t          size)
+pixReadMemPng(const l_uint8  *filedata,
+              size_t          filesize)
 {
-PIX   *pix;
+l_uint8      byte;
+l_int32      rval, gval, bval;
+l_int32      i, j, k, index, ncolors, bitval;
+l_int32      wpl, d, spp, cindex, tRNS;
+l_uint32     png_transforms;
+l_uint32    *data, *line, *ppixel;
+int          num_palette, num_text, num_trans;
+png_byte     bit_depth, color_type, channels;
+png_uint_32  w, h, rowbytes;
+png_uint_32  xres, yres;
+png_bytep    rowptr, trans;
+png_bytep   *row_pointers;
+png_structp  png_ptr;
+png_infop    info_ptr, end_info;
+png_colorp   palette;
+png_textp    text_ptr;  /* ptr to text_chunk */
+PIX         *pix, *pix1;
+PIXCMAP     *cmap;
+MEMIODATA    state;
 
     PROCNAME("pixReadMemPng");
 
-    if (!data)
-        return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
-	/* TDH */
-    pix = pixReadMemoryPng(data, size);
-    if (!pix) L_ERROR("pix not read\n", procName);
+    if (!filedata)
+        return (PIX *)ERROR_PTR("filedata not defined", procName, NULL);
+    if (filesize < 1)
+        return (PIX *)ERROR_PTR("invalid filesize", procName, NULL);
+
+    state.m_Next = 0;
+    state.m_Count = 0;
+    state.m_Last = &state;
+    state.m_Buffer = (char*)filedata;
+    state.m_Size = filesize;
+    pix = NULL;
+
+        /* Allocate the 3 data structures */
+    if ((png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
+                   (png_voidp)NULL, NULL, NULL)) == NULL)
+        return (PIX *)ERROR_PTR("png_ptr not made", procName, NULL);
+
+    if ((info_ptr = png_create_info_struct(png_ptr)) == NULL) {
+        png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
+        return (PIX *)ERROR_PTR("info_ptr not made", procName, NULL);
+    }
+
+    if ((end_info = png_create_info_struct(png_ptr)) == NULL) {
+        png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
+        return (PIX *)ERROR_PTR("end_info not made", procName, NULL);
+    }
+
+        /* Set up png setjmp error handling */
+    if (setjmp(png_jmpbuf(png_ptr))) {
+        png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+        return (PIX *)ERROR_PTR("internal png error", procName, NULL);
+    }
+
+    png_set_read_fn(png_ptr, &state, memio_png_read_data);
+
+        /* ---------------------------------------------------------- *
+         *  Set the transforms flags.  Whatever happens here,
+         *  NEVER invert 1 bpp using PNG_TRANSFORM_INVERT_MONO.
+         *  Also, do not use PNG_TRANSFORM_EXPAND, which would
+         *  expand all images with bpp < 8 to 8 bpp.
+         * ---------------------------------------------------------- */
+        /* To strip 16 --> 8 bit depth, use PNG_TRANSFORM_STRIP_16 */
+    if (var_PNG_STRIP_16_TO_8 == 1) {  /* our default */
+        png_transforms = PNG_TRANSFORM_STRIP_16;
+    } else {
+        png_transforms = PNG_TRANSFORM_IDENTITY;
+        L_INFO("not stripping 16 --> 8 in png reading\n", procName);
+    }
+
+        /* Read it */
+    png_read_png(png_ptr, info_ptr, png_transforms, NULL);
+
+    row_pointers = png_get_rows(png_ptr, info_ptr);
+    w = png_get_image_width(png_ptr, info_ptr);
+    h = png_get_image_height(png_ptr, info_ptr);
+    bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+    rowbytes = png_get_rowbytes(png_ptr, info_ptr);
+    color_type = png_get_color_type(png_ptr, info_ptr);
+    channels = png_get_channels(png_ptr, info_ptr);
+    spp = channels;
+    tRNS = png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) ? 1 : 0;
+
+    if (spp == 1) {
+        d = bit_depth;
+    } else {  /* spp == 2 (gray + alpha), spp == 3 (rgb), spp == 4 (rgba) */
+        d = 4 * bit_depth;
+    }
+
+        /* Remove if/when this is implemented for all bit_depths */
+    if (spp == 3 && bit_depth != 8) {
+        fprintf(stderr, "Help: spp = 3 and depth = %d != 8\n!!", bit_depth);
+        png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+        return (PIX *)ERROR_PTR("not implemented for this depth",
+            procName, NULL);
+    }
+
+    if (color_type == PNG_COLOR_TYPE_PALETTE ||
+        color_type == PNG_COLOR_MASK_PALETTE) {   /* generate a colormap */
+        png_get_PLTE(png_ptr, info_ptr, &palette, &num_palette);
+        cmap = pixcmapCreate(d);  /* spp == 1 */
+        for (cindex = 0; cindex < num_palette; cindex++) {
+            rval = palette[cindex].red;
+            gval = palette[cindex].green;
+            bval = palette[cindex].blue;
+            pixcmapAddColor(cmap, rval, gval, bval);
+        }
+    } else {
+        cmap = NULL;
+    }
+
+    if ((pix = pixCreate(w, h, d)) == NULL) {
+        png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+        return (PIX *)ERROR_PTR("pix not made", procName, NULL);
+    }
+    pixSetInputFormat(pix, IFF_PNG);
+    wpl = pixGetWpl(pix);
+    data = pixGetData(pix);
+    pixSetColormap(pix, cmap);
+    pixSetSpp(pix, spp);
+
+    if (spp == 1 && !tRNS) {  /* copy straight from buffer to pix */
+        for (i = 0; i < h; i++) {
+            line = data + i * wpl;
+            rowptr = row_pointers[i];
+            for (j = 0; j < rowbytes; j++) {
+                    SET_DATA_BYTE(line, j, rowptr[j]);
+            }
+        }
+    } else if (spp == 2) {  /* grayscale + alpha; convert to RGBA */
+        L_INFO("converting (gray + alpha) ==> RGBA\n", procName);
+        for (i = 0; i < h; i++) {
+            ppixel = data + i * wpl;
+            rowptr = row_pointers[i];
+            for (j = k = 0; j < w; j++) {
+                    /* Copy gray value into r, g and b */
+                SET_DATA_BYTE(ppixel, COLOR_RED, rowptr[k]);
+                SET_DATA_BYTE(ppixel, COLOR_GREEN, rowptr[k]);
+                SET_DATA_BYTE(ppixel, COLOR_BLUE, rowptr[k++]);
+                SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL, rowptr[k++]);
+                ppixel++;
+            }
+        }
+        pixSetSpp(pix, 4);  /* we do not support 2 spp pix */
+    } else if (spp == 3 || spp == 4) {
+        for (i = 0; i < h; i++) {
+            ppixel = data + i * wpl;
+            rowptr = row_pointers[i];
+            for (j = k = 0; j < w; j++) {
+                SET_DATA_BYTE(ppixel, COLOR_RED, rowptr[k++]);
+                SET_DATA_BYTE(ppixel, COLOR_GREEN, rowptr[k++]);
+                SET_DATA_BYTE(ppixel, COLOR_BLUE, rowptr[k++]);
+                if (spp == 4)
+                    SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL, rowptr[k++]);
+                ppixel++;
+            }
+        }
+    }
+
+        /* Special spp == 1 cases with transparency:
+         *    (1) 8 bpp without colormap; assume full transparency
+         *    (2) 1 bpp with colormap + trans array (for alpha)
+         *    (3) 8 bpp with colormap + trans array (for alpha)
+         * These all require converting to RGBA */
+    if (spp == 1 && tRNS) {
+        if (!cmap) {
+                /* Case 1: make fully transparent RGBA image */
+            L_INFO("transparency, 1 spp, no colormap, no transparency array: "
+                   "convention is fully transparent image\n", procName);
+            L_INFO("converting (fully transparent 1 spp) ==> RGBA\n", procName);
+            pixDestroy(&pix);
+            pix = pixCreate(w, h, 32);  /* init to alpha = 0 (transparent) */
+            pixSetSpp(pix, 4);
+        } else {
+            L_INFO("converting (cmap + alpha) ==> RGBA\n", procName);
+
+                /* Grab the transparency array */
+            png_get_tRNS(png_ptr, info_ptr, &trans, &num_trans, NULL);
+            if (!trans) {  /* invalid png file */
+                pixDestroy(&pix);
+                png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+                return (PIX *)ERROR_PTR("cmap, tRNS, but no transparency array",
+                                        procName, NULL);
+            }
+
+                /* Save the cmap and destroy the pix */
+            cmap = pixcmapCopy(pixGetColormap(pix));
+            ncolors = pixcmapGetCount(cmap);
+            pixDestroy(&pix);
+
+                /* Start over with 32 bit RGBA */
+            pix = pixCreate(w, h, 32);
+            wpl = pixGetWpl(pix);
+            data = pixGetData(pix);
+            pixSetSpp(pix, 4);
+
+#if DEBUG_READ
+            fprintf(stderr, "ncolors = %d, num_trans = %d\n",
+                    ncolors, num_trans);
+            for (i = 0; i < ncolors; i++) {
+                pixcmapGetColor(cmap, i, &rval, &gval, &bval);
+                if (i < num_trans) {
+                    fprintf(stderr, "(r,g,b,a) = (%d,%d,%d,%d)\n",
+                            rval, gval, bval, trans[i]);
+                } else {
+                    fprintf(stderr, "(r,g,b,a) = (%d,%d,%d,<<255>>)\n",
+                            rval, gval, bval);
+                }
+            }
+#endif  /* DEBUG_READ */
+
+                /* Extract the data and convert to RGBA */
+            if (d == 1) {
+                    /* Case 2: 1 bpp with transparency (usually) behind white */
+                L_INFO("converting 1 bpp cmap with alpha ==> RGBA\n", procName);
+                if (num_trans == 1)
+                    L_INFO("num_trans = 1; second color opaque by default\n",
+                           procName);
+                for (i = 0; i < h; i++) {
+                    ppixel = data + i * wpl;
+                    rowptr = row_pointers[i];
+                    for (j = 0, index = 0; j < rowbytes; j++) {
+                        byte = rowptr[j];
+                        for (k = 0; k < 8 && index < w; k++, index++) {
+                            bitval = (byte >> (7 - k)) & 1;
+                            pixcmapGetColor(cmap, bitval, &rval, &gval, &bval);
+                            composeRGBPixel(rval, gval, bval, ppixel);
+                            SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL,
+                                      bitval < num_trans ? trans[bitval] : 255);
+                            ppixel++;
+                        }
+                    }
+                }
+            } else if (d == 8) {
+                    /* Case 3: 8 bpp with cmap and associated transparency */
+                L_INFO("converting 8 bpp cmap with alpha ==> RGBA\n", procName);
+                for (i = 0; i < h; i++) {
+                    ppixel = data + i * wpl;
+                    rowptr = row_pointers[i];
+                    for (j = 0; j < w; j++) {
+                        index = rowptr[j];
+                        pixcmapGetColor(cmap, index, &rval, &gval, &bval);
+                        composeRGBPixel(rval, gval, bval, ppixel);
+                            /* Assume missing entries to be 255 (opaque)
+                             * according to the spec:
+                             * http://www.w3.org/TR/PNG/#11tRNS */
+                        SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL,
+                                      index < num_trans ? trans[index] : 255);
+                        ppixel++;
+                    }
+                }
+            } else {
+                L_ERROR("spp == 1, cmap, trans array, invalid depth: %d\n",
+                        procName, d);
+            }
+            pixcmapDestroy(&cmap);
+        }
+    }
+
+#if  DEBUG_READ
+    if (cmap) {
+        for (i = 0; i < 16; i++) {
+            fprintf(stderr, "[%d] = %d\n", i,
+                   ((l_uint8 *)(cmap->array))[i]);
+        }
+    }
+#endif  /* DEBUG_READ */
+
+        /* Final adjustments for bpp = 1.
+         *   + If there is no colormap, the image must be inverted because
+         *     png stores black pixels as 0.
+         *   + We have already handled the case of cmapped, 1 bpp pix
+         *     with transparency, where the output pix is 32 bpp RGBA.
+         *     If there is no transparency but the pix has a colormap,
+         *     we remove the colormap, because functions operating on
+         *     1 bpp images in leptonica assume no colormap.
+         *   + The colormap must be removed in such a way that the pixel
+         *     values are not changed.  If the values are only black and
+         *     white, we return a 1 bpp image; if gray, return an 8 bpp pix;
+         *     otherwise, return a 32 bpp rgb pix.
+         *
+         * Note that we cannot use the PNG_TRANSFORM_INVERT_MONO flag
+         * to do the inversion, because that flag (since version 1.0.9)
+         * inverts 8 bpp grayscale as well, which we don't want to do.
+         * (It also doesn't work if there is a colormap.)
+         *
+         * Note that if the input png is a 1-bit with colormap and
+         * transparency, it has already been rendered as a 32 bpp,
+         * spp = 4 rgba pix.
+         */
+    if (pixGetDepth(pix) == 1) {
+        if (!cmap) {
+            pixInvert(pix, pix);
+        } else {
+            pix1 = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
+            pixDestroy(&pix);
+            pix = pix1;
+        }
+    }
+
+    xres = png_get_x_pixels_per_meter(png_ptr, info_ptr);
+    yres = png_get_y_pixels_per_meter(png_ptr, info_ptr);
+    pixSetXRes(pix, (l_int32)((l_float32)xres / 39.37 + 0.5));  /* to ppi */
+    pixSetYRes(pix, (l_int32)((l_float32)yres / 39.37 + 0.5));  /* to ppi */
+
+        /* Get the text if there is any */
+    png_get_text(png_ptr, info_ptr, &text_ptr, &num_text);
+    if (num_text && text_ptr)
+        pixSetText(pix, text_ptr->text);
+
+    png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
     return pix;
 }
 
+
+/*---------------------------------------------------------------------*
+ *                        Writing png to memory                        *
+ *---------------------------------------------------------------------*/
 /*!
  * \brief   pixWriteMemPng()
  *
- * \param[out]   pdata data of tiff compressed image
- * \param[out]   psize size of returned data
+ * \param[out]   pfiledata     png encoded data of pix
+ * \param[out]   pfilesize     size of png encoded data
  * \param[in]    pix
- * \param[in]    gamma use 0.0 if gamma is not defined
- * \return  0 if OK, 1 on error
+ * \param[in]    gamma         use 0.0 if gamma is not defined
+ * \return  0 if OK; 1 on error
  *
  * <pre>
  * Notes:
- *      (1) See pixWriteStreamPng() for usage.  This version writes to
- *          memory instead of to a file stream.
+ *      (1) See pixWriteStreamPng()
  * </pre>
  */
 l_int32
-pixWriteMemPng(l_uint8  **pdata,
-               size_t    *psize,
+pixWriteMemPng(l_uint8  **pfiledata,
+               size_t    *pfilesize,
                PIX       *pix,
                l_float32  gamma)
 {
+char         commentstring[] = "Comment";
+l_int32      i, j, k;
+l_int32      wpl, d, spp, cmflag, opaque;
+l_int32      ncolors, compval;
+l_int32     *rmap, *gmap, *bmap, *amap;
+l_uint32    *data, *ppixel;
+png_byte     bit_depth, color_type;
+png_byte     alpha[256];
+png_uint_32  w, h;
+png_uint_32  xres, yres;
+png_bytep   *row_pointers;
+png_bytep    rowbuffer;
+png_structp  png_ptr;
+png_infop    info_ptr;
+png_colorp   palette;
+PIX         *pix1;
+PIXCMAP     *cmap;
+char        *text;
+MEMIODATA    state;
+
     PROCNAME("pixWriteMemPng");
 
-    if (pdata) *pdata = NULL;
-    if (psize) *psize = 0;
-    if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1 );
-    if (!psize)
-        return ERROR_INT("&size not defined", procName, 1 );
+    if (pfiledata) *pfiledata = NULL;
+    if (pfilesize) *pfilesize = 0;
+    if (!pfiledata)
+        return ERROR_INT("&filedata not defined", procName, 1);
+    if (!pfilesize)
+        return ERROR_INT("&filesize not defined", procName, 1);
     if (!pix)
-        return ERROR_INT("&pix not defined", procName, 1 );
+        return ERROR_INT("pix not defined", procName, 1);
 
-    return pixWriteMemoryPng(pdata, psize, pix, gamma);
+    state.m_Buffer = 0;
+    state.m_Size = 0;
+    state.m_Next = 0;
+    state.m_Count = 0;
+    state.m_Last = &state;
+
+        /* Allocate the 2 data structures */
+    if ((png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
+                   (png_voidp)NULL, NULL, NULL)) == NULL)
+        return ERROR_INT("png_ptr not made", procName, 1);
+
+    if ((info_ptr = png_create_info_struct(png_ptr)) == NULL) {
+        png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+        return ERROR_INT("info_ptr not made", procName, 1);
+    }
+
+        /* Set up png setjmp error handling */
+    if (setjmp(png_jmpbuf(png_ptr))) {
+        png_destroy_write_struct(&png_ptr, &info_ptr);
+        return ERROR_INT("internal png error", procName, 1);
+    }
+
+    png_set_write_fn(png_ptr, &state, memio_png_write_data,
+                     (png_flush_ptr)NULL);
+
+        /* With best zlib compression (9), get between 1 and 10% improvement
+         * over default (6), but the compression is 3 to 10 times slower.
+         * Use the zlib default (6) as our default compression unless
+         * pix->special falls in the range [10 ... 19]; then subtract 10
+         * to get the compression value.  */
+    compval = Z_DEFAULT_COMPRESSION;
+    if (pix->special >= 10 && pix->special < 20)
+        compval = pix->special - 10;
+    png_set_compression_level(png_ptr, compval);
+
+    w = pixGetWidth(pix);
+    h = pixGetHeight(pix);
+    d = pixGetDepth(pix);
+    spp = pixGetSpp(pix);
+    if ((cmap = pixGetColormap(pix)))
+        cmflag = 1;
+    else
+        cmflag = 0;
+
+        /* Set the color type and bit depth. */
+    if (d == 32 && spp == 4) {
+        bit_depth = 8;
+        color_type = PNG_COLOR_TYPE_RGBA;   /* 6 */
+        cmflag = 0;  /* ignore if it exists */
+    } else if (d == 24 || d == 32) {
+        bit_depth = 8;
+        color_type = PNG_COLOR_TYPE_RGB;   /* 2 */
+        cmflag = 0;  /* ignore if it exists */
+    } else {
+        bit_depth = d;
+        color_type = PNG_COLOR_TYPE_GRAY;  /* 0 */
+    }
+    if (cmflag)
+        color_type = PNG_COLOR_TYPE_PALETTE;  /* 3 */
+
+#if  DEBUG_WRITE
+    fprintf(stderr, "cmflag = %d, bit_depth = %d, color_type = %d\n",
+            cmflag, bit_depth, color_type);
+#endif  /* DEBUG_WRITE */
+
+    png_set_IHDR(png_ptr, info_ptr, w, h, bit_depth, color_type,
+                 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
+                 PNG_FILTER_TYPE_BASE);
+
+        /* Store resolution in ppm, if known */
+    xres = (png_uint_32)(39.37 * (l_float32)pixGetXRes(pix) + 0.5);
+    yres = (png_uint_32)(39.37 * (l_float32)pixGetYRes(pix) + 0.5);
+    if ((xres == 0) || (yres == 0))
+        png_set_pHYs(png_ptr, info_ptr, 0, 0, PNG_RESOLUTION_UNKNOWN);
+    else
+        png_set_pHYs(png_ptr, info_ptr, xres, yres, PNG_RESOLUTION_METER);
+
+    if (cmflag) {
+        pixcmapToArrays(cmap, &rmap, &gmap, &bmap, &amap);
+        ncolors = pixcmapGetCount(cmap);
+        pixcmapIsOpaque(cmap, &opaque);
+
+            /* Make and save the palette */
+        if ((palette = (png_colorp)(LEPT_CALLOC(ncolors, sizeof(png_color))))
+                == NULL) {
+            memio_free(&state);
+            return ERROR_INT("palette not made", procName, 1);
+        }
+
+        for (i = 0; i < ncolors; i++) {
+            palette[i].red = (png_byte)rmap[i];
+            palette[i].green = (png_byte)gmap[i];
+            palette[i].blue = (png_byte)bmap[i];
+            alpha[i] = (png_byte)amap[i];
+        }
+
+        png_set_PLTE(png_ptr, info_ptr, palette, (int)ncolors);
+        if (!opaque)  /* alpha channel has some transparency; assume valid */
+            png_set_tRNS(png_ptr, info_ptr, (png_bytep)alpha,
+                         (int)ncolors, NULL);
+        LEPT_FREE(rmap);
+        LEPT_FREE(gmap);
+        LEPT_FREE(bmap);
+        LEPT_FREE(amap);
+    }
+
+        /* 0.4545 is treated as the default by some image
+         * display programs (not gqview).  A value > 0.4545 will
+         * lighten an image as displayed by xv, display, etc. */
+    if (gamma > 0.0)
+        png_set_gAMA(png_ptr, info_ptr, (l_float64)gamma);
+
+    if ((text = pixGetText(pix))) {
+        png_text text_chunk;
+        text_chunk.compression = PNG_TEXT_COMPRESSION_NONE;
+        text_chunk.key = commentstring;
+        text_chunk.text = text;
+        text_chunk.text_length = strlen(text);
+#ifdef PNG_ITXT_SUPPORTED
+        text_chunk.itxt_length = 0;
+        text_chunk.lang = NULL;
+        text_chunk.lang_key = NULL;
+#endif
+        png_set_text(png_ptr, info_ptr, &text_chunk, 1);
+    }
+
+        /* Write header and palette info */
+    png_write_info(png_ptr, info_ptr);
+
+    if ((d != 32) && (d != 24)) {  /* not rgb color */
+            /* Generate a temporary pix with bytes swapped.
+             * For writing a 1 bpp image as png:
+             *    ~ if no colormap, invert the data, because png writes
+             *      black as 0
+             *    ~ if colormapped, do not invert the data; the two RGBA
+             *      colors can have any value.  */
+        if (d == 1 && !cmap) {
+            pix1 = pixInvert(NULL, pix);
+            pixEndianByteSwap(pix1);
+        } else {
+            pix1 = pixEndianByteSwapNew(pix);
+        }
+        if (!pix1) {
+            png_destroy_write_struct(&png_ptr, &info_ptr);
+            memio_free(&state);
+            return ERROR_INT("pix1 not made", procName, 1);
+        }
+
+            /* Make and assign array of image row pointers */
+        if ((row_pointers = (png_bytep *)LEPT_CALLOC(h, sizeof(png_bytep)))
+            == NULL) {
+            memio_free(&state);
+            return ERROR_INT("row-pointers not made", procName, 1);
+        }
+        wpl = pixGetWpl(pix1);
+        data = pixGetData(pix1);
+        for (i = 0; i < h; i++)
+            row_pointers[i] = (png_bytep)(data + i * wpl);
+        png_set_rows(png_ptr, info_ptr, row_pointers);
+
+            /* Transfer the data */
+        png_write_image(png_ptr, row_pointers);
+        png_write_end(png_ptr, info_ptr);
+
+        if (cmflag)
+            LEPT_FREE(palette);
+        LEPT_FREE(row_pointers);
+        pixDestroy(&pix1);
+        png_destroy_write_struct(&png_ptr, &info_ptr);
+
+        memio_png_flush(&state);
+        *pfiledata = (l_uint8 *)state.m_Buffer;
+        state.m_Buffer = 0;
+        *pfilesize = state.m_Count;
+        memio_free(&state);
+        return 0;
+    }
+
+        /* For rgb, compose and write a row at a time */
+    data = pixGetData(pix);
+    wpl = pixGetWpl(pix);
+    if (d == 24) {  /* See note 7 above: special case of 24 bpp rgb */
+        for (i = 0; i < h; i++) {
+            ppixel = data + i * wpl;
+            png_write_rows(png_ptr, (png_bytepp)&ppixel, 1);
+        }
+    } else {  /* 32 bpp rgb and rgba.  Write out the alpha channel if either
+             * the pix has 4 spp or writing it is requested anyway */
+        if ((rowbuffer = (png_bytep)LEPT_CALLOC(w, 4)) == NULL) {
+            memio_free(&state);
+            return ERROR_INT("rowbuffer not made", procName, 1);
+        }
+        for (i = 0; i < h; i++) {
+            ppixel = data + i * wpl;
+            for (j = k = 0; j < w; j++) {
+                rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_RED);
+                rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_GREEN);
+                rowbuffer[k++] = GET_DATA_BYTE(ppixel, COLOR_BLUE);
+                if (spp == 4)
+                    rowbuffer[k++] = GET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL);
+                ppixel++;
+            }
+
+            png_write_rows(png_ptr, &rowbuffer, 1);
+        }
+        LEPT_FREE(rowbuffer);
+    }
+
+    png_write_end(png_ptr, info_ptr);
+
+    if (cmflag)
+        LEPT_FREE(palette);
+    png_destroy_write_struct(&png_ptr, &info_ptr);
+
+    memio_png_flush(&state);
+    *pfiledata = (l_uint8 *)state.m_Buffer;
+    state.m_Buffer = 0;
+    *pfilesize = state.m_Count;
+    memio_free(&state);
+    return 0;
 }
 
 /* --------------------------------------------*/
 #endif  /* HAVE_LIBPNG */
 /* --------------------------------------------*/
+
