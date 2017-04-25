@@ -200,7 +200,7 @@ png_structp  png_ptr;
 png_infop    info_ptr, end_info;
 png_colorp   palette;
 png_textp    text_ptr;  /* ptr to text_chunk */
-PIX         *pix, *pixt;
+PIX         *pix, *pix1;
 PIXCMAP     *cmap;
 
     PROCNAME("pixReadStreamPng");
@@ -470,9 +470,9 @@ PIXCMAP     *cmap;
         if (!cmap) {
             pixInvert(pix, pix);
         } else {
-            pixt = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
+            pix1 = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
             pixDestroy(&pix);
-            pix = pixt;
+            pix = pix1;
         }
     }
 
@@ -1023,7 +1023,7 @@ png_bytep    rowbuffer;
 png_structp  png_ptr;
 png_infop    info_ptr;
 png_colorp   palette;
-PIX         *pixt;
+PIX         *pix1;
 PIXCMAP     *cmap;
 char        *text;
 
@@ -1110,10 +1110,7 @@ char        *text;
         pixcmapIsOpaque(cmap, &opaque);
 
             /* Make and save the palette */
-        if ((palette = (png_colorp)(LEPT_CALLOC(ncolors, sizeof(png_color))))
-                == NULL)
-            return ERROR_INT("palette not made", procName, 1);
-
+        palette = (png_colorp)LEPT_CALLOC(ncolors, sizeof(png_color));
         for (i = 0; i < ncolors; i++) {
             palette[i].red = (png_byte)rmap[i];
             palette[i].green = (png_byte)gmap[i];
@@ -1162,22 +1159,21 @@ char        *text;
              *    ~ if colormapped, do not invert the data; the two RGBA
              *      colors can have any value.  */
         if (d == 1 && !cmap) {
-            pixt = pixInvert(NULL, pix);
-            pixEndianByteSwap(pixt);
+            pix1 = pixInvert(NULL, pix);
+            pixEndianByteSwap(pix1);
         } else {
-            pixt = pixEndianByteSwapNew(pix);
+            pix1 = pixEndianByteSwapNew(pix);
         }
-        if (!pixt) {
+        if (!pix1) {
             png_destroy_write_struct(&png_ptr, &info_ptr);
-            return ERROR_INT("pixt not made", procName, 1);
+            if (cmflag) LEPT_FREE(palette);
+            return ERROR_INT("pix1 not made", procName, 1);
         }
 
             /* Make and assign array of image row pointers */
-        if ((row_pointers = (png_bytep *)LEPT_CALLOC(h, sizeof(png_bytep)))
-            == NULL)
-            return ERROR_INT("row-pointers not made", procName, 1);
-        wpl = pixGetWpl(pixt);
-        data = pixGetData(pixt);
+        row_pointers = (png_bytep *)LEPT_CALLOC(h, sizeof(png_bytep));
+        wpl = pixGetWpl(pix1);
+        data = pixGetData(pix1);
         for (i = 0; i < h; i++)
             row_pointers[i] = (png_bytep)(data + i * wpl);
         png_set_rows(png_ptr, info_ptr, row_pointers);
@@ -1186,10 +1182,9 @@ char        *text;
         png_write_image(png_ptr, row_pointers);
         png_write_end(png_ptr, info_ptr);
 
-        if (cmflag)
-            LEPT_FREE(palette);
+        if (cmflag) LEPT_FREE(palette);
         LEPT_FREE(row_pointers);
-        pixDestroy(&pixt);
+        pixDestroy(&pix1);
         png_destroy_write_struct(&png_ptr, &info_ptr);
         return 0;
     }
@@ -1204,8 +1199,7 @@ char        *text;
         }
     } else {  /* 32 bpp rgb and rgba.  Write out the alpha channel if either
              * the pix has 4 spp or writing it is requested anyway */
-        if ((rowbuffer = (png_bytep)LEPT_CALLOC(w, 4)) == NULL)
-            return ERROR_INT("rowbuffer not made", procName, 1);
+        rowbuffer = (png_bytep)LEPT_CALLOC(w, 4);
         for (i = 0; i < h; i++) {
             ppixel = data + i * wpl;
             for (j = k = 0; j < w; j++) {
@@ -1344,7 +1338,7 @@ l_int32     remainingSpace, remainingToWrite;
 
     thing = (struct MemIOData*)png_get_io_ptr(png_ptr);
     last = (struct MemIOData*)thing->m_Last;
-    if (last->m_Buffer == 0) {
+    if (last->m_Buffer == NULL) {
         if (len > MEMIO_BUFFER_SIZE) {
             last->m_Buffer = (char *)LEPT_MALLOC(len);
             memcpy(last->m_Buffer, data, len);
@@ -1359,7 +1353,7 @@ l_int32     remainingSpace, remainingToWrite;
     while (written < len) {
         if (last->m_Count == last->m_Size) {
             MEMIODATA* next = (MEMIODATA *)LEPT_MALLOC(sizeof(MEMIODATA));
-            next->m_Next = 0;
+            next->m_Next = NULL;
             next->m_Count = 0;
             next->m_Last = next;
 
@@ -1369,7 +1363,7 @@ l_int32     remainingSpace, remainingToWrite;
             last->m_Buffer = (char *)LEPT_MALLOC(MEMIO_BUFFER_SIZE);
             last->m_Size = MEMIO_BUFFER_SIZE;
         }
-		
+
         remainingSpace = last->m_Size - last->m_Count;
         remainingToWrite = len - written;
         if (remainingSpace < remainingToWrite) {
@@ -1407,31 +1401,31 @@ MEMIODATA  *buffer = 0;
 char       *data = 0;
 
     PROCNAME("memio_png_flush");
-	
-	/* If the data is in one buffer, give the buffer to the user. */
-    if (pthing->m_Next == 0) return;
 
-	/* Consolidate multiple buffers into one new one; add the buffer
+        /* If the data is in one buffer, give the buffer to the user. */
+    if (pthing->m_Next == NULL) return;
+
+        /* Consolidate multiple buffers into one new one; add the buffer
          * sizes together. */
     amount = pthing->m_Count;
     buffer = pthing->m_Next;
-    while (buffer != 0) {
+    while (buffer != NULL) {
         amount += buffer->m_Count;
         buffer = buffer->m_Next;
     }
 
-	/* Copy data to a new buffer. */
+        /* Copy data to a new buffer. */
     data = (char *)LEPT_MALLOC(amount);
     memcpy(data, pthing->m_Buffer, pthing->m_Count);
     copied = pthing->m_Count;
 
     LEPT_FREE(pthing->m_Buffer);
-    pthing->m_Buffer = 0;
+    pthing->m_Buffer = NULL;
 
-	/* Don't delete original "thing" because we don't control it. */
+        /* Don't delete original "thing" because we don't control it. */
     buffer = pthing->m_Next;
-    pthing->m_Next = 0;
-    while (buffer != 0 && copied < amount) {
+    pthing->m_Next = NULL;
+    while (buffer != NULL && copied < amount) {
         MEMIODATA* old;
         memcpy(data + copied, buffer->m_Buffer, buffer->m_Count);
         copied += buffer->m_Count;
@@ -1442,7 +1436,7 @@ char       *data = 0;
         LEPT_FREE(old->m_Buffer);
         LEPT_FREE(old);
     }
-	
+
     pthing->m_Buffer = data;
     pthing->m_Count = copied;
     pthing->m_Size = amount;
@@ -1463,7 +1457,7 @@ char       *data = 0;
  *          memory buffer.
  * </pre>
  */
-static void 
+static void
 memio_png_read_data(png_structp  png_ptr,
                     png_bytep    outBytes,
                     png_size_t   byteCountToRead)
@@ -1495,17 +1489,17 @@ memio_free(MEMIODATA*  pthing)
 MEMIODATA  *buffer, *old;
 
     PROCNAME("memio_free");
-	
-    if (pthing->m_Buffer != 0)
+
+    if (pthing->m_Buffer != NULL)
         LEPT_FREE(pthing->m_Buffer);
 
-    pthing->m_Buffer = 0;
+    pthing->m_Buffer = NULL;
     buffer = pthing->m_Next;
-    while (buffer != 0) {
+    while (buffer != NULL) {
         old = buffer;
         buffer = buffer->m_Next;
 
-        if (old->m_Buffer != 0)
+        if (old->m_Buffer != NULL)
             LEPT_FREE(old->m_Buffer);
         LEPT_FREE(old);
     }
@@ -1984,12 +1978,7 @@ MEMIODATA    state;
         pixcmapIsOpaque(cmap, &opaque);
 
             /* Make and save the palette */
-        if ((palette = (png_colorp)(LEPT_CALLOC(ncolors, sizeof(png_color))))
-                == NULL) {
-            memio_free(&state);
-            return ERROR_INT("palette not made", procName, 1);
-        }
-
+        palette = (png_colorp)LEPT_CALLOC(ncolors, sizeof(png_color));
         for (i = 0; i < ncolors; i++) {
             palette[i].red = (png_byte)rmap[i];
             palette[i].green = (png_byte)gmap[i];
@@ -2045,16 +2034,13 @@ MEMIODATA    state;
         }
         if (!pix1) {
             png_destroy_write_struct(&png_ptr, &info_ptr);
+            if (cmflag) LEPT_FREE(palette);
             memio_free(&state);
             return ERROR_INT("pix1 not made", procName, 1);
         }
 
             /* Make and assign array of image row pointers */
-        if ((row_pointers = (png_bytep *)LEPT_CALLOC(h, sizeof(png_bytep)))
-            == NULL) {
-            memio_free(&state);
-            return ERROR_INT("row-pointers not made", procName, 1);
-        }
+        row_pointers = (png_bytep *)LEPT_CALLOC(h, sizeof(png_bytep));
         wpl = pixGetWpl(pix1);
         data = pixGetData(pix1);
         for (i = 0; i < h; i++)
@@ -2065,8 +2051,7 @@ MEMIODATA    state;
         png_write_image(png_ptr, row_pointers);
         png_write_end(png_ptr, info_ptr);
 
-        if (cmflag)
-            LEPT_FREE(palette);
+        if (cmflag) LEPT_FREE(palette);
         LEPT_FREE(row_pointers);
         pixDestroy(&pix1);
         png_destroy_write_struct(&png_ptr, &info_ptr);
@@ -2089,10 +2074,7 @@ MEMIODATA    state;
         }
     } else {  /* 32 bpp rgb and rgba.  Write out the alpha channel if either
              * the pix has 4 spp or writing it is requested anyway */
-        if ((rowbuffer = (png_bytep)LEPT_CALLOC(w, 4)) == NULL) {
-            memio_free(&state);
-            return ERROR_INT("rowbuffer not made", procName, 1);
-        }
+        rowbuffer = (png_bytep)LEPT_CALLOC(w, 4);
         for (i = 0; i < h; i++) {
             ppixel = data + i * wpl;
             for (j = k = 0; j < w; j++) {
