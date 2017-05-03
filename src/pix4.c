@@ -2293,25 +2293,26 @@ PIX       *pixt;
 /*!
  * \brief   pixGetRankColorArray()
  *
- * \param[in]    pixs 32 bpp or cmapped
- * \param[in]    nbins number of equal population bins; must be > 1
- * \param[in]    type color selection flag
- * \param[in]    factor subsampling factor; integer >= 1
- * \param[out]   pcarray array of colors, ranked by intensity
+ * \param[in]    pixs      32 bpp or cmapped
+ * \param[in]    nbins     number of equal population bins; must be > 1
+ * \param[in]    type      color selection flag
+ * \param[in]    factor    subsampling factor; integer >= 1
+ * \param[out]   pcarray   array of colors, ranked by intensity
  * \param[in]    debugflag 1 to display color squares and plots of color
  *                         components; 2 to write them as png to file
- * \param[in]    fontsize [optional] 0 for no debug; for debug, valid set
- *                        is {4,6,8,10,12,14,16,18,20}.  Ignored if
- *                        debugflag == 0.  fontsize == 6 is typical.
+ * \param[in]    fontsize  [optional] 0 for no debug; for debug, valid set
+ *                         is {4,6,8,10,12,14,16,18,20}.  Ignored if
+ *                         debugflag == 0.  fontsize == 6 is typical.
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
  *      (1) The color selection flag is one of: L_SELECT_RED, L_SELECT_GREEN,
- *          L_SELECT_BLUE, L_SELECT_MIN, L_SELECT_MAX, L_SELECT_AVERAGE.
- *      (2) Then it finds the histogram of the selected component in each
+ *          L_SELECT_BLUE, L_SELECT_MIN, L_SELECT_MAX, L_SELECT_AVERAGE,
+ *          L_SELECT_HUE, L_SELECT_SATURATION.
+ *      (2) Then it finds the histogram of the selected color type in each
  *          RGB pixel.  For each of the %nbins sets of pixels,
- *          ordered by this component value, find the average color,
+ *          ordered by this color type value, find the average RGB color,
  *          and return this as a "rank color" array.  The output array
  *          has %nbins colors.
  *      (3) Set the subsampling factor > 1 to reduce the amount of
@@ -2357,7 +2358,8 @@ PIXCMAP   *cmap;
         return ERROR_INT("pixs neither 32 bpp nor cmapped", procName, 1);
     if (type != L_SELECT_RED && type != L_SELECT_GREEN &&
         type != L_SELECT_BLUE && type != L_SELECT_MIN &&
-        type != L_SELECT_MAX && type != L_SELECT_AVERAGE)
+        type != L_SELECT_MAX && type != L_SELECT_AVERAGE &&
+        type != L_SELECT_HUE && type != L_SELECT_SATURATION)
         return ERROR_INT("invalid type", procName, 1);
     if (debugflag > 0) {
         if (fontsize < 0 || fontsize > 20 || fontsize & 1 || fontsize == 2)
@@ -2383,8 +2385,12 @@ PIXCMAP   *cmap;
         pixg = pixConvertRGBToGrayMinMax(pixc, L_CHOOSE_MIN);
     else if (type == L_SELECT_MAX)
         pixg = pixConvertRGBToGrayMinMax(pixc, L_CHOOSE_MAX);
-    else  /* L_SELECT_AVERAGE */
+    else if (type == L_SELECT_AVERAGE)
         pixg = pixConvertRGBToGray(pixc, 0.34, 0.33, 0.33);
+    else if (type == L_SELECT_HUE)
+        pixg = pixConvertRGBToHue(pixc);
+    else  /* L_SELECT_SATURATION */
+        pixg = pixConvertRGBToSaturation(pixc);
     if ((na = pixGetGrayHistogram(pixg, 1)) == NULL) {
         pixDestroy(&pixc);
         pixDestroy(&pixg);
