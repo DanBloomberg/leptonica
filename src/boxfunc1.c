@@ -363,14 +363,15 @@ BOXA    *boxad;
  * Notes:
  *      (1) If there are no overlapping boxes, it simply returns a copy
  *          of %boxas.
- *      (2) The alternative method of painting each rectanle and finding
- *          the 4-connected components gives the wrong result, because
- *          two non-overlapping rectangles, when rendered, can still
- *          be 4-connected, and hence they will be joined.
- *      (3) A bad case is to have n boxes, none of which overlap.
- *          Then you have one iteration with O(n^2) compares.  This
- *          is still faster than painting each rectangle and finding
- *          the connected components, even for thousands of rectangles.
+ *      (2) The alternative method of painting each rectangle and finding
+ *          the 4-connected components gives a different result in
+ *          general, because two non-overlapping (but touching)
+ *          rectangles, when rendered, are 4-connected and will be joined.
+ *      (3) A bad case computationally is to have n boxes, none of which
+ *          overlap.  Then you have one iteration with O(n^2) compares.
+ *          This is still faster than painting each rectangle and finding
+ *          the bounding boxes of the connected components, even for
+ *          thousands of rectangles.
  * </pre>
  */
 BOXA *

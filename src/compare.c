@@ -326,7 +326,7 @@ PIXCMAP   *cmap1, *cmap2;
         linebits = d1 * w1;
         fullwords = linebits / 32;
         endbits = linebits & 31;
-        endmask = (endbits == 0) ? 0 : (0xffffffffU << (32 - endbits));
+        endmask = (endbits == 0) ? 0 : (0xffffffff << (32 - endbits));
         for (i = 0; i < h1; i++) {
             line1 = data1 + wpl1 * i;
             line2 = data2 + wpl2 * i;
@@ -420,7 +420,7 @@ PIXCMAP   *cmap1, *cmap2;
         data2 = pixGetData(pix2);
         fullwords = linebits / 32;
         endbits = linebits & 31;
-        endmask = 0xffffffff << (32 - endbits);
+        endmask = (endbits == 0) ? 0 : (0xffffffff << (32 - endbits));
         for (i = 0; i < h; i++) {
             line1 = data1 + wpl1 * i;
             line2 = data2 + wpl2 * i;

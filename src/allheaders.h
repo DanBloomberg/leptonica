@@ -426,6 +426,7 @@ LEPT_DLL extern PIX * pixColorMagnitude ( PIX *pixs, l_int32 rwhite, l_int32 gwh
 LEPT_DLL extern PIX * pixMaskOverColorPixels ( PIX *pixs, l_int32 threshdiff, l_int32 mindist );
 LEPT_DLL extern PIX * pixMaskOverColorRange ( PIX *pixs, l_int32 rmin, l_int32 rmax, l_int32 gmin, l_int32 gmax, l_int32 bmin, l_int32 bmax );
 LEPT_DLL extern l_int32 pixColorFraction ( PIX *pixs, l_int32 darkthresh, l_int32 lightthresh, l_int32 diffthresh, l_int32 factor, l_float32 *ppixfract, l_float32 *pcolorfract );
+LEPT_DLL extern l_int32 pixHasColorBackground ( PIX *pixs, PIX *pixm, l_int32 factor, l_int32 darkthresh, l_int32 lightthresh, l_int32 mindiff, l_int32 colordiff, l_float32 *pcolorfract, PIX **pcolormask1, PIX **pcolormask2, PIXA *pixadb );
 LEPT_DLL extern l_int32 pixNumSignificantGrayColors ( PIX *pixs, l_int32 darkthresh, l_int32 lightthresh, l_float32 minfract, l_int32 factor, l_int32 *pncolors );
 LEPT_DLL extern l_int32 pixColorsForQuantization ( PIX *pixs, l_int32 thresh, l_int32 *pncolors, l_int32 *piscolor, l_int32 debug );
 LEPT_DLL extern l_int32 pixNumColors ( PIX *pixs, l_int32 factor, l_int32 *pncolors );

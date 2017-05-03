@@ -39,7 +39,9 @@ l_int32 main(int    argc,
 {
 l_uint32     *colors;
 l_int32       ncolors;
+l_float32     fcolor;
 PIX          *pix1, *pix2, *pix3;
+PIXA         *pixadb;
 L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &rp))
@@ -85,6 +87,20 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, ncolors, 219, 0.0);  /* 7 */
     pixDestroy(&pix1);
     pixDestroy(&pix2);
+
+        /* Find background color in image with light color regions */
+    pix1 = pixRead("map.057.jpg");
+    pixadb = pixaCreate(0);
+    pixHasColorBackground(pix1, NULL, 4, 70, 220, 50, 40,
+                          &fcolor, &pix2, NULL, pixadb);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 8 */
+    pix3 = pixaDisplayTiledInColumns(pixadb, 5, 0.3, 20, 2);
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 9 */
+    pixDisplayWithTitle(pix3, 1000, 500, NULL, rp->display);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixaDestroy(&pixadb);
 
     return regTestCleanup(rp);
 }

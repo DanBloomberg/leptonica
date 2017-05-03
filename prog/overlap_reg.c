@@ -66,11 +66,11 @@ L_REGPARAMS  *rp;
         }
 
         pix1 = pixCreate(660, 660, 1);
-        pixRenderBoxa(pix1, boxa1, 1, L_SET_PIXELS);
+        pixRenderBoxa(pix1, boxa1, 2, L_SET_PIXELS);
         pixaAddPix(pixa, pix1, L_INSERT);
         boxa2 = boxaCombineOverlaps(boxa1);
         pix2 = pixCreate(660, 660, 1);
-        pixRenderBoxa(pix2, boxa2, 1, L_SET_PIXELS);
+        pixRenderBoxa(pix2, boxa2, 2, L_SET_PIXELS);
         pixaAddPix(pixa, pix2, L_INSERT);
 
         pixd = pixaDisplayTiledInRows(pixa, 1, 1500, 1.0, 0, 50, 2);
