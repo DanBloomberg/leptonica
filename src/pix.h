@@ -71,6 +71,7 @@
  *   (2) This file has definitions for:
  *         Colors for RGB
  *         Colors for drawing boxes
+ *         Perceptual color weights
  *         Colormap conversion flags
  *         Rasterop bit flags
  *         Structure access flags (for insert, copy, clone, copy-clone)
@@ -78,7 +79,7 @@
  *         Blending flags
  *         Graphics pixel setting flags
  *         Size filtering flags
- *         Color selection flags
+ *         Color component selection flags
  *         16-bit conversion flags
  *         Rotation and shear flags
  *         Affine transform order flags
@@ -223,6 +224,23 @@ enum {
     L_DRAW_RGB = 4,         /*!< draw as sequence of r,g,b     */
     L_DRAW_RANDOM = 5       /*!< draw randomly chosen colors   */
 };
+
+
+/*-------------------------------------------------------------------------*
+ *                       Perceptual color weights                          *
+ *-------------------------------------------------------------------------*/
+/* <pre>
+ *  Notes:
+ *      (1) These perceptual weighting factors are ad-hoc, but they do
+ *          add up to 1.  Unlike, for example, the weighting factors for
+ *          converting RGB to luminance, or more specifically to Y in the
+ *          YUV colorspace.  Those numbers come from the
+ *          International Telecommunications Union, via ITU-R.
+ * </pre>
+ */
+static const l_float32  L_RED_WEIGHT =   0.3;  /*!< Percept. weight for red   */
+static const l_float32  L_GREEN_WEIGHT = 0.5;  /*!< Percept. weight for green */
+static const l_float32  L_BLUE_WEIGHT =  0.2;  /*!< Percept. weight for blue  */
 
 
 /*-------------------------------------------------------------------------*
@@ -779,10 +797,10 @@ enum {
 
 
 /*-------------------------------------------------------------------------*
- *                         Color selection flags                           *
+ *                    Color component selection flags                      *
  *-------------------------------------------------------------------------*/
 
-/*! Color selection flags */
+/*! Color component selection flags */
 enum {
     L_SELECT_RED = 1,           /*!< use red component                     */
     L_SELECT_GREEN = 2,         /*!< use green component                   */

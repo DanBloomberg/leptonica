@@ -149,21 +149,6 @@
 #include <math.h>
 #include "allheaders.h"
 
-/* ----------------------  Perceptual color weights -----------------------*/
-/* <pre>
- *  Notes:
- *      (1) These perceptual weighting factors are ad-hoc, but they do
- *          add up to 1.  Unlike, for example, the weighting factors for
- *          converting RGB to luminance, or more specifically to Y in the
- *          YUV colorspace.  Those numbers come from the
- *          International Telecommunications Union, via ITU-R.
- * </pre>
- */
-static const l_float32  L_RED_WEIGHT =   0.3;  /*!< Weight for red     */
-static const l_float32  L_GREEN_WEIGHT = 0.5;  /*!< Weight for green   */
-static const l_float32  L_BLUE_WEIGHT =  0.2;  /*!< Weight for blue    */
-
-
 /* ------- Set neutral point for min/max boost conversion to gray ------ */
    /* Call l_setNeutralBoostVal() to change this */
 static l_int32  var_NEUTRAL_BOOST_VAL = 180;
