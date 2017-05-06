@@ -743,17 +743,15 @@ l_uint32  *data, *line;
  * \param[in]    factor      subsample factor; integer >= 1
  * \param[in]    darkthresh  threshold to eliminate dark pixels (e.g., text)
  *                           from consideration; typ. 70; -1 for default.
- * \param[in]    lightthresh threshold for minimum gray value at 90% rank
+ * \param[in]    lightthresh threshold for minimum gray value at 95% rank
  *                           near white; typ. 220; -1 for default
- * \param[in]    mindiff     minimum difference from 90% rank value, used
+ * \param[in]    mindiff     minimum difference from 95% rank value, used
  *                           to count darker pixels; typ. 50; -1 for default
  * \param[in]    colordiff   minimum difference in (max - min) component to
  *                           qualify as a color pixel; typ. 40; -1 for default
  * \param[out]   pcolorfract fraction of 'color' pixels found
- * \param[out]   pcolormask1 [optional] mask over background color,
- *                           if there is a significant amount
- * \param[out]   pcolormask2 [optional] filtered mask over background color,
- *                           if there is a significant amount
+ * \param[out]   pcolormask1 [optional] mask over background color, if any
+ * \param[out]   pcolormask2 [optional] filtered mask over background color
  * \param[out]   pixadb      [optional] debug intermediate results
  * \return  0 if OK, 1 on error
  *
@@ -769,36 +767,37 @@ l_uint32  *data, *line;
  *          * %darkthresh: ignore pixels darker than this (typ. fg text).
  *            We make a 1 bpp mask of these pixels, and then dilate it to
  *            remove all vestiges of fg from their vicinity.
- *          * %lightthresh: let val90 be the pixel value for which 90%
+ *          * %lightthresh: let val95 be the pixel value for which 95%
  *            of the non-masked pixels have a lower value (darker) of
- *            their min component.  Then if val90 is darker than
+ *            their min component.  Then if val95 is darker than
  *            %lightthresh, the image is not considered to have a
  *            light bg, and this returns 0.0 for %colorfract.
  *          * %mindiff: we are interested in the fraction of pixels that
  *            have two conditions.  The first is that their min component
- *            is at least %mindiff darker than val90.
+ *            is at least %mindiff darker than val95.
  *          * %colordiff: the second condition is that the max-min diff
  *            of the pixel components exceeds %colordiff.
- *      (4) This returns in %colorfract the fraction of pixels that have
+ *      (4) This returns in %pcolorfract the fraction of pixels that have
  *          both a min component that is at least %mindiff below that at the
- *          90% rank value (where 100% rank is the lightest value), and
+ *          95% rank value (where 100% rank is the lightest value), and
  *          a max-min diff that is at least %colordiff.  Without the
  *          %colordiff constraint, gray pixels of intermediate value
  *          could get flagged by this function.
- *      (5) If %colorfract > 0.01, this optionally returns %colormask1, a mask
- *          with fg pixels over the color background.  This mask may have
- *          some holes in it.
- *      (6) If %colorfract > 0.01, this optionally returns %colormask2, a
- *          filtered version of %colormask1.  The two changes are (a) small
- *          holes have been filled and (b) components near the border have
- *          been removed.  The latter insures that dark pixels near the
- *          edge of the image are not included.
+ *      (5) No masks are returned unless light color pixels are found.
+ *          If colorfract > 0.0 and %pcolormask1 is defined, this returns
+ *          a 1 bpp mask with fg pixels over the color background.
+ *          This mask may have some holes in it.
+ *      (6) If colorfract > 0.0 and %pcolormask2 is defined, this returns
+ *          a filtered version of colormask1.  The two changes are
+ *            (a) small holes have been filled
+ *            (b) components near the border have been removed.
+ *          The latter insures that dark pixels near the edge of the
+ *          image are not included.
  *      (7) To generate a boxa of rectangular regions from the overlap
  *          of components in the filtered mask:
  *                boxa1 = pixConnCompBB(colormask2, 8);
  *                boxa2 = boxaCombineOverlaps(boxa1);
  *          This is done here in debug mode.
- *          
  * </pre>
  */
 l_int32
@@ -815,7 +814,7 @@ pixHasColorBackground(PIX        *pixs,
                       PIXA       *pixadb)
 {
 l_int32    lightbg, w, h, count;
-l_float32  ratio, val90, rank;
+l_float32  ratio, val95, rank;
 BOXA      *boxa1, *boxa2;
 NUMA      *nah;
 PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
@@ -853,7 +852,7 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
     pix1 = pixConvertRGBToGray(pixs, 0.33, 0.34, 0.33);
     if (pixadb) pixaAddPix(pixadb, pixs, L_COPY);
     if (pixadb) pixaAddPix(pixadb, pix1, L_COPY);
-    pixm1 = pixThresholdToBinary(pix1, darkthresh); 
+    pixm1 = pixThresholdToBinary(pix1, darkthresh);
     pixDilateBrick(pixm1, pixm1, 7, 7);
     if (pixadb) pixaAddPix(pixadb, pixm1, L_COPY);
     if (pixm) {
@@ -863,21 +862,21 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
     pixDestroy(&pix1);
 
         /* Convert to gray using the minimum component value and
-         * find the gray value at rank 0.90, that represents the light
+         * find the gray value at rank 0.95, that represents the light
          * pixels in the image.  If it is too dark, quit. */
     pix1 = pixConvertRGBToGrayMinMax(pixs, L_SELECT_MIN);
     pix2 = pixInvert(NULL, pixm1);  /* pixels that are not dark */
-    pixGetRankValueMasked(pix1, pix2, 0, 0, factor, 0.9, &val90, &nah);
+    pixGetRankValueMasked(pix1, pix2, 0, 0, factor, 0.95, &val95, &nah);
     pixDestroy(&pix2);
     if (pixadb) {
-        L_INFO("val at 0.9 rank = %5.1f\n", procName, val90);
+        L_INFO("val at 0.95 rank = %5.1f\n", procName, val95);
         gplotSimple1(nah, GPLOT_PNG, "/tmp/lept/histo1", "gray histo");
         pix3 = pixRead("/tmp/lept/histo1.png");
         pix4 = pixExpandReplicate(pix3, 2);
         pixaAddPix(pixadb, pix4, L_INSERT);
         pixDestroy(&pix3);
     }
-    lightbg = (l_int32)val90 >= lightthresh;
+    lightbg = (l_int32)val95 >= lightthresh;
     numaDestroy(&nah);
     if (!lightbg) {
         pixDestroy(&pix1);
@@ -885,8 +884,8 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
         return 0;
     }
 
-        /* Make mask pixm2 over pixels that are darker than val90 - mindiff. */
-    pixm2 = pixThresholdToBinary(pix1, val90 - mindiff);
+        /* Make mask pixm2 over pixels that are darker than val95 - mindiff. */
+    pixm2 = pixThresholdToBinary(pix1, val95 - mindiff);
     if (pixadb) pixaAddPix(pixadb, pixm2, L_COPY);
     pixDestroy(&pix1);
 
@@ -908,37 +907,41 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
     pixDestroy(&pixm1);
     if (pixadb) pixaAddPix(pixadb, pixm2, L_COPY);
 
-        /* But we're not quite finished.  Remove pixels from any
-         * component that is touching the image border.  False
-         * color pixels can sometimes be found there if the image
-         * is much darker near the border, due to oxidation or shading. */
+        /* But we're not quite finished.  Remove pixels from any component
+         * that is touching the image border.  False color pixels can
+         * sometimes be found there if the image is much darker near
+         * the border, due to oxidation or reduced illumination. */
     pixm3 = pixRemoveBorderConnComps(pixm2, 8);
     pixDestroy(&pixm2);
     if (pixadb) pixaAddPix(pixadb, pixm3, L_COPY);
 
-        /* Get the fraction of color pixels against a light background */
+        /* Get the fraction of light color pixels */
     pixCountPixels(pixm3, &count, NULL);
     *pcolorfract = (l_float32)count / (w * h);
-    if (pixadb) L_INFO("fraction of color pixels = %5.3f\n", procName,
-                       *pcolorfract);
-
-        /* Debug: use pixm3 to extract the color pixels from pixs */
     if (pixadb) {
+        if (count == 0)
+            L_INFO("no light color pixels found\n", procName);
+        else
+            L_INFO("fraction of light color pixels = %5.3f\n", procName,
+                   *pcolorfract);
+    }
+
+        /* Debug: extract the color pixels from pixs */
+    if (pixadb && count > 0) {
+            /* Use pixm3 to extract the color pixels */
         pix3 = pixCreateTemplate(pixs);
         pixSetAll(pix3);
         pixCombineMasked(pix3, pixs, pixm3);
         pixaAddPix(pixadb, pix3, L_INSERT);
-    }
 
-        /* Debug: other methods to extract the color pixels from pixs */
-    if (pixadb) {
+            /* Use additional filtering to extract the color pixels */
         pix3 = pixCloseSafeBrick(NULL, pixm3, 15, 15);
         pixaAddPix(pixadb, pix3, L_INSERT);
-            /* Use pix3 to extract the color pixels from pixs */
         pix5 = pixCreateTemplate(pixs);
         pixSetAll(pix5);
         pixCombineMasked(pix5, pixs, pix3);
         pixaAddPix(pixadb, pix5, L_INSERT);
+
             /* Get the combined bounding boxes of the mask components
              * in pix3, and extract those pixels from pixs. */
         boxa1 = pixConnCompBB(pix3, 8);
@@ -955,9 +958,9 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
     }
 
         /* Optional colormask returns */
-    if (pcolormask2)
+    if (pcolormask2 && count > 0)
         *pcolormask2 = pixCloseSafeBrick(NULL, pixm3, 15, 15);
-    if (pcolormask1)
+    if (pcolormask1 && count > 0)
         *pcolormask1 = pixm3;
     else
         pixDestroy(&pixm3);
