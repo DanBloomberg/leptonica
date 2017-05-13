@@ -67,7 +67,7 @@
  *           void            l_rbtreePrint()
  *
  *  General comparison function
- *           l_int32         l_compareKeys()
+ *           static l_int32  compareKeys()
  * </pre>
  */
 
@@ -87,6 +87,9 @@ static void destroy_helper(node *n);
 static void count_helper(node *n, l_int32 *pcount);
 static void print_tree_helper(FILE *fp, node *n, l_int32 keytype,
                               l_int32 indent);
+
+static l_int32 compareKeys(l_int32 keytype, RB_TYPE left, RB_TYPE right);
+
 static node *grandparent(node *n);
 static node *sibling(node *n);
 static node *uncle(node *n);
@@ -119,11 +122,11 @@ static void verify_properties(L_RBTREE *t);
 /* ------------------------------------------------------------- *
  *                   Interface to Red-black Tree                 *
  * ------------------------------------------------------------- */
-/*
- *  l_rbtreeCreate()
+/*!
+ * \brief   l_rbtreeCreate()
  *
- *      Input:  keytype (defined by an enum for an RB_TYPE union)
- *      Return: rbtree (container with empty ptr to the root)
+ * \param[in]   keytype   defined by an enum for an RB_TYPE union
+ * \return      rbtree    container with empty ptr to the root
  */
 L_RBTREE *
 l_rbtreeCreate(l_int32  keytype)
@@ -140,12 +143,12 @@ l_rbtreeCreate(l_int32  keytype)
     return t;
 }
 
-/*
- *  l_rbtreeLookup()
+/*!
+ * \brief   l_rbtreeLookup()
  *
- *      Input:  t (rbtree, including root node)
- *              key (find a node with this key)
- *      Return: &value (a pointer to a union, if the node exists; else NULL)
+ * \param[in]   t        rbtree, including root node
+ * \param[in    key      find a node with this key
+ * \return    &value     a pointer to a union, if the node exists; else NULL
  */
 RB_TYPE *
 l_rbtreeLookup(L_RBTREE  *t,
@@ -160,17 +163,19 @@ l_rbtreeLookup(L_RBTREE  *t,
     return n == NULL ? NULL : &n->value;
 }
 
-/*
- *  l_rbtreeInsert()
+/*!
+ * \brief   l_rbtreeInsert()
  *
- *      Input:  t (rbtree, including root node)
- *              key (insert a node with this key, if the key does not already
- *                   exist in the tree)
- *              value (typically an int, used for an index)
- *      Return: void
+ * \param[in]   t         rbtree, including root node
+ * \param[in]   key       insert a node with this key, if the key does not
+ *                        already exist in the tree
+ * \param[in]   value     typically an int, used for an index
+ * \return     void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If a node with the key already exists, this just updates the value.
+ * </pre>
  */
 void
 l_rbtreeInsert(L_RBTREE     *t,
@@ -192,7 +197,7 @@ node  *n, *inserted_node;
     } else {
         n = t->root;
         while (1) {
-            int comp_result = l_compareKeys(t->keytype, key, n->key);
+            int comp_result = compareKeys(t->keytype, key, n->key);
             if (comp_result == 0) {
                 n->value = value;
                 LEPT_FREE(inserted_node);
@@ -219,12 +224,12 @@ node  *n, *inserted_node;
     verify_properties(t);
 }
 
-/*
- *  l_rbtreeDelete()
+/*!
+ * \brief   l_rbtreeDelete()
  *
- *      Input:  t (rbtree, including root node)
- *              key (delete the node with this key)
- *      Return: void
+ * \param[in]   t     rbtree, including root node
+ * \param[in]   key  (delete the node with this key
+ * \return      void
  */
 void
 l_rbtreeDelete(L_RBTREE  *t,
@@ -263,14 +268,16 @@ node  *n, *child;
     verify_properties(t);
 }
 
-/*
- *  l_rbtreeDestroy()
+/*!
+ * \brief   l_rbtreeDestroy()
  *
- *      Input:  &t (ptr to rbtree)
- *      Return: void
+ * \param[in]   &t     ptr to rbtree
+ * \return      void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Destroys the tree and nulls the input tree ptr.
+ * </pre>
  */
 void
 l_rbtreeDestroy(L_RBTREE  **pt)
@@ -296,14 +303,16 @@ destroy_helper(node  *n)
     LEPT_FREE(n);
 }
 
-/*
- *  l_rbtreeGetFirst()
+/*!
+ * \brief   l_rbtreeGetFirst()
  *
- *      Input:  t (rbtree, including root node)
- *      Return: void
+ * \param[in]    t    rbtree, including root node
+ * \return       void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is the first node in an in-order traversal.
+ * </pre>
  */
 L_RBTREE_NODE *
 l_rbtreeGetFirst(L_RBTREE  *t)
@@ -326,17 +335,19 @@ node  *n;
     return n;
 }
 
-/*
- *  l_rbtreeGetNext()
+/*!
+ * \brief   l_rbtreeGetNext()
  *
- *      Input:  n (current node)
- *      Return: next node (or NULL if it's the last node)
+ * \param[in]    n     current node
+ * \return       next node, or NULL if it's the last node
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This finds the next node, in an in-order traversal, from
  *          the current node.
  *      (2) It is useful as an iterator for a map.
  *      (3) Call l_rbtreeGetFirst() to get the first node.
+ * </pre>
  */
 L_RBTREE_NODE *
 l_rbtreeGetNext(L_RBTREE_NODE  *n)
@@ -362,14 +373,16 @@ l_rbtreeGetNext(L_RBTREE_NODE  *n)
     }
 }
 
-/*
- *  l_rbtreeGetLast()
+/*!
+ * \brief   l_rbtreeGetLast()
  *
- *      Input:  t (rbtree, including root node)
- *      Return: void
+ * \param[in]   t      rbtree, including root node
+ * \return      void
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This is the last node in an in-order traversal.
+ * </pre>
  */
 L_RBTREE_NODE *
 l_rbtreeGetLast(L_RBTREE  *t)
@@ -392,17 +405,19 @@ node  *n;
     return n;
 }
 
-/*
- *  l_rbtreeGetPrev()
+/*!
+ * \brief   l_rbtreeGetPrev()
  *
- *      Input:  n (current node)
- *      Return: next node (or NULL if it's the first node)
+ * \param[in]    n     current node
+ * \return       next node, or NULL if it's the first node
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This finds the previous node, in an in-order traversal, from
  *          the current node.
  *      (2) It is useful as an iterator for a map.
  *      (3) Call l_rbtreeGetLast() to get the last node.
+ * </pre>
  */
 L_RBTREE_NODE *
 l_rbtreeGetPrev(L_RBTREE_NODE  *n)
@@ -428,11 +443,11 @@ l_rbtreeGetPrev(L_RBTREE_NODE  *n)
     }
 }
 
-/*
- *  l_rbtreeGetCount()
+/*!
+ * \brief   l_rbtreeGetCount()
  *
- *      Input:  t (rbtree)
- *      Return: count (the number of nodes in the tree); 0 on error
+ * \param[in   t      rbtree
+ * \return     count  the number of nodes in the tree, or 0 on error
  */
 l_int32
 l_rbtreeGetCount(L_RBTREE  *t)
@@ -460,12 +475,12 @@ count_helper(node  *n, l_int32  *pcount)
 }
 
 
-/*
- *  l_rbtreePrint()
+/*!
+ * \brief   l_rbtreePrint()
  *
- *      Input:  fp (file stream)
- *              t (rbtree)
- *      Return: null
+ * \param[in]    fp    file stream
+ * \param[in]    t     rbtree
+ * \return       void
  */
 void
 l_rbtreePrint(FILE      *fp,
@@ -526,14 +541,14 @@ l_int32  i;
 
 
 /* ------------------------------------------------------------- *
- *                   General comparison function                 *
+ *                Static key comparison function                 *
  * ------------------------------------------------------------- */
-l_int32
-l_compareKeys(l_int32  keytype,
-              RB_TYPE  left,
-              RB_TYPE  right)
+static l_int32
+compareKeys(l_int32  keytype,
+            RB_TYPE  left,
+            RB_TYPE  right)
 {
-static char  procName[] = "l_compareKeys";
+static char  procName[] = "compareKeys";
 
     if (keytype == L_INT_TYPE) {
         if (left.itype < right.itype)
@@ -618,7 +633,7 @@ static node *new_node(RB_TYPE key, RB_TYPE value, l_int32 node_color,
 static node *lookup_node(L_RBTREE *t, RB_TYPE key) {
     node *n = t->root;
     while (n != NULL) {
-        int comp_result = l_compareKeys(t->keytype, key, n->key);
+        int comp_result = compareKeys(t->keytype, key, n->key);
         if (comp_result == 0) {
             return n;
         } else if (comp_result < 0) {

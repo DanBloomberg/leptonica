@@ -88,7 +88,7 @@ OTHER_PROGS = adaptmap_dark \
 	digitprep1 displayboxa displayboxes_on_pixa \
 	displaypix displaypixa \
 	dwalineargen falsecolortest \
-	fcombautogen fhmtautogen findbinding \
+	fcombautogen fhmtautogen findbinding find_colorregions \
 	findpattern1 findpattern2 findpattern3 \
 	flipselgen fmorphautogen \
 	fpixcontours gammatest \

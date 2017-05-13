@@ -91,7 +91,7 @@ L_REGPARAMS  *rp;
         /* Find background color in image with light color regions */
     pix1 = pixRead("map.057.jpg");
     pixadb = pixaCreate(0);
-    pixHasColorBackground(pix1, NULL, 4, 70, 220, 50, 40,
+    pixFindColorRegions(pix1, NULL, 4, 200, 70, 10, 80,
                           &fcolor, &pix2, NULL, pixadb);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 8 */
     pix3 = pixaDisplayTiledInColumns(pixadb, 5, 0.3, 20, 2);

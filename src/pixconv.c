@@ -49,6 +49,7 @@
  *           PIX        *pixConvertRGBToGrayMinMax()
  *           PIX        *pixConvertRGBToGraySatBoost()
  *           PIX        *pixConvertRGBToGrayArb()
+ *           PIX        *pixConvertRGBToBinaryArb()
  *
  *      Conversion from grayscale to colormap
  *           PIX        *pixConvertGrayToColormap()  -- 2, 4, 8 bpp
@@ -1082,6 +1083,56 @@ PIX       *pixd;
     }
 
     return pixd;
+}
+
+
+/*!
+ * \brief   pixConvertRGBToBinaryArb()
+ *
+ * \param[in]    pixs 32 bpp RGB
+ * \param[in]    rc, gc, bc  arithmetic factors; can be negative
+ * \param[in]    thresh      binarization threshold
+ * \param[in]    relation    L_SELECT_IF_LT, L_SELECT_IF_GT
+ *                           L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \return  1 bpp pix, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This makes a 1 bpp mask from an RGB image, using an arbitrary
+ *          linear combination of the rgb color components, along with
+ *          a threshold and a selection choice of the gray value relative
+ *          to %thresh.
+ * </pre>
+ */
+PIX *
+pixConvertRGBToBinaryArb(PIX       *pixs,
+                         l_float32  rc,
+                         l_float32  gc,
+                         l_float32  bc,
+                         l_int32    thresh,
+                         l_int32    relation)
+{
+l_int32  threshold;
+PIX     *pix1, *pix2;
+
+    PROCNAME("pixConvertRGBToBinaryArb");
+
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+    if (rc <= 0 && gc <= 0 && bc <= 0)
+        return (PIX *)ERROR_PTR("all coefficients <= 0", procName, NULL);
+    if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
+        relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
+        return (PIX *)ERROR_PTR("invalid relation", procName, NULL);
+
+    pix1 = pixConvertRGBToGrayArb(pixs, rc, gc, bc);
+    threshold = (relation == L_SELECT_IF_LTE || relation == L_SELECT_IF_GT) ?
+                             thresh : thresh + 1;
+    pix2 = pixThresholdToBinary(pix1, threshold);
+    if (relation == L_SELECT_IF_GT || relation == L_SELECT_IF_GTE)
+        pixInvert(pix2, pix2);
+    pixDestroy(&pix1);
+    return pix2;
 }
 
 

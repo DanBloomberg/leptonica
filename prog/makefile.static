@@ -208,7 +208,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		displaypix.c displaypixa.c \
 		dwalineargen.c falsecolortest.c \
 		fcombautogen.c fhmtautogen.c \
-		fileinfo.c findbinding.c \
+		fileinfo.c findbinding.c find_colorregions.c \
 		findpattern1.c findpattern2.c findpattern3.c \
 		flipselgen.c fmorphautogen.c \
 		fpixcontours.c gammatest.c \
@@ -842,6 +842,9 @@ fileinfo:	fileinfo.o $(LEPTLIB)
 
 findbinding:	findbinding.o $(LEPTLIB)
 	$(CC) -o findbinding findbinding.o $(ALL_LIBS) $(EXTRALIBS)
+
+find_colorregions:	find_colorregions.o $(LEPTLIB)
+	$(CC) -o find_colorregions find_colorregions.o $(ALL_LIBS) $(EXTRALIBS)
 
 findpattern1:	findpattern1.o $(LEPTLIB)
 	$(CC) -o findpattern1 findpattern1.o $(ALL_LIBS) $(EXTRALIBS)

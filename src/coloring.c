@@ -118,7 +118,7 @@
  *      (3) If the input image is not colormapped, it is converted to rgb.
  *          A "gray" value for a pixel is determined by averaging the
  *          components, and the output rgb value is determined from this.
- *      (4) This can be used in conjunction with pixFindColorRegions() to
+ *      (4) This can be used in conjunction with pixHasHighlightRed() to
  *          add highlight color to a grayscale image.
  * </pre>
  */
@@ -345,7 +345,7 @@ PIXCMAP   *cmap;
  *      (4) If pixs is 32 bpp rgb, for each pixel a "gray" value is
  *          found by averaging.  This average is then used with the
  *          input rgb target to generate the output pixel values.
- *      (5) This can be used in conjunction with pixFindColorRegions() to
+ *      (5) This can be used in conjunction with pixHasHighlightRed() to
  *          add highlight color to a grayscale image.
  * </pre>
  */
