@@ -65,7 +65,7 @@ static char  mainName[] = "find_colorregions";
 
         /* More general method */
     pixadb = pixaCreate(0);
-    pixFindColorRegions(pix1, NULL, 4, 200, 60, 10, 80,
+    pixFindColorRegions(pix1, NULL, 4, 200, 60, 10, 90, 0.05,
                         &fcolor, &pix3, &pix4, pixadb);
     fprintf(stderr, "ncolor = %f\n", fcolor);
     if (pix3) pixDisplay(pix3, 0, 800);
