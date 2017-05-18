@@ -787,6 +787,7 @@ LEPT_DLL extern PIX * pixColorShiftRGB ( PIX *pixs, l_float32 rfract, l_float32 
 LEPT_DLL extern PIX * pixMultConstantColor ( PIX *pixs, l_float32 rfact, l_float32 gfact, l_float32 bfact );
 LEPT_DLL extern PIX * pixMultMatrixColor ( PIX *pixs, L_KERNEL *kel );
 LEPT_DLL extern PIX * pixHalfEdgeByBandpass ( PIX *pixs, l_int32 sm1h, l_int32 sm1v, l_int32 sm2h, l_int32 sm2v );
+LEPT_DLL extern PIX * pixPowerLawTransform ( PIX *pixs, l_float32 coef, l_float32 power );
 LEPT_DLL extern l_int32 fhmtautogen ( SELA *sela, l_int32 fileindex, const char *filename );
 LEPT_DLL extern l_int32 fhmtautogen1 ( SELA *sela, l_int32 fileindex, const char *filename );
 LEPT_DLL extern l_int32 fhmtautogen2 ( SELA *sela, l_int32 fileindex, const char *filename );
