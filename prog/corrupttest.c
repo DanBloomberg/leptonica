@@ -123,13 +123,13 @@ static char  mainName[] = "corrupttest";
             size = 0.001 * j;
 
                 /* Write corrupt file */
-        if (Deletion == TRUE) {
-            fileCorruptByDeletion(filein, loc, size,
-                                  "/tmp/lept/corrupt/junkout");
-        } else {
-            fileCorruptByMutation(filein, loc, size,
-                                  "/tmp/lept/corrupt/junkout");
-        }
+            if (Deletion == TRUE) {
+                fileCorruptByDeletion(filein, loc, size,
+                                      "/tmp/lept/corrupt/junkout");
+            } else {
+                fileCorruptByMutation(filein, loc, size,
+                                      "/tmp/lept/corrupt/junkout");
+            }
 
                 /* Attempt to read the file */
             pix = NULL;

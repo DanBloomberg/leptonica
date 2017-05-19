@@ -251,7 +251,7 @@ L_REGPARAMS  *rp;
         return regTestCleanup(rp);
     }
     dewarpaInsertDewarp(dewa, dew);
-    dewarpBuildPageModel(dew, NULL);
+    dewarpBuildPageModel(dew, NULL);  /* two invalid indices in ptaGetPt() */
     dewarpPopulateFullRes(dew, NULL, 0, 0);
     fpixs = dew->fullvdispar;
     fpixs2 = fpixAddContinuedBorder(fpixs, 200, 200, 100, 300);

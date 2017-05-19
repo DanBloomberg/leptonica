@@ -646,7 +646,7 @@ l_hashPtToUint64(l_int32    x,
  *          or a histogram (an example of a hash map).
  *      (3) For example, to generate a histogram, the histogram dna,
  *          a histogram of unique values aligned with the histogram dna,
- *          and a dnahash hashmap are built.  See l_dnaHashHistoFromDna().
+ *          and a dnahash hashmap are built.  See l_dnaMakeHistoByHash().
  * </pre>
  */
 l_int32
