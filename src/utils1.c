@@ -789,7 +789,7 @@ l_uint32  shift;
 /*!
  * \brief   getLeptonicaVersion()
  *
- *      Return: string of version number (e.g., 'leptonica-1.74.1')
+ *      Return: string of version number (e.g., 'leptonica-1.74.2')
  *
  *  Notes:
  *      (1) The caller has responsibility to free the memory.

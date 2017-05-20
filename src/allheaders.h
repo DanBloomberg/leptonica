@@ -30,7 +30,7 @@
 
 #define LIBLEPT_MAJOR_VERSION   1
 #define LIBLEPT_MINOR_VERSION   74
-#define LIBLEPT_PATCH_VERSION   1
+#define LIBLEPT_PATCH_VERSION   2
 
 #include "alltypes.h"
 
@@ -2240,6 +2240,7 @@ LEPT_DLL extern l_int32 regTestCompareSimilarPix ( L_REGPARAMS *rp, PIX *pix1, P
 LEPT_DLL extern l_int32 regTestCheckFile ( L_REGPARAMS *rp, const char *localname );
 LEPT_DLL extern l_int32 regTestCompareFiles ( L_REGPARAMS *rp, l_int32 index1, l_int32 index2 );
 LEPT_DLL extern l_int32 regTestWritePixAndCheck ( L_REGPARAMS *rp, PIX *pix, l_int32 format );
+LEPT_DLL extern char * regTestGenLocalFilename ( L_REGPARAMS *rp, l_int32 index, l_int32 format );
 LEPT_DLL extern l_int32 pixRasterop ( PIX *pixd, l_int32 dx, l_int32 dy, l_int32 dw, l_int32 dh, l_int32 op, PIX *pixs, l_int32 sx, l_int32 sy );
 LEPT_DLL extern l_int32 pixRasteropVip ( PIX *pixd, l_int32 bx, l_int32 bw, l_int32 vshift, l_int32 incolor );
 LEPT_DLL extern l_int32 pixRasteropHip ( PIX *pixd, l_int32 by, l_int32 bh, l_int32 hshift, l_int32 incolor );

@@ -39,6 +39,7 @@
  *           l_int32    regTestCheckFile()
  *           l_int32    regTestCompareFiles()
  *           l_int32    regTestWritePixAndCheck()
+ *           char      *regTestGenLocalFilename()
  *
  *       Static function
  *           char      *getRootNameFromArgv0()
@@ -690,7 +691,7 @@ regTestWritePixAndCheck(L_REGPARAMS  *rp,
                         PIX          *pix,
                         l_int32       format)
 {
-char   namebuf[256];
+char  namebuf[256];
 
     PROCNAME("regTestWritePixAndCheck");
 
@@ -719,6 +720,44 @@ char   namebuf[256];
     regTestCheckFile(rp, namebuf);
 
     return 0;
+}
+
+
+/*!
+ * \brief   regTestGenLocalFilename()
+ *
+ * \param[in]       rp      regtest parameters
+ * \param[in]       index   use -1 for current index
+ * \param[in]       format  of image; e.g., IFF_PNG
+ * \return  filename if OK, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is used to get the name of a file in the regout
+ *          subdirectory, that has been made and is used to test against
+ *          the golden file.  You can either specify a particular index
+ *          value, or with %index == -1, this returns the most recently
+ *          written file.  The latter case lets you read a pix from a
+ *          file that has just been written with regTestWritePixAndCheck(),
+ *          which is useful for testing formatted read/write functions.
+ */
+char *
+regTestGenLocalFilename(L_REGPARAMS  *rp,
+                        l_int32       index,
+                        l_int32       format)
+{
+char     buf[64];
+l_int32  ind;
+
+    PROCNAME("regTestGenLocalFilename");
+
+    if (!rp)
+        return (char *)ERROR_PTR("rp not defined", procName, NULL);
+
+    ind = (index >= 0) ? index : rp->index;
+    snprintf(buf, sizeof(buf), "/tmp/lept/regout/%s.%02d.%s",
+             rp->testname, ind, ImageFileFormatExtensions[format]);
+    return stringNew(buf);
 }
 
 

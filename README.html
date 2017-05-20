@@ -75,11 +75,11 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-README  (1.74.1: 3 Jan 2017)
+README  (1.74.2: 19 May 2017)
 ---------------------------
 
-gunzip leptonica-1.74.1.tar.gz
-tar -xvf leptonica-1.74.1.tar
+gunzip leptonica-1.74.2.tar.gz
+tar -xvf leptonica-1.74.2.tar
 
 </pre>
 
@@ -115,7 +115,7 @@ Building leptonica
   Libraries, executables and prototypes are easily made, as described below.
 
   When you extract from the archive, all files are put in a
-  subdirectory 'leptonica-1.74'.  In that directory you will
+  subdirectory 'leptonica-1.74.2'.  In that directory you will
   find a src directory containing the source files for the library,
   and a prog directory containing source files for various
   testing and example programs.
@@ -250,7 +250,7 @@ Building leptonica
             make install
 
        Configure also supports building in a separate directory from the
-       source.  Run "/(path-to)/leptonica-1.74.1/configure" and then "make"
+       source.  Run "/(path-to)/leptonica-1.74.2/configure" and then "make"
        from the desired build directory.
 
        Configure has a number of useful options; run "configure --help" for
@@ -1075,16 +1075,20 @@ What's in leptonica?
 16. Versions
 
    New versions of the Leptonica library are released several times
-   a year, and version numbers are provided for each release in
-   src/makefile.static and in allheaders.h.  All even versions from
-   1.42 to 1.60 were originally archived at http://code.google.com/p/leptonica,
-   as well as all versions after 1.60.  These have now been transferred
-   by Egor Pugin to github:
+   a year, and version numbers are provided for each release in the
+   following files:
+       src/makefile.static
+       CMakeLists.txt
+       configure.ac
+       allheaders_top.txt  (and consequently allheaders.h)
+   All even versions from 1.42 to 1.60 were originally archived at
+   http://code.google.com/p/leptonica, as well as all versions after 1.60.
+   These have now been transferred by Egor Pugin to github:
        github.com/danbloomberg/leptonica
-   Recent releases (1.67 - 1.74.1) are available both at
+   where all releases (1.42 - 1.74.2) are available; e.g.,
+       https://github.com/DanBloomberg/leptonica/releases/tag/v1.74.2
+   Most recent releases from 1.67 are also available at
        leptonica.org/download.html
-   and through github; e.g.,
-       https://github.com/DanBloomberg/leptonica/releases/tag/v1.74.1
    Note that if you are downloading from github, the releases are more
    likely to be stable than the master.  Also, if you download from
    the master you need to run the autobuild script to generate the
