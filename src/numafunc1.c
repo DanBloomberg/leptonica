@@ -953,7 +953,9 @@ l_int32  n, i, val, count, inrun;
 
     PROCNAME("numaCountNonzeroRuns");
 
-    if (pcount) *pcount = 0;
+    if (!pcount)
+        return ERROR_INT("&count not defined", procName, 1);
+    *pcount = 0;
     if (!na)
         return ERROR_INT("na not defined", procName, 1);
     n = numaGetCount(na);

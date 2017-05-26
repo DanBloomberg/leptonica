@@ -1623,6 +1623,7 @@ MEMIODATA    state;
             procName, NULL);
     }
 
+    cmap = NULL;
     if (color_type == PNG_COLOR_TYPE_PALETTE ||
         color_type == PNG_COLOR_MASK_PALETTE) {   /* generate a colormap */
         png_get_PLTE(png_ptr, info_ptr, &palette, &num_palette);
@@ -1633,12 +1634,11 @@ MEMIODATA    state;
             bval = palette[cindex].blue;
             pixcmapAddColor(cmap, rval, gval, bval);
         }
-    } else {
-        cmap = NULL;
     }
 
     if ((pix = pixCreate(w, h, d)) == NULL) {
         png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+        pixcmapDestroy(&cmap);
         return (PIX *)ERROR_PTR("pix not made", procName, NULL);
     }
     pixSetInputFormat(pix, IFF_PNG);

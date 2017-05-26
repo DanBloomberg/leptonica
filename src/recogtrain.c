@@ -997,8 +997,10 @@ PIXAA     *paa;
     pixa5 = pixaCreate(0);
     for (i = 0; i < nc; i++) {
         pixa1 = pixaaGetPixa(paa, i, L_CLONE);
-        if ((n = pixaGetCount(pixa1)) == 0)
+        if ((n = pixaGetCount(pixa1)) == 0) {
+            pixaDestroy(&pixa1);
             continue;
+        }
         pixa2 = pixaSort(pixa1, L_SORT_BY_HEIGHT, L_SORT_INCREASING, NULL,
                          L_COPY);
         j90 = (l_int32)(0.9 * n);

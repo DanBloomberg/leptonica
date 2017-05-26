@@ -315,7 +315,7 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
             /* Get the combined bounding boxes of the mask components
              * in pix3, and extract those pixels from pixs. */
         boxa1 = pixConnCompBB(pix3, 8);
-        boxa2 = boxaCombineOverlaps(boxa1);
+        boxa2 = boxaCombineOverlaps(boxa1, NULL);
         pix4 = pixCreateTemplate(pix3);
         pixMaskBoxa(pix4, pix4, boxa2, L_SET_PIXELS);
         pixaAddPix(pixadb, pix4, L_INSERT);

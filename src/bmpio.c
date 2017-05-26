@@ -385,7 +385,7 @@ pixWriteMemBmp(l_uint8  **pfdata,
                PIX       *pixs)
 {
 l_uint8     pel[4];
-l_uint8    *cta;          /* address of the bmp color table array */
+l_uint8    *cta = NULL;     /* address of the bmp color table array */
 l_uint8    *fdata, *data, *fmdata;
 l_int32     cmaplen;      /* number of bytes in the bmp colormap */
 l_int32     ncolors, val, stepsize;

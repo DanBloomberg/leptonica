@@ -126,7 +126,7 @@ RB_TYPE   *pval;
         pixcmapGetColor32(cmap, i, &val32);
         key.utype = val32;
         pval = l_amapFind(m, key);
-        if (i != pval->itype)
+        if (pval && (i != pval->itype))
             fprintf(stderr, "i = %d != val = %llx\n", i, pval->itype);
     }
     l_amapDestroy(&m);

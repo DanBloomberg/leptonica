@@ -1206,6 +1206,7 @@ PTA       *ptau1, *ptau2, *ptad1, *ptad2;
     }
     ptaDestroy(&ptad1);
     if (ptaGetCount(ptad2) < L_MIN_LINES_FOR_HORIZ_2) {
+        ptaDestroy(&ptau2);
         ptaDestroy(&ptad2);
         L_INFO("Second filter: lower set is too small after outliers removed\n",
                procName);
@@ -1381,7 +1382,7 @@ dewarpFindHorizSlopeDisparity(L_DEWARP  *dew,
 {
 l_int32    i, j, x, n1, n2, nb, ne, count, w, h, ival, prev;
 l_int32    istart, iend, first, last, x0, x1, nx, ny;
-l_float32  fract, delta, sum, aveval, fval, del;
+l_float32  fract, delta, sum, aveval, fval, del, denom;
 l_float32  ca, cb, cc, cd, ce, y;
 BOX       *box;
 BOXA      *boxa1, *boxa2;
@@ -1435,6 +1436,7 @@ FPIX      *fpix;
     n1 = numaGetCount(na1);
     prev = 0;
     istart = 0;
+    first = 0;
     for (i = 0; i < n1; i++) {
         numaGetIValue(na1, i, &ival);
         if (ival >= prev) {
@@ -1464,7 +1466,8 @@ FPIX      *fpix;
     numaDestroy(&na1);
     n2 = numaGetCount(na2);
     delta = (parity == 0) ? last - first : first - last;
-    fract = (l_float32)delta / (l_float32)(L_MIN(first, last));
+    denom = L_MAX(1.0, (l_float32)(L_MIN(first, last)));
+    fract = (l_float32)delta / denom;
     if (dew->debug) {
         L_INFO("Slope-disparity: first = %d, last = %d, fract = %7.3f\n",
                procName, first, last, fract);
@@ -1484,7 +1487,8 @@ FPIX      *fpix;
         numaGetSumOnInterval(na2, 0, ne / 2 - 1, &sum);
     else  /* parity == 1 */
         numaGetSumOnInterval(na2, ne / 2, ne - 1, &sum);
-    aveval = sum / (l_float32)(ne / 2);
+    denom = L_MAX(1.0, (l_float32)(ne / 2));
+    aveval = sum / denom;
     na3 = numaMakeConstant(aveval, n2);
     numaArithOp(na2, na2, na3, L_ARITH_DIVIDE);
     numaDestroy(&na3);

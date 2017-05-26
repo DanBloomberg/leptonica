@@ -1321,9 +1321,9 @@ PIX         *pix1, *pix2;
 /*!
  * \brief   writeMultipageTiff()
  *
- * \param[in]    dirin input directory
- * \param[in]    substr [optional] substring filter on filenames; can be NULL
- * \param[in]    fileout output ps file
+ * \param[in]    dirin   input directory
+ * \param[in]    substr  [optional] substring filter on filenames; can be NULL
+ * \param[in]    fileout output multipage tiff file
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2595,6 +2595,7 @@ PIX     *pix1, *pix2;
 
     PROCNAME("pixaWriteMemMultipageTiff");
 
+    if (pdata) *pdata = NULL;
     if (!pdata)
         return ERROR_INT("pdata not defined", procName, 1);
     if (!pixa)
