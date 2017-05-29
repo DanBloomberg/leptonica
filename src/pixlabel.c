@@ -396,6 +396,7 @@ PTA      *ptas, *ptad;
         ptaAddPt(ptas, x, y);
         ptaaAddPta(ptaa, ptas, L_INSERT);
         *pncc += 1;
+        LEPT_FREE(neigh);
         return 0;
     }
 

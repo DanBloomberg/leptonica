@@ -117,16 +117,12 @@ PIXCMAP    *cmap;
     if (depth != 1 && depth != 2 && depth !=4 && depth != 8)
         return (PIXCMAP *)ERROR_PTR("depth not in {1,2,4,8}", procName, NULL);
 
-    if ((cmap = (PIXCMAP *)LEPT_CALLOC(1, sizeof(PIXCMAP))) == NULL)
-        return (PIXCMAP *)ERROR_PTR("cmap not made", procName, NULL);
+    cmap = (PIXCMAP *)LEPT_CALLOC(1, sizeof(PIXCMAP));
     cmap->depth = depth;
     cmap->nalloc = 1 << depth;
-    if ((cta = (RGBA_QUAD *)LEPT_CALLOC(cmap->nalloc, sizeof(RGBA_QUAD)))
-        == NULL)
-        return (PIXCMAP *)ERROR_PTR("cta not made", procName, NULL);
+    cta = (RGBA_QUAD *)LEPT_CALLOC(cmap->nalloc, sizeof(RGBA_QUAD));
     cmap->array = cta;
     cmap->n = 0;
-
     return cmap;
 }
 
@@ -246,11 +242,9 @@ PIXCMAP  *cmapd;
     if (cmaps->nalloc > 256)
         return (PIXCMAP *)ERROR_PTR("nalloc > 256", procName, NULL);
 
-    if ((cmapd = (PIXCMAP *)LEPT_CALLOC(1, sizeof(PIXCMAP))) == NULL)
-        return (PIXCMAP *)ERROR_PTR("cmapd not made", procName, NULL);
+    cmapd = (PIXCMAP *)LEPT_CALLOC(1, sizeof(PIXCMAP));
     nbytes = cmaps->nalloc * sizeof(RGBA_QUAD);
-    if ((cmapd->array = (void *)LEPT_CALLOC(1, nbytes)) == NULL)
-        return (PIXCMAP *)ERROR_PTR("cmap array not made", procName, NULL);
+    cmapd->array = (void *)LEPT_CALLOC(1, nbytes);
     memcpy(cmapd->array, cmaps->array, nbytes);
     cmapd->n = cmaps->n;
     cmapd->nalloc = cmaps->nalloc;
@@ -1639,15 +1633,15 @@ PIXCMAP  *cmap;
     ignore = fscanf(fp, "Color    R-val    G-val    B-val   Alpha\n");
     ignore = fscanf(fp, "----------------------------------------\n");
 
-    if ((cmap = pixcmapCreate(depth)) == NULL)
-        return (PIXCMAP *)ERROR_PTR("cmap not made", procName, NULL);
+    cmap = pixcmapCreate(depth);
     for (i = 0; i < ncolors; i++) {
         if (fscanf(fp, "%3d       %3d      %3d      %3d      %3d\n",
-                        &index, &rval, &gval, &bval, &aval) != 5)
+                        &index, &rval, &gval, &bval, &aval) != 5) {
+            pixcmapDestroy(&cmap);
             return (PIXCMAP *)ERROR_PTR("invalid entry", procName, NULL);
+        }
         pixcmapAddRGBA(cmap, rval, gval, bval, aval);
     }
-
     return cmap;
 }
 

@@ -659,8 +659,8 @@ BOXA    *boxad;
 /*!
  * \brief   boxaPermuteRandom()
  *
- * \param[in]    boxad [optional] can be null or equal to boxas
- * \param[in]    boxas input boxa
+ * \param[in]    boxad [optional]   can be null or equal to boxas
+ * \param[in]    boxas              input boxa
  * \return  boxad with boxes permuted, or NULL on error
  *
  * <pre>
@@ -668,11 +668,12 @@ BOXA    *boxad;
  *      (1) If boxad is null, make a copy of boxas and permute the copy.
  *          Otherwise, boxad must be equal to boxas, and the operation
  *          is done in-place.
- *      (2) This does a random in-place permutation of the boxes,
+ *      (2) If boxas is empty, return an empty boxad.
+ *      (3) This does a random in-place permutation of the boxes,
  *          by swapping each box in turn with a random box.  The
  *          result is almost guaranteed not to have any boxes in their
  *          original position.
- *      (3) MSVC rand() has MAX_RAND = 2^15 - 1, so it will not do
+ *      (4) MSVC rand() has MAX_RAND = 2^15 - 1, so it will not do
  *          a proper permutation is the number of boxes exceeds this.
  * </pre>
  */
@@ -691,7 +692,8 @@ l_int32  i, n, index;
 
     if (!boxad)
         boxad = boxaCopy(boxas, L_COPY);
-    n = boxaGetCount(boxad);
+    if ((n = boxaGetCount(boxad)) == 0)
+        return boxad;
     index = (l_uint32)rand() % n;
     index = L_MAX(1, index);
     boxaSwapBoxes(boxad, 0, index);
@@ -1282,9 +1284,10 @@ PTA       *ptal, *ptat, *ptar, *ptab;
     }
     boxDestroy(&boxempty);
 
-    if (debug)
+    if (debug) {
         boxaPlotSides(boxad, NULL, NULL, NULL, NULL, NULL, NULL);
         boxaPlotSizes(boxad, NULL, NULL, NULL, NULL);
+    }
 
     ptaDestroy(&ptal);
     ptaDestroy(&ptat);
@@ -2446,6 +2449,7 @@ BOXA    *boxa;
             maxw = maxbw;
         if (maxbh > maxh)
             maxh = maxbh;
+        boxaDestroy(&boxa);
     }
 
     if (pminw) *pminw = minw;

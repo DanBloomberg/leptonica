@@ -1416,18 +1416,21 @@ PIXA    *pixad;
     }
 
         /* Get the sort index for data array */
-    if ((naindex = numaGetSortIndex(na, sortorder)) == NULL)
+    naindex = numaGetSortIndex(na, sortorder);
+    numaDestroy(&na);
+    if (!naindex)
         return (PIXA *)ERROR_PTR("naindex not made", procName, NULL);
 
         /* Build up sorted pixa using sort index */
-    if ((pixad = pixaSortByIndex(pixas, naindex, copyflag)) == NULL)
+    if ((pixad = pixaSortByIndex(pixas, naindex, copyflag)) == NULL) {
+        numaDestroy(&naindex);
         return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+    }
 
     if (pnaindex)
         *pnaindex = naindex;
     else
         numaDestroy(&naindex);
-    numaDestroy(&na);
     return pixad;
 }
 
@@ -1519,18 +1522,21 @@ PIXA    *pixad;
     }
 
         /* Get the sort index for data array */
-    if ((naindex = numaGetBinSortIndex(na, sortorder)) == NULL)
+    naindex = numaGetBinSortIndex(na, sortorder);
+    numaDestroy(&na);
+    if (!naindex)
         return (PIXA *)ERROR_PTR("naindex not made", procName, NULL);
 
         /* Build up sorted pixa using sort index */
-    if ((pixad = pixaSortByIndex(pixas, naindex, copyflag)) == NULL)
+    if ((pixad = pixaSortByIndex(pixas, naindex, copyflag)) == NULL) {
+        numaDestroy(&naindex);
         return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+    }
 
     if (pnaindex)
         *pnaindex = naindex;
     else
         numaDestroy(&naindex);
-    numaDestroy(&na);
     return pixad;
 }
 
@@ -1973,9 +1979,8 @@ PIXA    *pixad;
     if (nb == n) {
         boxa2 = boxaTransform(boxa1, 0, 0, scalex, scaley);
         pixaSetBoxa(pixad, boxa2, L_INSERT);
-    } else {
-        boxaDestroy(&boxa1);
     }
+    boxaDestroy(&boxa1);
     return pixad;
 }
 
@@ -2412,6 +2417,7 @@ PIXCMAP  *cmap;
         return ERROR_INT("pixa not defined", procName, 1);
 
     n = pixaGetCount(pixa);
+    hascolor = 0;
     for (i = 0; i < n; i++) {
         pix = pixaGetPix(pixa, i, L_CLONE);
         if ((cmap = pixGetColormap(pix)) != NULL)
@@ -2708,8 +2714,10 @@ PIXA    *pixad;
     if ((pixad = pixaCreate(n)) == NULL)
         return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
     for (i = 0; i < n; i++) {
-        if ((pixs = pixaGetPix(pixas, i, L_CLONE)) == NULL)
+        if ((pixs = pixaGetPix(pixas, i, L_CLONE)) == NULL) {
+            pixaDestroy(&pixad);
             return (PIXA *)ERROR_PTR("pixs not found", procName, NULL);
+        }
         pixd = pixRotateOrth(pixs, rotation);
         pixaAddPix(pixad, pixd, L_INSERT);
         if (n == nb) {

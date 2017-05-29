@@ -252,8 +252,10 @@ PIXCMAP  *cmap;
     if (d == 8) {  /* colormapped */
         cmap = pixGetColormap(pixd);
         extractRGBValues(val, &rval, &gval, &bval);
-        if (pixcmapAddNewColor(cmap, rval, gval, bval, &newindex))
+        if (pixcmapAddNewColor(cmap, rval, gval, bval, &newindex)) {
+            pixDestroy(&pixd);
             return (PIX *)ERROR_PTR("cmap full; can't add", procName, NULL);
+        }
     }
 
     for (i = 0; i < n; i++) {
@@ -388,7 +390,7 @@ PIXCMAP  *cmap;
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
     cmap = pixcmapCreateRandom(8, 1, 1);
-    d = pixGetDepth(pixd);
+    d = pixGetDepth(pixd);  /* either 8 or 32 */
     if (d == 8)  /* colormapped */
         pixSetColormap(pixd, cmap);
 
@@ -1544,8 +1546,10 @@ BOXA  *boxa1;
     yslop = L_MAX(0, yslop);
 
     boxa1 = pixConnCompBB(pixs, connectivity);
-    if (boxaGetCount(boxa1) == 0)
+    if (boxaGetCount(boxa1) == 0) {
+        boxaDestroy(&boxa1);
         return NULL;
+    }
     box = boxaSelectLargeULBox(boxa1, areaslop, yslop);
     boxaDestroy(&boxa1);
     return box;

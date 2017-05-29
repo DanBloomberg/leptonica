@@ -1953,8 +1953,11 @@ NUMA       *nasx, *nasy, *nadx, *nady;
     fay = numaGetFArray(nasy, L_NOCOPY);
 
         /* Get array of indices into fax for interpolated locations */
-    if ((index = (l_int32 *)LEPT_CALLOC(npts, sizeof(l_int32))) == NULL)
+    if ((index = (l_int32 *)LEPT_CALLOC(npts, sizeof(l_int32))) == NULL) {
+        numaDestroy(&nasx);
+        numaDestroy(&nasy);
         return ERROR_INT("ind not made", procName, 1);
+    }
     del = (x1 - x0) / (npts - 1.0);
     for (i = 0, j = 0; j < nx && i < npts; i++) {
         xval = x0 + i * del;
@@ -2023,10 +2026,10 @@ NUMA       *nasx, *nasy, *nadx, *nady;
 /*!
  * \brief   numaFitMax()
  *
- * \param[in]    na  numa of ordinate values, to fit a max to
- * \param[out]   pmaxval max value
- * \param[in]    naloc [optional] associated numa of abscissa values
- * \param[out]   pmaxloc abscissa value that gives max value in na;
+ * \param[in]    na       numa of ordinate values, to fit a max to
+ * \param[out]   pmaxval  max value
+ * \param[in]    naloc    [optional] associated numa of abscissa values
+ * \param[out]   pmaxloc  abscissa value that gives max value in na;
  *                   if naloc == null, this is given as an interpolated
  *                   index value
  * \return  0 if OK; 1 on error
@@ -2065,8 +2068,8 @@ l_float32  x1, x2, x3, y1, y2, y3, c1, c2, c3, a, b, xmax, ymax;
 
     PROCNAME("numaFitMax");
 
-    *pmaxval = *pmaxloc = 0.0;  /* init */
-
+    if (pmaxval) *pmaxval = 0.0;
+    if (pmaxloc) *pmaxloc = 0.0;
     if (!na)
         return ERROR_INT("na not defined", procName, 1);
     if (!pmaxval)
@@ -2079,7 +2082,6 @@ l_float32  x1, x2, x3, y1, y2, y3, c1, c2, c3, a, b, xmax, ymax;
         if (n != numaGetCount(naloc))
             return ERROR_INT("na and naloc of unequal size", procName, 1);
     }
-
     numaGetMax(na, &smaxval, &imaxloc);
 
         /* Simple case: max is at end point */
@@ -2633,8 +2635,10 @@ NUMA       *naisort;
     n = numaGetCount(na);
     if ((array = numaGetFArray(na, L_COPY)) == NULL)
         return (NUMA *)ERROR_PTR("array not made", procName, NULL);
-    if ((iarray = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32))) == NULL)
+    if ((iarray = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32))) == NULL) {
+        LEPT_FREE(array);
         return (NUMA *)ERROR_PTR("iarray not made", procName, NULL);
+    }
     for (i = 0; i < n; i++)
         iarray[i] = i;
 

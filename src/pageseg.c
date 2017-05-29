@@ -867,6 +867,7 @@ PIX      *pix1, *pixdb;
     LEPT_FREE(array2);
 
     if (nsplit == 0) {  /* no splitting */
+        numaDestroy(&nasplit);
         box = boxCreate(0, 0, w, h);
         boxaAddBox(boxad, box, L_INSERT);
         return boxad;
@@ -881,7 +882,6 @@ PIX      *pix1, *pixdb;
     }
     box = boxCreate(xshift, 0, w - xshift, h);
     boxaAddBox(boxad, box, L_INSERT);
-
     numaDestroy(&nasplit);
 
     if (ppixdebug) {
@@ -1641,7 +1641,9 @@ PIX       *pix1, *pix2, *pixm;
 
     PROCNAME("pixEstimateBackground");
 
-    if (pbg) *pbg = 0;  /* init */
+    if (!pbg)
+        return ERROR_INT("&bg not defined", procName, 1);
+    *pbg = 0;
     if (!pixs || pixGetDepth(pixs) != 8)
         return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
     if (darkthresh > 128)

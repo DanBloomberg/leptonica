@@ -2046,18 +2046,25 @@ PIX     *pixg, *pixacc, *pixc1, *pixc2;
         pixg = pixClone(pixs);
 
         /* Make a convolution accumulator and use it twice */
-    if ((pixacc = pixBlockconvAccum(pixg)) == NULL)
+    if ((pixacc = pixBlockconvAccum(pixg)) == NULL) {
+        pixDestroy(&pixg);
         return (PIX *)ERROR_PTR("pixacc not made", procName, NULL);
-    if ((pixc1 = pixBlockconvGray(pixg, pixacc, sm1h, sm1v)) == NULL)
+    }
+    if ((pixc1 = pixBlockconvGray(pixg, pixacc, sm1h, sm1v)) == NULL) {
+        pixDestroy(&pixg);
+        pixDestroy(&pixacc);
         return (PIX *)ERROR_PTR("pixc1 not made", procName, NULL);
-    if ((pixc2 = pixBlockconvGray(pixg, pixacc, sm2h, sm2v)) == NULL)
-        return (PIX *)ERROR_PTR("pixc2 not made", procName, NULL);
+    }
+    pixc2 = pixBlockconvGray(pixg, pixacc, sm2h, sm2v);
+    pixDestroy(&pixg);
     pixDestroy(&pixacc);
+    if (!pixc2) {
+        pixDestroy(&pixc1);
+        return (PIX *)ERROR_PTR("pixc2 not made", procName, NULL);
+    }
 
         /* Compute the half-edge using pixc1 - pixc2.  */
     pixSubtractGray(pixc1, pixc1, pixc2);
-
-    pixDestroy(&pixg);
     pixDestroy(&pixc2);
     return pixc1;
 }

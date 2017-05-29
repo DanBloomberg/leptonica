@@ -165,17 +165,16 @@ PIXA  *pixa;
     if (n <= 0)
         n = INITIAL_PTR_ARRAYSIZE;
 
-    if ((pixa = (PIXA *)LEPT_CALLOC(1, sizeof(PIXA))) == NULL)
-        return (PIXA *)ERROR_PTR("pixa not made", procName, NULL);
+    pixa = (PIXA *)LEPT_CALLOC(1, sizeof(PIXA));
     pixa->n = 0;
     pixa->nalloc = n;
     pixa->refcount = 1;
-
-    if ((pixa->pix = (PIX **)LEPT_CALLOC(n, sizeof(PIX *))) == NULL)
-        return (PIXA *)ERROR_PTR("pix ptrs not made", procName, NULL);
-    if ((pixa->boxa = boxaCreate(n)) == NULL)
-        return (PIXA *)ERROR_PTR("boxa not made", procName, NULL);
-
+    pixa->pix = (PIX **)LEPT_CALLOC(n, sizeof(PIX *));
+    pixa->boxa = boxaCreate(n);
+    if (!pixa->pix || !pixa->boxa) {
+        pixaDestroy(&pixa);
+        return (PIXA *)ERROR_PTR("pix or boxa not made", procName, NULL);
+    }
     return pixa;
 }
 
@@ -2524,7 +2523,8 @@ l_int32
 pixaWrite(const char  *filename,
           PIXA        *pixa)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("pixaWrite");
 
@@ -2539,9 +2539,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (pixaWriteStream(fp, pixa))
-        return ERROR_INT("pixa not written to stream", procName, 1);
+    ret = pixaWriteStream(fp, pixa);
     fclose(fp);
+    if (ret)
+        return ERROR_INT("pixa not written to stream", procName, 1);
     return 0;
 }
 
@@ -2901,7 +2902,8 @@ l_int32
 pixaaWrite(const char  *filename,
            PIXAA       *paa)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("pixaaWrite");
 
@@ -2916,10 +2918,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (pixaaWriteStream(fp, paa))
-        return ERROR_INT("paa not written to stream", procName, 1);
+    ret = pixaaWriteStream(fp, paa);
     fclose(fp);
-
+    if (ret)
+        return ERROR_INT("paa not written to stream", procName, 1);
     return 0;
 }
 

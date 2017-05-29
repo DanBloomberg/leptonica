@@ -106,8 +106,10 @@ BOXA    *boxad;
     if ((boxad = boxaCreate(n)) == NULL)
         return (BOXA *)ERROR_PTR("boxad not made", procName, NULL);
     for (i = 0; i < n; i++) {
-        if ((boxs = boxaGetBox(boxas, i, L_CLONE)) == NULL)
+        if ((boxs = boxaGetBox(boxas, i, L_CLONE)) == NULL) {
+            boxaDestroy(&boxad);
             return (BOXA *)ERROR_PTR("boxs not found", procName, NULL);
+        }
         boxd = boxTransform(boxs, shiftx, shifty, scalex, scaley);
         boxDestroy(&boxs);
         boxaAddBox(boxad, boxd, L_INSERT);
@@ -209,8 +211,10 @@ BOXA    *boxad;
     if ((boxad = boxaCreate(n)) == NULL)
         return (BOXA *)ERROR_PTR("boxad not made", procName, NULL);
     for (i = 0; i < n; i++) {
-        if ((boxs = boxaGetBox(boxas, i, L_CLONE)) == NULL)
+        if ((boxs = boxaGetBox(boxas, i, L_CLONE)) == NULL) {
+            boxaDestroy(&boxad);
             return (BOXA *)ERROR_PTR("boxs not found", procName, NULL);
+        }
         boxd = boxTransformOrdered(boxs, shiftx, shifty, scalex, scaley,
                                    xcen, ycen, angle, order);
         boxDestroy(&boxs);
@@ -469,8 +473,10 @@ BOXA    *boxad;
     if ((boxad = boxaCreate(n)) == NULL)
         return (BOXA *)ERROR_PTR("boxad not made", procName, NULL);
     for (i = 0; i < n; i++) {
-        if ((boxs = boxaGetBox(boxas, i, L_CLONE)) == NULL)
+        if ((boxs = boxaGetBox(boxas, i, L_CLONE)) == NULL) {
+            boxaDestroy(&boxad);
             return (BOXA *)ERROR_PTR("boxs not found", procName, NULL);
+        }
         boxd = boxRotateOrth(boxs, w, h, rotation);
         boxDestroy(&boxs);
         boxaAddBox(boxad, boxd, L_INSERT);
@@ -638,7 +644,9 @@ NUMA      *na, *naindex;
     }
 
         /* Get the sort index for data array */
-    if ((naindex = numaGetSortIndex(na, sortorder)) == NULL)
+    naindex = numaGetSortIndex(na, sortorder);
+    numaDestroy(&na);
+    if (!naindex)
         return (BOXA *)ERROR_PTR("naindex not made", procName, NULL);
 
         /* Build up sorted boxa using sort index */
@@ -648,7 +656,6 @@ NUMA      *na, *naindex;
         *pnaindex = naindex;
     else
         numaDestroy(&naindex);
-    numaDestroy(&na);
     return boxad;
 }
 
@@ -727,7 +734,9 @@ NUMA    *na, *naindex;
     }
 
         /* Get the sort index for data array */
-    if ((naindex = numaGetBinSortIndex(na, sortorder)) == NULL)
+    naindex = numaGetBinSortIndex(na, sortorder);
+    numaDestroy(&na);
+    if (!naindex)
         return (BOXA *)ERROR_PTR("naindex not made", procName, NULL);
 
         /* Build up sorted boxa using the sort index */
@@ -737,7 +746,6 @@ NUMA    *na, *naindex;
         *pnaindex = naindex;
     else
         numaDestroy(&naindex);
-    numaDestroy(&na);
     return boxad;
 }
 
@@ -1729,6 +1737,7 @@ BOXA    *boxa;
     for (i = 0; i < n; i++) {
         boxa = boxaaGetBoxa(baa, i, L_CLONE);
         if ((m = boxaGetCount(boxa)) == 0) {
+            boxaDestroy(&boxa);
             L_WARNING("no boxes in boxa\n", procName);
             continue;
         }

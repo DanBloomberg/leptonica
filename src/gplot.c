@@ -859,14 +859,15 @@ GPLOT   *gplot;
     ylabel = stringNew(buf + 14);
     ylabel[strlen(ylabel) - 1] = '\0';
 
-    if (!(gplot = gplotCreate(rootname, outformat, title, xlabel, ylabel))) {
-        fclose(fp);
-        return (GPLOT *)ERROR_PTR("gplot not made", procName, NULL);
-    }
+    gplot = gplotCreate(rootname, outformat, title, xlabel, ylabel);
     LEPT_FREE(rootname);
     LEPT_FREE(title);
     LEPT_FREE(xlabel);
     LEPT_FREE(ylabel);
+    if (!gplot) {
+        fclose(fp);
+        return (GPLOT *)ERROR_PTR("gplot not made", procName, NULL);
+    }
     sarrayDestroy(&gplot->cmddata);
     sarrayDestroy(&gplot->datanames);
     sarrayDestroy(&gplot->plotdata);

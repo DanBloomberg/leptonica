@@ -299,8 +299,10 @@ PIXA    *pixat;
     }
 
         /* Make the output pix and set the background color */
-    if ((pixd = pixCreate(w, h, maxdepth)) == NULL)
+    if ((pixd = pixCreate(w, h, maxdepth)) == NULL) {
+        pixaDestroy(&pixat);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     if ((maxdepth == 1 && bgcolor > 0) ||
         (maxdepth == 2 && bgcolor >= 0x3) ||
         (maxdepth == 4 && bgcolor >= 0xf) ||
@@ -1183,8 +1185,10 @@ PIXA      *pixan;
         /* Determine the size of each row and of pixd */
     wd = tilewidth * ncols + spacing * (ncols + 1);
     nrows = (n + ncols - 1) / ncols;
-    if ((rowht = (l_int32 *)LEPT_CALLOC(nrows, sizeof(l_int32))) == NULL)
+    if ((rowht = (l_int32 *)LEPT_CALLOC(nrows, sizeof(l_int32))) == NULL) {
+        pixaDestroy(&pixan);
         return (PIX *)ERROR_PTR("rowht array not made", procName, NULL);
+    }
     maxht = 0;
     ninrow = 0;
     irow = 0;
@@ -1519,8 +1523,10 @@ PIXA    *pixa;
     pixaDestroy(&pixa);
     pixDestroy(&pixt);
 
-    if ((pixd = pixCreate(w, h, d)) == NULL)
+    if ((pixd = pixCreate(w, h, d)) == NULL) {
+        boxaDestroy(&boxa1);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
 
     x = y = 0;
     for (i = 0; i < n; i++) {
@@ -1630,8 +1636,10 @@ PIXA     *pixa;
     }
     width = (use_maxw) ? maxw : lmaxw;
 
-    if ((pixd = pixCreate(width, y, maxdepth)) == NULL)
+    if ((pixd = pixCreate(width, y, maxdepth)) == NULL) {
+        numaDestroy(&nah);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
 
         /* Now layout the pix by pixa */
     y = yspace;

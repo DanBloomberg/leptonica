@@ -603,15 +603,13 @@ L_DEWARPA  *dewa;
     if (maxdist < 0)
          maxdist = DEFAULT_MAX_REF_DIST;
 
-    if ((dewa = (L_DEWARPA *)LEPT_CALLOC(1, sizeof(L_DEWARPA))) == NULL)
-        return (L_DEWARPA *)ERROR_PTR("dewa not made", procName, NULL);
-    if ((dewa->dewarp =
-         (L_DEWARP **)LEPT_CALLOC(nptrs, sizeof(L_DEWARPA *))) == NULL)
+    dewa = (L_DEWARPA *)LEPT_CALLOC(1, sizeof(L_DEWARPA));
+    dewa->dewarp = (L_DEWARP **)LEPT_CALLOC(nptrs, sizeof(L_DEWARPA *));
+    dewa->dewarpcache = (L_DEWARP **)LEPT_CALLOC(nptrs, sizeof(L_DEWARPA *));
+    if (!dewa->dewarp || !dewa->dewarpcache) {
+        dewarpaDestroy(&dewa);
         return (L_DEWARPA *)ERROR_PTR("dewarp ptrs not made", procName, NULL);
-    if ((dewa->dewarpcache =
-        (L_DEWARP **)LEPT_CALLOC(nptrs, sizeof(L_DEWARPA *))) == NULL)
-        return (L_DEWARPA *)ERROR_PTR("dewarpcache ptrs not made",
-                                      procName, NULL);
+    }
     dewa->nalloc = nptrs;
     dewa->sampling = sampling;
     dewa->redfactor = redfactor;
@@ -625,7 +623,6 @@ L_DEWARPA  *dewa;
     dewa->max_diff_edgecurv = DEFAULT_MAX_DIFF_EDGECURV;
     dewa->check_columns = DEFAULT_CHECK_COLUMNS;
     dewa->useboth = DEFAULT_USE_BOTH;
-
     return dewa;
 }
 
@@ -1294,7 +1291,8 @@ l_int32
 dewarpWrite(const char  *filename,
             L_DEWARP    *dew)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("dewarpWrite");
 
@@ -1305,10 +1303,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (dewarpWriteStream(fp, dew))
-        return ERROR_INT("dew not written to stream", procName, 1);
+    ret = dewarpWriteStream(fp, dew);
     fclose(fp);
-
+    if (ret)
+        return ERROR_INT("dew not written to stream", procName, 1);
     return 0;
 }
 
@@ -1574,7 +1572,8 @@ l_int32
 dewarpaWrite(const char  *filename,
              L_DEWARPA   *dewa)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("dewarpaWrite");
 
@@ -1585,9 +1584,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (dewarpaWriteStream(fp, dewa))
-        return ERROR_INT("dewa not written to stream", procName, 1);
+    ret = dewarpaWriteStream(fp, dewa);
     fclose(fp);
+    if (ret)
+        return ERROR_INT("dewa not written to stream", procName, 1);
     return 0;
 }
 

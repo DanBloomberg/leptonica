@@ -268,9 +268,10 @@ PIX  *pix1, *pix2, *pixd;
 
     if ((pix1 = pixHShear(NULL, pixs, ycen, angle, incolor)) == NULL)
         return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
-    if ((pixd = pixVShear(NULL, pix1, xcen, angle, incolor)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixd = pixVShear(NULL, pix1, xcen, angle, incolor);
     pixDestroy(&pix1);
+    if (!pixd)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
 
     if (pixGetDepth(pixs) == 32 && pixGetSpp(pixs) == 4) {
         pix1 = pixGetRGBComponent(pixs, L_ALPHA_CHANNEL);
@@ -341,8 +342,10 @@ PIX       *pix1, *pix2, *pixd;
     hangle = atan(sin(angle));
     if ((pixd = pixVShear(NULL, pixs, xcen, angle / 2., incolor)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    if ((pix1 = pixHShear(NULL, pixd, ycen, hangle, incolor)) == NULL)
+    if ((pix1 = pixHShear(NULL, pixd, ycen, hangle, incolor)) == NULL) {
+        pixDestroy(&pixd);
         return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
+    }
     pixVShear(pixd, pix1, xcen, angle / 2., incolor);
     pixDestroy(&pix1);
 

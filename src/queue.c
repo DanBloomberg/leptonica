@@ -78,7 +78,7 @@ static l_int32 lqueueExtendArray(L_QUEUE *lq);
 /*!
  * \brief   lqueueCreate()
  *
- * \param[in]    nalloc size of ptr array to be alloc'd 0 for default
+ * \param[in]    nalloc     size of ptr array to be alloc'd; 0 for default
  * \return  lqueue, or NULL on error
  *
  * <pre>
@@ -96,10 +96,11 @@ L_QUEUE  *lq;
     if (nalloc < MIN_BUFFER_SIZE)
         nalloc = INITIAL_BUFFER_ARRAYSIZE;
 
-    if ((lq = (L_QUEUE *)LEPT_CALLOC(1, sizeof(L_QUEUE))) == NULL)
-        return (L_QUEUE *)ERROR_PTR("lq not made", procName, NULL);
-    if ((lq->array = (void **)LEPT_CALLOC(nalloc, sizeof(void *))) == NULL)
+    lq = (L_QUEUE *)LEPT_CALLOC(1, sizeof(L_QUEUE));
+    if ((lq->array = (void **)LEPT_CALLOC(nalloc, sizeof(void *))) == NULL) {
+        lqueueDestroy(&lq, 0);
         return (L_QUEUE *)ERROR_PTR("ptr array not made", procName, NULL);
+    }
     lq->nalloc = nalloc;
     lq->nhead = lq->nelem = 0;
     return lq;

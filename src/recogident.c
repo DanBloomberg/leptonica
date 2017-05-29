@@ -626,6 +626,7 @@ PIX       *pix1, *pix2;
     n = recog->setsize;
     boxa = boxaCreate(n);  /* location of best fits for each character */
     bestscore = 0.0;
+    bestindex = bestdelx = bestdely = 0;
     for (i = 0; i < n; i++) {
         pix2 = pixaGetPix(recog->pixa_u, i, L_CLONE);
         w2 = pixGetWidth(pix2);

@@ -1185,7 +1185,8 @@ l_int32
 numaWrite(const char  *filename,
           NUMA        *na)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("numaWrite");
 
@@ -1196,8 +1197,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    numaWriteStream(fp, na);
+    ret = numaWriteStream(fp, na);
     fclose(fp);
+    if (ret)
+        return ERROR_INT("na not written to stream", procName, 1);
     return 0;
 }
 
@@ -1871,7 +1874,8 @@ l_int32
 numaaWrite(const char  *filename,
            NUMAA       *naa)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("numaaWrite");
 
@@ -1882,9 +1886,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    numaaWriteStream(fp, naa);
+    ret = numaaWriteStream(fp, naa);
     fclose(fp);
-
+    if (ret)
+        return ERROR_INT("naa not written to stream", procName, 1);
     return 0;
 }
 

@@ -341,7 +341,7 @@ encodeAscii85(l_uint8  *inarray,
               l_int32  *poutsize)
 {
 char    *chara;
-char    *outbuf;
+char     outbuf[8];
 l_int32  maxsize, i, index, outindex, linecount, nbout, eof;
 
     PROCNAME("encodeAscii85");
@@ -359,8 +359,6 @@ l_int32  maxsize, i, index, outindex, linecount, nbout, eof;
                         (1. + 2. / MAX_ASCII85_LINE));
     if ((chara = (char *)LEPT_CALLOC(maxsize, sizeof(char))) == NULL)
         return (char *)ERROR_PTR("chara not made", procName, NULL);
-    if ((outbuf = (char *)LEPT_CALLOC(8, sizeof(char))) == NULL)
-        return (char *)ERROR_PTR("outbuf not made", procName, NULL);
 
     linecount = 0;
     index = 0;
@@ -385,7 +383,6 @@ l_int32  maxsize, i, index, outindex, linecount, nbout, eof;
         }
     }
 
-    LEPT_FREE(outbuf);
     *poutsize = outindex;
     return chara;
 }
@@ -625,8 +622,10 @@ l_int32  i, j, flatindex, flatsize, outindex, nlines, linewithpad, linecount;
     linewithpad = leadspace + linechars + 1;  /* including newline */
     if (addquotes) linewithpad += 2;
     if ((outa = (char *)LEPT_CALLOC(nlines * linewithpad, sizeof(char)))
-        == NULL)
+        == NULL) {
+        LEPT_FREE(flata);
         return (char *)ERROR_PTR("outa not made", procName, NULL);
+    }
     for (j = 0, outindex = 0; j < leadspace; j++)
         outa[outindex++] = ' ';
     if (addquotes) outa[outindex++] = '"';

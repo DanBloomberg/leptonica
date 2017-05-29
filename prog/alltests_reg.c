@@ -118,6 +118,7 @@ static const char *tests[] = {
                               "pdfseg_reg",
                               "pixa2_reg",
                               "pixadisp_reg",
+                              "pixcomp_reg",
                               "pixserial_reg",
                               "pngio_reg",
                               "pnmio_reg",

@@ -145,15 +145,14 @@ L_PTRA  *pa;
     if (n <= 0)
         n = INITIAL_PTR_ARRAYSIZE;
 
-    if ((pa = (L_PTRA *)LEPT_CALLOC(1, sizeof(L_PTRA))) == NULL)
-        return (L_PTRA *)ERROR_PTR("pa not made", procName, NULL);
-    if ((pa->array = (void **)LEPT_CALLOC(n, sizeof(void *))) == NULL)
+    pa = (L_PTRA *)LEPT_CALLOC(1, sizeof(L_PTRA));
+    if ((pa->array = (void **)LEPT_CALLOC(n, sizeof(void *))) == NULL) {
+        ptraDestroy(&pa, 0, 0);
         return (L_PTRA *)ERROR_PTR("ptr array not made", procName, NULL);
-
+    }
     pa->nalloc = n;
     pa->imax = -1;
     pa->nactual = 0;
-
     return pa;
 }
 
@@ -799,9 +798,10 @@ L_PTRAA  *paa;
 
     if ((paa = (L_PTRAA *)LEPT_CALLOC(1, sizeof(L_PTRAA))) == NULL)
         return (L_PTRAA *)ERROR_PTR("paa not made", procName, NULL);
-    if ((paa->ptra = (L_PTRA **)LEPT_CALLOC(n, sizeof(L_PTRA *))) == NULL)
+    if ((paa->ptra = (L_PTRA **)LEPT_CALLOC(n, sizeof(L_PTRA *))) == NULL) {
+        ptraaDestroy(&paa, 0, 0);
         return (L_PTRAA *)ERROR_PTR("ptr array not made", procName, NULL);
-
+    }
     paa->nalloc = n;
     return paa;
 }

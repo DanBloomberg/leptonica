@@ -121,16 +121,17 @@ PTA  *pta;
     if (n <= 0)
         n = INITIAL_PTR_ARRAYSIZE;
 
-    if ((pta = (PTA *)LEPT_CALLOC(1, sizeof(PTA))) == NULL)
-        return (PTA *)ERROR_PTR("pta not made", procName, NULL);
+    pta = (PTA *)LEPT_CALLOC(1, sizeof(PTA));
     pta->n = 0;
     pta->nalloc = n;
     ptaChangeRefcount(pta, 1);  /* sets to 1 */
 
-    if ((pta->x = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32))) == NULL)
-        return (PTA *)ERROR_PTR("x array not made", procName, NULL);
-    if ((pta->y = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32))) == NULL)
-        return (PTA *)ERROR_PTR("y array not made", procName, NULL);
+    pta->x = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32));
+    pta->y = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32));
+    if (!pta->x || !pta->y) {
+        ptaDestroy(&pta);
+        return (PTA *)ERROR_PTR("x and y arrays not both made", procName, NULL);
+    }
 
     return pta;
 }
@@ -715,12 +716,16 @@ PTA       *pta;
         return (PTA *)ERROR_PTR("pta not made", procName, NULL);
     for (i = 0; i < n; i++) {
         if (type == 0) {  /* data is float */
-            if (fscanf(fp, "   (%f, %f)\n", &x, &y) != 2)
+            if (fscanf(fp, "   (%f, %f)\n", &x, &y) != 2) {
+                ptaDestroy(&pta);
                 return (PTA *)ERROR_PTR("error reading floats", procName, NULL);
+            }
             ptaAddPt(pta, x, y);
         } else {   /* data is integer */
-            if (fscanf(fp, "   (%d, %d)\n", &ix, &iy) != 2)
+            if (fscanf(fp, "   (%d, %d)\n", &ix, &iy) != 2) {
+                ptaDestroy(&pta);
                 return (PTA *)ERROR_PTR("error reading ints", procName, NULL);
+            }
             ptaAddPt(pta, ix, iy);
         }
     }
@@ -770,7 +775,8 @@ ptaWrite(const char  *filename,
          PTA         *pta,
          l_int32      type)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("ptaWrite");
 
@@ -781,10 +787,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (ptaWriteStream(fp, pta, type))
-        return ERROR_INT("pta not written to stream", procName, 1);
+    ret = ptaWriteStream(fp, pta, type);
     fclose(fp);
-
+    if (ret)
+        return ERROR_INT("pta not written to stream", procName, 1);
     return 0;
 }
 
@@ -911,10 +917,10 @@ PTAA  *ptaa;
         return (PTAA *)ERROR_PTR("ptaa not made", procName, NULL);
     ptaa->n = 0;
     ptaa->nalloc = n;
-
-    if ((ptaa->pta = (PTA **)LEPT_CALLOC(n, sizeof(PTA *))) == NULL)
+    if ((ptaa->pta = (PTA **)LEPT_CALLOC(n, sizeof(PTA *))) == NULL) {
+        ptaaDestroy(&ptaa);
         return (PTAA *)ERROR_PTR("pta ptrs not made", procName, NULL);
-
+    }
     return ptaa;
 }
 
@@ -1319,8 +1325,10 @@ PTAA    *ptaa;
     if ((ptaa = ptaaCreate(n)) == NULL)
         return (PTAA *)ERROR_PTR("ptaa not made", procName, NULL);
     for (i = 0; i < n; i++) {
-        if ((pta = ptaReadStream(fp)) == NULL)
+        if ((pta = ptaReadStream(fp)) == NULL) {
+            ptaaDestroy(&ptaa);
             return (PTAA *)ERROR_PTR("error reading pta", procName, NULL);
+        }
         ptaaAddPta(ptaa, pta, L_INSERT);
     }
 
@@ -1369,7 +1377,8 @@ ptaaWrite(const char  *filename,
           PTAA        *ptaa,
           l_int32      type)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("ptaaWrite");
 
@@ -1380,10 +1389,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (ptaaWriteStream(fp, ptaa, type))
-        return ERROR_INT("ptaa not written to stream", procName, 1);
+    ret = ptaaWriteStream(fp, ptaa, type);
     fclose(fp);
-
+    if (ret)
+        return ERROR_INT("ptaa not written to stream", procName, 1);
     return 0;
 }
 

@@ -1032,7 +1032,7 @@ ptaGetLinearLSF(PTA        *pta,
                 NUMA      **pnafit)
 {
 l_int32     n, i;
-l_float32   factor, sx, sy, sxx, sxy, val;
+l_float32   a, b, factor, sx, sy, sxx, sxy, val;
 l_float32  *xa, *ya;
 
     PROCNAME("ptaGetLinearLSF");
@@ -1062,8 +1062,8 @@ l_float32  *xa, *ya;
             return ERROR_INT("no solution found", procName, 1);
         factor = 1. / factor;
 
-        *pa = factor * ((l_float32)n * sxy - sx * sy);
-        *pb = factor * (sxx * sy - sx * sxy);
+        a = factor * ((l_float32)n * sxy - sx * sy);
+        b = factor * (sxx * sy - sx * sxy);
     } else if (pa) {  /* b = 0; line through origin */
         for (i = 0; i < n; i++) {
             sxx += xa[i] * xa[i];
@@ -1071,20 +1071,25 @@ l_float32  *xa, *ya;
         }
         if (sxx == 0.0)
             return ERROR_INT("no solution found", procName, 1);
-        *pa = sxy / sxx;
+        a = sxy / sxx;
+        b = 0.0;
     } else {  /* a = 0; horizontal line */
         for (i = 0; i < n; i++)
             sy += ya[i];
-        *pb = sy / (l_float32)n;
+        a = 0.0;
+        b = sy / (l_float32)n;
     }
 
     if (pnafit) {
         *pnafit = numaCreate(n);
         for (i = 0; i < n; i++) {
-            val = (*pa) * xa[i] + *pb;
+            val = a * xa[i] + b;
             numaAddNumber(*pnafit, val);
         }
     }
+
+    if (pa) *pa = a;
+    if (pb) *pb = b;
     return 0;
 }
 

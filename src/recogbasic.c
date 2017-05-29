@@ -896,24 +896,36 @@ SARRAY   *sa_text;
                              maxyshift)) == NULL)
         return (L_RECOG *)ERROR_PTR("recog not made", procName, NULL);
 
-    if (fscanf(fp, "\nLabels for character set:\n") != 0)
+    if (fscanf(fp, "\nLabels for character set:\n") != 0) {
+        recogDestroy(&recog);
         return (L_RECOG *)ERROR_PTR("label intro not read", procName, NULL);
+    }
     l_dnaDestroy(&recog->dna_tochar);
-    sarrayDestroy(&recog->sa_text);
-    if ((dna_tochar = l_dnaReadStream(fp)) == NULL)
+    if ((dna_tochar = l_dnaReadStream(fp)) == NULL) {
+        recogDestroy(&recog);
         return (L_RECOG *)ERROR_PTR("dna_tochar not read", procName, NULL);
-    if ((sa_text = sarrayReadStream(fp)) == NULL)
-        return (L_RECOG *)ERROR_PTR("sa_text not read", procName, NULL);
-    recog->sa_text = sa_text;
+    }
     recog->dna_tochar = dna_tochar;
+    sarrayDestroy(&recog->sa_text);
+    if ((sa_text = sarrayReadStream(fp)) == NULL) {
+        recogDestroy(&recog);
+        return (L_RECOG *)ERROR_PTR("sa_text not read", procName, NULL);
+    }
+    recog->sa_text = sa_text;
 
-    if (fscanf(fp, "\nPixaa of all samples in the training set:\n") != 0)
+    if (fscanf(fp, "\nPixaa of all samples in the training set:\n") != 0) {
+        recogDestroy(&recog);
         return (L_RECOG *)ERROR_PTR("pixaa intro not read", procName, NULL);
-    if ((paa = pixaaReadStream(fp)) == NULL)
+    }
+    if ((paa = pixaaReadStream(fp)) == NULL) {
+        recogDestroy(&recog);
         return (L_RECOG *)ERROR_PTR("pixaa not read", procName, NULL);
+    }
     recog->setsize = setsize;
     nc = pixaaGetCount(paa, NULL);
     if (nc != setsize) {
+        recogDestroy(&recog);
+        pixaaDestroy(&paa);
         L_ERROR("(setsize = %d) != (paa count = %d)\n", procName,
                      setsize, nc);
         return NULL;
@@ -975,7 +987,8 @@ l_int32
 recogWrite(const char  *filename,
            L_RECOG     *recog)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("recogWrite");
 
@@ -986,9 +999,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (recogWriteStream(fp, recog))
-        return ERROR_INT("recog not written to stream", procName, 1);
+    ret = recogWriteStream(fp, recog);
     fclose(fp);
+    if (ret)
+        return ERROR_INT("recog not written to stream", procName, 1);
     return 0;
 }
 

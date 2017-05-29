@@ -604,6 +604,7 @@ NUMA     *na;
 #endif  /* DEBUG_FONT_GEN */
     if (nrows != 3) {
         L_INFO("nrows = %d; skipping fontsize %d\n", procName, nrows, fontsize);
+        boxaDestroy(&boxar);
         return (PIXA *)ERROR_PTR("3 rows not generated", procName, NULL);
     }
 

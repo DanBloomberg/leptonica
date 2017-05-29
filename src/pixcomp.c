@@ -562,10 +562,14 @@ PIXAC  *pixac;
     pixac->nalloc = n;
     pixac->offset = 0;
 
-    if ((pixac->pixc = (PIXC **)LEPT_CALLOC(n, sizeof(PIXC *))) == NULL)
+    if ((pixac->pixc = (PIXC **)LEPT_CALLOC(n, sizeof(PIXC *))) == NULL) {
+        pixacompDestroy(&pixac);
         return (PIXAC *)ERROR_PTR("pixc ptrs not made", procName, NULL);
-    if ((pixac->boxa = boxaCreate(n)) == NULL)
+    }
+    if ((pixac->boxa = boxaCreate(n)) == NULL) {
+        pixacompDestroy(&pixac);
         return (PIXAC *)ERROR_PTR("boxa not made", procName, NULL);
+    }
 
     return pixac;
 }
@@ -701,10 +705,8 @@ PIXAC   *pixac;
         pixDestroy(&pix);
     }
     if ((boxa = pixaGetBoxa(pixa, accesstype)) != NULL) {
-        if (pixac->boxa) {
-            boxaDestroy(&pixac->boxa);
-            pixac->boxa = boxa;
-        }
+        boxaDestroy(&pixac->boxa);
+        pixac->boxa = boxa;
     }
 
     return pixac;
@@ -1647,37 +1649,50 @@ PIXAC    *pixac;
 
     if ((pixac = pixacompCreate(n)) == NULL)
         return (PIXAC *)ERROR_PTR("pixac not made", procName, NULL);
-    if ((boxa = boxaReadStream(fp)) == NULL)
+    if ((boxa = boxaReadStream(fp)) == NULL) {
+        pixacompDestroy(&pixac);
         return (PIXAC *)ERROR_PTR("boxa not made", procName, NULL);
+    }
     boxaDestroy(&pixac->boxa);  /* empty */
     pixac->boxa = boxa;
     pixacompSetOffset(pixac, offset);
 
     for (i = 0; i < n; i++) {
-        if ((pixc = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC))) == NULL)
-            return (PIXAC *)ERROR_PTR("pixc not made", procName, NULL);
         if (fscanf(fp, "\nPixcomp[%d]: w = %d, h = %d, d = %d\n",
-                   &ignore, &w, &h, &d) != 4)
+                   &ignore, &w, &h, &d) != 4) {
+            pixacompDestroy(&pixac);
             return (PIXAC *)ERROR_PTR("size reading", procName, NULL);
+        }
         if (fscanf(fp, "  comptype = %d, size = %d, cmapflag = %d\n",
-                   &comptype, &size, &cmapflag) != 3)
+                   &comptype, &size, &cmapflag) != 3) {
+            pixacompDestroy(&pixac);
             return (PIXAC *)ERROR_PTR("comptype/size reading", procName, NULL);
+        }
 
            /* Use fgets() and sscanf(); not fscanf(), for the last
              * bit of header data before the binary data.  The reason is
              * that fscanf throws away white space, and if the binary data
              * happens to begin with ascii character(s) that are white
              * space, it will swallow them and all will be lost!  */
-        if (fgets(buf, sizeof(buf), fp) == NULL)
+        if (fgets(buf, sizeof(buf), fp) == NULL) {
+            pixacompDestroy(&pixac);
             return (PIXAC *)ERROR_PTR("fgets read fail", procName, NULL);
-        if (sscanf(buf, "  xres = %d, yres = %d\n", &xres, &yres) != 2)
+        }
+        if (sscanf(buf, "  xres = %d, yres = %d\n", &xres, &yres) != 2) {
+            pixacompDestroy(&pixac);
             return (PIXAC *)ERROR_PTR("read fail for res", procName, NULL);
-
-        if ((data = (l_uint8 *)LEPT_CALLOC(1, size)) == NULL)
+        }
+        if ((data = (l_uint8 *)LEPT_CALLOC(1, size)) == NULL) {
+            pixacompDestroy(&pixac);
             return (PIXAC *)ERROR_PTR("calloc fail for data", procName, NULL);
-        if (fread(data, 1, size, fp) != size)
+        }
+        if (fread(data, 1, size, fp) != size) {
+            pixacompDestroy(&pixac);
+            LEPT_FREE(data);
             return (PIXAC *)ERROR_PTR("error reading data", procName, NULL);
+        }
         fgetc(fp);  /* swallow the ending nl */
+        pixc = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC));
         pixc->w = w;
         pixc->h = h;
         pixc->d = d;
@@ -1744,7 +1759,8 @@ l_int32
 pixacompWrite(const char  *filename,
               PIXAC       *pixac)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("pixacompWrite");
 
@@ -1755,9 +1771,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (pixacompWriteStream(fp, pixac))
-        return ERROR_INT("pixacomp not written to stream", procName, 1);
+    ret = pixacompWriteStream(fp, pixac);
     fclose(fp);
+    if (ret)
+        return ERROR_INT("pixacomp not written to stream", procName, 1);
     return 0;
 }
 
@@ -2009,7 +2026,7 @@ L_PTRA   *pa_data;
             continue;
         }
         ba = l_byteaInitFromMem(imdata, imbytes);
-        if (imdata) LEPT_FREE(imdata);
+        LEPT_FREE(imdata);
         ptraAdd(pa_data, ba);
     }
     ptraGetActualCount(pa_data, &n);

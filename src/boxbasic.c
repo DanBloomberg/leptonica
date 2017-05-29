@@ -502,15 +502,14 @@ BOXA  *boxa;
     if (n <= 0)
         n = INITIAL_PTR_ARRAYSIZE;
 
-    if ((boxa = (BOXA *)LEPT_CALLOC(1, sizeof(BOXA))) == NULL)
-        return (BOXA *)ERROR_PTR("boxa not made", procName, NULL);
+    boxa = (BOXA *)LEPT_CALLOC(1, sizeof(BOXA));
     boxa->n = 0;
     boxa->nalloc = n;
     boxa->refcount = 1;
-
-    if ((boxa->box = (BOX **)LEPT_CALLOC(n, sizeof(BOX *))) == NULL)
+    if ((boxa->box = (BOX **)LEPT_CALLOC(n, sizeof(BOX *))) == NULL) {
+        boxaDestroy(&boxa);
         return (BOXA *)ERROR_PTR("boxa ptrs not made", procName, NULL);
-
+    }
     return boxa;
 }
 
@@ -1244,14 +1243,13 @@ BOXAA  *baa;
     if (n <= 0)
         n = INITIAL_PTR_ARRAYSIZE;
 
-    if ((baa = (BOXAA *)LEPT_CALLOC(1, sizeof(BOXAA))) == NULL)
-        return (BOXAA *)ERROR_PTR("baa not made", procName, NULL);
-    if ((baa->boxa = (BOXA **)LEPT_CALLOC(n, sizeof(BOXA *))) == NULL)
+    baa = (BOXAA *)LEPT_CALLOC(1, sizeof(BOXAA));
+    if ((baa->boxa = (BOXA **)LEPT_CALLOC(n, sizeof(BOXA *))) == NULL) {
+        boxaaDestroy(&baa);
         return (BOXAA *)ERROR_PTR("boxa ptr array not made", procName, NULL);
-
+    }
     baa->nalloc = n;
     baa->n = 0;
-
     return baa;
 }
 
@@ -1916,16 +1914,18 @@ BOXAA   *baa;
 
     if ((baa = boxaaCreate(n)) == NULL)
         return (BOXAA *)ERROR_PTR("boxaa not made", procName, NULL);
-
     for (i = 0; i < n; i++) {
         if (fscanf(fp, "\nBoxa[%d] extent: x = %d, y = %d, w = %d, h = %d",
-                   &ignore, &x, &y, &w, &h) != 5)
+                   &ignore, &x, &y, &w, &h) != 5) {
+            boxaaDestroy(&baa);
             return (BOXAA *)ERROR_PTR("boxa descr not valid", procName, NULL);
-        if ((boxa = boxaReadStream(fp)) == NULL)
+        }
+        if ((boxa = boxaReadStream(fp)) == NULL) {
+            boxaaDestroy(&baa);
             return (BOXAA *)ERROR_PTR("boxa not made", procName, NULL);
+        }
         boxaaAddBoxa(baa, boxa, L_INSERT);
     }
-
     return baa;
 }
 
@@ -1969,7 +1969,8 @@ l_int32
 boxaaWrite(const char  *filename,
            BOXAA       *baa)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("boxaaWrite");
 
@@ -1980,10 +1981,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (boxaaWriteStream(fp, baa))
-        return ERROR_INT("baa not written to stream", procName, 1);
+    ret = boxaaWriteStream(fp, baa);
     fclose(fp);
-
+    if (ret)
+        return ERROR_INT("baa not written to stream", procName, 1);
     return 0;
 }
 
@@ -2143,13 +2144,13 @@ BOXA    *boxa;
 
     if ((boxa = boxaCreate(n)) == NULL)
         return (BOXA *)ERROR_PTR("boxa not made", procName, NULL);
-
     for (i = 0; i < n; i++) {
         if (fscanf(fp, "  Box[%d]: x = %d, y = %d, w = %d, h = %d\n",
-                &ignore, &x, &y, &w, &h) != 5)
+                &ignore, &x, &y, &w, &h) != 5) {
+            boxaDestroy(&boxa);
             return (BOXA *)ERROR_PTR("box descr not valid", procName, NULL);
-        if ((box = boxCreate(x, y, w, h)) == NULL)
-            return (BOXA *)ERROR_PTR("box not made", procName, NULL);
+        }
+        box = boxCreate(x, y, w, h);
         boxaAddBox(boxa, box, L_INSERT);
     }
 
@@ -2196,7 +2197,8 @@ l_int32
 boxaWrite(const char  *filename,
           BOXA        *boxa)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("boxaWrite");
 
@@ -2207,9 +2209,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (boxaWriteStream(fp, boxa))
-        return ERROR_INT("boxa not written to stream", procName, 1);
+    ret = boxaWriteStream(fp, boxa);
     fclose(fp);
+    if (ret)
+        return ERROR_INT("boxa not written to stream", procName, 1);
 
     return 0;
 }

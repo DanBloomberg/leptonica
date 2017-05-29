@@ -1758,8 +1758,10 @@ FPIX       *fpix;
         return (FPIX *)ERROR_PTR("fpix not made", procName, NULL);
     fpixSetResolution(fpix, xres, yres);
     data = fpixGetData(fpix);
-    if (fread(data, 1, nbytes, fp) != nbytes)
+    if (fread(data, 1, nbytes, fp) != nbytes) {
+        fpixDestroy(&fpix);
         return (FPIX *)ERROR_PTR("read error for nbytes", procName, NULL);
+    }
     fgetc(fp);  /* ending nl */
 
         /* Convert to little-endian if necessary */
@@ -1807,7 +1809,8 @@ l_int32
 fpixWrite(const char  *filename,
           FPIX        *fpix)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("fpixWrite");
 
@@ -1818,11 +1821,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (fpixWriteStream(fp, fpix)) {
-        fclose(fp);
-        return ERROR_INT("fpix not written to stream", procName, 1);
-    }
+    ret = fpixWriteStream(fp, fpix);
     fclose(fp);
+    if (ret)
+        return ERROR_INT("fpix not written to stream", procName, 1);
     return 0;
 }
 
@@ -2106,7 +2108,8 @@ l_int32
 dpixWrite(const char  *filename,
           DPIX        *dpix)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("dpixWrite");
 
@@ -2117,11 +2120,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (dpixWriteStream(fp, dpix)) {
-        fclose(fp);
-        return ERROR_INT("dpix not written to stream", procName, 1);
-    }
+    ret = dpixWriteStream(fp, dpix);
     fclose(fp);
+    if (ret)
+        return ERROR_INT("dpix not written to stream", procName, 1);
     return 0;
 }
 

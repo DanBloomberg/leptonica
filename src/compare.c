@@ -2119,11 +2119,8 @@ PIXA      *pixa;
     if (nx < 1 || ny < 1)
         return ERROR_INT("nx and ny must both be > 0", procName, 1);
 
-    pixa = NULL;
-    if (debugflag) {
-        pixa = pixaCreate(0);
+    if (debugflag)
         lept_mkdir("lept/comp");
-    }
 
         /* Initial filter by size */
     if (box1)
@@ -2766,11 +2763,8 @@ PIXA      *pixa;
     if (nx < 1 || ny < 1)
         return ERROR_INT("nx and ny must both be > 0", procName, 1);
 
-    pixa = NULL;
-    if (debugflag) {
-        pixa = pixaCreate(0);
+    if (debugflag)
         lept_mkdir("lept/comp");
-    }
 
         /* Initial filter by size */
     if (box1)
@@ -2804,6 +2798,7 @@ PIXA      *pixa;
     pixCropAlignedToCentroid(pix5, pix6, factor, &box3, &box4);
     pix7 = pixClipRectangle(pix5, box3, NULL);
     pix8 = pixClipRectangle(pix6, box4, NULL);
+    pixa = (debugflag) ? pixaCreate(0) : NULL;
     if (debugflag) {
         PIX     *pix9, *pix10, *pix11, *pix12, *pix13;
         PIXA    *pixa2;
@@ -2831,10 +2826,9 @@ PIXA      *pixa;
 
         /* Tile and compare histograms */
     pixCompareTilesByHisto(pix7, pix8, maxgray, factor, nx, ny, pscore, pixa);
-
+    pixaDestroy(&pixa);
     pixDestroy(&pix7);
     pixDestroy(&pix8);
-    pixaDestroy(&pixa);
     return 0;
 }
 

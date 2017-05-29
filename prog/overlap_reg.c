@@ -33,9 +33,14 @@
 
 #include "allheaders.h"
 
-    /* Determines maximum size of boxes.  Note the rapid change in
-     * results as the maximum box dimension approaches a critical size. */
+    /* Determines maximum size of randomly-generated boxes.  Note the
+     * rapid change in results as the maximum box dimension approaches
+     * the critical size of 28. */
 static const l_float32  maxsize[] = {5.0, 10.0, 15.0, 20.0, 25.0, 26.0, 27.0};
+
+    /* Alternative implementation; just for fun */
+BOXA *boxaCombineOverlapsAlt(BOXA *boxas);
+
 
 int main(int    argc,
          char **argv)
@@ -50,7 +55,9 @@ L_REGPARAMS  *rp;
     if (regTestSetup(argc, argv, &rp))
 	return 1;
 
-        /* Show the result as a kind of percolation problem */
+    /* -------------------------------------------------------- */
+    /*     Show the result as a kind of percolation problem     */
+    /* -------------------------------------------------------- */
     for (k = 0; k < 7; k++) {
         srand(45617);
         pixa1 = pixaCreate(2);
@@ -77,15 +84,19 @@ L_REGPARAMS  *rp;
         pix3 = pixaDisplayTiledInRows(pixa1, 1, 1500, 1.0, 0, 50, 2);
         pixDisplayWithTitle(pix3, 100, 100 + 100 * k, NULL, rp->display);
         regTestWritePixAndCheck(rp, pix3, IFF_PNG);   /* 0 - 6 */
-        fprintf(stderr, "%d: n_init = %d, n_final = %d\n",
-                k, boxaGetCount(boxa1), boxaGetCount(boxa2));
+        fprintf(stderr, "Test %d, maxsize = %d: n_init = %d, n_final = %d\n",
+                k + 1, (l_int32)maxsize[k] + 1,
+                boxaGetCount(boxa1), boxaGetCount(boxa2));
         pixDestroy(&pix3);
         boxaDestroy(&boxa1);
         boxaDestroy(&boxa2);
         pixaDestroy(&pixa1);
     }
 
-        /* Show for one case, with debugging */
+    /* -------------------------------------------------------- */
+    /*  Show for one case, with debugging, and compare with an  */
+    /*                   an alternative version.                */
+    /* -------------------------------------------------------- */
     boxa1 = boxaCreate(0);
     pixa1 = pixaCreate(10);
     n = 80;
@@ -107,12 +118,22 @@ L_REGPARAMS  *rp;
     pix1 = pixaDisplayTiledInRows(pixa1, 32, 1500, 1.0, 0, 50, 2);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);   /* 8 */
     pixDisplayWithTitle(pix1, 600, 0, NULL, rp->display);
-    boxaDestroy(&boxa1);
-    boxaDestroy(&boxa2);
     pixaDestroy(&pixa1);
     pixDestroy(&pix1);
 
-        /* Show for two boxa that are greedily munching each other */
+        /* Show the boxa from both functions are identical */
+    boxa3 = boxaCombineOverlapsAlt(boxa1);
+    boxaContainedInBoxa(boxa3, boxa2, &result);
+    regTestCompareValues(rp, 1, result, 0);  /* 9 */
+    boxaContainedInBoxa(boxa2, boxa3, &result);
+    regTestCompareValues(rp, 1, result, 0);  /* 10 */
+    boxaDestroy(&boxa1);
+    boxaDestroy(&boxa2);
+    boxaDestroy(&boxa3);
+
+    /* --------------------------------------------------------- */
+    /*  Show for two boxa that are greedily munching each other  */
+    /* --------------------------------------------------------- */
     boxa1 = boxaCreate(0);
     boxa2 = boxaCreate(0);
     n = 80;
@@ -133,7 +154,7 @@ L_REGPARAMS  *rp;
     pixa1 = pixaCreate(0);
     boxaCombineOverlapsInPair(boxa1, boxa2, &boxa3, &boxa4, pixa1);
     pix1 = pixaDisplayTiledInRows(pixa1, 32, 1500, 1.0, 0, 50, 2);
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);   /* 9 */
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);   /* 11 */
     pixDisplayWithTitle(pix1, 1200, 0, NULL, rp->display);
     pixDestroy(&pix1);
     pixaDestroy(&pixa1);
@@ -145,3 +166,66 @@ L_REGPARAMS  *rp;
     return regTestCleanup(rp);
 }
 
+
+/* -------------------------------------------------------------------- *
+ *   Alternative (less elegant) implementation of boxaCombineOverlaps() *
+ * -------------------------------------------------------------------- */
+BOXA *
+boxaCombineOverlapsAlt(BOXA  *boxas)
+{
+l_int32  i, j, n1, n2, inter, interfound, niters;
+BOX     *box1, *box2, *box3;
+BOXA    *boxa1, *boxa2;
+
+    PROCNAME("boxaCombineOverlapsAlt");
+
+    if (!boxas)
+        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+
+    boxa1 = boxaCopy(boxas, L_COPY);
+    n1 = boxaGetCount(boxa1);
+    niters = 0;
+    while (1) {  /* loop until no change from previous iteration */
+        niters++;
+        boxa2 = boxaCreate(n1);
+        for (i = 0; i < n1; i++) {
+            box1 = boxaGetBox(boxa1, i, L_COPY);
+            if (i == 0) {
+                boxaAddBox(boxa2, box1, L_INSERT);
+                continue;
+            }
+            n2 = boxaGetCount(boxa2);
+                /* Now test box1 against all boxes already put in boxa2.
+                 * If it is found to intersect with an existing box,
+                 * replace that box by the union of the two boxes,
+                 * and break to the outer loop.  If no overlap is
+                 * found, add box1 to boxa2. */
+            interfound = FALSE;
+            for (j = 0; j < n2; j++) {
+                box2 = boxaGetBox(boxa2, j, L_CLONE);
+                boxIntersects(box1, box2, &inter);
+                if (inter == 1) {
+                    box3 = boxBoundingRegion(box1, box2);
+                    boxaReplaceBox(boxa2, j, box3);
+                    boxDestroy(&box1);
+                    boxDestroy(&box2);
+                    interfound = TRUE;
+                    break;
+                }
+                boxDestroy(&box2);
+            }
+            if (interfound == FALSE)
+                boxaAddBox(boxa2, box1, L_INSERT);
+        }
+
+        n2 = boxaGetCount(boxa2);
+        if (n2 == n1)  /* we're done */
+            break;
+
+        n1 = n2;
+        boxaDestroy(&boxa1);
+        boxa1 = boxa2;
+    }
+    boxaDestroy(&boxa1);
+    return boxa2;
+}

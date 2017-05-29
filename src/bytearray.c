@@ -99,14 +99,14 @@ L_BYTEA  *ba;
     if (nbytes <= 0)
         nbytes = INITIAL_ARRAYSIZE;
 
-    if ((ba = (L_BYTEA *)LEPT_CALLOC(1, sizeof(L_BYTEA))) == NULL)
-        return (L_BYTEA *)ERROR_PTR("ba not made", procName, NULL);
-
-    if ((ba->data = (l_uint8 *)LEPT_CALLOC(nbytes + 1, sizeof(l_uint8))) == NULL)
+    ba = (L_BYTEA *)LEPT_CALLOC(1, sizeof(L_BYTEA));
+    ba->data = (l_uint8 *)LEPT_CALLOC(nbytes + 1, sizeof(l_uint8));
+    if (!ba->data) {
+        l_byteaDestroy(&ba);
         return (L_BYTEA *)ERROR_PTR("ba array not made", procName, NULL);
+    }
     ba->nalloc = nbytes + 1;
     ba->refcount = 1;
-
     return ba;
 }
 
@@ -158,9 +158,10 @@ L_BYTEA  *ba;
 
     if ((fp = fopenReadStream(fname)) == NULL)
         return (L_BYTEA *)ERROR_PTR("file stream not opened", procName, NULL);
-    if ((ba = l_byteaInitFromStream(fp)) == NULL)
-        return (L_BYTEA *)ERROR_PTR("ba not made", procName, NULL);
+    ba = l_byteaInitFromStream(fp);
     fclose(fp);
+    if (!ba)
+        return (L_BYTEA *)ERROR_PTR("ba not made", procName, NULL);
     return ba;
 }
 
@@ -185,8 +186,10 @@ L_BYTEA  *ba;
 
     if ((data = l_binaryReadStream(fp, &nbytes)) == NULL)
         return (L_BYTEA *)ERROR_PTR("data not read", procName, NULL);
-    if ((ba = l_byteaCreate(nbytes)) == NULL)
+    if ((ba = l_byteaCreate(nbytes)) == NULL) {
+        LEPT_FREE(data);
         return (L_BYTEA *)ERROR_PTR("ba not made", procName, NULL);
+    }
     memcpy(ba->data, data, nbytes);
     ba->size = nbytes;
     LEPT_FREE(data);

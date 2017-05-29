@@ -273,6 +273,7 @@ PIXCMAP     *cmap;
             procName, NULL);
     }
 
+    cmap = NULL;
     if (color_type == PNG_COLOR_TYPE_PALETTE ||
         color_type == PNG_COLOR_MASK_PALETTE) {   /* generate a colormap */
         png_get_PLTE(png_ptr, info_ptr, &palette, &num_palette);
@@ -283,11 +284,10 @@ PIXCMAP     *cmap;
             bval = palette[cindex].blue;
             pixcmapAddColor(cmap, rval, gval, bval);
         }
-    } else {
-        cmap = NULL;
     }
 
     if ((pix = pixCreate(w, h, d)) == NULL) {
+        pixcmapDestroy(&cmap);
         png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
         return (PIX *)ERROR_PTR("pix not made", procName, NULL);
     }
@@ -565,8 +565,8 @@ freadHeaderPng(FILE     *fp,
                l_int32  *pspp,
                l_int32  *piscmap)
 {
-l_int32   nbytes, ret;
-l_uint8  *data;
+l_int32  nbytes, ret;
+l_uint8  data[40];
 
     PROCNAME("freadHeaderPng");
 
@@ -581,12 +581,9 @@ l_uint8  *data;
     nbytes = fnbytesInFile(fp);
     if (nbytes < 40)
         return ERROR_INT("file too small to be png", procName, 1);
-    if ((data = (l_uint8 *)LEPT_CALLOC(40, sizeof(l_uint8))) == NULL)
-        return ERROR_INT("LEPT_CALLOC fail for data", procName, 1);
     if (fread(data, 1, 40, fp) != 40)
         return ERROR_INT("error reading data", procName, 1);
     ret = readHeaderMemPng(data, 40, pw, ph, pbps, pspp, piscmap);
-    LEPT_FREE(data);
     return ret;
 }
 
@@ -777,8 +774,10 @@ FILE    *fp;
 
     if ((fp = fopenReadStream(filename)) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (fread(buf, 1, 32, fp) != 32)
+    if (fread(buf, 1, 32, fp) != 32) {
+        fclose(fp);
         return ERROR_INT("data not read", procName, 1);
+    }
     fclose(fp);
 
     *pinterlaced = (buf[28] == 0) ? 0 : 1;
@@ -1637,6 +1636,7 @@ MEMIODATA    state;
     }
 
     if ((pix = pixCreate(w, h, d)) == NULL) {
+        pixcmapDestroy(&cmap);
         png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
         pixcmapDestroy(&cmap);
         return (PIX *)ERROR_PTR("pix not made", procName, NULL);

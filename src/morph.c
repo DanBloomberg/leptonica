@@ -1140,6 +1140,7 @@ l_int32  diff[256];  /* diff between product (sel size) and input size */
 
         /* Choose the optimum factors; use cost ratio 4 on diff */
     mincost = 10000;
+    index = 1;  /* unimportant initial value */
     for (i = 0; i < midval + 1; i++) {
         if (diff[i] == 0 && rastcost[i] < ACCEPTABLE_COST) {
             *pfactor1 = hival[i];
@@ -1205,7 +1206,7 @@ pixDilateCompBrick(PIX     *pixd,
                    l_int32  hsize,
                    l_int32  vsize)
 {
-PIX  *pixt1, *pixt2, *pixt3;
+PIX  *pix1, *pix2, *pix3;
 SEL  *selh1, *selh2, *selv1, *selv2;
 
     PROCNAME("pixDilateCompBrick");
@@ -1217,28 +1218,28 @@ SEL  *selh1, *selh2, *selv1, *selv2;
     if (hsize < 1 || vsize < 1)
         return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
 
-    pixt1 = pixAddBorder(pixs, 32, 0);
-
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
     if (hsize > 1)
         selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
     if (vsize > 1)
         selectComposableSels(vsize, L_VERT, &selv1, &selv2);
+
+    pix1 = pixAddBorder(pixs, 32, 0);
     if (vsize == 1) {
-        pixt2 = pixDilate(NULL, pixt1, selh1);
-        pixt3 = pixDilate(NULL, pixt2, selh2);
+        pix2 = pixDilate(NULL, pix1, selh1);
+        pix3 = pixDilate(NULL, pix2, selh2);
     } else if (hsize == 1) {
-        pixt2 = pixDilate(NULL, pixt1, selv1);
-        pixt3 = pixDilate(NULL, pixt2, selv2);
+        pix2 = pixDilate(NULL, pix1, selv1);
+        pix3 = pixDilate(NULL, pix2, selv2);
     } else {
-        pixt2 = pixDilate(NULL, pixt1, selh1);
-        pixt3 = pixDilate(NULL, pixt2, selh2);
-        pixDilate(pixt2, pixt3, selv1);
-        pixDilate(pixt3, pixt2, selv2);
+        pix2 = pixDilate(NULL, pix1, selh1);
+        pix3 = pixDilate(NULL, pix2, selh2);
+        pixDilate(pix2, pix3, selv1);
+        pixDilate(pix3, pix2, selv2);
     }
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
 
     if (hsize > 1) {
         selDestroy(&selh1);
@@ -1249,12 +1250,12 @@ SEL  *selh1, *selh2, *selv1, *selv2;
         selDestroy(&selv2);
     }
 
-    pixt1 = pixRemoveBorder(pixt3, 32);
-    pixDestroy(&pixt3);
+    pix1 = pixRemoveBorder(pix3, 32);
+    pixDestroy(&pix3);
     if (!pixd)
-        return pixt1;
-    pixCopy(pixd, pixt1);
-    pixDestroy(&pixt1);
+        return pix1;
+    pixCopy(pixd, pix1);
+    pixDestroy(&pix1);
     return pixd;
 }
 

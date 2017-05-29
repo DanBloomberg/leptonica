@@ -31,7 +31,7 @@ AUTO_REG_PROGS = adaptmap_reg affine_reg alphaops_reg \
 	logicops_reg maze_reg mtiff_reg multitype_reg \
 	nearline_reg newspaper_reg \
 	overlap_reg pageseg_reg paint_reg paintmask_reg \
-	pdfseg_reg pixa2_reg pixadisp_reg \
+	pdfseg_reg pixa2_reg pixadisp_reg pixcomp_reg \
 	pixserial_reg pngio_reg pnmio_reg \
 	projection_reg projective_reg \
 	psio_reg psioseg_reg \
@@ -66,8 +66,7 @@ MANUAL_REG_PROGS = alltests_reg adaptnorm_reg bilateral1_reg \
 	grayfill_reg heap_reg locminmax_reg \
 	lowaccess_reg morphseq_reg \
 	numa1_reg numa2_reg pixa1_reg \
-	pixalloc_reg pixcomp_reg \
-	pixmem_reg pixtile_reg \
+	pixalloc_reg pixmem_reg pixtile_reg \
 	ptra1_reg ptra2_reg \
 	rasterop_reg smallpix_reg \
 	smoothedge_reg string_reg \

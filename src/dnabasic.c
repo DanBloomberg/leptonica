@@ -175,10 +175,11 @@ L_DNA  *da;
     if (n <= 0)
         n = INITIAL_PTR_ARRAYSIZE;
 
-    if ((da = (L_DNA *)LEPT_CALLOC(1, sizeof(L_DNA))) == NULL)
-        return (L_DNA *)ERROR_PTR("da not made", procName, NULL);
-    if ((da->array = (l_float64 *)LEPT_CALLOC(n, sizeof(l_float64))) == NULL)
+    da = (L_DNA *)LEPT_CALLOC(1, sizeof(L_DNA));
+    if ((da->array = (l_float64 *)LEPT_CALLOC(n, sizeof(l_float64))) == NULL) {
+        l_dnaDestroy(&da);
         return (L_DNA *)ERROR_PTR("double array not made", procName, NULL);
+    }
 
     da->nalloc = n;
     da->n = 0;
@@ -1033,17 +1034,17 @@ L_DNA     *da;
 
     if ((da = l_dnaCreate(n)) == NULL)
         return (L_DNA *)ERROR_PTR("da not made", procName, NULL);
-
     for (i = 0; i < n; i++) {
-        if (fscanf(fp, "  [%d] = %lf\n", &index, &val) != 2)
+        if (fscanf(fp, "  [%d] = %lf\n", &index, &val) != 2) {
+            l_dnaDestroy(&da);
             return (L_DNA *)ERROR_PTR("bad input data", procName, NULL);
+        }
         l_dnaAddNumber(da, val);
     }
 
         /* Optional data */
     if (fscanf(fp, "startx = %lf, delx = %lf\n", &startx, &delx) == 2)
         l_dnaSetParameters(da, startx, delx);
-
     return da;
 }
 
@@ -1058,7 +1059,8 @@ l_int32
 l_dnaWrite(const char  *filename,
            L_DNA       *da)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("l_dnaWrite");
 
@@ -1069,10 +1071,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (l_dnaWriteStream(fp, da))
-        return ERROR_INT("da not written to stream", procName, 1);
+    ret = l_dnaWriteStream(fp, da);
     fclose(fp);
-
+    if (ret)
+        return ERROR_INT("da not written to stream", procName, 1);
     return 0;
 }
 
@@ -1134,14 +1136,13 @@ L_DNAA  *daa;
     if (n <= 0)
         n = INITIAL_PTR_ARRAYSIZE;
 
-    if ((daa = (L_DNAA *)LEPT_CALLOC(1, sizeof(L_DNAA))) == NULL)
-        return (L_DNAA *)ERROR_PTR("daa not made", procName, NULL);
-    if ((daa->dna = (L_DNA **)LEPT_CALLOC(n, sizeof(L_DNA *))) == NULL)
+    daa = (L_DNAA *)LEPT_CALLOC(1, sizeof(L_DNAA));
+    if ((daa->dna = (L_DNA **)LEPT_CALLOC(n, sizeof(L_DNA *))) == NULL) {
+        l_dnaaDestroy(&daa);
         return (L_DNAA *)ERROR_PTR("l_dna ptr array not made", procName, NULL);
-
+    }
     daa->nalloc = n;
     daa->n = 0;
-
     return daa;
 }
 
@@ -1593,10 +1594,14 @@ L_DNAA    *daa;
         return (L_DNAA *)ERROR_PTR("daa not made", procName, NULL);
 
     for (i = 0; i < n; i++) {
-        if (fscanf(fp, "L_Dna[%d]:", &index) != 1)
+        if (fscanf(fp, "L_Dna[%d]:", &index) != 1) {
+            l_dnaaDestroy(&daa);
             return (L_DNAA *)ERROR_PTR("invalid l_dna header", procName, NULL);
-        if ((da = l_dnaReadStream(fp)) == NULL)
+        }
+        if ((da = l_dnaReadStream(fp)) == NULL) {
+            l_dnaaDestroy(&daa);
             return (L_DNAA *)ERROR_PTR("da not made", procName, NULL);
+        }
         l_dnaaAddDna(daa, da, L_INSERT);
     }
 
@@ -1614,7 +1619,8 @@ l_int32
 l_dnaaWrite(const char  *filename,
             L_DNAA      *daa)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("l_dnaaWrite");
 
@@ -1625,9 +1631,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (l_dnaaWriteStream(fp, daa))
-        return ERROR_INT("daa not written to stream", procName, 1);
+    ret = l_dnaaWriteStream(fp, daa);
     fclose(fp);
+    if (ret)
+        return ERROR_INT("daa not written to stream", procName, 1);
 
     return 0;
 }

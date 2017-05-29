@@ -737,11 +737,14 @@ PTA      *pta;
 
     if ((pta = generatePtaLine(x1, y1, x2, y2)) == NULL)
         return (NUMA *)ERROR_PTR("pta not made", procName, NULL);
-    if ((npts = ptaGetCount(pta)) == 0)
+    if ((npts = ptaGetCount(pta)) == 0) {
+        ptaDestroy(&pta);
         return (NUMA *)ERROR_PTR("pta has no pts", procName, NULL);
-
-    if ((numa = numaCreate(0)) == NULL)
+    }
+    if ((numa = numaCreate(0)) == NULL) {
+        ptaDestroy(&pta);
         return (NUMA *)ERROR_PTR("numa not made", procName, NULL);
+    }
 
     for (i = 0; i < npts; i++) {
         ptaGetIPt(pta, i, &x, &y);

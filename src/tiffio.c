@@ -508,10 +508,7 @@ PIXCMAP   *cmap;
 
         /* Read the data */
     if (spp == 1) {
-        if ((linebuf = (l_uint8 *)LEPT_CALLOC(tiffbpl + 1, sizeof(l_uint8)))
-            == NULL)
-            return (PIX *)ERROR_PTR("calloc fail for linebuf", procName, NULL);
-
+        linebuf = (l_uint8 *)LEPT_CALLOC(tiffbpl + 1, sizeof(l_uint8));
         for (i = 0 ; i < h ; i++) {
             if (TIFFReadScanline(tif, linebuf, i, 0) < 0) {
                 LEPT_FREE(linebuf);
@@ -1990,8 +1987,10 @@ TIFF     *tif;
         return ERROR_INT("inarray not made", procName, 1);
 
         /* Get metadata about the image */
-    if ((tif = openTiff(filein, "rb")) == NULL)
+    if ((tif = openTiff(filein, "rb")) == NULL) {
+        LEPT_FREE(inarray);
         return ERROR_INT("tif not open for read", procName, 1);
+    }
     TIFFGetField(tif, TIFFTAG_COMPRESSION, &comptype);
     if (comptype != COMPRESSION_CCITTFAX4) {
         LEPT_FREE(inarray);
