@@ -2401,15 +2401,13 @@ PIXA  *pixa;
 
     if (!filename)
         return (PIXA *)ERROR_PTR("filename not defined", procName, NULL);
+
     if ((fp = fopenReadStream(filename)) == NULL)
         return (PIXA *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((pixa = pixaReadStream(fp)) == NULL) {
-        fclose(fp);
-        return (PIXA *)ERROR_PTR("pixa not read", procName, NULL);
-    }
-
+    pixa = pixaReadStream(fp);
     fclose(fp);
+    if (!pixa)
+        return (PIXA *)ERROR_PTR("pixa not read", procName, NULL);
     return pixa;
 }
 
@@ -2781,15 +2779,13 @@ PIXAA  *paa;
 
     if (!filename)
         return (PIXAA *)ERROR_PTR("filename not defined", procName, NULL);
+
     if ((fp = fopenReadStream(filename)) == NULL)
         return (PIXAA *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((paa = pixaaReadStream(fp)) == NULL) {
-        fclose(fp);
-        return (PIXAA *)ERROR_PTR("paa not read", procName, NULL);
-    }
-
+    paa = pixaaReadStream(fp);
     fclose(fp);
+    if (!paa)
+        return (PIXAA *)ERROR_PTR("paa not read", procName, NULL);
     return paa;
 }
 

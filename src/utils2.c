@@ -1866,7 +1866,8 @@ l_uint32  attributes;
 #ifndef _WIN32
         ret += mkdir(tmpdir, 0777);
 #else
-        ret += (CreateDirectory(tmpdir, NULL) ? 0 : 1);
+        if (CreateDirectory(tmpdir, NULL) == 0)
+            ret += (GetLastError () != ERROR_ALREADY_EXISTS);
 #endif
         LEPT_FREE(dir);
         dir = tmpdir;

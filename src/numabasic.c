@@ -1091,13 +1091,10 @@ NUMA  *na;
 
     if ((fp = fopenReadStream(filename)) == NULL)
         return (NUMA *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((na = numaReadStream(fp)) == NULL) {
-        fclose(fp);
-        return (NUMA *)ERROR_PTR("na not read", procName, NULL);
-    }
-
+    na = numaReadStream(fp);
     fclose(fp);
+    if (!na)
+        return (NUMA *)ERROR_PTR("na not read", procName, NULL);
     return na;
 }
 
@@ -1781,13 +1778,10 @@ NUMAA  *naa;
 
     if ((fp = fopenReadStream(filename)) == NULL)
         return (NUMAA *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((naa = numaaReadStream(fp)) == NULL) {
-        fclose(fp);
-        return (NUMAA *)ERROR_PTR("naa not read", procName, NULL);
-    }
-
+    naa = numaaReadStream(fp);
     fclose(fp);
+    if (!naa)
+        return (NUMAA *)ERROR_PTR("naa not read", procName, NULL);
     return naa;
 }
 

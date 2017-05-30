@@ -241,7 +241,8 @@ pixWrite(const char  *fname,
          PIX         *pix,
          l_int32      format)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("pixWrite");
 
@@ -285,11 +286,10 @@ FILE  *fp;
 
 #endif  /* WRITE_AS_NAMED */
 
-    if (pixWriteStream(fp, pix, format)) {
-        fclose(fp);
-        return ERROR_INT("pix not written to stream", procName, 1);
-    }
+    ret = pixWriteStream(fp, pix, format);
     fclose(fp);
+    if (ret)
+        return ERROR_INT("pix not written to stream", procName, 1);
     return 0;
 }
 

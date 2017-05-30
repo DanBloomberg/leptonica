@@ -200,12 +200,10 @@ PIX   *pix;
         L_ERROR("image file not found: %s\n", procName, filename);
         return NULL;
     }
-    if ((pix = pixReadStream(fp, 0)) == NULL) {
-        fclose(fp);
-        return (PIX *)ERROR_PTR("pix not read", procName, NULL);
-    }
+    pix = pixReadStream(fp, 0);
     fclose(fp);
-
+    if (!pix)
+        return (PIX *)ERROR_PTR("pix not read", procName, NULL);
     return pix;
 }
 

@@ -1873,15 +1873,13 @@ BOXAA  *baa;
 
     if (!filename)
         return (BOXAA *)ERROR_PTR("filename not defined", procName, NULL);
+
     if ((fp = fopenReadStream(filename)) == NULL)
         return (BOXAA *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((baa = boxaaReadStream(fp)) == NULL) {
-        fclose(fp);
-        return (BOXAA *)ERROR_PTR("boxaa not read", procName, NULL);
-    }
-
+    baa = boxaaReadStream(fp);
     fclose(fp);
+    if (!baa)
+        return (BOXAA *)ERROR_PTR("boxaa not read", procName, NULL);
     return baa;
 }
 
@@ -2103,15 +2101,13 @@ BOXA  *boxa;
 
     if (!filename)
         return (BOXA *)ERROR_PTR("filename not defined", procName, NULL);
+
     if ((fp = fopenReadStream(filename)) == NULL)
         return (BOXA *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((boxa = boxaReadStream(fp)) == NULL) {
-        fclose(fp);
-        return (BOXA *)ERROR_PTR("boxa not read", procName, NULL);
-    }
-
+    boxa = boxaReadStream(fp);
     fclose(fp);
+    if (!boxa)
+        return (BOXA *)ERROR_PTR("boxa not read", procName, NULL);
     return boxa;
 }
 

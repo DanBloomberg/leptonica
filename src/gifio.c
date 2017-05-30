@@ -395,6 +395,7 @@ int           giferr;
         return ERROR_INT("failed to create GIF image handle", procName, 1);
     }
 
+    pixSetPadBits(pix, 0);
     result = pixToGif(pix, gif);
     EGifCloseFile(gif, &giferr);
     return result;

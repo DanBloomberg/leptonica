@@ -669,15 +669,13 @@ PTA   *pta;
 
     if (!filename)
         return (PTA *)ERROR_PTR("filename not defined", procName, NULL);
+
     if ((fp = fopenReadStream(filename)) == NULL)
         return (PTA *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((pta = ptaReadStream(fp)) == NULL) {
-        fclose(fp);
-        return (PTA *)ERROR_PTR("pta not read", procName, NULL);
-    }
-
+    pta = ptaReadStream(fp);
     fclose(fp);
+    if (!pta)
+        return (PTA *)ERROR_PTR("pta not read", procName, NULL);
     return pta;
 }
 
@@ -1284,15 +1282,13 @@ PTAA  *ptaa;
 
     if (!filename)
         return (PTAA *)ERROR_PTR("filename not defined", procName, NULL);
+
     if ((fp = fopenReadStream(filename)) == NULL)
         return (PTAA *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((ptaa = ptaaReadStream(fp)) == NULL) {
-        fclose(fp);
-        return (PTAA *)ERROR_PTR("ptaa not read", procName, NULL);
-    }
-
+    ptaa = ptaaReadStream(fp);
     fclose(fp);
+    if (!ptaa)
+        return (PTAA *)ERROR_PTR("ptaa not read", procName, NULL);
     return ptaa;
 }
 

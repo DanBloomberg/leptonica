@@ -1705,15 +1705,13 @@ FPIX  *fpix;
 
     if (!filename)
         return (FPIX *)ERROR_PTR("filename not defined", procName, NULL);
+
     if ((fp = fopenReadStream(filename)) == NULL)
         return (FPIX *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((fpix = fpixReadStream(fp)) == NULL) {
-        fclose(fp);
-        return (FPIX *)ERROR_PTR("fpix not read", procName, NULL);
-    }
-
+    fpix = fpixReadStream(fp);
     fclose(fp);
+    if (!fpix)
+        return (FPIX *)ERROR_PTR("fpix not read", procName, NULL);
     return fpix;
 }
 
@@ -2004,15 +2002,13 @@ DPIX  *dpix;
 
     if (!filename)
         return (DPIX *)ERROR_PTR("filename not defined", procName, NULL);
+
     if ((fp = fopenReadStream(filename)) == NULL)
         return (DPIX *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((dpix = dpixReadStream(fp)) == NULL) {
-        fclose(fp);
-        return (DPIX *)ERROR_PTR("dpix not read", procName, NULL);
-    }
-
+    dpix = dpixReadStream(fp);
     fclose(fp);
+    if (!dpix)
+        return (DPIX *)ERROR_PTR("dpix not read", procName, NULL);
     return dpix;
 }
 

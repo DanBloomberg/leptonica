@@ -1603,15 +1603,13 @@ PIXAC  *pixac;
 
     if (!filename)
         return (PIXAC *)ERROR_PTR("filename not defined", procName, NULL);
+
     if ((fp = fopenReadStream(filename)) == NULL)
         return (PIXAC *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((pixac = pixacompReadStream(fp)) == NULL) {
-        fclose(fp);
-        return (PIXAC *)ERROR_PTR("pixac not read", procName, NULL);
-    }
-
+    pixac = pixacompReadStream(fp);
     fclose(fp);
+    if (!pixac)
+        return (PIXAC *)ERROR_PTR("pixac not read", procName, NULL);
     return pixac;
 }
 

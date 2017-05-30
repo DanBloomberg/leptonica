@@ -87,6 +87,12 @@
  *
  *  Note:  To include all necessary functions, use libtiff version 3.7.4
  *         (or later)
+ *  Note:  On Windows with 2 bpp or 4 bpp images, the bytes in the
+ *         tiff-compressed file depend on the pad bits (but not the
+ *         decoded raster image when read).  Because it is sometimes
+ *         convenient to use a golden file with a byte-by-byte check
+ *         to verify invariance, we set the pad bits to 0 before writing,
+ *         in pixWriteToTiffStream().
  * </pre>
  */
 
@@ -877,6 +883,7 @@ char      *text;
     if (!pix)
         return ERROR_INT( "pix not defined", procName, 1 );
 
+    pixSetPadBits(pix, 0);
     pixGetDimensions(pix, &w, &h, &d);
     xres = pixGetXRes(pix);
     yres = pixGetYRes(pix);
@@ -1183,9 +1190,7 @@ TIFF    *tif;
     if (!poffset)
         return (PIX *)ERROR_PTR("&offset not defined", procName, NULL);
 
-    TIFFSetWarningHandler(dummyHandler);  /* disable warnings */
-
-    if ((tif = TIFFOpen(fname, "r")) == NULL) {
+    if ((tif = openTiff(fname, "r")) == NULL) {
         L_ERROR("tif open failed for %s\n", procName, fname);
         return NULL;
     }

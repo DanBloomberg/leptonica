@@ -830,6 +830,7 @@ jmp_buf                      jmpbuf;  /* must be local to the function */
     }
     if (!pix)
         return ERROR_INT("pix not made", procName, 1);
+    pixSetPadBits(pix, 0);
 
     rewind(fp);
     rowbuffer = NULL;

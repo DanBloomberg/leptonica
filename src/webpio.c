@@ -255,7 +255,8 @@ pixWriteWebP(const char  *filename,
              l_int32      quality,
              l_int32      lossless)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("pixWriteWebP");
 
@@ -266,11 +267,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "wb+")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (pixWriteStreamWebP(fp, pixs, quality, lossless) != 0) {
-        fclose(fp);
-        return ERROR_INT("pixs not compressed to stream", procName, 1);
-    }
+    ret = pixWriteStreamWebP(fp, pixs, quality, lossless);
     fclose(fp);
+    if (ret)
+        return ERROR_INT("pixs not compressed to stream", procName, 1);
     return 0;
 }
 
@@ -307,6 +307,7 @@ size_t    filebytes, nbytes;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
 
+    pixSetPadBits(pixs, 0);
     pixWriteMemWebP(&filedata, &filebytes, pixs, quality, lossless);
     rewind(fp);
     nbytes = fwrite(filedata, 1, filebytes, fp);

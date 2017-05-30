@@ -1344,13 +1344,10 @@ SARRAY  *sa;
 
     if ((fp = fopenReadStream(filename)) == NULL)
         return (SARRAY *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((sa = sarrayReadStream(fp)) == NULL) {
-        fclose(fp);
-        return (SARRAY *)ERROR_PTR("sa not read", procName, NULL);
-    }
-
+    sa = sarrayReadStream(fp);
     fclose(fp);
+    if (!sa)
+        return (SARRAY *)ERROR_PTR("sa not read", procName, NULL);
     return sa;
 }
 
@@ -1470,7 +1467,8 @@ l_int32
 sarrayWrite(const char  *filename,
             SARRAY      *sa)
 {
-FILE  *fp;
+l_int32  ret;
+FILE    *fp;
 
     PROCNAME("sarrayWrite");
 
@@ -1481,12 +1479,10 @@ FILE  *fp;
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    if (sarrayWriteStream(fp, sa)) {
-        fclose(fp);
-        return ERROR_INT("sa not written to stream", procName, 1);
-    }
-
+    ret = sarrayWriteStream(fp, sa);
     fclose(fp);
+    if (ret)
+        return ERROR_INT("sa not written to stream", procName, 1);
     return 0;
 }
 

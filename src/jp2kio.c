@@ -580,6 +580,7 @@ opj_image_t       *image = NULL;
     }
 
         /* Convert to opj image format. */
+    pixSetPadBits(pixs, 0);
     image = pixConvertToOpjImage(pixs);
     pixDestroy(&pixs);
 

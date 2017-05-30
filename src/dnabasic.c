@@ -990,13 +990,10 @@ L_DNA  *da;
 
     if ((fp = fopenReadStream(filename)) == NULL)
         return (L_DNA *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((da = l_dnaReadStream(fp)) == NULL) {
-        fclose(fp);
-        return (L_DNA *)ERROR_PTR("da not read", procName, NULL);
-    }
-
+    da = l_dnaReadStream(fp);
     fclose(fp);
+    if (!da)
+        return (L_DNA *)ERROR_PTR("da not read", procName, NULL);
     return da;
 }
 
@@ -1554,13 +1551,10 @@ L_DNAA  *daa;
 
     if ((fp = fopenReadStream(filename)) == NULL)
         return (L_DNAA *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((daa = l_dnaaReadStream(fp)) == NULL) {
-        fclose(fp);
-        return (L_DNAA *)ERROR_PTR("daa not read", procName, NULL);
-    }
-
+    daa = l_dnaaReadStream(fp);
     fclose(fp);
+    if (!daa)
+        return (L_DNAA *)ERROR_PTR("daa not read", procName, NULL);
     return daa;
 }
 
@@ -1635,7 +1629,6 @@ FILE    *fp;
     fclose(fp);
     if (ret)
         return ERROR_INT("daa not written to stream", procName, 1);
-
     return 0;
 }
 

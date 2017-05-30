@@ -1069,6 +1069,7 @@ char        *text;
         cmflag = 1;
     else
         cmflag = 0;
+    pixSetPadBits(pix, 0);
 
         /* Set the color type and bit depth. */
     if (d == 32 && spp == 4) {

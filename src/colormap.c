@@ -1593,15 +1593,13 @@ PIXCMAP  *cmap;
 
     if (!filename)
         return (PIXCMAP *)ERROR_PTR("filename not defined", procName, NULL);
+
     if ((fp = fopenReadStream(filename)) == NULL)
         return (PIXCMAP *)ERROR_PTR("stream not opened", procName, NULL);
-
-    if ((cmap = pixcmapReadStream(fp)) == NULL) {
-        fclose(fp);
-        return (PIXCMAP *)ERROR_PTR("cmap not read", procName, NULL);
-    }
-
+    cmap = pixcmapReadStream(fp);
     fclose(fp);
+    if (!cmap)
+        return (PIXCMAP *)ERROR_PTR("cmap not read", procName, NULL);
     return cmap;
 }
 
