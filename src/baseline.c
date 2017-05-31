@@ -212,7 +212,11 @@ PTA       *pta;
     pix2 = pixMorphSequence(pix1, "r11 + c25.1 + o7.1 +c1.3", 0);
     boxa1 = pixConnComp(pix2, NULL, 4);
     boxa2 = boxaTransform(boxa1, 0, 0, 4., 4.);
-    boxa3 = boxaSort(boxa2, L_SORT_BY_Y, L_SORT_INCREASING, NULL);
+    if (boxaGetCount(boxa2) != 0) {
+        boxa3 = boxaSort(boxa2, L_SORT_BY_Y, L_SORT_INCREASING, NULL);
+    } else {
+        boxa3 = boxaCreate(0);
+    }
 
         /* Then find the baseline segments */
     if (pta) {
