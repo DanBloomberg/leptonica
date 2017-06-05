@@ -31,7 +31,7 @@
  *   To see the results in one image: /tmp/lept/lineseg/result.png.
  *
  *   This demonstration shows many different operations.  However,
- *   better results may be obtained from a much pixExtractLines(),
+ *   better results may be obtained from pixExtractLines()
  *   which is a much simpler function.  See testmisc1.c for examples.
  */
 

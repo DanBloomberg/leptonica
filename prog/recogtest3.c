@@ -42,7 +42,7 @@
  *     (2) Making a hybrid BAR/BSR from scaled templates in the BAR,
  *         supplemented with similarly scaled bootstrap templates for those
  *         classes where the BAR templates are either missing or not
- *         of sufficent quantity.
+ *         of sufficient quantity.
  *     (3) Using the BAR/BSR to label unlabeled book sampless.
  *     (4) Adding the pixa of the original set of labeled book
  *         templates to the pixa of the newly labeled templates, and
