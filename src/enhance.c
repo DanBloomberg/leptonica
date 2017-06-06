@@ -128,11 +128,11 @@ static const l_int32  DEFAULT_HISTO_SAMPLES = 100000;
 /*!
  * \brief   pixGammaTRC()
  *
- * \param[in]    pixd [optional] null or equal to pixs
- * \param[in]    pixs 8 or 32 bpp; or 2, 4 or 8 bpp with colormap
- * \param[in]    gamma gamma correction; must be > 0.0
- * \param[in]    minval  input value that gives 0 for output; can be < 0
- * \param[in]    maxval  input value that gives 255 for output; can be > 255
+ * \param[in]    pixd     [optional] null or equal to pixs
+ * \param[in]    pixs     8 or 32 bpp; or 2, 4 or 8 bpp with colormap
+ * \param[in]    gamma    gamma correction; must be > 0.0
+ * \param[in]    minval   input value that gives 0 for output; can be < 0
+ * \param[in]    maxval   input value that gives 255 for output; can be > 255
  * \return  pixd always
  *
  * <pre>
@@ -218,12 +218,12 @@ PIXCMAP  *cmap;
 /*!
  * \brief   pixGammaTRCMasked()
  *
- * \param[in]    pixd [optional] null or equal to pixs
- * \param[in]    pixs 8 or 32 bpp; not colormapped
- * \param[in]    pixm [optional] null or 1 bpp
- * \param[in]    gamma gamma correction; must be > 0.0
- * \param[in]    minval  input value that gives 0 for output; can be < 0
- * \param[in]    maxval  input value that gives 255 for output; can be > 255
+ * \param[in]    pixd      [optional] null or equal to pixs
+ * \param[in]    pixs      8 or 32 bpp; not colormapped
+ * \param[in]    pixm      [optional] null or 1 bpp
+ * \param[in]    gamma     gamma correction; must be > 0.0
+ * \param[in]    minval    input value that gives 0 for output; can be < 0
+ * \param[in]    maxval    input value that gives 255 for output; can be > 255
  * \return  pixd always
  *
  * <pre>
@@ -284,11 +284,11 @@ NUMA    *nag;
 /*!
  * \brief   pixGammaTRCWithAlpha()
  *
- * \param[in]    pixd [optional] null or equal to pixs
- * \param[in]    pixs 32 bpp
- * \param[in]    gamma gamma correction; must be > 0.0
- * \param[in]    minval  input value that gives 0 for output; can be < 0
- * \param[in]    maxval  input value that gives 255 for output; can be > 255
+ * \param[in]    pixd     [optional] null or equal to pixs
+ * \param[in]    pixs     32 bpp
+ * \param[in]    gamma    gamma correction; must be > 0.0
+ * \param[in]    minval   input value that gives 0 for output; can be < 0
+ * \param[in]    maxval   input value that gives 255 for output; can be > 255
  * \return  pixd always
  *
  * <pre>
@@ -402,9 +402,9 @@ NUMA      *na;
 /*!
  * \brief   pixContrastTRC()
  *
- * \param[in]    pixd [optional] null or equal to pixs
- * \param[in]    pixs 8 or 32 bpp; or 2, 4 or 8 bpp with colormap
- * \param[in]    factor  0.0 is no enhancement
+ * \param[in]    pixd     [optional] null or equal to pixs
+ * \param[in]    pixs     8 or 32 bpp; or 2, 4 or 8 bpp with colormap
+ * \param[in]    factor   0.0 is no enhancement
  * \return  pixd always
  *
  * <pre>
@@ -476,10 +476,10 @@ PIXCMAP  *cmap;
 /*!
  * \brief   pixContrastTRCMasked()
  *
- * \param[in]    pixd [optional] null or equal to pixs
- * \param[in]    pixs 8 or 32 bpp; or 2, 4 or 8 bpp with colormap
- * \param[in]    pixm [optional] null or 1 bpp
- * \param[in]    factor  0.0 is no enhancement
+ * \param[in]    pixd     [optional] null or equal to pixs
+ * \param[in]    pixs     8 or 32 bpp; or 2, 4 or 8 bpp with colormap
+ * \param[in]    pixm     [optional] null or 1 bpp
+ * \param[in]    factor   0.0 is no enhancement
  * \return  pixd always
  *
  * <pre>
@@ -536,8 +536,8 @@ NUMA    *nac;
 /*!
  * \brief   numaContrastTRC()
  *
- * \param[in]    factor generally between 0.0 [no enhancement]
- *              and 1.0, but can be larger than 1.0
+ * \param[in]    factor   generally between 0.0 [no enhancement]
+ *                        and 1.0, but can be larger than 1.0
  * \return  na, or NULL on error
  *
  * <pre>
@@ -589,10 +589,10 @@ NUMA      *na;
 /*!
  * \brief   pixEqualizeTRC()
  *
- * \param[in]    pixd [optional] null or equal to pixs
- * \param[in]    pixs 8 bpp gray, 32 bpp rgb, or colormapped
- * \param[in]    fract fraction of equalization movement of pixel values
- * \param[in]    factor subsampling factor; integer >= 1
+ * \param[in]    pixd     [optional] null or equal to pixs
+ * \param[in]    pixs     8 bpp gray, 32 bpp rgb, or colormapped
+ * \param[in]    fract    fraction of equalization movement of pixel values
+ * \param[in]    factor   subsampling factor; integer >= 1
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -691,9 +691,9 @@ PIXCMAP  *cmap;
 /*!
  * \brief   numaEqualizeTRC()
  *
- * \param[in]    pix 8 bpp, no colormap
- * \param[in]    fract fraction of equalization movement of pixel values
- * \param[in]    factor subsampling factor; integer >= 1
+ * \param[in]    pix     8 bpp, no colormap
+ * \param[in]    fract   fraction of equalization movement of pixel values
+ * \param[in]    factor  subsampling factor; integer >= 1
  * \return  nad, or NULL on error
  *
  * <pre>
@@ -755,9 +755,9 @@ NUMA      *nah, *nasum, *nad;
 /*!
  * \brief   pixTRCMap()
  *
- * \param[in]    pixs 8 grayscale or 32 bpp rgb; not colormapped
- * \param[in]    pixm [optional] 1 bpp mask
- * \param[in]    na mapping array
+ * \param[in]    pixs    8 grayscale or 32 bpp rgb; not colormapped
+ * \param[in]    pixm    [optional] 1 bpp mask
+ * \param[in]    na      mapping array
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -881,9 +881,9 @@ l_uint32  *data, *datam, *line, *linem;
 /*!
  * \brief   pixUnsharpMasking()
  *
- * \param[in]    pixs all depths except 1 bpp; with or without colormaps
+ * \param[in]    pixs       all depths except 1 bpp; with or without colormaps
  * \param[in]    halfwidth  "half-width" of smoothing filter
- * \param[in]    fract  fraction of edge added back into image
+ * \param[in]    fract      fraction of edge added back into image
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -950,9 +950,9 @@ PIX     *pixt, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
 /*!
  * \brief   pixUnsharpMaskingGray()
  *
- * \param[in]    pixs 8 bpp; no colormap
+ * \param[in]    pixs       8 bpp; no colormap
  * \param[in]    halfwidth  "half-width" of smoothing filter
- * \param[in]    fract  fraction of edge added back into image
+ * \param[in]    fract      fraction of edge added back into image
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1027,10 +1027,10 @@ PIXACC  *pixacc;
 /*!
  * \brief   pixUnsharpMaskingFast()
  *
- * \param[in]    pixs all depths except 1 bpp; with or without colormaps
+ * \param[in]    pixs       all depths except 1 bpp; with or without colormaps
  * \param[in]    halfwidth  "half-width" of smoothing filter; 1 and 2 only
- * \param[in]    fract  fraction of high frequency added to image
- * \param[in]    direction L_HORIZ, L_VERT, L_BOTH_DIRECTIONS
+ * \param[in]    fract      fraction of high frequency added to image
+ * \param[in]    direction  L_HORIZ, L_VERT, L_BOTH_DIRECTIONS
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1120,10 +1120,10 @@ PIX     *pixt, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
 /*!
  * \brief   pixUnsharpMaskingGrayFast()
  *
- * \param[in]    pixs 8 bpp; no colormap
+ * \param[in]    pixs       8 bpp; no colormap
  * \param[in]    halfwidth  "half-width" of smoothing filter: 1 or 2
- * \param[in]    fract  fraction of high frequency added to image
- * \param[in]    direction L_HORIZ, L_VERT, L_BOTH_DIRECTIONS
+ * \param[in]    fract      fraction of high frequency added to image
+ * \param[in]    direction  L_HORIZ, L_VERT, L_BOTH_DIRECTIONS
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1169,10 +1169,10 @@ PIX  *pixd;
 /*!
  * \brief   pixUnsharpMaskingGray1D()
  *
- * \param[in]    pixs 8 bpp; no colormap
- * \param[in]    halfwidth  "half-width" of smoothing filter: 1 or 2
- * \param[in]    fract  fraction of high frequency added to image
- * \param[in]    direction of filtering; use L_HORIZ or L_VERT
+ * \param[in]    pixs        8 bpp; no colormap
+ * \param[in]    halfwidth   "half-width" of smoothing filter: 1 or 2
+ * \param[in]    fract       fraction of high frequency added to image
+ * \param[in]    direction   filtering direction; use L_HORIZ or L_VERT
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1304,9 +1304,9 @@ PIX       *pixd;
 /*!
  * \brief   pixUnsharpMaskingGray2D()
  *
- * \param[in]    pixs 8 bpp; no colormap
+ * \param[in]    pixs       8 bpp; no colormap
  * \param[in]    halfwidth  "half-width" of smoothing filter: 1 or 2
- * \param[in]    fract  fraction of high frequency added to image
+ * \param[in]    fract      fraction of high frequency added to image
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1437,9 +1437,9 @@ FPIX       *fpix;
 /*!
  * \brief   pixModifyHue()
  *
- * \param[in]    pixd [optional] can be null or equal to pixs
- * \param[in]    pixs 32 bpp rgb
- * \param[in]    fract between -1.0 and 1.0
+ * \param[in]    pixd      [optional] can be null or equal to pixs
+ * \param[in]    pixs      32 bpp rgb
+ * \param[in]    fract     between -1.0 and 1.0
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1511,9 +1511,9 @@ l_uint32  *data, *line;
 /*!
  * \brief   pixModifySaturation()
  *
- * \param[in]    pixd [optional] can be null, existing or equal to pixs
- * \param[in]    pixs 32 bpp rgb
- * \param[in]    fract between -1.0 and 1.0
+ * \param[in]    pixd     [optional] can be null, existing or equal to pixs
+ * \param[in]    pixs     32 bpp rgb
+ * \param[in]    fract    between -1.0 and 1.0
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1579,9 +1579,9 @@ l_uint32  *data, *line;
 /*!
  * \brief   pixMeasureSaturation()
  *
- * \param[in]    pixs 32 bpp rgb
- * \param[in]    factor subsampling factor; integer >= 1
- * \param[out]   psat average saturation
+ * \param[in]    pixs     32 bpp rgb
+ * \param[in]    factor   subsampling factor; integer >= 1
+ * \param[out]   psat     average saturation
  * \return  pixd, or NULL on error
  */
 l_int32
@@ -1627,9 +1627,9 @@ l_uint32  *data, *line;
 /*!
  * \brief   pixModifyBrightness()
  *
- * \param[in]    pixd [optional] can be null, existing or equal to pixs
- * \param[in]    pixs 32 bpp rgb
- * \param[in]    fract between -1.0 and 1.0
+ * \param[in]    pixd     [optional] can be null, existing or equal to pixs
+ * \param[in]    pixs     32 bpp rgb
+ * \param[in]    fract    between -1.0 and 1.0
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1698,10 +1698,10 @@ l_uint32  *data, *line;
 /*!
  * \brief   pixColorShiftRGB()
  *
- * \param[in]    pixs 32 bpp rgb
- * \param[in]    rfract fractional shift in red component
- * \param[in]    gfract fractional shift in green component
- * \param[in]    bfract fractional shift in blue component
+ * \param[in]    pixs     32 bpp rgb
+ * \param[in]    rfract   fractional shift in red component
+ * \param[in]    gfract   fractional shift in green component
+ * \param[in]    bfract   fractional shift in blue component
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1797,8 +1797,10 @@ PIX       *pixd;
 /*!
  * \brief   pixMultConstantColor()
  *
- * \param[in]    pixs colormapped or rgb
- * \param[in]    rfact, gfact, bfact multiplicative factors on each component
+ * \param[in]    pixs     colormapped or rgb
+ * \param[in]    rfact    red multiplicative factor
+ * \param[in]    gfact    green multiplicative factor
+ * \param[in]    bfact    blue multiplicative factor
  * \return  pixd colormapped or rgb, with colors scaled, or NULL on error
  *
  * <pre>
@@ -1882,8 +1884,8 @@ PIXCMAP   *cmap;
 /*!
  * \brief   pixMultMatrixColor()
  *
- * \param[in]    pixs colormapped or rgb
- * \param[in]    kel kernel 3x3 matrix of floats
+ * \param[in]    pixs    colormapped or rgb
+ * \param[in]    kel     kernel 3x3 matrix of floats
  * \return  pixd colormapped or rgb, or NULL on error
  *
  * <pre>
@@ -1992,10 +1994,10 @@ PIXCMAP   *cmap;
 /*!
  * \brief   pixHalfEdgeByBandpass()
  *
- * \param[in]    pixs 8 bpp gray or 32 bpp rgb
- * \param[in]    sm1h, sm1v "half-widths" of smoothing filter sm1
- * \param[in]    sm2h, sm2v "half-widths" of smoothing filter sm2;
- *                      require sm2 != sm1
+ * \param[in]    pixs         8 bpp gray or 32 bpp rgb
+ * \param[in]    sm1h, sm1v   "half-widths" of smoothing filter sm1
+ * \param[in]    sm2h, sm2v   "half-widths" of smoothing filter sm2;
+ *                            require sm2 != sm1
  * \return  pixd, or NULL on error
  *
  * <pre>

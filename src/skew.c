@@ -143,6 +143,48 @@ static const l_int32  DEFAULT_BINARY_THRESHOLD = 130;
  *                       Top-level deskew interfaces                     *
  *-----------------------------------------------------------------------*/
 /*!
+ * \brief   pixDeskewBoth()
+ *
+ * \param[in]    pixs any depth
+ * \param[in]    redsearch for binary search: reduction factor = 1, 2 or 4;
+ *                         use 0 for default
+ * \return  pixd deskewed pix, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This binarizes if necessary and does both horizontal
+ *          and vertical deskewing, using the default parameters in
+ *          the underlying pixDeskew().  See usage there.
+ *      (2) This may return a clone.
+ * </pre>
+ */
+PIX *
+pixDeskewBoth(PIX     *pixs,
+              l_int32  redsearch)
+{
+PIX  *pix1, *pix2, *pix3, *pix4;
+
+    PROCNAME("pixDeskewBoth");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (redsearch == 0)
+        redsearch = DEFAULT_BS_REDUCTION;
+    else if (redsearch != 1 && redsearch != 2 && redsearch != 4)
+        return (PIX *)ERROR_PTR("redsearch not in {1,2,4}", procName, NULL);
+
+    pix1 = pixDeskew(pixs, redsearch);
+    pix2 = pixRotate90(pix1, 1);
+    pix3 = pixDeskew(pix2, redsearch);
+    pix4 = pixRotate90(pix3, -1);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    return pix4;
+}
+
+
+/*!
  * \brief   pixDeskew()
  *
  * \param[in]    pixs any depth
@@ -155,6 +197,8 @@ static const l_int32  DEFAULT_BINARY_THRESHOLD = 130;
  *      (1) This binarizes if necessary and finds the skew angle.  If the
  *          angle is large enough and there is sufficient confidence,
  *          it returns a deskewed image; otherwise, it returns a clone.
+ *      (2) Typical values at 300 ppi for %redsearch are 2 and 4.
+ *          At 75 ppi, one should use %redsearch = 1.
  * </pre>
  */
 PIX *

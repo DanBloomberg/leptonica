@@ -78,10 +78,10 @@ static const l_float32  MIN_ALLOWED_CONFIDENCE = 3.0;
 /*!
  * \brief   pixFindBaselines()
  *
- * \param[in]    pixs 1 bpp
- * \param[out]   ppta [optional] pairs of pts corresponding to
- *                    approx. ends of each text line
- * \param[in]    debug usually 0; set to 1 for debugging output
+ * \param[in]    pixs     1 bpp, 300 ppi
+ * \param[out]   ppta     [optional] pairs of pts corresponding to
+ *                        approx. ends of each text line
+ * \param[in]    pixadb   for debug output; use NULL to skip
  * \return  na of baseline y values, or NULL on error
  *
  * <pre>
@@ -110,9 +110,9 @@ static const l_float32  MIN_ALLOWED_CONFIDENCE = 3.0;
  * </pre>
  */
 NUMA *
-pixFindBaselines(PIX     *pixs,
-                 PTA    **ppta,
-                 l_int32  debug)
+pixFindBaselines(PIX   *pixs,
+                 PTA  **ppta,
+                 PIXA  *pixadb)
 {
 l_int32    h, i, j, nbox, val1, val2, ndiff, bx, by, bw, bh;
 l_int32    imaxloc, peakthresh, zerothresh, inpeak;
@@ -127,16 +127,15 @@ PTA       *pta;
 
     PROCNAME("pixFindBaselines");
 
-    if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
-    pta = NULL;
-    if (ppta) {
-        pta = ptaCreate(0);
-        *ppta = pta;
-    }
+    if (ppta) *ppta = NULL;
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return (NUMA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
 
         /* Close up the text characters, removing noise */
-    pix1 = pixMorphSequence(pixs, "c25.1 + e3.1", 0);
+    pix1 = pixMorphSequence(pixs, "c25.1 + e15.1", 0);
+
+        /* Estimate the resolution */
+    if (pixadb) pixaAddPix(pixadb, pixScale(pix1, 0.25, 0.25), L_INSERT);
 
         /* Save the difference of adjacent row sums.
          * The high positive-going peaks are the baselines */
@@ -152,20 +151,26 @@ PTA       *pta;
         numaGetIValue(nasum, i + 1, &val2);
         numaAddNumber(nadiff, val1 - val2);
     }
+    numaDestroy(&nasum);
 
-    if (debug) {  /* show the difference signal */
+    if (pixadb) {  /* show the difference signal */
         lept_mkdir("lept/baseline");
         gplotSimple1(nadiff, GPLOT_PNG, "/tmp/lept/baseline/diff", "Diff Sig");
+        pix2 = pixRead("/tmp/lept/baseline/diff.png");
+        pixaAddPix(pixadb, pix2, L_INSERT);
     }
 
         /* Use the zeroes of the profile to locate each baseline. */
     array = numaGetIArray(nadiff);
     ndiff = numaGetCount(nadiff);
     numaGetMax(nadiff, &maxval, &imaxloc);
+    numaDestroy(&nadiff);
+
         /* Use this to begin locating a new peak: */
     peakthresh = (l_int32)maxval / PEAK_THRESHOLD_RATIO;
         /* Use this to begin a region between peaks: */
     zerothresh = (l_int32)maxval / ZERO_THRESHOLD_RATIO;
+
     naloc = numaCreate(0);
     naval = numaCreate(0);
     inpeak = FALSE;
@@ -190,31 +195,50 @@ PTA       *pta;
             }
         }
     }
+    LEPT_FREE(array);
 
         /* If array[ndiff-1] is max, eg. no descenders, baseline at bottom */
     if (inpeak) {
         numaAddNumber(naval, max);
         numaAddNumber(naloc, maxloc);
     }
-    LEPT_FREE(array);
 
-    if (debug) {  /* show the raster locations for the peaks */
+    if (pixadb) {  /* show the raster locations for the peaks */
         gplot = gplotCreate("/tmp/lept/baseline/loc", GPLOT_PNG, "Peak locs",
                             "rasterline", "height");
         gplotAddPlot(gplot, naloc, naval, GPLOT_POINTS, "locs");
         gplotMakeOutput(gplot);
         gplotDestroy(&gplot);
+        pix2 = pixRead("/tmp/lept/baseline/loc.png");
+        pixaAddPix(pixadb, pix2, L_INSERT);
     }
+    numaDestroy(&naval);
 
         /* Generate an approximate profile of text line width.
          * First, filter the boxes of text, where there may be
          * more than one box for a given textline. */
-    pix2 = pixMorphSequence(pix1, "r11 + c25.1 + o7.1 +c1.3", 0);
+    pix2 = pixMorphSequence(pix1, "r11 + c20.1 + o30.1 +c1.3", 0);
+    if (pixadb) pixaAddPix(pixadb, pix2, L_COPY);
     boxa1 = pixConnComp(pix2, NULL, 4);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    if (boxaGetCount(boxa1) == 0) {
+        numaDestroy(&naloc);
+        boxaDestroy(&boxa1);
+        L_INFO("no compnents after filtering\n", procName);
+        return NULL;
+    }
     boxa2 = boxaTransform(boxa1, 0, 0, 4., 4.);
     boxa3 = boxaSort(boxa2, L_SORT_BY_Y, L_SORT_INCREASING, NULL);
+    boxaDestroy(&boxa1);
+    boxaDestroy(&boxa2);
 
-        /* Then find the baseline segments */
+        /* Optionally, find the baseline segments */
+    pta = NULL;
+    if (ppta) {
+        pta = ptaCreate(0);
+        *ppta = pta;
+    }
     if (pta) {
       nloc = numaGetCount(naloc);
       nbox = boxaGetCount(boxa3);
@@ -230,31 +254,22 @@ PTA       *pta;
           }
       }
     }
+    boxaDestroy(&boxa3);
 
-    if (debug) {  /* display baselines */
-        PIX     *pixd;
+    if (pixadb && pta) {  /* display baselines */
         l_int32  npts, x1, y1, x2, y2;
-        if (pta) {
-            pixd = pixConvertTo32(pixs);
-            npts = ptaGetCount(pta);
-            for (i = 0; i < npts; i += 2) {
-                ptaGetIPt(pta, i, &x1, &y1);
-                ptaGetIPt(pta, i + 1, &x2, &y2);
-                pixRenderLineArb(pixd, x1, y1, x2, y2, 1, 255, 0, 0);
-            }
-            pixWrite("/tmp/lept/baseline/baselines.png", pixd, IFF_PNG);
-            pixDestroy(&pixd);
+        pix1 = pixConvertTo32(pixs);
+        npts = ptaGetCount(pta);
+        for (i = 0; i < npts; i += 2) {
+            ptaGetIPt(pta, i, &x1, &y1);
+            ptaGetIPt(pta, i + 1, &x2, &y2);
+            pixRenderLineArb(pix1, x1, y1, x2, y2, 2, 255, 0, 0);
         }
+        pixWrite("/tmp/lept/baseline/baselines.png", pix1, IFF_PNG);
+        pixaAddPix(pixadb, pixScale(pix1, 0.25, 0.25), L_INSERT);
+        pixDestroy(&pix1);
     }
 
-    boxaDestroy(&boxa1);
-    boxaDestroy(&boxa2);
-    boxaDestroy(&boxa3);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
-    numaDestroy(&nasum);
-    numaDestroy(&nadiff);
-    numaDestroy(&naval);
     return naloc;
 }
 
@@ -265,19 +280,20 @@ PTA       *pta;
 /*!
  * \brief   pixDeskewLocal()
  *
- * \param[in]    pixs
- * \param[in]    nslices  the number of horizontal overlapping slices; must
- *                  be larger than 1 and not exceed 20; use 0 for default
- * \param[in]    redsweep sweep reduction factor: 1, 2, 4 or 8;
- *                        use 0 for default value
- * \param[in]    redsearch search reduction factor: 1, 2, 4 or 8, and
- *                         not larger than redsweep; use 0 for default value
- * \param[in]    sweeprange half the full range, assumed about 0; in degrees;
- *                          use 0.0 for default value
- * \param[in]    sweepdelta angle increment of sweep; in degrees;
- *                          use 0.0 for default value
- * \param[in]    minbsdelta min binary search increment angle; in degrees;
- *                          use 0.0 for default value
+ * \param[in]    pixs        1 bpp
+ * \param[in]    nslices     the number of horizontal overlapping slices;
+ *                           must be larger than 1 and not exceed 20;
+ *                           use 0 for default
+ * \param[in]    redsweep    sweep reduction factor: 1, 2, 4 or 8;
+ *                           use 0 for default value
+ * \param[in]    redsearch   search reduction factor: 1, 2, 4 or 8, and
+ *                           not larger than redsweep; use 0 for default value
+ * \param[in]    sweeprange  half the full range, assumed about 0; in degrees;
+ *                           use 0.0 for default value
+ * \param[in]    sweepdelta  angle increment of sweep; in degrees;
+ *                           use 0.0 for default value
+ * \param[in]    minbsdelta  min binary search increment angle; in degrees;
+ *                           use 0.0 for default value
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -315,8 +331,8 @@ PTA       *ptas, *ptad;
 
     PROCNAME("pixDeskewLocal");
 
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
 
         /* Skew array gives skew angle (deg) as fctn of raster line
          * where it intersects the LHS of the image */
@@ -389,8 +405,8 @@ PTA       *ptas, *ptad;
     if (!pptas || !pptad)
         return ERROR_INT("&ptas and &ptad not defined", procName, 1);
     *pptas = *pptad = NULL;
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
     if (nslices < 2 || nslices > 20)
         nslices = DEFAULT_SLICES;
     if (redsweep < 1 || redsweep > 8)
@@ -452,7 +468,7 @@ PTA       *ptas, *ptad;
 /*!
  * \brief   pixGetLocalSkewAngles()
  *
- * \param[in]    pixs
+ * \param[in]    pixs         1 bpp
  * \param[in]    nslices      the number of horizontal overlapping slices; must
  *                            be larger than 1 and not exceed 20; 0 for default
  * \param[in]    redsweep     sweep reduction factor: 1, 2, 4 or 8;
@@ -508,8 +524,8 @@ PTA       *pta;
 
     PROCNAME("pixGetLocalSkewAngles");
 
-    if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return (NUMA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
     if (nslices < 2 || nslices > 20)
         nslices = DEFAULT_SLICES;
     if (redsweep < 1 || redsweep > 8)

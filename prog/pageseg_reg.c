@@ -37,9 +37,9 @@
 int main(int    argc,
          char **argv)
 {
-l_int32       i, n;
+l_int32       i, n, istable;
 BOXA         *boxa;
-PIX          *pixs, *pix1, *pixhm, *pixtm, *pixtb, *pixdb;
+PIX          *pixs, *pix1, *pix2, *pixhm, *pixtm, *pixtb, *pixdb;
 PIXA         *pixadb;
 L_REGPARAMS  *rp;
 
@@ -79,12 +79,35 @@ L_REGPARAMS  *rp;
     pix1 = pixScale(pixs, 0.5, 0.5);
     pixFindLargeRectangles(pix1, 0, 20, &boxa, &pixdb);
     regTestWritePixAndCheck(rp, pixdb, IFF_PNG);  /* 19 */
-    if (rp->display)
-        pixDisplay(pixdb, 0, 700);
+    pixDisplayWithTitle(pixdb, 0, 700, NULL, rp->display);
     pixDestroy(&pixs);
     pixDestroy(&pix1);
     pixDestroy(&pixdb);
     boxaDestroy(&boxa);
+
+        /* Test the table finder */
+    pix1 = pixRead("table.15.tif");
+    pixadb = pixaCreate(0);
+    pixDecideIfTable(pix1, NULL, &istable, pixadb);
+    regTestCompareValues(rp, 1.0, istable, 0.0);  /* 20 */
+    pix2 = pixaDisplayTiledInRows(pixadb, 32, 2000, 1.0, 0, 30, 2);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 21 */
+    pixDisplayWithTitle(pix2, 700, 700, NULL, rp->display);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixaDestroy(&pixadb);
+
+    pix1 = pixRead("table.27.tif");
+    pixadb = pixaCreate(0);
+    pixDecideIfTable(pix1, NULL, &istable, pixadb);
+    regTestCompareValues(rp, 1.0, istable, 0.0);  /* 22 */
+    pix2 = pixaDisplayTiledInRows(pixadb, 32, 2000, 1.0, 0, 30, 2);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 23 */
+    pixDisplayWithTitle(pix2, 1200, 700, NULL, rp->display);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixaDestroy(&pixadb);
+
     return regTestCleanup(rp);
 }
 

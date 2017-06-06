@@ -31,6 +31,8 @@
  *   (1) The ability to find a projective transform that will deskew
  *       textlines in an image with keystoning.
  *   (2) The ability to find baselines in a text image.
+ *   (3) The ability to clean background to white in a dark and
+ *       mottled text image.
  */
 
 #include "allheaders.h"
@@ -39,7 +41,8 @@ int main(int    argc,
          char **argv)
 {
 NUMA         *na;
-PIX          *pixs, *pixd;
+PIX          *pixs, *pix1, *pix2, *pix3, *pix4, *pix5;
+PIXA         *pixadb;
 PTA          *pta;
 L_REGPARAMS  *rp;
 
@@ -50,37 +53,74 @@ L_REGPARAMS  *rp;
 
         /* Test function for deskewing using projective transform
 	 * on linear approximation for local skew angle */
-    pixd = pixDeskewLocal(pixs, 10, 0, 0, 0.0, 0.0, 0.0);
-    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 0 */
-
-        /* Test baseline finder */
-    na = pixFindBaselines(pixd, &pta, 1);
-    regTestCheckFile(rp, "/tmp/lept/baseline/diff.png");  /* 1 */
-    regTestCheckFile(rp, "/tmp/lept/baseline/loc.png");  /* 2 */
-    regTestCheckFile(rp, "/tmp/lept/baseline/baselines.png");  /* 3 */
-    if (rp->display) {
-        l_fileDisplay("/tmp/lept/baseline/diff.png", 0, 0, 1.0);
-        l_fileDisplay("/tmp/lept/baseline/loc.png", 700, 0, 1.0);
-        l_fileDisplay("/tmp/lept/baseline/baselines.png", 1350, 0, 1.0);
-    }
-    pixDestroy(&pixd);
-    numaDestroy(&na);
-    ptaDestroy(&pta);
+    pix1 = pixDeskewLocal(pixs, 10, 0, 0, 0.0, 0.0, 0.0);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
 
         /* Test function for finding local skew angles */
     na = pixGetLocalSkewAngles(pixs, 10, 0, 0, 0.0, 0.0, 0.0, NULL, NULL, 1);
     gplotSimple1(na, GPLOT_PNG, "/tmp/lept/baseline/ang", "Angles in degrees");
-    regTestCheckFile(rp, "/tmp/lept/baseline/ang.png");  /* 4 */
-    regTestCheckFile(rp, "/tmp/lept/baseline/skew.png");  /* 5 */
-    if (rp->display) {
-        l_fileDisplay("/tmp/lept/baseline/ang.png", 0, 550, 1.0);
-        l_fileDisplay("/tmp/lept/baseline/skew.png", 700, 550, 1.0);
-    }
+    pix2 = pixRead("/tmp/lept/baseline/ang.png");
+    pix3 = pixRead("/tmp/lept/baseline/skew.png");
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 1 */
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 2 */
+    pixDisplayWithTitle(pix2, 0, 550, NULL, rp->display);
+    pixDisplayWithTitle(pix3, 700, 550, NULL, rp->display);
     numaDestroy(&na);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
     pixDestroy(&pixs);
+
+        /* Test baseline finder */
+    pixadb = pixaCreate(6);
+    na = pixFindBaselines(pix1, &pta, pixadb);
+    pix2 = pixRead("/tmp/lept/baseline/diff.png");
+    pix3 = pixRead("/tmp/lept/baseline/loc.png");
+    pix4 = pixRead("/tmp/lept/baseline/baselines.png");
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 3 */
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 4 */
+    regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 5 */
+    pixDisplayWithTitle(pix2, 0, 0, NULL, rp->display);
+    pixDisplayWithTitle(pix3, 700, 0, NULL, rp->display);
+    pixDisplayWithTitle(pix4, 1350, 0, NULL, rp->display);
+    pix5 = pixaDisplayTiledInRows(pixadb, 32, 1500, 1.0, 0, 30, 2);
+    pixDisplayWithTitle(pix5, 0, 500, NULL, rp->display);
+    regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 6 */
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+    pixDestroy(&pix5);
+    pixaDestroy(&pixadb);
+    numaDestroy(&na);
+    ptaDestroy(&pta);
+
+        /* Another test for baselines, with dark image */
+    pixadb = pixaCreate(6);
+    pixs = pixRead("pedante.079.jpg");  /* 75 ppi */
+    pix1 = pixRemoveBorder(pixs, 30);
+    pixaAddPix(pixadb, pix1, L_COPY);
+    pix2 = pixConvertRGBToGray(pix1, 0.33, 0.34, 0.33);
+    pix3 = pixScale(pix2, 4.0, 4.0);   /* scale up to 300 ppi */
+    pix4 = pixCleanBackgroundToWhite(pix3, NULL, NULL, 1.0, 70, 170);
+    pix5 = pixThresholdToBinary(pix4, 170);
+    regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 7 */
+    pixaAddPix(pixadb, pixScale(pix5, 0.25, 0.25), L_INSERT);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+    pix1 = pixDeskew(pix5, 2);
+    na = pixFindBaselines(pix1, &pta, pixadb);
+    pix2 = pixaDisplayTiledInRows(pixadb, 32, 1500, 1.0, 0, 30, 2);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 8 */
+    pixDisplayWithTitle(pix2, 800, 500, NULL, rp->display);
+    pixaDestroy(&pixadb);
+    pixDestroy(&pixs);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix5);
+    numaDestroy(&na);
+    ptaDestroy(&pta);
 
     return regTestCleanup(rp);
 }
-
-
-

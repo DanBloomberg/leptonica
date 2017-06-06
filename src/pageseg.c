@@ -52,12 +52,16 @@
  *          PIXA     *pixExtractTextlines()
  *          PIXA     *pixExtractRawTextlines()
  *
- *      Decision text vs photo
+ *      How many text columns
+ *          l_int32   pixCountTextColumns()
+ *
+ *      Decision: text vs photo
  *          l_int32   pixDecideIfText()
  *          l_int32   pixFindThreshFgExtent()
  *
- *      How many text columns
- *          l_int32   pixCountTextColumns()
+ *      Decision: table vs text
+ *          l_int32   pixDecideIfTable()
+ *          Pix      *pixPrepare1bpp()
  *
  *      Estimate the grayscale background value
  *          l_int32   pixEstimateBackground()
@@ -81,11 +85,11 @@ static const l_int32  MinHeight = 100;
 /*!
  * \brief   pixGetRegionsBinary()
  *
- * \param[in]    pixs 1 bpp, assumed to be 300 to 400 ppi
- * \param[out]   ppixhm [optional] halftone mask
- * \param[out]   ppixtm [optional] textline mask
- * \param[out]   ppixtb [optional] textblock mask
- * \param[in]    pixadb  input for collecting debug pix; use NULL to skip
+ * \param[in]    pixs      1 bpp, assumed to be 300 to 400 ppi
+ * \param[out]   ppixhm    [optional] halftone mask
+ * \param[out]   ppixtm    [optional] textline mask
+ * \param[out]   ppixtb    [optional] textblock mask
+ * \param[in]    pixadb    input for collecting debug pix; use NULL to skip
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -509,24 +513,24 @@ PIX     *pix1, *pix2, *pix3, *pixd;
 /*!
  * \brief   pixFindPageForeground()
  *
- * \param[in]    pixs full resolution (any type or depth
- * \param[in]    threshold for binarization; typically about 128
- * \param[in]    mindist min distance of text from border to allow
- *                       cleaning near border; at 2x reduction, this
- *                       should be larger than 50; typically about 70
- * \param[in]    erasedist when conditions are satisfied, erase anything
- *                         within this distance of the edge;
- *                         typically 30 at 2x reduction
- * \param[in]    pagenum use for debugging when called repeatedly; labels
- *                       debug images that are assembled into pdfdir
- * \param[in]    showmorph set to a negative integer to show steps in
- *                         generating masks; this is typically used
- *                         for debugging region extraction
- * \param[in]    display set to 1  to display mask and selected region
- *                       for debugging a single page
- * \param[in]    pdfdir subdirectory of /tmp where images showing the
- *                      result are placed when called repeatedly; use
- *                      null if no output requested
+ * \param[in]    pixs       full resolution (any type or depth
+ * \param[in]    threshold  for binarization; typically about 128
+ * \param[in]    mindist    min distance of text from border to allow
+ *                          cleaning near border; at 2x reduction, this
+ *                          should be larger than 50; typically about 70
+ * \param[in]    erasedist  when conditions are satisfied, erase anything
+ *                          within this distance of the edge;
+ *                          typically 30 at 2x reduction
+ * \param[in]    pagenum    use for debugging when called repeatedly; labels
+ *                          debug images that are assembled into pdfdir
+ * \param[in]    showmorph  set to a negative integer to show steps in
+ *                          generating masks; this is typically used
+ *                          for debugging region extraction
+ * \param[in]    display    set to 1  to display mask and selected region
+ *                          for debugging a single page
+ * \param[in]    pdfdir     subdirectory of /tmp where images showing the
+ *                          result are placed when called repeatedly; use
+ *                          null if no output requested
  * \return  box region including foreground, with some pixel noise
  *                   removed, or NULL if not found
  *
@@ -672,11 +676,11 @@ BOXA    *ba1, *ba2;
 /*!
  * \brief   pixSplitIntoCharacters()
  *
- * \param[in]    pixs 1 bpp, contains only deskewed text
- * \param[in]    minw minimum component width for initial filtering; typ. 4
- * \param[in]    minh minimum component height for initial filtering; typ. 4
- * \param[out]   pboxa [optional] character bounding boxes
- * \param[out]   ppixa [optional] character images
+ * \param[in]    pixs      1 bpp, contains only deskewed text
+ * \param[in]    minw      min component width for initial filtering; typ. 4
+ * \param[in]    minh      min component height for initial filtering; typ. 4
+ * \param[out]   pboxa     [optional] character bounding boxes
+ * \param[out]   ppixa     [optional] character images
  * \param[out]   ppixdebug [optional] showing splittings
  *
  * \return  0 if OK, 1 on error
@@ -905,7 +909,7 @@ PIX      *pix1, *pixdb;
 /*!
  * \brief   pixExtractTextlines()
  *
- * \param[in]    pixs any depth, assumed to have nearly horizontal text
+ * \param[in]    pixs       any depth, assumed to have nearly horizontal text
  * \param[in]    maxw, maxh initial filtering: remove any components in pixs
  *                          with components larger than maxw or maxh
  * \param[in]    minw, minh final filtering: remove extracted 'lines'
@@ -1053,9 +1057,10 @@ PIXA    *pixa1, *pixa2, *pixa3;
 /*!
  * \brief   pixExtractRawTextlines()
  *
- * \param[in]    pixs any depth, assumed to have nearly horizontal text
+ * \param[in]    pixs       any depth, assumed to have nearly horizontal text
  * \param[in]    maxw, maxh initial filtering: remove any components in pixs
- *                          with components larger than maxw or maxh
+ *                          with components larger than maxw or maxh;
+ *                          use 0 for default values.
  * \param[in]    adjw, adjh final adjustment of boxes representing each
  *                          text line.  If > 0, these increase the box
  *                          size at each edge by this amount.
@@ -1108,6 +1113,14 @@ PIXA    *pixa1, *pixa2;
     if (!pixs)
         return (PIXA *)ERROR_PTR("pixs not defined", procName, NULL);
 
+        /* Set maxw, maxh if default is requested */
+    if ((res = pixGetXRes(pixs)) == 0) {
+        L_INFO("Resolution is not set: setting to 300 ppi\n", procName);
+        res = 300;
+    }
+    maxw = (maxw != 0) ? maxw : (l_int32)(0.5 * res);
+    maxh = (maxh != 0) ? maxh : (l_int32)(0.5 * res);
+
         /* Binarize carefully, if necessary */
     if (pixGetDepth(pixs) > 1) {
         pix2 = pixConvertTo8(pixs, FALSE);
@@ -1134,10 +1147,6 @@ PIXA    *pixa1, *pixa2;
 
         /* Filter to solidify the text lines within the x-height region.
          * The closing (csize) bridges gaps between words. */
-    if ((res = pixGetXRes(pixs)) == 0) {
-        L_INFO("Resolution is not set: setting to 300 ppi\n", procName);
-        res = 300;
-    }
     csize = L_MIN(120., 60.0 * res / 300.0);
     snprintf(buf, sizeof(buf), "c%d.1", csize);
     pix3 = pixMorphCompSequence(pix2, buf, 0);
@@ -1184,299 +1193,21 @@ PIXA    *pixa1, *pixa2;
 
 
 /*------------------------------------------------------------------*
- *                      Decision text vs photo                      *
- *------------------------------------------------------------------*/
-/*!
- * \brief   pixDecideIfText()
- *
- * \param[in]    pixs any depth
- * \param[in]    box [optional] if null, use entire pixs
- * \param[out]   pistext 1 if text; 0 if photo; -1 if not determined
- * \param[in]    pixadb [optional] pre-allocated, for showing intermediate
- *                      computation; use NULL to skip
- * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) It is assumed that pixs has the correct resolution set.
- *          If the resolution is 0, we set to 300 and issue a warning.
- *      (2) If necessary, the image is scaled to 300 ppi; most of the
- *          processing is done at this resolution.
- *      (3) Text is assumed to be in horizontal lines.
- *      (4) Because thin vertical lines are removed before filtering for
- *          text lines, this should identify tables as text.
- *      (5) If %box is null and pixs contains both text lines and line art,
- *          this function might return %istext == true.
- *      (6) If the input pixs is empty, or for some other reason the
- *          result can not be determined, return -1.
- *      (7) For debug output, input a pre-allocated pixa.
- * </pre>
- */
-l_int32
-pixDecideIfText(PIX      *pixs,
-                BOX      *box,
-                l_int32  *pistext,
-                PIXA     *pixadb)
-{
-l_int32    i, empty, maxw, w, h, n1, n2, n3, minlines;
-l_int32    res, big_comp;
-l_float32  ratio1, ratio2, factor;
-L_BMF     *bmf;
-BOX       *box1;
-BOXA      *boxa1, *boxa2, *boxa3, *boxa4, *boxa5;
-PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pix5a;
-PIX       *pix6, *pix7, *pix8, *pix9, *pix10;
-PIXA      *pixa1;
-SEL       *sel1;
-
-    PROCNAME("pixDecideIfText");
-
-    if (pistext) *pistext = -1;  /* init */
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
-
-        /* Crop and convert to 1 bpp with adaptive background cleaning.
-         * If no box is given, use most of the image.  Removing the
-         * edges helps avoid false negatives from noise near the edges. */
-    if (box) {
-        pix1 = pixClipRectangle(pixs, box, NULL);
-    } else {
-        pixGetDimensions(pixs, &w, &h, NULL);
-        box1 = boxCreate(w / 10, h / 10, 4 * w / 5, 4 * h / 5);
-        pix1 = pixClipRectangle(pixs, box1, NULL);
-        boxDestroy(&box1);
-    }
-    pix2 = pixConvertTo8(pix1, 0);
-    pix3 = pixCleanBackgroundToWhite(pix2, NULL, NULL, 1.0, 70, 160);
-    pixDestroy(&pix1);
-    if (!pix3) {
-        pixDestroy(&pix2);
-        L_INFO("pix cleaning failed\n", procName);
-        return 1;
-    }
-    pix4 = pixThresholdToBinary(pix3, 200);
-    pixZero(pix4, &empty);
-    if (empty) {
-        pixDestroy(&pix2);
-        pixDestroy(&pix3);
-        pixDestroy(&pix4);
-        L_INFO("pix is empty\n", procName);
-        return 0;
-    }
-
-        /* Get the resolution, or guess, and scale the image to 300 ppi */
-    if ((res = pixGetXRes(pixs)) == 0) {
-        L_WARNING("Resolution is not set: using 300 ppi\n", procName);
-        res = 300;
-    }
-    if (res != 300) {
-        factor = 300. / res;
-        pix5 = pixScale(pix4, factor, factor);
-    } else {
-        pix5 = pixClone(pix4);
-    }
-    w = pixGetWidth(pix5);
-
-        /* Identify and remove tall, thin vertical lines (as found in tables)
-         * that are up to 9 pixels wide.  Make a hit-miss sel with an
-         * 81 pixel vertical set of hits and with 3 pairs of misses that
-         * are 10 pixels apart horizontally.  It is necessary to use a
-         * hit-miss transform; if we only opened with a vertical line of
-         * hits, we would remove solid regions of pixels that are not
-         * text or vertical lines. */
-    pix5a = pixCreate(11, 81, 1);
-    for (i = 0; i < 81; i++)
-        pixSetPixel(pix5a, 5, i, 1);
-    sel1 = selCreateFromPix(pix5a, 40, 5, NULL);
-    selSetElement(sel1, 20, 0, SEL_MISS);
-    selSetElement(sel1, 20, 10, SEL_MISS);
-    selSetElement(sel1, 40, 0, SEL_MISS);
-    selSetElement(sel1, 40, 10, SEL_MISS);
-    selSetElement(sel1, 60, 0, SEL_MISS);
-    selSetElement(sel1, 60, 10, SEL_MISS);
-    pix6 = pixHMT(NULL, pix5, sel1);
-    pix7 = pixSeedfillBinaryRestricted(NULL, pix6, pix5, 8, 5, 1000);
-    pix8 = pixXor(NULL, pix5, pix7);
-    pixDestroy(&pix5a);
-    selDestroy(&sel1);
-
-        /* Convert the text lines to separate long horizontal components */
-    pix9 = pixMorphCompSequence(pix8, "c30.1 + o15.1 + c60.1 + o2.2", 0);
-
-        /* Estimate the distance to the bottom of the significant region */
-    if (box) {  /* use full height */
-        pixGetDimensions(pix9, NULL, &h, NULL);
-    } else {  /* use height of region that has text lines */
-        pixFindThreshFgExtent(pix9, 400, NULL, &h);
-    }
-
-    if (pixadb) {
-        bmf = bmfCreate(NULL, 8);
-        pixaAddPixWithText(pixadb, pix2, 1, bmf, "initial 8 bpp",
-                           0x0000ff00, L_ADD_BELOW);
-        pixaAddPixWithText(pixadb, pix3, 1, bmf, "with background cleaning",
-                           0x0000ff00, L_ADD_BELOW);
-        pixaAddPixWithText(pixadb, pix4, 1, bmf, "threshold to binary",
-                           0x0000ff00, L_ADD_BELOW);
-        pixaAddPixWithText(pixadb, pix6, 2, bmf, "hit-miss for vertical line",
-                           0x0000ff00, L_ADD_BELOW);
-        pixaAddPixWithText(pixadb, pix7, 2, bmf, "restricted seed-fill",
-                           0x0000ff00, L_ADD_BELOW);
-        pixaAddPixWithText(pixadb, pix8, 2, bmf, "remove using xor",
-                           0x0000ff00, L_ADD_BELOW);
-        pixaAddPixWithText(pixadb, pix9, 2, bmf, "make long horiz components",
-                           0x0000ff00, L_ADD_BELOW);
-    }
-
-        /* Extract the connected components */
-    if (pixadb) {
-        boxa1 = pixConnComp(pix9, &pixa1, 8);
-        pix10 = pixaDisplayRandomCmap(pixa1, 0, 0);
-        pixcmapResetColor(pixGetColormap(pix10), 0, 255, 255, 255);
-        pixaAddPixWithText(pixadb, pix10, 2, bmf, "show connected components",
-                           0x0000ff00, L_ADD_BELOW);
-        pixDestroy(&pix10);
-        pixaDestroy(&pixa1);
-        bmfDestroy(&bmf);
-    } else {
-        boxa1 = pixConnComp(pix9, NULL, 8);
-    }
-
-        /* Analyze the connected components.  The following conditions
-         * at 300 ppi must be satisfied if the image is text:
-         * (1) There are no components that are wider than 400 pixels and
-         *     taller than 175 pixels.
-         * (2) The second longest component is at least 60% of the
-         *     (possibly cropped) image width.  This catches images
-         *     that don't have any significant content.
-         * (3) Of the components that are at least 40% of the length
-         *     of the longest (n2), at least 80% of them must not exceed
-         *     60 pixels in height.
-         * (4) The number of those long, thin components (n3) must
-         *     equal or exceed a minimum that scales linearly with the
-         *     image height.
-         * Most images that are not text fail more than one of these
-         * conditions. */
-    boxa2 = boxaSort(boxa1, L_SORT_BY_WIDTH, L_SORT_DECREASING, NULL);
-    boxaGetBoxGeometry(boxa2, 1, NULL, NULL, &maxw, NULL);  /* 2nd longest */
-    boxa3 = boxaSelectBySize(boxa1, 0.4 * maxw, 0, L_SELECT_WIDTH,
-                             L_SELECT_IF_GTE, NULL);
-    boxa4 = boxaSelectBySize(boxa3, 0, 60, L_SELECT_HEIGHT,
-                             L_SELECT_IF_LTE, NULL);
-    boxa5 = boxaSelectBySize(boxa1, 400, 175, L_SELECT_IF_BOTH,
-                             L_SELECT_IF_GT, NULL);
-    big_comp = (boxaGetCount(boxa5) == 0) ? 0 : 1;
-    n1 = boxaGetCount(boxa1);
-    n2 = boxaGetCount(boxa3);
-    n3 = boxaGetCount(boxa4);
-    ratio1 = (l_float32)maxw / (l_float32)w;
-    ratio2 = (l_float32)n3 / (l_float32)n2;
-    minlines = L_MAX(2, h / 125);
-    if (big_comp || ratio1 < 0.6 || ratio2 < 0.8 || n3 < minlines)
-        *pistext = 0;
-    else
-        *pistext = 1;
-    if (pixadb) {
-        if (*pistext == 1) {
-            L_INFO("This is text: \n  n1 = %d, n2 = %d, n3 = %d, "
-                   "minlines = %d\n  maxw = %d, ratio1 = %4.2f, h = %d, "
-                   "big_comp = %d\n", procName, n1, n2, n3, minlines,
-                   maxw, ratio1, h, big_comp);
-        } else {
-            L_INFO("This is not text: \n  n1 = %d, n2 = %d, n3 = %d, "
-                   "minlines = %d\n  maxw = %d, ratio1 = %4.2f, h = %d, "
-                   "big_comp = %d\n", procName, n1, n2, n3, minlines,
-                   maxw, ratio1, h, big_comp);
-        }
-    }
-
-    boxaDestroy(&boxa1);
-    boxaDestroy(&boxa2);
-    boxaDestroy(&boxa3);
-    boxaDestroy(&boxa4);
-    boxaDestroy(&boxa5);
-    pixDestroy(&pix2);
-    pixDestroy(&pix3);
-    pixDestroy(&pix4);
-    pixDestroy(&pix5);
-    pixDestroy(&pix6);
-    pixDestroy(&pix7);
-    pixDestroy(&pix8);
-    pixDestroy(&pix9);
-    return 0;
-}
-
-
-/*!
- * \brief   pixFindThreshFgExtent()
- *
- * \param[in]    pixs 1 bpp
- * \param[in]    thresh threshold number of pixels in row
- * \param[out]   ptop [optional] location of top of region
- * \param[out]   pbot [optional] location of bottom of region
- * \return  0 if OK, 1 on error
- */
-l_int32
-pixFindThreshFgExtent(PIX      *pixs,
-                      l_int32   thresh,
-                      l_int32  *ptop,
-                      l_int32  *pbot)
-{
-l_int32   i, n;
-l_int32  *array;
-NUMA     *na;
-
-    PROCNAME("pixFindThreshFgExtent");
-
-    if (ptop) *ptop = 0;
-    if (pbot) *pbot = 0;
-    if (!ptop && !pbot)
-        return ERROR_INT("nothing to determine", procName, 1);
-    if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
-
-    na = pixCountPixelsByRow(pixs, NULL);
-    n = numaGetCount(na);
-    array = numaGetIArray(na);
-    if (ptop) {
-        for (i = 0; i < n; i++) {
-            if (array[i] >= thresh) {
-                *ptop = i;
-                break;
-            }
-        }
-    }
-    if (pbot) {
-        for (i = n - 1; i >= 0; i--) {
-            if (array[i] >= thresh) {
-                *pbot = i;
-                break;
-            }
-        }
-    }
-    LEPT_FREE(array);
-    numaDestroy(&na);
-    return 0;
-}
-
-
-
-/*------------------------------------------------------------------*
  *                      How many text columns                       *
  *------------------------------------------------------------------*/
 /*!
  * \brief   pixCountTextColumns()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    deltafract fraction of (max - min) to be used in the delta
- *                          for extrema finding; typ 0.3
- * \param[in]    peakfract fraction of (max - min) to be used to threshold
- *                          the peak value; typ. 0.5
- * \param[in]    clipfract fraction of image dimension removed on each side;
- *                         typ. 0.1, which leaves w and h reduced by 0.8
- * \param[out]   pncols number of columns; -1 if not determined
- * \param[in]    pixadb [optional] pre-allocated, for showing intermediate
- *                      computation; use null to skip
+ * \param[in]    pixs        1 bpp
+ * \param[in]    deltafract  fraction of (max - min) to be used in the delta
+ *                           for extrema finding; typ 0.3
+ * \param[in]    peakfract   fraction of (max - min) to be used to threshold
+ *                            the peak value; typ. 0.5
+ * \param[in]    clipfract   fraction of image dimension removed on each side;
+ *                           typ. 0.1, which leaves w and h reduced by 0.8
+ * \param[out]   pncols      number of columns; -1 if not determined
+ * \param[in]    pixadb      [optional] pre-allocated, for showing
+ *                           intermediate computation; use null to skip
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1610,17 +1341,461 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5;
 
 
 /*------------------------------------------------------------------*
+ *                      Decision text vs photo                      *
+ *------------------------------------------------------------------*/
+/*!
+ * \brief   pixDecideIfText()
+ *
+ * \param[in]    pixs     any depth
+ * \param[in]    box      [optional]  if null, use entire pixs
+ * \param[out]   pistext  1 if text; 0 if photo; -1 if not determined or empty
+ * \param[in]    pixadb   [optional] pre-allocated, for showing intermediate
+ *                        computation; use NULL to skip
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) It is assumed that pixs has the correct resolution set.
+ *          If the resolution is 0, we set to 300 and issue a warning.
+ *      (2) If necessary, the image is scaled to 300 ppi; most of the
+ *          processing is done at this resolution.
+ *      (3) Text is assumed to be in horizontal lines.
+ *      (4) Because thin vertical lines are removed before filtering for
+ *          text lines, this should identify tables as text.
+ *      (5) If %box is null and pixs contains both text lines and line art,
+ *          this function might return %istext == true.
+ *      (6) If the input pixs is empty, or for some other reason the
+ *          result can not be determined, return -1.
+ *      (7) For debug output, input a pre-allocated pixa.
+ * </pre>
+ */
+l_int32
+pixDecideIfText(PIX      *pixs,
+                BOX      *box,
+                l_int32  *pistext,
+                PIXA     *pixadb)
+{
+l_int32    i, empty, maxw, w, h, n1, n2, n3, minlines, big_comp;
+l_float32  ratio1, ratio2;
+L_BMF     *bmf;
+BOXA      *boxa1, *boxa2, *boxa3, *boxa4, *boxa5;
+PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
+PIXA      *pixa1;
+SEL       *sel1;
+
+    PROCNAME("pixDecideIfText");
+
+    if (!pistext)
+        return ERROR_INT("&istext not defined", procName, 1);
+    *pistext = -1;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+
+        /* Crop, convert to 1 bpp, 300 ppi */
+    if ((pix1 = pixPrepare1bpp(pixs, box, 0.1, 300)) == NULL)
+        return ERROR_INT("pix1 not made", procName, 1);
+
+    pixZero(pix1, &empty);
+    if (empty) {
+        pixDestroy(&pix1);
+        L_INFO("pix is empty\n", procName);
+        return 0;
+    }
+    w = pixGetWidth(pix1);
+
+        /* Identify and remove tall, thin vertical lines (as found in tables)
+         * that are up to 9 pixels wide.  Make a hit-miss sel with an
+         * 81 pixel vertical set of hits and with 3 pairs of misses that
+         * are 10 pixels apart horizontally.  It is necessary to use a
+         * hit-miss transform; if we only opened with a vertical line of
+         * hits, we would remove solid regions of pixels that are not
+         * text or vertical lines. */
+    pix2 = pixCreate(11, 81, 1);
+    for (i = 0; i < 81; i++)
+        pixSetPixel(pix2, 5, i, 1);
+    sel1 = selCreateFromPix(pix2, 40, 5, NULL);
+    selSetElement(sel1, 20, 0, SEL_MISS);
+    selSetElement(sel1, 20, 10, SEL_MISS);
+    selSetElement(sel1, 40, 0, SEL_MISS);
+    selSetElement(sel1, 40, 10, SEL_MISS);
+    selSetElement(sel1, 60, 0, SEL_MISS);
+    selSetElement(sel1, 60, 10, SEL_MISS);
+    pix3 = pixHMT(NULL, pix1, sel1);
+    pix4 = pixSeedfillBinaryRestricted(NULL, pix3, pix1, 8, 5, 1000);
+    pix5 = pixXor(NULL, pix1, pix4);
+    pixDestroy(&pix2);
+    selDestroy(&sel1);
+
+        /* Convert the text lines to separate long horizontal components */
+    pix6 = pixMorphCompSequence(pix5, "c30.1 + o15.1 + c60.1 + o2.2", 0);
+
+        /* Estimate the distance to the bottom of the significant region */
+    if (box) {  /* use full height */
+        pixGetDimensions(pix6, NULL, &h, NULL);
+    } else {  /* use height of region that has text lines */
+        pixFindThreshFgExtent(pix6, 400, NULL, &h);
+    }
+
+    if (pixadb) {
+        bmf = bmfCreate(NULL, 8);
+        pixaAddPixWithText(pixadb, pix1, 1, bmf, "threshold/crop to binary",
+                           0x0000ff00, L_ADD_BELOW);
+        pixaAddPixWithText(pixadb, pix3, 2, bmf, "hit-miss for vertical line",
+                           0x0000ff00, L_ADD_BELOW);
+        pixaAddPixWithText(pixadb, pix4, 2, bmf, "restricted seed-fill",
+                           0x0000ff00, L_ADD_BELOW);
+        pixaAddPixWithText(pixadb, pix5, 2, bmf, "remove using xor",
+                           0x0000ff00, L_ADD_BELOW);
+        pixaAddPixWithText(pixadb, pix6, 2, bmf, "make long horiz components",
+                           0x0000ff00, L_ADD_BELOW);
+    }
+
+        /* Extract the connected components */
+    if (pixadb) {
+        boxa1 = pixConnComp(pix6, &pixa1, 8);
+        pix7 = pixaDisplayRandomCmap(pixa1, 0, 0);
+        pixcmapResetColor(pixGetColormap(pix7), 0, 255, 255, 255);
+        pixaAddPixWithText(pixadb, pix7, 2, bmf, "show connected components",
+                           0x0000ff00, L_ADD_BELOW);
+        pixDestroy(&pix7);
+        pixaDestroy(&pixa1);
+        bmfDestroy(&bmf);
+    } else {
+        boxa1 = pixConnComp(pix6, NULL, 8);
+    }
+
+        /* Analyze the connected components.  The following conditions
+         * at 300 ppi must be satisfied if the image is text:
+         * (1) There are no components that are wider than 400 pixels and
+         *     taller than 175 pixels.
+         * (2) The second longest component is at least 60% of the
+         *     (possibly cropped) image width.  This catches images
+         *     that don't have any significant content.
+         * (3) Of the components that are at least 40% of the length
+         *     of the longest (n2), at least 80% of them must not exceed
+         *     60 pixels in height.
+         * (4) The number of those long, thin components (n3) must
+         *     equal or exceed a minimum that scales linearly with the
+         *     image height.
+         * Most images that are not text fail more than one of these
+         * conditions. */
+    boxa2 = boxaSort(boxa1, L_SORT_BY_WIDTH, L_SORT_DECREASING, NULL);
+    boxaGetBoxGeometry(boxa2, 1, NULL, NULL, &maxw, NULL);  /* 2nd longest */
+    boxa3 = boxaSelectBySize(boxa1, 0.4 * maxw, 0, L_SELECT_WIDTH,
+                             L_SELECT_IF_GTE, NULL);
+    boxa4 = boxaSelectBySize(boxa3, 0, 60, L_SELECT_HEIGHT,
+                             L_SELECT_IF_LTE, NULL);
+    boxa5 = boxaSelectBySize(boxa1, 400, 175, L_SELECT_IF_BOTH,
+                             L_SELECT_IF_GT, NULL);
+    big_comp = (boxaGetCount(boxa5) == 0) ? 0 : 1;
+    n1 = boxaGetCount(boxa1);
+    n2 = boxaGetCount(boxa3);
+    n3 = boxaGetCount(boxa4);
+    ratio1 = (l_float32)maxw / (l_float32)w;
+    ratio2 = (l_float32)n3 / (l_float32)n2;
+    minlines = L_MAX(2, h / 125);
+    if (big_comp || ratio1 < 0.6 || ratio2 < 0.8 || n3 < minlines)
+        *pistext = 0;
+    else
+        *pistext = 1;
+    if (pixadb) {
+        if (*pistext == 1) {
+            L_INFO("This is text: \n  n1 = %d, n2 = %d, n3 = %d, "
+                   "minlines = %d\n  maxw = %d, ratio1 = %4.2f, h = %d, "
+                   "big_comp = %d\n", procName, n1, n2, n3, minlines,
+                   maxw, ratio1, h, big_comp);
+        } else {
+            L_INFO("This is not text: \n  n1 = %d, n2 = %d, n3 = %d, "
+                   "minlines = %d\n  maxw = %d, ratio1 = %4.2f, h = %d, "
+                   "big_comp = %d\n", procName, n1, n2, n3, minlines,
+                   maxw, ratio1, h, big_comp);
+        }
+    }
+
+    boxaDestroy(&boxa1);
+    boxaDestroy(&boxa2);
+    boxaDestroy(&boxa3);
+    boxaDestroy(&boxa4);
+    boxaDestroy(&boxa5);
+    pixDestroy(&pix1);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+    pixDestroy(&pix5);
+    pixDestroy(&pix6);
+    return 0;
+}
+
+
+/*!
+ * \brief   pixFindThreshFgExtent()
+ *
+ * \param[in]    pixs      1 bpp
+ * \param[in]    thresh    threshold number of pixels in row
+ * \param[out]   ptop      [optional] location of top of region
+ * \param[out]   pbot      [optional] location of bottom of region
+ * \return  0 if OK, 1 on error
+ */
+l_int32
+pixFindThreshFgExtent(PIX      *pixs,
+                      l_int32   thresh,
+                      l_int32  *ptop,
+                      l_int32  *pbot)
+{
+l_int32   i, n;
+l_int32  *array;
+NUMA     *na;
+
+    PROCNAME("pixFindThreshFgExtent");
+
+    if (ptop) *ptop = 0;
+    if (pbot) *pbot = 0;
+    if (!ptop && !pbot)
+        return ERROR_INT("nothing to determine", procName, 1);
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+
+    na = pixCountPixelsByRow(pixs, NULL);
+    n = numaGetCount(na);
+    array = numaGetIArray(na);
+    if (ptop) {
+        for (i = 0; i < n; i++) {
+            if (array[i] >= thresh) {
+                *ptop = i;
+                break;
+            }
+        }
+    }
+    if (pbot) {
+        for (i = n - 1; i >= 0; i--) {
+            if (array[i] >= thresh) {
+                *pbot = i;
+                break;
+            }
+        }
+    }
+    LEPT_FREE(array);
+    numaDestroy(&na);
+    return 0;
+}
+
+
+/*------------------------------------------------------------------*
+ *                     Decision: table vs text                      *
+ *------------------------------------------------------------------*/
+/*!
+ * \brief   pixDecideIfTable()
+ *
+ * \param[in]    pixs      any depth, 300 ppi
+ * \param[in]    box       [optional] if null, use entire pixs
+ * \param[out]   pistable  1 if table; 0 if text only; -1 if not determined
+ * \param[in]    pixadb    [optional] pre-allocated, for showing intermediate
+ *                         computation; use NULL to skip
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) It is assumed that pixs has the correct resolution set.
+ *          If the resolution is 0, we assume it is 300 ppi and issue a warning.
+ *      (2) Most of the processing takes place at 75 ppi.
+ *      (3) Three numbers are determined, for horizontal and vertical
+ *          fg and bg lines.  From these, four tests are made to decide
+ *          if there is a table occupying a significant part of the image.
+ *      (4) For debug output, input a pre-allocated pixa.
+ * </pre>
+ */
+l_int32
+pixDecideIfTable(PIX      *pixs,
+                 BOX      *box,
+                 l_int32  *pistable,
+                 PIXA     *pixadb)
+{
+l_int32  i, empty, nhb, nvb, nvw, score;
+PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
+
+    PROCNAME("pixDecideIfTable");
+
+    if (!pistable)
+        return ERROR_INT("&istable not defined", procName, 1);
+    *pistable = -1;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+
+        /* Crop, convert to 1 bpp, 75 ppi */
+    if ((pix1 = pixPrepare1bpp(pixs, box, 0.1, 75)) == NULL)
+        return ERROR_INT("pix1 not made", procName, 1);
+
+    pixZero(pix1, &empty);
+    if (empty) {
+        pixDestroy(&pix1);
+        L_INFO("pix is empty\n", procName);
+        return 0;
+    }
+
+        /* The 2x2 dilation on 75 ppi makes these two approaches very similar:
+         * (1) pix1 = pixPrepare1bpp(..., 300);  // 300 ppi resolution
+         *     pix2 = pixReduceRankBinaryCascade(pix1, 1, 1, 0, 0);
+         * (2) pix1 = pixPrepare1bpp(..., 75);  // 75 ppi resolution
+         *     pix2 = pixDilateBrick(NULL, pix1, 2, 2);
+         * But (2) is more efficient if the input image to pixPrepare1bpp()
+         * is not at 300 ppi.   */
+    pix2 = pixDilateBrick(NULL, pix1, 2, 2);
+
+        /* Deskew both horizontally and vertically */
+    pix3 = pixDeskewBoth(pix2, 1);
+    if (pixadb) {
+        pixaAddPix(pixadb, pix2, L_COPY);
+        pixaAddPix(pixadb, pix3, L_COPY);
+    }
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pix1 = pixClone(pix3);
+    pixDestroy(&pix3);
+
+        /* Look for horizontal and vertical lines */
+    pix2 = pixMorphSequence(pix1, "o100.1 + c1.4", 0);
+    pix3 = pixSeedfillBinary(NULL, pix2, pix1, 8);
+    pix4 = pixMorphSequence(pix1, "o1.100 + c4.1", 0);
+    pix5 = pixSeedfillBinary(NULL, pix4, pix1, 8);
+    pix6 = pixOr(NULL, pix3, pix5);
+    if (pixadb) {
+        pixaAddPix(pixadb, pix1, L_COPY);
+        pixaAddPix(pixadb, pix2, L_COPY);
+        pixaAddPix(pixadb, pix4, L_COPY);
+        pixaAddPix(pixadb, pix3, L_COPY);
+        pixaAddPix(pixadb, pix5, L_COPY);
+        pixaAddPix(pixadb, pix6, L_COPY);
+    }
+    pixCountConnComp(pix2, 8, &nhb);
+    pixCountConnComp(pix4, 8, &nvb);
+
+        /* Remove the lines */
+    pixSubtract(pix1, pix1, pix6);
+    if (pixadb) pixaAddPix(pixadb, pix1, L_COPY);
+
+        /* Look for vertical white space.  Use a 2,2 rank reduction, which
+         * is neutral in density, to do the final processing at 19 ppi.  */
+    pixInvert(pix1, pix1);
+    pix7 = pixMorphSequence(pix1, "r22 + o1.60", 0);
+    pixCountConnComp(pix7, 8, &nvw);
+    if (pixadb) pixaAddPix(pixadb, pixScale(pix7, 4.0, 4.0), L_INSERT);
+
+        /* Require at least 2 of the following 4 conditions for a table.
+         * For a table without fg lines, we require more than 6 long
+         * vertical whitespace (bg) lines.  */
+    score = 0;
+    if (nhb > 2) score++;
+    if (nvb > 2) score++;
+    if (nvw > 3) score++;
+    if (nvw > 6) score++;
+    *pistable = (score > 1) ? 1 : 0;
+
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+    pixDestroy(&pix5);
+    pixDestroy(&pix6);
+    pixDestroy(&pix7);
+    return 1;
+}
+
+
+/*!
+ * \brief   pixPrepare1bpp()
+ *
+ * \param[in]    pixs       any depth
+ * \param[in]    box        [optional] if null, use entire pixs
+ * \param[in]    cropfract  fraction to be removed from the boundary;
+ *                          use 0.0 to retain the entire image
+ * \param[in]    outres     desired resolution of output image; if the
+ *                          input image resolution is not set, assume
+ *                          300 ppi; use 0 to skip scaling.
+ * \return  pixd if OK, NULL on error
+ *
+ * </pre>
+ * Notes:
+ *      (1) This handles some common pre-processing operations,
+ *          where the page segmentation algorithm takes a 1 bpp image.
+ * </pre>
+ */
+PIX *
+pixPrepare1bpp(PIX       *pixs,
+               BOX       *box,
+               l_float32  cropfract,
+               l_int32    outres)
+{
+l_int32    w, h, res;
+l_float32  factor;
+BOX       *box1;
+PIX       *pix1, *pix2, *pix3, *pix4, *pix5;
+
+    PROCNAME("pixPrepare1bpp");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+
+        /* Crop the image.  If no box is given, use %cropfract to remove
+         * pixels near the image boundary; this helps avoid false
+         * negatives from noise that is often found there. */
+    if (box) {
+        pix1 = pixClipRectangle(pixs, box, NULL);
+    } else {
+        pixGetDimensions(pixs, &w, &h, NULL);
+        box1 = boxCreate((l_int32)(cropfract * w), (l_int32)(cropfract * h),
+                         (l_int32)((1.0 - 2 * cropfract) * w),
+                         (l_int32)((1.0 - 2 * cropfract) * h));
+        pix1 = pixClipRectangle(pixs, box1, NULL);
+        boxDestroy(&box1);
+    }
+
+        /* Convert to 1 bpp with adaptive background cleaning */
+    if (pixGetDepth(pixs) > 1) {
+        pix2 = pixConvertTo8(pix1, 0);
+        pix3 = pixCleanBackgroundToWhite(pix2, NULL, NULL, 1.0, 70, 160);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
+        if (!pix3) {
+            L_INFO("pix cleaning failed\n", procName);
+            return NULL;
+        }
+        pix4 = pixThresholdToBinary(pix3, 200);
+        pixDestroy(&pix3);
+    } else {
+        pix4 = pixClone(pix1);
+        pixDestroy(&pix1);
+    }
+
+        /* Scale the image to the requested output resolution;
+           do not scale if %outres <= 0 */
+    if (outres <= 0)
+        return pix4;
+    if ((res = pixGetXRes(pixs)) == 0) {
+        L_WARNING("Resolution is not set: using 300 ppi\n", procName);
+        res = 300;
+    }
+    if (res != outres) {
+        factor = (l_float32)outres / (l_float32)res;
+        pix5 = pixScale(pix4, factor, factor);
+    } else {
+        pix5 = pixClone(pix4);
+    }
+    pixDestroy(&pix4);
+    return pix5;
+}
+
+
+/*------------------------------------------------------------------*
  *               Estimate the grayscale background value            *
  *------------------------------------------------------------------*/
 /*!
  * \brief   pixEstimateBackground()
  *
- * \param[in]    pixs 8 bpp, with or without colormap
- * \param[in]    darkthresh pixels below this value are never considered
- *                          part of the background; typ. 70; use 0 to skip
- * \param[in]    edgecrop fraction of half-width on each side, and of
- *                        half-height at top and bottom, that are cropped
- * \param[out]   pbg estimated background, or 0 on error
+ * \param[in]    pixs         8 bpp, with or without colormap
+ * \param[in]    darkthresh   pixels below this value are never considered
+ *                            part of the background; typ. 70; use 0 to skip
+ * \param[in]    edgecrop     fraction of half-width on each side, and of
+ *                            half-height at top and bottom, that are cropped
+ * \param[out]   pbg          estimated background, or 0 on error
  * \return  0 if OK, 1 on error
  *
  * <pre>

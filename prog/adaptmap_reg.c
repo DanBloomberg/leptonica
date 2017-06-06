@@ -157,7 +157,7 @@ L_REGPARAMS  *rp;
 
         /* Display results */
     pix1 = pixaDisplayTiledAndScaled(pixa, 32, 400, 4, 0, 20, 2);
-    pixWrite("/tmp/junk.jpg", pix1, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/adapt/results.jpg", pix1, IFF_JFIF_JPEG);
     pixDisplayWithTitle(pix1, 100, 0, NULL, rp->display);
     pixDestroy(&pix1);
     pixaDestroy(&pixa);
