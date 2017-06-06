@@ -1665,23 +1665,24 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
         pixaAddPix(pixadb, pix5, L_COPY);
         pixaAddPix(pixadb, pix6, L_COPY);
     }
-    pixCountConnComp(pix2, 8, &nhb);
-    pixCountConnComp(pix4, 8, &nvb);
+    pixCountConnComp(pix2, 8, &nhb);  /* number of horizontal black lines */
+    pixCountConnComp(pix4, 8, &nvb);  /* number of vertical black lines */
 
         /* Remove the lines */
     pixSubtract(pix1, pix1, pix6);
     if (pixadb) pixaAddPix(pixadb, pix1, L_COPY);
 
         /* Look for vertical white space.  Use a 2,2 rank reduction, which
-         * is neutral in density, to do the final processing at 19 ppi.  */
+         * is neutral in density, to do the final processing at 19 ppi. 
+         * The vertical opening is then about 3 inches on a 300 ppi image. */
     pixInvert(pix1, pix1);
     pix7 = pixMorphSequence(pix1, "r22 + o1.60", 0);
-    pixCountConnComp(pix7, 8, &nvw);
+    pixCountConnComp(pix7, 8, &nvw);  /* number of vertical white lines */
     if (pixadb) pixaAddPix(pixadb, pixScale(pix7, 4.0, 4.0), L_INSERT);
 
         /* Require at least 2 of the following 4 conditions for a table.
-         * For a table without fg lines, we require more than 6 long
-         * vertical whitespace (bg) lines.  */
+         * Some tables do not have black (fg) lines, and for those we
+         * require more than 6 long vertical whitespace (bg) lines.  */
     score = 0;
     if (nhb > 2) score++;
     if (nvb > 2) score++;

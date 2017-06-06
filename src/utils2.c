@@ -1943,14 +1943,13 @@ char    *newpath;
         LEPT_FREE(fullname);
     }
 
-    ret = 0;
 #ifndef _WIN32
     realdir = genPathname("/tmp", subdir);
     ret = rmdir(realdir);
     LEPT_FREE(realdir);
 #else
     newpath = genPathname(dir, NULL);
-    remove(newpath);
+    ret = (RemoveDirectory(newpath) ? 0 : 1);
     LEPT_FREE(newpath);
 #endif  /* !_WIN32 */
 
