@@ -1215,7 +1215,7 @@ PIX     *pixt1, *pixt2, *pixt3;
         getExtendedCompositeParameters(vsize, &nv, &extrav, NULL);
 
         /* Horizontal dilation first: pixs --> pixt2.  Do not alter pixs. */
-    pixt1 = pixCreateTemplateNoInit(pixs);  /* temp image */
+    pixt1 = pixCreateTemplate(pixs);  /* temp image */
     if (hsize == 1) {
         pixt2 = pixClone(pixs);
     } else if (hsize < 64) {
@@ -1335,7 +1335,7 @@ PIX     *pixt1, *pixt2, *pixt3;
         getExtendedCompositeParameters(vsize, &nv, &extrav, NULL);
 
         /* Horizontal erosion first: pixs --> pixt2.  Do not alter pixs. */
-    pixt1 = pixCreateTemplateNoInit(pixs);  /* temp image */
+    pixt1 = pixCreateTemplate(pixs);  /* temp image */
     if (hsize == 1) {
         pixt2 = pixClone(pixs);
     } else if (hsize < 64) {

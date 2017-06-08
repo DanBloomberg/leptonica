@@ -2816,7 +2816,7 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("pixs has a colormap", procName, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
-    pixd = pixCreateTemplateNoInit(pixs);
+    pixd = pixCreateTemplate(pixs);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
     wpl = pixGetWpl(pixs);
@@ -2869,7 +2869,7 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("pixs has a colormap", procName, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
-    pixd = pixCreateTemplateNoInit(pixs);
+    pixd = pixCreateTemplate(pixs);
     lines8 = pixGetLinePtrs(pixs, NULL);
     lined8 = pixGetLinePtrs(pixd, NULL);
     for (j = 0; j < w; j++) {

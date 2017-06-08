@@ -788,7 +788,7 @@ PIXTILING  *pt;
         * although the filter is symmetric with respect to its origin,
         * the implementation is asymmetric -- see the implementation in
         * pixBlockconvGrayTile(). */
-    if ((pixd = pixCreateTemplateNoInit(pixs)) == NULL) {
+    if ((pixd = pixCreateTemplate(pixs)) == NULL) {
         pixDestroy(&pixs);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }

@@ -412,7 +412,6 @@ PIX     *pixd;
     pixCopyColormap(pixd, pixs);
     pixCopyText(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
-
     return pixd;
 }
 

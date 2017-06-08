@@ -1380,7 +1380,11 @@ FPIX       *fpix;
     }
 
         /* For halfwidth == 2, do the low pass separably.  Store
-         * the result of horizontal smoothing in an intermediate fpix. */
+         * the result of horizontal smoothing in an intermediate fpix.
+         * Note that in the horizontal smoothing step, the values of
+         * fpix in the 2 pixel-wide border region are unchanged from 0.
+         * In vertical smoothing, the normalization constant takes this
+         * into account for pixels near the upper and lower boundaries.  */
     fpix = fpixCreate(w, h);
     dataf = fpixGetData(fpix);
     wplf = fpixGetWpl(fpix);

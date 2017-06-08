@@ -54,7 +54,7 @@
  *   where the desired tile width is 256 pixels and the overlap is
  *   30 pixels on left and right sides:
  *
- *     PIX *pixd = pixCreateTemplateNoInit(pixs);  // output
+ *     PIX *pixd = pixCreateTemplate(pixs);  // output
  *     PIXTILING  *pt = pixTilingCreate(pixs, 0, 1, 256, 30, 0);
  *     pixTilingGetCount(pt, &nx, NULL);
  *     for (j = 0; j < nx; j++) {

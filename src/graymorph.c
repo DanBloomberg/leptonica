@@ -725,8 +725,7 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 8)
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
 
-    pixd = pixCreateTemplateNoInit(pixs);
-    pixSetBorderVal(pixd, 4, 8, 2, 8, 0);  /* only to silence valgrind */
+    pixd = pixCreateTemplate(pixs);
     pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
@@ -793,7 +792,7 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 8)
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
 
-    pixd = pixCreateTemplateNoInit(pixs);
+    pixd = pixCreateTemplate(pixs);
     pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
@@ -912,8 +911,7 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 8)
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
 
-    pixd = pixCreateTemplateNoInit(pixs);
-    pixSetBorderVal(pixd, 4, 8, 2, 8, 0);  /* only to silence valgrind */
+    pixd = pixCreateTemplate(pixs);
     pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
@@ -977,7 +975,7 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 8)
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
 
-    pixd = pixCreateTemplateNoInit(pixs);
+    pixd = pixCreateTemplate(pixs);
     pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);

@@ -1673,9 +1673,11 @@ l_int32  i, j, w, h;
  * Notes:
  *      (1) pixd can be null, but otherwise it must be the same size
  *          and depth as pixs.  Always returns pixd.
- *      (1) This is useful in situations where by setting a few border
+ *      (2) This is useful in situations where by setting a few border
  *          pixels we can avoid having to copy all pixels in pixs into
  *          pixd as an initialization step for some operation.
+ *          Nevertheless, for safety, if making a new pixd, all the
+ *          non-border pixels are initialized to 0.
  * </pre>
  */
 PIX *
@@ -1702,7 +1704,7 @@ l_int32  w, h;
                                     procName, pixd);
         }
     } else {
-        if ((pixd = pixCreateTemplateNoInit(pixs)) == NULL)
+        if ((pixd = pixCreateTemplate(pixs)) == NULL)
             return (PIX *)ERROR_PTR("pixd not made", procName, pixd);
     }
 
@@ -1711,7 +1713,6 @@ l_int32  w, h;
     pixRasterop(pixd, w - right, 0, right, h, PIX_SRC, pixs, w - right, 0);
     pixRasterop(pixd, 0, 0, w, top, PIX_SRC, pixs, 0, 0);
     pixRasterop(pixd, 0, h - bot, w, bot, PIX_SRC, pixs, 0, h - bot);
-
     return pixd;
 }
 
