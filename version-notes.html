@@ -89,6 +89,14 @@ They are <i>not</i> a complete listing of the modifications.
 
 <pre>
 
+1.74.3  9 Jun 17
+        Coverity scan fixes.
+        Several fixes for running on Windows, including subtle one with tiff
+        encoding depending on pad bits.
+        Utility and test if a page image likely has a table.
+        Remove use of pixCreateTemplateNoInit() where it may cause problems.
+        Make release 'configure-make ready'
+
 1.74.2  19 May 17
         Many simplifications and improvements to recognizer.
         Cleanup of doxygen comments
