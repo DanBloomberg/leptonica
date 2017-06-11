@@ -42,7 +42,7 @@ project(leptonica C CXX)
 
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 74)
-set(VERSION_PATCH 3)
+set(VERSION_PATCH 4)
 set(VERSION_PLAIN ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
 option(BUILD_PROG "Build utility programs" OFF)
