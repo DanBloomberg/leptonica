@@ -8,7 +8,9 @@
 #             output file
 #     output: ccitt-g4 compressed mulitipage tiff file
 #
-#   N.B. Requires ghostscript
+#   Notes:
+#        (1) Requires ghostscript
+#        (2) If you give it images with bpp > 1, the result will be ugly.
 
 scriptname=${0##*/}
 
@@ -29,16 +31,17 @@ then
 fi
 
 # 'echo "0 neg 0 neg" translate' is the mysterious "primer"
-# choose one of the two options below
+rm /tmp/junkpdf*
+
+# --------- Choose one of the two options below ---------
 
 # output image size at 300 ppi
-rm /tmp/junkpdf*
-echo "0 neg 0 neg" translate | /usr/bin/gs -sDEVICE=tiffg4 -sOutputFile=/tmp/junkpdf%03d.tif -r300x300 -q - ${pdfin}
-./writemtiff /tmp junkpdf ${tiffout}
+#echo "0 neg 0 neg" translate | /usr/bin/gs -sDEVICE=tiffg4 -sOutputFile=/tmp/junkpdf%03d.tif -r300x300 -q - ${pdfin}
+#./writemtiff /tmp junkpdf ${tiffout}
 
 # output image size at 600 ppi
-rm /tmp/junkpdf*
 echo "0 neg 0 neg" translate | /usr/bin/gs -sDEVICE=tiffg4 -sOutputFile=/tmp/junkpdf%03d.tif -r600x600 -q - ${pdfin}
 ./writemtiff /tmp junkpdf ${tiffout}
 
+# ------------------------------------------------------
 

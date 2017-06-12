@@ -78,6 +78,7 @@
  *           l_int32   pixaAnyColormaps()
  *           l_int32   pixaGetDepthInfo()
  *           PIXA     *pixaConvertToSameDepth()
+ *           PIXA     *pixaConvertToRGB()
  *           l_int32   pixaEqual()
  *           PIXA     *pixaRotateOrth()
  *           l_int32   pixaSetFullSizeBoxa()
@@ -2573,6 +2574,43 @@ PIXA    *pixat, *pixad;
         pixad = pixaCopy(pixat, L_CLONE);
     }
     pixaDestroy(&pixat);
+    return pixad;
+}
+
+
+/*!
+ * \brief   pixaConvertToRGB()
+ *
+ * \param[in]    pixas    any depth, with or without colormap
+ * \return  pixad, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This can be used to allow 1 bpp pix in a pixa to be
+ *          displayed with color.
+ * </pre>
+ */
+PIXA *
+pixaConvertToRGB(PIXA  *pixas)
+{
+l_int32  i, n;
+PIX     *pix1, *pix2;
+PIXA    *pixad;
+
+    PROCNAME("pixaConvertToRGB");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+
+    if ((n = pixaGetCount(pixas)) == 0)
+        return (PIXA *)ERROR_PTR("no components", procName, NULL);
+    pixad = pixaCreate(n);
+    for (i = 0; i < n; i++) {
+        pix1 = pixaGetPix(pixas, i, L_CLONE);
+        pix2 = pixConvertTo32(pix1);
+        pixaAddPix(pixad, pix2, L_INSERT);
+        pixDestroy(&pix1);
+    }
     return pixad;
 }
 

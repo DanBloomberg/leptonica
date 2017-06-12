@@ -160,8 +160,8 @@ pixEqual(PIX      *pix1,
  *
  * \param[in]    pix1
  * \param[in]    pix2
- * \param[in]    use_alpha 1 to compare alpha in RGBA; 0 to ignore
- * \param[out]   psame  1 if same; 0 if different
+ * \param[in]    use_alpha   1 to compare alpha in RGBA; 0 to ignore
+ * \param[out]   psame       1 if same; 0 if different
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -191,10 +191,8 @@ PIXCMAP   *cmap1, *cmap2;
     if (!psame)
         return ERROR_INT("psame not defined", procName, 1);
     *psame = 0;  /* init to not equal */
-    if (!pix1)
-        return ERROR_INT("pix1 not defined", procName, 1);
-    if (!pix2)
-        return ERROR_INT("pix2 not defined", procName, 1);
+    if (!pix1 || !pix2)
+        return ERROR_INT("pix1 and pix2 not both defined", procName, 1);
     pixGetDimensions(pix1, &w1, &h1, &d1);
     pixGetDimensions(pix2, &w2, &h2, &d2);
     if (w1 != w2 || h1 != h2) {
@@ -515,8 +513,8 @@ l_int32  n1, n2, i, rval1, rval2, gval1, gval2, bval1, bval2, aval1, aval2;
 /*!
  * \brief   pixUsesCmapColor()
  *
- * \param[in]    pixs
- * \param[out]   pcolor TRUE if color found
+ * \param[in]    pixs     any depth, colormap
+ * \param[out]   pcolor   TRUE if color found
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -576,9 +574,9 @@ PIXCMAP  *cmap;
 /*!
  * \brief   pixCorrelationBinary()
  *
- * \param[in]    pix1 1 bpp
- * \param[in]    pix2 1 bpp
- * \param[out]   pval correlation
+ * \param[in]    pix1    1 bpp
+ * \param[in]    pix2    1 bpp
+ * \param[out]   pval    correlation
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -638,8 +636,8 @@ PIX      *pixn;
 /*!
  * \brief   pixDisplayDiffBinary()
  *
- * \param[in]    pix1 1 bpp
- * \param[in]    pix2 1 bpp
+ * \param[in]    pix1    1 bpp
+ * \param[in]    pix2    1 bpp
  * \return  pixd 4 bpp cmapped, or NULL on error
  *
  * <pre>
@@ -695,11 +693,11 @@ PIXCMAP  *cmap;
 /*!
  * \brief   pixCompareBinary()
  *
- * \param[in]    pix1 1 bpp
- * \param[in]    pix2 1 bpp
- * \param[in]    comptype L_COMPARE_XOR, L_COMPARE_SUBTRACT
- * \param[out]   pfract fraction of pixels that are different
- * \param[out]   ppixdiff [optional] pix of difference
+ * \param[in]    pix1       1 bpp
+ * \param[in]    pix2       1 bpp
+ * \param[in]    comptype   L_COMPARE_XOR, L_COMPARE_SUBTRACT
+ * \param[out]   pfract     fraction of pixels that are different
+ * \param[out]   ppixdiff   [optional] pix of difference
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -752,14 +750,14 @@ PIX      *pixt;
 /*!
  * \brief   pixCompareGrayOrRGB()
  *
- * \param[in]    pix1 8 or 16 bpp gray, 32 bpp rgb, or colormapped
- * \param[in]    pix2 8 or 16 bpp gray, 32 bpp rgb, or colormapped
- * \param[in]    comptype L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF
- * \param[in]    plottype gplot plot output type, or 0 for no plot
- * \param[out]   psame [optional] 1 if pixel values are identical
- * \param[out]   pdiff [optional] average difference
- * \param[out]   prmsdiff [optional] rms of difference
- * \param[out]   ppixdiff [optional] pix of difference
+ * \param[in]    pix1      8 or 16 bpp gray, 32 bpp rgb, or colormapped
+ * \param[in]    pix2      8 or 16 bpp gray, 32 bpp rgb, or colormapped
+ * \param[in]    comptype  L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF
+ * \param[in]    plottype  gplot plot output type, or 0 for no plot
+ * \param[out]   psame     [optional] 1 if pixel values are identical
+ * \param[out]   pdiff     [optional] average difference
+ * \param[out]   prmsdiff  [optional] rms of difference
+ * \param[out]   ppixdiff  [optional] pix of difference
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -839,14 +837,14 @@ PIX     *pixt1, *pixt2;
 /*!
  * \brief   pixCompareGray()
  *
- * \param[in]    pix1 8 or 16 bpp, not cmapped
- * \param[in]    pix2 8 or 16 bpp, not cmapped
- * \param[in]    comptype L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF
- * \param[in]    plottype gplot plot output type, or 0 for no plot
- * \param[out]   psame [optional] 1 if pixel values are identical
- * \param[out]   pdiff [optional] average difference
- * \param[out]   prmsdiff [optional] rms of difference
- * \param[out]   ppixdiff [optional] pix of difference
+ * \param[in]    pix1       8 or 16 bpp, not cmapped
+ * \param[in]    pix2       8 or 16 bpp, not cmapped
+ * \param[in]    comptype   L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF
+ * \param[in]    plottype   gplot plot output type, or 0 for no plot
+ * \param[out]   psame      [optional] 1 if pixel values are identical
+ * \param[out]   pdiff      [optional] average difference
+ * \param[out]   prmsdiff   [optional] rms of difference
+ * \param[out]   ppixdiff   [optional] pix of difference
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -949,14 +947,14 @@ PIX            *pixt;
 /*!
  * \brief   pixCompareRGB()
  *
- * \param[in]    pix1 32 bpp rgb
- * \param[in]    pix2 32 bpp rgb
- * \param[in]    comptype L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF
- * \param[in]    plottype gplot plot output type, or 0 for no plot
- * \param[out]   psame [optional] 1 if pixel values are identical
- * \param[out]   pdiff [optional] average difference
- * \param[out]   prmsdiff [optional] rms of difference
- * \param[out]   ppixdiff [optional] pix of difference
+ * \param[in]    pix1       32 bpp rgb
+ * \param[in]    pix2       32 bpp rgb
+ * \param[in]    comptype   L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF
+ * \param[in]    plottype   gplot plot output type, or 0 for no plot
+ * \param[out]   psame      [optional] 1 if pixel values are identical
+ * \param[out]   pdiff      [optional] average difference
+ * \param[out]   prmsdiff   [optional] rms of difference
+ * \param[out]   ppixdiff   [optional] pix of difference
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -1101,11 +1099,11 @@ PIX            *pixr, *pixg, *pixb;
 /*!
  * \brief   pixCompareTiled()
  *
- * \param[in]    pix1 8 bpp or 32 bpp rgb
- * \param[in]    pix2 8 bpp 32 bpp rgb
- * \param[in]    sx, sy tile size; must be > 1
- * \param[in]    type L_MEAN_ABSVAL or L_ROOT_MEAN_SQUARE
- * \param[out]   ppixdiff pix of difference
+ * \param[in]    pix1       8 bpp or 32 bpp rgb
+ * \param[in]    pix2       8 bpp 32 bpp rgb
+ * \param[in]    sx, sy     tile size; must be > 1 in each dimension
+ * \param[in]    type       L_MEAN_ABSVAL or L_ROOT_MEAN_SQUARE
+ * \param[out]   ppixdiff   pix of difference
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -1193,10 +1191,10 @@ PIXACC    *pixacc;
 /*!
  * \brief   pixCompareRankDifference()
  *
- * \param[in]    pix1 8 bpp gray or 32 bpp rgb, or colormapped
- * \param[in]    pix2 8 bpp gray or 32 bpp rgb, or colormapped
- * \param[in]    factor subsampling factor; use 0 or 1 for no subsampling
- * \return  narank numa of rank difference, or NULL on error
+ * \param[in]    pix1      8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    pix2      8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    factor    subsampling factor; use 0 or 1 for no subsampling
+ * \return  narank      numa of rank difference, or NULL on error
  *
  * <pre>
  * Notes:
@@ -1256,17 +1254,17 @@ NUMA       *nah, *nan, *nad;
 /*!
  * \brief   pixTestForSimilarity()
  *
- * \param[in]    pix1 8 bpp gray or 32 bpp rgb, or colormapped
- * \param[in]    pix2 8 bpp gray or 32 bpp rgb, or colormapped
- * \param[in]    factor subsampling factor; use 0 or 1 for no subsampling
- * \param[in]    mindiff minimum pixel difference to be counted; > 0
- * \param[in]    maxfract maximum fraction of pixels allowed to have
- *                        diff greater than or equal to mindiff
- * \param[in]    maxave maximum average difference of pixels allowed for
- *                      pixels with diff greater than or equal to mindiff,
- *                      after subtracting mindiff
- * \param[out]   psimilar 1 if similar, 0 otherwise
- * \param[in]    printstats use 1 to print normalized histogram to stderr
+ * \param[in]    pix1         8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    pix2         8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    factor       subsampling factor; use 0 or 1 for no subsampling
+ * \param[in]    mindiff      minimum pixel difference to be counted; > 0
+ * \param[in]    maxfract     maximum fraction of pixels allowed to have
+ *                            diff greater than or equal to mindiff
+ * \param[in]    maxave       maximum average difference of pixels allowed for
+ *                            pixels with diff greater than or equal to
+ *                            mindiff, after subtracting mindiff
+ * \param[out]   psimilar     1 if similar, 0 otherwise
+ * \param[in]    printstats   use 1 to print normalized histogram to stderr
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1341,15 +1339,15 @@ l_float32   fractdiff, avediff;
 /*!
  * \brief   pixGetDifferenceStats()
  *
- * \param[in]    pix1 8 bpp gray or 32 bpp rgb, or colormapped
- * \param[in]    pix2 8 bpp gray or 32 bpp rgb, or colormapped
- * \param[in]    factor subsampling factor; use 0 or 1 for no subsampling
- * \param[in]    mindiff minimum pixel difference to be counted; > 0
- * \param[out]   pfractdiff fraction of pixels with diff greater
- *                          than or equal to mindiff
- * \param[out]   pavediff average difference of pixels with diff
- *                        greater than or equal to mindiff, less mindiff
- * \param[in]    printstats use 1 to print normalized histogram to stderr
+ * \param[in]    pix1        8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    pix2        8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    factor      subsampling factor; use 0 or 1 for no subsampling
+ * \param[in]    mindiff     minimum pixel difference to be counted; > 0
+ * \param[out]   pfractdiff  fraction of pixels with diff greater than or
+ *                           equal to mindiff
+ * \param[out]   pavediff    average difference of pixels with diff greater
+ *                           than or equal to mindiff, less mindiff
+ * \param[in]    printstats  use 1 to print normalized histogram to stderr
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1458,10 +1456,10 @@ NUMA       *nah, *nan, *nac;
 /*!
  * \brief   pixGetDifferenceHistogram()
  *
- * \param[in]    pix1 8 bpp gray or 32 bpp rgb, or colormapped
- * \param[in]    pix2 8 bpp gray or 32 bpp rgb, or colormapped
- * \param[in]    factor subsampling factor; use 0 or 1 for no subsampling
- * \return  na Numa of histogram of differences, or NULL on error
+ * \param[in]    pix1      8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    pix2      8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    factor    subsampling factor; use 0 or 1 for no subsampling
+ * \return  na     Numa of histogram of differences, or NULL on error
  *
  * <pre>
  * Notes:
@@ -1561,15 +1559,14 @@ PIX        *pixt1, *pixt2;
 /*!
  * \brief   pixGetPerceptualDiff()
  *
- * \param[in]    pixs1 8 bpp gray or 32 bpp rgb, or colormapped
- * \param[in]    pixs2 8 bpp gray or 32 bpp rgb, or colormapped
- * \param[in]    sampling subsampling factor; use 0 or 1 for no subsampling
- * \param[in]    dilation size of grayscale or color Sel; odd
- * \param[in]    mindiff minimum pixel difference to be counted; > 0
- * \param[out]   pfract fraction of pixels with diff greater than
- *                      mindiff
- * \param[out]   ppixdiff1 [optional] showing difference (gray or color)
- * \param[out]   ppixdiff2 [optional] showing pixels of sufficient diff
+ * \param[in]    pixs1       8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    pixs2       8 bpp gray or 32 bpp rgb, or colormapped
+ * \param[in]    sampling    subsampling factor; use 0 or 1 for no subsampling
+ * \param[in]    dilation    size of grayscale or color Sel; odd
+ * \param[in]    mindiff     minimum pixel difference to be counted; > 0
+ * \param[out]   pfract      fraction of pixels with diff greater than mindiff
+ * \param[out]   ppixdiff1   [optional] showing difference (gray or color)
+ * \param[out]   ppixdiff2   [optional] showing pixels of sufficient diff
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1741,9 +1738,9 @@ PIX     *pix10, *pix11;
 /*!
  * \brief   pixGetPSNR()
  *
- * \param[in]    pix1, pix2 8 or 32 bpp; no colormap
- * \param[in]    factor sampling factor; >= 1
- * \param[out]   ppsnr power signal/noise ratio difference
+ * \param[in]    pix1, pix2     8 or 32 bpp; no colormap
+ * \param[in]    factor         sampling factor; >= 1
+ * \param[out]   ppsnr          power signal/noise ratio difference
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1845,16 +1842,15 @@ l_float32  mse;  /* mean squared error */
 /*!
  * \brief   pixaComparePhotoRegionsByHisto()
  *
- * \param[in]    pixa any depth; colormap OK
- * \param[in]    minratio requiring sizes be compatible; < 1.0
- * \param[in]    factor subsampling; >= 1
- * \param[in]    textthresh threshold for text/photo; use 0 for default
- * \param[in]    nx, ny number of subregions to use for histograms; e.g. 3x3
- * \param[in]    simthresh threshold for similarity; use 0 for default
- * \param[out]   pnai array giving similarity class indices
- * \param[out]   pscores [optional] score matrix as 1-D array of
- *                       size N^2
- * \param[out]   ppixd [optional] pix of similarity classes
+ * \param[in]    pixa        any depth; colormap OK
+ * \param[in]    minratio    requiring sizes be compatible; < 1.0
+ * \param[in]    factor      subsampling; >= 1
+ * \param[in]    textthresh  threshold for text/photo; use 0 for default
+ * \param[in]    nx, ny      num subregions to use for histograms; e.g. 3x3
+ * \param[in]    simthresh   threshold for similarity; use 0 for default
+ * \param[out]   pnai array  giving similarity class indices
+ * \param[out]   pscores     [optional] score matrix as 1-D array of size N^2
+ * \param[out]   ppixd       [optional] pix of similarity classes
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2039,13 +2035,13 @@ PIX        *pix;
 /*!
  * \brief   pixComparePhotoRegionsByHisto()
  *
- * \param[in]    pix1, pix2 any depth; colormap OK
- * \param[in]    box1, box2 [optional] photo regions from each; can be null
- * \param[in]    minratio requiring sizes be compatible; < 1.0
- * \param[in]    factor subsampling; >= 1
- * \param[in]    nx, ny number of subregions to use for histograms; e.g. 3x3
- * \param[out]   pscore similarity score of histograms
- * \param[in]    debugflag 1 for debug output; 0 for no debugging
+ * \param[in]    pix1, pix2    any depth; colormap OK
+ * \param[in]    box1, box2    [optional] photo regions from each; can be null
+ * \param[in]    minratio      requiring sizes be compatible; < 1.0
+ * \param[in]    factor        subsampling factor; >= 1
+ * \param[in]    nx, ny        num subregions to use for histograms; e.g. 3x3
+ * \param[out]   pscore        similarity score of histograms
+ * \param[in]    debugflag     1 for debug output; 0 for no debugging
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2167,14 +2163,14 @@ PIXA      *pixa;
 /*!
  * \brief   pixGenPhotoHistos()
  *
- * \param[in]    pixs depth > 1 bpp; colormap OK
- * \param[in]    box [optional] region to be selected; can be null
- * \param[in]    factor subsampling; >= 1
- * \param[in]    thresh threshold for photo/text; use 0 for default
- * \param[in]    nx, ny number of subregions to use for histograms; e.g. 3x3
- * \param[out]   pnaa nx * ny 256-entry gray histograms
- * \param[out]   pw width of image used to make histograms
- * \param[out]   ph height of image used to make histograms
+ * \param[in]    pixs      depth > 1 bpp; colormap OK
+ * \param[in]    box       [optional] region to be selected; can be null
+ * \param[in]    factor    subsampling; >= 1
+ * \param[in]    thresh    threshold for photo/text; use 0 for default
+ * \param[in]    nx, ny    number of subregions to use for histograms; e.g. 3x3
+ * \param[out]   pnaa      nx * ny 256-entry gray histograms
+ * \param[out]   pw        width of image used to make histograms
+ * \param[out]   ph        height of image used to make histograms
  * \param[in]    debugflag 1 for debug output; 0 for no debugging
  * \return  0 if OK, 1 on error
  *
@@ -2248,6 +2244,7 @@ PIXA   *pixa;
     pixm = pixThresholdToBinary(pix3, 230);
     pixInvert(pixm, pixm);
     pixSetMaskedGeneral(pix3, pixm, 255, 0, 0);
+    pixDestroy(&pixm);
 
     if (debugflag) {
         PIX   *pix4, *pix5, *pix6, *pix7, *pix8;
@@ -2267,7 +2264,6 @@ PIXA   *pixa;
     }
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    pixDestroy(&pixm);
 
         /* Test if this is a photoimage */
     pixDecideIfPhotoImage(pix3, factor, nx, ny, thresh, &naa, pixa);
@@ -2292,8 +2288,8 @@ PIXA   *pixa;
 /*!
  * \brief   pixPadToCenterCentroid()
  *
- * \param[in]    pixs any depth, colormap OK
- * \param[in]    factor subsampling for centroid; >= 1
+ * \param[in]    pixs     any depth, colormap OK
+ * \param[in]    factor   subsampling for centroid; >= 1
  * \return  pixd padded with white pixels, or NULL on error.
  *
  * <pre>
@@ -2343,10 +2339,10 @@ PIX       *pix1, *pixd;
 /*!
  * \brief   pixCentroid8()
  *
- * \param[in]    pixs 8 bpp
- * \param[in]    factor subsampling; >= 1
- * \param[out]   pcx x value of centroid
- * \param[out]   pcy y value of centroid
+ * \param[in]    pixs    8 bpp
+ * \param[in]    factor  subsampling factor; >= 1
+ * \param[out]   pcx     x value of centroid
+ * \param[out]   pcy     y value of centroid
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2412,12 +2408,12 @@ PIX       *pix1;
 /*!
  * \brief   pixDecideIfPhotoImage()
  *
- * \param[in]    pix 8 bpp, centroid in center
- * \param[in]    factor subsampling for histograms; >= 1
- * \param[in]    nx, ny number of subregions to use for histograms
- * \param[in]    thresh threshold for photo/text; use 0 for default
- * \param[out]   pnaa array of normalized histograms
- * \param[in]    pixadebug [optional] use only for debug output
+ * \param[in]    pix         8 bpp, centroid in center
+ * \param[in]    factor      subsampling for histograms; >= 1
+ * \param[in]    nx, ny      number of subregions to use for histograms
+ * \param[in]    thresh      threshold for photo/text; use 0 for default
+ * \param[out]   pnaa        array of normalized histograms
+ * \param[in]    pixadebug   [optional] use only for debug output
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2540,11 +2536,11 @@ PIXA      *pixa, *pixa2;
 /*!
  * \brief   compareTilesByHisto()
  *
- * \param[in]    naa1, naa2 each is a set of 256 entry histograms
- * \param[in]    minratio requiring image sizes be compatible; < 1.0
- * \param[in]    w1, h1, w2, h2 image sizes from which histograms were made
- * \param[out]   pscore similarity score of histograms
- * \param[in]    pixadebug [optional] use only for debug output
+ * \param[in]    naa1, naa2      each is a set of 256 entry histograms
+ * \param[in]    minratio        requiring image sizes be compatible; < 1.0
+ * \param[in]    w1, h1, w2, h2  image sizes from which histograms were made
+ * \param[out]   pscore          similarity score of histograms
+ * \param[in]    pixadebug       [optional] use only for debug output
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2667,14 +2663,14 @@ NUMA      *na1, *na2, *nadist, *nascore;
 /*!
  * \brief   pixCompareGrayByHisto()
  *
- * \param[in]    pix1, pix2 any depth; colormap OK
- * \param[in]    box1, box2 [optional] region selected from each; can be null
- * \param[in]    minratio requiring sizes be compatible; < 1.0
- * \param[in]    maxgray max value to keep in histo; >= 200, 255 to keep all
- * \param[in]    factor subsampling; >= 1
- * \param[in]    nx, ny number of subregions to use for histograms; e.g. 3x3
- * \param[out]   pscore similarity score of histograms
- * \param[in]    debugflag 1 for debug output; 0 for no debugging
+ * \param[in]    pix1, pix2  any depth; colormap OK
+ * \param[in]    box1, box2  [optional] region selected from each; can be null
+ * \param[in]    minratio    requiring sizes be compatible; < 1.0
+ * \param[in]    maxgray     max value to keep in histo; >= 200, 255 to keep all
+ * \param[in]    factor      subsampling factor; >= 1
+ * \param[in]    nx, ny      num subregions to use for histograms; e.g. 3x3
+ * \param[out]   pscore      similarity score of histograms
+ * \param[in]    debugflag   1 for debug output; 0 for no debugging
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2836,12 +2832,12 @@ PIXA      *pixa;
 /*!
  * \brief   pixCompareTilesByHisto()
  *
- * \param[in]    pix1, pix2 8 bpp
- * \param[in]    maxgray max value to keep in histo; 255 to keep all
- * \param[in]    factor subsampling; >= 1
- * \param[in]    nx, ny number of subregions to use for histograms
- * \param[out]   pscore similarity score of histograms
- * \param[in]    pixadebug [optional] use only for debug output
+ * \param[in]    pix1, pix2     8 bpp
+ * \param[in]    maxgray        max value to keep in histo; 255 to keep all
+ * \param[in]    factor         subsampling factor; >= 1
+ * \param[in]    nx, ny         number of subregions to use for histograms
+ * \param[out]   pscore         similarity score of histograms
+ * \param[in]    pixadebug      [optional] use only for debug output
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2967,10 +2963,10 @@ PIXA      *pixa1, *pixa2;
 /*!
  * \brief   pixCropAlignedToCentroid()
  *
- * \param[in]    pix1, pix2 any depth; colormap OK
- * \param[in]    factor subsampling; >= 1
- * \param[out]   pbox1 crop box for pix1
- * \param[out]   pbox2 crop box for pix2
+ * \param[in]    pix1, pix2   any depth; colormap OK
+ * \param[in]    factor       subsampling; >= 1
+ * \param[out]   pbox1        crop box for pix1
+ * \param[out]   pbox2        crop box for pix2
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -3037,9 +3033,9 @@ PIX       *pix3, *pix4;
 /*!
  * \brief   l_compressGrayHistograms()
  *
- * \param[in]    naa set of 256-entry histograms
- * \param[in]    w, h size of image
- * \param[out]   psize size of byte array
+ * \param[in]    naa     set of 256-entry histograms
+ * \param[in]    w, h    size of image
+ * \param[out]   psize   size of byte array
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -3106,12 +3102,12 @@ NUMA      *na1, *na2;
 /*!
  * \brief   l_uncompressGrayHistograms()
  *
- * \param[in]    bytea byte array of size 8 + 256 * N, N an integer
- * \param[in]    size size of byte array
- * \param[out]   pw width of the image that generated the histograms
- * \param[out]   ph height of the image
- * \return  numaa representing N histograms, each with 256 bins,
- *                     or NULL on error.
+ * \param[in]    bytea    byte array of size 8 + 256 * N, N an integer
+ * \param[in]    size     size of byte array
+ * \param[out]   pw       width of the image that generated the histograms
+ * \param[out]   ph       height of the image
+ * \return  numaa     representing N histograms, each with 256 bins,
+ *                    or NULL on error.
  *
  * <pre>
  * Notes:
@@ -3165,12 +3161,12 @@ NUMAA   *naa;
 /*!
  * \brief   pixCompareWithTranslation()
  *
- * \param[in]    pix1, pix2 any depth; colormap OK
- * \param[in]    thresh threshold for converting to 1 bpp
- * \param[out]   pdelx x translation on pix2 to align with pix1
- * \param[out]   pdely y translation on pix2 to align with pix1
- * \param[out]   pscore correlation score at best alignment
- * \param[in]    debugflag 1 for debug output; 0 for no debugging
+ * \param[in]    pix1, pix2    any depth; colormap OK
+ * \param[in]    thresh        threshold for converting to 1 bpp
+ * \param[out]   pdelx         x translation on pix2 to align with pix1
+ * \param[out]   pdely         y translation on pix2 to align with pix1
+ * \param[out]   pscore        correlation score at best alignment
+ * \param[in]    debugflag     1 for debug output; 0 for no debugging
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -3309,20 +3305,20 @@ PIXA      *pixa1, *pixa2, *pixadb;
 /*!
  * \brief   pixBestCorrelation()
  *
- * \param[in]    pix1   1 bpp
- * \param[in]    pix2   1 bpp
- * \param[in]    area1  number of on pixels in pix1
- * \param[in]    area2  number of on pixels in pix2
- * \param[in]    etransx estimated x translation of pix2 to align with pix1
- * \param[in]    etransy estimated y translation of pix2 to align with pix1
+ * \param[in]    pix1      1 bpp
+ * \param[in]    pix2      1 bpp
+ * \param[in]    area1     number of on pixels in pix1
+ * \param[in]    area2     number of on pixels in pix2
+ * \param[in]    etransx   estimated x translation of pix2 to align with pix1
+ * \param[in]    etransy   estimated y translation of pix2 to align with pix1
  * \param[in]    maxshift  max x and y shift of pix2, around the estimated
- *                          alignment location, relative to pix1
- * \param[in]    tab8 [optional] sum tab for ON pixels in byte; can be NULL
- * \param[out]   pdelx [optional] best x shift of pix2 relative to pix1
- * \param[out]   pdely ([optional] best y shift of pix2 relative to pix1
- * \param[out]   pscore ([optional] maximum score found; can be NULL
- * \param[in]    debugflag <= 0 to skip; positive to generate output.
- *                         The integer is used to label the debug image.
+ *                         alignment location, relative to pix1
+ * \param[in]    tab8      [optional] sum tab for ON pixels in byte; can be NULL
+ * \param[out]   pdelx     [optional] best x shift of pix2 relative to pix1
+ * \param[out]   pdely     [optional] best y shift of pix2 relative to pix1
+ * \param[out]   pscore    [optional] maximum score found; can be NULL
+ * \param[in]    debugflag   <= 0 to skip; positive to generate output.
+ *                           The integer is used to label the debug image.
  * \return  0 if OK, 1 on error
  *
  * <pre>

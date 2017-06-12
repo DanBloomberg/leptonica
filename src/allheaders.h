@@ -1765,6 +1765,7 @@ LEPT_DLL extern l_int32 pixaHasColor ( PIXA *pixa, l_int32 *phascolor );
 LEPT_DLL extern l_int32 pixaAnyColormaps ( PIXA *pixa, l_int32 *phascmap );
 LEPT_DLL extern l_int32 pixaGetDepthInfo ( PIXA *pixa, l_int32 *pmaxdepth, l_int32 *psame );
 LEPT_DLL extern PIXA * pixaConvertToSameDepth ( PIXA *pixas );
+LEPT_DLL extern PIXA * pixaConvertToRGB ( PIXA *pixas );
 LEPT_DLL extern l_int32 pixaEqual ( PIXA *pixa1, PIXA *pixa2, l_int32 maxdist, NUMA **pnaindex, l_int32 *psame );
 LEPT_DLL extern PIXA * pixaRotateOrth ( PIXA *pixas, l_int32 rotation );
 LEPT_DLL extern l_int32 pixaSetFullSizeBoxa ( PIXA *pixa );

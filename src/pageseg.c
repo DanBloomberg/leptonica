@@ -1658,7 +1658,6 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
     pix5 = pixSeedfillBinary(NULL, pix4, pix1, 8);
     pix6 = pixOr(NULL, pix3, pix5);
     if (pixadb) {
-        pixaAddPix(pixadb, pix1, L_COPY);
         pixaAddPix(pixadb, pix2, L_COPY);
         pixaAddPix(pixadb, pix4, L_COPY);
         pixaAddPix(pixadb, pix3, L_COPY);
@@ -1672,13 +1671,13 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
     pixSubtract(pix1, pix1, pix6);
     if (pixadb) pixaAddPix(pixadb, pix1, L_COPY);
 
-        /* Look for vertical white space.  Use a 2,2 rank reduction, which
-         * is neutral in density, to do the final processing at 19 ppi. 
+        /* Look for vertical white space.  Use a single rank 2 reduction, which
+         * is neutral in density, to do the final processing at 37.5 ppi. 
          * The vertical opening is then about 3 inches on a 300 ppi image. */
     pixInvert(pix1, pix1);
-    pix7 = pixMorphSequence(pix1, "r22 + o1.60", 0);
+    pix7 = pixMorphSequence(pix1, "r2 + o1.100", 0);
     pixCountConnComp(pix7, 8, &nvw);  /* number of vertical white lines */
-    if (pixadb) pixaAddPix(pixadb, pixScale(pix7, 4.0, 4.0), L_INSERT);
+    if (pixadb) pixaAddPix(pixadb, pixScale(pix7, 2.0, 2.0), L_INSERT);
 
         /* Require at least 2 of the following 4 conditions for a table.
          * Some tables do not have black (fg) lines, and for those we
