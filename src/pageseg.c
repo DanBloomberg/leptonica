@@ -1587,6 +1587,7 @@ NUMA     *na;
  *
  * \param[in]    pixs      any depth, 300 ppi
  * \param[in]    box       [optional] if null, use entire pixs
+ * \param[in]    orient    L_PORTRAIT_MODE, L_LANDSCAPE_MODE
  * \param[out]   pscore    0 - 4; -1 if not determined
  * \param[in]    pixadb    [optional] pre-allocated, for showing intermediate
  *                         computation; use NULL to skip
@@ -1596,7 +1597,9 @@ NUMA     *na;
  * Notes:
  *      (1) It is assumed that pixs has the correct resolution set.
  *          If the resolution is 0, we assume it is 300 ppi and issue a warning.
- *      (2) The interpretation of the returned score:
+ *      (2) If %orient == L_LANDSCAPE_MODE, the image is rotated 90 degrees
+ *          clockwise before being analyzed.
+ *      (3) The interpretation of the returned score:
  *            -1     undetermined
  *             0     no table
  *             1     unlikely to have a table
@@ -1608,17 +1611,18 @@ NUMA     *na;
  *          * These false positives can be removed by setting the condition
  *            at score >= 3, but recall is lowered because it will not find
  *            tables without either horizontal or vertical lines.
- *      (3) Most of the processing takes place at 75 ppi.
- *      (4) Internally, three numbers are determined, for horizontal and
+ *      (4) Most of the processing takes place at 75 ppi.
+ *      (5) Internally, three numbers are determined, for horizontal and
  *          vertical fg lines, and for vertical bg lines.  From these,
  *          four tests are made to decide if there is a table occupying
  *          a significant part of the image.
- *      (5) For debug output, input a pre-allocated pixa.
+ *      (6) For debug output, input a pre-allocated pixa.
  * </pre>
  */
 l_int32
 pixDecideIfTable(PIX      *pixs,
                  BOX      *box,
+                 l_int32   orient,
                  l_int32  *pscore,
                  PIXA     *pixadb)
 {
@@ -1654,16 +1658,22 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
          * is not at 300 ppi.   */
     pix2 = pixDilateBrick(NULL, pix1, 2, 2);
 
-        /* Deskew both horizontally and vertically */
+        /* Deskew both horizontally and vertically; rotate by 90
+         * degrees if in landscape mode. */
     pix3 = pixDeskewBoth(pix2, 1);
     if (pixadb) {
         pixaAddPix(pixadb, pix2, L_COPY);
         pixaAddPix(pixadb, pix3, L_COPY);
     }
+    if (orient == L_LANDSCAPE_MODE)
+        pix4 = pixRotate90(pix3, 1);
+    else
+        pix4 = pixClone(pix3);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    pix1 = pixClone(pix3);
     pixDestroy(&pix3);
+    pix1 = pixClone(pix4);
+    pixDestroy(&pix4);
 
         /* Look for horizontal and vertical lines */
     pix2 = pixMorphSequence(pix1, "o100.1 + c1.4", 0);

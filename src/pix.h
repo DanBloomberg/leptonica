@@ -94,6 +94,7 @@
  *         Text orientation flags
  *         Edge orientation flags
  *         Line orientation flags
+ *         Image orientation flags
  *         Scan direction flags
  *         Box size adjustment flags
  *         Flags for selecting box boundaries from two choices
@@ -1002,6 +1003,17 @@ enum {
     L_VERTICAL_LINE = 2,     /*!< vertical line                            */
     L_NEG_SLOPE_LINE = 3,    /*!< 45 degree line with negative slope       */
     L_OBLIQUE_LINE = 4       /*!< neither horizontal nor vertical */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *                         Image orientation flags                         *
+ *-------------------------------------------------------------------------*/
+
+/*! Image orientation flags */
+enum {
+    L_PORTRAIT_MODE = 0,   /*!< typical: page is viewed with height > width  */
+    L_LANDSCAPE_MODE = 1   /*!< page is viewed at 90 deg to portrait mode    */
 };
 
 

@@ -1363,7 +1363,7 @@ LEPT_DLL extern PIXA * pixExtractRawTextlines ( PIX *pixs, l_int32 maxw, l_int32
 LEPT_DLL extern l_int32 pixCountTextColumns ( PIX *pixs, l_float32 deltafract, l_float32 peakfract, l_float32 clipfract, l_int32 *pncols, PIXA *pixadb );
 LEPT_DLL extern l_int32 pixDecideIfText ( PIX *pixs, BOX *box, l_int32 *pistext, PIXA *pixadb );
 LEPT_DLL extern l_int32 pixFindThreshFgExtent ( PIX *pixs, l_int32 thresh, l_int32 *ptop, l_int32 *pbot );
-LEPT_DLL extern l_int32 pixDecideIfTable ( PIX *pixs, BOX *box, l_int32 *pscore, PIXA *pixadb );
+LEPT_DLL extern l_int32 pixDecideIfTable ( PIX *pixs, BOX *box, l_int32 orient, l_int32 *pscore, PIXA *pixadb );
 LEPT_DLL extern PIX * pixPrepare1bpp ( PIX *pixs, BOX *box, l_float32 cropfract, l_int32 outres );
 LEPT_DLL extern l_int32 pixEstimateBackground ( PIX *pixs, l_int32 darkthresh, l_float32 edgecrop, l_int32 *pbg );
 LEPT_DLL extern l_int32 pixFindLargeRectangles ( PIX *pixs, l_int32 polarity, l_int32 nrect, BOXA **pboxa, PIX **ppixdb );

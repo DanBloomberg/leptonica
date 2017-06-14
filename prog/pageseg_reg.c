@@ -88,7 +88,7 @@ L_REGPARAMS  *rp;
         /* Test the table finder */
     pix1 = pixRead("table.15.tif");
     pixadb = pixaCreate(0);
-    pixDecideIfTable(pix1, NULL, &score, pixadb);
+    pixDecideIfTable(pix1, NULL, L_PORTRAIT_MODE, &score, pixadb);
     istable = (score >= 2) ? 1 : 0;
     regTestCompareValues(rp, 1.0, istable, 0.0);  /* 20 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 2000, 1.0, 0, 30, 2);
@@ -100,7 +100,7 @@ L_REGPARAMS  *rp;
 
     pix1 = pixRead("table.27.tif");
     pixadb = pixaCreate(0);
-    pixDecideIfTable(pix1, NULL, &score, pixadb);
+    pixDecideIfTable(pix1, NULL, L_PORTRAIT_MODE, &score, pixadb);
     istable = (score >= 2) ? 1 : 0;
     regTestCompareValues(rp, 1.0, istable, 0.0);  /* 22 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 2000, 1.0, 0, 30, 2);
