@@ -37,7 +37,7 @@
 int main(int    argc,
          char **argv)
 {
-l_int32       i, n, istable;
+l_int32       i, n, istable, score;
 BOXA         *boxa;
 PIX          *pixs, *pix1, *pix2, *pixhm, *pixtm, *pixtb, *pixdb;
 PIXA         *pixadb;
@@ -88,7 +88,8 @@ L_REGPARAMS  *rp;
         /* Test the table finder */
     pix1 = pixRead("table.15.tif");
     pixadb = pixaCreate(0);
-    pixDecideIfTable(pix1, NULL, &istable, pixadb);
+    pixDecideIfTable(pix1, NULL, &score, pixadb);
+    istable = (score >= 2) ? 1 : 0;
     regTestCompareValues(rp, 1.0, istable, 0.0);  /* 20 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 2000, 1.0, 0, 30, 2);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 21 */
@@ -99,7 +100,8 @@ L_REGPARAMS  *rp;
 
     pix1 = pixRead("table.27.tif");
     pixadb = pixaCreate(0);
-    pixDecideIfTable(pix1, NULL, &istable, pixadb);
+    pixDecideIfTable(pix1, NULL, &score, pixadb);
+    istable = (score >= 2) ? 1 : 0;
     regTestCompareValues(rp, 1.0, istable, 0.0);  /* 22 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 2000, 1.0, 0, 30, 2);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 23 */

@@ -1587,7 +1587,7 @@ NUMA     *na;
  *
  * \param[in]    pixs      any depth, 300 ppi
  * \param[in]    box       [optional] if null, use entire pixs
- * \param[out]   pistable  1 if table; 0 if text only; -1 if not determined
+ * \param[out]   pscore    0 - 4; -1 if not determined
  * \param[in]    pixadb    [optional] pre-allocated, for showing intermediate
  *                         computation; use NULL to skip
  * \return  0 if OK, 1 on error
@@ -1596,27 +1596,40 @@ NUMA     *na;
  * Notes:
  *      (1) It is assumed that pixs has the correct resolution set.
  *          If the resolution is 0, we assume it is 300 ppi and issue a warning.
- *      (2) Most of the processing takes place at 75 ppi.
- *      (3) Three numbers are determined, for horizontal and vertical
- *          fg and bg lines.  From these, four tests are made to decide
- *          if there is a table occupying a significant part of the image.
- *      (4) For debug output, input a pre-allocated pixa.
+ *      (2) The interpretation of the returned score:
+ *            -1     undetermined
+ *             0     no table
+ *             1     unlikely to have a table
+ *             2     likely to have a table
+ *             3     even more likely to have a table
+ *             4     extremely likely to have a table
+ *          * Setting the condition for finding a table at score >= 2 works
+ *            well, except for false positives on kanji and landscape text.
+ *          * These false positives can be removed by setting the condition
+ *            at score >= 3, but recall is lowered because it will not find
+ *            tables without either horizontal or vertical lines.
+ *      (3) Most of the processing takes place at 75 ppi.
+ *      (4) Internally, three numbers are determined, for horizontal and
+ *          vertical fg lines, and for vertical bg lines.  From these,
+ *          four tests are made to decide if there is a table occupying
+ *          a significant part of the image.
+ *      (5) For debug output, input a pre-allocated pixa.
  * </pre>
  */
 l_int32
 pixDecideIfTable(PIX      *pixs,
                  BOX      *box,
-                 l_int32  *pistable,
+                 l_int32  *pscore,
                  PIXA     *pixadb)
 {
 l_int32  i, empty, nhb, nvb, nvw, score;
-PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
+PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
 
     PROCNAME("pixDecideIfTable");
 
-    if (!pistable)
-        return ERROR_INT("&istable not defined", procName, 1);
-    *pistable = -1;
+    if (!pscore)
+        return ERROR_INT("&score not defined", procName, 1);
+    *pscore = -1;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
 
@@ -1626,6 +1639,7 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
 
     pixZero(pix1, &empty);
     if (empty) {
+        *pscore = 0;
         pixDestroy(&pix1);
         L_INFO("pix is empty\n", procName);
         return 0;
@@ -1671,13 +1685,18 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
     pixSubtract(pix1, pix1, pix6);
     if (pixadb) pixaAddPix(pixadb, pix1, L_COPY);
 
-        /* Look for vertical white space.  Use a single rank 2 reduction, which
-         * is neutral in density, to do the final processing at 37.5 ppi. 
+        /* Remove noise pixels */
+    pix7 = pixMorphSequence(pix1, "c4.1 + o8.1", 0);
+    if (pixadb) pixaAddPix(pixadb, pix7, L_COPY);
+
+        /* Look for vertical white space.  Invert to convert white bg
+         * to fg.  Use a single rank-1 2x reduction, which closes small
+         * fg holes, for the final processing at 37.5 ppi.
          * The vertical opening is then about 3 inches on a 300 ppi image. */
-    pixInvert(pix1, pix1);
-    pix7 = pixMorphSequence(pix1, "r2 + o1.100", 0);
-    pixCountConnComp(pix7, 8, &nvw);  /* number of vertical white lines */
-    if (pixadb) pixaAddPix(pixadb, pixScale(pix7, 2.0, 2.0), L_INSERT);
+    pixInvert(pix7, pix7);
+    pix8 = pixMorphSequence(pix7, "r1 + o1.100", 0);
+    pixCountConnComp(pix8, 8, &nvw);  /* number of vertical white lines */
+    if (pixadb) pixaAddPix(pixadb, pixScale(pix8, 2.0, 2.0), L_INSERT);
 
         /* Require at least 2 of the following 4 conditions for a table.
          * Some tables do not have black (fg) lines, and for those we
@@ -1687,7 +1706,7 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
     if (nvb > 2) score++;
     if (nvw > 3) score++;
     if (nvw > 6) score++;
-    *pistable = (score > 1) ? 1 : 0;
+    *pscore = score;
 
     pixDestroy(&pix1);
     pixDestroy(&pix2);
@@ -1696,7 +1715,8 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
     pixDestroy(&pix5);
     pixDestroy(&pix6);
     pixDestroy(&pix7);
-    return 1;
+    pixDestroy(&pix8);
+    return 0;
 }
 
 
