@@ -78,7 +78,6 @@
  *           l_int32   pixaAnyColormaps()
  *           l_int32   pixaGetDepthInfo()
  *           PIXA     *pixaConvertToSameDepth()
- *           PIXA     *pixaConvertToRGB()
  *           l_int32   pixaEqual()
  *           PIXA     *pixaRotateOrth()
  *           l_int32   pixaSetFullSizeBoxa()
@@ -177,14 +176,14 @@ static const l_int32   MIN_COMPS_FOR_BIN_SORT = 200;
 /*!
  * \brief   pixSelectBySize()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    width, height threshold dimensions
- * \param[in]    connectivity 4 or 8
- * \param[in]    type L_SELECT_WIDTH, L_SELECT_HEIGHT,
- *                    L_SELECT_IF_EITHER, L_SELECT_IF_BOTH
- * \param[in]    relation L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                        L_SELECT_IF_LTE, L_SELECT_IF_GTE
- * \param[out]   pchanged [optional] 1 if changed; 0 otherwise
+ * \param[in]    pixs           1 bpp
+ * \param[in]    width, height  threshold dimensions
+ * \param[in]    connectivity   4 or 8
+ * \param[in]    type           L_SELECT_WIDTH, L_SELECT_HEIGHT,
+ *                              L_SELECT_IF_EITHER, L_SELECT_IF_BOTH
+ * \param[in]    relation       L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                              L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[out]   pchanged       [optional] 1 if changed; 0 otherwise
  * \return  filtered pixd, or NULL on error
  *
  * <pre>
@@ -267,12 +266,12 @@ PIXA    *pixas, *pixad;
  * \brief   pixaSelectBySize()
  *
  * \param[in]    pixas
- * \param[in]    width, height threshold dimensions
- * \param[in]    type L_SELECT_WIDTH, L_SELECT_HEIGHT,
- *                    L_SELECT_IF_EITHER, L_SELECT_IF_BOTH
- * \param[in]    relation L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                        L_SELECT_IF_LTE, L_SELECT_IF_GTE
- * \param[out]   pchanged [optional] 1 if changed; 0 otherwise
+ * \param[in]    width, height  threshold dimensions
+ * \param[in]    type           L_SELECT_WIDTH, L_SELECT_HEIGHT,
+ *                              L_SELECT_IF_EITHER, L_SELECT_IF_BOTH
+ * \param[in]    relation       L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                              L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[out]   pchanged       [optional] 1 if changed; 0 otherwise
  * \return  pixad, or NULL on error
  *
  * <pre>
@@ -325,11 +324,11 @@ PIXA  *pixad;
  * \brief   pixaMakeSizeIndicator()
  *
  * \param[in]    pixa
- * \param[in]    width, height threshold dimensions
- * \param[in]    type L_SELECT_WIDTH, L_SELECT_HEIGHT,
- *                    L_SELECT_IF_EITHER, L_SELECT_IF_BOTH
- * \param[in]    relation L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                        L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[in]    width, height  threshold dimensions
+ * \param[in]    type           L_SELECT_WIDTH, L_SELECT_HEIGHT,
+ *                              L_SELECT_IF_EITHER, L_SELECT_IF_BOTH
+ * \param[in]    relation       L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                              L_SELECT_IF_LTE, L_SELECT_IF_GTE
  * \return  na indicator array, or NULL on error
  *
  * <pre>
@@ -414,12 +413,12 @@ NUMA    *na;
 /*!
  * \brief   pixSelectByPerimToAreaRatio()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    thresh threshold ratio of fg boundary to fg pixels
- * \param[in]    connectivity 4 or 8
- * \param[in]    type L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE
- * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+ * \param[in]    pixs          1 bpp
+ * \param[in]    thresh        threshold ratio of fg boundary to fg pixels
+ * \param[in]    connectivity  4 or 8
+ * \param[in]    type          L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                             L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[out]   pchanged      [optional] 1 if changed; 0 if clone returned
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -496,10 +495,10 @@ PIXA    *pixas, *pixad;
  * \brief   pixaSelectByPerimToAreaRatio()
  *
  * \param[in]    pixas
- * \param[in]    thresh threshold ratio of fg boundary to fg pixels
- * \param[in]    type L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE
- * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+ * \param[in]    thresh     threshold ratio of fg boundary to fg pixels
+ * \param[in]    type       L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                          L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[out]   pchanged   [optional] 1 if changed; 0 if clone returned
  * \return  pixad, or NULL on error
  *
  * <pre>
@@ -544,12 +543,12 @@ PIXA  *pixad;
 /*!
  * \brief   pixSelectByPerimSizeRatio()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    thresh threshold ratio of fg boundary to fg pixels
- * \param[in]    connectivity 4 or 8
- * \param[in]    type L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE
- * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+ * \param[in]    pixs          1 bpp
+ * \param[in]    thresh        threshold ratio of fg boundary to fg pixels
+ * \param[in]    connectivity  4 or 8
+ * \param[in]    type          L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                             L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[out]   pchanged      [optional] 1 if changed; 0 if clone returned
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -627,10 +626,10 @@ PIXA    *pixas, *pixad;
  * \brief   pixaSelectByPerimSizeRatio()
  *
  * \param[in]    pixas
- * \param[in]    thresh threshold ratio of fg boundary to b.b. circumference
- * \param[in]    type L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE
- * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+ * \param[in]    thresh    threshold ratio of fg boundary to b.b. circumference
+ * \param[in]    type      L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                         L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[out]   pchanged  [optional] 1 if changed; 0 if clone returned
  * \return  pixad, or NULL on error
  *
  * <pre>
@@ -675,12 +674,12 @@ PIXA  *pixad;
 /*!
  * \brief   pixSelectByAreaFraction()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    thresh threshold ratio of fg pixels to (w * h)
- * \param[in]    connectivity 4 or 8
- * \param[in]    type L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE
- * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+ * \param[in]    pixs          1 bpp
+ * \param[in]    thresh        threshold ratio of fg pixels to (w * h)
+ * \param[in]    connectivity  4 or 8
+ * \param[in]    type          L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                             L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[out]   pchanged      [optional] 1 if changed; 0 if clone returned
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -757,10 +756,10 @@ PIXA    *pixas, *pixad;
  * \brief   pixaSelectByAreaFraction()
  *
  * \param[in]    pixas
- * \param[in]    thresh threshold ratio of fg pixels to (w * h)
- * \param[in]    type L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE
- * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+ * \param[in]    thresh      threshold ratio of fg pixels to (w * h)
+ * \param[in]    type        L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                           L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[out]   pchanged    [optional] 1 if changed; 0 if clone returned
  * \return  pixad, or NULL on error
  *
  * <pre>
@@ -809,12 +808,12 @@ PIXA  *pixad;
 /*!
  * \brief   pixSelectByWidthHeightRatio()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    thresh threshold ratio of width/height
- * \param[in]    connectivity 4 or 8
- * \param[in]    type L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE
- * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+ * \param[in]    pixs          1 bpp
+ * \param[in]    thresh        threshold ratio of width/height
+ * \param[in]    connectivity  4 or 8
+ * \param[in]    type          L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                             L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[out]   pchanged      [optional] 1 if changed; 0 if clone returned
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -890,10 +889,10 @@ PIXA    *pixas, *pixad;
  * \brief   pixaSelectByWidthHeightRatio()
  *
  * \param[in]    pixas
- * \param[in]    thresh threshold ratio of width/height
- * \param[in]    type L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                    L_SELECT_IF_LTE, L_SELECT_IF_GTE
- * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+ * \param[in]    thresh      threshold ratio of width/height
+ * \param[in]    type        L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                           L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[out]   pchanged    [optional] 1 if changed; 0 if clone returned
  * \return  pixad, or NULL on error
  *
  * <pre>
@@ -946,7 +945,7 @@ PIXA  *pixad;
  * \param[in]    nmin          minimum number of components
  * \param[in]    nmax          maximum number of components
  * \param[in]    connectivity  4 or 8
- * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+ * \param[out]   pchanged      [optional] 1 if changed; 0 if clone returned
  * \return  pixad, or NULL on error
  *
  * <pre>
@@ -1003,8 +1002,8 @@ PIXA    *pixad;
  * \brief   pixaSelectWithIndicator()
  *
  * \param[in]    pixas
- * \param[in]    na indicator numa
- * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+ * \param[in]    na         indicator numa
+ * \param[out]   pchanged   [optional] 1 if changed; 0 if clone returned
  * \return  pixad, or NULL on error
  *
  * <pre>
@@ -1023,7 +1022,7 @@ pixaSelectWithIndicator(PIXA     *pixas,
 {
 l_int32  i, n, nbox, ival, nsave;
 BOX     *box;
-PIX     *pixt;
+PIX     *pix1;
 PIXA    *pixad;
 
     PROCNAME("pixaSelectWithIndicator");
@@ -1050,8 +1049,8 @@ PIXA    *pixad;
     for (i = 0; i < n; i++) {
         numaGetIValue(na, i, &ival);
         if (ival == 0) continue;
-        pixt = pixaGetPix(pixas, i, L_CLONE);
-        pixaAddPix(pixad, pixt, L_INSERT);
+        pix1 = pixaGetPix(pixas, i, L_CLONE);
+        pixaAddPix(pixad, pix1, L_INSERT);
         if (nbox == n) {   /* fully populated boxa */
             box = pixaGetBox(pixas, i, L_CLONE);
             pixaAddBox(pixad, box, L_INSERT);
@@ -1065,9 +1064,9 @@ PIXA    *pixad;
 /*!
  * \brief   pixRemoveWithIndicator()
  *
- * \param[in]    pixs 1 bpp pix from which components are removed; in-place
- * \param[in]    pixa of connected components in pixs
- * \param[in]    na numa indicator: remove components corresponding to 1s
+ * \param[in]    pixs     1 bpp pix from which components are removed; in-place
+ * \param[in]    pixa     of connected components in pixs
+ * \param[in]    na       numa indicator: remove components corresponding to 1s
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1117,10 +1116,10 @@ PIX     *pix;
 /*!
  * \brief   pixAddWithIndicator()
  *
- * \param[in]    pixs 1 bpp pix from which components are added; in-place
- * \param[in]    pixa of connected components, some of which will be put
- *                    into pixs
- * \param[in]    na numa indicator: add components corresponding to 1s
+ * \param[in]    pixs     1 bpp pix from which components are added; in-place
+ * \param[in]    pixa     of connected components, some of which will be put
+ *                        into pixs
+ * \param[in]    na       numa indicator: add components corresponding to 1s
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1170,9 +1169,10 @@ PIX     *pix;
  * \brief   pixaSelectWithString()
  *
  * \param[in]    pixas
- * \param[in]    str string of indices into pixa, giving the pix to be selected
- * \param[out]   perror [optional] 1 if any indices are invalid;
- *                      0 if all indices are valid
+ * \param[in]    str      string of indices into pixa, giving the pix to
+ *                        be selected
+ * \param[out]   perror   [optional] 1 if any indices are invalid;
+ *                        0 if all indices are valid
  * \return  pixad, or NULL on error
  *
  * <pre>
@@ -1238,11 +1238,11 @@ PIXA      *pixad;
 /*!
  * \brief   pixaRenderComponent()
  *
- * \param[in]    pixs [optional] 1 bpp pix
- * \param[in]    pixa of 1 bpp connected components, one of which will
- *                    be rendered in pixs, with its origin determined
- *                    by the associated box.
- * \param[in]    index of component to be rendered
+ * \param[in]    pixs    [optional] 1 bpp pix
+ * \param[in]    pixa    of 1 bpp connected components, one of which will
+ *                       be rendered in pixs, with its origin determined
+ *                       by the associated box.
+ * \param[in]    index   of component to be rendered
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1300,14 +1300,14 @@ PIX     *pix;
  * \brief   pixaSort()
  *
  * \param[in]    pixas
- * \param[in]    sorttype L_SORT_BY_X, L_SORT_BY_Y, L_SORT_BY_WIDTH,
- *                        L_SORT_BY_HEIGHT, L_SORT_BY_MIN_DIMENSION,
- *                        L_SORT_BY_MAX_DIMENSION, L_SORT_BY_PERIMETER,
- *                        L_SORT_BY_AREA, L_SORT_BY_ASPECT_RATIO
+ * \param[in]    sorttype   L_SORT_BY_X, L_SORT_BY_Y, L_SORT_BY_WIDTH,
+ *                          L_SORT_BY_HEIGHT, L_SORT_BY_MIN_DIMENSION,
+ *                          L_SORT_BY_MAX_DIMENSION, L_SORT_BY_PERIMETER,
+ *                          L_SORT_BY_AREA, L_SORT_BY_ASPECT_RATIO
  * \param[in]    sortorder  L_SORT_INCREASING, L_SORT_DECREASING
- * \param[out]   pnaindex [optional] index of sorted order into
- *                        original array
- * \param[in]    copyflag L_COPY, L_CLONE
+ * \param[out]   pnaindex   [optional] index of sorted order into
+ *                          original array
+ * \param[in]    copyflag   L_COPY, L_CLONE
  * \return  pixad sorted version of pixas, or NULL on error
  *
  * <pre>
@@ -1440,12 +1440,12 @@ PIXA    *pixad;
  * \brief   pixaBinSort()
  *
  * \param[in]    pixas
- * \param[in]    sorttype L_SORT_BY_X, L_SORT_BY_Y, L_SORT_BY_WIDTH,
- *                        L_SORT_BY_HEIGHT, L_SORT_BY_PERIMETER
- * \param[in]    sortorder  L_SORT_INCREASING, L_SORT_DECREASING
- * \param[out]   pnaindex [optional] index of sorted order into
- *                        original array
- * \param[in]    copyflag L_COPY, L_CLONE
+ * \param[in]    sorttype    L_SORT_BY_X, L_SORT_BY_Y, L_SORT_BY_WIDTH,
+ *                           L_SORT_BY_HEIGHT, L_SORT_BY_PERIMETER
+ * \param[in]    sortorder   L_SORT_INCREASING, L_SORT_DECREASING
+ * \param[out]   pnaindex    [optional] index of sorted order into
+ *                           original array
+ * \param[in]    copyflag    L_COPY, L_CLONE
  * \return  pixad sorted version of pixas, or NULL on error
  *
  * <pre>
@@ -1546,8 +1546,8 @@ PIXA    *pixad;
  * \brief   pixaSortByIndex()
  *
  * \param[in]    pixas
- * \param[in]    naindex na that maps from the new pixa to the input pixa
- * \param[in]    copyflag L_COPY, L_CLONE
+ * \param[in]    naindex    na that maps from the new pixa to the input pixa
+ * \param[in]    copyflag   L_COPY, L_CLONE
  * \return  pixad sorted, or NULL on error
  */
 PIXA *
@@ -1587,8 +1587,8 @@ PIXA    *pixad;
  * \brief   pixaSort2dByIndex()
  *
  * \param[in]    pixas
- * \param[in]    naa numaa that maps from the new pixaa to the input pixas
- * \param[in]    copyflag L_CLONE or L_COPY
+ * \param[in]    naa       numaa that maps from the new pixaa to the input pixas
+ * \param[in]    copyflag  L_CLONE or L_COPY
  * \return  paa sorted, or NULL on error
  */
 PIXAA *
@@ -1644,9 +1644,9 @@ PIXAA   *paa;
  * \brief   pixaSelectRange()
  *
  * \param[in]    pixas
- * \param[in]    first use 0 to select from the beginning
- * \param[in]    last use 0 to select to the end
- * \param[in]    copyflag L_COPY, L_CLONE
+ * \param[in]    first     use 0 to select from the beginning
+ * \param[in]    last      use 0 to select to the end
+ * \param[in]    copyflag  L_COPY, L_CLONE
  * \return  pixad, or NULL on error
  *
  * <pre>
@@ -1694,8 +1694,8 @@ PIXA    *pixad;
  * \brief   pixaaSelectRange()
  *
  * \param[in]    paas
- * \param[in]    first use 0 to select from the beginning
- * \param[in]    last use 0 to select to the end
+ * \param[in]    first    use 0 to select from the beginning
+ * \param[in]    last     use 0 to select to the end
  * \param[in]    copyflag L_COPY, L_CLONE
  * \return  paad, or NULL on error
  *
@@ -1747,8 +1747,8 @@ PIXAA   *paad;
  * \brief   pixaaScaleToSize()
  *
  * \param[in]    paas
- * \param[in]    wd  target width; use 0 if using height as target
- * \param[in]    hd  target height; use 0 if using width as target
+ * \param[in]    wd    target width; use 0 if using height as target
+ * \param[in]    hd    target height; use 0 if using width as target
  * \return  paad, or NULL on error
  *
  * <pre>
@@ -1850,8 +1850,8 @@ PIXAA   *paad;
  * \brief   pixaScaleToSize()
  *
  * \param[in]    pixas
- * \param[in]    wd  target width; use 0 if using height as target
- * \param[in]    hd  target height; use 0 if using width as target
+ * \param[in]    wd    target width; use 0 if using height as target
+ * \param[in]    hd    target height; use 0 if using width as target
  * \return  pixad, or NULL on error
  *
  * <pre>
@@ -1893,8 +1893,8 @@ PIXA    *pixad;
  * \brief   pixaScaleToSizeRel()
  *
  * \param[in]    pixas
- * \param[in]    delw  change in width, in pixels; 0 means no change
- * \param[in]    delh  change in height, in pixels; 0 means no change
+ * \param[in]    delw   change in width, in pixels; 0 means no change
+ * \param[in]    delh   change in height, in pixels; 0 means no change
  * return  pixad, or NULL on error
  *
  * <pre>
@@ -1992,10 +1992,10 @@ PIXA    *pixad;
 /*!
  * \brief   pixaAddBorderGeneral()
  *
- * \param[in]    pixad can be null or equal to pixas
- * \param[in]    pixas containing pix of all depths; colormap ok
- * \param[in]    left, right, top, bot  number of pixels added
- * \param[in]    val   value of added border pixels
+ * \param[in]    pixad    can be null or equal to pixas
+ * \param[in]    pixas    containing pix of all depths; colormap ok
+ * \param[in]    left, right, top, bot     number of pixels added
+ * \param[in]    val      value of added border pixels
  * \return  pixad with border added to each pix, including on error
  *
  * <pre>
@@ -2140,8 +2140,8 @@ PIXA    *pixa, *pixat;
  * \brief   pixaaSizeRange()
  *
  * \param[in]    paa
- * \param[out]   pminw, pminh, pmaxw, pmaxh [optional] range of
- *                                          dimensions of all boxes
+ * \param[out]   pminw, pminh, pmaxw, pmaxh   [optional] range of
+ *                                            dimensions of all boxes
  * \return  0 if OK, 1 on error
  */
 l_int32
@@ -2194,8 +2194,8 @@ PIXA    *pixa;
  * \brief   pixaSizeRange()
  *
  * \param[in]    pixa
- * \param[out]   pminw, pminh, pmaxw, pmaxh [optional] range of
- *                                          dimensions of pix in the array
+ * \param[out]   pminw, pminh, pmaxw, pmaxh   [optional] range of
+ *                                            dimensions of pix in the array
  * \return  0 if OK, 1 on error
  */
 l_int32
@@ -2360,8 +2360,7 @@ PIX     *pix1, *pix2;
  * \brief   pixaGetRenderingDepth()
  *
  * \param[in]    pixa
- * \param[out]   pdepth depth required to render if all
- *                      colormaps are removed
+ * \param[out]   pdepth   depth required to render if all colormaps are removed
  * \return  0 if OK; 1 on error
  */
 l_int32
@@ -2397,8 +2396,8 @@ l_int32  hascolor, maxdepth;
  * \brief   pixaHasColor()
  *
  * \param[in]    pixa
- * \param[out]   phascolor 1 if any pix is rgb or has
- *                         a colormap with color; 0 otherwise
+ * \param[out]   phascolor   1 if any pix is rgb or has a colormap with color;
+ *                           0 otherwise
  * \return  0 if OK; 1 on error
  */
 l_int32
@@ -2439,7 +2438,7 @@ PIXCMAP  *cmap;
  * \brief   pixaAnyColormaps()
  *
  * \param[in]    pixa
- * \param[out]   phascmap 1 if any pix has a colormap; 0 otherwise
+ * \param[out]   phascmap    1 if any pix has a colormap; 0 otherwise
  * \return  0 if OK; 1 on error
  */
 l_int32
@@ -2477,8 +2476,8 @@ PIXCMAP  *cmap;
  * \brief   pixaGetDepthInfo()
  *
  * \param[in]    pixa
- * \param[out]   pmaxdepth [optional] max pixel depth of pix in pixa
- * \param[out]   psame [optional] true if all depths are equal
+ * \param[out]   pmaxdepth  [optional] max pixel depth of pix in pixa
+ * \param[out]   psame      [optional] true if all depths are equal
  * \return  0 if OK; 1 on error
  */
 l_int32
@@ -2534,8 +2533,9 @@ PIXA *
 pixaConvertToSameDepth(PIXA  *pixas)
 {
 l_int32  i, n, same, hascmap, maxdepth;
-PIX     *pix, *pixt;
-PIXA    *pixat, *pixad;
+BOXA    *boxa;
+PIX     *pix1, *pix2;
+PIXA    *pixa1, *pixad;
 
     PROCNAME("pixaConvertToSameDepth");
 
@@ -2547,70 +2547,36 @@ PIXA    *pixat, *pixad;
         return (PIXA *)ERROR_PTR("no components", procName, NULL);
     pixaAnyColormaps(pixas, &hascmap);
     if (hascmap) {
-        pixat = pixaCreate(n);
+        pixa1 = pixaCreate(n);
         for (i = 0; i < n; i++) {
-            pixt = pixaGetPix(pixas, i, L_CLONE);
-            pix = pixConvertTo32(pixt);
-            pixaAddPix(pixat, pix, L_INSERT);
-            pixDestroy(&pixt);
+            pix1 = pixaGetPix(pixas, i, L_CLONE);
+            pix2 = pixConvertTo32(pix1);
+            pixaAddPix(pixa1, pix2, L_INSERT);
+            pixDestroy(&pix1);
         }
     } else {
-        pixat = pixaCopy(pixas, L_CLONE);
+        pixa1 = pixaCopy(pixas, L_CLONE);
     }
 
-    pixaGetDepthInfo(pixat, &maxdepth, &same);
+    pixaGetDepthInfo(pixa1, &maxdepth, &same);
     if (!same) {  /* at least one pix has depth < maxdepth */
         pixad = pixaCreate(n);
         for (i = 0; i < n; i++) {
-            pixt = pixaGetPix(pixat, i, L_CLONE);
+            pix1 = pixaGetPix(pixa1, i, L_CLONE);
             if (maxdepth <= 8)
-                pix = pixConvertTo8(pixt, 0);
+                pix2 = pixConvertTo8(pix1, 0);
             else
-                pix = pixConvertTo32(pixt);
-            pixaAddPix(pixad, pix, L_INSERT);
-            pixDestroy(&pixt);
+                pix2 = pixConvertTo32(pix1);
+            pixaAddPix(pixad, pix2, L_INSERT);
+            pixDestroy(&pix1);
         }
     } else {
-        pixad = pixaCopy(pixat, L_CLONE);
+        pixad = pixaCopy(pixa1, L_CLONE);
     }
-    pixaDestroy(&pixat);
-    return pixad;
-}
 
-
-/*!
- * \brief   pixaConvertToRGB()
- *
- * \param[in]    pixas    any depth, with or without colormap
- * \return  pixad, or NULL on error
- *
- * <pre>
- * Notes:
- *      (1) This can be used to allow 1 bpp pix in a pixa to be
- *          displayed with color.
- * </pre>
- */
-PIXA *
-pixaConvertToRGB(PIXA  *pixas)
-{
-l_int32  i, n;
-PIX     *pix1, *pix2;
-PIXA    *pixad;
-
-    PROCNAME("pixaConvertToRGB");
-
-    if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
-
-    if ((n = pixaGetCount(pixas)) == 0)
-        return (PIXA *)ERROR_PTR("no components", procName, NULL);
-    pixad = pixaCreate(n);
-    for (i = 0; i < n; i++) {
-        pix1 = pixaGetPix(pixas, i, L_CLONE);
-        pix2 = pixConvertTo32(pix1);
-        pixaAddPix(pixad, pix2, L_INSERT);
-        pixDestroy(&pix1);
-    }
+    boxa = pixaGetBoxa(pixas, L_COPY);
+    pixaSetBoxa(pixad, boxa, L_INSERT);
+    pixaDestroy(&pixa1);
     return pixad;
 }
 
@@ -2621,7 +2587,7 @@ PIXA    *pixad;
  * \param[in]    pixa1
  * \param[in]    pixa2
  * \param[in]    maxdist
- * \param[out]   pnaindex [optional] index array of correspondences
+ * \param[out]   pnaindex    [optional] index array of correspondences
  *           [out]   psame (1 if equal; 0 otherwise
  * \return  0 if OK, 1 on error
  *
@@ -2719,8 +2685,8 @@ PIX      *pix1, *pix2;
  * \brief   pixaRotateOrth()
  *
  * \param[in]    pixas
- * \param[in]    rotation 0 = noop, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg;
- *                        all rotations are clockwise
+ * \param[in]    rotation    0 = noop, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg;
+ *                           all rotations are clockwise
  * \return  pixad, or NULL on error
  *
  * <pre>

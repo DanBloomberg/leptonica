@@ -50,7 +50,7 @@
  *      Conversion of all pix to specified type (e.g., depth)
  *           PIXA     *pixaConvertTo1()
  *           PIXA     *pixaConvertTo8()
- *           PIXA     *pixaConvertTo8Color()
+ *           PIXA     *pixaConvertTo8Colormap()
  *           PIXA     *pixaConvertTo32()
  *
  *      Pixa constrained selection and pdf generation
@@ -159,8 +159,8 @@
  * \brief   pixaDisplay()
  *
  * \param[in]    pixa
- * \param[in]    w, h if set to 0, determines the size from the
- *                    b.b. of the components in pixa
+ * \param[in]    w, h    if set to 0, the size is determined from the
+ *                       bounding box of the components in pixa
  * \return  pix, or NULL on error
  *
  * <pre>
@@ -182,7 +182,7 @@ pixaDisplay(PIXA    *pixa,
 {
 l_int32  i, n, d, xb, yb, wb, hb, res;
 BOXA    *boxa;
-PIX     *pixt, *pixd;
+PIX     *pix1, *pixd;
 
     PROCNAME("pixaDisplay");
 
@@ -208,10 +208,10 @@ PIX     *pixt, *pixd;
     }
 
         /* Use the first pix in pixa to determine depth and resolution  */
-    pixt = pixaGetPix(pixa, 0, L_CLONE);
-    d = pixGetDepth(pixt);
-    res = pixGetXRes(pixt);
-    pixDestroy(&pixt);
+    pix1 = pixaGetPix(pixa, 0, L_CLONE);
+    d = pixGetDepth(pix1);
+    res = pixGetXRes(pix1);
+    pixDestroy(&pix1);
 
     if ((pixd = pixCreate(w, h, d)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
@@ -223,12 +223,12 @@ PIX     *pixt, *pixd;
             L_WARNING("no box found!\n", procName);
             continue;
         }
-        pixt = pixaGetPix(pixa, i, L_CLONE);
+        pix1 = pixaGetPix(pixa, i, L_CLONE);
         if (d == 1)
-            pixRasterop(pixd, xb, yb, wb, hb, PIX_PAINT, pixt, 0, 0);
+            pixRasterop(pixd, xb, yb, wb, hb, PIX_PAINT, pix1, 0, 0);
         else
-            pixRasterop(pixd, xb, yb, wb, hb, PIX_SRC, pixt, 0, 0);
-        pixDestroy(&pixt);
+            pixRasterop(pixd, xb, yb, wb, hb, PIX_SRC, pix1, 0, 0);
+        pixDestroy(&pix1);
     }
 
     return pixd;
@@ -239,9 +239,9 @@ PIX     *pixt, *pixd;
  * \brief   pixaDisplayOnColor()
  *
  * \param[in]    pixa
- * \param[in]    w, h if set to 0, determines the size from the
- *                    b.b. of the components in pixa
- * \param[in]    bgcolor background color to use
+ * \param[in]    w, h     if set to 0, the size is determined from the
+ *                        bounding box of the components in pixa
+ * \param[in]    bgcolor  background color to use
  * \return  pix, or NULL on error
  *
  * <pre>
@@ -335,9 +335,9 @@ PIXA    *pixat;
 /*!
  * \brief   pixaDisplayRandomCmap()
  *
- * \param[in]    pixa   1 bpp regions, with boxa delineating those regions.
- * \param[in]    w, h   if set to 0, determines the size from the
- *                      b.b. of the components in pixa
+ * \param[in]    pixa    1 bpp regions, with boxa delineating those regions
+ * \param[in]    w, h    if set to 0, the size is determined from the
+ *                       bounding box of the components in pixa
  * \return  pix   8 bpp, cmapped, with random colors assigned to each region,
  *                or NULL on error.
  *
@@ -357,7 +357,7 @@ pixaDisplayRandomCmap(PIXA    *pixa,
 {
 l_int32   i, n, maxdepth, index, xb, yb, wb, hb, res;
 BOXA     *boxa;
-PIX      *pixs, *pixt, *pixd;
+PIX      *pixs, *pix1, *pixd;
 PIXCMAP  *cmap;
 
     PROCNAME("pixaDisplayRandomCmap");
@@ -391,10 +391,10 @@ PIXCMAP  *cmap;
         pixaGetBoxGeometry(pixa, i, &xb, &yb, &wb, &hb);
         pixs = pixaGetPix(pixa, i, L_CLONE);
         if (i == 0) res = pixGetXRes(pixs);
-        pixt = pixConvert1To8(NULL, pixs, 0, index);
-        pixRasterop(pixd, xb, yb, wb, hb, PIX_PAINT, pixt, 0, 0);
+        pix1 = pixConvert1To8(NULL, pixs, 0, index);
+        pixRasterop(pixd, xb, yb, wb, hb, PIX_PAINT, pix1, 0, 0);
         pixDestroy(&pixs);
-        pixDestroy(&pixt);
+        pixDestroy(&pix1);
     }
 
     pixSetResolution(pixd, res, res);
@@ -406,14 +406,14 @@ PIXCMAP  *cmap;
  * \brief   pixaDisplayLinearly()
  *
  * \param[in]    pixas
- * \param[in]    direction L_HORIZ or L_VERT
- * \param[in]    scalefactor applied to every pix; use 1.0 for no scaling
- * \param[in]    background 0 for white, 1 for black; this is the color
- *                 of the spacing between the images
- * \param[in]    spacing  between images, and on outside
- * \param[in]    border width of black border added to each image;
- *                      use 0 for no border
- * \param[out]   pboxa [optional] location of images in output pix
+ * \param[in]    direction    L_HORIZ or L_VERT
+ * \param[in]    scalefactor  applied to every pix; use 1.0 for no scaling
+ * \param[in]    background   0 for white, 1 for black; this is the color
+ *                            of the spacing between the images
+ * \param[in]    spacing      between images, and on outside
+ * \param[in]    border       width of black border added to each image;
+ *                            use 0 for no border
+ * \param[out]   pboxa        [optional] location of images in output pix
  * \return  pix of composite images, or NULL on error
  *
  * <pre>
@@ -499,10 +499,10 @@ PIXA    *pixa1, *pixa2;
  * \brief   pixaDisplayOnLattice()
  *
  * \param[in]    pixa
- * \param[in]    cellw lattice cell width
- * \param[in]    cellh lattice cell height
- * \param[out]   pncols [optional] number of columns in output lattice
- * \param[out]   pboxa [optional] location of images in lattice
+ * \param[in]    cellw    lattice cell width
+ * \param[in]    cellh    lattice cell height
+ * \param[out]   pncols   [optional] number of columns in output lattice
+ * \param[out]   pboxa    [optional] location of images in lattice
  * \return  pix of composite images, or NULL on error
  *
  * <pre>
@@ -610,8 +610,8 @@ PIXA    *pixa1;
  * \brief   pixaDisplayUnsplit()
  *
  * \param[in]    pixa
- * \param[in]    nx   number of mosaic cells horizontally
- * \param[in]    ny   number of mosaic cells vertically
+ * \param[in]    nx           number of mosaic cells horizontally
+ * \param[in]    ny           number of mosaic cells vertically
  * \param[in]    borderwidth  of added border on all sides
  * \param[in]    bordercolor  in our RGBA format: 0xrrggbbaa
  * \return  pix of tiled images, or NULL on error
@@ -638,7 +638,7 @@ pixaDisplayUnsplit(PIXA     *pixa,
 {
 l_int32  w, h, d, wt, ht;
 l_int32  i, j, k, x, y, n;
-PIX     *pixt, *pixd;
+PIX     *pix1, *pixd;
 
     PROCNAME("pixaDisplayUnsplit");
 
@@ -658,9 +658,9 @@ PIX     *pixt, *pixd;
 
     if ((pixd = pixCreate(w, h, d)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    pixt = pixaGetPix(pixa, 0, L_CLONE);
-    pixCopyColormap(pixd, pixt);
-    pixDestroy(&pixt);
+    pix1 = pixaGetPix(pixa, 0, L_CLONE);
+    pixCopyColormap(pixd, pix1);
+    pixDestroy(&pix1);
     if (borderwidth > 0)
         pixSetAllArbitrary(pixd, bordercolor);
 
@@ -668,9 +668,9 @@ PIX     *pixt, *pixd;
     for (i = 0, k = 0; i < ny; i++) {
         x = borderwidth;
         for (j = 0; j < nx; j++, k++) {
-            pixt = pixaGetPix(pixa, k, L_CLONE);
-            pixRasterop(pixd, x, y, wt, ht, PIX_SRC, pixt, 0, 0);
-            pixDestroy(&pixt);
+            pix1 = pixaGetPix(pixa, k, L_CLONE);
+            pixRasterop(pixd, x, y, wt, ht, PIX_SRC, pix1, 0, 0);
+            pixDestroy(&pix1);
             x += wt + 2 * borderwidth;
         }
         y += ht + 2 * borderwidth;
@@ -684,8 +684,8 @@ PIX     *pixt, *pixd;
  * \brief   pixaDisplayTiled()
  *
  * \param[in]    pixa
- * \param[in]    maxwidth of output image
- * \param[in]    background 0 for white, 1 for black
+ * \param[in]    maxwidth     of output image
+ * \param[in]    background   0 for white, 1 for black
  * \param[in]    spacing
  * \return  pix of tiled images, or NULL on error
  *
@@ -784,14 +784,14 @@ PIXA    *pixa1;
  * \brief   pixaDisplayTiledInRows()
  *
  * \param[in]    pixa
- * \param[in]    outdepth output depth: 1, 8 or 32 bpp
- * \param[in]    maxwidth of output image
- * \param[in]    scalefactor applied to every pix; use 1.0 for no scaling
- * \param[in]    background 0 for white, 1 for black; this is the color
- *                 of the spacing between the images
- * \param[in]    spacing  between images, and on outside
- * \param[in]    border width of black border added to each image;
- *                      use 0 for no border
+ * \param[in]    outdepth     output depth: 1, 8 or 32 bpp
+ * \param[in]    maxwidth     of output image
+ * \param[in]    scalefactor  applied to every pix; use 1.0 for no scaling
+ * \param[in]    background   0 for white, 1 for black; this is the color
+ *                            of the spacing between the images
+ * \param[in]    spacing      between images, and on outside
+ * \param[in]    border       width of black border added to each image;
+ *                            use 0 for no border
  * \return  pixd of tiled images, or NULL on error
  *
  * <pre>
@@ -838,7 +838,7 @@ l_uint8  *data;
 BOXA     *boxa;
 NUMA     *nainrow;  /* number of pix in the row */
 NUMA     *namaxh;  /* height of max pix in the row */
-PIX      *pix, *pixn, *pixt, *pixd;
+PIX      *pix, *pixn, *pix1, *pixd;
 PIXA     *pixan;
 
     PROCNAME("pixaDisplayTiledInRows");
@@ -870,15 +870,15 @@ PIXA     *pixan;
         pixDestroy(&pix);
 
         if (scalefactor != 1.0)
-            pixt = pixScale(pixn, scalefactor, scalefactor);
+            pix1 = pixScale(pixn, scalefactor, scalefactor);
         else
-            pixt = pixClone(pixn);
+            pix1 = pixClone(pixn);
         if (border)
-            pixd = pixAddBorder(pixt, border, bordval);
+            pixd = pixAddBorder(pix1, border, bordval);
         else
-            pixd = pixClone(pixt);
+            pixd = pixClone(pix1);
         pixDestroy(&pixn);
-        pixDestroy(&pixt);
+        pixDestroy(&pix1);
 
         pixaAddPix(pixan, pixd, L_INSERT);
     }
@@ -972,11 +972,11 @@ PIXA     *pixan;
  * \brief   pixaDisplayTiledInColumns()
  *
  * \param[in]    pixas
- * \param[in]    nx number of columns in output image
- * \param[in]    scalefactor applied to every pix; use 1.0 for no scaling
- * \param[in]    spacing  between images, and on outside
- * \param[in]    border width of black border added to each image;
- *                      use 0 for no border
+ * \param[in]    nx           number of columns in output image
+ * \param[in]    scalefactor  applied to every pix; use 1.0 for no scaling
+ * \param[in]    spacing      between images, and on outside
+ * \param[in]    border       width of black border added to each image;
+ *                            use 0 for no border
  * \return  pixd of tiled images, or NULL on error
  *
  * <pre>
@@ -1098,14 +1098,14 @@ PIXA     *pixa1, *pixa2;
  * \brief   pixaDisplayTiledAndScaled()
  *
  * \param[in]    pixa
- * \param[in]    outdepth output depth: 1, 8 or 32 bpp
- * \param[in]    tilewidth each pix is scaled to this width
- * \param[in]    ncols number of tiles in each row
- * \param[in]    background 0 for white, 1 for black; this is the color
- *                 of the spacing between the images
- * \param[in]    spacing  between images, and on outside
- * \param[in]    border width of additional black border on each image;
- *                      use 0 for no border
+ * \param[in]    outdepth    output depth: 1, 8 or 32 bpp
+ * \param[in]    tilewidth   each pix is scaled to this width
+ * \param[in]    ncols       number of tiles in each row
+ * \param[in]    background  0 for white, 1 for black; this is the color
+ *                           of the spacing between the images
+ * \param[in]    spacing     between images, and on outside
+ * \param[in]    border      width of additional black border on each image;
+ *                           use 0 for no border
  * \return  pix of tiled images, or NULL on error
  *
  * <pre>
@@ -1131,7 +1131,7 @@ l_int32    x, y, w, h, wd, hd, d, res;
 l_int32    i, n, nrows, maxht, ninrow, irow, bordval;
 l_int32   *rowht;
 l_float32  scalefact;
-PIX       *pix, *pixn, *pixt, *pixb, *pixd;
+PIX       *pix, *pixn, *pix1, *pixb, *pixd;
 PIXA      *pixan;
 
     PROCNAME("pixaDisplayTiledAndScaled");
@@ -1156,17 +1156,17 @@ PIXA      *pixan;
         pixGetDimensions(pix, &w, &h, &d);
         scalefact = (l_float32)(tilewidth - 2 * border) / (l_float32)w;
         if (d == 1 && outdepth > 1 && scalefact < 1.0)
-            pixt = pixScaleToGray(pix, scalefact);
+            pix1 = pixScaleToGray(pix, scalefact);
         else
-            pixt = pixScale(pix, scalefact, scalefact);
+            pix1 = pixScale(pix, scalefact, scalefact);
 
         if (outdepth == 1)
-            pixn = pixConvertTo1(pixt, 128);
+            pixn = pixConvertTo1(pix1, 128);
         else if (outdepth == 8)
-            pixn = pixConvertTo8(pixt, FALSE);
+            pixn = pixConvertTo8(pix1, FALSE);
         else  /* outdepth == 32 */
-            pixn = pixConvertTo32(pixt);
-        pixDestroy(&pixt);
+            pixn = pixConvertTo32(pix1);
+        pixDestroy(&pix1);
 
         if (border)
             pixb = pixAddBorder(pixn, border, bordval);
@@ -1248,13 +1248,13 @@ PIXA      *pixan;
  * \brief   pixaDisplayTiledWithText()
  *
  * \param[in]    pixa
- * \param[in]    maxwidth of output image
- * \param[in]    scalefactor applied to every pix; use 1.0 for no scaling
- * \param[in]    spacing  between images, and on outside
- * \param[in]    border width of black border added to each image;
- *                      use 0 for no border
- * \param[in]    fontsize 4, 6, ... 20
- * \param[in]    textcolor 0xrrggbb00
+ * \param[in]    maxwidth     of output image
+ * \param[in]    scalefactor  applied to every pix; use 1.0 for no scaling
+ * \param[in]    spacing      between images, and on outside
+ * \param[in]    border       width of black border added to each image;
+ *                            use 0 for no border
+ * \param[in]    fontsize     4, 6, ... 20
+ * \param[in]    textcolor    0xrrggbb00
  * \return  pixd of tiled images, or NULL on error
  *
  * <pre>
@@ -1346,13 +1346,13 @@ PIXA     *pixad;
  * \brief   pixaDisplayTiledByIndex()
  *
  * \param[in]    pixa
- * \param[in]    na numa with indices corresponding to the pix in pixa
- * \param[in]    width each pix is scaled to this width
- * \param[in]    spacing  between images, and on outside
- * \param[in]    border width of black border added to each image;
- *                      use 0 for no border
- * \param[in]    fontsize 4, 6, ... 20
- * \param[in]    textcolor 0xrrggbb00
+ * \param[in]    na         numa with indices corresponding to the pix in pixa
+ * \param[in]    width      each pix is scaled to this width
+ * \param[in]    spacing    between images, and on outside
+ * \param[in]    border     width of black border added to each image;
+ *                          use 0 for no border
+ * \param[in]    fontsize   4, 6, ... 20
+ * \param[in]    textcolor  0xrrggbb00
  * \return  pixd of tiled images, or NULL on error
  *
  * <pre>
@@ -1462,8 +1462,8 @@ PIXA      *pixad;
  * \brief   pixaaDisplay()
  *
  * \param[in]    paa
- * \param[in]    w, h if set to 0, determines the size from the
- *                    b.b. of the components in paa
+ * \param[in]    w, h   if set to 0, the size is determined from the
+ *                      bounding box of the components in pixa
  * \return  pix, or NULL on error
  *
  * <pre>
@@ -1481,7 +1481,7 @@ pixaaDisplay(PIXAA   *paa,
 l_int32  i, j, n, nbox, na, d, wmax, hmax, x, y, xb, yb, wb, hb;
 BOXA    *boxa1;  /* top-level boxa */
 BOXA    *boxa;
-PIX     *pixt, *pixd;
+PIX     *pix1, *pixd;
 PIXA    *pixa;
 
     PROCNAME("pixaaDisplay");
@@ -1518,10 +1518,10 @@ PIXA    *pixa;
 
         /* Get depth from first pix */
     pixa = pixaaGetPixa(paa, 0, L_CLONE);
-    pixt = pixaGetPix(pixa, 0, L_CLONE);
-    d = pixGetDepth(pixt);
+    pix1 = pixaGetPix(pixa, 0, L_CLONE);
+    d = pixGetDepth(pix1);
     pixaDestroy(&pixa);
-    pixDestroy(&pixt);
+    pixDestroy(&pix1);
 
     if ((pixd = pixCreate(w, h, d)) == NULL) {
         boxaDestroy(&boxa1);
@@ -1536,9 +1536,9 @@ PIXA    *pixa;
         na = pixaGetCount(pixa);
         for (j = 0; j < na; j++) {
             pixaGetBoxGeometry(pixa, j, &xb, &yb, &wb, &hb);
-            pixt = pixaGetPix(pixa, j, L_CLONE);
-            pixRasterop(pixd, x + xb, y + yb, wb, hb, PIX_PAINT, pixt, 0, 0);
-            pixDestroy(&pixt);
+            pix1 = pixaGetPix(pixa, j, L_CLONE);
+            pixRasterop(pixd, x + xb, y + yb, wb, hb, PIX_PAINT, pix1, 0, 0);
+            pixDestroy(&pix1);
         }
         pixaDestroy(&pixa);
     }
@@ -1551,10 +1551,10 @@ PIXA    *pixa;
 /*!
  * \brief   pixaaDisplayByPixa()
  *
- * \param[in]    paa with pix that may have different depths
- * \param[in]    xspace between pix in pixa
- * \param[in]    yspace between pixa
- * \param[in]    maxw max width of output pix
+ * \param[in]    paa     with pix that may have different depths
+ * \param[in]    xspace  between pix in pixa
+ * \param[in]    yspace  between pixa
+ * \param[in]    maxw    max width of output pix
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1577,7 +1577,7 @@ l_int32   i, j, npixa, npix, same, use_maxw, x, y, w, h, hindex;
 l_int32   maxwidth, maxdepth, width, lmaxh, lmaxw;
 l_int32  *harray;
 NUMA     *nah;
-PIX      *pix, *pixt, *pixd;
+PIX      *pix, *pix1, *pixd;
 PIXA     *pixa;
 
     PROCNAME("pixaaDisplayByPixa");
@@ -1657,20 +1657,20 @@ PIXA     *pixa;
             pix = pixaGetPix(pixa, j, L_CLONE);
             if (pixGetDepth(pix) != maxdepth) {
                 if (maxdepth == 8)
-                     pixt = pixConvertTo8(pix, 0);
+                     pix1 = pixConvertTo8(pix, 0);
                 else  /* 32 bpp */
-                     pixt = pixConvertTo32(pix);
+                     pix1 = pixConvertTo32(pix);
             } else {
-                pixt = pixClone(pix);
+                pix1 = pixClone(pix);
             }
-            pixGetDimensions(pixt, &w, &h, NULL);
+            pixGetDimensions(pix1, &w, &h, NULL);
             if (x + w >= maxw) {  /* start new line */
                 x = xspace;
                 y += harray[hindex++] + yspace;
             }
-            pixRasterop(pixd, x, y, w, h, PIX_PAINT, pixt, 0, 0);
+            pixRasterop(pixd, x, y, w, h, PIX_PAINT, pix1, 0, 0);
             pixDestroy(&pix);
-            pixDestroy(&pixt);
+            pixDestroy(&pix1);
             x += w + xspace;
         }
         y += harray[hindex++] + yspace;
@@ -1687,14 +1687,14 @@ PIXA     *pixa;
  * \brief   pixaaDisplayTiledAndScaled()
  *
  * \param[in]    paa
- * \param[in]    outdepth output depth: 1, 8 or 32 bpp
- * \param[in]    tilewidth each pix is scaled to this width
- * \param[in]    ncols number of tiles in each row
- * \param[in]    background 0 for white, 1 for black; this is the color
- *                 of the spacing between the images
- * \param[in]    spacing  between images, and on outside
- * \param[in]    border width of additional black border on each image;
- *                      use 0 for no border
+ * \param[in]    outdepth    output depth: 1, 8 or 32 bpp
+ * \param[in]    tilewidth   each pix is scaled to this width
+ * \param[in]    ncols       number of tiles in each row
+ * \param[in]    background  0 for white, 1 for black; this is the color
+ *                           of the spacing between the images
+ * \param[in]    spacing     between images, and on outside
+ * \param[in]    border      width of additional black border on each image;
+ *                           use 0 for no border
  * \return  pixa of tiled images, one image for each pixa in
  *                    the paa, or NULL on error
  *
@@ -1750,7 +1750,7 @@ PIXA    *pixa, *pixad;
  * \brief   pixaConvertTo1()
  *
  * \param[in]    pixas
- * \param[in]    thresh threshold for final binarization from 8 bpp gray
+ * \param[in]    thresh    threshold for final binarization from 8 bpp gray
  * \return  pixad, or NULL on error
  */
 PIXA *
@@ -1786,7 +1786,7 @@ PIXA    *pixad;
  * \brief   pixaConvertTo8()
  *
  * \param[in]    pixas
- * \param[in]    cmapflag 1 to give pixd a colormap; 0 otherwise
+ * \param[in]    cmapflag   1 to give pixd a colormap; 0 otherwise
  * \return  pixad each pix is 8 bpp, or NULL on error
  *
  * <pre>
@@ -1824,27 +1824,27 @@ PIXA    *pixad;
 
 
 /*!
- * \brief   pixaConvertTo8Color()
+ * \brief   pixaConvertTo8Colormap()
  *
  * \param[in]    pixas
- * \param[in]    dither 1 to dither if necessary; 0 otherwise
+ * \param[in]    dither   1 to dither if necessary; 0 otherwise
  * \return  pixad each pix is 8 bpp, or NULL on error
  *
  * <pre>
  * Notes:
- *      (1) See notes for pixConvertTo8Color(), applied to each pix in pixas.
+ *      (1) See notes for pixConvertTo8Colormap(), applied to each pix in pixas.
  * </pre>
  */
 PIXA *
-pixaConvertTo8Color(PIXA    *pixas,
-                    l_int32  dither)
+pixaConvertTo8Colormap(PIXA    *pixas,
+                       l_int32  dither)
 {
 l_int32  i, n;
 BOXA    *boxa;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 
-    PROCNAME("pixaConvertTo8Color");
+    PROCNAME("pixaConvertTo8Colormap");
 
     if (!pixas)
         return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
@@ -1853,7 +1853,7 @@ PIXA    *pixad;
     pixad = pixaCreate(n);
     for (i = 0; i < n; i++) {
         pix1 = pixaGetPix(pixas, i, L_CLONE);
-        pix2 = pixConvertTo8Color(pix1, dither);
+        pix2 = pixConvertTo8Colormap(pix1, dither);
         pixaAddPix(pixad, pix2, L_INSERT);
         pixDestroy(&pix1);
     }
@@ -1873,10 +1873,12 @@ PIXA    *pixad;
  * <pre>
  * Notes:
  *      (1) See notes for pixConvertTo32(), applied to each pix in pixas.
+ *      (2) This can be used to allow 1 bpp pix in a pixa to be displayed
+ *          with color.
  * </pre>
  */
 PIXA *
-pixaConvertTo32(PIXA    *pixas)
+pixaConvertTo32(PIXA  *pixas)
 {
 l_int32  i, n;
 BOXA    *boxa;
@@ -1910,13 +1912,13 @@ PIXA    *pixad;
  * \brief   pixaConstrainedSelect()
  *
  * \param[in]    pixas
- * \param[in]    first first index to choose; >= 0
- * \param[in]    last biggest possible index to reach;
- *                    use -1 to go to the end; otherwise, last >= first
- * \param[in]    nmax maximum number of pix to select; > 0
- * \param[in]    use_pairs 1 = select pairs of adjacent pix;
- *                         0 = select individual pix
- * \param[in]    copyflag L_COPY, L_CLONE
+ * \param[in]    first      first index to choose; >= 0
+ * \param[in]    last       biggest possible index to reach;
+ *                          use -1 to go to the end; otherwise, last >= first
+ * \param[in]    nmax       maximum number of pix to select; > 0
+ * \param[in]    use_pairs  1 = select pairs of adjacent pix;
+ *                          0 = select individual pix
+ * \param[in]    copyflag   L_COPY, L_CLONE
  * \return  pixad if OK, NULL on error
  *
  * <pre>
@@ -2060,12 +2062,12 @@ PIXA      *pixa1, *pixa2;
  * \brief   pixaDisplayMultiTiled()
  *
  * \param[in]    pixas
- * \param[in]    nx, ny in [1, ... 50], tiling factors in each direction
- * \param[in]    maxw, maxh max sizes to keep
- * \param[in]    scalefactor scale each image by this
- * \param[in]    spacing  between images, and on outside
- * \param[in]    border width of additional black border on each image;
- *                      use 0 for no border
+ * \param[in]    nx, ny       in [1, ... 50], tiling factors in each direction
+ * \param[in]    maxw, maxh   max sizes to keep
+ * \param[in]    scalefactor  scale each image by this
+ * \param[in]    spacing      between images, and on outside
+ * \param[in]    border       width of additional black border on each image;
+ *                            use 0 for no border
  * \return  pixad if OK, NULL on error
  *
  * <pre>
@@ -2138,12 +2140,13 @@ PIXA    *pixa1, *pixa2, *pixad;
  * \brief   pixaSplitIntoFiles()
  *
  * \param[in]    pixas
- * \param[in]    nsplit split pixas into this number of pixa; >= 2
- * \param[in]    scale scalefactor applied to each pix
- * \param[in]    outwidth the maxwidth parameter of tiled images for write_pix
- * \param[in]    write_pixa 1 to write the split pixa as separate files
- * \param[in]    write_pix 1 to write tiled images of the split pixa
- * \param[in]    write_pdf 1 to write pdfs of the split pixa
+ * \param[in]    nsplit       split pixas into this number of pixa; >= 2
+ * \param[in]    scale        scalefactor applied to each pix
+ * \param[in]    outwidth     the maxwidth parameter of tiled images
+ *                            for write_pix
+ * \param[in]    write_pixa  1 to write the split pixa as separate files
+ * \param[in]    write_pix   1 to write tiled images of the split pixa
+ * \param[in]    write_pdf   1 to write pdfs of the split pixa
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2218,16 +2221,16 @@ PIXA    *pixa1;
 /*!
  * \brief   convertToNUpFiles()
  *
- * \param[in]    dir full path to directory of images
- * \param[in]    substr [optional] can be null
- * \param[in]    nx, ny in [1, ... 50], tiling factors in each direction
- * \param[in]    tw target width, in pixels; must be >= 20
- * \param[in]    spacing  between images, and on outside
- * \param[in]    border width of additional black border on each image;
- *                      use 0 for no border
- * \param[in]    fontsize to print tail of filename with image.  Valid set is
- *                        {4,6,8,10,12,14,16,18,20}.  Use 0 to disable.
- * \param[in]    outdir subdirectory of /tmp to put N-up tiled images
+ * \param[in]    dir        full path to directory of images
+ * \param[in]    substr     [optional] can be null
+ * \param[in]    nx, ny     in [1, ... 50], tiling factors in each direction
+ * \param[in]    tw         target width, in pixels; must be >= 20
+ * \param[in]    spacing    between images, and on outside
+ * \param[in]    border     width of additional black border on each image;
+ *                          use 0 for no border
+ * \param[in]    fontsize   to print tail of filename with image.  Valid set is
+ *                          {4,6,8,10,12,14,16,18,20}.  Use 0 to disable.
+ * \param[in]    outdir     subdirectory of /tmp to put N-up tiled images
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2290,15 +2293,15 @@ PIXA    *pixa;
 /*!
  * \brief   convertToNUpPixa()
  *
- * \param[in]    dir full path to directory of images
- * \param[in]    substr [optional] can be null
- * \param[in]    nx, ny in [1, ... 50], tiling factors in each direction
- * \param[in]    tw target width, in pixels; must be >= 20
- * \param[in]    spacing  between images, and on outside
- * \param[in]    border width of additional black border on each image;
- *                      use 0 for no border
- * \param[in]    fontsize to print tail of filename with image.  Valid set is
- *                        {4,6,8,10,12,14,16,18,20}.  Use 0 to disable.
+ * \param[in]    dir       full path to directory of images
+ * \param[in]    substr    [optional] can be null
+ * \param[in]    nx, ny    in [1, ... 50], tiling factors in each direction
+ * \param[in]    tw        target width, in pixels; must be >= 20
+ * \param[in]    spacing   between images, and on outside
+ * \param[in]    border    width of additional black border on each image;
+ *                         use 0 for no border
+ * \param[in]    fontsize  to print tail of filename with image.  Valid set is
+ *                         {4,6,8,10,12,14,16,18,20}.  Use 0 to disable.
  * \return  pixad, or NULL on error
  *
  * <pre>
@@ -2354,14 +2357,14 @@ SARRAY  *sa1, *sa2;
  * \brief   pixaConvertToNUpPixa()
  *
  * \param[in]    pixas
- * \param[in]    sa  [optional] array of strings associated with each pix
- * \param[in]    nx, ny in [1, ... 50], tiling factors in each direction
- * \param[in]    tw target width, in pixels; must be >= 20
- * \param[in]    spacing  between images, and on outside
- * \param[in]    border width of additional black border on each image;
- *                      use 0 for no border
- * \param[in]    fontsize to print string with each image.  Valid set is
- *                        {4,6,8,10,12,14,16,18,20}.  Use 0 to disable.
+ * \param[in]    sa        [optional] array of strings associated with each pix
+ * \param[in]    nx, ny    in [1, ... 50], tiling factors in each direction
+ * \param[in]    tw        target width, in pixels; must be >= 20
+ * \param[in]    spacing   between images, and on outside
+ * \param[in]    border    width of additional black border on each image;
+ *                         use 0 for no border
+ * \param[in]    fontsize  to print string with each image.  Valid set is
+ *                         {4,6,8,10,12,14,16,18,20}.  Use 0 to disable.
  * \return  pixad, or NULL on error
  *
  * <pre>
@@ -2451,14 +2454,14 @@ PIXA      *pixa1, *pixad;
  *
  * \param[in]    pixa1
  * \param[in]    pixa2
- * \param[in]    nx, ny in [1, ... 20], tiling factors in each direction
- * \param[in]    tw target width, in pixels; must be >= 20
- * \param[in]    spacing  between images, and on outside
- * \param[in]    border width of additional black border on each image
- *                      and on each pair; use 0 for no border
- * \param[in]    fontsize to print index of each pair of images.  Valid set
- *                        is {4,6,8,10,12,14,16,18,20}.  Use 0 to disable.
- * \param[in]    fileout  output pdf file
+ * \param[in]    nx, ny     in [1, ... 20], tiling factors in each direction
+ * \param[in]    tw         target width, in pixels; must be >= 20
+ * \param[in]    spacing    between images, and on outside
+ * \param[in]    border     width of additional black border on each image
+ *                          and on each pair; use 0 for no border
+ * \param[in]    fontsize   to print index of each pair of images.  Valid set
+ *                          is {4,6,8,10,12,14,16,18,20}.  Use 0 to disable.
+ * \param[in]    fileout    output pdf file
  * \return  0 if OK, 1 on error
  *
  * <pre>
