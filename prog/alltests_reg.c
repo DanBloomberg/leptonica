@@ -129,6 +129,7 @@ static const char *tests[] = {
                               "psio_reg",
                               "psioseg_reg",
                               "pta_reg",
+                              "quadtree_reg",
                               "rank_reg",
                               "rankbin_reg",
                               "rankhisto_reg",

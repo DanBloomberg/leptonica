@@ -75,10 +75,10 @@
 /*!
  * \brief   pixQuadtreeMean()
  *
- * \param[in]    pixs 8 bpp, no colormap
- * \param[in]    nlevels in quadtree; max allowed depends on image size
- * \param[in]   *pix_ma input mean accumulator; can be null
- * \param[out]  *pfpixa mean values in quadtree
+ * \param[in]    pixs     8 bpp, no colormap
+ * \param[in]    nlevels  in quadtree; max allowed depends on image size
+ * \param[in]   *pix_ma   input mean accumulator; can be null
+ * \param[out]  *pfpixa   mean values in quadtree
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -150,12 +150,12 @@ PIX       *pix_mac;
 /*!
  * \brief   pixQuadtreeVariance()
  *
- * \param[in]    pixs 8 bpp, no colormap
- * \param[in]    nlevels in quadtree
- * \param[in]   *pix_ma input mean accumulator; can be null
- * \param[in]   *dpix_msa input mean square accumulator; can be null
- * \param[out]  *pfpixa_v [optional] variance values in quadtree
- * \param[out]  *pfpixa_rv [optional] root variance values in quadtree
+ * \param[in]    pixs        8 bpp, no colormap
+ * \param[in]    nlevels     in quadtree
+ * \param[in]   *pix_ma      input mean accumulator; can be null
+ * \param[in]   *dpix_msa    input mean square accumulator; can be null
+ * \param[out]  *pfpixa_v    [optional] variance values in quadtree
+ * \param[out]  *pfpixa_rv   [optional] root variance values in quadtree
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -204,8 +204,10 @@ DPIX      *dpix_msac;  /* msa clone */
         dpix_msac = pixMeanSquareAccum(pixs);
     else
         dpix_msac = dpixClone(dpix_msa);
-    if (!dpix_msac)
+    if (!dpix_msac) {
+        pixDestroy(&pix_mac);
         return ERROR_INT("dpix_msac not made", procName, 1);
+    }
 
     if ((baa = boxaaQuadtreeRegions(w, h, nlevels)) == NULL) {
         pixDestroy(&pix_mac);
@@ -246,10 +248,10 @@ DPIX      *dpix_msac;  /* msa clone */
 /*!
  * \brief   pixMeanInRectangle()
  *
- * \param[in]    pixs 8 bpp
- * \param[in]    box region to compute mean value
- * \param[in]    pixma mean accumulator
- * \param[out]   pval mean value
+ * \param[in]    pixs     8 bpp
+ * \param[in]    box      region to compute mean value
+ * \param[in]    pixma    mean accumulator
+ * \param[out]   pval     mean value
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -319,12 +321,12 @@ BOX       *boxc;
 /*!
  * \brief   pixVarianceInRectangle()
  *
- * \param[in]    pixs 8 bpp
- * \param[in]    box region to compute variance and/or root variance
- * \param[in]    pix_ma mean accumulator
- * \param[in]    dpix_msa mean square accumulator
- * \param[out]   pvar [optional] variance
- * \param[out]   prvar [optional] root variance
+ * \param[in]    pixs        8 bpp
+ * \param[in]    box         region to compute variance and/or root variance
+ * \param[in]    pix_ma      mean accumulator
+ * \param[in]    dpix_msa    mean square accumulator
+ * \param[out]   pvar        [optional] variance
+ * \param[out]   prvar       [optional] root variance
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -428,8 +430,8 @@ BOX       *boxc;
 /*!
  * \brief   boxaaQuadtreeRegions()
  *
- * \param[in]    w, h of pix that is being quadtree-ized
- * \param[in]    nlevels in quadtree
+ * \param[in]    w, h     size of pix that is being quadtree-ized
+ * \param[in]    nlevels  number of levels in quadtree
  * \return  baa for quadtree regions at each level, or NULL on error
  *
  * <pre>
@@ -511,9 +513,9 @@ BOXAA    *baa;
 /*!
  * \brief   quadtreeGetParent()
  *
- * \param[in]    fpixa mean, variance or root variance
- * \param[in]    level, x, y of current pixel
- * \param[out]   pval parent pixel value, or 0.0 on error.
+ * \param[in]    fpixa      mean, variance or root variance
+ * \param[in]    level,     x, y of current pixel
+ * \param[out]   pval       parent pixel value, or 0.0 on error
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -553,9 +555,10 @@ l_int32  n;
 /*!
  * \brief   quadtreeGetChildren()
  *
- * \param[in]    fpixa mean, variance or root variance
- * \param[in]    level, x, y of current pixel
- * \param[out]   pval00, pval01, pval10, pval11  child pixel values
+ * \param[in]    fpixa            mean, variance or root variance
+ * \param[in]    level,           x, y of current pixel
+ * \param[out]   pval00, pval01,
+ *               pval10, pval11   four child pixel values
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -601,7 +604,7 @@ l_int32  n;
 /*!
  * \brief   quadtreeMaxLevels()
  *
- * \param[in]    w, h of image
+ * \param[in]    w, h    dimensions of image
  * \return  maxlevels maximum number of levels allowed, or -1 on error
  *
  * <pre>
@@ -634,9 +637,9 @@ l_int32  i, minside;
 /*!
  * \brief   fpixaDisplayQuadtree()
  *
- * \param[in]    fpixa mean, variance or root variance
- * \param[in]    factor replication factor at lowest level
- * \param[in]    fontsize 4, ... 20
+ * \param[in]    fpixa     mean, variance or root variance
+ * \param[in]    factor    replication factor at lowest level
+ * \param[in]    fontsize  4, ... 20
  * \return  pixd 8 bpp, mosaic of quadtree images, or NULL on error
  *
  * <pre>

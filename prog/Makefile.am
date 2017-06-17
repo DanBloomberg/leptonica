@@ -34,8 +34,8 @@ AUTO_REG_PROGS = adaptmap_reg affine_reg alphaops_reg \
 	pdfseg_reg pixa2_reg pixadisp_reg pixcomp_reg \
 	pixserial_reg pngio_reg pnmio_reg \
 	projection_reg projective_reg \
-	psio_reg psioseg_reg \
-	pta_reg rankbin_reg rankhisto_reg \
+	psio_reg psioseg_reg pta_reg \
+	quadtree_reg rankbin_reg rankhisto_reg \
 	rank_reg rasteropip_reg \
 	rotate1_reg rotate2_reg rotateorth_reg \
 	scale_reg seedspread_reg \
@@ -101,8 +101,7 @@ OTHER_PROGS = adaptmap_dark \
 	numaranktest otsutest1 otsutest2 \
 	pagesegtest1 pagesegtest2 \
 	partitiontest pdfiotest percolatetest \
-	pixaatest pixafileinfo plottest \
-	quadtreetest rbtreetest \
+	pixaatest pixafileinfo plottest rbtreetest \
 	recog_bootnum recogsort recogtest1 \
 	recogtest2 recogtest3 recogtest4 recogtest5 \
 	recogtest6 reducetest removecmap \

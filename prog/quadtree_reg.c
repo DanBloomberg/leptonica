@@ -27,7 +27,7 @@
 /*
  * quadtreetest.c
  *
- *     test of quadtree statistical functions
+ *     This tests quadtree statistical functions
  */
 
 #include "allheaders.h"
@@ -35,59 +35,70 @@
 int main(int    argc,
          char **argv)
 {
-l_int32      i, j, w, h, error;
-l_float32    val1, val2;
-l_float32    val00, val10, val01, val11, valc00, valc10, valc01, valc11;
-PIX         *pixs, *pixg, *pixt1, *pixt2, *pixt3, *pixt4, *pixt5;
-FPIXA       *fpixam, *fpixav, *fpixarv;
-BOXAA       *baa;
-static char  mainName[] = "quadtreetest";
+l_uint8      *data;
+l_int32       i, j, w, h, error;
+l_float32     val1, val2;
+l_float32     val00, val10, val01, val11, valc00, valc10, valc01, valc11;
+size_t        size;
+PIX          *pixs, *pixg, *pix1, *pix2, *pix3, *pix4, *pix5;
+FPIXA        *fpixam, *fpixav, *fpixarv;
+BOXAA        *baa;
+L_REGPARAMS  *rp;
 
-    if (argc != 1)
-        return ERROR_INT(" Syntax:  quadtreetest", mainName, 1);
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
     lept_mkdir("lept/quad");
 
         /* Test generation of quadtree regions. */
     baa = boxaaQuadtreeRegions(1000, 500, 3);
-    boxaaWriteStream(stderr, baa);
+    boxaaWriteMem(&data, &size, baa);
+    regTestWriteDataAndCheck(rp, data, size, "baa");  /* 0 */
+    if (rp->display) boxaaWriteStream(stderr, baa);
     boxaaDestroy(&baa);
+    LEPT_FREE(data);
     baa = boxaaQuadtreeRegions(1001, 501, 3);
-    boxaaWriteStream(stderr, baa);
+    boxaaWriteMem(&data, &size, baa);
+    regTestWriteDataAndCheck(rp, data, size, "baa");  /* 1 */
     boxaaDestroy(&baa);
+    LEPT_FREE(data);
 
         /* Test quadtree stats generation */
-#if 1
     pixs = pixRead("rabi.png");
     pixg = pixScaleToGray4(pixs);
-#else
-    pixs = pixRead("test24.jpg");
-    pixg = pixConvertTo8(pixs, 0);
-#endif
+    pixDestroy(&pixs);
     pixQuadtreeMean(pixg, 8, NULL, &fpixam);
-    pixt1 = fpixaDisplayQuadtree(fpixam, 2, 10);
-    pixDisplay(pixt1, 100, 0);
-    pixWrite("/tmp/lept/quad/tree1.png", pixt1, IFF_PNG);
+    pix1 = fpixaDisplayQuadtree(fpixam, 2, 10);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 2 */
+    pixDisplayWithTitle(pix1, 100, 0, NULL, rp->display);
     pixQuadtreeVariance(pixg, 8, NULL, NULL, &fpixav, &fpixarv);
-    pixt2 = fpixaDisplayQuadtree(fpixav, 2, 10);
-    pixDisplay(pixt2, 100, 200);
-    pixWrite("/tmp/lept/quad/tree2.png", pixt2, IFF_PNG);
-    pixt3 = fpixaDisplayQuadtree(fpixarv, 2, 10);
-    pixDisplay(pixt3, 100, 400);
-    pixWrite("/tmp/lept/quad/tree3.png", pixt3, IFF_PNG);
+    pix2 = fpixaDisplayQuadtree(fpixav, 2, 10);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 3 */
+    pixDisplayWithTitle(pix2, 100, 200, NULL, rp->display);
+    pix3 = fpixaDisplayQuadtree(fpixarv, 2, 10);
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 4 */
+    pixDisplayWithTitle(pix3, 100, 400, NULL, rp->display);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    fpixaDestroy(&fpixav);
+    fpixaDestroy(&fpixarv);
 
         /* Compare with fixed-size tiling at a resolution corresponding
          * to the deepest level of the quadtree above */
-    pixt4 = pixGetAverageTiled(pixg, 5, 6, L_MEAN_ABSVAL);
-    pixt5 = pixExpandReplicate(pixt4, 4);
-    pixWrite("/tmp/lept/quad/tree4.png", pixt5, IFF_PNG);
-    pixDisplay(pixt5, 800, 0);
-    pixDestroy(&pixt4);
-    pixDestroy(&pixt5);
-    pixt4 = pixGetAverageTiled(pixg, 5, 6, L_STANDARD_DEVIATION);
-    pixt5 = pixExpandReplicate(pixt4, 4);
-    pixWrite("/tmp/lept/quad/tree5.png", pixt5, IFF_PNG);
-    pixDisplay(pixt5, 800, 400);
+    pix4 = pixGetAverageTiled(pixg, 5, 6, L_MEAN_ABSVAL);
+    pix5 = pixExpandReplicate(pix4, 4);
+    regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 5 */
+    pixDisplayWithTitle(pix5, 800, 0, NULL, rp->display);
+    pixDestroy(&pix4);
+    pixDestroy(&pix5);
+    pix4 = pixGetAverageTiled(pixg, 5, 6, L_STANDARD_DEVIATION);
+    pix5 = pixExpandReplicate(pix4, 4);
+    regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 6 */
+    pixDisplayWithTitle(pix5, 800, 400, NULL, rp->display);
+    pixDestroy(&pix4);
+    pixDestroy(&pix5);
+    pixDestroy(&pixg);
 
         /* Test quadtree parent/child access */
     error = FALSE;
@@ -99,10 +110,7 @@ static char  mainName[] = "quadtreetest";
             if (val1 != val2) error = TRUE;
         }
     }
-    if (error)
-        fprintf(stderr, "\n======================\nError: parent access\n");
-    else
-        fprintf(stderr, "\n======================\nSuccess: parent access\n");
+    regTestCompareValues(rp, 0, error, 0.0);  /* 7 */
     error = FALSE;
     for (i = 0; i < w; i++) {
         for (j = 0; j < h; j++) {
@@ -117,22 +125,8 @@ static char  mainName[] = "quadtreetest";
                 error = TRUE;
         }
     }
-    if (error)
-        fprintf(stderr, "Error: child access\n======================\n");
-    else
-        fprintf(stderr, "Success: child access\n======================\n");
-
-    pixDestroy(&pixs);
-    pixDestroy(&pixg);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixt3);
-    pixDestroy(&pixt4);
-    pixDestroy(&pixt5);
+    regTestCompareValues(rp, 0, error, 0.0);  /* 8 */
     fpixaDestroy(&fpixam);
-    fpixaDestroy(&fpixav);
-    fpixaDestroy(&fpixarv);
-    return 0;
+
+    return regTestCleanup(rp);
 }
-
-

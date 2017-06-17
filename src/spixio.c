@@ -75,7 +75,7 @@ static const l_int64  L_MAX_ALLOWED_AREA = 400000000LL;
 /*!
  * \brief   pixReadStreamSpix()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp     file stream
  * \return  pix, or NULL on error.
  *
  * <pre>
@@ -98,12 +98,10 @@ PIX      *pix;
 
     if ((data = l_binaryReadStream(fp, &nbytes)) == NULL)
         return (PIX *)ERROR_PTR("data not read", procName, NULL);
-    if ((pix = pixReadMemSpix(data, nbytes)) == NULL) {
-        LEPT_FREE(data);
-        return (PIX *)ERROR_PTR("pix not made", procName, NULL);
-    }
-
+    pix = pixReadMemSpix(data, nbytes);
     LEPT_FREE(data);
+    if (!pix)
+        return (PIX *)ERROR_PTR("pix not made", procName, NULL);
     return pix;
 }
 
@@ -112,11 +110,11 @@ PIX      *pix;
  * \brief   readHeaderSpix()
  *
  * \param[in]    filename
- * \param[out]   pwidth width
- * \param[out]   pheight height
- * \param[out]   pbps  bits/sample
- * \param[out]   pspp  samples/pixel
- * \param[out]   piscmap [optional]  input NULL to ignore
+ * \param[out]   pwidth     width
+ * \param[out]   pheight    height
+ * \param[out]   pbps       bits/sample
+ * \param[out]   pspp       samples/pixel
+ * \param[out]   piscmap    [optional]  input NULL to ignore
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -152,12 +150,12 @@ FILE    *fp;
 /*!
  * \brief   freadHeaderSpix()
  *
- * \param[in]    fp file stream
- * \param[out]   pwidth width
- * \param[out]   pheight height
- * \param[out]   pbps  bits/sample
- * \param[out]   pspp  samples/pixel
- * \param[out]   piscmap [optional]  input NULL to ignore
+ * \param[in]    fp        file stream
+ * \param[out]   pwidth    width
+ * \param[out]   pheight   height
+ * \param[out]   pbps      bits/sample
+ * \param[out]   pspp      samples/pixel
+ * \param[out]   piscmap   [optional]  input NULL to ignore
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -173,8 +171,8 @@ freadHeaderSpix(FILE     *fp,
                 l_int32  *pspp,
                 l_int32  *piscmap)
 {
-l_int32    nbytes, ret;
-l_uint32  *data;
+l_int32   nbytes, ret;
+l_uint32  data[6];
 
     PROCNAME("freadHeaderSpix");
 
@@ -186,12 +184,9 @@ l_uint32  *data;
     nbytes = fnbytesInFile(fp);
     if (nbytes < 32)
         return ERROR_INT("file too small to be spix", procName, 1);
-    if ((data = (l_uint32 *)LEPT_CALLOC(6, sizeof(l_uint32))) == NULL)
-        return ERROR_INT("LEPT_CALLOC fail for data", procName, 1);
     if (fread(data, 4, 6, fp) != 6)
         return ERROR_INT("error reading data", procName, 1);
     ret = sreadHeaderSpix(data, pwidth, pheight, pbps, pspp, piscmap);
-    LEPT_FREE(data);
     return ret;
 }
 
@@ -200,11 +195,11 @@ l_uint32  *data;
  * \brief   sreadHeaderSpix()
  *
  * \param[in]    data
- * \param[out]   pwidth width
- * \param[out]   pheight height
- * \param[out]   pbps  bits/sample
- * \param[out]   pspp  samples/pixel
- * \param[out]   piscmap [optional]  input NULL to ignore
+ * \param[out]   pwidth    width
+ * \param[out]   pheight   height
+ * \param[out]   pbps      bits/sample
+ * \param[out]   pspp      samples/pixel
+ * \param[out]   piscmap   [optional]  input NULL to ignore
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -262,7 +257,7 @@ l_int32  d, ncolors;
 /*!
  * \brief   pixWriteStreamSpix()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp     file stream
  * \param[in]    pix
  * \return  0 if OK; 1 on error
  */
@@ -294,8 +289,8 @@ size_t    size;
 /*!
  * \brief   pixReadMemSpix()
  *
- * \param[in]    data const; uncompressed
- * \param[in]    size of data
+ * \param[in]    data    const; uncompressed
+ * \param[in]    size    bytes of data
  * \return  pix, or NULL on error
  */
 PIX *
@@ -309,9 +304,9 @@ pixReadMemSpix(const l_uint8  *data,
 /*!
  * \brief   pixWriteMemSpix()
  *
- * \param[out]   pdata data of serialized, uncompressed pix
- * \param[out]   psize size of returned data
- * \param[in]    pix all depths; colormap OK
+ * \param[out]   pdata    data of serialized, uncompressed pix
+ * \param[out]   psize    size of returned data
+ * \param[in]    pix      all depths; colormap OK
  * \return  0 if OK, 1 on error
  */
 l_int32
@@ -326,9 +321,9 @@ pixWriteMemSpix(l_uint8  **pdata,
 /*!
  * \brief   pixSerializeToMemory()
  *
- * \param[in]    pixs all depths, colormap OK
- * \param[out]   pdata serialized data in memory
- * \param[out]   pnbytes number of bytes in data string
+ * \param[in]    pixs     all depths, colormap OK
+ * \param[out]   pdata    serialized data in memory
+ * \param[out]   pnbytes  number of bytes in data string
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -378,8 +373,11 @@ PIXCMAP   *cmap;
         pixcmapSerializeToMemory(cmap, 4, &ncolors, &cdata);
 
     nbytes = 24 + 4 * ncolors + 4 + rdatasize;
-    if ((data = (l_uint32 *)LEPT_CALLOC(nbytes / 4, sizeof(l_uint32))) == NULL)
+    if ((data = (l_uint32 *)LEPT_CALLOC(nbytes / 4, sizeof(l_uint32)))
+         == NULL) {
+        LEPT_FREE(cdata);
         return ERROR_INT("data not made", procName, 1);
+    }
     *pdata = data;
     *pnbytes = nbytes;
     id = (char *)data;
@@ -412,8 +410,8 @@ PIXCMAP   *cmap;
 /*!
  * \brief   pixDeserializeFromMemory()
  *
- * \param[in]    data serialized data in memory
- * \param[in]    nbytes number of bytes in data string
+ * \param[in]    data     serialized data in memory
+ * \param[in]    nbytes   number of bytes in data string
  * \return  pix, or NULL on error
  *
  * <pre>
@@ -457,8 +455,7 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("area too large", procName, NULL);
     if (ncolors < 0 || ncolors > 256)
         return (PIX *)ERROR_PTR("invalid ncolors", procName, NULL);
-    pix1 = pixCreateHeader(w, h, d);  /* just make the header */
-    if (!pix1)
+    if ((pix1 = pixCreateHeader(w, h, d)) == NULL)  /* just make the header */
         return (PIX *)ERROR_PTR("failed to make header", procName, NULL);
     pixdata_size = 4 * h * pixGetWpl(pix1);
     memdata_size = nbytes - 24 - 4 * ncolors - 4;
@@ -473,11 +470,12 @@ PIXCMAP   *cmap;
 
     if ((pixd = pixCreate(w, h, d)) == NULL)
         return (PIX *)ERROR_PTR("pix not made", procName, NULL);
-
     if (ncolors > 0) {
         cmap = pixcmapDeserializeFromMemory((l_uint8 *)(&data[6]), 4, ncolors);
-        if (!cmap)
+        if (!cmap) {
+            pixDestroy(&pixd);
             return (PIX *)ERROR_PTR("cmap not made", procName, NULL);
+        }
         pixSetColormap(pixd, cmap);
     }
 

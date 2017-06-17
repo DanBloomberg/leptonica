@@ -77,11 +77,11 @@ static const char *str_ital3 = " x"
 /*!
  * \brief   pixItalicWords()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    boxaw [optional] word bounding boxes; can be NULL
- * \param[in]    pixw [optional] word box mask; can be NULL
- * \param[out]   pboxa boxa of italic words
- * \param[in]    debugflag 1 for debug output; 0 otherwise
+ * \param[in]    pixs       1 bpp
+ * \param[in]    boxaw      [optional] word bounding boxes; can be NULL
+ * \param[in]    pixw       [optional] word box mask; can be NULL
+ * \param[out]   pboxa      boxa of italic words
+ * \param[in]    debugflag  1 for debug output; 0 otherwise
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -141,6 +141,7 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
     pixOpen(pixsd, pixsd, sel_ital3);
 
         /* Make the word mask.  Use input boxes or mask if given. */
+    size = 0;  /* init */
     if (boxaw) {
         pixm = pixCreateTemplate(pixs);
         pixMaskBoxa(pixm, pixm, boxaw, L_SET_PIXELS);

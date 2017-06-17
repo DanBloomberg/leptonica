@@ -178,7 +178,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		pngio_reg.c pnmio_reg.c \
 		projection_reg.c projective_reg.c \
 		psio_reg.c psioseg_reg.c \
-		pta_reg.c ptra1_reg.c ptra2_reg.c \
+		pta_reg.c ptra1_reg.c ptra2_reg.c quadtree_reg.c \
 		rank_reg.c rankbin_reg.c rankhisto_reg.c \
 		rasterop_reg.c rasteropip_reg.c \
 		rotate1_reg.c rotate2_reg.c rotateorth_reg.c \
@@ -226,9 +226,8 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		partitiontest.c pdfiotest.c percolatetest.c \
 		pixaatest.c pixafileinfo.c plottest.c \
 		printimage.c printsplitimage.c printtiff.c \
-		quadtreetest.c rbtreetest.c \
-		recog_bootnum.c recogsort.c recogtest1.c \
-		recogtest2.c recogtest3.c \
+		rbtreetest.c recog_bootnum.c recogsort.c \
+		recogtest1.c recogtest2.c recogtest3.c \
 		recogtest4.c recogtest5.c recogtest6.c \
 		reducetest.c removecmap.c \
 		renderfonts.c rotatefastalt.c \
@@ -615,6 +614,9 @@ ptra1_reg:	ptra1_reg.o $(LEPTLIB)
 ptra2_reg:	ptra2_reg.o $(LEPTLIB)
 	$(CC) -o ptra2_reg ptra2_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+quadtree_reg:	quadtree_reg.o $(LEPTLIB)
+	$(CC) -o quadtree_reg quadtree_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 rank_reg:	rank_reg.o $(LEPTLIB)
 	$(CC) -o rank_reg rank_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -983,9 +985,6 @@ printsplitimage:	printsplitimage.o $(LEPTLIB)
 
 printtiff:	printtiff.o $(LEPTLIB)
 	$(CC) -o printtiff printtiff.o $(ALL_LIBS) $(EXTRALIBS)
-
-quadtreetest:	quadtreetest.o $(LEPTLIB)
-	$(CC) -o quadtreetest quadtreetest.o $(ALL_LIBS) $(EXTRALIBS)
 
 rbtreetest:	rbtreetest.o $(LEPTLIB)
 	$(CC) -o rbtreetest rbtreetest.o $(ALL_LIBS) $(EXTRALIBS)
