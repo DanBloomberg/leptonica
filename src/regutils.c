@@ -499,7 +499,7 @@ regTestCheckFile(L_REGPARAMS  *rp,
 {
 char    *ext;
 char     namebuf[256];
-l_int32  ret, same, format, isdata;
+l_int32  ret, same, format;
 PIX     *pix1, *pix2;
 
     PROCNAME("regTestCheckFile");
@@ -524,7 +524,6 @@ PIX     *pix1, *pix2;
     splitPathAtExtension(localname, NULL, &ext);
     snprintf(namebuf, sizeof(namebuf), "/tmp/lept/golden/%s_golden.%02d%s",
              rp->testname, rp->index, ext);
-    isdata = (!strcmp(ext, "dat")) ? 1 : 0;
     LEPT_FREE(ext);
 
         /* Generate mode.  No testing. */
@@ -543,33 +542,33 @@ PIX     *pix1, *pix2;
         return ret;
     }
 
-        /* Compare mode: test and record on failure.  GIF compression
-         * is lossless for images with up to 8 bpp (but not for RGB
-         * because it must generate a 256 color palette).  Although
-         * the read/write cycle for GIF is idempotent in the image
-         * pixels for bpp <= 8, it is not idempotent in the actual
-         * file bytes.  Tests comparing file bytes before and after
+        /* Compare mode: test and record on failure.  This can be used
+         * for all image formats, as well as for all files of serialized
+         * data, such as boxa, pta, etc.  In all cases except for
+         * GIF compressed images, we compare the files to see if they
+         * are identical.  GIF doesn't support RGB images; to write
+         * a 32 bpp RGB image in GIF, we do a lossy quantization to
+         * 256 colors, so the cycle read-RGB/write-GIF is not idempotent.
+         * And although the read/write cycle for GIF images with bpp <= 8
+         * is idempotent in the image pixels, it is not idempotent in the
+         * actual file bytes; tests comparing file bytes before and after
          * a GIF read/write cycle will fail.  So for GIF we uncompress
-         * the two images and compare the actual pixels.  From my tests,
-         * PNG, in addition to being lossless, is idempotent in file
-         * bytes on read/write, so comparing the pixels is not necessary.
-         * (It also increases the regression test time by an an average
-         * of about 8%.)  JPEG is lossy and not idempotent in the image
-         * pixels, so no tests are constructed that would require it. */
-    if (isdata) {
-        filesAreIdentical(localname, namebuf, &same);
+         * the two images and compare the actual pixels.  PNG is both
+         * lossless and idempotent in file bytes on read/write, so it is
+         * not necessary to compare pixels.  (Comparing pixels requires
+         * decompression, and thus would increase the regression test
+         * time.  JPEG is lossy and not idempotent in the image pixels,
+         * so no tests are constructed that would require it. */
+    findFileFormat(localname, &format);
+    if (format == IFF_GIF) {
+        same = 0;
+        pix1 = pixRead(localname);
+        pix2 = pixRead(namebuf);
+        pixEqual(pix1, pix2, &same);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
     } else {
-        findFileFormat(localname, &format);
-        if (format == IFF_GIF) {
-            same = 0;
-            pix1 = pixRead(localname);
-            pix2 = pixRead(namebuf);
-            pixEqual(pix1, pix2, &same);
-            pixDestroy(&pix1);
-            pixDestroy(&pix2);
-        } else {
-            filesAreIdentical(localname, namebuf, &same);
-        }
+        filesAreIdentical(localname, namebuf, &same);
     }
     if (!same) {
         fprintf(rp->fp, "Failure in %s_reg, index %d: comparing %s with %s\n",
