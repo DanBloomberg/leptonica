@@ -1585,7 +1585,7 @@ NUMA     *na;
 /*!
  * \brief   pixDecideIfTable()
  *
- * \param[in]    pixs      any depth, 300 ppi
+ * \param[in]    pixs      any depth, any resolution >= 75 ppi
  * \param[in]    box       [optional] if null, use entire pixs
  * \param[in]    orient    L_PORTRAIT_MODE, L_LANDSCAPE_MODE
  * \param[out]   pscore    0 - 4; -1 if not determined
@@ -1616,7 +1616,13 @@ NUMA     *na;
  *          vertical fg lines, and for vertical bg lines.  From these,
  *          four tests are made to decide if there is a table occupying
  *          a significant part of the image.
- *      (6) For debug output, input a pre-allocated pixa.
+ *      (6) Images have arbitrary content and would be likely to trigger
+ *          this detector, so they are checked for first, and if found,
+ *          return with a 0 (no table) score.
+ *      (7) Musical scores (tablature) are likely to trigger the detector.
+ *      (8) Tables of content with more than 2 columns are likely to
+ *          trigger the detector.
+ *      (9) For debug output, input a pre-allocated pixa.
  * </pre>
  */
 l_int32
@@ -1626,8 +1632,8 @@ pixDecideIfTable(PIX      *pixs,
                  l_int32  *pscore,
                  PIXA     *pixadb)
 {
-l_int32  i, empty, nhb, nvb, nvw, score;
-PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
+l_int32  i, empty, nhb, nvb, nvw, score, htfound;
+PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8, *pix9;
 
     PROCNAME("pixDecideIfTable");
 
@@ -1636,6 +1642,19 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
     *pscore = -1;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
+
+        /* Check if there is an image region.  First convert to 1 bpp
+         * at 175 ppi.  If an image is found, assume there is no table.  */
+    pix1 = pixPrepare1bpp(pixs, box, 0.1, 175);
+    pix2 = pixGenerateHalftoneMask(pix1, NULL, &htfound, NULL);
+    if (htfound && pixadb) pixaAddPix(pixadb, pix2, L_COPY);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    if (htfound) {
+        *pscore = 0;
+        L_INFO("pix has an image region\n", procName);
+        return 0;
+    }
 
         /* Crop, convert to 1 bpp, 75 ppi */
     if ((pix1 = pixPrepare1bpp(pixs, box, 0.1, 75)) == NULL)
@@ -1702,11 +1721,18 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
         /* Look for vertical white space.  Invert to convert white bg
          * to fg.  Use a single rank-1 2x reduction, which closes small
          * fg holes, for the final processing at 37.5 ppi.
-         * The vertical opening is then about 3 inches on a 300 ppi image. */
+         * The vertical opening is then about 3 inches on a 300 ppi image.
+         * We also remove vertical whitespace that is less than 5 pixels
+         * wide at this resolution (about 0.1 inches) */
     pixInvert(pix7, pix7);
     pix8 = pixMorphSequence(pix7, "r1 + o1.100", 0);
-    pixCountConnComp(pix8, 8, &nvw);  /* number of vertical white lines */
-    if (pixadb) pixaAddPix(pixadb, pixScale(pix8, 2.0, 2.0), L_INSERT);
+    pix9 = pixSelectBySize(pix8, 5, 0, 8, L_SELECT_WIDTH,
+                           L_SELECT_IF_GTE, NULL);
+    pixCountConnComp(pix9, 8, &nvw);  /* number of vertical white lines */
+    if (pixadb) {
+        pixaAddPix(pixadb, pixScale(pix8, 2.0, 2.0), L_INSERT);
+        pixaAddPix(pixadb, pixScale(pix9, 2.0, 2.0), L_INSERT);
+    }
 
         /* Require at least 2 of the following 4 conditions for a table.
          * Some tables do not have black (fg) lines, and for those we
@@ -1726,6 +1752,7 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
     pixDestroy(&pix6);
     pixDestroy(&pix7);
     pixDestroy(&pix8);
+    pixDestroy(&pix9);
     return 0;
 }
 

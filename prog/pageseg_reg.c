@@ -105,7 +105,19 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 1.0, istable, 0.0);  /* 22 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 2000, 1.0, 0, 30, 2);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 23 */
-    pixDisplayWithTitle(pix2, 1200, 700, NULL, rp->display);
+    pixDisplayWithTitle(pix2, 1100, 700, NULL, rp->display);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixaDestroy(&pixadb);
+
+    pix1 = pixRead("toc.99.tif");
+    pixadb = pixaCreate(0);
+    pixDecideIfTable(pix1, NULL, L_PORTRAIT_MODE, &score, pixadb);
+    istable = (score >= 2) ? 1 : 0;
+    regTestCompareValues(rp, 0.0, istable, 0.0);  /* 24 */
+    pix2 = pixaDisplayTiledInRows(pixadb, 32, 2000, 1.0, 0, 30, 2);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 25 */
+    pixDisplayWithTitle(pix2, 1500, 700, NULL, rp->display);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixaDestroy(&pixadb);
