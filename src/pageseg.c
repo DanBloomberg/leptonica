@@ -1657,7 +1657,7 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8, *pix9;
     }
 
         /* Crop, convert to 1 bpp, 75 ppi */
-    if ((pix1 = pixPrepare1bpp(pixs, box, 0.1, 75)) == NULL)
+    if ((pix1 = pixPrepare1bpp(pixs, box, 0.05, 75)) == NULL)
         return ERROR_INT("pix1 not made", procName, 1);
 
     pixZero(pix1, &empty);
@@ -1738,7 +1738,7 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8, *pix9;
          * Some tables do not have black (fg) lines, and for those we
          * require more than 6 long vertical whitespace (bg) lines.  */
     score = 0;
-    if (nhb > 2) score++;
+    if (nhb > 1) score++;
     if (nvb > 2) score++;
     if (nvw > 3) score++;
     if (nvw > 6) score++;

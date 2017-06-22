@@ -105,19 +105,31 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 1.0, istable, 0.0);  /* 22 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 2000, 1.0, 0, 30, 2);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 23 */
-    pixDisplayWithTitle(pix2, 1100, 700, NULL, rp->display);
+    pixDisplayWithTitle(pix2, 1000, 700, NULL, rp->display);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixaDestroy(&pixadb);
 
-    pix1 = pixRead("toc.99.tif");
+    pix1 = pixRead("table.150.png");
     pixadb = pixaCreate(0);
     pixDecideIfTable(pix1, NULL, L_PORTRAIT_MODE, &score, pixadb);
     istable = (score >= 2) ? 1 : 0;
-    regTestCompareValues(rp, 0.0, istable, 0.0);  /* 24 */
+    regTestCompareValues(rp, 1.0, istable, 0.0);  /* 24 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 2000, 1.0, 0, 30, 2);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 25 */
-    pixDisplayWithTitle(pix2, 1500, 700, NULL, rp->display);
+    pixDisplayWithTitle(pix2, 1300, 700, NULL, rp->display);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixaDestroy(&pixadb);
+
+    pix1 = pixRead("toc.99.tif");  /* not a table */
+    pixadb = pixaCreate(0);
+    pixDecideIfTable(pix1, NULL, L_PORTRAIT_MODE, &score, pixadb);
+    istable = (score >= 2) ? 1 : 0;
+    regTestCompareValues(rp, 0.0, istable, 0.0);  /* 26 */
+    pix2 = pixaDisplayTiledInRows(pixadb, 32, 2000, 1.0, 0, 30, 2);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 27 */
+    pixDisplayWithTitle(pix2, 1600, 700, NULL, rp->display);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixaDestroy(&pixadb);
