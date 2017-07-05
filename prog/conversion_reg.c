@@ -288,7 +288,6 @@ L_REGPARAMS  *rp;
         /* Conversion: 16 bpp --> 8 bpp --> 16 bpp */
     pix1 = pixConvert16To8(pixs16, 1);
     pix2 = pixConvertTo16(pix1);
-    pixWrite("/tmp/junkpix.png", pix2, IFF_PNG);
     regTestComparePix(rp, pixs16, pix2);  /* 14 */
     pixEqual(pixs16, pix2, &same);
     if (!same) {

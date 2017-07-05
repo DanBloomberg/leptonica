@@ -67,9 +67,6 @@
  *         PIX                *recogShowMatchesInRange()
  *         PIX                *recogShowMatch()
  *
- *      Static helper
- *         static char        *l_charToString()
- *
  *  These abbreviations are for the type of template to be used:
  *    * SI (for the scanned images)
  *    * WNL (for width-normalized lines, formed by first skeletonizing
@@ -172,7 +169,6 @@ static l_int32 recogCharsetAvailable(l_int32 type);
 static PIX *pixDisplayOutliers(PIXA *pixas, NUMA *nas);
 static PIX *recogDisplayOutlier(L_RECOG *recog, l_int32 iclass, l_int32 jsamp,
                                 l_int32 maxclass, l_float32 maxscore);
-static char *l_charToString(char byte);
 
     /* Default parameters that are used in recogTemplatesAreOK() and
      * in outlier removal functions, and that use template set size
@@ -2466,18 +2462,4 @@ PIXA   *pixa;
     pixDestroy(&pix4);
 
     return pixd;
-}
-
-
-/*------------------------------------------------------------------------*
- *                             Static helper                              *
- *------------------------------------------------------------------------*/
-static char *
-l_charToString(char byte)
-{
-char  *str;
-
-  str = (char *)LEPT_CALLOC(2, sizeof(char));
-  str[0] = byte;
-  return str;
 }
