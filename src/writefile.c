@@ -957,7 +957,9 @@ char            fullpath[_MAX_PATH];
     } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_OPEN) {
         snprintf(buffer, L_BUF_SIZE, "open %s &", tempname);
     }
+#ifndef OS_IOS /* iOS 11 does not support system() */
     ignore = system(buffer);
+#endif /* !OS_IOS */
 
 #else  /* _WIN32 */
 

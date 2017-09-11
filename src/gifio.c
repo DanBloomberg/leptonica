@@ -296,12 +296,17 @@ int              giferr;
         }
     }
 
+#if GIFLIB_MAJOR < 5  /* Versions older than 5.0.0 */
         /* If the image has been interlaced (for viewing in a browser),
-         * this restores the raster lines to normal order. */
+         * this restores the raster lines to normal order. Note that
+         * giflib version 5.0.4 (and we believe all versions >= 5.0.0)
+         * does un-interlacing, so we don't wish to do it here in that
+         * case. See also b/64386039. */
     if (gif->Image.Interlace) {
         pixdi = pixUninterlaceGIF(pixd);
         pixTransferAllData(pixd, &pixdi, 0, 0);
     }
+#endif  /* Versions older than 5.0.0 */
 
     DGifCloseFile(gif, &giferr);
     return pixd;

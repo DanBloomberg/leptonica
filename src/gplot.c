@@ -396,7 +396,10 @@ l_int32  ignore;
     snprintf(buf, L_BUF_SIZE, "wgnuplot %s", cmdname);
 #endif  /* _WIN32 */
 
+#ifndef OS_IOS /* iOS 11 does not support system() */
     ignore = system(buf);  /* gnuplot || wgnuplot */
+#endif /* !OS_IOS */
+
     LEPT_FREE(cmdname);
     return 0;
 }
