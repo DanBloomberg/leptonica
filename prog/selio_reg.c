@@ -54,11 +54,22 @@ static const char *textsel4 = "xxxxxx"
                               "  o  x"
                               " oOo x"
                               " oo  x";
+static const char *textsel5 = "xxxxxx"
+                              "     x"
+                              "  o  x"
+                              " ooo x"
+                              " oo  x";
+static const char *textsel6 = "xxXxxx"
+                              "     x"
+                              "  o  x"
+                              " oOo x"
+                              " oo  x";
 
 
 int main(int    argc,
          char **argv)
 {
+l_float32     val;
 PIX          *pix;
 SEL          *sel;
 SELA         *sela1, *sela2;
@@ -102,6 +113,15 @@ L_REGPARAMS  *rp;
     regTestCheckFile(rp, "/tmp/lept/regout/sel.4.sela");  /* 5 */
     regTestCompareFiles(rp, 4, 5);  /* 6 */
     selaDestroy(&sela2);
+
+        /* Attempt to create sels from invalid strings (0 or 2 origins) */
+    fprintf(stderr, "Ignore the following two error messages\n");
+    sel = selCreateFromString(textsel5, 5, 6, "textsel5");
+    val = (sel) ? 1.0 : 0.0;
+    regTestCompareValues(rp, val, 0.0, 0.0);  /* 6 */
+    sel = selCreateFromString(textsel6, 5, 6, "textsel6");
+    val = (sel) ? 1.0 : 0.0;
+    regTestCompareValues(rp, val, 0.0, 0.0);  /* 7 */
 
     return regTestCleanup(rp);
 }

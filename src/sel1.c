@@ -1601,6 +1601,7 @@ l_int32  sx, sy, cx, cy, i, j;
  *      (2) When the origin falls on a hit or miss, use an upper case
  *          char (e.g., 'X' or 'O') to indicate it.  When the origin
  *          falls on a don't-care, indicate this with a 'C'.
+ *          The string must have exactly one origin specified.
  *      (3) The advantage of this method is that the text can be input
  *          in a format that shows the 2D layout of the Sel; e.g.,
  * \code
@@ -1618,7 +1619,7 @@ selCreateFromString(const char  *text,
                     const char  *name)
 {
 SEL     *sel;
-l_int32  y, x;
+l_int32  y, x, norig;
 char     ch;
 
     PROCNAME("selCreateFromString");
@@ -1630,24 +1631,28 @@ char     ch;
 
     sel = selCreate(h, w, name);
 
+    norig = 0;
     for (y = 0; y < h; ++y) {
         for (x = 0; x < w; ++x) {
             ch = *(text++);
             switch (ch)
             {
                 case 'X':
+                    norig++;
                     selSetOrigin(sel, y, x);
                 case 'x':
                     selSetElement(sel, y, x, SEL_HIT);
                     break;
 
                 case 'O':
+                    norig++;
                     selSetOrigin(sel, y, x);
                 case 'o':
                     selSetElement(sel, y, x, SEL_MISS);
                     break;
 
                 case 'C':
+                    norig++;
                     selSetOrigin(sel, y, x);
                 case ' ':
                     selSetElement(sel, y, x, SEL_DONT_CARE);
@@ -1662,6 +1667,11 @@ char     ch;
                     return (SEL *)ERROR_PTR("unknown char", procName, NULL);
             }
         }
+    }
+    if (norig != 1) {
+        L_ERROR("Exactly one origin must be specified; this string has %d\n",
+                procName, norig);
+        selDestroy(&sel);
     }
 
     return sel;
