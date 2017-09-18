@@ -47,6 +47,7 @@
  *
  *      Miscellaneous operations
  *          SARRAY     *sarrayGenerateIntegers()
+ *          l_int32     sarrayLookupCSKV()
  *
  *
  * We have two implementations of set operations on an array of strings:
@@ -637,6 +638,12 @@ L_DNAHASH  *dahash;
 /*----------------------------------------------------------------------*
  *                      Miscellaneous operations                        *
  *----------------------------------------------------------------------*/
+/*!
+ * \brief   sarrayGenerateIntegers()
+ *
+ * \param[in]   n 
+ * \return  sa  (of printed numbers, 1 - n, or NULL on error
+ */
 SARRAY *
 sarrayGenerateIntegers(l_int32  n)
 {
@@ -655,3 +662,65 @@ SARRAY  *sa;
     return sa;
 }
 
+
+/*!
+ * \brief   sarrayLookupCSKV()
+ *
+ * \param[in]    sa (of strings, each being a comma-separated pair of strings,
+ *                  the first being a key and the second a value)
+ * \param[in]    keystring (an input string to match with each key in %sa
+ * \param[out]   pvalstring (the returned value string corresponding to the
+ *                           input key string, if found; otherwise NULL)
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The input %sa can have other strings that are not in
+ *          comma-separated key-value format.  These will be ignored.
+ *      (2) This returns a copy of the first value string in %sa whose
+ *          key string matches the input %keystring.
+ *      (3) White space is not ignored; all white space before the ','
+ *          is used for the keystring in matching.  This allows the
+ *          key and val strings to have white space (e.g., multiple words).
+ * </pre>
+ */
+l_int32
+sarrayLookupCSKV(SARRAY      *sa,
+                 const char  *keystring,
+                 char       **pvalstring)
+{
+char    *key, *val, *str;
+l_int32  i, n;
+SARRAY  *sa1;
+
+    PROCNAME("sarrayLookupCSKV");
+
+    if (!pvalstring)
+        return ERROR_INT("&valstring not defined", procName, 1);
+    *pvalstring = NULL;
+    if (!sa)
+        return ERROR_INT("sa not defined", procName, 1);
+    if (!keystring)
+        return ERROR_INT("keystring not defined", procName, 1);
+
+    n = sarrayGetCount(sa);
+    for (i = 0; i < n; i++) {
+        str = sarrayGetString(sa, i, L_NOCOPY);
+        sa1 = sarrayCreate(2);
+        sarraySplitString(sa1, str, ",");
+        if (sarrayGetCount(sa1) != 2) {
+            sarrayDestroy(&sa1);
+            continue;
+        }
+        key = sarrayGetString(sa1, 0, L_NOCOPY);
+        val = sarrayGetString(sa1, 1, L_NOCOPY);
+        if (!strcmp(key, keystring)) {
+            *pvalstring = stringNew(val);
+            sarrayDestroy(&sa1);
+            return 0;
+        }
+        sarrayDestroy(&sa1);
+    }
+
+    return 0;
+}

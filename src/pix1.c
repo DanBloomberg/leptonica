@@ -714,6 +714,7 @@ l_uint32  *data;
     if ((data = (l_uint32 *)pix_malloc(bytes)) == NULL)
         return ERROR_INT("pix_malloc fail for data", procName, 1);
     pixSetData(pixd, data);
+    pixCopyResolution(pixd, pixs);
     return 0;
 }
 

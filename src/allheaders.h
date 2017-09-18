@@ -2344,6 +2344,7 @@ LEPT_DLL extern SARRAY * sarrayIntersectionByHash ( SARRAY *sa1, SARRAY *sa2 );
 LEPT_DLL extern l_int32 sarrayFindStringByHash ( SARRAY *sa, L_DNAHASH *dahash, const char *str, l_int32 *pindex );
 LEPT_DLL extern L_DNAHASH * l_dnaHashCreateFromSarray ( SARRAY *sa );
 LEPT_DLL extern SARRAY * sarrayGenerateIntegers ( l_int32 n );
+LEPT_DLL extern l_int32 sarrayLookupCSKV ( SARRAY *sa, const char *keystring, char **pvalstring );
 LEPT_DLL extern PIX * pixScale ( PIX *pixs, l_float32 scalex, l_float32 scaley );
 LEPT_DLL extern PIX * pixScaleToSizeRel ( PIX *pixs, l_int32 delw, l_int32 delh );
 LEPT_DLL extern PIX * pixScaleToSize ( PIX *pixs, l_int32 wd, l_int32 hd );
