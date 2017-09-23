@@ -1478,7 +1478,9 @@ l_int32    x1p, y1p, x2p, y2p, x3p, y3p;   /* ptad */
 l_int32    x1sc, y1sc;  /* scaled origin */
 l_float32  x2s, x2sp, scalex, scaley;
 l_float32  th3, th3p, ph2, ph2p;
+#if  DEBUG
 l_float32  rad2deg;
+#endif  /* DEBUG */
 PIX       *pix1, *pix2, *pixd;
 
     PROCNAME("pixAffineSequential");
@@ -1501,7 +1503,6 @@ PIX       *pix1, *pix2, *pixd;
     ptaGetIPt(ptad, 1, &x2p, &y2p);
     ptaGetIPt(ptad, 2, &x3p, &y3p);
 
-    rad2deg = 180. / 3.1415926535;
     pix1 = pix2 = pixd = NULL;
 
     if (y1 == y3)
@@ -1580,6 +1581,7 @@ PIX       *pix1, *pix2, *pixd;
     }
 
 #if  DEBUG
+    rad2deg = 180. / 3.1415926535;
     fprintf(stderr, "th3 = %5.1f deg, ph2 = %5.1f deg\n",
             rad2deg * th3, rad2deg * ph2);
     fprintf(stderr, "th3' = %5.1f deg, ph2' = %5.1f deg\n",
