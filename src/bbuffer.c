@@ -394,7 +394,7 @@ bbufferWrite(L_BBUFFER  *bb,
              size_t      nbytes,
              size_t     *pnout)
 {
-l_int32  nleft, nout;
+size_t  nleft, nout;
 
     PROCNAME("bbufferWrite");
 
@@ -446,7 +446,7 @@ bbufferWriteStream(L_BBUFFER  *bb,
                    size_t      nbytes,
                    size_t     *pnout)
 {
-l_int32  nleft, nout;
+size_t  nleft, nout;
 
     PROCNAME("bbufferWriteStream");
 
