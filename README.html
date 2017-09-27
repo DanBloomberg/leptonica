@@ -75,7 +75,8 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-README  (1.74.4: 11 Jun 2017)
+README (version 1.74.4)
+File update: 26 Sept 2017
 ---------------------------
 
 gunzip leptonica-1.74.4.tar.gz
@@ -316,29 +317,16 @@ Building leptonica
 
    (a) Building with Visual Studio
 
-       Tom Powers has provided a set of developer notes and project files
-       for building the library and applications under windows with VC++ 2008:
-     </pre>
-     <p style='margin-left:5em;'>
-        <A href="http://www.leptonica.org/vs2008doc/index.html">
-                http:///www.leptonica.org/vs2008doc/index.html</A><br>
-        <A href="http://www.leptonica.org/download.html#VS2008">
-                http:///www.leptonica.org/download.html#VS2008</A>
-     <pre>
-
-       He has also supplied a zip file that contains the entire 'lib'
-       and 'include' directories needed to build Windows-based programs
-       using static or dynamic versions of the leptonica library
-       (including static library versions of zlib, libpng, libjpeg,
-       libtiff, and giflib).
-       </pre>
-       <p style='margin-left:5em;'>
-      <A href="http://www.leptonica.org/source/leptonica-1.68-win32-lib-include-dirs.zip">
-              leptonica-1.68-win32-lib-include-dirs.zip</A>
-       <pre>
-
-       You can download Tom's vs2008 package either from the download
-       page or from code.google.com/p/leptonica.
+       1. Download the latest CPPAN (C++ Archive Network https://cppan.org/)
+          client from https://cppan.org/client/
+       2. Run:
+          git clone https://github.com/danbloomberg/leptonica
+          cd leptonica
+          cppan
+          mkdir build
+          cd build
+          cmake ..
+       3. Build a solution (leptonica.sin) in your Visual Studio version.
 
    (b) Building for mingw32 with <a href="http://www.mingw.org/">MSYS</a>
        (Thanks to David Bryan)
