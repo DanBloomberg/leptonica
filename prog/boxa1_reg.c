@@ -45,7 +45,7 @@ l_float32    diffarea, diffxor, scalefact;
 BOX         *box;
 BOXA        *boxa1, *boxa2, *boxa3;
 BOXAA       *baa1, *baa2, *baa3;
-PIX         *pix1, *pixdb;
+PIX         *pix1, *pix2, *pix3, *pixdb;
 PIXA        *pixa1, *pixa2;
 L_REGPARAMS  *rp;
 
@@ -134,6 +134,26 @@ L_REGPARAMS  *rp;
     boxaDestroy(&boxa2);
     boxaDestroy(&boxa3);
 
+        /* Input is an unsmoothed and noisy boxa */
+    boxa1 = boxaRead("boxa2.ba");
+    boxa2 = boxaSmoothSequenceMedian(boxa1, 10, L_SUB_ON_LOC_DIFF, 80, 20, 1);
+    boxa3 = boxaSmoothSequenceMedian(boxa1, 10, L_SUB_ON_SIZE_DIFF, 80, 20, 1);
+    boxaPlotSides(boxa1, "initial", NULL, NULL, NULL, NULL, &pix1);
+    boxaPlotSides(boxa2, "side_smoothing", NULL, NULL, NULL, NULL, &pix2);
+    boxaPlotSides(boxa3, "size_smoothing", NULL, NULL, NULL, NULL, &pix3);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 14 */
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 15 */
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 16 */
+    pixDisplayWithTitle(pix1, 1300, 0, NULL, rp->display);
+    pixDisplayWithTitle(pix2, 1300, 500, NULL, rp->display);
+    pixDisplayWithTitle(pix3, 1300, 1000, NULL, rp->display);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    boxaDestroy(&boxa1);
+    boxaDestroy(&boxa2);
+    boxaDestroy(&boxa3);
+
         /* Input is a boxa smoothed with a median window filter */
     boxa1 = boxaRead("boxa3.ba");
     boxa2 = boxaReconcileEvenOddHeight(boxa1, L_ADJUST_TOP, 80,
@@ -143,7 +163,7 @@ L_REGPARAMS  *rp;
     scalefact = (l_float32)width / (l_float32)w;
     boxa3 = boxaTransform(boxa2, 0, 0, scalefact, scalefact);
     pix1 = boxaDisplayTiled(boxa3, NULL, 1500, 2, 1.0, 0, 3, 2);
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 14 */
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 17 */
     pixDisplayWithTitle(pix1, 1000, 0, NULL, rp->display);
     pixDestroy(&pix1);
     boxaDestroy(&boxa1);
@@ -159,7 +179,7 @@ L_REGPARAMS  *rp;
     boxaWrite("/tmp/lept/boxa/boxa2.ba", boxa2);
     filesAreIdentical("/tmp/lept/boxa/boxa1.ba", "/tmp/lept/boxa/boxa2.ba",
                       &same); 
-    regTestCompareValues(rp, 1, same, 0.0);  /* 15 */
+    regTestCompareValues(rp, 1, same, 0.0);  /* 18 */
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);
     lept_free(data1);
@@ -181,15 +201,15 @@ L_REGPARAMS  *rp;
         if (!same) success = FALSE;
     }
         /* Check that the transpose is reversible */
-    regTestCompareValues(rp, 1, success, 0.0);  /* 16 */
+    regTestCompareValues(rp, 1, success, 0.0);  /* 19 */
     pixa2 = pixaDisplayBoxaa(pixa1, baa2, L_DRAW_RGB, 2);
     pix1 = pixaDisplayTiledInRows(pixa2, 32, 1400, 1.0, 0, 10, 0);
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 17 */
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 20 */
     pixDisplayWithTitle(pix1, 0, 600, NULL, rp->display);
     fprintf(stderr, "Writing to: /tmp/lept/boxa/show.pdf\n");
     l_pdfSetDateAndVersion(FALSE);
     pixaConvertToPdf(pixa2, 75, 1.0, 0, 0, NULL, "/tmp/lept/boxa/show.pdf");
-    regTestCheckFile(rp, "/tmp/lept/boxa/show.pdf");  /* 18 */
+    regTestCheckFile(rp, "/tmp/lept/boxa/show.pdf");  /* 21 */
     pixDestroy(&pix1);
     pixaDestroy(&pixa1);
     pixaDestroy(&pixa2);

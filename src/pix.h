@@ -97,7 +97,7 @@
  *         Image orientation flags
  *         Scan direction flags
  *         Box size adjustment flags
- *         Flags for selecting box boundaries from two choices
+ *         Flags for modifying box boundaries using a second box
  *         Handling overlapping bounding boxes in boxa
  *         Flags for replacing invalid boxes
  *         Horizontal warp
@@ -1062,16 +1062,17 @@ enum {
 
 
 /*-------------------------------------------------------------------------*
- *          Flags for selecting box boundaries from two choices            *
+ *          Flags for modifying box boundaries using a second box          *
  *-------------------------------------------------------------------------*/
 
-/*! Flags for selecting box boundaries from two choices */
+/*! Flags for modifying box boundaries using a second box */
 enum {
     L_USE_MINSIZE = 1,           /*!< use boundaries giving min size       */
     L_USE_MAXSIZE = 2,           /*!< use boundaries giving max size       */
-    L_SUB_ON_BIG_DIFF = 3,       /*!< substitute boundary if big abs diff  */
-    L_USE_CAPPED_MIN = 4,        /*!< substitute boundary with capped min  */
-    L_USE_CAPPED_MAX = 5         /*!< substitute boundary with capped max  */
+    L_SUB_ON_LOC_DIFF = 3,       /*!< modify boundary if big location diff */
+    L_SUB_ON_SIZE_DIFF = 4,      /*!< modify boundary if big size diff     */
+    L_USE_CAPPED_MIN = 5,        /*!< modify boundary with capped min      */
+    L_USE_CAPPED_MAX = 6         /*!< modify boundary with capped max      */
 };
 
 /*-------------------------------------------------------------------------*

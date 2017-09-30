@@ -936,10 +936,14 @@ l_int32  n, x1, y1, x2, y2, x3, y3, x4, y4, x, y, xmax, ymax;
  * \param[in]    factor reject outliers with widths and heights deviating
  *                      from the median by more than %factor times
  *                      the median variation from the median; typically ~3
- * \param[in]    subflag L_USE_MINSIZE, L_USE_MAXSIZE, L_SUB_ON_BIG_DIFF,
- *                       L_USE_CAPPED_MIN or L_USE_CAPPED_MAX
- * \param[in]    maxdiff parameter used with L_SUB_ON_BIG_DIFF and
- *                       L_USE_CAPPED_MAX
+ * \param[in]    subflag L_USE_MINSIZE, L_USE_MAXSIZE,
+ *                       L_SUB_ON_LOC_DIFF, L_SUB_ON_SIZE_DIFF,
+ *                       L_USE_CAPPED_MIN, L_USE_CAPPED_MAX
+ * \param[in]    maxdiff parameter used with L_SUB_ON_LOC_DIFF,
+ *                       L_SUB_ON_SIZE_DIFF, L_USE_CAPPED_MIN, L_USE_CAPPED_MAX
+ * \param[in]    extrapixels  pixels added on all sides (or subtracted
+ *                            if %extrapixels < 0) when using
+ *                            L_SUB_ON_LOC_DIFF and L_SUB_ON_SIZE_DIFF
  * \param[in]    debug 1 for debug output
  * \return  boxad fitted boxa, or NULL on error
  *
@@ -963,6 +967,7 @@ boxaSmoothSequenceLS(BOXA      *boxas,
                      l_float32  factor,
                      l_int32    subflag,
                      l_int32    maxdiff,
+                     l_int32    extrapixels,
                      l_int32    debug)
 {
 l_int32  n;
@@ -981,8 +986,8 @@ BOXA    *boxae, *boxao, *boxalfe, *boxalfo, *boxame, *boxamo, *boxad;
         return boxaCopy(boxas, L_COPY);
     }
     if (subflag != L_USE_MINSIZE && subflag != L_USE_MAXSIZE &&
-        subflag != L_SUB_ON_BIG_DIFF && subflag != L_USE_CAPPED_MIN &&
-        subflag != L_USE_CAPPED_MAX) {
+        subflag != L_SUB_ON_LOC_DIFF && subflag != L_SUB_ON_SIZE_DIFF &&
+        subflag != L_USE_CAPPED_MIN && subflag != L_USE_CAPPED_MAX) {
         L_WARNING("invalid subflag; returning copy\n", procName);
         return boxaCopy(boxas, L_COPY);
     }
@@ -1005,8 +1010,8 @@ BOXA    *boxae, *boxao, *boxalfe, *boxalfo, *boxame, *boxamo, *boxad;
         boxaWrite("/tmp/smooth/boxalfo.ba", boxalfo);
     }
 
-    boxame = boxaModifyWithBoxa(boxae, boxalfe, subflag, maxdiff);
-    boxamo = boxaModifyWithBoxa(boxao, boxalfo, subflag, maxdiff);
+    boxame = boxaModifyWithBoxa(boxae, boxalfe, subflag, maxdiff, extrapixels);
+    boxamo = boxaModifyWithBoxa(boxao, boxalfo, subflag, maxdiff, extrapixels);
     if (debug) {
         boxaWrite("/tmp/smooth/boxame.ba", boxame);
         boxaWrite("/tmp/smooth/boxamo.ba", boxamo);
@@ -1028,10 +1033,14 @@ BOXA    *boxae, *boxao, *boxalfe, *boxalfo, *boxame, *boxamo, *boxad;
  *
  * \param[in]    boxas source boxa
  * \param[in]    halfwin half-width of sliding window; used to find median
- * \param[in]    subflag L_USE_MINSIZE, L_USE_MAXSIZE, L_SUB_ON_BIG_DIFF,
- *                       L_USE_CAPPED_MIN or L_USE_CAPPED_MAX
- * \param[in]    maxdiff parameter used with L_SUB_ON_BIG_DIFF,
- *                       L_USE_CAPPED_MIN and L_USE_CAPPED_MAX
+ * \param[in]    subflag L_USE_MINSIZE, L_USE_MAXSIZE,
+ *                       L_SUB_ON_LOC_DIFF, L_SUB_ON_SIZE_DIFF,
+ *                       L_USE_CAPPED_MIN, L_USE_CAPPED_MAX
+ * \param[in]    maxdiff parameter used with L_SUB_ON_LOC_DIFF,
+ *                       L_SUB_ON_SIZE_DIFF, L_USE_CAPPED_MIN, L_USE_CAPPED_MAX
+ * \param[in]    extrapixels  pixels added on all sides (or subtracted
+ *                            if %extrapixels < 0) when using
+ *                            L_SUB_ON_LOC_DIFF and L_SUB_ON_SIZE_DIFF
  * \param[in]    debug 1 for debug output
  * \return  boxad fitted boxa, or NULL on error
  *
@@ -1046,7 +1055,7 @@ BOXA    *boxae, *boxao, *boxalfe, *boxalfo, *boxame, *boxamo, *boxad;
  *          sequences of even and odd boxes.  The output %boxad is
  *          constructed from the input boxa and the filtered boxa,
  *          depending on %subflag.  See boxaModifyWithBoxa() for
- *          details on the use of %subflag and %maxdiff.
+ *          details on the use of %subflag, %maxdiff and %extrapixels.
  *      (3) This is useful for removing noise separately in the even
  *          and odd sets, where the box edge locations can have
  *          discontinuities but otherwise vary roughly linearly within
@@ -1054,7 +1063,8 @@ BOXA    *boxae, *boxao, *boxalfe, *boxalfo, *boxame, *boxamo, *boxad;
  *      (4) If you don't need to handle even and odd sets separately,
  *          just do this:
  *              boxam = boxaWindowedMedian(boxas, halfwin, debug);
- *              boxad = boxaModifyWithBoxa(boxas, boxam, subflag, maxdiff);
+ *              boxad = boxaModifyWithBoxa(boxas, boxam, subflag, maxdiff,
+ *                                         extrapixels);
  *              boxaDestroy(&boxam);
  * </pre>
  */
@@ -1063,6 +1073,7 @@ boxaSmoothSequenceMedian(BOXA    *boxas,
                          l_int32  halfwin,
                          l_int32  subflag,
                          l_int32  maxdiff,
+                         l_int32  extrapixels,
                          l_int32  debug)
 {
 l_int32  n;
@@ -1081,8 +1092,8 @@ BOXA    *boxae, *boxao, *boxamede, *boxamedo, *boxame, *boxamo, *boxad;
         return boxaCopy(boxas, L_COPY);
     }
     if (subflag != L_USE_MINSIZE && subflag != L_USE_MAXSIZE &&
-        subflag != L_SUB_ON_BIG_DIFF && subflag != L_USE_CAPPED_MIN &&
-        subflag != L_USE_CAPPED_MAX) {
+        subflag != L_SUB_ON_LOC_DIFF && subflag != L_SUB_ON_SIZE_DIFF &&
+        subflag != L_USE_CAPPED_MIN && subflag != L_USE_CAPPED_MAX) {
         L_WARNING("invalid subflag; returning copy\n", procName);
         return boxaCopy(boxas, L_COPY);
     }
@@ -1105,8 +1116,8 @@ BOXA    *boxae, *boxao, *boxamede, *boxamedo, *boxame, *boxamo, *boxad;
         boxaWrite("/tmp/smooth/boxamedo.ba", boxamedo);
     }
 
-    boxame = boxaModifyWithBoxa(boxae, boxamede, subflag, maxdiff);
-    boxamo = boxaModifyWithBoxa(boxao, boxamedo, subflag, maxdiff);
+    boxame = boxaModifyWithBoxa(boxae, boxamede, subflag, maxdiff, extrapixels);
+    boxamo = boxaModifyWithBoxa(boxao, boxamedo, subflag, maxdiff, extrapixels);
     if (debug) {
         boxaWrite("/tmp/smooth/boxame.ba", boxame);
         boxaWrite("/tmp/smooth/boxamo.ba", boxamo);
@@ -1385,10 +1396,14 @@ NUMA    *nal, *nat, *nar, *nab, *naml, *namt, *namr, *namb;
  *
  * \param[in]    boxas
  * \param[in]    boxam boxa with boxes used to modify those in boxas
- * \param[in]    subflag L_USE_MINSIZE, L_USE_MAXSIZE, L_SUB_ON_BIG_DIFF,
- *                       L_USE_CAPPED_MIN or L_USE_CAPPED_MAX
- * \param[in]    maxdiff parameter used with L_SUB_ON_BIG_DIFF,
- *                       L_USE_CAPPED_MIN and L_USE_CAPPED_MAX
+ * \param[in]    subflag L_USE_MINSIZE, L_USE_MAXSIZE,
+ *                       L_SUB_ON_LOC_DIFF, L_SUB_ON_SIZE_DIFF,
+ *                       L_USE_CAPPED_MIN, L_USE_CAPPED_MAX
+ * \param[in]    maxdiff parameter used with L_SUB_ON_LOC_DIFF,
+ *                       L_SUB_ON_SIZE_DIFF, L_USE_CAPPED_MIN, L_USE_CAPPED_MAX
+ * \param[in]    extrapixels  pixels added on all sides (or subtracted
+ *                            if %extrapixels < 0) when using
+ *                            L_SUB_ON_LOC_DIFF and L_SUB_ON_SIZE_DIFF
  * \return  boxad result after adjusting boxes in boxas, or NULL
  *                     on error.
  *
@@ -1399,27 +1414,34 @@ NUMA    *nal, *nat, *nar, *nab, *naml, *namt, *namr, *namb;
  *          boxes in boxas and boxam.  The rule for constructing each
  *          output box depends on %subflag and %maxdiff.  Let boxs be
  *          a box from %boxas and boxm be a box from %boxam.
- *          If %subflag == L_USE_MINSIZE, the output box is the intersection
- *          of the two input boxes.
- *          If %subflag == L_USE_MAXSIZE, the output box is the union of the
- *          two input boxes; i.e., the minimum bounding rectangle for the
- *          two input boxes.
+ *          * If %subflag == L_USE_MINSIZE: the output box is the intersection
+ *            of the two input boxes.
+ *          * If %subflag == L_USE_MAXSIZE: the output box is the union of the
+ *            two input boxes; i.e., the minimum bounding rectangle for the
+ *            two input boxes.
+ *          * If %subflag == L_SUB_ON_LOC_DIFF: each side of the output box
+ *            is found separately from the corresponding side of boxs and boxm.
+ *            Use the boxm side, expanded by %extrapixels, if greater than
+ *            %maxdiff pixels from the boxs side.
+ *          * If %subflag == L_SUB_ON_SIZE_DIFF: the sides of the output box
+ *            are determined in pairs from the width and height of boxs
+ *            and boxm.  If the boxm width differs by more than %maxdiff
+ *            pixels from boxs, use the boxm left and right sides,
+ *            expanded by %extrapixels.  Ditto for the height difference.
  *          For the last two flags, each side of the output box is found
  *          separately from the corresponding side of boxs and boxm,
  *          according to these rules, where "smaller"("bigger") mean in a
  *          direction that decreases(increases) the size of the output box:
- *            If %subflag == L_SUB_ON_BIG_DIFF, use boxs if within
- *            %maxdiff pixels of boxm; otherwise, use boxm.
- *            If %subflag == L_USE_CAPPED_MIN, use the Min of boxm
+ *          * If %subflag == L_USE_CAPPED_MIN: use the Min of boxm
  *            with the Max of (boxs, boxm +- %maxdiff), where the sign
  *            is adjusted to make the box smaller (e.g., use "+" on left side).
- *            If %subflag == L_USE_CAPPED_MAX, use the Max of boxm
+ *          * If %subflag == L_USE_CAPPED_MAX: use the Max of boxm
  *            with the Min of (boxs, boxm +- %maxdiff), where the sign
  *            is adjusted to make the box bigger (e.g., use "-" on left side).
  *          Use of the last 2 flags is further explained in (3) and (4).
  *      (2) boxas and boxam must be the same size.  If boxam == NULL,
  *          this returns a copy of boxas with a warning.
- *      (3) If %subflag == L_SUB_ON_BIG_DIFF, use boxm for each side
+ *      (3) If %subflag == L_SUB_ON_LOC_DIFF, use boxm for each side
  *          where the corresponding sides differ by more than %maxdiff.
  *          Two extreme cases:
  *          (a) set %maxdiff == 0 to use only values from boxam in boxad.
@@ -1436,7 +1458,7 @@ NUMA    *nal, *nat, *nar, *nab, *naml, *namt, *namr, *namb;
  *      (6) Typical input for boxam may be the output of boxaLinearFit().
  *          where outliers have been removed and each side is LS fit to a line.
  *      (7) Unlike boxaAdjustWidthToTarget() and boxaAdjustHeightToTarget(),
- *          this is not dependent on a difference threshold to change the size.
+ *          this uses two boxes and does not specify target dimensions.
  *          Additional constraints on the size of each box can be enforced
  *          by following this operation with boxaConstrainSize(), taking
  *          boxad as input.
@@ -1446,7 +1468,8 @@ BOXA *
 boxaModifyWithBoxa(BOXA    *boxas,
                    BOXA    *boxam,
                    l_int32  subflag,
-                   l_int32  maxdiff)
+                   l_int32  maxdiff,
+                   l_int32  extrapixels)
 {
 l_int32  n, i, ls, ts, rs, bs, ws, hs, lm, tm, rm, bm, wm, hm, ld, td, rd, bd;
 BOX     *boxs, *boxm, *boxd, *boxempty;
@@ -1461,8 +1484,8 @@ BOXA    *boxad;
         return boxaCopy(boxas, L_COPY);
     }
     if (subflag != L_USE_MINSIZE && subflag != L_USE_MAXSIZE &&
-        subflag != L_SUB_ON_BIG_DIFF && subflag != L_USE_CAPPED_MIN &&
-        subflag != L_USE_CAPPED_MAX) {
+        subflag != L_SUB_ON_LOC_DIFF && subflag != L_SUB_ON_SIZE_DIFF &&
+        subflag != L_USE_CAPPED_MIN && subflag != L_USE_CAPPED_MAX) {
         L_WARNING("invalid subflag; returning copy", procName);
         return boxaCopy(boxas, L_COPY);
     }
@@ -1496,11 +1519,16 @@ BOXA    *boxad;
                 rd = L_MAX(rs, rm);
                 td = L_MIN(ts, tm);
                 bd = L_MAX(bs, bm);
-            } else if (subflag == L_SUB_ON_BIG_DIFF) {
-                ld = (L_ABS(lm - ls) <= maxdiff) ? ls : lm;
-                td = (L_ABS(tm - ts) <= maxdiff) ? ts : tm;
-                rd = (L_ABS(rm - rs) <= maxdiff) ? rs : rm;
-                bd = (L_ABS(bm - bs) <= maxdiff) ? bs : bm;
+            } else if (subflag == L_SUB_ON_LOC_DIFF) {
+                ld = (L_ABS(lm - ls) <= maxdiff) ? ls : lm - extrapixels;
+                td = (L_ABS(tm - ts) <= maxdiff) ? ts : tm - extrapixels;
+                rd = (L_ABS(rm - rs) <= maxdiff) ? rs : rm + extrapixels;
+                bd = (L_ABS(bm - bs) <= maxdiff) ? bs : bm + extrapixels;
+            } else if (subflag == L_SUB_ON_SIZE_DIFF) {
+                ld = (L_ABS(wm - ws) <= maxdiff) ? ls : lm - extrapixels;
+                td = (L_ABS(hm - hs) <= maxdiff) ? ts : tm - extrapixels;
+                rd = (L_ABS(wm - ws) <= maxdiff) ? rs : rm + extrapixels;
+                bd = (L_ABS(hm - hs) <= maxdiff) ? bs : bm + extrapixels;
             } else if (subflag == L_USE_CAPPED_MIN) {
                 ld = L_MAX(lm, L_MIN(ls, lm + maxdiff));
                 td = L_MAX(tm, L_MIN(ts, tm + maxdiff));
