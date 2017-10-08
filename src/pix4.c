@@ -50,7 +50,8 @@
  *           l_int32     pixGetRankValue()
  *           l_int32     pixGetRankValueMaskedRGB()
  *           l_int32     pixGetRankValueMasked()
- *           l_int32     pixGetAverageValue()
+ *           l_int32     pixGetPixelAverage()
+ *           l_int32     pixGetPixelStats()
  *           l_int32     pixGetAverageMaskedRGB()
  *           l_int32     pixGetAverageMasked()
  *           l_int32     pixGetAverageTiledRGB()
@@ -914,7 +915,7 @@ RB_TYPE  *pval;
 
     if (!amap)
         return ERROR_INT("amap not defined", procName, -1);
- 
+
     key.utype = val;
     pval = l_amapFind(amap, key);
     return (pval) ? pval->itype : 0;
@@ -1142,7 +1143,135 @@ NUMA  *na;
 
 
 /*!
- * \brief   pixGetAverageValue()
+ * \brief   pixGetPixelAverage()
+ *
+ * \param[in]    pixs 8 or 32 bpp, or colormapped
+ * \param[in]    pixm [optional] 1 bpp mask over which average is to be taken;
+ *                    use all pixels if null
+ * \param[in]    x, y UL corner of pixm relative to the UL corner of pixs;
+ *                    can be < 0
+ * \param[in]    factor subsampling factor; >= 1
+ * \param[out]   pval  average pixel value
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) For rgb pix, this is a more direct computation of the
+ *          average value of the pixels in %pixs that are under the
+ *          mask %pixm. It is faster than pixGetPixelStats(), which
+ *          calls pixGetAverageMaskedRGB() and has the overhead of
+ *          generating a temporary pix of each of the three components;
+ *          this can take most of the time if %factor > 1.
+ *      (2) If %pixm is null, this gives the average value of all
+ *          pixels in %pixs.  The returned value is an integer.
+ *      (3) For color %pixs, the returned pixel value is in the standard
+ *          uint32 RGBA packing.
+ *      (4) Clipping of pixm (if it exists) to pixs is done in the inner loop.
+ *      (5) Input x,y are ignored if %pixm does not exist.
+ * </pre>
+ */
+l_int32
+pixGetPixelAverage(PIX       *pixs,
+                   PIX       *pixm,
+                   l_int32    x,
+                   l_int32    y,
+                   l_int32    factor,
+                   l_uint32  *pval)
+{
+l_int32    i, j, w, h, d, wm, hm, wpl1, wplm, val, rval, gval, bval, count;
+l_uint32  *data1, *datam, *line1, *linem;
+l_float64  sum, rsum, gsum, bsum;
+PIX       *pix1;
+
+    PROCNAME("pixGetPixelAverage");
+
+    if (!pval)
+        return ERROR_INT("&val not defined", procName, 1);
+    *pval = 0;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    d = pixGetDepth(pixs);
+    if (d != 32 && !pixGetColormap(pixs))
+        return ERROR_INT("pixs not rgb or colormapped", procName, 1);
+    if (pixm && pixGetDepth(pixm) != 1)
+        return ERROR_INT("pixm not 1 bpp", procName, 1);
+    if (factor < 1)
+        return ERROR_INT("sampling factor must be >= 1", procName, 1);
+
+    if (pixGetColormap(pixs))
+        pix1 = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
+    else
+        pix1 = pixClone(pixs);
+    pixGetDimensions(pix1, &w, &h, &d);
+    if (d == 1) {
+        pixDestroy(&pix1);
+        return ERROR_INT("pix1 is just 1 bpp", procName, 1);
+    }
+    data1 = pixGetData(pix1);
+    wpl1 = pixGetWpl(pix1);
+
+    sum = rsum = gsum = bsum = 0.0;
+    count = 0;
+    if (!pixm) {
+        for (i = 0; i < h; i += factor) {
+            line1 = data1 + i * wpl1;
+            for (j = 0; j < w; j += factor) {
+                if (d == 8) {
+                    val = GET_DATA_BYTE(line1, j);
+                    sum += val;
+                } else {  /* rgb */
+                    extractRGBValues(*(line1 + j), &rval, &gval, &bval);
+                    rsum += rval;
+                    gsum += gval;
+                    bsum += bval;
+                }
+                count++;
+            }
+        }
+    } else {  /* masked */
+        pixGetDimensions(pixm, &wm, &hm, NULL);
+        datam = pixGetData(pixm);
+        wplm = pixGetWpl(pixm);
+        for (i = 0; i < hm; i += factor) {
+            if (y + i < 0 || y + i >= h) continue;
+            line1 = data1 + (y + i) * wpl1;
+            linem = datam + i * wplm;
+            for (j = 0; j < wm; j += factor) {
+                if (x + j < 0 || x + j >= w) continue;
+                if (GET_DATA_BIT(linem, j)) {
+                    if (d == 8) {
+                        val = GET_DATA_BYTE(line1, x + j);
+                        sum += val;
+                    } else {  /* rgb */
+                        extractRGBValues(*(line1 + x + j), &rval, &gval, &bval);
+                        rsum += rval;
+                        gsum += gval;
+                        bsum += bval;
+                    }
+                    count++;
+                }
+            }
+        }
+    }
+
+    pixDestroy(&pix1);
+    if (count == 0)
+        return ERROR_INT("no pixels sampled", procName, 1);
+    if (d == 8) {
+        *pval = (l_uint32)((l_float64)sum / (l_float64)count);
+    } else {  /* d == 32 */
+        rval = (l_uint32)((l_float64)rsum / (l_float64)count);
+        gval = (l_uint32)((l_float64)gsum / (l_float64)count);
+        bval = (l_uint32)((l_float64)bsum / (l_float64)count);
+        composeRGBPixel(rval, gval, bval, pval);
+    }
+
+    return 0;
+}
+
+
+/*!
+ * \brief   pixGetPixelStats()
  *
  * \param[in]    pixs 8 bpp, 32 bpp or colormapped
  * \param[in]    factor subsampling factor; integer >= 1
@@ -1153,21 +1282,24 @@ NUMA  *na;
  *
  * <pre>
  * Notes:
- *      (1) Simple function to get average statistical values of an image.
+ *      (1) Simple function to get one of four statistical values of an image.
+ *      (2) It does not take a mask: it uses the entire image.
+ *      (3) To get the average pixel value of an RGB image, suggest using
+ *          pixGetPixelAverage(), which is considerably faster.
  * </pre>
  */
 l_int32
-pixGetAverageValue(PIX       *pixs,
-                   l_int32    factor,
-                   l_int32    type,
-                   l_uint32  *pvalue)
+pixGetPixelStats(PIX       *pixs,
+                 l_int32    factor,
+                 l_int32    type,
+                 l_uint32  *pvalue)
 {
 l_int32    d;
 l_float32  val, rval, gval, bval;
 PIX       *pixt;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixGetAverageValue");
+    PROCNAME("pixGetPixelStats");
 
     if (!pvalue)
         return ERROR_INT("&value not defined", procName, 1);
@@ -1220,6 +1352,7 @@ PIXCMAP   *cmap;
  *      (1) For usage, see pixGetAverageMasked().
  *      (2) If there is a colormap, it is removed before the 8 bpp
  *          component images are extracted.
+ *      (3) A better name for this would be: pixGetPixelStatsRGB()
  * </pre>
  */
 l_int32
@@ -1315,6 +1448,7 @@ PIXCMAP  *cmap;
  *          computation.
  *      (4) Clipping of pixm (if it exists) to pixs is done in the inner loop.
  *      (5) Input x,y are ignored unless pixm exists.
+ *      (6) A better name for this would be: pixGetPixelStatsGray()
  * </pre>
  */
 l_int32
