@@ -354,7 +354,7 @@ recogAddSample(L_RECOG  *recog,
                l_int32   debug)
 {
 char    *text;
-l_int32  i, n, npa, charint, index;
+l_int32  npa, charint, index;
 PIXA    *pixa1;
 PIXAA   *paa;
 
@@ -1492,7 +1492,7 @@ recogTrainFromBoot(L_RECOG   *recogboot,
                    l_int32    debug)
 {
 char      *text;
-l_int32    i, n, maxdepth, localboot, scaleh, linew;
+l_int32    i, n, maxdepth, scaleh, linew;
 l_float32  score;
 PIX       *pix1, *pix2, *pixdb;
 PIXA      *pixa1, *pixa2, *pixa3, *pixad;
@@ -1654,7 +1654,6 @@ char      *str;
 l_int32    i, nt, min_nopad, nclass, allclasses;
 l_float32  minval;
 NUMA      *naclass;
-PIXAA     *paa;
 SARRAY    *sa;
 
     PROCNAME("recogIsPaddingNeeded");
@@ -1666,7 +1665,6 @@ SARRAY    *sa;
         return ERROR_INT("recog not defined", procName, 1);
 
         /* Do we have samples from all classes? */
-    paa = recog->pixaa_u;  /* unscaled bitmaps */
     nclass = pixaaGetCount(recog->pixaa_u, &naclass);  /* unscaled bitmaps */
     allclasses = (nclass == recog->charset_size) ? 1 : 0;
 
@@ -1712,9 +1710,8 @@ recogAddMissingClassStrings(L_RECOG  *recog)
 {
 char    *text;
 char     str[4];
-l_int32  i, nclass, index, ival, n;
+l_int32  i, nclass, index, ival;
 NUMA    *na;
-PIXAA   *paa;
 SARRAY  *sa;
 
     PROCNAME("recogAddMissingClassStrings");
@@ -1723,7 +1720,6 @@ SARRAY  *sa;
         return (SARRAY *)ERROR_PTR("recog not defined", procName, NULL);
 
         /* Only handling digits */
-    paa = recog->pixaa_u;  /* unscaled bitmaps */
     nclass = pixaaGetCount(recog->pixaa_u, NULL);  /* unscaled bitmaps */
     if (recog->charset_type != 1 || (recog->charset_type == 1 && nclass == 10))
         return sarrayCreate(0);  /* empty */
@@ -1886,8 +1882,6 @@ recogMakeBootDigitRecog(l_int32  scaleh,
 PIXA     *pixa;
 L_RECOG  *recog;
 
-    PROCNAME("recogMakeBootDigitRecog");
-
         /* Get the templates, extended by horizontal scaling */
     pixa = recogMakeBootDigitTemplates(debug);
 
@@ -1919,8 +1913,6 @@ recogMakeBootDigitTemplates(l_int32  debug)
 NUMA  *na;
 PIX   *pix1, *pix2, *pix3;
 PIXA  *pixa1, *pixa2, *pixa3;
-
-    PROCNAME("recogMakeBootDigitTemplates");
 
     pixa1 = l_bootnum_gen1();
     pixa2 = l_bootnum_gen2();

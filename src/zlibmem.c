@@ -233,22 +233,29 @@ z_stream    z;
 
     inflateInit(&z);
 
+
     for ( ; ; ) {
         if (z.avail_in == 0) {
             z.next_in = bufferin;
             bbufferWrite(bbin, bufferin, L_BUF_SIZE, &nbytes);
-/*            fprintf(stderr, " wrote %d bytes to bufferin\n", nbytes); */
+#if DEBUG
+            fprintf(stderr, " wrote %d bytes to bufferin\n", nbytes);
+#endif  /* DEBUG */
             z.avail_in = nbytes;
         }
         if (z.avail_in == 0)
             break;
         status = inflate(&z, Z_SYNC_FLUSH);
-/*        fprintf(stderr, " status is %d, bytesleft = %d, totalout = %d\n",
-                  status, z.avail_out, z.total_out); */
+#if DEBUG
+        fprintf(stderr, " status is %d, bytesleft = %d, totalout = %d\n",
+                status, z.avail_out, z.total_out);
+#endif  /* DEBUG */
         nbytes = L_BUF_SIZE - z.avail_out;
         if (nbytes) {
             bbufferRead(bbout, bufferout, nbytes);
-/*            fprintf(stderr, " read %d bytes from bufferout\n", nbytes); */
+#if DEBUG
+            fprintf(stderr, " read %d bytes from bufferout\n", nbytes);
+#endif  /* DEBUG */
         }
         z.next_out = bufferout;
         z.avail_out = L_BUF_SIZE;

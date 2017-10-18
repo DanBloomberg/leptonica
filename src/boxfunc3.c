@@ -720,7 +720,6 @@ pixaDisplayBoxaa(PIXA    *pixas,
 l_int32    i, j, nba, n, nbox, rval, gval, bval;
 l_uint32   color;
 l_uint32   colors[255];
-l_float64  dval;
 BOXA      *boxa;
 BOX       *box;
 PIX       *pix;

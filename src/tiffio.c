@@ -408,9 +408,8 @@ PIX *
 pixReadStreamTiff(FILE    *fp,
                   l_int32  n)
 {
-l_int32  i;
-PIX     *pix;
-TIFF    *tif;
+PIX   *pix;
+TIFF  *tif;
 
     PROCNAME("pixReadStreamTiff");
 

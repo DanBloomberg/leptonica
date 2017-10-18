@@ -1697,9 +1697,9 @@ boxaReconcileEvenOddHeight(BOXA      *boxas,
                            l_float32  factor,
                            l_int32    start)
 {
-l_int32    n, ne, no, he, ho, hmed, doeven;
+l_int32    n, he, ho, hmed, doeven;
 l_float32  del1, del2;
-BOXA      *boxae, *boxao, *boxa1e, *boxa1o, *boxa1, *boxad;
+BOXA      *boxae, *boxao, *boxa1e, *boxa1o, *boxad;
 
     PROCNAME("boxaReconcileEvenOddHeight");
 
@@ -1726,8 +1726,6 @@ BOXA      *boxae, *boxao, *boxa1e, *boxa1o, *boxa1, *boxad;
         boxaDestroy(&boxao);
         return boxaCopy(boxas, L_COPY);
     }
-    ne = boxaGetCount(boxae);
-    no = boxaGetCount(boxao);
 
         /* Get the median heights for each set */
     boxaGetMedianVals(boxae, NULL, NULL, NULL, &he);

@@ -2010,10 +2010,10 @@ pixaSelectToPdf(PIXA        *pixas,
                 l_int32      fontsize,
                 const char  *fileout)
 {
-l_int32    n, n1;
-L_BMF     *bmf;
-NUMA      *na;
-PIXA      *pixa1, *pixa2;
+l_int32  n;
+L_BMF   *bmf;
+NUMA    *na;
+PIXA    *pixa1, *pixa2;
 
     PROCNAME("pixaSelectToPdf");
 
@@ -2037,7 +2037,6 @@ PIXA      *pixa1, *pixa2;
     pixa1 = pixaSelectRange(pixas, first, last, L_CLONE);
 
         /* Optionally add index numbers */
-    n1 = pixaGetCount(pixa1);
     bmf = (fontsize <= 0) ? NULL : bmfCreate(NULL, fontsize);
     if (bmf) {
         na = numaMakeSequence(first, 1.0, last - first + 1);

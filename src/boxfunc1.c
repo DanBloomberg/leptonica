@@ -533,7 +533,7 @@ boxaCombineOverlapsInPair(BOXA   *boxas1,
 l_int32  i, j, w, h, w2, h2, n1, n2, n1i, n2i, niters;
 l_int32  overlap, bigger, area1, area2;
 BOX     *box1, *box2, *box3;
-BOXA    *boxa1, *boxa2, *boxac1, *boxac2, *boxad1, *boxad2;
+BOXA    *boxa1, *boxa2, *boxac1, *boxac2;
 PIX     *pix1;
 
     PROCNAME("boxaCombineOverlapsInPair");

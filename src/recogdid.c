@@ -612,7 +612,7 @@ static l_int32
 recogRescoreDidResult(L_RECOG  *recog,
                       PIX     **ppixdb)
 {
-l_int32    i, n, h1, sample, x, dely, index;
+l_int32    i, n, sample, x, dely, index;
 char      *text;
 l_float32  score;
 BOX       *box1;
@@ -632,7 +632,6 @@ L_RDID    *did;
         return ERROR_INT("no elements in path", procName, 1);
 
     pixs = did->pixs;
-    h1 = pixGetHeight(pixs);
     for (i = 0; i < n; i++) {
         box1 = boxaGetBox(did->boxa, i, L_COPY);
         boxGetGeometry(box1, &x, &dely, NULL, NULL);

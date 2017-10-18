@@ -200,7 +200,7 @@ gifToPix(GifFileType  *gif)
 l_int32          wpl, i, j, w, h, d, cindex, ncolors;
 l_int32          rval, gval, bval;
 l_uint32        *data, *line;
-PIX             *pixd, *pixdi;
+PIX             *pixd;
 PIXCMAP         *cmap;
 ColorMapObject  *gif_cmap;
 SavedImage       si;
@@ -303,7 +303,7 @@ int              giferr;
          * does un-interlacing, so we don't wish to do it here in that
          * case. See also b/64386039. */
     if (gif->Image.Interlace) {
-        pixdi = pixUninterlaceGIF(pixd);
+        Pix *pixdi = pixUninterlaceGIF(pixd);
         pixTransferAllData(pixd, &pixdi, 0, 0);
     }
 #endif  /* Versions older than 5.0.0 */

@@ -400,7 +400,7 @@ pixSetStrokeWidth(PIX     *pixs,
                   l_int32  connectivity)
 {
 char     buf[16];
-l_int32  d, i, n, border;
+l_int32  border;
 PIX     *pix1, *pix2, *pixd;
 
     PROCNAME("pixSetStrokeWidth");

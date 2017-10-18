@@ -1101,11 +1101,10 @@ pixExtractRawTextlines(PIX     *pixs,
                        PIXA    *pixadb)
 {
 char     buf[64];
-l_int32  i, n, res, csize, empty;
-BOX     *box;
+l_int32  res, csize, empty;
 BOXA    *boxa1, *boxa2, *boxa3;
 BOXAA   *baa1;
-PIX     *pix1, *pix2, *pix3, *pix4, *pix5;
+PIX     *pix1, *pix2, *pix3;
 PIXA    *pixa1, *pixa2;
 
     PROCNAME("pixExtractRawTextlines");
@@ -1632,7 +1631,7 @@ pixDecideIfTable(PIX      *pixs,
                  l_int32  *pscore,
                  PIXA     *pixadb)
 {
-l_int32  i, empty, nhb, nvb, nvw, score, htfound;
+l_int32  empty, nhb, nvb, nvw, score, htfound;
 PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8, *pix9;
 
     PROCNAME("pixDecideIfTable");

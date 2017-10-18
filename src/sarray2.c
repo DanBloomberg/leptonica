@@ -66,7 +66,7 @@
  *       sarray for the string that gave rise to that key is stored,
  *       and the dna (bucket) is traversed, using the stored indices
  *       to determine if that string had already been seen.
- *       
+ *
  * </pre>
  */
 
@@ -314,8 +314,8 @@ SARRAY   *sad;
  *
  * <pre>
  * Notes:
- *      (1) Algorithm: put the smaller sarray into a set, using the string
- *          hashes as the key values.  Then run through the larger sarray,
+ *      (1) Algorithm: put the larger sarray into a set, using the string
+ *          hashes as the key values.  Then run through the smaller sarray,
  *          building an output sarray and a second set from the strings
  *          in the larger array: if a string is in the first set but
  *          not in the second, add the string to the output sarray and hash
@@ -641,7 +641,7 @@ L_DNAHASH  *dahash;
 /*!
  * \brief   sarrayGenerateIntegers()
  *
- * \param[in]   n 
+ * \param[in]   n
  * \return  sa  (of printed numbers, 1 - n, or NULL on error
  */
 SARRAY *

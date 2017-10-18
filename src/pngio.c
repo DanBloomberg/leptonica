@@ -1334,8 +1334,6 @@ MEMIODATA  *thing, *last;
 l_int32     written = 0;
 l_int32     remainingSpace, remainingToWrite;
 
-    PROCNAME("memio_png_write_data");
-
     thing = (struct MemIOData*)png_get_io_ptr(png_ptr);
     last = (struct MemIOData*)thing->m_Last;
     if (last->m_Buffer == NULL) {
@@ -1400,8 +1398,6 @@ l_int32     copied = 0;
 MEMIODATA  *buffer = 0;
 char       *data = 0;
 
-    PROCNAME("memio_png_flush");
-
         /* If the data is in one buffer, give the buffer to the user. */
     if (pthing->m_Next == NULL) return;
 
@@ -1464,8 +1460,6 @@ memio_png_read_data(png_structp  png_ptr,
 {
 MEMIODATA  *thing;
 
-    PROCNAME("memio_png_read_data");
-
     thing = (MEMIODATA *)png_get_io_ptr(png_ptr);
     memcpy(outBytes, thing->m_Buffer + thing->m_Count, byteCountToRead);
     thing->m_Count += byteCountToRead;
@@ -1487,8 +1481,6 @@ static void
 memio_free(MEMIODATA*  pthing)
 {
 MEMIODATA  *buffer, *old;
-
-    PROCNAME("memio_free");
 
     if (pthing->m_Buffer != NULL)
         LEPT_FREE(pthing->m_Buffer);

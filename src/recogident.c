@@ -253,8 +253,8 @@ recogSplitIntoCharacters(L_RECOG  *recog,
 {
 static l_int32  ind = 0;
 char     buf[32];
-l_int32  i, n, xoff, yoff, empty, maxw, bw, ncomp, scaling;
-BOX     *box, *box3;
+l_int32  i, xoff, yoff, empty, maxw, bw, ncomp, scaling;
+BOX     *box;
 BOXA    *boxa1, *boxa2, *boxa3, *boxa4, *boxad;
 BOXAA   *baa;
 PIX     *pix, *pix1, *pix2, *pix3;

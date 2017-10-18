@@ -558,7 +558,7 @@ l_int32
 dewarpFindHorizDisparity(L_DEWARP  *dew,
                          PTAA      *ptaa)
 {
-l_int32    i, j, n, w, h, nx, ny, sampling, ret;
+l_int32    i, j, h, nx, ny, sampling, ret;
 l_float32  c0, c1, cl0, cl1, cl2, cr0, cr1, cr2;
 l_float32  x, y, refl, refr;
 l_float32  val, mederr;

@@ -1311,10 +1311,9 @@ PIX       *pixd;
  *
  * <pre>
  * Notes:
- *      (1) For halfwidth == 1, we implement the full sharpening filter
- *          directly.  For halfwidth == 2, we implement the the lowpass
- *          filter separably and then compute the sharpening result locally.
- *      (2) Returns a clone if no sharpening is requested.
+ *      (1) This is for %halfwidth == 1, 2.
+ *      (2) The lowpass filter is implemented separably.
+ *      (3) Returns a clone if no sharpening is requested.
  * </pre>
  */
 PIX *
@@ -1323,8 +1322,8 @@ pixUnsharpMaskingGray2D(PIX       *pixs,
                         l_float32  fract)
 {
 l_int32     w, h, d, wpls, wpld, wplf, i, j, ival, sval;
-l_uint32   *datas, *datad, *lines, *lines0, *lines1, *lines2, *lined;
-l_float32   val, norm, a[9];
+l_uint32   *datas, *datad, *lines, *lined;
+l_float32   val, norm;
 l_float32  *dataf, *linef, *linef0, *linef1, *linef2, *linef3, *linef4;
 PIX        *pixd;
 FPIX       *fpix;
@@ -1343,61 +1342,45 @@ FPIX       *fpix;
     if (halfwidth != 1 && halfwidth != 2)
         return (PIX *)ERROR_PTR("halfwidth must be 1 or 2", procName, NULL);
 
-    pixd = pixCopyBorder(NULL, pixs, halfwidth, halfwidth,
-                         halfwidth, halfwidth);
+    if ((pixd = pixCopyBorder(NULL, pixs, halfwidth, halfwidth,
+                              halfwidth, halfwidth)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
 
-    if (halfwidth == 1) {
-        for (i = 0; i < 9; i++)
-            a[i] = -fract / 9.0;
-        a[4] = 1.0 + fract * 8.0 / 9.0;
-        for (i = 1; i < h - 1; i++) {
-            lines0 = datas + (i - 1) * wpls;
-            lines1 = datas + i * wpls;
-            lines2 = datas + (i + 1) * wpls;
-            lined = datad + i * wpld;
-            for (j = 1; j < w - 1; j++) {
-                val = a[0] * GET_DATA_BYTE(lines0, j - 1) +
-                      a[1] * GET_DATA_BYTE(lines0, j) +
-                      a[2] * GET_DATA_BYTE(lines0, j + 1) +
-                      a[3] * GET_DATA_BYTE(lines1, j - 1) +
-                      a[4] * GET_DATA_BYTE(lines1, j) +
-                      a[5] * GET_DATA_BYTE(lines1, j + 1) +
-                      a[6] * GET_DATA_BYTE(lines2, j - 1) +
-                      a[7] * GET_DATA_BYTE(lines2, j) +
-                      a[8] * GET_DATA_BYTE(lines2, j + 1);
-                ival = (l_int32)(val + 0.5);
-                ival = L_MAX(0, ival);
-                ival = L_MIN(255, ival);
-                SET_DATA_BYTE(lined, j, ival);
-            }
-        }
-
-        return pixd;
+        /* Do the low pass separably.  Store the result of horizontal
+         * smoothing in an intermediate fpix.  */
+    if ((fpix = fpixCreate(w, h)) == NULL) {
+        pixDestroy(&pixd);
+        return (PIX *)ERROR_PTR("fpix not made", procName, NULL);
     }
-
-        /* For halfwidth == 2, do the low pass separably.  Store
-         * the result of horizontal smoothing in an intermediate fpix.
-         * Note that in the horizontal smoothing step, the values of
-         * fpix in the 2 pixel-wide border region are unchanged from 0.
-         * In vertical smoothing, the normalization constant takes this
-         * into account for pixels near the upper and lower boundaries.  */
-    fpix = fpixCreate(w, h);
     dataf = fpixGetData(fpix);
     wplf = fpixGetWpl(fpix);
-    for (i = 2; i < h - 2; i++) {
-        lines = datas + i * wpls;
-        linef = dataf + i * wplf;
-        for (j = 2; j < w - 2; j++) {
-            val = GET_DATA_BYTE(lines, j - 2) +
-                  GET_DATA_BYTE(lines, j - 1) +
-                  GET_DATA_BYTE(lines, j) +
-                  GET_DATA_BYTE(lines, j + 1) +
-                  GET_DATA_BYTE(lines, j + 2);
-            linef[j] = val;
+    if (halfwidth == 1) {
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            linef = dataf + i * wplf;
+            for (j = 1; j < w - 1; j++) {
+                val = GET_DATA_BYTE(lines, j - 1) +
+                      GET_DATA_BYTE(lines, j) +
+                      GET_DATA_BYTE(lines, j + 1);
+                linef[j] = val;
+            }
+        }
+    } else {
+        for (i = 0; i < h; i++) {
+            lines = datas + i * wpls;
+            linef = dataf + i * wplf;
+            for (j = 2; j < w - 2; j++) {
+                val = GET_DATA_BYTE(lines, j - 2) +
+                      GET_DATA_BYTE(lines, j - 1) +
+                      GET_DATA_BYTE(lines, j) +
+                      GET_DATA_BYTE(lines, j + 1) +
+                      GET_DATA_BYTE(lines, j + 2);
+                linef[j] = val;
+            }
         }
     }
 
@@ -1407,32 +1390,50 @@ FPIX       *fpix;
          * be added to I, then the highpass filter value is
          *     H = I - L
          * and the new sharpened value is
-         *     N = I + f * H.
-         */
-    for (i = 2; i < h - 2; i++) {
-        linef0 = dataf + (i - 2) * wplf;
-        linef1 = dataf + (i - 1) * wplf;
-        linef2 = dataf + i * wplf;
-        linef3 = dataf + (i + 1) * wplf;
-        linef4 = dataf + (i + 2) * wplf;
-        lined = datad + i * wpld;
-        lines = datas + i * wpls;
-        norm = 1.0 / (5.0 * L_MIN(L_MIN(5, i + 1), h - i));
-        for (j = 2; j < w - 2; j++) {
-            val = norm * (linef0[j] + linef1[j] + linef2[j] +
-                          linef3[j] + linef4[j]);  /* L: lowpass filter value */
-            sval = GET_DATA_BYTE(lines, j);   /* I: source pixel */
-            ival = (l_int32)(sval + fract * (sval - val) + 0.5);
-            ival = L_MAX(0, ival);
-            ival = L_MIN(255, ival);
-            SET_DATA_BYTE(lined, j, ival);
+         *     N = I + f * H.                 */
+    if (halfwidth == 1) {
+        for (i = 1; i < h - 1; i++) {
+            linef0 = dataf + (i - 1) * wplf;
+            linef1 = dataf + i * wplf;
+            linef2 = dataf + (i + 1) * wplf;
+            lined = datad + i * wpld;
+            lines = datas + i * wpls;
+            norm = 1.0 / 9.0;
+            for (j = 1; j < w - 1; j++) {
+                val = norm * (linef0[j] + linef1[j] +
+                              linef2[j]);         /* L: lowpass filter value */
+                sval = GET_DATA_BYTE(lines, j);   /* I: source pixel */
+                ival = (l_int32)(sval + fract * (sval - val) + 0.5);
+                ival = L_MAX(0, ival);
+                ival = L_MIN(255, ival);
+                SET_DATA_BYTE(lined, j, ival);
+            }
+        }
+    } else {
+        for (i = 2; i < h - 2; i++) {
+            linef0 = dataf + (i - 2) * wplf;
+            linef1 = dataf + (i - 1) * wplf;
+            linef2 = dataf + i * wplf;
+            linef3 = dataf + (i + 1) * wplf;
+            linef4 = dataf + (i + 2) * wplf;
+            lined = datad + i * wpld;
+            lines = datas + i * wpls;
+            norm = 1.0 / 25.0;
+            for (j = 2; j < w - 2; j++) {
+                val = norm * (linef0[j] + linef1[j] + linef2[j] + linef3[j] +
+                              linef4[j]);  /* L: lowpass filter value */
+                sval = GET_DATA_BYTE(lines, j);   /* I: source pixel */
+                ival = (l_int32)(sval + fract * (sval - val) + 0.5);
+                ival = L_MAX(0, ival);
+                ival = L_MIN(255, ival);
+                SET_DATA_BYTE(lined, j, ival);
+            }
         }
     }
 
     fpixDestroy(&fpix);
     return pixd;
 }
-
 
 
 /*-----------------------------------------------------------------------*

@@ -121,7 +121,7 @@ pixReadMemBmp(const l_uint8  *cdata,
 {
 l_uint8    pel[4];
 l_uint8   *cmapBuf, *fdata, *data;
-l_int16    bftype, offset, biplanes, depth, d;
+l_int16    bftype, offset, depth, d;
 l_int32    width, height, xres, yres, compression, imagebytes;
 l_int32    cmapbytes, cmapEntries;
 l_int32    fdatabpl, extrabytes, pixWpl, pixBpl, i, j, k;
@@ -156,7 +156,6 @@ PIXCMAP   *cmap;
     offset = convertOnBigEnd16(bmpfh->bfOffBits);
     width = convertOnBigEnd32(bmpih->biWidth);
     height = convertOnBigEnd32(bmpih->biHeight);
-    biplanes = convertOnBigEnd16(bmpih->biPlanes);
     depth = convertOnBigEnd16(bmpih->biBitCount);
     imagebytes = convertOnBigEnd32(bmpih->biSizeImage);
     xres = convertOnBigEnd32(bmpih->biXPelsPerMeter);
