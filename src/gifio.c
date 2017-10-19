@@ -303,7 +303,7 @@ int              giferr;
          * does un-interlacing, so we don't wish to do it here in that
          * case. See also b/64386039. */
     if (gif->Image.Interlace) {
-        Pix *pixdi = pixUninterlaceGIF(pixd);
+        PIX *pixdi = pixUninterlaceGIF(pixd);
         pixTransferAllData(pixd, &pixdi, 0, 0);
     }
 #endif  /* Versions older than 5.0.0 */
