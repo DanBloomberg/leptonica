@@ -29,16 +29,16 @@
  * <pre>
  *
  *         Top-level scaling
- *               PIX      *pixScale()     ***
- *               PIX      *pixScaleToSizeRel()     ***
- *               PIX      *pixScaleToSize()     ***
- *               PIX      *pixScaleGeneral()     ***
+ *               PIX      *pixScale()
+ *               PIX      *pixScaleToSizeRel()
+ *               PIX      *pixScaleToSize()
+ *               PIX      *pixScaleGeneral()
  *
  *         Linearly interpreted (usually up-) scaling
- *               PIX      *pixScaleLI()     ***
+ *               PIX      *pixScaleLI()
  *               PIX      *pixScaleColorLI()
- *               PIX      *pixScaleColor2xLI()   ***
- *               PIX      *pixScaleColor4xLI()   ***
+ *               PIX      *pixScaleColor2xLI()
+ *               PIX      *pixScaleColor4xLI()
  *               PIX      *pixScaleGrayLI()
  *               PIX      *pixScaleGray2xLI()
  *               PIX      *pixScaleGray4xLI()
@@ -54,12 +54,14 @@
  *               PIX      *pixScaleGrayToBinaryFast()
  *
  *         Downscaling with (antialias) smoothing
- *               PIX      *pixScaleSmooth() ***
+ *               PIX      *pixScaleSmooth()
+ *               PIX      *pixScaleSmoothToSize()
  *               PIX      *pixScaleRGBToGray2()   [special 2x reduction to gray]
  *
  *         Downscaling with (antialias) area mapping
- *               PIX      *pixScaleAreaMap()     ***
+ *               PIX      *pixScaleAreaMap()
  *               PIX      *pixScaleAreaMap2()
+ *               PIX      *pixScaleAreaMapToSize()
  *
  *         Binary scaling by closest pixel sampling
  *               PIX      *pixScaleBinary()
@@ -105,10 +107,8 @@
  *               l_int32   pixScaleAndTransferAlpha()
  *
  *         RGB scaling including alpha (blend) component
- *               PIX      *pixScaleWithAlpha()   ***
+ *               PIX      *pixScaleWithAlpha()
  *
- *  *** Note: these functions make an implicit assumption about RGB
- *            component ordering.
  * </pre>
  */
 
@@ -193,9 +193,6 @@ extern l_float32  AlphaMaskBorderVals[2];
  *  without any low-pass filtering averaging of neighboring pixels.
  *  This will introduce aliasing for reductions.  Aliasing can be
  *  prevented by using pixScaleToGray instead.
- *
- *  *** Warning: implicit assumption about RGB component order
- *               for LI color scaling
  */
 PIX *
 pixScale(PIX       *pixs,
@@ -262,13 +259,12 @@ l_int32  w, h, wd, hd;
  *
  * <pre>
  * Notes:
- *      (1) This guarantees that the output scaled image has the
- *          dimension(s) you specify.
- *           ~ To specify the width with isotropic scaling, set %hd = 0.
- *           ~ To specify the height with isotropic scaling, set %wd = 0.
- *           ~ If both %wd and %hd are specified, the image is scaled
+ *      (1) The output scaled image has the dimension(s) you specify:
+ *          * To specify the width with isotropic scaling, set %hd = 0.
+ *          * To specify the height with isotropic scaling, set %wd = 0.
+ *          * If both %wd and %hd are specified, the image is scaled
  *             (in general, anisotropically) to that size.
- *           ~ It is an error to set both %wd and %hd to 0.
+ *          * It is an error to set both %wd and %hd to 0.
  * </pre>
  */
 PIX *
@@ -401,8 +397,9 @@ PIX       *pixt, *pixt2, *pixd;
  * Notes:
  *      (1) This function should only be used when the scale factors are
  *          greater than or equal to 0.7, and typically greater than 1.
- *          If either scale factor is smaller than 0.7, we issue a warning
- *          and invoke pixScale().
+ *          If either scale factor is larger than 0.7, we issue a warning
+ *          and call pixScaleGeneral(), which will invoke area mapping
+ *          without sharpening.
  *      (2) This works on 2, 4, 8, 16 and 32 bpp images, as well as on
  *          2, 4 and 8 bpp images that have a colormap.  If there is a
  *          colormap, it is removed to either gray or RGB, depending
@@ -410,8 +407,6 @@ PIX       *pixt, *pixt2, *pixd;
  *      (3) This does a linear interpolation on the src image.
  *      (4) It dispatches to much faster implementations for
  *          the special cases of 2x and 4x expansion.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  * </pre>
  */
 PIX *
@@ -430,7 +425,7 @@ PIX       *pixt, *pixd;
     maxscale = L_MAX(scalex, scaley);
     if (maxscale < 0.7) {
         L_WARNING("scaling factors < 0.7; do regular scaling\n", procName);
-        return pixScale(pixs, scalex, scaley);
+        return pixScaleGeneral(pixs, scalex, scaley, 0.0, 0);
     }
     d = pixGetDepth(pixs);
     if (d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
@@ -461,10 +456,10 @@ PIX       *pixt, *pixd;
  *
  * <pre>
  * Notes:
- *      (1) If this is used for scale factors less than 0.7,
- *          it will suffer from antialiasing.  A warning is issued.
- *          Particularly for document images with sharp edges,
- *          use pixScaleSmooth() or pixScaleAreaMap() instead.
+ *      (1) If either scale factor is larger than 0.7, we issue a warning
+ *          and call pixScaleGeneral(), which will invoke area mapping
+ *          without sharpening.  This is particularly important for
+ *          document images with sharp edges.
  *      (2) For the general case, it's about 4x faster to manipulate
  *          the color pixels directly, rather than to make images
  *          out of each of the 3 components, scale each component
@@ -492,7 +487,7 @@ PIX       *pixd;
     maxscale = L_MAX(scalex, scaley);
     if (maxscale < 0.7) {
         L_WARNING("scaling factors < 0.7; do regular scaling\n", procName);
-        return pixScale(pixs, scalex, scaley);
+        return pixScaleGeneral(pixs, scalex, scaley, 0.0, 0);
     }
 
         /* Do fast special cases if possible */
@@ -539,8 +534,6 @@ PIX       *pixd;
  *          on each of the three components separately.
  *      (2) The speed on intel hardware is about
  *          80 * 10^6 dest-pixels/sec/GHz.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  * </pre>
  */
 PIX *
@@ -636,17 +629,15 @@ PIX  *pixd;
  * \param[in]    scalex, scaley must both be >= 0.7
  * \return  pixd, or NULL on error
  *
- *  This function is appropriate for upscaling
- *  magnification: scale factors > 1, and for a
- *  small amount of downscaling reduction: scale
- *  factors > 0.5.   For scale factors less than 0.5,
- *  the best result is obtained by area mapping,
- *  but this is very expensive.  So for such large
- *  reductions, it is more appropriate to do low pass
- *  filtering followed by subsampling, a combination
+ *  This function is appropriate for upscaling magnification, where the
+ *  scale factor is > 1, as well as for a small amount of downscaling
+ *  reduction, with scale factor > 0.7.  If the scale factor is < 0.7,
+ *  the best result is obtained by area mapping, but this is relatiely
+ *  expensive.  A less expensive alternative with scale factor < 0.7
+ *  is low-pass filtering followed by subsampling (pixScaleSmooth()),
  *  which is effectively a cheap form of area mapping.
  *
- *  Some details follow.
+ *  Some more details follow.
  *
  *  For each pixel in the dest, this does a linear
  *  interpolation of 4 neighboring pixels in the src.
@@ -694,14 +685,9 @@ PIX  *pixd;
  *  not optimal, as it samples src pixels only near the
  *  corners of the dest pixel, and it is not implemented.
  *
- *  Summary:
- *    1 If this is used for scale factors less than 0.7,
- *        it will suffer from antialiasing.  A warning is issued.
- *        Particularly for document images with sharp edges,
- *        use pixScaleSmooth) or pixScaleAreaMap( instead.
- *    2) The speed on intel hardware for the general case (not 2x
- *        is about 13 * 10^6 dest-pixels/sec/GHz.  The special 2x
- *        case runs at about 100 * 10^6 dest-pixels/sec/GHz.
+ *  The speed on circa 2005 Intel hardware for the general case (not 2x)
+ *  is about 13 * 10^6 dest-pixels/sec/GHz.  The special 2x case runs
+ *  at about 100 * 10^6 dest-pixels/sec/GHz.
  */
 PIX *
 pixScaleGrayLI(PIX       *pixs,
@@ -721,7 +707,7 @@ PIX       *pixd;
     maxscale = L_MAX(scalex, scaley);
     if (maxscale < 0.7) {
         L_WARNING("scaling factors < 0.7; do regular scaling\n", procName);
-        return pixScale(pixs, scalex, scaley);
+        return pixScaleGeneral(pixs, scalex, scaley, 0.0, 0);
     }
 
         /* Do fast special cases if possible */
@@ -1210,10 +1196,11 @@ PIX       *pixd;
  *      (1) This function should only be used when the scale factors are less
  *          than or equal to 0.7 (i.e., more than about 1.42x reduction).
  *          If either scale factor is larger than 0.7, we issue a warning
- *          and invoke pixScale().
+ *          and call pixScaleGeneral(), which will invoke linear
+ *          interpolation without sharpening.
  *      (2) This works only on 2, 4, 8 and 32 bpp images, and if there is
  *          a colormap, it is removed by converting to RGB.  In other
- *          cases, we issue a warning and invoke pixScale().
+ *          cases, we issue a warning and call pixScaleGeneral().
  *      (3) It does simple (flat filter) convolution, with a filter size
  *          commensurate with the amount of reduction, to avoid antialiasing.
  *      (4) It does simple subsampling after smoothing, which is appropriate
@@ -1226,8 +1213,6 @@ PIX       *pixd;
  *          In fact, the computation time is approximately independent of
  *          the scale factor, because the convolution kernel is adjusted
  *          so that each source pixel is summed approximately once.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  * </pre>
  */
 PIX *
@@ -1246,7 +1231,7 @@ PIX       *pixs, *pixd;
         return (PIX *)ERROR_PTR("pix not defined", procName, NULL);
     if (scalex >= 0.7 || scaley >= 0.7) {
         L_WARNING("scaling factor not < 0.7; do regular scaling\n", procName);
-        return pixScale(pix, scalex, scaley);
+        return pixScaleGeneral(pix, scalex, scaley, 0.0, 0);
     }
 
         /* Remove colormap if necessary.
@@ -1266,7 +1251,7 @@ PIX       *pixs, *pixd;
     if (d != 8 && d != 32) {   /* d == 1 or d == 16 */
         L_WARNING("depth not 8 or 32 bpp; do regular scaling\n", procName);
         pixDestroy(&pixs);
-        return pixScale(pix, scalex, scaley);
+        return pixScaleGeneral(pix, scalex, scaley, 0.0, 0);
     }
 
         /* If 1.42 < 1/minscale < 2.5, use isize = 2
@@ -1304,6 +1289,56 @@ PIX       *pixs, *pixd;
 
     pixDestroy(&pixs);
     return pixd;
+}
+
+
+/*!
+ * \brief   pixScaleSmoothToSize()
+ *
+ * \param[in]    pix 2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap
+ * \param[in]    wd  target width; use 0 if using height as target
+ * \param[in]    hd  target height; use 0 if using width as target
+ * \return  pixd, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) See notes in pixScaleSmooth().
+ *      (2) The output scaled image has the dimension(s) you specify:
+ *          * To specify the width with isotropic scaling, set %hd = 0.
+ *          * To specify the height with isotropic scaling, set %wd = 0.
+ *          * If both %wd and %hd are specified, the image is scaled
+ *             (in general, anisotropically) to that size.
+ *          * It is an error to set both %wd and %hd to 0.
+ * </pre>
+ */
+PIX *
+pixScaleSmoothToSize(PIX     *pixs,
+                     l_int32  wd,
+                     l_int32  hd)
+{
+l_int32    w, h;
+l_float32  scalex, scaley;
+
+    PROCNAME("pixScaleSmoothToSize");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (wd <= 0 && hd <= 0)
+        return (PIX *)ERROR_PTR("neither wd nor hd > 0", procName, NULL);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    if (wd <= 0) {
+        scaley = (l_float32)hd / (l_float32)h;
+        scalex = scaley;
+    } else if (hd <= 0) {
+        scalex = (l_float32)wd / (l_float32)w;
+        scaley = scalex;
+    } else {
+        scalex = (l_float32)wd / (l_float32)w;
+        scaley = (l_float32)hd / (l_float32)h;
+    }
+
+    return pixScaleSmooth(pixs, scalex, scaley);
 }
 
 
@@ -1364,21 +1399,21 @@ PIX       *pixd;
  *      (1) This function should only be used when the scale factors are less
  *          than or equal to 0.7 (i.e., more than about 1.42x reduction).
  *          If either scale factor is larger than 0.7, we issue a warning
- *          and invoke pixScale().
+ *          and call pixScaleGeneral(), which will invoke linear
+ *          interpolation without sharpening.
  *      (2) This works only on 2, 4, 8 and 32 bpp images.  If there is
  *          a colormap, it is removed by converting to RGB.  In other
- *          cases, we issue a warning and invoke pixScale().
- *      (3) It does a relatively expensive area mapping computation, to
+ *          cases, we issue a warning and call pixScaleGeneral().
+ *      (3) This is faster than pixScale() because it does not do sharpening.
+ *      (4) It does a relatively expensive area mapping computation, to
  *          avoid antialiasing.  It is about 2x slower than pixScaleSmooth(),
  *          but the results are much better on fine text.
- *      (4) This is typically about 20% faster for the special cases of
+ *      (5) This is typically about 20% faster for the special cases of
  *          2x, 4x, 8x and 16x reduction.
- *      (5) Surprisingly, there is no speedup (and a slight quality
+ *      (6) Surprisingly, there is no speedup (and a slight quality
  *          impairment) if you do as many successive 2x reductions as
  *          possible, ending with a reduction with a scale factor larger
  *          than 0.5.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  * </pre>
  */
 PIX *
@@ -1401,7 +1436,7 @@ PIX       *pixs, *pixd, *pixt1, *pixt2, *pixt3;
     maxscale = L_MAX(scalex, scaley);
     if (maxscale >= 0.7) {
         L_WARNING("scaling factors not < 0.7; do regular scaling\n", procName);
-        return pixScale(pix, scalex, scaley);
+        return pixScaleGeneral(pix, scalex, scaley, 0.0, 0);
     }
 
         /* Special cases: 2x, 4x, 8x, 16x reduction */
@@ -1544,6 +1579,56 @@ PIX       *pixs, *pixd;
         pixScaleAndTransferAlpha(pixd, pixs, 0.5, 0.5);
     pixDestroy(&pixs);
     return pixd;
+}
+
+
+/*!
+ * \brief   pixScaleAreaMapToSize()
+ *
+ * \param[in]    pix 2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap
+ * \param[in]    wd  target width; use 0 if using height as target
+ * \param[in]    hd  target height; use 0 if using width as target
+ * \return  pixd, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) See notes in pixScaleAreaMap().
+ *      (2) The output scaled image has the dimension(s) you specify:
+ *          * To specify the width with isotropic scaling, set %hd = 0.
+ *          * To specify the height with isotropic scaling, set %wd = 0.
+ *          * If both %wd and %hd are specified, the image is scaled
+ *             (in general, anisotropically) to that size.
+ *          * It is an error to set both %wd and %hd to 0.
+ * </pre>
+ */
+PIX *
+pixScaleAreaMapToSize(PIX     *pixs,
+                      l_int32  wd,
+                      l_int32  hd)
+{
+l_int32    w, h;
+l_float32  scalex, scaley;
+
+    PROCNAME("pixScaleAreaMapToSize");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (wd <= 0 && hd <= 0)
+        return (PIX *)ERROR_PTR("neither wd nor hd > 0", procName, NULL);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    if (wd <= 0) {
+        scaley = (l_float32)hd / (l_float32)h;
+        scalex = scaley;
+    } else if (hd <= 0) {
+        scalex = (l_float32)wd / (l_float32)w;
+        scaley = scalex;
+    } else {
+        scalex = (l_float32)wd / (l_float32)w;
+        scaley = (l_float32)hd / (l_float32)h;
+    }
+
+    return pixScaleAreaMap(pixs, scalex, scaley);
 }
 
 
@@ -3310,8 +3395,6 @@ PIX  *pix1, *pix2;
  *              pixDestroy(&pixt);
  *          This has the side-effect of producing artifacts in the very
  *          dark regions.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  * </pre>
  */
 PIX *

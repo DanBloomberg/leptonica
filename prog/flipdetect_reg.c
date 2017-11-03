@@ -27,10 +27,13 @@
 /*
  * flipdetect_reg.c
  *
- *   Tests 90 degree orientation of text and whether the text is
- *   mirror reversed.  Compares the rasterop with dwa implementations
- *   for speed.  Shows the typical 'confidence' outputs from the
- *   functions in flipdetect.c.
+ *   flipdetect_reg [filein]
+ *
+ *   - Tests the high-level interface
+ *   - Tests 90 degree orientation of text and whether the text is
+ *     mirror reversed.
+ *   - Compares the rasterop with dwa implementations for speed.
+ *   - Shows the typical 'confidence' outputs from functions in flipdetect.c.
  */
 
 #include "allheaders.h"
@@ -40,28 +43,39 @@ static void printStarredMessage(const char *msg);
 int main(int    argc,
          char **argv)
 {
-char        *filein;
-l_int32      i, orient;
+const char  *filein;
+l_int32      i, orient, rotation, same;
 l_float32    upconf1, upconf2, leftconf1, leftconf2, conf1, conf2;
-PIX         *pixs, *pixt1, *pixt2;
+PIX         *pixs, *pix1, *pix2;
 static char  mainName[] = "flipdetect_reg";
 
-    if (argc != 2)
-        return ERROR_INT(" Syntax: flipdetect_reg filein", mainName, 1);
+    if (argc != 1 && argc != 2)
+        return ERROR_INT(" Syntax: flipdetect_reg [filein]", mainName, 1);
+    filein = (argc == 1) ? "feyn.tif" : argv[1];
 
-    filein = argv[1];
+    if ((pix1 = pixRead(filein)) == NULL)
+        return ERROR_INT("pix1 not made", mainName, 1);
+    pixs = pixConvertTo1(pix1, 130);
+    pixDestroy(&pix1);
 
-    if ((pixt1 = pixRead(filein)) == NULL)
-        return ERROR_INT("pixt1 not made", mainName, 1);
-    pixs = pixConvertTo1(pixt1, 130);
-    pixDestroy(&pixt1);
+        /* Test high-level interface */
+    fprintf(stderr, "\nTest high-level detection/rotation\n");
+    pix1 = pixRotateOrth(pixs, 3);
+    pix2 = pixOrientCorrect(pix1, 0.0, 0.0, &upconf1, &leftconf1,
+                            &rotation, 0);
+    fprintf(stderr, "upconf = %7.3f, leftconf = %7.3f, rotation = %d\n",
+            upconf1, leftconf1, rotation);
+    pixEqual(pixs, pix2, &same);
+    if (!same)
+        fprintf(stderr, "Error: image not rotated back correctly!\n");
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
 
+        /* Compare rasterop and dwa orientation detection */
     fprintf(stderr, "\nTest orientation detection\n");
     startTimer();
     pixOrientDetect(pixs, &upconf1, &leftconf1, 0, 0);
     fprintf(stderr, "Time for rop orient test: %7.3f sec\n", stopTimer());
-
-    makeOrientDecision(upconf1, leftconf1, 0, 0, &orient, 1);
 
     startTimer();
     pixOrientDetectDwa(pixs, &upconf2, &leftconf2, 0, 0);
@@ -79,18 +93,22 @@ static char  mainName[] = "flipdetect_reg";
                 leftconf1, leftconf2);
     }
 
-    pixt1 = pixCopy(NULL, pixs);
+    makeOrientDecision(upconf1, leftconf1, 0, 0, &orient, 1);
+    fprintf(stderr, "Orientation (enum) found: %d\n", orient);
+
+    pix1 = pixCopy(NULL, pixs);
     fprintf(stderr, "\nTest orient detection for 4 orientations\n");
     for (i = 0; i < 4; i++) {
-        pixOrientDetectDwa(pixt1, &upconf2, &leftconf2, 0, 0);
+        pixOrientDetectDwa(pix1, &upconf2, &leftconf2, 0, 0);
         makeOrientDecision(upconf2, leftconf2, 0, 0, &orient, 1);
         if (i == 3) break;
-        pixt2 = pixRotate90(pixt1, 1);
-        pixDestroy(&pixt1);
-        pixt1 = pixt2;
+        pix2 = pixRotate90(pix1, 1);
+        pixDestroy(&pix1);
+        pix1 = pix2;
     }
-    pixDestroy(&pixt1);
+    pixDestroy(&pix1);
 
+        /* Compare rasterop and dwa mirror flip detection */
     fprintf(stderr, "\nTest mirror reverse detection\n");
     startTimer();
     pixMirrorDetect(pixs, &conf1, 0, 1);
@@ -109,7 +127,8 @@ static char  mainName[] = "flipdetect_reg";
         fprintf(stderr, "conf1 = %7.3f, conf2 = %7.3f\n", conf1, conf2);
     }
 
-    fprintf(stderr, "\nSafer version of up-down tests\n");
+        /* Compare safer rasterop and dwa orientation detection */
+    fprintf(stderr, "\nTest safer version of up-down tests\n");
     pixUpDownDetectGeneral(pixs, &conf1, 0, 10, 1);
     pixUpDownDetectGeneralDwa(pixs, &conf2, 0, 10, 1);
     if (conf1 == conf2)

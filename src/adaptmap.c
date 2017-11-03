@@ -116,9 +116,6 @@
  *        into pixels covered by an optional image mask.  Invert the
  *        background map without preconditioning by convolutional smoothing.
  *
- *  Note: Several of these functions make an implicit assumption about RGB
- *        component ordering.
- *
  *  Other methods for adaptively normalizing the image are also given here.
  *
  *  (1) pixThresholdSpreadNorm() computes a local threshold over the image

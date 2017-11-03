@@ -388,8 +388,6 @@ l_uint32  *lines, *lined;
  * \param[in]    wpls
  * \param[in]    lastlineflag  1 if last src line; 0 otherwise
  * \return  void
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  */
 void
 scaleColor2xLILineLow(l_uint32  *lined,

@@ -141,8 +141,6 @@
  *
  *      Setting neutral point for min/max boost conversion to gray
  *          void         l_setNeutralBoostVal()
- *
- *      *** indicates implicit assumption about RGB component ordering
  * </pre>
  */
 
@@ -3008,7 +3006,6 @@ l_int32  d;
  * <pre>
  * Notes:
  *      (1) Never returns a clone of pixs.
- *      (2) Implicit assumption about RGB component ordering.
  * </pre>
  */
 PIX *
@@ -3099,7 +3096,6 @@ PIX       *pix1, *pixd;
  * Notes:
  *      (1) If there is no colormap, replicates the gray value
  *          into the 3 MSB of the dest pixel.
- *      (2) Implicit assumption about RGB component ordering.
  * </pre>
  */
 PIX *

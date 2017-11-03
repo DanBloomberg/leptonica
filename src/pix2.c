@@ -122,8 +122,6 @@
  *
  *      Setting parameters for antialias masking with alpha transforms
  *           void        l_setAlphaMaskBorder()
- *
- *      *** indicates implicit assumption about RGB component ordering
  * </pre>
  */
 

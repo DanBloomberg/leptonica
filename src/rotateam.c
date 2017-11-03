@@ -456,8 +456,6 @@ PIX       *pixd;
  *          which uses 256 subpixels.
  *      (5) For some reason it shifts the image center.
  *          No attempt is made to rotate the alpha component.
- *
- *  *** Warning: implicit assumption about RGB component ordering ***
  * </pre>
  */
 PIX *

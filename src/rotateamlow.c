@@ -399,8 +399,6 @@ l_float32  sina, cosa;
  *     Rounding off to a sum of 4 causes appreciable visual artifacts
  *     in the rotated image.  The code for the inferior method
  *     can be found in prog/rotatefastalt.c, for reference.
- *
- *     *** Warning: explicit assumption about RGB component ordering ***
  */
 void
 rotateAMColorFastLow(l_uint32  *datad,
