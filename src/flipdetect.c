@@ -439,8 +439,6 @@ l_float32  absupconf, absleftconf;
 
     PROCNAME("makeOrientDecision");
 
-    lept_mkdir("lept/orient");
-
     if (!porient)
         return ERROR_INT("&orient not defined", procName, 1);
     *porient = L_TEXT_ORIENT_UNKNOWN;  /* default: no decision */
@@ -448,6 +446,8 @@ l_float32  absupconf, absleftconf;
         L_INFO("not enough confidence to get orientation\n", procName);
         return 0;
     }
+
+    lept_mkdir("lept/orient");
 
     if (minupconf == 0.0)
         minupconf = DEFAULT_MIN_UP_DOWN_CONF;
@@ -577,6 +577,8 @@ SEL       *sel1, *sel2, *sel3, *sel4;
         mincount = DEFAULT_MIN_UP_DOWN_COUNT;
     if (npixels < 0)
         npixels = 0;
+
+    lept_mkdir("lept/orient");
 
     sel1 = selCreateFromString(textsel1, 5, 6, NULL);
     sel2 = selCreateFromString(textsel2, 5, 6, NULL);
@@ -797,6 +799,8 @@ PIX       *pixt, *pix0, *pix1, *pix2, *pix3, *pixm;
         mincount = DEFAULT_MIN_UP_DOWN_COUNT;
     if (npixels < 0)
         npixels = 0;
+
+    lept_mkdir("lept/orient");
 
         /* One of many reasonable pre-filtering sequences: (1, 8) and (30, 1).
          * This closes holes in x-height characters and joins them at

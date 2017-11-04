@@ -1264,7 +1264,7 @@ NUMA       *nah, *nan, *nad;
  *                            pixels with diff greater than or equal to
  *                            mindiff, after subtracting mindiff
  * \param[out]   psimilar     1 if similar, 0 otherwise
- * \param[in]    printstats   use 1 to print normalized histogram to stderr
+ * \param[in]    details      use 1 to give normalized histogram and other data
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1307,7 +1307,7 @@ pixTestForSimilarity(PIX       *pix1,
                      l_float32  maxfract,
                      l_float32  maxave,
                      l_int32   *psimilar,
-                     l_int32    printstats)
+                     l_int32    details)
 {
 l_float32   fractdiff, avediff;
 
@@ -1326,7 +1326,7 @@ l_float32   fractdiff, avediff;
         return ERROR_INT("mindiff must be > 0", procName, 1);
 
     if (pixGetDifferenceStats(pix1, pix2, factor, mindiff,
-                              &fractdiff, &avediff, printstats))
+                              &fractdiff, &avediff, details))
         return ERROR_INT("diff stats not found", procName, 1);
 
     if (maxave <= 0.0) maxave = 256.0;
@@ -1347,7 +1347,7 @@ l_float32   fractdiff, avediff;
  *                           equal to mindiff
  * \param[out]   pavediff    average difference of pixels with diff greater
  *                           than or equal to mindiff, less mindiff
- * \param[in]    printstats  use 1 to print normalized histogram to stderr
+ * \param[in]    details     use 1 to give normalized histogram and other data
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1372,6 +1372,10 @@ l_float32   fractdiff, avediff;
  *          is either gray or RGB depending on the colormap.
  *      (4) If RGB, the maximum difference between pixel components is
  *          saved in the histogram.
+ *      (5) Set %details == 1 to see the difference histogram and get
+ *          an output that shows for each value of %mindiff, what are the
+ *          minimum values required for fractdiff and avediff in order
+ *          that the two pix will be considered similar.
  * </pre>
  */
 l_int32
@@ -1381,7 +1385,7 @@ pixGetDifferenceStats(PIX        *pix1,
                       l_int32     mindiff,
                       l_float32  *pfractdiff,
                       l_float32  *pavediff,
-                      l_int32     printstats)
+                      l_int32     details)
 {
 l_int32     i, first, last, diff;
 l_float32   fract, ave;
@@ -1412,9 +1416,13 @@ NUMA       *nah, *nan, *nac;
     }
     array = numaGetFArray(nan, L_NOCOPY);
 
-    if (printstats) {
+    if (details) {
+        lept_mkdir("lept/comp");
         numaGetNonzeroRange(nan, 0.0, &first, &last);
         nac = numaClipToInterval(nan, first, last);
+        gplotSimple1(nac, GPLOT_PNG, "/tmp/lept/comp/histo",
+                     "Difference histogram");
+        l_fileDisplay("/tmp/lept/comp/histo.png", 500, 0, 1.0);
         fprintf(stderr, "\nNonzero values in normalized histogram:");
         numaWriteStream(stderr, nac);
         numaDestroy(&nac);
