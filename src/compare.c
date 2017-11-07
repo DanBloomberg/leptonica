@@ -810,7 +810,7 @@ PIX     *pixt1, *pixt2;
         return ERROR_INT("pix2 depth < 8 bpp and not cmapped", procName, 1);
     if (comptype != L_COMPARE_SUBTRACT && comptype != L_COMPARE_ABS_DIFF)
         return ERROR_INT("invalid comptype", procName, 1);
-    if (plottype > NUM_GPLOT_OUTPUTS)
+    if (plottype < 0 || plottype >= NUM_GPLOT_OUTPUTS)
         return ERROR_INT("invalid plottype", procName, 1);
 
     pixt1 = pixRemoveColormap(pix1, REMOVE_CMAP_BASED_ON_SRC);
@@ -890,7 +890,7 @@ PIX            *pixt;
         return ERROR_INT("pix1 and/or pix2 are colormapped", procName, 1);
     if (comptype != L_COMPARE_SUBTRACT && comptype != L_COMPARE_ABS_DIFF)
         return ERROR_INT("invalid comptype", procName, 1);
-    if (plottype > NUM_GPLOT_OUTPUTS)
+    if (plottype < 0 || plottype >= NUM_GPLOT_OUTPUTS)
         return ERROR_INT("invalid plottype", procName, 1);
 
     lept_mkdir("lept/comp");
@@ -995,7 +995,7 @@ PIX            *pixr, *pixg, *pixb;
         return ERROR_INT("pix2 not defined or not ew bpp", procName, 1);
     if (comptype != L_COMPARE_SUBTRACT && comptype != L_COMPARE_ABS_DIFF)
         return ERROR_INT("invalid comptype", procName, 1);
-    if (plottype > NUM_GPLOT_OUTPUTS)
+    if (plottype < 0 || plottype >= NUM_GPLOT_OUTPUTS)
         return ERROR_INT("invalid plottype", procName, 1);
 
     lept_mkdir("lept/comp");

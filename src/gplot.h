@@ -52,7 +52,7 @@ enum GPLOT_STYLE {
     GPLOT_DOTS        = 4
 };
 
-#define  NUM_GPLOT_OUTPUTS     6
+#define  NUM_GPLOT_OUTPUTS     5
 enum GPLOT_OUTPUT {
     GPLOT_NONE  = 0,
     GPLOT_PNG   = 1,
@@ -69,7 +69,6 @@ enum GPLOT_SCALING {
 };
 
 extern const char  *gplotstylenames[];  /*!< used in gnuplot cmd file */
-extern const char  *gplotfilestyles[];  /*!< used in simple file input */
 extern const char  *gplotfileoutputs[]; /*!< used in simple file input */
 
 /*! Data structure for generating gnuplot files */

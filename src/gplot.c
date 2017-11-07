@@ -107,11 +107,6 @@ const char  *gplotstylenames[] = {"with lines",
                                   "with impulses",
                                   "with linespoints",
                                   "with dots"};
-const char  *gplotfilestyles[] = {"LINES",
-                                  "POINTS",
-                                  "IMPULSES",
-                                  "LINESPOINTS",
-                                  "DOTS"};
 const char  *gplotfileoutputs[] = {"",
                                    "PNG",
                                    "PS",
@@ -254,7 +249,8 @@ GPLOT  *gplot;
  *               x = startx + i * delx
  *          These are set with numaSetParameters().  Their default
  *          values are startx = 0.0, delx = 1.0.
- *      (3) If nax is defined, it must be the same size as nay.
+ *      (3) If nax is defined, it must be the same size as nay, and
+ *          must have at least one number.
  *      (4) The 'plottitle' string can have spaces, double
  *          quotes and backquotes, but not single quotes.
  * </pre>
@@ -279,19 +275,20 @@ SARRAY    *sa;
         return ERROR_INT("gplot not defined", procName, 1);
     if (!nay)
         return ERROR_INT("nay not defined", procName, 1);
-    if (plotstyle != GPLOT_LINES && plotstyle != GPLOT_POINTS &&
-        plotstyle != GPLOT_IMPULSES && plotstyle != GPLOT_LINESPOINTS &&
-        plotstyle != GPLOT_DOTS)
+    if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
         return ERROR_INT("invalid plotstyle", procName, 1);
 
-    n = numaGetCount(nay);
-    numaGetParameters(nay, &startx, &delx);
-    if (nax) {
-        if (n != numaGetCount(nax))
-            return ERROR_INT("nax and nay sizes differ", procName, 1);
+    if ((n = numaGetCount(nay)) == 0)
+        return ERROR_INT("no points to plot", procName, 1);
+    if (nax && (n != numaGetCount(nax)))
+        return ERROR_INT("nax and nay sizes differ", procName, 1);
+    if (n == 1 && plotstyle == GPLOT_LINES) {
+        L_INFO("only 1 pt; changing style to points\n", procName);
+        plotstyle = GPLOT_POINTS;
     }
 
         /* Save plotstyle and plottitle */
+    numaGetParameters(nay, &startx, &delx);
     numaAddNumber(gplot->plotstyles, plotstyle);
     if (plottitle) {
         title = stringNew(plottitle);
@@ -671,9 +668,7 @@ GPLOT  *gplot;
 
     if (!nay)
         return ERROR_INT("nay not defined", procName, 1);
-    if (plotstyle != GPLOT_LINES && plotstyle != GPLOT_POINTS &&
-        plotstyle != GPLOT_IMPULSES && plotstyle != GPLOT_LINESPOINTS &&
-        plotstyle != GPLOT_DOTS)
+    if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
         return ERROR_INT("invalid plotstyle", procName, 1);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
         outformat != GPLOT_EPS && outformat != GPLOT_LATEX)
@@ -729,9 +724,7 @@ GPLOT  *gplot;
 
     if (!nay1 || !nay2)
         return ERROR_INT("nay1 and nay2 not both defined", procName, 1);
-    if (plotstyle != GPLOT_LINES && plotstyle != GPLOT_POINTS &&
-        plotstyle != GPLOT_IMPULSES && plotstyle != GPLOT_LINESPOINTS &&
-        plotstyle != GPLOT_DOTS)
+    if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
         return ERROR_INT("invalid plotstyle", procName, 1);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
         outformat != GPLOT_EPS && outformat != GPLOT_LATEX)
@@ -790,9 +783,7 @@ NUMA    *nay;
         return ERROR_INT("naay not defined", procName, 1);
     if ((n = numaaGetCount(naay)) == 0)
         return ERROR_INT("no numa in array", procName, 1);
-    if (plotstyle != GPLOT_LINES && plotstyle != GPLOT_POINTS &&
-        plotstyle != GPLOT_IMPULSES && plotstyle != GPLOT_LINESPOINTS &&
-        plotstyle != GPLOT_DOTS)
+    if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
         return ERROR_INT("invalid plotstyle", procName, 1);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
         outformat != GPLOT_EPS && outformat != GPLOT_LATEX)
