@@ -112,7 +112,7 @@ OTHER_PROGS = adaptmap_dark \
 	seedfilltest settest sharptest \
 	sheartest showedges \
 	skewtest snapcolortest \
-	sorttest sudokutest trctest \
+	sorttest sudokutest textorient trctest \
 	warpertest watershedtest wordsinorder \
 	writemtiff yuvtest
 
