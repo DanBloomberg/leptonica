@@ -65,7 +65,7 @@ static char  mainName[] = "rotatefastalt";
     filein = argv[1];
     angle = atof(argv[2]);
     fileout = argv[3];
-    deg2rad = 3.1415926535 / 180.;
+    deg2rad = M_PI / 180.;
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not read", mainName, 1);
 

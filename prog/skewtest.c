@@ -72,7 +72,7 @@ static char  mainName[] = "skewtest";
     fileout = argv[2];
     pixd = NULL;
 
-    deg2rad = 3.1415926535 / 180.;
+    deg2rad = M_PI / 180.;
 
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);

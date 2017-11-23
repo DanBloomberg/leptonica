@@ -271,7 +271,7 @@ l_int32  i, n, val1, val2, val;
             numaSetValue(nad, i, val);
             break;
         case L_EXCLUSIVE_OR:
-            val = ((val1 && !val2) || (!val1 && val2)) ? 1 : 0;
+            val = (bool(val1) != bool(val2)) ? 1 : 0;
             numaSetValue(nad, i, val);
             break;
         default:

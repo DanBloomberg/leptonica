@@ -127,7 +127,7 @@ PIX       *pixh, *pixv, *pixt, *pixg1, *pixg2, *pixg3, *pixg4;
     pixDestroy(&pixv);
 
     pixg2 = pixg3 = pixg4 = NULL;
-    pi = 3.1415926535;
+    pi = M_PI;
     if (nangles == 4 || nangles == 8) {
             /* Find min length at +45 and -45 degrees */
         angle = pi / 4.0;
@@ -294,10 +294,14 @@ PIX       *pixt, *pixd;
 
     if ((start = (l_int32 *)LEPT_CALLOC(maxsize, sizeof(l_int32))) == NULL)
         return (PIX *)ERROR_PTR("start not made", procName, NULL);
-    if ((end = (l_int32 *)LEPT_CALLOC(maxsize, sizeof(l_int32))) == NULL)
+    if ((end = (l_int32 *)LEPT_CALLOC(maxsize, sizeof(l_int32))) == NULL) {
+        LEPT_FREE(strat);
         return (PIX *)ERROR_PTR("end not made", procName, NULL);
-    if ((buffer = (l_int32 *)LEPT_CALLOC(bufsize, sizeof(l_int32))) == NULL)
+    }
+    if ((buffer = (l_int32 *)LEPT_CALLOC(bufsize, sizeof(l_int32))) == NULL) {
+        LEPT_FREE(end);
         return (PIX *)ERROR_PTR("buffer not made", procName, NULL);
+    }
 
         /* Use fg runs for evaluation */
     if (color == 0)

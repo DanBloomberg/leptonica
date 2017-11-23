@@ -42,8 +42,8 @@
 #define   EIGHT_BPP_CMAP_IMAGE2     "test24.jpg"
 #define   RGB_IMAGE                 "marge.jpg"
 
-static const l_float32  ANGLE1 = 3.14159265 / 30.;
-static const l_float32  ANGLE2 = 3.14159265 / 7.;
+static const l_float32  ANGLE1 = M_PI / 30.;
+static const l_float32  ANGLE2 = M_PI / 7.;
 
 void RotateTest(PIX *pixs, l_float32 scale, L_REGPARAMS *rp);
 

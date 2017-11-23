@@ -825,7 +825,7 @@ l_float32  pi2;
     PROCNAME("normalizeAngleForShear");
 
        /* Bring angle into range [-pi/2, pi/2] */
-    pi2 = 3.14159265 / 2.0;
+    pi2 = M_PI / 2.0;
     if (radang < -pi2 || radang > pi2)
         radang = radang - (l_int32)(radang / pi2) * pi2;
 

@@ -60,7 +60,7 @@ int main(int    argc,
 char        *str1, *str2, *pngname;
 l_int32      i;
 size_t       size1, size2;
-l_float32    x, y1, y2, pi;
+l_float32    x, y1, y2;
 GPLOT       *gplot1, *gplot2, *gplot3, *gplot4, *gplot5;
 NUMA        *nax, *nay1, *nay2;
 static char  mainName[] = "plottest";
@@ -74,9 +74,8 @@ static char  mainName[] = "plottest";
     nax = numaCreate(0);
     nay1 = numaCreate(0);
     nay2 = numaCreate(0);
-    pi = 3.1415926535;
     for (i = 0; i < 180; i++) {
-        x = (pi / 180.) * i;
+        x = (M_PI / 180.) * i;
         y1 = (l_float32)sin(2.4 * x);
         y2 = (l_float32)cos(2.4 * x);
         numaAddNumber(nax, x);
@@ -113,7 +112,7 @@ static char  mainName[] = "plottest";
                 (unsigned long)size1, (unsigned long)size2);
     else
         fprintf(stderr, "Correct: size1 = size2 = %lu\n", (unsigned long)size1);
-    if (strcmp(str1, str2))
+    if (strcmp(str1, str2) != 0)
         fprintf(stderr, "Error: str1 != str2\n");
     else
         fprintf(stderr, "Correct: str1 == str2\n");

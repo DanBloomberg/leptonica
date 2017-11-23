@@ -451,7 +451,7 @@ PIXCMAP   *cmap;
          * in color space. */
     lhs = lheapCreate(0, L_SORT_DECREASING);
     while ((vbox = (L_BOX3D *)lheapRemove(lh))) {
-        vbox->sortparam = vbox->npix * vbox->vol;
+        vbox->sortparam = (l_float32)(vbox->npix) * vbox->vol;
         lheapAdd(lhs, vbox);
     }
     lheapDestroy(&lh, TRUE);
@@ -470,12 +470,12 @@ PIXCMAP   *cmap;
             break;
         }
         if (vbox1->vol > 1)
-            vbox1->sortparam = vbox1->npix * vbox1->vol;
+            vbox1->sortparam = (l_float32)(vbox1->npix) * vbox1->vol;
         LEPT_FREE(vbox);
         lheapAdd(lhs, vbox1);
         if (vbox2) {  /* vbox2 can be NULL */
             if (vbox2->vol > 1)
-                vbox2->sortparam = vbox2->npix * vbox2->vol;
+                vbox2->sortparam = (l_float32)(vbox2->npix) * vbox2->vol;
             lheapAdd(lhs, vbox2);
             ncolors++;
         }
@@ -1084,7 +1084,7 @@ PIX       *pixd;
                         buf1r[j + 1] = L_MIN(16383, val1);
                         buf2r[j] = L_MIN(16383, val2);
                         buf2r[j + 1] = L_MIN(16383, val3);
-                    } else if (dif < 0) {
+                    } else {
                         buf1r[j + 1] = L_MAX(0, val1);
                         buf2r[j] = L_MAX(0, val2);
                         buf2r[j + 1] = L_MAX(0, val3);
@@ -1102,7 +1102,7 @@ PIX       *pixd;
                         buf1g[j + 1] = L_MIN(16383, val1);
                         buf2g[j] = L_MIN(16383, val2);
                         buf2g[j + 1] = L_MIN(16383, val3);
-                    } else if (dif < 0) {
+                    } else {
                         buf1g[j + 1] = L_MAX(0, val1);
                         buf2g[j] = L_MAX(0, val2);
                         buf2g[j + 1] = L_MAX(0, val3);
@@ -1120,7 +1120,7 @@ PIX       *pixd;
                         buf1b[j + 1] = L_MIN(16383, val1);
                         buf2b[j] = L_MIN(16383, val2);
                         buf2b[j + 1] = L_MIN(16383, val3);
-                    } else if (dif < 0) {
+                    } else if {
                         buf1b[j + 1] = L_MAX(0, val1);
                         buf2b[j] = L_MAX(0, val2);
                         buf2b[j + 1] = L_MAX(0, val3);

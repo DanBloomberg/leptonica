@@ -1721,7 +1721,7 @@ SARRAY  *sa;
 
         /* Only handling digits */
     nclass = pixaaGetCount(recog->pixaa_u, NULL);  /* unscaled bitmaps */
-    if (recog->charset_type != 1 || (recog->charset_type == 1 && nclass == 10))
+    if (recog->charset_type != 1 || nclass == 10)
         return sarrayCreate(0);  /* empty */
 
         /* Make an indicator array for missing classes */

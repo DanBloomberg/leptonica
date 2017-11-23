@@ -335,7 +335,7 @@ FPIX       *fpix;
         numaAddNumber(nacurve0, c2);
         ptad = ptaCreate(nx);
         for (j = 0; j < nx; j++) {  /* uniformly sampled in x */
-             x = j * sampling;
+             x = (l_float32)(j) * sampling;
              applyQuadraticFit(c2, c1, c0, x, &y);
              ptaAddPt(ptad, x, y);
         }
@@ -497,7 +497,7 @@ FPIX       *fpix;
         ptaGetQuadraticLSF(pta, &c2, &c1, &c0, NULL);
         ptad = ptaCreate(ny);
         for (i = 0; i < ny; i++) {  /* uniformly sampled in y */
-             y = i * sampling;
+             y = (l_float32)(i) * sampling;
              applyQuadraticFit(c2, c1, c0, y, &val);
              ptaAddPt(ptad, y, val);
         }
@@ -629,7 +629,7 @@ FPIX      *fpix;
     L_INFO("Left edge curvature = %d\n", procName, dew->leftcurv);
     ptal3 = ptaCreate(ny);
     for (i = 0; i < ny; i++) {  /* uniformly sampled in y */
-        y = i * sampling;
+        y = (l_float32)(i) * sampling;
         applyQuadraticFit(cl2, cl1, cl0, y, &x);
         ptaAddPt(ptal3, x, y);
     }
@@ -643,7 +643,7 @@ FPIX      *fpix;
     L_INFO("Right edge curvature = %d\n", procName, dew->rightcurv);
     ptar3 = ptaCreate(ny);
     for (i = 0; i < ny; i++) {  /* uniformly sampled in y */
-        y = i * sampling;
+        y = (l_float32)(i) * sampling;
         applyQuadraticFit(cr2, cr1, cr0, y, &x);
         ptaAddPt(ptar3, x, y);
     }
@@ -714,7 +714,7 @@ FPIX      *fpix;
         ptaGetLinearLSF(pta, &c1, &c0, NULL);  /* horiz disparity along line */
         ptat = ptaCreate(nx);
         for (j = 0; j < nx; j++) {
-            x = j * sampling;
+            x = (l_float32)(j) * sampling;
             applyLinearFit(c1, c0, x, &val);
             ptaAddPt(ptat, x, val);
         }

@@ -561,8 +561,7 @@ PIX       *pixc, *pix1, *pix2;
                 for (j = 0; j < wc; j++) {
                     if (j + x < 0  || j + x >= w) continue;
                     cval = GET_DATA_BYTE(linec, j);
-                    if (transparent == 0 ||
-                        (transparent != 0 && cval != transpix)) {
+                    if (transparent == 0 || cval != transpix) {
                         dval = GET_DATA_BYTE(lined, j + x);
                         ival = (l_int32)((1. - fract) * dval + fract * cval);
                         SET_DATA_BYTE(lined, j + x, ival);
@@ -573,8 +572,7 @@ PIX       *pixc, *pix1, *pix2;
                 for (j = 0; j < wc; j++) {
                     if (j + x < 0  || j + x >= w) continue;
                     cval = GET_DATA_BYTE(linec, j);
-                    if (transparent == 0 ||
-                        (transparent != 0 && cval != transpix)) {
+                    if (transparent == 0 || cval != transpix) {
                         val32 = *(lined + j + x);
                         extractRGBValues(val32, &irval, &igval, &ibval);
                         irval = (l_int32)((1. - fract) * irval + fract * cval);
@@ -610,8 +608,7 @@ PIX       *pixc, *pix1, *pix2;
                 for (j = 0; j < wc; j++) {
                     if (j + x < 0  || j + x >= w) continue;
                     cval = GET_DATA_BYTE(linec, j);
-                    if (transparent == 0 ||
-                        (transparent != 0 && cval != transpix)) {
+                    if (transparent == 0 || cval != transpix) {
                         ival = GET_DATA_BYTE(lined, j + x);
                         delta = (128 - ival) * (255 - cval) / 256;
                         ival += (l_int32)(fract * delta + 0.5);
@@ -624,8 +621,7 @@ PIX       *pixc, *pix1, *pix2;
                 for (j = 0; j < wc; j++) {
                     if (j + x < 0  || j + x >= w) continue;
                     cval = GET_DATA_BYTE(linec, j);
-                    if (transparent == 0 ||
-                        (transparent != 0 && cval != transpix)) {
+                    if (transparent == 0 || cval != transpix) {
                         val32 = *(lined + j + x);
                         extractRGBValues(val32, &irval, &igval, &ibval);
                         delta = (128 - irval) * (255 - cval) / 256;
@@ -880,8 +876,7 @@ PIX       *pixc;
             if (j + x < 0  || j + x >= w) continue;
             cval32 = *(linec + j);
             if (transparent == 0 ||
-                (transparent != 0 &&
-                     ((cval32 & 0xffffff00) != (transpix & 0xffffff00)))) {
+                ((cval32 & 0xffffff00) != (transpix & 0xffffff00))) {
                 val32 = *(lined + j + x);
                 extractRGBValues(cval32, &rcval, &gcval, &bcval);
                 extractRGBValues(val32, &rval, &gval, &bval);
@@ -985,8 +980,7 @@ PIX       *pixc;
             if (j + x < 0  || j + x >= w) continue;
             cval32 = *(linec + j);
             if (transparent == 0 ||
-                (transparent != 0 &&
-                     ((cval32 & 0xffffff00) != (transpix & 0xffffff00)))) {
+                ((cval32 & 0xffffff00) != (transpix & 0xffffff00))) {
                 val32 = *(lined + j + x);
                 extractRGBValues(cval32, &rcval, &gcval, &bcval);
                 extractRGBValues(val32, &rval, &gval, &bval);

@@ -849,7 +849,6 @@ L_QUEUE  *lq_pixel;
                     }
                     if (maxval > maskval)
                         SET_DATA_BYTE(lines, j, maxval);
-                    val = GET_DATA_BYTE(lines, j);
 
                         /*
                          * If there exists a point (q) which belongs to J(p)

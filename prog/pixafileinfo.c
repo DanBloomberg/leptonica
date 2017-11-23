@@ -47,7 +47,6 @@ static char  mainName[] = "pixafileinfo";
 
     if (argc != 2)
         return ERROR_INT(" Syntax:  pixafileinfo filein", mainName, 1);
-    filein = argv[1];
 
         /* Input file can be either pixa or pixacomp */
     filein = argv[1];

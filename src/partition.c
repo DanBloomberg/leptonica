@@ -509,7 +509,7 @@ BOX       *boxt;
 
     boxGetGeometry(box, NULL, NULL, &w, &h);
     boxGetCenter(box, &x, &y);
-    threshdist = fract * (w * w + h * h);
+    threshdist = fract * ((l_float32)(w) * w + h * h);
     mindist = 1000000000.;
     minindex = 0;
     smallfound = FALSE;

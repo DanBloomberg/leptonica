@@ -498,8 +498,7 @@ RGBA_QUAD  *pquad;
     bmpih->biSizeImage = convertOnBigEnd32(fimagebytes);
     bmpih->biXPelsPerMeter = convertOnBigEnd32(xres);
     bmpih->biYPelsPerMeter = convertOnBigEnd32(yres);
-    bmpih->biClrUsed = convertOnBigEnd32(ncolors);
-    bmpih->biClrImportant = convertOnBigEnd32(ncolors);
+    bmpih->biClrUsed = bmpih->biClrImportant = convertOnBigEnd32(ncolors);
 
         /* Copy the colormap data and free the cta if necessary */
     if (ncolors > 0) {

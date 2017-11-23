@@ -103,7 +103,6 @@ DisplayResult(PIXA    *pixac,
 l_uint32  color;
 PIX      *pixt;
 
-    color = 0;
     color = ((rand() >> 16) & 0xff) << L_RED_SHIFT |
             ((rand() >> 16) & 0xff) << L_GREEN_SHIFT |
             ((rand() >> 16) & 0xff) << L_BLUE_SHIFT;
@@ -125,7 +124,6 @@ DisplayCaptcha(PIXA    *pixac,
 l_uint32  color;
 PIX      *pixd;
 
-    color = 0;
     color = ((rand() >> 16) & 0xff) << L_RED_SHIFT |
             ((rand() >> 16) & 0xff) << L_GREEN_SHIFT |
             ((rand() >> 16) & 0xff) << L_BLUE_SHIFT;

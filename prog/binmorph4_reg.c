@@ -99,11 +99,11 @@ PIX     *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pix6;
 
 #if 1
             /* Compare DWA non-composite with morph composite */
-        if (i < 16)
+        if (i < 16) {
             DoComparisonDwa2(pixs, pix1, pix2, pix3, pix4, pix5, pix6, i);
             /* Compare DWA composite with DWA non-composite */
-        if (i < 16)
             DoComparisonDwa3(pixs, pix1, pix2, pix3, pix4, pix5, pix6, i);
+        }
             /* Compare DWA composite with morph composite */
         DoComparisonDwa4(pixs, pix1, pix2, pix3, pix4, pix5, pix6, i);
             /* Compare DWA composite with morph non-composite */

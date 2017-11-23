@@ -100,8 +100,10 @@ PIXACC  *pixacc;
     pixacc->w = w;
     pixacc->h = h;
 
-    if ((pixacc->pix = pixCreate(w, h, 32)) == NULL)
+    if ((pixacc->pix = pixCreate(w, h, 32)) == NULL) {
+        LEPT_FREE(pixacc);
         return (PIXACC *)ERROR_PTR("pix not made", procName, NULL);
+    }
 
     if (negflag) {
         pixacc->offset = 0x40000000;

@@ -200,10 +200,9 @@ L_REGPARAMS  *rp;
     pixaAddPix(pixa, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 27 */
     boxDestroy(&box);
-    if (rp->display) pixcmapWriteStream(stderr, cmap);
-
-        /* Optional display */
     if (rp->display) {
+        pixcmapWriteStream(stderr, cmap);
+        /* Optional display */
         pix1 = pixaDisplayTiled(pixa, 2000, 0, 20);
         pixDisplay(pix1, 200, 100);
         pixWrite("/tmp/lept/mosaic2.png", pix1, IFF_PNG);

@@ -62,7 +62,7 @@ L_REGPARAMS  *rp;
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
-    deg2rad = 3.1415926535 / 180.;
+    deg2rad = M_PI / 180.;
 
     pixa = pixaCreate(0);
     pixs = pixRead("feyn.tif");

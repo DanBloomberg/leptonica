@@ -92,9 +92,11 @@ L_REGPARAMS  *rp;
     kernelGetSum(kelx, &sumx);
     if (rp->display) fprintf(stderr, "Sum for x gaussian kernel = %f\n", sumx);
     kernelGetSum(kely, &sumy);
-    if (rp->display) fprintf(stderr, "Sum for y gaussian kernel = %f\n", sumy);
-    if (rp->display) fprintf(stderr, "Sum for x * y gaussian kernel = %f\n",
+    if (rp->display) {
+        fprintf(stderr, "Sum for y gaussian kernel = %f\n", sumy);
+        fprintf(stderr, "Sum for x * y gaussian kernel = %f\n",
                          sumx * sumy);
+    }
     pix0 = kernelDisplayInPix(kelx, 41, 2);
     regTestWritePixAndCheck(rp, pix0, IFF_PNG);  /* 1 */
     pixSaveTiled(pix0, pixa, 1.0, 0, 20, 8);

@@ -44,7 +44,7 @@ L_REGPARAMS  *rp;
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
-    deg2rad = 3.14159 / 180.;
+    deg2rad = M_PI / 180.;
     pixs = pixRead("dave-orig.png");
     pixa = pixaCreate(0);
 

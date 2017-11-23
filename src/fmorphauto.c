@@ -797,7 +797,7 @@ SARRAY  *sa;
                 if (optype == L_MORPH_DILATE) {
                     dely = sel->cy - i;
                     delx = sel->cx - j;
-                } else if (optype == L_MORPH_ERODE) {
+                } else {
                     dely = i - sel->cy;
                     delx = j - sel->cx;
                 }
@@ -840,6 +840,7 @@ char     bigbuf[L_BUF_SIZE];
     if (dely < -31 || dely > 31)
         return (char *)ERROR_PTR("dely out of bounds", procName, NULL);
     absx = L_ABS(delx);
+    /* make sure L_ABS(dely) > 1 */
     absy = L_ABS(dely);
 
     if ((delx == 0) && (dely == 0))
