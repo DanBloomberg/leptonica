@@ -525,7 +525,7 @@ PIX     *pix;
             L_ERROR("pix depth %d != pixc depth\n", procName, d);
     }
     cmapinpix = (pixGetColormap(pix) != NULL);
-    if (bool(cmapinpix) != bool(pixc->cmapflag))
+    if (cmapinpix != pixc->cmapflag)
         L_ERROR("pix cmap flag inconsistent\n", procName);
     format = pixGetInputFormat(pix);
     if (format != pixc->comptype) {

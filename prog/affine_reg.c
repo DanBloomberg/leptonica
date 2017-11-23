@@ -42,7 +42,7 @@ static l_int32 RenderHashedBoxa(PIX *pixt, BOXA *boxa, l_int32 i);
      *    5: test with large distortion
      */
 static const l_int32  x1[] =  { 300,  300,  300,  95,    32};
-static const l_int32  y1[] =  {1200, 1200, 1250, 2821,  934};
+static const l_int32  yy1[] =  {1200, 1200, 1250, 2821,  934};
 static const l_int32  x2[] =  {1200, 1200, 1125, 1432,  487};
 static const l_int32  y2[] =  {1100, 1100, 1100, 2682,  934};
 static const l_int32  x3[] =  { 200,  200,  200,  232,   32};
@@ -387,7 +387,7 @@ MakePtas(l_int32  i,
 {
 
     *pptas = ptaCreate(3);
-    ptaAddPt(*pptas, x1[i], y1[i]);
+    ptaAddPt(*pptas, x1[i], yy1[i]);
     ptaAddPt(*pptas, x2[i], y2[i]);
     ptaAddPt(*pptas, x3[i], y3[i]);
     *pptad = ptaCreate(3);

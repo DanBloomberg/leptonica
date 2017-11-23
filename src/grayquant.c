@@ -1729,7 +1729,7 @@ PIXCMAP   *cmap;
         L_WARNING("maxsize < 2; setting to 10\n", procName);
         maxsize = 10;
     }
-    if (bool(pixd) != bool(pixm))
+    if (pixd != pixm)
         return (PIX *)ERROR_PTR("(pixd,pixm) not defined together",
                                 procName, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);

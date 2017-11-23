@@ -295,7 +295,7 @@ PIX       *pixt, *pixd;
     if ((start = (l_int32 *)LEPT_CALLOC(maxsize, sizeof(l_int32))) == NULL)
         return (PIX *)ERROR_PTR("start not made", procName, NULL);
     if ((end = (l_int32 *)LEPT_CALLOC(maxsize, sizeof(l_int32))) == NULL) {
-        LEPT_FREE(strat);
+        LEPT_FREE(start);
         return (PIX *)ERROR_PTR("end not made", procName, NULL);
     }
     if ((buffer = (l_int32 *)LEPT_CALLOC(bufsize, sizeof(l_int32))) == NULL) {
