@@ -2843,7 +2843,7 @@ PIXCMAP  *cmap;
         return pixConvert4To8(pixs, cmapflag);
     } else if (d == 8) {
         cmap = pixGetColormap(pixs);
-        if ((cmap && cmapflag) || (!cmap && !cmapflag)) {
+        if (cmap != cmapflag) {
             return pixCopy(NULL, pixs);
         } else if (cmap) {  /* !cmapflag */
             return pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);

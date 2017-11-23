@@ -56,7 +56,7 @@ L_REGPARAMS  *rp;
     lept_rmfile("/tmp/lept/regout/insert10.pa");
 
     /* ----------------- Test numa operations -------------------- */
-    pi = 3.1415926535;
+    pi = M_PI;
     na1 = numaCreate(500);
     for (i = 0; i < 500; i++) {
         angle = 0.02293 * i * pi;

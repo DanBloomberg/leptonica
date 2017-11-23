@@ -44,8 +44,8 @@
 
 static const l_int32    MODSIZE = 11;  /* set to 11 for display */
 
-static const l_float32  ANGLE1 = 3.14159265 / 12.;
-static const l_float32  ANGLE2 = 3.14159265 / 120.;
+static const l_float32  ANGLE1 = M_PI / 12.;
+static const l_float32  ANGLE2 = M_PI / 120.;
 static const l_int32    NTIMES = 24;
 
 static void RotateTest(PIX *pixs, l_float32 scale, L_REGPARAMS *rp);

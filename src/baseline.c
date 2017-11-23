@@ -546,7 +546,7 @@ PTA       *pta;
     for (i = 0; i < nslices; i++) {
         ystart = L_MAX(0, hs * i - ovlap);
         yend = L_MIN(h - 1, hs * (i + 1) + ovlap);
-        ycenter = (ystart + yend) / 2;
+        ycenter = (l_float32)(ystart + yend) / 2;
         box = boxCreate(0, ystart, w, yend - ystart + 1);
         pix = pixClipRectangle(pixs, box, NULL);
         pixFindSkewSweepAndSearch(pix, &angle, &conf, redsweep, redsearch,

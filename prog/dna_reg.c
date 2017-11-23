@@ -37,7 +37,7 @@ int main(int    argc,
          char **argv)
 {
 l_int32       i, nbins, ival;
-l_float64     pi, angle, val, sum;
+l_float64     angle, val, sum;
 L_DNA        *da1, *da2, *da3, *da4, *da5;
 L_DNAA       *daa1, *daa2;
 GPLOT        *gplot;
@@ -47,10 +47,9 @@ L_REGPARAMS  *rp;
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
-    pi = 3.1415926535;
     da1 = l_dnaCreate(50);
     for (i = 0; i < 5000; i++) {
-        angle = 0.02293 * i * pi;
+        angle = 0.02293 * i * M_PI;
         val = 999. * sin(angle);
         l_dnaAddNumber(da1, val);
     }
@@ -104,7 +103,7 @@ L_REGPARAMS  *rp;
     sum = 0;
     for (i = 0; i < 1000; i++) {
         l_dnaGetIValue(da5, i, &ival);
-        sum += L_ABS(ival - i * 1928374);  /* we better be adding 0 each time */
+        sum += L_ABS(ival - (l_float64)(i) * 1928374);  /* we better be adding 0 each time */
     }
     regTestCompareValues(rp, sum, 0.0, 0.0);  /* 8 */
     l_dnaDestroy(&da4);

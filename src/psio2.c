@@ -857,8 +857,6 @@ L_COMP_DATA  *cid;
         /* Get scaled location in pts */
     if (scale == 0.0)
         scale = 1.0;
-    if (res == 0)
-        res = DEFAULT_INPUT_RES;
     xpt = scale * x * 72. / res;
     ypt = scale * y * 72. / res;
     wpt = scale * cid->w * 72. / res;

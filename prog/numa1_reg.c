@@ -63,7 +63,7 @@ static char  mainName[] = "numa1_reg";
      *                            Histograms                              *
      * -------------------------------------------------------------------*/
 #if  DO_ALL
-    pi = 3.1415926535;
+    pi = M_PI;
     na = numaCreate(5000);
     for (i = 0; i < 500000; i++) {
         angle = 0.02293 * i * pi;

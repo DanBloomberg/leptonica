@@ -101,7 +101,7 @@ SARRAY   *sa;
         recogShowContent(stderr, recog1, 2, 1);
         if (i == 0)
             recogWrite("/tmp/lept/recog/recog1.rec", recog1);
-        else if (i == 1)
+        else
             recogWrite("/tmp/lept/recog/recog2.rec", recog1);
         pixaDestroy(&pixa2);
         pixaDestroy(&pixa3);
@@ -132,7 +132,7 @@ SARRAY   *sa;
         recogShowContent(stderr, recog1, 4, 1);
         if (i == 0)
             recogWrite("/tmp/lept/recog/recog3.rec", recog1);
-        else if (i == 1)
+        else
             recogWrite("/tmp/lept/recog/recog4.rec", recog1);
         pixaDestroy(&pixa2);
         pixaDestroy(&pixa3);

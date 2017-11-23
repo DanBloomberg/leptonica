@@ -1584,20 +1584,20 @@ l_int32   *ctab, *stab;
                 if (word) {
                     byte = word & 0xff;
                     rowsum += stab[byte];
-                    xsum += ctab[byte] + (j * 32 + 24) * stab[byte];
+                    xsum += ctab[byte] + (l_float32)(j * 32 + 24) * stab[byte];
                     byte = (word >> 8) & 0xff;
                     rowsum += stab[byte];
-                    xsum += ctab[byte] + (j * 32 + 16) * stab[byte];
+                    xsum += ctab[byte] + (l_float32)(j * 32 + 16) * stab[byte];
                     byte = (word >> 16) & 0xff;
                     rowsum += stab[byte];
-                    xsum += ctab[byte] + (j * 32 + 8) * stab[byte];
+                    xsum += ctab[byte] + (l_float32)(j * 32 + 8) * stab[byte];
                     byte = (word >> 24) & 0xff;
                     rowsum += stab[byte];
-                    xsum += ctab[byte] + j * 32 * stab[byte];
+                    xsum += ctab[byte] + (l_float32)(j) * 32 * stab[byte];
                 }
             }
             pixsum += rowsum;
-            ysum += rowsum * i;
+            ysum += (l_float32)(rowsum) * i;
         }
         if (pixsum == 0) {
             L_WARNING("no ON pixels in pix\n", procName);
@@ -1610,8 +1610,8 @@ l_int32   *ctab, *stab;
             line = data + wpl * i;
             for (j = 0; j < w; j++) {
                 val = GET_DATA_BYTE(line, j);
-                xsum += val * j;
-                ysum += val * i;
+                xsum += (l_float32)(val) * j;
+                ysum += (l_float32)(val) * i;
                 pixsum += val;
             }
         }

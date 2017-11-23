@@ -447,8 +447,8 @@ SEL       *sel;
             return (SELA *)ERROR_PTR("sela not made", procName, NULL);
     }
 
-    pi = 3.1415926535;
-    halfpi = 3.1415926535 / 2.0;
+    pi = M_PI;
+    halfpi = M_PI / 2.0;
     radincr = halfpi / (l_float64)norient;
     w = (l_int32)(2.2 * (L_MAX(hlsize, mdist) + 0.5));
     if (w % 2 == 0)
@@ -572,8 +572,8 @@ SEL       *sel;
             return (SELA *)ERROR_PTR("sela not made", procName, NULL);
     }
 
-    pi = 3.1415926535;
-    halfpi = 3.1415926535 / 2.0;
+    pi = M_PI;
+    halfpi = M_PI / 2.0;
     radincr = halfpi / (l_float32)norient;
     w = (l_int32)(2.4 * (L_MAX(hlsize, mdist) + 0.5));
     if (w % 2 == 0)

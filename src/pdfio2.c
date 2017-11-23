@@ -535,7 +535,7 @@ PIX          *pixt;
 
         /* If a compressed file is given that is not 'stdin', see if we
          * can generate the pdf output without transcoding. */
-    if (fname && strcmp(fname, "-") && strcmp(fname, "stdin")) {
+    if (fname && strcmp(fname, "-") != 0 && strcmp(fname, "stdin") != 0) {
         findFileFormat(fname, &format);
         if (format == IFF_UNKNOWN)
             L_WARNING("file %s format is unknown\n", procName, fname);
@@ -1623,6 +1623,10 @@ l_int32  i, nchar, buflen;
     if (!str)
         return (char *)ERROR_PTR("str not defined", procName, NULL);
     nchar = strlen(str);
+    /* 
+    * 'nchar' times a comparison and assignment are done in this loop
+    * for nothing because: str[i] is char type and range is: [-128, 127]
+    */
     for (i = 0; i < nchar; i++) {
         if (str[i] > 127)
             return (char *)ERROR_PTR("str not all ascii", procName, NULL);

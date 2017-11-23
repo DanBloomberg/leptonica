@@ -1411,8 +1411,10 @@ l_uint32  *line, *data;
         /* Find the count and weighted count for each bin */
     if ((bincount = (l_int32 *)LEPT_CALLOC(nbins, sizeof(l_int32))) == NULL)
         return ERROR_INT("calloc fail for bincount", procName, 1);
-    if ((binave = (l_int32 *)LEPT_CALLOC(nbins, sizeof(l_int32))) == NULL)
+    if ((binave = (l_int32 *)LEPT_CALLOC(nbins, sizeof(l_int32))) == NULL) {
+        LEPT_FREE(bincount);
         return ERROR_INT("calloc fail for binave", procName, 1);
+    }
     factor = (l_int32)(sqrt((l_float64)(w * h) / 30000.) + 0.5);
     factor = L_MAX(1, factor);
     data = pixGetData(pixs);
@@ -1427,8 +1429,10 @@ l_uint32  *line, *data;
     }
 
         /* Find the smallest gray values in each bin */
-    if ((binstart = (l_int32 *)LEPT_CALLOC(nbins, sizeof(l_int32))) == NULL)
+    if ((binstart = (l_int32 *)LEPT_CALLOC(nbins, sizeof(l_int32))) == NULL) {
+        LEPT_FREE(binave);
         return ERROR_INT("calloc fail for binstart", procName, 1);
+    }
     for (i = 1, index = 1; i < 256; i++) {
         if (tab[i] < index) continue;
         if (tab[i] == index)
@@ -1725,7 +1729,7 @@ PIXCMAP   *cmap;
         L_WARNING("maxsize < 2; setting to 10\n", procName);
         maxsize = 10;
     }
-    if ((pixd && !pixm) || (!pixd && pixm))
+    if (pixd != pixm)
         return (PIX *)ERROR_PTR("(pixd,pixm) not defined together",
                                 procName, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);

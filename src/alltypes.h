@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <math.h>
 
     /* General and configuration defs */
 #include "endianness.h"

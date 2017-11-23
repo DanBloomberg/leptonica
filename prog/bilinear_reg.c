@@ -37,7 +37,7 @@ static void MakePtas(l_int32 i, PTA **pptas, PTA **pptad);
      *    2-3: invertability tests
      */
 static const l_int32  x1[] =  {  32,   32,   32};
-static const l_int32  y1[] =  { 150,  150,  150};
+static const l_int32  yy1[] =  { 150,  150,  150};
 static const l_int32  x2[] =  { 520,  520,  520};
 static const l_int32  y2[] =  { 150,  150,  150};
 static const l_int32  x3[] =  {  32,   32,   32};
@@ -246,7 +246,7 @@ MakePtas(l_int32  i,
          PTA    **pptad)
 {
     *pptas = ptaCreate(4);
-    ptaAddPt(*pptas, x1[i], y1[i]);
+    ptaAddPt(*pptas, x1[i], yy1[i]);
     ptaAddPt(*pptas, x2[i], y2[i]);
     ptaAddPt(*pptas, x3[i], y3[i]);
     ptaAddPt(*pptas, x4[i], y4[i]);

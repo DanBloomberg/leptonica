@@ -72,7 +72,7 @@ static char  mainName[] = "findbinding";
     if (L_ABS(angle) < 0.1 || conf < 1.5) {
         pix4 = pixClone(pix2);
     } else {
-        radangle = 3.1416 * angle / 180.0;
+        radangle = M_PI * angle / 180.0;
         pix4 = pixRotate(pix2, radangle, L_ROTATE_AREA_MAP,
                          L_BRING_IN_BLACK, 0, 0);
     }

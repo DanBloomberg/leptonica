@@ -148,6 +148,7 @@ PTA       *pta;
 
         /* Generate line parameters */
     if (x1 == x2 && y1 == y2) {  /* same point */
+        getyofx = TRUE;
         npts = 1;
     } else if (L_ABS(x2 - x1) >= L_ABS(y2 - y1)) {
         getyofx = TRUE;

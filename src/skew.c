@@ -316,7 +316,7 @@ PIX       *pixb, *pixd;
     if (thresh == 0)
         thresh = DEFAULT_BINARY_THRESHOLD;
 
-    deg2rad = 3.1415926535 / 180.;
+    deg2rad = M_PI / 180.;
 
         /* Binarize if necessary */
     depth = pixGetDepth(pixs);
@@ -435,7 +435,7 @@ PIX       *pix, *pixt;
     if (reduction != 1 && reduction != 2 && reduction != 4 && reduction != 8)
         return ERROR_INT("reduction must be in {1,2,4,8}", procName, 1);
 
-    deg2rad = 3.1415926535 / 180.;
+    deg2rad = M_PI / 180.;
     ret = 0;
 
         /* Generate reduced image, if requested */
@@ -700,7 +700,7 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
     if (pivot != L_SHEAR_ABOUT_CORNER && pivot != L_SHEAR_ABOUT_CENTER)
         return ERROR_INT("invalid pivot", procName, 1);
 
-    deg2rad = 3.1415926535 / 180.;
+    deg2rad = M_PI / 180.;
     ret = 0;
 
         /* Generate reduced image for binary search, if requested */

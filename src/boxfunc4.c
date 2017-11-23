@@ -1827,10 +1827,10 @@ l_float32  del1, del2;
     for (i = start; i < 2 * npairs; i += 2) {
         boxaGetBoxGeometry(boxa1, i, NULL, &y1a, NULL, &h1a);
         boxaGetBoxGeometry(boxa1, i + 1, NULL, &y1b, NULL, &h1b);
-        del1 += (y1a - y1b) * (y1a - y1b) + (h1a - h1b) * (h1a - h1b);
+        del1 += (l_float32)(y1a - y1b) * (y1a - y1b) + (h1a - h1b) * (h1a - h1b);
         boxaGetBoxGeometry(boxa2, i, NULL, &y2a, NULL, &h2a);
         boxaGetBoxGeometry(boxa2, i + 1, NULL, &y2b, NULL, &h2b);
-        del2 += (y2a - y2b) * (y2a - y2b) + (h2a - h2b) * (h2a - h2b);
+        del2 += (l_float32)(y2a - y2b) * (y2a - y2b) + (h2a - h2b) * (h2a - h2b);
     }
 
         /* Get the root of the average of the sum of square differences */

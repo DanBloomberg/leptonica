@@ -175,16 +175,14 @@ PIX     *pixtb;    /* textblock mask */
     pixDestroy(&pixtm2);
     pixDestroy(&pixtbf2);
 
-        /* Debug: identify objects that are neither text nor halftone image */
     if (pixadb) {
+        /* Debug: identify objects that are neither text nor halftone image */
         pix1 = pixSubtract(NULL, pixs, pixtm);  /* remove text pixels */
         pix2 = pixSubtract(NULL, pix1, pixhm);  /* remove halftone pixels */
         pixaAddPix(pixadb, pix2, L_INSERT);
         pixDestroy(&pix1);
-    }
 
         /* Debug: display textline components with random colors */
-    if (pixadb) {
         l_int32  w, h;
         BOXA    *boxa;
         PIXA    *pixa;
@@ -195,10 +193,8 @@ PIX     *pixtb;    /* textblock mask */
         pixaAddPix(pixadb, pix1, L_INSERT);
         pixaDestroy(&pixa);
         boxaDestroy(&boxa);
-    }
 
         /* Debug: identify the outlines of each textblock */
-    if (pixadb) {
         PIXCMAP  *cmap;
         PTAA     *ptaa;
         ptaa = pixGetOuterBordersPtaa(pixtb);
@@ -210,10 +206,8 @@ PIX     *pixtb;    /* textblock mask */
         pixcmapResetColor(cmap, 0, 130, 130, 130);
         pixaAddPix(pixadb, pix1, L_INSERT);
         ptaaDestroy(&ptaa);
-    }
 
         /* Debug: get b.b. for all mask components */
-    if (pixadb) {
         BOXA  *bahm, *batm, *batb;
         bahm = pixConnComp(pixhm, NULL, 4);
         batm = pixConnComp(pixtm, NULL, 4);
@@ -224,8 +218,7 @@ PIX     *pixtb;    /* textblock mask */
         boxaDestroy(&bahm);
         boxaDestroy(&batm);
         boxaDestroy(&batb);
-    }
-    if (pixadb) {
+
         pixaConvertToPdf(pixadb, 0, 1.0, 0, 0, "Debug page segmentation",
                          "/tmp/lept/pageseg/debug.pdf");
         L_INFO("Writing debug pdf to /tmp/lept/pageseg/debug.pdf\n", procName);

@@ -261,7 +261,7 @@ TestForRedColor(L_REGPARAMS  *rp,
                 l_float32     gold_red,
                 L_BMF        *bmf)
 {
-char       text[32];
+char       text[48];
 PIX       *pix1, *pix2;
 l_int32    hasred;
 l_float32  ratio;

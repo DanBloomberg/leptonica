@@ -39,7 +39,7 @@ static void MakePtas(l_int32 i, PTA **pptas, PTA **pptad);
      *    5: test with large distortion
      */
 static const l_int32  x1[] =  { 300,  300,  300,  300,   32};
-static const l_int32  y1[] =  {1200, 1200, 1250, 1250,  934};
+static const l_int32  yy1[] =  {1200, 1200, 1250, 1250,  934};
 static const l_int32  x2[] =  {1200, 1200, 1125, 1300,  487};
 static const l_int32  y2[] =  {1100, 1100, 1100, 1250,  934};
 static const l_int32  x3[] =  { 200,  200,  200,  250,   32};
@@ -216,7 +216,7 @@ MakePtas(l_int32  i,
 {
 
     *pptas = ptaCreate(4);
-    ptaAddPt(*pptas, x1[i], y1[i]);
+    ptaAddPt(*pptas, x1[i], yy1[i]);
     ptaAddPt(*pptas, x2[i], y2[i]);
     ptaAddPt(*pptas, x3[i], y3[i]);
     ptaAddPt(*pptas, x4[i], y4[i]);

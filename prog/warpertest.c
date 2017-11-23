@@ -192,7 +192,7 @@ static char  mainName[] = "warpertest";
     for (i = 0; i < 25; i++) {
         del = 0.2 / 12.;
         angle = -0.2 + (i - (i & 1)) * del;
-        angledeg = 180. * angle / 3.14159265;
+        angledeg = 180. * angle / M_PI;
         op = (i & 1) ? L_INTERPOLATED : L_SAMPLED;
         if (op == L_SAMPLED)
             pix1 = pixHShear(NULL, pixs, h / 2, angle, L_BRING_IN_WHITE);
@@ -222,7 +222,7 @@ static char  mainName[] = "warpertest";
     for (i = 0; i < 25; i++) {
         del = 0.2 / 12.;
         angle = -0.2 + (i - (i & 1)) * del;
-        angledeg = 180. * angle / 3.14159265;
+        angledeg = 180. * angle / M_PI;
         op = (i & 1) ? L_INTERPOLATED : L_SAMPLED;
         if (op == L_SAMPLED)
             pix1 = pixVShear(NULL, pixs, w / 2, angle, L_BRING_IN_WHITE);

@@ -1501,7 +1501,7 @@ PIX       *pix1, *pix2, *pixd;
     ptaGetIPt(ptad, 1, &x2p, &y2p);
     ptaGetIPt(ptad, 2, &x3p, &y3p);
 
-    rad2deg = 180. / 3.1415926535;
+    rad2deg = 180. / M_PI;
     pix1 = pix2 = pixd = NULL;
 
     if (y1 == y3)

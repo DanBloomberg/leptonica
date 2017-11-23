@@ -143,7 +143,7 @@ static char  mainName[] = "convertsegfilestopdf";
 
     if (maskdir)  /* use this; ignore any input boxaafile */
         baa = convertNumberedMasksToBoxaa(maskdir, masksubstr, 0, 0);
-    else if (strcmp(boxaafile, "skip")) {  /* use the boxaafile */
+    else if (strcmp(boxaafile, "skip") != 0) {  /* use the boxaafile */
         boxaapath = genPathname(boxaafile, NULL);
         baa = boxaaRead(boxaapath);
         lept_free(boxaapath);

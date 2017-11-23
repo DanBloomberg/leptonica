@@ -71,7 +71,7 @@ PIXA      *pixa;
 PTA       *pta1, *pta2, *pta3, *pta4;
 
         /* Make a small test image, the hard way! */
-    pi = 3.1415926535;
+    pi = M_PI;
     pixc = pixCreate(9, 9, 32);
     pixm = pixCreate(9, 9, 1);
     pta1 = generatePtaLineFromPt(4, 4, 3.1, 0.0);

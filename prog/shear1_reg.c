@@ -43,7 +43,7 @@
 
 static PIX *shearTest(PIX *pixs, l_float32 scale);
 
-static const l_float32  ANGLE1 = 3.14159265 / 12.;
+static const l_float32  ANGLE1 = M_PI / 12.;
 
 
 l_int32 main(int    argc,

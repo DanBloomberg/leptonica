@@ -274,7 +274,6 @@ size_t    nbytes1, nbytes2;
     }
 
         /* Read header from array in memory */
-    ret2 = 0;
     data = l_binaryRead(filename, &nbytes2);
     ret2 = pixReadHeaderMem(data, nbytes2, &format2, &w2, &h2, &bps2,
                             &spp2, &iscmap2);

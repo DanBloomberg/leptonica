@@ -758,6 +758,7 @@ char     bigbuf[L_BUF_SIZE];
     if (dely < -31 || dely > 31)
         return (char *)ERROR_PTR("dely out of bounds", procName, NULL);
     absx = L_ABS(delx);
+        /* we have to ensure dely is not zero */
     absy = L_ABS(dely);
 
     if (type == SEL_HIT) {

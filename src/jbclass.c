@@ -1118,19 +1118,19 @@ l_uint8     byte;
                 word = row[x];
                 byte = word & 0xff;
                 rowcount += sumtab[byte];
-                xsum += centtab[byte] + (x * 32 + 24) * sumtab[byte];
+                xsum += centtab[byte] + ((l_float32)(x) * 32 + 24) * sumtab[byte];
                 byte = (word >> 8) & 0xff;
                 rowcount += sumtab[byte];
-                xsum += centtab[byte] + (x * 32 + 16) * sumtab[byte];
+                xsum += centtab[byte] + ((l_float32)(x) * 32 + 16) * sumtab[byte];
                 byte = (word >> 16) & 0xff;
                 rowcount += sumtab[byte];
-                xsum += centtab[byte] + (x * 32 + 8) * sumtab[byte];
+                xsum += centtab[byte] + ((l_float32)(x) * 32 + 8) * sumtab[byte];
                 byte = (word >> 24) & 0xff;
                 rowcount += sumtab[byte];
-                xsum += centtab[byte] + x * 32 * sumtab[byte];
+                xsum += centtab[byte] +(l_float32)(x) * 32 * sumtab[byte];
             }
             downcount += rowcount;
-            ysum += rowcount * y;
+            ysum += (l_float32)(rowcount) * y;
         }
         pixcts[i] = downcount;
         if (downcount > 0) {
@@ -2009,7 +2009,7 @@ SARRAY   *sa;
     }
     nsa = sarrayGetCount(sa);   /* number of cc + 6 */
     linestr = sarrayGetString(sa, 0, L_NOCOPY);
-    if (strcmp(linestr, "jb data file")) {
+    if (strcmp(linestr, "jb data file") != 0) {
         pixDestroy(&pixs);
         LEPT_FREE(data);
         sarrayDestroy(&sa);

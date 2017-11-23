@@ -217,7 +217,7 @@ static char  mainName[] = "numa2_reg";
     fprintf(stderr, "ave2 = %8.4f\n", 2.0 * sum2 / w);
     pixAverageInRect(pixs, NULL, &ave4);  /* entire image */
     diff1 = ave4 - ave3;
-    diff2 = w * h * ave4 - (0.5 * w * sum1 + h * sum2);
+    diff2 = (l_float32)(w) * h * ave4 - (0.5 * w * sum1 + h * sum2);
     if (diff1 < 0.001)
         fprintf(stderr, "Average diffs are correct\n");
     else

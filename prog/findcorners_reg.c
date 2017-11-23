@@ -88,7 +88,7 @@ L_REGPARAMS  *rp;
     regTestWritePixAndCheck(rp, pixd, IFF_TIFF_G4);  /* 0 */
     if (rp->display) boxaWriteStream(stderr, boxa);
     n = boxaGetCount(boxa);
-    deg2rad = 3.14159265 / 180.;
+    deg2rad = M_PI / 180.;
     pixa = pixaCreate(9);
     for (i = 0; i < n; i++) {
         box1 = boxaGetBox(boxa, i, L_CLONE);

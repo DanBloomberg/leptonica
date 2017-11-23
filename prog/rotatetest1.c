@@ -51,7 +51,7 @@ static char  mainName[] = "rotatetest1";
     filein = argv[1];
     angle = atof(argv[2]);
     fileout = argv[3];
-    deg2rad = 3.1415926535 / 180.;
+    deg2rad = M_PI / 180.;
 
     lept_mkdir("lept/rotate");
 

@@ -59,7 +59,7 @@ static char  mainName[] = "seedfilltest";
         return ERROR_INT("pixm not made", mainName, 1);
     pixmi = pixInvert(NULL, pixm);
 
-    size = pixGetWidth(pixm) * pixGetHeight(pixm);
+    size = (l_float32)(pixGetWidth(pixm)) * pixGetHeight(pixm);
     pixs = pixCreateTemplate(pixm);
     for (i = 0; i < 100; i++) {
         pixGetPixel(pixm, XS + 5 * i, YS + 5 * i, &val);

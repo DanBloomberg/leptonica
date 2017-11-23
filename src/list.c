@@ -403,7 +403,7 @@ DLLIST  *cell, *head;
     head = *phead;
     if (!data)
         return ERROR_INT("data not defined", procName, 1);
-    if ((!head && elem) || (head && !elem))
+    if (head != elem)
         return ERROR_INT("head and elem not consistent", procName, 1);
 
         /* New cell to insert */
@@ -466,7 +466,7 @@ DLLIST  *cell, *head;
     head = *phead;
     if (!data)
         return ERROR_INT("data not defined", procName, 1);
-    if ((!head && elem) || (head && !elem))
+    if (head != elem)
         return ERROR_INT("head and elem not consistent", procName, 1);
 
         /* New cell to insert */
