@@ -1821,7 +1821,7 @@ l_float32  mse;  /* mean squared error */
             for (j = 0; j < w; j += factor) {
                 v1 = GET_DATA_BYTE(line1, j);
                 v2 = GET_DATA_BYTE(line2, j);
-                mse += (v1 - v2) * (v1 - v2);
+                mse += (l_float32)(v1 - v2) * (v1 - v2);
             }
         }
     } else {  /* d == 32 */
@@ -1831,13 +1831,13 @@ l_float32  mse;  /* mean squared error */
             for (j = 0; j < w; j += factor) {
                 extractRGBValues(line1[j], &r1, &g1, &b1);
                 extractRGBValues(line2[j], &r2, &g2, &b2);
-                mse += ((r1 - r2) * (r1 - r2) +
+                mse += ((l_float32)(r1 - r2) * (r1 - r2) +
                         (g1 - g2) * (g1 - g2) +
                         (b1 - b2) * (b1 - b2)) / 3.0;
             }
         }
     }
-    mse = mse / (w * h);
+    mse = mse / ((l_float32)(w) * h);
 
     *ppsnr = -4.3429448 * log(mse / (255 * 255));
     return 0;
@@ -2402,8 +2402,8 @@ PIX       *pix1;
 
     if (sumv == 0) {
         L_INFO("input image is white\n", procName);
-        *pcx = w / 2;
-        *pcy = h / 2;
+        *pcx = (l_float32)(w) / 2;
+        *pcy = (l_float32)(h) / 2;
     } else {
         *pcx = sumx / sumv;
         *pcy = sumy / sumv;

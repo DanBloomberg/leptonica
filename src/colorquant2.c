@@ -1084,7 +1084,7 @@ PIX       *pixd;
                         buf1r[j + 1] = L_MIN(16383, val1);
                         buf2r[j] = L_MIN(16383, val2);
                         buf2r[j + 1] = L_MIN(16383, val3);
-                    } else if (dif < 0) {
+                    } else {
                         buf1r[j + 1] = L_MAX(0, val1);
                         buf2r[j] = L_MAX(0, val2);
                         buf2r[j + 1] = L_MAX(0, val3);
@@ -1102,7 +1102,7 @@ PIX       *pixd;
                         buf1g[j + 1] = L_MIN(16383, val1);
                         buf2g[j] = L_MIN(16383, val2);
                         buf2g[j + 1] = L_MIN(16383, val3);
-                    } else if (dif < 0) {
+                    } else {
                         buf1g[j + 1] = L_MAX(0, val1);
                         buf2g[j] = L_MAX(0, val2);
                         buf2g[j + 1] = L_MAX(0, val3);
@@ -1120,7 +1120,7 @@ PIX       *pixd;
                         buf1b[j + 1] = L_MIN(16383, val1);
                         buf2b[j] = L_MIN(16383, val2);
                         buf2b[j + 1] = L_MIN(16383, val3);
-                    } else if (dif < 0) {
+                    } else {
                         buf1b[j + 1] = L_MAX(0, val1);
                         buf2b[j] = L_MAX(0, val2);
                         buf2b[j + 1] = L_MAX(0, val3);

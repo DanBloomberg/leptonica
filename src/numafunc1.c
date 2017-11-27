@@ -257,6 +257,8 @@ l_int32  i, n, val1, val2, val;
     for (i = 0; i < n; i++) {
         numaGetIValue(nad, i, &val1);
         numaGetIValue(na2, i, &val2);
+        val1 = (val1 == 0) ? 0 : 1;
+        val2 = (val2 == 0) ? 0 : 1;
         switch (op) {
         case L_UNION:
             val = (val1 || val2) ? 1 : 0;
@@ -271,7 +273,7 @@ l_int32  i, n, val1, val2, val;
             numaSetValue(nad, i, val);
             break;
         case L_EXCLUSIVE_OR:
-            val = ((val1 && !val2) || (!val1 && val2)) ? 1 : 0;
+            val = (val1 != val2) ? 1 : 0;
             numaSetValue(nad, i, val);
             break;
         default:

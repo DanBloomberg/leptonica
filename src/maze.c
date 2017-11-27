@@ -495,8 +495,7 @@ PTA       *pta;
             lined32 = pixGetLinePtrs(pixd, NULL);
             for (i = 0; i < h; i++) {
                 for (j = 0; j < w; j++) {
-                    val = GET_DATA_BYTE(linep8[i], j);
-                    if (val != 0 && pixd)
+                    if (GET_DATA_BYTE(linep8[i], j) != 0)
                         SET_DATA_FOUR_BYTES(lined32[i], j, gpixel);
                 }
             }

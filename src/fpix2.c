@@ -2307,7 +2307,7 @@ l_float32  *lines;
     v00 = (16.0 - xf) * (16.0 - yf) * (*(lines + xp));
     v10 = xf * (16.0 - yf) * (*(lines + xp + 1));
     v01 = (16.0 - xf) * yf * (*(lines + w + xp));
-    v11 = xf * yf * (*(lines + w + xp + 1));
+    v11 = (l_float32)(xf) * yf * (*(lines + w + xp + 1));
     *pval = (v00 + v01 + v10 + v11) / 256.0;
     return 0;
 }

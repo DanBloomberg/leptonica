@@ -1504,7 +1504,7 @@ PIX       *pixg;
                 if (type != L_ROOT_MEAN_SQUARE)
                     sumave += val;
                 if (type != L_MEAN_ABSVAL)
-                    summs += val * val;
+                    summs += (l_float64)(val) * val;
                 count++;
             }
         }
@@ -1526,7 +1526,7 @@ PIX       *pixg;
                     if (type != L_ROOT_MEAN_SQUARE)
                         sumave += val;
                     if (type != L_MEAN_ABSVAL)
-                        summs += val * val;
+                        summs += (l_float64)(val) * val;
                     count++;
                 }
             }
@@ -1705,7 +1705,7 @@ PIX       *pixt, *pixd;
                     for (m = 0; m < sx; m++) {
                         pos = j * sx + m;
                         valt = GET_DATA_BYTE(startt, pos);
-                        summs += valt * valt;
+                        summs += (l_float64)(valt) * valt;
                     }
                 }
                 meansq = normfact * summs;

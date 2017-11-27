@@ -336,7 +336,7 @@ l_uint32  *linemina, *linemaxa, *line;
     }
     fwc = 2 * wc + 1;
     fhc = 2 * hc + 1;
-    norm = 1. / (fwc * fhc);
+    norm = 1.0 / ((l_float32)(fwc) * fhc);
 
         /*------------------------------------------------------------*
          *  Compute, using b.c. only to set limits on the accum image *
@@ -1120,7 +1120,7 @@ PIX       *pixb, *pixc, *pixd;
     hincr = 2 * hc + 1;
     norm = 1.0;  /* use this for sum-in-window */
     if (normflag)
-        norm = 1.0 / (wincr * hincr);
+        norm = 1.0 / ((l_float32)(wincr) * hincr);
     for (i = 0; i < hd; i++) {
         linec1 = datac + i * wplc;
         linec2 = datac + (i + hincr) * wplc;
@@ -1233,7 +1233,7 @@ PIX        *pixb, *pixd;
 
     wincr = 2 * wc + 1;
     hincr = 2 * hc + 1;
-    norm = 1.0 / (wincr * hincr);
+    norm = 1.0 / ((l_float32)(wincr) * hincr);
     for (i = 0; i < hd; i++) {
         line1 = data + i * wpl;
         line2 = data + (i + hincr) * wpl;
@@ -1392,9 +1392,9 @@ DPIX       *dpix;
     for (j = 0; j < w; j++) {   /* first line */
         val = GET_DATA_BYTE(lines, j);
         if (j == 0)
-            line[0] = val * val;
+            line[0] = (l_float64)(val) * val;
         else
-            line[j] = line[j - 1] + val * val;
+            line[j] = line[j - 1] + (l_float64)(val) * val;
     }
 
         /* Do the other lines */
@@ -1405,9 +1405,10 @@ DPIX       *dpix;
         for (j = 0; j < w; j++) {
             val = GET_DATA_BYTE(lines, j);
             if (j == 0)
-                line[0] = linep[0] + val * val;
+                line[0] = linep[0] + (l_float64)(val) * val;
             else
-                line[j] = line[j - 1] + linep[j] - linep[j - 1] + val * val;
+                line[j] = line[j - 1] + linep[j] - linep[j - 1]
+                        + (l_float64)(val) * val;
         }
     }
 
@@ -1640,7 +1641,7 @@ l_uint32  *linemina, *linemaxa, *lined;
     }
     fwc = 2 * wc + 1;
     fhc = 2 * hc + 1;
-    norm = 255. / (fwc * fhc);
+    norm = 255. / ((l_float32)(fwc) * fhc);
 
         /*------------------------------------------------------------*
          *  Compute, using b.c. only to set limits on the accum image *

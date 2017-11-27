@@ -1085,7 +1085,7 @@ PIX       *pixd;
                         buf1r[j + 1] = L_MIN(16383, val1);
                         buf2r[j] = L_MIN(16383, val2);
                         buf2r[j + 1] = L_MIN(16383, val3);
-                    } else if (dif < 0) {
+                    } else {
                         buf1r[j + 1] = L_MAX(0, val1);
                         buf2r[j] = L_MAX(0, val2);
                         buf2r[j + 1] = L_MAX(0, val3);
@@ -1101,7 +1101,7 @@ PIX       *pixd;
                         buf1g[j + 1] = L_MIN(16383, val1);
                         buf2g[j] = L_MIN(16383, val2);
                         buf2g[j + 1] = L_MIN(16383, val3);
-                    } else if (dif < 0) {
+                    } else {
                         buf1g[j + 1] = L_MAX(0, val1);
                         buf2g[j] = L_MAX(0, val2);
                         buf2g[j + 1] = L_MAX(0, val3);
@@ -1117,7 +1117,7 @@ PIX       *pixd;
                         buf1b[j + 1] = L_MIN(16383, val1);
                         buf2b[j] = L_MIN(16383, val2);
                         buf2b[j + 1] = L_MIN(16383, val3);
-                    } else if (dif < 0) {
+                    } else {
                         buf1b[j + 1] = L_MAX(0, val1);
                         buf2b[j] = L_MAX(0, val2);
                         buf2b[j + 1] = L_MAX(0, val3);
@@ -2082,7 +2082,7 @@ PIXCMAP   *cmap;
                     buf1r[j + 1] = L_MIN(16383, val1);
                     buf2r[j] = L_MIN(16383, val2);
                     buf2r[j + 1] = L_MIN(16383, val3);
-                } else if (dif < 0) {
+                } else {
                     buf1r[j + 1] = L_MAX(0, val1);
                     buf2r[j] = L_MAX(0, val2);
                     buf2r[j + 1] = L_MAX(0, val3);
@@ -2102,7 +2102,7 @@ PIXCMAP   *cmap;
                     buf1g[j + 1] = L_MIN(16383, val1);
                     buf2g[j] = L_MIN(16383, val2);
                     buf2g[j + 1] = L_MIN(16383, val3);
-                } else if (dif < 0) {
+                } else {
                     buf1g[j + 1] = L_MAX(0, val1);
                     buf2g[j] = L_MAX(0, val2);
                     buf2g[j + 1] = L_MAX(0, val3);
@@ -2122,7 +2122,7 @@ PIXCMAP   *cmap;
                     buf1b[j + 1] = L_MIN(16383, val1);
                     buf2b[j] = L_MIN(16383, val2);
                     buf2b[j + 1] = L_MIN(16383, val3);
-                } else if (dif < 0) {
+                } else {
                     buf1b[j + 1] = L_MAX(0, val1);
                     buf2b[j] = L_MAX(0, val2);
                     buf2b[j + 1] = L_MAX(0, val3);
@@ -2482,6 +2482,8 @@ PIXCMAP   *cmap;
                 SET_DATA_BYTE(lined, j, val);
                 break;
             default:
+                LEPT_FREE(oqca);
+                LEPT_FREE(lut1);
                 return (PIX *)ERROR_PTR("bpp not 4 or 8!", procName, NULL);
                 break;
             }
@@ -2553,11 +2555,11 @@ PIXCMAP   *cmap;
 /*!
  * \brief   pixOctcubeQuantMixedWithGray()
  *
- * \param[in]    pixs 32 bpp rgb
- * \param[in]    depth of output pix
- * \param[in]    graylevels grayscale
- * \param[in]    delta threshold for deciding if a pix is color or grayscale
- * \return  pixd quantized to octcube and gray levels or NULL on error
+ * \param[in]    pixs        32 bpp rgb
+ * \param[in]    depth       of output pix
+ * \param[in]    graylevels  graylevels (must be > 1)
+ * \param[in]    delta       threshold for deciding if a pix is color or gray
+ * \return  pixd     quantized to octcube and gray levels or NULL on error
  *
  * <pre>
  * Notes:
@@ -2601,6 +2603,8 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+    if (graylevels < 2)
+        return (PIX *)ERROR_PTR("invalid graylevels", procName, NULL);
     if (depth == 4) {
         octlevels = 1;
         size = 8;   /* 2 ** 3 */
@@ -3965,6 +3969,7 @@ PIXCMAP    *cmap, *cmapd;
                 val = GET_DATA_BYTE(lines, j);
                 break;
             default:
+                LEPT_FREE(histo);
                 return ERROR_INT("switch ran off end!", procName, 1);
             }
             if (val >= nc) {
@@ -3989,10 +3994,8 @@ PIXCMAP    *cmap, *cmapd;
     }
 
         /* Generate mapping tables between indices */
-    if ((map1 = (l_int32 *)LEPT_CALLOC(nc, sizeof(l_int32))) == NULL)
-        return ERROR_INT("map1 not made", procName, 1);
-    if ((map2 = (l_int32 *)LEPT_CALLOC(nc, sizeof(l_int32))) == NULL)
-        return ERROR_INT("map2 not made", procName, 1);
+    map1 = (l_int32 *)LEPT_CALLOC(nc, sizeof(l_int32));
+    map2 = (l_int32 *)LEPT_CALLOC(nc, sizeof(l_int32));
     index = 0;
     for (i = 0; i < nc; i++) {
         if (histo[i] != 0) {
@@ -4032,6 +4035,9 @@ PIXCMAP    *cmap, *cmapd;
                 SET_DATA_BYTE(lines, j, newval);
                 break;
             default:
+                LEPT_FREE(histo);
+                LEPT_FREE(map1);
+                LEPT_FREE(map2);
                 return ERROR_INT("switch ran off end!", procName, 1);
             }
         }

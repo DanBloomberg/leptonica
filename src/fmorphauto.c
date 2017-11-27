@@ -797,7 +797,7 @@ SARRAY  *sa;
                 if (optype == L_MORPH_DILATE) {
                     dely = sel->cy - i;
                     delx = sel->cx - j;
-                } else if (optype == L_MORPH_ERODE) {
+                } else {  /* optype == L_MORPH_ERODE */
                     dely = i - sel->cy;
                     delx = j - sel->cx;
                 }

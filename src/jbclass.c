@@ -2009,7 +2009,7 @@ SARRAY   *sa;
     }
     nsa = sarrayGetCount(sa);   /* number of cc + 6 */
     linestr = sarrayGetString(sa, 0, L_NOCOPY);
-    if (strcmp(linestr, "jb data file")) {
+    if (strcmp(linestr, "jb data file") != 0) {
         pixDestroy(&pixs);
         LEPT_FREE(data);
         sarrayDestroy(&sa);

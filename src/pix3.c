@@ -2527,7 +2527,7 @@ l_float64  ave;
         }
     }
 
-    *pave = ave / (bw * bh);
+    *pave = ave / ((l_float32)(bw) * bh);
     return 0;
 }
 
@@ -2588,7 +2588,7 @@ NUMA       *na;
             else  /* d == 16 */
                 val = GET_DATA_TWO_BYTES(line, j);
             sum1 += val;
-            sum2 += val * val;
+            sum2 += (l_float64)(val) * val;
         }
         ave = norm * sum1;
         var = norm * sum2 - ave * ave;
@@ -2653,7 +2653,7 @@ NUMA       *na;
             else  /* d == 16 */
                 val = GET_DATA_TWO_BYTES(line, j);
             sum1 += val;
-            sum2 += val * val;
+            sum2 += (l_float64)(val) * val;
         }
         ave = norm * sum1;
         var = norm * sum2 - ave * ave;
@@ -2708,23 +2708,23 @@ l_float64  sum1, sum2, norm, ave, var;
             if (d == 1) {
                 val = GET_DATA_BIT(line, j);
                 sum1 += val;
-                sum2 += val * val;
+                sum2 += (l_float64)(val) * val;
             } else if (d == 2) {
                 val = GET_DATA_DIBIT(line, j);
                 sum1 += val;
-                sum2 += val * val;
+                sum2 += (l_float64)(val) * val;
             } else if (d == 4) {
                 val = GET_DATA_QBIT(line, j);
                 sum1 += val;
-                sum2 += val * val;
+                sum2 += (l_float64)(val) * val;
             } else {  /* d == 8 */
                 val = GET_DATA_BYTE(line, j);
                 sum1 += val;
-                sum2 += val * val;
+                sum2 += (l_float64)(val) * val;
             }
         }
     }
-    norm = 1.0 / (bw * bh);
+    norm = 1.0 / ((l_float64)(bw) * bh);
     ave = norm * sum1;
     var = norm * sum2 - ave * ave;
     *prootvar = (l_float32)sqrt(var);

@@ -2629,7 +2629,7 @@ PTA        *pta;
         for (j = 0; j < size; j++) {  /* over the window */
             val = array[i + j];
             sum1 += val;
-            sum2 += val * val;
+            sum2 += (l_float64)(val) * val;
         }
         ave = norm * sum1;
         var = norm * sum2 - ave * ave;

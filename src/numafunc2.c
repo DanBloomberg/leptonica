@@ -1954,7 +1954,7 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
     numaGetSum(na, &sum);
     if (sum <= 0.0)
         return ERROR_INT("sum <= 0.0", procName, 1);
-    norm = 4.0 / ((n - 1) * (n - 1));
+    norm = 4.0 / ((l_float32)(n - 1) * (n - 1));
     ave1prev = 0.0;
     numaGetHistogramStats(na, 0.0, 1.0, &ave2prev, NULL, NULL, NULL);
     num1prev = 0.0;
@@ -1966,7 +1966,7 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
          * score for each possible splitting.  */
     if ((nascore = numaCreate(n)) == NULL)
         return ERROR_INT("nascore not made", procName, 1);
-    if (pave2) naave1 = numaCreate(n);
+    if (pave1) naave1 = numaCreate(n);
     if (pave2) naave2 = numaCreate(n);
     if (pnum1) nanum1 = numaCreate(n);
     if (pnum2) nanum2 = numaCreate(n);
@@ -1989,7 +1989,7 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
         if (pave1) numaAddNumber(naave1, ave1);
         if (pave2) numaAddNumber(naave2, ave2);
         if (pnum1) numaAddNumber(nanum1, num1);
-        if (pnum1) numaAddNumber(nanum2, num2);
+        if (pnum2) numaAddNumber(nanum2, num2);
         if (score > maxscore) {
             maxscore = score;
             maxindex = i;
