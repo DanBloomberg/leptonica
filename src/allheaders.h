@@ -916,8 +916,8 @@ LEPT_DLL extern l_int32 linearInterpolatePixelFloat ( l_float32 *datas, l_int32 
 LEPT_DLL extern PIX * fpixThresholdToPix ( FPIX *fpix, l_float32 thresh );
 LEPT_DLL extern FPIX * pixComponentFunction ( PIX *pix, l_float32 rnum, l_float32 gnum, l_float32 bnum, l_float32 rdenom, l_float32 gdenom, l_float32 bdenom );
 LEPT_DLL extern PIX * pixReadStreamGif ( FILE *fp );
-LEPT_DLL extern l_int32 pixWriteStreamGif ( FILE *fp, PIX *pix );
 LEPT_DLL extern PIX * pixReadMemGif ( const l_uint8 *cdata, size_t size );
+LEPT_DLL extern l_int32 pixWriteStreamGif ( FILE *fp, PIX *pix );
 LEPT_DLL extern l_int32 pixWriteMemGif ( l_uint8 **pdata, size_t *psize, PIX *pix );
 LEPT_DLL extern GPLOT * gplotCreate ( const char *rootname, l_int32 outformat, const char *title, const char *xlabel, const char *ylabel );
 LEPT_DLL extern void gplotDestroy ( GPLOT **pgplot );

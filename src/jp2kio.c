@@ -296,17 +296,9 @@ PIX               *pix = NULL;
     }
     parameters.cp_reduce = reduce;
 
-        /* Open decompression 'stream'.  In 2.0, we could call this:
-         *    opj_stream_create_default_file_stream(fp, 1)
-         * but the file stream interface was removed in 2.1. */
-    if ((l_stream = opjCreateStream(fp, 1)) == NULL) {
-        L_ERROR("failed to open the stream\n", procName);
-        return NULL;
-    }
-
+        /* Get a decoder handle */
     if ((l_codec = opj_create_decompress(OPJ_CODEC_JP2)) == NULL) {
         L_ERROR("failed to make the codec\n", procName);
-        opj_stream_destroy(l_stream);
         return NULL;
     }
 
@@ -320,7 +312,15 @@ PIX               *pix = NULL;
         /* Setup the decoding parameters using user parameters */
     if (!opj_setup_decoder(l_codec, &parameters)){
         L_ERROR("failed to set up decoder\n", procName);
-        opj_stream_destroy(l_stream);
+        opj_destroy_codec(l_codec);
+        return NULL;
+    }
+
+        /* Open decompression 'stream'.  In 2.0, we could call this:
+         *    opj_stream_create_default_file_stream(fp, 1)
+         * but the file stream interface was removed in 2.1. */
+    if ((l_stream = opjCreateStream(fp, 1)) == NULL) {
+        L_ERROR("failed to open the stream\n", procName);
         opj_destroy_codec(l_codec);
         return NULL;
     }
@@ -358,8 +358,9 @@ PIX               *pix = NULL;
         return NULL;
     }
 
-        /* Close the byte stream */
+        /* Finished with the byte stream and the codec */
     opj_stream_destroy(l_stream);
+    opj_destroy_codec(l_codec);
 
         /* Get the image parameters */
     spp = image->numcomps;
@@ -379,10 +380,6 @@ PIX               *pix = NULL;
         else if (colorspace == OPJ_CLRSPC_SYCC)
             L_INFO("colorspace is YUV\n", procName);
     }
-
-        /* Free the codec structure */
-    if (l_codec)
-        opj_destroy_codec(l_codec);
 
         /* Convert the image to a pix */
     if (spp == 1)
@@ -916,7 +913,7 @@ opjCreateStream(FILE    *fp,
 {
 opj_stream_t  *l_stream;
 
-    PROCNAME("opjStreamCreate");
+    PROCNAME("opjCreateStream");
 
     if (!fp)
         return (opj_stream_t *)ERROR_PTR("fp not defined", procName, NULL);
