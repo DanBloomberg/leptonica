@@ -106,10 +106,10 @@ typedef uintptr_t l_uintptr_t;
 #define  HAVE_LIBWEBP     0
 #define  HAVE_LIBJP2K     0
 
-    /* Leptonica supports both OpenJPEG 2.0 and 2.1.  If you have a
-     * version of openjpeg (HAVE_LIBJP2K) that is not 2.1, set the
-     * path to the openjpeg.h header in angle brackets here. */
-#define  LIBJP2K_HEADER   <openjpeg-2.1/openjpeg.h>
+    /* Leptonica supports OpenJPEG 2.0+.  If you have a version of
+     * openjpeg (HAVE_LIBJP2K == 1) that is >= 2.0, set the path
+     * to the openjpeg.h header in angle brackets here. */
+#define  LIBJP2K_HEADER   <openjpeg-2.3/openjpeg.h>
 #endif  /* ! HAVE_CONFIG_H etc. */
 
 /*

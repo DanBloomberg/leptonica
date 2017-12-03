@@ -110,7 +110,7 @@
 #if  HAVE_LIBJP2K   /* defined in environ.h */
 /* --------------------------------------------*/
 
-    /* Leptonica supports both 2.0 and 2.1. */
+    /* Leptonica supports versions 2.0 and newer */
 #ifdef LIBJP2K_HEADER
 #include LIBJP2K_HEADER
 #else
