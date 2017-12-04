@@ -2564,7 +2564,7 @@ SARRAY  *sa;
         if ((ccb = ccbaGetCcb(ccba, i)) == NULL) {
             sarrayDestroy(&sa);
             return (char *)ERROR_PTR("ccb not found", procName, NULL);
-        }   
+        }
         if ((pta = ccb->spglobal) == NULL) {
             sarrayDestroy(&sa);
             ccbDestroy(&ccb);

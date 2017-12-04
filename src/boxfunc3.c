@@ -616,7 +616,7 @@ PTAA     *ptaa;
  * \param[in]    w    width of outupt pix; use 0 if determined by %pixs or %baa
  * \param[in]    h    height of outupt pix; use 0 if determined by %pixs or %baa
  * \return  0 if OK, 1 on error
- * 
+ *
  * <pre>
  * Notes:
  *      (1) If %pixs exists, this renders the boxes over an 8 bpp version

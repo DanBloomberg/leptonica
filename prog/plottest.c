@@ -113,7 +113,7 @@ static char  mainName[] = "plottest";
                 (unsigned long)size1, (unsigned long)size2);
     else
         fprintf(stderr, "Correct: size1 = size2 = %lu\n", (unsigned long)size1);
-    if (strcmp(str1, str2))
+    if (strcmp(str1, str2) != 0)
         fprintf(stderr, "Error: str1 != str2\n");
     else
         fprintf(stderr, "Correct: str1 == str2\n");

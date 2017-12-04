@@ -1010,7 +1010,7 @@ PIXA      *pixad;
             pix2 = pixScaleToSize(pix1, scalew, scaleh);
             pixaAddPix(pixad, pix2, L_INSERT);
         }
-        pixDestroy(&pix1); 
+        pixDestroy(&pix1);
     }
     return pixad;
 }

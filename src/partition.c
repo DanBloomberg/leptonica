@@ -290,7 +290,7 @@ L_HEAP  *lh;
     fprintf(stderr, "  Number of boxes popped: %d\n", npop);
     fprintf(stderr, "  Number of boxes on heap: %d\n", lheapGetCount(lh));
 #endif  /* OUTPUT_HEAP_STATS */
-  
+
         /* Clean up the heap */
     while ((partel = (PARTEL *)lheapRemove(lh)) != NULL)
         partelDestroy(&partel);

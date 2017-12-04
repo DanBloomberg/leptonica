@@ -155,7 +155,7 @@
  *      prevent an accidental deletion of important files.  For example,
  *      lept_rmdir() first deletes all files in a specified subdirectory
  *      of temp, and then removes the directory.
- *      
+ *
  * </pre>
  */
 

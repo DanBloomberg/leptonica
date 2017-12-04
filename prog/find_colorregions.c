@@ -208,7 +208,7 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
     pixGetDimensions(pixs, &w, &h, NULL);
     if (pixm) {
         pixCountPixels(pixm, &count, NULL);
-        ratio = (l_float32)count / (w * h);
+        ratio = (l_float32)count / ((l_float32)(w) * h);
         if (ratio > 0.7) {
             if (pixadb) L_INFO("pixm has big fg: %f5.2\n", procName, ratio);
             return 0;

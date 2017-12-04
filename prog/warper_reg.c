@@ -101,15 +101,15 @@ DisplayResult(PIXA    *pixac,
               l_int32  newline)
 {
 l_uint32  color;
-PIX      *pixt;
+PIX      *pix1;
 
     color = 0;
     color = ((rand() >> 16) & 0xff) << L_RED_SHIFT |
             ((rand() >> 16) & 0xff) << L_GREEN_SHIFT |
             ((rand() >> 16) & 0xff) << L_BLUE_SHIFT;
-    pixt = pixColorizeGray(*ppixd, color, 0);
-    pixSaveTiled(pixt, pixac, 1.0, newline, 20, 32);
-    pixDestroy(&pixt);
+    pix1 = pixColorizeGray(*ppixd, color, 0);
+    pixSaveTiled(pix1, pixac, 1.0, newline, 20, 32);
+    pixDestroy(&pix1);
     pixDestroy(ppixd);
     return;
 }

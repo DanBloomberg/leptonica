@@ -1742,7 +1742,7 @@ SARRAY    *satext, *sa, *saout;
 /*!
  * \brief   showExtractNumbers()
  *
- * \param[in]    pixs   input 1 bpp image 
+ * \param[in]    pixs   input 1 bpp image
  * \param[in]    sa     recognized text strings
  * \param[in]    baa    boxa array for location of characters in each string
  * \param[in]    naa    numa array for scores of characters in each string
@@ -1803,7 +1803,7 @@ PIXA      *pixa;
         pix2 = pixAddBlackOrWhiteBorder(pix1, 14 * len, 14 * len,
                                         5, 3, L_SET_WHITE);
         pix3 = pixConvertTo8(pix2, 1);
-        nchar = numaGetCount(na); 
+        nchar = numaGetCount(na);
         scorestr = NULL;
         for (j = 0; j < nchar; j++) {
              numaGetFValue(na, j, &score);

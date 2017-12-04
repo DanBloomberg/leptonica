@@ -928,40 +928,22 @@ NUMA      *naerange, *naorange, *naelut, *naolut, *nad;
     if (debugflag) {
         fprintf(stderr, " ---- Black bar widths (pixels) ------ \n");
         numaWriteStream(stderr, naedist);
-    }
-    if (debugflag) {
         fprintf(stderr, " ---- Histogram of black bar widths ------ \n");
         numaWriteStream(stderr, naehist);
-    }
-    if (debugflag) {
-        fprintf(stderr, " ---- Peak ranges in black bar histogram bins ------ \n");
+        fprintf(stderr, " ---- Peak ranges in black bar histogram bins --- \n");
         numaWriteStream(stderr, naerange);
-    }
-    if (debugflag) {
         fprintf(stderr, " ---- Peak black bar centroid width values ------ \n");
         numaWriteStream(stderr, naecent);
-    }
-    if (debugflag) {
         fprintf(stderr, " ---- Black bar lookup table ------ \n");
         numaWriteStream(stderr, naelut);
-    }
-    if (debugflag) {
         fprintf(stderr, " ---- White bar widths (pixels) ------ \n");
         numaWriteStream(stderr, naodist);
-    }
-    if (debugflag) {
         fprintf(stderr, " ---- Histogram of white bar widths ------ \n");
         numaWriteStream(stderr, naohist);
-    }
-    if (debugflag) {
-        fprintf(stderr, " ---- Peak ranges in white bar histogram bins ------ \n");
+        fprintf(stderr, " ---- Peak ranges in white bar histogram bins --- \n");
         numaWriteStream(stderr, naorange);
-    }
-    if (debugflag) {
         fprintf(stderr, " ---- Peak white bar centroid width values ------ \n");
         numaWriteStream(stderr, naocent);
-    }
-    if (debugflag) {
         fprintf(stderr, " ---- White bar lookup table ------ \n");
         numaWriteStream(stderr, naolut);
     }

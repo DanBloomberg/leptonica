@@ -286,18 +286,19 @@ PIX       *pixt, *pixd;
     else
         return (PIX *)ERROR_PTR("invalid direction", procName, NULL);
     bufsize = L_MAX(w, h);
+    if (bufsize > 1000000) {
+        L_ERROR("largest image dimension = %d; too big\n", procName, bufsize);
+        return NULL;
+    }
 
     if ((pixd = pixCreate(w, h, depth)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
-    if ((start = (l_int32 *)LEPT_CALLOC(maxsize, sizeof(l_int32))) == NULL)
-        return (PIX *)ERROR_PTR("start not made", procName, NULL);
-    if ((end = (l_int32 *)LEPT_CALLOC(maxsize, sizeof(l_int32))) == NULL)
-        return (PIX *)ERROR_PTR("end not made", procName, NULL);
-    if ((buffer = (l_int32 *)LEPT_CALLOC(bufsize, sizeof(l_int32))) == NULL)
-        return (PIX *)ERROR_PTR("buffer not made", procName, NULL);
+    start = (l_int32 *)LEPT_CALLOC(maxsize, sizeof(l_int32));
+    end = (l_int32 *)LEPT_CALLOC(maxsize, sizeof(l_int32));
+    buffer = (l_int32 *)LEPT_CALLOC(bufsize, sizeof(l_int32));
 
         /* Use fg runs for evaluation */
     if (color == 0)

@@ -86,7 +86,7 @@ static const l_int64  L_MAX_ALLOWED_PIXELS = 400000000LL;
  * </pre>
  */
 PIX *
-pixReadStreamBmp(FILE  *fp) 
+pixReadStreamBmp(FILE  *fp)
 {
 l_uint8  *data;
 size_t    size;

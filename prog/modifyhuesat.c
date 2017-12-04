@@ -82,10 +82,10 @@ static char  mainName[] = "modifyhuesat";
     pixGetDimensions(pixs, &w, NULL, &d);
     pixa = pixaCreate(nhue * nsat);
     for (i = 0; i < nsat; i++) {
-        delsat = (i - nsat / 2) * dsat;
+        delsat = (i - nsat / 2.0) * dsat;
 	pixt1 = pixModifySaturation(NULL, pixs, delsat);
         for (j = 0; j < nhue; j++) {
-            delhue = (j - nhue / 2) * dhue;
+            delhue = (j - nhue / 2.0) * dhue;
             pixt2 = pixModifyHue(NULL, pixt1, delhue);
             pixaAddPix(pixa, pixt2, L_INSERT);
         }

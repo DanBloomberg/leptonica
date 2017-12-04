@@ -565,7 +565,8 @@ L_RDID     *did;
         if (xloc < 0) break;
         counts = did->counta[templ][xloc];  /* bit-and counts */
         recogGetWindowedArea(recog, templ, xloc, &dely, &area1);
-        correl = (counts * counts) / (l_float32)(area2[templ] * area1);
+        correl = ((l_float32)(counts) * counts) /
+                  (l_float32)(area2[templ] * area1);
         pix1 = pixaGetPix(recog->pixa_u, templ, L_CLONE);
         w2 = pixGetWidth(pix1);
         numaAddNumber(did->natempl, templ);

@@ -271,8 +271,10 @@ l_int32      block_flag = 0;
         /* Write out b.b. for text line mask and halftone mask components */
     boxatm = pixConnComp(pixm3, NULL, 4);
     boxahm = pixConnComp(pixhm2, NULL, 8);
-    if (which == 1) boxaWrite("/tmp/lept/livre/textmask.boxa", boxatm);
-    if (which == 1) boxaWrite("/tmp/lept/livre/htmask.boxa", boxahm);
+    if (which == 1) {
+        boxaWrite("/tmp/lept/livre/textmask.boxa", boxatm);
+        boxaWrite("/tmp/lept/livre/htmask.boxa", boxahm);
+    }
 
     pix1 = pixaDisplayTiledAndScaled(pixa, 8, 250, 4, 0, 25, 2);
     pixDisplay(pix1, 0, 375 * (which - 1));

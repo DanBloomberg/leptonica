@@ -850,7 +850,7 @@ PIXCMAP  *cmap;
  *          For RGBA, the LSB is interpreted as the alpha (transparency)
  *          component; full transparency has alpha == 0x0, whereas
  *          full opacity has alpha = 0xff.  An RGBA image with full
- *          opacity behaves like an RGB image. 
+ *          opacity behaves like an RGB image.
  *      (3) As an example of (2), suppose you want to initialize a 32 bpp
  *          pix with partial opacity, say 0xee337788.  If the pix is 3 spp,
  *          the 0x88 alpha component will be ignored and may be changed
