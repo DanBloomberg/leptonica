@@ -137,10 +137,12 @@ void TestPathJoin(L_REGPARAMS  *rp,
 char  *newfirst = NULL;
 char  *newsecond = NULL;
 char  *newpath = NULL;
+char  *path = NULL;
 
-    char *path = pathJoin(first, second);
+    if ((path = pathJoin(first, second)) == NULL) return;
     regTestCompareStrings(rp, (l_uint8 *)result, strlen(result),
                           (l_uint8 *)path, strlen(path));
+
     if (first && first[0] == '\0')
         newfirst = stringNew("\"\"");
     else if (first)
@@ -214,6 +216,7 @@ SARRAY  *sa;
     lept_cp(srctail, newdir, newtail, &fname);
     if (rp->display)
         fprintf(stderr, "  File copied to: %s\n", fname);
+    lept_free(fname);
 
         /* move it elsewhere ... */
     lept_rmdir("junko");  /* clear out this directory */

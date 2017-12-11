@@ -81,21 +81,10 @@ PIX       *pixd;
 
     PROCNAME("pixReduceBinary2");
 
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
 
-    if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not binary", procName, NULL);
-
-    if (intab) {  /* use input table */
-        tab = intab;
-    } else {
-        if ((tab = makeSubsampleTab2x()) == NULL)
-            return (PIX *)ERROR_PTR("tab not made", procName, NULL);
-    }
-
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     if (hs <= 1)
         return (PIX *)ERROR_PTR("hs must be at least 2", procName, NULL);
     wpls = pixGetWpl(pixs);
@@ -107,6 +96,8 @@ PIX       *pixd;
     pixScaleResolution(pixd, 0.5, 0.5);
     wpld = pixGetWpl(pixd);
     datad = pixGetData(pixd);
+
+    tab = (intab) ? intab : makeSubsampleTab2x();
 
         /* e.g., if ws = 65: wd = 32, wpls = 3, wpld = 1 --> trouble */
     wplsi = L_MIN(wpls, 2 * wpld);  /* iterate over this number of words */
@@ -125,8 +116,7 @@ PIX       *pixd;
         }
     }
 
-    if (intab == NULL)
-        LEPT_FREE(tab);
+    if (!intab) LEPT_FREE(tab);
     return pixd;
 }
 
@@ -249,15 +239,7 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("level must be in set {1,2,3,4}",
             procName, NULL);
 
-    if (intab) {  /* use input table */
-        tab = intab;
-    } else {
-        if ((tab = makeSubsampleTab2x()) == NULL)
-            return (PIX *)ERROR_PTR("tab not made", procName, NULL);
-    }
-
-    ws = pixGetWidth(pixs);
-    hs = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &ws, &hs, NULL);
     if (hs <= 1)
         return (PIX *)ERROR_PTR("hs must be at least 2", procName, NULL);
     wpls = pixGetWpl(pixs);
@@ -269,6 +251,8 @@ PIX       *pixd;
     pixScaleResolution(pixd, 0.5, 0.5);
     wpld = pixGetWpl(pixd);
     datad = pixGetData(pixd);
+
+    tab = (intab) ? intab : makeSubsampleTab2x();
 
         /* e.g., if ws = 65: wd = 32, wpls = 3, wpld = 1 --> trouble */
     wplsi = L_MIN(wpls, 2 * wpld);  /* iterate over this number of words */
@@ -371,8 +355,7 @@ PIX       *pixd;
         break;
     }
 
-    if (!intab)
-        LEPT_FREE(tab);
+    if (!intab) LEPT_FREE(tab);
     return pixd;
 }
 

@@ -383,15 +383,16 @@ PIX  *pixsi, *pixd;
 
     if ((pixd = pixCreateTemplate(pixs)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    if ((pixsi = pixInvert(NULL, pixs)) == NULL)
+    if ((pixsi = pixInvert(NULL, pixs)) == NULL) {
+        pixDestroy(&pixd);
         return (PIX *)ERROR_PTR("pixsi not made", procName, NULL);
+    }
 
     pixSetOrClearBorder(pixd, 1, 1, 1, 1, PIX_SET);
     pixSeedfillBinary(pixd, pixd, pixsi, connectivity);
     pixOr(pixd, pixd, pixs);
     pixInvert(pixd, pixd);
     pixDestroy(&pixsi);
-
     return pixd;
 }
 
@@ -435,8 +436,10 @@ PIX  *pixsi, *pixd;
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixSetOrClearBorder(pixd, 1, 1, 1, 1, PIX_SET);
     pixSubtract(pixd, pixd, pixs);
-    if ((pixsi = pixInvert(NULL, pixs)) == NULL)
+    if ((pixsi = pixInvert(NULL, pixs)) == NULL) {
+        pixDestroy(&pixd);
         return (PIX *)ERROR_PTR("pixsi not made", procName, NULL);
+    }
 
     pixSeedfillBinary(pixd, pixd, pixsi, connectivity);
     pixInvert(pixd, pixd);
@@ -1299,7 +1302,7 @@ l_int32    vals, wpls, wplc, ismin;
 l_uint32   val;
 l_uint32  *datas, *datac, *lines, *linec;
 BOXA      *boxa;
-PIX       *pixt1, *pixt2, *pixc;
+PIX       *pix1, *pix2, *pix3;
 PIXA      *pixa;
 
     PROCNAME("pixQualifyLocalMinima");
@@ -1317,19 +1320,19 @@ PIXA      *pixa;
     n = pixaGetCount(pixa);
     for (k = 0; k < n; k++) {
         boxaGetBoxGeometry(boxa, k, &xc, &yc, &wc, &hc);
-        pixt1 = pixaGetPix(pixa, k, L_COPY);
-        pixt2 = pixAddBorder(pixt1, 1, 0);
-        pixc = pixDilateBrick(NULL, pixt2, 3, 3);
-        pixXor(pixc, pixc, pixt2);  /* exterior boundary pixels */
-        datac = pixGetData(pixc);
-        wplc = pixGetWpl(pixc);
-        nextOnPixelInRaster(pixt1, 0, 0, &xon, &yon);
+        pix1 = pixaGetPix(pixa, k, L_COPY);
+        pix2 = pixAddBorder(pix1, 1, 0);
+        pix3 = pixDilateBrick(NULL, pix2, 3, 3);
+        pixXor(pix3, pix3, pix2);  /* exterior boundary pixels */
+        datac = pixGetData(pix3);
+        wplc = pixGetWpl(pix3);
+        nextOnPixelInRaster(pix1, 0, 0, &xon, &yon);
         pixGetPixel(pixs, xc + xon, yc + yon, &val);
         if (val > maxval) {  /* too large; erase */
-            pixRasterop(pixm, xc, yc, wc, hc, PIX_XOR, pixt1, 0, 0);
-            pixDestroy(&pixt1);
-            pixDestroy(&pixt2);
-            pixDestroy(&pixc);
+            pixRasterop(pixm, xc, yc, wc, hc, PIX_XOR, pix1, 0, 0);
+            pixDestroy(&pix1);
+            pixDestroy(&pix2);
+            pixDestroy(&pix3);
             continue;
         }
         ismin = TRUE;
@@ -1353,10 +1356,10 @@ PIXA      *pixa;
                 break;
         }
         if (!ismin)  /* erase it */
-            pixRasterop(pixm, xc, yc, wc, hc, PIX_XOR, pixt1, 0, 0);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
-        pixDestroy(&pixc);
+            pixRasterop(pixm, xc, yc, wc, hc, PIX_XOR, pix1, 0, 0);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
+        pixDestroy(&pix3);
     }
 
     boxaDestroy(&boxa);

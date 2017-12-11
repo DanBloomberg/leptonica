@@ -2539,8 +2539,10 @@ RGBA_QUAD  *cta;
         pixc = pixConvertTo8(pixs, TRUE);
 
     pixGetDimensions(pixs, &w, &h, NULL);
-    if ((pixd = pixCreateNoInit(w, h, 8)) == NULL)
+    if ((pixd = pixCreateNoInit(w, h, 8)) == NULL) {
+        pixDestroy(&pixc);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     pixCopyResolution(pixd, pixs);
     wplc = pixGetWpl(pixc);
     wpld = pixGetWpl(pixd);

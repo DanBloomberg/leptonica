@@ -231,10 +231,10 @@ PTA     *pta, *ptaj;
                 y1a = y1 + (i + 1) / 2;
                 y2a = y2 + (i + 1) / 2;
             }
-            if ((pta = generatePtaLine(x1, y1a, x2, y2a)) == NULL)
-                return (PTA *)ERROR_PTR("pta not made", procName, NULL);
-            ptaJoin(ptaj, pta, 0, -1);
-            ptaDestroy(&pta);
+            if ((pta = generatePtaLine(x1, y1a, x2, y2a)) != NULL) {
+                ptaJoin(ptaj, pta, 0, -1);
+                ptaDestroy(&pta);
+            }
         }
     } else  {  /* "vertical" line  */
         for (i = 1; i < width; i++) {
@@ -245,10 +245,10 @@ PTA     *pta, *ptaj;
                 x1a = x1 + (i + 1) / 2;
                 x2a = x2 + (i + 1) / 2;
             }
-            if ((pta = generatePtaLine(x1a, y1, x2a, y2)) == NULL)
-                return (PTA *)ERROR_PTR("pta not made", procName, NULL);
-            ptaJoin(ptaj, pta, 0, -1);
-            ptaDestroy(&pta);
+            if ((pta = generatePtaLine(x1a, y1, x2a, y2)) != NULL) {
+                ptaJoin(ptaj, pta, 0, -1);
+                ptaDestroy(&pta);
+            }
         }
     }
 

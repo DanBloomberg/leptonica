@@ -1057,7 +1057,7 @@ SARRAY  *salines, *satemp, *saout;
     parastring = sarrayToString(satemp, 1);  /* add nl to each line */
     sarrayAddString(saout, parastring, L_INSERT);
     sarrayDestroy(&satemp);
-
+    sarrayDestroy(&salines);
     return saout;
 }
 

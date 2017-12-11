@@ -1964,12 +1964,11 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
         /* Split the histogram with [0 ... i] in the lower part
          * and [i+1 ... n-1] in upper part.  First, compute an otsu
          * score for each possible splitting.  */
-    if ((nascore = numaCreate(n)) == NULL)
-        return ERROR_INT("nascore not made", procName, 1);
-    if (pave1) naave1 = numaCreate(n);
-    if (pave2) naave2 = numaCreate(n);
-    if (pnum1) nanum1 = numaCreate(n);
-    if (pnum2) nanum2 = numaCreate(n);
+    nascore = numaCreate(n);
+    naave1 = (pave1) ? numaCreate(n) : NULL;
+    naave2 = (pave2) ? numaCreate(n) : NULL;
+    nanum1 = (pnum1) ? numaCreate(n) : NULL;
+    nanum2 = (pnum2) ? numaCreate(n) : NULL;
     maxscore = 0.0;
     for (i = 0; i < n; i++) {
         numaGetFValue(na, i, &val);
@@ -2648,7 +2647,7 @@ NUMA      *nat, *nac;
 
     inrun = FALSE;
     iend = 40;
-    maxrunlen = 0;
+    maxrunlen = 0, maxstart = 0, maxend = 0;
     for (i = 0; i < 41; i++) {
         numaGetIValue(nat, i, &val);
         if (val == maxval) {
@@ -2677,25 +2676,6 @@ NUMA      *nat, *nac;
             maxrunlen = runlen;
         }
     }
-
-#if 0
-    foundfirst = FALSE;
-    iend = 40;
-    for (i = 0; i < 41; i++) {
-        numaGetIValue(nat, i, &val);
-        if (val == maxval) {
-            if (!foundfirst) {
-                istart = i;
-                foundfirst = TRUE;
-            }
-        }
-        if ((val != maxval) && foundfirst) {
-            iend = i - 1;
-            break;
-        }
-    }
-    nmax = iend - istart + 1;
-#endif
 
     *pbestthresh = estthresh - 80.0 + 2.0 * (l_float32)(maxstart + maxend);
 

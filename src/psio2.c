@@ -487,10 +487,9 @@ SARRAY  *sa;
     else  /* boxflag == 1 */
         sarrayAddString(sa, (char *)"\ngrestore", L_COPY);
 
-    if ((outstr = sarrayToString(sa, 1)) == NULL)
-        return (char *)ERROR_PTR("outstr not made", procName, NULL);
-
+    outstr = sarrayToString(sa, 1);
     sarrayDestroy(&sa);
+    if (!outstr) L_ERROR("outstr not made\n", procName);
     return outstr;
 }
 
@@ -643,7 +642,7 @@ convertJpegToPSEmbed(const char  *filein,
                      const char  *fileout)
 {
 char         *outstr;
-l_int32       w, h, nbytes;
+l_int32       w, h, nbytes, ret;
 l_float32     xpt, ypt, wpt, hpt;
 L_COMP_DATA  *cid;
 
@@ -675,15 +674,17 @@ L_COMP_DATA  *cid;
         /* Generate the PS.
          * The bounding box information should be inserted (default). */
     outstr = generateJpegPS(NULL, cid, xpt, ypt, wpt, hpt, 1, 1);
-    if (!outstr)
+    if (!outstr) {
+        l_CIDataDestroy(&cid);
         return ERROR_INT("outstr not made", procName, 1);
+    }
     nbytes = strlen(outstr);
 
-    if (l_binaryWrite(fileout, "w", outstr, nbytes))
-        return ERROR_INT("ps string not written to file", procName, 1);
+    ret = l_binaryWrite(fileout, "w", outstr, nbytes);
     LEPT_FREE(outstr);
     l_CIDataDestroy(&cid);
-    return 0;
+    if (ret) L_ERROR("ps string not written to file\n", procName);
+    return ret;
 }
 
 
@@ -1040,7 +1041,7 @@ convertG4ToPSEmbed(const char  *filein,
                    const char  *fileout)
 {
 char         *outstr;
-l_int32       w, h, nbytes;
+l_int32       w, h, nbytes, ret;
 l_float32     xpt, ypt, wpt, hpt;
 L_COMP_DATA  *cid;
 
@@ -1071,15 +1072,17 @@ L_COMP_DATA  *cid;
         /* Generate the PS, painting through the image mask.
          * The bounding box information should be inserted (default). */
     outstr = generateG4PS(NULL, cid, xpt, ypt, wpt, hpt, 1, 1, 1);
-    if (!outstr)
+    if (!outstr) {
+        l_CIDataDestroy(&cid);
         return ERROR_INT("outstr not made", procName, 1);
+    }
     nbytes = strlen(outstr);
 
-    if (l_binaryWrite(fileout, "w", outstr, nbytes))
-        return ERROR_INT("ps string not written to file", procName, 1);
+    ret = l_binaryWrite(fileout, "w", outstr, nbytes);
     LEPT_FREE(outstr);
     l_CIDataDestroy(&cid);
-    return 0;
+    if (ret) L_ERROR("ps string not written to file\n", procName);
+    return ret;
 }
 
 
@@ -1519,7 +1522,7 @@ convertFlateToPSEmbed(const char  *filein,
                       const char  *fileout)
 {
 char         *outstr;
-l_int32       w, h, nbytes;
+l_int32       w, h, nbytes, ret;
 l_float32     xpt, ypt, wpt, hpt;
 L_COMP_DATA  *cid;
 
@@ -1550,15 +1553,17 @@ L_COMP_DATA  *cid;
         /* Generate the PS.
          * The bounding box information should be inserted (default). */
     outstr = generateFlatePS(NULL, cid, xpt, ypt, wpt, hpt, 1, 1);
-    if (!outstr)
+    if (!outstr) {
+        l_CIDataDestroy(&cid);
         return ERROR_INT("outstr not made", procName, 1);
+    }
     nbytes = strlen(outstr);
 
-    if (l_binaryWrite(fileout, "w", outstr, nbytes))
-        return ERROR_INT("ps string not written to file", procName, 1);
+    ret = l_binaryWrite(fileout, "w", outstr, nbytes);
     LEPT_FREE(outstr);
     l_CIDataDestroy(&cid);
-    return 0;
+    if (ret) L_ERROR("ps string not written to file\n", procName);
+    return ret;
 }
 
 
@@ -1639,7 +1644,7 @@ convertFlateToPS(const char  *filein,
                  l_int32      endpage)
 {
 char    *outstr;
-l_int32  nbytes;
+l_int32  nbytes, ret;
 
     PROCNAME("convertFlateToPS");
 
@@ -1654,11 +1659,10 @@ l_int32  nbytes;
                                pageno, endpage))
         return ERROR_INT("ps string not made", procName, 1);
 
-    if (l_binaryWrite(fileout, operation, outstr, nbytes))
-        return ERROR_INT("ps string not written to file", procName, 1);
-
+    ret = l_binaryWrite(fileout, operation, outstr, nbytes);
     LEPT_FREE(outstr);
-    return 0;
+    if (ret) L_ERROR("ps string not written to file\n", procName);
+    return ret;
 }
 
 

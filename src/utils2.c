@@ -1386,7 +1386,7 @@ FILE   *fp;
 size_t
 fnbytesInFile(FILE  *fp)
 {
-size_t  nbytes, pos;
+l_int64  pos, nbytes;
 
     PROCNAME("fnbytesInFile");
 
@@ -2610,7 +2610,7 @@ size_t  len1, len2, len3, len4;
     len1 = strlen(basedir);
     len2 = strlen(subdirs);
     len3 = len1 + len2 + 6;
-    newdir = (char *)LEPT_CALLOC(len3, 1);
+    newdir = (char *)LEPT_CALLOC(len3 + 1, 1);
     strncat(newdir, basedir, len3);  /* add basedir */
     if (newdir[len1 - 1] != '/')  /* add '/' if necessary */
         newdir[len1] = '/';
@@ -2742,8 +2742,10 @@ l_int32  dirlen, namelen, size;
 
     namelen = (fname) ? strlen(fname) : 0;
     size = dirlen + namelen + 256;
-    if ((pathout = (char *)LEPT_CALLOC(size, sizeof(char))) == NULL)
+    if ((pathout = (char *)LEPT_CALLOC(size, sizeof(char))) == NULL) {
+        LEPT_FREE(cdir);
         return (char *)ERROR_PTR("pathout not made", procName, NULL);
+    }
 
         /* First handle %dir (which may be a full pathname).
          * Note that we're also making sure that a root directory such

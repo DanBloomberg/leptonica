@@ -262,6 +262,7 @@ L_STRCODE   *strcode;
         }
     }
     strcodeFinalize(&strcode, outdir);
+    sarrayDestroy(&sa);
     return 0;
 }
 
@@ -361,14 +362,10 @@ SARRAY     *sa1, *sa2, *sa3;
     /* ------------------------------------------------------- */
 
        /* Make array of textlines from TEMPLATE1 */
-    if ((filestr = (char *)l_binaryRead(TEMPLATE1, &size)) == NULL)
-        return ERROR_INT("filestr not made", procName, 1);
-    if ((sa1 = sarrayCreateLinesFromString(filestr, 1)) == NULL)
-        return ERROR_INT("sa1 not made", procName, 1);
+    filestr = (char *)l_binaryRead(TEMPLATE1, &size);
+    sa1 = sarrayCreateLinesFromString(filestr, 1);
     LEPT_FREE(filestr);
-
-    if ((sa3 = sarrayCreate(0)) == NULL)
-        return ERROR_INT("sa3 not made", procName, 1);
+    sa3 = sarrayCreate(0);
 
         /* Copyright notice */
     sarrayParseRange(sa1, 0, &actstart, &end, &newstart, "--", 0);
@@ -450,14 +447,10 @@ SARRAY     *sa1, *sa2, *sa3;
     /* ------------------------------------------------------- */
 
        /* Make array of textlines from TEMPLATE2 */
-    if ((filestr = (char *)l_binaryRead(TEMPLATE2, &size)) == NULL)
-        return ERROR_INT("filestr not made", procName, 1);
-    if ((sa2 = sarrayCreateLinesFromString(filestr, 1)) == NULL)
-        return ERROR_INT("sa2 not made", procName, 1);
+    filestr = (char *)l_binaryRead(TEMPLATE2, &size);
+    sa2 = sarrayCreateLinesFromString(filestr, 1);
     LEPT_FREE(filestr);
-
-    if ((sa3 = sarrayCreate(0)) == NULL)
-        return ERROR_INT("sa3 not made", procName, 1);
+    sa3 = sarrayCreate(0);
 
         /* Copyright notice */
     sarrayParseRange(sa2, 0, &actstart, &end, &newstart, "--", 0);
@@ -499,8 +492,7 @@ SARRAY     *sa1, *sa2, *sa3;
     sarrayAddString(sa3, buf, L_COPY);
 
         /* Flatten to string and output to autogen*.h file */
-    if ((filestr = sarrayToString(sa3, 1)) == NULL)
-        return ERROR_INT("filestr from sa3 not made", procName, 1);
+    filestr = sarrayToString(sa3, 1);
     nbytes = strlen(filestr);
     snprintf(buf, sizeof(buf), "%s/autogen.%d.h", realoutdir, fileno);
     l_binaryWrite(buf, "w", filestr, nbytes);

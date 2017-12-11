@@ -60,7 +60,7 @@
  *                  l_int32    scaleAreaMapLow2()
  *
  *         Binary scaling by closest pixel sampling
- *                  l_int32    scaleBinaryLow()
+ *                  int32      scaleBinaryLow()
  *
  *         Scale-to-gray 2x
  *                  void       scaleToGray2Low()
@@ -89,7 +89,7 @@
  *                  void       scaleToGray16Low()
  *
  *         Grayscale mipmap
- *                  l_int32    scaleMipmapLow()
+ *                  int32      scaleMipmapLow()
  *
  * </pre>
  */
@@ -995,8 +995,10 @@ l_float32  wratio, hratio;
          * the source col corresponding to dest col j ==> scol[j]  */
     if ((srow = (l_int32 *)LEPT_CALLOC(hd, sizeof(l_int32))) == NULL)
         return ERROR_INT("srow not made", procName, 1);
-    if ((scol = (l_int32 *)LEPT_CALLOC(wd, sizeof(l_int32))) == NULL)
+    if ((scol = (l_int32 *)LEPT_CALLOC(wd, sizeof(l_int32))) == NULL) {
+        LEPT_FREE(srow);
         return ERROR_INT("scol not made", procName, 1);
+    }
 
     wratio = (l_float32)ws / (l_float32)wd;
     hratio = (l_float32)hs / (l_float32)hd;
@@ -1125,8 +1127,10 @@ l_float32  wratio, hratio, norm;
            The are labeled by the arrays srow[i] and scol[j]. */
     if ((srow = (l_int32 *)LEPT_CALLOC(hd, sizeof(l_int32))) == NULL)
         return ERROR_INT("srow not made", procName, 1);
-    if ((scol = (l_int32 *)LEPT_CALLOC(wd, sizeof(l_int32))) == NULL)
+    if ((scol = (l_int32 *)LEPT_CALLOC(wd, sizeof(l_int32))) == NULL) {
+        LEPT_FREE(srow);
         return ERROR_INT("scol not made", procName, 1);
+    }
 
     norm = 1. / (l_float32)(size * size);
     wratio = (l_float32)ws / (l_float32)wd;
@@ -1616,8 +1620,10 @@ l_float32  wratio, hratio;
          * The source col corresponding to dest col j ==> scol[j]  */
     if ((srow = (l_int32 *)LEPT_CALLOC(hd, sizeof(l_int32))) == NULL)
         return ERROR_INT("srow not made", procName, 1);
-    if ((scol = (l_int32 *)LEPT_CALLOC(wd, sizeof(l_int32))) == NULL)
+    if ((scol = (l_int32 *)LEPT_CALLOC(wd, sizeof(l_int32))) == NULL) {
+        LEPT_FREE(srow);
         return ERROR_INT("scol not made", procName, 1);
+    }
 
     wratio = (l_float32)ws / (l_float32)wd;
     hratio = (l_float32)hs / (l_float32)hd;
@@ -2445,8 +2451,10 @@ l_float32  ratio, w1, w2;
            by multiplying by 2. */
     if ((srow = (l_int32 *)LEPT_CALLOC(hd, sizeof(l_int32))) == NULL)
         return ERROR_INT("srow not made", procName, 1);
-    if ((scol = (l_int32 *)LEPT_CALLOC(wd, sizeof(l_int32))) == NULL)
+    if ((scol = (l_int32 *)LEPT_CALLOC(wd, sizeof(l_int32))) == NULL) {
+        LEPT_FREE(srow);
         return ERROR_INT("scol not made", procName, 1);
+    }
     ratio = 1. / (2. * red);  /* 0.5 for red = 1, 1 for red = 0.5 */
     for (i = 0; i < hd; i++)
         srow[i] = (l_int32)(ratio * i);

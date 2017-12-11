@@ -95,13 +95,14 @@ PIXACC  *pixacc;
 
     PROCNAME("pixaccCreate");
 
-    if ((pixacc = (PIXACC *)LEPT_CALLOC(1, sizeof(PIXACC))) == NULL)
-        return (PIXACC *)ERROR_PTR("pixacc not made", procName, NULL);
+    pixacc = (PIXACC *)LEPT_CALLOC(1, sizeof(PIXACC));
     pixacc->w = w;
     pixacc->h = h;
 
-    if ((pixacc->pix = pixCreate(w, h, 32)) == NULL)
+    if ((pixacc->pix = pixCreate(w, h, 32)) == NULL) {
+        pixaccDestroy(&pixacc);
         return (PIXACC *)ERROR_PTR("pix not made", procName, NULL);
+    }
 
     if (negflag) {
         pixacc->offset = 0x40000000;

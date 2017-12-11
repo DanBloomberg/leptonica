@@ -308,6 +308,7 @@ l_int32    i, j;
      *                Preliminary calculations                *
      *--------------------------------------------------------*/
         /* is the first word partial? */
+    dfwmask = 0;
     if ((dx & 31) == 0) {  /* if not */
         dfwpartb = 0;
         dfwbits = 0;

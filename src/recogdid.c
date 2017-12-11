@@ -416,6 +416,7 @@ L_RDID   *did;
     for (i = 0; i < nx; i++) {
         shifty = (l_int32)(ycent1[i] - ycent2 + 0.5);
         maxcount = 0;
+        maxdely = 0;
         for (j = -MaxYShift; j <= MaxYShift; j++) {
             pixClearAll(pix3);
             dely = shifty + j;  /* amount pix2 is shifted relative to pix1 */

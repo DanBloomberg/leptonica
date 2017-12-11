@@ -254,8 +254,10 @@ l_uint8  *array1, *array2;
 
     if ((array1 = l_binaryRead(fname1, &nbytes1)) == NULL)
         return ERROR_INT("array1 not read", procName, 1);
-    if ((array2 = l_binaryRead(fname2, &nbytes2)) == NULL)
+    if ((array2 = l_binaryRead(fname2, &nbytes2)) == NULL) {
+        LEPT_FREE(array1);
         return ERROR_INT("array2 not read", procName, 1);
+    }
     same = 1;
     for (i = 0; i < nbytes1; i++) {
         if (array1[i] != array2[i]) {

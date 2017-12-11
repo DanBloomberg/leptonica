@@ -397,7 +397,7 @@ PIX       *pix1, *pix2;
 
     if (*pencsize == 0) {
         free(pencdata);
-        *pencdata = NULL;
+        pencdata = NULL;
         return ERROR_INT("webp encoding failed", procName, 1);
     }
 

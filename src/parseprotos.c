@@ -46,7 +46,7 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  L_BUF_SIZE = 512;    /* max token size */
+static const l_int32  L_BUF_SIZE = 2048;    /* max token size */
 
 static l_int32 getNextNonCommentLine(SARRAY *sa, l_int32 start, l_int32 *pnext);
 static l_int32 getNextNonBlankLine(SARRAY *sa, l_int32 start, l_int32 *pnext);
@@ -567,8 +567,11 @@ SARRAY  *sa, *saout;
         nchars = strlen(str);
         index = 0;
         for (j = 0; j < nchars; j++) {
-            if (index > L_BUF_SIZE - 6)
+            if (index > L_BUF_SIZE - 6) {
+                sarrayDestroy(&sa);
+                sarrayDestroy(&saout);
                 return (char *)ERROR_PTR("token too large", procName, NULL);
+            }
             if (str[j] == '(') {
                 buf[index++] = ' ';
                 buf[index++] = '(';
