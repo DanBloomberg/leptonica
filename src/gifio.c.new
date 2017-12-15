@@ -206,7 +206,7 @@ GifReadBuffer  buffer;
 static l_int32
 gifReadFunc(GifFileType  *gif,
             GifByteType  *dest,
-            l_int32       bytesToRead) 
+            l_int32       bytesToRead)
 {
 GifReadBuffer  *buffer;
 l_int32         bytesRead;
@@ -467,7 +467,7 @@ L_BBUFFER    *buffer;
 static l_int32
 gifWriteFunc(GifFileType        *gif,
              const GifByteType  *src,
-             l_int32             bytesToWrite) 
+             l_int32             bytesToWrite)
 {
 L_BBUFFER  *buffer;
 

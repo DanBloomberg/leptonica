@@ -62,6 +62,9 @@
  *      Setting a transparent alpha component over a white background
  *           PIX             *pixSetAlphaOverWhite()
  *
+ *      Fading from the edge
+ *           l_int32          pixLinearEdgeFade()
+ *
  *  In blending operations a new pix is produced where typically
  *  a subset of pixels in src1 are changed by the set of pixels
  *  in src2, when src2 is located in a given position relative
@@ -2147,3 +2150,128 @@ PIX  *pixd, *pix1, *pix2, *pix3, *pix4;
     pixDestroy(&pix4);
     return pixd;
 }
+
+
+/*---------------------------------------------------------------------*
+ *                          Fading from the edge                       *
+ *---------------------------------------------------------------------*/
+/*!
+ * \brief   pixLinearEdgeFade()
+ *
+ * \param[in]    pixs      8 or 32 bpp; no colormap
+ * \param[in]    dir       L_FROM_LEFT, L_FROM_RIGHT, L_FROM_TOP, L_FROM_BOT
+ * \param[in]    fadeto    L_BLEND_TO_WHITE, L_BLEND_TO_BLACK
+ * \param[in]    distfract fraction of width or height over which fading occurs
+ * \param[in]    maxfade   fraction of fading at the edge, <= 1.0
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) In-place operation.
+ *      (2) Maximum fading fraction @maxfade occurs at the edge of the image,
+ *          and the fraction goes to 0 at the fractional distance @distfract
+ *          from the edge.  @maxfade must be in [0, 1].
+ *      (3) @distrfact must be in [0, 1], and typically it would be <= 0.5.
+ * </pre>
+ */
+l_int32
+pixLinearEdgeFade(PIX       *pixs,
+                  l_int32    dir,
+                  l_int32    fadeto,
+                  l_float32  distfract,
+                  l_float32  maxfade)
+{
+l_int32    i, j, w, h, d, wpl, xmin, ymin, range, val, rval, gval, bval;
+l_float32  slope, limit, del;
+l_uint32  *data, *line;
+
+    PROCNAME("pixLinearEdgeFade");
+
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    if (pixGetColormap(pixs) != NULL)
+        return ERROR_INT("pixs has a colormap", procName, 1);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 8 && d != 32)
+        return ERROR_INT("pixs not 8 or 32 bpp", procName, 1);
+    if (dir != L_FROM_LEFT && dir != L_FROM_RIGHT &&
+        dir != L_FROM_TOP && dir != L_FROM_BOT)
+        return ERROR_INT("invalid fade direction from edge", procName, 1);
+    if (fadeto != L_BLEND_TO_WHITE && fadeto != L_BLEND_TO_BLACK)
+        return ERROR_INT("invalid fadeto photometry", procName, 1);
+    if (maxfade <= 0) return 0;
+    if (maxfade > 1.0)
+        return ERROR_INT("invalid maxfade", procName, 1);
+    if (distfract <= 0 || distfract * L_MIN(w, h) < 1.0) {
+        L_INFO("distfract is too small\n", procName);
+        return 0;
+    }
+    if (distfract > 1.0)
+        return ERROR_INT("invalid distfract", procName, 1);
+
+        /* Set up parameters */
+    if (dir == L_FROM_LEFT) {
+        range = (l_int32)(distfract * w);
+        xmin = 0;
+        slope = maxfade / (l_float32)range;
+    } else if (dir == L_FROM_RIGHT) {
+        range = (l_int32)(distfract * w);
+        xmin = w - range;
+        slope = maxfade / (l_float32)range;
+    } else if (dir == L_FROM_TOP) {
+        range = (l_int32)(distfract * h);
+        ymin = 0;
+        slope = maxfade / (l_float32)range;
+    } else if (dir == L_FROM_BOT) {
+        range = (l_int32)(distfract * h);
+        ymin = h - range;
+        slope = maxfade / (l_float32)range;
+    }
+
+    limit = (fadeto == L_BLEND_TO_WHITE) ? 255.0 : 0.0;
+    data = pixGetData(pixs);
+    wpl = pixGetWpl(pixs);
+    if (dir == L_FROM_LEFT || dir == L_FROM_RIGHT) {
+        for (j = 0; j < range; j++) {
+            del = (dir == L_FROM_LEFT) ? maxfade - slope * j
+                                       : maxfade - slope * (range - j);
+            for (i = 0; i < h; i++) {
+                line = data + i * wpl;
+                if (d == 8) {
+                    val = GET_DATA_BYTE(line, xmin + j);
+                    val += (limit - val) * del + 0.5;
+                    SET_DATA_BYTE(line, xmin + j, val);
+                } else {  /* rgb */
+                    extractRGBValues(*(line + xmin + j), &rval, &gval, &bval);
+                    rval += (limit - rval) * del + 0.5;
+                    gval += (limit - gval) * del + 0.5;
+                    bval += (limit - bval) * del + 0.5;
+                    composeRGBPixel(rval, gval, bval, line + xmin + j);
+                }
+            }
+        }
+    } else {  /* dir == L_FROM_TOP || L_FROM_BOT */
+        for (i = 0; i < range; i++) {
+            del = (dir == L_FROM_TOP) ? maxfade - slope * i
+                                      : maxfade - slope * (range - i);
+            line = data + (ymin + i) * wpl;
+            for (j = 0; j < w; j++) {
+                if (d == 8) {
+                    val = GET_DATA_BYTE(line, j);
+                    val += (limit - val) * del + 0.5;
+                    SET_DATA_BYTE(line, j, val);
+                } else {  /* rgb */
+                    extractRGBValues(*(line + j), &rval, &gval, &bval);
+                    rval += (limit - rval) * del + 0.5;
+                    gval += (limit - gval) * del + 0.5;
+                    bval += (limit - bval) * del + 0.5;
+                    composeRGBPixel(rval, gval, bval, line + j);
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+

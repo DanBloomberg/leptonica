@@ -179,6 +179,7 @@ LEPT_DLL extern PIX * pixMultiplyByColor ( PIX *pixd, PIX *pixs, BOX *box, l_uin
 LEPT_DLL extern PIX * pixAlphaBlendUniform ( PIX *pixs, l_uint32 color );
 LEPT_DLL extern PIX * pixAddAlphaToBlend ( PIX *pixs, l_float32 fract, l_int32 invert );
 LEPT_DLL extern PIX * pixSetAlphaOverWhite ( PIX *pixs );
+LEPT_DLL extern l_int32 pixLinearEdgeFade ( PIX *pixs, l_int32 dir, l_int32 fadeto, l_float32 distfract, l_float32 maxfade );
 LEPT_DLL extern L_BMF * bmfCreate ( const char *dir, l_int32 fontsize );
 LEPT_DLL extern void bmfDestroy ( L_BMF **pbmf );
 LEPT_DLL extern PIX * bmfGetPix ( L_BMF *bmf, char chr );

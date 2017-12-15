@@ -13,7 +13,7 @@ INSTALL_PROGS = convertfilestopdf convertfilestops \
 AUTO_REG_PROGS = adaptmap_reg affine_reg alphaops_reg \
 	alphaxform_reg baseline_reg bilateral2_reg \
 	bilinear_reg binarize_reg blackwhite_reg \
-	blend1_reg blend2_reg blend3_reg blend4_reg \
+	blend1_reg blend2_reg blend3_reg blend4_reg blend5_reg \
 	boxa1_reg ccthin1_reg ccthin2_reg cmapquant_reg \
 	colorcontent_reg coloring_reg colorize_reg \
 	colormask_reg colormorph_reg colorquant_reg \
@@ -110,8 +110,7 @@ OTHER_PROGS = adaptmap_dark \
 	runlengthtest scaleandtile \
 	scaletest1 scaletest2 \
 	seedfilltest settest sharptest \
-	sheartest showedges \
-	skewtest snapcolortest \
+	sheartest showedges skewtest \
 	sorttest sudokutest textorient trctest \
 	warpertest watershedtest wordsinorder \
 	writemtiff yuvtest

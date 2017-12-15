@@ -142,7 +142,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		binmorph3_reg.c binmorph4_reg.c binmorph5_reg.c \
 		blackwhite_reg.c \
 		blend1_reg.c blend2_reg.c blend3_reg.c blend4_reg.c \
-		boxa1_reg.c boxa2_reg.c \
+		blend5_reg.c boxa1_reg.c boxa2_reg.c \
 		ccthin1_reg.c ccthin2_reg.c \
 		cmapquant_reg.c colorcontent_reg.c \
 		coloring_reg.c colorize_reg.c \
@@ -236,8 +236,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		scaletest1.c scaletest2.c \
 		seedfilltest.c settest.c sharptest.c \
 		sheartest.c showedges.c \
-		skewtest.c snapcolortest.c \
-		sorttest.c splitimage2pdf.c \
+		skewtest.c sorttest.c splitimage2pdf.c \
 		sudokutest.c textorient.c trctest.c \
 		warpertest.c watershedtest.c wordsinorder.c \
 		writemtiff.c xtractprotos.c yuvtest.c
@@ -355,6 +354,9 @@ blend3_reg:	blend3_reg.o $(LEPTLIB)
 
 blend4_reg:	blend4_reg.o $(LEPTLIB)
 	$(CC) -o blend4_reg blend4_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+blend5_reg:	blend5_reg.o $(LEPTLIB)
+	$(CC) -o blend5_reg blend5_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 boxa1_reg:	boxa1_reg.o $(LEPTLIB)
 	$(CC) -o boxa1_reg boxa1_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -1060,9 +1062,6 @@ showedges:	showedges.o $(LEPTLIB)
 
 skewtest:	skewtest.o $(LEPTLIB)
 	$(CC) -o skewtest skewtest.o $(ALL_LIBS) $(EXTRALIBS)
-
-snapcolortest:	snapcolortest.o $(LEPTLIB)
-	$(CC) -o snapcolortest snapcolortest.o $(ALL_LIBS) $(EXTRALIBS)
 
 sorttest:	sorttest.o $(LEPTLIB)
 	$(CC) -o sorttest sorttest.o $(ALL_LIBS) $(EXTRALIBS)
