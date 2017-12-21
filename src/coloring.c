@@ -70,8 +70,8 @@
  *  (5) Shifting all colors by a component-dependent fraction of
  *      their distance from 0 (if shifting down) or from 255 (if
  *      shifting up).  This is useful for modifying the color to
- *      compensate for color shifts in acquisition, for example
- *      (enhance.c: pixColorShiftRGB).
+ *      compensate for color shifts in acquisition or printing.
+ *      (enhance.c: pixColorShiftRGB, pixMosaicColorShiftRGB).
  *  (6) Repainting selected pixels. (paintcmap.c: pixSetSelectMaskedCmap)
  *  (7) Blending a fraction of a specific color with the existing RGB
  *      color.  (pix2.c: pixBlendInRect())

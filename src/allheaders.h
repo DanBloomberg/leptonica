@@ -787,6 +787,7 @@ LEPT_DLL extern PIX * pixModifyHue ( PIX *pixd, PIX *pixs, l_float32 fract );
 LEPT_DLL extern PIX * pixModifySaturation ( PIX *pixd, PIX *pixs, l_float32 fract );
 LEPT_DLL extern l_int32 pixMeasureSaturation ( PIX *pixs, l_int32 factor, l_float32 *psat );
 LEPT_DLL extern PIX * pixModifyBrightness ( PIX *pixd, PIX *pixs, l_float32 fract );
+LEPT_DLL extern PIX * pixMosaicColorShiftRGB ( PIX *pixs, l_float32 roff, l_float32 goff, l_float32 boff, l_float32 delta, l_int32 nincr );
 LEPT_DLL extern PIX * pixColorShiftRGB ( PIX *pixs, l_float32 rfract, l_float32 gfract, l_float32 bfract );
 LEPT_DLL extern PIX * pixMultConstantColor ( PIX *pixs, l_float32 rfact, l_float32 gfact, l_float32 bfact );
 LEPT_DLL extern PIX * pixMultMatrixColor ( PIX *pixs, L_KERNEL *kel );

@@ -61,6 +61,7 @@
  *           PIX     *pixModifyBrightness()
  *
  *      Color shifting
+ *           PIX     *pixMosaicColorShiftRGB()
  *           PIX     *pixColorShiftRGB()
  *
  *      General multiplicative constant color transform
@@ -1701,6 +1702,106 @@ l_uint32  *data, *line;
  *                             Color shifting                            *
  *-----------------------------------------------------------------------*/
 /*!
+ * \brief   pixMosaicColorShiftRGB()
+ *
+ * \param[in]    pixs     32 bpp rgb
+ * \param[in]    roff   center offset of red component
+ * \param[in]    goff   center offset of green component
+ * \param[in]    boff   center offset of blue component
+ * \param[in]    delta  increments from center offsets [0.0 - 0.1];
+ *                      use 0.0 to get the default (0.04)
+ * \param[in]    nincr  number of increments in each (positive and negative)
+ *                      direction; use 0 to get the default (2).
+ * \return  pix, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This generates a mosaic view of the effect of shifting the RGB
+ *          components.  See pixColorShiftRGB() for details on the shifting.
+ *      (2) The offsets (%roff, %goff, %boff) set the color center point,
+ *          and the deviations from this are shown separately for deltas
+ *          in r, g and b.  For each component, we show 2 * %nincr + 1
+ *          images.
+ *      (3) Usage: color prints differ from the original due to three factors:
+ *          illumination, calibration of the camera in acquisition,
+ *          and calibration of the printer.  This function can be used
+ *          to iteratively match a color print to the original.  On each
+ *          iteration, the center offsets are set to the best match so
+ *          far, and the @delta increments are typically reduced.
+ * </pre>
+ */
+PIX *
+pixMosaicColorShiftRGB(PIX       *pixs,
+                       l_float32  roff,
+                       l_float32  goff,
+                       l_float32  boff,
+                       l_float32  delta,
+                       l_int32    nincr)
+{
+char       buf[64];
+l_int32    i, j;
+l_float32  del;
+L_BMF     *bmf;
+PIX       *pix1, *pix2, *pix3;
+PIXA      *pixa;
+
+    PROCNAME("pixMosaicColorShiftRGB");
+
+    if (!pixs  || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not rgb", procName, NULL);
+    if (roff < -1.0 || roff > 1.0)
+        return (PIX *)ERROR_PTR("roff not in [-1.0 - 1.0]", procName, NULL);
+    if (goff < -1.0 || goff > 1.0)
+        return (PIX *)ERROR_PTR("goff not in [-1.0 - 1.0]", procName, NULL);
+    if (boff < -1.0 || boff > 1.0)
+        return (PIX *)ERROR_PTR("boff not in [-1.0 - 1.0]", procName, NULL);
+    if (delta < 0.0 || delta > 0.1)
+        return (PIX *)ERROR_PTR("delta not in [0.0 - 0.1]", procName, NULL);
+    if (delta == 0.0) delta = 0.04;
+    if (nincr < 0 || nincr > 6)
+        return (PIX *)ERROR_PTR("nincr not in [0 - 6]", procName, NULL);
+    if (nincr == 0) nincr = 2;
+
+    pixa = pixaCreate(3 * (2 * nincr + 1));
+    bmf = bmfCreate(NULL, 8);
+    pix1 = pixScaleToSize(pixs, 400, 0);
+    for (i = 0, del = - nincr * delta; i < 2 * nincr + 1; i++, del += delta) {
+        pix2 = pixColorShiftRGB(pix1, roff + del, goff, boff);
+        snprintf(buf, sizeof(buf), "%4.2f, %4.2f, %4.2f",
+                 roff + del, goff, boff);
+        pix3 = pixAddSingleTextblock(pix2, bmf, buf, 0xff000000,
+                                     L_ADD_BELOW, 0);
+        pixaAddPix(pixa, pix3, L_INSERT);
+        pixDestroy(&pix2);
+    }
+    for (i = 0, del = - nincr * delta; i < 2 * nincr + 1; i++, del += delta) {
+        pix2 = pixColorShiftRGB(pix1, roff, goff + del, boff);
+        snprintf(buf, sizeof(buf), "%4.2f, %4.2f, %4.2f",
+                 roff, goff + del, boff);
+        pix3 = pixAddSingleTextblock(pix2, bmf, buf, 0xff000000,
+                                     L_ADD_BELOW, 0);
+        pixaAddPix(pixa, pix3, L_INSERT);
+        pixDestroy(&pix2);
+    }
+    for (i = 0, del = - nincr * delta; i < 2 * nincr + 1; i++, del += delta) {
+        pix2 = pixColorShiftRGB(pix1, roff, goff, boff + del);
+        snprintf(buf, sizeof(buf), "%4.2f, %4.2f, %4.2f",
+                 roff, goff, boff + del);
+        pix3 = pixAddSingleTextblock(pix2, bmf, buf, 0xff000000,
+                                     L_ADD_BELOW, 0);
+        pixaAddPix(pixa, pix3, L_INSERT);
+        pixDestroy(&pix2);
+    }
+    pixDestroy(&pix1);
+
+    pix1 = pixaDisplayTiledAndScaled(pixa, 32, 300, 2 * nincr + 1, 0, 30, 2);
+    pixaDestroy(&pixa);
+    bmfDestroy(&bmf);
+    return pix1;
+}
+
+
+/*!
  * \brief   pixColorShiftRGB()
  *
  * \param[in]    pixs     32 bpp rgb
@@ -1744,11 +1845,11 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
     if (rfract < -1.0 || rfract > 1.0)
-        return (PIX *)ERROR_PTR("rfract not in [-1.0,...,1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("rfract not in [-1.0 - 1.0]", procName, NULL);
     if (gfract < -1.0 || gfract > 1.0)
-        return (PIX *)ERROR_PTR("gfract not in [-1.0,...,1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("gfract not in [-1.0 - 1.0]", procName, NULL);
     if (bfract < -1.0 || bfract > 1.0)
-        return (PIX *)ERROR_PTR("bfract not in [-1.0,...,1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("bfract not in [-1.0 - 1.0]", procName, NULL);
     if (rfract == 0.0 && gfract == 0.0 && bfract == 0.0)
         return pixCopy(NULL, pixs);
 
