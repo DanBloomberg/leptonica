@@ -126,9 +126,9 @@ static void scaleColor2xLILineLow(l_uint32 *lined, l_int32 wpld,
                                   l_int32 lastlineflag);
 static void scaleGray2xLILow(l_uint32 *datad, l_int32 wpld, l_uint32 *datas,
                              l_int32 ws, l_int32 hs, l_int32 wpls);
-/* static void scaleGray2xLILineLow(l_uint32 *lined, l_int32 wpld,
+static void scaleGray2xLILineLow(l_uint32 *lined, l_int32 wpld,
                                  l_uint32 *lines, l_int32 ws, l_int32 wpls,
-                                 l_int32 lastlineflag); */
+                                 l_int32 lastlineflag);
 static void scaleGray4xLILow(l_uint32 *datad, l_int32 wpld, l_uint32 *datas,
                              l_int32 ws, l_int32 hs, l_int32 wpls);
 static void scaleGray4xLILineLow(l_uint32 *lined, l_int32 wpld,
@@ -2623,7 +2623,7 @@ l_uint32  *lines, *lined;
  * \param[in]    lastlineflag  1 if last src line; 0 otherwise
  * \return  void
  */
-void
+static void
 scaleGray2xLILineLow(l_uint32  *lined,
                      l_int32    wpld,
                      l_uint32  *lines,

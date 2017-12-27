@@ -1894,6 +1894,8 @@ LEPT_DLL extern PIX * pixConvert4To8 ( PIX *pixs, l_int32 cmapflag );
 LEPT_DLL extern PIX * pixConvert8To16 ( PIX *pixs, l_int32 leftshift );
 LEPT_DLL extern PIX * pixConvertTo2 ( PIX *pixs );
 LEPT_DLL extern PIX * pixConvert8To2 ( PIX *pix );
+LEPT_DLL extern PIX * pixConvertTo4 ( PIX *pixs );
+LEPT_DLL extern PIX * pixConvert8To4 ( PIX *pix );
 LEPT_DLL extern PIX * pixConvertTo1 ( PIX *pixs, l_int32 threshold );
 LEPT_DLL extern PIX * pixConvertTo1BySampling ( PIX *pixs, l_int32 factor, l_int32 threshold );
 LEPT_DLL extern PIX * pixConvertTo8 ( PIX *pixs, l_int32 cmapflag );
@@ -2365,7 +2367,6 @@ LEPT_DLL extern PIX * pixScaleAreaMap ( PIX *pix, l_float32 scalex, l_float32 sc
 LEPT_DLL extern PIX * pixScaleAreaMap2 ( PIX *pix );
 LEPT_DLL extern PIX * pixScaleAreaMapToSize ( PIX *pixs, l_int32 wd, l_int32 hd );
 LEPT_DLL extern PIX * pixScaleBinary ( PIX *pixs, l_float32 scalex, l_float32 scaley );
-LEPT_DLL extern void scaleGray2xLILineLow ( l_uint32 *lined, l_int32 wpld, l_uint32 *lines, l_int32 ws, l_int32 wpls, l_int32 lastlineflag );
 LEPT_DLL extern PIX * pixScaleToGray ( PIX *pixs, l_float32 scalefactor );
 LEPT_DLL extern PIX * pixScaleToGrayFast ( PIX *pixs, l_float32 scalefactor );
 LEPT_DLL extern PIX * pixScaleToGray2 ( PIX *pixs );

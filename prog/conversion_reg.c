@@ -41,6 +41,7 @@ l_int32      same, error;
 PIX         *pixs1, *pixs2, *pixs4, *pixs8, *pixs16, *pixs32;
 PIX         *pixc2, *pixc4, *pixc8;
 PIX         *pix1, *pix2, *pix3, *pix4, *pix5, *pix6;
+PIXA        *pixa;
 PIXCMAP     *cmap;
 SARRAY      *sa;
 L_REGPARAMS  *rp;
@@ -181,7 +182,6 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix3);
     pixDestroy(&pix4);
 
-
         /* Conversion: 8 bpp --> 8 bpp cmap --> 8 bpp */
     pix1 = pixConvertTo8(pixs8, TRUE);
     pix2 = pixConvertTo8(pix1, FALSE);
@@ -318,7 +318,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix1);
     pixDestroy(&pix2);
 
-        /* Summarize results */
+        /* Summarize results so far */
     if (error == FALSE)
         fprintf(stderr, "No errors found\n");
     else {
@@ -326,6 +326,68 @@ L_REGPARAMS  *rp;
         fprintf(stderr, "Errors in the following:\n %s", errorstr);
         lept_free(errorstr);
     }
+
+        /* General onversion to 2 bpp */
+    pixa = pixaCreate(0);
+    pix1 = pixConvertTo2(pixs1);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 16 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixConvertTo2(pixs2);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 17 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixConvertTo2(pixc2);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 18 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixConvertTo2(pixs4);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 19 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixConvertTo2(pixc4);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 20 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixConvertTo2(pixs8);
+    regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 21 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixConvertTo2(pixc8);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 22 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixConvertTo2(pixs32);
+    regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 23 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix2 = pixaDisplayTiledAndScaled(pixa, 32, 300, 4, 0, 30, 2);
+    pixDisplayWithTitle(pix2, 500, 0, NULL, rp->display);
+    pixDestroy(&pix2);
+    pixaDestroy(&pixa);
+
+        /* General onversion to 4 bpp */
+    pixa = pixaCreate(0);
+    pix1 = pixConvertTo4(pixs1);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 24 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixConvertTo4(pixs2);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 25 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixConvertTo4(pixc2);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 26 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixConvertTo4(pixs4);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 27 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixConvertTo4(pixc4);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 28 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixConvertTo4(pixs8);
+    regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 29 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixConvertTo4(pixc8);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 30 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixConvertTo4(pixs32);
+    regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 31 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix2 = pixaDisplayTiledAndScaled(pixa, 32, 300, 4, 0, 30, 2);
+    pixDisplayWithTitle(pix2, 500, 750, NULL, rp->display);
+    pixDestroy(&pix2);
+    pixaDestroy(&pixa);
 
     sarrayDestroy(&sa);
     pixDestroy(&pixs1);

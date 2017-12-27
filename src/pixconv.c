@@ -102,6 +102,10 @@
  *           PIX        *pixConvertTo2()
  *           PIX        *pixConvert8To2()
  *
+ *      Top-level conversion to 4 bpp
+ *           PIX        *pixConvertTo4()
+ *           PIX        *pixConvert8To4()
+ *
  *      Top-level conversion to 8 bpp
  *           PIX        *pixConvertTo8()
  *           PIX        *pixConvertTo8BySampling()
@@ -2705,7 +2709,7 @@ PIX       *pixt, *pixd;
  * Notes:
  *      (1) This is a top-level function, with simple default values
  *          used in pixConvertTo8() if unpacking is necessary.
- *      (2) Any existing colormap is removed.
+ *      (2) Any existing colormap is removed; the result is always gray.
  *      (3) If the input image has 2 bpp and no colormap, the operation is
  *          lossless and a copy is returned.
  * </pre>
@@ -2736,7 +2740,7 @@ PIX     *pix1, *pix2, *pix3, *pixd;
         pix2 = pixClone(pix1);
     pixDestroy(&pix1);
     if (d == 1) {
-        pixd = pixConvert1To2(NULL, pix2, 0, 3);
+        pixd = pixConvert1To2(NULL, pix2, 3, 0);
     } else if (d == 2) {
         pixd = pixClone(pix2);
     } else if (d == 4) {
@@ -2793,6 +2797,112 @@ PIX       *pixs, *pixd;
             word = (word >> 24) | ((word & 0xff0000) >> 18) |
                    ((word & 0xff00) >> 12) | ((word & 0xff) >> 6);
             SET_DATA_BYTE(lined, j, word);  /* only LS byte is filled */
+        }
+    }
+    pixDestroy(&pixs);
+    return pixd;
+}
+
+
+/*---------------------------------------------------------------------------*
+ *                     Top-level conversion to 4 bpp                         *
+ *---------------------------------------------------------------------------*/
+/*!
+ * \brief   pixConvertTo4()
+ *
+ * \param[in]    pixs   1, 2, 4, 8, 32 bpp; colormap OK but will be removed
+ * \return  pixd   4 bpp, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a top-level function, with simple default values
+ *          used in pixConvertTo8() if unpacking is necessary.
+ *      (2) Any existing colormap is removed; the result is always gray.
+ *      (3) If the input image has 4 bpp and no colormap, the operation is
+ *          lossless and a copy is returned.
+ * </pre>
+ */
+PIX *
+pixConvertTo4(PIX  *pixs)
+{
+l_int32  d;
+PIX     *pix1, *pix2, *pix3, *pixd;
+
+    PROCNAME("pixConvertTo4");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    d = pixGetDepth(pixs);
+    if (d != 1 && d != 2 && d != 4 && d != 8 && d != 32)
+        return (PIX *)ERROR_PTR("depth not {1,2,4,8,32}", procName, NULL);
+
+    if (pixGetColormap(pixs) != NULL) {
+        pix1 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+        d = pixGetDepth(pix1);
+    } else {
+        pix1 = pixCopy(NULL, pixs);
+    }
+    if (d == 32)
+        pix2 = pixConvertTo8(pix1, FALSE);
+    else
+        pix2 = pixClone(pix1);
+    pixDestroy(&pix1);
+    if (d == 1) {
+        pixd = pixConvert1To4(NULL, pix2, 15, 0);
+    } else if (d == 2) {
+        pix3 = pixConvert2To8(pix2, 0, 0x55, 0xaa, 0xff, FALSE);
+        pixd = pixConvert8To4(pix3);
+        pixDestroy(&pix3);
+    } else if (d == 4) {
+        pixd = pixClone(pix2);
+    } else {  /* d == 8 */
+        pixd = pixConvert8To4(pix2);
+    }
+    pixDestroy(&pix2);
+    return pixd;
+}
+
+
+/*!
+ * \brief   pixConvert8To4()
+ *
+ * \param[in]     pix     8 bpp; colormap OK
+ * \return  pixd  4 bpp, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Any existing colormap is removed to gray.
+ * </pre>
+ */
+PIX *
+pixConvert8To4(PIX  *pix)
+{
+l_int32    i, j, w, h, wpls, wpld, val;
+l_uint32  *datas, *lines, *datad, *lined;
+PIX       *pixs, *pixd;
+
+    PROCNAME("pixConvert8To4");
+
+    if (!pix || pixGetDepth(pix) != 8)
+        return (PIX *)ERROR_PTR("pix undefined or not 8 bpp", procName, NULL);
+
+    if (pixGetColormap(pix) != NULL)
+        pixs = pixRemoveColormap(pix, REMOVE_CMAP_TO_GRAYSCALE);
+    else
+        pixs = pixClone(pix);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    pixd = pixCreate(w, h, 4);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            val = GET_DATA_BYTE(lines, j);
+            val = val >> 4;  /* take top 4 bits */
+            SET_DATA_QBIT(lined, j, val);
         }
     }
     pixDestroy(&pixs);
