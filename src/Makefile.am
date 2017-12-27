@@ -30,7 +30,7 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
  fmorphauto.c fmorphgen.1.c fmorphgenlow.1.c                    \
  fpix1.c fpix2.c gifio.c gifiostub.c                            \
  gplot.c graphics.c graymorph.c                                 \
- grayquant.c grayquantlow.c heap.c jbclass.c                    \
+ grayquant.c heap.c jbclass.c                                   \
  jp2kheader.c jp2kheaderstub.c                                  \
  jp2kio.c jp2kiostub.c jpegio.c jpegiostub.c                    \
  kernel.c leptwin.c libversions.c list.c map.c maze.c           \
@@ -51,11 +51,9 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
  recogbasic.c recogdid.c recogident.c                           \
  recogtrain.c regutils.c                                        \
  rop.c ropiplow.c roplow.c                                      \
- rotate.c rotateam.c rotateamlow.c                              \
- rotateorth.c rotateshear.c                                     \
+ rotate.c rotateam.c rotateorth.c rotateshear.c                 \
  runlength.c sarray1.c sarray2.c                                \
- scale.c scalelow.c	                                        \
- seedfill.c seedfilllow.c                                       \
+ scale1.c scale2.c seedfill.c                                   \
  sel1.c sel2.c selgen.c                                         \
  shear.c skew.c	spixio.c                                        \
  stack.c stringcode.c                                           \

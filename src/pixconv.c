@@ -98,6 +98,10 @@
  *           PIX        *pixConvertTo1()
  *           PIX        *pixConvertTo1BySampling()
  *
+ *      Top-level conversion to 2 bpp
+ *           PIX        *pixConvertTo2()
+ *           PIX        *pixConvert8To2()
+ *
  *      Top-level conversion to 8 bpp
  *           PIX        *pixConvertTo8()
  *           PIX        *pixConvertTo8BySampling()
@@ -2687,6 +2691,113 @@ PIX       *pixt, *pixd;
     return pixd;
 }
 
+
+/*---------------------------------------------------------------------------*
+ *                     Top-level conversion to 2 bpp                         *
+ *---------------------------------------------------------------------------*/
+/*!
+ * \brief   pixConvertTo2()
+ *
+ * \param[in]    pixs   1, 2, 4, 8, 32 bpp; colormap OK but will be removed
+ * \return  pixd   2 bpp, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a top-level function, with simple default values
+ *          used in pixConvertTo8() if unpacking is necessary.
+ *      (2) Any existing colormap is removed.
+ *      (3) If the input image has 2 bpp and no colormap, the operation is
+ *          lossless and a copy is returned.
+ * </pre>
+ */
+PIX *
+pixConvertTo2(PIX  *pixs)
+{
+l_int32  d;
+PIX     *pix1, *pix2, *pix3, *pixd;
+
+    PROCNAME("pixConvertTo2");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    d = pixGetDepth(pixs);
+    if (d != 1 && d != 2 && d != 4 && d != 8 && d != 32)
+        return (PIX *)ERROR_PTR("depth not {1,2,4,8,32}", procName, NULL);
+
+    if (pixGetColormap(pixs) != NULL) {
+        pix1 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+        d = pixGetDepth(pix1);
+    } else {
+        pix1 = pixCopy(NULL, pixs);
+    }
+    if (d == 32)
+        pix2 = pixConvertTo8(pix1, FALSE);
+    else
+        pix2 = pixClone(pix1);
+    pixDestroy(&pix1);
+    if (d == 1) {
+        pixd = pixConvert1To2(NULL, pix2, 0, 3);
+    } else if (d == 2) {
+        pixd = pixClone(pix2);
+    } else if (d == 4) {
+        pix3 = pixConvert4To8(pix2, FALSE);  /* unpack to 8 */
+        pixd = pixConvert8To2(pix3);
+        pixDestroy(&pix3);
+    } else {  /* d == 8 */
+        pixd = pixConvert8To2(pix2);
+    }
+    pixDestroy(&pix2);
+    return pixd;
+}
+
+
+/*!
+ * \brief   pixConvert8To2()
+ *
+ * \param[in]     pix     8 bpp; colormap OK
+ * \return  pixd  2 bpp, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Any existing colormap is removed to gray.
+ * </pre>
+ */
+PIX *
+pixConvert8To2(PIX  *pix)
+{
+l_int32    i, j, w, h, wpls, wpld;
+l_uint32   word;
+l_uint32  *datas, *lines, *datad, *lined;
+PIX       *pixs, *pixd;
+
+    PROCNAME("pixConvert8To2");
+
+    if (!pix || pixGetDepth(pix) != 8)
+        return (PIX *)ERROR_PTR("pix undefined or not 8 bpp", procName, NULL);
+
+    if (pixGetColormap(pix) != NULL)
+        pixs = pixRemoveColormap(pix, REMOVE_CMAP_TO_GRAYSCALE);
+    else
+        pixs = pixClone(pix);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    pixd = pixCreate(w, h, 2);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < wpls; j++) {  /* march through 4 pixels at a time */
+            word = lines[j] & 0xc0c0c0c0;  /* top 2 bits of each byte */
+            word = (word >> 24) | ((word & 0xff0000) >> 18) |
+                   ((word & 0xff00) >> 12) | ((word & 0xff) >> 6);
+            SET_DATA_BYTE(lined, j, word);  /* only LS byte is filled */
+        }
+    }
+    pixDestroy(&pixs);
+    return pixd;
+}
 
 
 /*---------------------------------------------------------------------------*

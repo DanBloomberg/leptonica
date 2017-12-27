@@ -1750,16 +1750,16 @@ PIXA      *pixa;
     if (!pixs  || pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("pixs undefined or not rgb", procName, NULL);
     if (roff < -1.0 || roff > 1.0)
-        return (PIX *)ERROR_PTR("roff not in [-1.0 - 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("roff not in [-1.0, 1.0]", procName, NULL);
     if (goff < -1.0 || goff > 1.0)
-        return (PIX *)ERROR_PTR("goff not in [-1.0 - 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("goff not in [-1.0, 1.0]", procName, NULL);
     if (boff < -1.0 || boff > 1.0)
-        return (PIX *)ERROR_PTR("boff not in [-1.0 - 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("boff not in [-1.0, 1.0]", procName, NULL);
     if (delta < 0.0 || delta > 0.1)
-        return (PIX *)ERROR_PTR("delta not in [0.0 - 0.1]", procName, NULL);
+        return (PIX *)ERROR_PTR("delta not in [0.0, 0.1]", procName, NULL);
     if (delta == 0.0) delta = 0.04;
     if (nincr < 0 || nincr > 6)
-        return (PIX *)ERROR_PTR("nincr not in [0 - 6]", procName, NULL);
+        return (PIX *)ERROR_PTR("nincr not in [0, 6]", procName, NULL);
     if (nincr == 0) nincr = 2;
 
     pixa = pixaCreate(3 * (2 * nincr + 1));
@@ -1845,11 +1845,11 @@ PIX       *pixd;
     if (pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
     if (rfract < -1.0 || rfract > 1.0)
-        return (PIX *)ERROR_PTR("rfract not in [-1.0 - 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("rfract not in [-1.0, 1.0]", procName, NULL);
     if (gfract < -1.0 || gfract > 1.0)
-        return (PIX *)ERROR_PTR("gfract not in [-1.0 - 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("gfract not in [-1.0, 1.0]", procName, NULL);
     if (bfract < -1.0 || bfract > 1.0)
-        return (PIX *)ERROR_PTR("bfract not in [-1.0 - 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("bfract not in [-1.0, 1.0]", procName, NULL);
     if (rfract == 0.0 && gfract == 0.0 && bfract == 0.0)
         return pixCopy(NULL, pixs);
 
