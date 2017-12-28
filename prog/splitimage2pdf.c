@@ -118,7 +118,7 @@ static char  mainName[] = "splitimage2pdf";
         pixDestroy(&pixt);
     }
 
-    sprintf(buffer, "ps2pdf %s %s", psfile, fileout);
+    snprintf(buffer, sizeof(buffer), "ps2pdf %s %s", psfile, fileout);
     ignore = system(buffer);  /* ps2pdf */
 
     pixaDestroy(&pixa);

@@ -64,7 +64,7 @@ static char     mainName[] = "printtiff";
     convertTiffMultipageToPS(filein, tempfile, FILL_FACTOR);
 
     if (argc == 3) {
-        sprintf(buf, "lpr -P%s %s &", printer, tempfile);
+        snprintf(buf, sizeof(buf), "lpr -P%s %s &", printer, tempfile);
         ignore = system(buf);
     }
 
