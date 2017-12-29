@@ -372,6 +372,11 @@ PIX       *pixt, *pixd;
                         break;
                     }
                 }
+                if (n == 16) {  /* avoid accessing out of bounds */
+                    L_WARNING("n = 16; reducing\n", procName);
+                    n = 15;
+                    sum -= histo16[n];
+                }
                 k = 16 * n;  /* starting value in fine histo */
                 for (m = 0; m < 16; m++) {
                     sum += histo[k];
@@ -422,6 +427,11 @@ PIX       *pixt, *pixd;
                         sum -= histo16[n];
                         break;
                     }
+                }
+                if (n == 16) {  /* avoid accessing out of bounds */
+                    L_WARNING("n = 16; reducing\n", procName);
+                    n = 15;
+                    sum -= histo16[n];
                 }
                 k = 16 * n;  /* starting value in fine histo */
                 for (m = 0; m < 16; m++) {

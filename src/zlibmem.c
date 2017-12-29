@@ -131,8 +131,11 @@ z_stream    z;
     z.avail_out = L_BUF_SIZE;
 
     status = deflateInit(&z, ZLIB_COMPRESSION_LEVEL);
-    if (status != Z_OK)
-      return (l_uint8 *)ERROR_PTR("deflateInit failed", procName, NULL);
+    if (status != Z_OK) {
+        L_ERROR("deflateInit failed\n", procName);
+        success = FALSE;
+        goto cleanup_arrays;
+    }
 
     do {
         if (z.avail_in == 0) {

@@ -547,10 +547,6 @@ SEL     *sel;
     str_doc2 = stringNew(bigbuf);
     sprintf(bigbuf, " *             void       ferode_%d_*()", fileindex);
     str_doc3 = stringNew(bigbuf);
-    sprintf(bigbuf, " *  fmorphopgen_low_%d()", fileindex);
-    str_doc4 = stringNew(bigbuf);
-    sprintf(bigbuf, "fmorphopgen_low_%d(l_uint32  *datad,", fileindex);
-    str_def1 = stringNew(bigbuf);
 
         /* Output to this sa */
     sa4 = sarrayCreate(0);
@@ -579,6 +575,12 @@ SEL     *sel;
         }
         sarrayAddString(sa4, linestr, L_INSERT);
     }
+
+        /* More strings with function names */
+    sprintf(bigbuf, " *  fmorphopgen_low_%d()", fileindex);
+    str_doc4 = stringNew(bigbuf);
+    sprintf(bigbuf, "fmorphopgen_low_%d(l_uint32  *datad,", fileindex);
+    str_def1 = stringNew(bigbuf);
 
         /* Insert function header */
     sarrayParseRange(sa1, newstart, &actstart, &end, &newstart, "--", 0);

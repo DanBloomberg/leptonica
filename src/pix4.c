@@ -132,8 +132,10 @@ PIX        *pixg;
 
     pixGetDimensions(pixg, &w, &h, &d);
     size = 1 << d;
-    if ((na = numaCreate(size)) == NULL)
+    if ((na = numaCreate(size)) == NULL) {
+        pixDestroy(&pixg);
         return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+    }
     numaSetCount(na, size);  /* all initialized to 0.0 */
     array = numaGetFArray(na, L_NOCOPY);
 

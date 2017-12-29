@@ -903,8 +903,10 @@ PIX       *pixb;  /* with 1 pixel border */
         /* Add 1-pixel border all around, and find start pixel */
     if ((pixb = pixAddBorder(pixs, 1, 0)) == NULL)
         return ERROR_INT("pixs not made", procName, 1);
-    if (!nextOnPixelInRaster(pixb, 1, 1, &px, &py))
+    if (!nextOnPixelInRaster(pixb, 1, 1, &px, &py)) {
+        pixDestroy(&pixb);
         return ERROR_INT("no start pixel found", procName, 1);
+    }
     qpos = 0;   /* relative to p */
     fpx = px;  /* save location of first pixel on border */
     fpy = py;
@@ -1602,8 +1604,7 @@ PTAA     *ptaap;  /* ptaa for all paths between borders */
                 if (x == xl && y == yl) {  /* take this cut to the hole */
                     state = L_FOUND;
                     ptap = ptaaGetPta(ptaap, j, L_CLONE);
-                    if ((ptarp = ptaReverse(ptap, 1)) == NULL)
-                        return ERROR_INT("ptarp not made", procName, 1);
+                    ptarp = ptaReverse(ptap, 1);
                         /* Cut point on hole border: */
                     ptaGetIPt(ptaf, j, &xf, &yf);
                         /* Hole border: */

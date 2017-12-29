@@ -27,7 +27,6 @@
 /*!
  * \file rop.c
  * <pre>
- *
  *      General rasterop
  *           l_int32    pixRasterop()
  *
@@ -43,7 +42,6 @@
  *           l_int32    pixRasteropFullImage()
  * </pre>
  */
-
 
 #include <string.h>
 #include "allheaders.h"
@@ -250,11 +248,11 @@ l_int32  dd;
 /*!
  * \brief   pixRasteropVip()
  *
- * \param[in]    pixd in-place
- * \param[in]    bx  left edge of vertical band
- * \param[in]    bw  width of vertical band
- * \param[in]    vshift vertical shift of band; vshift > 0 is down
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    pixd     in-place
+ * \param[in]    bx       left edge of vertical band
+ * \param[in]    bw       width of vertical band
+ * \param[in]    vshift   vertical shift of band; vshift > 0 is down
+ * \param[in]    incolor  L_BRING_IN_WHITE, L_BRING_IN_BLACK
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -328,11 +326,11 @@ PIXCMAP  *cmap;
 /*!
  * \brief   pixRasteropHip()
  *
- * \param[in]    pixd in-place operation
- * \param[in]    by  top of horizontal band
- * \param[in]    bh  height of horizontal band
- * \param[in]    hshift horizontal shift of band; hshift > 0 is to right
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    pixd     in-place operation
+ * \param[in]    by       top of horizontal band
+ * \param[in]    bh       height of horizontal band
+ * \param[in]    hshift   horizontal shift of band; hshift > 0 is to right
+ * \param[in]    incolor  L_BRING_IN_WHITE, L_BRING_IN_BLACK
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -409,12 +407,12 @@ PIXCMAP  *cmap;
 /*!
  * \brief   pixTranslate()
  *
- * \param[in]    pixd [optional] destination: this can be null,
- *                    equal to pixs, or different from pixs
+ * \param[in]    pixd    [optional] destination: this can be null,
+ *                        equal to pixs, or different from pixs
  * \param[in]    pixs
- * \param[in]    hshift horizontal shift; hshift > 0 is to right
- * \param[in]    vshift vertical shift; vshift > 0 is down
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    hshift   horizontal shift; hshift > 0 is to right
+ * \param[in]    vshift   vertical shift; vshift > 0 is down
+ * \param[in]    incolor  L_BRING_IN_WHITE, L_BRING_IN_BLACK
  * \return  pixd, or NULL on error.
  *
  * <pre>
@@ -453,10 +451,10 @@ pixTranslate(PIX     *pixd,
 /*!
  * \brief   pixRasteropIP()
  *
- * \param[in]    pixd in-place translation
- * \param[in]    hshift horizontal shift; hshift > 0 is to right
- * \param[in]    vshift vertical shift; vshift > 0 is down
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    pixd     in-place translation
+ * \param[in]    hshift   horizontal shift; hshift > 0 is to right
+ * \param[in]    vshift   vertical shift; vshift > 0 is down
+ * \param[in]    incolor  L_BRING_IN_WHITE, L_BRING_IN_BLACK
  * \return  0 if OK; 1 on error
  */
 l_int32
@@ -488,7 +486,7 @@ l_int32  w, h;
  *
  * \param[in]    pixd
  * \param[in]    pixs
- * \param[in]    op any of the op-codes
+ * \param[in]    op     any of the op-codes
  * \return  0 if OK; 1 on error
  *
  * <pre>

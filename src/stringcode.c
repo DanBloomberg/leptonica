@@ -433,8 +433,7 @@ SARRAY     *sa1, *sa2, *sa3;
     sarrayAppendRange(sa3, sa1, actstart, end);
 
         /* Flatten to string and output to autogen*.c file */
-    if ((filestr = sarrayToString(sa3, 1)) == NULL)
-        return ERROR_INT("filestr from sa3 not made", procName, 1);
+    filestr = sarrayToString(sa3, 1);
     nbytes = strlen(filestr);
     snprintf(buf, sizeof(buf), "%s/autogen.%d.c", realoutdir, fileno);
     l_binaryWrite(buf, "w", filestr, nbytes);

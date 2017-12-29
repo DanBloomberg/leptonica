@@ -1095,7 +1095,7 @@ PIX     *pix1, *pix2, *pix3, *pix4;
         pix2 = pixClone(pix1);
     } else if (scalefactor > 1.0) {
         pix2 = pixScale(pix1, scalefactor, scalefactor);
-    } else if (scalefactor < 1.0) {
+    } else {  /* scalefactor < 1.0) */
         if (pixGetDepth(pix1) == 1)
             pix2 = pixScaleToGray(pix1, scalefactor);
         else

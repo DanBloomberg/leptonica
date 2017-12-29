@@ -2252,11 +2252,10 @@ LEPT_DLL extern l_int32 pixRasteropHip ( PIX *pixd, l_int32 by, l_int32 bh, l_in
 LEPT_DLL extern PIX * pixTranslate ( PIX *pixd, PIX *pixs, l_int32 hshift, l_int32 vshift, l_int32 incolor );
 LEPT_DLL extern l_int32 pixRasteropIP ( PIX *pixd, l_int32 hshift, l_int32 vshift, l_int32 incolor );
 LEPT_DLL extern l_int32 pixRasteropFullImage ( PIX *pixd, PIX *pixs, l_int32 op );
-LEPT_DLL extern void rasteropVipLow ( l_uint32 *data, l_int32 pixw, l_int32 pixh, l_int32 depth, l_int32 wpl, l_int32 x, l_int32 w, l_int32 shift );
-LEPT_DLL extern void rasteropHipLow ( l_uint32 *data, l_int32 pixh, l_int32 depth, l_int32 wpl, l_int32 y, l_int32 h, l_int32 shift );
-LEPT_DLL extern void shiftDataHorizontalLow ( l_uint32 *datad, l_int32 wpld, l_uint32 *datas, l_int32 wpls, l_int32 shift );
 LEPT_DLL extern void rasteropUniLow ( l_uint32 *datad, l_int32 dpixw, l_int32 dpixh, l_int32 depth, l_int32 dwpl, l_int32 dx, l_int32 dy, l_int32 dw, l_int32 dh, l_int32 op );
 LEPT_DLL extern void rasteropLow ( l_uint32 *datad, l_int32 dpixw, l_int32 dpixh, l_int32 depth, l_int32 dwpl, l_int32 dx, l_int32 dy, l_int32 dw, l_int32 dh, l_int32 op, l_uint32 *datas, l_int32 spixw, l_int32 spixh, l_int32 swpl, l_int32 sx, l_int32 sy );
+LEPT_DLL extern void rasteropVipLow ( l_uint32 *data, l_int32 pixw, l_int32 pixh, l_int32 depth, l_int32 wpl, l_int32 x, l_int32 w, l_int32 shift );
+LEPT_DLL extern void rasteropHipLow ( l_uint32 *data, l_int32 pixh, l_int32 depth, l_int32 wpl, l_int32 y, l_int32 h, l_int32 shift );
 LEPT_DLL extern PIX * pixRotate ( PIX *pixs, l_float32 angle, l_int32 type, l_int32 incolor, l_int32 width, l_int32 height );
 LEPT_DLL extern PIX * pixEmbedForRotation ( PIX *pixs, l_float32 angle, l_int32 incolor, l_int32 width, l_int32 height );
 LEPT_DLL extern PIX * pixRotateBySampling ( PIX *pixs, l_int32 xcen, l_int32 ycen, l_float32 angle, l_int32 incolor );

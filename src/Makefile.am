@@ -50,7 +50,7 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
  readbarcode.c readfile.c                                       \
  recogbasic.c recogdid.c recogident.c                           \
  recogtrain.c regutils.c                                        \
- rop.c ropiplow.c roplow.c                                      \
+ rop.c roplow.c                                                 \
  rotate.c rotateam.c rotateorth.c rotateshear.c                 \
  runlength.c sarray1.c sarray2.c                                \
  scale1.c scale2.c seedfill.c                                   \

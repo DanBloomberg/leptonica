@@ -461,8 +461,10 @@ l_uint32  *line, *data, *buffer;
     }
 
         /* Possibly inplace assigning return val, so on failure return pixd */
-    if ((buffer = (l_uint32 *)LEPT_CALLOC(wpl, sizeof(l_uint32))) == NULL)
+    if ((buffer = (l_uint32 *)LEPT_CALLOC(wpl, sizeof(l_uint32))) == NULL) {
+        if (tab) LEPT_FREE(tab);
         return (PIX *)ERROR_PTR("buffer not made", procName, pixd);
+    }
 
     bpl = 4 * wpl;
     switch (d)

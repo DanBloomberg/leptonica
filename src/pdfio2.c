@@ -830,11 +830,6 @@ L_COMP_DATA  *cid;
     }
 
     cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA));
-    if (!cid) {
-        LEPT_FREE(datacomp);
-        LEPT_FREE(data85);
-        return (L_COMP_DATA *)ERROR_PTR("cid not made", procName, NULL);
-    }
     if (ascii85flag == 0) {
         cid->datacomp = datacomp;
     } else {  /* ascii85 */

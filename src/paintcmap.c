@@ -622,8 +622,7 @@ PIXCMAP   *cmap;
 
         /* replace pixel value sindex by index when fg pixel in pixmc
          * overlays it */
-    w = pixGetWidth(pixs);
-    h = pixGetHeight(pixs);
+    pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     wm = pixGetWidth(pixm);
@@ -638,15 +637,6 @@ PIXCMAP   *cmap;
             if (j + x < 0  || j + x >= w) continue;
             if (GET_DATA_BIT(linem, j)) {
                 switch (d) {
-                case 1:
-                    val = GET_DATA_BIT(lines, x + j);
-                    if (val == sindex) {
-                        if (index == 0)
-                            CLEAR_DATA_BIT(lines, x + j);
-                        else
-                            SET_DATA_BIT(lines, x + j);
-                    }
-                    break;
                 case 2:
                     val = GET_DATA_DIBIT(lines, x + j);
                     if (val == sindex)
@@ -749,8 +739,7 @@ PIXCMAP   *cmap;
         for (j = 0; j < wm; j++) {
             if (j + x < 0  || j + x >= w) continue;
             if (GET_DATA_BIT(linem, j)) {  /* paint color */
-                switch (d)
-                {
+                switch (d) {
                 case 2:
                     SET_DATA_DIBIT(line, j + x, index);
                     break;

@@ -304,6 +304,7 @@ SARRAY  *sa;
                     cstring[i - 1] = '\0';  /* also remove Windows CR */
                 if ((substring = stringNew(cstring + startptr)) == NULL) {
                     sarrayDestroy(&sa);
+                    LEPT_FREE(cstring);
                     return (SARRAY *)ERROR_PTR("substring not made",
                                                 procName, NULL);
                 }
@@ -315,6 +316,7 @@ SARRAY  *sa;
         if (startptr < size) {  /* no newline at end of last line */
             if ((substring = stringNew(cstring + startptr)) == NULL) {
                 sarrayDestroy(&sa);
+                LEPT_FREE(cstring);
                 return (SARRAY *)ERROR_PTR("substring not made",
                                            procName, NULL);
             }

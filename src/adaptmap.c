@@ -1213,7 +1213,7 @@ pixGetBackgroundGrayMapMorph(PIX     *pixs,
 {
 l_int32    nx, ny, empty, fgpixels;
 l_float32  scale;
-PIX       *pixm, *pixt1, *pixt2, *pixt3, *pixims;
+PIX       *pixm, *pix1, *pix2, *pix3, *pixims;
 
     PROCNAME("pixGetBackgroundGrayMapMorph");
 
@@ -1242,9 +1242,11 @@ PIX       *pixm, *pixt1, *pixt2, *pixt3, *pixims;
 
         /* Downscale as requested and do the closing to get the background. */
     scale = 1. / (l_float32)reduction;
-    pixt1 = pixScaleBySampling(pixs, scale, scale);
-    pixt2 = pixCloseGray(pixt1, size, size);
-    pixt3 = pixExtendByReplication(pixt2, 1, 1);
+    pix1 = pixScaleBySampling(pixs, scale, scale);
+    pix2 = pixCloseGray(pix1, size, size);
+    pix3 = pixExtendByReplication(pix2, 1, 1);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
 
         /* Downscale the image mask, if any, and remove it from the
          * background.  These pixels will be filled in (twice). */
@@ -1252,19 +1254,18 @@ PIX       *pixm, *pixt1, *pixt2, *pixt3, *pixims;
     if (pixim) {
         pixims = pixScale(pixim, scale, scale);
         pixm = pixConvertTo8(pixims, FALSE);
-        pixAnd(pixm, pixm, pixt3);
+        pixAnd(pixm, pixm, pix3);
     }
     else
-        pixm = pixClone(pixt3);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixt3);
+        pixm = pixClone(pix3);
+    pixDestroy(&pix3);
 
         /* Fill all the holes in the map. */
     nx = pixGetWidth(pixs) / reduction;
     ny = pixGetHeight(pixs) / reduction;
     if (pixFillMapHoles(pixm, nx, ny, L_FILL_BLACK)) {
         pixDestroy(&pixm);
+        pixDestroy(&pixims);
         L_WARNING("can't make the map\n", procName);
         return 1;
     }
@@ -1305,7 +1306,7 @@ pixGetBackgroundRGBMapMorph(PIX     *pixs,
 {
 l_int32    nx, ny, empty, fgpixels;
 l_float32  scale;
-PIX       *pixm, *pixmr, *pixmg, *pixmb, *pixt1, *pixt2, *pixt3, *pixims;
+PIX       *pixm, *pixmr, *pixmg, *pixmb, *pix1, *pix2, *pix3, *pixims;
 
     PROCNAME("pixGetBackgroundRGBMapMorph");
 
@@ -1318,14 +1319,6 @@ PIX       *pixm, *pixmr, *pixmg, *pixmb, *pixt1, *pixt2, *pixt3, *pixims;
         return ERROR_INT("pixs not 32 bpp", procName, 1);
     if (pixim && pixGetDepth(pixim) != 1)
         return ERROR_INT("pixim not 1 bpp", procName, 1);
-
-        /* Generate an 8 bpp version of the image mask, if it exists */
-    scale = 1. / (l_float32)reduction;
-    pixm = NULL;
-    if (pixim) {
-        pixims = pixScale(pixim, scale, scale);
-        pixm = pixConvertTo8(pixims, FALSE);
-    }
 
         /* Evaluate the mask pixim and make sure it is not all foreground. */
     fgpixels = 0;  /* boolean for existence of fg mask pixels */
@@ -1340,42 +1333,51 @@ PIX       *pixm, *pixmr, *pixmg, *pixmb, *pixt1, *pixt2, *pixt3, *pixims;
             fgpixels = 1;
     }
 
+        /* Generate an 8 bpp version of the image mask, if it exists */
+    scale = 1. / (l_float32)reduction;
+    pixims = NULL;
+    pixm = NULL;
+    if (pixim) {
+        pixims = pixScale(pixim, scale, scale);
+        pixm = pixConvertTo8(pixims, FALSE);
+    }
+
         /* Downscale as requested and do the closing to get the background.
          * Then remove the image mask pixels from the background.  They
          * will be filled in (twice) later.  Do this for all 3 components. */
-    pixt1 = pixScaleRGBToGrayFast(pixs, reduction, COLOR_RED);
-    pixt2 = pixCloseGray(pixt1, size, size);
-    pixt3 = pixExtendByReplication(pixt2, 1, 1);
+    pix1 = pixScaleRGBToGrayFast(pixs, reduction, COLOR_RED);
+    pix2 = pixCloseGray(pix1, size, size);
+    pix3 = pixExtendByReplication(pix2, 1, 1);
     if (pixim)
-        pixmr = pixAnd(NULL, pixm, pixt3);
+        pixmr = pixAnd(NULL, pixm, pix3);
     else
-        pixmr = pixClone(pixt3);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixt3);
+        pixmr = pixClone(pix3);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
 
-    pixt1 = pixScaleRGBToGrayFast(pixs, reduction, COLOR_GREEN);
-    pixt2 = pixCloseGray(pixt1, size, size);
-    pixt3 = pixExtendByReplication(pixt2, 1, 1);
+    pix1 = pixScaleRGBToGrayFast(pixs, reduction, COLOR_GREEN);
+    pix2 = pixCloseGray(pix1, size, size);
+    pix3 = pixExtendByReplication(pix2, 1, 1);
     if (pixim)
-        pixmg = pixAnd(NULL, pixm, pixt3);
+        pixmg = pixAnd(NULL, pixm, pix3);
     else
-        pixmg = pixClone(pixt3);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixt3);
+        pixmg = pixClone(pix3);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
 
-    pixt1 = pixScaleRGBToGrayFast(pixs, reduction, COLOR_BLUE);
-    pixt2 = pixCloseGray(pixt1, size, size);
-    pixt3 = pixExtendByReplication(pixt2, 1, 1);
+    pix1 = pixScaleRGBToGrayFast(pixs, reduction, COLOR_BLUE);
+    pix2 = pixCloseGray(pix1, size, size);
+    pix3 = pixExtendByReplication(pix2, 1, 1);
     if (pixim)
-        pixmb = pixAnd(NULL, pixm, pixt3);
+        pixmb = pixAnd(NULL, pixm, pix3);
     else
-        pixmb = pixClone(pixt3);
+        pixmb = pixClone(pix3);
     pixDestroy(&pixm);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixt3);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
 
         /* Fill all the holes in the three maps. */
     nx = pixGetWidth(pixs) / reduction;
@@ -1386,6 +1388,7 @@ PIX       *pixm, *pixmr, *pixmg, *pixmb, *pixt1, *pixt2, *pixt3, *pixims;
         pixDestroy(&pixmr);
         pixDestroy(&pixmg);
         pixDestroy(&pixmb);
+        pixDestroy(&pixims);
         L_WARNING("can't make the maps\n", procName);
         return 1;
     }
