@@ -210,7 +210,7 @@ pixaFindStrokeWidth(PIXA     *pixa,
                    l_int32   *tab8,
                    l_int32    debug)
 {
-l_int32    i, n, maxdepth;
+l_int32    i, n, same, maxd;
 l_int32   *tab;
 l_float32  width;
 NUMA      *na;
@@ -220,9 +220,9 @@ PIX       *pix;
 
     if (!pixa)
         return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
-    pixaVerifyDepth(pixa, &maxdepth);
-    if (maxdepth > 1)
-        return (NUMA *)ERROR_PTR("pixa not all 1 bpp", procName, NULL);
+    pixaVerifyDepth(pixa, &same, &maxd);
+    if (maxd > 1)
+        return (NUMA *)ERROR_PTR("pix not all 1 bpp", procName, NULL);
 
     tab = (tab8) ? tab8 : makePixelSumTab8();
 
@@ -246,15 +246,15 @@ PIX       *pix;
 /*!
  * \brief   pixaModifyStrokeWidth()
  *
- * \param[in]    pixa  of 1 bpp pix
- * \param[out]   targetw  desired width for strokes in each pix
+ * \param[in]     pixas  of 1 bpp pix
+ * \param[out]    targetw  desired width for strokes in each pix
  * \return  pixa  with modified stroke widths, or NULL on error
  */
 PIXA *
 pixaModifyStrokeWidth(PIXA      *pixas,
                       l_float32  targetw)
 {
-l_int32    i, n, maxdepth;
+l_int32    i, n, same, maxd;
 l_float32  width;
 NUMA      *na;
 PIX       *pix1, *pix2;
@@ -266,9 +266,9 @@ PIXA      *pixad;
         return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
     if (targetw < 1)
         return (PIXA *)ERROR_PTR("target width < 1", procName, NULL);
-    pixaVerifyDepth(pixas, &maxdepth);
-    if (maxdepth > 1)
-        return (PIXA *)ERROR_PTR("pixas not all 1 bpp", procName, NULL);
+    pixaVerifyDepth(pixas, &same, &maxd);
+    if (maxd > 1)
+        return (PIXA *)ERROR_PTR("pix not all 1 bpp", procName, NULL);
 
     na = pixaFindStrokeWidth(pixas, 0.1, NULL, 0);
     n = pixaGetCount(pixas);
@@ -347,7 +347,7 @@ pixaSetStrokeWidth(PIXA    *pixas,
                    l_int32  thinfirst,
                    l_int32  connectivity)
 {
-l_int32  i, n, d;
+l_int32  i, n, maxd, same;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 
@@ -359,8 +359,8 @@ PIXA    *pixad;
         return (PIXA *)ERROR_PTR("width not in [1 ... 100]", procName, NULL);
     if (connectivity != 4 && connectivity != 8)
         return (PIXA *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
-    pixaVerifyDepth(pixas, &d);
-    if (d != 1)
+    pixaVerifyDepth(pixas, &same, &maxd);
+    if (maxd > 1)
         return (PIXA *)ERROR_PTR("pix are not all 1 bpp", procName, NULL);
 
     n = pixaGetCount(pixas);

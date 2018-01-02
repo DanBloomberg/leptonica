@@ -330,7 +330,7 @@ recogCreateFromPixaNoFinish(PIXA    *pixa,
                             l_int32  maxyshift)
 {
 char     *text;
-l_int32   full, n, i, ntext;
+l_int32   full, n, i, ntext, same, maxd;
 PIX      *pix;
 L_RECOG  *recog;
 
@@ -338,7 +338,8 @@ L_RECOG  *recog;
 
     if (!pixa)
         return (L_RECOG *)ERROR_PTR("pixa not defined", procName, NULL);
-    if (pixaVerifyDepth(pixa, NULL) != 1)
+    pixaVerifyDepth(pixa, &same, &maxd);
+    if (maxd > 1)
         return (L_RECOG *)ERROR_PTR("not all pix are 1 bpp", procName, NULL);
 
     pixaIsFull(pixa, &full, NULL);

@@ -1492,7 +1492,7 @@ recogTrainFromBoot(L_RECOG   *recogboot,
                    l_int32    debug)
 {
 char      *text;
-l_int32    i, n, maxdepth, scaleh, linew;
+l_int32    i, n, same, maxd, scaleh, linew;
 l_float32  score;
 PIX       *pix1, *pix2, *pixdb;
 PIXA      *pixa1, *pixa2, *pixa3, *pixad;
@@ -1507,8 +1507,8 @@ PIXA      *pixa1, *pixa2, *pixa3, *pixad;
         /* Make sure all input pix are 1 bpp */
     if ((n = pixaGetCount(pixas)) == 0)
         return (PIXA *)ERROR_PTR("no pix in pixa", procName, NULL);
-    pixaVerifyDepth(pixas, &maxdepth);
-    if (maxdepth == 1) {
+    pixaVerifyDepth(pixas, &same, &maxd);
+    if (maxd == 1) {
         pixa1 = pixaCopy(pixas, L_COPY);
     } else {
         pixa1 = pixaCreate(n);

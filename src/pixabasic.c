@@ -54,6 +54,7 @@
  *           l_int32   pixaSetBoxa()
  *           PIX     **pixaGetPixArray()
  *           l_int32   pixaVerifyDepth()
+ *           l_int32   pixaVerifyDimensions()
  *           l_int32   pixaIsFull()
  *           l_int32   pixaCountText()
  *           l_int32   pixaSetText()
@@ -92,6 +93,7 @@
  *           BOXA     *pixaaGetBoxa()
  *           PIX      *pixaaGetPix()
  *           l_int32   pixaaVerifyDepth()
+ *           l_int32   pixaaVerifyDimensions()
  *           l_int32   pixaaIsFull()
  *
  *      Pixaa array modifiers
@@ -914,8 +916,9 @@ pixaGetPixArray(PIXA  *pixa)
  * \brief   pixaVerifyDepth()
  *
  * \param[in]    pixa
- * \param[out]   pmaxdepth [optional] max depth of all pix
- * \return  depth return 0 if they're not all the same, or on error
+ * \param[out]   psame   1 if depth is the same for all pix; 0 otherwise
+ * \param[out]   pmaxd   [optional] max depth of all pix
+ * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
@@ -924,31 +927,84 @@ pixaGetPixArray(PIXA  *pixa)
  */
 l_int32
 pixaVerifyDepth(PIXA     *pixa,
-                l_int32  *pmaxdepth)
+                l_int32  *psame,
+                l_int32  *pmaxd)
 {
-l_int32  i, n, d, depth, maxdepth, same;
+l_int32  i, n, d, maxd, same;
 
     PROCNAME("pixaVerifyDepth");
 
-    if (pmaxdepth) *pmaxdepth = 0;
+    if (pmaxd) *pmaxd = 0;
+    if (!psame)
+        return ERROR_INT("psame not defined", procName, 1);
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 0);
+        return ERROR_INT("pixa not defined", procName, 1);
+    if ((n = pixaGetCount(pixa)) == 0)
+        return ERROR_INT("no pix in pixa", procName, 1);
 
-    depth = 0;
-    n = pixaGetCount(pixa);
-    maxdepth = 0;
     same = 1;
-    for (i = 0; i < n; i++) {
+    pixaGetPixDimensions(pixa, 0, NULL, NULL, &maxd);
+    for (i = 1; i < n; i++) {
         if (pixaGetPixDimensions(pixa, i, NULL, NULL, &d))
-            return ERROR_INT("pix depth not found", procName, 0);
-        maxdepth = L_MAX(maxdepth, d);
-        if (i == 0)
-            depth = d;
-        else if (d != depth)
+            return ERROR_INT("pix depth not found", procName, 1);
+        maxd = L_MAX(maxd, d);
+        if (d != maxd)
             same = 0;
     }
-    if (pmaxdepth) *pmaxdepth = maxdepth;
-    return (same == 1) ? depth : 0;
+    *psame = same;
+    if (pmaxd) *pmaxd = maxd;
+    return 0;
+}
+
+
+/*!
+ * \brief   pixaVerifyDimensions()
+ *
+ * \param[in]    pixa
+ * \param[out]   psame   1 if dimensions are the same for all pix; 0 otherwise
+ * \param[out]   pmaxw   [optional] max width of all pix
+ * \param[out]   pmaxh   [optional] max height of all pix
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) It is considered to be an error if there are no pix.
+ * </pre>
+ */
+l_int32
+pixaVerifyDimensions(PIXA     *pixa,
+                     l_int32  *psame,
+                     l_int32  *pmaxw,
+                     l_int32  *pmaxh)
+{
+l_int32  i, n, w, h, maxw, maxh, same;
+
+    PROCNAME("pixaVerifyDimensions");
+
+    if (pmaxw) *pmaxw = 0;
+    if (pmaxh) *pmaxh = 0;
+    if (!psame)
+        return ERROR_INT("psame not defined", procName, 1);
+    *psame = 0;
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+    if ((n = pixaGetCount(pixa)) == 0)
+        return ERROR_INT("no pix in pixa", procName, 1);
+
+    same = 1;
+    pixaGetPixDimensions(pixa, 0, &maxw, &maxh, NULL);
+    for (i = 1; i < n; i++) {
+        if (pixaGetPixDimensions(pixa, i, &w, &h, NULL))
+            return ERROR_INT("pix dimensions not found", procName, 1);
+        maxw = L_MAX(maxw, w);
+        maxh = L_MAX(maxh, h);
+        if (w != maxw || h != maxh)
+            same = 0;
+    }
+    *psame = same;
+    if (pmaxw) *pmaxw = maxw;
+    if (pmaxh) *pmaxh = maxh;
+    return 0;
 }
 
 
@@ -1121,7 +1177,7 @@ void ***
 pixaGetLinePtrs(PIXA     *pixa,
                 l_int32  *psize)
 {
-l_int32  i, n;
+l_int32  i, n, same;
 void   **lineptrs;
 void  ***lineset;
 PIX     *pix;
@@ -1131,7 +1187,8 @@ PIX     *pix;
     if (psize) *psize = 0;
     if (!pixa)
         return (void ***)ERROR_PTR("pixa not defined", procName, NULL);
-    if (pixaVerifyDepth(pixa, NULL) == 0)
+    pixaVerifyDepth(pixa, &same, NULL);
+    if (!same)
         return (void ***)ERROR_PTR("pixa not all same depth", procName, NULL);
     n = pixaGetCount(pixa);
     if (psize) *psize = n;
@@ -2137,36 +2194,104 @@ PIXA  *pixa;
  * \brief   pixaaVerifyDepth()
  *
  * \param[in]    paa
- * \param[out]   pmaxdepth [optional] max depth of all pix in pixaa
- * \return  depth return 0 if they're not all the same, or on error
+ * \param[out]   psame   1 if all pix have the same depth; 0 otherwise
+ * \param[out]   pmaxd   [optional] max depth of all pix in pixaa
+ * \return   0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) It is considered to be an error if any pixa have no pix.
+ * </pre>
  */
 l_int32
 pixaaVerifyDepth(PIXAA    *paa,
-                 l_int32  *pmaxdepth)
+                 l_int32  *psame,
+                 l_int32  *pmaxd)
 {
-l_int32  i, npixa, d, maxd, maxdepth, same;
+l_int32  i, n, d, maxd, same, samed;
 PIXA    *pixa;
 
     PROCNAME("pixaaVerifyDepth");
 
-    if (pmaxdepth) *pmaxdepth = 0;
+    if (pmaxd) *pmaxd = 0;
+    if (!psame)
+        return ERROR_INT("psame not defined", procName, 1);
+    *psame = 0;
     if (!paa)
-        return ERROR_INT("paa not defined", procName, 0);
+        return ERROR_INT("paa not defined", procName, 1);
+    if ((n = pixaaGetCount(paa, NULL)) == 0)
+        return ERROR_INT("no pixa in paa", procName, 1);
 
-    npixa = pixaaGetCount(paa, NULL);
-    maxdepth = 0;
-    same = 1;
-    for (i = 0; i < npixa; i++) {
+    pixa = pixaaGetPixa(paa, 0, L_CLONE);
+    pixaVerifyDepth(pixa, &same, &maxd);  /* init same, maxd with first pixa */
+    pixaDestroy(&pixa);
+    for (i = 1; i < n; i++) {
         pixa = pixaaGetPixa(paa, i, L_CLONE);
-        if (pixaGetCount(pixa) > 0) {
-            d = pixaVerifyDepth(pixa, &maxd);
-            maxdepth = L_MAX(maxdepth, maxd);  /* biggest up to this point */
-            if (d != maxdepth) same = 0;
-        }
+        pixaVerifyDepth(pixa, &samed, &d);
         pixaDestroy(&pixa);
+        maxd = L_MAX(maxd, d);
+        if (!samed || maxd != d)
+            same = 0;
     }
-    if (pmaxdepth) *pmaxdepth = maxdepth;
-    return (same == 1) ? maxdepth : 0;
+    *psame = same;
+    if (pmaxd) *pmaxd = maxd;
+    return 0;
+}
+
+
+/*!
+ * \brief   pixaaVerifyDimensions()
+ *
+ * \param[in]    paa
+ * \param[out]   psame   1 if all pix have the same depth; 0 otherwise
+ * \param[out]   pmaxw   [optional] max width of all pix in pixaa
+ * \param[out]   pmaxh   [optional] max height of all pix in pixaa
+ * \return   0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) It is considered to be an error if any pixa have no pix.
+ * </pre>
+ */
+l_int32
+pixaaVerifyDimensions(PIXAA    *paa,
+                      l_int32  *psame,
+                      l_int32  *pmaxw,
+                      l_int32  *pmaxh)
+{
+l_int32  i, n, w, h, maxw, maxh, same, same2;
+PIXA    *pixa;
+
+    PROCNAME("pixaaVerifyDimensions");
+
+    if (pmaxw) *pmaxw = 0;
+    if (pmaxh) *pmaxh = 0;
+    if (!psame)
+        return ERROR_INT("psame not defined", procName, 1);
+    *psame = 0;
+    if (!paa)
+        return ERROR_INT("paa not defined", procName, 1);
+    if ((n = pixaaGetCount(paa, NULL)) == 0)
+        return ERROR_INT("no pixa in paa", procName, 1);
+
+        /* Init same; init maxw and maxh from first pixa */
+    pixa = pixaaGetPixa(paa, 0, L_CLONE);
+    pixaVerifyDimensions(pixa, &same, &maxw, &maxh);
+    pixaDestroy(&pixa);
+
+    for (i = 1; i < n; i++) {
+        pixa = pixaaGetPixa(paa, i, L_CLONE);
+        pixaVerifyDimensions(pixa, &same2, &w, &h);
+        pixaDestroy(&pixa);
+        maxw = L_MAX(maxw, w);
+        maxh = L_MAX(maxh, h);
+        if (!same2 || maxw != w || maxh != h)
+            same = 0;
+    }
+    *psame = same;
+    if (pmaxw) *pmaxw = maxw;
+    if (pmaxh) *pmaxh = maxh;
+    return 0;
 }
 
 

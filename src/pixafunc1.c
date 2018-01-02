@@ -1257,7 +1257,7 @@ pixaRenderComponent(PIX     *pixs,
                     PIXA    *pixa,
                     l_int32  index)
 {
-l_int32  n, x, y, w, h, maxdepth;
+l_int32  n, x, y, w, h, same, maxd;
 BOX     *box;
 BOXA    *boxa;
 PIX     *pix;
@@ -1271,8 +1271,8 @@ PIX     *pix;
         return (PIX *)ERROR_PTR("invalid index", procName, pixs);
     if (pixs && (pixGetDepth(pixs) != 1))
         return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixs);
-    pixaVerifyDepth(pixa, &maxdepth);
-    if (maxdepth > 1)
+    pixaVerifyDepth(pixa, &same, &maxd);
+    if (maxd > 1)
         return (PIX *)ERROR_PTR("not all pix with d == 1", procName, pixs);
 
     boxa = pixaGetBoxa(pixa, L_CLONE);

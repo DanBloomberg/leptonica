@@ -430,7 +430,7 @@ pixaMorphSequenceByRegion(PIX         *pixs,
                           l_int32      minw,
                           l_int32      minh)
 {
-l_int32  n, i, w, h, samedepth, maxdepth, fullpa, fullba;
+l_int32  n, i, w, h, same, maxd, fullpa, fullba;
 BOX     *box;
 PIX     *pix1, *pix2, *pix3;
 PIXA    *pixad;
@@ -445,8 +445,8 @@ PIXA    *pixad;
         return (PIXA *)ERROR_PTR("sequence not defined", procName, NULL);
     if (!pixam)
         return (PIXA *)ERROR_PTR("pixam not defined", procName, NULL);
-    samedepth = pixaVerifyDepth(pixam, &maxdepth);
-    if (samedepth != 1 && maxdepth != 1)
+    pixaVerifyDepth(pixam, &same, &maxd);
+    if (maxd != 1)
         return (PIXA *)ERROR_PTR("mask depth not 1 bpp", procName, NULL);
     pixaIsFull(pixam, &fullpa, &fullba);
     if (!fullpa || !fullba)

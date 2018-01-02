@@ -355,7 +355,7 @@ pixaDisplayRandomCmap(PIXA    *pixa,
                       l_int32  w,
                       l_int32  h)
 {
-l_int32   i, n, maxdepth, index, xb, yb, wb, hb, res;
+l_int32   i, n, same, maxd, index, xb, yb, wb, hb, res;
 BOXA     *boxa;
 PIX      *pixs, *pix1, *pixd;
 PIXCMAP  *cmap;
@@ -367,8 +367,8 @@ PIXCMAP  *cmap;
 
     if ((n = pixaGetCount(pixa)) == 0)
         return (PIX *)ERROR_PTR("no components", procName, NULL);
-    pixaVerifyDepth(pixa, &maxdepth);
-    if (maxdepth != 1)
+    pixaVerifyDepth(pixa, &same, &maxd);
+    if (maxd > 1)
         return (PIX *)ERROR_PTR("not all components are 1 bpp", procName, NULL);
 
         /* If w and h are not input, determine the minimum size required
@@ -1574,7 +1574,7 @@ pixaaDisplayByPixa(PIXAA   *paa,
                    l_int32  maxw)
 {
 l_int32   i, j, npixa, npix, same, use_maxw, x, y, w, h, hindex;
-l_int32   maxwidth, maxdepth, width, lmaxh, lmaxw;
+l_int32   maxwidth, maxd, width, lmaxh, lmaxw;
 l_int32  *harray;
 NUMA     *nah;
 PIX      *pix, *pix1, *pixd;
@@ -1587,8 +1587,8 @@ PIXA     *pixa;
 
     if ((npixa = pixaaGetCount(paa, NULL)) == 0)
         return (PIX *)ERROR_PTR("no components", procName, NULL);
-    same = pixaaVerifyDepth(paa, &maxdepth);
-    if (!same && maxdepth < 8)
+    pixaaVerifyDepth(paa, &same, &maxd);
+    if (!same && maxd < 8)
         return (PIX *)ERROR_PTR("depths differ; max < 8", procName, NULL);
 
         /* Be sure the widest box fits in the output pix */
@@ -1636,7 +1636,7 @@ PIXA     *pixa;
     }
     width = (use_maxw) ? maxw : lmaxw;
 
-    if ((pixd = pixCreate(width, y, maxdepth)) == NULL) {
+    if ((pixd = pixCreate(width, y, maxd)) == NULL) {
         numaDestroy(&nah);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
@@ -1655,8 +1655,8 @@ PIXA     *pixa;
         }
         for (j = 0; j < npix; j++) {
             pix = pixaGetPix(pixa, j, L_CLONE);
-            if (pixGetDepth(pix) != maxdepth) {
-                if (maxdepth == 8)
+            if (pixGetDepth(pix) != maxd) {
+                if (maxd == 8)
                      pix1 = pixConvertTo8(pix, 0);
                 else  /* 32 bpp */
                      pix1 = pixConvertTo32(pix);

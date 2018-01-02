@@ -70,7 +70,7 @@ pixaThinConnected(PIXA    *pixas,
                   l_int32  connectivity,
                   l_int32  maxiters)
 {
-l_int32  i, n, d;
+l_int32  i, n, d, same;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 SELA    *sela;
@@ -85,7 +85,7 @@ SELA    *sela;
         return (PIXA *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
     if (maxiters == 0) maxiters = 10000;
 
-    pixaVerifyDepth(pixas, &d);
+    pixaVerifyDepth(pixas, &same, &d);
     if (d != 1)
         return (PIXA *)ERROR_PTR("pix are not all 1 bpp", procName, NULL);
 
