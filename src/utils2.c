@@ -134,14 +134,13 @@
  *      files to default places, both for generating debugging output
  *      and for supporting regression tests.  Applications also need
  *      this ability for debugging.
- *  (8) Why do the pathname rewrite?
+ *  (8) Why do the pathname rewrite on Windows?
  *      The goal is to have the library, and programs using the library,
  *      run on multiple platforms without changes.  The location of
  *      temporary files depends on the platform as well as the user's
- *      configuration.  Temp files on unix can be under "/tmp/" or
- *      the environment variable TMPDIR.  Temp files on Windows are likewise
- *      in some directory not known a priori.  To make everything work
- *      seamlessly, every time you open a file for reading or writing,
+ *      configuration.  Temp files on Windows are in some directory
+ *      not known a priori.  To make everything work seamlessly on
+ *      Windows, every time you open a file for reading or writing,
  *      use a special function such as fopenReadStream() or
  *      fopenWriteStream(); these call genPathname() to ensure that
  *      if it is a temp file, the correct path is used.  To indicate
@@ -183,6 +182,10 @@
 #include <string.h>
 #include <stddef.h>
 #include "allheaders.h"
+
+/*  This is only used to test "/tmp" --> TMPDIR rewriting on Windows,
+ *  by emulating it in unix.  It should never be on in production. */
+#define DEBUG_REWRITE    0
 
 
 /*--------------------------------------------------------------------*
@@ -2696,11 +2699,8 @@ size_t   len;
  *          translation:
  *             "/tmp"  ==>  <Temp> (windows)
  *          where <Temp> is the windows temp directory.
- *      (3) On unix, if the TMPDIR is a subdirectory of "/tmp", such
- *          as "/tmp/username", enter %dir as if it were "/tmp" (without
- *          the subdirectory).  The directory will automatically be
- *          rewritten using TMPDIR; e.g.
- *             "/tmp/lept/regout"  ==>  "/tmp/username/lept/regout"
+ *      (3) On unix, the TMPDIR variable is ignored.  No rewriting
+ *          of temp directories is permitted.
  *      (4) There are four cases for the input:
  *          (a) %dir is a directory and %fname is defined: result is a full path
  *          (b) %dir is a directory and %fname is null: result is a directory
@@ -2766,8 +2766,12 @@ l_int32  dirlen, namelen, size;
             tmpdir[tmpdirlen - 1] = '\0';  /* trim the trailing '\' */
         }
 #else  /* unix */
+  #if DEBUG_REWRITE  /* use only for debugging rewriting */
         const char *tmpdir = getenv("TMPDIR");
         if (tmpdir == NULL) tmpdir = "/tmp";
+  #else   /* no rewriting allowed on unix */
+        const char *tmpdir = "/tmp";
+  #endif  /* DEBUG_REWRITE */
 #endif  /* _WIN32 */
         tmpdirlen = strlen(tmpdir);
         stringCopy(pathout, tmpdir, tmpdirlen);
