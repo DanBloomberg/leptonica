@@ -2715,6 +2715,7 @@ char *
 genPathname(const char  *dir,
             const char  *fname)
 {
+l_int32  is_win32 = FALSE;
 char    *cdir, *pathout;
 l_int32  dirlen, namelen, size;
 
@@ -2747,38 +2748,34 @@ l_int32  dirlen, namelen, size;
         return (char *)ERROR_PTR("pathout not made", procName, NULL);
     }
 
+#ifdef _WIN32
+    is_win32 = TRUE;
+#endif  /* _WIN32 */
+
         /* First handle %dir (which may be a full pathname).
-         * Note that we're also making sure that a root directory such
-         * as "/tmpfiles" does not get re-written as <Temp>files,
-         * where <Temp> is the temp directory on the system. */
-    if (dirlen < 4 ||
+         * There is no path rewriting on unix, and on win32, we do not
+         * rewrite unless the specified directory is /tmp or
+         * a subdirectory of /tmp */
+    if (!is_win32 || dirlen < 4 ||
         (dirlen == 4 && strncmp(cdir, "/tmp", 4) != 0) ||  /* not in "/tmp" */
         (dirlen > 4 && strncmp(cdir, "/tmp/", 5) != 0)) {  /* not in "/tmp/" */
         stringCopy(pathout, cdir, dirlen);
-    } else {  /* in /tmp */
-            /* Start with the temp dir */
-        l_int32 tmpdirlen;
+    } else {  /* Rewrite for win32 with "/tmp" specified for the directory. */
 #ifdef _WIN32
+        l_int32 tmpdirlen;
         char tmpdir[MAX_PATH];
         GetTempPath(sizeof(tmpdir), tmpdir);  /* get the windows temp dir */
         tmpdirlen = strlen(tmpdir);
         if (tmpdirlen > 0 && tmpdir[tmpdirlen - 1] == '\\') {
             tmpdir[tmpdirlen - 1] = '\0';  /* trim the trailing '\' */
         }
-#else  /* unix */
-  #if DEBUG_REWRITE  /* use only for debugging rewriting */
-        const char *tmpdir = getenv("TMPDIR");
-        if (tmpdir == NULL) tmpdir = "/tmp";
-  #else   /* no rewriting allowed on unix */
-        const char *tmpdir = "/tmp";
-  #endif  /* DEBUG_REWRITE */
-#endif  /* _WIN32 */
         tmpdirlen = strlen(tmpdir);
         stringCopy(pathout, tmpdir, tmpdirlen);
 
             /* Add the rest of cdir */
         if (dirlen > 4)
             stringCat(pathout, size, cdir + 4);
+#endif  /* _WIN32 */
     }
 
         /* Now handle %fname */
