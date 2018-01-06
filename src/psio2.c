@@ -674,15 +674,13 @@ L_COMP_DATA  *cid;
         /* Generate the PS.
          * The bounding box information should be inserted (default). */
     outstr = generateJpegPS(NULL, cid, xpt, ypt, wpt, hpt, 1, 1);
-    if (!outstr) {
-        l_CIDataDestroy(&cid);
+    l_CIDataDestroy(&cid);
+    if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
-    }
     nbytes = strlen(outstr);
 
     ret = l_binaryWrite(fileout, "w", outstr, nbytes);
     LEPT_FREE(outstr);
-    l_CIDataDestroy(&cid);
     if (ret) L_ERROR("ps string not written to file\n", procName);
     return ret;
 }
@@ -1072,15 +1070,13 @@ L_COMP_DATA  *cid;
         /* Generate the PS, painting through the image mask.
          * The bounding box information should be inserted (default). */
     outstr = generateG4PS(NULL, cid, xpt, ypt, wpt, hpt, 1, 1, 1);
-    if (!outstr) {
-        l_CIDataDestroy(&cid);
+    l_CIDataDestroy(&cid);
+    if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
-    }
     nbytes = strlen(outstr);
 
     ret = l_binaryWrite(fileout, "w", outstr, nbytes);
     LEPT_FREE(outstr);
-    l_CIDataDestroy(&cid);
     if (ret) L_ERROR("ps string not written to file\n", procName);
     return ret;
 }
@@ -1553,15 +1549,13 @@ L_COMP_DATA  *cid;
         /* Generate the PS.
          * The bounding box information should be inserted (default). */
     outstr = generateFlatePS(NULL, cid, xpt, ypt, wpt, hpt, 1, 1);
-    if (!outstr) {
-        l_CIDataDestroy(&cid);
+    l_CIDataDestroy(&cid);
+    if (!outstr)
         return ERROR_INT("outstr not made", procName, 1);
-    }
     nbytes = strlen(outstr);
 
     ret = l_binaryWrite(fileout, "w", outstr, nbytes);
     LEPT_FREE(outstr);
-    l_CIDataDestroy(&cid);
     if (ret) L_ERROR("ps string not written to file\n", procName);
     return ret;
 }

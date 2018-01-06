@@ -96,7 +96,6 @@ l_float32  *mat;
 
     if ((mat = (l_float32 *)LEPT_CALLOC(9, sizeof(l_float32))) == NULL)
         return (l_float32 *)ERROR_PTR("mat not made", procName, NULL);
-
     mat[0] = mat[4] = mat[8] = 1;
     mat[2] = transx;
     mat[5] = transy;
@@ -137,7 +136,6 @@ l_float32  *mat;
 
     if ((mat = (l_float32 *)LEPT_CALLOC(9, sizeof(l_float32))) == NULL)
         return (l_float32 *)ERROR_PTR("mat not made", procName, NULL);
-
     mat[0] = scalex;
     mat[4] = scaley;
     mat[8] = 1;
@@ -192,7 +190,6 @@ l_float32  *mat;
 
     if ((mat = (l_float32 *)LEPT_CALLOC(9, sizeof(l_float32))) == NULL)
         return (l_float32 *)ERROR_PTR("mat not made", procName, NULL);
-
     sina = sin(angle);
     cosa = cos(angle);
     mat[0] = mat[4] = cosa;

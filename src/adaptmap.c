@@ -2841,9 +2841,10 @@ l_uint32  *data, *datamin, *datamax, *line, *tline, *linemin, *linemax;
     if (sx < 5 || sy < 5)
         return (PIX *)ERROR_PTR("sx and/or sy less than 5", procName, pixd);
 
+    if ((iaa = (l_int32 **)LEPT_CALLOC(256, sizeof(l_int32 *))) == NULL)
+        return (PIX *)ERROR_PTR("iaa not made", procName, NULL);
     if ((pixd = pixCopy(pixd, pixs)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    iaa = (l_int32 **)LEPT_CALLOC(256, sizeof(l_int32 *));
     pixGetDimensions(pixd, &w, &h, NULL);
 
     data = pixGetData(pixd);
@@ -2866,7 +2867,10 @@ l_uint32  *data, *datamin, *datamax, *line, *tline, *linemin, *linemax;
                         i, j, minval); */
                 continue;
             }
-            ia = iaaGetLinearTRC(iaa, maxval - minval);
+            if ((ia = iaaGetLinearTRC(iaa, maxval - minval)) == NULL) {
+                L_INFO("failure to make ia for j = %d!\n", procName, j);
+                continue;
+            }
             for (k = 0; k < sy && yoff + k < h; k++) {
                 tline = line + k * wpl;
                 for (m = 0; m < sx && xoff + m < w; m++) {
@@ -2880,7 +2884,7 @@ l_uint32  *data, *datamin, *datamax, *line, *tline, *linemin, *linemax;
     }
 
     for (i = 0; i < 256; i++)
-        if (iaa[i]) LEPT_FREE(iaa[i]);
+        LEPT_FREE(iaa[i]);
     LEPT_FREE(iaa);
     return pixd;
 }
@@ -2892,7 +2896,7 @@ l_uint32  *data, *datamin, *datamax, *line, *tline, *linemin, *linemax;
  * \param[in]    iaa bare array of ptrs to l_int32
  * \param[in]    diff between min and max pixel values that are
  *                    to be mapped to 0 and 255
- * \return  ia LUT with input (val - minval and output a
+ * \return  ia LUT with input (val - minval) and output a
  *                  value between 0 and 255)
  */
 static l_int32 *

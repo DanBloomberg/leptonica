@@ -576,7 +576,6 @@ l_uint32  *lines, *linem;
         L_ERROR("connectivity must be 4 or 8\n", procName);
         return;
     }
-    return;
 }
 
 

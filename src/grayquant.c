@@ -1898,7 +1898,11 @@ makeGrayQuantTargetTable(l_int32  nlevels,
 l_int32   *tab;
 l_int32    i, j, thresh, maxval, quantval;
 
-    tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
+    PROCNAME("makeGrayQuantTargetTable");
+
+    if ((tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL)
+        return (l_int32 *)ERROR_PTR("calloc fail for tab", procName, NULL);
+
     maxval = (1 << depth) - 1;
     if (depth < 8)
         nlevels = 1 << depth;
@@ -2870,6 +2874,9 @@ l_int32  *tabval, *tab38, *tab14;
 
     PROCNAME("make8To1DitherTables");
 
+    if (ptabval) *ptabval = NULL;
+    if (ptab38) *ptab38 = NULL;
+    if (ptab14) *ptab14 = NULL;
     if (!ptabval || !ptab38 || !ptab14)
         return ERROR_INT("table ptrs not all defined", procName, 1);
 
@@ -2877,6 +2884,8 @@ l_int32  *tabval, *tab38, *tab14;
     tabval = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     tab38 = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     tab14 = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
+    if (!tabval || !tab38 || !tab14)
+        return ERROR_INT("calloc failure to make small table", procName, 1);
     *ptabval = tabval;
     *ptab38 = tab38;
     *ptab14 = tab14;

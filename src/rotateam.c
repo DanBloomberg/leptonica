@@ -655,7 +655,7 @@ l_float32  sina, cosa;
         }
     }
 }
- 
+
 
 static void
 rotateAMGrayCornerLow(l_uint32  *datad,

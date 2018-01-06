@@ -2613,7 +2613,8 @@ size_t  len1, len2, len3, len4;
     len1 = strlen(basedir);
     len2 = strlen(subdirs);
     len3 = len1 + len2 + 6;
-    newdir = (char *)LEPT_CALLOC(len3 + 1, 1);
+    if ((newdir = (char *)LEPT_CALLOC(len3 + 1, 1)) == NULL)
+        return (char *)ERROR_PTR("newdir not made", procName, NULL);
     strncat(newdir, basedir, len3);  /* add basedir */
     if (newdir[len1 - 1] != '/')  /* add '/' if necessary */
         newdir[len1] = '/';

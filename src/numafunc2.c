@@ -1964,7 +1964,8 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
         /* Split the histogram with [0 ... i] in the lower part
          * and [i+1 ... n-1] in upper part.  First, compute an otsu
          * score for each possible splitting.  */
-    nascore = numaCreate(n);
+    if ((nascore = numaCreate(n)) == NULL)
+        return ERROR_INT("nascore not made", procName, 1);
     naave1 = (pave1) ? numaCreate(n) : NULL;
     naave2 = (pave2) ? numaCreate(n) : NULL;
     nanum1 = (pnum1) ? numaCreate(n) : NULL;

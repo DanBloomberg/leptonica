@@ -98,6 +98,10 @@ PIX       *pixd;
     datad = pixGetData(pixd);
 
     tab = (intab) ? intab : makeSubsampleTab2x();
+    if (!tab) {
+        pixDestroy(&pixd);
+        return (PIX *)ERROR_PTR("tab not made", procName, NULL);
+    }
 
         /* e.g., if ws = 65: wd = 32, wpls = 3, wpld = 1 --> trouble */
     wplsi = L_MIN(wpls, 2 * wpld);  /* iterate over this number of words */
@@ -253,6 +257,10 @@ PIX       *pixd;
     datad = pixGetData(pixd);
 
     tab = (intab) ? intab : makeSubsampleTab2x();
+    if (!tab) {
+        pixDestroy(&pixd);
+        return (PIX *)ERROR_PTR("tab not made", procName, NULL);
+    }
 
         /* e.g., if ws = 65: wd = 32, wpls = 3, wpld = 1 --> trouble */
     wplsi = L_MIN(wpls, 2 * wpld);  /* iterate over this number of words */
