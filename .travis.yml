@@ -33,7 +33,13 @@ before_install:
   
 install:
   - if [[ $LINUX ]]; then sudo apt-get update; fi
-  - if [[ $LINUX ]]; then sudo apt-get install -y libwebp-dev libpng12-dev libjpeg8-dev libtiff5-dev libgif-dev libopenjpeg-dev; fi
+  - if [[ $LINUX ]]; then sudo apt-get install -y libwebp-dev libpng12-dev libjpeg8-dev libtiff5-dev libopenjpeg-dev; fi
+  #- if [[ $LINUX ]]; then sudo apt-get install -y libwebp-dev libpng12-dev libjpeg8-dev libtiff5-dev libgif-dev libopenjpeg-dev; fi
+  # install giflib5
+  - if [[ $LINUX ]]; then wget https://downloads.sourceforge.net/project/giflib/giflib-5.1.4.tar.bz2; fi
+  - if [[ $LINUX ]]; then tar -xf giflib-5.1.4.tar.bz2; fi
+  - if [[ $LINUX ]]; then cd giflib-5.1.4; fi
+  - if [[ $LINUX ]]; then ./configure && make && sudo make install; fi
   #- if [[ $LINUX ]]; then wget https://www.cmake.org/files/v3.6/cmake-3.6.1-Linux-x86_64.sh; fi
   #- if [[ $LINUX ]]; then sudo sh cmake-3.6.1-Linux-x86_64.sh --skip-license --prefix=/usr; fi
 
