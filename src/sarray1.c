@@ -132,6 +132,7 @@
 #include <string.h>
 #ifndef _WIN32
 #include <dirent.h>     /* unix only */
+#include <sys/stat.h>
 #endif  /* ! _WIN32 */
 #include "allheaders.h"
 
@@ -1854,6 +1855,8 @@ l_int32         len;
 SARRAY         *safiles;
 DIR            *pdir;
 struct dirent  *pdirentry;
+int             dfd;
+struct stat     st;
 
     PROCNAME("getFilenamesInDirectory");
 
@@ -1866,15 +1869,14 @@ struct dirent  *pdirentry;
     if (!pdir)
         return (SARRAY *)ERROR_PTR("pdir not opened", procName, NULL);
     safiles = sarrayCreate(0);
+    dfd = dirfd(pdir);
     while ((pdirentry = readdir(pdir))) {
 
-        /* It's nice to ignore directories.  For this it is necessary to
-         * define _BSD_SOURCE in the CC command, because the DT_DIR
-         * flag is non-standard.  */
-#if !defined(__SOLARIS__)
-        if (pdirentry->d_type == DT_DIR)
+        /* It's nice to ignore directories.  */
+      if ((0 == fstatat(dfd, pdirentry->d_name, &st, 0))
+          && S_ISDIR(st.st_mode)) {
             continue;
-#endif
+      }
 
             /* Filter out "." and ".." if they're passed through */
         name = pdirentry->d_name;
