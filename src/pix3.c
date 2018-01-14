@@ -1051,12 +1051,17 @@ PIX       *pixd;
  * Notes:
  *      (1) This generates a 1 bpp mask image, where a 1 is written in
  *          the mask for each pixel in pixs that satisfies
- *               rc * rval + gc * gval + bc * bval >= thresh
+ *               rc * rval + gc * gval + bc * bval > thresh
  *          where rval is the red component, etc.
  *      (2) Unlike with pixConvertToGray(), there are no constraints
  *          on the color coefficients, which can be negative.  For
  *          example, a mask that discriminates against red and in favor
  *          of blue will have rc < 0.0 and bc > 0.0.
+ *      (3) To make the result independent of intensity (the 'V' in HSV),
+ *          select coefficients so that @thresh = 0.  Then the result
+ *          is not changed when all components are multiplied by the
+ *          same constant (as long as nothing saturates).  This can be
+ *          useful if, for example, the illumination is not uniform.
  * </pre>
  */
 PIX *
@@ -1072,10 +1077,11 @@ PIX  *pix1, *pix2;
 
     if (!pixs || pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+    if (thresh >= 255.0) thresh = 254.0;  /* avoid 8 bit overflow */
 
     if ((pix1 = pixConvertRGBToGrayArb(pixs, rc, gc, bc)) == NULL)
         return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
-    pix2 = pixThresholdToBinary(pix1, thresh);
+    pix2 = pixThresholdToBinary(pix1, thresh + 1);
     pixInvert(pix2, pix2);
     pixDestroy(&pix1);
     return pix2;

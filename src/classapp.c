@@ -685,6 +685,8 @@ NUMA     *na1, *na2, *nai1, *nai2, *nasx, *nasy;
     yloc2 = (l_int32 *)LEPT_CALLOC(n2, sizeof(l_int32));
     xleft1 = (l_int32 *)LEPT_CALLOC(n1, sizeof(l_int32));
     xleft2 = (l_int32 *)LEPT_CALLOC(n2, sizeof(l_int32));
+    if (!line1 || !line2 || !yloc1 || !yloc2 || !xleft1 || !xleft2)
+        return ERROR_INT("callof failure for an array", procName, 1);
     for (i = 0; i < n1; i++) {
         na1 = numaaGetNuma(naa1, i, L_CLONE);
         numaGetIValue(na1, 0, yloc1 + i);
@@ -850,8 +852,10 @@ l_int32  *ia1, *ia2, *iasx, *iasy, *index1, *index2;
     ia2 = numaGetIArray(nai2);
     iasx = numaGetIArray(nasx);
     iasy = numaGetIArray(nasy);
-    index1 = (l_int32 *)LEPT_CALLOC(n1, sizeof(l_int32));  /* keep track of rows */
+    index1 = (l_int32 *)LEPT_CALLOC(n1, sizeof(l_int32));  /* watch rows */
     index2 = (l_int32 *)LEPT_CALLOC(n2, sizeof(l_int32));
+    if (!index1 || !index2)
+        return ERROR_INT("calloc fail for array", procName, 1);
     for (i = 0; i < nm; i++) {
         if (*psame == 1)
             break;

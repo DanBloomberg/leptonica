@@ -2868,7 +2868,7 @@ l_uint32  *data, *datamin, *datamax, *line, *tline, *linemin, *linemax;
                 continue;
             }
             if ((ia = iaaGetLinearTRC(iaa, maxval - minval)) == NULL) {
-                L_INFO("failure to make ia for j = %d!\n", procName, j);
+                L_ERROR("failure to make ia for j = %d!\n", procName, j);
                 continue;
             }
             for (k = 0; k < sy && yoff + k < h; k++) {

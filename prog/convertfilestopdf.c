@@ -86,7 +86,7 @@ static char  mainName[] = "convertfilestopdf";
     fileout = argv[8];
     if (!strcmp(substr, "allfiles"))
         substr = NULL;
-    if (scalefactor <= 0.0 || scalefactor > 1.0) {
+    if (scalefactor <= 0.0 || scalefactor > 2.0) {
         L_WARNING("invalid scalefactor: setting to 1.0\n", mainName);
         scalefactor = 1.0;
     }

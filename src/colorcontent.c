@@ -1311,7 +1311,8 @@ PIXCMAP   *cmap;
     wpl = pixGetWpl(pixs);
     sum = 0;
     if (d != 32) {  /* grayscale */
-        inta = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
+        if ((inta = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL)
+            return ERROR_INT("calloc failure for inta", procName, 1);
         for (i = 0; i < h; i += factor) {
             line = data + i * wpl;
             for (j = 0; j < w; j += factor) {
@@ -1341,7 +1342,8 @@ PIXCMAP   *cmap;
 
         /* 32 bpp rgb; quit if we get above 256 colors */
     hashsize = 5507;  /* big and prime; collisions are not likely */
-    inta = (l_int32 *)LEPT_CALLOC(hashsize, sizeof(l_int32));
+    if ((inta = (l_int32 *)LEPT_CALLOC(hashsize, sizeof(l_int32))) == NULL)
+        return ERROR_INT("calloc failure with hashsize", procName, 1);
     for (i = 0; i < h; i += factor) {
         line = data + i * wpl;
         for (j = 0; j < w; j += factor) {
@@ -1600,6 +1602,8 @@ l_uint32  *rtab, *gtab, *btab;
     rtab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     gtab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     btab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
+    if (!rtab || !gtab || !btab)
+        return ERROR_INT("calloc fail for tab", procName, 1);
     *prtab = rtab;
     *pgtab = gtab;
     *pbtab = btab;

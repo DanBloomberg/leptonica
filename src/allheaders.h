@@ -276,6 +276,10 @@ LEPT_DLL extern l_int32 boxCompareSize ( BOX *box1, BOX *box2, l_int32 type, l_i
 LEPT_DLL extern l_int32 boxContainsPt ( BOX *box, l_float32 x, l_float32 y, l_int32 *pcontains );
 LEPT_DLL extern BOX * boxaGetNearestToPt ( BOXA *boxa, l_int32 x, l_int32 y );
 LEPT_DLL extern BOX * boxaGetNearestToLine ( BOXA *boxa, l_int32 x, l_int32 y );
+LEPT_DLL extern l_int32 boxaFindNearestBoxes ( BOXA *boxa, l_int32 range, NUMAA **pnaaindex, NUMAA **pnaadist );
+LEPT_DLL extern l_int32 boxaGetNearestByDirection ( BOXA *boxa, l_int32 i, l_int32 dir, l_int32 range, l_int32 *pindex, l_int32 *pdist );
+LEPT_DLL extern l_int32 boxHasOverlapInXorY ( l_int32 c1, l_int32 s1, l_int32 c2, l_int32 s2 );
+LEPT_DLL extern l_int32 boxGetDistanceInXorY ( l_int32 c1, l_int32 s1, l_int32 c2, l_int32 s2 );
 LEPT_DLL extern l_int32 boxGetCenter ( BOX *box, l_float32 *pcx, l_float32 *pcy );
 LEPT_DLL extern l_int32 boxIntersectByLine ( BOX *box, l_int32 x, l_int32 y, l_float32 slope, l_int32 *px1, l_int32 *py1, l_int32 *px2, l_int32 *py2, l_int32 *pn );
 LEPT_DLL extern BOX * boxClipToRectangle ( BOX *box, l_int32 wi, l_int32 hi );

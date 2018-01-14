@@ -49,6 +49,10 @@
  *           l_int32   boxContainsPt()
  *           BOX      *boxaGetNearestToPt()
  *           BOX      *boxaGetNearestToLine()
+ *           l_int32   boxaFindNearestBoxes()
+ *           l_int32   boxaGetNearestByDirection()
+ *           l_int32   boxHasOverlapInXorY()
+ *           l_int32   boxGetDistanceInXorY()
  *           l_int32   boxIntersectByLine()
  *           l_int32   boxGetCenter()
  *           BOX      *boxClipToRectangle()
@@ -1195,6 +1199,221 @@ BOX       *box;
 
 
 /*!
+ * \brief   boxaFindNearestBoxes()
+ *
+ * \param[in]    boxa       sorted in LR/TB scan order
+ * \param[in]    range      search distance from box i; use 0 to search
+ *                          entire boxa (e.g., if it's not 2D sorted)
+ * \param[out]   pnaaindex  for each box in %boxa, this contains a numa
+ *                          of 4 box indices (per direction) of the nearest box
+ * \param[out]   pnaadist   for each box in %boxa, this contains a numa
+ * \return  0 if OK, 1 on error
+ * <pre>
+ * Notes:
+ *      (1) For efficiency, use a LR/TD sorted %boxa, which can be
+ *          made by flattening a 2D sorted boxaa.  In that case, the
+ *          range can be some positive integer like 50.
+ * </pre>
+ */
+l_int32
+boxaFindNearestBoxes(BOXA     *boxa,
+                     l_int32   range,
+                     NUMAA   **pnaaindex,
+                     NUMAA   **pnaadist)
+{
+l_int32  i, n, index, dist;
+NUMA    *nai, *nad;
+NUMAA   *naai, *naad;
+
+    PROCNAME("boxaFindNearestBoxes");
+
+    if (pnaaindex) *pnaaindex = NULL;
+    if (pnaadist) *pnaadist = NULL;
+    if (!pnaaindex)
+        return ERROR_INT("&naaindex not defined", procName, 1);
+    if (!pnaadist)
+        return ERROR_INT("&naadist not defined", procName, 1);
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+
+    n = boxaGetCount(boxa);
+    naai = numaaCreate(n);
+    naad = numaaCreate(n);
+    *pnaaindex = naai;
+    *pnaadist = naad;
+    for (i = 0; i < n; i++) {
+        nai = numaCreate(4);
+        nad = numaCreate(4);
+        boxaGetNearestByDirection(boxa, i, L_FROM_LEFT, range, &index, &dist);
+        numaAddNumber(nai, index);
+        numaAddNumber(nad, dist);
+        boxaGetNearestByDirection(boxa, i, L_FROM_RIGHT, range, &index, &dist);
+        numaAddNumber(nai, index);
+        numaAddNumber(nad, dist);
+        boxaGetNearestByDirection(boxa, i, L_FROM_TOP, range, &index, &dist);
+        numaAddNumber(nai, index);
+        numaAddNumber(nad, dist);
+        boxaGetNearestByDirection(boxa, i, L_FROM_BOT, range, &index, &dist);
+        numaAddNumber(nai, index);
+        numaAddNumber(nad, dist);
+        numaaAddNuma(naai, nai, L_INSERT);
+        numaaAddNuma(naad, nad, L_INSERT);
+    }
+    return 0;
+}
+
+
+/*!
+ * \brief   boxaGetNearestByDirection()
+ *
+ * \param[in]    boxa     sorted in LR/TB scan order
+ * \param[in]    i        box we test against
+ * \param[in]    dir      direction to look: L_FROM_LEFT, L_FROM_RIGHT,
+ *                        L_FROM_TOP, L_FROM_BOT
+ * \param[in]    range    search distance from box i; use 0 to search
+ *                        entire boxa (e.g., if it's not 2D sorted)
+ * \param[out]   pindex   index in boxa of nearest box with overlapping
+ *                        coordinates in the indicated direction;
+ *                        -1 if there is no box
+ * \param[out]   pdist    distance of the nearest box in the indicated
+ *                        direction; 100000 if no box
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) For efficiency, use a LR/TD sorted %boxa, which can be
+ *          made by flattening a 2D sorted boxaa.  In that case, the
+ *          range can be some positive integer like 50.
+ * </pre>
+ */
+l_int32
+boxaGetNearestByDirection(BOXA     *boxa,
+                          l_int32   i,
+                          l_int32   dir,
+                          l_int32   range,
+                          l_int32  *pindex,
+                          l_int32  *pdist)
+{
+l_int32  j, jmin, jmax, n, mindist, dist, index;
+l_int32  x, y, w, h, bx, by, bw, bh;
+
+    PROCNAME("boxaGetNearestByDirection");
+
+    if (pindex) *pindex = -1;
+    if (pdist) *pdist = 100000;
+    if (!pindex)
+        return ERROR_INT("&index not defined", procName, 1);
+    if (!pdist)
+        return ERROR_INT("&dist not defined", procName, 1);
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+    if (dir != L_FROM_LEFT && dir != L_FROM_RIGHT &&
+        dir != L_FROM_TOP && dir != L_FROM_BOT)
+        return ERROR_INT("invalid dir", procName, 1);
+    n = boxaGetCount(boxa);
+    if (i < 0 || i >= n)
+        return ERROR_INT("invalid box index", procName, 1);
+
+    jmin = (range <= 0) ? 0 : L_MAX(0, i - range);
+    jmax = (range <= 0) ? n - 1 : L_MIN(n -1, i + range);
+    boxaGetBoxGeometry(boxa, i, &x, &y, &w, &h);
+    mindist = 100000;
+    index = -1;
+    if (dir == L_FROM_LEFT || dir == L_FROM_RIGHT) {
+        for (j = jmin; j <= jmax; j++) {
+            if (j == i) continue;
+            boxaGetBoxGeometry(boxa, j, &bx, &by, &bw, &bh);
+            if ((bx >= x && dir == L_FROM_LEFT) ||  /* not to the left */
+                (x >= bx && dir == L_FROM_RIGHT))   /* not to the right */
+                continue;
+            if (boxHasOverlapInXorY(y, h, by, bh) >= 0) {
+                dist = boxGetDistanceInXorY(x, w, bx, bw);
+                if (dist < mindist) {
+                    mindist = dist;
+                    index = j;
+                }
+            }
+        }
+    } else if (dir == L_FROM_TOP || dir == L_FROM_BOT) {
+        for (j = jmin; j <= jmax; j++) {
+            if (j == i) continue;
+            boxaGetBoxGeometry(boxa, j, &bx, &by, &bw, &bh);
+            if ((by >= y && dir == L_FROM_TOP) ||  /* not above */
+                (y >= by && dir == L_FROM_BOT))   /* not below */
+                continue;
+            if (boxHasOverlapInXorY(x, w, bx, bw) >= 0) {
+                dist = boxGetDistanceInXorY(y, h, by, bh);
+                if (dist < mindist) {
+                    mindist = dist;
+                    index = j;
+                }
+            }
+        }
+    }
+    *pindex = index;
+    *pdist = mindist;
+    return 0;
+}
+
+
+/*!
+ * \brief   boxHasOverlapInXorY()
+ *
+ * \param[in]    c1   left or top coordinate of box1
+ * \param[in]    s1   width or height of box1
+ * \param[in]    c2   left or top coordinate of box2
+ * \param[in]    s2   width or height of box2
+ * \return  amount of overlap (no overlap if < 0)
+ *
+ * <pre>
+ * Notes:
+ *      (1) Like boxGetDistanceInXorY(), this is used for overlaps both in
+ *          x (which projected vertically) and in y (projected horizontally)
+ * </pre>
+ */
+l_int32
+boxHasOverlapInXorY(l_int32  c1,
+                    l_int32  s1,
+                    l_int32  c2,
+                    l_int32  s2)
+{
+l_int32  ovlp;
+
+    if (c1 > c2)
+        ovlp = c2 + s2 - 1 - c1;
+    else
+        ovlp = c1 + s1 - 1 - c2;
+    return ovlp;
+}
+
+
+/*!
+ * \brief   boxGetDistanceInXorY()
+ *
+ * \param[in]    c1   left or top coordinate of box1
+ * \param[in]    s1   width or height of box1
+ * \param[in]    c2   left or top coordinate of box2
+ * \param[in]    s2   width or height of box2
+ * \return  distance between them (if < 0, box2 overlaps box1 in the
+ *                                 dimension considered)
+ */
+l_int32
+boxGetDistanceInXorY(l_int32  c1,
+                    l_int32   s1,
+                    l_int32   c2,
+                    l_int32   s2)
+{
+l_int32  dist;
+
+    if (c1 > c2)
+        dist = c1 -c2 - s2 + 1;
+    else
+        dist = c2 - c1 - s1 + 1;
+    return dist;
+}
+
+
+/*!
  * \brief   boxGetCenter()
  *
  * \param[in]    box
@@ -1885,7 +2104,8 @@ NUMA     *na;
     if (n != boxaGetCount(boxa2))
         return 0;
 
-    countarray = (l_int32 *)LEPT_CALLOC(n, sizeof(l_int32));
+    if ((countarray = (l_int32 *)LEPT_CALLOC(n, sizeof(l_int32))) == NULL)
+        return ERROR_INT("calloc fail for countarray", procName, 1);
     na = numaMakeConstant(0.0, n);
 
     for (i = 0; i < n; i++) {

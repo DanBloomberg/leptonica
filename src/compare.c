@@ -1931,7 +1931,8 @@ PIX        *pix;
 
         /* Prepare the histograms */
     n = pixaGetCount(pixa);
-    n3a = (NUMAA **)LEPT_CALLOC(n, sizeof(NUMAA *));
+    if ((n3a = (NUMAA **)LEPT_CALLOC(n, sizeof(NUMAA *))) == NULL)
+        return ERROR_INT("calloc fail for n3a", procName, 1);
     naw = numaCreate(0);
     nah = numaCreate(0);
     for (i = 0; i < n; i++) {
@@ -1956,8 +1957,11 @@ PIX        *pix;
          * similar images get the same 'index' value), and 'nai' maps
          * the index of the image in the input array to the index
          * of the similarity class.  */
+    if ((scores = (l_float32 *)LEPT_CALLOC(n * n, sizeof(l_float32))) == NULL) {
+        L_ERROR("calloc fail for scores\n", procName);
+        goto cleanup;
+    }
     nai = numaMakeConstant(-1, n);  /* index */
-    scores = (l_float32 *)LEPT_CALLOC(n * n, sizeof(l_float32));
     for (i = 0, index = 0; i < n; i++) {
         scores[n * i + i] = 1.0;
         numaGetIValue(nai, i, &ival);
@@ -2031,6 +2035,7 @@ PIX        *pix;
     if (ppixd)
         *ppixd = pixaDisplayTiledByIndex(pixa, nai, 200, 20, 2, 6, 0x0000ff00);
 
+cleanup:
     numaDestroy(&naw);
     numaDestroy(&nah);
     for (i = 0; i < n; i++)

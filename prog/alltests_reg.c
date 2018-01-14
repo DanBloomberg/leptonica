@@ -153,6 +153,7 @@ static const char *tests[] = {
 #if HAVE_LIBWEBP
                               "webpio_reg",
 #endif  /* HAVE_LIBWEBP */
+                              "wordboxes_reg",
                               "writetext_reg",
                               "xformbox_reg",
                              };

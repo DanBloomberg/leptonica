@@ -1376,6 +1376,8 @@ l_uint32  *rtab, *gtab, *btab;
     rtab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     gtab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     btab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
+    if (!rtab || !gtab || !btab)
+        return ERROR_INT("calloc fail for tab", procName, 1);
     *prtab = rtab;
     *pgtab = gtab;
     *pbtab = btab;
@@ -2633,7 +2635,8 @@ PIXCMAP   *cmap;
 
         /* Make lookup table, using computed thresholds  */
     tabval = makeGrayQuantIndexTable(graylevels);
-    if (!carray || !rarray || !garray || !barray || !tabval) {
+    if (!rtab || !gtab || !btab ||
+        !carray || !rarray || !garray || !barray || !tabval) {
         L_ERROR("calloc fail for an array\n", procName);
         goto array_cleanup;
     }
@@ -2878,6 +2881,10 @@ PIXCMAP   *cmap;
         gtab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
         btab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
         itab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
+        if (!rtab || !gtab || !btab || !itab) {
+            pixDestroy(&pixd);
+            return (PIX *)ERROR_PTR("calloc fail for table", procName, NULL);
+        }
         for (i = 0; i < 256; i++) {
             rtab[i] = i & 0xe0;
             gtab[i] = (i >> 3) & 0x1c;
