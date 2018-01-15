@@ -181,7 +181,7 @@ NUMAA   *naai, *naad;
     pixDestroy(&pix1);
 
         /* Find the adjacent boxes and their distances */
-    boxaFindNearestBoxes(boxa1, 0, &naai, &naad);
+    boxaFindNearestBoxes(boxa1, L_NON_NEGATIVE, 0, &naai, &naad);
     numaaWrite("/tmp/lept/regout/index.naa", naai);
     regTestCheckFile(rp, "/tmp/lept/regout/index.naa");
     numaaWrite("/tmp/lept/regout/dist.naa", naad);

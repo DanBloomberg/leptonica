@@ -51,8 +51,8 @@
  *           BOX      *boxaGetNearestToLine()
  *           l_int32   boxaFindNearestBoxes()
  *           l_int32   boxaGetNearestByDirection()
- *           l_int32   boxHasOverlapInXorY()
- *           l_int32   boxGetDistanceInXorY()
+ *    static l_int32   boxHasOverlapInXorY()
+ *    static l_int32   boxGetDistanceInXorY()
  *           l_int32   boxIntersectByLine()
  *           l_int32   boxGetCenter()
  *           BOX      *boxClipToRectangle()
@@ -77,6 +77,11 @@
  */
 
 #include "allheaders.h"
+
+static l_int32 boxHasOverlapInXorY(l_int32 c1, l_int32 s1, l_int32 c2,
+                                   l_int32 s2);
+static l_int32 boxGetDistanceInXorY(l_int32 c1, l_int32 s1, l_int32 c2,
+                                    l_int32 s2);
 
 
 /*---------------------------------------------------------------------*
@@ -1201,22 +1206,23 @@ BOX       *box;
 /*!
  * \brief   boxaFindNearestBoxes()
  *
- * \param[in]    boxa       sorted in LR/TB scan order
- * \param[in]    range      search distance from box i; use 0 to search
- *                          entire boxa (e.g., if it's not 2D sorted)
- * \param[out]   pnaaindex  for each box in %boxa, this contains a numa
- *                          of 4 box indices (per direction) of the nearest box
+ * \param[in]    boxa         sorted in LR/TB scan order
+ * \param[in]    dist_select  L_NON_NEGATIVE, L_ALL
+ * \param[in]    range        search distance from box i; use 0 to search
+ *                            entire boxa (e.g., if it's not 2D sorted)
+ * \param[out]   pnaaindex    for each box in %boxa, contains a numa of 4
+ *                            box indices (per direction) of the nearest box
  * \param[out]   pnaadist   for each box in %boxa, this contains a numa
  * \return  0 if OK, 1 on error
  * <pre>
  * Notes:
- *      (1) For efficiency, use a LR/TD sorted %boxa, which can be
- *          made by flattening a 2D sorted boxaa.  In that case, the
- *          range can be some positive integer like 50.
+ *      (1) See boxaGetNearestByDirection() for usage of %dist_select
+ *          and %range.
  * </pre>
  */
 l_int32
 boxaFindNearestBoxes(BOXA     *boxa,
+                     l_int32   dist_select,
                      l_int32   range,
                      NUMAA   **pnaaindex,
                      NUMAA   **pnaadist)
@@ -1244,16 +1250,20 @@ NUMAA   *naai, *naad;
     for (i = 0; i < n; i++) {
         nai = numaCreate(4);
         nad = numaCreate(4);
-        boxaGetNearestByDirection(boxa, i, L_FROM_LEFT, range, &index, &dist);
+        boxaGetNearestByDirection(boxa, i, L_FROM_LEFT, dist_select,
+                                  range, &index, &dist);
         numaAddNumber(nai, index);
         numaAddNumber(nad, dist);
-        boxaGetNearestByDirection(boxa, i, L_FROM_RIGHT, range, &index, &dist);
+        boxaGetNearestByDirection(boxa, i, L_FROM_RIGHT, dist_select,
+                                  range, &index, &dist);
         numaAddNumber(nai, index);
         numaAddNumber(nad, dist);
-        boxaGetNearestByDirection(boxa, i, L_FROM_TOP, range, &index, &dist);
+        boxaGetNearestByDirection(boxa, i, L_FROM_TOP, dist_select,
+                                  range, &index, &dist);
         numaAddNumber(nai, index);
         numaAddNumber(nad, dist);
-        boxaGetNearestByDirection(boxa, i, L_FROM_BOT, range, &index, &dist);
+        boxaGetNearestByDirection(boxa, i, L_FROM_BOT, dist_select,
+                                  range, &index, &dist);
         numaAddNumber(nai, index);
         numaAddNumber(nad, dist);
         numaaAddNuma(naai, nai, L_INSERT);
@@ -1266,30 +1276,36 @@ NUMAA   *naai, *naad;
 /*!
  * \brief   boxaGetNearestByDirection()
  *
- * \param[in]    boxa     sorted in LR/TB scan order
- * \param[in]    i        box we test against
- * \param[in]    dir      direction to look: L_FROM_LEFT, L_FROM_RIGHT,
- *                        L_FROM_TOP, L_FROM_BOT
- * \param[in]    range    search distance from box i; use 0 to search
- *                        entire boxa (e.g., if it's not 2D sorted)
- * \param[out]   pindex   index in boxa of nearest box with overlapping
- *                        coordinates in the indicated direction;
- *                        -1 if there is no box
- * \param[out]   pdist    distance of the nearest box in the indicated
- *                        direction; 100000 if no box
+ * \param[in]    boxa         sorted in LR/TB scan order
+ * \param[in]    i            box we test against
+ * \param[in]    dir          direction to look: L_FROM_LEFT, L_FROM_RIGHT,
+ *                            L_FROM_TOP, L_FROM_BOT
+ * \param[in]    dist_select  L_NON_NEGATIVE, L_ALL
+ * \param[in]    range        search distance from box i; use 0 to search
+ *                            entire boxa (e.g., if it's not 2D sorted)
+ * \param[out]   pindex       index in boxa of nearest box with overlapping
+ *                            coordinates in the indicated direction;
+ *                            -1 if there is no box
+ * \param[out]   pdist        distance of the nearest box in the indicated
+ *                            direction; 100000 if no box
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
  *      (1) For efficiency, use a LR/TD sorted %boxa, which can be
- *          made by flattening a 2D sorted boxaa.  In that case, the
- *          range can be some positive integer like 50.
+ *          made by flattening a 2D sorted boxaa.  In that case,
+ *          %range can be some positive integer like 50.
+ *      (2) If boxes overlap, the distance will be < 0.  Use %dist_select
+ *          to determine if these should count or not.  If L_ALL, then
+ *          one box will match as the nearest to another in 2 or more
+ *          directions.
  * </pre>
  */
 l_int32
 boxaGetNearestByDirection(BOXA     *boxa,
                           l_int32   i,
                           l_int32   dir,
+                          l_int32   dist_select,
                           l_int32   range,
                           l_int32  *pindex,
                           l_int32  *pdist)
@@ -1310,6 +1326,8 @@ l_int32  x, y, w, h, bx, by, bw, bh;
     if (dir != L_FROM_LEFT && dir != L_FROM_RIGHT &&
         dir != L_FROM_TOP && dir != L_FROM_BOT)
         return ERROR_INT("invalid dir", procName, 1);
+    if (dist_select != L_NON_NEGATIVE && dist_select != L_ALL)
+        return ERROR_INT("invalid dist_select", procName, 1);
     n = boxaGetCount(boxa);
     if (i < 0 || i >= n)
         return ERROR_INT("invalid box index", procName, 1);
@@ -1328,6 +1346,7 @@ l_int32  x, y, w, h, bx, by, bw, bh;
                 continue;
             if (boxHasOverlapInXorY(y, h, by, bh) >= 0) {
                 dist = boxGetDistanceInXorY(x, w, bx, bw);
+                if (dist_select == L_NON_NEGATIVE && dist < 0) continue;
                 if (dist < mindist) {
                     mindist = dist;
                     index = j;
@@ -1343,6 +1362,7 @@ l_int32  x, y, w, h, bx, by, bw, bh;
                 continue;
             if (boxHasOverlapInXorY(x, w, bx, bw) >= 0) {
                 dist = boxGetDistanceInXorY(y, h, by, bh);
+                if (dist_select == L_NON_NEGATIVE && dist < 0) continue;
                 if (dist < mindist) {
                     mindist = dist;
                     index = j;
@@ -1371,7 +1391,7 @@ l_int32  x, y, w, h, bx, by, bw, bh;
  *          x (which projected vertically) and in y (projected horizontally)
  * </pre>
  */
-l_int32
+static l_int32
 boxHasOverlapInXorY(l_int32  c1,
                     l_int32  s1,
                     l_int32  c2,
@@ -1397,11 +1417,11 @@ l_int32  ovlp;
  * \return  distance between them (if < 0, box2 overlaps box1 in the
  *                                 dimension considered)
  */
-l_int32
+static l_int32
 boxGetDistanceInXorY(l_int32  c1,
-                    l_int32   s1,
-                    l_int32   c2,
-                    l_int32   s2)
+                     l_int32  s1,
+                     l_int32  c2,
+                     l_int32  s2)
 {
 l_int32  dist;
 

@@ -89,6 +89,7 @@
  *         Flags for 8 and 16 bit pixel sums
  *         Dithering flags
  *         Distance flags
+ *         Value flags
  *         Statistical measures
  *         Set selection flags
  *         Text orientation flags
@@ -936,6 +937,21 @@ enum {
 enum {
     L_MANHATTAN_DISTANCE = 1,  /*!< L1 distance (e.g., in color space)     */
     L_EUCLIDEAN_DISTANCE = 2   /*!< L2 distance                            */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *                               Value flags                               *
+ *-------------------------------------------------------------------------*/
+
+/*! Value flags */
+enum {
+    L_NEGATIVE = 1,      /*!< values < 0                                   */
+    L_NON_NEGATIVE = 2,  /*!< values >= 0                                  */
+    L_POSITIVE = 3,      /*!< values > 0                                   */
+    L_NON_POSITIVE = 4,  /*!< values <= 0                                  */
+    L_ZERO = 5,          /*!< values = 0                                   */
+    L_ALL = 6            /*!< all values                                   */
 };
 
 
