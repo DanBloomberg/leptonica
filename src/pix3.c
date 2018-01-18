@@ -63,6 +63,7 @@
  *           l_int32     pixForegroundFraction()
  *           NUMA       *pixaCountPixels()
  *           l_int32     pixCountPixels()
+ *           l_int32     pixCountPixelsInRect()
  *           NUMA       *pixCountByRow()
  *           NUMA       *pixCountByColumn()
  *           NUMA       *pixCountPixelsByRow()
@@ -1814,13 +1815,13 @@ PIX      *pix;
 /*!
  * \brief   pixCountPixels()
  *
- * \param[in]    pix 1 bpp
- * \param[out]   pcount count of ON pixels
- * \param[in]    tab8  [optional] 8-bit pixel lookup table
+ * \param[in]    pixs     1 bpp
+ * \param[out]   pcount   count of ON pixels
+ * \param[in]    tab8     [optional] 8-bit pixel lookup table
  * \return  0 if OK; 1 on error
  */
 l_int32
-pixCountPixels(PIX      *pix,
+pixCountPixels(PIX      *pixs,
                l_int32  *pcount,
                l_int32  *tab8)
 {
@@ -1835,13 +1836,13 @@ l_uint32  *data;
     if (!pcount)
         return ERROR_INT("&count not defined", procName, 1);
     *pcount = 0;
-    if (!pix || pixGetDepth(pix) != 1)
-        return ERROR_INT("pix not defined or not 1 bpp", procName, 1);
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
 
     tab = (tab8) ? tab8 : makePixelSumTab8();
-    pixGetDimensions(pix, &w, &h, NULL);
-    wpl = pixGetWpl(pix);
-    data = pixGetData(pix);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    wpl = pixGetWpl(pixs);
+    data = pixGetData(pixs);
     fullwords = w >> 5;
     endbits = w & 31;
     endmask = (endbits == 0) ? 0 : (0xffffffffU << (32 - endbits));
@@ -1870,6 +1871,46 @@ l_uint32  *data;
     *pcount = sum;
 
     if (!tab8) LEPT_FREE(tab);
+    return 0;
+}
+
+
+/*!
+ * \brief   pixCountPixelsInRect()
+ *
+ * \param[in]    pixs     1 bpp
+ * \param[in]    box      (can be null)
+ * \param[out]   pcount   count of ON pixels
+ * \param[in]    tab8     [optional] 8-bit pixel lookup table
+ * \return  0 if OK; 1 on error
+ */
+l_int32
+pixCountPixelsInRect(PIX      *pixs,
+                     BOX      *box,
+                     l_int32  *pcount,
+                     l_int32  *tab8)
+{
+l_int32  bx, by, bw, bh;
+PIX     *pix1;
+
+    PROCNAME("pixCountPixelsInRect");
+
+    if (!pcount)
+        return ERROR_INT("&count not defined", procName, 1);
+    *pcount = 0;
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+
+    if (box) {
+        boxGetGeometry(box, &bx, &by, &bw, &bh);
+        pix1 = pixCreate(bw, bh, 1);
+        pixRasterop(pix1, 0, 0, bw, bh, PIX_SRC, pixs, bx, by);
+        pixCountPixels(pix1, pcount, tab8);
+        pixDestroy(&pix1);
+    } else {
+        pixCountPixels(pixs, pcount, tab8);
+    }
+
     return 0;
 }
 

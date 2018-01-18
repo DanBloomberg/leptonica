@@ -1206,7 +1206,7 @@ BOX       *box;
 /*!
  * \brief   boxaFindNearestBoxes()
  *
- * \param[in]    boxa         sorted in LR/TB scan order
+ * \param[in]    boxa         either unsorted, or 2D sorted in LR/TB scan order
  * \param[in]    dist_select  L_NON_NEGATIVE, L_ALL
  * \param[in]    range        search distance from box i; use 0 to search
  *                            entire boxa (e.g., if it's not 2D sorted)
@@ -1276,7 +1276,7 @@ NUMAA   *naai, *naad;
 /*!
  * \brief   boxaGetNearestByDirection()
  *
- * \param[in]    boxa         sorted in LR/TB scan order
+ * \param[in]    boxa         either unsorted, or 2D sorted in LR/TB scan order
  * \param[in]    i            box we test against
  * \param[in]    dir          direction to look: L_FROM_LEFT, L_FROM_RIGHT,
  *                            L_FROM_TOP, L_FROM_BOT
@@ -1344,7 +1344,7 @@ l_int32  x, y, w, h, bx, by, bw, bh;
             if ((bx >= x && dir == L_FROM_LEFT) ||  /* not to the left */
                 (x >= bx && dir == L_FROM_RIGHT))   /* not to the right */
                 continue;
-            if (boxHasOverlapInXorY(y, h, by, bh) >= 0) {
+            if (boxHasOverlapInXorY(y, h, by, bh) == 1) {
                 dist = boxGetDistanceInXorY(x, w, bx, bw);
                 if (dist_select == L_NON_NEGATIVE && dist < 0) continue;
                 if (dist < mindist) {
@@ -1360,7 +1360,7 @@ l_int32  x, y, w, h, bx, by, bw, bh;
             if ((by >= y && dir == L_FROM_TOP) ||  /* not above */
                 (y >= by && dir == L_FROM_BOT))   /* not below */
                 continue;
-            if (boxHasOverlapInXorY(x, w, bx, bw) >= 0) {
+            if (boxHasOverlapInXorY(x, w, bx, bw) == 1) {
                 dist = boxGetDistanceInXorY(y, h, by, bh);
                 if (dist_select == L_NON_NEGATIVE && dist < 0) continue;
                 if (dist < mindist) {
@@ -1383,7 +1383,7 @@ l_int32  x, y, w, h, bx, by, bw, bh;
  * \param[in]    s1   width or height of box1
  * \param[in]    c2   left or top coordinate of box2
  * \param[in]    s2   width or height of box2
- * \return  amount of overlap (no overlap if < 0)
+ * \return  0 if no overlap; 1 if any overlap
  *
  * <pre>
  * Notes:
@@ -1403,7 +1403,7 @@ l_int32  ovlp;
         ovlp = c2 + s2 - 1 - c1;
     else
         ovlp = c1 + s1 - 1 - c2;
-    return ovlp;
+    return (ovlp < 0) ? 0 : 1;
 }
 
 
@@ -1426,9 +1426,9 @@ boxGetDistanceInXorY(l_int32  c1,
 l_int32  dist;
 
     if (c1 > c2)
-        dist = c1 -c2 - s2 + 1;
+        dist = c1 - (c2 + s2 - 1);
     else
-        dist = c2 - c1 - s1 + 1;
+        dist = c2 - (c1 + s1 - 1);
     return dist;
 }
 
