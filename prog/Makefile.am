@@ -4,11 +4,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src
 LDADD = $(top_builddir)/src/liblept.la $(LIBM)
  
 INSTALL_PROGS = convertfilestopdf convertfilestops \
-	convertformat \
-	convertsegfilestopdf convertsegfilestops \
-	converttopdf converttops fileinfo \
-	printimage printsplitimage printtiff \
-	splitimage2pdf xtractprotos
+	convertformat convertsegfilestopdf convertsegfilestops \
+	converttopdf converttops fileinfo xtractprotos
 
 AUTO_REG_PROGS = adaptmap_reg affine_reg alphaops_reg \
 	alphaxform_reg baseline_reg bilateral2_reg \
@@ -42,7 +39,7 @@ AUTO_REG_PROGS = adaptmap_reg affine_reg alphaops_reg \
 	selio_reg shear1_reg shear2_reg \
 	skew_reg splitcomp_reg subpixel_reg \
 	texturefill_reg threshnorm_reg translate_reg \
-	warper_reg writetext_reg xformbox_reg
+	warper_reg wordboxes_reg writetext_reg xformbox_reg
 
 if HAVE_LIBGIF
 AUTO_REG_PROGS += gifio_reg
@@ -67,8 +64,7 @@ MANUAL_REG_PROGS = alltests_reg adaptnorm_reg bilateral1_reg \
 	pixalloc_reg pixmem_reg pixtile_reg \
 	ptra1_reg ptra2_reg \
 	rasterop_reg smallpix_reg \
-	smoothedge_reg string_reg \
-	wordboxes_reg
+	smoothedge_reg string_reg
 
 OTHER_PROGS = adaptmap_dark \
 	arabic_lines arithtest \

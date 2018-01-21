@@ -248,6 +248,11 @@ SRC2 =		autogen.137.c dwalinear.3.c dwalinearlow.3.c
 
 all:	$(SRC:%.c=%)
 
+#    Jan 2018  (even smaller set of nine utility programs)
+#debian:	convertfilestopdf convertfilestops convertformat \
+#	convertsegfilestopdf convertsegfilestops \
+#	converttopdf converttops fileinfo xtractprotos
+
 #    Jan 2014  (minimal set of utility programs)
 #debian:	convertfilestopdf convertfilestops convertformat \
 #	convertsegfilestopdf convertsegfilestops \

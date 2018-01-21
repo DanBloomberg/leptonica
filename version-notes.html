@@ -77,7 +77,7 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 
 
 <h2 align=center>Version Notes for Leptonica</h2>
-<h3 align=center>4 Nov 2017</h3>
+<h3 align=center>24 Jan 2018</h3>
 
 <hr>
 <h2 align=center>  <IMG SRC="moller52.jpg" border=1 ALIGN_MIDDLE> </h2>
@@ -88,6 +88,37 @@ Note: The following are highlights of the changes in each version.
 They are <i>not</i> a complete listing of the modifications.
 
 <pre>
+
+1.75.0  24 Jan 18
+        This is a new version, for major Ubuntu release 18.04.
+        $TMPDIR path rewriting turned off on Unix; only used for Windows.
+        Added pix conversion to depth 2 and 4.  We now have general
+          converters to 1, 2, 4, 8, 16 and 32 bpp. 
+        Modified giflib to use read/write from/to memory; no temp files;
+          no longer support versions before 5.1.
+        Move most low-level code from separate files to their callers;
+          about 30 of them became static.
+        Improved table detection on scanned page images (tests: pageseg_reg.c)
+        Added support for write/compare regression tests for files.
+        Modified printimage for more flexibility.
+        Enable lookup by key on comma-separated key/value text file.
+        Update README.html for building with Visual Studio.
+        Improved functions for getting pixel averages in RGB images
+        Simplified and speedup of unsharp masking.
+        New function for detecting and correcting text orientation. 
+        Remove slow sharpening operation when not appropriate during scaling.
+        Better handling of gplots with 0 or 1 data point.
+        Coverity scan fixes.
+        Modified jpeg2000 header to use openjpeg 2.3.
+        Improved depth accessors for pixa and pixaa; added size accessors
+          for pixa and pixaa.
+        Bug fix in webp interface on read error.
+        New function that finds the closest boxes in a boxa to any particular
+          box, in each of 4 directions.
+        New regression tests in automated sequence: blend5_reg, quadtree_reg,
+        wordboxes_reg.
+        New program: textorient
+        Removed programs: snapcolortest
 
 1.74.4  11 Jun 17
         Converted two progs to reg tests

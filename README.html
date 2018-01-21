@@ -75,12 +75,12 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-README (version 1.74.4)
-File update: 26 Sept 2017
+README (version 1.75.0)
+File update: 24 Jan 2018
 ---------------------------
 
-gunzip leptonica-1.74.4.tar.gz
-tar -xvf leptonica-1.74.4.tar
+gunzip leptonica-1.75.0.tar.gz
+tar -xvf leptonica-1.75.0.tar
 
 </pre>
 
@@ -116,7 +116,7 @@ Building leptonica
   Libraries, executables and prototypes are easily made, as described below.
 
   When you extract from the archive, all files are put in a
-  subdirectory 'leptonica-1.74.4'.  In that directory you will
+  subdirectory 'leptonica-1.75.0'.  In that directory you will
   find a src directory containing the source files for the library,
   and a prog directory containing source files for various
   testing and example programs.
@@ -200,7 +200,7 @@ Building leptonica
          the external libraries:
          Finally, do 'make' in the prog directory.
 
-       VERY IMPORTANT: the 240+ programs in the prog directory are
+       VERY IMPORTANT: the 270+ programs in the prog directory are
        an integral part of this package.  These can be divided into
        four groups:
          (1) Programs that are useful applications for running on the
@@ -210,7 +210,7 @@ Building leptonica
              convertfilestopdf, convertfilestops, convertsegfilestopdf,
              convertsegfilestops, printimage and printsplitimage.
          (2) Programs that are used as regression tests in alltests_reg.
-             These are named *_reg, and 66 of them are invoked together
+             These are named *_reg, and 100 of them are invoked together
              (alltests_reg).  The regression test framework has been
              standardized, and regresstion tests are relatively easy
              to write.  See regutils.h for details.
@@ -251,7 +251,7 @@ Building leptonica
             make install
 
        Configure also supports building in a separate directory from the
-       source.  Run "/(path-to)/leptonica-1.74.4/configure" and then "make"
+       source.  Run "/(path-to)/leptonica-1.75.0/configure" and then "make"
        from the desired build directory.
 
        Configure has a number of useful options; run "configure --help" for
@@ -431,19 +431,17 @@ I/O libraries leptonica is dependent on
           add that path to the LD_LIBRARY_PATH environment variable.
 
    To read and write jpeg2000 files:
-      (1) Download libopenjp2, version 2.X, from their distribution.
+      (1) Download libopenjp2, version 2.3, from their distribution.
       (2) #define HAVE_LIBJP2K   1  (in environ.h)
-      (2a) If you have version 2.X, X != 1, edit LIBJP2K_HEADER  (in environ.h)
+      (2a) If you have version 2.X, X != 3, edit LIBJP2K_HEADER  (in environ.h)
       (3) In prog/makefile, edit ALL_LIBS to include -lopenjp2
       (4) The library will be installed into /usr/local/lib.
 
    To read and write gif files:
-      (1) Download version giflib-5.X.X from souceforge
+      (1) Download version giflib-5.1.X+ from souceforge
       (2) #define  HAVE_LIBGIF   1  (in environ.h)
       (3) In prog/makefile, edit ALL_LIBS to include -lgif
       (4) The library will be installed into /usr/local/lib.
-      (5) Note: do not use giflib-4.1.4: binary comp and decomp
-          don't pack the pixel data and are ridiculously slow.
 </pre>
 
 
@@ -605,8 +603,8 @@ What's in leptonica?
    This is a source for a clean, fast implementation of rasterops.
    You can find details starting at the Leptonica home page,
    and also by looking directly at the source code.
-   The low-level code is in roplow.c and ropiplow.c, and an
-   interface is given in rop.c to the simple Pix image data structure.
+   Some of the low-level code is in roplow.c, and an interface is
+   given in rop.c to the simple Pix image data structure.
 
 2. Binary morphology
 
@@ -672,7 +670,7 @@ What's in leptonica?
    Brick Sels are separable into linear horizontal and vertical elements.
    We use the van Herk/Gil-Werman algorithm, that performs the calculations
    in a time that is independent of the size of the Sels.  Implementations
-   of tophat and hdome are also given.  The low-level code is in graymorphlow.c.
+   of tophat and hdome are also given.
 
    We also provide grayscale rank order filters for brick filters.
    The rank order filter is a generalization of grayscale morphology,
@@ -690,7 +688,7 @@ What's in leptonica?
       - sampling
       - lowpass filtering followed by sampling,
       - area mapping
-      -  linear interpolation
+      - linear interpolation
 
    Scaling operations with antialiased sampling, area mapping,
    and linear interpolation are limited to 2, 4 and 8 bpp gray,
@@ -756,16 +754,14 @@ What's in leptonica?
      c.  Rotation by sampling.  This can be used on images of arbitrary
          depth, and done about an arbitrary point.  Colormaps are retained.
 
-   The area mapping rotations are slower and more accurate,
-   because each new pixel is composed using an average of four
-   neighboring pixels in the original image; this is sometimes
-   also called "antialiasing".  Very fast color area mapping
-   rotation is provided.  The low-level code is in rotateamlow.c.
+   The area mapping rotations are slower and more accurate, because each
+   new pixel is composed using an average of four neighboring pixels
+   in the original image; this is sometimes also also called "antialiasing".
+   Very fast color area mapping rotation is provided.
 
-   The shear rotations are much faster, and work on images
-   of arbitrary pixel depth, but they just move pixels
-   around without doing any averaging.  The pixRotateShearIP()
-   operates on the image in-place.
+   The shear rotations are much faster, and work on images of arbitrary
+   pixel depth, but they just move pixels around without doing any averaging.
+   The pixRotateShearIP() operates on the image in-place.
 
    We also provide orthogonal rotators (90, 180, 270 degree; left-right
    flip and top-bottom flip) for arbitrary image depth.
@@ -789,10 +785,10 @@ What's in leptonica?
 
 7. Image enhancement
 
-   A few simple image enhancement routines for grayscale and
-   color images have been provided.  These include intensity mapping
-   with gamma correction and contrast enhancement, as well as edge
-   sharpening, smoothing, and hue and saturation modification.
+   Some simple image enhancement routines for grayscale and color
+   images have been provided.  These include intensity mapping with
+   gamma correction and contrast enhancement, histogram equalization,
+   edge sharpening, smoothing, and various color-shifting operations.
 
 8. Convolution and cousins
 
@@ -855,21 +851,21 @@ What's in leptonica?
       a video compression library.  It is rapidly growing in acceptance,
       and is supported natively in several browsers.  Leptonica provides
       an interface through webp into the underlying codec.  You need
-      to download libwebp.
+      to download libwebp.  See webpio.c.
 
-    - JP2K (jpeg2000) is a wavelet encoding method, that has clear
+    - JP2 (jpeg2000) is a wavelet encoding method, that has clear
       advantages over jpeg in compression and quality (especially when
       the image has sharp edges, such as scanned documents), but is
       only slowly growing in acceptance.  For it to be widely supported,
       it will require support on a major browser (as with webp).
       Leptonica provides an interface through openjpeg into the underlying
-      codec.  You need to download libopenjp2, version 2.X.
+      codec.  You need to download libopenjp2, version 2.X.  See jp2kio.c.
 
     - GIF is still widely used in the world.  With the expiration
       of the LZW patent, it is practical to add support for GIF files.
       The open source gif library is relatively incomplete and
       unsupported (because of the Sperry-Rand-Burroughs-Univac
-      patent history).   See gifio.c.
+      patent history).  Leptonica supports versions 5.1+.  See gifio.c.
 
    Here's a summary of compression support and limitations:
       - All formats except JPEG, WEBP and JP2K support 1 bpp binary.
@@ -881,14 +877,14 @@ What's in leptonica?
       - PNG, JPEG, TIFF, WEBP, JP2K and GIF support image compression;
         PNM and BMP do not.
       - WEBP supports rgb color and rgba.
-      - JP2K supports 8 bpp grayscale, rgb color and rgba.
+      - JP2 supports 8 bpp grayscale, rgb color and rgba.
    Use prog/ioformats_reg for a regression test on all formats, including
    thorough testing on TIFF.
    For more thorough testing on other formats, use:
       - prog/pngio_reg for PNG.
       - prog/gifio_reg for GIF
       - prog/webpio_reg for WEBP
-      - prog/jp2kio_reg for JP2K
+      - prog/jp2kio_reg for JP2
 
    We provide generators for PS output, from all types of input images.
    The output can be either uncompressed or compressed with level 2
@@ -925,13 +921,16 @@ What's in leptonica?
          compile time, using the environment variables in environ.h.
 
    For all formatted reads and writes, we support read from memory
-   and write to memory.  (We cheat with gif, using a file intermediary.)
-   For all formats except for TIFF, these memory I/O functions
-   are supported through open_memstream() and fmemopen(),
-   which only is available with the gnu C runtime library (glibc).
-   Therefore, except for TIFF, you will not be able to do memory
-   supported read/writes on these platforms:
-       OSX, Windows, Solaris
+   and write to memory.  The gnu C runtime library (glibc) supports
+   two I/O functions, open_memstream() and fmemopen(), which read
+   and write directly to memory as if writing to a file stream.
+     * On all platforms, leptonica supports direct read/write with memory
+       for TIFF, PNG, BMP, GIF and WEBP formats.
+     * On linux, leptonica uses the special gnu libraries to enable
+       direct read/write with memory for JPEG, PNM and JP2.
+     * On platforms without the gnu libraries, such as OSX, Windows
+       and Solaris, read/write with memory for JPEG, PNM and JP2 goes
+       through temp files.
    To enable/disable memory I/O for image read/write, see environ.h.
 
    We also provide fast serialization and deserialization between a pix
@@ -983,7 +982,9 @@ What's in leptonica?
    Byte arrays are implemented both as a wrapper around the actual
    array and as a queue.  The string arrays are particularly useful
    for both parsing and composing text.  Generic lists with
-   doubly-linked cons cells are also provided.
+   doubly-linked cons cells are also provided.  Other data structures
+   are provided for handling ordered sets and maps, as well as hash sets
+   and hash maps.
 
 14. Examples of programs that are easily built using the library:
 
@@ -1030,7 +1031,7 @@ What's in leptonica?
     - a utility that will dewarp images of text that were captured
       with a camera at close range.
 
-    - a sudoku solver, including a pretty good test for uniqueness
+    - a sudoku solver and generator, including a good test for uniqueness
 
     - see (13, above) for other document image applications.
 
@@ -1063,13 +1064,13 @@ What's in leptonica?
        src/makefile.static
        CMakeLists.txt
        configure.ac
-       allheaders_top.txt  (and consequently allheaders.h)
+       allheaders_top.txt  (and propagated to allheaders.h)
    All even versions from 1.42 to 1.60 were originally archived at
    http://code.google.com/p/leptonica, as well as all versions after 1.60.
    These have now been transferred by Egor Pugin to github:
        github.com/danbloomberg/leptonica
-   where all releases (1.42 - 1.74.4) are available; e.g.,
-       https://github.com/DanBloomberg/leptonica/releases/tag/1.74.4
+   where all releases (1.42 - 1.75.0) are available; e.g.,
+       https://github.com/DanBloomberg/leptonica/releases/tag/1.75.0
    Most recent releases from 1.67 are also available at
        leptonica.org/download.html
    Note that if you are downloading from github, the releases are more
@@ -1088,6 +1089,7 @@ What's in leptonica?
         1.72 : 4.3.0
         1.73 : 5.0.0
         1.74 : 5.1.0
+        1.75 : 5.2.0
 
    A brief version chronology is maintained in version-notes.html.
    Starting with gcc 4.3.3, error warnings (-Werror) are given for

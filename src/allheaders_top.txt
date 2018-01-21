@@ -29,8 +29,8 @@
 
 
 #define LIBLEPT_MAJOR_VERSION   1
-#define LIBLEPT_MINOR_VERSION   74
-#define LIBLEPT_PATCH_VERSION   4
+#define LIBLEPT_MINOR_VERSION   75
+#define LIBLEPT_PATCH_VERSION   0
 
 #include "alltypes.h"
 
