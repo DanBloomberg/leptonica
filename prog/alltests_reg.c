@@ -100,6 +100,7 @@ static const char *tests[] = {
                               "hardlight_reg",
                               "insert_reg",
                               "ioformats_reg",
+                              "italic_reg",
                               "jbclass_reg",
 #if HAVE_LIBJP2K
                               "jp2kio_reg",

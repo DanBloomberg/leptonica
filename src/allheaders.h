@@ -1038,8 +1038,8 @@ LEPT_DLL extern l_int32 pixHaustest ( PIX *pix1, PIX *pix2, PIX *pix3, PIX *pix4
 LEPT_DLL extern l_int32 pixRankHaustest ( PIX *pix1, PIX *pix2, PIX *pix3, PIX *pix4, l_float32 delx, l_float32 dely, l_int32 maxdiffw, l_int32 maxdiffh, l_int32 area1, l_int32 area3, l_float32 rank, l_int32 *tab8 );
 LEPT_DLL extern l_int32 jbClassifyCorrelation ( JBCLASSER *classer, BOXA *boxa, PIXA *pixas );
 LEPT_DLL extern l_int32 jbGetComponents ( PIX *pixs, l_int32 components, l_int32 maxwidth, l_int32 maxheight, BOXA **pboxad, PIXA **ppixad );
-LEPT_DLL extern l_int32 pixWordMaskByDilation ( PIX *pixs, l_int32 maxdil, PIX **ppixm, l_int32 *psize );
-LEPT_DLL extern l_int32 pixWordBoxesByDilation ( PIX *pixs, l_int32 maxdil, l_int32 minwidth, l_int32 minheight, l_int32 maxwidth, l_int32 maxheight, BOXA **pboxa, l_int32 *psize );
+LEPT_DLL extern l_int32 pixWordMaskByDilation ( PIX *pixs, l_int32 maxdil, PIX **ppixm, l_int32 *psize, PIXA *pixadb );
+LEPT_DLL extern l_int32 pixWordBoxesByDilation ( PIX *pixs, l_int32 maxdil, l_int32 minwidth, l_int32 minheight, l_int32 maxwidth, l_int32 maxheight, BOXA **pboxa, l_int32 *psize, PIXA *pixadb );
 LEPT_DLL extern PIXA * jbAccumulateComposites ( PIXAA *pixaa, NUMA **pna, PTA **pptat );
 LEPT_DLL extern PIXA * jbTemplatesFromComposites ( PIXA *pixac, NUMA *na );
 LEPT_DLL extern JBCLASSER * jbClasserCreate ( l_int32 method, l_int32 components );

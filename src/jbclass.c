@@ -261,7 +261,6 @@ static l_int32 finalPositioningForAlignment(PIX *pixs, l_int32 x, l_int32 y,
                              l_int32 *sumtab, l_int32 *pdx, l_int32 *pdy);
 
 #ifndef NO_CONSOLE_IO
-#define  DEBUG_PLOT_CC             0
 #define  DEBUG_CORRELATION_SCORE   0
 #endif  /* ~NO_CONSOLE_IO */
 
@@ -1387,7 +1386,7 @@ PIXA      *pixa, *pixat;
 
             /* Estimate the word mask, at approximately 150 ppi.
              * This has both very large and very small components left in. */
-        pixWordMaskByDilation(pixt1, 8, &pixt2, NULL);
+        pixWordMaskByDilation(pixt1, 8, &pixt2, NULL, NULL);
 
             /* Expand the optimally dilated word mask to full res. */
         pixt3 = pixExpandReplicate(pixt2, redfactor);
@@ -1429,6 +1428,7 @@ PIXA      *pixa, *pixat;
  * \param[in]    maxdil maximum dilation; 0 for default; warning if > 20
  * \param[out]   pmask [optional] dilated word mask
  * \param[out]   psize [optional] size of optimal horiz Sel
+ * \param[out]   pixadb [optional]  debug: pixa to accumulate intermediate steps
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1446,7 +1446,8 @@ l_int32
 pixWordMaskByDilation(PIX      *pixs,
                       l_int32   maxdil,
                       PIX     **ppixm,
-                      l_int32  *psize)
+                      l_int32  *psize,
+                      PIXA     *pixadb)
 {
 l_int32  i, diffmin, ndiff, imin;
 l_int32  ncc[MAX_ALLOWED_DILATION + 1];
@@ -1491,9 +1492,8 @@ PIX     *pix1, *pix2;
         if (i > 0) {
             ndiff = ncc[i - 1] - ncc[i];
             numaAddNumber(nadiff, ndiff);
-#if  DEBUG_PLOT_CC
-            fprintf(stderr, "ndiff[%d] = %d\n", i - 1, ndiff);
-#endif  /* DEBUG_PLOT_CC */
+            if (pixadb) fprintf(stderr, "ndiff[%d] = %d\n", i - 1, ndiff);
+
                 /* Don't allow imin <= 2 with a 0 value of ndiff,
                  * which is unlikely to happen.  */
             if (ndiff < diffmin && (ndiff > 0 || i > 2)) {
@@ -1508,29 +1508,38 @@ PIX     *pix1, *pix2;
     pixDestroy(&pix1);
     if (psize) *psize = imin + 1;
 
-#if  DEBUG_PLOT_CC
-    lept_mkdir("lept/jb");
-    {GPLOT *gplot;
-     NUMA  *naseq;
-        L_INFO("Best dilation: %d\n", procName, imin);
-        naseq = numaMakeSequence(1, 1, numaGetCount(nacc));
-        gplot = gplotCreate("/tmp/lept/jb/numcc", GPLOT_PNG,
-                            "Number of cc vs. horizontal dilation",
-                            "Sel horiz", "Number of cc");
-        gplotAddPlot(gplot, naseq, nacc, GPLOT_LINES, "");
-        gplotMakeOutput(gplot);
-        gplotDestroy(&gplot);
-        numaDestroy(&naseq);
-        naseq = numaMakeSequence(1, 1, numaGetCount(nadiff));
-        gplot = gplotCreate("/tmp/lept/jb/diffcc", GPLOT_PNG,
-                            "Diff count of cc vs. horizontal dilation",
-                            "Sel horiz", "Diff in cc");
-        gplotAddPlot(gplot, naseq, nadiff, GPLOT_LINES, "");
-        gplotMakeOutput(gplot);
-        gplotDestroy(&gplot);
-        numaDestroy(&naseq);
+    if (pixadb) {
+        lept_mkdir("lept/jb");
+        {GPLOT *gplot;
+         NUMA  *naseq;
+         PIX   *pix3, *pix4;
+            L_INFO("Best dilation: %d\n", procName, imin);
+            naseq = numaMakeSequence(1, 1, numaGetCount(nacc));
+            gplot = gplotCreate("/tmp/lept/jb/numcc", GPLOT_PNG,
+                                "Number of cc vs. horizontal dilation",
+                                "Sel horiz", "Number of cc");
+            gplotAddPlot(gplot, naseq, nacc, GPLOT_LINES, "");
+            gplotMakeOutput(gplot);
+            gplotDestroy(&gplot);
+            pix3 = pixRead("/tmp/lept/jb/numcc.png");
+            pixaAddPix(pixadb, pix3, L_INSERT);
+            numaDestroy(&naseq);
+            naseq = numaMakeSequence(1, 1, numaGetCount(nadiff));
+            gplot = gplotCreate("/tmp/lept/jb/diffcc", GPLOT_PNG,
+                                "Diff count of cc vs. horizontal dilation",
+                                "Sel horiz", "Diff in cc");
+            gplotAddPlot(gplot, naseq, nadiff, GPLOT_LINES, "");
+            gplotMakeOutput(gplot);
+            gplotDestroy(&gplot);
+            pix3 = pixRead("/tmp/lept/jb/diffcc.png");
+            pixaAddPix(pixadb, pix3, L_INSERT);
+            numaDestroy(&naseq);
+            pix3 = pixCloseBrick(NULL, pixs, imin + 1, 1);
+            pix4 = pixScaleToSize(pix3, 600, 0);
+            pixaAddPix(pixadb, pix4, L_INSERT);
+            pixDestroy(&pix3);
+        }
     }
-#endif  /* DEBUG_PLOT_CC */
 
         /* Optionally, save the result of the optimal closing */
     if (ppixm) {
@@ -1549,12 +1558,13 @@ PIX     *pix1, *pix2;
 /*!
  * \brief   pixWordBoxesByDilation()
  *
- * \param[in]    pixs 1 bpp; typ. at 75 to 150 ppi
- * \param[in]    maxdil maximum dilation; 0 for default; warning if > 20
- * \param[in]    minwidth, minheight of saved components; smaller are discarded
- * \param[in]    maxwidth, maxheight of saved components; larger are discarded
- * \param[out]   pboxa dilated word mask
- * \param[out]   psize [optional] size of optimal horiz Sel
+ * \param[in]    pixs       1 bpp; typ. at 75 to 150 ppi
+ * \param[in]    maxdil     maximum dilation; 0 for default; warning if > 20
+ * \param[in]    minwidth, minheight   saved components; smaller are discarded
+ * \param[in]    maxwidth, maxheight   saved components; larger are discarded
+ * \param[out]   pboxa      dilated word mask
+ * \param[out]   psize [optional]   size of optimal horiz Sel
+ * \param[out]   pixadb [optional]  debug: pixa to accumulate intermediate steps
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1571,10 +1581,11 @@ pixWordBoxesByDilation(PIX      *pixs,
                        l_int32   maxwidth,
                        l_int32   maxheight,
                        BOXA    **pboxa,
-                       l_int32  *psize)
+                       l_int32  *psize,
+                       PIXA     *pixadb)
 {
 BOXA  *boxa1, *boxa2;
-PIX   *pixm;
+PIX   *pix1, *pix2;
 
     PROCNAME("pixWordBoxesByDilation");
 
@@ -1585,22 +1596,30 @@ PIX   *pixm;
         return ERROR_INT("&boxa not defined", procName, 1);
     *pboxa = NULL;
 
-        /* Make a first estimate of the word masks */
-    if (pixWordMaskByDilation(pixs, maxdil, &pixm, psize))
+        /* Make a first estimate of the word mask */
+    if (pixWordMaskByDilation(pixs, maxdil, &pix1, psize, pixadb))
         return ERROR_INT("pixWordMaskByDilation() failed", procName, 1);
 
-        /* Prune it.  Get the bounding boxes of the words.
+        /* Prune the word mask.  Get the bounding boxes of the words.
          * Remove the small ones, which can be due to punctuation
          * that was not joined to a word.  Also remove the large ones,
          * which are not likely to be words. */
-    boxa1 = pixConnComp(pixm, NULL, 8);
+    boxa1 = pixConnComp(pix1, NULL, 8);
     boxa2 = boxaSelectBySize(boxa1, minwidth, minheight, L_SELECT_IF_BOTH,
                              L_SELECT_IF_GTE, NULL);
     *pboxa = boxaSelectBySize(boxa2, maxwidth, maxheight, L_SELECT_IF_BOTH,
                              L_SELECT_IF_LTE, NULL);
+    if (pixadb) {
+        pix2 = pixCopy(NULL, pixs);
+        pixRenderBoxaArb(pix2, boxa1, 2, 255, 0, 0);
+        pixaAddPix(pixadb, pix2, L_INSERT);
+        pix2 = pixCopy(NULL, pixs);
+        pixRenderBoxaArb(pix2, boxa2, 2, 0, 255, 0);
+        pixaAddPix(pixadb, pix2, L_INSERT);
+    }
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);
-    pixDestroy(&pixm);
+    pixDestroy(&pix1);
     return 0;
 }
 

@@ -148,7 +148,7 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
     } else if (pixw) {
         pixm = pixClone(pixw);
     } else {
-        pixWordMaskByDilation(pixs, 20, NULL, &size);
+        pixWordMaskByDilation(pixs, 20, NULL, &size, NULL);
         L_INFO("dilation size = %d\n", procName, size);
         snprintf(opstring, sizeof(opstring), "d1.5 + c%d.1", size);
         pixm = pixMorphSequence(pixs, opstring, 0);
@@ -162,6 +162,7 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
 
     if (debugflag) {
             /* Save results at at 2x reduction */
+        lept_mkdir("lept/ital");
         l_int32  res, upper;
         BOXA  *boxat;
         GPLOT *gplot;
@@ -170,7 +171,7 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
         PIX   *pix1, *pix2, *pix3;
         pad = pixaCreate(0);
         boxat = pixConnComp(pixm, NULL, 8);
-        boxaWrite("/tmp/ital.ba", boxat);
+        boxaWrite("/tmp/lept/ital/ital.ba", boxat);
         pixSaveTiledOutline(pixs, pad, 0.5, 1, 20, 2, 32);  /* orig */
         pixSaveTiledOutline(pixsd, pad, 0.5, 1, 20, 2, 0);  /* seed */
         pix1 = pixConvertTo32(pixm);
@@ -192,7 +193,7 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
         pixDestroy(&pix2);
         pixDestroy(&pix3);
         pix2 = pixaDisplay(pad, 0, 0);
-        pixWrite("/tmp/ital.png", pix2, IFF_PNG);
+        pixWrite("/tmp/lept/ital/ital.png", pix2, IFF_PNG);
         pixDestroy(&pix2);
 
             /* Assuming the image represents 6 inches of actual page width,
@@ -201,8 +202,10 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
              * and the images have been saved at half this resolution.   */
         res = pixGetWidth(pixs) / 12;
         L_INFO("resolution = %d\n", procName, res);
+        l_pdfSetDateAndVersion(0);
         pixaConvertToPdf(pad, res, 1.0, L_FLATE_ENCODE, 75, "Italic Finder",
-                         "/tmp/ital.pdf");
+                         "/tmp/lept/ital/ital.pdf");
+        l_pdfSetDateAndVersion(1);
         pixaDestroy(&pad);
         boxaDestroy(&boxat);
 
@@ -215,7 +218,7 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
         upper = L_MAX(30, 3 * size);
         na = pixRunHistogramMorph(pix1, L_RUN_OFF, L_HORIZ, upper);
         pixDestroy(&pix1);
-        gplot = gplotCreate("/tmp/runhisto", GPLOT_PNG,
+        gplot = gplotCreate("/tmp/lept/ital/runhisto", GPLOT_PNG,
                 "Histogram of horizontal runs of white pixels, vs length",
                 "run length", "number of runs");
         gplotAddPlot(gplot, NULL, na, GPLOT_LINES, "plot1");

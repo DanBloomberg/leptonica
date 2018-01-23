@@ -163,7 +163,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		grayfill_reg.c graymorph1_reg.c \
 		graymorph2_reg.c  grayquant_reg.c \
 		hardlight_reg.c heap_reg.c \
-		insert_reg.c ioformats_reg.c \
+		insert_reg.c ioformats_reg.c italic_reg.c \
 		jbclass_reg.c jp2kio_reg.c jpegio_reg.c kernel_reg.c \
 		label_reg.c lineremoval_reg.c locminmax_reg.c \
 		logicops_reg.c lowaccess_reg.c \
@@ -213,8 +213,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		flipselgen.c fmorphautogen.c \
 		fpixcontours.c gammatest.c \
 		gifio_leaktest.c graphicstest.c graymorphtest.c \
-		hashtest.c histotest.c htmlviewer.c \
-		iotest.c italictest.c \
+		hashtest.c histotest.c htmlviewer.c iotest.c \
 		jbcorrelation.c jbrankhaus.c jbwords.c \
 		listtest.c livre_adapt.c livre_hmt.c \
 		livre_makefigs.c livre_orient.c \
@@ -503,6 +502,9 @@ insert_reg:	insert_reg.o $(LEPTLIB)
 
 ioformats_reg:	ioformats_reg.o $(LEPTLIB)
 	$(CC) -o ioformats_reg ioformats_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+italic_reg:	italic_reg.o $(LEPTLIB)
+	$(CC) -o italic_reg italic_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 jbclass_reg:	jbclass_reg.o $(LEPTLIB)
 	$(CC) -o jbclass_reg jbclass_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -899,9 +901,6 @@ htmlviewer:	htmlviewer.o $(LEPTLIB)
 
 iotest:		iotest.o $(LEPTLIB)
 	$(CC) -o iotest iotest.o $(ALL_LIBS) $(EXTRALIBS)
-
-italictest:	italictest.o $(LEPTLIB)
-	$(CC) -o italictest italictest.o $(ALL_LIBS) $(EXTRALIBS)
 
 jbcorrelation:	jbcorrelation.o $(LEPTLIB)
 	$(CC) -o jbcorrelation jbcorrelation.o $(ALL_LIBS) $(EXTRALIBS)

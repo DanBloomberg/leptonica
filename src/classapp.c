@@ -424,7 +424,7 @@ PIXAA   *paa;
 
         /* Get the bounding boxes of the words from the word mask. */
     pixWordBoxesByDilation(pix1, maxdil, minwidth, minheight,
-                           maxwidth, maxheight, &boxa1, NULL);
+                           maxwidth, maxheight, &boxa1, NULL, NULL);
 
         /* Generate a pixa of the word images */
     pixa1 = pixaCreateFromBoxa(pix1, boxa1, NULL);  /* mask over each word */
@@ -511,7 +511,7 @@ PIX     *pix1;
 
         /* Get the bounding boxes of the words from the word mask. */
     pixWordBoxesByDilation(pix1, maxdil, minwidth, minheight,
-                           maxwidth, maxheight, &boxa1, NULL);
+                           maxwidth, maxheight, &boxa1, NULL, NULL);
 
         /* 2D sort the bounding boxes of these words. */
     baa = boxaSort2d(boxa1, NULL, 3, -5, 5);

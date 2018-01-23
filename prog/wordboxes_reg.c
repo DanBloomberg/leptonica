@@ -90,7 +90,7 @@ MakeWordBoxes1(PIX          *pixs,
 BOXA  *boxa;
 PIX   *pix1, *pixd;
 
-    pixWordMaskByDilation(pixs, maxdil, &pix1, NULL);
+    pixWordMaskByDilation(pixs, maxdil, &pix1, NULL, NULL);
     pixd = NULL;
     if (pix1) {
         boxa = pixConnComp(pix1, NULL, 8);
@@ -163,14 +163,14 @@ void
 TestBoxaAdjacency(PIX          *pixs,
                   L_REGPARAMS  *rp)
 {
-l_int32  i, j, k, n; 
+l_int32  i, j, k, n;
 BOX     *box1, *box2;
 BOXA    *boxa0, *boxa1, *boxa2;
 PIX     *pix1, *pix2, *pix3;
 NUMAA   *naai, *naad;
 
         /* Make a word mask and remove small components */
-    pixWordMaskByDilation(pixs, 20, &pix1, NULL);
+    pixWordMaskByDilation(pixs, 20, &pix1, NULL, NULL);
     boxa0 = pixConnComp(pix1, NULL, 8);
     boxa1 = boxaSelectBySize(boxa0, 8, 8, L_SELECT_IF_BOTH,
                              L_SELECT_IF_GT, NULL);
@@ -207,12 +207,12 @@ NUMAA   *naai, *naad;
     }
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);
     pixDisplayWithTitle(pix3, 1100, 600, NULL, rp->display);
-         
+
     pixDestroy(&pix2);
     pixDestroy(&pix3);
     boxaDestroy(&boxa0);
     boxaDestroy(&boxa1);
     numaaDestroy(&naai);
     numaaDestroy(&naad);
-} 
+}
 
