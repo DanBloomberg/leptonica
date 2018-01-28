@@ -90,7 +90,7 @@ L_REGPARAMS  *rp;
     pixd = pixCopy(NULL, pixs);
     pixm = pixClipRectangle(pix1, box1, NULL);
     pixCombineMaskedGeneral(pixd, pix3, pixm, bx, by);
-    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 2 */
+    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 2 */
     pixDisplayWithTitle(pixd, 0, 0, NULL, rp->display);
     boxDestroy(&box2);
     pixDestroy(&pixm);
@@ -113,7 +113,7 @@ L_REGPARAMS  *rp;
     pix6 = pixClipRectangle(pix1, box1, NULL);
     pixd = pixCopy(NULL, pixs);
     pixCombineMaskedGeneral(pixd, pix5, pix6, bx, by);
-    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 6 */
+    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 6 */
     pixDisplayWithTitle(pixd, 700, 200, NULL, rp->display);
     boxDestroy(&box2);
     pixDestroy(&pixd);
@@ -132,7 +132,7 @@ L_REGPARAMS  *rp;
     pix3 = pixClipRectangle(pix1, box1, NULL);
     boxGetGeometry(box1, &bx, &by, NULL, NULL);
     pixSetMaskedGeneral(pix2, pix3, pixval, bx, by);
-    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 7 */
+    regTestWritePixAndCheck(rp, pix2, IFF_JFIF_JPEG);  /* 7 */
     pixDisplayWithTitle(pix2, 0, 0, NULL, rp->display);
     boxDestroy(&box1);
     pixDestroy(&pix2);
@@ -148,9 +148,9 @@ L_REGPARAMS  *rp;
     pixPaintSelfThroughMask(pix2, pix1, 0, 0, L_HORIZ, 30, 50, 5, 10);
     pixPaintSelfThroughMask(pix3, pix1, 0, 0, L_VERT, 30, 50, 5, 0);
     pixPaintSelfThroughMask(pixs, pix1, 0, 0, L_BOTH_DIRECTIONS, 30, 50, 5, 20);
-    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 8 */
-    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 9 */
-    regTestWritePixAndCheck(rp, pixs, IFF_PNG);  /* 10 */
+    regTestWritePixAndCheck(rp, pix2, IFF_JFIF_JPEG);  /* 8 */
+    regTestWritePixAndCheck(rp, pix3, IFF_JFIF_JPEG);  /* 9 */
+    regTestWritePixAndCheck(rp, pixs, IFF_JFIF_JPEG);  /* 10 */
     pixDisplayWithTitle(pix2, 300, 0, NULL, rp->display);
     pixDisplayWithTitle(pix3, 500, 0, NULL, rp->display);
     pixDisplayWithTitle(pixs, 700, 0, NULL, rp->display);
@@ -159,7 +159,7 @@ L_REGPARAMS  *rp;
     pix5 = pixFlipLR(NULL, pix1);
     pixOr(pix5, pix5, pix1);
     pixPaintSelfThroughMask(pix4, pix5, 0, 0, L_BOTH_DIRECTIONS, 50, 100, 5, 9);
-    regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 11 */
+    regTestWritePixAndCheck(rp, pix4, IFF_JFIF_JPEG);  /* 11 */
     pixDisplayWithTitle(pix4, 900, 0, NULL, rp->display);
     pixDestroy(&pixs);
     pixDestroy(&pix1);

@@ -259,11 +259,7 @@ SARRAY     *safiles;
  * Notes:
  *      (1) This is a high-level function.  See prog/jbwords for example
  *          of usage.
- *      (2) Typically, words can be found reasonably well at a resolution
- *          of about 150 ppi.  For highest accuracy, you should use 300 ppi.
- *          Assuming that the input images are 300 ppi, use reduction = 1
- *          for finding words at full res, and reduction = 2 for finding
- *          them at 150 ppi.
+ *      (2) Typically, use input of 75 - 150 ppi for finding words.
  * </pre>
  */
 JBCLASSER *
@@ -282,7 +278,7 @@ l_int32     nfiles, i, w, h;
 BOXA       *boxa;
 JBCLASSER  *classer;
 NUMA       *nai, *natl;
-PIX        *pix;
+PIX        *pix1, *pix2;
 PIXA       *pixa;
 SARRAY     *safiles;
 
@@ -306,24 +302,24 @@ SARRAY     *safiles;
     *pnatl = natl;
     for (i = 0; i < nfiles; i++) {
         fname = sarrayGetString(safiles, i, L_NOCOPY);
-        if ((pix = pixRead(fname)) == NULL) {
+        if ((pix1 = pixRead(fname)) == NULL) {
             L_WARNING("image file %d not read\n", procName, i);
             continue;
         }
-        pixGetDimensions(pix, &w, &h, NULL);
-        if (reduction == 1) {
-            classer->w = w;
-            classer->h = h;
-        } else {  /* reduction == 2 */
-            classer->w = w / 2;
-            classer->h = h / 2;
-        }
-        pixGetWordsInTextlines(pix, reduction, JB_WORDS_MIN_WIDTH,
+        if (reduction == 1)
+            pix2 = pixClone(pix1);
+        else  /* reduction == 2 */
+            pix2 = pixReduceRankBinaryCascade(pix1, 1, 0, 0, 0);
+        pixGetWordsInTextlines(pix2, JB_WORDS_MIN_WIDTH,
                                JB_WORDS_MIN_HEIGHT, maxwidth, maxheight,
                                &boxa, &pixa, &nai);
-        jbAddPageComponents(classer, pix, boxa, pixa);
+        pixGetDimensions(pix2, &w, &h, NULL);
+        classer->w = w;
+        classer->h = h;
+        jbAddPageComponents(classer, pix2, boxa, pixa);
         numaJoin(natl, nai, 0, -1);
-        pixDestroy(&pix);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
         numaDestroy(&nai);
         boxaDestroy(&boxa);
         pixaDestroy(&pixa);
@@ -337,8 +333,7 @@ SARRAY     *safiles;
 /*!
  * \brief   pixGetWordsInTextlines()
  *
- * \param[in]    pixs 1 bpp, typ. 300 ppi
- * \param[in]    reduction 1 for input res; 2 for 2x reduction of input res
+ * \param[in]    pixs 1 bpp, typ. 75 - 150 ppi
  * \param[in]    minwidth, minheight of saved components; smaller are discarded
  * \param[in]    maxwidth, maxheight of saved components; larger are discarded
  * \param[out]   pboxad word boxes sorted in textline line order
@@ -348,9 +343,7 @@ SARRAY     *safiles;
  *
  * <pre>
  * Notes:
- *      (1) The input should be at a resolution of about 300 ppi.
- *          The word masks and word images can be computed at either
- *          150 ppi or 300 ppi.  For the former, set reduction = 2.
+ *      (1) The input should be at a resolution of between 75 and 150 ppi.
  *      (2) The four size constraints on saved components are all
  *          scaled by %reduction.
  *      (3) The result are word images (and their b.b.), extracted in
@@ -358,7 +351,6 @@ SARRAY     *safiles;
  *          and with a numa giving the textline index for each word.
  *      (4) The pixa and boxa interfaces should make this type of
  *          application simple to put together.  The steps are:
- *           ~ optionally reduce by 2x
  *           ~ generate first estimate of word masks
  *           ~ get b.b. of these, and remove the small and big ones
  *           ~ extract pixa of the word images, using the b.b.
@@ -384,7 +376,6 @@ SARRAY     *safiles;
  */
 l_int32
 pixGetWordsInTextlines(PIX     *pixs,
-                       l_int32  reduction,
                        l_int32  minwidth,
                        l_int32  minheight,
                        l_int32  maxwidth,
@@ -393,13 +384,11 @@ pixGetWordsInTextlines(PIX     *pixs,
                        PIXA   **ppixad,
                        NUMA   **pnai)
 {
-l_int32  maxdil;
 BOXA    *boxa1, *boxad;
 BOXAA   *baa;
 NUMA    *nai;
 NUMAA   *naa;
 PIXA    *pixa1, *pixad;
-PIX     *pix1;
 PIXAA   *paa;
 
     PROCNAME("pixGetWordsInTextlines");
@@ -411,23 +400,13 @@ PIXAA   *paa;
     *pnai = NULL;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
-    if (reduction != 1 && reduction != 2)
-        return ERROR_INT("reduction not in {1,2}", procName, 1);
-
-    if (reduction == 1) {
-        pix1 = pixClone(pixs);
-        maxdil = 18;
-    } else {  /* reduction == 2 */
-        pix1 = pixReduceRankBinaryCascade(pixs, 1, 0, 0, 0);
-        maxdil = 9;
-    }
 
         /* Get the bounding boxes of the words from the word mask. */
-    pixWordBoxesByDilation(pix1, maxdil, minwidth, minheight,
-                           maxwidth, maxheight, &boxa1, NULL, NULL);
+    pixWordBoxesByDilation(pixs, minwidth, minheight, maxwidth, maxheight,
+                           &boxa1, NULL, NULL);
 
         /* Generate a pixa of the word images */
-    pixa1 = pixaCreateFromBoxa(pix1, boxa1, NULL);  /* mask over each word */
+    pixa1 = pixaCreateFromBoxa(pixs, boxa1, NULL);  /* mask over each word */
 
         /* Sort the bounding boxes of these words by line.  We use the
          * index mapping to allow identical sorting of the pixa. */
@@ -442,7 +421,6 @@ PIXAA   *paa;
     *pboxad = boxad;
     *ppixad = pixad;
 
-    pixDestroy(&pix1);
     pixaDestroy(&pixa1);
     boxaDestroy(&boxa1);
     boxaaDestroy(&baa);
@@ -456,7 +434,6 @@ PIXAA   *paa;
  * \brief   pixGetWordBoxesInTextlines()
  *
  * \param[in]    pixs 1 bpp, typ. 300 ppi
- * \param[in]    reduction 1 for input res; 2 for 2x reduction of input res
  * \param[in]    minwidth, minheight of saved components; smaller are discarded
  * \param[in]    maxwidth, maxheight of saved components; larger are discarded
  * \param[out]   pboxad word boxes sorted in textline line order
@@ -465,9 +442,7 @@ PIXAA   *paa;
  *
  * <pre>
  * Notes:
- *      (1) The input should be at a resolution of about 300 ppi.
- *          The word masks can be computed at either 150 ppi or 300 ppi.
- *          For the former, set reduction = 2.
+ *      (1) The input should be at a resolution of between 75 and 150 ppi.
  *      (2) This is a special version of pixGetWordsInTextlines(), that
  *          just finds the word boxes in line order, with a numa
  *          giving the textline index for each word.
@@ -476,7 +451,6 @@ PIXAA   *paa;
  */
 l_int32
 pixGetWordBoxesInTextlines(PIX     *pixs,
-                           l_int32  reduction,
                            l_int32  minwidth,
                            l_int32  minheight,
                            l_int32  maxwidth,
@@ -484,11 +458,9 @@ pixGetWordBoxesInTextlines(PIX     *pixs,
                            BOXA   **pboxad,
                            NUMA   **pnai)
 {
-l_int32  maxdil;
 BOXA    *boxa1;
 BOXAA   *baa;
 NUMA    *nai;
-PIX     *pix1;
 
     PROCNAME("pixGetWordBoxesInTextlines");
 
@@ -498,20 +470,10 @@ PIX     *pix1;
     *pboxad = NULL;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
-    if (reduction != 1 && reduction != 2)
-        return ERROR_INT("reduction not in {1,2}", procName, 1);
-
-    if (reduction == 1) {
-        pix1 = pixClone(pixs);
-        maxdil = 18;
-    } else {  /* reduction == 2 */
-        pix1 = pixReduceRankBinaryCascade(pixs, 1, 0, 0, 0);
-        maxdil = 9;
-    }
 
         /* Get the bounding boxes of the words from the word mask. */
-    pixWordBoxesByDilation(pix1, maxdil, minwidth, minheight,
-                           maxwidth, maxheight, &boxa1, NULL, NULL);
+    pixWordBoxesByDilation(pixs, minwidth, minheight, maxwidth, maxheight,
+                           &boxa1, NULL, NULL);
 
         /* 2D sort the bounding boxes of these words. */
     baa = boxaSort2d(boxa1, NULL, 3, -5, 5);
@@ -523,7 +485,6 @@ PIX     *pix1;
         *pnai = nai;
     else
         numaDestroy(&nai);
-    pixDestroy(&pix1);
     boxaDestroy(&boxa1);
     boxaaDestroy(&baa);
     return 0;

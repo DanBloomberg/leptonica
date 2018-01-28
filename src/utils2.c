@@ -42,6 +42,7 @@
  *           l_int32    stringSplitOnToken()
  *
  *       Find and replace string and array procs
+ *           l_int32    stringCheckForChars()
  *           char      *stringRemoveChars()
  *           l_int32    stringFindSubstr()
  *           char      *stringReplaceSubstr()
@@ -701,6 +702,48 @@ char  *saveptr;
 /*--------------------------------------------------------------------*
  *                       Find and replace procs                       *
  *--------------------------------------------------------------------*/
+/*!
+ * \brief   stringCheckForChars()
+ *
+ * \param[in]    src      input string; can be of zero length
+ * \param[in]    chars    string of chars to be searched for in %src
+ * \param[out]   pfound   1 if any characters are found; 0 otherwise
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This can be used to sanitize an operation by checking for
+ *          special characters that don't belong in a string.
+ * </pre>
+ */
+l_int32
+stringCheckForChars(const char  *src,
+                    const char  *chars,
+                    l_int32     *pfound)
+{
+char     ch;
+l_int32  i, n;
+
+    PROCNAME("stringCheckForChars");
+
+    if (!pfound)
+        return ERROR_INT("&found not defined", procName, 1);
+    *pfound = FALSE;
+    if (!src || !chars)
+        return ERROR_INT("src and chars not both defined", procName, 1);
+
+    n = strlen(src);
+    for (i = 0; i < n; i++) {
+        ch = src[i];
+        if (strchr(chars, ch)) {
+            *pfound = TRUE;
+            break;
+        }
+    }
+    return 0;
+}
+
+
 /*!
  * \brief   stringRemoveChars()
  *

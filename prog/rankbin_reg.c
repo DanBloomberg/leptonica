@@ -40,7 +40,7 @@ int main(int    argc,
 l_int32       i, n, w, h;
 BOXA         *boxa;
 NUMA         *naindex, *naw, *nah, *naw_med, *nah_med;
-PIX          *pixs, *pixt;
+PIX          *pixs, *pix1;
 L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &rp))
@@ -48,7 +48,8 @@ L_REGPARAMS  *rp;
 
         /* Generate arrays of word widths and heights */
     pixs = pixRead("feyn.tif");
-    pixGetWordBoxesInTextlines(pixs, 1, 6, 6, 500, 50, &boxa, &naindex);
+    pix1 = pixReduceRankBinaryCascade(pixs, 1, 0, 0, 0);
+    pixGetWordBoxesInTextlines(pix1, 6, 6, 500, 50, &boxa, &naindex);
     n = boxaGetCount(boxa);
     naw = numaCreate(0);
     nah = numaCreate(0);
@@ -59,6 +60,7 @@ L_REGPARAMS  *rp;
     }
     boxaDestroy(&boxa);
     numaDestroy(&naindex);
+    pixDestroy(&pix1);
 
         /* Make the rank bin arrays of median values, with 10 bins */
     lept_rmfile("/tmp/lept/regout/w_10bin.png");  /* remove existing ones */
@@ -91,18 +93,18 @@ L_REGPARAMS  *rp;
     regTestCheckFile(rp, "/tmp/lept/regout/h_30bin.png");  /* 3 */
 
         /* Display results for debugging */
-    pixt = pixRead("/tmp/lept/regout/w_10bin.png");
-    pixDisplayWithTitle(pixt, 0, 0, NULL, rp->display);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/h_10bin.png");
-    pixDisplayWithTitle(pixt, 650, 0, NULL, rp->display);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/w_30bin.png");
-    pixDisplayWithTitle(pixt, 0, 550, NULL, rp->display);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/h_30bin.png");
-    pixDisplayWithTitle(pixt, 650, 550, NULL, rp->display);
-    pixDestroy(&pixt);
+    pix1 = pixRead("/tmp/lept/regout/w_10bin.png");
+    pixDisplayWithTitle(pix1, 0, 0, NULL, rp->display);
+    pixDestroy(&pix1);
+    pix1 = pixRead("/tmp/lept/regout/h_10bin.png");
+    pixDisplayWithTitle(pix1, 650, 0, NULL, rp->display);
+    pixDestroy(&pix1);
+    pix1 = pixRead("/tmp/lept/regout/w_30bin.png");
+    pixDisplayWithTitle(pix1, 0, 550, NULL, rp->display);
+    pixDestroy(&pix1);
+    pix1 = pixRead("/tmp/lept/regout/h_30bin.png");
+    pixDisplayWithTitle(pix1, 650, 550, NULL, rp->display);
+    pixDestroy(&pix1);
 
     pixDestroy(&pixs);
     numaDestroy(&naw);

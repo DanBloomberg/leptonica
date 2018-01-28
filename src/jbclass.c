@@ -231,9 +231,6 @@ static const l_int32  MAX_CHAR_COMP_WIDTH = 350;  /* default max char width */
 static const l_int32  MAX_WORD_COMP_WIDTH = 1000;  /* default max word width */
 static const l_int32  MAX_COMP_HEIGHT = 120;  /* default max component height */
 
-    /* Max allowed dilation to merge characters into words */
-static const l_int32  MAX_ALLOWED_DILATION = 25;
-
     /* This stores the state of a state machine which fetches
      * similar sized templates */
 struct JbFindTemplatesState
@@ -1320,7 +1317,7 @@ jbGetComponents(PIX     *pixs,
 {
 l_int32    empty, res, redfactor;
 BOXA      *boxa;
-PIX       *pixt1, *pixt2, *pixt3;
+PIX       *pix1, *pix2, *pix3;
 PIXA      *pixa, *pixat;
 
     PROCNAME("jbGetComponents");
@@ -1360,10 +1357,10 @@ PIXA      *pixa, *pixat;
     if (components == JB_CONN_COMPS) {  /* no preprocessing */
         boxa = pixConnComp(pixs, &pixa, 8);
     } else if (components == JB_CHARACTERS) {
-        pixt1 = pixMorphSequence(pixs, "c1.6", 0);
-        boxa = pixConnComp(pixt1, &pixat, 8);
+        pix1 = pixMorphSequence(pixs, "c1.6", 0);
+        boxa = pixConnComp(pix1, &pixat, 8);
         pixa = pixaClipToPix(pixat, pixs);
-        pixDestroy(&pixt1);
+        pixDestroy(&pix1);
         pixaDestroy(&pixat);
     } else {  /* components == JB_WORDS */
 
@@ -1375,38 +1372,38 @@ PIXA      *pixa, *pixat;
         res = pixGetXRes(pixs);
         if (res <= 200) {
             redfactor = 1;
-            pixt1 = pixClone(pixs);
+            pix1 = pixClone(pixs);
         } else if (res <= 400) {
             redfactor = 2;
-            pixt1 = pixReduceRankBinaryCascade(pixs, 1, 0, 0, 0);
+            pix1 = pixReduceRankBinaryCascade(pixs, 1, 0, 0, 0);
         } else {
             redfactor = 4;
-            pixt1 = pixReduceRankBinaryCascade(pixs, 1, 1, 0, 0);
+            pix1 = pixReduceRankBinaryCascade(pixs, 1, 1, 0, 0);
         }
 
             /* Estimate the word mask, at approximately 150 ppi.
              * This has both very large and very small components left in. */
-        pixWordMaskByDilation(pixt1, 8, &pixt2, NULL, NULL);
+        pixWordMaskByDilation(pix1, &pix2, NULL, NULL);
 
             /* Expand the optimally dilated word mask to full res. */
-        pixt3 = pixExpandReplicate(pixt2, redfactor);
+        pix3 = pixExpandReplicate(pix2, redfactor);
 
             /* Pull out the pixels in pixs corresponding to the mask
-             * components in pixt3.  Note that above we used threshold
+             * components in pix3.  Note that above we used threshold
              * levels in the reduction of 1 to insure that the resulting
              * mask fully covers the input pixs.  The downside of using
              * a threshold of 1 is that very close characters from adjacent
              * lines can be joined.  But with a level of 2 or greater,
              * it is necessary to use a seedfill, followed by a pixOr():
-             *       pixt4 = pixSeedfillBinary(NULL, pixt3, pixs, 8);
-             *       pixOr(pixt3, pixt3, pixt4);
+             *       pixt4 = pixSeedfillBinary(NULL, pix3, pixs, 8);
+             *       pixOr(pix3, pix3, pixt4);
              * to insure that the mask coverage is complete over pixs.  */
-        boxa = pixConnComp(pixt3, &pixat, 4);
+        boxa = pixConnComp(pix3, &pixat, 4);
         pixa = pixaClipToPix(pixat, pixs);
         pixaDestroy(&pixat);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
-        pixDestroy(&pixt3);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
+        pixDestroy(&pix3);
     }
 
         /* Remove large components, and save the results.  */
@@ -1424,36 +1421,47 @@ PIXA      *pixa, *pixat;
 /*!
  * \brief   pixWordMaskByDilation()
  *
- * \param[in]    pixs 1 bpp; typ. at 75 to 150 ppi
- * \param[in]    maxdil maximum dilation; 0 for default; warning if > 20
- * \param[out]   pmask [optional] dilated word mask
- * \param[out]   psize [optional] size of optimal horiz Sel
- * \param[out]   pixadb [optional]  debug: pixa to accumulate intermediate steps
+ * \param[in]    pixs               1 bpp; typ. at 75 to 150 ppi
+ * \param[out]   pmask [optional]   dilated word mask
+ * \param[out]   psize [optional]   size of good horizontal dilation
+ * \param[out]   pixadb [optional]  debug: pixa of intermediate steps
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This gives a crude estimate of the word masks.  See
+ *      (1) This gives an estimate of the word masks.  See
  *          pixWordBoxesByDilation() for further filtering of the word boxes.
- *      (2) For 75 to 150 ppi, the optimal dilation will be between 5 and 11.
- *          For 200 to 300 ppi, it is advisable to use a larger value
- *          for %maxdil, say between 10 and 20.  Setting maxdil <= 0
- *          results in a default dilation of 16.
- *      (3) The best size for dilating to get word masks is optionally returned.
+ *      (2) The resolution should be between 75 and 150 ppi, and the optimal
+ *          dilation will be between 3 and 10.
+ *      (3) A good size for dilating to get word masks is optionally returned.
+ *      (4) Typically, the number of c.c. reduced with each successive
+ *          dilation (stored in nadiff) decreases quickly to a minimum
+ *          (where the characters in a word are joined), and then
+ *          increases again as the smaller number of words are joined.
+ *          For the typical case, you can then look for this minimum
+ *          and dilate to get the word mask.  However, there are many
+ *          cases where the function is not so simple. For example, if the
+ *          pix has been upscaled 2x, the nadiff function oscillates, with
+ *          every other value being zero!  And for some images it tails
+ *          off without a clear minimum to indicate where to break.
+ *          So a more simple and robust method is to find the dilation
+ *          where the initial number of c.c. has been reduced by some
+ *          fraction (we use a 70% reduction).
  * </pre>
  */
 l_int32
 pixWordMaskByDilation(PIX      *pixs,
-                      l_int32   maxdil,
                       PIX     **ppixm,
                       l_int32  *psize,
                       PIXA     *pixadb)
 {
-l_int32  i, diffmin, ndiff, imin;
-l_int32  ncc[MAX_ALLOWED_DILATION + 1];
-BOXA    *boxa;
-NUMA    *nacc, *nadiff;
-PIX     *pix1, *pix2;
+l_int32   i, n, ndil, maxdiff, diff, ibest;
+l_int32   start, stop, check, count, total, xres;
+l_int32   ncc[13];  /* max dilation + 1 */
+l_int32  *diffa;
+BOXA     *boxa;
+NUMA     *nacc, *nadiff;
+PIX      *pix1, *pix2;
 
     PROCNAME("pixWordMaskByDilation");
 
@@ -1464,24 +1472,14 @@ PIX     *pix1, *pix2;
     if (!ppixm && !psize)
         return ERROR_INT("no output requested", procName, 1);
 
-        /* Find the optimal dilation to create the word mask.
-         * Look for successively increasing dilations where the
-         * number of connected components doesn't decrease.
-         * This is the situation where the components in the
-         * word mask should properly cover each word.  If the
-         * input image had been 2x scaled, and you use 8 cc for
-         * counting, every other differential count in the series
-         * will be 0.  We avoid this possibility by using 4 cc. */
-    diffmin = 1000000;
+        /* Find a good dilation to create the word mask, by successively
+         * increasing dilation size and counting the connected components. */
     pix1 = pixCopy(NULL, pixs);
-    if (maxdil <= 0)
-        maxdil = 16;  /* default for 200 to 300 ppi */
-    maxdil = L_MIN(maxdil, MAX_ALLOWED_DILATION);
-    if (maxdil > 20)
-        L_WARNING("large dilation: exceeds 20\n", procName);
-    nacc = numaCreate(maxdil + 1);
-    nadiff = numaCreate(maxdil + 1);
-    for (i = 0; i <= maxdil; i++) {
+    ndil = 12;  /* appropriate for 75 to 150 ppi */
+    nacc = numaCreate(ndil + 1);
+    nadiff = numaCreate(ndil + 1);
+    stop = FALSE;
+    for (i = 0; i <= ndil; i++) {
         if (i == 0)  /* first one not dilated */
             pix2 = pixCopy(NULL, pix1);
         else  /* successive dilation by sel_2h */
@@ -1489,31 +1487,55 @@ PIX     *pix1, *pix2;
         boxa = pixConnCompBB(pix2, 4);
         ncc[i] = boxaGetCount(boxa);
         numaAddNumber(nacc, ncc[i]);
+        if (i == 0) total = ncc[0];
         if (i > 0) {
-            ndiff = ncc[i - 1] - ncc[i];
-            numaAddNumber(nadiff, ndiff);
-            if (pixadb) fprintf(stderr, "ndiff[%d] = %d\n", i - 1, ndiff);
-
-                /* Don't allow imin <= 2 with a 0 value of ndiff,
-                 * which is unlikely to happen.  */
-            if (ndiff < diffmin && (ndiff > 0 || i > 2)) {
-                imin = i;
-                diffmin = ndiff;
-            }
+            diff = ncc[i - 1] - ncc[i];
+            numaAddNumber(nadiff, diff);
         }
         pixDestroy(&pix1);
         pix1 = pix2;
         boxaDestroy(&boxa);
     }
     pixDestroy(&pix1);
-    if (psize) *psize = imin + 1;
+
+        /* Find the dilation at which the c.c. count has reduced
+         * to 30% of thie initial value.  Although 30% seems high,
+         * it seems better to use this but add one to ibest.  */
+    diffa = numaGetIArray(nadiff);
+    n = numaGetCount(nadiff);
+    maxdiff = 0;
+    start = 0;
+    check = TRUE;
+    ibest = 2;
+    for (i = 1; i < n; i++) {
+        numaGetIValue(nacc, i, &count);
+        if (check && count < 0.3 * total) {
+            ibest = i + 1;
+            check = FALSE;
+        }
+        diff = diffa[i];
+        if (diff > maxdiff) {
+            maxdiff = diff;
+            start = i;
+        }
+    }
+    LEPT_FREE(diffa);
+
+        /* Add small compensation for higher resolution */
+    xres = pixGetXRes(pixs);
+    if (xres == 0) xres = 150;
+    if (xres > 110) ibest++;
+    if (ibest < 2) {
+        L_INFO("setting ibest to minimum allowed value of 2\n", procName);
+        ibest = 2;
+    }
 
     if (pixadb) {
         lept_mkdir("lept/jb");
         {GPLOT *gplot;
          NUMA  *naseq;
          PIX   *pix3, *pix4;
-            L_INFO("Best dilation: %d\n", procName, imin);
+            L_INFO("Best dilation: %d\n", procName, L_MAX(3, ibest + 1));
             naseq = numaMakeSequence(1, 1, numaGetCount(nacc));
             gplot = gplotCreate("/tmp/lept/jb/numcc", GPLOT_PNG,
                                 "Number of cc vs. horizontal dilation",
@@ -1534,20 +1556,16 @@ PIX     *pix1, *pix2;
             pix3 = pixRead("/tmp/lept/jb/diffcc.png");
             pixaAddPix(pixadb, pix3, L_INSERT);
             numaDestroy(&naseq);
-            pix3 = pixCloseBrick(NULL, pixs, imin + 1, 1);
+            pix3 = pixCloseBrick(NULL, pixs, ibest + 1, 1);
             pix4 = pixScaleToSize(pix3, 600, 0);
             pixaAddPix(pixadb, pix4, L_INSERT);
             pixDestroy(&pix3);
         }
     }
 
-        /* Optionally, save the result of the optimal closing */
-    if (ppixm) {
-        if (imin < 3)
-            L_ERROR("imin = %d is too small\n", procName, imin);
-        else
-            *ppixm = pixCloseBrick(NULL, pixs, imin + 1, 1);
-    }
+    if (psize) *psize = ibest + 1;
+    if (ppixm)
+        *ppixm = pixCloseBrick(NULL, pixs, ibest + 1, 1);
 
     numaDestroy(&nacc);
     numaDestroy(&nadiff);
@@ -1558,13 +1576,12 @@ PIX     *pix1, *pix2;
 /*!
  * \brief   pixWordBoxesByDilation()
  *
- * \param[in]    pixs       1 bpp; typ. at 75 to 150 ppi
- * \param[in]    maxdil     maximum dilation; 0 for default; warning if > 20
+ * \param[in]    pixs                  1 bpp; typ. 75 - 200 ppi
  * \param[in]    minwidth, minheight   saved components; smaller are discarded
  * \param[in]    maxwidth, maxheight   saved components; larger are discarded
- * \param[out]   pboxa      dilated word mask
- * \param[out]   psize [optional]   size of optimal horiz Sel
- * \param[out]   pixadb [optional]  debug: pixa to accumulate intermediate steps
+ * \param[out]   pboxa                 of dilated word mask
+ * \param[out]   psize [optional]      size of good horizontal dilation
+ * \param[out]   pixadb [optional]     debug: pixa of intermediate steps
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1575,7 +1592,6 @@ PIX     *pix1, *pix2;
  */
 l_int32
 pixWordBoxesByDilation(PIX      *pixs,
-                       l_int32   maxdil,
                        l_int32   minwidth,
                        l_int32   minheight,
                        l_int32   maxwidth,
@@ -1597,7 +1613,7 @@ PIX   *pix1, *pix2;
     *pboxa = NULL;
 
         /* Make a first estimate of the word mask */
-    if (pixWordMaskByDilation(pixs, maxdil, &pix1, psize, pixadb))
+    if (pixWordMaskByDilation(pixs, &pix1, psize, pixadb))
         return ERROR_INT("pixWordMaskByDilation() failed", procName, 1);
 
         /* Prune the word mask.  Get the bounding boxes of the words.

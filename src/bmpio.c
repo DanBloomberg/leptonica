@@ -230,6 +230,8 @@ PIXCMAP   *cmap;
         LEPT_FREE(cmap->array);  /* remove generated cmap array */
         cmap->array  = (void *)cmapBuf;  /* and replace */
         cmap->n = L_MIN(cmapEntries, 256);
+        for (i = 0; i < cmap->n; i++)   /* set all colors opaque */
+            pixcmapSetAlpha (cmap, i, 255);
     }
     pixSetColormap(pix, cmap);
 

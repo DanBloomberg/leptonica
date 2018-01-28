@@ -65,7 +65,7 @@ L_REGPARAMS  *rp;
 
         /* Generate word mask */
     pixadb = pixaCreate(5);
-    pixWordMaskByDilation(pixs, 20, NULL, &size, pixadb);
+    pixWordMaskByDilation(pixs, NULL, &size, pixadb);
     l_pdfSetDateAndVersion(0);
     pixaConvertToPdf(pixadb, 100, 1.0, L_FLATE_ENCODE, 0, "Word Mask",
                      "/tmp/lept/ital/wordmask.pdf");

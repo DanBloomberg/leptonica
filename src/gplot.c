@@ -141,9 +141,10 @@ gplotCreate(const char  *rootname,
             const char  *xlabel,
             const char  *ylabel)
 {
-char   *newroot;
-char    buf[L_BUF_SIZE];
-GPLOT  *gplot;
+char    *newroot;
+char     buf[L_BUF_SIZE];
+l_int32  badchar;
+GPLOT   *gplot;
 
     PROCNAME("gplotCreate");
 
@@ -152,6 +153,9 @@ GPLOT  *gplot;
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
         outformat != GPLOT_EPS && outformat != GPLOT_LATEX)
         return (GPLOT *)ERROR_PTR("outformat invalid", procName, NULL);
+    stringCheckForChars(rootname, "`;&|><\"?*", &badchar);
+    if (badchar)  /* danger of command injection */
+        return (GPLOT *)ERROR_PTR("invalid rootname", procName, NULL);
 
     if ((gplot = (GPLOT *)LEPT_CALLOC(1, sizeof(GPLOT))) == NULL)
         return (GPLOT *)ERROR_PTR("gplot not made", procName, NULL);

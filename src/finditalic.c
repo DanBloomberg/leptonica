@@ -148,7 +148,7 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
     } else if (pixw) {
         pixm = pixClone(pixw);
     } else {
-        pixWordMaskByDilation(pixs, 20, NULL, &size, NULL);
+        pixWordMaskByDilation(pixs, NULL, &size, NULL);
         L_INFO("dilation size = %d\n", procName, size);
         snprintf(opstring, sizeof(opstring), "d1.5 + c%d.1", size);
         pixm = pixMorphSequence(pixs, opstring, 0);
