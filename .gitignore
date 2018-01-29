@@ -43,3 +43,6 @@ conv2doxy
 /doxygen.log
 /doc/*.tmp
 /doc/html/*
+
+# test results
+/prog/*.trs
