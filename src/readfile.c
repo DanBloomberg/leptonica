@@ -1086,6 +1086,8 @@ extern const char *ImageFileFormatExtensions[];
  *      (1) If headeronly == 0 and the image has spp == 4,this will
  *          also call pixDisplayLayersRGBA() to display the image
  *          in three views.
+ *      (2) This is a debug function that changes the value of
+ *          var_PNG_STRIP_16_TO_8 to 1 (the default).
  * </pre>
  */
 l_int32
@@ -1106,8 +1108,6 @@ PIXCMAP  *cmap;
         return ERROR_INT("filename not defined", procName, 1);
     if (!fpout)
         return ERROR_INT("stream not defined", procName, 1);
-
-    l_pngSetReadStrip16To8(1);  /* to preserve 16 bpp if format is png */
 
         /* Read the header */
     if (pixReadHeader(filename, &format, &w, &h, &bps, &spp, &iscmap)) {
@@ -1157,6 +1157,11 @@ PIXCMAP  *cmap;
          * has transparency in a colormap, we convert it to RGBA. */
     fprintf(fpout, "===============================================\n"
                     "Reading the full image:\n");
+
+        /* Preserve 16 bpp if the format is png */
+    if (format == IFF_PNG && bps == 16)
+        l_pngSetReadStrip16To8(0);
+
     if ((pix = pixRead(filename)) == NULL) {
         L_ERROR("failure to read full image of %s\n", procName, filename);
         return 1;
@@ -1219,6 +1224,9 @@ PIXCMAP  *cmap;
         pixDisplay(pixt, 100, 100);
         pixDestroy(&pixt);
     }
+
+    if (format == IFF_PNG && bps == 16)
+        l_pngSetReadStrip16To8(1);  /* return to default if format is png */
 
     pixDestroy(&pix);
     return 0;

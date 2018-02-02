@@ -75,12 +75,14 @@ static char  mainName[] = "binarize_set";
     pixSaveTiled(pixs, pixa, 1.0, 1, 50, 32);
     pixDisplay(pixs, 100, 0);
 
+    lept_mkdir("lept/binar");
+
 #if ALL
     /* 1. Standard background normalization with a global threshold.  */
     pixg = pixConvertTo8(pixs, 0);
     pix1 = pixBackgroundNorm(pixg, NULL, NULL, 10, 15, 100, 50, 255, 2, 2);
     pix2 = pixThresholdToBinary(pix1, 160);
-    pixWrite("/tmp/binar1.png", pix2, IFF_PNG);
+    pixWrite("/tmp/lept/binar/binar1.png", pix2, IFF_PNG);
     pixDisplay(pix2, 100, 0);
     pixSaveTiled(pix2, pixa, 1.0, 1, 50, 32);
     pixDestroy(&pixg);
@@ -101,7 +103,7 @@ static char  mainName[] = "binarize_set";
                                     50, 255, 2, 2, 0.10, &threshval);
     fprintf(stderr, "thresh val = %d\n", threshval);
     pixSaveTiled(pix1, pixa, 1.0, 1, 50, 32);
-    pixWrite("/tmp/binar2.png", pix1, IFF_PNG);
+    pixWrite("/tmp/lept/binar/binar2.png", pix1, IFF_PNG);
     pixDisplay(pix1, 100, 200);
     pixDestroy(&pixg);
     pixDestroy(&pix1);
@@ -115,7 +117,7 @@ static char  mainName[] = "binarize_set";
                                            50, 2, 2, 0.10, &threshval);
     fprintf(stderr, "thresh val = %d\n", threshval);
     pixSaveTiled(pix1, pixa, 1.0, 1, 50, 32);
-    pixWrite("/tmp/binar3.png", pix1, IFF_PNG);
+    pixWrite("/tmp/lept/binar/binar3.png", pix1, IFF_PNG);
     pixDisplay(pix1, 100, 400);
     pixDestroy(&pixg);
     pixDestroy(&pix1);
@@ -130,7 +132,7 @@ static char  mainName[] = "binarize_set";
     pixg2 = pixContrastNorm(NULL, pixg, 20, 20, 130, 2, 2);
     pixSauvolaBinarizeTiled(pixg2, 25, 0.40, 1, 1, NULL, &pix1);
     pixSaveTiled(pix1, pixa, 1.0, 1, 50, 32);
-    pixWrite("/tmp/binar4.png", pix1, IFF_PNG);
+    pixWrite("/tmp/lept/binar/binar4.png", pix1, IFF_PNG);
     pixDisplay(pix1, 100, 600);
     pixDestroy(&pixg);
     pixDestroy(&pixg2);
@@ -158,7 +160,7 @@ static char  mainName[] = "binarize_set";
     ival = L_MIN(ival, 110);
     pix1 = pixThresholdToBinary(pixg2, ival);
     pixSaveTiled(pix1, pixa, 1.0, 1, 50, 32);
-    pixWrite("/tmp/binar5.png", pix1, IFF_PNG);
+    pixWrite("/tmp/lept/binar/binar5.png", pix1, IFF_PNG);
     pixDisplay(pix1, 100, 800);
     pixDestroy(&pixg);
     pixDestroy(&pixg2);
@@ -166,7 +168,7 @@ static char  mainName[] = "binarize_set";
 #endif
 
     pix1 = pixaDisplayTiledInRows(pixa, 32, w + 100, 1.0, 0, 30, 2);
-    pixWrite("/tmp/binar6.png", pix1, IFF_PNG);
+    pixWrite("/tmp/lept/binar/binar6.png", pix1, IFF_PNG);
     pixDisplay(pix1, 1000, 0);
     pixDestroy(&pix1);
     pixaDestroy(&pixa);

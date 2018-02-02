@@ -43,16 +43,18 @@ NUMA    *nai1, *nai2;
 NUMAA   *naa1, *naa1r, *naa2;
 PIX     *pixs, *pixt, *pixb1, *pixb2;
 
+    lept_mkdir("lept/comp");
+
     pixs = pixRead("lucasta.047.jpg");
     pixb1 = pixConvertTo1(pixs, 128);
     pixGetWordBoxesInTextlines(pixb1, 10, 10, 500, 50, &boxa1, &nai1);
     pixt = pixDrawBoxaRandom(pixs, boxa1, 2);
     pixDisplay(pixt, 100, 100);
-    pixWrite("junkpixt", pixt, IFF_PNG);
+    pixWrite("/tmp/lept/comp/pixt.png", pixt, IFF_PNG);
     naa1 = boxaExtractSortedPattern(boxa1, nai1);
-    numaaWrite("junknaa1", naa1);
+    numaaWrite("/tmp/lept/comp/naa1.naa", naa1);
     naa1r = numaaRead("junknaa1");
-    numaaWrite("junknaa1r", naa1r);
+    numaaWrite("/tmp/lept/comp/naa1r.naa", naa1r);
     n = numaaGetCount(naa1);
     fprintf(stderr, "Number of textlines = %d\n", n);
     pixDisplay(pixb1, 300, 0);

@@ -64,41 +64,58 @@
     /* set these ad lib. */
 #define    WIDTH            21    /* brick sel width */
 #define    HEIGHT           15    /* brick sel height */
-#define    TEST_SYMMETRIC   0     /* set to 1 to set symmetric b.c.;
-                                     otherwise, it tests asymmetric b.c. */
 
+void TestAll(L_REGPARAMS *rp, PIX *pix, l_int32 symmetric);
 
 int main(int    argc,
          char **argv)
 {
-l_int32      ok, same;
-char         sequence[512];
-PIX         *pixs, *pixref;
-PIX         *pixt1, *pixt2, *pixt3, *pixt4, *pixt5, *pixt6;
-PIX         *pixt7, *pixt8, *pixt9, *pixt10, *pixt11;
-PIX         *pixt12, *pixt13, *pixt14;
-SEL         *sel;
-static char  mainName[] = "binmorph1_reg";
+PIX  *pixs;
+L_REGPARAMS  *rp;
 
-    if (argc != 1)
-        return ERROR_INT(" Syntax: binmorph1_reg", mainName, 1);
-    if ((pixs = pixRead("feyn.tif")) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
-#if TEST_SYMMETRIC
-        /* This works properly if there is an added border */
-    resetMorphBoundaryCondition(SYMMETRIC_MORPH_BC);
+    pixs = pixRead("feyn-fract.tif");
+
+    TestAll(rp, pixs, FALSE);
+    TestAll(rp, pixs, TRUE);
+    pixDestroy(&pixs);
+    return regTestCleanup(rp);
+}
+
+
+void
+TestAll(L_REGPARAMS  *rp,
+        PIX          *pixs,
+        l_int32       symmetric)
+{
+l_int32  ok, same;
+char     sequence[512];
+PIX     *pixref;
+PIX     *pixt1, *pixt2, *pixt3, *pixt4, *pixt5, *pixt6;
+PIX     *pixt7, *pixt8, *pixt9, *pixt10, *pixt11;
+PIX     *pixt12, *pixt13, *pixt14;
+SEL     *sel;
+
+    if (symmetric) {
+            /* This works properly if there is an added border */
+        resetMorphBoundaryCondition(SYMMETRIC_MORPH_BC);
 #if 1
-    pixt1 = pixAddBorder(pixs, 32, 0);
-    pixTransferAllData(pixs, &pixt1, 0, 0);
+        pixt1 = pixAddBorder(pixs, 32, 0);
+        pixTransferAllData(pixs, &pixt1, 0, 0);
 #endif
-#endif  /* TEST_SYMMETRIC */
+        fprintf(stderr, "Testing with symmetric boundary conditions\n");
+    } else {
+        resetMorphBoundaryCondition(ASYMMETRIC_MORPH_BC);
+        fprintf(stderr, "Testing with asymmetric boundary conditions\n");
+    }
 
         /* This is our test sel */
     sel = selCreateBrick(HEIGHT, WIDTH, HEIGHT / 2, WIDTH / 2, SEL_HIT);
 
         /* Dilation */
-    fprintf(stderr, "Testing dilation\n");
+    fprintf(stderr, "  Testing dilation\n");
     ok = TRUE;
     pixref = pixDilate(NULL, pixs, sel);   /* new one */
     pixt1 = pixCreateTemplate(pixs);
@@ -192,7 +209,7 @@ static char  mainName[] = "binmorph1_reg";
     pixDestroy(&pixt13);
 
         /* Erosion */
-    fprintf(stderr, "Testing erosion\n");
+    fprintf(stderr, "  Testing erosion\n");
     pixref = pixErode(NULL, pixs, sel);   /* new one */
     pixt1 = pixCreateTemplate(pixs);
     pixErode(pixt1, pixs, sel);           /* existing one */
@@ -286,7 +303,7 @@ static char  mainName[] = "binmorph1_reg";
     pixDestroy(&pixt13);
 
         /* Opening */
-    fprintf(stderr, "Testing opening\n");
+    fprintf(stderr, "  Testing opening\n");
     pixref = pixOpen(NULL, pixs, sel);   /* new one */
     pixt1 = pixCreateTemplate(pixs);
     pixOpen(pixt1, pixs, sel);           /* existing one */
@@ -360,14 +377,6 @@ static char  mainName[] = "binmorph1_reg";
         fprintf(stderr, "pixref != pixt12!\n"); ok = FALSE;
     }
 
-#if 0
-    pixWrite("/tmp/junkref.png", pixref, IFF_PNG);
-    pixWrite("/tmp/junk12.png", pixt12, IFF_PNG);
-    pixt13 = pixXor(NULL, pixref, pixt12);
-    pixWrite("/tmp/junk12a.png", pixt13, IFF_PNG);
-    pixDestroy(&pixt13);
-#endif
-
     pixt13 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
     pixEqual(pixref, pixt13, &same);
     if (!same) {
@@ -397,7 +406,7 @@ static char  mainName[] = "binmorph1_reg";
     pixDestroy(&pixt14);
 
         /* Closing */
-    fprintf(stderr, "Testing closing\n");
+    fprintf(stderr, "  Testing closing\n");
     pixref = pixClose(NULL, pixs, sel);   /* new one */
     pixt1 = pixCreateTemplate(pixs);
     pixClose(pixt1, pixs, sel);           /* existing one */
@@ -451,7 +460,7 @@ static char  mainName[] = "binmorph1_reg";
     pixDestroy(&pixt7);
 
         /* Safe closing (using pix, not pixs) */
-    fprintf(stderr, "Testing safe closing\n");
+    fprintf(stderr, "  Testing safe closing\n");
     pixref = pixCloseSafe(NULL, pixs, sel);   /* new one */
     pixt1 = pixCreateTemplate(pixs);
     pixCloseSafe(pixt1, pixs, sel);           /* existing one */
@@ -536,14 +545,6 @@ static char  mainName[] = "binmorph1_reg";
         fprintf(stderr, "pixref != pixt14 !\n"); ok = FALSE;
     }
 
-#if 0
-    pixWrite("/tmp/junkref.png", pixref, IFF_PNG);
-    pixWrite("/tmp/junk12.png", pixt12, IFF_PNG);
-    pixt13 = pixXor(NULL, pixref, pixt12);
-    pixWrite("/tmp/junk12a.png", pixt13, IFF_PNG);
-    pixDestroy(&pixt13);
-#endif
-
     pixDestroy(&pixref);
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
@@ -560,11 +561,11 @@ static char  mainName[] = "binmorph1_reg";
     pixDestroy(&pixt13);
     pixDestroy(&pixt14);
 
+    regTestCompareValues(rp, TRUE, ok, 0);
     if (ok)
-        fprintf(stderr, "All morph tests OK!\n");
-
-    pixDestroy(&pixs);
+        fprintf(stderr, "  All morph tests OK!\n");
+    else
+        fprintf(stderr, "  Some morph tests failed!\n");
     selDestroy(&sel);
-    return 0;
 }
 

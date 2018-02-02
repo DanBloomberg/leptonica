@@ -46,6 +46,8 @@ static char  mainName[] = "ccbordtest";
     if (argc != 2)
         return ERROR_INT(" Syntax:  ccbordtest filein", mainName, 1);
 
+    lept_mkdir("lept/ccbord");
+
     filein = argv[1];
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);
@@ -65,7 +67,7 @@ static char  mainName[] = "ccbordtest";
     startTimer();
     pixd = ccbaDisplayBorder(ccba);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
-    pixWrite("/tmp/junkborder1.png", pixd, IFF_PNG);
+    pixWrite("/tmp/lept/ccbord/junkborder1.png", pixd, IFF_PNG);
 
 #else
         /* get step chain code, then global coords, and display borders */
@@ -81,7 +83,7 @@ static char  mainName[] = "ccbordtest";
     startTimer();
     pixd = ccbaDisplayBorder(ccba);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
-    pixWrite("/tmp/junkborder1.png", pixd, IFF_PNG);
+    pixWrite("/tmp/lept/ccbord/junkborder1.png", pixd, IFF_PNG);
 #endif
 
         /* check if border pixels are in original set */
@@ -100,7 +102,7 @@ static char  mainName[] = "ccbordtest";
 /*    pixc = ccbaDisplayImage1(ccba); */
     pixc = ccbaDisplayImage2(ccba);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
-    pixWrite("/tmp/junkrecon1.png", pixc, IFF_PNG);
+    pixWrite("/tmp/lept/ccbord/junkrecon1.png", pixc, IFF_PNG);
 
         /* check with original to see if correct */
     fprintf(stderr, "Check with original to see if correct ...\n");
@@ -122,7 +124,7 @@ static char  mainName[] = "ccbordtest";
                     fprintf(stderr, "bad pixel at (%d, %d)\n", j, i);
             }
         }
-        pixWrite("/tmp/junkbadpixels.png", pixc, IFF_PNG);
+        pixWrite("/tmp/lept/ccbord/junkbadpixels.png", pixc, IFF_PNG);
 #endif
     }
 
@@ -148,7 +150,7 @@ static char  mainName[] = "ccbordtest";
     startTimer();
     pixd2 = ccbaDisplayBorder(ccba2);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
-    pixWrite("/tmp/junkborder2.png", pixd2, IFF_PNG);
+    pixWrite("/tmp/lept/ccbord/junkborder2.png", pixd2, IFF_PNG);
 
         /* check if border pixels are same as first time */
     pixXor(pixd2, pixd2, pixd);
@@ -169,7 +171,7 @@ static char  mainName[] = "ccbordtest";
 /*    pixc2 = ccbaDisplayImage1(ccba2); */
     pixc2 = ccbaDisplayImage2(ccba2);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
-    pixWrite("/tmp/junkrecon2.png", pixc2, IFF_PNG);
+    pixWrite("/tmp/lept/ccbord/junkrecon2.png", pixc2, IFF_PNG);
 
         /* check with original to see if correct */
     fprintf(stderr, "Check with original to see if correct ...\n");
@@ -191,7 +193,7 @@ static char  mainName[] = "ccbordtest";
                     fprintf(stderr, "bad pixel at (%d, %d)\n", j, i);
             }
         }
-        pixWrite("/tmp/junkbadpixels2.png", pixc2, IFF_PNG);
+        pixWrite("/tmp/lept/ccbord/junkbadpixels2.png", pixc2, IFF_PNG);
 #endif
     }
 
@@ -213,7 +215,7 @@ static char  mainName[] = "ccbordtest";
     startTimer();
     pixd3 = ccbaDisplaySPBorder(ccba);
     fprintf(stderr, "%6.3f sec\n", stopTimer());
-    pixWrite("/tmp/junkborder3.png", pixd3, IFF_PNG);
+    pixWrite("/tmp/lept/ccbord/junkborder3.png", pixd3, IFF_PNG);
         /* check if border pixels are in original set */
     fprintf(stderr, "Check if border pixels are in original set ...\n");
     pixt = pixSubtract(NULL, pixd3, pixs);

@@ -39,120 +39,111 @@ int main(int    argc,
 {
 l_int32      w, h;
 l_float32    mps;
-PIX         *pixs, *pixt, *pixmin, *pixd;
-PIX         *pixt1, *pixt2, *pixt3, *pixt4, *pixt5, *pixt6;
-PIX         *pixt7, *pixt8, *pixt9, *pixt10, *pixt11, *pixt12;
-PIX         *pixt13, *pixt14, *pixt15, *pixt16;
-PIXA        *pixac;
-static char  mainName[] = "adaptnorm_reg";
+PIX         *pixs, *pixmin, *pix1, *pix2, *pix3, *pix4, *pix5;
+PIX         *pix6, *pix7, *pix8, *pix9, *pix10, *pix11;
+PIXA        *pixa1;
+L_REGPARAMS  *rp;
+
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
     /* ---------------------------------------------------------- *
      *     Normalize by adaptively expanding the dynamic range    *
      * ---------------------------------------------------------- */
-    pixac = pixaCreate(0);
+    pixa1 = pixaCreate(0);
     pixs = pixRead("lighttext.jpg");
     pixGetDimensions(pixs, &w, &h, NULL);
-    pixSaveTiled(pixs, pixac, 1.0, 1, 20, 8);
+    regTestWritePixAndCheck(rp, pixs, IFF_JFIF_JPEG);  /* 0 */
+    pixaAddPix(pixa1, pixs, L_INSERT);
     startTimer();
-    pixt1 = pixContrastNorm(NULL, pixs, 10, 10, 40, 2, 2);
+    pix1 = pixContrastNorm(NULL, pixs, 10, 10, 40, 2, 2);
     mps = 0.000001 * w * h / stopTimer();
     fprintf(stderr, "Time: Contrast norm: %7.3f Mpix/sec\n", mps);
-    pixSaveTiled(pixt1, pixac, 1.0, 1, 40, 8);
-    pixWrite("/tmp/pixt1.png", pixt1, IFF_PNG);
+    pixaAddPix(pixa1, pix1, L_INSERT);
+    regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 1 */
 
          /* Apply a gamma to clean up the remaining background */
-    pixt2 = pixGammaTRC(NULL, pixt1, 1.5, 50, 235);
-    pixSaveTiled(pixt2, pixac, 1.0, 0, 40, 8);
-    pixWrite("/tmp/pixt2.png", pixt2, IFF_PNG);
+    pix2 = pixGammaTRC(NULL, pix1, 1.5, 50, 235);
+    pixaAddPix(pixa1, pix2, L_INSERT);
+    regTestWritePixAndCheck(rp, pix2, IFF_JFIF_JPEG);  /* 2 */
 
          /* Here are two possible output display images; a dithered
           * 2 bpp image and a 7 level thresholded 4 bpp image */
-    pixt3 = pixDitherTo2bpp(pixt2, 1);
-    pixSaveTiled(pixt3, pixac, 1.0, 0, 40, 8);
-    pixWrite("/tmp/pixt3.png", pixt3, IFF_PNG);
-    pixt4 = pixThresholdTo4bpp(pixt2, 7, 1);
-    pixSaveTiled(pixt4, pixac, 1.0, 0, 40, 8);
-    pixWrite("/tmp/pixt4.png", pixt4, IFF_PNG);
+    pix3 = pixDitherTo2bpp(pix2, 1);
+    pixaAddPix(pixa1, pix3, L_INSERT);
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 3 */
+    pix4 = pixThresholdTo4bpp(pix2, 7, 1);
+    pixaAddPix(pixa1, pix4, L_INSERT);
+    regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 4 */
 
          /* Binary image produced from 8 bpp normalized ones,
           * before and after the gamma correction. */
-    pixt5 = pixThresholdToBinary(pixt1, 180);
-    pixSaveTiled(pixt5, pixac, 1.0, 1, 40, 8);
-    pixWrite("/tmp/pixt5.png", pixt5, IFF_PNG);
-    pixt6 = pixThresholdToBinary(pixt2, 200);
-    pixSaveTiled(pixt6, pixac, 1.0, 0, 40, 8);
-    pixWrite("/tmp/pixt6.png", pixt6, IFF_PNG);
+    pix5 = pixThresholdToBinary(pix1, 180);
+    pixaAddPix(pixa1, pix5, L_INSERT);
+    regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 5 */
+    pix6 = pixThresholdToBinary(pix2, 200);
+    pixaAddPix(pixa1, pix6, L_INSERT);
+    regTestWritePixAndCheck(rp, pix6, IFF_PNG);  /* 6 */
 
-    pixDestroy(&pixs);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixt3);
-    pixDestroy(&pixt4);
-    pixDestroy(&pixt5);
-    pixDestroy(&pixt6);
-
-    pixd = pixaDisplay(pixac, 0, 0);
-    pixDisplay(pixd, 100, 100);
-    pixWrite("/tmp/norm.png", pixd, IFF_PNG);
-    pixDestroy(&pixd);
-    pixaDestroy(&pixac);
-
+    pix7 = pixaDisplayTiledInColumns(pixa1, 3, 1.0, 30, 2);
+    pixDisplayWithTitle(pix7, 0, 0, NULL, rp->display);
+    regTestWritePixAndCheck(rp, pix7, IFF_JFIF_JPEG);  /* 7 */
+    pixDestroy(&pix7);
+    pixaDestroy(&pixa1);
 
     /* ---------------------------------------------------------- *
      *          Normalize for rapidly varying background          *
      * ---------------------------------------------------------- */
-    pixac = pixaCreate(0);
+    pixa1 = pixaCreate(0);
     pixs = pixRead("w91frag.jpg");
     pixGetDimensions(pixs, &w, &h, NULL);
-    pixSaveTiled(pixs, pixac, 1.0, 1, 20, 8);
+    pixaAddPix(pixa1, pixs, L_INSERT);
+    regTestWritePixAndCheck(rp, pixs, IFF_JFIF_JPEG);  /* 8 */
     startTimer();
-    pixt7 = pixBackgroundNormFlex(pixs, 7, 7, 1, 1, 10);
+    pix1 = pixBackgroundNormFlex(pixs, 7, 7, 1, 1, 10);
     mps = 0.000001 * w * h / stopTimer();
     fprintf(stderr, "Time: Flexible bg norm: %7.3f Mpix/sec\n", mps);
-    pixSaveTiled(pixt7, pixac, 1.0, 0, 40, 8);
-    pixWrite("/tmp/pixt7.png", pixt7, IFF_PNG);
+    pixaAddPix(pixa1, pix1, L_INSERT);
+    regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 9 */
 
         /* Now do it again in several steps */
-    pixt8 = pixScaleSmooth(pixs, 1./7., 1./7.);
-    pixt = pixScale(pixt8, 7.0, 7.0);
-    pixSaveTiled(pixt, pixac, 1.0, 1, 20, 8);
-    pixDestroy(&pixt);
-    pixLocalExtrema(pixt8, 0, 0, &pixmin, NULL);  /* 1's at minima */
-    pixt9 = pixExpandBinaryReplicate(pixmin, 7, 7);
-    pixSaveTiled(pixt9, pixac, 1.0, 0, 20, 8);
-    pixt10 = pixSeedfillGrayBasin(pixmin, pixt8, 10, 4);
-    pixt11 = pixExtendByReplication(pixt10, 1, 1);
-    pixt12 = pixGetInvBackgroundMap(pixt11, 200, 1, 1);  /* smoothing incl. */
-    pixt13 = pixApplyInvBackgroundGrayMap(pixs, pixt12, 7, 7);
-    pixSaveTiled(pixt13, pixac, 1.0, 0, 20, 8);
+    pix2 = pixScaleSmooth(pixs, 1./7., 1./7.);
+    pix3 = pixScale(pix2, 7.0, 7.0);
+    pixaAddPix(pixa1, pix3, L_INSERT);
+    regTestWritePixAndCheck(rp, pix3, IFF_JFIF_JPEG);  /* 10 */
+    pixLocalExtrema(pix2, 0, 0, &pixmin, NULL);  /* 1's at minima */
+    pix4 = pixExpandBinaryReplicate(pixmin, 7, 7);
+    pixaAddPix(pixa1, pix4, L_INSERT);
+    regTestWritePixAndCheck(rp, pix4, IFF_JFIF_JPEG);  /* 11 */
+    pix5 = pixSeedfillGrayBasin(pixmin, pix2, 10, 4);
+    pix6 = pixExtendByReplication(pix5, 1, 1);
+    regTestWritePixAndCheck(rp, pix6, IFF_JFIF_JPEG);  /* 12 */
+    pixDestroy(&pixmin);
+    pixDestroy(&pix5);
+    pixDestroy(&pix2);
+    pix7 = pixGetInvBackgroundMap(pix6, 200, 1, 1);  /* smoothing incl. */
+    pix8 = pixApplyInvBackgroundGrayMap(pixs, pix7, 7, 7);
+    pixaAddPix(pixa1, pix8, L_INSERT);
+    regTestWritePixAndCheck(rp, pix8, IFF_JFIF_JPEG);  /* 13 */
+    pixDestroy(&pix7);
 
         /* Process the result for gray and binary output */
-    pixt14 = pixGammaTRCMasked(NULL, pixt7, NULL, 1.0, 100, 175);
-    pixSaveTiled(pixt14, pixac, 1.0, 1, 20, 8);
-    pixt15 = pixThresholdTo4bpp(pixt14, 10, 1);
-    pixSaveTiled(pixt15, pixac, 1.0, 0, 20, 8);
-    pixt16 = pixThresholdToBinary(pixt14, 190);
-    pixSaveTiled(pixt16, pixac, 1.0, 0, 20, 8);
+    pix9 = pixGammaTRCMasked(NULL, pix1, NULL, 1.0, 100, 175);
+    pixaAddPix(pixa1, pix9, L_INSERT);
+    regTestWritePixAndCheck(rp, pix9, IFF_JFIF_JPEG);  /* 14 */
+    pix10 = pixThresholdTo4bpp(pix9, 10, 1);
+    pixaAddPix(pixa1, pix10, L_INSERT);
+    regTestWritePixAndCheck(rp, pix10, IFF_JFIF_JPEG);  /* 15 */
+    pix11 = pixThresholdToBinary(pix9, 190);
+    pixaAddPix(pixa1, pix11, L_INSERT);
+    regTestWritePixAndCheck(rp, pix11, IFF_JFIF_JPEG);  /* 16 */
 
-    pixDestroy(&pixs);
-    pixDestroy(&pixt7);
-    pixDestroy(&pixmin);
-    pixDestroy(&pixt8);
-    pixDestroy(&pixt9);
-    pixDestroy(&pixt10);
-    pixDestroy(&pixt11);
-    pixDestroy(&pixt12);
-    pixDestroy(&pixt13);
-    pixDestroy(&pixt14);
-    pixDestroy(&pixt15);
-    pixDestroy(&pixt16);
-
-    pixd = pixaDisplay(pixac, 0, 0);
-    pixDisplay(pixd, 100, 100);
-    pixWrite("/tmp/flex.png", pixd, IFF_PNG);
-    pixDestroy(&pixd);
-    pixaDestroy(&pixac);
-    return 0;
+    pix2 = pixaDisplayTiledInColumns(pixa1, 3, 1.0, 30, 2);
+    pixDisplayWithTitle(pix2, 0, 700, NULL, rp->display);
+    regTestWritePixAndCheck(rp, pix2, IFF_JFIF_JPEG);  /* 17 */
+    pixDestroy(&pix2);
+    pixaDestroy(&pixa1);
+    return regTestCleanup(rp);
 }
 
 

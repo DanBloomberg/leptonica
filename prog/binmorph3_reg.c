@@ -47,30 +47,48 @@
 
 #include "allheaders.h"
 
-#define    TEST_SYMMETRIC   0     /* set to 1 for symmetric b.c.;
-                                     otherwise, it tests asymmetric b.c. */
+l_int32 TestAll(L_REGPARAMS *rp, PIX *pixs, l_int32 symmetric);
 
 int main(int    argc,
          char **argv)
+{
+PIX          *pixs;
+L_REGPARAMS  *rp;
+
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
+
+    pixs = pixRead("feyn-fract.tif");
+
+    TestAll(rp, pixs, FALSE);
+    TestAll(rp, pixs, TRUE);
+    pixDestroy(&pixs);
+    return regTestCleanup(rp);
+}
+
+l_int32
+TestAll(L_REGPARAMS  *rp,
+        PIX          *pixs,
+        l_int32       symmetric)
 {
 char        *selnameh, *selnamev;
 l_int32      ok, same, w, h, i, bordercolor, extraborder;
 l_int32      width[3] = {21, 1, 21};
 l_int32      height[3] = {1, 7, 7};
-PIX         *pixs, *pixref;
-PIX         *pixt0, *pixt1, *pixt2, *pixt3, *pixt4;
+PIX         *pixref, *pixt0, *pixt1, *pixt2, *pixt3, *pixt4;
 SEL         *sel;
 SELA        *sela;
-static char  mainName[] = "binmorph3_reg";
 
-    if (argc != 1)
-        return ERROR_INT(" Syntax: binmorph3_reg", mainName, 1);
-    if ((pixs = pixRead("feyn.tif")) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
 
-#if TEST_SYMMETRIC
-    resetMorphBoundaryCondition(SYMMETRIC_MORPH_BC);
-#endif  /* TEST_SYMMETRIC */
+    if (symmetric) {
+        resetMorphBoundaryCondition(SYMMETRIC_MORPH_BC);
+        fprintf(stderr, "Testing with symmetric boundary conditions\n"
+                        "==========================================\n");
+    } else {
+        resetMorphBoundaryCondition(ASYMMETRIC_MORPH_BC);
+        fprintf(stderr, "Testing with asymmetric boundary conditions\n"
+                        "==========================================\n");
+    }
 
     for (i = 0; i < 3; i++) {
         w = width[i];
@@ -85,13 +103,13 @@ static char  mainName[] = "binmorph3_reg";
         if (w > 1) {
             if ((selnameh = selaGetBrickName(sela, w, 1)) == NULL) {
                 selaDestroy(&sela);
-                return ERROR_INT("dwa hor sel not defined", mainName, 1);
+                return ERROR_INT("dwa hor sel not defined", rp->testname, 1);
             }
         }
         if (h > 1) {
             if ((selnamev = selaGetBrickName(sela, 1, h)) == NULL) {
                 selaDestroy(&sela);
-                return ERROR_INT("dwa vert sel not defined", mainName, 1);
+                return ERROR_INT("dwa vert sel not defined", rp->testname, 1);
             }
         }
         fprintf(stderr, "w = %d, h = %d, selh = %s, selv = %s\n",
@@ -367,15 +385,14 @@ static char  mainName[] = "binmorph3_reg";
         pixDestroy(&pixt3);
         pixDestroy(&pixt4);
 
+        regTestCompareValues(rp, TRUE, ok, 0);
         if (ok)
-            fprintf(stderr, "All morph tests OK!\n");
+            fprintf(stderr, "All morph tests OK!\n\n");
         selDestroy(&sel);
         lept_free(selnameh);
         lept_free(selnamev);
-
     }
 
-    pixDestroy(&pixs);
     return 0;
 }
 

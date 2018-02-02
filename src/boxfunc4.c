@@ -998,23 +998,23 @@ BOXA    *boxae, *boxao, *boxalfe, *boxalfo, *boxame, *boxamo, *boxad;
 
     boxaSplitEvenOdd(boxas, 1, &boxae, &boxao);
     if (debug) {
-        lept_mkdir("smooth");
-        boxaWrite("/tmp/smooth/boxae.ba", boxae);
-        boxaWrite("/tmp/smooth/boxao.ba", boxao);
+        lept_mkdir("lept/smooth");
+        boxaWrite("/tmp/lept/smooth/boxae.ba", boxae);
+        boxaWrite("/tmp/lept/smooth/boxao.ba", boxao);
     }
 
     boxalfe = boxaLinearFit(boxae, factor, debug);
     boxalfo = boxaLinearFit(boxao, factor, debug);
     if (debug) {
-        boxaWrite("/tmp/smooth/boxalfe.ba", boxalfe);
-        boxaWrite("/tmp/smooth/boxalfo.ba", boxalfo);
+        boxaWrite("/tmp/lept/smooth/boxalfe.ba", boxalfe);
+        boxaWrite("/tmp/lept/smooth/boxalfo.ba", boxalfo);
     }
 
     boxame = boxaModifyWithBoxa(boxae, boxalfe, subflag, maxdiff, extrapixels);
     boxamo = boxaModifyWithBoxa(boxao, boxalfo, subflag, maxdiff, extrapixels);
     if (debug) {
-        boxaWrite("/tmp/smooth/boxame.ba", boxame);
-        boxaWrite("/tmp/smooth/boxamo.ba", boxamo);
+        boxaWrite("/tmp/lept/smooth/boxame.ba", boxame);
+        boxaWrite("/tmp/lept/smooth/boxamo.ba", boxamo);
     }
 
     boxad = boxaMergeEvenOdd(boxame, boxamo, 1);
@@ -1104,23 +1104,23 @@ BOXA    *boxae, *boxao, *boxamede, *boxamedo, *boxame, *boxamo, *boxad;
 
     boxaSplitEvenOdd(boxas, 0, &boxae, &boxao);
     if (debug) {
-        lept_mkdir("smooth");
-        boxaWrite("/tmp/smooth/boxae.ba", boxae);
-        boxaWrite("/tmp/smooth/boxao.ba", boxao);
+        lept_mkdir("lept/smooth");
+        boxaWrite("/tmp/lept/smooth/boxae.ba", boxae);
+        boxaWrite("/tmp/lept/smooth/boxao.ba", boxao);
     }
 
     boxamede = boxaWindowedMedian(boxae, halfwin, debug);
     boxamedo = boxaWindowedMedian(boxao, halfwin, debug);
     if (debug) {
-        boxaWrite("/tmp/smooth/boxamede.ba", boxamede);
-        boxaWrite("/tmp/smooth/boxamedo.ba", boxamedo);
+        boxaWrite("/tmp/lept/smooth/boxamede.ba", boxamede);
+        boxaWrite("/tmp/lept/smooth/boxamedo.ba", boxamedo);
     }
 
     boxame = boxaModifyWithBoxa(boxae, boxamede, subflag, maxdiff, extrapixels);
     boxamo = boxaModifyWithBoxa(boxao, boxamedo, subflag, maxdiff, extrapixels);
     if (debug) {
-        boxaWrite("/tmp/smooth/boxame.ba", boxame);
-        boxaWrite("/tmp/smooth/boxamo.ba", boxamo);
+        boxaWrite("/tmp/lept/smooth/boxame.ba", boxame);
+        boxaWrite("/tmp/lept/smooth/boxamo.ba", boxamo);
     }
 
     boxad = boxaMergeEvenOdd(boxame, boxamo, 0);

@@ -44,6 +44,8 @@ static char   mainName[] = "converttogray";
         return ERROR_INT(" Syntax:  converttogray filein [fileout]",
                          mainName, 1);
 
+    lept_mkdir("lept/gray");
+
     filein = argv[1];
     if (argc == 3) fileout = argv[2];
     if ((pixs = pixRead(filein)) == NULL)
@@ -66,8 +68,8 @@ static char   mainName[] = "converttogray";
             fprintf(stderr, "images are the same\n");
         else
             fprintf(stderr, "images are different!\n");
-        pixWrite("/tmp/pix1.png", pix1, IFF_PNG);
-        pixWrite("/tmp/pix2.png", pix2, IFF_PNG);
+        pixWrite("/tmp/lept/gray/pix1.png", pix1, IFF_PNG);
+        pixWrite("/tmp/lept/gray/pix2.png", pix2, IFF_PNG);
         pixDestroy(&pix1);
         pixDestroy(&pix2);
         pixSetColormap(pixs, NULL);
@@ -78,8 +80,8 @@ static char   mainName[] = "converttogray";
             fprintf(stderr, "images are the same\n");
         else
             fprintf(stderr, "images are different!\n");
-        pixWrite("/tmp/pix3.png", pix3, IFF_PNG);
-        pixWrite("/tmp/pix4.png", pix4, IFF_PNG);
+        pixWrite("/tmp/lept/gray/pix3.png", pix3, IFF_PNG);
+        pixWrite("/tmp/lept/gray/pix4.png", pix4, IFF_PNG);
         pixDestroy(&pix3);
         pixDestroy(&pix4);
     } else if (d == 4) {
@@ -90,8 +92,8 @@ static char   mainName[] = "converttogray";
             fprintf(stderr, "images are the same\n");
         else
             fprintf(stderr, "images are different!\n");
-        pixWrite("/tmp/pix1.png", pix1, IFF_PNG);
-        pixWrite("/tmp/pix2.png", pix2, IFF_PNG);
+        pixWrite("/tmp/lept/gray/pix1.png", pix1, IFF_PNG);
+        pixWrite("/tmp/lept/gray/pix2.png", pix2, IFF_PNG);
         pixDestroy(&pix1);
         pixDestroy(&pix2);
         pixSetColormap(pixs, NULL);
@@ -102,8 +104,8 @@ static char   mainName[] = "converttogray";
             fprintf(stderr, "images are the same\n");
         else
             fprintf(stderr, "images are different!\n");
-        pixWrite("/tmp/pix3.png", pix3, IFF_PNG);
-        pixWrite("/tmp/pix4.png", pix4, IFF_PNG);
+        pixWrite("/tmp/lept/gray/pix3.png", pix3, IFF_PNG);
+        pixWrite("/tmp/lept/gray/pix4.png", pix4, IFF_PNG);
         pixDestroy(&pix3);
         pixDestroy(&pix4);
     } else {

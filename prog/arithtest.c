@@ -27,6 +27,8 @@
 /*
  * arithtest.c
  *
+ *   Test the pixacc functions, using an 8 bpp image and converting
+ *   back and forth between 8 and 16 bpp.
  */
 
 #include "allheaders.h"
@@ -47,6 +49,8 @@ static char  mainName[] = "arithtest";
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pix not made", mainName, 1);
 
+    lept_mkdir("lept/arith");
+
         /* Input a grayscale image and convert it to 16 bpp */
     pixGetDimensions(pixs, &w, &h, NULL);
     pix1 = pixInitAccumulate(w, h, 0);
@@ -54,16 +58,16 @@ static char  mainName[] = "arithtest";
     pixMultConstAccumulate(pix1, 255., 0);
     pix2 = pixFinalAccumulate(pix1, 0, 16);
     l_pngSetReadStrip16To8(0);
-    pixWrite("/tmp/pix1.png", pix2, IFF_PNG);
+    pixWrite("/tmp/lept/arith/pix1.png", pix2, IFF_PNG);
 
         /* Convert it back to 8 bpp, linear mapped */
     pix3 = pixMaxDynamicRange(pix2, L_LINEAR_SCALE);
-    pixWrite("/tmp/pix2.png", pix3, IFF_PNG);
+    pixWrite("/tmp/lept/arith/pix2.png", pix3, IFF_PNG);
 
         /* Convert it back to 8 bpp using the MSB */
     pix4 = pixRead("/tmp/pix1.png");
     pix5 = pixConvert16To8(pix4, 1);
-    pixWrite("/tmp/pix3.png", pix5, IFF_PNG);
+    pixWrite("/tmp/lept/arith/pix3.png", pix5, IFF_PNG);
 
     pixDestroy(&pixs);
     pixDestroy(&pix1);
