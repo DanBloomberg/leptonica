@@ -7,9 +7,10 @@ INSTALL_PROGS = convertfilestopdf convertfilestops \
 	convertformat convertsegfilestopdf convertsegfilestops \
 	converttopdf converttops fileinfo xtractprotos
 
-AUTO_REG_PROGS = adaptmap_reg affine_reg alphaops_reg \
+AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	alphaxform_reg baseline_reg bilateral2_reg \
-	bilinear_reg binarize_reg blackwhite_reg \
+	bilinear_reg binarize_reg \
+	binmorph1_reg binmorph3_reg blackwhite_reg \
 	blend1_reg blend2_reg blend3_reg blend4_reg blend5_reg \
 	boxa1_reg ccthin1_reg ccthin2_reg cmapquant_reg \
 	colorcontent_reg coloring_reg colorize_reg \
@@ -18,7 +19,8 @@ AUTO_REG_PROGS = adaptmap_reg affine_reg alphaops_reg \
 	compfilter_reg conncomp_reg conversion_reg \
 	convolve_reg dewarp_reg distance_reg \
 	dither_reg dna_reg dwamorph1_reg edge_reg enhance_reg \
-	expand_reg findcorners_reg findpattern_reg \
+	equal_reg expand_reg extrema_reg \
+	findcorners_reg findpattern_reg \
 	fpix1_reg fpix2_reg genfonts_reg \
 	graymorph1_reg graymorph2_reg \
 	grayquant_reg hardlight_reg \
@@ -53,10 +55,9 @@ if HAVE_LIBJP2K
 AUTO_REG_PROGS += jp2kio_reg
 endif
 
-MANUAL_REG_PROGS = alltests_reg adaptnorm_reg bilateral1_reg \
-	binmorph1_reg binmorph2_reg binmorph3_reg \
-	binmorph4_reg binmorph5_reg boxa2_reg \
-	dwamorph2_reg equal_reg extrema_reg \
+MANUAL_REG_PROGS = alltests_reg bilateral1_reg \
+	binmorph2_reg binmorph4_reg binmorph5_reg \
+	boxa2_reg dwamorph2_reg \
 	fhmtauto_reg files_reg flipdetect_reg fmorphauto_reg \
 	grayfill_reg heap_reg locminmax_reg \
 	lowaccess_reg morphseq_reg \

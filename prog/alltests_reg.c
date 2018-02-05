@@ -47,6 +47,7 @@
 
 static const char *tests[] = {
                               "adaptmap_reg",
+                              "adaptnorm_reg",
                               "affine_reg",
                               "alphaops_reg",
                               "alphaxform_reg",
@@ -54,6 +55,8 @@ static const char *tests[] = {
                               "bilateral2_reg",
                               "bilinear_reg",
                               "binarize_reg",
+                              "binmorph1_reg",
+                              "binmorph3_reg",
                               "blackwhite_reg",
                               "blend1_reg",
                               "blend2_reg",
@@ -84,7 +87,9 @@ static const char *tests[] = {
                               "dwamorph1_reg",
                               "edge_reg",
                               "enhance_reg",
+                              "equal_reg",
                               "expand_reg",
+                              "extrema_reg",
                          /*   "files_reg",  */
                               "findcorners_reg",
                               "findpattern_reg",

@@ -93,17 +93,17 @@ TestAll(L_REGPARAMS  *rp,
 l_int32  ok, same;
 char     sequence[512];
 PIX     *pixref;
-PIX     *pixt1, *pixt2, *pixt3, *pixt4, *pixt5, *pixt6;
-PIX     *pixt7, *pixt8, *pixt9, *pixt10, *pixt11;
-PIX     *pixt12, *pixt13, *pixt14;
+PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6;
+PIX     *pix7, *pix8, *pix9, *pix10, *pix11;
+PIX     *pix12, *pix13, *pix14;
 SEL     *sel;
 
     if (symmetric) {
             /* This works properly if there is an added border */
         resetMorphBoundaryCondition(SYMMETRIC_MORPH_BC);
 #if 1
-        pixt1 = pixAddBorder(pixs, 32, 0);
-        pixTransferAllData(pixs, &pixt1, 0, 0);
+        pix1 = pixAddBorder(pixs, 32, 0);
+        pixTransferAllData(pixs, &pix1, 0, 0);
 #endif
         fprintf(stderr, "Testing with symmetric boundary conditions\n");
     } else {
@@ -118,448 +118,448 @@ SEL     *sel;
     fprintf(stderr, "  Testing dilation\n");
     ok = TRUE;
     pixref = pixDilate(NULL, pixs, sel);   /* new one */
-    pixt1 = pixCreateTemplate(pixs);
-    pixDilate(pixt1, pixs, sel);           /* existing one */
-    pixEqual(pixref, pixt1, &same);
+    pix1 = pixCreateTemplate(pixs);
+    pixDilate(pix1, pixs, sel);           /* existing one */
+    pixEqual(pixref, pix1, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt1 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix1 !\n"); ok = FALSE;
     }
-    pixt2 = pixCopy(NULL, pixs);
-    pixDilate(pixt2, pixt2, sel);          /* in-place */
-    pixEqual(pixref, pixt2, &same);
+    pix2 = pixCopy(NULL, pixs);
+    pixDilate(pix2, pix2, sel);          /* in-place */
+    pixEqual(pixref, pix2, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt2 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
     }
     sprintf(sequence, "d%d.%d", WIDTH, HEIGHT);
-    pixt3 = pixMorphSequence(pixs, sequence, 0);    /* sequence, atomic */
-    pixEqual(pixref, pixt3, &same);
+    pix3 = pixMorphSequence(pixs, sequence, 0);    /* sequence, atomic */
+    pixEqual(pixref, pix3, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt3 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix3 !\n"); ok = FALSE;
     }
     sprintf(sequence, "d%d.1 + d1.%d", WIDTH, HEIGHT);
-    pixt4 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable */
-    pixEqual(pixref, pixt4, &same);
+    pix4 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable */
+    pixEqual(pixref, pix4, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt4 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
     }
-    pixt5 = pixDilateBrick(NULL, pixs, WIDTH, HEIGHT);  /* new one */
-    pixEqual(pixref, pixt5, &same);
+    pix5 = pixDilateBrick(NULL, pixs, WIDTH, HEIGHT);  /* new one */
+    pixEqual(pixref, pix5, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt5 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix5 !\n"); ok = FALSE;
     }
-    pixt6 = pixCreateTemplate(pixs);
-    pixDilateBrick(pixt6, pixs, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt6, &same);
+    pix6 = pixCreateTemplate(pixs);
+    pixDilateBrick(pix6, pixs, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix6, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt6 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix6 !\n"); ok = FALSE;
     }
-    pixt7 = pixCopy(NULL, pixs);
-    pixDilateBrick(pixt7, pixt7, WIDTH, HEIGHT);  /* in-place */
-    pixEqual(pixref, pixt7, &same);
+    pix7 = pixCopy(NULL, pixs);
+    pixDilateBrick(pix7, pix7, WIDTH, HEIGHT);  /* in-place */
+    pixEqual(pixref, pix7, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt7 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix7 !\n"); ok = FALSE;
     }
-    pixt8 = pixDilateBrickDwa(NULL, pixs, WIDTH, HEIGHT);  /* new one */
-    pixEqual(pixref, pixt8, &same);
+    pix8 = pixDilateBrickDwa(NULL, pixs, WIDTH, HEIGHT);  /* new one */
+    pixEqual(pixref, pix8, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt8 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix8 !\n"); ok = FALSE;
     }
-    pixt9 = pixCreateTemplate(pixs);
-    pixDilateBrickDwa(pixt9, pixs, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt9, &same);
+    pix9 = pixCreateTemplate(pixs);
+    pixDilateBrickDwa(pix9, pixs, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix9, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt9 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix9 !\n"); ok = FALSE;
     }
-    pixt10 = pixCopy(NULL, pixs);
-    pixDilateBrickDwa(pixt10, pixt10, WIDTH, HEIGHT);  /* in-place */
-    pixEqual(pixref, pixt10, &same);
+    pix10 = pixCopy(NULL, pixs);
+    pixDilateBrickDwa(pix10, pix10, WIDTH, HEIGHT);  /* in-place */
+    pixEqual(pixref, pix10, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt10 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix10 !\n"); ok = FALSE;
     }
-    pixt11 = pixCreateTemplate(pixs);
-    pixDilateCompBrickDwa(pixt11, pixs, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt11, &same);
+    pix11 = pixCreateTemplate(pixs);
+    pixDilateCompBrickDwa(pix11, pixs, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix11, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt11 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix11 !\n"); ok = FALSE;
     }
     sprintf(sequence, "d%d.%d", WIDTH, HEIGHT);
-    pixt12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
-    pixEqual(pixref, pixt12, &same);
+    pix12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
+    pixEqual(pixref, pix12, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt12!\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix12!\n"); ok = FALSE;
     }
-    pixt13 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
-    pixEqual(pixref, pixt13, &same);
+    pix13 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
+    pixEqual(pixref, pix13, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt13!\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix13!\n"); ok = FALSE;
     }
     pixDestroy(&pixref);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixt3);
-    pixDestroy(&pixt4);
-    pixDestroy(&pixt5);
-    pixDestroy(&pixt6);
-    pixDestroy(&pixt7);
-    pixDestroy(&pixt8);
-    pixDestroy(&pixt9);
-    pixDestroy(&pixt10);
-    pixDestroy(&pixt11);
-    pixDestroy(&pixt12);
-    pixDestroy(&pixt13);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+    pixDestroy(&pix5);
+    pixDestroy(&pix6);
+    pixDestroy(&pix7);
+    pixDestroy(&pix8);
+    pixDestroy(&pix9);
+    pixDestroy(&pix10);
+    pixDestroy(&pix11);
+    pixDestroy(&pix12);
+    pixDestroy(&pix13);
 
         /* Erosion */
     fprintf(stderr, "  Testing erosion\n");
     pixref = pixErode(NULL, pixs, sel);   /* new one */
-    pixt1 = pixCreateTemplate(pixs);
-    pixErode(pixt1, pixs, sel);           /* existing one */
-    pixEqual(pixref, pixt1, &same);
+    pix1 = pixCreateTemplate(pixs);
+    pixErode(pix1, pixs, sel);           /* existing one */
+    pixEqual(pixref, pix1, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt1 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix1 !\n"); ok = FALSE;
     }
-    pixt2 = pixCopy(NULL, pixs);
-    pixErode(pixt2, pixt2, sel);          /* in-place */
-    pixEqual(pixref, pixt2, &same);
+    pix2 = pixCopy(NULL, pixs);
+    pixErode(pix2, pix2, sel);          /* in-place */
+    pixEqual(pixref, pix2, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt2 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
     }
     sprintf(sequence, "e%d.%d", WIDTH, HEIGHT);
-    pixt3 = pixMorphSequence(pixs, sequence, 0);    /* sequence, atomic */
-    pixEqual(pixref, pixt3, &same);
+    pix3 = pixMorphSequence(pixs, sequence, 0);    /* sequence, atomic */
+    pixEqual(pixref, pix3, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt3 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix3 !\n"); ok = FALSE;
     }
     sprintf(sequence, "e%d.1 + e1.%d", WIDTH, HEIGHT);
-    pixt4 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable */
-    pixEqual(pixref, pixt4, &same);
+    pix4 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable */
+    pixEqual(pixref, pix4, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt4 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
     }
-    pixt5 = pixErodeBrick(NULL, pixs, WIDTH, HEIGHT);  /* new one */
-    pixEqual(pixref, pixt5, &same);
+    pix5 = pixErodeBrick(NULL, pixs, WIDTH, HEIGHT);  /* new one */
+    pixEqual(pixref, pix5, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt5 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix5 !\n"); ok = FALSE;
     }
-    pixt6 = pixCreateTemplate(pixs);
-    pixErodeBrick(pixt6, pixs, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt6, &same);
+    pix6 = pixCreateTemplate(pixs);
+    pixErodeBrick(pix6, pixs, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix6, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt6 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix6 !\n"); ok = FALSE;
     }
-    pixt7 = pixCopy(NULL, pixs);
-    pixErodeBrick(pixt7, pixt7, WIDTH, HEIGHT);  /* in-place */
-    pixEqual(pixref, pixt7, &same);
+    pix7 = pixCopy(NULL, pixs);
+    pixErodeBrick(pix7, pix7, WIDTH, HEIGHT);  /* in-place */
+    pixEqual(pixref, pix7, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt7 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix7 !\n"); ok = FALSE;
     }
-    pixt8 = pixErodeBrickDwa(NULL, pixs, WIDTH, HEIGHT);  /* new one */
-    pixEqual(pixref, pixt8, &same);
+    pix8 = pixErodeBrickDwa(NULL, pixs, WIDTH, HEIGHT);  /* new one */
+    pixEqual(pixref, pix8, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt8 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix8 !\n"); ok = FALSE;
     }
-    pixt9 = pixCreateTemplate(pixs);
-    pixErodeBrickDwa(pixt9, pixs, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt9, &same);
+    pix9 = pixCreateTemplate(pixs);
+    pixErodeBrickDwa(pix9, pixs, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix9, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt9 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix9 !\n"); ok = FALSE;
     }
-    pixt10 = pixCopy(NULL, pixs);
-    pixErodeBrickDwa(pixt10, pixt10, WIDTH, HEIGHT);  /* in-place */
-    pixEqual(pixref, pixt10, &same);
+    pix10 = pixCopy(NULL, pixs);
+    pixErodeBrickDwa(pix10, pix10, WIDTH, HEIGHT);  /* in-place */
+    pixEqual(pixref, pix10, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt10 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix10 !\n"); ok = FALSE;
     }
-    pixt11 = pixCreateTemplate(pixs);
-    pixErodeCompBrickDwa(pixt11, pixs, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt11, &same);
+    pix11 = pixCreateTemplate(pixs);
+    pixErodeCompBrickDwa(pix11, pixs, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix11, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt11 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix11 !\n"); ok = FALSE;
     }
 
     sprintf(sequence, "e%d.%d", WIDTH, HEIGHT);
-    pixt12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
-    pixEqual(pixref, pixt12, &same);
+    pix12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
+    pixEqual(pixref, pix12, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt12!\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix12!\n"); ok = FALSE;
     }
-    pixt13 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
-    pixEqual(pixref, pixt13, &same);
+    pix13 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
+    pixEqual(pixref, pix13, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt13!\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix13!\n"); ok = FALSE;
     }
     pixDestroy(&pixref);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixt3);
-    pixDestroy(&pixt4);
-    pixDestroy(&pixt5);
-    pixDestroy(&pixt6);
-    pixDestroy(&pixt7);
-    pixDestroy(&pixt8);
-    pixDestroy(&pixt9);
-    pixDestroy(&pixt10);
-    pixDestroy(&pixt11);
-    pixDestroy(&pixt12);
-    pixDestroy(&pixt13);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+    pixDestroy(&pix5);
+    pixDestroy(&pix6);
+    pixDestroy(&pix7);
+    pixDestroy(&pix8);
+    pixDestroy(&pix9);
+    pixDestroy(&pix10);
+    pixDestroy(&pix11);
+    pixDestroy(&pix12);
+    pixDestroy(&pix13);
 
         /* Opening */
     fprintf(stderr, "  Testing opening\n");
     pixref = pixOpen(NULL, pixs, sel);   /* new one */
-    pixt1 = pixCreateTemplate(pixs);
-    pixOpen(pixt1, pixs, sel);           /* existing one */
-    pixEqual(pixref, pixt1, &same);
+    pix1 = pixCreateTemplate(pixs);
+    pixOpen(pix1, pixs, sel);           /* existing one */
+    pixEqual(pixref, pix1, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt1 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix1 !\n"); ok = FALSE;
     }
-    pixt2 = pixCopy(NULL, pixs);
-    pixOpen(pixt2, pixt2, sel);          /* in-place */
-    pixEqual(pixref, pixt2, &same);
+    pix2 = pixCopy(NULL, pixs);
+    pixOpen(pix2, pix2, sel);          /* in-place */
+    pixEqual(pixref, pix2, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt2 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
     }
     sprintf(sequence, "o%d.%d", WIDTH, HEIGHT);
-    pixt3 = pixMorphSequence(pixs, sequence, 0);    /* sequence, atomic */
-    pixEqual(pixref, pixt3, &same);
+    pix3 = pixMorphSequence(pixs, sequence, 0);    /* sequence, atomic */
+    pixEqual(pixref, pix3, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt3 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix3 !\n"); ok = FALSE;
     }
     sprintf(sequence, "e%d.%d + d%d.%d", WIDTH, HEIGHT, WIDTH, HEIGHT);
-    pixt4 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable */
-    pixEqual(pixref, pixt4, &same);
+    pix4 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable */
+    pixEqual(pixref, pix4, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt4 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
     }
     sprintf(sequence, "e%d.1 + e1.%d + d%d.1 + d1.%d", WIDTH, HEIGHT,
             WIDTH, HEIGHT);
-    pixt5 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable^2 */
-    pixEqual(pixref, pixt5, &same);
+    pix5 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable^2 */
+    pixEqual(pixref, pix5, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt5 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix5 !\n"); ok = FALSE;
     }
-    pixt6 = pixOpenBrick(NULL, pixs, WIDTH, HEIGHT);  /* new one */
-    pixEqual(pixref, pixt6, &same);
+    pix6 = pixOpenBrick(NULL, pixs, WIDTH, HEIGHT);  /* new one */
+    pixEqual(pixref, pix6, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt6 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix6 !\n"); ok = FALSE;
     }
-    pixt7 = pixCreateTemplate(pixs);
-    pixOpenBrick(pixt7, pixs, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt7, &same);
+    pix7 = pixCreateTemplate(pixs);
+    pixOpenBrick(pix7, pixs, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix7, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt7 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix7 !\n"); ok = FALSE;
     }
-    pixt8 = pixCopy(NULL, pixs);  /* in-place */
-    pixOpenBrick(pixt8, pixt8, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt8, &same);
+    pix8 = pixCopy(NULL, pixs);  /* in-place */
+    pixOpenBrick(pix8, pix8, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix8, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt8 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix8 !\n"); ok = FALSE;
     }
-    pixt9 = pixOpenBrickDwa(NULL, pixs, WIDTH, HEIGHT);  /* new one */
-    pixEqual(pixref, pixt9, &same);
+    pix9 = pixOpenBrickDwa(NULL, pixs, WIDTH, HEIGHT);  /* new one */
+    pixEqual(pixref, pix9, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt9 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix9 !\n"); ok = FALSE;
     }
-    pixt10 = pixCreateTemplate(pixs);
-    pixOpenBrickDwa(pixt10, pixs, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt10, &same);
+    pix10 = pixCreateTemplate(pixs);
+    pixOpenBrickDwa(pix10, pixs, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix10, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt10 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix10 !\n"); ok = FALSE;
     }
-    pixt11 = pixCopy(NULL, pixs);
-    pixOpenBrickDwa(pixt11, pixt11, WIDTH, HEIGHT);  /* in-place */
-    pixEqual(pixref, pixt11, &same);
+    pix11 = pixCopy(NULL, pixs);
+    pixOpenBrickDwa(pix11, pix11, WIDTH, HEIGHT);  /* in-place */
+    pixEqual(pixref, pix11, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt11 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix11 !\n"); ok = FALSE;
     }
     sprintf(sequence, "o%d.%d", WIDTH, HEIGHT);
-    pixt12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
-    pixEqual(pixref, pixt12, &same);
+    pix12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
+    pixEqual(pixref, pix12, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt12!\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix12!\n"); ok = FALSE;
     }
 
-    pixt13 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
-    pixEqual(pixref, pixt13, &same);
+    pix13 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
+    pixEqual(pixref, pix13, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt13!\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix13!\n"); ok = FALSE;
     }
-    pixt14 = pixCreateTemplate(pixs);
-    pixOpenCompBrickDwa(pixt14, pixs, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt14, &same);
+    pix14 = pixCreateTemplate(pixs);
+    pixOpenCompBrickDwa(pix14, pixs, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix14, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt14 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix14 !\n"); ok = FALSE;
     }
 
     pixDestroy(&pixref);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixt3);
-    pixDestroy(&pixt4);
-    pixDestroy(&pixt5);
-    pixDestroy(&pixt6);
-    pixDestroy(&pixt7);
-    pixDestroy(&pixt8);
-    pixDestroy(&pixt9);
-    pixDestroy(&pixt10);
-    pixDestroy(&pixt11);
-    pixDestroy(&pixt12);
-    pixDestroy(&pixt13);
-    pixDestroy(&pixt14);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+    pixDestroy(&pix5);
+    pixDestroy(&pix6);
+    pixDestroy(&pix7);
+    pixDestroy(&pix8);
+    pixDestroy(&pix9);
+    pixDestroy(&pix10);
+    pixDestroy(&pix11);
+    pixDestroy(&pix12);
+    pixDestroy(&pix13);
+    pixDestroy(&pix14);
 
         /* Closing */
     fprintf(stderr, "  Testing closing\n");
     pixref = pixClose(NULL, pixs, sel);   /* new one */
-    pixt1 = pixCreateTemplate(pixs);
-    pixClose(pixt1, pixs, sel);           /* existing one */
-    pixEqual(pixref, pixt1, &same);
+    pix1 = pixCreateTemplate(pixs);
+    pixClose(pix1, pixs, sel);           /* existing one */
+    pixEqual(pixref, pix1, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt1 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix1 !\n"); ok = FALSE;
     }
-    pixt2 = pixCopy(NULL, pixs);
-    pixClose(pixt2, pixt2, sel);          /* in-place */
-    pixEqual(pixref, pixt2, &same);
+    pix2 = pixCopy(NULL, pixs);
+    pixClose(pix2, pix2, sel);          /* in-place */
+    pixEqual(pixref, pix2, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt2 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
     }
     sprintf(sequence, "d%d.%d + e%d.%d", WIDTH, HEIGHT, WIDTH, HEIGHT);
-    pixt3 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable */
-    pixEqual(pixref, pixt3, &same);
+    pix3 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable */
+    pixEqual(pixref, pix3, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt3 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix3 !\n"); ok = FALSE;
     }
     sprintf(sequence, "d%d.1 + d1.%d + e%d.1 + e1.%d", WIDTH, HEIGHT,
             WIDTH, HEIGHT);
-    pixt4 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable^2 */
-    pixEqual(pixref, pixt4, &same);
+    pix4 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable^2 */
+    pixEqual(pixref, pix4, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt4 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
     }
-    pixt5 = pixCloseBrick(NULL, pixs, WIDTH, HEIGHT);  /* new one */
-    pixEqual(pixref, pixt5, &same);
+    pix5 = pixCloseBrick(NULL, pixs, WIDTH, HEIGHT);  /* new one */
+    pixEqual(pixref, pix5, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt5 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix5 !\n"); ok = FALSE;
     }
-    pixt6 = pixCreateTemplate(pixs);
-    pixCloseBrick(pixt6, pixs, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt6, &same);
+    pix6 = pixCreateTemplate(pixs);
+    pixCloseBrick(pix6, pixs, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix6, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt6 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix6 !\n"); ok = FALSE;
     }
-    pixt7 = pixCopy(NULL, pixs);  /* in-place */
-    pixCloseBrick(pixt7, pixt7, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt7, &same);
+    pix7 = pixCopy(NULL, pixs);  /* in-place */
+    pixCloseBrick(pix7, pix7, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix7, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt7 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix7 !\n"); ok = FALSE;
     }
     pixDestroy(&pixref);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixt3);
-    pixDestroy(&pixt4);
-    pixDestroy(&pixt5);
-    pixDestroy(&pixt6);
-    pixDestroy(&pixt7);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+    pixDestroy(&pix5);
+    pixDestroy(&pix6);
+    pixDestroy(&pix7);
 
         /* Safe closing (using pix, not pixs) */
     fprintf(stderr, "  Testing safe closing\n");
     pixref = pixCloseSafe(NULL, pixs, sel);   /* new one */
-    pixt1 = pixCreateTemplate(pixs);
-    pixCloseSafe(pixt1, pixs, sel);           /* existing one */
-    pixEqual(pixref, pixt1, &same);
+    pix1 = pixCreateTemplate(pixs);
+    pixCloseSafe(pix1, pixs, sel);           /* existing one */
+    pixEqual(pixref, pix1, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt1 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix1 !\n"); ok = FALSE;
     }
-    pixt2 = pixCopy(NULL, pixs);
-    pixCloseSafe(pixt2, pixt2, sel);          /* in-place */
-    pixEqual(pixref, pixt2, &same);
+    pix2 = pixCopy(NULL, pixs);
+    pixCloseSafe(pix2, pix2, sel);          /* in-place */
+    pixEqual(pixref, pix2, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt2 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
     }
     sprintf(sequence, "c%d.%d", WIDTH, HEIGHT);
-    pixt3 = pixMorphSequence(pixs, sequence, 0);    /* sequence, atomic */
-    pixEqual(pixref, pixt3, &same);
+    pix3 = pixMorphSequence(pixs, sequence, 0);    /* sequence, atomic */
+    pixEqual(pixref, pix3, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt3 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix3 !\n"); ok = FALSE;
     }
     sprintf(sequence, "b32 + d%d.%d + e%d.%d", WIDTH, HEIGHT, WIDTH, HEIGHT);
-    pixt4 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable */
-    pixEqual(pixref, pixt4, &same);
+    pix4 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable */
+    pixEqual(pixref, pix4, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt4 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
     }
     sprintf(sequence, "b32 + d%d.1 + d1.%d + e%d.1 + e1.%d", WIDTH, HEIGHT,
             WIDTH, HEIGHT);
-    pixt5 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable^2 */
-    pixEqual(pixref, pixt5, &same);
+    pix5 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable^2 */
+    pixEqual(pixref, pix5, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt5 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix5 !\n"); ok = FALSE;
     }
-    pixt6 = pixCloseSafeBrick(NULL, pixs, WIDTH, HEIGHT);  /* new one */
-    pixEqual(pixref, pixt6, &same);
+    pix6 = pixCloseSafeBrick(NULL, pixs, WIDTH, HEIGHT);  /* new one */
+    pixEqual(pixref, pix6, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt6 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix6 !\n"); ok = FALSE;
     }
-    pixt7 = pixCreateTemplate(pixs);
-    pixCloseSafeBrick(pixt7, pixs, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt7, &same);
+    pix7 = pixCreateTemplate(pixs);
+    pixCloseSafeBrick(pix7, pixs, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix7, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt7 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix7 !\n"); ok = FALSE;
     }
-    pixt8 = pixCopy(NULL, pixs);  /* in-place */
-    pixCloseSafeBrick(pixt8, pixt8, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt8, &same);
+    pix8 = pixCopy(NULL, pixs);  /* in-place */
+    pixCloseSafeBrick(pix8, pix8, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix8, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt8 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix8 !\n"); ok = FALSE;
     }
-    pixt9 = pixCloseBrickDwa(NULL, pixs, WIDTH, HEIGHT);  /* new one */
-    pixEqual(pixref, pixt9, &same);
+    pix9 = pixCloseBrickDwa(NULL, pixs, WIDTH, HEIGHT);  /* new one */
+    pixEqual(pixref, pix9, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt9 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix9 !\n"); ok = FALSE;
     }
-    pixt10 = pixCreateTemplate(pixs);
-    pixCloseBrickDwa(pixt10, pixs, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt10, &same);
+    pix10 = pixCreateTemplate(pixs);
+    pixCloseBrickDwa(pix10, pixs, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix10, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt10 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix10 !\n"); ok = FALSE;
     }
-    pixt11 = pixCopy(NULL, pixs);
-    pixCloseBrickDwa(pixt11, pixt11, WIDTH, HEIGHT);  /* in-place */
-    pixEqual(pixref, pixt11, &same);
+    pix11 = pixCopy(NULL, pixs);
+    pixCloseBrickDwa(pix11, pix11, WIDTH, HEIGHT);  /* in-place */
+    pixEqual(pixref, pix11, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt11 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix11 !\n"); ok = FALSE;
     }
     sprintf(sequence, "c%d.%d", WIDTH, HEIGHT);
-    pixt12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
-    pixEqual(pixref, pixt12, &same);
+    pix12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
+    pixEqual(pixref, pix12, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt12!\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix12!\n"); ok = FALSE;
     }
-    pixt13 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
-    pixEqual(pixref, pixt13, &same);
+    pix13 = pixMorphSequenceDwa(pixs, sequence, 0);    /* dwa sequence */
+    pixEqual(pixref, pix13, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt13!\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix13!\n"); ok = FALSE;
     }
-    pixt14 = pixCreateTemplate(pixs);
-    pixCloseCompBrickDwa(pixt14, pixs, WIDTH, HEIGHT);  /* existing one */
-    pixEqual(pixref, pixt14, &same);
+    pix14 = pixCreateTemplate(pixs);
+    pixCloseCompBrickDwa(pix14, pixs, WIDTH, HEIGHT);  /* existing one */
+    pixEqual(pixref, pix14, &same);
     if (!same) {
-        fprintf(stderr, "pixref != pixt14 !\n"); ok = FALSE;
+        fprintf(stderr, "pixref != pix14 !\n"); ok = FALSE;
     }
 
     pixDestroy(&pixref);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixt3);
-    pixDestroy(&pixt4);
-    pixDestroy(&pixt5);
-    pixDestroy(&pixt6);
-    pixDestroy(&pixt7);
-    pixDestroy(&pixt8);
-    pixDestroy(&pixt9);
-    pixDestroy(&pixt10);
-    pixDestroy(&pixt11);
-    pixDestroy(&pixt12);
-    pixDestroy(&pixt13);
-    pixDestroy(&pixt14);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+    pixDestroy(&pix5);
+    pixDestroy(&pix6);
+    pixDestroy(&pix7);
+    pixDestroy(&pix8);
+    pixDestroy(&pix9);
+    pixDestroy(&pix10);
+    pixDestroy(&pix11);
+    pixDestroy(&pix12);
+    pixDestroy(&pix13);
+    pixDestroy(&pix14);
 
     regTestCompareValues(rp, TRUE, ok, 0);
     if (ok)

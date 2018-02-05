@@ -75,7 +75,7 @@ char        *selnameh, *selnamev;
 l_int32      ok, same, w, h, i, bordercolor, extraborder;
 l_int32      width[3] = {21, 1, 21};
 l_int32      height[3] = {1, 7, 7};
-PIX         *pixref, *pixt0, *pixt1, *pixt2, *pixt3, *pixt4;
+PIX         *pixref, *pix0, *pix1, *pix2, *pix3, *pix4;
 SEL         *sel;
 SELA        *sela;
 
@@ -120,141 +120,141 @@ SELA        *sela;
             /* ----------------- Dilation ----------------- */
         fprintf(stderr, "Testing dilation\n");
         pixref = pixDilate(NULL, pixs, sel);
-        pixt1 = pixDilateBrickDwa(NULL, pixs, w, h);
-        pixEqual(pixref, pixt1, &same);
+        pix1 = pixDilateBrickDwa(NULL, pixs, w, h);
+        pixEqual(pixref, pix1, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pixt1 !\n"); ok = FALSE;
+            fprintf(stderr, "pixref != pix1 !\n"); ok = FALSE;
         }
-        pixDestroy(&pixt1);
+        pixDestroy(&pix1);
 
         if (w > 1)
-            pixt1 = pixMorphDwa_1(NULL, pixs, L_MORPH_DILATE, selnameh);
+            pix1 = pixMorphDwa_1(NULL, pixs, L_MORPH_DILATE, selnameh);
         else
-            pixt1 = pixClone(pixs);
+            pix1 = pixClone(pixs);
         if (h > 1)
-            pixt2 = pixMorphDwa_1(NULL, pixt1, L_MORPH_DILATE, selnamev);
+            pix2 = pixMorphDwa_1(NULL, pix1, L_MORPH_DILATE, selnamev);
         else
-            pixt2 = pixClone(pixt1);
-        pixEqual(pixref, pixt2, &same);
+            pix2 = pixClone(pix1);
+        pixEqual(pixref, pix2, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pixt2 !\n"); ok = FALSE;
+            fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
         }
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
 
-        pixt1 = pixAddBorder(pixs, 32, 0);
+        pix1 = pixAddBorder(pixs, 32, 0);
         if (w > 1)
-            pixt2 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_DILATE, selnameh);
+            pix2 = pixFMorphopGen_1(NULL, pix1, L_MORPH_DILATE, selnameh);
         else
-            pixt2 = pixClone(pixt1);
+            pix2 = pixClone(pix1);
         if (h > 1)
-            pixt3 = pixFMorphopGen_1(NULL, pixt2, L_MORPH_DILATE, selnamev);
+            pix3 = pixFMorphopGen_1(NULL, pix2, L_MORPH_DILATE, selnamev);
         else
-            pixt3 = pixClone(pixt2);
-        pixt4 = pixRemoveBorder(pixt3, 32);
-        pixEqual(pixref, pixt4, &same);
+            pix3 = pixClone(pix2);
+        pix4 = pixRemoveBorder(pix3, 32);
+        pixEqual(pixref, pix4, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pixt4 !\n"); ok = FALSE;
+            fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
         }
         pixDestroy(&pixref);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
-        pixDestroy(&pixt3);
-        pixDestroy(&pixt4);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
+        pixDestroy(&pix3);
+        pixDestroy(&pix4);
 
             /* ----------------- Erosion ----------------- */
         fprintf(stderr, "Testing erosion\n");
         pixref = pixErode(NULL, pixs, sel);
-        pixt1 = pixErodeBrickDwa(NULL, pixs, w, h);
-        pixEqual(pixref, pixt1, &same);
+        pix1 = pixErodeBrickDwa(NULL, pixs, w, h);
+        pixEqual(pixref, pix1, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pixt1 !\n"); ok = FALSE;
+            fprintf(stderr, "pixref != pix1 !\n"); ok = FALSE;
         }
-        pixDestroy(&pixt1);
+        pixDestroy(&pix1);
 
         if (w > 1)
-            pixt1 = pixMorphDwa_1(NULL, pixs, L_MORPH_ERODE, selnameh);
+            pix1 = pixMorphDwa_1(NULL, pixs, L_MORPH_ERODE, selnameh);
         else
-            pixt1 = pixClone(pixs);
+            pix1 = pixClone(pixs);
         if (h > 1)
-            pixt2 = pixMorphDwa_1(NULL, pixt1, L_MORPH_ERODE, selnamev);
+            pix2 = pixMorphDwa_1(NULL, pix1, L_MORPH_ERODE, selnamev);
         else
-            pixt2 = pixClone(pixt1);
-        pixEqual(pixref, pixt2, &same);
+            pix2 = pixClone(pix1);
+        pixEqual(pixref, pix2, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pixt2 !\n"); ok = FALSE;
+            fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
         }
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
 
-        pixt1 = pixAddBorder(pixs, 32, 0);
+        pix1 = pixAddBorder(pixs, 32, 0);
         if (w > 1)
-            pixt2 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_ERODE, selnameh);
+            pix2 = pixFMorphopGen_1(NULL, pix1, L_MORPH_ERODE, selnameh);
         else
-            pixt2 = pixClone(pixt1);
+            pix2 = pixClone(pix1);
         if (h > 1)
-            pixt3 = pixFMorphopGen_1(NULL, pixt2, L_MORPH_ERODE, selnamev);
+            pix3 = pixFMorphopGen_1(NULL, pix2, L_MORPH_ERODE, selnamev);
         else
-            pixt3 = pixClone(pixt2);
-        pixt4 = pixRemoveBorder(pixt3, 32);
-        pixEqual(pixref, pixt4, &same);
+            pix3 = pixClone(pix2);
+        pix4 = pixRemoveBorder(pix3, 32);
+        pixEqual(pixref, pix4, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pixt4 !\n"); ok = FALSE;
+            fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
         }
         pixDestroy(&pixref);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
-        pixDestroy(&pixt3);
-        pixDestroy(&pixt4);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
+        pixDestroy(&pix3);
+        pixDestroy(&pix4);
 
             /* ----------------- Opening ----------------- */
         fprintf(stderr, "Testing opening\n");
         pixref = pixOpen(NULL, pixs, sel);
-        pixt1 = pixOpenBrickDwa(NULL, pixs, w, h);
-        pixEqual(pixref, pixt1, &same);
+        pix1 = pixOpenBrickDwa(NULL, pixs, w, h);
+        pixEqual(pixref, pix1, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pixt1 !\n"); ok = FALSE;
+            fprintf(stderr, "pixref != pix1 !\n"); ok = FALSE;
         }
-        pixDestroy(&pixt1);
+        pixDestroy(&pix1);
 
         if (h == 1)
-            pixt2 = pixMorphDwa_1(NULL, pixs, L_MORPH_OPEN, selnameh);
+            pix2 = pixMorphDwa_1(NULL, pixs, L_MORPH_OPEN, selnameh);
         else if (w == 1)
-            pixt2 = pixMorphDwa_1(NULL, pixs, L_MORPH_OPEN, selnamev);
+            pix2 = pixMorphDwa_1(NULL, pixs, L_MORPH_OPEN, selnamev);
         else {
-            pixt1 = pixMorphDwa_1(NULL, pixs, L_MORPH_ERODE, selnameh);
-            pixt2 = pixMorphDwa_1(NULL, pixt1, L_MORPH_ERODE, selnamev);
-            pixMorphDwa_1(pixt1, pixt2, L_MORPH_DILATE, selnameh);
-            pixMorphDwa_1(pixt2, pixt1, L_MORPH_DILATE, selnamev);
-            pixDestroy(&pixt1);
+            pix1 = pixMorphDwa_1(NULL, pixs, L_MORPH_ERODE, selnameh);
+            pix2 = pixMorphDwa_1(NULL, pix1, L_MORPH_ERODE, selnamev);
+            pixMorphDwa_1(pix1, pix2, L_MORPH_DILATE, selnameh);
+            pixMorphDwa_1(pix2, pix1, L_MORPH_DILATE, selnamev);
+            pixDestroy(&pix1);
         }
-        pixEqual(pixref, pixt2, &same);
+        pixEqual(pixref, pix2, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pixt2 !\n"); ok = FALSE;
+            fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
         }
-        pixDestroy(&pixt2);
+        pixDestroy(&pix2);
 
-        pixt1 = pixAddBorder(pixs, 32, 0);
+        pix1 = pixAddBorder(pixs, 32, 0);
         if (h == 1)
-            pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_OPEN, selnameh);
+            pix3 = pixFMorphopGen_1(NULL, pix1, L_MORPH_OPEN, selnameh);
         else if (w == 1)
-            pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_OPEN, selnamev);
+            pix3 = pixFMorphopGen_1(NULL, pix1, L_MORPH_OPEN, selnamev);
         else {
-            pixt2 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_ERODE, selnameh);
-            pixt3 = pixFMorphopGen_1(NULL, pixt2, L_MORPH_ERODE, selnamev);
-            pixFMorphopGen_1(pixt2, pixt3, L_MORPH_DILATE, selnameh);
-            pixFMorphopGen_1(pixt3, pixt2, L_MORPH_DILATE, selnamev);
-            pixDestroy(&pixt2);
+            pix2 = pixFMorphopGen_1(NULL, pix1, L_MORPH_ERODE, selnameh);
+            pix3 = pixFMorphopGen_1(NULL, pix2, L_MORPH_ERODE, selnamev);
+            pixFMorphopGen_1(pix2, pix3, L_MORPH_DILATE, selnameh);
+            pixFMorphopGen_1(pix3, pix2, L_MORPH_DILATE, selnamev);
+            pixDestroy(&pix2);
         }
-        pixt4 = pixRemoveBorder(pixt3, 32);
-        pixEqual(pixref, pixt4, &same);
+        pix4 = pixRemoveBorder(pix3, 32);
+        pixEqual(pixref, pix4, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pixt4 !\n"); ok = FALSE;
+            fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
         }
         pixDestroy(&pixref);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt3);
-        pixDestroy(&pixt4);
+        pixDestroy(&pix1);
+        pixDestroy(&pix3);
+        pixDestroy(&pix4);
 
             /* ----------------- Closing ----------------- */
         fprintf(stderr, "Testing closing\n");
@@ -263,68 +263,68 @@ SELA        *sela;
             /* Note: L_MORPH_CLOSE for h==1 or w==1 gives safe closing,
              * so we can't use it here. */
         if (h == 1) {
-            pixt1 = pixMorphDwa_1(NULL, pixs, L_MORPH_DILATE, selnameh);
-            pixt2 = pixMorphDwa_1(NULL, pixt1, L_MORPH_ERODE, selnameh);
+            pix1 = pixMorphDwa_1(NULL, pixs, L_MORPH_DILATE, selnameh);
+            pix2 = pixMorphDwa_1(NULL, pix1, L_MORPH_ERODE, selnameh);
         }
         else if (w == 1) {
-            pixt1 = pixMorphDwa_1(NULL, pixs, L_MORPH_DILATE, selnamev);
-            pixt2 = pixMorphDwa_1(NULL, pixt1, L_MORPH_ERODE, selnamev);
+            pix1 = pixMorphDwa_1(NULL, pixs, L_MORPH_DILATE, selnamev);
+            pix2 = pixMorphDwa_1(NULL, pix1, L_MORPH_ERODE, selnamev);
         }
         else {
-            pixt1 = pixMorphDwa_1(NULL, pixs, L_MORPH_DILATE, selnameh);
-            pixt2 = pixMorphDwa_1(NULL, pixt1, L_MORPH_DILATE, selnamev);
-            pixMorphDwa_1(pixt1, pixt2, L_MORPH_ERODE, selnameh);
-            pixMorphDwa_1(pixt2, pixt1, L_MORPH_ERODE, selnamev);
+            pix1 = pixMorphDwa_1(NULL, pixs, L_MORPH_DILATE, selnameh);
+            pix2 = pixMorphDwa_1(NULL, pix1, L_MORPH_DILATE, selnamev);
+            pixMorphDwa_1(pix1, pix2, L_MORPH_ERODE, selnameh);
+            pixMorphDwa_1(pix2, pix1, L_MORPH_ERODE, selnamev);
         }
-        pixDestroy(&pixt1);
-        pixEqual(pixref, pixt2, &same);
+        pixDestroy(&pix1);
+        pixEqual(pixref, pix2, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pixt2 !\n"); ok = FALSE;
+            fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
         }
-        pixDestroy(&pixt2);
+        pixDestroy(&pix2);
 
             /* Note: by adding only 32 pixels of border, we get
              * the normal closing operation, even when calling
              * with L_MORPH_CLOSE, because it requires 32 pixels
              * of border to be safe. */
-        pixt1 = pixAddBorder(pixs, 32, 0);
+        pix1 = pixAddBorder(pixs, 32, 0);
         if (h == 1)
-            pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_CLOSE, selnameh);
+            pix3 = pixFMorphopGen_1(NULL, pix1, L_MORPH_CLOSE, selnameh);
         else if (w == 1)
-            pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_CLOSE, selnamev);
+            pix3 = pixFMorphopGen_1(NULL, pix1, L_MORPH_CLOSE, selnamev);
         else {
-            pixt2 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_DILATE, selnameh);
-            pixt3 = pixFMorphopGen_1(NULL, pixt2, L_MORPH_DILATE, selnamev);
-            pixFMorphopGen_1(pixt2, pixt3, L_MORPH_ERODE, selnameh);
-            pixFMorphopGen_1(pixt3, pixt2, L_MORPH_ERODE, selnamev);
-            pixDestroy(&pixt2);
+            pix2 = pixFMorphopGen_1(NULL, pix1, L_MORPH_DILATE, selnameh);
+            pix3 = pixFMorphopGen_1(NULL, pix2, L_MORPH_DILATE, selnamev);
+            pixFMorphopGen_1(pix2, pix3, L_MORPH_ERODE, selnameh);
+            pixFMorphopGen_1(pix3, pix2, L_MORPH_ERODE, selnamev);
+            pixDestroy(&pix2);
         }
-        pixt4 = pixRemoveBorder(pixt3, 32);
-        pixEqual(pixref, pixt4, &same);
+        pix4 = pixRemoveBorder(pix3, 32);
+        pixEqual(pixref, pix4, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pixt4 !\n"); ok = FALSE;
+            fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
         }
         pixDestroy(&pixref);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt3);
-        pixDestroy(&pixt4);
+        pixDestroy(&pix1);
+        pixDestroy(&pix3);
+        pixDestroy(&pix4);
 
             /* ------------- Safe Closing ----------------- */
         fprintf(stderr, "Testing safe closing\n");
         pixref = pixCloseSafe(NULL, pixs, sel);
-        pixt0 = pixCloseSafeBrick(NULL, pixs, w, h);
-        pixEqual(pixref, pixt0, &same);
+        pix0 = pixCloseSafeBrick(NULL, pixs, w, h);
+        pixEqual(pixref, pix0, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pixt0 !\n"); ok = FALSE;
+            fprintf(stderr, "pixref != pix0 !\n"); ok = FALSE;
         }
-        pixDestroy(&pixt0);
+        pixDestroy(&pix0);
 
-        pixt1 = pixCloseBrickDwa(NULL, pixs, w, h);
-        pixEqual(pixref, pixt1, &same);
+        pix1 = pixCloseBrickDwa(NULL, pixs, w, h);
+        pixEqual(pixref, pix1, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pixt1 !\n"); ok = FALSE;
+            fprintf(stderr, "pixref != pix1 !\n"); ok = FALSE;
         }
-        pixDestroy(&pixt1);
+        pixDestroy(&pix1);
 
         bordercolor = getMorphBorderPixelColor(L_MORPH_ERODE, 1);
         if (bordercolor == 0)   /* asymmetric b.c. */
@@ -343,47 +343,47 @@ SELA        *sela;
              * 64 bit border and then uses the lower-level
              * pixFMorphopGen_*() functions. */
         if (h == 1)
-            pixt3 = pixMorphDwa_1(NULL, pixs, L_MORPH_CLOSE, selnameh);
+            pix3 = pixMorphDwa_1(NULL, pixs, L_MORPH_CLOSE, selnameh);
         else if (w == 1)
-            pixt3 = pixMorphDwa_1(NULL, pixs, L_MORPH_CLOSE, selnamev);
+            pix3 = pixMorphDwa_1(NULL, pixs, L_MORPH_CLOSE, selnamev);
         else {
-            pixt0 = pixAddBorder(pixs, extraborder, 0);
-            pixt1 = pixMorphDwa_1(NULL, pixt0, L_MORPH_DILATE, selnameh);
-            pixt2 = pixMorphDwa_1(NULL, pixt1, L_MORPH_DILATE, selnamev);
-            pixMorphDwa_1(pixt1, pixt2, L_MORPH_ERODE, selnameh);
-            pixMorphDwa_1(pixt2, pixt1, L_MORPH_ERODE, selnamev);
-            pixt3 = pixRemoveBorder(pixt2, extraborder);
-            pixDestroy(&pixt0);
-            pixDestroy(&pixt1);
-            pixDestroy(&pixt2);
+            pix0 = pixAddBorder(pixs, extraborder, 0);
+            pix1 = pixMorphDwa_1(NULL, pix0, L_MORPH_DILATE, selnameh);
+            pix2 = pixMorphDwa_1(NULL, pix1, L_MORPH_DILATE, selnamev);
+            pixMorphDwa_1(pix1, pix2, L_MORPH_ERODE, selnameh);
+            pixMorphDwa_1(pix2, pix1, L_MORPH_ERODE, selnamev);
+            pix3 = pixRemoveBorder(pix2, extraborder);
+            pixDestroy(&pix0);
+            pixDestroy(&pix1);
+            pixDestroy(&pix2);
         }
-        pixEqual(pixref, pixt3, &same);
+        pixEqual(pixref, pix3, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pixt3 !\n"); ok = FALSE;
+            fprintf(stderr, "pixref != pix3 !\n"); ok = FALSE;
         }
-        pixDestroy(&pixt3);
+        pixDestroy(&pix3);
 
-        pixt1 = pixAddBorder(pixs, 32 + extraborder, 0);
+        pix1 = pixAddBorder(pixs, 32 + extraborder, 0);
         if (h == 1)
-            pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_CLOSE, selnameh);
+            pix3 = pixFMorphopGen_1(NULL, pix1, L_MORPH_CLOSE, selnameh);
         else if (w == 1)
-            pixt3 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_CLOSE, selnamev);
+            pix3 = pixFMorphopGen_1(NULL, pix1, L_MORPH_CLOSE, selnamev);
         else {
-            pixt2 = pixFMorphopGen_1(NULL, pixt1, L_MORPH_DILATE, selnameh);
-            pixt3 = pixFMorphopGen_1(NULL, pixt2, L_MORPH_DILATE, selnamev);
-            pixFMorphopGen_1(pixt2, pixt3, L_MORPH_ERODE, selnameh);
-            pixFMorphopGen_1(pixt3, pixt2, L_MORPH_ERODE, selnamev);
-            pixDestroy(&pixt2);
+            pix2 = pixFMorphopGen_1(NULL, pix1, L_MORPH_DILATE, selnameh);
+            pix3 = pixFMorphopGen_1(NULL, pix2, L_MORPH_DILATE, selnamev);
+            pixFMorphopGen_1(pix2, pix3, L_MORPH_ERODE, selnameh);
+            pixFMorphopGen_1(pix3, pix2, L_MORPH_ERODE, selnamev);
+            pixDestroy(&pix2);
         }
-        pixt4 = pixRemoveBorder(pixt3, 32 + extraborder);
-        pixEqual(pixref, pixt4, &same);
+        pix4 = pixRemoveBorder(pix3, 32 + extraborder);
+        pixEqual(pixref, pix4, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pixt4 !\n"); ok = FALSE;
+            fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
         }
         pixDestroy(&pixref);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt3);
-        pixDestroy(&pixt4);
+        pixDestroy(&pix1);
+        pixDestroy(&pix3);
+        pixDestroy(&pix4);
 
         regTestCompareValues(rp, TRUE, ok, 0);
         if (ok)

@@ -32,25 +32,24 @@
  */
 
 #include <math.h>
-#ifndef  _WIN32
-#include <unistd.h>
-#else
-#include <windows.h>   /* for Sleep() */
-#endif  /* _WIN32 */
 #include "allheaders.h"
 
 int main(int    argc,
          char **argv)
 {
+l_uint8      *data;
+size_t        size;
 l_int32       i, ival, n;
 l_float32     f, val;
 GPLOT        *gplot;
 NUMA         *na1, *na2, *na3;
-PIX          *pixt;
+PIX          *pix1;
 L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &rp))
         return 1;
+
+    lept_mkdir("lept/extrema");
 
         /* Generate a 1D signal and plot it */
     na1 = numaCreate(500);
@@ -59,7 +58,8 @@ L_REGPARAMS  *rp;
         f += 63.4 * cos(0.21 * (l_float32)i);
         numaAddNumber(na1, f);
     }
-    gplot = gplotCreate("/tmp/extrema", GPLOT_PNG, "Extrema test", "x", "y");
+    gplot = gplotCreate("/tmp/lept/extrema/plot", GPLOT_PNG,
+                        "Extrema test", "x", "y");
     gplotAddPlot(gplot, NULL, na1, GPLOT_LINES, "plot 1");
 
         /* Find the local min and max and plot them */
@@ -73,16 +73,17 @@ L_REGPARAMS  *rp;
     }
     gplotAddPlot(gplot, na2, na3, GPLOT_POINTS, "plot 2");
     gplotMakeOutput(gplot);
-#ifndef  _WIN32
-    sleep(1);
-#else
-    Sleep(1000);
-#endif  /* _WIN32 */
 
-    regTestCheckFile(rp, "/tmp/extrema.png");  /* 0 */
-    pixt = pixRead("/tmp/extrema.png");
-    pixDisplayWithTitle(pixt, 100, 100, "Extrema test", rp->display);
-    pixDestroy(&pixt);
+    numaWriteMem(&data, &size, na2);
+    regTestWriteDataAndCheck(rp, data, size, "na");  /* 0 */
+    lept_free(data);
+
+    regTestCheckFile(rp, "/tmp/lept/extrema/plot.png");  /* 1 */
+    if (rp->display) {
+        pix1 = pixRead("/tmp/lept/extrema/plot.png");
+        pixDisplay(pix1, 100, 100);
+        pixDestroy(&pix1);
+    }
 
     gplotDestroy(&gplot);
     numaDestroy(&na1);

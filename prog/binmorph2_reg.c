@@ -52,7 +52,7 @@ static char  mainName[] = "binmorph2_reg";
     if (argc != 1)
         return ERROR_INT(" Syntax:  binmorph2_reg", mainName, 1);
 
-    pixs = pixRead("rabi.png");
+    pixs = pixRead("feyn-fract.tif");
     pixsd = pixMorphCompSequence(pixs, "d5.5", 0);
     success = TRUE;
     for (i = 1; i < MAX_SEL_SIZE; i++) {
