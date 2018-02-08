@@ -107,7 +107,7 @@ AS_IF([test "x$with_giflib" = xno], [
   ])
 ])
 
-AM_CONDITIONAL([HAVE_LIBGIF], [test "x$ac_cv_lib_gif_DGifOpenFileHandle" = xyes])
+AM_CONDITIONAL([HAVE_LIBGIF], [test "x$giflib_missing" = x])
 
 AS_IF([test "x$with_libtiff" = xno], [
   libtiff_missing=untried
@@ -147,7 +147,7 @@ AS_IF([test "x$with_libwebp" = xno], [
   ])
 ])
 
-AM_CONDITIONAL([HAVE_LIBWEBP], [test "x$ac_cv_lib_webp_WebPGetInfo" = xyes])
+AM_CONDITIONAL([HAVE_LIBWEBP], [test "x$libwebp_missing" = x])
 
 AS_IF([test "x$with_libopenjpeg" = xno], [
   libopenjpeg_missing=untried
@@ -171,7 +171,7 @@ AS_IF([test "x$with_libopenjpeg" = xno], [
   ])
 ])
 
-AM_CONDITIONAL([HAVE_LIBJP2K], [test "x$ac_cv_lib_openjp2_opj_create_decompress" = xyes])
+AM_CONDITIONAL([HAVE_LIBJP2K], [test "x$libopenjpeg_missing" = x])
 
 case "$host_os" in
   mingw32*)
