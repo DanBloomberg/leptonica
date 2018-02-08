@@ -101,7 +101,24 @@ AS_IF([test "x$with_giflib" = xno], [
   AC_CHECK_HEADER([gif_lib.h], [], [giflib_missing=header])
 
   AS_IF([test "x$giflib_missing" = x], [
-    AC_DEFINE([HAVE_LIBGIF], 1, [Define to 1 if you have giflib.]) AC_SUBST([GIFLIB_LIBS], [-lgif])
+    AC_MSG_CHECKING([giflib is at least version 5.1 (but not 5.1.2)])
+    AC_PREPROC_IFELSE([
+      AC_LANG_SOURCE([[
+#include <gif_lib.h>
+#if !defined GIFLIB_MAJOR || GIFLIB_MAJOR < 5 || (GIFLIB_MAJOR == 5 && GIFLIB_MINOR == 0)
+#error giflib version too old
+#elif GIFLIB_MAJOR == 5 && GIFLIB_MINOR == 1 && GIFLIB_RELEASE == 2
+#error giflib 5.1.2 is broken
+#endif
+      ]])
+    ], [
+      AC_MSG_RESULT([yes])
+      AC_DEFINE([HAVE_LIBGIF], 1, [Define to 1 if you have giflib.]) AC_SUBST([GIFLIB_LIBS], [-lgif])
+    ], [
+      AC_MSG_RESULT([no])
+      AS_IF([test "x$with_giflib" = xyes], AC_MSG_ERROR([giflib version too old or broken]))
+      giflib_missing=old
+    ])
   ], [
     AS_IF([test "x$with_giflib" = xyes], AC_MSG_ERROR([giflib support requested but $giflib_missing not found]))
   ])
