@@ -20,7 +20,7 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	convolve_reg dewarp_reg distance_reg \
 	dither_reg dna_reg dwamorph1_reg edge_reg enhance_reg \
 	equal_reg expand_reg extrema_reg \
-	findcorners_reg findpattern_reg \
+	falsecolor_reg findcorners_reg findpattern_reg \
 	fpix1_reg fpix2_reg genfonts_reg \
 	graymorph1_reg graymorph2_reg \
 	grayquant_reg hardlight_reg \
@@ -80,13 +80,11 @@ OTHER_PROGS = adaptmap_dark \
 	dewarprules dewarptest1 dewarptest2 \
 	dewarptest3 dewarptest4 dewarptest5 \
 	digitprep1 displayboxa displayboxes_on_pixa \
-	displaypix displaypixa \
-	dwalineargen falsecolortest \
+	displaypix displaypixa dwalineargen \
 	fcombautogen fhmtautogen findbinding find_colorregions \
 	findpattern1 findpattern2 findpattern3 \
 	flipselgen fmorphautogen \
-	fpixcontours gammatest \
-	gifio_leaktest graphicstest graymorphtest \
+	fpixcontours gammatest graphicstest graymorphtest \
 	hashtest histotest htmlviewer iotest \
 	jbcorrelation jbrankhaus jbwords \
 	listtest livre_adapt livre_hmt \

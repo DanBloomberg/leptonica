@@ -90,6 +90,7 @@ static const char *tests[] = {
                               "equal_reg",
                               "expand_reg",
                               "extrema_reg",
+                              "falsecolor_reg",
                          /*   "files_reg",  */
                               "findcorners_reg",
                               "findpattern_reg",

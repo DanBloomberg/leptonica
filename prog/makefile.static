@@ -154,7 +154,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		dither_reg.c dna_reg.c \
 		dwamorph1_reg.c dwamorph2_reg.c \
 		edge_reg.c enhance_reg.c equal_reg.c \
-		expand_reg.c extrema_reg.c \
+		expand_reg.c extrema_reg.c falsecolor_reg.c \
 		fhmtauto_reg.c files_reg.c \
 		findcorners_reg.c findpattern_reg.c \
 		flipdetect_reg.c fmorphauto_reg.c \
@@ -205,14 +205,13 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		dewarprules.c dewarptest1.c dewarptest2.c \
 		dewarptest3.c dewarptest4.c dewarptest5.c \
 		digitprep1.c displayboxa.c displayboxes_on_pixa.c \
-		displaypix.c displaypixa.c \
-		dwalineargen.c falsecolortest.c \
+		displaypix.c displaypixa.c dwalineargen.c \
 		fcombautogen.c fhmtautogen.c \
 		fileinfo.c findbinding.c find_colorregions.c \
 		findpattern1.c findpattern2.c findpattern3.c \
 		flipselgen.c fmorphautogen.c \
 		fpixcontours.c gammatest.c \
-		gifio_leaktest.c graphicstest.c graymorphtest.c \
+		graphicstest.c graymorphtest.c \
 		hashtest.c histotest.c htmlviewer.c iotest.c \
 		jbcorrelation.c jbrankhaus.c jbwords.c \
 		listtest.c livre_adapt.c livre_hmt.c \
@@ -448,6 +447,9 @@ expand_reg:	expand_reg.o $(LEPTLIB)
 
 extrema_reg:	extrema_reg.o $(LEPTLIB)
 	$(CC) -o extrema_reg extrema_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+falsecolor_reg:	falsecolor_reg.o $(LEPTLIB)
+	$(CC) -o falsecolor_reg falsecolor_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 fhmtauto_reg:	fhmtauto_reg.o $(LEPTLIB)
 	$(CC) -o fhmtauto_reg fhmtauto_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -842,9 +844,6 @@ displaypixa:	displaypixa.o $(LEPTLIB)
 dwalineargen:	dwalineargen.o $(LEPTLIB)
 	$(CC) -o dwalineargen dwalineargen.o $(ALL_LIBS) $(EXTRALIBS)
 
-falsecolortest:	falsecolortest.o $(LEPTLIB)
-	$(CC) -o falsecolortest falsecolortest.o $(ALL_LIBS) $(EXTRALIBS)
-
 fhmtautogen:	fhmtautogen.o $(LEPTLIB)
 	$(CC) -o fhmtautogen fhmtautogen.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -880,9 +879,6 @@ fpixcontours:	fpixcontours.o $(LEPTLIB)
 
 gammatest:	gammatest.o $(LEPTLIB)
 	$(CC) -o gammatest gammatest.o $(ALL_LIBS) $(EXTRALIBS)
-
-gifio_leaktest:	gifio_leaktest.o $(LEPTLIB)
-	$(CC) -o gifio_leaktest gifio_leaktest.o $(ALL_LIBS) $(EXTRALIBS)
 
 graphicstest:	graphicstest.o $(LEPTLIB)
 	$(CC) -o graphicstest graphicstest.o $(ALL_LIBS) $(EXTRALIBS)
