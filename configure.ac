@@ -158,7 +158,7 @@ AS_IF([test "x$with_libopenjpeg" = xno], [
     AC_DEFINE([HAVE_LIBJP2K], 1, [Define to 1 if you have libopenjp2.])
   ], [
     AC_CHECK_LIB([openjp2], [opj_create_decompress], [], [libopenjpeg_missing=library])
-    AC_CHECK_HEADERS([openjpeg-2.2/openjpeg.h openjpeg-2.1/openjpeg.h openjpeg-2.0/openjpeg.h],
+    AC_CHECK_HEADERS([openjpeg-2.3/openjpeg.h openjpeg-2.2/openjpeg.h openjpeg-2.1/openjpeg.h openjpeg-2.0/openjpeg.h],
       [AC_DEFINE_UNQUOTED([LIBJP2K_HEADER], [<$ac_header>], [Path to <openjpeg.h> header file.]) break],
       [libopenjpeg_missing=headers]
     )
