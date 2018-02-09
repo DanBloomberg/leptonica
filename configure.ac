@@ -43,8 +43,8 @@ AS_IF([test "x$with_zlib" = xno], [
   PKG_CHECK_MODULES([ZLIB], [zlib], [
     AC_DEFINE([HAVE_LIBZ], 1, [Define to 1 if you have zlib.])
   ], [
-    AC_CHECK_LIB([z], [deflate], [], [zlib_missing=library])
-    AC_CHECK_HEADER([zlib.h], [], [zlib_missing=header])
+    AC_CHECK_LIB([z], [deflate], [:], [zlib_missing=library])
+    AC_CHECK_HEADER([zlib.h], [:], [zlib_missing=header])
 
     AS_IF([test "x$zlib_missing" = x], [
       AC_DEFINE([HAVE_LIBZ], 1, [Define to 1 if you have zlib.]) AC_SUBST([ZLIB_LIBS], [-lz])
@@ -62,8 +62,8 @@ AS_IF([test "x$with_libpng" = xno], [
   PKG_CHECK_MODULES([LIBPNG], [libpng], [
     AC_DEFINE([HAVE_LIBPNG], 1, [Define to 1 if you have libpng.])
   ], [
-    AC_CHECK_LIB([png], [png_read_png], [], [libpng_missing=library], [$LIBM $ZLIB_LIBS])
-    AC_CHECK_HEADER([png.h], [], [libpng_missing=headers])
+    AC_CHECK_LIB([png], [png_read_png], [:], [libpng_missing=library], [$LIBM $ZLIB_LIBS])
+    AC_CHECK_HEADER([png.h], [:], [libpng_missing=headers])
 
     AS_IF([test "x$libpng_missing" = x], [
       AC_DEFINE([HAVE_LIBPNG], 1, [Define to 1 if you have libpng.]) AC_SUBST([LIBPNG_LIBS], [-lpng])
@@ -81,8 +81,8 @@ AS_IF([test "x$with_jpeg" = xno], [
   PKG_CHECK_MODULES([JPEG], [libjpeg], [
     AC_DEFINE([HAVE_LIBJPEG], 1, [Define to 1 if you have jpeg.])
   ], [
-    AC_CHECK_LIB([jpeg], [jpeg_read_scanlines], [], [jpeg_missing=library])
-    AC_CHECK_HEADER([jpeglib.h], [], [jpeg_missing=headers])
+    AC_CHECK_LIB([jpeg], [jpeg_read_scanlines], [:], [jpeg_missing=library])
+    AC_CHECK_HEADER([jpeglib.h], [:], [jpeg_missing=headers])
 
     AS_IF([test "x$jpeg_missing" = x], [
       AC_DEFINE([HAVE_LIBJPEG], 1, [Define to 1 if you have jpeg.]) AC_SUBST([JPEG_LIBS], [-ljpeg])
@@ -97,8 +97,8 @@ AS_IF([test "x$with_giflib" = xno], [
 ], [
   giflib_missing=
 
-  AC_CHECK_LIB([gif], [DGifOpenFileHandle], [], [giflib_missing=library])
-  AC_CHECK_HEADER([gif_lib.h], [], [giflib_missing=header])
+  AC_CHECK_LIB([gif], [DGifOpenFileHandle], [:], [giflib_missing=library])
+  AC_CHECK_HEADER([gif_lib.h], [:], [giflib_missing=header])
 
   AS_IF([test "x$giflib_missing" = x], [
     AC_MSG_CHECKING([giflib is at least version 5.1 (but not 5.1.2)])
@@ -134,8 +134,8 @@ AS_IF([test "x$with_libtiff" = xno], [
   PKG_CHECK_MODULES([LIBTIFF], [libtiff-4], [
     AC_DEFINE([HAVE_LIBTIFF], 1, [Define to 1 if you have libtiff.])
   ], [
-    AC_CHECK_LIB([tiff], [TIFFOpen], [], [libtiff_missing=library], [$LIBM $ZLIB_LIBS $JPEG_LIBS])
-    AC_CHECK_HEADER([tiff.h], [], [libtiff_missing=headers])
+    AC_CHECK_LIB([tiff], [TIFFOpen], [:], [libtiff_missing=library], [$LIBM $ZLIB_LIBS $JPEG_LIBS])
+    AC_CHECK_HEADER([tiff.h], [:], [libtiff_missing=headers])
 
     AS_IF([test "x$libtiff_missing" = x], [
       AC_DEFINE([HAVE_LIBTIFF], 1, [Define to 1 if you have libtiff.]) AC_SUBST([LIBTIFF_LIBS], [-ltiff])
@@ -153,8 +153,8 @@ AS_IF([test "x$with_libwebp" = xno], [
   PKG_CHECK_MODULES([LIBWEBP], [libwebp], [
     AC_DEFINE([HAVE_LIBWEBP], 1, [Define to 1 if you have libwebp.])
   ], [
-    AC_CHECK_LIB([webp], [WebPGetInfo], [], [libwebp_missing=library], [$LIBM])
-    AC_CHECK_HEADER([webp/encode.h], [], [libwebp_missing=headers])
+    AC_CHECK_LIB([webp], [WebPGetInfo], [:], [libwebp_missing=library], [$LIBM])
+    AC_CHECK_HEADER([webp/encode.h], [:], [libwebp_missing=headers])
 
     AS_IF([test "x$libwebp_missing" = x], [
       AC_DEFINE([HAVE_LIBWEBP], 1, [Define to 1 if you have libwebp.]) AC_SUBST([LIBWEBP_LIBS], [-lwebp])
@@ -174,7 +174,7 @@ AS_IF([test "x$with_libopenjpeg" = xno], [
   PKG_CHECK_MODULES([LIBJP2K], [libopenjp2 >= 2.0.0], [
     AC_DEFINE([HAVE_LIBJP2K], 1, [Define to 1 if you have libopenjp2.])
   ], [
-    AC_CHECK_LIB([openjp2], [opj_create_decompress], [], [libopenjpeg_missing=library])
+    AC_CHECK_LIB([openjp2], [opj_create_decompress], [:], [libopenjpeg_missing=library])
     AC_CHECK_HEADERS([openjpeg-2.3/openjpeg.h openjpeg-2.2/openjpeg.h openjpeg-2.1/openjpeg.h openjpeg-2.0/openjpeg.h],
       [AC_DEFINE_UNQUOTED([LIBJP2K_HEADER], [<$ac_header>], [Path to <openjpeg.h> header file.]) break],
       [libopenjpeg_missing=headers]
