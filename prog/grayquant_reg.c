@@ -122,9 +122,10 @@ L_REGPARAMS  *rp;
 
         /* Optional display */
     if (rp->display) {
+        lept_mkdir("lept/gquant");
         pix1 = pixaDisplayTiled(pixa, 2000, 0, 20);
         pixDisplay(pix1, 100, 100);
-        pixWrite("/tmp/lept/mosaic1.png", pix1, IFF_PNG);
+        pixWrite("/tmp/lept/gquant/mosaic1.png", pix1, IFF_PNG);
         pixDestroy(&pix1);
     }
     pixaDestroy(&pixa);
@@ -206,7 +207,7 @@ L_REGPARAMS  *rp;
     if (rp->display) {
         pix1 = pixaDisplayTiled(pixa, 2000, 0, 20);
         pixDisplay(pix1, 200, 100);
-        pixWrite("/tmp/lept/mosaic2.png", pix1, IFF_PNG);
+        pixWrite("/tmp/lept/gquant/mosaic2.png", pix1, IFF_PNG);
         pixDestroy(&pix1);
     }
     pixaDestroy(&pixa);
@@ -304,7 +305,7 @@ L_REGPARAMS  *rp;
     if (rp->display) {
         pix1 = pixaDisplayTiled(pixa, 2000, 0, 20);
         pixDisplay(pix1, 300, 100);
-        pixWrite("/tmp/lept/mosaic3.png", pix1, IFF_PNG);
+        pixWrite("/tmp/lept/gquant/mosaic3.png", pix1, IFF_PNG);
         pixDestroy(&pix1);
     }
     pixaDestroy(&pixa);
@@ -363,7 +364,7 @@ L_REGPARAMS  *rp;
     if (rp->display) {
         pix1 = pixaDisplayTiled(pixa, 2000, 0, 20);
         pixDisplay(pix1, 400, 100);
-        pixWrite("/tmp/lept/mosaic4.png", pix1, IFF_PNG);
+        pixWrite("/tmp/lept/gquant/mosaic4.png", pix1, IFF_PNG);
         pixDestroy(&pix1);
     }
     pixaDestroy(&pixa);
@@ -374,7 +375,7 @@ L_REGPARAMS  *rp;
         startTimer();
         pix1 = pixScaleGray2xLIThresh(pixs, THRESHOLD);
         fprintf(stderr, " time for scale/dither = %7.3f sec\n", stopTimer());
-        pixWrite("/tmp/lept/upscale1.png", pix1, IFF_PNG);
+        pixWrite("/tmp/lept/gquant/upscale1.png", pix1, IFF_PNG);
         pixDisplay(pix1, 0, 500);
         pixDestroy(&pix1);
 
@@ -382,7 +383,7 @@ L_REGPARAMS  *rp;
         startTimer();
         pix1 = pixScaleGray4xLIThresh(pixs, THRESHOLD);
         fprintf(stderr, " time for scale/dither = %7.3f sec\n", stopTimer());
-        pixWrite("/tmp/lept/upscale2.png", pix1, IFF_PNG);
+        pixWrite("/tmp/lept/gquant/upscale2.png", pix1, IFF_PNG);
         pixDisplay(pix1, 700, 500);
         pixDestroy(&pix1);
         pixDestroy(&pixs);

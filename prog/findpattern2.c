@@ -27,13 +27,11 @@
 /*
  * findpattern2.c
  *
- *    findpattern2
+ *    We use pixGenerateSelRandom() to generate the sels.
  *
- *    This is setup with input parameters to work on feyn.tif.
+ *    This is set up with input parameters to work on feyn.tif.
  *
- *    It uses pixGenerateSelRandom() to generate the sels.
- *
- *    (1) We extract a "c" bitmap, generate a hit-miss sel, and
+ *    (1) We extract a "e" bitmap, generate a hit-miss sel, and
  *    then produce several 4 bpp colormapped renditions,
  *    with the pattern either removed or highlighted.
  *
@@ -59,6 +57,8 @@ static char  mainName[] = "findpattern2";
     if (argc != 1)
         return ERROR_INT(" Syntax:  findpattern2", mainName, 1);
 
+    lept_mkdir("lept/hmt");
+
         /* -------------------------------------------- *
          * Extract the pattern for a single character   *
          * ---------------------------------------------*/
@@ -72,7 +72,7 @@ static char  mainName[] = "findpattern2";
         /* Display the sel */
     pixsel = pixDisplayHitMissSel(pixp, selhm, 7, HitColor, MissColor);
     pixDisplay(pixsel, 200, 200);
-    pixWrite("/tmp/junkpixsel1", pixsel, IFF_PNG);
+    pixWrite("/tmp/lept/hmt/pixsel1.png", pixsel, IFF_PNG);
 
         /* Use the Sel to find all instances in the page */
     startTimer();
@@ -82,18 +82,18 @@ static char  mainName[] = "findpattern2";
         /* Color each instance at full res */
     pixd1 = pixDisplayMatchedPattern(pixs, pixp, pixhmt, selhm->cx,
                                      selhm->cy, 0x0000ff00, 1.0, 5);
-    pixWrite("/tmp/junkpixd11", pixd1, IFF_PNG);
+    pixWrite("/tmp/lept/hmt/pixd11.png", pixd1, IFF_PNG);
 
         /* Color each instance at 0.3 scale */
     pixd2 = pixDisplayMatchedPattern(pixs, pixp, pixhmt, selhm->cx,
                                      selhm->cy, 0x0000ff00, 0.5, 5);
-    pixWrite("/tmp/junkpixd12", pixd2, IFF_PNG);
+    pixWrite("/tmp/lept/hmt/junkpixd12.png", pixd2, IFF_PNG);
 
         /* Remove each instance from the input image */
     pixd3 = pixCopy(NULL, pixs);
     pixRemoveMatchedPattern(pixd3, pixp, pixhmt, selhm->cx,
                                     selhm->cy, 1);
-    pixWrite("/tmp/junkpixr1", pixd3, IFF_PNG);
+    pixWrite("/tmp/lept/hmt/pixr1.png", pixd3, IFF_PNG);
 
     boxDestroy(&box);
     selDestroy(&selhm);
@@ -118,7 +118,7 @@ static char  mainName[] = "findpattern2";
         /* Display the sel */
     pixsel = pixDisplayHitMissSel(pixp, selhm, 7, HitColor, MissColor);
     pixDisplay(pixsel, 200, 200);
-    pixWrite("/tmp/junkpixsel2", pixsel, IFF_PNG);
+    pixWrite("/tmp/lept/hmt/pixsel2.png", pixsel, IFF_PNG);
 
         /* Use the Sel to find all instances in the page */
     startTimer();
@@ -128,18 +128,18 @@ static char  mainName[] = "findpattern2";
         /* Color each instance at full res */
     pixd1 = pixDisplayMatchedPattern(pixs, pixp, pixhmt, selhm->cx,
                                      selhm->cy, 0x0000ff00, 1.0, 5);
-    pixWrite("/tmp/junkpixd21", pixd1, IFF_PNG);
+    pixWrite("/tmp/lept/hmt/pixd21.png", pixd1, IFF_PNG);
 
         /* Color each instance at 0.3 scale */
     pixd2 = pixDisplayMatchedPattern(pixs, pixp, pixhmt, selhm->cx,
                                      selhm->cy, 0x0000ff00, 0.5, 5);
-    pixWrite("/tmp/junkpixd22", pixd2, IFF_PNG);
+    pixWrite("/tmp/lept/hmt/pixd22.png", pixd2, IFF_PNG);
 
         /* Remove each instance from the input image */
     pixd3 = pixCopy(NULL, pixs);
     pixRemoveMatchedPattern(pixd3, pixp, pixhmt, selhm->cx,
                                     selhm->cy, 1);
-    pixWrite("/tmp/junkpixr2", pixd3, IFF_PNG);
+    pixWrite("/tmp/lept/hmt/pixr2.png", pixd3, IFF_PNG);
 
     selDestroy(&selhm);
     boxDestroy(&box);

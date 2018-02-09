@@ -100,6 +100,7 @@ static const char *tests[] = {
 #if HAVE_LIBGIF
                               "gifio_reg",
 #endif  /* HAVE_LIBGIF */
+                              "grayfill_reg",
                               "graymorph1_reg",
                               "graymorph2_reg",
                               "grayquant_reg",

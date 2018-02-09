@@ -30,12 +30,13 @@
  *    findpattern1 filein patternfile fileout
  *
  *    This is setup with input parameters to generate a hit-miss
- *    Sel from the instance char.tif of a "c" bitmap, from
- *    the page image feyn.tif, scanned at 300 ppi:
+ *    Sel from 'patternfile' and use it on 'filein' at 300 ppi.
+ *    For example, use char.tif of a "c" bitmap, taken from the
+ *    the page image feyn.tif:
  *
- *       findpattern1 feyn.tif char.tif junkcharout
+ *       findpattern1 feyn.tif char.tif /tmp/result.tif
  *
- *    It shows a number of different outputs, including a magnified
+ *    This shows a number of different outputs, including a magnified
  *    image of the Sel superimposed on the "c" bitmap.
  */
 
@@ -58,8 +59,8 @@ char        *filein, *fileout, *patternfile;
 l_int32      w, h, i, n;
 BOX         *box, *boxe;
 BOXA        *boxa1, *boxa2;
-PIX         *pixs, *pixp, *pixpe;
-PIX         *pixd, *pixt1, *pixt2, *pixhmt;
+PIX         *pixs, *pixp, *pixpe, *pix1, *pix2, *pix3, *pix4, *pixhmt;
+PIXCMAP     *cmap;
 SEL         *sel_2h, *sel;
 static char  mainName[] = "findpattern1";
 
@@ -77,52 +78,60 @@ static char  mainName[] = "findpattern1";
         return ERROR_INT("pixp not made", mainName, 1);
     pixGetDimensions(pixp, &w, &h, NULL);
 
-        /* generate the hit-miss Sel with runs */
+    lept_mkdir("lept/hmt");
+
+        /* Generate the hit-miss Sel with runs */
     sel = pixGenerateSelWithRuns(pixp, NumHorLines, NumVertLines, 0,
                                 MinRunlength, 7, 7, 0, 0, &pixpe);
 
-        /* display the Sel two ways */
+        /* Display the Sel two ways */
     selWriteStream(stderr, sel);
-    pixt1 = pixDisplayHitMissSel(pixpe, sel, 9, HitColor, MissColor);
-    pixDisplay(pixt1, 200, 200);
-    pixWrite("/tmp/junkpixt", pixt1, IFF_PNG);
+    pix1 = pixDisplayHitMissSel(pixpe, sel, 9, HitColor, MissColor);
+    pixDisplay(pix1, 200, 200);
+    pixWrite("/tmp/lept/hmt/pix1.png", pix1, IFF_PNG);
 
-        /* use the Sel to find all instances in the page */
+        /* Use the Sel to find all instances in the page */
     startTimer();
     pixhmt = pixHMT(NULL, pixs, sel);
     fprintf(stderr, "Time to find patterns = %7.3f\n", stopTimer());
 
-        /* small erosion to remove noise; typically not necessary if
+        /* Small erosion to remove noise; typically not necessary if
          * there are enough elements in the Sel */
     sel_2h = selCreateBrick(1, 2, 0, 0, SEL_HIT);
-    pixt2 = pixErode(NULL, pixhmt, sel_2h);
+    pix2 = pixErode(NULL, pixhmt, sel_2h);
 
-        /* display the result visually by placing the Sel at each
+        /* Display the result visually by placing the Sel at each
          * location found */
-    pixd = pixDilate(NULL, pixt2, sel);
-    pixWrite(fileout, pixd, IFF_TIFF_G4);
+    pix3 = pixDilate(NULL, pix2, sel);
+    cmap = pixcmapCreate(1);
+    pixcmapAddColor(cmap, 255, 255, 255);
+    pixcmapAddColor(cmap, 255, 0, 0);
+    pixSetColormap(pix3, cmap);
+    pixWrite(fileout, pix3, IFF_PNG);
 
-        /* display outut with an outline around each located pattern */
-    boxa1 = pixConnCompBB(pixt2, 8);
+        /* Display outut with a red outline around each located pattern */
+    boxa1 = pixConnCompBB(pix2, 8);
     n = boxaGetCount(boxa1);
     boxa2 = boxaCreate(n);
+    pix4 = pixConvert1To2Cmap(pixs);
     for (i = 0; i < n; i++) {
         box = boxaGetBox(boxa1, i, L_COPY);
         boxe = boxCreate(box->x - w / 2, box->y - h / 2, w + 4, h + 4);
         boxaAddBox(boxa2, boxe, L_INSERT);
-        pixRenderBox(pixs, boxe, 4, L_FLIP_PIXELS);
+        pixRenderBoxArb(pix4, boxe, 2, 255, 0, 0);
         boxDestroy(&box);
     }
-    pixWrite("/tmp/junkoutline", pixs, IFF_TIFF_G4);
+    pixWrite("/tmp/lept/hmt/outline.png", pix4, IFF_PNG);
     boxaWriteStream(stderr, boxa2);
 
     pixDestroy(&pixs);
     pixDestroy(&pixp);
     pixDestroy(&pixpe);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
     pixDestroy(&pixhmt);
-    pixDestroy(&pixd);
     selDestroy(&sel);
     selDestroy(&sel_2h);
     boxaDestroy(&boxa1);
