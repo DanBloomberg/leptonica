@@ -31,7 +31,7 @@ TEST_NAME="${TEST##*/}"
 TEST_NAME="${TEST_NAME%_reg*}"
 
 case "${TEST_NAME}" in
-    baseline|boxa1|colormask|colorspace|dna|enhance|extrema|fpix1|kernel|nearline|projection|rankbin|rankhisto)
+    baseline|boxa1|colormask|colorspace|dna|enhance|extrema|fpix1|italic|kernel|nearline|projection|rankbin|rankhisto|wordboxes)
         which gnuplot > /dev/null || which wgnuplot > /dev/null || exec ${@%${TEST}} /bin/sh -c "exit 77" ;;
 esac
 
