@@ -103,12 +103,14 @@ SELA        *sela;
         if (w > 1) {
             if ((selnameh = selaGetBrickName(sela, w, 1)) == NULL) {
                 selaDestroy(&sela);
+                selDestroy(&sel);
                 return ERROR_INT("dwa hor sel not defined", rp->testname, 1);
             }
         }
         if (h > 1) {
             if ((selnamev = selaGetBrickName(sela, 1, h)) == NULL) {
                 selaDestroy(&sela);
+                selDestroy(&sel);
                 return ERROR_INT("dwa vert sel not defined", rp->testname, 1);
             }
         }
