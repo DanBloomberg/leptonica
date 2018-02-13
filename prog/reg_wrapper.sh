@@ -32,7 +32,11 @@ TEST_NAME="${TEST_NAME%_reg*}"
 
 case "${TEST_NAME}" in
     baseline|boxa1|colormask|colorspace|dna|enhance|extrema|fpix1|italic|kernel|nearline|projection|rankbin|rankhisto|wordboxes)
-        which gnuplot > /dev/null || which wgnuplot > /dev/null || exec ${@%${TEST}} /bin/sh -c "exit 77" ;;
+        GNUPLOT=$(type -P gnuplot wgnuplot)
+
+        if [ -z "${GNUPLOT}" ] || ! "${GNUPLOT}" -e "set terminal png" 2>/dev/null ; then
+            exec ${@%${TEST}} /bin/sh -c "exit 77"
+        fi
 esac
 
 exec ${@%${TEST}} /bin/sh -c "cd \"${srcdir}\" && \"${PWD}/\"${TEST} generate && \"${PWD}/\"${TEST} compare"
