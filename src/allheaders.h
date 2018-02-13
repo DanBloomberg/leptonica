@@ -30,7 +30,7 @@
 
 #define LIBLEPT_MAJOR_VERSION   1
 #define LIBLEPT_MINOR_VERSION   75
-#define LIBLEPT_PATCH_VERSION   2
+#define LIBLEPT_PATCH_VERSION   3
 
 #include "alltypes.h"
 

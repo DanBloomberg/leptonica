@@ -1598,7 +1598,6 @@ PIXA     *pixa;
         maxw = maxwidth;
     }
 
-
         /* Get size of output pix.  The width is the minimum of the
          * maxw and the largest pixa line width.  The height is whatever
          * it needs to be to accommodate all pixa. */
