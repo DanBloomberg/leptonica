@@ -130,7 +130,7 @@ L_REGPARAMS  *rp;
     numaDestroy(&nax);
     numaDestroy(&nay1);
     numaDestroy(&nay2);
- 
+
         /* Display tiled */
     pix1 = pixaDisplayTiledAndScaled(pixa, 8, 250, 5, 0, 25, 2);
     pixDisplayWithTitle(pix1, 100, 600, NULL, rp->display);
@@ -211,7 +211,7 @@ L_REGPARAMS  *rp;
         pixDestroy(&pix1);
     }
     pixDestroy(&pix0);
-  
+
     return regTestCleanup(rp);
 }
 

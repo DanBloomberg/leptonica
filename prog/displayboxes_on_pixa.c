@@ -30,9 +30,9 @@
  *        displayboxes_on_pixa pixain boxaain type width pixaout display
  *
  *   where 'type' follows the enum in pix.h:
- *          0:  draw red  
+ *          0:  draw red
  *          1:  draw green
- *          2:  draw blue  
+ *          2:  draw blue
  *          4:  draw rgb (sequentially)
  *          5:  draw randomly selected colors
  *   and 'display' is a boolean:

@@ -78,7 +78,7 @@ static char  mainName[] = "textorient";
     fileout = argv[4];
     pixs = pixRead(filein);
     pixd = pixOrientCorrect(pixs, minupconf, minratio, NULL, NULL, NULL, 1);
-    
+
     pixformat = pixChooseOutputFormat(pixd);
     snprintf(buf, BUF_SIZE, "%s.%s", fileout,
              ImageFileFormatExtensions[pixformat]);

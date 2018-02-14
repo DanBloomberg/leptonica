@@ -301,7 +301,7 @@ L_REGPARAMS  *rp;
     ptaDestroy(&ptad);
 #endif
 
-#if ALL 
+#if ALL
         /* Set up pix and boxa */
     fprintf(stderr, "Test affine transforms and inverses on pix and boxa\n");
     pixa = pixaCreate(0);
@@ -334,7 +334,7 @@ L_REGPARAMS  *rp;
 
         /* Invert the original affine transform --> matdinv */
     affineInvertXform(matd, &matdinv);
-    if (rp->display) { 
+    if (rp->display) {
         fprintf(stderr, "  Affine transform, applied to boxa\n");
         for (i = 0; i < 9; i++) {
             if (i && (i % 3 == 0))  fprintf(stderr, "\n");

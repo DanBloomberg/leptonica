@@ -178,7 +178,7 @@ L_REGPARAMS  *rp;
     boxaWrite("/tmp/lept/boxa/boxa1.ba", boxa1);
     boxaWrite("/tmp/lept/boxa/boxa2.ba", boxa2);
     filesAreIdentical("/tmp/lept/boxa/boxa1.ba", "/tmp/lept/boxa/boxa2.ba",
-                      &same); 
+                      &same);
     regTestCompareValues(rp, 1, same, 0.0);  /* 18 */
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);

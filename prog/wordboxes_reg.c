@@ -83,7 +83,7 @@ L_REGPARAMS  *rp;
 #if 1
         /* Make word boxes using the higher-level functions
          * pixGetWordsInTextlines() and pixGetWordBoxesInTextlines() */
-    
+ 
     pix1 = pixRead("lucasta.150.jpg");
     MakeWordBoxes2(pix1, 0.7, 140, rp);  /* 8, 9 */
     pixDestroy(&pix1);

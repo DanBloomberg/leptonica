@@ -61,7 +61,7 @@
  *  parentheses, because parens require an evaluation and it is not
  *  defined for SET macros.  If SET_DATA_QBIT were defined as a
  *  compound macro, in analogy to l_setDataQbit(), it requires
- *  surrounding bracces:
+ *  surrounding braces:
  *     #define  SET_DATA_QBIT(pdata, n, val) \
  *        {l_uint32 *_TEMP_WORD_PTR_; \
  *         _TEMP_WORD_PTR_ = (l_uint32 *)(pdata) + ((n) >> 3); \

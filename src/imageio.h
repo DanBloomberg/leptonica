@@ -73,7 +73,7 @@
 /* --------------------------------------------------------------- *
  *                    Image file format types                      *
  * --------------------------------------------------------------- */
-/* 
+/*
  *  The IFF_DEFAULT flag is used to write the file out in the
  *  same (input) file format that the pix was read from.  If the pix
  *  was not read from file, the input format field will be
@@ -151,7 +151,7 @@ enum {
 /* --------------------------------------------------------------- *
  *                    Compressed image data                        *
  * --------------------------------------------------------------- */
-/* 
+/*
  *  In use, either datacomp or data85 will be produced, depending
  *  on whether the data needs to be ascii85 encoded.  PostScript
  *  requires ascii85 encoding; pdf does not.
@@ -200,7 +200,7 @@ enum {
 /* ------------------------------------------------------------------------- *
  *                     Intermediate pdf generation data                      *
  * ------------------------------------------------------------------------- */
-/* 
+/*
  *  This accumulates data for generating a pdf of a single page consisting
  *  of an arbitrary number of images.
  *

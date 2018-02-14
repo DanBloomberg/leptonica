@@ -266,7 +266,7 @@ L_REGPARAMS  *rp;
     numaLogicalOp(na2, na2, na3, L_UNION);
     numaLogicalOp(na2, na2, na5, L_INTERSECTION);
     numaInvert(na2, na2);  /* get components to be removed */
-    pixRemoveWithIndicator(pixs, pixa1, na2); 
+    pixRemoveWithIndicator(pixs, pixa1, na2);
     regTestWritePixAndCheck(rp, pixs, IFF_PNG);  /* 86 */
     pixSaveTiled(pixs, pixa3, 0.25, 1, 25, 8);
     pixDestroy(&pixs);

@@ -148,10 +148,12 @@ WebPBitstreamFeatures  features;
         return (PIX *)ERROR_PTR("WebP decode failed", procName, NULL);
     }
 
-        /* WebP decoder stores data in little-endian format.  The pix
-         * is always big-endian, so the bytes must be swapped for
-         * all platforms -- both little-endian and big-endian. */
-    pixDoEndianByteSwap(pix);
+        /* WebP file format stores data in RGBA order.  The pix stores
+         * in host-dependent order with R as the MSB and A as the LSB.
+         * On little-endian machines, the bytes in the word must
+         * be swapped; e.g., R goes from byte 0 (LSB) to byte 3 (MSB).
+         * No swapping is necessary for big-endians. */
+    pixEndianByteSwap(pix);
     return pix;
 }
 
@@ -388,10 +390,12 @@ PIX       *pix1, *pix2;
     if (pixGetSpp(pix2) == 3)
         pixSetComponentArbitrary(pix2, L_ALPHA_CHANNEL, 255);
 
-        /* WebP decoder stores data in little-endian format.  The pix
-         * is always big-endian, so the bytes must be swapped for
-         * all platforms -- both little-endian and big-endian. */
-    pixDoEndianByteSwap(pix2);
+        /* WebP file format stores data in RGBA order.  The pix stores
+         * in host-dependent order with R as the MSB and A as the LSB.
+         * On little-endian machines, the bytes in the word must
+         * be swapped; e.g., R goes from byte 0 (LSB) to byte 3 (MSB).
+         * No swapping is necessary for big-endians. */
+    pixEndianByteSwap(pix2);
     wpl = pixGetWpl(pix2);
     data = pixGetData(pix2);
     stride = wpl * 4;

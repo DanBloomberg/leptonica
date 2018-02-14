@@ -959,7 +959,7 @@ pixGetWidth(PIX  *pix)
     PROCNAME("pixGetWidth");
 
     if (!pix)
-        return ERROR_INT("pix not defined", procName, UNDEF);
+        return ERROR_INT("pix not defined", procName, 0);
 
     return pix->w;
 }
@@ -989,7 +989,7 @@ pixGetHeight(PIX  *pix)
     PROCNAME("pixGetHeight");
 
     if (!pix)
-        return ERROR_INT("pix not defined", procName, UNDEF);
+        return ERROR_INT("pix not defined", procName, 0);
 
     return pix->h;
 }
@@ -1019,7 +1019,7 @@ pixGetDepth(PIX  *pix)
     PROCNAME("pixGetDepth");
 
     if (!pix)
-        return ERROR_INT("pix not defined", procName, UNDEF);
+        return ERROR_INT("pix not defined", procName, 0);
 
     return pix->d;
 }
@@ -1126,7 +1126,7 @@ pixGetSpp(PIX  *pix)
     PROCNAME("pixGetSpp");
 
     if (!pix)
-        return ERROR_INT("pix not defined", procName, UNDEF);
+        return ERROR_INT("pix not defined", procName, 0);
 
     return pix->spp;
 }
@@ -1192,7 +1192,7 @@ pixGetWpl(PIX  *pix)
     PROCNAME("pixGetWpl");
 
     if (!pix)
-        return ERROR_INT("pix not defined", procName, UNDEF);
+        return ERROR_INT("pix not defined", procName, 0);
     return pix->wpl;
 }
 
@@ -1217,7 +1217,7 @@ pixGetRefcount(PIX  *pix)
     PROCNAME("pixGetRefcount");
 
     if (!pix)
-        return ERROR_INT("pix not defined", procName, UNDEF);
+        return ERROR_INT("pix not defined", procName, 0);
     return pix->refcount;
 }
 
@@ -1377,7 +1377,7 @@ pixGetInputFormat(PIX  *pix)
     PROCNAME("pixGetInputFormat");
 
     if (!pix)
-        return ERROR_INT("pix not defined", procName, UNDEF);
+        return ERROR_INT("pix not defined", procName, 0);
     return pix->informat;
 }
 

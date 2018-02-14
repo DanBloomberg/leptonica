@@ -154,7 +154,7 @@ static char  mainName[] = "corrupttest";
                 pixDestroy(&pix);
                 filedata = l_binaryRead("/tmp/lept/corrupt/junkout", &filesize);
                 pix = pixReadMemPng(filedata, filesize);
-                lept_free(filedata); 
+                lept_free(filedata);
             }
 
                 /* Effect of 1% byte mangling from interior of data stream */

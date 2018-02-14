@@ -172,7 +172,7 @@ L_REGPARAMS  *rp;
     pixaDestroy(&pixa);
 #endif
 
-#if ALL 
+#if ALL
        /* Comparison between sampling and interpolated */
     fprintf(stderr, "Compare sampling with interpolated\n");
     MakePtas(3, &ptas, &ptad);

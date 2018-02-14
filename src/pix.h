@@ -368,7 +368,7 @@ enum {
  *       (4) We use 32 bit pixels for both RGB and RGBA color images.
  *           The A (alpha) byte is ignored in most leptonica functions
  *           operating on color images.  Within each 4 byte pixel, the
- *           colors are ordered from MSB to LSB, as follows:
+ *           color samples are ordered from MSB to LSB, as follows:
  *
  *                |  MSB  |  2nd MSB  |  3rd MSB  |  LSB  |
  *                   red      green       blue      alpha
@@ -397,18 +397,19 @@ enum {
  *                 SET_DATA_BYTE(&pixel, COLOR_BLUE, blueval);
  *                 SET_DATA_BYTE(&pixel, L_ALPHA_CHANNEL, alphaval);
  *
- *           For extra speed we extract these components directly
+ *           More efficiently, these components can be extracted directly
  *           by shifting and masking, explicitly using the values in
  *           L_RED_SHIFT, etc.:
  *                 (pixel32 >> L_RED_SHIFT) & 0xff;         (red)
  *                 (pixel32 >> L_GREEN_SHIFT) & 0xff;       (green)
  *                 (pixel32 >> L_BLUE_SHIFT) & 0xff;        (blue)
  *                 (pixel32 >> L_ALPHA_SHIFT) & 0xff;       (alpha)
- *           All these operations work properly on both big- and little-endians.
+ *           The functions extractRGBValues() and extractRGBAValues() are
+ *           provided to do this.  Likewise, the pixels can be set
+ *           directly by shifting, using composeRGBPixel() and
+ *           composeRGBAPixel().
  *
- *           For a few situations, these color shift values are hard-coded.
- *           Changing the RGB color component ordering through the assignments
- *           in this file will cause functions marked with "***" to fail.
+ *           All these operations work properly on both big- and little-endians.
  *
  *       (5) A reference count is held within each pix, giving the
  *           number of ptrs to the pix.  When a pixClone() call

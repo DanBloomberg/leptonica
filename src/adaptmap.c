@@ -2843,8 +2843,10 @@ l_uint32  *data, *datamin, *datamax, *line, *tline, *linemin, *linemax;
 
     if ((iaa = (l_int32 **)LEPT_CALLOC(256, sizeof(l_int32 *))) == NULL)
         return (PIX *)ERROR_PTR("iaa not made", procName, NULL);
-    if ((pixd = pixCopy(pixd, pixs)) == NULL)
+    if ((pixd = pixCopy(pixd, pixs)) == NULL) {
+        LEPT_FREE(iaa);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    }
     pixGetDimensions(pixd, &w, &h, NULL);
 
     data = pixGetData(pixd);
