@@ -40,9 +40,6 @@
  *          l_int32          pixWriteWebP()  [ special top level ]
  *          l_int32          pixWriteStreamWebP()
  *          l_int32          pixWriteMemWebP()
- *
- *    Static helper
- *          static l_int32   pixDoEndianByteSwap()
  * </pre>
  */
 
@@ -51,8 +48,6 @@
 #endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
-
-static l_int32 pixDoEndianByteSwap(PIX *pixs);
 
 /* --------------------------------------------*/
 #if  HAVE_LIBWEBP   /* defined in environ.h */
@@ -148,7 +143,7 @@ WebPBitstreamFeatures  features;
         return (PIX *)ERROR_PTR("WebP decode failed", procName, NULL);
     }
 
-        /* WebP file format stores data in RGBA order.  The pix stores
+        /* The WebP API expects data in RGBA order.  The pix stores
          * in host-dependent order with R as the MSB and A as the LSB.
          * On little-endian machines, the bytes in the word must
          * be swapped; e.g., R goes from byte 0 (LSB) to byte 3 (MSB).
@@ -390,7 +385,7 @@ PIX       *pix1, *pix2;
     if (pixGetSpp(pix2) == 3)
         pixSetComponentArbitrary(pix2, L_ALPHA_CHANNEL, 255);
 
-        /* WebP file format stores data in RGBA order.  The pix stores
+        /* The WebP API expects data in RGBA order.  The pix stores
          * in host-dependent order with R as the MSB and A as the LSB.
          * On little-endian machines, the bytes in the word must
          * be swapped; e.g., R goes from byte 0 (LSB) to byte 3 (MSB).
@@ -416,43 +411,6 @@ PIX       *pix1, *pix2;
 
     return 0;
 }
-
-
-/*
- *  pixDoEndianByteSwap()
- *
- *  This static helper is used for all platforms to convert from
- *  little-endian webp data ordering to big-endian Pix ordering.
- *  pixEndianByteSwap() uses the same code, but only on little-endian
- *  machines.
- */
-static l_int32
-pixDoEndianByteSwap(PIX  *pixs)
-{
-l_uint32  *data;
-l_int32    i, j, h, wpl;
-l_uint32   word;
-
-    PROCNAME("pixDoEndianByteSwap");
-
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
-
-    data = pixGetData(pixs);
-    wpl = pixGetWpl(pixs);
-    h = pixGetHeight(pixs);
-    for (i = 0; i < h; i++) {
-        for (j = 0; j < wpl; j++, data++) {
-            word = *data;
-            *data = (word >> 24) |
-                    ((word >> 8) & 0x0000ff00) |
-                    ((word << 8) & 0x00ff0000) |
-                    (word << 24);
-        }
-    }
-    return 0;
-}
-
 
 /* --------------------------------------------*/
 #endif  /* HAVE_LIBWEBP */
