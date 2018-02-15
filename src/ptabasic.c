@@ -689,7 +689,7 @@ PTA   *pta;
 PTA *
 ptaReadStream(FILE  *fp)
 {
-char       typestr[128];
+char       typestr[128];  /* hardcoded below in fscanf */
 l_int32    i, n, ix, iy, type, version;
 l_float32  x, y;
 PTA       *pta;
@@ -703,7 +703,7 @@ PTA       *pta;
         return (PTA *)ERROR_PTR("not a pta file", procName, NULL);
     if (version != PTA_VERSION_NUMBER)
         return (PTA *)ERROR_PTR("invalid pta version", procName, NULL);
-    if (fscanf(fp, " Number of pts = %d; format = %s\n", &n, typestr) != 2)
+    if (fscanf(fp, " Number of pts = %d; format = %127s\n", &n, typestr) != 2)
         return (PTA *)ERROR_PTR("not a pta file", procName, NULL);
     if (!strcmp(typestr, "float"))
         type = 0;
