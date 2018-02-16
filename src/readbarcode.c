@@ -1386,6 +1386,8 @@ l_float32  bestwidth, bestshift, bestscore;
     if (!pbestwidth || !pbestshift)
         return ERROR_INT("&bestwidth and &bestshift not defined", procName, 1);
 
+    bestwidth = 0.0f;
+    bestshift = 0.0f;
     bestscore = 1.0;
     delwidth = (maxwidth - minwidth) / (nwidth - 1.0);
     for (i = 0; i < nwidth; i++) {
