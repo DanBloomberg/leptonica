@@ -1865,6 +1865,8 @@ LEPT_DLL extern l_int32 pixacompConvertToPdfData ( PIXAC *pixac, l_int32 res, l_
 LEPT_DLL extern l_int32 pixacompWriteStreamInfo ( FILE *fp, PIXAC *pixac, const char *text );
 LEPT_DLL extern l_int32 pixcompWriteStreamInfo ( FILE *fp, PIXC *pixc, const char *text );
 LEPT_DLL extern PIX * pixacompDisplayTiledAndScaled ( PIXAC *pixac, l_int32 outdepth, l_int32 tilewidth, l_int32 ncols, l_int32 background, l_int32 spacing, l_int32 border );
+LEPT_DLL extern l_int32 pixacompWriteFiles ( PIXAC *pixac, const char *subdir );
+LEPT_DLL extern l_int32 pixcompWriteFile ( const char *rootname, PIXC *pixc );
 LEPT_DLL extern PIX * pixThreshold8 ( PIX *pixs, l_int32 d, l_int32 nlevels, l_int32 cmapflag );
 LEPT_DLL extern PIX * pixRemoveColormapGeneral ( PIX *pixs, l_int32 type, l_int32 ifnocmap );
 LEPT_DLL extern PIX * pixRemoveColormap ( PIX *pixs, l_int32 type );
