@@ -171,9 +171,9 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
         return ERROR_INT("safiles not made", procName, 1);
 
         /* Generate output text file names */
-    sprintf(charbuf, "%s/%s.html", dirout, rootname);
+    snprintf(charbuf, sizeof(charbuf), "%s/%s.html", dirout, rootname);
     mainname = stringNew(charbuf);
-    sprintf(charbuf, "%s/%s-links.html", dirout, rootname);
+    snprintf(charbuf, sizeof(charbuf), "%s/%s-links.html", dirout, rootname);
     linkname = stringNew(charbuf);
     linknameshort = stringJoin(rootname, "-links.html");
 
@@ -197,7 +197,7 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
         pixGetDimensions(pix, &w, NULL, &d);
         factor = (l_float32)thumbwidth / (l_float32)w;
         pixthumb = pixScale(pix, factor, factor);
-        sprintf(charbuf, "%s_thumb_%03d", rootname, index);
+        snprintf(charbuf, sizeof(charbuf), "%s_thumb_%03d", rootname, index);
         sarrayAddString(sathumbs, charbuf, L_COPY);
         outname = genPathname(dirout, charbuf);
         WriteFormattedPix(outname, pixthumb);
