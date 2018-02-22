@@ -66,7 +66,6 @@ www.leptonica.org
   * [tesseract](https://github.com/tesseract-ocr/tesseract/) (optical character recognition)
   * [OpenCV](https://github.com/opencv/opencv) (computer vision library)
   * [jbig2enc](https://github.com/agl/jbig2enc) (encodes multipage binary image documents with jbig2 compression)
-  * [php](http://en.wikipedia.org/wiki/PHP)  (scripting language for dynamic web pages)
 
 ## Major contributors to Leptonica ##
   * Tom Powers: Tom has supported Leptonica on Windows for many years.  He has made many contributions to code quality and documentation, including the beautiful "unofficial documentation" on the web site. Without his effort, Leptonica would not run today on Windows.
