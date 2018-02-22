@@ -39,7 +39,7 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	rotate1_reg rotate2_reg rotateorth_reg \
 	scale_reg seedspread_reg \
 	selio_reg shear1_reg shear2_reg \
-	skew_reg splitcomp_reg subpixel_reg \
+	skew_reg splitcomp_reg speckle_reg subpixel_reg \
 	texturefill_reg threshnorm_reg translate_reg \
 	warper_reg wordboxes_reg writetext_reg xformbox_reg
 

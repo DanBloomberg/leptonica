@@ -184,7 +184,8 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		rotate1_reg.c rotate2_reg.c rotateorth_reg.c \
 		scale_reg.c seedspread_reg.c selio_reg.c \
 		shear1_reg.c shear2_reg.c skew_reg.c \
-		smallpix_reg.c smoothedge_reg.c splitcomp_reg.c \
+		smallpix_reg.c smoothedge_reg.c \
+		speckle_reg.c splitcomp_reg.c \
 		string_reg.c subpixel_reg.c \
 		texturefill_reg.c threshnorm_reg.c \
 		translate_reg.c warper_reg.c webpio_reg.c \
@@ -675,6 +676,9 @@ smallpix_reg:	smallpix_reg.o $(LEPTLIB)
 
 smoothedge_reg:	smoothedge_reg.o $(LEPTLIB)
 	$(CC) -o smoothedge_reg smoothedge_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+speckle_reg:	speckle_reg.o $(LEPTLIB)
+	$(CC) -o speckle_reg speckle_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 splitcomp_reg:	splitcomp_reg.o $(LEPTLIB)
 	$(CC) -o splitcomp_reg splitcomp_reg.o $(ALL_LIBS) $(EXTRALIBS)

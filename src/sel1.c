@@ -1624,13 +1624,16 @@ char     ch;
 
     PROCNAME("selCreateFromString");
 
+    if (!text || text[0] == '\0')
+        return (SEL *)ERROR_PTR("text undefined or empty", procName, NULL);
     if (h < 1)
         return (SEL *)ERROR_PTR("height must be > 0", procName, NULL);
     if (w < 1)
         return (SEL *)ERROR_PTR("width must be > 0", procName, NULL);
+    if (strlen(text) != w * h)
+        return (SEL *)ERROR_PTR("text size != w * h", procName, NULL);
 
     sel = selCreate(h, w, name);
-
     norig = 0;
     for (y = 0; y < h; ++y) {
         for (x = 0; x < w; ++x) {

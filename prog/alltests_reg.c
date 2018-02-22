@@ -152,6 +152,7 @@ static const char *tests[] = {
                               "shear1_reg",
                               "shear2_reg",
                               "skew_reg",
+                              "speckle_reg",
                               "splitcomp_reg",
                               "subpixel_reg",
                               "texturefill_reg",
