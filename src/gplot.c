@@ -153,7 +153,7 @@ GPLOT   *gplot;
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
         outformat != GPLOT_EPS && outformat != GPLOT_LATEX)
         return (GPLOT *)ERROR_PTR("outformat invalid", procName, NULL);
-    stringCheckForChars(rootname, "`;&|><\"?*", &badchar);
+    stringCheckForChars(rootname, "`;&|><\"?*$()", &badchar);
     if (badchar)  /* danger of command injection */
         return (GPLOT *)ERROR_PTR("invalid rootname", procName, NULL);
 
