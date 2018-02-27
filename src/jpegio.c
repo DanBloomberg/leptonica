@@ -45,6 +45,7 @@
  *    Read/write to memory
  *          PIX             *pixReadMemJpeg()
  *          l_int32          readHeaderMemJpeg()
+ *          l_int32          readResolutionMemJpeg()
  *          l_int32          pixWriteMemJpeg()
  *
  *    Setting special flag for chroma sampling on write
@@ -1017,13 +1018,13 @@ PIX      *pix;
 /*!
  * \brief   readHeaderMemJpeg()
  *
- * \param[in]    data const; jpeg-encoded
- * \param[in]    size of data
- * \param[out]   pw [optional]
- *           [out]   ph ([optional]
- *           [out]   pspp ([optional]  samples/pixel
- * \param[out]   pycck [optional]  1 if ycck color space; 0 otherwise
- * \param[out]   pcmyk [optional]  1 if cmyk color space; 0 otherwise
+ * \param[in]    data    const; jpeg-encoded
+ * \param[in]    size    of data
+ * \param[out]   pw      [optional] width
+ * \param[out]   ph      [optional] height
+ * \param[out]   pspp    [optional] samples/pixel
+ * \param[out]   pycck   [optional] 1 if ycck color space; 0 otherwise
+ * \param[out]   pcmyk   [optional] 1 if cmyk color space; 0 otherwise
  * \return  0 if OK, 1 on error
  */
 l_int32
@@ -1053,6 +1054,41 @@ FILE    *fp;
     if ((fp = fopenReadFromMemory(data, size)) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     ret = freadHeaderJpeg(fp, pw, ph, pspp, pycck, pcmyk);
+    fclose(fp);
+    return ret;
+}
+
+
+/*!
+ * \brief   readResolutionMemJpeg()
+ *
+ * \param[in]   data    const; jpeg-encoded
+ * \param[in]   size    of data
+ * \param[out]  pxres   [optional]
+ * \param[out]  pyres   [optional]
+ * \return  0 if OK, 1 on error
+ */
+l_int32
+readResolutionMemJpeg(const l_uint8  *data,
+                      size_t          size,
+                      l_int32        *pxres,
+                      l_int32        *pyres)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("readResolutionMemJpeg");
+
+    if (pxres) *pxres = 0;
+    if (pyres) *pyres = 0;
+    if (!data)
+        return ERROR_INT("data not defined", procName, 1);
+    if (!pxres && !pyres)
+        return ERROR_INT("no results requested", procName, 1);
+
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = fgetJpegResolution(fp, pxres, pyres);
     fclose(fp);
     return ret;
 }

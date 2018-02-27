@@ -135,6 +135,7 @@ SARRAY       *sa;
         /* Save a tiled composite from the pixa */
     pix1 = pixaDisplayTiledAndScaled(pixa, 32, 400, 4, 0, 20, 2);
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 4 */
+    pixaDestroy(&pixa);
     pixDestroy(&pix1);
 
         /* Convert the pixac --> pixa and save a tiled composite */
@@ -189,8 +190,25 @@ SARRAY       *sa;
     lept_free(data1);
     lept_free(data2);
 
-    pixaDestroy(&pixa);
+        /* Test pdf generation (both with and without transcoding */
     pixacompDestroy(&pixac);
+    pix1 = pixRead("test24.jpg");
+    pix2 = pixRead("marge.jpg");
+    pixac = pixacompCreate(2);
+    pixacompAddPix(pixac, pix1, IFF_JFIF_JPEG);
+    pixacompAddPix(pixac, pix2, IFF_JFIF_JPEG);
+    l_pdfSetDateAndVersion(0);
+    pixacompConvertToPdfData(pixac, 0, 1.0, L_DEFAULT_ENCODE, 0, "test1",
+                             &data1, &size1);
+    regTestWriteDataAndCheck(rp, data1, size1, "pdf");  /* 14 */
+    pixacompFastConvertToPdfData(pixac, "test2", &data2, &size2);
+    regTestWriteDataAndCheck(rp, data2, size2, "pdf");  /* 13 */
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixacompDestroy(&pixac);
+    lept_free(data1);
+    lept_free(data2);
+
     return regTestCleanup(rp);
 }
 

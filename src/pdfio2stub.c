@@ -90,6 +90,15 @@ L_COMP_DATA * l_generateJpegData(const char *fname, l_int32 ascii85flag)
 
 /* ----------------------------------------------------------------------*/
 
+L_COMP_DATA * l_generateJpegDataMem(l_uint8 *data, size_t nbytes,
+                                    l_int32 ascii85flag)
+{
+    return (L_COMP_DATA *)ERROR_PTR("function not present",
+                                    "l_generateJpegDataMem", NULL);
+}
+
+/* ----------------------------------------------------------------------*/
+
 L_COMP_DATA * l_generateJp2kData(const char *fname)
 {
     return (L_COMP_DATA *)ERROR_PTR("function not present",

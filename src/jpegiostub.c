@@ -123,6 +123,14 @@ l_int32 readHeaderMemJpeg(const l_uint8 *cdata, size_t size,
 
 /* ----------------------------------------------------------------------*/
 
+l_int32 readResolutionMemJpeg(const l_uint8 *data, size_t size,
+                              l_int32 *pxres, l_int32 *pyres)
+{
+    return ERROR_INT("function not present", "readResolutionMemJpeg", 1);
+}
+
+/* ----------------------------------------------------------------------*/
+
 l_int32 pixWriteMemJpeg(l_uint8 **pdata, size_t *psize, PIX *pix,
                         l_int32 quality, l_int32 progressive)
 {

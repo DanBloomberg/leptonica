@@ -1071,6 +1071,7 @@ LEPT_DLL extern l_int32 pixWriteJpeg ( const char *filename, PIX *pix, l_int32 q
 LEPT_DLL extern l_int32 pixWriteStreamJpeg ( FILE *fp, PIX *pixs, l_int32 quality, l_int32 progressive );
 LEPT_DLL extern PIX * pixReadMemJpeg ( const l_uint8 *data, size_t size, l_int32 cmflag, l_int32 reduction, l_int32 *pnwarn, l_int32 hint );
 LEPT_DLL extern l_int32 readHeaderMemJpeg ( const l_uint8 *data, size_t size, l_int32 *pw, l_int32 *ph, l_int32 *pspp, l_int32 *pycck, l_int32 *pcmyk );
+LEPT_DLL extern l_int32 readResolutionMemJpeg ( const l_uint8 *data, size_t size, l_int32 *pxres, l_int32 *pyres );
 LEPT_DLL extern l_int32 pixWriteMemJpeg ( l_uint8 **pdata, size_t *psize, PIX *pix, l_int32 quality, l_int32 progressive );
 LEPT_DLL extern l_int32 pixSetChromaSampling ( PIX *pix, l_int32 sampling );
 LEPT_DLL extern L_KERNEL * kernelCreate ( l_int32 height, l_int32 width );
@@ -1408,6 +1409,7 @@ LEPT_DLL extern l_int32 convertTiffMultipageToPdf ( const char *filein, const ch
 LEPT_DLL extern l_int32 l_generateCIDataForPdf ( const char *fname, PIX *pix, l_int32 quality, L_COMP_DATA **pcid );
 LEPT_DLL extern L_COMP_DATA * l_generateFlateDataPdf ( const char *fname, PIX *pixs );
 LEPT_DLL extern L_COMP_DATA * l_generateJpegData ( const char *fname, l_int32 ascii85flag );
+LEPT_DLL extern L_COMP_DATA * l_generateJpegDataMem ( l_uint8 *data, size_t nbytes, l_int32 ascii85flag );
 LEPT_DLL extern l_int32 l_generateCIData ( const char *fname, l_int32 type, l_int32 quality, l_int32 ascii85, L_COMP_DATA **pcid );
 LEPT_DLL extern l_int32 pixGenerateCIData ( PIX *pixs, l_int32 type, l_int32 quality, l_int32 ascii85, L_COMP_DATA **pcid );
 LEPT_DLL extern L_COMP_DATA * l_generateFlateData ( const char *fname, l_int32 ascii85flag );
@@ -1828,6 +1830,7 @@ LEPT_DLL extern PIXC * pixcompCreateFromFile ( const char *filename, l_int32 com
 LEPT_DLL extern void pixcompDestroy ( PIXC **ppixc );
 LEPT_DLL extern PIXC * pixcompCopy ( PIXC *pixcs );
 LEPT_DLL extern l_int32 pixcompGetDimensions ( PIXC *pixc, l_int32 *pw, l_int32 *ph, l_int32 *pd );
+LEPT_DLL extern l_int32 pixcompGetParameters ( PIXC *pixc, l_int32 *pxres, l_int32 *pyres, l_int32 *pcomptype, l_int32 *pcmapflag );
 LEPT_DLL extern l_int32 pixcompDetermineFormat ( l_int32 comptype, l_int32 d, l_int32 cmapflag, l_int32 *pformat );
 LEPT_DLL extern PIX * pixCreateFromPixcomp ( PIXC *pixc );
 LEPT_DLL extern PIXAC * pixacompCreate ( l_int32 n );
@@ -1862,6 +1865,7 @@ LEPT_DLL extern l_int32 pixacompWriteStream ( FILE *fp, PIXAC *pixac );
 LEPT_DLL extern l_int32 pixacompWriteMem ( l_uint8 **pdata, size_t *psize, PIXAC *pixac );
 LEPT_DLL extern l_int32 pixacompConvertToPdf ( PIXAC *pixac, l_int32 res, l_float32 scalefactor, l_int32 type, l_int32 quality, const char *title, const char *fileout );
 LEPT_DLL extern l_int32 pixacompConvertToPdfData ( PIXAC *pixac, l_int32 res, l_float32 scalefactor, l_int32 type, l_int32 quality, const char *title, l_uint8 **pdata, size_t *pnbytes );
+LEPT_DLL extern l_int32 pixacompFastConvertToPdfData ( PIXAC *pixac, const char *title, l_uint8 **pdata, size_t *pnbytes );
 LEPT_DLL extern l_int32 pixacompWriteStreamInfo ( FILE *fp, PIXAC *pixac, const char *text );
 LEPT_DLL extern l_int32 pixcompWriteStreamInfo ( FILE *fp, PIXC *pixc, const char *text );
 LEPT_DLL extern PIX * pixacompDisplayTiledAndScaled ( PIXAC *pixac, l_int32 outdepth, l_int32 tilewidth, l_int32 ncols, l_int32 background, l_int32 spacing, l_int32 border );

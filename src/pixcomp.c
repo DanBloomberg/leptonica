@@ -37,6 +37,9 @@
 
  *      Pixcomp accessors
  *           l_int32   pixcompGetDimensions()
+ *           l_int32   pixcompGetParameters()
+ *
+ *      Pixcomp compression selection
  *           l_int32   pixcompDetermineFormat()
  *
  *      Pixcomp conversion to Pix
@@ -88,6 +91,7 @@
  *      Conversion to pdf
  *           l_int32   pixacompConvertToPdf()
  *           l_int32   pixacompConvertToPdfData()
+ *           l_int32   pixacompFastConvertToPdfData()
  *
  *      Output for debugging
  *           l_int32   pixacompWriteStreamInfo()
@@ -152,8 +156,10 @@ static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;   /* n'import quoi */
 extern l_int32 NumImageFileFormatExtensions;
 extern const char *ImageFileFormatExtensions[];
 
-    /* Static function */
+    /* Static functions */
 static l_int32 pixacompExtendArray(PIXAC *pixac);
+static l_int32 pixcompFastConvertToPdfData(PIXC *pixc, const char *title,
+                                           l_uint8 **pdata, size_t *pnbytes);
 
 
 /*---------------------------------------------------------------------*
@@ -433,6 +439,35 @@ pixcompGetDimensions(PIXC     *pixc,
 }
 
 
+/*!
+ * \brief   pixcompGetParameters()
+ *
+ * \param[in]    pixc
+ * \param[out]   pxres, pyres, pcomptype, pcmapflag [all optional]
+ * \return  0 if OK, 1 on error
+ */
+l_int32
+pixcompGetParameters(PIXC     *pixc,
+                     l_int32  *pxres,
+                     l_int32  *pyres,
+                     l_int32  *pcomptype,
+                     l_int32  *pcmapflag)
+{
+    PROCNAME("pixcompGetParameters");
+
+    if (!pixc)
+        return ERROR_INT("pixc not defined", procName, 1);
+    if (pxres) *pxres = pixc->xres;
+    if (pyres) *pyres = pixc->yres;
+    if (pcomptype) *pcomptype = pixc->comptype;
+    if (pcmapflag) *pcmapflag = pixc->cmapflag;
+    return 0;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                    Pixcomp compression selection                    *
+ *---------------------------------------------------------------------*/
 /*!
  * \brief   pixcompDetermineFormat()
  *
@@ -1902,6 +1937,10 @@ FILE    *fp;
  *          all images to be compressed with that type.  Use 0 to have
  *          the type determined for each image based on depth and whether
  *          or not it has a colormap.
+ *      (5) If all images are jpeg compressed, don't require scaling
+ *          and have the same resolution, it is much faster to skip
+ *          transcoding with pixacompFastConvertToPdfData(), and then
+ *          write the data out to file.
  * </pre>
  */
 l_int32
@@ -2046,6 +2085,139 @@ L_PTRA   *pa_data;
     }
     ptraDestroy(&pa_data, FALSE, FALSE);
     return ret;
+}
+
+
+/*!
+ * \brief   pixacompFastConvertToPdfData()
+ *
+ * \param[in]    pixac containing images all at the same resolution
+ * \param[in]    res input resolution of all images
+ * \param[in]    title [optional] pdf title
+ * \param[out]   pdata output pdf data (of all images
+ * \param[out]   pnbytes size of output pdf data
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This generates the pdf without transcoding if all the
+ *          images in %pixac are compressed with jpeg.
+ *          Images not jpeg compressed are skipped.
+ *      (2) It assumes all images have the same resolution, and that
+ *          the resolution embedded in each jpeg file is correct.
+ * </pre>
+ */
+l_int32
+pixacompFastConvertToPdfData(PIXAC       *pixac,
+                             const char  *title,
+                             l_uint8    **pdata,
+                             size_t      *pnbytes)
+{
+l_uint8  *imdata;
+l_int32   i, n, ret, comptype;
+size_t    imbytes;
+L_BYTEA  *ba;
+PIXC     *pixc;
+L_PTRA   *pa_data;
+
+    PROCNAME("pixacompFastConvertToPdfData");
+
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    *pdata = NULL;
+    if (!pnbytes)
+        return ERROR_INT("&nbytes not defined", procName, 1);
+    *pnbytes = 0;
+    if (!pixac)
+        return ERROR_INT("pixac not defined", procName, 1);
+
+        /* Generate all the encoded pdf strings */
+    n = pixacompGetCount(pixac);
+    pa_data = ptraCreate(n);
+    for (i = 0; i < n; i++) {
+        if ((pixc = pixacompGetPixcomp(pixac, i, L_NOCOPY)) == NULL) {
+            L_ERROR("pixc[%d] not retrieved\n", procName, i);
+            continue;
+        }
+        pixcompGetParameters(pixc, NULL, NULL, &comptype, NULL);
+        if (comptype != IFF_JFIF_JPEG) {
+            L_ERROR("pixc[%d] not jpeg compressed\n", procName, i);
+            continue;
+        }
+        ret = pixcompFastConvertToPdfData(pixc, title, &imdata, &imbytes);
+        if (ret) {
+            L_ERROR("pdf encoding failed for pixc[%d]\n", procName, i);
+            continue;
+        }
+        ba = l_byteaInitFromMem(imdata, imbytes);
+        LEPT_FREE(imdata);
+        ptraAdd(pa_data, ba);
+    }
+    ptraGetActualCount(pa_data, &n);
+    if (n == 0) {
+        L_ERROR("no pdf files made\n", procName);
+        ptraDestroy(&pa_data, FALSE, FALSE);
+        return 1;
+    }
+
+        /* Concatenate them */
+    ret = ptraConcatenatePdfToData(pa_data, NULL, pdata, pnbytes);
+
+        /* Clean up */
+    ptraGetActualCount(pa_data, &n);  /* recalculate in case it changes */
+    for (i = 0; i < n; i++) {
+        ba = (L_BYTEA *)ptraRemove(pa_data, i, L_NO_COMPACTION);
+        l_byteaDestroy(&ba);
+    }
+    ptraDestroy(&pa_data, FALSE, FALSE);
+    return ret;
+}
+
+
+/*!
+ * \brief   pixcompFastConvertToPdfData()
+ *
+ * \param[in]    pixc   containing images all at the same resolution
+ * \param[in]    title [optional] pdf title
+ * \param[out]   pdata output pdf data (of all images
+ * \param[out]   pnbytes size of output pdf data
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This generates the pdf without transcoding.
+ *      (2) It assumes all images are jpeg encoded, have the same
+ *          resolution, and that the resolution embedded in each
+ *          jpeg file is correct.  (It is transferred to the pdf
+ *          via the cid.)
+ * </pre>
+ */
+static l_int32
+pixcompFastConvertToPdfData(PIXC        *pixc,
+                            const char  *title,
+                            l_uint8    **pdata,
+                            size_t      *pnbytes)
+{
+l_uint8      *data;
+L_COMP_DATA  *cid;
+
+    PROCNAME("pixacompFastConvertToPdfData");
+
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    *pdata = NULL;
+    if (!pnbytes)
+        return ERROR_INT("&nbytes not defined", procName, 1);
+    *pnbytes = 0;
+    if (!pixc)
+        return ERROR_INT("pixc not defined", procName, 1);
+    
+        /* Make a copy of the data */
+    data = l_binaryCopy(pixc->data, pixc->size);
+    cid = l_generateJpegDataMem(data, pixc->size, 0);
+
+        /* Note: cid is destroyed, along with data, by this function */
+    return cidConvertToPdfData(cid, title, pdata, pnbytes);
 }
 
 
