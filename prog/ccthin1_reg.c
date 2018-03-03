@@ -37,7 +37,7 @@ int main(int    argc,
          char **argv)
 {
 BOX          *box;
-PIX          *pix, *pixs, *pix1, *pix2;
+PIX          *pix1, *pix2;
 PIXA         *pixa;
 SEL          *sel, *sel1, *sel2, *sel3;
 SELA         *sela, *sela4, *sela8, *sela48;

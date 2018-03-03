@@ -50,7 +50,7 @@ static const l_int32  SMOOTH_Y = 1;
 int main(int    argc,
          char **argv)
 {
-l_int32       w, h, d;
+l_int32       w, h;
 PIX          *pixs, *pixg, *pixim, *pixgm, *pixmi, *pix1, *pix2;
 PIX          *pixmr, *pixmg, *pixmb, *pixmri, *pixmgi, *pixmbi;
 PIXA         *pixa;
