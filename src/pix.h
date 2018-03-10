@@ -240,9 +240,9 @@ enum {
  *          International Telecommunications Union, via ITU-R.
  * </pre>
  */
-static const l_float32  L_RED_WEIGHT =   0.3;  /*!< Percept. weight for red   */
-static const l_float32  L_GREEN_WEIGHT = 0.5;  /*!< Percept. weight for green */
-static const l_float32  L_BLUE_WEIGHT =  0.2;  /*!< Percept. weight for blue  */
+static const l_float32 L_RED_WEIGHT =   0.3f; /*!< Percept. weight for red   */
+static const l_float32 L_GREEN_WEIGHT = 0.5f; /*!< Percept. weight for green */
+static const l_float32 L_BLUE_WEIGHT =  0.2f; /*!< Percept. weight for blue  */
 
 
 /*-------------------------------------------------------------------------*
