@@ -63,7 +63,7 @@
  *       Prime finders
  *           l_int32    findNextLargerPrime()
  *           l_int32    lept_isPrime()
-  *
+ *
  *       Gray code conversion
  *           l_uint32   convertBinaryToGrayCode()
  *           l_uint32   convertGrayToBinaryCode()
@@ -93,7 +93,6 @@
 #include <windows.h>
 #endif  /* _WIN32 */
 
-//#include <string.h>
 #include <time.h>
 #include "allheaders.h"
 #include <math.h>

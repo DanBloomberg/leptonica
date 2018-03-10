@@ -75,12 +75,12 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-README (version 1.75.3)
-File update: 15 Feb 2018
+README (version 1.76.0)
+File update: 7 Mar 2018
 ---------------------------
 
-gunzip leptonica-1.75.3.tar.gz
-tar -xvf leptonica-1.75.3.tar
+gunzip leptonica-1.76.0.tar.gz
+tar -xvf leptonica-1.76.0.tar
 
 </pre>
 
@@ -376,12 +376,13 @@ I/O libraries leptonica is dependent on
 
 <pre>
    Leptonica is configured to handle image I/O using these external
-   libraries: libjpeg, libtiff, libpng, libz, libgif, libwebp, libopenjp2
+   libraries: libjpeg, libtiff, libpng, libz, libwebp, libgif, libopenjp2
 
    These libraries are easy to obtain.  For example, using the
    Debian package manager:
        sudo apt-get install <package>
-   where <package> = {libpng-dev, libjpeg62-turbo-dev, libtiff5-dev}.
+   where <package> = {libpng-dev, libjpeg62-turbo-dev, libtiff5-dev,
+                      libwebp-dev, libopenjp2-7-dev, libgif-dev}.
 
    Leptonica also allows image I/O with bmp and pnm formats, for which
    we provide the serializers (encoders and decoders).  It also
