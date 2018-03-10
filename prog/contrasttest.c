@@ -41,7 +41,7 @@ char        *filein, *fileout;
 char         bigbuf[512];
 l_int32      iplot;
 l_float32    factor;    /* scaled width of atan curve */
-l_float32    fact[] = {.2, 0.4, 0.6, 0.8, 1.0, -1.0};
+l_float32    fact[] = {0.2f, 0.4f, 0.6f, 0.8f, 1.0f, -1.0f};
 GPLOT       *gplot;
 NUMA        *na, *nax;
 PIX         *pixs;
