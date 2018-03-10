@@ -36,10 +36,10 @@ static void DisplayCaptcha(PIXA *pixac, PIX *pixs, l_int32 nterms,
                            l_uint32 seed, l_int32 newline);
 
 static const l_int32 size = 4;
-static const l_float32 xmag[] = {3.0, 4.0, 5.0, 7.0};
-static const l_float32 ymag[] = {5.0, 6.0, 8.0, 10.0};
-static const l_float32 xfreq[] = {0.11, 0.10, 0.10, 0.12};
-static const l_float32 yfreq[] = {0.11, 0.13, 0.13, 0.15};
+static const l_float32 xmag[] = {3.0f, 4.0f, 5.0f, 7.0f};
+static const l_float32 ymag[] = {5.0f, 6.0f, 8.0f, 10.0f};
+static const l_float32 xfreq[] = {0.11f, 0.10f, 0.10f, 0.12f};
+static const l_float32 yfreq[] = {0.11f, 0.13f, 0.13f, 0.15f};
 static const l_int32 nx[] = {4, 3, 2, 1};
 static const l_int32 ny[] = {4, 3, 2, 1};
 

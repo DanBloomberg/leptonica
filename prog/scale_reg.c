@@ -47,7 +47,7 @@ static const char *image[10] = {"feyn.tif",         /* 1 bpp */
 
 static const l_int32    SPACE = 30;
 static const l_int32    WIDTH = 300;
-static const l_float32  FACTOR[5] = {2.3, 1.5, 1.1, 0.6, 0.3};
+static const l_float32  FACTOR[5] = {2.3f, 1.5f, 1.1f, 0.6f, 0.3f};
 
 static void AddScaledImages(PIXA *pixa, const char *fname, l_int32 width);
 static void PixSave32(PIXA *pixa, PIX *pixc);

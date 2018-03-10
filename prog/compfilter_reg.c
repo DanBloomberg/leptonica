@@ -38,8 +38,8 @@ static void Count_pieces2(L_REGPARAMS *rp, BOXA *boxa, l_int32 nexp);
 static l_int32 Count_ones(L_REGPARAMS *rp, NUMA  *na, l_int32 nexp,
                           l_int32 index, const char *name);
 
-static const l_float32 edges[13] = {0.0, 0.2, 0.3, 0.35, 0.4, 0.45, 0.5,
-                                    0.55, 0.6, 0.7, 0.8, 0.9, 1.0};
+static const l_float32 edges[13] = {0.0f, 0.2f, 0.3f, 0.35f, 0.4f, 0.45f, 0.5f,
+                                    0.55f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
 
     /* for feyn.tif */
 static const l_int32 band[12] = {1, 11, 48, 264, 574, 704, 908, 786, 466,

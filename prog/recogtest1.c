@@ -126,7 +126,7 @@ SARRAY    *sa, *satext;
          *             requiring retention of 20% of templates in each class
          *  0.9, 0.01 : remove most based on matching; saved 1 in each class */
     fprintf(stderr, "Remove outliers\n");
-    static const l_float32  MinScore[] = {0.6, 0.7, 0.9};
+    static const l_float32  MinScore[] = {0.6f, 0.7f, 0.9f};
     static const l_int32  MinTarget[] = {4, 5, 4};
     static const l_int32  MinSize[] = {3, 2, 3};
     pixa2 = recogExtractPixa(recog1);
