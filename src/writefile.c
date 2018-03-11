@@ -52,10 +52,8 @@
  *        l_int32     pixSaveTiledWithText()
  *        void        l_chooseDisplayProg()
  *
- *     Deprecated pix output for debugging
+ *     Deprecated pix output for debugging (still used in tesseract 3.05)
  *        l_int32     pixDisplayWrite()
- *        l_int32     pixDisplayWriteFormat()
- *        l_int32     pixDisplayMultiple()
  *
  *  Supported file formats:
  *  (1) Writing is supported without any external libraries:
@@ -96,7 +94,7 @@ static l_int32  var_DISPLAY_PROG = L_DISPLAY_WITH_OPEN;  /* default */
 static l_int32  var_DISPLAY_PROG = L_DISPLAY_WITH_XZGV;  /* default */
 #endif  /* _WIN32 */
 
-static const l_int32  L_BUF_SIZE = 512;
+static const l_int32  L_BUFSIZE = 512;
 static const l_int32  MAX_DISPLAY_WIDTH = 1000;
 static const l_int32  MAX_DISPLAY_HEIGHT = 800;
 static const l_int32  MAX_SIZE_FOR_PNG = 200;
@@ -178,7 +176,7 @@ pixaWriteFiles(const char  *rootname,
                PIXA        *pixa,
                l_int32      format)
 {
-char     bigbuf[L_BUF_SIZE];
+char     bigbuf[L_BUFSIZE];
 l_int32  i, n, pixformat;
 PIX     *pix;
 
@@ -199,7 +197,7 @@ PIX     *pix;
             pixformat = pixChooseOutputFormat(pix);
         else
             pixformat = format;
-        snprintf(bigbuf, L_BUF_SIZE, "%s%03d.%s", rootname, i,
+        snprintf(bigbuf, L_BUFSIZE, "%s%03d.%s", rootname, i,
                  ImageFileFormatExtensions[pixformat]);
         pixWrite(bigbuf, pix, pixformat);
         pixDestroy(&pix);
@@ -837,7 +835,7 @@ pixDisplayWithTitle(PIX         *pixs,
                     l_int32      dispflag)
 {
 char           *tempname;
-char            buffer[L_BUF_SIZE];
+char            buffer[L_BUFSIZE];
 static l_int32  index = 0;  /* caution: not .so or thread safe */
 l_int32         w, h, d, spp, maxheight, opaque, threeviews, ignore;
 l_float32       ratw, rath, ratmin;
@@ -918,10 +916,10 @@ char            fullpath[_MAX_PATH];
     index++;
     if (pixGetDepth(pix2) < 8 || pixGetColormap(pix2) ||
         (w < MAX_SIZE_FOR_PNG && h < MAX_SIZE_FOR_PNG)) {
-        snprintf(buffer, L_BUF_SIZE, "/tmp/lept/disp/write.%03d.png", index);
+        snprintf(buffer, L_BUFSIZE, "/tmp/lept/disp/write.%03d.png", index);
         pixWrite(buffer, pix2, IFF_PNG);
     } else {
-        snprintf(buffer, L_BUF_SIZE, "/tmp/lept/disp/write.%03d.jpg", index);
+        snprintf(buffer, L_BUFSIZE, "/tmp/lept/disp/write.%03d.jpg", index);
         pixWrite(buffer, pix2, IFF_JFIF_JPEG);
     }
     tempname = genPathname(buffer, NULL);
@@ -932,30 +930,30 @@ char            fullpath[_MAX_PATH];
     if (var_DISPLAY_PROG == L_DISPLAY_WITH_XZGV) {
             /* no way to display title */
         pixGetDimensions(pix2, &wt, &ht, NULL);
-        snprintf(buffer, L_BUF_SIZE,
+        snprintf(buffer, L_BUFSIZE,
                  "xzgv --geometry %dx%d+%d+%d %s &", wt + 10, ht + 10,
                  x, y, tempname);
     } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_XLI) {
         if (title) {
-            snprintf(buffer, L_BUF_SIZE,
+            snprintf(buffer, L_BUFSIZE,
                "xli -dispgamma 1.0 -quiet -geometry +%d+%d -title \"%s\" %s &",
                x, y, title, tempname);
         } else {
-            snprintf(buffer, L_BUF_SIZE,
+            snprintf(buffer, L_BUFSIZE,
                "xli -dispgamma 1.0 -quiet -geometry +%d+%d %s &",
                x, y, tempname);
         }
     } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_XV) {
         if (title) {
-            snprintf(buffer, L_BUF_SIZE,
+            snprintf(buffer, L_BUFSIZE,
                      "xv -quit -geometry +%d+%d -name \"%s\" %s &",
                      x, y, title, tempname);
         } else {
-            snprintf(buffer, L_BUF_SIZE,
+            snprintf(buffer, L_BUFSIZE,
                      "xv -quit -geometry +%d+%d %s &", x, y, tempname);
         }
     } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_OPEN) {
-        snprintf(buffer, L_BUF_SIZE, "open %s &", tempname);
+        snprintf(buffer, L_BUFSIZE, "open %s &", tempname);
     }
 #ifndef OS_IOS /* iOS 11 does not support system() */
     ignore = system(buffer);
@@ -967,11 +965,11 @@ char            fullpath[_MAX_PATH];
     pathname = genPathname(tempname, NULL);
     _fullpath(fullpath, pathname, sizeof(fullpath));
     if (title) {
-        snprintf(buffer, L_BUF_SIZE,
+        snprintf(buffer, L_BUFSIZE,
                  "i_view32.exe \"%s\" /pos=(%d,%d) /title=\"%s\"",
                  fullpath, x, y, title);
     } else {
-        snprintf(buffer, L_BUF_SIZE, "i_view32.exe \"%s\" /pos=(%d,%d)",
+        snprintf(buffer, L_BUFSIZE, "i_view32.exe \"%s\" /pos=(%d,%d)",
                  fullpath, x, y);
     }
     ignore = system(buffer);
@@ -1250,86 +1248,43 @@ l_chooseDisplayProg(l_int32  selection)
  * <pre>
  * Notes:
  *      (0) Deprecated.
- *      (1) This is a simple interface for writing a set of files that can
- *          be either looked at individually or saved in a pdf for viewing.
- *      (2) This defaults to jpeg output for pix that are 32 bpp or
- *          8 bpp without a colormap.  If you want to write all images
- *          losslessly, use format == IFF_PNG in pixDisplayWriteFormat().
- *      (3) See pixDisplayWriteFormat() for usage details.
- * </pre>
- */
-l_int32
-pixDisplayWrite(PIX     *pixs,
-                l_int32  reduction)
-{
-    return pixDisplayWriteFormat(pixs, reduction, IFF_DEFAULT);
-}
-
-
-/*!
- * \brief   pixDisplayWriteFormat()
- *
- * \param[in]    pix 1, 2, 4, 8, 16, 32 bpp
- * \param[in]    reduction -1 to erase and reset; 0 to disable;
- *                         otherwise this is an integer reduction factor
- * \param[in]    format IFF_DEFAULT or IFF_PNG
- * \return  0 if OK; 1 on error
- *
- * <pre>
- * Notes:
- *      (0) Deprecated.
- *      (1) This writes files with pathnames "/tmp/lept/display/file.*"
- *          if reduction > 0.  These can be collected into a pdf using
- *          pixDisplayMultiple();
- *      (2) To erase any previously written files in the output directory:
+ *      (1) This is a simple interface for writing a set of files.
+ *      (2) This uses jpeg output for pix that are 32 bpp or 8 bpp
+ *          without a colormap; otherwise, it uses png.
+ *      (3) To erase any previously written files in the output directory:
  *             pixDisplayWrite(NULL, -1);
- *      (3) If reduction > 1 and depth == 1, this does a scale-to-gray
+ *      (4) If reduction > 1 and depth == 1, this does a scale-to-gray
  *          reduction.
- *      (4) This function uses a static internal variable to number
+ *      (5) This function uses a static internal variable to number
  *          output files written by a single process.  Behavior
  *          with a shared library may be unpredictable.
- *      (5) Output file format choices are:
- *            format == IFF_DEFAULT:
- *                png if d < 8 or d == 16 or if the output pix
- *                has a colormap.   Otherwise, output is jpg.
- *            format == IFF_PNG:
- *                png (lossless) on all images.
- *      (6) For 16 bpp, the choice of full dynamic range with log scale
- *          is usually best for displaying these images.  Alternative
- *          image transforms to generate 8 bpp pix are:
+ *      (6) For 16 bpp, this displays the full dynamic range with log scale.
+ *          Alternative image transforms to generate 8 bpp pix are:
  *             pix8 = pixMaxDynamicRange(pixt, L_LINEAR_SCALE);
  *             pix8 = pixConvert16To8(pixt, 0);  // low order byte
  *             pix8 = pixConvert16To8(pixt, 1);  // high order byte
  * </pre>
  */
 l_int32
-pixDisplayWriteFormat(PIX     *pixs,
-                      l_int32  reduction,
-                      l_int32  format)
+pixDisplayWrite(PIX     *pixs,
+                l_int32  reduction)
 {
-char            buf[L_BUF_SIZE];
+char            buf[L_BUFSIZE];
 char           *fname;
 l_float32       scale;
 PIX            *pix1, *pix2;
 static l_int32  index = 0;  /* caution: not .so or thread safe */
 
-    PROCNAME("pixDisplayWriteFormat");
+    PROCNAME("pixDisplayWrite");
 
     if (reduction == 0) return 0;
-
     if (reduction < 0) {  /* initialize */
         lept_rmdir("lept/display");
         index = 0;
         return 0;
     }
-
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
-    if (format != IFF_DEFAULT && format != IFF_PNG) {
-        L_INFO("invalid format; using default\n", procName);
-        format = IFF_DEFAULT;
-    }
-
     if (index == 0)
         lept_mkdir("lept/display");
     index++;
@@ -1346,57 +1301,20 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
 
     if (pixGetDepth(pix1) == 16) {
         pix2 = pixMaxDynamicRange(pix1, L_LOG_SCALE);
-        snprintf(buf, L_BUF_SIZE, "file.%03d.png", index);
+        snprintf(buf, L_BUFSIZE, "file.%03d.png", index);
         fname = pathJoin("/tmp/lept/display", buf);
         pixWrite(fname, pix2, IFF_PNG);
         pixDestroy(&pix2);
-    } else if (pixGetDepth(pix1) < 8 || pixGetColormap(pix1) ||
-               format == IFF_PNG) {
-        snprintf(buf, L_BUF_SIZE, "file.%03d.png", index);
+    } else if (pixGetDepth(pix1) < 8 || pixGetColormap(pix1)) {
+        snprintf(buf, L_BUFSIZE, "file.%03d.png", index);
         fname = pathJoin("/tmp/lept/display", buf);
         pixWrite(fname, pix1, IFF_PNG);
     } else {
-        snprintf(buf, L_BUF_SIZE, "file.%03d.jpg", index);
+        snprintf(buf, L_BUFSIZE, "file.%03d.jpg", index);
         fname = pathJoin("/tmp/lept/display", buf);
-        pixWrite(fname, pix1, format);
+        pixWrite(fname, pix1, IFF_JFIF_JPEG);
     }
     LEPT_FREE(fname);
     pixDestroy(&pix1);
-
-    return 0;
-}
-
-
-/*!
- * \brief   pixDisplayMultiple()
- *
- * \param[in]    res input resolution in ppi; > 0
- * \param[in]    scalefactor scaling factor applied to each image; > 0.0
- * \param[in]    fileout pdf output file
- * \return  0 if OK; 1 on error
- *
- * <pre>
- * Notes:
- *      (0) Deprecated.
- *      (1) This is a wrapper for generating a pdf of images that have
- *          been written with pixDisplayWrite() or pixDisplayWriteFormat().
- * </pre>
- */
-l_int32
-pixDisplayMultiple(l_int32      res,
-                   l_float32    scalefactor,
-                   const char  *fileout)
-{
-    PROCNAME("pixDisplayMultiple");
-
-    if (res <= 0)
-        return ERROR_INT("invalid res", procName, 1);
-    if (scalefactor <= 0.0)
-        return ERROR_INT("invalid scalefactor", procName, 1);
-    if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
-
-    convertFilesToPdf("/tmp/lept/display", "file.", res, scalefactor, 0, 0,
-                      NULL, fileout);
     return 0;
 }
