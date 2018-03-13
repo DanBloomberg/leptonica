@@ -110,7 +110,8 @@
  *   The compression type can be either specified or defaulted.
  *   If specified and it is not possible to compress (for example,
  *   you specify a jpeg on a 1 bpp image or one with a colormap),
- *   the compression type defaults to png.
+ *   the compression type defaults to png.  The jpeg compression quality
+ *   can be specified using l_setJpegQuality(); otherwise the default is 75.
  *
  *   The serialized version of the Pixacomp is similar to that for
  *   a Pixa, except that each Pixcomp can be compressed by one of
@@ -176,6 +177,8 @@ static l_int32 pixcompFastConvertToPdfData(PIXC *pixc, const char *title,
  * Notes:
  *      (1) Use %comptype == IFF_DEFAULT to have the compression
  *          type automatically determined.
+ *      (2) To compress jpeg with a quality other than the default (75), use
+ *             l_jpegSetQuality()
  * </pre>
  */
 PIXC *
@@ -710,6 +713,8 @@ PIXAC   *pixac;
  *          for a 1, 2 or 4 bpp pix, or a pix with a colormap),
  *          in which case we use the default (assumed best) compression.
  *      (2) %accesstype is used to extract a boxa from %pixa.
+ *      (3) To compress jpeg with a quality other than the default (75), use
+ *             l_jpegSetQuality()
  * </pre>
  */
 PIXAC *
@@ -2211,7 +2216,7 @@ L_COMP_DATA  *cid;
     *pnbytes = 0;
     if (!pixc)
         return ERROR_INT("pixc not defined", procName, 1);
-    
+
         /* Make a copy of the data */
     data = l_binaryCopy(pixc->data, pixc->size);
     cid = l_generateJpegDataMem(data, pixc->size, 0);

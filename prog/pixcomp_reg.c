@@ -200,9 +200,9 @@ SARRAY       *sa;
     l_pdfSetDateAndVersion(0);
     pixacompConvertToPdfData(pixac, 0, 1.0, L_DEFAULT_ENCODE, 0, "test1",
                              &data1, &size1);
-    regTestWriteDataAndCheck(rp, data1, size1, "pdf");  /* 14 */
+    regTestWriteDataAndCheck(rp, data1, size1, "pdf");  /* 13 */
     pixacompFastConvertToPdfData(pixac, "test2", &data2, &size2);
-    regTestWriteDataAndCheck(rp, data2, size2, "pdf");  /* 13 */
+    regTestWriteDataAndCheck(rp, data2, size2, "pdf");  /* 14 */
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixacompDestroy(&pixac);

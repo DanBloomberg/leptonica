@@ -2674,6 +2674,7 @@ LEPT_DLL extern l_int32 readHeaderMemWebP ( const l_uint8 *data, size_t size, l_
 LEPT_DLL extern l_int32 pixWriteWebP ( const char *filename, PIX *pixs, l_int32 quality, l_int32 lossless );
 LEPT_DLL extern l_int32 pixWriteStreamWebP ( FILE *fp, PIX *pixs, l_int32 quality, l_int32 lossless );
 LEPT_DLL extern l_int32 pixWriteMemWebP ( l_uint8 **pencdata, size_t *pencsize, PIX *pixs, l_int32 quality, l_int32 lossless );
+LEPT_DLL extern l_int32 l_jpegSetQuality ( l_int32 new_quality );
 LEPT_DLL extern l_int32 pixaWriteFiles ( const char *rootname, PIXA *pixa, l_int32 format );
 LEPT_DLL extern l_int32 pixWrite ( const char *fname, PIX *pix, l_int32 format );
 LEPT_DLL extern l_int32 pixWriteAutoFormat ( const char *filename, PIX *pix );

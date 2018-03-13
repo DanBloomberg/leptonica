@@ -808,8 +808,11 @@ jmp_buf                      jmpbuf;  /* must be local to the function */
         return ERROR_INT("stream not open", procName, 1);
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
-    if (quality <= 0)
-        quality = 75;  /* default */
+    if (quality <= 0) quality = 75;  /* default */
+    if (quality > 100) {
+        L_ERROR("invalid jpeg quality; setting to 75\n", procName);
+        quality = 75;
+    }
 
         /* If necessary, convert the pix so that it can be jpeg compressed.
          * The colormap is removed based on the source, so if the colormap

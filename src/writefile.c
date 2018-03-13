@@ -27,9 +27,12 @@
 /*
  * writefile.c
  *
+ *     Set jpeg quality for pixWrite() and pixWriteMem()
+ *        l_int32     l_jpegSetQuality()
+ *
  *     High-level procedures for writing images to file:
  *        l_int32     pixaWriteFiles()
- *        l_int32     pixWrite()    [behavior depends on WRITE_AS_NAMED]
+ *        l_int32     pixWrite()
  *        l_int32     pixWriteAutoFormat()
  *        l_int32     pixWriteStream()
  *        l_int32     pixWriteImpliedFormat()
@@ -79,11 +82,6 @@
 
 #include <string.h>
 #include "allheaders.h"
-
-    /*   Special flag for pixWrite().  The default for both unix and     */
-    /*   windows is to use whatever filename is given, as opposed to     */
-    /*   insuring the filename extension matches the image compression.  */
-#define  WRITE_AS_NAMED    1
 
     /* Display program (xv, xli, xzgv, open) to be invoked by pixDisplay()  */
 #ifdef _WIN32
@@ -152,6 +150,45 @@ static const struct ExtensionMap extension_map[] =
                               { ".ps",   IFF_PS        },
                               { ".pdf",  IFF_LPDF      },
                               { ".webp", IFF_WEBP      } };
+
+
+/*---------------------------------------------------------------------*
+ *           Set jpeg quality for pixWrite() and pixWriteMem()         *
+ *---------------------------------------------------------------------*/
+    /* Parameter that controls jpeg quality for high-level calls. */
+static l_int32  var_JPEG_QUALITY = 75;   /* default */
+
+/*!
+ * \brief   l_jpegSetQuality()
+ *
+ * \param[in]    new_quality    1 - 100; 75 is default; 0 defaults to 75
+ * \return       prev           previous quality
+ *
+ * <pre>
+ * Notes:
+ *      (1) This variable is used in pixWriteStream() and pixWriteMem(),
+ *          to control the jpeg quality.  The default is 75.
+ *      (2) It returns the previous quality, so for example:
+ *           l_int32  prev = l_jpegSetQuality(85);  //sets to 85
+ *           pixWriteStream(...);
+ *           l_jpegSetQuality(prev);   // resets to previous value
+ *      (3) On error, logs a message and does not change the variable.
+ */
+l_int32
+l_jpegSetQuality(l_int32  new_quality)
+{
+l_int32  prevq, newq;
+
+    PROCNAME("l_jpeqSetQuality");
+
+    prevq = var_JPEG_QUALITY;
+    newq = (new_quality == 0) ? 75 : new_quality;
+    if (newq < 1 || newq > 100)
+        L_ERROR("invalid jpeg quality; unchanged\n", procName);
+    else
+        var_JPEG_QUALITY = newq;
+    return prevq;
+}
 
 
 /*---------------------------------------------------------------------*
@@ -224,14 +261,8 @@ PIX     *pix;
  *          Thanks to Dave Bryan for pointing this out.
  *      (2) If the default image format IFF_DEFAULT is requested:
  *          use the input format if known; otherwise, use a lossless format.
- *      (3) There are two modes with respect to file naming.
- *          (a) The default code writes to %fname.
- *          (b) If WRITE_AS_NAMED is defined to 0, it's a bit fancier.
- *              Then, if %fname does not have a file extension, one is
- *              automatically appended, depending on the requested format.
- *          The original intent for providing option (b) was to insure
- *          that filenames on Windows have an extension that matches
- *          the image compression.  However, this is not the default.
+ *      (3) The default jpeg quality is 75.  For some other value,
+ *          Use l_jpegSetQuality().
  * </pre>
  */
 l_int32
@@ -249,40 +280,8 @@ FILE    *fp;
     if (!fname)
         return ERROR_INT("fname not defined", procName, 1);
 
-#if  WRITE_AS_NAMED  /* Default */
-
     if ((fp = fopenWriteStream(fname, "wb+")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-
-#else  /* Add an extension to the output name if none exists */
-
-    {l_int32  extlen;
-     char    *extension, *filebuf;
-        splitPathAtExtension(fname, NULL, &extension);
-        extlen = strlen(extension);
-        LEPT_FREE(extension);
-        if (extlen == 0) {
-            if (format == IFF_DEFAULT || format == IFF_UNKNOWN)
-                format = pixChooseOutputFormat(pix);
-
-            filebuf = (char *)LEPT_CALLOC(strlen(fname) + 10, sizeof(char));
-            if (!filebuf)
-                return ERROR_INT("filebuf not made", procName, 1);
-            strncpy(filebuf, fname, strlen(fname));
-            strcat(filebuf, ".");
-            strcat(filebuf, ImageFileFormatExtensions[format]);
-        } else {
-            filebuf = (char *)fname;
-        }
-
-        fp = fopenWriteStream(filebuf, "wb+");
-        if (filebuf != fname)
-            LEPT_FREE(filebuf);
-        if (fp == NULL)
-            return ERROR_INT("stream not opened", procName, 1);
-    }
-
-#endif  /* WRITE_AS_NAMED */
 
     ret = pixWriteStream(fp, pix, format);
     fclose(fp);
@@ -348,7 +347,7 @@ pixWriteStream(FILE    *fp,
         break;
 
     case IFF_JFIF_JPEG:   /* default quality; baseline sequential */
-        return pixWriteStreamJpeg(fp, pix, 75, 0);
+        return pixWriteStreamJpeg(fp, pix, var_JPEG_QUALITY, 0);
         break;
 
     case IFF_PNG:   /* no gamma value stored */
@@ -631,6 +630,8 @@ getFormatExtension(l_int32  format)
  *      (2) PostScript output is uncompressed, in hex ascii.
  *          Most printers support level 2 compression (tiff_g4 for 1 bpp,
  *          jpeg for 8 and 32 bpp).
+ *      (3) The default jpeg quality is 75.  For some other value,
+ *          Use l_jpegSetQuality().
  * </pre>
  */
 l_int32
@@ -660,7 +661,7 @@ l_int32  ret;
         break;
 
     case IFF_JFIF_JPEG:   /* default quality; baseline sequential */
-        ret = pixWriteMemJpeg(pdata, psize, pix, 75, 0);
+        ret = pixWriteMemJpeg(pdata, psize, pix, var_JPEG_QUALITY, 0);
         break;
 
     case IFF_PNG:   /* no gamma value stored */
