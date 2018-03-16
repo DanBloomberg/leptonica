@@ -41,7 +41,7 @@ int main(int    argc,
          char **argv)
 {
 char         *str;
-l_int32       i, j, same, ok;
+l_int32       i, j, same, ok, plottype;
 l_float32     sum, avediff, rmsdiff;
 L_KERNEL     *kel1, *kel2, *kel3, *kel4, *kelx, *kely;
 BOX          *box;
@@ -209,7 +209,8 @@ L_REGPARAMS  *rp;
     pixWrite("/tmp/lept/regout/conv2.png", pixt2, IFF_PNG);  /* ditto */
     regTestCheckFile(rp, "/tmp/lept/regout/conv2.png");  /* 11 */
 
-    pixCompareGray(pixt, pixt2, L_COMPARE_ABS_DIFF, GPLOT_PNG, NULL,
+    plottype = (rp->display) ? GPLOT_PNG : 0;
+    pixCompareGray(pixt, pixt2, L_COMPARE_ABS_DIFF, plottype, NULL,
                    &avediff, &rmsdiff, NULL);
     pixp = pixRead("/tmp/lept/comp/compare_gray0.png");
     pixSaveTiled(pixp, pixa, 1.0, 0, 20, 0);

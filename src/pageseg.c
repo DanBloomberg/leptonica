@@ -202,7 +202,6 @@ PIX     *pixtb;    /* textblock mask */
         PIXCMAP  *cmap;
         PTAA     *ptaa;
         ptaa = pixGetOuterBordersPtaa(pixtb);
-        lept_mkdir("lept");
         lept_mkdir("lept/pageseg");
         ptaaWrite("/tmp/lept/pageseg/tb_outlines.ptaa", ptaa, 1);
         pix1 = pixRenderRandomCmapPtaa(pixtb, ptaa, 1, 16, 1);
@@ -520,17 +519,13 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  *                          should be larger than 50; typically about 70
  * \param[in]    erasedist  when conditions are satisfied, erase anything
  *                          within this distance of the edge;
- *                          typically 30 at 2x reduction
- * \param[in]    pagenum    use for debugging when called repeatedly; labels
- *                          debug images that are assembled into pdfdir
- * \param[in]    showmorph  set to a negative integer to show steps in
- *                          generating masks; this is typically used
+ *                          typically 20-30 at 2x reduction
+ * \param[in]    showmorph  debug: set to a negative integer to show steps
+ *                          in generating masks; this is typically used
  *                          for debugging region extraction
- * \param[in]    display    set to 1  to display mask and selected region
- *                          for debugging a single page
- * \param[in]    pdfdir     subdirectory of /tmp where images showing the
- *                          result are placed when called repeatedly; use
- *                          null if no output requested
+ * \param[in]    pixac      debug: allocate outside and pass this in to
+ *                          accumulate results of each call to this function,
+ *                          which can be displayed in a mosaic or a pdf.
  * \return  box region including foreground, with some pixel noise
  *                   removed, or NULL if not found
  *
@@ -539,28 +534,23 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  *      (1) This doesn't simply crop to the fg.  It attempts to remove
  *          pixel noise and junk at the edge of the image before cropping.
  *          The input %threshold is used if pixs is not 1 bpp.
- *      (2) There are several debugging options, determined by the
- *          last 4 arguments.
- *      (3) This is not intended to work on small thumbnails.  The
+ *      (2) This is not intended to work on small thumbnails.  The
  *          dimensions of pixs must be at least MinWidth x MinHeight.
- *      (4) If you want pdf output of results when called repeatedly,
- *          the pagenum arg labels the images written, which go into
- *          /tmp/lept/<pdfdir>/<pagenum>.png.  In that case,
- *          you would clean out the /tmp directory before calling this
- *          function on each page:
- *              lept_rmdir("/lept/<pdfdir>");
- *              lept_mkdir("/lept/<pdfdir>");
+ *      (3) Debug: set showmorph to display the intermediate image in
+ *          the morphological operations on this page.
+ *      (4) Debug: to get pdf output of results when called repeatedly,
+ *          call with an existing pixac, which will add an image of this page,
+ *          with the fg outlined.  If no foreground is found, there is
+ *          no output for this page image.
  * </pre>
  */
 BOX *
-pixFindPageForeground(PIX         *pixs,
-                      l_int32      threshold,
-                      l_int32      mindist,
-                      l_int32      erasedist,
-                      l_int32      pagenum,
-                      l_int32      showmorph,
-                      l_int32      display,
-                      const char  *pdfdir)
+pixFindPageForeground(PIX     *pixs,
+                      l_int32  threshold,
+                      l_int32  mindist,
+                      l_int32  erasedist,
+                      l_int32  showmorph,
+                      PIXAC   *pixac)
 {
 char     buf[64];
 l_int32  flag, nbox, intersects;
@@ -584,15 +574,19 @@ BOXA    *ba1, *ba2;
          * components of the binarized image for which there was at least
          * one seed pixel.  Also clear out any components that are within
          * 10 pixels of the edge at 2x reduction. */
-    flag = (showmorph) ? -1 : 0;  /* if showmorph == -1, write intermediate
-                                   * images to /tmp/lept/seq_output_1.pdf */
+    flag = (showmorph) ? 100 : 0;
     pixb = pixConvertTo1(pixs, threshold);
     pixb2 = pixScale(pixb, 0.5, 0.5);
-    pixseed = pixMorphSequence(pixb2, "o1.2 + c9.9 + o3.5", flag);
+    pixseed = pixMorphSequence(pixb2, "o1.2 + c9.9 + o3.3", flag);
+    pix1 = pixMorphSequence(pixb2, "o50.1", 0);
+    pixOr(pixseed, pixseed, pix1);
+    pixDestroy(&pix1);
+    pix1 = pixMorphSequence(pixb2, "o1.50", 0);
+    pixOr(pixseed, pixseed, pix1);
+    pixDestroy(&pix1);
     pixsf = pixSeedfillBinary(NULL, pixseed, pixb2, 8);
     pixSetOrClearBorder(pixsf, 10, 10, 10, 10, PIX_SET);
     pixm = pixRemoveBorderConnComps(pixsf, 8);
-    if (display) pixDisplay(pixm, 100, 100);
 
         /* Now, where is the main block of text?  We want to remove noise near
          * the edge of the image, but to do that, we have to be convinced that
@@ -600,7 +594,6 @@ BOXA    *ba1, *ba2;
          * and close enough to the edge.  For each edge, if the block
          * is more than mindist from that edge, then clean 'erasedist'
          * pixels from the edge. */
-    if (flag == -1) flag = -2;  /* write a pdf to /tmp/lept/seq_output_2.pdf */
     pix1 = pixMorphSequence(pixm, "c50.50", flag);
     ba1 = pixConnComp(pix1, NULL, 8);
     ba2 = boxaSort(ba1, L_SORT_BY_AREA, L_SORT_DECREASING, NULL);
@@ -629,33 +622,20 @@ BOXA    *ba1, *ba2;
     if (boxfg) {
         boxin = boxCreate(0.1 * w, 0, 0.8 * w, h);
         boxIntersects(boxfg, boxin, &intersects);
-        if (!intersects) {
-            L_INFO("found only noise on page %d\n", procName, pagenum);
-            boxDestroy(&boxfg);
-        }
         boxDestroy(&boxin);
+        if (!intersects) boxDestroy(&boxfg);
     }
 
     boxd = NULL;
-    if (!boxfg) {
-        L_INFO("no fg region found for page %d\n", procName, pagenum);
-    } else {
+    if (boxfg) {
         boxAdjustSides(boxfg, boxfg, -2, 2, -2, 2);  /* tiny expansion */
         boxd = boxTransform(boxfg, 0, 0, 2.0, 2.0);
 
-            /* Write image showing box for this page.  This is to be
-             * bundled up into a pdf of all the pages, which can be
-             * generated by convertFilesToPdf()  */
-        if (pdfdir) {
-            snprintf(buf, sizeof(buf), "lept/%s", pdfdir);
-            lept_mkdir(buf);
-
+            /* Save the debug image showing the box for this page */
+        if (pixac) {
             pixg2 = pixConvert1To4Cmap(pixb);
             pixRenderBoxArb(pixg2, boxd, 3, 255, 0, 0);
-            snprintf(buf, sizeof(buf), "/tmp/lept/%s/%04d.png",
-                     pdfdir, pagenum);
-            if (display) pixDisplay(pixg2, 700, 100);
-            pixWrite(buf, pixg2, IFF_PNG);
+            pixacompAddPix(pixac, pixg2, IFF_DEFAULT);
             pixDestroy(&pixg2);
         }
     }
@@ -1975,6 +1955,7 @@ PIX     *pix;
     boxa = boxaCreate(nrect);
     *pboxa = boxa;
 
+        /* Sequentially find largest rectangle and fill with opposite color */
     for (i = 0; i < nrect; i++) {
         if (pixFindLargestRectangle(pix, polarity, &box, NULL) == 1) {
             boxDestroy(&box);

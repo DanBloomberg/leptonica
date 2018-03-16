@@ -136,7 +136,7 @@ pixMorphSequence(PIX         *pixs,
 {
 char    *rawop, *op;
 char     fname[256];
-l_int32  nops, i, j, nred, fact, w, h, x, y, border, pdfout;
+l_int32  nops, i, j, nred, fact, w, h, x, border, pdfout;
 l_int32  level[4];
 PIX     *pix1, *pix2;
 PIXA    *pixa;
@@ -154,7 +154,6 @@ SARRAY  *sa;
     sarraySplitString(sa, sequence, "+");
     nops = sarrayGetCount(sa);
     pdfout = (dispsep < 0) ? 1 : 0;
-
     if (!morphSequenceVerify(sa)) {
         sarrayDestroy(&sa);
         return (PIX *)ERROR_PTR("sequence not valid", procName, NULL);
@@ -169,7 +168,7 @@ SARRAY  *sa;
     border = 0;
     pix1 = pixCopy(NULL, pixs);
     pix2 = NULL;
-    x = y = 0;
+    x = 0;
     for (i = 0; i < nops; i++) {
         rawop = sarrayGetString(sa, i, L_NOCOPY);
         op = stringRemoveChars(rawop, " \n\t");
@@ -228,7 +227,7 @@ SARRAY  *sa;
 
             /* Debug output */
         if (dispsep > 0) {
-            pixDisplay(pix1, x, y);
+            pixDisplay(pix1, x, 0);
             x += dispsep;
         }
         if (pdfout)
@@ -304,7 +303,7 @@ pixMorphCompSequence(PIX         *pixs,
 {
 char    *rawop, *op;
 char     fname[256];
-l_int32  nops, i, j, nred, fact, w, h, x, y, border, pdfout;
+l_int32  nops, i, j, nred, fact, w, h, x, border, pdfout;
 l_int32  level[4];
 PIX     *pix1, *pix2;
 PIXA    *pixa;
@@ -337,7 +336,7 @@ SARRAY  *sa;
     border = 0;
     pix1 = pixCopy(NULL, pixs);
     pix2 = NULL;
-    x = y = 0;
+    x = 0;
     for (i = 0; i < nops; i++) {
         rawop = sarrayGetString(sa, i, L_NOCOPY);
         op = stringRemoveChars(rawop, " \n\t");
@@ -396,7 +395,7 @@ SARRAY  *sa;
 
             /* Debug output */
         if (dispsep > 0) {
-            pixDisplay(pix1, x, y);
+            pixDisplay(pix1, x, 0);
             x += dispsep;
         }
         if (pdfout)
@@ -453,7 +452,7 @@ pixMorphSequenceDwa(PIX         *pixs,
 {
 char    *rawop, *op;
 char     fname[256];
-l_int32  nops, i, j, nred, fact, w, h, x, y, border, pdfout;
+l_int32  nops, i, j, nred, fact, w, h, x, border, pdfout;
 l_int32  level[4];
 PIX     *pix1, *pix2;
 PIXA    *pixa;
@@ -486,7 +485,7 @@ SARRAY  *sa;
     border = 0;
     pix1 = pixCopy(NULL, pixs);
     pix2 = NULL;
-    x = y = 0;
+    x = 0;
     for (i = 0; i < nops; i++) {
         rawop = sarrayGetString(sa, i, L_NOCOPY);
         op = stringRemoveChars(rawop, " \n\t");
@@ -545,7 +544,7 @@ SARRAY  *sa;
 
             /* Debug output */
         if (dispsep > 0) {
-            pixDisplay(pix1, x, y);
+            pixDisplay(pix1, x, 0);
             x += dispsep;
         }
         if (pdfout)
@@ -602,7 +601,7 @@ pixMorphCompSequenceDwa(PIX         *pixs,
 {
 char    *rawop, *op;
 char     fname[256];
-l_int32  nops, i, j, nred, fact, w, h, x, y, border, pdfout;
+l_int32  nops, i, j, nred, fact, w, h, x, border, pdfout;
 l_int32  level[4];
 PIX     *pix1, *pix2;
 PIXA    *pixa;
@@ -635,7 +634,7 @@ SARRAY  *sa;
     border = 0;
     pix1 = pixCopy(NULL, pixs);
     pix2 = NULL;
-    x = y = 0;
+    x = 0;
     for (i = 0; i < nops; i++) {
         rawop = sarrayGetString(sa, i, L_NOCOPY);
         op = stringRemoveChars(rawop, " \n\t");
@@ -694,7 +693,7 @@ SARRAY  *sa;
 
             /* Debug output */
         if (dispsep > 0) {
-            pixDisplay(pix1, x, y);
+            pixDisplay(pix1, x, 0);
             x += dispsep;
         }
         if (pdfout)
