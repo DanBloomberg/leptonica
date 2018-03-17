@@ -49,6 +49,11 @@
 #   The default is not to use, because they only work on linux.
 #   To use these, #define HAVE_FMEMOPEN to 1 in environ.h.
 #
+#   Customization for POSIX-compliant function fstatat().
+#   The default is not to use, because some systems do not
+#   support it.
+#   To use this, #define HAVE_FSTATAT to 1 in environ.h.
+#
 #   Customization for Cygwin:
 #   (1) Use the appropriate $CC
 #

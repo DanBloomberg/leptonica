@@ -6,7 +6,9 @@ files:
 include_directories:
     public: src
 
-check_function_exists: fmemopen
+check_function_exists:
+  - fmemopen
+  - fstatat
 
 check_include_exists:
   - dlfcn.h

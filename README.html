@@ -500,7 +500,18 @@ that you are using the static makefiles and customizing environ.h.
    If you're building with the autoconf programs, these two functions are
    automatically enabled if available.
 
-3. Typedefs
+3. Runtime functions not available on all platforms
+
+   Some functions are not available on all systems.  One example of such a
+   function is fstatat().  If possible, such functions will be replaced by
+   wrappers, stubs or behavioral equivalent functions.  By default, such
+   functions are disabled; enable them by setting #define HAVE_FUNC  1 (in
+   environ.h).
+
+   If you're building with the autoconf or cmake programs, these functions are
+   automatically enabled if available.
+
+4. Typedefs
 
    A deficiency of C is that no standard has been universally
    adopted for typedefs of the built-in types.  As a result,
@@ -543,7 +554,7 @@ that you are using the static makefiles and customizing environ.h.
    necessary we use the typedefs in stdint.h to specify the pointer
    size (either 4 or 8 byte).
 
-4. Compile-time control over stderr output (see environ.h)
+5. Compile-time control over stderr output (see environ.h)
 
    Leptonica provides both compile-time and run-time control over
    messages and debug output (thanks to Dave Bryan).  Both compile-time
@@ -554,7 +565,7 @@ that you are using the static makefiles and customizing environ.h.
    NO_CONSOLE_IO is defined on the compile line.  For production code
    where no output is to go to stderr, compile with -DNO_CONSOLE_IO.
 
-5. In-memory raster format (Pix)
+6. In-memory raster format (Pix)
 
    Unlike many other open source packages, Leptonica uses packed
    data for images with all bit/pixel (bpp) depths, allowing us
@@ -575,7 +586,7 @@ that you are using the static makefiles and customizing environ.h.
    and a DPix is provided for 2D arrays of doubles.  Converters
    between these and the Pix are given.
 
-6. Conversion between Pix and other in-memory raster formats
+7. Conversion between Pix and other in-memory raster formats
 
  . If you use Leptonica with other imaging libraries, you will need
    functions to convert between the Pix and other image data
@@ -584,7 +595,7 @@ that you are using the static makefiles and customizing environ.h.
    ordering and byte ordering on raster lines.  See the file pix.h
    for the specification of image data in the pix.
 
-7. Custom memory management
+8. Custom memory management
 
    Leptonica allows you to use custom memory management (allocator,
    deallocator).  For Pix, which tend to be large, the alloc/dealloc
