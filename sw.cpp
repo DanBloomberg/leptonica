@@ -56,6 +56,7 @@ void check(Checker &c)
 {
     auto &s = c.addSet("leptonica");
     s.checkFunctionExists("fmemopen");
+    s.checkFunctionExists("fstatat");
     s.checkIncludeExists("dlfcn.h");
     s.checkIncludeExists("inttypes.h");
     s.checkIncludeExists("memory.h");

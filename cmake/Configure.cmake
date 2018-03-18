@@ -73,6 +73,7 @@ check_includes(include_files_list)
 
 set(functions_list
     fmemopen
+    fstatat
 )
 check_functions(functions_list)
 

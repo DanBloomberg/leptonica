@@ -127,6 +127,15 @@ typedef uintptr_t l_uintptr_t;
 #define  HAVE_FMEMOPEN    1
 #endif  /* ! HAVE_CONFIG_H etc. */
 
+/*
+ * fstatat() is defined by POSIX, but some systems do not support it.
+ * One example is older macOS systems (pre-10.10).
+ * Play it safe and set the default value to 0.
+ */
+#if !defined(HAVE_CONFIG_H)
+#define  HAVE_FSTATAT     0
+#endif /* ! HAVE_CONFIG_H */
+
 
 /*--------------------------------------------------------------------*
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*
