@@ -1855,7 +1855,7 @@ l_int32         len;
 SARRAY         *safiles;
 DIR            *pdir;
 struct dirent  *pdirentry;
-int             dfd;
+int             dfd, stat_ret;
 struct stat     st;
 
     PROCNAME("getFilenamesInDirectory");
@@ -1871,9 +1871,14 @@ struct stat     st;
     safiles = sarrayCreate(0);
     dfd = dirfd(pdir);
     while ((pdirentry = readdir(pdir))) {
+#if HAVE_FSTATAT
+      stat_ret = fstatat(dfd, pdirentry->d_name, &st, 0);
+#else
+      stat_ret = stat(pdirentry->d_name, &st);
+#endif
 
         /* It's nice to ignore directories.  */
-      if ((0 == fstatat(dfd, pdirentry->d_name, &st, 0))
+      if ((0 == stat_ret)
           && S_ISDIR(st.st_mode)) {
             continue;
       }
