@@ -184,6 +184,7 @@ static char  mainName[] = "alltests_reg";
         return ERROR_INT(" Syntax alltests_reg [generate | compare | display]",
                          mainName, 1);
 
+    setLeptDebugOK(1);  /* required for testing */
     l_getCurrentTime(&start, NULL);
     ntests = sizeof(tests) / sizeof(char *);
     fprintf(stderr, "Running alltests_reg:\n"

@@ -1889,6 +1889,12 @@ l_uint32  attributes;
 
     PROCNAME("lept_mkdir");
 
+    if (!LeptDebugOK) {
+        L_INFO("making named temp subdirectory %s is disabled\n",
+               procName, subdir);
+        return 0;
+    }
+
     if (!subdir)
         return ERROR_INT("subdir not defined", procName, 1);
     if ((strlen(subdir) == 0) || (subdir[0] == '.') || (subdir[0] == '/'))

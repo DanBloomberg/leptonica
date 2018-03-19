@@ -149,7 +149,7 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     if (debugflag) {
         lept_mkdir("lept/segment");
-        pixWrite("/tmp/lept/segment/colorseg1.png", pixd, IFF_PNG);
+        pixWriteDebug("/tmp/lept/segment/colorseg1.png", pixd, IFF_PNG);
     }
 
         /* Phase 2; refinement in pixel assignment */
@@ -159,13 +159,13 @@ PIX       *pixd;
     }
     pixAssignToNearestColor(pixd, pixs, NULL, LEVEL_IN_OCTCUBE, countarray);
     if (debugflag)
-        pixWrite("/tmp/lept/segment/colorseg2.png", pixd, IFF_PNG);
+        pixWriteDebug("/tmp/lept/segment/colorseg2.png", pixd, IFF_PNG);
 
         /* Phase 3: noise removal by separately closing each color */
     pixColorSegmentClean(pixd, selsize, countarray);
     LEPT_FREE(countarray);
     if (debugflag)
-        pixWrite("/tmp/lept/segment/colorseg3.png", pixd, IFF_PNG);
+        pixWriteDebug("/tmp/lept/segment/colorseg3.png", pixd, IFF_PNG);
 
         /* Phase 4: removal of colors with small population and
          * reassignment of pixels to remaining colors */

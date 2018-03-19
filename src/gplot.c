@@ -398,7 +398,13 @@ l_int32  ignore;
 #endif  /* _WIN32 */
 
 #ifndef OS_IOS /* iOS 11 does not support system() */
-    ignore = system(buf);  /* gnuplot || wgnuplot */
+    if (LeptDebugOK) {
+        ignore = system(buf);  /* gnuplot || wgnuplot */
+    } else {
+        L_INFO("running gnuplot is disabled; use setLeptDebugOK(1) to enable\n",
+               procName);
+        return 0;
+    }
 #endif /* !OS_IOS */
 
     LEPT_FREE(cmdname);

@@ -67,6 +67,7 @@
  *          NUMA        *numaRead()
  *          NUMA        *numaReadStream()
  *          NUMA        *numaReadMem()
+ *          l_int32      numaWriteDebug()
  *          l_int32      numaWrite()
  *          l_int32      numaWriteStream()
  *          l_int32      numaWriteMem()
@@ -1169,6 +1170,37 @@ NUMA  *na;
     fclose(fp);
     if (!na) L_ERROR("numa not read\n", procName);
     return na;
+}
+
+
+/*!
+ * \brief   numaWriteDebug()
+ *
+ * \param[in]    filename
+ * \param[in]    na 
+ * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Debug version, intended for use in the library when writing
+ *          to files in a temp directory with names that are compiled in.
+ *          This is used instead of numaWrite() for all such library calls.
+ *      (2) The global variable LeptDebugOK defaults to 0, and can be set
+ *          or cleared by the function setLeptDebugOK().
+ * </pre>
+ */
+l_int32
+numaWriteDebug(const char  *filename,
+               NUMA        *na)
+{
+    PROCNAME("numaWriteDebug");
+
+    if (LeptDebugOK) {
+        return numaWrite(filename, na);
+    } else {
+        L_INFO("write to named temp file %s is disabled\n", procName, filename);
+        return 0;
+    }
 }
 
 

@@ -112,6 +112,7 @@
  *           BOXA     *boxaRead()
  *           BOXA     *boxaReadStream()
  *           BOXA     *boxaReadMem()
+ *           l_int32   boxaWriteDebug()
  *           l_int32   boxaWrite()
  *           l_int32   boxaWriteStream()
  *           l_int32   boxaWriteMem()
@@ -2179,6 +2180,37 @@ BOXA  *boxa;
     fclose(fp);
     if (!boxa) L_ERROR("boxa not read\n", procName);
     return boxa;
+}
+
+
+/*!
+ * \brief   boxaWriteDebug()
+ *
+ * \param[in]    filename
+ * \param[in]    boxa 
+ * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Debug version, intended for use in the library when writing
+ *          to files in a temp directory with names that are compiled in.
+ *          This is used instead of boxaWrite() for all such library calls.
+ *      (2) The global variable LeptDebugOK defaults to 0, and can be set
+ *          or cleared by the function setLeptDebugOK().
+ * </pre>
+ */
+l_int32
+boxaWriteDebug(const char  *filename,
+               BOXA        *boxa)
+{
+    PROCNAME("boxaWriteDebug");
+
+    if (LeptDebugOK) {
+        return boxaWrite(filename, boxa);
+    } else {
+        L_INFO("write to named temp file %s is disabled\n", procName, filename);
+        return 0;
+    }
 }
 
 

@@ -59,6 +59,7 @@
  *           PTA            *ptaRead()
  *           PTA            *ptaReadStream()
  *           PTA            *ptaReadMem()
+ *           l_int32         ptaWriteDebug()
  *           l_int32         ptaWrite()
  *           l_int32         ptaWriteStream()
  *           l_int32         ptaWriteMem()
@@ -761,6 +762,39 @@ PTA   *pta;
 
 
 /*!
+ * \brief   ptaWriteDebug()
+ *
+ * \param[in]    filename
+ * \param[in]    pta
+ * \param[in]    type  0 for float values; 1 for integer values
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Debug version, intended for use in the library when writing
+ *          to files in a temp directory with names that are compiled in.
+ *          This is used instead of ptaWrite() for all such library calls.
+ *      (2) The global variable LeptDebugOK defaults to 0, and can be set
+ *          or cleared by the function setLeptDebugOK().
+ * </pre>
+ */
+l_int32
+ptaWriteDebug(const char  *filename,
+              PTA         *pta,
+              l_int32      type)
+{
+    PROCNAME("ptaWriteDebug");
+
+    if (LeptDebugOK) {
+        return ptaWrite(filename, pta, type);
+    } else {
+        L_INFO("write to named temp file %s is disabled\n", procName, filename);
+        return 0;
+    }
+}
+
+
+/*!
  * \brief   ptaWrite()
  *
  * \param[in]    filename
@@ -1357,6 +1391,39 @@ PTAA  *ptaa;
     fclose(fp);
     if (!ptaa) L_ERROR("ptaa not read\n", procName);
     return ptaa;
+}
+
+
+/*!
+ * \brief   ptaaWriteDebug()
+ *
+ * \param[in]    filename
+ * \param[in]    ptaa
+ * \param[in]    type  0 for float values; 1 for integer values
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Debug version, intended for use in the library when writing
+ *          to files in a temp directory with names that are compiled in.
+ *          This is used instead of ptaaWrite() for all such library calls.
+ *      (2) The global variable LeptDebugOK defaults to 0, and can be set
+ *          or cleared by the function setLeptDebugOK().
+ * </pre>
+ */
+l_int32
+ptaaWriteDebug(const char  *filename,
+               PTAA        *ptaa,
+               l_int32      type)
+{
+    PROCNAME("ptaaWriteDebug");
+
+    if (LeptDebugOK) {
+        return ptaaWrite(filename, ptaa, type);
+    } else {
+        L_INFO("write to named temp file %s is disabled\n", procName, filename);
+        return 0;
+    }
 }
 
 

@@ -30,8 +30,12 @@
  *     Set jpeg quality for pixWrite() and pixWriteMem()
  *        l_int32     l_jpegSetQuality()
  *
+ *     Set global variable LeptDebugOK for writing to named temp files
+ *        l_int32     setLeptDebugOK()
+ *
  *     High-level procedures for writing images to file:
  *        l_int32     pixaWriteFiles()
+ *        l_int32     pixWriteDebug()
  *        l_int32     pixWrite()
  *        l_int32     pixWriteAutoFormat()
  *        l_int32     pixWriteStream()
@@ -191,6 +195,32 @@ l_int32  prevq, newq;
 }
 
 
+/*----------------------------------------------------------------------*
+ *    Set global variable LeptDebugOK for writing to named temp files   *
+ *----------------------------------------------------------------------*/
+l_int32 LeptDebugOK = 0;  /* default value */
+/*!
+ * \brief   setLeptDebugOK()
+ *
+ * \param[in]    allow     TRUE (1) or FALSE (0)
+ * \return       void
+ *
+ * <pre>
+ * Notes:
+ *      (1) This sets or clears the global variable LeptDebugOK, to
+ *          control writing files in a temp directory with names that
+ *          are compiled in.
+ *      (2) The default in the library distribution is 0.  Call with
+ *          @allow = 1 for development and debugging.
+ */
+void
+setLeptDebugOK(l_int32  allow)
+{
+    if (allow != 0) allow = 1;
+    LeptDebugOK = allow;
+}
+
+
 /*---------------------------------------------------------------------*
  *           Top-level procedures for writing images to file           *
  *---------------------------------------------------------------------*/
@@ -241,6 +271,39 @@ PIX     *pix;
     }
 
     return 0;
+}
+
+
+/*!
+ * \brief   pixWriteDebug()
+ *
+ * \param[in]    fname
+ * \param[in]    pix
+ * \param[in]    format  defined in imageio.h
+ * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Debug version, intended for use in the library when writing
+ *          to files in a temp directory with names that are compiled in.
+ *          This is used instead of pixWrite() for all such library calls.
+ *      (2) The global variable LeptDebugOK defaults to 0, and can be set
+ *          or cleared by the function setLeptDebugOK().
+ * </pre>
+ */
+l_int32
+pixWriteDebug(const char  *fname,
+              PIX         *pix,
+              l_int32      format)
+{
+    PROCNAME("pixWriteDebug");
+
+    if (LeptDebugOK) {
+        return pixWrite(fname, pix, format);
+    } else {
+        L_INFO("write to named temp file %s is disabled\n", procName, fname);
+        return 0;
+    }
 }
 
 
@@ -850,6 +913,11 @@ char            fullpath[_MAX_PATH];
 #endif  /* _WIN32 */
 
     PROCNAME("pixDisplayWithTitle");
+
+    if (!LeptDebugOK) {
+        L_INFO("displaying files is disabled\n", procName);
+        return 0;
+    }
 
     if (dispflag != 1) return 0;
     if (!pixs)

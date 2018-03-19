@@ -45,6 +45,10 @@
  *       Static function
  *           char      *getRootNameFromArgv0()
  *
+ *  These functions are for testing and development.  They are not intended
+ *  for use with programs that run in a production environment, such as a
+ *  cloud service with unrestricted access.
+ *
  *  See regutils.h for how to use this.  Here is a minimal setup:
  *
  *  main(int argc, char **argv) {
@@ -130,6 +134,8 @@ L_REGPARAMS  *rp;
 
     if ((testname = getRootNameFromArgv0(argv[0])) == NULL)
         return ERROR_INT("invalid root", procName, 1);
+
+    setLeptDebugOK(1);  /* required for testing */
 
     if ((rp = (L_REGPARAMS *)LEPT_CALLOC(1, sizeof(L_REGPARAMS))) == NULL) {
         LEPT_FREE(testname);
