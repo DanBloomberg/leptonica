@@ -2194,12 +2194,12 @@ PIXA    *pixa1;
         }
         if (write_pixa) {
             snprintf(buf, sizeof(buf), "/tmp/lept/split/split%d.pa", i + 1);
-            pixaWrite(buf, pixa1);
+            pixaWriteDebug(buf, pixa1);
         }
         if (write_pix) {
             snprintf(buf, sizeof(buf), "/tmp/lept/split/split%d.tif", i + 1);
             pix1 = pixaDisplayTiledInRows(pixa1, 1, outwidth, 1.0, 0, 20, 2);
-            pixWrite(buf, pix1, IFF_TIFF_G4);
+            pixWriteDebug(buf, pix1, IFF_TIFF_G4);
             pixDestroy(&pix1);
         }
         if (write_pdf) {

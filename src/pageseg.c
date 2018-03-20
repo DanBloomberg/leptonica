@@ -203,7 +203,7 @@ PIX     *pixtb;    /* textblock mask */
         PTAA     *ptaa;
         ptaa = pixGetOuterBordersPtaa(pixtb);
         lept_mkdir("lept/pageseg");
-        ptaaWrite("/tmp/lept/pageseg/tb_outlines.ptaa", ptaa, 1);
+        ptaaWriteDebug("/tmp/lept/pageseg/tb_outlines.ptaa", ptaa, 1);
         pix1 = pixRenderRandomCmapPtaa(pixtb, ptaa, 1, 16, 1);
         cmap = pixGetColormap(pix1);
         pixcmapResetColor(cmap, 0, 130, 130, 130);
@@ -217,9 +217,9 @@ PIX     *pixtb;    /* textblock mask */
         bahm = pixConnComp(pixhm, NULL, 4);
         batm = pixConnComp(pixtm, NULL, 4);
         batb = pixConnComp(pixtb, NULL, 4);
-        boxaWrite("/tmp/lept/pageseg/htmask.boxa", bahm);
-        boxaWrite("/tmp/lept/pageseg/textmask.boxa", batm);
-        boxaWrite("/tmp/lept/pageseg/textblock.boxa", batb);
+        boxaWriteDebug("/tmp/lept/pageseg/htmask.boxa", bahm);
+        boxaWriteDebug("/tmp/lept/pageseg/textmask.boxa", batm);
+        boxaWriteDebug("/tmp/lept/pageseg/textblock.boxa", batb);
         boxaDestroy(&bahm);
         boxaDestroy(&batm);
         boxaDestroy(&batb);

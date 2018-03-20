@@ -2584,7 +2584,7 @@ PIXCMAP   *cmap;
         if (debugflag == 1)
             pixDisplayWithTitle(pixd, 0, 500, "binned colors", 1);
         else  /* debugflag == 2 */
-            pixWrite("/tmp/lept/regout/rankhisto.png", pixd, IFF_PNG);
+            pixWriteDebug("/tmp/lept/regout/rankhisto.png", pixd, IFF_PNG);
         pixDestroy(&pixd);
     }
 

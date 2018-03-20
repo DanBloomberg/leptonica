@@ -76,7 +76,7 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  *====================================================================*/
 
 README (version 1.76.0)
-File update: 7 Mar 2018
+File update: 19 Mar 2018
 ---------------------------
 
 gunzip leptonica-1.76.0.tar.gz
@@ -485,7 +485,22 @@ that you are using the static makefiles and customizing environ.h.
          in Linux.  The tar file is available at:
              www.leptonica.com/source/xtractlib-1.5.tar.gz
 
-2. GNU runtime functions for stream redirection to memory
+2. Global parameter to enable development and testing
+
+   For security reasons, with the exception of the regression utility
+   (regutils.c), leptonica as shipped (starting with 1.76) does not allow:
+      * 'system(3)' fork/exec
+      * writes to temp files with compiled-in names
+   System calls are used either to run gnuplot or display an image on
+   the screen.  
+
+   This is enforced with a global parameter, LeptDebugOK, initialized to 0.
+   It can be overridden either by changing the initialization (in writefile.c)
+   and recompiling, or by resetting, using setLeptDebugOK() in a program.
+   The programs in the prog directory, which mostly test functions in
+   the library, are not subject to this restriction.
+
+3. GNU runtime functions for stream redirection to memory
 
    There are two non-standard gnu functions, fmemopen() and open_memstream(),
    that only work on Linux and conveniently allow memory I/O with a file
@@ -500,7 +515,7 @@ that you are using the static makefiles and customizing environ.h.
    If you're building with the autoconf programs, these two functions are
    automatically enabled if available.
 
-3. Runtime functions not available on all platforms
+4. Runtime functions not available on all platforms
 
    Some functions are not available on all systems.  One example of such a
    function is fstatat().  If possible, such functions will be replaced by
@@ -511,7 +526,7 @@ that you are using the static makefiles and customizing environ.h.
    If you're building with the autoconf or cmake programs, these functions are
    automatically enabled if available.
 
-4. Typedefs
+5. Typedefs
 
    A deficiency of C is that no standard has been universally
    adopted for typedefs of the built-in types.  As a result,
@@ -554,7 +569,7 @@ that you are using the static makefiles and customizing environ.h.
    necessary we use the typedefs in stdint.h to specify the pointer
    size (either 4 or 8 byte).
 
-5. Compile-time control over stderr output (see environ.h)
+6. Compile-time control over stderr output (see environ.h)
 
    Leptonica provides both compile-time and run-time control over
    messages and debug output (thanks to Dave Bryan).  Both compile-time
@@ -565,7 +580,7 @@ that you are using the static makefiles and customizing environ.h.
    NO_CONSOLE_IO is defined on the compile line.  For production code
    where no output is to go to stderr, compile with -DNO_CONSOLE_IO.
 
-6. In-memory raster format (Pix)
+7. In-memory raster format (Pix)
 
    Unlike many other open source packages, Leptonica uses packed
    data for images with all bit/pixel (bpp) depths, allowing us
@@ -586,7 +601,7 @@ that you are using the static makefiles and customizing environ.h.
    and a DPix is provided for 2D arrays of doubles.  Converters
    between these and the Pix are given.
 
-7. Conversion between Pix and other in-memory raster formats
+8. Conversion between Pix and other in-memory raster formats
 
  . If you use Leptonica with other imaging libraries, you will need
    functions to convert between the Pix and other image data
@@ -595,7 +610,7 @@ that you are using the static makefiles and customizing environ.h.
    ordering and byte ordering on raster lines.  See the file pix.h
    for the specification of image data in the pix.
 
-8. Custom memory management
+9. Custom memory management
 
    Leptonica allows you to use custom memory management (allocator,
    deallocator).  For Pix, which tend to be large, the alloc/dealloc

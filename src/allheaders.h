@@ -1709,6 +1709,7 @@ LEPT_DLL extern l_int32 pixaaTruncate ( PIXAA *paa );
 LEPT_DLL extern PIXA * pixaRead ( const char *filename );
 LEPT_DLL extern PIXA * pixaReadStream ( FILE *fp );
 LEPT_DLL extern PIXA * pixaReadMem ( const l_uint8 *data, size_t size );
+LEPT_DLL extern l_int32 pixaWriteDebug ( const char *fname, PIXA *pixa );
 LEPT_DLL extern l_int32 pixaWrite ( const char *filename, PIXA *pixa );
 LEPT_DLL extern l_int32 pixaWriteStream ( FILE *fp, PIXA *pixa );
 LEPT_DLL extern l_int32 pixaWriteMem ( l_uint8 **pdata, size_t *psize, PIXA *pixa );

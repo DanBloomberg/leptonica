@@ -973,7 +973,7 @@ PIXA      *pixa;
         pixd = pixAddSingleTextblock(pixt, bmf, buf, 0x0000ff00,
                                      L_ADD_BELOW, NULL);
         snprintf(buf, sizeof(buf), "/tmp/lept/dewarp1/arrays_%04d.png", i);
-        pixWrite(buf, pixd, IFF_PNG);
+        pixWriteDebug(buf, pixd, IFF_PNG);
         pixaDestroy(&pixa);
         pixDestroy(&pixt);
         pixDestroy(&pixd);
@@ -1056,13 +1056,13 @@ PIX     *pixv, *pixh;
     if (svd) {
         pixv = fpixRenderContours(dew->fullvdispar, 3.0, 0.15);
         snprintf(fname, sizeof(fname), "%s/pixv_%d.png", outdir, index);
-        pixWrite(fname, pixv, IFF_PNG);
+        pixWriteDebug(fname, pixv, IFF_PNG);
         pixDestroy(&pixv);
     }
     if (shd) {
         pixh = fpixRenderContours(dew->fullhdispar, 3.0, 0.15);
         snprintf(fname, sizeof(fname), "%s/pixh_%d.png", outdir, index);
-        pixWrite(fname, pixh, IFF_PNG);
+        pixWriteDebug(fname, pixh, IFF_PNG);
         pixDestroy(&pixh);
     }
     LEPT_FREE(outdir);
@@ -1154,7 +1154,7 @@ PIXA      *pixa;
         pixt2 = pixAddSingleTextblock(pixt1, bmf, bufstr, 0x0000ff00,
                                       L_ADD_BELOW, 0);
         snprintf(bufstr, sizeof(bufstr), "/tmp/lept/dewarp_pdfout/%05d", i);
-        pixWrite(bufstr, pixt2, IFF_JFIF_JPEG);
+        pixWriteDebug(bufstr, pixt2, IFF_JFIF_JPEG);
         pixaDestroy(&pixa);
         pixDestroy(&pixs);
         pixDestroy(&pixt1);

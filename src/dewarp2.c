@@ -165,7 +165,7 @@ PTAA    *ptaa1, *ptaa2;
         lept_rmdir("lept/dewmod");  /* erase previous images */
         lept_mkdir("lept/dewmod");
         pixDisplayWithTitle(pixs, 0, 0, "pixs", 1);
-        pixWrite("/tmp/lept/dewmod/0010.png", pixs, IFF_PNG);
+        pixWriteDebug("/tmp/lept/dewmod/0010.png", pixs, IFF_PNG);
     }
 
         /* Make initial estimate of centers of textlines */
@@ -179,7 +179,7 @@ PTAA    *ptaa1, *ptaa2;
         pta = generatePtaFilledCircle(1);
         pix2 = pixGenerateFromPta(pta, 5, 5);
         pix3 = pixDisplayPtaaPattern(NULL, pix1, ptaa1, pix2, 2, 2);
-        pixWrite("/tmp/lept/dewmod/0020.png", pix3, IFF_PNG);
+        pixWriteDebug("/tmp/lept/dewmod/0020.png", pix3, IFF_PNG);
         pixDestroy(&pix1);
         pixDestroy(&pix2);
         pixDestroy(&pix3);
@@ -195,7 +195,7 @@ PTAA    *ptaa1, *ptaa2;
         pta = generatePtaFilledCircle(1);
         pix2 = pixGenerateFromPta(pta, 5, 5);
         pix3 = pixDisplayPtaaPattern(NULL, pix1, ptaa2, pix2, 2, 2);
-        pixWrite("/tmp/lept/dewmod/0030.png", pix3, IFF_PNG);
+        pixWriteDebug("/tmp/lept/dewmod/0030.png", pix3, IFF_PNG);
         pixDestroy(&pix1);
         pixDestroy(&pix2);
         pixDestroy(&pix3);
@@ -243,12 +243,12 @@ PTAA    *ptaa1, *ptaa2;
     if (debugfile) {
         dewarpPopulateFullRes(dew, NULL, 0, 0);
         pix1 = fpixRenderContours(dew->fullvdispar, 3.0, 0.15);
-        pixWrite("/tmp/lept/dewmod/0060.png", pix1, IFF_PNG);
+        pixWriteDebug("/tmp/lept/dewmod/0060.png", pix1, IFF_PNG);
         pixDisplay(pix1, 1000, 0);
         pixDestroy(&pix1);
         if (ret == 0) {
             pix1 = fpixRenderContours(dew->fullhdispar, 3.0, 0.15);
-            pixWrite("/tmp/lept/dewmod/0070.png", pix1, IFF_PNG);
+            pixWriteDebug("/tmp/lept/dewmod/0070.png", pix1, IFF_PNG);
             pixDisplay(pix1, 1000, 0);
             pixDestroy(&pix1);
         }
@@ -361,7 +361,7 @@ FPIX       *fpix;
         pta = generatePtaFilledCircle(1);
         pixcirc = pixGenerateFromPta(pta, 5, 5);
         pix2 = pixDisplayPtaaPattern(NULL, pix1, ptaat, pixcirc, 2, 2);
-        pixWrite("/tmp/lept/dewmod/0041.png", pix2, IFF_PNG);
+        pixWriteDebug("/tmp/lept/dewmod/0041.png", pix2, IFF_PNG);
         pixDestroy(&pix1);
         pixDestroy(&pix2);
         ptaDestroy(&pta);
@@ -423,8 +423,8 @@ FPIX       *fpix;
     numaDestroy(&nacurve1);
     numaDestroy(&namidysi);
     if (dew->debug) {
-        numaWrite("/tmp/lept/dewdebug/midys.na", namidys);
-        numaWrite("/tmp/lept/dewdebug/curves.na", nacurves);
+        numaWriteDebug("/tmp/lept/dewdebug/midys.na", namidys);
+        numaWriteDebug("/tmp/lept/dewdebug/curves.na", nacurves);
         pix1 = pixConvertTo32(pixdb);
         ptacirc = generatePtaFilledCircle(5);
         pixcirc = pixGenerateFromPta(ptacirc, 11, 11);
@@ -433,7 +433,7 @@ FPIX       *fpix;
         srand(3);  /* use the same colors for text and reference lines */
         pixRenderMidYs(pix1, namidys, 2);
         pix2 = (rotflag) ? pixRotateOrth(pix1, 3) : pixClone(pix1);
-        pixWrite("/tmp/lept/dewmod/0042.png", pix2, IFF_PNG);
+        pixWriteDebug("/tmp/lept/dewmod/0042.png", pix2, IFF_PNG);
         pixDisplay(pix2, 0, 0);
         ptaDestroy(&ptacirc);
         pixDestroy(&pixcirc);
@@ -459,7 +459,7 @@ FPIX       *fpix;
         ptaDestroy(&pta);
     }
     if (dew->debug) {
-        ptaaWrite("/tmp/lept/dewdebug/ptaa3.ptaa", ptaa3, 0);
+        ptaaWriteDebug("/tmp/lept/dewdebug/ptaa3.ptaa", ptaa3, 0);
     }
 
         /* Generate ptaa4 by taking vertical 'columns' from ptaa3.
@@ -480,7 +480,7 @@ FPIX       *fpix;
         ptaaAddPta(ptaa4, pta, L_INSERT);
     }
     if (dew->debug) {
-        ptaaWrite("/tmp/lept/dewdebug/ptaa4.ptaa", ptaa4, 0);
+        ptaaWriteDebug("/tmp/lept/dewdebug/ptaa4.ptaa", ptaa4, 0);
     }
 
         /* Do quadratic fit vertically on each of the pixel columns
@@ -505,7 +505,7 @@ FPIX       *fpix;
         ptaDestroy(&pta);
     }
     if (dew->debug) {
-        ptaaWrite("/tmp/lept/dewdebug/ptaa5.ptaa", ptaa5, 0);
+        ptaaWriteDebug("/tmp/lept/dewdebug/ptaa5.ptaa", ptaa5, 0);
         convertFilesToPdf("/tmp/lept/dewmod", "004", 135, 1.0, 0, 0,
                           "Dewarp Vert Disparity",
                           "/tmp/lept/dewarp/vert_disparity.pdf");
@@ -591,8 +591,8 @@ FPIX      *fpix;
     if (dew->debug) {
         lept_mkdir("lept/dewdebug");
         lept_mkdir("lept/dewarp");
-        ptaWrite("/tmp/lept/dewdebug/endpts_left1.pta", ptal1, 1);
-        ptaWrite("/tmp/lept/dewdebug/endpts_right1.pta", ptar1, 1);
+        ptaWriteDebug("/tmp/lept/dewdebug/endpts_left1.pta", ptal1, 1);
+        ptaWriteDebug("/tmp/lept/dewdebug/endpts_right1.pta", ptar1, 1);
     }
 
         /* Filter the points by x-location to prevent 2-column images
@@ -663,7 +663,7 @@ FPIX      *fpix;
         pixDisplayPta(pix1, pix1, pta2);
         pixRenderHorizEndPoints(pix1, ptal2, ptar2, 0xff000000);
         pixDisplay(pix1, 600, 800);
-        pixWrite("/tmp/lept/dewmod/0051.png", pix1, IFF_PNG);
+        pixWriteDebug("/tmp/lept/dewmod/0051.png", pix1, IFF_PNG);
         pixDestroy(&pix1);
 
         pix1 = pixDisplayPta(NULL, dew->pixs, pta1);
@@ -672,7 +672,7 @@ FPIX      *fpix;
         ptarft = ptaTranspose(ptar3);
         pixRenderHorizEndPoints(pix1, ptalft, ptarft, 0x0000ff00);
         pixDisplay(pix1, 800, 800);
-        pixWrite("/tmp/lept/dewmod/0052.png", pix1, IFF_PNG);
+        pixWriteDebug("/tmp/lept/dewmod/0052.png", pix1, IFF_PNG);
         convertFilesToPdf("/tmp/lept/dewmod", "005", 135, 1.0, 0, 0,
                           "Dewarp Horiz Disparity",
                           "/tmp/lept/dewarp/horiz_disparity.pdf");
@@ -801,9 +801,9 @@ PTAA     *ptaa;
 
     if (debugflag) {
         lept_mkdir("lept/dewmod");
-        pixWrite("/tmp/lept/dewmod/0011.tif", pix1, IFF_TIFF_G4);
+        pixWriteDebug("/tmp/lept/dewmod/0011.tif", pix1, IFF_TIFF_G4);
         pixDisplayWithTitle(pix1, 0, 600, "pix1", 1);
-        pixWrite("/tmp/lept/dewmod/0012.tif", pix2, IFF_TIFF_G4);
+        pixWriteDebug("/tmp/lept/dewmod/0012.tif", pix2, IFF_TIFF_G4);
         pixDisplayWithTitle(pix2, 0, 800, "pix2", 1);
     }
     pixDestroy(&pix1);
@@ -827,7 +827,7 @@ PTAA     *ptaa;
     }
     if (debugflag) {
         pix2 = pixaDisplay(pixa2, w, h);
-        pixWrite("/tmp/lept/dewmod/0013.tif", pix2, IFF_TIFF_G4);
+        pixWriteDebug("/tmp/lept/dewmod/0013.tif", pix2, IFF_TIFF_G4);
         pixDisplayWithTitle(pix2, 0, 1000, "pix2", 1);
         pixDestroy(&pix2);
     }
@@ -846,7 +846,7 @@ PTAA     *ptaa;
     if (debugflag) {
         pix1 = pixCreateTemplate(pixs);
         pix2 = pixDisplayPtaa(pix1, ptaa);
-        pixWrite("/tmp/lept/dewmod/0014.tif", pix2, IFF_PNG);
+        pixWriteDebug("/tmp/lept/dewmod/0014.tif", pix2, IFF_PNG);
         pixDisplayWithTitle(pix2, 0, 1200, "pix3", 1);
         pixDestroy(&pix1);
         pixDestroy(&pix2);
@@ -1107,8 +1107,8 @@ PTA       *ptal1, *ptar1, *ptal2, *ptar2;
         }
     }
     if (dew->debug) {
-        ptaWrite("/tmp/lept/dewdebug/endpts_left2.pta", ptal1, 1);
-        ptaWrite("/tmp/lept/dewdebug/endpts_right2.pta", ptar1, 1);
+        ptaWriteDebug("/tmp/lept/dewdebug/endpts_left2.pta", ptal1, 1);
+        ptaWriteDebug("/tmp/lept/dewdebug/endpts_right2.pta", ptar1, 1);
     }
 
     n = L_MIN(ptaGetCount(ptal1), ptaGetCount(ptar1));
@@ -1132,8 +1132,8 @@ PTA       *ptal1, *ptar1, *ptal2, *ptar2;
         return 1;
     }
     if (dew->debug) {
-        ptaWrite("/tmp/lept/dewdebug/endpts_left3.pta", ptal2, 1);
-        ptaWrite("/tmp/lept/dewdebug/endpts_right3.pta", ptar2, 1);
+        ptaWriteDebug("/tmp/lept/dewdebug/endpts_left3.pta", ptal2, 1);
+        ptaWriteDebug("/tmp/lept/dewdebug/endpts_right3.pta", ptar2, 1);
     }
 
     *pptalf = ptal2;
@@ -1426,7 +1426,7 @@ FPIX      *fpix;
         lept_mkdir("lept/dew");
         gplotSimple1(na1, GPLOT_PNG, "/tmp/lept/dew/0091", NULL);
         lept_mv("/tmp/lept/dew/0091.png", "lept/dewmod", NULL, NULL);
-        pixWrite("/tmp/lept/dewmod/0090.png", pix1, IFF_PNG);
+        pixWriteDebug("/tmp/lept/dewmod/0090.png", pix1, IFF_PNG);
     }
     pixDestroy(&pix1);
     boxaDestroy(&boxa2);
@@ -1634,7 +1634,7 @@ PTAA    *ptaa1, *ptaa2;
         lept_mkdir("lept/dewmod");
         lept_mkdir("lept/dewarp");
         pixDisplayWithTitle(pixs, 0, 0, "pixs", 1);
-        pixWrite("/tmp/lept/dewline/001.png", pixs, IFF_PNG);
+        pixWriteDebug("/tmp/lept/dewline/001.png", pixs, IFF_PNG);
     }
 
         /* Extract and solidify the horizontal and vertical lines.  We use
@@ -1688,7 +1688,7 @@ PTAA    *ptaa1, *ptaa2;
             pix1 = pixConvertTo32(pix);
             pix2 = pixDisplayPtaa(pix1, ptaa1);
             snprintf(buf, sizeof(buf), "/tmp/lept/dewline/%03d.png", 2 + 2 * i);
-            pixWrite(buf, pix2, IFF_PNG);
+            pixWriteDebug(buf, pix2, IFF_PNG);
             pixDestroy(&pix1);
             pixDestroy(&pix2);
         }
@@ -1700,7 +1700,7 @@ PTAA    *ptaa1, *ptaa2;
             pix1 = pixConvertTo32(pix);
             pix2 = pixDisplayPtaa(pix1, ptaa2);
             snprintf(buf, sizeof(buf), "/tmp/lept/dewline/%03d.png", 3 + 2 * i);
-            pixWrite(buf, pix2, IFF_PNG);
+            pixWriteDebug(buf, pix2, IFF_PNG);
             pixDestroy(&pix1);
             pixDestroy(&pix2);
         }
@@ -1750,13 +1750,13 @@ PTAA    *ptaa1, *ptaa2;
         if (dew->vsuccess == 1) {
             dewarpPopulateFullRes(dew, NULL, 0, 0);
             pix1 = fpixRenderContours(dew->fullvdispar, 3.0, 0.15);
-            pixWrite("/tmp/lept/dewline/006.png", pix1, IFF_PNG);
+            pixWriteDebug("/tmp/lept/dewline/006.png", pix1, IFF_PNG);
             pixDisplay(pix1, 1000, 0);
             pixDestroy(&pix1);
         }
         if (dew->hsuccess == 1) {
             pix1 = fpixRenderContours(dew->fullhdispar, 3.0, 0.15);
-            pixWrite("/tmp/lept/dewline/007.png", pix1, IFF_PNG);
+            pixWriteDebug("/tmp/lept/dewline/007.png", pix1, IFF_PNG);
             pixDisplay(pix1, 1000, 0);
             pixDestroy(&pix1);
         }

@@ -651,7 +651,7 @@ SEL       *sel1, *sel2, *sel3, *sel4;
         *pconf = 2. * ((nup - ndown) / sqrt(nup + ndown));
 
     if (debug) {
-        if (pixm) pixWrite("/tmp/lept/orient/pixm1.png", pixm, IFF_PNG);
+        if (pixm) pixWriteDebug("/tmp/lept/orient/pixm1.png", pixm, IFF_PNG);
         fprintf(stderr, "nup = %7.3f, ndown = %7.3f, conf = %7.3f\n",
                 nup, ndown, *pconf);
         if (*pconf > DEFAULT_MIN_UP_DOWN_CONF)
@@ -871,7 +871,7 @@ PIX       *pixt, *pix0, *pix1, *pix2, *pix3, *pixm;
         *pconf = 2. * ((nup - ndown) / sqrt(nup + ndown));
 
     if (debug) {
-        if (pixm) pixWrite("/tmp/lept/orient/pixm2.png", pixm, IFF_PNG);
+        if (pixm) pixWriteDebug("/tmp/lept/orient/pixm2.png", pixm, IFF_PNG);
         fprintf(stderr, "nup = %7.3f, ndown = %7.3f, conf = %7.3f\n",
                 nup, ndown, *pconf);
         if (*pconf > DEFAULT_MIN_UP_DOWN_CONF)
@@ -1116,7 +1116,7 @@ PIX  *pixt, *pixthm;
     pixthm = pixMorphSequence(pixhm, "d5.5", 0);
     pixSetMaskedCmap(pixt, pixthm, 0, 0, 255, 0, 0);
 
-    pixWrite(filename, pixt, IFF_PNG);
+    pixWriteDebug(filename, pixt, IFF_PNG);
     pixDestroy(&pixthm);
     pixDestroy(&pixt);
     return;

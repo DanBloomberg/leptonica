@@ -628,11 +628,11 @@ NUMA     *na;
         pixRenderLine(pix1, 0, yval, pixGetWidth(pix1), yval, 1,
                       L_FLIP_PIXELS);
         if (i == 0 )
-            pixWrite("/tmp/baseline/row0.png", pix1, IFF_PNG);
+            pixWriteDebug("/tmp/baseline/row0.png", pix1, IFF_PNG);
         else if (i == 1)
-            pixWrite("/tmp/baseline/row1.png", pix1, IFF_PNG);
+            pixWriteDebug("/tmp/baseline/row1.png", pix1, IFF_PNG);
         else
-            pixWrite("/tmp/baseline/row2.png", pix1, IFF_PNG);
+            pixWriteDebug("/tmp/baseline/row2.png", pix1, IFF_PNG);
         pixDestroy(&pix1);
 #endif  /* DEBUG_BASELINE */
 

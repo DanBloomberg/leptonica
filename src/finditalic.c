@@ -171,7 +171,7 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
         PIX   *pix1, *pix2, *pix3;
         pad = pixaCreate(0);
         boxat = pixConnComp(pixm, NULL, 8);
-        boxaWrite("/tmp/lept/ital/ital.ba", boxat);
+        boxaWriteDebug("/tmp/lept/ital/ital.ba", boxat);
         pixSaveTiledOutline(pixs, pad, 0.5, 1, 20, 2, 32);  /* orig */
         pixSaveTiledOutline(pixsd, pad, 0.5, 1, 20, 2, 0);  /* seed */
         pix1 = pixConvertTo32(pixm);
@@ -193,7 +193,7 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
         pixDestroy(&pix2);
         pixDestroy(&pix3);
         pix2 = pixaDisplay(pad, 0, 0);
-        pixWrite("/tmp/lept/ital/ital.png", pix2, IFF_PNG);
+        pixWriteDebug("/tmp/lept/ital/ital.png", pix2, IFF_PNG);
         pixDestroy(&pix2);
 
             /* Assuming the image represents 6 inches of actual page width,

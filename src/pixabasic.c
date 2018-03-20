@@ -106,6 +106,7 @@
  *           PIXA     *pixaRead()
  *           PIXA     *pixaReadStream()
  *           PIXA     *pixaReadMem()
+ *           l_int32   pixaWriteDebug()
  *           l_int32   pixaWrite()
  *           l_int32   pixaWriteStream()
  *           l_int32   pixaWriteMem()
@@ -2626,6 +2627,37 @@ PIXA  *pixa;
     fclose(fp);
     if (!pixa) L_ERROR("pixa not read\n", procName);
     return pixa;
+}
+
+
+/*!
+ * \brief   pixaWriteDebug()
+ *
+ * \param[in]    fname
+ * \param[in]    pixa
+ * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Debug version, intended for use in the library when writing
+ *          to files in a temp directory with names that are compiled in.
+ *          This is used instead of pixaWrite() for all such library calls.
+ *      (2) The global variable LeptDebugOK defaults to 0, and can be set
+ *          or cleared by the function setLeptDebugOK().
+ * </pre>
+ */
+l_int32
+pixaWriteDebug(const char  *fname,
+               PIXA        *pixa)
+{
+    PROCNAME("pixaWriteDebug");
+
+    if (LeptDebugOK) {
+        return pixaWrite(fname, pixa);
+    } else {
+        L_INFO("write to named temp file %s is disabled\n", procName, fname);
+        return 0;
+    }
 }
 
 

@@ -265,7 +265,7 @@ PTA       *pta;
             ptaGetIPt(pta, i + 1, &x2, &y2);
             pixRenderLineArb(pix1, x1, y1, x2, y2, 2, 255, 0, 0);
         }
-        pixWrite("/tmp/lept/baseline/baselines.png", pix1, IFF_PNG);
+        pixWriteDebug("/tmp/lept/baseline/baselines.png", pix1, IFF_PNG);
         pixaAddPix(pixadb, pixScale(pix1, 0.25, 0.25), L_INSERT);
         pixDestroy(&pix1);
     }

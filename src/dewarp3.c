@@ -150,8 +150,8 @@ PIX       *pixv, *pixh;
         pixDisplayWithTitle(pixv, 300, 0, "pixv", 1);
         lept_rmdir("lept/dewapply");  /* remove previous images */
         lept_mkdir("lept/dewapply");
-        pixWrite("/tmp/lept/dewapply/001.png", pixs, IFF_PNG);
-        pixWrite("/tmp/lept/dewapply/002.png", pixv, IFF_PNG);
+        pixWriteDebug("/tmp/lept/dewapply/001.png", pixs, IFF_PNG);
+        pixWriteDebug("/tmp/lept/dewapply/002.png", pixv, IFF_PNG);
     }
 
         /* Optionally, correct for horizontal disparity */
@@ -164,7 +164,7 @@ PIX       *pixv, *pixh;
                 *ppixd = pixh;
                 if (debugfile) {
                     pixDisplayWithTitle(pixh, 600, 0, "pixh", 1);
-                    pixWrite("/tmp/lept/dewapply/003.png", pixh, IFF_PNG);
+                    pixWriteDebug("/tmp/lept/dewapply/003.png", pixh, IFF_PNG);
                 }
             } else {
                 L_ERROR("horiz disparity failed on page %d\n",
@@ -579,12 +579,12 @@ PIX       *pixv, *pixh;
         lept_mkdir("lept/dewboxa");
         pix1 = pixConvertTo32(pixs);
         pixRenderBoxaArb(pix1, boxas, 2, 255, 0, 0);
-        pixWrite("/tmp/lept/dewboxa/01.png", pix1, IFF_PNG);
+        pixWriteDebug("/tmp/lept/dewboxa/01.png", pix1, IFF_PNG);
         pixDestroy(&pix1);
         pixv = pixApplyVertDisparity(dew, pixs, 255);
         pix1 = pixConvertTo32(pixv);
         pixRenderBoxaArb(pix1, boxav, 2, 0, 255, 0);
-        pixWrite("/tmp/lept/dewboxa/02.png", pix1, IFF_PNG);
+        pixWriteDebug("/tmp/lept/dewboxa/02.png", pix1, IFF_PNG);
         pixDestroy(&pix1);
     }
 
@@ -604,7 +604,7 @@ PIX       *pixv, *pixh;
                     pixh = pixApplyHorizDisparity(dew, pixv, 255);
                     pix1 = pixConvertTo32(pixh);
                     pixRenderBoxaArb(pix1, boxah, 2, 0, 0, 255);
-                    pixWrite("/tmp/lept/dewboxa/03.png", pix1, IFF_PNG);
+                    pixWriteDebug("/tmp/lept/dewboxa/03.png", pix1, IFF_PNG);
                     pixDestroy(&pixh);
                     pixDestroy(&pix1);
                 }

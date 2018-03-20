@@ -266,7 +266,8 @@ L_STACK  *stack, *auxstack;
 #if  DEBUG
     pixCountPixels(pix1, &iszero, NULL);
     fprintf(stderr, "Number of remaining pixels = %d\n", iszero);
-    pixWrite("junkremain", pix1, IFF_PNG);
+    lept_mkdir("lept/cc");
+    pixWriteDebug("/tmp/lept/cc/remain.png", pix1, IFF_PNG);
 #endif  /* DEBUG */
 
         /* Remove old boxa of pixa and replace with a copy */
@@ -356,7 +357,8 @@ L_STACK  *stack, *auxstack;
 #if  DEBUG
     pixCountPixels(pix1, &iszero, NULL);
     fprintf(stderr, "Number of remaining pixels = %d\n", iszero);
-    pixWrite("junkremain", pix1, IFF_PNG);
+    lept_mkdir("lept/cc");
+    pixWriteDebug("/tmp/lept/cc/remain.png", pix1, IFF_PNG);
 #endif  /* DEBUG */
 
         /* Cleanup, freeing the fillsegs on each stack */

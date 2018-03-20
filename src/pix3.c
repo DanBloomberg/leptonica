@@ -1349,9 +1349,9 @@ PIX       *pix1, *pix2, *pix3;
     if (debug) {
         lept_rmdir("masknear");  /* erase previous images */
         lept_mkdir("masknear");
-        pixWrite("/tmp/masknear/input.png", pix1, IFF_PNG);
-        pixWrite("/tmp/masknear/adjusted.png", pix2, IFF_PNG);
-        pixWrite("/tmp/masknear/outerfive.png", pix3, IFF_PNG);
+        pixWriteDebug("/tmp/masknear/input.png", pix1, IFF_PNG);
+        pixWriteDebug("/tmp/masknear/adjusted.png", pix2, IFF_PNG);
+        pixWriteDebug("/tmp/masknear/outerfive.png", pix3, IFF_PNG);
         fprintf(stderr, "Input box; with adjusted sides; clipped\n");
         boxPrintStreamInfo(stderr, box);
         boxPrintStreamInfo(stderr, box1);

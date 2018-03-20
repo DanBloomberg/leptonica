@@ -2662,8 +2662,8 @@ NUMA      *na1, *na2, *nadist, *nascore;
         fprintf(stderr, "Writing to /tmp/lept/comptile/comparegray.pdf\n");
         pixaConvertToPdf(pixadebug, 300, 1.0, L_FLATE_ENCODE, 0, NULL,
                          "/tmp/lept/comptile/comparegray.pdf");
-        numaWrite("/tmp/lept/comptile/scores.na", nascore);
-        numaWrite("/tmp/lept/comptile/dists.na", nadist);
+        numaWriteDebug("/tmp/lept/comptile/scores.na", nascore);
+        numaWriteDebug("/tmp/lept/comptile/dists.na", nadist);
     }
 
     bmfDestroy(&bmf);
@@ -2962,7 +2962,7 @@ PIXA      *pixa1, *pixa2;
     if (pixadebug) {
         pixaConvertToPdf(pixadebug, 300, 1.0, L_FLATE_ENCODE, 0, NULL,
                          "/tmp/lept/comp/comparegray.pdf");
-        numaWrite("/tmp/lept/comp/tilescores.na", na7);
+        numaWriteDebug("/tmp/lept/comp/tilescores.na", na7);
     }
 
     bmfDestroy(&bmf);

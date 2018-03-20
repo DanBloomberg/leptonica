@@ -999,22 +999,22 @@ BOXA    *boxae, *boxao, *boxalfe, *boxalfo, *boxame, *boxamo, *boxad;
     boxaSplitEvenOdd(boxas, 1, &boxae, &boxao);
     if (debug) {
         lept_mkdir("lept/smooth");
-        boxaWrite("/tmp/lept/smooth/boxae.ba", boxae);
-        boxaWrite("/tmp/lept/smooth/boxao.ba", boxao);
+        boxaWriteDebug("/tmp/lept/smooth/boxae.ba", boxae);
+        boxaWriteDebug("/tmp/lept/smooth/boxao.ba", boxao);
     }
 
     boxalfe = boxaLinearFit(boxae, factor, debug);
     boxalfo = boxaLinearFit(boxao, factor, debug);
     if (debug) {
-        boxaWrite("/tmp/lept/smooth/boxalfe.ba", boxalfe);
-        boxaWrite("/tmp/lept/smooth/boxalfo.ba", boxalfo);
+        boxaWriteDebug("/tmp/lept/smooth/boxalfe.ba", boxalfe);
+        boxaWriteDebug("/tmp/lept/smooth/boxalfo.ba", boxalfo);
     }
 
     boxame = boxaModifyWithBoxa(boxae, boxalfe, subflag, maxdiff, extrapixels);
     boxamo = boxaModifyWithBoxa(boxao, boxalfo, subflag, maxdiff, extrapixels);
     if (debug) {
-        boxaWrite("/tmp/lept/smooth/boxame.ba", boxame);
-        boxaWrite("/tmp/lept/smooth/boxamo.ba", boxamo);
+        boxaWriteDebug("/tmp/lept/smooth/boxame.ba", boxame);
+        boxaWriteDebug("/tmp/lept/smooth/boxamo.ba", boxamo);
     }
 
     boxad = boxaMergeEvenOdd(boxame, boxamo, 1);
@@ -1105,22 +1105,22 @@ BOXA    *boxae, *boxao, *boxamede, *boxamedo, *boxame, *boxamo, *boxad;
     boxaSplitEvenOdd(boxas, 0, &boxae, &boxao);
     if (debug) {
         lept_mkdir("lept/smooth");
-        boxaWrite("/tmp/lept/smooth/boxae.ba", boxae);
-        boxaWrite("/tmp/lept/smooth/boxao.ba", boxao);
+        boxaWriteDebug("/tmp/lept/smooth/boxae.ba", boxae);
+        boxaWriteDebug("/tmp/lept/smooth/boxao.ba", boxao);
     }
 
     boxamede = boxaWindowedMedian(boxae, halfwin, debug);
     boxamedo = boxaWindowedMedian(boxao, halfwin, debug);
     if (debug) {
-        boxaWrite("/tmp/lept/smooth/boxamede.ba", boxamede);
-        boxaWrite("/tmp/lept/smooth/boxamedo.ba", boxamedo);
+        boxaWriteDebug("/tmp/lept/smooth/boxamede.ba", boxamede);
+        boxaWriteDebug("/tmp/lept/smooth/boxamedo.ba", boxamedo);
     }
 
     boxame = boxaModifyWithBoxa(boxae, boxamede, subflag, maxdiff, extrapixels);
     boxamo = boxaModifyWithBoxa(boxao, boxamedo, subflag, maxdiff, extrapixels);
     if (debug) {
-        boxaWrite("/tmp/lept/smooth/boxame.ba", boxame);
-        boxaWrite("/tmp/lept/smooth/boxamo.ba", boxamo);
+        boxaWriteDebug("/tmp/lept/smooth/boxame.ba", boxame);
+        boxaWriteDebug("/tmp/lept/smooth/boxamo.ba", boxamo);
     }
 
     boxad = boxaMergeEvenOdd(boxame, boxamo, 0);
@@ -1249,8 +1249,8 @@ PTA       *ptal, *ptat, *ptar, *ptab;
         L_INFO("# lr reject = %d, # tb reject = %d\n", procName,
                rejectlr, rejecttb);
         lept_mkdir("linfit");
-        boxaWrite("/tmp/linfit/boxalr.ba", boxalr);
-        boxaWrite("/tmp/linfit/boxatb.ba", boxatb);
+        boxaWriteDebug("/tmp/linfit/boxalr.ba", boxalr);
+        boxaWriteDebug("/tmp/linfit/boxatb.ba", boxatb);
     }
 
         /* Extract the valid left and right box sides, along with the box
@@ -1262,10 +1262,10 @@ PTA       *ptal, *ptat, *ptar, *ptab;
     boxaDestroy(&boxatb);
 
     if (debug) {
-        ptaWrite("/tmp/linfit/ptal.pta", ptal, 1);
-        ptaWrite("/tmp/linfit/ptar.pta", ptar, 1);
-        ptaWrite("/tmp/linfit/ptat.pta", ptat, 1);
-        ptaWrite("/tmp/linfit/ptab.pta", ptab, 1);
+        ptaWriteDebug("/tmp/linfit/ptal.pta", ptal, 1);
+        ptaWriteDebug("/tmp/linfit/ptar.pta", ptar, 1);
+        ptaWriteDebug("/tmp/linfit/ptat.pta", ptat, 1);
+        ptaWriteDebug("/tmp/linfit/ptab.pta", ptab, 1);
     }
 
         /* Do a linear LSF fit to the points that are width and height
