@@ -56,9 +56,7 @@
 int main(int    argc,
          char **argv)
 {
-char          dilateseq[512], erodeseq[512];
-char          openseq[512], closeseq[512];
-char          wtophatseq[512], btophatseq[512];
+char          seq[512];
 l_int32       w, h;
 PIX          *pixs, *pix1, *pix2, *pix3, *pix4, *pix5;
 PIXA         *pixa;
@@ -76,48 +74,48 @@ L_REGPARAMS  *rp;
 
     /* -------- Test gray morph, including interpreter ------------ */
     pix1 = pixDilateGray(pixs, WSIZE, HSIZE);
-    sprintf(dilateseq, "D%d.%d", WSIZE, HSIZE);
-    pix2 = pixGrayMorphSequence(pixs, dilateseq, 0, 0);
+    snprintf(seq, sizeof(seq), "D%d.%d", WSIZE, HSIZE);
+    pix2 = pixGrayMorphSequence(pixs, seq, 0, 0);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
     regTestComparePix(rp, pix1, pix2);  /* 1 */
     pixaAddPix(pixa, pix1, L_INSERT);
     pixDestroy(&pix2);
 
     pix1 = pixErodeGray(pixs, WSIZE, HSIZE);
-    sprintf(erodeseq, "E%d.%d", WSIZE, HSIZE);
-    pix2 = pixGrayMorphSequence(pixs, erodeseq, 0, 100);
+    snprintf(seq, sizeof(seq), "E%d.%d", WSIZE, HSIZE);
+    pix2 = pixGrayMorphSequence(pixs, seq, 0, 100);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 2 */
     regTestComparePix(rp, pix1, pix2);  /* 3 */
     pixaAddPix(pixa, pix1, L_INSERT);
     pixDestroy(&pix2);
 
     pix1 = pixOpenGray(pixs, WSIZE, HSIZE);
-    sprintf(openseq, "O%d.%d", WSIZE, HSIZE);
-    pix2 = pixGrayMorphSequence(pixs, openseq, 0, 200);
+    snprintf(seq, sizeof(seq), "O%d.%d", WSIZE, HSIZE);
+    pix2 = pixGrayMorphSequence(pixs, seq, 0, 200);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 4 */
     regTestComparePix(rp, pix1, pix2);  /* 5 */
     pixaAddPix(pixa, pix1, L_INSERT);
     pixDestroy(&pix2);
 
     pix1 = pixCloseGray(pixs, WSIZE, HSIZE);
-    sprintf(closeseq, "C%d.%d", WSIZE, HSIZE);
-    pix2 = pixGrayMorphSequence(pixs, closeseq, 0, 300);
+    snprintf(seq, sizeof(seq), "C%d.%d", WSIZE, HSIZE);
+    pix2 = pixGrayMorphSequence(pixs, seq, 0, 300);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 6 */
     regTestComparePix(rp, pix1, pix2);  /* 7 */
     pixaAddPix(pixa, pix1, L_INSERT);
     pixDestroy(&pix2);
 
     pix1 = pixTophat(pixs, WSIZE, HSIZE, L_TOPHAT_WHITE);
-    sprintf(wtophatseq, "Tw%d.%d", WSIZE, HSIZE);
-    pix2 = pixGrayMorphSequence(pixs, wtophatseq, 0, 400);
+    snprintf(seq, sizeof(seq), "Tw%d.%d", WSIZE, HSIZE);
+    pix2 = pixGrayMorphSequence(pixs, seq, 0, 400);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 8 */
     regTestComparePix(rp, pix1, pix2);  /* 9 */
     pixaAddPix(pixa, pix1, L_INSERT);
     pixDestroy(&pix2);
 
     pix1 = pixTophat(pixs, WSIZE, HSIZE, L_TOPHAT_BLACK);
-    sprintf(btophatseq, "Tb%d.%d", WSIZE, HSIZE);
-    pix2 = pixGrayMorphSequence(pixs, btophatseq, 0, 500);
+    snprintf(seq, sizeof(seq), "Tb%d.%d", WSIZE, HSIZE);
+    pix2 = pixGrayMorphSequence(pixs, seq, 0, 500);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 10 */
     regTestComparePix(rp, pix1, pix2);  /* 11 */
     pixaAddPix(pixa, pix1, L_INSERT);

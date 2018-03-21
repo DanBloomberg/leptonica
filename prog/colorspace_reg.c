@@ -161,7 +161,7 @@ L_REGPARAMS  *rp;
                          "white point space for red", "amount of color");
     for (j = 0; j < 6; j++) {
         na = numaaGetNuma(naa1, j, L_CLONE);
-        sprintf(label, "thresh %d", 30 + 10 * j);
+        snprintf(label, sizeof(label), "thresh %d", 30 + 10 * j);
         gplotAddPlot(gplot1, naseq, na, GPLOT_LINES, label);
         numaDestroy(&na);
         na = numaaGetNuma(naa2, j, L_CLONE);

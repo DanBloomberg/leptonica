@@ -38,7 +38,7 @@ int main(int    argc,
          char **argv)
 {
 char        *filein, *fileout;
-char         bigbuf[512];
+char         buf[512];
 l_int32      iplot, same;
 l_float32    gam;
 l_float64    gamma[] = {.5, 1.0, 1.5, 2.0, 2.5, -1.0};
@@ -81,8 +81,8 @@ static char  mainName[] = "gammatest";
     nax = numaMakeSequence(0.0, 1.0, 256);
     for (iplot = 0; gamma[iplot] >= 0.0; iplot++) {
         na = numaGammaTRC(gamma[iplot], 30, 215);
-        sprintf(bigbuf, "gamma = %3.1f", gamma[iplot]);
-        gplotAddPlot(gplot, nax, na, GPLOT_LINES, bigbuf);
+        snprintf(buf, sizeof(buf), "gamma = %3.1f", gamma[iplot]);
+        gplotAddPlot(gplot, nax, na, GPLOT_LINES, buf);
         numaDestroy(&na);
     }
     gplotMakeOutput(gplot);

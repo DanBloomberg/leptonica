@@ -130,13 +130,13 @@ SEL     *sel;
     if (!same) {
         fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "d%d.%d", WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "d%d.%d", WIDTH, HEIGHT);
     pix3 = pixMorphSequence(pixs, sequence, 0);    /* sequence, atomic */
     pixEqual(pixref, pix3, &same);
     if (!same) {
         fprintf(stderr, "pixref != pix3 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "d%d.1 + d1.%d", WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "d%d.1 + d1.%d", WIDTH, HEIGHT);
     pix4 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable */
     pixEqual(pixref, pix4, &same);
     if (!same) {
@@ -182,7 +182,7 @@ SEL     *sel;
     if (!same) {
         fprintf(stderr, "pixref != pix11 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "d%d.%d", WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "d%d.%d", WIDTH, HEIGHT);
     pix12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
     pixEqual(pixref, pix12, &same);
     if (!same) {
@@ -223,13 +223,13 @@ SEL     *sel;
     if (!same) {
         fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "e%d.%d", WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "e%d.%d", WIDTH, HEIGHT);
     pix3 = pixMorphSequence(pixs, sequence, 0);    /* sequence, atomic */
     pixEqual(pixref, pix3, &same);
     if (!same) {
         fprintf(stderr, "pixref != pix3 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "e%d.1 + e1.%d", WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "e%d.1 + e1.%d", WIDTH, HEIGHT);
     pix4 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable */
     pixEqual(pixref, pix4, &same);
     if (!same) {
@@ -276,7 +276,7 @@ SEL     *sel;
         fprintf(stderr, "pixref != pix11 !\n"); ok = FALSE;
     }
 
-    sprintf(sequence, "e%d.%d", WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "e%d.%d", WIDTH, HEIGHT);
     pix12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
     pixEqual(pixref, pix12, &same);
     if (!same) {
@@ -317,20 +317,21 @@ SEL     *sel;
     if (!same) {
         fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "o%d.%d", WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "o%d.%d", WIDTH, HEIGHT);
     pix3 = pixMorphSequence(pixs, sequence, 0);    /* sequence, atomic */
     pixEqual(pixref, pix3, &same);
     if (!same) {
         fprintf(stderr, "pixref != pix3 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "e%d.%d + d%d.%d", WIDTH, HEIGHT, WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "e%d.%d + d%d.%d",
+             WIDTH, HEIGHT, WIDTH, HEIGHT);
     pix4 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable */
     pixEqual(pixref, pix4, &same);
     if (!same) {
         fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "e%d.1 + e1.%d + d%d.1 + d1.%d", WIDTH, HEIGHT,
-            WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "e%d.1 + e1.%d + d%d.1 + d1.%d",
+             WIDTH, HEIGHT, WIDTH, HEIGHT);
     pix5 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable^2 */
     pixEqual(pixref, pix5, &same);
     if (!same) {
@@ -370,7 +371,7 @@ SEL     *sel;
     if (!same) {
         fprintf(stderr, "pixref != pix11 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "o%d.%d", WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "o%d.%d", WIDTH, HEIGHT);
     pix12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
     pixEqual(pixref, pix12, &same);
     if (!same) {
@@ -420,14 +421,15 @@ SEL     *sel;
     if (!same) {
         fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "d%d.%d + e%d.%d", WIDTH, HEIGHT, WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "d%d.%d + e%d.%d",
+             WIDTH, HEIGHT, WIDTH, HEIGHT);
     pix3 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable */
     pixEqual(pixref, pix3, &same);
     if (!same) {
         fprintf(stderr, "pixref != pix3 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "d%d.1 + d1.%d + e%d.1 + e1.%d", WIDTH, HEIGHT,
-            WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "d%d.1 + d1.%d + e%d.1 + e1.%d",
+             WIDTH, HEIGHT, WIDTH, HEIGHT);
     pix4 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable^2 */
     pixEqual(pixref, pix4, &same);
     if (!same) {
@@ -474,20 +476,21 @@ SEL     *sel;
     if (!same) {
         fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "c%d.%d", WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "c%d.%d", WIDTH, HEIGHT);
     pix3 = pixMorphSequence(pixs, sequence, 0);    /* sequence, atomic */
     pixEqual(pixref, pix3, &same);
     if (!same) {
         fprintf(stderr, "pixref != pix3 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "b32 + d%d.%d + e%d.%d", WIDTH, HEIGHT, WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "b32 + d%d.%d + e%d.%d",
+             WIDTH, HEIGHT, WIDTH, HEIGHT);
     pix4 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable */
     pixEqual(pixref, pix4, &same);
     if (!same) {
         fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "b32 + d%d.1 + d1.%d + e%d.1 + e1.%d", WIDTH, HEIGHT,
-            WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "b32 + d%d.1 + d1.%d + e%d.1 + e1.%d",
+             WIDTH, HEIGHT, WIDTH, HEIGHT);
     pix5 = pixMorphSequence(pixs, sequence, 0);    /* sequence, separable^2 */
     pixEqual(pixref, pix5, &same);
     if (!same) {
@@ -527,7 +530,7 @@ SEL     *sel;
     if (!same) {
         fprintf(stderr, "pixref != pix11 !\n"); ok = FALSE;
     }
-    sprintf(sequence, "c%d.%d", WIDTH, HEIGHT);
+    snprintf(sequence, sizeof(sequence), "c%d.%d", WIDTH, HEIGHT);
     pix12 = pixMorphCompSequence(pixs, sequence, 0);    /* comp sequence */
     pixEqual(pixref, pix12, &same);
     if (!same) {

@@ -46,7 +46,7 @@ int main(int    argc,
 l_uint8      *data;
 char         *fname, *filename;
 const char   *str;
-char          buffer[512];
+char          buf[512];
 l_int32       i, n, npages, equal, success;
 size_t        length, offset, size;
 FILE         *fp;
@@ -275,15 +275,15 @@ L_REGPARAMS  *rp;
     for (i = 0; i < npages + 1; i++) {   /* read one beyond to catch error */
         pix1 = pixReadTiff(weasel_orig, i);
         if (!pix1) continue;
-        sprintf(buffer, "/tmp/lept/tiff/%03d.tif", i);
-        pixWrite(buffer, pix1, IFF_TIFF_ZIP);
+        snprintf(buf, sizeof(buf), "/tmp/lept/tiff/%03d.tif", i);
+        pixWrite(buf, pix1, IFF_TIFF_ZIP);
         pixDestroy(&pix1);
     }
 
         /* Read separate page files and write reversed file */
     for (i = npages - 1; i >= 0; i--) {
-        sprintf(buffer, "/tmp/lept/tiff/%03d.tif", i);
-        pix1 = pixRead(buffer);
+        snprintf(buf, sizeof(buf), "/tmp/lept/tiff/%03d.tif", i);
+        pix1 = pixRead(buf);
         if (!pix1) continue;
         if (i == npages - 1)
             pixWriteTiff(weasel_rev, pix1, IFF_TIFF_ZIP, "w+");

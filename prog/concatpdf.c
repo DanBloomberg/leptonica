@@ -40,7 +40,7 @@
  *    Syntax: concatpdf dir [pattern]
  *        where pattern is an optional string to be matched
  *
- *    The output goes to:  /tmp/lept/output.pdf
+ *    The output goes to:  /tmp/lept/image/output.pdf
  *
  *    This works by converting to PostScript (without annotations),
  *    then rasterizing the images, and finally generating a pdf from
@@ -56,7 +56,7 @@
  *    (2) Use ps2pdf-gray from Ghostscript to rasterize the images.
  *        The images are written to /tmp/lept/image/
  *    (3) Use convertFilesToPdf to generate a pdf file,
- *        /tmp/lept/iamge/output.pdf, from the images.
+ *        /tmp/lept/image/output.pdf, from the images.
  */
 
 #include <sys/stat.h>

@@ -70,8 +70,8 @@ static char  mainName[] = "barcodetest";
     sarrayDestroy(&sad2);
 
 /*    sad3 = pixProcessBarcodes(pixs, L_BF_ANY, L_USE_WINDOW, &saw3, 1);
-    sarrayWrite("/tmp/saw3", saw3);
-    sarrayWrite("/tmp/sad3", sad3);
+    sarrayWrite("/tmp/lept/barc/saw3", saw3);
+    sarrayWrite("/tmp/lept/barc/sad3", sad3);
     sarrayDestroy(&saw3);
     sarrayDestroy(&sad3); */
 

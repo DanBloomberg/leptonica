@@ -38,7 +38,7 @@ int main(int    argc,
          char **argv)
 {
 char        *filein, *fileout;
-char         bigbuf[512];
+char         buf[512];
 l_int32      iplot;
 l_float32    factor;    /* scaled width of atan curve */
 l_float32    fact[] = {0.2f, 0.4f, 0.6f, 0.8f, 1.0f, -1.0f};
@@ -72,8 +72,8 @@ static char  mainName[] = "contrasttest";
         "value in", "value out");
     for (iplot = 0; fact[iplot] >= 0.0; iplot++) {
         na = numaContrastTRC(fact[iplot]);
-        sprintf(bigbuf, "factor = %3.1f", fact[iplot]);
-        gplotAddPlot(gplot, nax, na, GPLOT_LINES, bigbuf);
+        snprintf(buf, sizeof(buf), "factor = %3.1f", fact[iplot]);
+        gplotAddPlot(gplot, nax, na, GPLOT_LINES, buf);
         numaDestroy(&na);
     }
     gplotMakeOutput(gplot);

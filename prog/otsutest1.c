@@ -58,11 +58,11 @@ PIXA    *pixa;
        /* Read the results back in ...  */
     pixa = pixaCreate(0);
     for (i = 0; i < NTests; i++) {
-        sprintf(buf, "/tmp/lept/otsu/plot.%d.png", i);
+        snprintf(buf, sizeof(buf), "/tmp/lept/otsu/plot.%d.png", i);
         pix = pixRead(buf);
         pixSaveTiled(pix, pixa, 1.0, 1, 25, 32);
         pixDestroy(&pix);
-        sprintf(buf, "/tmp/lept/otsu/plots.%d.png", i);
+        snprintf(buf, sizeof(buf), "/tmp/lept/otsu/plots.%d.png", i);
         pix = pixRead(buf);
         pixSaveTiled(pix, pixa, 1.0, 0, 25, 32);
         pixDestroy(&pix);
@@ -106,8 +106,8 @@ NUMA      *na1, *na2, *nascore, *nax, *nay;
     numaReplaceNumber(nay, 1, (l_int32)(0.5 * maxnum));
 
         /* Plot the input histogram with the split location */
-    sprintf(buf, "/tmp/lept/otsu/plot.%d", i);
-    sprintf(title, "Plot %d", i);
+    snprintf(buf, sizeof(buf), "/tmp/lept/otsu/plot.%d", i);
+    snprintf(title, sizeof(title), "Plot %d", i);
     gplot = gplotCreate(buf, GPLOT_PNG,
                         "Histogram: mixture of 2 gaussians",
                         "Grayscale value", "Number of pixels");
@@ -119,8 +119,8 @@ NUMA      *na1, *na2, *nascore, *nax, *nay;
     numaDestroy(&na2);
 
         /* Plot the score function */
-    sprintf(buf, "/tmp/lept/otsu/plots.%d", i);
-    sprintf(title, "Plot %d", i);
+    snprintf(buf, sizeof(buf), "/tmp/lept/otsu/plots.%d", i);
+    snprintf(title, sizeof(title), "Plot %d", i);
     gplot = gplotCreate(buf, GPLOT_PNG,
                         "Otsu score function for splitting",
                         "Grayscale value", "Score");

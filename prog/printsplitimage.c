@@ -75,8 +75,8 @@ static char  mainName[] = "printsplitimage";
         printer = argv[4];
 
     setLeptDebugOK(1);
-    lept_rmdir("split");
-    lept_mkdir("split");
+    lept_rmdir("lept/split");
+    lept_mkdir("lept/split");
 
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);
@@ -96,8 +96,8 @@ static char  mainName[] = "printsplitimage";
         pixt = pixaGetPix(pixa, i, L_CLONE);
         pixGetDimensions(pixt, &w, &h, NULL);
         scale = L_MIN(FILL_FACTOR * 2550 / w, FILL_FACTOR * 3300 / h);
-        sprintf(buf, "image%d.ps", i);
-        fname = genPathname("/tmp/split", buf);
+        snprintf(buf, sizeof(buf), "image%d.ps", i);
+        fname = genPathname("/tmp/lept/split", buf);
         fprintf(stderr, "fname: %s\n", fname);
         sarrayAddString(sa, fname, L_INSERT);
         fp = lept_fopen(fname, "wb+");
@@ -109,7 +109,7 @@ static char  mainName[] = "printsplitimage";
     if (argc == 5) {
         for (i = 0; i < n; i++) {
             fname = sarrayGetString(sa, i, L_NOCOPY);
-            sprintf(buf, "lpr -P%s %s &", printer, fname);
+            snprintf(buf, sizeof(buf), "lpr -P%s %s &", printer, fname);
             ignore = system(buf);
         }
     }

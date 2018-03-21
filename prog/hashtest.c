@@ -281,27 +281,29 @@ SARRAY   *sa;
 
     sa = sarrayCreate(1000);
     for (i = 0; i < 26; i++) {
-        sprintf(buf, "%c", i + 0x61);
+        snprintf(buf, sizeof(buf), "%c", i + 0x61);
         sarrayAddString(sa, buf, L_COPY);
         for (j = 0; j < 26; j++) {
-            sprintf(buf, "%c%c", i + 0x61, j + 0x61);
+            snprintf(buf, sizeof(buf), "%c%c", i + 0x61, j + 0x61);
             sarrayAddString(sa, buf, L_COPY);
             for (k = 0; k < 26; k++) {
-                sprintf(buf, "%c%c%c", i + 0x61, j + 0x61, k + 0x61);
+                snprintf(buf, sizeof(buf), "%c%c%c", i + 0x61, j + 0x61,
+                         k + 0x61);
                 sarrayAddString(sa, buf, L_COPY);
                 if (add_dups && k < 4)  /* add redundant strings */
                     sarrayAddString(sa, buf, L_COPY);
                 if (nchars > 3) {
                     for (l = 0; l < 26; l++) {
-                        sprintf(buf, "%c%c%c%c", i + 0x61, j + 0x61,
-                                k + 0x61, l + 0x61);
+                        snprintf(buf, sizeof(buf), "%c%c%c%c", i + 0x61,
+                                 j + 0x61, k + 0x61, l + 0x61);
                         sarrayAddString(sa, buf, L_COPY);
                         if (add_dups && l < 4)  /* add redundant strings */
                             sarrayAddString(sa, buf, L_COPY);
                         if (nchars > 4) {
                             for (m = 0; m < 26; m++) {
-                                sprintf(buf, "%c%c%c%c%c", i + 0x61, j + 0x61,
-                                        k + 0x61, l + 0x61, m + 0x61);
+                                snprintf(buf, sizeof(buf), "%c%c%c%c%c",
+                                         i + 0x61, j + 0x61, k + 0x61,
+                                         l + 0x61, m + 0x61);
                                 sarrayAddString(sa, buf, L_COPY);
                                 if (!add_dups && i == 17 && j == 12 &&
                                     k == 4 && l == 21) {

@@ -72,16 +72,16 @@ char     buf[256];
 
         /* Sort by x */
     boxa1 = boxaSort(boxa, L_SORT_BY_X, L_SORT_INCREASING, &nad1);
-    sprintf(buf, "/tmp/lept/prta/boxa1.%d.ba", index);
+    snprintf(buf, sizeof(buf), "/tmp/lept/prta/boxa1.%d.ba", index);
     boxaWrite(buf, boxa1);
-    sprintf(buf, "/tmp/lept/prta/nad1.%d.na", index);
+    snprintf(buf, sizeof(buf), "/tmp/lept/prta/nad1.%d.na", index);
     numaWrite(buf, nad1);
 
     startTimer();
     boxa2 = boxaBinSort(boxa, L_SORT_BY_X, L_SORT_INCREASING, &nad2);
-    sprintf(buf, "/tmp/lept/prta/boxa2.%d.ba", index);
+    snprintf(buf, sizeof(buf), "/tmp/lept/prta/boxa2.%d.ba", index);
     boxaWrite(buf, boxa2);
-    sprintf(buf, "/tmp/lept/prta/nad2.%d.na", index);
+    snprintf(buf, sizeof(buf), "/tmp/lept/prta/nad2.%d.na", index);
     numaWrite(buf, nad2);
 
     boxaEqual(boxa1, boxa2, 0, &naindex, &same);
@@ -95,7 +95,7 @@ char     buf[256];
         fprintf(stderr, "boxa1 and boxa2 are same at maxdiff = 2\n");
     else
         fprintf(stderr, "boxa1 and boxa2 differ at maxdiff = 2\n");
-    sprintf(buf, "/tmp/lept/prta/naindex.%d.na", index);
+    snprintf(buf, sizeof(buf), "/tmp/lept/prta/naindex.%d.na", index);
     numaWrite(buf, naindex);
     numaDestroy(&naindex);
     boxaDestroy(&boxa1);
@@ -155,9 +155,9 @@ char     buf[256];
     }
 
     fprintf(stderr, "Time for sort: %7.3f sec\n", stopTimer());
-    sprintf(buf, "/tmp/lept/prta/boxa3.%d.ba", index);
+    snprintf(buf, sizeof(buf), "/tmp/lept/prta/boxa3.%d.ba", index);
     boxaWrite(buf, boxa3);
-    sprintf(buf, "/tmp/lept/prta/nad3.%d.na", index);
+    snprintf(buf, sizeof(buf), "/tmp/lept/prta/nad3.%d.na", index);
     numaWrite(buf, nad3);
 
     boxaDestroy(&boxa2);
@@ -191,22 +191,22 @@ char     buf[256];
     pixa1 = pixaSort(pixa, L_SORT_BY_X, L_SORT_INCREASING, &nap1, L_CLONE);
     fprintf(stderr, "Time for pixa sort: %7.3f sec\n", stopTimer());
     boxa1 = pixaGetBoxa(pixa1, L_CLONE);
-    sprintf(buf, "/tmp/lept/prta/bap1.%d.ba", index);
+    snprintf(buf, sizeof(buf), "/tmp/lept/prta/bap1.%d.ba", index);
     boxaWrite(buf, boxa1);
-    sprintf(buf, "/tmp/lept/prta/nap1.%d.na", index);
+    snprintf(buf, sizeof(buf), "/tmp/lept/prta/nap1.%d.na", index);
     numaWrite(buf, nap1);
-    sprintf(buf, "/tmp/lept/prta/pixa1.%d.pa", index);
+    snprintf(buf, sizeof(buf), "/tmp/lept/prta/pixa1.%d.pa", index);
     pixaWrite(buf, pixa1);
 
     startTimer();
     pixa2 = pixaBinSort(pixa, L_SORT_BY_X, L_SORT_INCREASING, &nap2, L_CLONE);
     fprintf(stderr, "Time for pixa sort: %7.3f sec\n", stopTimer());
     boxa2 = pixaGetBoxa(pixa2, L_CLONE);
-    sprintf(buf, "/tmp/lept/prta/bap2.%d.ba", index);
+    snprintf(buf, sizeof(buf), "/tmp/lept/prta/bap2.%d.ba", index);
     boxaWrite(buf, boxa2);
-    sprintf(buf, "/tmp/lept/prta/nap2.%d.na", index);
+    snprintf(buf, sizeof(buf), "/tmp/lept/prta/nap2.%d.na", index);
     numaWrite(buf, nap2);
-    sprintf(buf, "/tmp/lept/prta/pixa2.%d.pa", index);
+    snprintf(buf, sizeof(buf), "/tmp/lept/prta/pixa2.%d.pa", index);
     pixaWrite(buf, pixa2);
 
     startTimer();

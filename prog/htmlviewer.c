@@ -125,7 +125,7 @@ char      *fname, *fullname, *outname;
 char      *mainname, *linkname, *linknameshort;
 char      *viewfile, *thumbfile;
 char      *shtml, *slink;
-char       charbuf[512];
+char       buf[512];
 char       htmlstring[] = "<html>";
 char       framestring[] = "</frameset></html>";
 l_int32    i, nfiles, index, w, d, nimages, ret;
@@ -157,8 +157,8 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
 
         /* Make the output directory if it doesn't already exist */
 #ifndef _WIN32
-    snprintf(charbuf, sizeof(charbuf), "mkdir -p %s", dirout);
-    ret = system(charbuf);
+    snprintf(buf, sizeof(buf), "mkdir -p %s", dirout);
+    ret = system(buf);
 #else
     ret = CreateDirectory(dirout, NULL) ? 0 : 1;
 #endif  /* !_WIN32 */
@@ -172,10 +172,10 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
         return ERROR_INT("safiles not made", procName, 1);
 
         /* Generate output text file names */
-    snprintf(charbuf, sizeof(charbuf), "%s/%s.html", dirout, rootname);
-    mainname = stringNew(charbuf);
-    snprintf(charbuf, sizeof(charbuf), "%s/%s-links.html", dirout, rootname);
-    linkname = stringNew(charbuf);
+    snprintf(buf, sizeof(buf), "%s/%s.html", dirout, rootname);
+    mainname = stringNew(buf);
+    snprintf(buf, sizeof(buf), "%s/%s-links.html", dirout, rootname);
+    linkname = stringNew(buf);
     linknameshort = stringJoin(rootname, "-links.html");
 
         /* Generate the thumbs and views */
@@ -198,9 +198,9 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
         pixGetDimensions(pix, &w, NULL, &d);
         factor = (l_float32)thumbwidth / (l_float32)w;
         pixthumb = pixScale(pix, factor, factor);
-        snprintf(charbuf, sizeof(charbuf), "%s_thumb_%03d", rootname, index);
-        sarrayAddString(sathumbs, charbuf, L_COPY);
-        outname = genPathname(dirout, charbuf);
+        snprintf(buf, sizeof(buf), "%s_thumb_%03d", rootname, index);
+        sarrayAddString(sathumbs, buf, L_COPY);
+        outname = genPathname(dirout, buf);
         WriteFormattedPix(outname, pixthumb);
         lept_free(outname);
         pixDestroy(&pixthumb);
@@ -211,9 +211,9 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
             pixview = pixClone(pix);   /* no upscaling */
         else
             pixview = pixScale(pix, factor, factor);
-        snprintf(charbuf, sizeof(charbuf), "%s_view_%03d", rootname, index);
-        sarrayAddString(saviews, charbuf, L_COPY);
-        outname = genPathname(dirout, charbuf);
+        snprintf(buf, sizeof(buf), "%s_view_%03d", rootname, index);
+        sarrayAddString(saviews, buf, L_COPY);
+        outname = genPathname(dirout, buf);
         WriteFormattedPix(outname, pixview);
         lept_free(outname);
         pixDestroy(&pixview);
@@ -224,13 +224,14 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
         /* Generate the main html file */
     sahtml = sarrayCreate(0);
     sarrayAddString(sahtml, htmlstring, L_COPY);
-    sprintf(charbuf, "<frameset cols=\"%d, *\">", thumbwidth + 30);
-    sarrayAddString(sahtml, charbuf, L_COPY);
-    sprintf(charbuf, "<frame name=\"thumbs\" src=\"%s\">", linknameshort);
-    sarrayAddString(sahtml, charbuf, L_COPY);
-    sprintf(charbuf, "<frame name=\"views\" src=\"%s\">",
+    snprintf(buf, sizeof(buf), "<frameset cols=\"%d, *\">", thumbwidth + 30);
+    sarrayAddString(sahtml, buf, L_COPY);
+    snprintf(buf, sizeof(buf), "<frame name=\"thumbs\" src=\"%s\">",
+             linknameshort);
+    sarrayAddString(sahtml, buf, L_COPY);
+    snprintf(buf, sizeof(buf), "<frame name=\"views\" src=\"%s\">",
             sarrayGetString(saviews, 0, L_NOCOPY));
-    sarrayAddString(sahtml, charbuf, L_COPY);
+    sarrayAddString(sahtml, buf, L_COPY);
     sarrayAddString(sahtml, framestring, L_COPY);
     shtml = sarrayToString(sahtml, 1);
     l_binaryWrite(mainname, "w", shtml, strlen(shtml));
@@ -247,9 +248,10 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
     for (i = 0; i < nimages; i++) {
         viewfile = sarrayGetString(saviews, i, L_NOCOPY);
         thumbfile = sarrayGetString(sathumbs, i, L_NOCOPY);
-        sprintf(charbuf, "<a href=\"%s\" TARGET=views><img src=\"%s\"></a>",
-            viewfile, thumbfile);
-        sarrayAddString(salink, charbuf, L_COPY);
+        snprintf(buf, sizeof(buf),
+                 "<a href=\"%s\" TARGET=views><img src=\"%s\"></a>",
+                 viewfile, thumbfile);
+        sarrayAddString(salink, buf, L_COPY);
     }
     slink = sarrayToString(salink, 1);
     l_binaryWrite(linkname, "w", slink, strlen(slink));

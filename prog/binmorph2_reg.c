@@ -64,8 +64,8 @@ static char  mainName[] = "binmorph2_reg";
         fprintf(stderr, "%d: (%d, %d): %d\n", i, factor1, factor2, diff);
 
             /* Carry out operations on identical sized Sels: dilation */
-        sprintf(buffer1, "d%d.%d", i + diff, i + diff);
-        sprintf(buffer2, "d%d.%d", i, i);
+        snprintf(buffer1, sizeof(buffer1), "d%d.%d", i + diff, i + diff);
+        snprintf(buffer2, sizeof(buffer2), "d%d.%d", i, i);
         pixt1 = pixMorphSequence(pixsd, buffer1, 0);
         pixt2 = pixMorphCompSequence(pixsd, buffer2, 0);
         pixEqual(pixt1, pixt2, &same);
@@ -87,8 +87,8 @@ static char  mainName[] = "binmorph2_reg";
         pixDestroy(&pixt3);
 
             /* ... erosion */
-        sprintf(buffer1, "e%d.%d", i + diff, i + diff);
-        sprintf(buffer2, "e%d.%d", i, i);
+        snprintf(buffer1, sizeof(buffer1), "e%d.%d", i + diff, i + diff);
+        snprintf(buffer2, sizeof(buffer2), "e%d.%d", i, i);
         pixt1 = pixMorphSequence(pixsd, buffer1, 0);
         pixt2 = pixMorphCompSequence(pixsd, buffer2, 0);
         pixEqual(pixt1, pixt2, &same);
@@ -110,8 +110,8 @@ static char  mainName[] = "binmorph2_reg";
         pixDestroy(&pixt3);
 
             /* ... opening */
-        sprintf(buffer1, "o%d.%d", i + diff, i + diff);
-        sprintf(buffer2, "o%d.%d", i, i);
+        snprintf(buffer1, sizeof(buffer1), "o%d.%d", i + diff, i + diff);
+        snprintf(buffer2, sizeof(buffer2), "o%d.%d", i, i);
         pixt1 = pixMorphSequence(pixsd, buffer1, 0);
         pixt2 = pixMorphCompSequence(pixsd, buffer2, 0);
         pixEqual(pixt1, pixt2, &same);
@@ -133,8 +133,8 @@ static char  mainName[] = "binmorph2_reg";
         pixDestroy(&pixt3);
 
             /* ... closing */
-        sprintf(buffer1, "c%d.%d", i + diff, i + diff);
-        sprintf(buffer2, "c%d.%d", i, i);
+        snprintf(buffer1, sizeof(buffer1), "c%d.%d", i + diff, i + diff);
+        snprintf(buffer2, sizeof(buffer2), "c%d.%d", i, i);
         pixt1 = pixMorphSequence(pixsd, buffer1, 0);
         pixt2 = pixMorphCompSequence(pixsd, buffer2, 0);
         pixEqual(pixt1, pixt2, &same);

@@ -341,7 +341,7 @@ L_REGPARAMS  *rp;
             continue;
         }
         d = pixGetDepth(pix);
-        sprintf(psname, "/tmp/lept/regout/junkps.%d", d);
+        snprintf(psname, sizeof(psname), "/tmp/lept/regout/junkps.%d", d);
         fprintf(stderr, "%d bpp\n", d);
         if (test_writemem(pix, IFF_PNM, NULL)) success = FALSE;
         if (test_writemem(pix, IFF_PS, psname)) success = FALSE;
@@ -784,19 +784,19 @@ get_tiff_compression_name(char    *buf,
                           l_int32  format)
 {
     if (format == IFF_TIFF_G4)
-        sprintf(buf, "tiff_g4");
+        snprintf(buf, sizeof(buf), "tiff_g4");
     else if (format == IFF_TIFF_G3)
-        sprintf(buf, "tiff_g3");
+        snprintf(buf, sizeof(buf), "tiff_g3");
     else if (format == IFF_TIFF_ZIP)
-        sprintf(buf, "tiff_zip");
+        snprintf(buf, sizeof(buf), "tiff_zip");
     else if (format == IFF_TIFF_LZW)
-        sprintf(buf, "tiff_lzw");
+        snprintf(buf, sizeof(buf), "tiff_lzw");
     else if (format == IFF_TIFF_RLE)
-        sprintf(buf, "tiff_rle");
+        snprintf(buf, sizeof(buf), "tiff_rle");
     else if (format == IFF_TIFF_PACKBITS)
-        sprintf(buf, "tiff_packbits");
+        snprintf(buf, sizeof(buf), "tiff_packbits");
     else if (format == IFF_TIFF)
-        sprintf(buf, "tiff_uncompressed");
+        snprintf(buf, sizeof(buf), "tiff_uncompressed");
     else
         fprintf(stderr, "format %d: not tiff\n", format);
     return;

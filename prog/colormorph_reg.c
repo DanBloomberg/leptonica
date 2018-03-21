@@ -50,7 +50,7 @@ L_REGPARAMS  *rp;
 
     pix1 = pixColorMorph(pixs, L_MORPH_DILATE, SIZE, SIZE);
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 0 */
-    sprintf(buf, "d%d.%d", SIZE, SIZE);
+    snprintf(buf, sizeof(buf), "d%d.%d", SIZE, SIZE);
     pix2 = pixColorMorphSequence(pixs, buf, 0, 0);
     regTestComparePix(rp, pix1, pix2);  /* 1 */
     pixaAddPix(pixa, pix1, L_INSERT);
@@ -58,7 +58,7 @@ L_REGPARAMS  *rp;
 
     pix1 = pixColorMorph(pixs, L_MORPH_ERODE, SIZE, SIZE);
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 2 */
-    sprintf(buf, "e%d.%d", SIZE, SIZE);
+    snprintf(buf, sizeof(buf), "e%d.%d", SIZE, SIZE);
     pix2 = pixColorMorphSequence(pixs, buf, 0, 0);
     regTestComparePix(rp, pix1, pix2);  /* 3 */
     pixaAddPix(pixa, pix1, L_INSERT);
@@ -66,7 +66,7 @@ L_REGPARAMS  *rp;
 
     pix1 = pixColorMorph(pixs, L_MORPH_OPEN, SIZE, SIZE);
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 4 */
-    sprintf(buf, "o%d.%d", SIZE, SIZE);
+    snprintf(buf, sizeof(buf), "o%d.%d", SIZE, SIZE);
     pix2 = pixColorMorphSequence(pixs, buf, 0, 0);
     regTestComparePix(rp, pix1, pix2);  /* 5 */
     pixaAddPix(pixa, pix1, L_INSERT);
@@ -74,7 +74,7 @@ L_REGPARAMS  *rp;
 
     pix1 = pixColorMorph(pixs, L_MORPH_CLOSE, SIZE, SIZE);
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 6 */
-    sprintf(buf, "c%d.%d", SIZE, SIZE);
+    snprintf(buf, sizeof(buf), "c%d.%d", SIZE, SIZE);
     pix2 = pixColorMorphSequence(pixs, buf, 0, 0);
     regTestComparePix(rp, pix1, pix2);  /* 7 */
     pixaAddPix(pixa, pix1, L_INSERT);

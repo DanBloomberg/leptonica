@@ -75,7 +75,7 @@ static char  mainName[] = "digitprep1";
         pixt2 = pixScale(pixt1, scalefact, scalefact);
         if (pixGetHeight(pixt2) != 32)
             return ERROR_INT("height not 32!", mainName, 1);
-        sprintf(buf, "%d", i);
+        snprintf(buf, sizeof(buf), "%d", i);
         pixSetText(pixt2, buf);
         pixaAddPix(pixad, pixt2, L_INSERT);
         pixDestroy(&pixt1);
