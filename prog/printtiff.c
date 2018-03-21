@@ -54,11 +54,11 @@ static char     mainName[] = "printtiff";
 
     if (argc != 2 && argc != 3)
         return ERROR_INT(" Syntax:  printtiff filein [printer]", mainName, 1);
-
     filein = argv[1];
     if (argc == 3)
         printer = argv[2];
 
+    setLeptDebugOK(1);
     lept_rm(NULL, TEMP_PS);
     tempfile = genPathname("/tmp", TEMP_PS);
     convertTiffMultipageToPS(filein, tempfile, FILL_FACTOR);

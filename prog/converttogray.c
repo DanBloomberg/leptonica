@@ -34,16 +34,17 @@
 int main(int    argc,
           char **argv)
 {
-char         *filein;
-char         *fileout = NULL;
-l_int32       d, same;
-PIX          *pixs, *pixd, *pix1, *pix2, *pix3, *pix4;
-static char   mainName[] = "converttogray";
+char        *filein;
+char        *fileout = NULL;
+l_int32      d, same;
+PIX         *pixs, *pixd, *pix1, *pix2, *pix3, *pix4;
+static char  mainName[] = "converttogray";
 
     if (argc != 2 && argc != 3)
         return ERROR_INT(" Syntax:  converttogray filein [fileout]",
                          mainName, 1);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/gray");
 
     filein = argv[1];

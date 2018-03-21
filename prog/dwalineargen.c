@@ -63,6 +63,7 @@ static char  mainName[] = "dwalineargen";
 
     if (argc != 1)
         return ERROR_INT(" Syntax:  dwalineargen", mainName, 1);
+    setLeptDebugOK(1);
 
         /* Generate the linear sel dwa code */
     sela = selaAddDwaLinear(NULL);

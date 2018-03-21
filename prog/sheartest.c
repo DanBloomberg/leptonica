@@ -49,6 +49,8 @@ static char  mainName[] = "sheartest";
         return ERROR_INT(" Syntax:  sheartest filein angle fileout",
                          mainName, 1);
 
+    setLeptDebugOK(1);
+
         /* Compare in-place H shear with H shear to a new pix */
     pixt1 = pixRead("marge.jpg");
     pixGetDimensions(pixt1, &w, &h, NULL);

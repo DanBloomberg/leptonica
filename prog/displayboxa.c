@@ -57,7 +57,6 @@ static char  mainName[] = "displayboxa";
            "   displayboxa filein width fileout\n");
          return 1;
     }
-
     filein = argv[1];
     width = atoi(argv[2]);
     fileout = argv[3];
@@ -65,6 +64,7 @@ static char  mainName[] = "displayboxa";
         L_ERROR("width too small; setting to 100\n", mainName);
         width = 100;
     }
+    setLeptDebugOK(1);
 
     if ((boxa1 = boxaRead(filein)) == NULL)
         return ERROR_INT("boxa not made", mainName, 1);

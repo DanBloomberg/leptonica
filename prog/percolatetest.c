@@ -50,6 +50,7 @@ PTAA    *ptaa;
         return 1;
     }
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/perc");
 
         /* Fill in a tiny pix; 4 connected */

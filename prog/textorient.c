@@ -71,11 +71,12 @@ static char  mainName[] = "textorient";
             "Syntax:  textorient filein minupconf minratio, fileout",
              mainName, 1);
     }
-
     filein = argv[1];
     minupconf = atof(argv[2]);
     minratio = atof(argv[3]);
     fileout = argv[4];
+    setLeptDebugOK(1);
+
     pixs = pixRead(filein);
     pixd = pixOrientCorrect(pixs, minupconf, minratio, NULL, NULL, NULL, 1);
 

@@ -75,6 +75,7 @@ L_RECOG   *recog1, *recog2, *recog3;
         return 1;
     }
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/recog");
 
         /* Read templates and split them into two sets.  Use one to

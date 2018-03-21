@@ -59,7 +59,6 @@ static char  mainName[] = "binarizefiles.c";
             "      subdirout: subdirectory of /tmp for output files\n");
         return 1;
     }
-
     dirin = argv[1];
     pattern = argv[2];
     thresh = atoi(argv[3]);
@@ -71,6 +70,8 @@ static char  mainName[] = "binarizefiles.c";
         L_WARNING("invalid scalefactor: setting to 1.0\n", mainName);
         scalefactor = 1.0;
     }
+
+    setLeptDebugOK(1);
 
         /* Get the input filenames */
     sa = getSortedPathnamesInDirectory(dirin, pattern, 0, 0);

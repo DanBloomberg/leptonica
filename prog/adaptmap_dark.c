@@ -68,6 +68,7 @@ PIXAC   *pixac1, *pixac2, *pixac3;
 
     PROCNAME("adaptmap_dark");
 
+    setLeptDebugOK(1);
     bmf = bmfCreate(NULL, 10);
     index = 0;
     lept_mkdir("lept/adapt");

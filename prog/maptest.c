@@ -66,6 +66,7 @@ PIXCMAP   *cmap;
 RB_TYPE    key, value;
 RB_TYPE   *pval;
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/map");
 
     pix = pixRead("weasel8.240c.png");

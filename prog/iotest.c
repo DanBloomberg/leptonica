@@ -61,6 +61,7 @@ static char  mainName[] = "iotest";
     if (argc != 1)
         return ERROR_INT(" Syntax: iotest", mainName, 1);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/io");
 
         /* Test 16 to 8 stripping */

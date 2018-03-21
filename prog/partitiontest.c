@@ -66,9 +66,9 @@ static char  mainName[] = "partitiontest";
     if (argc != 3 && argc != 5)
         return ERROR_INT("syntax: partitiontest <fname> type [maxboxes ovlap]",
                          mainName, 1);
-
     filename = argv[1];
     type = atoi(argv[2]);
+
     if (type == L_SORT_BY_WIDTH)
         fprintf(stderr, "Sorting by width:\n");
     else if (type == L_SORT_BY_HEIGHT)
@@ -99,6 +99,7 @@ static char  mainName[] = "partitiontest";
         ovlap = 0.2;
     }
 
+    setLeptDebugOK(1);
     pixa = pixaCreate(0);
     pix = pixRead(filename);
     pixs = pixConvertTo1(pix, 128);

@@ -55,7 +55,6 @@ static char  mainName[] = "dewarptest2";
     if (argc != 2 && argc != 4)
         return ERROR_INT("Syntax: dewarptest2 method [image pageno]",
                          mainName, 1);
-
     if (argc == 2) {
         pixs = pixRead("cat.035.jpg");
         pageno = 35;
@@ -67,6 +66,8 @@ static char  mainName[] = "dewarptest2";
     if (!pixs)
         return ERROR_INT("image not read", mainName, 1);
     method = atoi(argv[1]);
+
+    setLeptDebugOK(1);
     lept_mkdir("lept/dewarp");
 
     if (method == 1) {  /* Use single page dewarp function */

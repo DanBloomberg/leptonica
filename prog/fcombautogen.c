@@ -58,6 +58,7 @@ static char  mainName[] = "fcombautogen";
         return ERROR_INT(" Syntax:  fcombautogen index <filename>",
                          mainName, 1);
 
+    setLeptDebugOK(1);
     index = atoi(argv[1]);
     sela = selaAddDwaCombs(NULL);
 

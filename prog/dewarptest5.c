@@ -46,6 +46,7 @@ L_DEWARP   *dew;
 L_DEWARPA  *dewa;
 PIX        *pixs, *pixn, *pixg, *pixb, *pix2, *pix3, *pix4, *pix5, *pix6;
 
+    setLeptDebugOK(1);
     lept_mkdir("lept");
 
     snprintf(buf, sizeof(buf), "cat.%03d.jpg", pageno);

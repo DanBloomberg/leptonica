@@ -56,6 +56,7 @@ static char  mainName[] = "boxa2_reg";
     if (argc != 1)
         return ERROR_INT(" Syntax: boxa2_reg", mainName, 1);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/boxa");
     boxa1 = boxaRead("boxa4.ba");
 

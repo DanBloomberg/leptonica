@@ -56,6 +56,7 @@ static char  mainName[] = "findpattern3";
     if (argc != 1)
         return ERROR_INT(" Syntax:  findpattern3", mainName, 1);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/hmt");
 
         /* -------------------------------------------- *

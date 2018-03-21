@@ -69,13 +69,14 @@ static char  mainName[] = "binarize_set";
         return ERROR_INT(" Syntax: binarize_set infile", mainName, 1);
     infile = argv[1];
 
+    setLeptDebugOK(1);
+    lept_mkdir("lept/binar");
+
     pixa = pixaCreate(5);
     pixs = pixRead(infile);
     pixGetDimensions(pixs, &w, NULL, &d);
     pixSaveTiled(pixs, pixa, 1.0, 1, 50, 32);
     pixDisplay(pixs, 100, 0);
-
-    lept_mkdir("lept/binar");
 
 #if ALL
     /* 1. Standard background normalization with a global threshold.  */

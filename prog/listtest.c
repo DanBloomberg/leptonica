@@ -30,7 +30,6 @@
  *
  *    This file tests the main functions in the generic
  *    list facility, given in list.c and list.h.
- *
  */
 
 #include "allheaders.h"
@@ -48,11 +47,10 @@ static char  mainName[] = "listtest";
 
     if (argc != 2)
         return ERROR_INT(" Syntax:  listtest filein", mainName, 1);
-
     filein = argv[1];
+    setLeptDebugOK(1);
 
     boxa = boxan = NULL;
-
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pix not made", mainName, 1);
 

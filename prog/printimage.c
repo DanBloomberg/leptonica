@@ -73,11 +73,12 @@ static char  mainName[] = "printimage";
         return ERROR_INT(
             " Syntax:  printimage <filein> <printer> [other lpr args]",
             mainName, 1);
-
-    lept_rm(NULL, "print_image.ps");
-
     filein = argv[1];
     printer = argv[2];
+
+    setLeptDebugOK(1);
+    lept_rm(NULL, "print_image.ps");
+
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);
 

@@ -37,6 +37,7 @@ l_int32  i;
 PIX     *pixs, *pix1, *pix2, *pix3;
 PIXA    *pixa;
 
+    setLeptDebugOK(1);
     pixs = pixRead("pageseg2.tif");
 
     startTimer();

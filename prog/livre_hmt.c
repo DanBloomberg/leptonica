@@ -68,6 +68,7 @@ static char  mainName[] = "livre_hmt";
     patno = atoi(argv[1]);
     reduction = atoi(argv[2]);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/livre");
     if ((pixs = pixRead(patname[patno])) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);

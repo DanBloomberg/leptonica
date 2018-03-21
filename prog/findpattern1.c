@@ -67,18 +67,18 @@ static char  mainName[] = "findpattern1";
     if (argc != 4)
         return ERROR_INT(" Syntax:  findpattern1 filein patternfile fileout",
                          mainName, 1);
-
     filein = argv[1];
     patternfile = argv[2];
     fileout = argv[3];
+
+    setLeptDebugOK(1);
+    lept_mkdir("lept/hmt");
 
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);
     if ((pixp = pixRead(patternfile)) == NULL)
         return ERROR_INT("pixp not made", mainName, 1);
     pixGetDimensions(pixp, &w, &h, NULL);
-
-    lept_mkdir("lept/hmt");
 
         /* Generate the hit-miss Sel with runs */
     sel = pixGenerateSelWithRuns(pixp, NumHorLines, NumVertLines, 0,

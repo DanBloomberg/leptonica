@@ -75,6 +75,7 @@ static char  mainName[] = "corrupttest";
     filein = argv[1];
     findFileFormat(filein, &format);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/corrupt");
 
     hint = 0;

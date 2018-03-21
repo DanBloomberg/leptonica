@@ -54,12 +54,12 @@ static char  mainName[] = "fmorphautogen";
     if (argc != 2 && argc != 3)
         return ERROR_INT(" Syntax:  fmorphautogen index <filename>",
                          mainName, 1);
-
     index = atoi(argv[1]);
     filename = NULL;
     if (argc == 3)
         filename = argv[2];
 
+    setLeptDebugOK(1);
     sela = selaAddBasic(NULL);
     if (fmorphautogen(sela, index, filename))
         return 1;

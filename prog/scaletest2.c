@@ -44,17 +44,17 @@ static char  mainName[] = "scaletest2";
     if (argc != 2)
         return ERROR_INT(" Syntax:  scaletest2 filein", mainName, 1);
 
+    setLeptDebugOK(1);
+    lept_mkdir("lept/scale");
+
     if ((pixs = pixRead(argv[1])) == NULL)
        	return ERROR_INT("pixs not made", mainName, 1);
     d = pixGetDepth(pixs);
 
-    lept_mkdir("lept/scale");
-
 #if 1
         /* Integer scale-to-gray functions */
-    if (d == 1)
-    {
-    PIX  *pixd;
+    if (d == 1) {
+        PIX  *pixd;
 
         pixd = pixScaleToGray2(pixs);
         pixWrite("/tmp/lept/scale/s2g_2x", pixd, IFF_PNG);
@@ -80,9 +80,8 @@ static char  mainName[] = "scaletest2";
 #if 1
         /* Various non-integer scale-to-gray, compared with
 	 * with different ways of getting similar results */
-    if (d == 1)
-    {
-    PIX  *pixt, *pixd;
+    if (d == 1) {
+        PIX  *pixt, *pixd;
 
         pixd = pixScaleToGray8(pixs);
         pixWrite("/tmp/lept/scale/s2g_8.png", pixd, IFF_PNG);
@@ -140,9 +139,9 @@ static char  mainName[] = "scaletest2";
 
 #if 1
         /* Antialiased (smoothed) reduction, along with sharpening */
-    if (d != 1)
-    {
-    PIX *pixt1, *pixt2;
+    if (d != 1) {
+        PIX *pixt1, *pixt2;
+
         startTimer();
         pixt1 = pixScaleSmooth(pixs, 0.154, 0.154);
         fprintf(stderr, "fast scale: %5.3f sec\n", stopTimer());
@@ -159,11 +158,11 @@ static char  mainName[] = "scaletest2";
 
 #if 1
         /* Test a large range of scale-to-gray reductions */
-    if (d == 1)
-    {
-    l_int32    i;
-    l_float32  scale;
-    PIX       *pixd;
+    if (d == 1) {
+        l_int32    i;
+        l_float32  scale;
+        PIX       *pixd;
+
         for (i = 2; i < 15; i++) {
             scale = 1. / (l_float32)i;
             startTimer();
@@ -188,11 +187,11 @@ static char  mainName[] = "scaletest2";
 
 #if 1
         /* Test the same range of scale-to-gray mipmap reductions */
-    if (d == 1)
-    {
-    l_int32    i;
-    l_float32  scale;
-    PIX       *pixd;
+    if (d == 1) {
+        l_int32    i;
+        l_float32  scale;
+        PIX       *pixd;
+
         for (i = 2; i < 15; i++) {
             scale = 1. / (l_float32)i;
             startTimer();
@@ -217,8 +216,7 @@ static char  mainName[] = "scaletest2";
 #if 1
         /* Test several methods for antialiased reduction,
          * along with sharpening */
-    if (d != 1)
-    {
+    if (d != 1) {
         PIX *pixt1, *pixt2, *pixt3, *pixt4, *pixt5, *pixt6, *pixt7;
         l_float32 SCALING = 0.27;
         l_int32   SIZE = 7;
@@ -265,11 +263,10 @@ static char  mainName[] = "scaletest2";
         /* Test the color scaling function, comparing the
          * special case of scaling factor 2.0 with the
          * general case. */
-    if (d == 32)
-    {
-    PIX    *pix1, *pix2, *pixd;
-    NUMA   *nar, *nag, *nab, *naseq;
-    GPLOT  *gplot;
+    if (d == 32) {
+        PIX    *pix1, *pix2, *pixd;
+        NUMA   *nar, *nag, *nab, *naseq;
+        GPLOT  *gplot;
 
         startTimer();
         pix1 = pixScaleColorLI(pixs, 2.00001, 2.0);
@@ -307,11 +304,10 @@ static char  mainName[] = "scaletest2";
         /* Test the gray LI scaling function, comparing the
          * special cases of scaling factor 2.0 and 4.0 with the
          * general case */
-    if (d == 8 || d == 32)
-    {
-    PIX    *pixt, *pix0, *pix1, *pix2, *pixd;
-    NUMA   *nagray, *naseq;
-    GPLOT  *gplot;
+    if (d == 8 || d == 32) {
+        PIX    *pixt, *pix0, *pix1, *pix2, *pixd;
+        NUMA   *nagray, *naseq;
+        GPLOT  *gplot;
 
         if (d == 8)
             pixt = pixClone(pixs);

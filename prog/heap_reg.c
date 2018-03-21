@@ -54,6 +54,7 @@ static char  mainName[] = "heap_reg";
 
     if (argc != 1)
         return ERROR_INT(" Syntax: heap_reg", mainName, 1);
+    setLeptDebugOK(1);
 
         /* make a numa of random numbers */
     na = numaCreate(5);

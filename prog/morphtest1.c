@@ -52,9 +52,10 @@ static char  mainName[] = "morphtest1";
 
     if (argc != 3)
         return ERROR_INT(" Syntax:  morphtest1 filein fileout", mainName, 1);
-
     filein = argv[1];
     fileout = argv[2];
+    setLeptDebugOK(1);
+
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pix not made", mainName, 1);
     sela = selaAddBasic(NULL);

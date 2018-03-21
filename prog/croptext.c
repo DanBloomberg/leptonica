@@ -53,11 +53,11 @@ static char  mainName[] = "croptext";
 
     if (argc != 4)
         return ERROR_INT("Syntax: croptext dirin border dirout", mainName, 1);
-
     dirin = argv[1];
     border = atoi(argv[2]);
     dirout = argv[3];
 
+    setLeptDebugOK(1);
     safiles = getSortedPathnamesInDirectory(dirin, NULL, 0, 0);
     nfiles = sarrayGetCount(safiles);
 

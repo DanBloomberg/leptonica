@@ -51,8 +51,9 @@ static char  mainName[] = "morphseq_reg";
     if (argc != 1)
         return ERROR_INT(" Syntax:  morphseq_reg", mainName, 1);
 
-    pixs = pixRead("feyn.tif");
+    setLeptDebugOK(1);
     lept_mkdir("lept");
+    pixs = pixRead("feyn.tif");
 
         /* 1 bpp */
     pixd = pixMorphSequence(pixs, SEQUENCE1, -1);

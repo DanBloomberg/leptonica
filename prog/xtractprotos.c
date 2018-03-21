@@ -114,6 +114,8 @@ static char  mainName[] = "xtractprotos";
         return 1;
     }
 
+    setLeptDebugOK(1);
+
     /* ---------------------------------------------------------------- */
     /* Parse input flags and find prestring and outprotos, if requested */
     /* ---------------------------------------------------------------- */

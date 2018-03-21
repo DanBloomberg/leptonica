@@ -57,6 +57,7 @@ static char  mainName[] = "numa1_reg";
     if (argc != 1)
         return ERROR_INT(" Syntax:  numa1_reg", mainName, 1);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/numa1");
 
     /* -------------------------------------------------------------------*

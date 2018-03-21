@@ -47,14 +47,14 @@ static char  mainName[] = "rotatetest1";
     if (argc != 4)
         return ERROR_INT(" Syntax:  rotatetest1 filein angle fileout",
                          mainName, 1);
-
     filein = argv[1];
     angle = atof(argv[2]);
     fileout = argv[3];
-    deg2rad = 3.1415926535 / 180.;
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/rotate");
 
+    deg2rad = 3.1415926535 / 180.;
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pix not made", mainName, 1);
     if (pixGetDepth(pixs) == 1) {

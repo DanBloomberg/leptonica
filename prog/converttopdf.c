@@ -64,10 +64,11 @@ char    *dirin, *substr, *fileout;
             "         fileout:  Output pdf file\n");
         return 1;
     }
-
     dirin = argv[1];
     substr = (argc == 4) ? argv[2] : NULL;
     fileout = (argc == 4) ? argv[3] : argv[2];
+
+    setLeptDebugOK(1);
     ret = convertUnscaledFilesToPdf(dirin, substr, "", fileout);
     return ret;
 }

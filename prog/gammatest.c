@@ -49,12 +49,13 @@ static char  mainName[] = "gammatest";
 
     if (argc != 4)
         return ERROR_INT(" Syntax:  gammatest filein gam fileout", mainName, 1);
-
-    lept_mkdir("lept/gamma");
-
     filein = argv[1];
     gam = atof(argv[2]);
     fileout = argv[3];
+
+    setLeptDebugOK(1);
+    lept_mkdir("lept/gamma");
+
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);
 

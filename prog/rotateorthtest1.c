@@ -50,13 +50,13 @@ static char  mainName[] = "rotateorthtest1";
     if (argc != 3 && argc != 4)
         return ERROR_INT(" Syntax:  rotateorthtest1 filein fileout [direction]",
                          mainName, 1);
-
     filein = argv[1];
     fileout = argv[2];
     if (argc == 4)
         dir = atoi(argv[3]);
     else
         dir = 1;
+    setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pix not made", mainName, 1);

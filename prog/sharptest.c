@@ -48,11 +48,12 @@ static char  mainName[] = "sharptest";
     if (argc != 5)
         return ERROR_INT(" Syntax:  sharptest filein smooth fract fileout",
                          mainName, 1);
-
     filein = argv[1];
     smooth = atoi(argv[2]);
     fract = atof(argv[3]);
     fileout = argv[4];
+    setLeptDebugOK(1);
+
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);
 

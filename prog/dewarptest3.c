@@ -49,6 +49,7 @@ PIXA       *pixa;
 PTA        *pta, *ptad;
 PTAA       *ptaa1, *ptaa2;
 
+    setLeptDebugOK(1);
     lept_mkdir("lept");
 
     pixs = pixRead("cat.035.jpg");

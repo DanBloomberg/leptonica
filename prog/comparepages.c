@@ -40,9 +40,10 @@ int main(int    argc,
 l_int32  w, h, n, same;
 BOXA    *boxa1, *boxa2;
 NUMA    *nai1, *nai2;
-NUMAA   *naa1, *naa1r, *naa2;
+NUMAA   *naa1, *naa2;
 PIX     *pixs, *pixt, *pixb1, *pixb2;
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/comp");
 
     pixs = pixRead("lucasta.047.jpg");
@@ -53,8 +54,6 @@ PIX     *pixs, *pixt, *pixb1, *pixb2;
     pixWrite("/tmp/lept/comp/pixt.png", pixt, IFF_PNG);
     naa1 = boxaExtractSortedPattern(boxa1, nai1);
     numaaWrite("/tmp/lept/comp/naa1.naa", naa1);
-    naa1r = numaaRead("junknaa1");
-    numaaWrite("/tmp/lept/comp/naa1r.naa", naa1r);
     n = numaaGetCount(naa1);
     fprintf(stderr, "Number of textlines = %d\n", n);
     pixDisplay(pixb1, 300, 0);
@@ -109,6 +108,5 @@ PIX     *pixs, *pixt, *pixb1, *pixb2;
     pixDestroy(&pixb1);
     pixDestroy(&pixt);
     numaaDestroy(&naa1);
-    numaaDestroy(&naa1r);
     return 0;
 }

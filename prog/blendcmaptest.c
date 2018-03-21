@@ -43,11 +43,12 @@ PIX      *pixs, *pixb, *pix1, *pix2;
 PIXA     *pixa;
 PIXCMAP  *cmap;
 
-    pixs = pixRead("rabi.png");  /* blendee */
-    pixb = pixRead("weasel4.11c.png");   /* blender */
-
+    setLeptDebugOK(1);
     lept_mkdir("lept/blend");
     pixa = pixaCreate(0);
+
+    pixs = pixRead("rabi.png");  /* blendee */
+    pixb = pixRead("weasel4.11c.png");   /* blender */
 
         /* Fade the blender */
     pixcmapShiftIntensity(pixGetColormap(pixb), FADE_FRACTION);

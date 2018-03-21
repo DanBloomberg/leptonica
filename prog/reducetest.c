@@ -45,13 +45,13 @@ static char  mainName[] = "reducetest";
     if (argc != 7)
         return ERROR_INT(" Syntax:  reducetest filein fileout l1 l2 l3 l4",
                          mainName, 1);
-
     filein = argv[1];
     fileout = argv[2];
     level1 = atoi(argv[3]);
     level2 = atoi(argv[4]);
     level3 = atoi(argv[5]);
     level4 = atoi(argv[6]);
+    setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);

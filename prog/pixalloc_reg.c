@@ -66,6 +66,9 @@ NUMA    *nas, *nab;
 PIX     *pixs;
 PIXA    *pixa, *pixas;
 
+    setLeptDebugOK(1);
+    lept_mkdir("lept/alloc");
+
     /* ----------------- Custom with a few large pix -----------------*/
         /* Set up pms */
     nas = numaCreate(4);  /* small */
@@ -74,7 +77,7 @@ PIXA    *pixa, *pixas;
     numaAddNumber(nas, 3);
     numaAddNumber(nas, 2);
     setPixMemoryManager(pmsCustomAlloc, pmsCustomDealloc);
-    pmsCreate(200000, 400000, nas, "/tmp/junk1.log");
+    pmsCreate(200000, 400000, nas, "/tmp/lept/alloc/file1.log");
 
         /* Make the pix and do successive copies and removals of the copies */
     pixas = GenerateSetOfMargePix();
@@ -113,7 +116,7 @@ PIXA    *pixa, *pixas;
     numaAddNumber(nab, 100);
     setPixMemoryManager(pmsCustomAlloc, pmsCustomDealloc);
     if (logging)   /* use logging == 0 for speed comparison */
-        pmsCreate(20, 40, nab, "/tmp/junk2.log");
+        pmsCreate(20, 40, nab, "/tmp/lept/alloc/file2.log");
     else
         pmsCreate(20, 40, nab, NULL);
     pixs = pixRead("feyn.tif");

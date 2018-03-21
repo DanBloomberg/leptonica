@@ -75,6 +75,7 @@ static char  mainName[] = "arabic_lines";
     if (argc != 1)
         return ERROR_INT(" Syntax:  arabic_lines", mainName, 1);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/lineseg");
     pixa = pixaCreate(0);
 

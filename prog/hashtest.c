@@ -71,6 +71,7 @@ NUMA       *nav, *nac;
 PTA        *pta1, *pta2, *pta3;
 SARRAY     *sa1, *sa2, *sa3, *sa4;
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/hash");
 
 #if 1

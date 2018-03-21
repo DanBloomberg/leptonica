@@ -61,13 +61,13 @@ static char  mainName[] = "maketile";
         return ERROR_INT(
             "Syntax:  maketile dirin depth scale width background fileout",
             mainName, 1);
-
     dirin = argv[1];
     depth = atoi(argv[2]);
     scale = atof(argv[3]);
     width = atoi(argv[4]);
     background = atoi(argv[5]);
     fileout = argv[6];
+    setLeptDebugOK(1);
 
         /* capture the filenames in the input directory; ignore directories */
     if ((safiles = getFilenamesInDirectory(dirin)) == NULL)

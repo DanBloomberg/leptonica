@@ -47,11 +47,11 @@ static char  mainName[] = "writemtiff";
         return ERROR_INT(" Syntax:  writemtiff dirin [pattern] fileout",
                          mainName, 1);
 
+    setLeptDebugOK(1);
     if (argc == 3)
         writeMultipageTiff(argv[1], NULL, argv[2]);
     else  /* argc == 4 */
         writeMultipageTiff(argv[1], argv[2], argv[3]);
-
     return 0;
 }
 

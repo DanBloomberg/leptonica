@@ -73,7 +73,6 @@ static char  mainName[] = "colorsegtest";
             "                     max_colors = 15\n"
             "                     sel_size = 4\n"
             "                     final_colors = 15\n", mainName, 1);
-
     filein = argv[1];
     fileout = argv[2];
     if (argc == 3) {  /* use default values */
@@ -88,6 +87,7 @@ static char  mainName[] = "colorsegtest";
         sel_size = atoi(argv[5]);
         final_colors = atoi(argv[6]);
     }
+    setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);

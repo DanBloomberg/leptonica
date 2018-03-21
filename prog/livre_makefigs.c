@@ -50,6 +50,7 @@ static char  mainName[] = "livre_makefigs";
     if (argc != 1)
         return ERROR_INT(" Syntax:  livre_makefigs", mainName, 1);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/livre");
 
         /* Generate Figure 1 (page segmentation) */

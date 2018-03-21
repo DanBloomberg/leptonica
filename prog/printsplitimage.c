@@ -68,13 +68,13 @@ static char  mainName[] = "printsplitimage";
     if (argc != 4 && argc != 5)
         return ERROR_INT(" Syntax:  printsplitimage filein nx ny [printer]",
                          mainName, 1);
-
     filein = argv[1];
     nx = atoi(argv[2]);
     ny = atoi(argv[3]);
     if (argc == 5)
         printer = argv[4];
 
+    setLeptDebugOK(1);
     lept_rmdir("split");
     lept_mkdir("split");
 

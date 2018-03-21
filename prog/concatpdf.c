@@ -27,14 +27,20 @@
 /*
  * concatpdf.c
  *
+ *  N.B. This works on Unix.
+ *       It relies on the following resources:
+ *          * acroread
+ *          * ghostscript
+ *       Adobe is no longer making acroread binaries for linux.
+ *
  *    Program to concatenate a set of pdf files into a single one.
  *    This works well when the input pdf files are not scanned, but
  *    instead are generated orthographically.
  *
  *    Syntax: concatpdf dir [pattern]
- *     where pattern is an optional string to be matched
+ *        where pattern is an optional string to be matched
  *
- *    The output goes to:  /tmp/output.pdf
+ *    The output goes to:  /tmp/lept/output.pdf
  *
  *    This works by converting to PostScript (without annotations),
  *    then rasterizing the images, and finally generating a pdf from
@@ -46,16 +52,11 @@
  *
  *    (1) Use acroread to generate ps files without annotations, which
  *        can cause difficulties in later stages.  The ps files are
- *        made in /tmp/ps.
+ *        made in /tmp/lept/ps/.
  *    (2) Use ps2pdf-gray from Ghostscript to rasterize the images.
- *        The images are made in /tmp/image
- *    (3) Use convertFilesToPdf to generate a pdf file, /tmp/output.pdf,
- *        from the images.
- *
- *  N.B. This works on Unix.
- *       It relies on the following resources:
- *          * acroread
- *          * ghostscript
+ *        The images are written to /tmp/lept/image/
+ *    (3) Use convertFilesToPdf to generate a pdf file,
+ *        /tmp/lept/iamge/output.pdf, from the images.
  */
 
 #include <sys/stat.h>
@@ -77,6 +78,7 @@ static char  mainName[] = "concatpdf";
         return ERROR_INT("Syntax: concatpdf dir [pattern]", mainName, 1);
     dir = argv[1];
     pattern = (argc == 3) ? argv[2] : NULL;
+    setLeptDebugOK(1);
 
         /* Get the names of the pdf files */
     sa = getSortedPathnamesInDirectory(dir, pattern, 0, 0);
@@ -85,9 +87,9 @@ static char  mainName[] = "concatpdf";
 
 #if 1
         /* Convert to ps */
-    psdir = genPathname("/tmp/ps", NULL);
-    lept_rmdir("ps");
-    lept_mkdir("ps");
+    psdir = genPathname("/tmp/lept/ps", NULL);
+    lept_rmdir("lept/ps");
+    lept_mkdir("lept/ps");
     saps = sarrayCreate(n);
     for (i = 0; i < n; i++) {
         fname = sarrayGetString(sa, i, L_NOCOPY);
@@ -107,9 +109,9 @@ static char  mainName[] = "concatpdf";
 
 #if 1
         /* Rasterize */
-    imagedir = genPathname("/tmp/image", NULL);
-    lept_rmdir("image");
-    lept_mkdir("image");
+    imagedir = genPathname("/tmp/lept/image", NULL);
+    lept_rmdir("lept/image");
+    lept_mkdir("lept/image");
     sarrayWriteStream(stderr, saps);
     n = sarrayGetCount(saps);
     for (i = 0; i < n; i++) {
@@ -119,12 +121,11 @@ static char  mainName[] = "concatpdf";
         fprintf(stderr, "%s\n", buf);
         ret = system(buf);  /* ps2png-gray */
     }
-#endif
 
-#if 1
         /* Generate the pdf */
     convertFilesToPdf(imagedir, "png", RESOLUTION, 1.0, L_FLATE_ENCODE,
-                      0, "", "/tmp/output.pdf");
+                      0, "", "/tmp/lept/image/output.pdf");
+    lept_free(imagedir);
 #endif
 
     return 0;

@@ -46,11 +46,11 @@ static char  mainName[] = "scaletest1";
     if (argc != 5)
 	return ERROR_INT(" Syntax:  scaletest1 filein scalex scaley fileout",
 	                 mainName, 1);
-
     filein = argv[1];
     scalex = atof(argv[2]);
     scaley = atof(argv[3]);
     fileout = argv[4];
+    setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
 	return ERROR_INT("pixs not made", mainName, 1);

@@ -42,6 +42,7 @@ static char  mainName[] = "fileinfo";
         return ERROR_INT(" Syntax:  fileinfo filein", mainName, 1);
     filein = argv[1];
 
+    setLeptDebugOK(1);
     writeImageFileInfo(filein, stderr, 0);
     return 0;
 }

@@ -47,9 +47,11 @@ static char  mainName[] = "pixa1_reg";
 
     if (argc != 1)
         return ERROR_INT(" Syntax:  pixa1_reg", mainName, 1);
+
     if ((pixs = pixRead("feyn.tif")) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/pixa");
 
     /* ----------------  Remove small components --------------- */

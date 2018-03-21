@@ -59,6 +59,8 @@ l_int32 main(int    argc,
 l_int32     i;
 L_STRCODE  *strc;
 
+    setLeptDebugOK(1);
+
         /* Method 1: generate autogen.137.c and autogen.137.h  */
     strc = strcodeCreate(137);
     for (i = 0; i < 2; i++)

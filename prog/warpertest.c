@@ -59,6 +59,9 @@ static char  mainName[] = "warpertest";
 
     if (argc != 1)
         return ERROR_INT("syntax: warpertest", mainName, 1);
+
+    setLeptDebugOK(1);
+    lept_mkdir("lept/warp");
     bmf = bmfCreate(NULL, 6);
 
     /* --------   Stereoscopic warping --------------*/
@@ -79,9 +82,9 @@ static char  mainName[] = "warpertest";
     pixDestroy(&pixs);
 
     pixaConvertToPdf(pixa, 100, 1.0, L_JPEG_ENCODE, 0, "warp.pdf",
-                     "/tmp/warp.pdf");
+                     "/tmp/lept/warp/warp.pdf");
     pixd = pixaDisplayTiledInRows(pixa, 32, 2000, 1.0, 0, 20, 2);
-    pixWrite("/tmp/warp.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/warp/warp.jpg", pixd, IFF_JFIF_JPEG);
     pixaDestroy(&pixa);
     pixDestroy(&pixd);
 #endif
@@ -117,9 +120,9 @@ static char  mainName[] = "warpertest";
     pixDestroy(&pixs);
 
     pixaConvertToPdf(pixa, 100, 1.0, L_FLATE_ENCODE, 0, "quad_vshear.pdf",
-                     "/tmp/quad_vshear.pdf");
+                     "/tmp/lept/warp/quad_vshear.pdf");
     pixd = pixaDisplayTiledInRows(pixa, 32, 2000, 1.0, 0, 20, 2);
-    pixWrite("/tmp/quad_vshear.jpg", pixd, IFF_PNG);
+    pixWrite("/tmp/lept/warp/quad_vshear.jpg", pixd, IFF_PNG);
     pixaDestroy(&pixa);
     pixDestroy(&pixd);
 #endif
@@ -147,9 +150,9 @@ static char  mainName[] = "warpertest";
     pixDestroy(&pixs);
 
     pixaConvertToPdf(pixa, 100, 1.0, L_JPEG_ENCODE, 0, "linear_hstretch.pdf",
-                     "/tmp/linear_hstretch.pdf");
+                     "/tmp/lept/warp/linear_hstretch.pdf");
     pixd = pixaDisplayTiledInRows(pixa, 32, 2500, 1.0, 0, 20, 2);
-    pixWrite("/tmp/linear_hstretch.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/warp/linear_hstretch.jpg", pixd, IFF_JFIF_JPEG);
     pixaDestroy(&pixa);
     pixDestroy(&pixd);
 #endif
@@ -177,9 +180,9 @@ static char  mainName[] = "warpertest";
     pixDestroy(&pixs);
 
     pixaConvertToPdf(pixa, 100, 1.0, L_JPEG_ENCODE, 0, "quad_hstretch.pdf",
-                     "/tmp/quad_hstretch.pdf");
+                     "/tmp/lept/warp/quad_hstretch.pdf");
     pixd = pixaDisplayTiledInRows(pixa, 32, 2500, 1.0, 0, 20, 2);
-    pixWrite("/tmp/quad_hstretch.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/warp/quad_hstretch.jpg", pixd, IFF_JFIF_JPEG);
     pixaDestroy(&pixa);
     pixDestroy(&pixd);
 #endif
@@ -207,9 +210,9 @@ static char  mainName[] = "warpertest";
     pixDestroy(&pixs);
 
     pixaConvertToPdf(pixa, 100, 1.0, L_JPEG_ENCODE, 0, "hshear.pdf",
-                     "/tmp/hshear.pdf");
+                     "/tmp/lept/warp/hshear.pdf");
     pixd = pixaDisplayTiledInRows(pixa, 32, 2500, 1.0, 0, 20, 2);
-    pixWrite("/tmp/hshear.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/warp/hshear.jpg", pixd, IFF_JFIF_JPEG);
     pixaDestroy(&pixa);
     pixDestroy(&pixd);
 #endif
@@ -237,9 +240,9 @@ static char  mainName[] = "warpertest";
 
     pixDestroy(&pixs);
     pixaConvertToPdf(pixa, 100, 1.0, L_JPEG_ENCODE, 0, "vshear.pdf",
-                     "/tmp/vshear.pdf");
+                     "/tmp/lept/warp/vshear.pdf");
     pixd = pixaDisplayTiledInRows(pixa, 32, 2500, 1.0, 0, 20, 2);
-    pixWrite("/tmp/vshear.jpg", pixd, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/warp/vshear.jpg", pixd, IFF_JFIF_JPEG);
     pixaDestroy(&pixa);
     pixDestroy(&pixd);
 #endif

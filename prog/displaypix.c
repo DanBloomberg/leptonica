@@ -46,11 +46,11 @@ static char  mainName[] = "displaypix";
 
     if (argc != 2)
         return ERROR_INT(" Syntax: displaypix filein", mainName, 1);
-
     filein = argv[1];
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);
 
+    setLeptDebugOK(1);
     pixDisplay(pixs, 20, 20);
     pixDestroy(&pixs);
     return 0;

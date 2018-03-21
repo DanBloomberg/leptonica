@@ -71,7 +71,6 @@ static char  mainName[] = "jbwords";
     if (argc != 6 && argc != 8)
         return ERROR_INT(" Syntax: jbwords dirin reduction thresh "
                          "weight rootname [firstpage, npages]", mainName, 1);
-
     dirin = argv[1];
     reduction = atoi(argv[2]);
     thresh = atof(argv[3]);
@@ -84,6 +83,7 @@ static char  mainName[] = "jbwords";
         firstpage = atoi(argv[6]);
         npages = atoi(argv[7]);
     }
+    setLeptDebugOK(1);
 
     classer = jbWordsInTextlines(dirin, reduction, MAX_WORD_WIDTH,
                                  MAX_WORD_HEIGHT, thresh, weight,

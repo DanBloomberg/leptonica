@@ -52,6 +52,7 @@ static char  mainName[] = "flipdetect_reg";
     if (argc != 1 && argc != 2)
         return ERROR_INT(" Syntax: flipdetect_reg [filein]", mainName, 1);
     filein = (argc == 1) ? "feyn.tif" : argv[1];
+    setLeptDebugOK(1);
 
     if ((pix1 = pixRead(filein)) == NULL)
         return ERROR_INT("pix1 not made", mainName, 1);

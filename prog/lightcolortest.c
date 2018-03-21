@@ -49,6 +49,7 @@ static char  mainName[] = "lightcolortest";
     if (argc != 1)
         return ERROR_INT(" Syntax:  lightcolortest", mainName, 1);
 
+    setLeptDebugOK(1);
     sa = getSortedPathnamesInDirectory( ".", "comap.", 0, 0);
     sarrayWriteStream(stderr, sa);
     n = sarrayGetCount(sa);

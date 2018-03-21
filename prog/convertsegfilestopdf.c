@@ -111,7 +111,6 @@ static char  mainName[] = "convertsegfilestopdf";
             "         fileout:  Output pdf file\n");
         return 1;
     }
-
     pagedir = argv[1];
     pagesubstr = argv[2];
     maskdir = argv[3];
@@ -141,6 +140,7 @@ static char  mainName[] = "convertsegfilestopdf";
     if (!strcmp(title, "none"))
         title = NULL;
 
+    setLeptDebugOK(1);
     if (maskdir)  /* use this; ignore any input boxaafile */
         baa = convertNumberedMasksToBoxaa(maskdir, masksubstr, 0, 0);
     else if (strcmp(boxaafile, "skip") != 0) {  /* use the boxaafile */

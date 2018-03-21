@@ -49,6 +49,8 @@ static char  mainName[] = "rasterop_reg";
 
     if (argc != 1)
 	return ERROR_INT(" Syntax:  rasterop_reg", mainName, 1);
+    setLeptDebugOK(1);
+
     pixs = pixRead("feyn.tif");
 
     for (width = 1; width <= 25; width += 3) {

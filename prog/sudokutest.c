@@ -53,6 +53,7 @@ static char  mainName[] = "sudokutest";
     if (argc != 1 && argc != 2)
 	return ERROR_INT(" Syntax: sudokutest [filein]", mainName, 1);
 
+    setLeptDebugOK(1);
     if (argc == 1) {
             /* Generate a new sudoku by element elimination */
         array = sudokuReadString(startsol);

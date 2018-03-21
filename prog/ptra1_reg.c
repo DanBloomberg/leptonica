@@ -57,6 +57,7 @@ static char  mainName[] = "ptra1_reg";
     if (argc != 1)
         return ERROR_INT(" Syntax: ptra1_reg", mainName, 1);
 
+    setLeptDebugOK(1);
     pixac = pixaCreate(0);
 
     if ((pixs = pixRead("lucasta.1.300.tif")) == NULL)

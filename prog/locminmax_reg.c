@@ -47,6 +47,9 @@ static char  mainName[] = "locminmax_reg";
     if (argc != 1)
         return ERROR_INT("syntax: locminmax_reg", mainName, 1);
 
+    setLeptDebugOK(1);
+    lept_mkdir("lept/minmax");
+
     pixs = pixCreate(500, 500, 8);
     for (i = 0; i < 500; i++) {
         for (j = 0; j < 500; j++) {
@@ -58,7 +61,7 @@ static char  mainName[] = "locminmax_reg";
         }
     }
     pixDisplay(pixs, 0, 0);
-    pixWrite("/tmp/junkpattern.png", pixs, IFF_PNG);
+    pixWrite("/tmp/lept/minmax/pattern.png", pixs, IFF_PNG);
 
     startTimer();
 /*    pixSelectedLocalExtrema(pixs, 1, &pix1, &pix2); */
@@ -70,7 +73,7 @@ static char  mainName[] = "locminmax_reg";
     pixPaintThroughMask(pixd, pix2, 0, 0, greenval);
     pixPaintThroughMask(pixd, pix1, 0, 0, redval);
     pixDisplay(pixd, 510, 0);
-    pixWrite("/tmp/junkpixd.png", pixd, IFF_PNG);
+    pixWrite("/tmp/lept/minmax/pixd.png", pixd, IFF_PNG);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pixs);
@@ -79,7 +82,7 @@ static char  mainName[] = "locminmax_reg";
     pix0 = pixRead("karen8.jpg");
     pixs = pixBlockconv(pix0, 10, 10);
     pixDisplay(pixs, 0, 400);
-    pixWrite("/tmp/junkconv.png", pixs, IFF_PNG);
+    pixWrite("/tmp/lept/minmax/conv.png", pixs, IFF_PNG);
     startTimer();
 /*    pixSelectedLocalExtrema(pixs, 1, &pix1, &pix2); */
     pixLocalExtrema(pixs, 50, 100, &pix1, &pix2);
@@ -90,7 +93,7 @@ static char  mainName[] = "locminmax_reg";
     pixPaintThroughMask(pixd, pix2, 0, 0, greenval);
     pixPaintThroughMask(pixd, pix1, 0, 0, redval);
     pixDisplay(pixd, 350, 400);
-    pixWrite("/tmp/junkpixd2.png", pixd, IFF_PNG);
+    pixWrite("/tmp/lept/minmax/pixd2.png", pixd, IFF_PNG);
     pixDestroy(&pix0);
     pixDestroy(&pix1);
     pixDestroy(&pix2);

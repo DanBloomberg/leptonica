@@ -54,6 +54,7 @@ static char  mainName[] = "fhmtautogen";
     if (argc != 2 && argc != 3)
         return ERROR_INT(" Syntax:  fhmtautogen index <filename>", mainName, 1);
 
+    setLeptDebugOK(1);
     index = atoi(argv[1]);
     filename = NULL;
     if (argc == 3)

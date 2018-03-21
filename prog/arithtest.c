@@ -43,13 +43,13 @@ static char  mainName[] = "arithtest";
 
     if (argc != 2)
         return ERROR_INT(" Syntax:  arithtest filein", mainName, 1);
-
     filein = argv[1];
+
+    setLeptDebugOK(1);
+    lept_mkdir("lept/arith");
 
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pix not made", mainName, 1);
-
-    lept_mkdir("lept/arith");
 
         /* Input a grayscale image and convert it to 16 bpp */
     pixGetDimensions(pixs, &w, &h, NULL);

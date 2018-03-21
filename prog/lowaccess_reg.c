@@ -59,6 +59,7 @@ l_uint32  *data, *line, *line2, *data2;
 void     **lines1, **linet1, **linet2;
 PIX       *pixs, *pixt1, *pixt2;
 
+    setLeptDebugOK(1);
     pixs = pixRead("feyn.tif");   /* width divisible by 16 */
     pixGetDimensions(pixs, &w, &h, NULL);
     data = pixGetData(pixs);

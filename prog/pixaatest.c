@@ -48,6 +48,9 @@ static char  mainName[] = "pixaatest";
     if (argc != 1)
         return ERROR_INT(" Syntax: pixaatest", mainName, 1);
 
+    setLeptDebugOK(1);
+    lept_mkdir("/lept/paa");
+
         /* Read in file, split it into a set of tiles, and generate a pdf.
          * Two things to note for these tiny images:
          *  (1) If you use dct format (jpeg) for each image instead of
@@ -60,35 +63,38 @@ static char  mainName[] = "pixaatest";
     pixGetDimensions(pixs, &w, NULL, &d);
     pixa = pixaSplitPix(pixs, nx, ny, 0, 0);
 /*    pixa = pixaSplitPix(pixs, nx, ny, 2, 0xff000000);  */ /* red border */
-    pixWrite("/tmp/junk0", pixa->pix[0], IFF_PNG);
-    pixWrite("/tmp/junk9", pixa->pix[9], IFF_PNG);
-    pixaConvertToPdf(pixa, 50, 1.0, 0, 95, "individual", "/tmp/junkout0.pdf");
+    pixWrite("/tmp/lept/paa/pix0", pixa->pix[0], IFF_PNG);
+    pixWrite("/tmp/lept/paa/pix9", pixa->pix[9], IFF_PNG);
+    pixaConvertToPdf(pixa, 50, 1.0, 0, 95, "individual",
+                     "/tmp/lept/paa/out1.pdf");
 
         /* Generate two pixaa by sampling the pixa, and write them to file */
     pixaa1 = pixaaCreateFromPixa(pixa, nx, L_CHOOSE_CONSECUTIVE, L_CLONE);
     pixaa2 = pixaaCreateFromPixa(pixa, nx, L_CHOOSE_SKIP_BY, L_CLONE);
-    pixaaWrite("/tmp/pixaa1.paa", pixaa1);
-    pixaaWrite("/tmp/pixaa2.paa", pixaa2);
+    pixaaWrite("/tmp/lept/paa/pts1.paa", pixaa1);
+    pixaaWrite("/tmp/lept/paa/pts2.paa", pixaa2);
     pixaDestroy(&pixa);
     pixaaDestroy(&pixaa1);
     pixaaDestroy(&pixaa2);
 
         /* Read each pixaa from file; tile/scale into a pixa */
-    pixaa1 = pixaaRead("/tmp/pixaa1.paa");
-    pixaa2 = pixaaRead("/tmp/pixaa2.paa");
+    pixaa1 = pixaaRead("/tmp/lept/paa/pts1.paa");
+    pixaa2 = pixaaRead("/tmp/lept/paa/pts2.paa");
     tilewidth = w / nx;
     pixad1 = pixaaDisplayTiledAndScaled(pixaa1, d, tilewidth, ncols, 0, 10, 0);
     pixad2 = pixaaDisplayTiledAndScaled(pixaa2, d, tilewidth, ncols, 0, 10, 0);
 
         /* Generate a pdf from each pixa */
-    pixaConvertToPdf(pixad1, 50, 1.0, 0, 75, "consecutive", "/tmp/junkout1.pdf");
-    pixaConvertToPdf(pixad2, 50, 1.0, 0, 75, "skip_by", "/tmp/junkout2.pdf");
+    pixaConvertToPdf(pixad1, 50, 1.0, 0, 75, "consecutive",
+                     "/tmp/lept/paa/out2.pdf");
+    pixaConvertToPdf(pixad2, 50, 1.0, 0, 75, "skip_by",
+                     "/tmp/lept/paa/out3.pdf");
 
         /* Write each pixa to a set of files, and generate a PS */
-    pixaWriteFiles("/tmp/junksplit1.", pixad1, IFF_JFIF_JPEG);
-    pixaWriteFiles("/tmp/junksplit2.", pixad2, IFF_JFIF_JPEG);
-    convertFilesToPS("/tmp", "junksplit1", 40, "/tmp/junkout1.ps");
-    convertFilesToPS("/tmp", "junksplit2", 40, "/tmp/junkout2.ps");
+    pixaWriteFiles("/tmp/lept/paa/split1.", pixad1, IFF_JFIF_JPEG);
+    pixaWriteFiles("/tmp/lept/paa/split2.", pixad2, IFF_JFIF_JPEG);
+    convertFilesToPS("/tmp/lept/paa", "split1", 40, "/tmp/lept/paa/out1out1.ps");
+    convertFilesToPS("/tmp/lept/paa", "split2", 40, "/tmp/lept/paa/out1out2.ps");
 
     pixDestroy(&pixs);
     pixaaDestroy(&pixaa1);

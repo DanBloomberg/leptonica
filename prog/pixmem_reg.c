@@ -43,6 +43,7 @@ l_uint32  *data;
 PIX       *pix1, *pix2, *pix3, *pix1c, *pix2c, *pix1t, *pix2t, *pixd;
 PIXA      *pixa;
 
+    setLeptDebugOK(1);
     error = 0;
     pixa = pixaCreate(0);
 

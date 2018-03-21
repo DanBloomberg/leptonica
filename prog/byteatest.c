@@ -48,6 +48,7 @@ static char  mainName[] = "byteatest";
     if (argc != 1)
         return ERROR_INT("syntax: byteatest", mainName, 1);
 
+    setLeptDebugOK(1);
     lept_mkdir("bytea");
 
         /* Test basic init, join and split */

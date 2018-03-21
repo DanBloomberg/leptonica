@@ -47,9 +47,9 @@ static char  mainName[] = "buffertest";
 
     if (argc != 3)
         return ERROR_INT(" Syntax:  buffertest filein fileout", mainName, 1);
-
     filein = argv[1];
     fileout = argv[2];
+    setLeptDebugOK(1);
 
     if ((array1 = l_binaryRead(filein, &nbytes)) == NULL)
         return ERROR_INT("array not made", mainName, 1);

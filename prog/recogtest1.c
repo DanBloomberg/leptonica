@@ -59,10 +59,10 @@ SARRAY    *sa, *satext;
         return 1;
     }
 
+    setLeptDebugOK(1);
+    lept_mkdir("lept/digits");
     recog1 = NULL;
     recog2 = NULL;
-
-    lept_mkdir("lept/digits");
 
 #if 0
     linew = 5;  /* for lines */

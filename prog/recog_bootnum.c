@@ -73,6 +73,7 @@ L_STRCODE    *strc;
         return 1;
     }
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/recog/digits");
 
     /* ----------------------- Bootnum 1 --------------------- */

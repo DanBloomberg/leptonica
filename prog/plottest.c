@@ -68,6 +68,7 @@ static char  mainName[] = "plottest";
     if (argc != 1)
         return ERROR_INT(" Syntax:  plottest", mainName, 1);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/plot");
 
         /* Generate plot data */

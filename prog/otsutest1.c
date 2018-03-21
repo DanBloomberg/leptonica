@@ -50,6 +50,7 @@ l_int32  i;
 PIX     *pix;
 PIXA    *pixa;
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/otsu");
     for (i = 0; i < NTests; i++)
         GenerateSplitPlot(i);

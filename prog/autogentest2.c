@@ -46,6 +46,7 @@ l_int32 main(int    argc,
 l_int32  i, same;
 PIXA    *pixa;
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/auto");
 
     for (i = 0; i < 2; i++) {

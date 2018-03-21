@@ -51,9 +51,8 @@
 int main(int    argc,
          char **argv)
 {
-char           *dirin, *substr, *fileout;
-l_int32         res;
-
+char    *dirin, *substr, *fileout;
+l_int32  res;
 
     if (argc != 5) {
         fprintf(stderr,
@@ -67,11 +66,12 @@ l_int32         res;
             "         fileout:  Output ps file.\n");
         return 1;
     }
-
     dirin = argv[1];
     substr = argv[2];
     res = atoi(argv[3]);
     fileout = argv[4];
+
+    setLeptDebugOK(1);
     if (!strcmp(substr, "allfiles"))
         substr = NULL;
     if (res != 0)

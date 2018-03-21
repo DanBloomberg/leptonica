@@ -47,9 +47,10 @@ static char  mainName[] = "cornertest";
 
     if (argc != 3)
         return ERROR_INT(" Syntax:  cornertest filein fileout", mainName, 1);
-
     filein = argv[1];
     fileout = argv[2];
+
+    setLeptDebugOK(1);
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);
 

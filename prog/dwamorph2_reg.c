@@ -60,6 +60,7 @@ static char  mainName[] = "dwamorph2_reg";
 
     if (argc != 1)
         return ERROR_INT(" Syntax: dwamorph2_reg", mainName, 1);
+    setLeptDebugOK(1);
 
     pixs = pixRead("feyn-fract.tif");
     pixt = pixCreateTemplate(pixs);

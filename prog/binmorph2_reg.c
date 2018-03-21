@@ -52,6 +52,7 @@ static char  mainName[] = "binmorph2_reg";
     if (argc != 1)
         return ERROR_INT(" Syntax:  binmorph2_reg", mainName, 1);
 
+    setLeptDebugOK(1);
     pixs = pixRead("feyn-fract.tif");
     pixsd = pixMorphCompSequence(pixs, "d5.5", 0);
     success = TRUE;

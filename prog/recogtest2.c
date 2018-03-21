@@ -67,6 +67,7 @@ SARRAY   *sa;
         return 1;
     }
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/recog");
 
         /* Files with 'unlabeled' templates from book */

@@ -65,6 +65,7 @@ PIXA       *pixa1, *pixa2;
     select = atoi(argv[1]);
     ndew = atoi(argv[2]);
 
+    setLeptDebugOK(1);
     lept_mkdir("dewarp");
 
     if (select == 0) {

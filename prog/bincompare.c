@@ -48,10 +48,11 @@ static char  mainName[] = "bincompare";
     if (argc != 4)
         return ERROR_INT(" Syntax:  bincompare filein1 filein2 fileout",
                          mainName, 1);
-
     filein1 = argv[1];
     filein2 = argv[2];
     fileout = argv[3];
+    setLeptDebugOK(1);
+
     if ((pixs1 = pixRead(filein1)) == NULL)
         return ERROR_INT("pixs1 not made", mainName, 1);
     if ((pixs2 = pixRead(filein2)) == NULL)

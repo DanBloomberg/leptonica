@@ -49,6 +49,7 @@ PIX      *pixm, *pixm2, *pixd2, *pixs2;
 PIXA     *pixa, *pixac;
 PIXCMAP  *cmap, *cmapg;
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/misc");
     pixac = pixaCreate(0);
 

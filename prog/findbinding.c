@@ -57,6 +57,7 @@ static char  mainName[] = "findbinding";
     if (argc != 1)
         return ERROR_INT(" Syntax:  findbinding", mainName, 1);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/binding");
     pixa = pixaCreate(0);
 

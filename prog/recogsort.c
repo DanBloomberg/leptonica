@@ -47,6 +47,7 @@ SARRAY   *sa1;
 
     /* ----- Example identifying samples using training data ----- */
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/recog");
 
         /* Read the training data */

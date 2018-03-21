@@ -69,10 +69,8 @@ static char  mainName[] = "wordsinorder";
         return ERROR_INT(
             " Syntax: wordsinorder dirin rootname [firstpage, npages]",
             mainName, 1);
-
     dirin = argv[1];
     rootname = argv[2];
-
     if (argc == 3) {
         firstpage = 0;
         npages = 0;
@@ -81,6 +79,7 @@ static char  mainName[] = "wordsinorder";
         firstpage = atoi(argv[3]);
         npages = atoi(argv[4]);
     }
+    setLeptDebugOK(1);
 
         /* Compute the word bounding boxes at 2x reduction, along with
          * the textlines that they are in. */

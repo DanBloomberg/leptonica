@@ -51,6 +51,7 @@ static char  mainName[] = "croptest";
     if (argc != 1)
         return ERROR_INT("syntax: croptest", mainName, 1);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/crop");
 
     pixa1 = pixaCreate(2);

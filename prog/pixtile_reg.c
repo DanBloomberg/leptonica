@@ -38,8 +38,9 @@ static l_int32 TestTiling(PIX *pixd, PIX *pixs, l_int32 nx, l_int32 ny,
 int main(int    argc,
          char **argv)
 {
-PIX         *pixs, *pixd;
+PIX  *pixs, *pixd;
 
+    setLeptDebugOK(1);
     pixs = pixRead("test24.jpg");
     pixd = pixCreateTemplateNoInit(pixs);
 

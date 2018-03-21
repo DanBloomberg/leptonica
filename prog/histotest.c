@@ -52,10 +52,10 @@ static char  mainName[] = "histotest";
 
     if (argc != 3)
         return ERROR_INT(" Syntax:  histotest filein sigbits", mainName, 1);
-
     filein = argv[1];
     sigbits = atoi(argv[2]);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/histo");
 
     if ((pixs = pixRead(filein)) == NULL)

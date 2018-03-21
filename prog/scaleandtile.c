@@ -65,13 +65,13 @@ static char  mainName[] = "scaleandtile";
 	return ERROR_INT(
 	    "Syntax:  scaleandtile dirin substr depth width ncols fileout",
 	    mainName, 1);
-
     dirin = argv[1];
     substr = argv[2];
     depth = atoi(argv[3]);
     width = atoi(argv[4]);
     ncols = atoi(argv[5]);
     fileout = argv[6];
+    setLeptDebugOK(1);
 
         /* Read the specified images from file */
     if ((pixa = pixaReadFiles(dirin, substr)) == NULL)

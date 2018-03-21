@@ -74,6 +74,7 @@ static char  mainName[] = "comparepixa";
            " fontsize fileout\n");
         return 1;
     }
+    setLeptDebugOK(1);
 
         /* Input files can be either pixa or pixacomp */
     if ((pixa1 = pixaReadBoth(argv[1])) == NULL)

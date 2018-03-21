@@ -49,6 +49,9 @@ L_BMF      *bmf;
 PIX        *pixd;
 PIXA       *pixa;
 
+    setLeptDebugOK(1);
+    lept_mkdir("lept/yuv");
+
         /* Explore the range of rgb --> yuv transforms.  All rgb
          * values transform to a valid value of yuv, so when transforming
          * back we get the same rgb values that we started with. */
@@ -59,7 +62,7 @@ PIXA       *pixa;
 
     pixd = pixaDisplayTiledAndScaled(pixa, 32, 755, 1, 0, 20, 2);
     pixDisplay(pixd, 100, 0);
-    pixWrite("/tmp/yuv1.png", pixd, IFF_PNG);
+    pixWrite("/tmp/lept/yuv/yuv1.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 
@@ -74,7 +77,7 @@ PIXA       *pixa;
 
     pixd = pixaDisplayTiledAndScaled(pixa, 32, 755, 1, 0, 20, 2);
     pixDisplay(pixd, 600, 0);
-    pixWrite("/tmp/yuv2.png", pixd, IFF_PNG);
+    pixWrite("/tmp/lept/yuv/yuv2.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
     bmfDestroy(&bmf);

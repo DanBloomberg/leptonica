@@ -53,14 +53,12 @@ static char  mainName[] = "modifyhuesat";
         return ERROR_INT(
             " Syntax: modifyhuesat filein nhue dhue nsat dsat fileout",
             mainName, 1);
-
     filein = argv[1];
     nhue = atoi(argv[2]);
     dhue = atof(argv[3]);
     nsat = atoi(argv[4]);
     dsat = atof(argv[5]);
     fileout = argv[6];
-
     if (nhue % 2 == 0) {
         nhue++;
         fprintf(stderr, "nhue must be odd; raised to %d\n", nhue);
@@ -70,6 +68,7 @@ static char  mainName[] = "modifyhuesat";
         fprintf(stderr, "nsat must be odd; raised to %d\n", nsat);
     }
 
+    setLeptDebugOK(1);
     if ((pixt1 = pixRead(filein)) == NULL)
         return ERROR_INT("pixt1 not read", mainName, 1);
     pixGetDimensions(pixt1, &w, NULL, NULL);

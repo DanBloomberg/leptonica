@@ -52,6 +52,7 @@ static char  mainName[] = "digitprep1";
         return 1;
     }
 
+    setLeptDebugOK(1);
     if ((pixs = pixRead("barcode-digits.png")) == NULL)
         return ERROR_INT("pixs not read", mainName, 1);
 

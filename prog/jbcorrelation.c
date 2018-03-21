@@ -82,7 +82,6 @@ static char  mainName[] = "jbcorrelation";
         return ERROR_INT(
              " Syntax: jbcorrelation dirin thresh weight [firstpage, npages]",
              mainName, 1);
-
     dirin = argv[1];
     thresh = atof(argv[2]);
     weight = atof(argv[3]);
@@ -96,6 +95,7 @@ static char  mainName[] = "jbcorrelation";
         npages = atoi(argv[5]);
     }
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/jb");
 
 #if 0

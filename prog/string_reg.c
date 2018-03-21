@@ -45,14 +45,14 @@ static char  mainName[] = "string_reg";
 
     if (argc != 2)
         return ERROR_INT(" Syntax:  string_reg infile", mainName, 1);
-
     infile = argv[1];
-    instring = (char *)l_binaryRead(infile, &nbytesin);
 
+    setLeptDebugOK(1);
+    lept_mkdir("lept/string");
+
+    instring = (char *)l_binaryRead(infile, &nbytesin);
     if (!instring)
         return ERROR_INT("file not read", mainName, 1);
-
-    lept_mkdir("lept/string");
 
     sa1 = sarrayCreateWordsFromString(instring);
     sa2 = sarrayCreateLinesFromString(instring, 0);

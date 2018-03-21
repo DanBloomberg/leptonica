@@ -50,12 +50,12 @@ static char  mainName[] = "contrasttest";
     if (argc != 4)
         return ERROR_INT(" Syntax:  contrasttest filein factor fileout",
                mainName, 1);
-
-    lept_mkdir("lept/contrast");
-
     filein = argv[1];
     factor = atof(argv[2]);
     fileout = argv[3];
+
+    setLeptDebugOK(1);
+    lept_mkdir("lept/contrast");
 
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);

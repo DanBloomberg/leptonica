@@ -46,7 +46,8 @@ static char  mainName[] = "renderfonts";
     if (argc != 1)
         return ERROR_INT("Syntax: renderfonts", mainName, 1);
 
-    lept_mkdir("renderfont");
+    setLeptDebugOK(1);
+    lept_mkdir("lept/render");
 
         /* Render a character of text */
     bmf = bmfCreate(DIRECTORY, 20);
@@ -54,7 +55,7 @@ static char  mainName[] = "renderfonts";
     fprintf(stderr, "n = %d\n", pixaGetCount(bmf->pixa));
     pix = pixaGetPix(bmf->pixa, 6, L_CLONE);
     pixSetMaskedGeneral(pixs, pix, 0x45, 140, 165);
-    pixWrite("/tmp/renderfont/char.png", pixs, IFF_PNG);
+    pixWrite("/tmp/lept/render/char.png", pixs, IFF_PNG);
     pixDisplay(pixs, 0, 0);
     pixDestroy(&pix);
     pixDestroy(&pixs);
@@ -68,7 +69,7 @@ static char  mainName[] = "renderfonts";
 
     pixSetTextline(pixs, bmf, "This is a funny cat!", 0x4080ff00, 50, 250,
                    &width, &overflow);
-    pixWrite("/tmp/renderfont/line.png", pixs, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/render/line.png", pixs, IFF_JFIF_JPEG);
     pixDisplay(pixs, 450, 0);
     fprintf(stderr, "Text width = %d\n", width);
     if (overflow)
@@ -86,7 +87,7 @@ static char  mainName[] = "renderfonts";
     wtext = pixGetWidth(pixs) - 70;
     pixSetTextblock(pixs, bmf, textstr, 0x90804000, 50, 50, wtext,
                     1, &overflow);
-    pixWrite("/tmp/renderfont/block.png", pixs, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/render/block.png", pixs, IFF_JFIF_JPEG);
     pixDisplay(pixs, 0, 500);
     if (overflow)
         fprintf(stderr, "Text overflow beyond image boundary\n");

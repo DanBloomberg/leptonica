@@ -48,6 +48,7 @@ l_int32 main(int    argc,
 L_ASET  *s;
 PIX     *pix;
 
+    setLeptDebugOK(1);
     pix = pixRead("weasel8.240c.png");
 
         /* Build the set from all the pixels. */

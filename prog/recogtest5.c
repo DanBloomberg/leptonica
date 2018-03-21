@@ -56,6 +56,7 @@ L_RECOG  *recog;
         return 1;
     }
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/recog");
 
         /* Generate the recognizer */

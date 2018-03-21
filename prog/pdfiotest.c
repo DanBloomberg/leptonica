@@ -55,8 +55,9 @@ static char  mainName[] = "pdfiotest";
 
     if (argc != 1)
         return ERROR_INT("syntax: pdfiotest", mainName, 1);
-    l_pdfSetDateAndVersion(0);
 
+    l_pdfSetDateAndVersion(0);
+    setLeptDebugOK(1);
     lept_mkdir("lept/pdf");
 
 #if 1

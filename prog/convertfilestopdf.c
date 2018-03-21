@@ -75,7 +75,6 @@ static char  mainName[] = "convertfilestopdf";
             "         fileout:  Output pdf file\n");
         return 1;
     }
-
     dirin = argv[1];
     substr = argv[2];
     res = atoi(argv[3]);
@@ -93,6 +92,7 @@ static char  mainName[] = "convertfilestopdf";
     if (!strcmp(title, "none"))
         title = NULL;
 
+    setLeptDebugOK(1);
     ret = convertFilesToPdf(dirin, substr, res, scalefactor, type,
                             quality, title, fileout);
     return ret;

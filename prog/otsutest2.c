@@ -57,11 +57,13 @@ L_BMF     *bmf;
 PIX       *pixs, *pixb, *pixg, *pixp, *pix1, *pix2, *pix3;
 PIXA      *pixa1, *pixad;
 
+    setLeptDebugOK(1);
+    lept_mkdir("lept/otsu");
+
     pixs = pixRead("1555.007.jpg");
     pixg = pixConvertTo8(pixs, 0);
     bmf = bmfCreate(NULL, 8);
     pixad = pixaCreate(0);
-    lept_mkdir("lept/otsu");
     for (i = 0; i < 3; i++) {
         pixa1 = pixaCreate(2);
         scorefract = 0.1 * i;

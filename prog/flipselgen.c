@@ -78,6 +78,7 @@ static char  mainName[] = "flipselgen";
     if (argc != 1)
         return ERROR_INT(" Syntax: flipselgen", mainName, 1);
 
+    setLeptDebugOK(1);
     sela = selaCreate(0);
     sel1 = selCreateFromString(textsel1, 5, 6, "flipsel1");
     sel2 = selCreateFromString(textsel2, 5, 6, "flipsel2");

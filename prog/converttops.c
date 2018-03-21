@@ -47,10 +47,8 @@ static char  mainName[] = "converttops";
         fprintf(stderr, "%s\n", error_msg);
         return 1;
     }
-
     filein = argv[1];
     fileout = argv[2];
-
     level = 2;
     if (argc == 4) {
         level = atoi(argv[3]);
@@ -60,6 +58,7 @@ static char  mainName[] = "converttops";
         }
     }
 
+    setLeptDebugOK(1);
     convertToPSEmbed(filein, fileout, level);
     return 0;
 }

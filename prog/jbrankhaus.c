@@ -85,11 +85,9 @@ static char  mainName[] = "jbrankhaus";
         return ERROR_INT(
              " Syntax: jbrankhaus dirin size rank [firstpage, npages]",
              mainName, 1);
-
     dirin = argv[1];
     size = atoi(argv[2]);
     rank = atof(argv[3]);
-
     if (argc == 4) {
         firstpage = 0;
         npages = 0;
@@ -99,6 +97,7 @@ static char  mainName[] = "jbrankhaus";
         npages = atoi(argv[5]);
     }
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/jb");
 
 #if 0

@@ -50,10 +50,10 @@ static char  mainName[] = "seedfilltest";
 
     if (argc != 3)
         return ERROR_INT(" Syntax:  seedfilltest filein fileout", mainName, 1);
-
     filein = argv[1];
     fileout = argv[2];
     pixd = NULL;
+    setLeptDebugOK(1);
 
     if ((pixm = pixRead(filein)) == NULL)
         return ERROR_INT("pixm not made", mainName, 1);

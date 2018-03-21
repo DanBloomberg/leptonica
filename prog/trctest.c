@@ -44,17 +44,16 @@ static char  mainName[] = "trctest";
     if (argc != 6)
         return ERROR_INT(" Syntax:  trctest filein gamma minval maxval fileout",
                          mainName, 1);
-
     filein = argv[1];
     gamma = atof(argv[2]);
     minval = atoi(argv[3]);
     maxval = atoi(argv[4]);
     fileout = argv[5];
+    setLeptDebugOK(1);
+
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);
-
     pixd = pixGammaTRC(NULL, pixs, gamma, minval, maxval);
-
     pixWrite(fileout, pixd, IFF_PNG);
     pixDestroy(&pixs);
     pixDestroy(&pixd);

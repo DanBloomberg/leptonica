@@ -28,7 +28,6 @@
  * graymorphtest.c
  *
  *     Implements basic grayscale morphology; tests speed
- *
  */
 
 #include "allheaders.h"
@@ -44,11 +43,12 @@ static char     mainName[] = "graymorphtest";
     if (argc != 5)
         return ERROR_INT(" Syntax:  graymorphtest filein wsize hsize fileout",
                          mainName, 1);
-
     filein = argv[1];
     wsize = atoi(argv[2]);
     hsize = atoi(argv[3]);
     fileout = argv[4];
+    setLeptDebugOK(1);
+
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pix not made", mainName, 1);
     pixGetDimensions(pixs, &w, &h, &d);

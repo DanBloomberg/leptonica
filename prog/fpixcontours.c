@@ -51,12 +51,12 @@ static char  mainName[] = "fpixcontours";
         fprintf(stderr, "Syntax: fpixcontours filein [ncontours]\n");
         return 1;
     }
-
     filein = argv[1];
     if (argc == 2)
         ncontours = 40;
     else  /* argc == 3 */
         ncontours = atoi(argv[2]);
+    setLeptDebugOK(1);
 
     if ((fpix = fpixRead(filein)) == NULL)
         return ERROR_INT(mainName, "fpix not read", 1);

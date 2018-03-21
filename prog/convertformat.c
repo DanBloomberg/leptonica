@@ -77,7 +77,6 @@ static char  mainName[] = "convertformat";
                         "   bmp, jpg, png, tif, pnm, gif, webp\n");
         return 1;
     }
-
     filein = argv[1];
     fileout = argv[2];
 
@@ -127,6 +126,7 @@ static char  mainName[] = "convertformat";
         }
     }
 
+    setLeptDebugOK(1);
     if ((pixs = pixRead(filein)) == NULL) {
         L_ERROR("read fail for %s\n", mainName, filein);
         return 1;

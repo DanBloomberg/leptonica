@@ -43,8 +43,9 @@ static char  mainName[] = "pagesegtest1";
 
     if (argc != 2)
         return ERROR_INT(" Syntax:  pagesegtest1 filein", mainName, 1);
-
     filein = argv[1];
+    setLeptDebugOK(1);
+
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);
 

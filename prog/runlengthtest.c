@@ -43,6 +43,7 @@ static char  mainName[] = "runlengthtest";
     if (argc != 1)
         return ERROR_INT(" Syntax:  runlengthtest", mainName, 1);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/run");
 
         /* Set 1 */

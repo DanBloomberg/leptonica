@@ -51,10 +51,10 @@ static char  mainName[] = "removecmap";
     if (argc != 4)
         return ERROR_INT("Syntax:  removecmap filein type fileout",
                          mainName, 1);
-
     filein = argv[1];
     type = atoi(argv[2]);
     fileout = argv[3];
+    setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);

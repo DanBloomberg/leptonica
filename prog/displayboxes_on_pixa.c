@@ -68,6 +68,7 @@ static char  mainName[] = "displayboxes_on_pixa";
            " displaybaa_on_pixa pixain boxaain type width pixaout display\n");
         return 1;
     }
+    setLeptDebugOK(1);
 
         /* Input file can be either pixa or pixacomp */
     pixa1 = pixaReadBoth(argv[1]);

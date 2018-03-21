@@ -43,6 +43,7 @@ static char  mainName[] = "livre_adapt";
 
     if (argc != 1)
         return ERROR_INT(" Syntax:  livre_adapt", mainName, 1);
+    setLeptDebugOK(1);
 
         /* Read the image in at 150 ppi. */
     if ((pixs = pixRead("brothers.150.jpg")) == NULL)

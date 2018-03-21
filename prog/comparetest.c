@@ -68,13 +68,13 @@ static char  mainName[] = "comparetest";
     if (argc != 5)
         return ERROR_INT(" Syntax:  comparetest filein1 filein2 type fileout",
                          mainName, 1);
-
     filein1 = argv[1];
     filein2 = argv[2];
     type = atoi(argv[3]);
     pixd = NULL;
     fileout = argv[4];
     l_pngSetReadStrip16To8(0);
+    setLeptDebugOK(1);
 
     if ((pixs1 = pixRead(filein1)) == NULL)
         return ERROR_INT("pixs1 not made", mainName, 1);

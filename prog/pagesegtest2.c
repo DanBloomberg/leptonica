@@ -71,10 +71,10 @@ static char  mainName[] = "pagesegtest2";
     if (argc != 4)
         return ERROR_INT(" Syntax:  pagesegtest2 filein thresh fileout",
                          mainName, 1);
-
     filein = argv[1];
     thresh = atoi(argv[2]);
     fileout = argv[3];
+    setLeptDebugOK(1);
 
         /* Get a 1 bpp version of the page */
     if ((pixs = pixRead(filein)) == NULL)

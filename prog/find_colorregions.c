@@ -59,6 +59,7 @@ PIX         *pix1, *pix2, *pix3, *pix4;
 PIXA        *pixadb;
 static char  mainName[] = "find_colorregions";
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/color");
     pix1 = pixRead("colorpage.030.jpg");
 /*    pix1 = pixRead("map.057.jpg"); */

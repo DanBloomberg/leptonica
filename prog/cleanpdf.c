@@ -91,7 +91,6 @@ static char  mainName[] = "cleanpdf";
         return ERROR_INT(
             "Syntax: cleanpdf basedir threshold resolution [rotation]",
             mainName, 1);
-
     basedir = argv[1];
     thresh = atoi(argv[2]);
     res = atoi(argv[3]);
@@ -99,11 +98,11 @@ static char  mainName[] = "cleanpdf";
         rotation = atoi(argv[4]);
     else
         rotation = 0;
-
     if (rotation < 0 || rotation > 3) {
         L_ERROR("rotation not in valid set {0,1,2,3}; setting to 0", mainName);
         rotation = 0;
     }
+    setLeptDebugOK(1);
 
 #if 1
         /* Get the names of the pdf files */

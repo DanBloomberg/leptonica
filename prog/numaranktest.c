@@ -47,10 +47,10 @@ static char  mainName[] = "numaranktest";
 
     if (argc != 3)
         return ERROR_INT(" Syntax:  numaranktest filein sampling", mainName, 1);
-
     filein = argv[1];
     sampling = atoi(argv[2]);
 
+    setLeptDebugOK(1);
     lept_mkdir("lept/numa");
 
     if ((pix = pixRead(filein)) == NULL)

@@ -63,6 +63,7 @@ static char  mainName[] = "displaypixa";
                  " lossless disp fileout showtext\n");
          return 1;
     }
+    setLeptDebugOK(1);
 
         /* Input file can be either pixa or pixacomp */
     pixa = pixaReadBoth(argv[1]);

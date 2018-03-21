@@ -47,9 +47,10 @@ static char  mainName[] = "showedges";
 
     if (argc != 3)
         return ERROR_INT(" Syntax: showedges infile outfile", mainName, 1);
-
     infile = argv[1];
     outfile = argv[2];
+    setLeptDebugOK(1);
+
     pixs = pixRead(infile);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
