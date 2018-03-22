@@ -26,7 +26,7 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	grayquant_reg hardlight_reg \
 	insert_reg ioformats_reg italic_reg \
 	jbclass_reg jpegio_reg \
-	kernel_reg label_reg lineremoval_reg \
+	kernel_reg label_reg lineremoval_reg locminmax_reg \
 	logicops_reg maze_reg mtiff_reg multitype_reg \
 	nearline_reg newspaper_reg \
 	overlap_reg pageseg_reg paint_reg paintmask_reg \
@@ -41,7 +41,8 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	selio_reg shear1_reg shear2_reg \
 	skew_reg splitcomp_reg speckle_reg subpixel_reg \
 	texturefill_reg threshnorm_reg translate_reg \
-	warper_reg wordboxes_reg writetext_reg xformbox_reg
+	warper_reg watershed_reg wordboxes_reg \
+	writetext_reg xformbox_reg
 
 if HAVE_LIBGIF
 AUTO_REG_PROGS += gifio_reg
@@ -59,7 +60,7 @@ MANUAL_REG_PROGS = alltests_reg bilateral1_reg \
 	binmorph2_reg binmorph4_reg binmorph5_reg \
 	boxa2_reg dwamorph2_reg \
 	fhmtauto_reg files_reg flipdetect_reg fmorphauto_reg \
-	heap_reg locminmax_reg lowaccess_reg morphseq_reg \
+	heap_reg lowaccess_reg morphseq_reg \
 	numa1_reg numa2_reg pixa1_reg \
 	pixalloc_reg pixmem_reg pixtile_reg \
 	ptra1_reg ptra2_reg \
@@ -105,7 +106,7 @@ OTHER_PROGS = adaptmap_dark \
 	seedfilltest settest sharptest \
 	sheartest showedges skewtest \
 	sorttest sudokutest textorient trctest \
-	warpertest watershedtest wordsinorder \
+	warpertest wordsinorder \
 	writemtiff yuvtest
 
 if ENABLE_PROGRAMS

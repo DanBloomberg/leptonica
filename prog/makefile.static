@@ -188,7 +188,8 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		speckle_reg.c splitcomp_reg.c \
 		string_reg.c subpixel_reg.c \
 		texturefill_reg.c threshnorm_reg.c \
-		translate_reg.c warper_reg.c webpio_reg.c \
+		translate_reg.c warper_reg.c \
+		watershed_reg.c webpio_reg.c \
 		wordboxes_reg.c writetext_reg.c xformbox_reg.c \
 		adaptmap_dark.c arabic_lines.c arithtest.c \
 		autogentest1.c autogentest2.c barcodetest.c \
@@ -237,7 +238,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		sheartest.c showedges.c \
 		skewtest.c sorttest.c splitimage2pdf.c \
 		sudokutest.c textorient.c trctest.c \
-		warpertest.c watershedtest.c wordsinorder.c \
+		warpertest.c wordsinorder.c \
 		writemtiff.c xtractprotos.c yuvtest.c
 
 #  Remove the .o files from these on clean
@@ -701,6 +702,9 @@ translate_reg:	translate_reg.o $(LEPTLIB)
 warper_reg:	warper_reg.o $(LEPTLIB)
 	$(CC) -o warper_reg warper_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
+watershed_reg:	watershed_reg.o $(LEPTLIB)
+	$(CC) -o watershed_reg watershed_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
 webpio_reg:	webpio_reg.o $(LEPTLIB)
 	$(CC) -o webpio_reg webpio_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -1084,9 +1088,6 @@ trctest:	trctest.o $(LEPTLIB)
 
 warpertest:	warpertest.o $(LEPTLIB)
 	$(CC) -o warpertest warpertest.o $(ALL_LIBS) $(EXTRALIBS)
-
-watershedtest:	watershedtest.o $(LEPTLIB)
-	$(CC) -o watershedtest watershedtest.o $(ALL_LIBS) $(EXTRALIBS)
 
 wordsinorder:	wordsinorder.o $(LEPTLIB)
 	$(CC) -o wordsinorder wordsinorder.o $(ALL_LIBS) $(EXTRALIBS)

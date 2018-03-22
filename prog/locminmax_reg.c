@@ -29,75 +29,70 @@
  *
  *    Note: you can remove all minima that are touching the border, using:
  *             pix3 = pixRemoveBorderConnComps(pix1, 8);
- *             pixPaintThroughMask(pixd, pix3, 0, 0, redval);
  */
 
 #include <math.h>
 #include "allheaders.h"
 
+void DoLocMinmax(L_REGPARAMS *rp, PIX *pixs, l_int32 minmax, l_int32 maxmin);
+
 int main(int    argc,
          char **argv)
 {
-l_int32      i, j;
-l_float32    f;
-l_uint32     redval, greenval;
-PIX         *pixs, *pixd, *pix0, *pix1, *pix2;
-static char  mainName[] = "locminmax_reg";
+l_int32       i, j;
+l_float32     f;
+PIX          *pix1, *pix2, *pix3;
+L_REGPARAMS  *rp;
 
-    if (argc != 1)
-        return ERROR_INT("syntax: locminmax_reg", mainName, 1);
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
-    setLeptDebugOK(1);
-    lept_mkdir("lept/minmax");
-
-    pixs = pixCreate(500, 500, 8);
+    pix1 = pixCreate(500, 500, 8);
     for (i = 0; i < 500; i++) {
         for (j = 0; j < 500; j++) {
             f = 128.0 + 26.3 * sin(0.0438 * (l_float32)i);
             f += 33.4 * cos(0.0712 * (l_float32)i);
             f += 18.6 * sin(0.0561 * (l_float32)j);
             f += 23.6 * cos(0.0327 * (l_float32)j);
-            pixSetPixel(pixs, j, i, (l_int32)f);
+            pixSetPixel(pix1, j, i, (l_int32)f);
         }
     }
-    pixDisplay(pixs, 0, 0);
-    pixWrite("/tmp/lept/minmax/pattern.png", pixs, IFF_PNG);
+    pix2 = pixRead("karen8.jpg");
+    pix3 = pixBlockconv(pix2, 10, 10);
+    DoLocMinmax(rp, pix1, 0, 0);  /* 0 - 2 */
+    DoLocMinmax(rp, pix3, 50, 100);  /* 3 - 5 */
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    return regTestCleanup(rp);
+}
 
-    startTimer();
-/*    pixSelectedLocalExtrema(pixs, 1, &pix1, &pix2); */
-    pixLocalExtrema(pixs, 0, 0, &pix1, &pix2);
-    fprintf(stderr, "Time for extrema: %7.3f\n", stopTimer());
+void
+DoLocMinmax(L_REGPARAMS  *rp,
+            PIX          *pixs,
+            l_int32       minmax,
+            l_int32       maxmin)
+{
+l_uint32  redval, greenval;
+PIX      *pix1, *pix2, *pix3, *pixd;
+PIXA     *pixa;
+
+    pixa = pixaCreate(0);
+    regTestWritePixAndCheck(rp, pixs, IFF_PNG);  /* 0 */
+    pixaAddPix(pixa, pixs, L_COPY);
+    pixLocalExtrema(pixs, minmax, maxmin, &pix1, &pix2);
     composeRGBPixel(255, 0, 0, &redval);
     composeRGBPixel(0, 255, 0, &greenval);
     pixd = pixConvertTo32(pixs);
     pixPaintThroughMask(pixd, pix2, 0, 0, greenval);
     pixPaintThroughMask(pixd, pix1, 0, 0, redval);
-    pixDisplay(pixd, 510, 0);
-    pixWrite("/tmp/lept/minmax/pixd.png", pixd, IFF_PNG);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 1 */
+    pixaAddPix(pixa, pixd, L_INSERT);
+    pix3 = pixaDisplayTiledInColumns(pixa, 2, 1.0, 25, 2);
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 2 */
+    pixDisplayWithTitle(pix3, 300, 0, NULL, rp->display);
+    pixaDestroy(&pixa);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    pixDestroy(&pixs);
-    pixDestroy(&pixd);
-
-    pix0 = pixRead("karen8.jpg");
-    pixs = pixBlockconv(pix0, 10, 10);
-    pixDisplay(pixs, 0, 400);
-    pixWrite("/tmp/lept/minmax/conv.png", pixs, IFF_PNG);
-    startTimer();
-/*    pixSelectedLocalExtrema(pixs, 1, &pix1, &pix2); */
-    pixLocalExtrema(pixs, 50, 100, &pix1, &pix2);
-    fprintf(stderr, "Time for extrema: %7.3f\n", stopTimer());
-    composeRGBPixel(255, 0, 0, &redval);
-    composeRGBPixel(0, 255, 0, &greenval);
-    pixd = pixConvertTo32(pixs);
-    pixPaintThroughMask(pixd, pix2, 0, 0, greenval);
-    pixPaintThroughMask(pixd, pix1, 0, 0, redval);
-    pixDisplay(pixd, 350, 400);
-    pixWrite("/tmp/lept/minmax/pixd2.png", pixd, IFF_PNG);
-    pixDestroy(&pix0);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
-    pixDestroy(&pixs);
-    pixDestroy(&pixd);
-    return 0;
+    pixDestroy(&pix3);
 }

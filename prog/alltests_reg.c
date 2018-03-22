@@ -116,6 +116,7 @@ static const char *tests[] = {
                               "kernel_reg",
                               "label_reg",
                               "lineremoval_reg",
+                              "locminmax_reg",
                               "logicops_reg",
                               "maze_reg",
                               "mtiff_reg",
@@ -159,6 +160,7 @@ static const char *tests[] = {
                               "threshnorm_reg",
                               "translate_reg",
                               "warper_reg",
+                              "watershed_reg",
 #if HAVE_LIBWEBP
                               "webpio_reg",
 #endif  /* HAVE_LIBWEBP */
