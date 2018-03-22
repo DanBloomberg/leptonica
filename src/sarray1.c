@@ -1850,8 +1850,7 @@ SARRAY  *saout;
 SARRAY *
 getFilenamesInDirectory(const char  *dirname)
 {
-char           *realdir, *name;
-l_int32         len;
+char           *realdir;
 SARRAY         *safiles;
 DIR            *pdir;
 struct dirent  *pdirentry;
@@ -1876,20 +1875,14 @@ struct stat     st;
 #else
         stat_ret = stat(pdirentry->d_name, &st);
 #endif
-
-            /* It's nice to ignore directories.  */
+            /* It's nice to ignore directories.  With both fstatat() and
+               stat(), "." and ".." are filtered out.  fstatat() additionally
+               removes subdirectories, but stat() retains them. */
         if (stat_ret == 0 && S_ISDIR(st.st_mode))
             continue;
-
-            /* Filter out "." and ".." if they're passed through */
-        name = pdirentry->d_name;
-        len = strlen(name);
-        if (len == 1 && name[len - 1] == '.') continue;
-        if (len == 2 && name[len - 1] == '.' && name[len - 2] == '.') continue;
-        sarrayAddString(safiles, name, L_COPY);
+        sarrayAddString(safiles, pdirentry->d_name, L_COPY);
     }
     closedir(pdir);
-
     return safiles;
 }
 

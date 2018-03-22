@@ -176,10 +176,12 @@ L_REGPARAMS  *rp;
 
         /* Print out test name and both the leptonica and
          * image libarary versions */
-    fprintf(stderr, "\n################   %s_reg   ###############\n",
+    fprintf(stderr, "\n////////////////////////////////////////////////\n"
+                    "////////////////   %s_reg   ///////////////\n"
+                    "////////////////////////////////////////////////\n",
             rp->testname);
     vers = getLeptonicaVersion();
-    fprintf(stderr, "%s\n", vers);
+    fprintf(stderr, "%s : ", vers);
     LEPT_FREE(vers);
     vers = getImagelibVersions();
     fprintf(stderr, "%s\n", vers);
@@ -217,7 +219,6 @@ size_t   nbytes;
         return ERROR_INT("rp not defined", procName, 1);
 
     fprintf(stderr, "Time: %7.3f sec\n", stopTimerNested(rp->tstart));
-    fprintf(stderr, "################################################\n");
 
         /* If generating golden files or running in display mode, release rp */
     if (!rp->fp) {

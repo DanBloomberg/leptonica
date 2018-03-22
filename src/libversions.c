@@ -199,6 +199,5 @@ char    *versionStrP = NULL;
     }
 #endif  /* HAVE_LIBJP2K */
 
-    stringJoinIP(&versionStrP, "\n");
     return versionStrP;
 }
