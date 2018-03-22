@@ -122,7 +122,7 @@ pixReadMemBmp(const l_uint8  *cdata,
 l_uint8    pel[4];
 l_uint8   *cmapBuf, *fdata, *data;
 l_int16    bftype, offset, depth, d;
-l_int32    width, height, xres, yres, compression, imagebytes;
+l_int32    width, height, height_neg, xres, yres, compression, imagebytes;
 l_int32    cmapbytes, cmapEntries;
 l_int32    fdatabpl, extrabytes, pixWpl, pixBpl, i, j, k;
 l_uint32  *line, *pixdata, *pword;
@@ -174,10 +174,13 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("width < 1", procName, NULL);
     if (width > L_MAX_ALLOWED_WIDTH)
         return (PIX *)ERROR_PTR("width too large", procName, NULL);
-    if (height < 1)
-        return (PIX *)ERROR_PTR("height < 1", procName, NULL);
-    if (height > L_MAX_ALLOWED_HEIGHT)
-        return (PIX *)ERROR_PTR("height too large", procName, NULL);
+    height_neg = 0;
+    if (height < 0) {
+        height_neg = 1;
+        height = -height;
+    }
+    if (height == 0 || height > L_MAX_ALLOWED_HEIGHT)
+        return (PIX *)ERROR_PTR("invalid height", procName, NULL);
     npixels = 1LL * width * height;
     if (npixels > L_MAX_ALLOWED_PIXELS)
         return (PIX *)ERROR_PTR("npixels too large", procName, NULL);
@@ -304,6 +307,8 @@ PIXCMAP   *cmap;
     }
 
     pixEndianByteSwap(pix);
+    if (height_neg)
+        pixFlipTB(pix, pix);
 
         /* ----------------------------------------------
          * The bmp colormap determines the values of black
