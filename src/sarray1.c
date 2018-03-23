@@ -133,6 +133,8 @@
 #ifndef _WIN32
 #include <dirent.h>     /* unix only */
 #include <sys/stat.h>
+#include <limits.h>  /* needed for realpath() */
+#include <stdlib.h>  /* needed for realpath() */
 #endif  /* ! _WIN32 */
 #include "allheaders.h"
 
@@ -1850,7 +1852,9 @@ SARRAY  *saout;
 SARRAY *
 getFilenamesInDirectory(const char  *dirname)
 {
-char           *realdir;
+char            dir[PATH_MAX];
+char           *realdir, *stat_path;
+size_t          size;
 SARRAY         *safiles;
 DIR            *pdir;
 struct dirent  *pdirentry;
@@ -1862,27 +1866,34 @@ struct stat     st;
     if (!dirname)
         return (SARRAY *)ERROR_PTR("dirname not defined", procName, NULL);
 
-    realdir = genPathname(dirname, NULL);
-    pdir = opendir(realdir);
-    LEPT_FREE(realdir);
-    if (!pdir)
+        /* It's nice to ignore directories.  fstatat() works with relative
+           directory paths, but stat() requires using the absolute path.
+           Also, do not pass NULL as the second parameter to realpath();
+           use a buffer of sufficient size. */
+    realpath(dirname, dir);  /* see note above */
+    realdir = genPathname(dir, NULL);
+    if ((pdir = opendir(realdir)) == NULL) {
+        LEPT_FREE(realdir);
         return (SARRAY *)ERROR_PTR("pdir not opened", procName, NULL);
+    }
     safiles = sarrayCreate(0);
     dfd = dirfd(pdir);
     while ((pdirentry = readdir(pdir))) {
 #if HAVE_FSTATAT
         stat_ret = fstatat(dfd, pdirentry->d_name, &st, 0);
 #else
-        stat_ret = stat(pdirentry->d_name, &st);
+        size = strlen(realdir) + strlen(pdirentry->d_name) + 2;
+        stat_path = (char *)LEPT_CALLOC(size + 1, 1);
+        snprintf(stat_path, size + 1, "%s/%s", realdir, pdirentry->d_name);
+        stat_ret = stat(stat_path, &st);
+        LEPT_FREE(stat_path);
 #endif
-            /* It's nice to ignore directories.  With both fstatat() and
-               stat(), "." and ".." are filtered out.  fstatat() additionally
-               removes subdirectories, but stat() retains them. */
         if (stat_ret == 0 && S_ISDIR(st.st_mode))
             continue;
         sarrayAddString(safiles, pdirentry->d_name, L_COPY);
     }
     closedir(pdir);
+    LEPT_FREE(realdir);
     return safiles;
 }
 
