@@ -137,6 +137,7 @@ PTA       *pta;
     regTestWritePixAndCheck(rp, pix9, IFF_PNG);  /* 11 */
     pixDisplayWithTitle(pix9, 100, 100, NULL, rp->display);
 
+    lept_free(data);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);

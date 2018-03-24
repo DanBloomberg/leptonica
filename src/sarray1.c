@@ -1852,7 +1852,7 @@ SARRAY  *saout;
 SARRAY *
 getFilenamesInDirectory(const char  *dirname)
 {
-char            dir[PATH_MAX];
+char            dir[PATH_MAX + 1];
 char           *realdir, *stat_path;
 size_t          size;
 SARRAY         *safiles;
@@ -1883,8 +1883,12 @@ struct stat     st;
         stat_ret = fstatat(dfd, pdirentry->d_name, &st, 0);
 #else
         size = strlen(realdir) + strlen(pdirentry->d_name) + 2;
-        stat_path = (char *)LEPT_CALLOC(size + 1, 1);
-        snprintf(stat_path, size + 1, "%s/%s", realdir, pdirentry->d_name);
+        if (size > PATH_MAX) {
+            L_ERROR("size = %ld too large; skipping\n", procName, size);
+            continue;
+        }
+        stat_path = (char *)LEPT_CALLOC(size, 1);
+        snprintf(stat_path, size, "%s/%s", realdir, pdirentry->d_name);
         stat_ret = stat(stat_path, &st);
         LEPT_FREE(stat_path);
 #endif
