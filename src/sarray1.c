@@ -1853,7 +1853,7 @@ SARRAY *
 getFilenamesInDirectory(const char  *dirname)
 {
 char            dir[PATH_MAX + 1];
-char           *realdir, *stat_path;
+char           *realdir, *stat_path, *ignore;
 size_t          size;
 SARRAY         *safiles;
 DIR            *pdir;
@@ -1870,7 +1870,7 @@ struct stat     st;
            directory paths, but stat() requires using the absolute path.
            Also, do not pass NULL as the second parameter to realpath();
            use a buffer of sufficient size. */
-    realpath(dirname, dir);  /* see note above */
+    ignore = realpath(dirname, dir);  /* see note above */
     realdir = genPathname(dir, NULL);
     if ((pdir = opendir(realdir)) == NULL) {
         LEPT_FREE(realdir);
@@ -1884,7 +1884,8 @@ struct stat     st;
 #else
         size = strlen(realdir) + strlen(pdirentry->d_name) + 2;
         if (size > PATH_MAX) {
-            L_ERROR("size = %ld too large; skipping\n", procName, size);
+            L_ERROR("size = %lu too large; skipping\n", procName,
+                    (unsigned long)size);
             continue;
         }
         stat_path = (char *)LEPT_CALLOC(size, 1);

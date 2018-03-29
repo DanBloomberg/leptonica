@@ -36,7 +36,7 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const char *fileout = "/tmp/fpixcontours.png";
+static const char *fileout = "/tmp/lept/fpix/fpixcontours.png";
 
 int main(int    argc,
          char **argv)
@@ -56,7 +56,9 @@ static char  mainName[] = "fpixcontours";
         ncontours = 40;
     else  /* argc == 3 */
         ncontours = atoi(argv[2]);
+
     setLeptDebugOK(1);
+    lept_mkdir("lept/fpix");
 
     if ((fpix = fpixRead(filein)) == NULL)
         return ERROR_INT(mainName, "fpix not read", 1);

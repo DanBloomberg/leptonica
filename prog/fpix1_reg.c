@@ -149,11 +149,11 @@ L_REGPARAMS  *rp;
         pixCompareGray(pix1, pix3, L_COMPARE_ABS_DIFF, 0, NULL,
                        &diff, NULL, NULL);
         fprintf(stderr, "Ave diff of pixConvolve and fpixConvolve: %f\n", diff);
-        pixCompareGray(pix2, pix4, L_COMPARE_ABS_DIFF, GPLOT_PNG, NULL,
-                       &diff, NULL, NULL);
-        fprintf(stderr, "Ave diff of pixConvolveSep and fpixConvolveSep: %f\n",
-                diff);
     }
+    pixCompareGray(pix2, pix4, L_COMPARE_ABS_DIFF, GPLOT_PNG, NULL,
+                   &diff, NULL, NULL);
+    fprintf(stderr, "Ave diff of pixConvolveSep and fpixConvolveSep: %f\n",
+            diff);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);

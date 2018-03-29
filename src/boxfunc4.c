@@ -66,6 +66,7 @@
  *           l_int32   boxaPlotSizes()   [for debugging]
  *           BOXA     *boxaFillSequence()
  *    static l_int32   boxaFillAll()
+ *           l_int32   boxaSizeVariation()
  *
  *      Miscellaneous boxa functions
  *           l_int32   boxaGetExtent()
@@ -2290,6 +2291,97 @@ BOX      *box, *boxt;
     }
 
     LEPT_FREE(indic);
+    return 0;
+}
+
+
+/*!
+ * \brief   boxaSizeVariation()
+ *
+ * \param[in]    boxa           at least 4 boxes
+ * \param[in]    type           L_SELECT_WIDTH, L_SELECT_HEIGHT
+ * \param[out]   pdel_evenodd   [optional] average absolute value of
+ *                              (even - odd) size pairs
+ * \param[out]   prmsdev_even   [optional] rms deviation of even boxes
+ * \param[out]   prmsdev_odd    [optional] rms deviation of odd boxes
+ * \param[out]   prmsdev_all    [optional] rms deviation of all boxes
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This gives several measures of the smoothness of either the
+ *          width or height of a sequence of boxes.
+ *      (2) Statistics can be found separately for even and odd boxes.
+ *          Additionally, the average pair-wise difference between
+ *          adjacent even and odd boxes can be returned.
+ *      (3) The use case is bounding boxes for scanned page images,
+ *          where ideally the sizes should have little variance.
+ * </pre>
+ */
+l_int32
+boxaSizeVariation(BOXA       *boxa,
+                  l_int32     type,
+                  l_float32  *pdel_evenodd,
+                  l_float32  *prms_even,
+                  l_float32  *prms_odd,
+                  l_float32  *prms_all)
+{
+l_int32    n, ne, no, nmin, vale, valo, i;
+l_float32  sum;
+BOXA      *boxae, *boxao;
+NUMA      *nae, *nao, *na_all;
+
+    PROCNAME("boxaSizeVariation");
+
+    if (pdel_evenodd) *pdel_evenodd = 0.0;
+    if (prms_even) *prms_even = 0.0;
+    if (prms_odd) *prms_odd = 0.0;
+    if (prms_all) *prms_all = 0.0;
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+    if (type != L_SELECT_WIDTH && type != L_SELECT_HEIGHT)
+        return ERROR_INT("invalid type", procName, 1);
+    if (!pdel_evenodd && !prms_even && !prms_odd && !prms_all)
+        return ERROR_INT("nothing to do", procName, 1);
+    n = boxaGetCount(boxa);
+    if (n < 4)
+        return ERROR_INT("too few boxes", procName, 1);
+
+    boxaSplitEvenOdd(boxa, 0, &boxae, &boxao);
+    if (type == L_SELECT_WIDTH) {
+        boxaGetSizes(boxae, &nae, NULL);
+        boxaGetSizes(boxao, &nao, NULL);
+        boxaGetSizes(boxa, &na_all, NULL);
+    } else {   /* L_SELECT_HEIGHT) */
+        boxaGetSizes(boxae, NULL, &nae);
+        boxaGetSizes(boxao, NULL, &nao);
+        boxaGetSizes(boxa, NULL, &na_all);
+    }
+    ne = numaGetCount(nae);
+    no = numaGetCount(nao);
+    nmin = L_MIN(ne, no);
+
+    if (pdel_evenodd) {
+        sum = 0.0;
+        for (i = 0; i < nmin; i++) {
+            numaGetIValue(nae, i, &vale);
+            numaGetIValue(nao, i, &valo);
+            sum += L_ABS(vale - valo);
+        }
+        *pdel_evenodd = sum / nmin;
+    }
+    if (prms_even)
+        numaSimpleStats(nae, 0, 0, NULL, NULL, prms_even);
+    if (prms_odd)
+        numaSimpleStats(nao, 0, 0, NULL, NULL, prms_odd);
+    if (prms_all)
+        numaSimpleStats(na_all, 0, 0, NULL, NULL, prms_all);
+
+    boxaDestroy(&boxae);
+    boxaDestroy(&boxao);
+    numaDestroy(&nae);
+    numaDestroy(&nao);
+    numaDestroy(&na_all);
     return 0;
 }
 
