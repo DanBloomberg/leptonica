@@ -95,7 +95,8 @@ OTHER_PROGS = adaptmap_dark \
 	numaranktest otsutest1 otsutest2 \
 	pagesegtest1 pagesegtest2 \
 	partitiontest pdfiotest percolatetest \
-	pixaatest pixafileinfo plottest rbtreetest \
+	pixaatest pixafileinfo plottest printimage printsplitimage printtiff \
+	rbtreetest \
 	recog_bootnum recogsort recogtest1 \
 	recogtest2 recogtest3 recogtest4 recogtest5 \
 	recogtest6 reducetest removecmap \
@@ -105,7 +106,7 @@ OTHER_PROGS = adaptmap_dark \
 	scaletest1 scaletest2 \
 	seedfilltest settest sharptest \
 	sheartest showedges skewtest \
-	sorttest sudokutest textorient trctest \
+	sorttest splitimage2pdf sudokutest textorient trctest \
 	warpertest wordsinorder \
 	writemtiff yuvtest
 
