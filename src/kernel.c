@@ -99,25 +99,37 @@
  *      (1) kernelCreate() initializes all values to 0.
  *      (2) After this call, (cy,cx) and nonzero data values must be
  *          assigned.
+ *      (2) The number of kernel elements must be less than 2^29.
  * </pre>
  */
 L_KERNEL *
 kernelCreate(l_int32  height,
              l_int32  width)
 {
+l_uint64   size64;
 L_KERNEL  *kel;
 
     PROCNAME("kernelCreate");
 
-    if ((kel = (L_KERNEL *)LEPT_CALLOC(1, sizeof(L_KERNEL))) == NULL)
-        return (L_KERNEL *)ERROR_PTR("kel not made", procName, NULL);
+    if (width <= 0)
+        return (L_KERNEL *)ERROR_PTR("width must be > 0", procName, NULL);
+    if (height <= 0)
+        return (L_KERNEL *)ERROR_PTR("height must be > 0", procName, NULL);
+
+        /* Avoid overflow in malloc arg */
+    size64 = width * height;
+    if (size64 >= (1LL << 29)) {
+        L_ERROR("requested width = %d, height = %d\n", procName, width, height);
+        return (L_KERNEL *)ERROR_PTR("size >= 2^29", procName, NULL);
+    }
+
+    kel = (L_KERNEL *)LEPT_CALLOC(1, sizeof(L_KERNEL));
     kel->sy = height;
     kel->sx = width;
     if ((kel->data = create2dFloatArray(height, width)) == NULL) {
         LEPT_FREE(kel);
         return (L_KERNEL *)ERROR_PTR("data not allocated", procName, NULL);
     }
-
     return kel;
 }
 
@@ -480,6 +492,7 @@ L_KERNEL  *keld;
  * Notes:
  *      (1) The array[sy][sx] is indexed in standard "matrix notation",
  *          with the row index first.
+ *      (2) The caller kernelCreate() limits the size to < 2^29 pixels.
  * </pre>
  */
 l_float32 **

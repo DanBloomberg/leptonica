@@ -135,14 +135,14 @@ static l_int32 fpixaExtendArrayToSize(FPIXA *fpixa, l_int32 size);
 /*!
  * \brief   fpixCreate()
  *
- * \param[in]    width, height
- * \return  fpixd with data allocated and initialized to 0,
- *                     or NULL on error
+ * \param[in]       width, height
+ * \return  fpixd   with data allocated and initialized to 0, or NULL on error
  *
  * <pre>
  * Notes:
  *      (1) Makes a FPix of specified size, with the data array
  *          allocated and initialized to 0.
+ *      (2) The number of pixels must be less than 2^29.
  * </pre>
  */
 FPIX *
@@ -150,7 +150,7 @@ fpixCreate(l_int32  width,
            l_int32  height)
 {
 l_float32  *data;
-l_uint64    bignum;
+l_uint64    npix64;
 FPIX       *fpixd;
 
     PROCNAME("fpixCreate");
@@ -161,14 +161,13 @@ FPIX       *fpixd;
         return (FPIX *)ERROR_PTR("height must be > 0", procName, NULL);
 
         /* Avoid overflow in malloc arg, malicious or otherwise */
-    bignum = 4L * width * height;   /* max number of bytes requested */
-    if (bignum > ((1LL << 31) - 1)) {
+    npix64 = width * height;   /* number of 4-byte pixels requested */
+    if (npix64 >= (1LL << 29)) {
         L_ERROR("requested w = %d, h = %d\n", procName, width, height);
         return (FPIX *)ERROR_PTR("requested bytes >= 2^31", procName, NULL);
     }
 
-    if ((fpixd = (FPIX *)LEPT_CALLOC(1, sizeof(FPIX))) == NULL)
-        return (FPIX *)ERROR_PTR("LEPT_CALLOC fail for fpixd", procName, NULL);
+    fpixd = (FPIX *)LEPT_CALLOC(1, sizeof(FPIX));
     fpixSetDimensions(fpixd, width, height);
     fpixSetWpl(fpixd, width);  /* 4-byte words */
     fpixd->refcount = 1;
@@ -176,10 +175,9 @@ FPIX       *fpixd;
     data = (l_float32 *)LEPT_CALLOC(width * height, sizeof(l_float32));
     if (!data) {
         fpixDestroy(&fpixd);
-        return (FPIX *)ERROR_PTR("LEPT_CALLOC fail for data", procName, NULL);
+        return (FPIX *)ERROR_PTR("calloc fail for data", procName, NULL);
     }
     fpixSetData(fpixd, data);
-
     return fpixd;
 }
 
@@ -209,7 +207,8 @@ FPIX    *fpixd;
         return (FPIX *)ERROR_PTR("fpixs not defined", procName, NULL);
 
     fpixGetDimensions(fpixs, &w, &h);
-    fpixd = fpixCreate(w, h);
+    if ((fpixd = fpixCreate(w, h)) == NULL)
+        return (FPIX *)ERROR_PTR("fpixd not made", procName, NULL);
     fpixCopyResolution(fpixd, fpixs);
     return fpixd;
 }
@@ -1135,14 +1134,14 @@ FPIX    *fpix;
 /*!
  * \brief   dpixCreate()
  *
- * \param[in]    width, height
- * \return  dpix with data allocated and initialized to 0,
- *                     or NULL on error
+ * \param[in]     width, height
+ * \return  dpix  with data allocated and initialized to 0, or NULL on error
  *
  * <pre>
  * Notes:
  *      (1) Makes a DPix of specified size, with the data array
  *          allocated and initialized to 0.
+ *      (2) The number of pixels must be less than 2^28.
  * </pre>
  */
 DPIX *
@@ -1150,7 +1149,7 @@ dpixCreate(l_int32  width,
            l_int32  height)
 {
 l_float64  *data;
-l_uint64    bignum;
+l_uint64    npix64;
 DPIX       *dpix;
 
     PROCNAME("dpixCreate");
@@ -1161,14 +1160,13 @@ DPIX       *dpix;
         return (DPIX *)ERROR_PTR("height must be > 0", procName, NULL);
 
         /* Avoid overflow in malloc arg, malicious or otherwise */
-    bignum = 8L * width * height;   /* max number of bytes requested */
-    if (bignum > ((1LL << 31) - 1)) {
+    npix64 = width * height;   /* number of 8 byte pixels requested */
+    if (npix64 >= (1LL << 28)) {
         L_ERROR("requested w = %d, h = %d\n", procName, width, height);
         return (DPIX *)ERROR_PTR("requested bytes >= 2^31", procName, NULL);
     }
 
-    if ((dpix = (DPIX *)LEPT_CALLOC(1, sizeof(DPIX))) == NULL)
-        return (DPIX *)ERROR_PTR("LEPT_CALLOC fail for dpix", procName, NULL);
+    dpix = (DPIX *)LEPT_CALLOC(1, sizeof(DPIX));
     dpixSetDimensions(dpix, width, height);
     dpixSetWpl(dpix, width);  /* 8 byte words */
     dpix->refcount = 1;
@@ -1176,10 +1174,9 @@ DPIX       *dpix;
     data = (l_float64 *)LEPT_CALLOC(width * height, sizeof(l_float64));
     if (!data) {
         dpixDestroy(&dpix);
-        return (DPIX *)ERROR_PTR("LEPT_CALLOC fail for data", procName, NULL);
+        return (DPIX *)ERROR_PTR("calloc fail for data", procName, NULL);
     }
     dpixSetData(dpix, data);
-
     return dpix;
 }
 
