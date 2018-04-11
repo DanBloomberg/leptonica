@@ -58,6 +58,13 @@ static char     mainName[] = "printtiff";
     if (argc == 3)
         printer = argv[2];
 
+    fprintf(stderr,
+         "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+         "   Warning: this program should only be used for testing,\n"
+         "     and not in a production environment, because of a\n"
+         "      potential vulnerability with the 'system' call.\n"
+         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
+
     setLeptDebugOK(1);
     lept_rm(NULL, TEMP_PS);
     tempfile = genPathname("/tmp", TEMP_PS);

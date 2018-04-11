@@ -66,6 +66,13 @@ static char  mainName[] = "splitimage2pdf";
     ny = atoi(argv[3]);
     fileout = argv[4];
 
+    fprintf(stderr,
+         "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+         "   Warning: this program should only be used for testing,\n"
+         "     and not in a production environment, because of a\n"
+         "      potential vulnerability with the 'system' call.\n"
+         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
+
     setLeptDebugOK(1);
     lept_mkdir("lept/split");
     lept_rm(NULL, "lept/split/image.ps");

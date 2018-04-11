@@ -74,6 +74,13 @@ static char  mainName[] = "printsplitimage";
     if (argc == 5)
         printer = argv[4];
 
+    fprintf(stderr,
+         "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+         "   Warning: this program should only be used for testing,\n"
+         "     and not in a production environment, because of a\n"
+         "      potential vulnerability with the 'system' call.\n"
+         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
+
     setLeptDebugOK(1);
     lept_rmdir("lept/split");
     lept_mkdir("lept/split");

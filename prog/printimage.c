@@ -76,6 +76,13 @@ static char  mainName[] = "printimage";
     filein = argv[1];
     printer = argv[2];
 
+    fprintf(stderr,
+         "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+         "   Warning: this program should only be used for testing,\n"
+         "     and not in a production environment, because of a\n"
+         "      potential vulnerability with the 'system' call.\n"
+         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
+
     setLeptDebugOK(1);
     lept_rm(NULL, "print_image.ps");
 
