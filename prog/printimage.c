@@ -39,17 +39,22 @@
  *   You can add lpr flags after this.
  *   To print more than one copy, add:
  *       -#N        (prints N copies)
- *   To print in color, add a printer-dependent flag, such as
- *       -o ColorModel=Color      or
+ *   To print in color, add a printer-dependent flag; e.g.,
+ *       -o ColorModel=Color
  *       -o ColorModel=CMYK
  *
  *   For example, to make 3 color copies, you might use:
- *       printimage myfile.jpg myprinter -#3 -o ColorModel=CMYK
+ *       printimage myfile.jpg myprinter -#3 -o ColorModel=Color
  *
  *   The intermediate PostScript file generated is level 1 (uncompressed).
  *   This can be large, but it will work on all PostScript printers.
  *
- *   N.B.  This requires lpr.
+ *   ***************************************************************
+ *   N.B.  This requires lpr, which is invoked via 'system'.  It could
+ *         pose a security vulnerability if used as a service in a
+ *         production environment.  Consequently, this program should
+ *         only be used for debug and testing.
+ *   ***************************************************************
  */
 
 #include "allheaders.h"

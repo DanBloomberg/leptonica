@@ -117,7 +117,7 @@ L_KERNEL  *kel;
         return (L_KERNEL *)ERROR_PTR("height must be > 0", procName, NULL);
 
         /* Avoid overflow in malloc arg */
-    size64 = width * height;
+    size64 = (l_uint64)width * (l_uint64)height;
     if (size64 >= (1LL << 29)) {
         L_ERROR("requested width = %d, height = %d\n", procName, width, height);
         return (L_KERNEL *)ERROR_PTR("size >= 2^29", procName, NULL);

@@ -37,6 +37,13 @@
  *
  *   If the printer is not specified, this just writes the PostScript
  *   file into /tmp.
+ *
+ *   ***************************************************************
+ *   N.B.  This requires lpr, which is invoked via 'system'.  It could
+ *         pose a security vulnerability if used as a service in a
+ *         production environment.  Consequently, this program should
+ *         only be used for debug and testing.
+ *   ***************************************************************
  */
 
 #include "allheaders.h"

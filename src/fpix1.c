@@ -161,7 +161,7 @@ FPIX       *fpixd;
         return (FPIX *)ERROR_PTR("height must be > 0", procName, NULL);
 
         /* Avoid overflow in malloc arg, malicious or otherwise */
-    npix64 = width * height;   /* number of 4-byte pixels requested */
+    npix64 = (l_uint64)width * (l_uint64)height;   /* # of 4-byte pixels */
     if (npix64 >= (1LL << 29)) {
         L_ERROR("requested w = %d, h = %d\n", procName, width, height);
         return (FPIX *)ERROR_PTR("requested bytes >= 2^31", procName, NULL);
@@ -1160,7 +1160,7 @@ DPIX       *dpix;
         return (DPIX *)ERROR_PTR("height must be > 0", procName, NULL);
 
         /* Avoid overflow in malloc arg, malicious or otherwise */
-    npix64 = width * height;   /* number of 8 byte pixels requested */
+    npix64 = (l_uint64)width * (l_uint64)height;   /* # of 8 byte pixels */
     if (npix64 >= (1LL << 28)) {
         L_ERROR("requested w = %d, h = %d\n", procName, width, height);
         return (DPIX *)ERROR_PTR("requested bytes >= 2^31", procName, NULL);

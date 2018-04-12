@@ -44,6 +44,13 @@
  *   this is the lowest common denominator: many PostScript printers
  *   will not print multi-page PostScript of images, or images that
  *   are level 2 compressed.  Hard to believe, but true.
+ *
+ *   ***************************************************************
+ *   N.B.  This requires lpr, which is invoked via 'system'.  It could
+ *         pose a security vulnerability if used as a service in a
+ *         production environment.  Consequently, this program should
+ *         only be used for debug and testing.
+ *   ***************************************************************
  */
 
 #include "allheaders.h"
