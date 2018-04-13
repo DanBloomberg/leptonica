@@ -101,7 +101,9 @@
  *      Comments on usage:
  *
  *          The user is responsible for correctly disposing of strings
- *          that have been extracted from sarrays:
+ *          that have been extracted from sarrays.  In the following,
+ *          "str_not_owned" means the returned handle does not own the string,
+ *          and "str_owned" means the returned handle owns the string.
  *            - To extract a string from an Sarray in order to inspect it
  *              or to make a copy of it later, get a handle to it:
  *                  copyflag = L_NOCOPY.
@@ -122,6 +124,8 @@
  *                     second string array:
  *                       str-not-owned = sarrayGetString(sa, index, L_NOCOPY);
  *                       sarrayAddString(sa, str-not-owned, L_COPY).
+ *              sarrayAddString() transfers ownership to the Sarray, so never
+ *              use L_INSERT if the string is owned by another array.
  *
  *              In all cases, when you use copyflag = L_COPY to extract
  *              a string from an array, you must either free it
@@ -429,12 +433,13 @@ sarrayClone(SARRAY  *sa)
  *
  * \param[in]    sa string array
  * \param[in]    string  string to be added
- * \param[in]    copyflag  L_INSERT or L_COPY
+ * \param[in]    copyflag  L_INSERT, L_NOCOPY or L_COPY
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) See usage comments at the top of this file.
+ *      (1) See usage comments at the top of this file.  L_INSERT is
+ *          equivalent to L_NOCOPY.
  * </pre>
  */
 l_int32
@@ -450,17 +455,17 @@ l_int32  n;
         return ERROR_INT("sa not defined", procName, 1);
     if (!string)
         return ERROR_INT("string not defined", procName, 1);
-    if (copyflag != L_INSERT && copyflag != L_COPY)
+    if (copyflag != L_INSERT && copyflag != L_NOCOPY && copyflag != L_COPY)
         return ERROR_INT("invalid copyflag", procName, 1);
 
     n = sarrayGetCount(sa);
     if (n >= sa->nalloc)
         sarrayExtendArray(sa);
 
-    if (copyflag == L_INSERT)
-        sa->array[n] = string;
-    else  /* L_COPY */
+    if (copyflag == L_COPY)
         sa->array[n] = stringNew(string);
+    else  /* L_INSERT or L_NOCOPY */
+        sa->array[n] = string;
     sa->n++;
 
     return 0;
