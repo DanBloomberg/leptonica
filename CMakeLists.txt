@@ -108,7 +108,8 @@ include(Configure)
 
 configure_file(${AUTOCONFIG_SRC} ${AUTOCONFIG} @ONLY)
 
-set(INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include" "${CMAKE_INSTALL_PREFIX}/include/leptonica")
+set(INCLUDE_DIR_INC "${CMAKE_INSTALL_PREFIX}/include")
+set(INCLUDE_DIR_INCLEPT "${CMAKE_INSTALL_PREFIX}/include/leptonica")
 
 configure_file(
     ${CMAKE_SOURCE_DIR}/cmake/templates/LeptonicaConfig-version.cmake.in
