@@ -1177,7 +1177,7 @@ NUMA  *na;
  * \brief   numaWriteDebug()
  *
  * \param[in]    filename
- * \param[in]    na 
+ * \param[in]    na
  * \return  0 if OK; 1 on error
  *
  * <pre>

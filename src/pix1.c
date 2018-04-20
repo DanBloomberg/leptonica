@@ -636,7 +636,7 @@ l_uint32  *datas, *datad;
     PROCNAME("pixCopy");
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (pixs == pixd)
         return pixd;
 
@@ -653,7 +653,12 @@ l_uint32  *datas, *datad;
         return pixd;
     }
 
-        /* Reallocate image data if sizes are different */
+        /* Reallocate image data if sizes are different.  If this fails,
+         * pixd hasn't been changed.  But we want to signal that the copy
+         * failed, so return NULL.  This will cause a memory leak if the
+         * return ptr is assigned to pixd, but that is preferred to proceeding
+         * with an incorrect pixd, and in any event this use case of
+         * pixCopy() -- reallocating into an existing pix -- is infrequent.  */
     if (pixResizeImageData(pixd, pixs) == 1)
         return (PIX *)ERROR_PTR("reallocation of data failed", procName, NULL);
 
@@ -681,9 +686,12 @@ l_uint32  *datas, *datad;
  *
  * <pre>
  * Notes:
- *      (1) This removes any existing image data from pixd and
- *          allocates an uninitialized buffer that will hold the
- *          amount of image data that is in pixs.
+ *      (1) If the sizes of data in pixs and pixd are unequal, this
+ *          frees the existing image data in pixd and allocates an
+ *          an uninitialized buffer that will hold the required amount
+ *          of image data in pixs.  The image data from pixs is not
+ *          copied into the new buffer.
+ *      (2) On failure to allocate, pixd is unchanged.
  * </pre>
  */
 l_int32
@@ -703,17 +711,20 @@ l_uint32  *data;
     if (pixSizesEqual(pixs, pixd))  /* nothing to do */
         return 0;
 
+        /* Make sure we can copy the data */
     pixGetDimensions(pixs, &w, &h, &d);
     wpl = pixGetWpl(pixs);
+    bytes = 4 * wpl * h;
+    if ((data = (l_uint32 *)pix_malloc(bytes)) == NULL)
+        return ERROR_INT("pix_malloc fail for data", procName, 1);
+
+        /* OK, do it */
     pixSetWidth(pixd, w);
     pixSetHeight(pixd, h);
     pixSetDepth(pixd, d);
     pixSetWpl(pixd, wpl);
-    bytes = 4 * wpl * h;
     pixFreeData(pixd);  /* free any existing image data */
-    if ((data = (l_uint32 *)pix_malloc(bytes)) == NULL)
-        return ERROR_INT("pix_malloc fail for data", procName, 1);
-    pixSetData(pixd, data);
+    pixSetData(pixd, data);  /* set the uninitialized memory buffer */
     pixCopyResolution(pixd, pixs);
     return 0;
 }

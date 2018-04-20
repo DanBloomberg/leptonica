@@ -77,7 +77,7 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 
 
 <h2 align=center>Version Notes for Leptonica</h2>
-<h3 align=center>15 Feb 2018</h3>
+<h3 align=center>19 Apr 2018</h3>
 
 <hr>
 <h2 align=center>  <IMG SRC="moller52.jpg" border=1 ALIGN_MIDDLE> </h2>
@@ -88,6 +88,23 @@ Note: The following are highlights of the changes in each version.
 They are <i>not</i> a complete listing of the modifications.
 
 <pre>
+
+1.76.0  21 Apr 18
+        Modify infrastructure to fix outstanding security issues. By default,
+          you can no longer create temp directories and temp files whose
+          names are known to the compiler.  Also, prevent "system" calls,
+          which were used for image display and gnuplot.
+        Replaced remaining sprintf() with snprintf() in prog tests.
+        Added non-transcoding functions for generating pdf from jpeg pixacomp
+        Add control of jpeg quality from pixWriteMem() and pixWriteStream()
+        Fixed getFilenamesInDirectory() to properly identify directories
+        Prevent size overflow in calloc for kernel; cleaned it up fpix and dpix
+        bmp reading now accepts negative height
+        Simplified splitimage2pdf; it no longer uses ps2pdf
+        Remove name-mangling WRITE_AS_NAMED compile option.
+        Removed 2 deprecated write functions.
+        Added these regression tests:
+           locminmax_reg, speckle_reg, watershed_reg,
 
 1.75.3  15 Feb 18
         Fixed some coverity scan issues.

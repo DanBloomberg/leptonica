@@ -2187,7 +2187,7 @@ BOXA  *boxa;
  * \brief   boxaWriteDebug()
  *
  * \param[in]    filename
- * \param[in]    boxa 
+ * \param[in]    boxa
  * \return  0 if OK; 1 on error
  *
  * <pre>

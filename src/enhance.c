@@ -64,6 +64,9 @@
  *           PIX     *pixMosaicColorShiftRGB()
  *           PIX     *pixColorShiftRGB()
  *
+ *      Darken gray (unsaturated) pixels
+ *           PIX     *pixDarkenGray()
+ *
  *      General multiplicative constant color transform
  *           PIX     *pixMultConstantColor()
  *           PIX     *pixMultMatrixColor()
@@ -1893,6 +1896,83 @@ PIX       *pixd;
     LEPT_FREE(rlut);
     LEPT_FREE(glut);
     LEPT_FREE(blut);
+    return pixd;
+}
+
+/*-----------------------------------------------------------------------*
+ *                     Darken gray (unsaturated) pixels
+ *-----------------------------------------------------------------------*/
+/*!
+ * \brief   pixDarkenGray()
+ *
+ * \param[in]    pixd     [optional] can be null or equal to pixs
+ * \param[in]    pixs      32 bpp rgb
+ * \param[in]    thresh    pixels with max component >= %thresh are unchanged
+ * \param[in]    satlimit  pixels with saturation >= %satlimit are unchanged
+ * \return  pixd, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This darkens gray pixels, by a fraction (sat/%satlimit), where
+ *          the sat, the saturation, is the component difference (max - min).
+ *          The pixel value is unchanged if sat >= %satlimit.  A typical
+ *          value of %satlimit might be 50; the larger the value, the
+ *          more that pixels with a smaller saturation will be darkened.
+ *      (2) Pixels with max component >= %thresh are unchanged. This can be
+ *          used to prevent bright pixels with low saturation from being
+ *          darkened.  Setting thresh == 0 is a no-op; setting %thresh == 255
+ *          causes the darkening to be applied to all pixels.
+ *      (3) This function is useful to enhance pixels relative to a
+ *          gray background.
+ * </pre>
+ */
+PIX *
+pixDarkenGray(PIX     *pixd,
+              PIX     *pixs,
+              l_int32  thresh,
+              l_int32  satlimit)
+{
+l_int32    w, h, i, j, wpls, wpld;
+l_int32    rval, gval, bval, minrg, min, maxrg, max, sat;
+l_uint32  *datas, *datad, *lines, *lined;
+l_float32  ratio;
+
+    PROCNAME("pixDarkenGray");
+
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+    if (thresh < 0 || thresh > 255)
+        return (PIX *)ERROR_PTR("invalid thresh", procName, NULL);
+    if (satlimit < 1)
+        return (PIX *)ERROR_PTR("invalid satlimit", procName, NULL);
+    if (pixd && (pixs != pixd))
+        return (PIX *)ERROR_PTR("not new or in-place", procName, NULL);
+
+    pixGetDimensions(pixs, &w, &h, NULL);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    if ((pixd = pixCopy(pixd, pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            extractRGBValues(lines[j], &rval, &gval, &bval);
+            minrg = L_MIN(rval, gval);
+            min = L_MIN(minrg, bval);
+            maxrg = L_MAX(rval, gval);
+            max = L_MAX(maxrg, bval);
+            sat = max - min;
+            if (max >= thresh || sat >= satlimit)
+                continue;
+            ratio = (l_float32)sat / (l_float32)satlimit;
+            composeRGBPixel((l_int32)(ratio * rval), (l_int32)(ratio * gval),
+                            (l_int32)(ratio * bval), &lined[j]);
+        }
+    }
     return pixd;
 }
 

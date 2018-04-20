@@ -211,7 +211,7 @@ l_int32 LeptDebugOK = 0;  /* default value */
  *          control writing files in a temp directory with names that
  *          are compiled in.
  *      (2) The default in the library distribution is 0.  Call with
- *          @allow = 1 for development and debugging.
+ *          %allow = 1 for development and debugging.
  */
 void
 setLeptDebugOK(l_int32  allow)

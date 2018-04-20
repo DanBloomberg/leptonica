@@ -34,12 +34,12 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	pixserial_reg pngio_reg pnmio_reg \
 	projection_reg projective_reg \
 	psio_reg psioseg_reg pta_reg \
-	quadtree_reg rankbin_reg rankhisto_reg \
-	rank_reg rasteropip_reg \
+	quadtree_reg rank_reg rankbin_reg \
+	rankhisto_reg rasteropip_reg \
 	rotate1_reg rotate2_reg rotateorth_reg \
 	scale_reg seedspread_reg \
 	selio_reg shear1_reg shear2_reg \
-	skew_reg splitcomp_reg speckle_reg subpixel_reg \
+	skew_reg speckle_reg splitcomp_reg subpixel_reg \
 	texturefill_reg threshnorm_reg translate_reg \
 	warper_reg watershed_reg wordboxes_reg \
 	writetext_reg xformbox_reg
