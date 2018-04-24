@@ -87,7 +87,7 @@ static l_int32 testcomp_mem(PIX *pixs, PIX **ppixt, l_int32 index,
 static l_int32 test_writemem(PIX *pixs, l_int32 format, char *psfile);
 static PIX *make_24_bpp_pix(PIX *pixs);
 static l_int32 get_header_data(const char *filename, l_int32 true_format);
-static void get_tiff_compression_name(char *buf, l_int32 format);
+static const char *get_tiff_compression_name(l_int32 format);
 
 LEPT_DLL extern const char *ImageFileFormatExtensions[];
 
@@ -705,7 +705,7 @@ static l_int32
 get_header_data(const char  *filename,
                 l_int32      true_format)
 {
-char      buf[64];
+const char *tiff_compression_name = "undefined";
 l_uint8  *data;
 l_int32   ret1, ret2, format1, format2;
 l_int32   w1, w2, h1, h2, d1, d2, bps1, bps2, spp1, spp2, iscmap1, iscmap2;
@@ -737,11 +737,12 @@ size_t    size1, size2;
         fprintf(stderr, "Error: couldn't read header data: %s\n", filename);
     else {
         if (format1 > IFF_PNG && format1 < IFF_PNM) {
-            get_tiff_compression_name(buf, format1);
+            tiff_compression_name = get_tiff_compression_name(format1);
             fprintf(stderr, "Format data for image %s with format %s:\n"
                 "  nbytes = %lu, size (w, h, d) = (%d, %d, %d)\n"
                 "  bps = %d, spp = %d, iscmap = %d\n",
-                filename, buf, (unsigned long)size1, w1, h1, d1,
+                filename, tiff_compression_name,
+                (unsigned long)size1, w1, h1, d1,
                 bps1, spp1, iscmap1);
         } else {
             fprintf(stderr, "Format data for image %s with format %s:\n"
@@ -770,8 +771,8 @@ size_t    size1, size2;
         if (size1 != size2 || format1 != format2 || w1 != w2 ||
             h1 != h2 || d1 != d2 || bps1 != bps2 || spp1 != spp2 ||
             iscmap1 != iscmap2) {
-            fprintf(stderr, "Incomsistency reading image %s with format %s\n",
-                    filename, buf);
+            fprintf(stderr, "Inconsistency reading image %s with format %s\n",
+                    filename, tiff_compression_name);
             ret2 = 1;
         }
     }
@@ -779,25 +780,25 @@ size_t    size1, size2;
 }
 
 
-static void
-get_tiff_compression_name(char    *buf,
-                          l_int32  format)
+static const char *
+get_tiff_compression_name(l_int32  format)
 {
+    const char *tiff_compression_name = "unknown";
     if (format == IFF_TIFF_G4)
-        snprintf(buf, sizeof(buf), "tiff_g4");
+        tiff_compression_name = "tiff_g4";
     else if (format == IFF_TIFF_G3)
-        snprintf(buf, sizeof(buf), "tiff_g3");
+        tiff_compression_name =  "tiff_g3";
     else if (format == IFF_TIFF_ZIP)
-        snprintf(buf, sizeof(buf), "tiff_zip");
+        tiff_compression_name =  "tiff_zip";
     else if (format == IFF_TIFF_LZW)
-        snprintf(buf, sizeof(buf), "tiff_lzw");
+        tiff_compression_name =  "tiff_lzw";
     else if (format == IFF_TIFF_RLE)
-        snprintf(buf, sizeof(buf), "tiff_rle");
+        tiff_compression_name =  "tiff_rle";
     else if (format == IFF_TIFF_PACKBITS)
-        snprintf(buf, sizeof(buf), "tiff_packbits");
+        tiff_compression_name =  "tiff_packbits";
     else if (format == IFF_TIFF)
-        snprintf(buf, sizeof(buf), "tiff_uncompressed");
+        tiff_compression_name = "tiff_uncompressed";
     else
         fprintf(stderr, "format %d: not tiff\n", format);
-    return;
+    return tiff_compression_name;
 }
