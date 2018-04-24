@@ -687,7 +687,7 @@ l_uint32  *datas, *datad;
  * <pre>
  * Notes:
  *      (1) If the sizes of data in pixs and pixd are unequal, this
- *          frees the existing image data in pixd and allocates an
+ *          frees the existing image data in pixd and allocates
  *          an uninitialized buffer that will hold the required amount
  *          of image data in pixs.  The image data from pixs is not
  *          copied into the new buffer.

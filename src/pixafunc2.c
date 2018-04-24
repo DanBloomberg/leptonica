@@ -749,6 +749,7 @@ PIXA    *pixa1;
     spacing = L_MAX(spacing, 0);
     ncols = (l_int32)((l_float32)(maxwidth - spacing) /
                       (l_float32)(wmax + spacing));
+    ncols = L_MAX(ncols, 1);
     nrows = (n + ncols - 1) / ncols;
     wd = wmax * ncols + spacing * (ncols + 1);
     hd = hmax * nrows + spacing * (nrows + 1);
@@ -1140,6 +1141,8 @@ PIXA      *pixan;
         return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
     if (outdepth != 1 && outdepth != 8 && outdepth != 32)
         return (PIX *)ERROR_PTR("outdepth not in {1, 8, 32}", procName, NULL);
+    if (ncols <= 0)
+        return (PIX *)ERROR_PTR("ncols must be > 0", procName, NULL);
     if (border < 0 || border > tilewidth / 5)
         border = 0;
 
@@ -1723,6 +1726,8 @@ PIXA    *pixa, *pixad;
         return (PIXA *)ERROR_PTR("paa not defined", procName, NULL);
     if (outdepth != 1 && outdepth != 8 && outdepth != 32)
         return (PIXA *)ERROR_PTR("outdepth not in {1, 8, 32}", procName, NULL);
+    if (ncols <= 0)
+        return (PIXA *)ERROR_PTR("ncols must be > 0", procName, NULL);
     if (border < 0 || border > tilewidth / 5)
         border = 0;
 

@@ -706,10 +706,10 @@ get_header_data(const char  *filename,
                 l_int32      true_format)
 {
 const char *tiff_compression_name = "undefined";
-l_uint8  *data;
-l_int32   ret1, ret2, format1, format2;
-l_int32   w1, w2, h1, h2, d1, d2, bps1, bps2, spp1, spp2, iscmap1, iscmap2;
-size_t    size1, size2;
+l_uint8    *data;
+l_int32     ret1, ret2, format1, format2;
+l_int32     w1, w2, h1, h2, d1, d2, bps1, bps2, spp1, spp2, iscmap1, iscmap2;
+size_t      size1, size2;
 
     /* Fail silently if library is not available */
 #if !HAVE_LIBJPEG
