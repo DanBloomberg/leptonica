@@ -73,6 +73,10 @@ static char  mainName[] = "scaleandtile";
     fileout = argv[6];
     setLeptDebugOK(1);
 
+    /* Avoid division by zero if ncols == 0 and require a positive value. */
+    if (ncols <= 0)
+        return ERROR_INT("Expected a positive value for ncols", mainName, 1);
+
         /* Read the specified images from file */
     if ((pixa = pixaReadFiles(dirin, substr)) == NULL)
 	return ERROR_INT("safiles not made", mainName, 1);
