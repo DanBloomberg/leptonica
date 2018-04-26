@@ -2591,8 +2591,8 @@ LEPT_DLL extern l_int32 l_hashPtToUint64 ( l_int32 x, l_int32 y, l_uint64 *phash
 LEPT_DLL extern l_int32 l_hashFloat64ToUint64 ( l_int32 nbuckets, l_float64 val, l_uint64 *phash );
 LEPT_DLL extern l_int32 findNextLargerPrime ( l_int32 start, l_uint32 *pprime );
 LEPT_DLL extern l_int32 lept_isPrime ( l_uint64 n, l_int32 *pis_prime, l_uint32 *pfactor );
-LEPT_DLL extern l_uint32 convertBinaryToGrayCode ( l_uint32 val );
-LEPT_DLL extern l_uint32 convertGrayCodeToBinary ( l_uint32 val );
+LEPT_DLL extern l_uint32 convertIntToGrayCode ( l_uint32 val );
+LEPT_DLL extern l_uint32 convertGrayCodeToInt ( l_uint32 val );
 LEPT_DLL extern char * getLeptonicaVersion (  );
 LEPT_DLL extern void startTimer ( void );
 LEPT_DLL extern l_float32 stopTimer ( void );

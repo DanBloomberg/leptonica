@@ -65,8 +65,8 @@
  *           l_int32    lept_isPrime()
  *
  *       Gray code conversion
- *           l_uint32   convertBinaryToGrayCode()
- *           l_uint32   convertGrayToBinaryCode()
+ *           l_uint32   convertIntToGrayCode()
+ *           l_uint32   convertGrayCodeToInt()
  *
  *       Leptonica version number
  *           char      *getLeptonicaVersion()
@@ -749,10 +749,10 @@ l_uint64  limit, ratio;
  *                         Gray code conversion                        *
  *---------------------------------------------------------------------*/
 /*!
- * \brief   convertBinaryToGrayCode()
+ * \brief   convertIntToGrayCode()
  *
- * \param[in]    val
- * \return  gray code value
+ * \param[in]  val    integer value
+ * \return     corresponding gray code value
  *
  * <pre>
  * Notes:
@@ -761,20 +761,20 @@ l_uint64  limit, ratio;
  * </pre>
  */
 l_uint32
-convertBinaryToGrayCode(l_uint32 val)
+convertIntToGrayCode(l_uint32 val)
 {
     return (val >> 1) ^ val;
 }
 
 
 /*!
- * \brief   convertGrayCodeToBinary()
+ * \brief   convertGrayCodeToInt()
  *
- * \param[in]    val gray code value
- * \return  binary value
+ * \param[in]  val    gray code value
+ * \return     corresponding integer value
  */
 l_uint32
-convertGrayCodeToBinary(l_uint32 val)
+convertGrayCodeToInt(l_uint32 val)
 {
 l_uint32  shift;
 
