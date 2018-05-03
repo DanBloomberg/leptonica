@@ -380,7 +380,6 @@ gplotMakeOutput(GPLOT  *gplot)
 {
 char     buf[L_BUFSIZE];
 char    *cmdname;
-l_int32  ignore;
 
     PROCNAME("gplotMakeOutput");
 
@@ -399,11 +398,10 @@ l_int32  ignore;
 
 #ifndef OS_IOS /* iOS 11 does not support system() */
     if (LeptDebugOK) {
-        ignore = system(buf);  /* gnuplot || wgnuplot */
+        (void)system(buf);  /* gnuplot || wgnuplot */
     } else {
         L_INFO("running gnuplot is disabled; use setLeptDebugOK(1) to enable\n",
                procName);
-        return 0;
     }
 #endif /* !OS_IOS */
 
