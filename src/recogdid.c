@@ -520,6 +520,8 @@ L_RDID     *did;
     didscore = did->trellisscore;
     didtempl = did->trellistempl;
     area2 = numaGetIArray(recog->nasum_u);
+    besttempl = 0;  /* just tells compiler it is initialized */
+    maxscore = 0.0;  /* ditto */
     for (x = minsetw; x < w1; x++) {  /* will always get a score */
         first = TRUE;
         for (i = 0; i < narray; i++) {

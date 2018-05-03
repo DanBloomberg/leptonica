@@ -575,7 +575,7 @@ l_int32  i, len;
  *          ~ Input the string to be parsed on the first invocation.
  *          ~ Then input NULL after that; the value returned in saveptr
  *            is used in all subsequent calls.
- *      (7) This is only slightly slower than strtok_k.
+ *      (7) This is only slightly slower than strtok_r.
  * </pre>
  */
 char *
@@ -1440,6 +1440,8 @@ l_int64  pos, nbytes;
         return ERROR_INT("stream not open", procName, 0);
 
     pos = ftell(fp);          /* initial position */
+    if (pos < 0)
+        return ERROR_INT("seek position must be > 0", procName, 0);
     fseek(fp, 0, SEEK_END);   /* EOF */
     nbytes = ftell(fp);
     fseek(fp, pos, SEEK_SET);        /* back to initial position */

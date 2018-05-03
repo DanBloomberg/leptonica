@@ -2348,6 +2348,15 @@ NUMA      *nae, *nao, *na_all;
         return ERROR_INT("too few boxes", procName, 1);
 
     boxaSplitEvenOdd(boxa, 0, &boxae, &boxao);
+    ne = boxaGetCount(boxae);
+    no = boxaGetCount(boxao);
+    nmin = L_MIN(ne, no);
+    if (nmin == 0) {
+        boxaDestroy(&boxae);
+        boxaDestroy(&boxao);
+        return ERROR_INT("either no even or no odd boxes", procName, 1);
+    }
+        
     if (type == L_SELECT_WIDTH) {
         boxaGetSizes(boxae, &nae, NULL);
         boxaGetSizes(boxao, &nao, NULL);
@@ -2357,9 +2366,6 @@ NUMA      *nae, *nao, *na_all;
         boxaGetSizes(boxao, NULL, &nao);
         boxaGetSizes(boxa, NULL, &na_all);
     }
-    ne = numaGetCount(nae);
-    no = numaGetCount(nao);
-    nmin = L_MIN(ne, no);
 
     if (pdel_evenodd) {
         sum = 0.0;

@@ -48,7 +48,7 @@
 
 #include "allheaders.h"
 
-#define   TEMP_PS       "junk_printtiff.ps"   /* in the temp directory */
+#define   TEMP_PS       "print_tiff.ps"   /* in the temp directory */
 #define   FILL_FACTOR   0.95
 
 int main(int    argc,
@@ -56,7 +56,6 @@ int main(int    argc,
 {
 char           *filein, *tempfile, *printer;
 char            buf[512];
-l_int32         ignore;
 static char     mainName[] = "printtiff";
 
     if (argc != 2 && argc != 3)
@@ -73,13 +72,13 @@ static char     mainName[] = "printtiff";
          "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
 
     setLeptDebugOK(1);
-    lept_rm(NULL, TEMP_PS);
+    (void)lept_rm(NULL, TEMP_PS);
     tempfile = genPathname("/tmp", TEMP_PS);
     convertTiffMultipageToPS(filein, tempfile, FILL_FACTOR);
 
     if (argc == 3) {
         snprintf(buf, sizeof(buf), "lpr -P%s %s &", printer, tempfile);
-        ignore = system(buf);
+        (void)system(buf);
     }
 
     lept_free(tempfile);
