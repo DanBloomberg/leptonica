@@ -792,6 +792,7 @@ l_int32  ret;
  * <pre>
  * Notes:
  *      (1) This is a convenient wrapper for displaying image files.
+ *      (2) It does nothing unless LeptDebugOK == TRUE.
  *      (2) Set %scale = 0 to disable display.
  *      (3) This downscales 1 bpp to gray.
  * </pre>
@@ -806,9 +807,13 @@ PIX  *pixs, *pixd;
 
     PROCNAME("l_fileDisplay");
 
+    if (!LeptDebugOK) {
+        L_INFO("displaying files is disabled; "
+               "use setLeptDebugOK(1) to enable\n", procName);
+        return 0;
+    }
     if (scale == 0.0)
         return 0;
-
     if (scale < 0.0)
         return ERROR_INT("invalid scale factor", procName, 1);
     if ((pixs = pixRead(fname)) == NULL)
@@ -842,13 +847,14 @@ PIX  *pixs, *pixd;
  *          It uses a static internal variable to number the output files
  *          written by a single process.  Behavior with a shared library
  *          may be unpredictable.
- *      (2) It uses these programs to display the image:
+ *      (2) It does nothing unless LeptDebugOK == TRUE.
+ *      (3) It uses these programs to display the image:
  *             On Unix: xzgv, xli or xv
  *             On Windows: i_view
  *          The display program must be on your $PATH variable.  It is
  *          chosen by setting the global var_DISPLAY_PROG, using
  *          l_chooseDisplayProg().  Default on Unix is xzgv.
- *      (3) Images with dimensions larger than MAX_DISPLAY_WIDTH or
+ *      (4) Images with dimensions larger than MAX_DISPLAY_WIDTH or
  *          MAX_DISPLAY_HEIGHT are downscaled to fit those constraints.
  *          This is particularly important for displaying 1 bpp images
  *          with xv, because xv automatically downscales large images
@@ -856,12 +862,12 @@ PIX  *pixs, *pixd;
  *          scale-to-gray to get decent-looking anti-aliased images.
  *          In all cases, we write a temporary file to /tmp/lept/disp,
  *          that is read by the display program.
- *      (4) The temporary file is written as png if, after initial
+ *      (5) The temporary file is written as png if, after initial
  *          processing for special cases, any of these obtain:
  *            * pix dimensions are smaller than some thresholds
  *            * pix depth is less than 8 bpp
  *            * pix is colormapped
- *      (5) For spp == 4, we call pixDisplayLayersRGBA() to show 3
+ *      (6) For spp == 4, we call pixDisplayLayersRGBA() to show 3
  *          versions of the image: the image with a fully opaque
  *          alpha, the alpha, and the image as it would appear with
  *          a white background.
@@ -901,7 +907,7 @@ pixDisplayWithTitle(PIX         *pixs,
 char           *tempname;
 char            buffer[L_BUFSIZE];
 static l_int32  index = 0;  /* caution: not .so or thread safe */
-l_int32         w, h, d, spp, maxheight, opaque, threeviews, ignore;
+l_int32         w, h, d, spp, maxheight, opaque, threeviews;
 l_float32       ratw, rath, ratmin;
 PIX            *pix0, *pix1, *pix2;
 PIXCMAP        *cmap;
@@ -915,7 +921,8 @@ char            fullpath[_MAX_PATH];
     PROCNAME("pixDisplayWithTitle");
 
     if (!LeptDebugOK) {
-        L_INFO("displaying files is disabled\n", procName);
+        L_INFO("displaying images is disabled; "
+               "use setLeptDebugOK(1) to enable\n", procName);
         return 0;
     }
 
@@ -1025,7 +1032,7 @@ char            fullpath[_MAX_PATH];
         snprintf(buffer, L_BUFSIZE, "open %s &", tempname);
     }
 #ifndef OS_IOS /* iOS 11 does not support system() */
-    ignore = system(buffer);
+    callSystemDebug(buffer);
 #endif /* !OS_IOS */
 
 #else  /* _WIN32 */
@@ -1041,7 +1048,7 @@ char            fullpath[_MAX_PATH];
         snprintf(buffer, L_BUFSIZE, "i_view32.exe \"%s\" /pos=(%d,%d)",
                  fullpath, x, y);
     }
-    ignore = system(buffer);
+    callSystemDebug(buffer);
     LEPT_FREE(pathname);
 
 #endif  /* _WIN32 */

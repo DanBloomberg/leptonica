@@ -398,7 +398,7 @@ char    *cmdname;
 
 #ifndef OS_IOS /* iOS 11 does not support system() */
     if (LeptDebugOK) {
-        (void)system(buf);  /* gnuplot || wgnuplot */
+        callSystemDebug(buf);  /* gnuplot || wgnuplot */
     } else {
         L_INFO("running gnuplot is disabled; use setLeptDebugOK(1) to enable\n",
                procName);

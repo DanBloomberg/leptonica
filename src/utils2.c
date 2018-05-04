@@ -95,6 +95,9 @@
  *           l_int32    lept_rmfile()
  *           l_int32    lept_cp()
  *
+ *       Special debug/test function for calling 'system'
+ *           void       callSystemDebug()
+ *
  *       General file name operations
  *           l_int32    splitPathAtDirectory()
  *           l_int32    splitPathAtExtension()
@@ -2387,6 +2390,42 @@ l_int32  ret;
     else
         LEPT_FREE(newpath);
     return ret;
+}
+
+
+/*--------------------------------------------------------------------*
+ *          Special debug/test function for calling 'system'          *
+ *--------------------------------------------------------------------*/
+/*!
+ * \brief   callSystemDebug()
+ *
+ * \param[in]    cmd      command to be exec'd
+ * \return  void
+ *
+ * <pre>
+ * Notes:
+ *      (1) The C library 'system' call is only made through this function.
+ *          It only works in debug/test mode, where the global variable
+ *          LeptDebugOK == TRUE.  This variable is set to FALSE in the
+ *          library as distributed, and calling this function will
+ *          generate an error message.
+ * </pre>
+ */
+void
+callSystemDebug(const char *cmd)
+{
+    PROCNAME("callSystemDebug");
+
+    if (!cmd) {
+        L_ERROR("cmd not defined\n", procName);
+        return;
+    }
+    if (LeptDebugOK == FALSE) {
+        L_INFO("'system' calls are disabled\n", procName);
+        return;
+    }
+
+    (void)system(cmd);
 }
 
 

@@ -1112,6 +1112,7 @@ char  *cstr, *substr, *saveptr;
         return ERROR_INT("separators not defined", procName, 1);
 
     cstr = stringNew(str);  /* preserves const-ness of input str */
+    saveptr = NULL;
     substr = strtokSafe(cstr, separators, &saveptr);
     if (substr)
         sarrayAddString(sa, substr, L_INSERT);
