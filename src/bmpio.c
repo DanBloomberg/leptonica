@@ -51,6 +51,14 @@
 #if  USE_BMPIO   /* defined in environ.h */
 /* --------------------------------------------*/
 
+#if defined(__GNUC__)
+/* BMP_IH is misaligned, therefore we need a packed struct. */
+typedef struct __attribute__((__packed__)) {
+  BMP_FH bmpfh;
+  BMP_IH bmpih;
+} BMP_HEADER;
+#endif
+
     /* Here we're setting the pixel value 0 to white (255) and the
      * value 1 to black (0).  This is the convention for grayscale, but
      * the opposite of the convention for 1 bpp, where 0 is white
@@ -128,7 +136,12 @@ l_int32    fdatabpl, extrabytes, pixWpl, pixBpl, i, j, k;
 l_uint32  *line, *pixdata, *pword;
 l_int64    npixels;
 BMP_FH    *bmpfh;
+#if defined(__GNUC__)
+BMP_HEADER *bmph;
+#define bmpih (&bmph->bmpih)
+#else
 BMP_IH    *bmpih;
+#endif
 PIX       *pix, *pix1;
 PIXCMAP   *cmap;
 
@@ -144,9 +157,11 @@ PIXCMAP   *cmap;
     bftype = convertOnBigEnd16(bmpfh->bfType);
     if (bftype != BMP_ID)
         return (PIX *)ERROR_PTR("not bmf format", procName, NULL);
+#if defined(__GNUC__)
+    bmph = (BMP_HEADER *)bmpfh;
+#else
     bmpih = (BMP_IH *)(cdata + BMP_FHBYTES);
-    if (!bmpih)
-        return (PIX *)ERROR_PTR("bmpih not defined", procName, NULL);
+#endif
     compression = convertOnBigEnd32(bmpih->biCompression);
     if (compression != 0)
         return (PIX *)ERROR_PTR("cannot read compressed BMP files",
@@ -402,7 +417,12 @@ l_uint32    offbytes, fimagebytes;
 l_uint32   *line, *pword;
 size_t      fsize;
 BMP_FH     *bmpfh;
+#if defined(__GNUC__)
+BMP_HEADER *bmph;
+#define bmpih (&bmph->bmpih)
+#else
 BMP_IH     *bmpih;
+#endif
 PIX        *pix;
 PIXCMAP    *cmap;
 RGBA_QUAD  *pquad;
@@ -496,7 +516,11 @@ RGBA_QUAD  *pquad;
     bmpfh->bfFill2 = convertOnBigEnd16((offbytes >> 16) & 0x0000ffff);
 
         /* Convert to little-endian and write the info header data */
+#if defined(__GNUC__)
+    bmph = (BMP_HEADER *)bmpfh;
+#else
     bmpih = (BMP_IH *)(fdata + BMP_FHBYTES);
+#endif
     bmpih->biSize = convertOnBigEnd32(BMP_IHBYTES);
     bmpih->biWidth = convertOnBigEnd32(w);
     bmpih->biHeight = convertOnBigEnd32(h);
