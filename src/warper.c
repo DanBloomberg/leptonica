@@ -676,7 +676,8 @@ PIX       *pixd;
     } else if (zshiftt == zshiftb) {
         pixrss = pixTranslate(NULL, pixrs, zshiftt, 0, L_BRING_IN_WHITE);
     } else {
-        angle = (l_float32)(zshiftb - zshiftt) / L_MAX(1.0, (l_float32)pixGetHeight(pixrs));
+        angle = (l_float32)(zshiftb - zshiftt) /
+                L_MAX(1.0, (l_float32)pixGetHeight(pixrs));
         zshift = (zshiftt + zshiftb) / 2;
         pix1 = pixTranslate(NULL, pixrs, zshift, 0, L_BRING_IN_WHITE);
         pixrss = pixHShearLI(pix1, h / 2, angle, L_BRING_IN_WHITE);

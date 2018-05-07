@@ -2356,7 +2356,7 @@ NUMA      *nae, *nao, *na_all;
         boxaDestroy(&boxao);
         return ERROR_INT("either no even or no odd boxes", procName, 1);
     }
-        
+
     if (type == L_SELECT_WIDTH) {
         boxaGetSizes(boxae, &nae, NULL);
         boxaGetSizes(boxao, &nao, NULL);

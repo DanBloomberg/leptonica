@@ -386,6 +386,16 @@ char    *cmdname;
     if (!gplot)
         return ERROR_INT("gplot not defined", procName, 1);
 
+    if (!LeptDebugOK) {
+        L_INFO("running gnuplot is disabled; "
+               "use setLeptDebugOK(1) to enable\n", procName);
+        return 0;
+    }
+
+#ifdef OS_IOS /* iOS 11 does not support system() */
+    return ERROR_INT("iOS 11 does not support system()", procName, 0);
+#endif /* OS_IOS */
+
     gplotGenCommandFile(gplot);
     gplotGenDataFiles(gplot);
     cmdname = genPathname(gplot->cmdname, NULL);
@@ -396,15 +406,7 @@ char    *cmdname;
     snprintf(buf, L_BUFSIZE, "wgnuplot %s", cmdname);
 #endif  /* _WIN32 */
 
-#ifndef OS_IOS /* iOS 11 does not support system() */
-    if (LeptDebugOK) {
-        callSystemDebug(buf);  /* gnuplot || wgnuplot */
-    } else {
-        L_INFO("running gnuplot is disabled; use setLeptDebugOK(1) to enable\n",
-               procName);
-    }
-#endif /* !OS_IOS */
-
+    callSystemDebug(buf);  /* gnuplot || wgnuplot */
     LEPT_FREE(cmdname);
     return 0;
 }

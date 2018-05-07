@@ -2420,6 +2420,12 @@ callSystemDebug(const char *cmd)
         L_ERROR("cmd not defined\n", procName);
         return;
     }
+
+#ifdef OS_IOS /* iOS 11 does not support system() */
+    L_ERROR("iOS 11 does not support system()\n", procName);
+    return;
+#endif /* OS_IOS */
+
     if (LeptDebugOK == FALSE) {
         L_INFO("'system' calls are disabled\n", procName);
         return;

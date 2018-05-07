@@ -926,6 +926,10 @@ char            fullpath[_MAX_PATH];
         return 0;
     }
 
+#ifdef OS_IOS /* iOS 11 does not support system() */
+    return ERROR_INT("iOS 11 does not support system()", procName, 1);
+#endif /* OS_IOS */
+
     if (dispflag != 1) return 0;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
@@ -1031,9 +1035,7 @@ char            fullpath[_MAX_PATH];
     } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_OPEN) {
         snprintf(buffer, L_BUFSIZE, "open %s &", tempname);
     }
-#ifndef OS_IOS /* iOS 11 does not support system() */
     callSystemDebug(buffer);
-#endif /* !OS_IOS */
 
 #else  /* _WIN32 */
 
