@@ -89,6 +89,31 @@ They are <i>not</i> a complete listing of the modifications.
 
 <pre>
 
+1.76.1  To be released
+        Here is the current status of CVE issues with leptonica; see
+          https://security-tracker.debian.org/tracker/source-package/leptonlib
+        * CVE-2018-7442: potential injection attack because '/' is allowed
+          in gplot rootdir.
+          Functions using this command have been disabled by default in the 
+          distribution, starting with 1.76.0.  As for the specific issue, it 
+          is impossible to specify a general path without using the standard
+          directory subdivider '/'.
+        * CVE-2018-7186: number of characters not limited in fscanf or sscanf,
+          allowing possible attack with buffer overflow.
+          This has been fixed in 1.75.3.
+        * CVE-2018-3836: command injection vulnerability in gplotMakeOutput().
+          This has been fixed in 1.75.3, using stringCheckForChars() to block
+          rootnames containing any of: ;&|>"?*$()/<
+        * CVE-2017-18196: duplicated path components.
+          This was fixed in 1.75.3.
+        * CVE-2018-7441: hardcoded /tmp pathnames.
+          These are all wrapped in special debug functions that are not
+          enabled by default in the distribution, starting with 1.76.0.
+        * CVE-2018-7247: input 'rootname' can overflow a buffer.
+          This was fixed in 1.76.0, using snprintf().
+        * CVE-2018-7440: command injection in gplotMakeOutput using $(command).
+          Fixed in 1.75.3, which blocks '$' as well as 11 other characters.
+
 1.76.0  1 May 18
         Modify infrastructure to fix outstanding security issues. By default,
           you can no longer create temp directories and temp files whose
