@@ -118,6 +118,7 @@ static const char *tests[] = {
                               "lineremoval_reg",
                               "locminmax_reg",
                               "logicops_reg",
+                              "lowaccess_reg",
                               "maze_reg",
                               "mtiff_reg",
                               "multitype_reg",
