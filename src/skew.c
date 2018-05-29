@@ -366,7 +366,7 @@ PIX       *pixb, *pixd;
  *          Clockwise rotations are positive angles.
  * </pre>
  */
-l_int32
+l_ok
 pixFindSkew(PIX        *pixs,
             l_float32  *pangle,
             l_float32  *pconf)
@@ -410,7 +410,7 @@ pixFindSkew(PIX        *pixs,
  *      (2) Caller must check the return value for validity of the result.
  * </pre>
  */
-l_int32
+l_ok
 pixFindSkewSweep(PIX        *pixs,
                  l_float32  *pangle,
                  l_int32     reduction,
@@ -554,7 +554,7 @@ cleanup:
  *      (4) See also notes in pixFindSkewSweepAndSearchScore()
  * </pre>
  */
-l_int32
+l_ok
 pixFindSkewSweepAndSearch(PIX        *pixs,
                           l_float32  *pangle,
                           l_float32  *pconf,
@@ -608,7 +608,7 @@ pixFindSkewSweepAndSearch(PIX        *pixs,
  *      (4) By default, the shear is about the UL corner.
  * </pre>
  */
-l_int32
+l_ok
 pixFindSkewSweepAndSearchScore(PIX        *pixs,
                                l_float32  *pangle,
                                l_float32  *pconf,
@@ -657,7 +657,7 @@ pixFindSkewSweepAndSearchScore(PIX        *pixs,
  *          loses too much of the image.
  * </pre>
  */
-l_int32
+l_ok
 pixFindSkewSweepAndSearchScorePivot(PIX        *pixs,
                                     l_float32  *pangle,
                                     l_float32  *pconf,
@@ -1101,7 +1101,7 @@ PIX       *pixr;
  *           ~ not more than 5% of the image width
  * </pre>
  */
-l_int32
+l_ok
 pixFindDifferentialSquareSum(PIX        *pixs,
                              l_float32  *psum)
 {
@@ -1174,7 +1174,7 @@ NUMA      *na;
  *      (2) If there are no fg pixels, hratio and vratio are returned as 0.0.
  * </pre>
  */
-l_int32
+l_ok
 pixFindNormalizedSquareSum(PIX        *pixs,
                            l_float32  *phratio,
                            l_float32  *pvratio,

@@ -396,7 +396,7 @@ l_float32  val1, val2;
  *          array, initialized to 0.0, using numaMakeConstant().
  * </pre>
  */
-l_int32
+l_ok
 numaAddToNumber(NUMA      *na,
                 l_int32    index,
                 l_float32  val)
@@ -427,7 +427,7 @@ l_int32  n;
  * \param[out]   piminloc [optional] index of min location
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 numaGetMin(NUMA       *na,
            l_float32  *pminval,
            l_int32    *piminloc)
@@ -469,7 +469,7 @@ l_float32  val, minval;
  * \param[out]   pimaxloc [optional] index of max location
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 numaGetMax(NUMA       *na,
            l_float32  *pmaxval,
            l_int32    *pimaxloc)
@@ -510,7 +510,7 @@ l_float32  val, maxval;
  * \param[out]   psum sum of values
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaGetSum(NUMA       *na,
            l_float32  *psum)
 {
@@ -582,7 +582,7 @@ NUMA      *nasum;
  * \param[out]   psum sum of values in the index interval range
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaGetSumOnInterval(NUMA       *na,
                      l_int32     first,
                      l_int32     last,
@@ -628,7 +628,7 @@ l_float32  val, sum;
  *          this samples no more than %maxsamples.
  * </pre>
  */
-l_int32
+l_ok
 numaHasOnlyIntegers(NUMA     *na,
                     l_int32   maxsamples,
                     l_int32  *pallints)
@@ -947,7 +947,7 @@ NUMA       *nad;
  * \param[out]   pcount  number of nonzero runs
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaCountNonzeroRuns(NUMA     *na,
                      l_int32  *pcount)
 {
@@ -986,7 +986,7 @@ l_int32  n, i, val, count, inrun;
  *                             where values are nonzero
  * \return  0 if OK, 1 on error or if no nonzero range is found.
  */
-l_int32
+l_ok
 numaGetNonzeroRange(NUMA      *na,
                     l_float32  eps,
                     l_int32   *pfirst,
@@ -1037,7 +1037,7 @@ l_float32  val;
  * \param[out]   pcount count of values of given type
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaGetCountRelativeToZero(NUMA     *na,
                            l_int32   type,
                            l_int32  *pcount)
@@ -1598,7 +1598,7 @@ l_int32  n, nedges;
  *
  * </pre>
  */
-l_int32
+l_ok
 numaInterpolateEqxVal(l_float32   startx,
                       l_float32   deltax,
                       NUMA       *nay,
@@ -1691,7 +1691,7 @@ l_float32  *fa;
  *          for formulas.
  * </pre>
  */
-l_int32
+l_ok
 numaInterpolateArbxVal(NUMA       *nax,
                        NUMA       *nay,
                        l_int32     type,
@@ -1808,7 +1808,7 @@ l_float32  *fax, *fay;
  *          output interpolated array nay.
  * </pre>
  */
-l_int32
+l_ok
 numaInterpolateEqxInterval(l_float32  startx,
                            l_float32  deltax,
                            NUMA      *nasy,
@@ -1896,7 +1896,7 @@ NUMA       *nax, *nay;
  *          for formulas.
  * </pre>
  */
-l_int32
+l_ok
 numaInterpolateArbxInterval(NUMA       *nax,
                             NUMA       *nay,
                             l_int32     type,
@@ -2057,7 +2057,7 @@ NUMA       *nasx, *nasy, *nadx, *nady;
  *       y'(x) = 2x(c1+c2+c3) - c1(x2+x3) - c2(x1+x3) - c3(x1+x2) = 0
  * </pre>
  */
-l_int32
+l_ok
 numaFitMax(NUMA       *na,
            l_float32  *pmaxval,
            NUMA       *naloc,
@@ -2162,7 +2162,7 @@ l_float32  x1, x2, x3, y1, y2, y3, c1, c2, c3, a, b, xmax, ymax;
  *      (2) Caller should check for valid return.
  * </pre>
  */
-l_int32
+l_ok
 numaDifferentiateInterval(NUMA       *nax,
                           NUMA       *nay,
                           l_float32   x0,
@@ -2245,7 +2245,7 @@ NUMA       *nady, *naiy;
  *      (2) Caller should check for valid return.
  * </pre>
  */
-l_int32
+l_ok
 numaIntegrateInterval(NUMA       *nax,
                       NUMA       *nay,
                       l_float32   x0,
@@ -2350,7 +2350,7 @@ NUMA       *naiy;
  *              na[i] = nasort[nainvert[i]]
  * </pre>
  */
-l_int32
+l_ok
 numaSortGeneral(NUMA    *na,
                 NUMA   **pnasort,
                 NUMA   **pnaindex,
@@ -2855,7 +2855,7 @@ l_float32  prevval, val;
  *          together, using nax as the key for sorting.
  * </pre>
  */
-l_int32
+l_ok
 numaSortPair(NUMA    *nax,
              NUMA    *nay,
              l_int32  sortorder,
@@ -3061,7 +3061,7 @@ NUMA      *naindex, *nad;
  *          instead of O(nlogn) for general sort routines.
  * </pre>
  */
-l_int32
+l_ok
 numaGetRankValue(NUMA       *na,
                  l_float32   fract,
                  NUMA       *nasort,
@@ -3115,7 +3115,7 @@ NUMA    *nas;
  *          sorting and finding the middle value in the sorted array.
  * </pre>
  */
-l_int32
+l_ok
 numaGetMedian(NUMA       *na,
               l_float32  *pval)
 {
@@ -3146,7 +3146,7 @@ numaGetMedian(NUMA       *na,
  *          this should be used.  Otherwise, use numaGetMedian().
  * </pre>
  */
-l_int32
+l_ok
 numaGetBinnedMedian(NUMA     *na,
                     l_int32  *pval)
 {
@@ -3183,7 +3183,7 @@ l_float32  fval;
  *      (2) Optionally, also returns that count.
  * </pre>
  */
-l_int32
+l_ok
 numaGetMode(NUMA       *na,
             l_float32  *pval,
             l_int32    *pcount)
@@ -3262,7 +3262,7 @@ NUMA       *nasort;
  *          and this is not useful.
  * </pre>
  */
-l_int32
+l_ok
 numaGetMedianVariation(NUMA       *na,
                        l_float32  *pmedval,
                        l_float32  *pmedvar)
@@ -3315,7 +3315,7 @@ NUMA      *navar;
  *      (3) if nas == NULL, this is a no-op
  * </pre>
  */
-l_int32
+l_ok
 numaJoin(NUMA    *nad,
          NUMA    *nas,
          l_int32  istart,
@@ -3364,7 +3364,7 @@ l_float32  val;
  *      (3) if naas == NULL, this is a no-op
  * </pre>
  */
-l_int32
+l_ok
 numaaJoin(NUMAA   *naad,
           NUMAA   *naas,
           l_int32  istart,

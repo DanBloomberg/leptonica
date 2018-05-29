@@ -513,7 +513,7 @@ PIXCMAP     *cmap;
  *          When a gray+alpha is read, it is converted to 32 bpp RGBA.
  * </pre>
  */
-l_int32
+l_ok
 readHeaderPng(const char *filename,
               l_int32    *pw,
               l_int32    *ph,
@@ -557,7 +557,7 @@ FILE    *fp;
  *      (1) See readHeaderPng().  We only need the first 40 bytes in the file.
  * </pre>
  */
-l_int32
+l_ok
 freadHeaderPng(FILE     *fp,
                l_int32  *pw,
                l_int32  *ph,
@@ -614,7 +614,7 @@ l_uint8  data[40];
  *            4 and 6 have separate alpha samples with each pixel.
  * </pre>
  */
-l_int32
+l_ok
 readHeaderMemPng(const l_uint8  *data,
                  size_t          size,
                  l_int32        *pw,
@@ -757,7 +757,7 @@ png_infop    info_ptr;
  * \param[out]   pinterlaced 1 if interlaced png; 0 otherwise
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 isPngInterlaced(const char *filename,
                 l_int32    *pinterlaced)
 {
@@ -902,7 +902,7 @@ png_infop    info_ptr;
  *          When using pixWrite(), no field is given for gamma.
  * </pre>
  */
-l_int32
+l_ok
 pixWritePng(const char  *filename,
             PIX         *pix,
             l_float32    gamma)
@@ -1002,7 +1002,7 @@ FILE  *fp;
  *          to a 4 spp rgba image.
  * </pre>
  */
-l_int32
+l_ok
 pixWriteStreamPng(FILE      *fp,
                   PIX       *pix,
                   l_float32  gamma)
@@ -1246,7 +1246,7 @@ char        *text;
  *          compression integers given above, you must include zlib.h.
  * </pre>
  */
-l_int32
+l_ok
 pixSetZlibCompression(PIX     *pix,
                       l_int32  compval)
 {
@@ -1851,7 +1851,7 @@ MEMIODATA    state;
  *      (1) See pixWriteStreamPng()
  * </pre>
  */
-l_int32
+l_ok
 pixWriteMemPng(l_uint8  **pfiledata,
                size_t    *pfilesize,
                PIX       *pix,

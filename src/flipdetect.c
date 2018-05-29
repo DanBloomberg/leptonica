@@ -366,7 +366,7 @@ PIX       *pix1;
  *      (7) Uses rasterop implementation of HMT.
  * </pre>
  */
-l_int32
+l_ok
 pixOrientDetect(PIX        *pixs,
                 l_float32  *pupconf,
                 l_float32  *pleftconf,
@@ -427,7 +427,7 @@ PIX  *pix1;
  *            L_TEXT_ORIENT_RIGHT:    landscape, text up facing right
  * </pre>
  */
-l_int32
+l_ok
 makeOrientDecision(l_float32  upconf,
                    l_float32  leftconf,
                    l_float32  minupconf,
@@ -506,7 +506,7 @@ l_float32  absupconf, absleftconf;
  *          and not rotated at a 90 degree angle.
  * </pre>
  */
-l_int32
+l_ok
 pixUpDownDetect(PIX        *pixs,
                 l_float32  *pconf,
                 l_int32     mincount,
@@ -554,7 +554,7 @@ pixUpDownDetect(PIX        *pixs,
  *          is going too far -- components will get merged.
  * </pre>
  */
-l_int32
+l_ok
 pixUpDownDetectGeneral(PIX        *pixs,
                        l_float32  *pconf,
                        l_int32     mincount,
@@ -695,7 +695,7 @@ SEL       *sel1, *sel2, *sel3, *sel4;
  *      (3) This runs about 2.5 times faster than the pixOrientDetect().
  * </pre>
  */
-l_int32
+l_ok
 pixOrientDetectDwa(PIX        *pixs,
                    l_float32  *pupconf,
                    l_float32  *pleftconf,
@@ -748,7 +748,7 @@ PIX  *pix1;
  *          and not rotated at a 90 degree angle.
  * </pre>
  */
-l_int32
+l_ok
 pixUpDownDetectDwa(PIX       *pixs,
                   l_float32  *pconf,
                   l_int32     mincount,
@@ -773,7 +773,7 @@ pixUpDownDetectDwa(PIX       *pixs,
  *      (1) See the notes in pixUpDownDetectGeneral() for usage.
  * </pre>
  */
-l_int32
+l_ok
 pixUpDownDetectGeneralDwa(PIX        *pixs,
                           l_float32  *pconf,
                           l_int32     mincount,
@@ -930,7 +930,7 @@ PIX       *pixt, *pix0, *pix1, *pix2, *pix3, *pixm;
  *          of morphology!
  * </pre>
  */
-l_int32
+l_ok
 pixMirrorDetect(PIX        *pixs,
                 l_float32  *pconf,
                 l_int32     mincount,
@@ -1021,7 +1021,7 @@ SEL       *sel1, *sel2;
  *      (2) See notes in pixMirrorDetect().
  * </pre>
  */
-l_int32
+l_ok
 pixMirrorDetectDwa(PIX        *pixs,
                    l_float32  *pconf,
                    l_int32     mincount,

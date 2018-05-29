@@ -680,7 +680,7 @@ PIXA    *pixa;
  *        of the Sel used to align pixp with pixs.
  * </pre>
  */
-l_int32
+l_ok
 pixRemoveMatchedPattern(PIX     *pixs,
                         PIX     *pixp,
                         PIX     *pixe,
@@ -1523,7 +1523,7 @@ PTA       *pta;
  *          after use.
  * </pre>
  */
-l_int32
+l_ok
 pixCentroid(PIX        *pix,
             l_int32    *centtab,
             l_int32    *sumtab,

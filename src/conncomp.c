@@ -383,7 +383,7 @@ cleanup:
  *     2 It works on a copy of the input pix.  The c.c. are located
  *         in raster order and erased one at a time.
  */
-l_int32
+l_ok
 pixCountConnComp(PIX      *pixs,
                  l_int32   connectivity,
                  l_int32  *pcount)
@@ -840,7 +840,7 @@ BOX       *box;
  *      (2) See pixSeedfill4() and pixSeedfill8() for details.
  * </pre>
  */
-l_int32
+l_ok
 pixSeedfill(PIX      *pixs,
             L_STACK  *stack,
             l_int32   x,
@@ -884,7 +884,7 @@ l_int32  retval;
  *      (3) Reference: see pixSeedFill4BB()
  * </pre>
  */
-l_int32
+l_ok
 pixSeedfill4(PIX      *pixs,
              L_STACK  *stack,
              l_int32   x,
@@ -978,7 +978,7 @@ l_uint32  *data, *line;
  *      (3) Reference: see pixSeedFill8BB()
  * </pre>
  */
-l_int32
+l_ok
 pixSeedfill8(PIX      *pixs,
              L_STACK  *stack,
              l_int32   x,

@@ -71,7 +71,7 @@ static const l_int32  MAX_JP2K_HEIGHT = 100000;
  * \param[out]   pspp [optional]  samples/pixel
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 readHeaderJp2k(const char *filename,
                l_int32    *pw,
                l_int32    *ph,
@@ -108,7 +108,7 @@ FILE    *fp;
  * \param[out]   pspp [optional]  samples/pixel
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 freadHeaderJp2k(FILE     *fp,
                 l_int32  *pw,
                 l_int32  *ph,
@@ -163,7 +163,7 @@ l_int32  nread;
  *               bps:  1 byte   (contains bps - 1)
  * </pre>
  */
-l_int32
+l_ok
 readHeaderMemJp2k(const l_uint8  *data,
                   size_t          size,
                   l_int32        *pw,

@@ -92,7 +92,7 @@ static void printRowIndices(l_int32 *index1, l_int32 n1,
  *          for debugging)
  * </pre>
  */
-l_int32
+l_ok
 jbCorrelation(const char  *dirin,
               l_float32    thresh,
               l_float32    weight,
@@ -174,7 +174,7 @@ SARRAY     *safiles;
  *          for debugging)
  * </pre>
  */
-l_int32
+l_ok
 jbRankHaus(const char  *dirin,
            l_int32      size,
            l_float32    rank,
@@ -374,7 +374,7 @@ SARRAY     *safiles;
  *          to generate tall components that will be eliminated in pixf.
  * </pre>
  */
-l_int32
+l_ok
 pixGetWordsInTextlines(PIX     *pixs,
                        l_int32  minwidth,
                        l_int32  minheight,
@@ -449,7 +449,7 @@ PIXAA   *paa;
  *          See pixGetWordsInTextlines() for more details.
  * </pre>
  */
-l_int32
+l_ok
 pixGetWordBoxesInTextlines(PIX     *pixs,
                            l_int32  minwidth,
                            l_int32  minheight,
@@ -599,7 +599,7 @@ NUMAA   *naa;
  *              than (%delx, %dely).
  * </pre>
  */
-l_int32
+l_ok
 numaaCompareImagesByBoxes(NUMAA    *naa1,
                           NUMAA    *naa2,
                           l_int32   nperline,

@@ -524,7 +524,7 @@ BOXA  *boxad;
  * \param[in]    size matrix is %size x %size; vectors are length %size
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 l_productMatVec(l_float32  *mat,
                 l_float32  *vecs,
                 l_float32  *vecd,
@@ -560,7 +560,7 @@ l_int32  i, j;
  * \param[in]    size of matrices
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 l_productMat2(l_float32  *mat1,
               l_float32  *mat2,
               l_float32  *matd,
@@ -599,7 +599,7 @@ l_int32  i, j, k, index;
  * \param[in]    size  of matrices
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 l_productMat3(l_float32  *mat1,
               l_float32  *mat2,
               l_float32  *mat3,
@@ -640,7 +640,7 @@ l_float32  *matt;
  * \param[in]    size  of matrices
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 l_productMat4(l_float32  *mat1,
               l_float32  *mat2,
               l_float32  *mat3,

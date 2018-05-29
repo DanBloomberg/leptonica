@@ -427,7 +427,7 @@ PIX      *pix;
  *          from which we extract the "header" information.
  * </pre>
  */
-l_int32
+l_ok
 pixReadHeader(const char  *filename,
               l_int32     *pformat,
               l_int32     *pw,
@@ -564,7 +564,7 @@ PIX     *pix;
  * \param[out]   pformat    found format
  * \return  0 if OK, 1 on error or if format is not recognized
  */
-l_int32
+l_ok
 findFileFormat(const char  *filename,
                l_int32     *pformat)
 {
@@ -599,7 +599,7 @@ FILE    *fp;
  *      (1) Important: Side effect -- this resets fp to BOF.
  * </pre>
  */
-l_int32
+l_ok
 findFileFormatStream(FILE     *fp,
                      l_int32  *pformat)
 {
@@ -650,7 +650,7 @@ l_int32  format;
  *          compression is then determined using findTiffCompression().
  * </pre>
  */
-l_int32
+l_ok
 findFileFormatBuffer(const l_uint8  *buf,
                      l_int32        *pformat)
 {
@@ -944,7 +944,7 @@ PIX     *pix;
  *          the format, which we require.
  * </pre>
  */
-l_int32
+l_ok
 pixReadHeaderMem(const l_uint8  *data,
                  size_t          size,
                  l_int32        *pformat,
@@ -1090,7 +1090,7 @@ extern const char *ImageFileFormatExtensions[];
  *          var_PNG_STRIP_16_TO_8 to 1 (the default).
  * </pre>
  */
-l_int32
+l_ok
 writeImageFileInfo(const char  *filename,
                    FILE        *fpout,
                    l_int32      headeronly)
@@ -1258,7 +1258,7 @@ PIXCMAP  *cmap;
  *          or HAVE_LIBTIFF are 0, respectively.
  * </pre>
  */
-l_int32
+l_ok
 ioFormatTest(const char  *filename)
 {
 l_int32    w, h, d, depth, equal, problems;

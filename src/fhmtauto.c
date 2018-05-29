@@ -203,7 +203,7 @@ static char wplstrm[][10] = {"- wpls", "- wpls2", "- wpls3", "- wpls4",
  *      (2) See fhmtautogen1() and fhmtautogen2() for details.
  * </pre>
  */
-l_int32
+l_ok
 fhmtautogen(SELA        *sela,
             l_int32      fileindex,
             const char  *filename)
@@ -245,7 +245,7 @@ l_int32  ret1, ret2;
  *          generates code that will abort the operation if it is called.
  * </pre>
  */
-l_int32
+l_ok
 fhmtautogen1(SELA        *sela,
              l_int32      fileindex,
              const char  *filename)
@@ -427,7 +427,7 @@ SARRAY  *sa1, *sa2, *sa3;
  *      (4) If filename != NULL, the output file is <filename>low.<n>.c.
  * </pre>
  */
-l_int32
+l_ok
 fhmtautogen2(SELA        *sela,
              l_int32      fileindex,
              const char  *filename)

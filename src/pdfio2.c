@@ -178,7 +178,7 @@ static l_int32   var_WRITE_DATE_AND_VERSION = 1;
  *      (3) See comments in convertToPdf().
  * </pre>
  */
-l_int32
+l_ok
 pixConvertToPdfData(PIX          *pix,
                     l_int32       type,
                     l_int32       quality,
@@ -303,7 +303,7 @@ L_PDF_DATA   *lpd = NULL;
  *          this parent.
  * </pre>
  */
-l_int32
+l_ok
 ptraConcatenatePdfToData(L_PTRA    *pa_data,
                          SARRAY    *sa,
                          l_uint8  **pdata,
@@ -467,7 +467,7 @@ NUMAA    *naa_objs;  /* object mapping numbers to new values */
  *          convertTiffMultipageToPS()
  * </pre>
  */
-l_int32
+l_ok
 convertTiffMultipageToPdf(const char  *filein,
                           const char  *fileout)
 {
@@ -516,7 +516,7 @@ FILE    *fp;
  *          in the future.
  * </pre>
  */
-l_int32
+l_ok
 l_generateCIDataForPdf(const char    *fname,
                        PIX           *pix,
                        l_int32        quality,
@@ -939,7 +939,7 @@ L_COMP_DATA  *cid;
  *          the format and attempts to generate the CID without transcoding.
  * </pre>
  */
-l_int32
+l_ok
 l_generateCIData(const char    *fname,
                  l_int32        type,
                  l_int32        quality,
@@ -1035,7 +1035,7 @@ PIX          *pix;
  *           ~ 1 for ascii85 (5 for 4) encoded binary data
  * </pre>
  */
-l_int32
+l_ok
 pixGenerateCIData(PIX           *pixs,
                   l_int32        type,
                   l_int32        quality,
@@ -1423,7 +1423,7 @@ FILE         *fp;
  *          lpd and destroyed by this function.
  * </pre>
  */
-l_int32
+l_ok
 cidConvertToPdfData(L_COMP_DATA  *cid,
                     const char   *title,
                     l_uint8     **pdata,

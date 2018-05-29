@@ -273,7 +273,7 @@ DLLIST  *elem, *next, *head;
  *          before calling this function.
  * </pre>
  */
-l_int32
+l_ok
 listAddToHead(DLLIST  **phead,
               void     *data)
 {
@@ -327,7 +327,7 @@ DLLIST  *cell, *head;
  *               will be found and updated.
  * </pre>
  */
-l_int32
+l_ok
 listAddToTail(DLLIST  **phead,
               DLLIST  **ptail,
               void     *data)
@@ -389,7 +389,7 @@ DLLIST  *cell, *head, *tail;
  *
  * </pre>
  */
-l_int32
+l_ok
 listInsertBefore(DLLIST  **phead,
                  DLLIST   *elem,
                  void     *data)
@@ -452,7 +452,7 @@ DLLIST  *cell, *head;
  *            L_END_LIST
  * </pre>
  */
-l_int32
+l_ok
 listInsertAfter(DLLIST  **phead,
                 DLLIST   *elem,
                 void     *data)
@@ -744,7 +744,7 @@ DLLIST  *elem;
  *      (1) This reverses the list in-place.
  * </pre>
  */
-l_int32
+l_ok
 listReverse(DLLIST  **phead)
 {
 void    *obj;  /* whatever */
@@ -781,7 +781,7 @@ DLLIST  *head, *rhead;
  *      (2) Both input ptrs must exist, though either can have the value NULL.
  * </pre>
  */
-l_int32
+l_ok
 listJoin(DLLIST  **phead1,
          DLLIST  **phead2)
 {

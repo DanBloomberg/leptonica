@@ -758,7 +758,7 @@ L_DEWARPA  *dewa;
  * \param[in]    pageno of dew to be destroyed
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 dewarpaDestroyDewarp(L_DEWARPA  *dewa,
                      l_int32     pageno)
 {
@@ -801,7 +801,7 @@ L_DEWARP   *dew;
  *          allocation.
  * </pre>
  */
-l_int32
+l_ok
 dewarpaInsertDewarp(L_DEWARPA  *dewa,
                     L_DEWARP   *dew)
 {
@@ -962,7 +962,7 @@ dewarpaGetDewarp(L_DEWARPA  *dewa,
  *          about 100 micro-units should probably not be used.
  * </pre>
  */
-l_int32
+l_ok
 dewarpaSetCurvatures(L_DEWARPA  *dewa,
                      l_int32     max_linecurv,
                      l_int32     min_diff_linecurv,
@@ -1026,7 +1026,7 @@ dewarpaSetCurvatures(L_DEWARPA  *dewa,
  *          always be valid.
  * </pre>
  */
-l_int32
+l_ok
 dewarpaUseBothArrays(L_DEWARPA  *dewa,
                      l_int32     useboth)
 {
@@ -1064,7 +1064,7 @@ dewarpaUseBothArrays(L_DEWARPA  *dewa,
  *           - check_columns = 0 (FALSE)
  * </pre>
  */
-l_int32
+l_ok
 dewarpaSetCheckColumns(L_DEWARPA  *dewa,
                        l_int32     check_columns)
 {
@@ -1090,7 +1090,7 @@ dewarpaSetCheckColumns(L_DEWARPA  *dewa,
  *      (1) This sets the maxdist field.
  * </pre>
  */
-l_int32
+l_ok
 dewarpaSetMaxDistance(L_DEWARPA  *dewa,
                       l_int32     maxdist)
 {
@@ -1287,7 +1287,7 @@ L_DEWARP  *dew;
  * \param[in]    dew
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 dewarpWrite(const char  *filename,
             L_DEWARP    *dew)
 {
@@ -1325,7 +1325,7 @@ FILE    *fp;
  *          been built for this page.
  * </pre>
  */
-l_int32
+l_ok
 dewarpWriteStream(FILE      *fp,
                   L_DEWARP  *dew)
 {
@@ -1381,7 +1381,7 @@ l_int32  vdispar, hdispar;
  *      (1) Serializes a dewarp in memory and puts the result in a buffer.
  * </pre>
  */
-l_int32
+l_ok
 dewarpWriteMem(l_uint8  **pdata,
                size_t    *psize,
                L_DEWARP  *dew)
@@ -1568,7 +1568,7 @@ L_DEWARPA  *dewa;
  * \param[in]    dewa
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 dewarpaWrite(const char  *filename,
              L_DEWARPA   *dewa)
 {
@@ -1599,7 +1599,7 @@ FILE    *fp;
  * \param[in]    dewa
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 dewarpaWriteStream(FILE       *fp,
                    L_DEWARPA  *dewa)
 {
@@ -1655,7 +1655,7 @@ l_int32  ndewarp, i, pageno;
  *      (1) Serializes a dewarpa in memory and puts the result in a buffer.
  * </pre>
  */
-l_int32
+l_ok
 dewarpaWriteMem(l_uint8   **pdata,
                 size_t     *psize,
                 L_DEWARPA  *dewa)

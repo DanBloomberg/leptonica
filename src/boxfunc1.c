@@ -95,7 +95,7 @@ static l_int32 boxGetDistanceInXorY(l_int32 c1, l_int32 s1, l_int32 c2,
  *                       box1, and 0 otherwise
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxContains(BOX     *box1,
             BOX     *box2,
             l_int32 *presult)
@@ -126,7 +126,7 @@ l_int32  x1, y1, w1, h1, x2, y2, w2, h2;
  *                      in box1, and 0 otherwise
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxIntersects(BOX      *box1,
               BOX      *box2,
               l_int32  *presult)
@@ -206,7 +206,7 @@ BOXA    *boxad;
  * \param[out]   pcount   number of boxes intersecting the box
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaContainedInBoxCount(BOXA     *boxa,
                         BOX      *box,
                         l_int32  *pcount)
@@ -245,7 +245,7 @@ BOX     *box1;
  *                              some box in boxa1; 0 otherwise
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaContainedInBoxa(BOXA     *boxa1,
                     BOXA     *boxa2,
                     l_int32  *pcontained)
@@ -336,7 +336,7 @@ BOXA    *boxad;
  * \param[out]   pcount   number of boxes intersecting the box
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaIntersectsBoxCount(BOXA     *boxa,
                        BOX      *box,
                        l_int32  *pcount)
@@ -532,7 +532,7 @@ PIX     *pix1;
  *          to have only one operation on any rectangular region.
  * </pre>
  */
-l_int32
+l_ok
 boxaCombineOverlapsInPair(BOXA   *boxas1,
                           BOXA   *boxas2,
                           BOXA  **pboxad1,
@@ -752,7 +752,7 @@ l_int32  l1, l2, r1, r2, t1, t2, b1, b2, w1, h1, w2, h2, ld, td, rd, bd;
  *          because the overlap is taken as a fraction of box2.
  * </pre>
  */
-l_int32
+l_ok
 boxOverlapFraction(BOX        *box1,
                    BOX        *box2,
                    l_float32  *pfract)
@@ -788,7 +788,7 @@ BOX     *boxo;
  * \param[out]   parea the number of pixels in the overlap
  * \return  0 if OK, 1 on error.
  */
-l_int32
+l_ok
 boxOverlapArea(BOX      *box1,
                BOX      *box2,
                l_int32  *parea)
@@ -969,7 +969,7 @@ NUMA      *namap;
  *          a distance d, the returned separation is -d.
  * </pre>
  */
-l_int32
+l_ok
 boxSeparationDistance(BOX      *box1,
                       BOX      *box2,
                       l_int32  *ph_sep,
@@ -1025,7 +1025,7 @@ l_int32  l1, t1, w1, h1, r1, b1, l2, t2, w2, h2, r2, b2;
  *      (1) We're re-using the SORT enum for these comparisons.
  * </pre>
  */
-l_int32
+l_ok
 boxCompareSize(BOX      *box1,
                BOX      *box2,
                l_int32   type,
@@ -1076,7 +1076,7 @@ l_int32  w1, h1, w2, h2, size1, size2;
  * \param[out]   pcontains 1 if box contains point; 0 otherwise
  * \return  0 if OK, 1 on error.
  */
-l_int32
+l_ok
 boxContainsPt(BOX       *box,
               l_float32  x,
               l_float32  y,
@@ -1220,7 +1220,7 @@ BOX       *box;
  *          and %range.
  * </pre>
  */
-l_int32
+l_ok
 boxaFindNearestBoxes(BOXA     *boxa,
                      l_int32   dist_select,
                      l_int32   range,
@@ -1301,7 +1301,7 @@ NUMAA   *naai, *naad;
  *          directions.
  * </pre>
  */
-l_int32
+l_ok
 boxaGetNearestByDirection(BOXA     *boxa,
                           l_int32   i,
                           l_int32   dir,
@@ -1440,7 +1440,7 @@ l_int32  dist;
  * \param[out]   pcx, pcy location of center of box
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxGetCenter(BOX        *box,
              l_float32  *pcx,
              l_float32  *pcy)
@@ -1481,7 +1481,7 @@ l_int32  x, y, w, h;
  *      (2) Represent a vertical line by one with a large but finite slope.
  * </pre>
  */
-l_int32
+l_ok
 boxIntersectByLine(BOX       *box,
                    l_int32    x,
                    l_int32    y,
@@ -1640,7 +1640,7 @@ BOX  *boxd;
  *                     ....
  * </pre>
  */
-l_int32
+l_ok
 boxClipToRectangleParams(BOX      *box,
                          l_int32   w,
                          l_int32   h,
@@ -2053,7 +2053,7 @@ BOX     *box;
  * \param[out]   psame 1 if equal; 0 otherwise
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxEqual(BOX      *box1,
          BOX      *box2,
          l_int32  *psame)
@@ -2100,7 +2100,7 @@ boxEqual(BOX      *box1,
  *          boxa are equal.
  * </pre>
  */
-l_int32
+l_ok
 boxaEqual(BOXA     *boxa1,
           BOXA     *boxa2,
           l_int32   maxdist,
@@ -2179,7 +2179,7 @@ NUMA     *na;
  *          pairs differ by more than this amount, the boxes are not similar.
  * </pre>
  */
-l_int32
+l_ok
 boxSimilar(BOX      *box1,
            BOX      *box2,
            l_int32   leftdiff,
@@ -2234,7 +2234,7 @@ l_int32  l1, l2, r1, r2, t1, t2, b1, b2;
  *          after failure.
  * </pre>
  */
-l_int32
+l_ok
 boxaSimilar(BOXA     *boxa1,
             BOXA     *boxa2,
             l_int32   leftdiff,
@@ -2308,7 +2308,7 @@ BOX     *box1, *box2;
  *      (4) if boxas == NULL or has no boxes, this is a no-op.
  * </pre>
  */
-l_int32
+l_ok
 boxaJoin(BOXA    *boxad,
          BOXA    *boxas,
          l_int32  istart,
@@ -2357,7 +2357,7 @@ BOX     *box;
  *      (4) if baas == NULL, this is a no-op.
  * </pre>
  */
-l_int32
+l_ok
 boxaaJoin(BOXAA   *baad,
           BOXAA   *baas,
           l_int32  istart,
@@ -2407,7 +2407,7 @@ BOXA    *boxa;
  *      (2) If %fillflag == 0, boxae has only copies of the even boxes.
  * </pre>
  */
-l_int32
+l_ok
 boxaSplitEvenOdd(BOXA    *boxa,
                  l_int32  fillflag,
                  BOXA   **pboxae,

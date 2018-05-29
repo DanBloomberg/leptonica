@@ -75,7 +75,7 @@
  *      (3) if das == NULL, this is a no-op
  * </pre>
  */
-l_int32
+l_ok
 l_dnaJoin(L_DNA   *dad,
           L_DNA   *das,
           l_int32  istart,

@@ -151,7 +151,7 @@ static BOXA *findTileRegionsForSearch(BOX *box, l_int32 w, l_int32 h,
  *          for when we use rasterop to do the painting.
  * </pre>
  */
-l_int32
+l_ok
 pixSetMasked(PIX      *pixd,
              PIX      *pixm,
              l_uint32  val)
@@ -290,7 +290,7 @@ l_uint32  *datad, *datam, *lined, *linem;
  *          in pixd.  It's somewhat baroque, but I found it amusing.
  * </pre>
  */
-l_int32
+l_ok
 pixSetMaskedGeneral(PIX      *pixd,
                     PIX      *pixm,
                     l_uint32  val,
@@ -370,7 +370,7 @@ PIX       *pixmu, *pixc;
  *          is actually faster!
  * </pre>
  */
-l_int32
+l_ok
 pixCombineMasked(PIX  *pixd,
                  PIX  *pixs,
                  PIX  *pixm)
@@ -489,7 +489,7 @@ PIX       *pixt;
  *             pixDestroy(&pixm8);
  * </pre>
  */
-l_int32
+l_ok
 pixCombineMaskedGeneral(PIX      *pixd,
                         PIX      *pixs,
                         PIX      *pixm,
@@ -614,7 +614,7 @@ PIX       *pixt;
  *          same and the compiler can correctly predict the jump.
  * </pre>
  */
-l_int32
+l_ok
 pixPaintThroughMask(PIX      *pixd,
                     PIX      *pixm,
                     l_int32   x,
@@ -782,7 +782,7 @@ l_uint32  *data, *datam, *line, *linem;
  *          edge, to blur the transition between painted and original pixels.
  * </pre>
  */
-l_int32
+l_ok
 pixPaintSelfThroughMask(PIX      *pixd,
                         PIX      *pixm,
                         l_int32   x,
@@ -1287,7 +1287,7 @@ PIX     *pix1, *pixd;
  *          background of the mask image.
  * </pre>
  */
-l_int32
+l_ok
 pixGetColorNearMaskBoundary(PIX       *pixs,
                             PIX       *pixm,
                             BOX       *box,
@@ -1698,7 +1698,7 @@ l_int32  w, h;
  *          is ignored.
  * </pre>
  */
-l_int32
+l_ok
 pixZero(PIX      *pix,
         l_int32  *pempty)
 {
@@ -1748,7 +1748,7 @@ l_uint32  *data, *line;
  * \param[out]   pfract fraction of ON pixels
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixForegroundFraction(PIX        *pix,
                       l_float32  *pfract)
 {
@@ -1820,7 +1820,7 @@ PIX      *pix;
  * \param[in]    tab8     [optional] 8-bit pixel lookup table
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixCountPixels(PIX      *pixs,
                l_int32  *pcount,
                l_int32  *tab8)
@@ -1884,7 +1884,7 @@ l_uint32  *data;
  * \param[in]    tab8     [optional] 8-bit pixel lookup table
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixCountPixelsInRect(PIX      *pixs,
                      BOX      *box,
                      l_int32  *pcount,
@@ -2101,7 +2101,7 @@ NUMA       *na;
  * \param[in]    tab8  [optional] 8-bit pixel lookup table
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixCountPixelsInRow(PIX      *pix,
                     l_int32   row,
                     l_int32  *pcount,
@@ -2222,7 +2222,7 @@ NUMA       *na;
  *          pixels before returning.
  * </pre>
  */
-l_int32
+l_ok
 pixThresholdPixelSum(PIX      *pix,
                      l_int32   thresh,
                      l_int32  *pabove,
@@ -2531,7 +2531,7 @@ NUMA       *na;
  * \param[out]   pave average of pixel values in region
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixAverageInRect(PIX        *pix,
                  BOX        *box,
                  l_float32  *pave)
@@ -2720,7 +2720,7 @@ NUMA       *na;
  * \param[out]   prootvar sqrt variance of pixel values in region
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixVarianceInRect(PIX        *pix,
                   BOX        *box,
                   l_float32  *prootvar)
@@ -2921,7 +2921,7 @@ NUMA      *na;
  *             column:  dir == L_VERTICAL_LINE
  * </pre>
  */
-l_int32
+l_ok
 pixAbsDiffInRect(PIX        *pix,
                  BOX        *box,
                  l_int32     dir,
@@ -2998,7 +2998,7 @@ l_float64  norm, sum;
  *      (2) If horizontal, require x1 < x2; if vertical, require y1 < y2.
  * </pre>
  */
-l_int32
+l_ok
 pixAbsDiffOnLine(PIX        *pix,
                  l_int32     x1,
                  l_int32     y1,
@@ -3233,7 +3233,7 @@ PIX      *pixd, *pixsfx, *pixsfy, *pixsfxy, *pix;
  *          the height of %box and %tsize, with the 50% overlap..
  * </pre>
  */
-l_int32
+l_ok
 pixFindRepCloseTile(PIX     *pixs,
                     BOX     *box,
                     l_int32  searchdir,

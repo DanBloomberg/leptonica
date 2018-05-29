@@ -239,7 +239,7 @@ static char wplstrm[][10] = {"- wpls", "- wpls2", "- wpls3", "- wpls4",
  *      (2) See fmorphautogen1() and fmorphautogen2() for details.
  * </pre>
  */
-l_int32
+l_ok
 fmorphautogen(SELA        *sela,
               l_int32      fileindex,
               const char  *filename)
@@ -279,7 +279,7 @@ l_int32  ret1, ret2;
  *      (4) If filename != NULL, the output file is <filename>.<n>.c.
  * </pre>
  */
-l_int32
+l_ok
 fmorphautogen1(SELA        *sela,
                l_int32      fileindex,
                const char  *filename)

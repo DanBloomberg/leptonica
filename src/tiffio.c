@@ -650,7 +650,7 @@ PIXCMAP   *cmap;
  *          with the number of images in the file.
  * </pre>
  */
-l_int32
+l_ok
 pixWriteTiff(const char  *filename,
              PIX         *pix,
              l_int32      comptype,
@@ -707,7 +707,7 @@ pixWriteTiff(const char  *filename,
  *              extra size value, stored in nasizes, they must be
  *              written first!
  */
-l_int32
+l_ok
 pixWriteTiffCustom(const char  *filename,
                    PIX         *pix,
                    l_int32      comptype,
@@ -766,7 +766,7 @@ TIFF    *tif;
  *          regions, it is usually better to compress with png.
  * </pre>
  */
-l_int32
+l_ok
 pixWriteStreamTiff(FILE    *fp,
                    PIX     *pix,
                    l_int32  comptype)
@@ -786,7 +786,7 @@ pixWriteStreamTiff(FILE    *fp,
  * \param[in]    modestr  "w" or "a"
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixWriteStreamTiffWA(FILE        *fp,
                      PIX         *pix,
                      l_int32      comptype,
@@ -1282,7 +1282,7 @@ TIFF    *tif;
  *          about 1 second.
  * </pre>
  */
-l_int32
+l_ok
 pixaWriteMultipageTiff(const char  *fname,
                        PIXA        *pixa)
 {
@@ -1343,7 +1343,7 @@ PIX         *pix1, *pix2;
  *          written, apply the method used in pixaWriteMultipageTiff().
  * </pre>
  */
-l_int32
+l_ok
 writeMultipageTiff(const char  *dirin,
                    const char  *substr,
                    const char  *fileout)
@@ -1379,7 +1379,7 @@ SARRAY  *sa;
  *      (1) See writeMultipageTiff()
  * </pre>
  */
-l_int32
+l_ok
 writeMultipageTiffSA(SARRAY      *sa,
                      const char  *fileout)
 {
@@ -1439,7 +1439,7 @@ PIX         *pix, *pix1;
  * \param[in]    tiffile input
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 fprintTiffInfo(FILE        *fpout,
                const char  *tiffile)
 {
@@ -1472,7 +1472,7 @@ TIFF  *tif;
  * \param[out]   pn number of images
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 tiffGetCount(FILE     *fp,
              l_int32  *pn)
 {
@@ -1520,7 +1520,7 @@ TIFF    *tif;
  *          the returned resolution values are 0 (designating 'unknown').
  * </pre>
  */
-l_int32
+l_ok
 getTiffResolution(FILE     *fp,
                   l_int32  *pxres,
                   l_int32  *pyres)
@@ -1617,7 +1617,7 @@ l_float32  fxres, fyres;
  *      (2) If %n is equal to or greater than the number of images, returns 1.
  * </pre>
  */
-l_int32
+l_ok
 readHeaderTiff(const char *filename,
                l_int32     n,
                l_int32    *pwidth,
@@ -1670,7 +1670,7 @@ FILE    *fp;
  *      (2) If %n is equal to or greater than the number of images, returns 1.
  * </pre>
  */
-l_int32
+l_ok
 freadHeaderTiff(FILE     *fp,
                 l_int32   n,
                 l_int32  *pwidth,
@@ -1739,7 +1739,7 @@ TIFF    *tif;
  *      (1) Use TIFFClose(); TIFFCleanup() doesn't free internal memstream.
  * </pre>
  */
-l_int32
+l_ok
 readHeaderMemTiff(const l_uint8  *cdata,
                   size_t          size,
                   l_int32         n,
@@ -1867,7 +1867,7 @@ l_uint32   w, h;
  *          file, it must be rewound to BOF after calling this function.
  * </pre>
  */
-l_int32
+l_ok
 findTiffCompression(FILE     *fp,
                     l_int32  *pcomptype)
 {
@@ -1952,7 +1952,7 @@ l_int32  comptype;
  * \param[out]   pminisblack [optional] boolean
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 extractG4DataFromFile(const char  *filein,
                       l_uint8    **pdata,
                       size_t      *pnbytes,
@@ -2586,7 +2586,7 @@ PIXA   *pixa;
  *          does not work with the tiff directory.
  * </pre>
  */
-l_int32
+l_ok
 pixaWriteMemMultipageTiff(l_uint8  **pdata,
                           size_t    *psize,
                           PIXA      *pixa)
@@ -2652,7 +2652,7 @@ PIX     *pix1, *pix2;
  *      1) See pixWriteTiff(.  This version writes to
  *          memory instead of to a file.
  */
-l_int32
+l_ok
 pixWriteMemTiff(l_uint8  **pdata,
                 size_t    *psize,
                 PIX       *pix,
@@ -2683,7 +2683,7 @@ pixWriteMemTiff(l_uint8  **pdata,
  *          memory instead of to a file.
  *      2) Use TIFFClose(); TIFFCleanup( doesn't free internal memstream.
  */
-l_int32
+l_ok
 pixWriteMemTiffCustom(l_uint8  **pdata,
                       size_t    *psize,
                       PIX       *pix,

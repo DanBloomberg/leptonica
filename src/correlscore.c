@@ -121,7 +121,7 @@
  *  contributed by William Rucklidge.
  * </pre>
  */
-l_int32
+l_ok
 pixCorrelationScore(PIX        *pix1,
                     PIX        *pix2,
                     l_int32     area1,
@@ -728,7 +728,7 @@ l_int32    threshold;
  *          exceed %maxdiffw or %maxdiffh.
  * </pre>
  */
-l_int32
+l_ok
 pixCorrelationScoreSimple(PIX        *pix1,
                           PIX        *pix2,
                           l_int32     area1,
@@ -831,7 +831,7 @@ PIX     *pixt;
  *          be comparable.
  * </pre>
  */
-l_int32
+l_ok
 pixCorrelationScoreShifted(PIX        *pix1,
                            PIX        *pix2,
                            l_int32     area1,

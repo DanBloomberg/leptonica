@@ -1383,7 +1383,7 @@ BOXA    *boxa;
  *          segmentation mask for text or images from two pages.
  * </pre>
  */
-l_int32
+l_ok
 boxaCompareRegions(BOXA       *boxa1,
                    BOXA       *boxa2,
                    l_int32     areathresh,

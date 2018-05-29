@@ -1089,7 +1089,7 @@ NUMA    *na;
  *          doing the extraction. This is easily done with boxaFillSequence().
  * </pre>
  */
-l_int32
+l_ok
 boxaExtractAsNuma(BOXA    *boxa,
                   NUMA   **pnal,
                   NUMA   **pnat,
@@ -1166,7 +1166,7 @@ l_int32  i, n, left, top, right, bot, w, h;
  *          entries (typically 0) in all selected output pta.
  * </pre>
  */
-l_int32
+l_ok
 boxaExtractAsPta(BOXA    *boxa,
                  PTA    **pptal,
                  PTA    **pptat,
@@ -1247,7 +1247,7 @@ l_int32  i, n, left, top, right, bot, w, h;
  *             ~ w and h are sorted in increasing order
  * </pre>
  */
-l_int32
+l_ok
 boxaGetRankVals(BOXA      *boxa,
                 l_float32  fract,
                 l_int32   *px,
@@ -1313,7 +1313,7 @@ NUMA      *nax, *nay, *naw, *nah;
  *      (1) See boxaGetRankVals()
  * </pre>
  */
-l_int32
+l_ok
 boxaGetMedianVals(BOXA     *boxa,
                   l_int32  *px,
                   l_int32  *py,
@@ -1339,7 +1339,7 @@ boxaGetMedianVals(BOXA     *boxa,
  * \param[out]   ph  [optional] average height
  * \return  0 if OK, 1 on error or if the boxa is empty
  */
-l_int32
+l_ok
 boxaGetAverageSize(BOXA       *boxa,
                    l_float32  *pw,
                    l_float32  *ph)
@@ -1394,7 +1394,7 @@ l_float32  sumw, sumh;
  *          to its extent has all fields set to 0 (an invalid box).
  * </pre>
  */
-l_int32
+l_ok
 boxaaGetExtent(BOXAA    *baa,
                l_int32  *pw,
                l_int32  *ph,
@@ -1711,7 +1711,7 @@ BOXAA    *baad;
  *          extent has the closest overlap with the input box.
  * </pre>
  */
-l_int32
+l_ok
 boxaaAlignBox(BOXAA    *baa,
               BOX      *box,
               l_int32   delta,

@@ -1353,7 +1353,7 @@ PIX       *pixd;
  *      (1) This scales the alpha component of pixs and inserts into pixd.
  * </pre>
  */
-l_int32
+l_ok
 pixScaleAndTransferAlpha(PIX       *pixd,
                          PIX       *pixs,
                          l_float32  scalex,

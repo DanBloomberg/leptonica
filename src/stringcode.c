@@ -219,7 +219,7 @@ L_STRCODE  *strcode;
  *             autogen.<fileno>.h
  * </pre>
  */
-l_int32
+l_ok
 strcodeCreateFromFile(const char  *filein,
                       l_int32      fileno,
                       const char  *outdir)
@@ -285,7 +285,7 @@ L_STRCODE   *strcode;
  *          is called.
  * </pre>
  */
-l_int32
+l_ok
 strcodeGenerate(L_STRCODE   *strcode,
                 const char  *filein,
                 const char  *type)

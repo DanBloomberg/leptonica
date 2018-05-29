@@ -427,7 +427,7 @@ NUMA      *nad;
  * \param[out]   prvar [optional] rms deviation from the mean
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaSimpleStats(NUMA       *na,
                 l_int32     first,
                 l_int32     last,
@@ -507,7 +507,7 @@ l_float32  sum, sumsq, val, mean, var;
  *          end of each array.
  * </pre>
  */
-l_int32
+l_ok
 numaWindowedStats(NUMA    *nas,
                   l_int32  wc,
                   NUMA   **pnam,
@@ -686,7 +686,7 @@ NUMA       *na1, *nad;
  *                <(x - <x>)*(x - <x>)> = <x*x> - <x>*<x>
  * </pre>
  */
-l_int32
+l_ok
 numaWindowedVariance(NUMA   *nam,
                      NUMA   *nams,
                      NUMA  **pnav,
@@ -1231,7 +1231,7 @@ NUMA      *nad;
  *          multiple times.
  * </pre>
  */
-l_int32
+l_ok
 numaGetStatsUsingHistogram(NUMA       *na,
                            l_int32     maxbins,
                            l_float32  *pmin,
@@ -1322,7 +1322,7 @@ NUMA      *nah;
  *                x(i) = startx + i * deltax
  * </pre>
  */
-l_int32
+l_ok
 numaGetHistogramStats(NUMA       *nahisto,
                       l_float32   startx,
                       l_float32   deltax,
@@ -1371,7 +1371,7 @@ numaGetHistogramStats(NUMA       *nahisto,
  *                x(i) = startx + i * deltax
  * </pre>
  */
-l_int32
+l_ok
 numaGetHistogramStatsOnInterval(NUMA       *nahisto,
                                 l_float32   startx,
                                 l_float32   deltax,
@@ -1458,7 +1458,7 @@ l_float32  sum, sumval, halfsum, moment, var, x, y, ymax;
  * \param[out]   pnay rank array of specified npts
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaMakeRankFromHistogram(l_float32  startx,
                           l_float32  deltax,
                           NUMA      *nasy,
@@ -1526,7 +1526,7 @@ NUMA      *nan, *nar;
  *          compute x from the Numa index i.
  * </pre>
  */
-l_int32
+l_ok
 numaHistogramGetRankFromVal(NUMA       *na,
                             l_float32   rval,
                             l_float32  *prank)
@@ -1597,7 +1597,7 @@ l_float32  startval, binsize, binval, maxval, fractval, total, sum, val;
  *          compute x from the Numa index i.
  * </pre>
  */
-l_int32
+l_ok
 numaHistogramGetValFromRank(NUMA       *na,
                             l_float32   rank,
                             l_float32  *prval)
@@ -1677,7 +1677,7 @@ l_float32  startval, binsize, rankcount, total, sum, fract, val;
  *             rank bin number  -->  array value at right bin edge (nabb)
  * </pre>
  */
-l_int32
+l_ok
 numaDiscretizeRankAndIntensity(NUMA    *na,
                                l_int32  nbins,
                                NUMA   **pnarbin,
@@ -1825,7 +1825,7 @@ l_float32  sum, midrank, endrank, val;
  *             rank bin number -->  median array value in each rank bin (nam)
  * </pre>
  */
-l_int32
+l_ok
 numaGetRankBinValues(NUMA    *na,
                      l_int32  nbins,
                      NUMA   **pnarbin,
@@ -1920,7 +1920,7 @@ l_float32  maxval, delx;
  *          score would be 1.0.
  * </pre>
  */
-l_int32
+l_ok
 numaSplitDistribution(NUMA       *na,
                       l_float32   scorefract,
                       l_int32    *psplitindex,
@@ -2082,7 +2082,7 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
  *             the set of tiles to be the final score.
  * </pre>
  */
-l_int32
+l_ok
 grayHistogramsToEMD(NUMAA  *naa1,
                     NUMAA  *naa2,
                     NUMA  **pnad)
@@ -2148,7 +2148,7 @@ NUMA       *na1, *na2, *nad;
  *         other end.
  * </pre>
  */
-l_int32
+l_ok
 numaEarthMoverDistance(NUMA       *na1,
                        NUMA       *na2,
                        l_float32  *pdist)
@@ -2239,7 +2239,7 @@ NUMA       *na3;
  *         and light photos/text/line-graphics.
  * </pre>
  */
-l_int32
+l_ok
 grayInterHistogramStats(NUMAA   *naa,
                         l_int32  wc,
                         NUMA   **pnam,
@@ -2540,7 +2540,7 @@ NUMA      *nav, *nad;
  *          frequency along a line.
  * </pre>
  */
-l_int32
+l_ok
 numaCountReversals(NUMA       *nas,
                    l_float32   minreversal,
                    l_int32    *pnr,
@@ -2602,7 +2602,7 @@ NUMA      *nat;
  *         to get a good estimate of crossing locations.
  * </pre>
  */
-l_int32
+l_ok
 numaSelectCrossingThreshold(NUMA       *nax,
                             NUMA       *nay,
                             l_float32   estthresh,
@@ -2886,7 +2886,7 @@ NUMA      *nap, *nad;
  *          pixel projection direction.
  * </pre>
  */
-l_int32
+l_ok
 numaEvalBestHaarParameters(NUMA       *nas,
                            l_float32   relweight,
                            l_int32     nwidth,
@@ -2971,7 +2971,7 @@ l_float32  bestwidth, bestshift, bestscore;
  *          use relweight > 1.0.
  * </pre>
  */
-l_int32
+l_ok
 numaEvalHaarSum(NUMA       *nas,
                 l_float32   width,
                 l_float32   shift,

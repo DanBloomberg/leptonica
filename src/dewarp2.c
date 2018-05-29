@@ -144,7 +144,7 @@ static const l_float32   L_ALLOWED_W_FRACT = 0.05;  /* no bigger */
  *          longest textlines.
  * </pre>
  */
-l_int32
+l_ok
 dewarpBuildPageModel(L_DEWARP    *dew,
                      const char  *debugfile)
 {
@@ -290,7 +290,7 @@ PTAA    *ptaa1, *ptaa2;
  *          a pdf.  Non-pix debug output goes to /tmp.
  * </pre>
  */
-l_int32
+l_ok
 dewarpFindVertDisparity(L_DEWARP  *dew,
                         PTAA      *ptaa,
                         l_int32    rotflag)
@@ -554,7 +554,7 @@ FPIX       *fpix;
  *      (5) Debug output goes to /tmp/lept/dewmod/ for collection into a pdf.
  * </pre>
  */
-l_int32
+l_ok
 dewarpFindHorizDisparity(L_DEWARP  *dew,
                          PTAA      *ptaa)
 {
@@ -1374,7 +1374,7 @@ NUMA      *naerr;
  *      (6) Debug output goes to /tmp/lept/dewmod/ for collection into a pdf.
  * </pre>
  */
-l_int32
+l_ok
 dewarpFindHorizSlopeDisparity(L_DEWARP  *dew,
                               PIX       *pixb,
                               l_float32  fractthresh,
@@ -1602,7 +1602,7 @@ FPIX      *fpix;
  *          See notes there.
  * </pre>
  */
-l_int32
+l_ok
 dewarpBuildLineModel(L_DEWARP    *dew,
                      l_int32      opensize,
                      const char  *debugfile)
@@ -1786,7 +1786,7 @@ PTAA    *ptaa1, *ptaa2;
  *      (1) This tests if a model has been built, not if it is valid.
  * </pre>
  */
-l_int32
+l_ok
 dewarpaModelStatus(L_DEWARPA  *dewa,
                    l_int32     pageno,
                    l_int32    *pvsuccess,

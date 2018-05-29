@@ -715,7 +715,7 @@ l_int32  i, n, index;
  * \param[in]    i, j two indices of boxes, that are to be swapped
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaSwapBoxes(BOXA    *boxa,
               l_int32  i,
               l_int32  j)
@@ -1976,7 +1976,7 @@ BOXA    *boxae, *boxao, *boxad;
  *          either with %plotname or, if NULL, a default name.
  * </pre>
  */
-l_int32
+l_ok
 boxaPlotSides(BOXA        *boxa,
               const char  *plotname,
               NUMA       **pnal,
@@ -2088,7 +2088,7 @@ NUMA           *nal, *nat, *nar, *nab;
  *          that %plotname is a string with no whitespace characters.
  * </pre>
  */
-l_int32
+l_ok
 boxaPlotSizes(BOXA        *boxa,
               const char  *plotname,
               NUMA       **pnaw,
@@ -2318,7 +2318,7 @@ BOX      *box, *boxt;
  *          where ideally the sizes should have little variance.
  * </pre>
  */
-l_int32
+l_ok
 boxaSizeVariation(BOXA       *boxa,
                   l_int32     type,
                   l_float32  *pdel_evenodd,
@@ -2415,7 +2415,7 @@ NUMA      *nae, *nao, *na_all;
  *          boxaGetExtent() is required for serialization.
  * </pre>
  */
-l_int32
+l_ok
 boxaGetExtent(BOXA     *boxa,
               l_int32  *pw,
               l_int32  *ph,
@@ -2481,7 +2481,7 @@ l_int32  i, n, x, y, w, h, xmax, ymax, xmin, ymin, found;
  *            within the wc x hc region.
  * </pre>
  */
-l_int32
+l_ok
 boxaGetCoverage(BOXA       *boxa,
                 l_int32     wc,
                 l_int32     hc,
@@ -2540,7 +2540,7 @@ PIX     *pixt;
  *                                          dimensions of all boxes
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaaSizeRange(BOXAA    *baa,
                l_int32  *pminw,
                l_int32  *pminh,
@@ -2594,7 +2594,7 @@ BOXA    *boxa;
  *                                          dimensions of box in the array
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaSizeRange(BOXA     *boxa,
               l_int32  *pminw,
               l_int32  *pminh,
@@ -2645,7 +2645,7 @@ l_int32  minw, minh, maxw, maxh, i, n, w, h;
  *                                          UL corner positions
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaLocationRange(BOXA     *boxa,
                   l_int32  *pminx,
                   l_int32  *pminy,
@@ -2696,7 +2696,7 @@ l_int32  minx, miny, maxx, maxy, i, n, x, y;
  * \param[out]   pnaw, pnah [optional] widths and heights of valid boxes
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaGetSizes(BOXA   *boxa,
              NUMA  **pnaw,
              NUMA  **pnah)
@@ -2742,7 +2742,7 @@ BOX     *box;
  *      (1) Measures the total area of the boxes, without regard to overlaps.
  * </pre>
  */
-l_int32
+l_ok
 boxaGetArea(BOXA     *boxa,
             l_int32  *parea)
 {

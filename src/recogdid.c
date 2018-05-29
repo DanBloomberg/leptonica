@@ -743,7 +743,7 @@ L_RDID    *did;
  * \param[in]    pixs of 1 bpp image to match
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 recogCreateDid(L_RECOG  *recog,
                PIX      *pixs)
 {
@@ -814,7 +814,7 @@ L_RDID  *did;
  *          only be destroyed using this function.
  * </pre>
  */
-l_int32
+l_ok
 recogDestroyDid(L_RECOG  *recog)
 {
 l_int32  i;
@@ -1001,7 +1001,7 @@ L_RDID  *did;
  *          fg templates), we use beta[1-3] and gamma[1-3].
  * </pre>
  */
-l_int32
+l_ok
 recogSetChannelParams(L_RECOG  *recog,
                       l_int32   nlevels)
 {

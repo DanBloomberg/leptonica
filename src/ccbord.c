@@ -450,7 +450,7 @@ CCBORD  *ccb;
  * \param[in]    ccb to be added by insertion
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 ccbaAddCcb(CCBORDA  *ccba,
            CCBORD   *ccb)
 {
@@ -888,7 +888,7 @@ PTA     *ptaloc, *ptad;
  *          and we do not store the second pixel again.
  * </pre>
  */
-l_int32
+l_ok
 pixGetOuterBorder(CCBORD   *ccb,
                   PIX      *pixs,
                   BOX      *box)
@@ -976,7 +976,7 @@ PIX       *pixb;  /* with 1 pixel border */
  *          exterior borders
  * </pre>
  */
-l_int32
+l_ok
 pixGetHoleBorder(CCBORD   *ccb,
                  PIX      *pixs,
                  BOX      *box,
@@ -1154,7 +1154,7 @@ l_int32  dx, dy;
  *          relative to each c.c., to find the global pixel locations,
  *          and stores them in the global ptaa.
  */
-l_int32
+l_ok
 ccbaGenerateGlobalLocs(CCBORDA  *ccba)
 {
 l_int32  ncc, nb, n, i, j, k, xul, yul, x, y;
@@ -1225,7 +1225,7 @@ PTA     *ptal, *ptag;
  *          indexing into a 2-d 3x3 array (dirtab).
  * </pre>
  */
-l_int32
+l_ok
 ccbaGenerateStepChains(CCBORDA  *ccba)
 {
 l_int32  ncc, nb, n, i, j, k;
@@ -1299,7 +1299,7 @@ PTAA    *ptaal;  /* local chain code */
  *          pixel locations are relative to the c.c.
  * </pre>
  */
-l_int32
+l_ok
 ccbaStepChainsToPixCoords(CCBORDA  *ccba,
                           l_int32   coordtype)
 {
@@ -1399,7 +1399,7 @@ PTA     *ptas, *ptan;
  *          when all border points are listed.
  * </pre>
  */
-l_int32
+l_ok
 ccbaGenerateSPGlobalLocs(CCBORDA  *ccba,
                          l_int32   ptsflag)
 {
@@ -1516,7 +1516,7 @@ PTA     *ptal, *ptag;
  *          The single path is saved in the ccb.
  * </pre>
  */
-l_int32
+l_ok
 ccbaGenerateSinglePath(CCBORDA  *ccba)
 {
 l_int32   i, j, k, ncc, nb, ncut, npt, dir, len, state, lostholes;
@@ -2189,7 +2189,7 @@ PTA     *pta;
  * \param[in]    ccba
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 ccbaWrite(const char  *filename,
           CCBORDA     *ccba)
 {
@@ -2241,7 +2241,7 @@ FILE  *fp;
  *                   end in z8 or 88  1B
  * \endcode
  */
-l_int32
+l_ok
 ccbaWriteStream(FILE     *fp,
                 CCBORDA  *ccba)
 {
@@ -2509,7 +2509,7 @@ NUMAA    *step;
  * \param[in]    ccba
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 ccbaWriteSVG(const char  *filename,
              CCBORDA     *ccba)
 {

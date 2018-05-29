@@ -258,7 +258,7 @@ L_BBUFFER  *bb;
  *          of reallocNew().
  * </pre>
  */
-l_int32
+l_ok
 bbufferRead(L_BBUFFER  *bb,
             l_uint8    *src,
             l_int32     nbytes)
@@ -305,7 +305,7 @@ l_int32  navail, nadd, nwritten;
  * \param[in]    nbytes   bytes to be read
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 bbufferReadStream(L_BBUFFER  *bb,
                   FILE       *fp,
                   l_int32     nbytes)
@@ -357,7 +357,7 @@ l_int32  navail, nadd, nread, nwritten;
  *          only bb->n are data.
  * </pre>
  */
-l_int32
+l_ok
 bbufferExtendArray(L_BBUFFER  *bb,
                    l_int32     nbytes)
 {
@@ -388,7 +388,7 @@ bbufferExtendArray(L_BBUFFER  *bb,
  * \param[out]   pnout    bytes actually written
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 bbufferWrite(L_BBUFFER  *bb,
              l_uint8    *dest,
              size_t      nbytes,
@@ -440,7 +440,7 @@ size_t  nleft, nout;
  * \param[out]   pnout    bytes actually written
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 bbufferWriteStream(L_BBUFFER  *bb,
                    FILE       *fp,
                    size_t      nbytes,

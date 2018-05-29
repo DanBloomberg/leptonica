@@ -490,7 +490,7 @@ PIXA    *pixac;
  * \param[in]    copyflag L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixaAddPix(PIXA    *pixa,
            PIX     *pix,
            l_int32  copyflag)
@@ -534,7 +534,7 @@ PIX     *pixc;
  * \param[in]    copyflag L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixaAddBox(PIXA    *pixa,
            BOX     *box,
            l_int32  copyflag)
@@ -588,7 +588,7 @@ pixaExtendArray(PIXA  *pixa)
  *          The pixa and boxa ptr arrays must always be equal in size.
  * </pre>
  */
-l_int32
+l_ok
 pixaExtendArrayToSize(PIXA    *pixa,
                       l_int32  size)
 {
@@ -635,7 +635,7 @@ pixaGetCount(PIXA  *pixa)
  * \param[in]    pixa
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixaChangeRefcount(PIXA    *pixa,
                    l_int32  delta)
 {
@@ -692,7 +692,7 @@ PIX  *pix;
  * \param[out]   pw, ph, pd [optional]  each can be null
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixaGetPixDimensions(PIXA     *pixa,
                      l_int32   index,
                      l_int32  *pw,
@@ -820,7 +820,7 @@ BOX  *box;
  * \param[out]   px, py, pw, ph [optional]  each can be null
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixaGetBoxGeometry(PIXA     *pixa,
                    l_int32   index,
                    l_int32  *px,
@@ -862,7 +862,7 @@ BOX  *box;
  *      (1) This destroys the existing boxa in the pixa.
  * </pre>
  */
-l_int32
+l_ok
 pixaSetBoxa(PIXA    *pixa,
             BOXA    *boxa,
             l_int32  accesstype)
@@ -926,7 +926,7 @@ pixaGetPixArray(PIXA  *pixa)
  *      (1) It is considered to be an error if there are no pix.
  * </pre>
  */
-l_int32
+l_ok
 pixaVerifyDepth(PIXA     *pixa,
                 l_int32  *psame,
                 l_int32  *pmaxd)
@@ -972,7 +972,7 @@ l_int32  i, n, d, maxd, same;
  *      (1) It is considered to be an error if there are no pix.
  * </pre>
  */
-l_int32
+l_ok
 pixaVerifyDimensions(PIXA     *pixa,
                      l_int32  *psame,
                      l_int32  *pmaxw,
@@ -1023,7 +1023,7 @@ l_int32  i, n, w, h, maxw, maxh, same;
  *          occupied from index 0 to index (pixa->n - 1).
  * </pre>
  */
-l_int32
+l_ok
 pixaIsFull(PIXA     *pixa,
            l_int32  *pfullpa,
            l_int32  *pfullba)
@@ -1073,7 +1073,7 @@ PIX     *pix;
  *          equals the pixa count.
  * </pre>
  */
-l_int32
+l_ok
 pixaCountText(PIXA     *pixa,
               l_int32  *pntext)
 {
@@ -1116,7 +1116,7 @@ PIX     *pix;
  *      (2) If sa is defined, it must be the same size as %pixa.
  * </pre>
  */
-l_int32
+l_ok
 pixaSetText(PIXA    *pixa,
             SARRAY  *sa)
 {
@@ -1222,7 +1222,7 @@ PIX     *pix;
  *          text string (if it exists), and cmap info.
  * </pre>
  */
-l_int32
+l_ok
 pixaWriteStreamInfo(FILE  *fp,
                     PIXA  *pixa)
 {
@@ -1280,7 +1280,7 @@ PIXCMAP  *cmap;
  *      (2) The previous pix at that location is destroyed.
  * </pre>
  */
-l_int32
+l_ok
 pixaReplacePix(PIXA    *pixa,
                l_int32  index,
                PIX     *pix,
@@ -1330,7 +1330,7 @@ BOXA  *boxa;
  *      (4) To append a pix to a pixa, it's easier to use pixaAddPix().
  * </pre>
  */
-l_int32
+l_ok
 pixaInsertPix(PIXA    *pixa,
               l_int32  index,
               PIX     *pixs,
@@ -1380,7 +1380,7 @@ l_int32  i, n;
  *      (3) The corresponding box is removed as well, if it exists.
  * </pre>
  */
-l_int32
+l_ok
 pixaRemovePix(PIXA    *pixa,
               l_int32  index)
 {
@@ -1432,7 +1432,7 @@ PIX    **array;
  *      (4) The removed pix and box can either be retained or destroyed.
  * </pre>
  */
-l_int32
+l_ok
 pixaRemovePixAndSave(PIXA    *pixa,
                      l_int32  index,
                      PIX    **ppix,
@@ -1507,7 +1507,7 @@ PIX    **array;
  *          filled, even if all pix (and boxes) are not later replaced.
  * </pre>
  */
-l_int32
+l_ok
 pixaInitFull(PIXA  *pixa,
              PIX   *pix,
              BOX   *box)
@@ -1549,7 +1549,7 @@ PIX     *pix1;
  *          are all null'd.  The number of allocated pix, n, is set to 0.
  * </pre>
  */
-l_int32
+l_ok
 pixaClear(PIXA  *pixa)
 {
 l_int32  i, n;
@@ -1587,7 +1587,7 @@ l_int32  i, n;
  *      (4) If pixas is NULL or contains no pix, this is a no-op.
  * </pre>
  */
-l_int32
+l_ok
 pixaJoin(PIXA    *pixad,
          PIXA    *pixas,
          l_int32  istart,
@@ -1708,7 +1708,7 @@ PIXA    *pixad;
  *      (3) iend < 0 means 'read to the end'
  * </pre>
  */
-l_int32
+l_ok
 pixaaJoin(PIXAA   *paad,
           PIXAA   *paas,
           l_int32  istart,
@@ -1917,7 +1917,7 @@ PIXAA   *paa;
  *                     all pix and boxes
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixaaAddPixa(PIXAA   *paa,
              PIXA    *pixa,
              l_int32  copyflag)
@@ -1958,7 +1958,7 @@ PIXA    *pixac;
  * \param[in]    paa
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixaaExtendArray(PIXAA  *paa)
 {
     PROCNAME("pixaaExtendArray");
@@ -1986,7 +1986,7 @@ pixaaExtendArray(PIXAA  *paa)
  * \param[in]    copyflag L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixaaAddPix(PIXAA   *paa,
             l_int32  index,
             PIX     *pix,
@@ -2025,7 +2025,7 @@ PIXA  *pixa;
  *          of a pixa that is being added to the pixaa.
  * </pre>
  */
-l_int32
+l_ok
 pixaaAddBox(PIXAA   *paa,
             BOX     *box,
             l_int32  copyflag)
@@ -2204,7 +2204,7 @@ PIXA  *pixa;
  *      (1) It is considered to be an error if any pixa have no pix.
  * </pre>
  */
-l_int32
+l_ok
 pixaaVerifyDepth(PIXAA    *paa,
                  l_int32  *psame,
                  l_int32  *pmaxd)
@@ -2254,7 +2254,7 @@ PIXA    *pixa;
  *      (1) It is considered to be an error if any pixa have no pix.
  * </pre>
  */
-l_int32
+l_ok
 pixaaVerifyDimensions(PIXAA    *paa,
                       l_int32  *psame,
                       l_int32  *pmaxw,
@@ -2360,7 +2360,7 @@ PIXA    *pixa;
  *          The initialization allows the pixaa to always be properly filled.
  * </pre>
  */
-l_int32
+l_ok
 pixaaInitFull(PIXAA  *paa,
               PIXA   *pixa)
 {
@@ -2402,7 +2402,7 @@ PIXA    *pixat;
  *      (3) The index must be within the allowed set.
  * </pre>
  */
-l_int32
+l_ok
 pixaaReplacePixa(PIXAA   *paa,
                  l_int32  index,
                  PIXA    *pixa)
@@ -2435,7 +2435,7 @@ pixaaReplacePixa(PIXAA   *paa,
  *          in the pixa ptr array.
  * </pre>
  */
-l_int32
+l_ok
 pixaaClear(PIXAA  *paa)
 {
 l_int32  i, n;
@@ -2466,7 +2466,7 @@ l_int32  i, n;
  *          and resets the count.
  * </pre>
  */
-l_int32
+l_ok
 pixaaTruncate(PIXAA  *paa)
 {
 l_int32  i, n, np;
@@ -2646,7 +2646,7 @@ PIXA  *pixa;
  *          or cleared by the function setLeptDebugOK().
  * </pre>
  */
-l_int32
+l_ok
 pixaWriteDebug(const char  *fname,
                PIXA        *pixa)
 {
@@ -2674,7 +2674,7 @@ pixaWriteDebug(const char  *fname,
  *          If the png library is not linked, this will fail.
  * </pre>
  */
-l_int32
+l_ok
 pixaWrite(const char  *filename,
           PIXA        *pixa)
 {
@@ -2715,7 +2715,7 @@ FILE    *fp;
  *          If the png library is not linked, this will fail.
  * </pre>
  */
-l_int32
+l_ok
 pixaWriteStream(FILE  *fp,
                 PIXA  *pixa)
 {
@@ -2762,7 +2762,7 @@ PIX     *pix;
  *      (1) Serializes a pixa in memory and puts the result in a buffer.
  * </pre>
  */
-l_int32
+l_ok
 pixaWriteMem(l_uint8  **pdata,
              size_t    *psize,
              PIXA      *pixa)
@@ -3051,7 +3051,7 @@ PIXAA  *paa;
  *          If the png library is not linked, this will fail.
  * </pre>
  */
-l_int32
+l_ok
 pixaaWrite(const char  *filename,
            PIXAA       *paa)
 {
@@ -3092,7 +3092,7 @@ FILE    *fp;
  *          If the png library is not linked, this will fail.
  * </pre>
  */
-l_int32
+l_ok
 pixaaWriteStream(FILE   *fp,
                  PIXAA  *paa)
 {
@@ -3138,7 +3138,7 @@ PIXA    *pixa;
  *      (1) Serializes a pixaa in memory and puts the result in a buffer.
  * </pre>
  */
-l_int32
+l_ok
 pixaaWriteMem(l_uint8  **pdata,
               size_t    *psize,
               PIXAA     *paa)

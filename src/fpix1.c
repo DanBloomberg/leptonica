@@ -322,7 +322,7 @@ l_float32  *datas, *datad;
  *          doesn't do anything.
  * </pre>
  */
-l_int32
+l_ok
 fpixResizeImageData(FPIX  *fpixd,
                     FPIX  *fpixs)
 {
@@ -404,7 +404,7 @@ FPIX       *fpix;
  * \param[out]   pw, ph [optional]  each can be null
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 fpixGetDimensions(FPIX     *fpix,
                   l_int32  *pw,
                   l_int32  *ph)
@@ -430,7 +430,7 @@ fpixGetDimensions(FPIX     *fpix,
  * \param[in]    w, h
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 fpixSetDimensions(FPIX     *fpix,
                   l_int32   w,
                   l_int32   h)
@@ -469,7 +469,7 @@ fpixGetWpl(FPIX  *fpix)
  * \param[in]    wpl
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 fpixSetWpl(FPIX    *fpix,
            l_int32  wpl)
 {
@@ -507,7 +507,7 @@ fpixGetRefcount(FPIX  *fpix)
  * \param[in]    delta
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 fpixChangeRefcount(FPIX    *fpix,
                    l_int32  delta)
 {
@@ -528,7 +528,7 @@ fpixChangeRefcount(FPIX    *fpix,
  * \param[out]   pxres, pyres [optional] x and y resolution
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 fpixGetResolution(FPIX     *fpix,
                   l_int32  *pxres,
                   l_int32  *pyres)
@@ -550,7 +550,7 @@ fpixGetResolution(FPIX     *fpix,
  * \param[in]    xres, yres x and y resolution
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 fpixSetResolution(FPIX    *fpix,
                   l_int32  xres,
                   l_int32  yres)
@@ -572,7 +572,7 @@ fpixSetResolution(FPIX    *fpix,
  * \param[in]    fpixd, fpixs
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 fpixCopyResolution(FPIX  *fpixd,
                    FPIX  *fpixs)
 {
@@ -612,7 +612,7 @@ fpixGetData(FPIX  *fpix)
  * \param[in]    data
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 fpixSetData(FPIX       *fpix,
             l_float32  *data)
 {
@@ -634,7 +634,7 @@ fpixSetData(FPIX       *fpix,
  * \param[out]   pval pixel value
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 fpixGetPixel(FPIX       *fpix,
              l_int32     x,
              l_int32     y,
@@ -669,7 +669,7 @@ l_int32  w, h;
  * \param[in]    val pixel value
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 fpixSetPixel(FPIX      *fpix,
              l_int32    x,
              l_int32    y,
@@ -830,7 +830,7 @@ FPIXA   *fpixa;
  * \param[in]    copyflag L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 fpixaAddFPix(FPIXA   *fpixa,
              FPIX    *fpix,
              l_int32  copyflag)
@@ -949,7 +949,7 @@ fpixaGetCount(FPIXA  *fpixa)
  * \param[in]    delta
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 fpixaChangeRefcount(FPIXA   *fpixa,
                     l_int32  delta)
 {
@@ -1000,7 +1000,7 @@ fpixaGetFPix(FPIXA   *fpixa,
  * \param[out]   pw, ph [optional]  each can be null
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 fpixaGetFPixDimensions(FPIXA    *fpixa,
                        l_int32   index,
                        l_int32  *pw,
@@ -1066,7 +1066,7 @@ FPIX       *fpix;
  * \param[out]   pval pixel value
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 fpixaGetPixel(FPIXA      *fpixa,
               l_int32     index,
               l_int32     x,
@@ -1103,7 +1103,7 @@ FPIX    *fpix;
  * \param[in]    val pixel value
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 fpixaSetPixel(FPIXA     *fpixa,
               l_int32    index,
               l_int32    x,
@@ -1312,7 +1312,7 @@ l_float64  *datas, *datad;
  * \param[in]    dpixd, dpixs
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 dpixResizeImageData(DPIX  *dpixd,
                     DPIX  *dpixs)
 {
@@ -1394,7 +1394,7 @@ DPIX       *dpix;
  * \param[out]   pw, ph [optional]  each can be null
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 dpixGetDimensions(DPIX     *dpix,
                   l_int32  *pw,
                   l_int32  *ph)
@@ -1420,7 +1420,7 @@ dpixGetDimensions(DPIX     *dpix,
  * \param[in]    w, h
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 dpixSetDimensions(DPIX     *dpix,
                   l_int32   w,
                   l_int32   h)
@@ -1459,7 +1459,7 @@ dpixGetWpl(DPIX  *dpix)
  * \param[in]    wpl
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 dpixSetWpl(DPIX    *dpix,
            l_int32  wpl)
 {
@@ -1497,7 +1497,7 @@ dpixGetRefcount(DPIX  *dpix)
  * \param[in]    delta
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 dpixChangeRefcount(DPIX    *dpix,
                    l_int32  delta)
 {
@@ -1518,7 +1518,7 @@ dpixChangeRefcount(DPIX    *dpix,
  * \param[out]   pxres, pyres [optional] x and y resolution
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 dpixGetResolution(DPIX     *dpix,
                   l_int32  *pxres,
                   l_int32  *pyres)
@@ -1540,7 +1540,7 @@ dpixGetResolution(DPIX     *dpix,
  * \param[in]    xres, yres x and y resolution
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 dpixSetResolution(DPIX    *dpix,
                   l_int32  xres,
                   l_int32  yres)
@@ -1562,7 +1562,7 @@ dpixSetResolution(DPIX    *dpix,
  * \param[in]    dpixd, dpixs
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 dpixCopyResolution(DPIX  *dpixd,
                    DPIX  *dpixs)
 {
@@ -1602,7 +1602,7 @@ dpixGetData(DPIX  *dpix)
  * \param[in]    data
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 dpixSetData(DPIX       *dpix,
             l_float64  *data)
 {
@@ -1624,7 +1624,7 @@ dpixSetData(DPIX       *dpix,
  * \param[out]   pval pixel value
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 dpixGetPixel(DPIX       *dpix,
              l_int32     x,
              l_int32     y,
@@ -1659,7 +1659,7 @@ l_int32  w, h;
  * \param[in]    val pixel value
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 dpixSetPixel(DPIX      *dpix,
              l_int32    x,
              l_int32    y,
@@ -1800,7 +1800,7 @@ FPIX  *fpix;
  * \param[in]    fpix
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 fpixWrite(const char  *filename,
           FPIX        *fpix)
 {
@@ -1831,7 +1831,7 @@ FILE    *fp;
  * \param[in]    fpix
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 fpixWriteStream(FILE  *fp,
                 FPIX  *fpix)
 {
@@ -1877,7 +1877,7 @@ FPIX       *fpixt;
  *      (1) Serializes a fpix in memory and puts the result in a buffer.
  * </pre>
  */
-l_int32
+l_ok
 fpixWriteMem(l_uint8  **pdata,
              size_t    *psize,
              FPIX      *fpix)
@@ -2097,7 +2097,7 @@ DPIX  *dpix;
  * \param[in]    dpix
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 dpixWrite(const char  *filename,
           DPIX        *dpix)
 {
@@ -2128,7 +2128,7 @@ FILE    *fp;
  * \param[in]    dpix
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 dpixWriteStream(FILE  *fp,
                 DPIX  *dpix)
 {
@@ -2174,7 +2174,7 @@ DPIX       *dpixt;
  *      (1) Serializes a dpix in memory and puts the result in a buffer.
  * </pre>
  */
-l_int32
+l_ok
 dpixWriteMem(l_uint8  **pdata,
              size_t    *psize,
              DPIX      *dpix)
@@ -2293,7 +2293,7 @@ dpixEndianByteSwap(DPIX  *dpixd,
  *      (1) Subsampled printout of fpix for debugging.
  * </pre>
  */
-l_int32
+l_ok
 fpixPrintStream(FILE    *fp,
                 FPIX    *fpix,
                 l_int32  factor)
