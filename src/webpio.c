@@ -162,7 +162,7 @@ WebPBitstreamFeatures  features;
  * \param[out]   pspp spp (3 or 4)
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 readHeaderWebP(const char *filename,
                l_int32    *pw,
                l_int32    *ph,
@@ -208,7 +208,7 @@ FILE    *fp;
  * \param[out]   pspp spp (3 or 4)
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 readHeaderMemWebP(const l_uint8  *data,
                   size_t          size,
                   l_int32        *pw,
@@ -253,7 +253,7 @@ WebPBitstreamFeatures  features;
  *      (1) Special top-level function allowing specification of quality.
  * </pre>
  */
-l_int32
+l_ok
 pixWriteWebP(const char  *filename,
              PIX         *pixs,
              l_int32      quality,
@@ -295,7 +295,7 @@ FILE    *fp;
  *          that is returned from the WebP library.
  * </pre>
  */
-l_int32
+l_ok
 pixWriteStreamWebP(FILE    *fp,
                    PIX     *pixs,
                    l_int32  quality,
@@ -342,7 +342,7 @@ size_t    filebytes, nbytes;
  *          setting the internal header field has_alpha to 0.
  * </pre>
  */
-l_int32
+l_ok
 pixWriteMemWebP(l_uint8  **pencdata,
                 size_t    *pencsize,
                 PIX       *pixs,

@@ -98,7 +98,7 @@ static const l_int32  MinHeight = 100;
  *      (2) Passing in %pixadb enables debug output.
  * </pre>
  */
-l_int32
+l_ok
 pixGetRegionsBinary(PIX   *pixs,
                     PIX  **ppixhm,
                     PIX  **ppixtm,
@@ -675,7 +675,7 @@ BOXA    *ba1, *ba2;
  *          (possibly split) components are extracted.
  * </pre>
  */
-l_int32
+l_ok
 pixSplitIntoCharacters(PIX     *pixs,
                        l_int32  minw,
                        l_int32  minh,
@@ -1200,7 +1200,7 @@ PIXA    *pixa1, *pixa2;
  *      (4) For debug output, input a pre-allocated pixa.
  * </pre>
  */
-l_int32
+l_ok
 pixCountTextColumns(PIX       *pixs,
                     l_float32  deltafract,
                     l_float32  peakfract,
@@ -1348,7 +1348,7 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5;
  *      (7) For debug output, input a pre-allocated pixa.
  * </pre>
  */
-l_int32
+l_ok
 pixDecideIfText(PIX      *pixs,
                 BOX      *box,
                 l_int32  *pistext,
@@ -1514,7 +1514,7 @@ SEL       *sel1;
  * \param[out]   pbot      [optional] location of bottom of region
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixFindThreshFgExtent(PIX      *pixs,
                       l_int32   thresh,
                       l_int32  *ptop,
@@ -1604,7 +1604,7 @@ NUMA     *na;
  *      (9) For debug output, input a pre-allocated pixa.
  * </pre>
  */
-l_int32
+l_ok
 pixDecideIfTable(PIX      *pixs,
                  BOX      *box,
                  l_int32   orient,
@@ -1839,7 +1839,7 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5;
  *      (1) Caller should check that return bg value is > 0.
  * </pre>
  */
-l_int32
+l_ok
 pixEstimateBackground(PIX       *pixs,
                       l_int32    darkthresh,
                       l_float32  edgecrop,
@@ -1923,7 +1923,7 @@ PIX       *pix1, *pix2, *pixm;
  *          the largest 50 boxes takes about 0.2 seconds.
  * </pre>
  */
-l_int32
+l_ok
 pixFindLargeRectangles(PIX          *pixs,
                        l_int32       polarity,
                        l_int32       nrect,
@@ -2026,7 +2026,7 @@ PIX     *pix;
  *          then found by taking the Max.
  * </pre>
  */
-l_int32
+l_ok
 pixFindLargestRectangle(PIX         *pixs,
                         l_int32      polarity,
                         BOX        **pbox,

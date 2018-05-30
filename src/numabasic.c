@@ -445,7 +445,7 @@ numaClone(NUMA  *na)
  *          the array appears to be empty.
  * </pre>
  */
-l_int32
+l_ok
 numaEmpty(NUMA  *na)
 {
     PROCNAME("numaEmpty");
@@ -469,7 +469,7 @@ numaEmpty(NUMA  *na)
  * \param[in]    val  float or int to be added; stored as a float
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaAddNumber(NUMA      *na,
               l_float32  val)
 {
@@ -530,7 +530,7 @@ numaExtendArray(NUMA  *na)
  *
  * </pre>
  */
-l_int32
+l_ok
 numaInsertNumber(NUMA      *na,
                  l_int32    index,
                  l_float32  val)
@@ -569,7 +569,7 @@ l_int32  i, n;
  *          because the function is O(n).
  * </pre>
  */
-l_int32
+l_ok
 numaRemoveNumber(NUMA    *na,
                  l_int32  index)
 {
@@ -598,7 +598,7 @@ l_int32  i, n;
  * \param[in]    val new value to replace old one
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaReplaceNumber(NUMA      *na,
                   l_int32    index,
                   l_float32  val)
@@ -654,7 +654,7 @@ numaGetCount(NUMA  *na)
  *      (3) All the previously unused values in na are set to 0.0.
  * </pre>
  */
-l_int32
+l_ok
 numaSetCount(NUMA    *na,
              l_int32  newcount)
 {
@@ -688,7 +688,7 @@ numaSetCount(NUMA    *na,
  *          decide if a 0.0 in the returned ival is valid.
  * </pre>
  */
-l_int32
+l_ok
 numaGetFValue(NUMA       *na,
               l_int32     index,
               l_float32  *pval)
@@ -723,7 +723,7 @@ numaGetFValue(NUMA       *na,
  *          decide if a 0 in the returned ival is valid.
  * </pre>
  */
-l_int32
+l_ok
 numaGetIValue(NUMA     *na,
               l_int32   index,
               l_int32  *pival)
@@ -755,7 +755,7 @@ l_float32  val;
  * \param[in]    val  to set element
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 numaSetValue(NUMA      *na,
              l_int32    index,
              l_float32  val)
@@ -780,7 +780,7 @@ numaSetValue(NUMA      *na,
  * \param[in]    diff  increment if diff > 0 or decrement if diff < 0
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 numaShiftValue(NUMA      *na,
                l_int32    index,
                l_float32  diff)
@@ -911,7 +911,7 @@ numaGetRefcount(NUMA  *na)
  * \param[in]    delta change to be applied
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaChangeRefcount(NUMA    *na,
                    l_int32  delta)
 {
@@ -932,7 +932,7 @@ numaChangeRefcount(NUMA    *na,
  * \param[out]   pdelx [optional] delx
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaGetParameters(NUMA       *na,
                   l_float32  *pstartx,
                   l_float32  *pdelx)
@@ -962,7 +962,7 @@ numaGetParameters(NUMA       *na,
  *                    function at equal intervals of size %delx
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaSetParameters(NUMA      *na,
                   l_float32  startx,
                   l_float32  delx)
@@ -985,7 +985,7 @@ numaSetParameters(NUMA      *na,
  * \param[in]    nas source Numa
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaCopyParameters(NUMA  *nad,
                    NUMA  *nas)
 {
@@ -1189,7 +1189,7 @@ NUMA  *na;
  *          or cleared by the function setLeptDebugOK().
  * </pre>
  */
-l_int32
+l_ok
 numaWriteDebug(const char  *filename,
                NUMA        *na)
 {
@@ -1210,7 +1210,7 @@ numaWriteDebug(const char  *filename,
  * \param[in]    filename, na
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaWrite(const char  *filename,
           NUMA        *na)
 {
@@ -1241,7 +1241,7 @@ FILE    *fp;
  * \param[in]    na
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaWriteStream(FILE  *fp,
                 NUMA  *na)
 {
@@ -1284,7 +1284,7 @@ l_float32  startx, delx;
  *      (1) Serializes a numa in memory and puts the result in a buffer.
  * </pre>
  */
-l_int32
+l_ok
 numaWriteMem(l_uint8  **pdata,
              size_t    *psize,
              NUMA      *na)
@@ -1404,7 +1404,7 @@ NUMA    *na;
  *          index, and resets the count.
  * </pre>
  */
-l_int32
+l_ok
 numaaTruncate(NUMAA  *naa)
 {
 l_int32  i, n, nn;
@@ -1476,7 +1476,7 @@ NUMAA   *naa;
  * \param[in]    copyflag  L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaaAddNuma(NUMAA   *naa,
              NUMA    *na,
              l_int32  copyflag)
@@ -1689,7 +1689,7 @@ numaaGetNuma(NUMAA   *naa,
  *      (2) If the index is invalid, return 1 (error)
  * </pre>
  */
-l_int32
+l_ok
 numaaReplaceNuma(NUMAA   *naa,
                  l_int32  index,
                  NUMA    *na)
@@ -1722,7 +1722,7 @@ l_int32  n;
  * \param[out]   pival [optional] int value
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaaGetValue(NUMAA      *naa,
               l_int32     i,
               l_int32     j,
@@ -1765,7 +1765,7 @@ NUMA    *na;
  *      (1) Adds to an existing numa only.
  * </pre>
  */
-l_int32
+l_ok
 numaaAddNumber(NUMAA     *naa,
                l_int32    index,
                l_float32  val)
@@ -1896,7 +1896,7 @@ NUMAA  *naa;
  * \param[in]    filename, naa
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaaWrite(const char  *filename,
            NUMAA       *naa)
 {
@@ -1927,7 +1927,7 @@ FILE    *fp;
  * \param[in]    naa
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 numaaWriteStream(FILE   *fp,
                  NUMAA  *naa)
 {
@@ -1969,7 +1969,7 @@ NUMA    *na;
  *      (1) Serializes a numaa in memory and puts the result in a buffer.
  * </pre>
  */
-l_int32
+l_ok
 numaaWriteMem(l_uint8  **pdata,
               size_t    *psize,
               NUMAA     *naa)

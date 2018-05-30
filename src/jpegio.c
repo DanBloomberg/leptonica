@@ -503,7 +503,7 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
  * \param[out]   pcmyk [optional]  1 if cmyk color space; 0 otherwise
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 readHeaderJpeg(const char  *filename,
                l_int32     *pw,
                l_int32     *ph,
@@ -545,7 +545,7 @@ FILE    *fp;
  * \param[out]   pcmyk [optional]  1 if cmyk color space; 0 otherwise
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 freadHeaderJpeg(FILE     *fp,
                 l_int32  *pw,
                 l_int32  *ph,
@@ -724,7 +724,7 @@ struct callback_data           cb_data;  /* contains local jmp_buf */
  * \param[in]    progressive 0 for baseline sequential; 1 for progressive
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixWriteJpeg(const char  *filename,
              PIX         *pix,
              l_int32      quality,
@@ -785,7 +785,7 @@ FILE  *fp;
  *          for luminosity and a lower resolution one for the chromas.
  * </pre>
  */
-l_int32
+l_ok
 pixWriteStreamJpeg(FILE    *fp,
                    PIX     *pixs,
                    l_int32  quality,
@@ -1030,7 +1030,7 @@ PIX      *pix;
  * \param[out]   pcmyk   [optional] 1 if cmyk color space; 0 otherwise
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 readHeaderMemJpeg(const l_uint8  *data,
                   size_t          size,
                   l_int32        *pw,
@@ -1071,7 +1071,7 @@ FILE    *fp;
  * \param[out]  pyres   [optional]
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 readResolutionMemJpeg(const l_uint8  *data,
                       size_t          size,
                       l_int32        *pxres,
@@ -1113,7 +1113,7 @@ FILE    *fp;
  *          memory instead of to a file stream.
  * </pre>
  */
-l_int32
+l_ok
 pixWriteMemJpeg(l_uint8  **pdata,
                 size_t    *psize,
                 PIX       *pix,
@@ -1174,7 +1174,7 @@ FILE    *fp;
  *          jpeg writing, call this with %sampling == 0.
  * </pre>
  */
-l_int32
+l_ok
 pixSetChromaSampling(PIX     *pix,
                      l_int32  sampling)
 {

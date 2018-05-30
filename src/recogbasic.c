@@ -563,7 +563,7 @@ recogGetCount(L_RECOG  *recog)
  *          the templates do not satisfy it.
  * </pre>
  */
-l_int32
+l_ok
 recogSetParams(L_RECOG   *recog,
                l_int32    type,
                l_int32    min_nopad,
@@ -691,7 +691,7 @@ l_int32  i, n, ival;
  * \param[out]   pindex index for that class; -1 if not found
  * \return  0 if OK, 1 on error not finding the string is an error
  */
-l_int32
+l_ok
 recogStringToIndex(L_RECOG  *recog,
                    char     *text,
                    l_int32  *pindex)
@@ -774,7 +774,7 @@ recogGetClassString(L_RECOG  *recog,
  *                    as a 1-to-1 hash code.
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 l_convertCharstrToInt(const char  *str,
                       l_int32     *pval)
 {
@@ -984,7 +984,7 @@ L_RECOG  *recog;
  *          first place.  See the notes in recogRead() for the rationale.
  * </pre>
  */
-l_int32
+l_ok
 recogWrite(const char  *filename,
            L_RECOG     *recog)
 {
@@ -1015,7 +1015,7 @@ FILE    *fp;
  * \param[in]    recog
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 recogWriteStream(FILE     *fp,
                  L_RECOG  *recog)
 {
@@ -1056,7 +1056,7 @@ recogWriteStream(FILE     *fp,
  *      (1) Serializes a recog in memory and puts the result in a buffer.
  * </pre>
  */
-l_int32
+l_ok
 recogWriteMem(l_uint8  **pdata,
               size_t    *psize,
               L_RECOG   *recog)

@@ -208,7 +208,7 @@ static const l_float32  LOWER_SCORE_THRESHOLD = 0.5;  /* templates can be
  *          of the character image.
  * </pre>
  */
-l_int32
+l_ok
 recogTrainLabeled(L_RECOG  *recog,
                   PIX      *pixs,
                   BOX      *box,
@@ -257,7 +257,7 @@ PIX     *pix;
  *          of one character where the charval is inserted into the pix.
  * </pre>
  */
-l_int32
+l_ok
 recogProcessLabeled(L_RECOG  *recog,
                     PIX      *pixs,
                     BOX      *box,
@@ -348,7 +348,7 @@ PIX     *pix1, *pix2, *pix3, *pix4;
  *          the pixaa_u array is extended by adding a pixa to hold them.
  * </pre>
  */
-l_int32
+l_ok
 recogAddSample(L_RECOG  *recog,
                PIX      *pix,
                l_int32   debug)
@@ -779,7 +779,7 @@ PTA       *ptac;
  *          unscaled and modified.
  * </pre>
  */
-l_int32
+l_ok
 recogTrainingFinished(L_RECOG  **precog,
                       l_int32    modifyflag,
                       l_int32    minsize,
@@ -1077,7 +1077,7 @@ L_RECOG  *recog;
  *          if it fails, the input recog is destroyed.
  * </pre>
  */
-l_int32
+l_ok
 recogRemoveOutliers1(L_RECOG  **precog,
                      l_float32  minscore,
                      l_int32    mintarget,
@@ -1295,7 +1295,7 @@ L_RECOG   *recog;
  *          if it fails, the input recog is destroyed.
  * </pre>
  */
-l_int32
+l_ok
 recogRemoveOutliers2(L_RECOG  **precog,
                      l_float32  minscore,
                      l_int32    minsize,
@@ -1588,7 +1588,7 @@ PIXA      *pixa1, *pixa2, *pixa3, *pixad;
  *          %scaleh and %linew.
  * </pre>
  */
-l_int32
+l_ok
 recogPadDigitTrainingSet(L_RECOG  **precog,
                          l_int32    scaleh,
                          l_int32    linew)
@@ -1958,7 +1958,7 @@ PIXA  *pixa1, *pixa2, *pixa3;
  * \param[in]    display  1 for showing template images, 0 otherwise
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 recogShowContent(FILE     *fp,
                  L_RECOG  *recog,
                  l_int32   index,
@@ -2041,7 +2041,7 @@ NUMA    *na;
  *      (3) Destroys the recog if the averaging function finds any bad classes.
  * </pre>
  */
-l_int32
+l_ok
 recogDebugAverages(L_RECOG  **precog,
                    l_int32    debug)
 {
@@ -2307,7 +2307,7 @@ PIXA  *pixa;
  *          to filter a range of scores.
  * </pre>
  */
-l_int32
+l_ok
 recogShowMatchesInRange(L_RECOG     *recog,
                         PIXA        *pixa,
                         l_float32    minscore,

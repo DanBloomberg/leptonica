@@ -2002,7 +2002,7 @@ PIXA    *pixad;
  *          and then call this function with the specified color
  * </pre>
  */
-l_int32
+l_ok
 pixaSelectToPdf(PIXA        *pixas,
                 l_int32      first,
                 l_int32      last,
@@ -2161,7 +2161,7 @@ PIXA    *pixa1, *pixa2, *pixad;
  *          full resolution.
  * </pre>
  */
-l_int32
+l_ok
 pixaSplitIntoFiles(PIXA      *pixas,
                    l_int32    nsplit,
                    l_float32  scale,
@@ -2250,7 +2250,7 @@ PIXA    *pixa1;
  *          rendered below it.
  * </pre>
  */
-l_int32
+l_ok
 convertToNUpFiles(const char  *dir,
                   const char  *substr,
                   l_int32      nx,
@@ -2491,7 +2491,7 @@ PIXA      *pixa1, *pixad;
  *          is printed out below each pair.
  * </pre>
  */
-l_int32
+l_ok
 pixaCompareInPdf(PIXA        *pixa1,
                  PIXA        *pixa2,
                  l_int32      nx,

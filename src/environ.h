@@ -171,6 +171,7 @@ typedef uintptr_t l_uintptr_t;
 /*--------------------------------------------------------------------*
  *                          Built-in types                            *
  *--------------------------------------------------------------------*/
+typedef int                     l_ok;       /*!< return type 0 if OK, 1 on error */
 typedef signed char             l_int8;     /*!< signed 8-bit value */
 typedef unsigned char           l_uint8;    /*!< unsigned 8-bit value */
 typedef short                   l_int16;    /*!< signed 16-bit value */

@@ -359,7 +359,7 @@ l_uint8  *data;
  * \param[in]    newbytes size of data array
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 l_byteaAppendData(L_BYTEA  *ba,
                   l_uint8  *newdata,
                   size_t    newbytes)
@@ -392,7 +392,7 @@ size_t  size, nalloc, reqsize;
  * \param[in]    str null-terminated string to be appended
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 l_byteaAppendString(L_BYTEA  *ba,
                     char     *str)
 {
@@ -461,7 +461,7 @@ l_byteaExtendArrayToSize(L_BYTEA  *ba,
  *      (1) It is a no-op, not an error, for %ba2 to be null.
  * </pre>
  */
-l_int32
+l_ok
 l_byteaJoin(L_BYTEA   *ba1,
             L_BYTEA  **pba2)
 {
@@ -493,7 +493,7 @@ L_BYTEA  *ba2;
  * \param[out]   pba2 with data starting at splitloc
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 l_byteaSplit(L_BYTEA   *ba1,
              size_t     splitloc,
              L_BYTEA  **pba2)
@@ -536,7 +536,7 @@ size_t    nbytes1, nbytes2;
  * \param[out]   pda byte positions of each occurrence of %sequence
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 l_byteaFindEachSequence(L_BYTEA   *ba,
                         l_uint8   *sequence,
                         l_int32    seqlen,
@@ -574,7 +574,7 @@ size_t    size;
  *                      end of the data array
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 l_byteaWrite(const char  *fname,
              L_BYTEA     *ba,
              size_t       startloc,
@@ -608,7 +608,7 @@ FILE    *fp;
  *                      end of the data array
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 l_byteaWriteStream(FILE     *fp,
                    L_BYTEA  *ba,
                    size_t    startloc,

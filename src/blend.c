@@ -1551,7 +1551,7 @@ static l_int32 blendHardLightComponents(l_int32    a,
  *          for sindex.
  * </pre>
  */
-l_int32
+l_ok
 pixBlendCmap(PIX     *pixs,
              PIX     *pixb,
              l_int32  x,
@@ -2174,7 +2174,7 @@ PIX  *pixd, *pix1, *pix2, *pix3, *pix4;
  *      (3) @distrfact must be in [0, 1], and typically it would be <= 0.5.
  * </pre>
  */
-l_int32
+l_ok
 pixLinearEdgeFade(PIX       *pixs,
                   l_int32    dir,
                   l_int32    fadeto,

@@ -443,7 +443,7 @@ PIX       *pix;
  * \param[out]   pspp [optional]  samples/pixel
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 readHeaderPnm(const char *filename,
               l_int32    *pw,
               l_int32    *ph,
@@ -486,7 +486,7 @@ FILE    *fp;
  * \param[out]   pspp [optional]  samples/pixel
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 freadHeaderPnm(FILE     *fp,
                l_int32  *pw,
                l_int32  *ph,
@@ -663,7 +663,7 @@ l_int32  ch;
  *          write them out as a packed array of bytes (3 to a pixel).
  * </pre>
  */
-l_int32
+l_ok
 pixWriteStreamPnm(FILE  *fp,
                   PIX   *pix)
 {
@@ -782,7 +782,7 @@ PIX       *pixs;
  *      2, 4, 8, 16 bpp, no colormap or grayscale colormap --> pgm P2
  *      2, 4, 8 bpp with color-valued colormap, or rgb --> rgb ppm P3
  */
-l_int32
+l_ok
 pixWriteStreamAsciiPnm(FILE  *fp,
                        PIX   *pix)
 {
@@ -904,7 +904,7 @@ PIX       *pixs;
  *          write them out as a packed array of bytes (3 to a pixel).
  * </pre>
  */
-l_int32
+l_ok
 pixWriteStreamPam(FILE  *fp,
                   PIX   *pix)
 {
@@ -1113,7 +1113,7 @@ PIX   *pix;
  * \param[out]   pspp [optional]  samples/pixel
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 readHeaderMemPnm(const l_uint8  *data,
                  size_t          size,
                  l_int32        *pw,
@@ -1155,7 +1155,7 @@ FILE    *fp;
  *          memory instead of to a file stream.
  * </pre>
  */
-l_int32
+l_ok
 pixWriteMemPnm(l_uint8  **pdata,
                size_t    *psize,
                PIX       *pix)
@@ -1210,7 +1210,7 @@ FILE    *fp;
  *          memory instead of to a file stream.
  * </pre>
  */
-l_int32
+l_ok
 pixWriteMemPam(l_uint8  **pdata,
                size_t    *psize,
                PIX       *pix)

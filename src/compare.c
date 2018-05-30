@@ -146,7 +146,7 @@ static l_int32 pixCompareTilesByHisto(PIX *pix1, PIX *pix2, l_int32 maxgray,
  *          in the image part of the data array must be identical.
  * </pre>
  */
-l_int32
+l_ok
 pixEqual(PIX      *pix1,
          PIX      *pix2,
          l_int32  *psame)
@@ -172,7 +172,7 @@ pixEqual(PIX      *pix1,
  *          the alpha component in the comparison.
  * </pre>
  */
-l_int32
+l_ok
 pixEqualWithAlpha(PIX      *pix1,
                   PIX      *pix2,
                   l_int32   use_alpha,
@@ -374,7 +374,7 @@ PIXCMAP   *cmap1, *cmap2;
  *          slow brute force.
  * </pre>
  */
-l_int32
+l_ok
 pixEqualWithCmap(PIX      *pix1,
                  PIX      *pix2,
                  l_int32  *psame)
@@ -470,7 +470,7 @@ PIXCMAP   *cmap1, *cmap2;
  *          compared.
  * </pre>
  */
-l_int32
+l_ok
 cmapEqual(PIXCMAP  *cmap1,
           PIXCMAP  *cmap2,
           l_int32   ncomps,
@@ -528,7 +528,7 @@ l_int32  n1, n2, i, rval1, rval2, gval1, gval2, bval1, bval2, aval1, aval2;
  *          has color entries that are actually used in the image.
  * </pre>
  */
-l_int32
+l_ok
 pixUsesCmapColor(PIX      *pixs,
                  l_int32  *pcolor)
 {
@@ -594,7 +594,7 @@ PIXCMAP  *cmap;
  *          is not enforced.  Instead, the UL corners are aligned.
  * </pre>
  */
-l_int32
+l_ok
 pixCorrelationBinary(PIX        *pix1,
                      PIX        *pix2,
                      l_float32  *pval)
@@ -708,7 +708,7 @@ PIXCMAP  *cmap;
  *      (3) The total number of pixels is determined by pix1.
  * </pre>
  */
-l_int32
+l_ok
 pixCompareBinary(PIX        *pix1,
                  PIX        *pix2,
                  l_int32     comptype,
@@ -784,7 +784,7 @@ PIX      *pixt;
  *          the RMS differences for each of the components.
  * </pre>
  */
-l_int32
+l_ok
 pixCompareGrayOrRGB(PIX        *pix1,
                     PIX        *pix2,
                     l_int32     comptype,
@@ -855,7 +855,7 @@ PIX     *pixt1, *pixt2;
  *                output files.
  * </pre>
  */
-l_int32
+l_ok
 pixCompareGray(PIX        *pix1,
                PIX        *pix2,
                l_int32     comptype,
@@ -964,7 +964,7 @@ PIX            *pixt;
  *                output files.
  * </pre>
  */
-l_int32
+l_ok
 pixCompareRGB(PIX        *pix1,
               PIX        *pix2,
               l_int32     comptype,
@@ -1120,7 +1120,7 @@ PIX            *pixr, *pixg, *pixb;
  *      (4) The result, pixdiff, contains one pixel for each source tile.
  * </pre>
  */
-l_int32
+l_ok
 pixCompareTiled(PIX     *pix1,
                 PIX     *pix2,
                 l_int32  sx,
@@ -1299,7 +1299,7 @@ NUMA       *nah, *nan, *nad;
  *          saved in the histogram.
  * </pre>
  */
-l_int32
+l_ok
 pixTestForSimilarity(PIX       *pix1,
                      PIX       *pix2,
                      l_int32    factor,
@@ -1378,7 +1378,7 @@ l_float32   fractdiff, avediff;
  *          that the two pix will be considered similar.
  * </pre>
  */
-l_int32
+l_ok
 pixGetDifferenceStats(PIX        *pix1,
                       PIX        *pix2,
                       l_int32     factor,
@@ -1611,7 +1611,7 @@ PIX        *pixt1, *pixt2;
  *          below the threshold.
  * </pre>
  */
-l_int32
+l_ok
 pixGetPerceptualDiff(PIX        *pixs1,
                      PIX        *pixs2,
                      l_int32     sampling,
@@ -1774,7 +1774,7 @@ PIX     *pix10, *pix11;
  *          about 10^(-48).
  * </pre>
  */
-l_int32
+l_ok
 pixGetPSNR(PIX        *pix1,
            PIX        *pix2,
            l_int32     factor,
@@ -1888,7 +1888,7 @@ l_float32  mse;  /* mean squared error */
  *          on the implementation.
  * </pre>
  */
-l_int32
+l_ok
 pixaComparePhotoRegionsByHisto(PIXA        *pixa,
                                l_float32    minratio,
                                l_float32    textthresh,
@@ -2096,7 +2096,7 @@ cleanup:
  *          the images, histograms and score.
  * </pre>
  */
-l_int32
+l_ok
 pixComparePhotoRegionsByHisto(PIX        *pix1,
                               PIX        *pix2,
                               BOX        *box1,
@@ -2203,7 +2203,7 @@ PIXA      *pixa;
  *          the images and histograms.
  * </pre>
  */
-l_int32
+l_ok
 pixGenPhotoHistos(PIX        *pixs,
                   BOX        *box,
                   l_int32     factor,
@@ -2367,7 +2367,7 @@ PIX       *pix1, *pixd;
  *          darker the pixel, the more weight it is given.
  * </pre>
  */
-l_int32
+l_ok
 pixCentroid8(PIX        *pixs,
              l_int32     factor,
              l_float32  *pcx,
@@ -2445,7 +2445,7 @@ PIX       *pix1;
  *      (5) Use %pixadebug == NULL unless debug output is requested.
  * </pre>
  */
-l_int32
+l_ok
 pixDecideIfPhotoImage(PIX       *pix,
                       l_int32    factor,
                       l_int32    nx,
@@ -2568,7 +2568,7 @@ PIXA      *pixa, *pixa2;
  *      (2) The input pixadebug is null unless debug output is requested.
  * </pre>
  */
-l_int32
+l_ok
 compareTilesByHisto(NUMAA      *naa1,
                     NUMAA      *naa2,
                     l_float32   minratio,
@@ -2736,7 +2736,7 @@ NUMA      *na1, *na2, *nadist, *nascore;
  *              to determine whether it is photo or line graphics.
  * </pre>
  */
-l_int32
+l_ok
 pixCompareGrayByHisto(PIX        *pix1,
                       PIX        *pix2,
                       BOX        *box1,
@@ -2989,7 +2989,7 @@ PIXA      *pixa1, *pixa2;
  *          Black pixels have weight 255; white pixels have weight 0.
  * </pre>
  */
-l_int32
+l_ok
 pixCropAlignedToCentroid(PIX     *pix1,
                          PIX     *pix2,
                          l_int32  factor,
@@ -3201,7 +3201,7 @@ NUMAA   *naa;
  *          has fg pixels.
  * </pre>
  */
-l_int32
+l_ok
 pixCompareWithTranslation(PIX        *pix1,
                           PIX        *pix2,
                           l_int32     thresh,
@@ -3355,7 +3355,7 @@ PIXA      *pixa1, *pixa2, *pixadb;
  *          in pixCompareWithTranslation().
  * </pre>
  */
-l_int32
+l_ok
 pixBestCorrelation(PIX        *pix1,
                    PIX        *pix2,
                    l_int32     area1,

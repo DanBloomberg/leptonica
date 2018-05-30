@@ -364,7 +364,7 @@ int              giferr;
  *          If the pix is 16 bpp grayscale, it converts to 8 bpp first.
  * </pre>
  */
-l_int32
+l_ok
 pixWriteStreamGif(FILE  *fp,
                   PIX   *pix)
 {
@@ -406,7 +406,7 @@ size_t    filebytes, nbytes;
  *      (1) See comments in pixReadMemGif()
  * </pre>
  */
-l_int32
+l_ok
 pixWriteMemGif(l_uint8  **pdata,
                size_t    *psize,
                PIX       *pix)

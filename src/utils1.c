@@ -229,7 +229,7 @@ returnErrorPtr(const char  *msg,
  * \param[out]   psame 1 if identical; 0 if different
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 filesAreIdentical(const char  *fname1,
                   const char  *fname2,
                   l_int32     *psame)
@@ -373,7 +373,7 @@ convertOnBigEnd32(l_uint32  wordin)
  *          data is corrupted, by simulating data corruption by deletion.
  * </pre>
  */
-l_int32
+l_ok
 fileCorruptByDeletion(const char  *filein,
                       l_float32    loc,
                       l_float32    size,
@@ -437,7 +437,7 @@ l_uint8  *datain, *dataout;
  *          data is corrupted, by simulating data corruption.
  * </pre>
  */
-l_int32
+l_ok
 fileCorruptByMutation(const char  *filein,
                       l_float32    loc,
                       l_float32    size,
@@ -495,7 +495,7 @@ l_uint8  *data;
  *          use %range = 100.
  * </pre>
  */
-l_int32
+l_ok
 genRandomIntegerInRange(l_int32   range,
                         l_int32   seed,
                         l_int32  *pval)
@@ -564,7 +564,7 @@ lept_roundftoi(l_float32  fval)
  *          collisions for this set.
  * </pre>
  */
-l_int32
+l_ok
 l_hashStringToUint64(const char  *str,
                      l_uint64    *phash)
 {
@@ -610,7 +610,7 @@ l_uint64  hash, mulp;
  *          values are not required.
  * </pre>
  */
-l_int32
+l_ok
 l_hashPtToUint64(l_int32    x,
                  l_int32    y,
                  l_uint64  *phash)
@@ -650,7 +650,7 @@ l_hashPtToUint64(l_int32    x,
  *          and a dnahash hashmap are built.  See l_dnaMakeHistoByHash().
  * </pre>
  */
-l_int32
+l_ok
 l_hashFloat64ToUint64(l_int32    nbuckets,
                       l_float64  val,
                       l_uint64  *phash)
@@ -674,7 +674,7 @@ l_hashFloat64ToUint64(l_int32    nbuckets,
  * \param[out]   pprime first prime larger than %start
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 findNextLargerPrime(l_int32    start,
                     l_uint32  *pprime)
 {
@@ -709,7 +709,7 @@ l_int32  i, is_prime;
  *                       or 0 on error or if prime
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 lept_isPrime(l_uint64   n,
              l_int32   *pis_prime,
              l_uint32  *pfactor)

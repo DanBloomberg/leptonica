@@ -238,7 +238,7 @@ setLeptDebugOK(l_int32  allow)
  *          individually for each pix.
  * </pre>
  */
-l_int32
+l_ok
 pixaWriteFiles(const char  *rootname,
                PIXA        *pixa,
                l_int32      format)
@@ -291,7 +291,7 @@ PIX     *pix;
  *          or cleared by the function setLeptDebugOK().
  * </pre>
  */
-l_int32
+l_ok
 pixWriteDebug(const char  *fname,
               PIX         *pix,
               l_int32      format)
@@ -328,7 +328,7 @@ pixWriteDebug(const char  *fname,
  *          Use l_jpegSetQuality().
  * </pre>
  */
-l_int32
+l_ok
 pixWrite(const char  *fname,
          PIX         *pix,
          l_int32      format)
@@ -361,7 +361,7 @@ FILE    *fp;
  * \param[in]    pix
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixWriteAutoFormat(const char  *filename,
                    PIX         *pix)
 {
@@ -388,7 +388,7 @@ l_int32  format;
  * \param[in]    format
  * \return  0 if OK; 1 on error.
  */
-l_int32
+l_ok
 pixWriteStream(FILE    *fp,
                PIX     *pix,
                l_int32  format)
@@ -480,7 +480,7 @@ pixWriteStream(FILE    *fp,
  *      (3) The jpeg default quality is 75.
  * </pre>
  */
-l_int32
+l_ok
 pixWriteImpliedFormat(const char  *filename,
                       PIX         *pix,
                       l_int32      quality,
@@ -621,7 +621,7 @@ l_int32  format = IFF_UNKNOWN;
  *          the alpha layer), and lossless png for all other situations.
  * </pre>
  */
-l_int32
+l_ok
 pixGetAutoFormat(PIX      *pix,
                  l_int32  *pformat)
 {
@@ -697,7 +697,7 @@ getFormatExtension(l_int32  format)
  *          Use l_jpegSetQuality().
  * </pre>
  */
-l_int32
+l_ok
 pixWriteMem(l_uint8  **pdata,
             size_t    *psize,
             PIX       *pix,
@@ -797,7 +797,7 @@ l_int32  ret;
  *      (3) This downscales 1 bpp to gray.
  * </pre>
  */
-l_int32
+l_ok
 l_fileDisplay(const char  *fname,
               l_int32      x,
               l_int32      y,
@@ -873,7 +873,7 @@ PIX  *pixs, *pixd;
  *          a white background.
  * </pre>
  */
-l_int32
+l_ok
 pixDisplay(PIX     *pixs,
            l_int32  x,
            l_int32  y)
@@ -897,7 +897,7 @@ pixDisplay(PIX     *pixs,
  *      (2) This displays the image if dispflag == 1; otherwise it punts.
  * </pre>
  */
-l_int32
+l_ok
 pixDisplayWithTitle(PIX         *pixs,
                     l_int32      x,
                     l_int32      y,
@@ -1073,7 +1073,7 @@ char            fullpath[_MAX_PATH];
  * \param[in]    dp depth of pixa; 8 or 32 bpp; only used on first call
  * \return  0 if OK, 1 on error.
  */
-l_int32
+l_ok
 pixSaveTiled(PIX       *pixs,
              PIXA      *pixa,
              l_float32  scalefactor,
@@ -1124,7 +1124,7 @@ pixSaveTiled(PIX       *pixs,
  *          field, which is the only field available for storing an int.
  * </pre>
  */
-l_int32
+l_ok
 pixSaveTiledOutline(PIX       *pixs,
                     PIXA      *pixa,
                     l_float32  scalefactor,
@@ -1254,7 +1254,7 @@ PIX     *pix1, *pix2, *pix3, *pix4;
  *      (7) See pixSaveTiledOutline() for other implementation details.
  * </pre>
  */
-l_int32
+l_ok
 pixSaveTiledWithText(PIX         *pixs,
                      PIXA        *pixa,
                      l_int32      outwidth,
@@ -1343,7 +1343,7 @@ l_chooseDisplayProg(l_int32  selection)
  *             pix8 = pixConvert16To8(pixt, 1);  // high order byte
  * </pre>
  */
-l_int32
+l_ok
 pixDisplayWrite(PIX     *pixs,
                 l_int32  reduction)
 {

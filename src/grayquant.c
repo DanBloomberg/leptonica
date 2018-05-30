@@ -1948,7 +1948,7 @@ l_int32    i, j, thresh, maxval, quantval;
  *          of bins must not exceed 2^outdepth.
  * </pre>
  */
-l_int32
+l_ok
 makeGrayQuantTableArb(NUMA      *na,
                       l_int32    outdepth,
                       l_int32  **ptab,
@@ -2862,7 +2862,7 @@ l_uint8  rval, bval, dval;
  *
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 make8To1DitherTables(l_int32 **ptabval,
                      l_int32 **ptab38,
                      l_int32 **ptab14,

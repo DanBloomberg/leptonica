@@ -154,7 +154,7 @@ static void l_showIndicatorSplitValues(NUMA *na1, NUMA *na2, NUMA *na3,
  *          extracted subimages.
  * </pre>
  */
-l_int32
+l_ok
 recogIdentifyMultiple(L_RECOG  *recog,
                       PIX      *pixs,
                       l_int32   minh,
@@ -242,7 +242,7 @@ PIXA    *pixa;
  *          Thes are more accurately found later using the scaled templates.
  * </pre>
  */
-l_int32
+l_ok
 recogSplitIntoCharacters(L_RECOG  *recog,
                          PIX      *pixs,
                          l_int32   minh,
@@ -397,7 +397,7 @@ PIXA    *pixa;
  *      (2) Matching is to the average, and without character scaling.
  * </pre>
  */
-l_int32
+l_ok
 recogCorrelationBestRow(L_RECOG  *recog,
                         PIX      *pixs,
                         BOXA    **pboxa,
@@ -579,7 +579,7 @@ l_int32    iter;
  *      (2) Matching is to the average templates, without character scaling.
  * </pre>
  */
-l_int32
+l_ok
 recogCorrelationBestChar(L_RECOG    *recog,
                          PIX        *pixs,
                          BOX       **pbox,
@@ -874,7 +874,7 @@ PIX        *pixt, *pixt1, *pixt2;
  *          for the best correlation match.
  * </pre>
  */
-l_int32
+l_ok
 recogIdentifyPixa(L_RECOG  *recog,
                   PIXA     *pixa,
                   PIX     **ppixdb)
@@ -967,7 +967,7 @@ L_RCH     *rch;
  *          as an actual probability.
  * </pre>
  */
-l_int32
+l_ok
 recogIdentifyPix(L_RECOG  *recog,
                  PIX      *pixs,
                  PIX     **ppixdb)
@@ -1116,7 +1116,7 @@ PTA       *pta;
  *          string id into the rch.
  * </pre>
  */
-l_int32
+l_ok
 recogSkipIdentify(L_RECOG  *recog)
 {
     PROCNAME("recogSkipIdentify");
@@ -1277,7 +1277,7 @@ L_RCH  *rch;
  *          be destroyed by the caller.
  * </pre>
  */
-l_int32
+l_ok
 rchaExtract(L_RCHA   *rcha,
             NUMA    **pnaindex,
             NUMA    **pnascore,
@@ -1323,7 +1323,7 @@ rchaExtract(L_RCHA   *rcha,
  * \param[out]   pwidth [optional] width of best template
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 rchExtract(L_RCH      *rch,
            l_int32    *pindex,
            l_float32  *pscore,

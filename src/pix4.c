@@ -406,7 +406,7 @@ PIXA    *pixa;
  *      (2) Set the subsampling %factor > 1 to reduce the amount of computation.
  * </pre>
  */
-l_int32
+l_ok
 pixGetColorHistogram(PIX     *pixs,
                      l_int32  factor,
                      NUMA   **pnar,
@@ -508,7 +508,7 @@ PIXCMAP    *cmap;
  *      (4) Input x,y are ignored unless pixm exists.
  * </pre>
  */
-l_int32
+l_ok
 pixGetColorHistogramMasked(PIX        *pixs,
                            PIX        *pixm,
                            l_int32     x,
@@ -941,7 +941,7 @@ RB_TYPE  *pval;
  *          of a target image, using pixLinearMapToTargetColor().
  * </pre>
  */
-l_int32
+l_ok
 pixGetRankValue(PIX       *pixs,
                 l_int32    factor,
                 l_float32  rank,
@@ -1011,7 +1011,7 @@ PIXCMAP   *cmap;
  *          has rank 1.0.  For the median pixel value, use 0.5.
  * </pre>
  */
-l_int32
+l_ok
 pixGetRankValueMaskedRGB(PIX        *pixs,
                          PIX        *pixm,
                          l_int32     x,
@@ -1103,7 +1103,7 @@ PIX       *pixmt, *pixt;
  *          on the returned Numa for additional rank values.
  * </pre>
  */
-l_int32
+l_ok
 pixGetRankValueMasked(PIX        *pixs,
                       PIX        *pixm,
                       l_int32     x,
@@ -1172,7 +1172,7 @@ NUMA  *na;
  *      (5) Input x,y are ignored if %pixm does not exist.
  * </pre>
  */
-l_int32
+l_ok
 pixGetPixelAverage(PIX       *pixs,
                    PIX       *pixm,
                    l_int32    x,
@@ -1290,7 +1290,7 @@ PIX       *pix1;
  *          pixGetPixelAverage(), which is considerably faster.
  * </pre>
  */
-l_int32
+l_ok
 pixGetPixelStats(PIX       *pixs,
                  l_int32    factor,
                  l_int32    type,
@@ -1357,7 +1357,7 @@ PIXCMAP   *cmap;
  *      (3) A better name for this would be: pixGetPixelStatsRGB()
  * </pre>
  */
-l_int32
+l_ok
 pixGetAverageMaskedRGB(PIX        *pixs,
                        PIX        *pixm,
                        l_int32     x,
@@ -1453,7 +1453,7 @@ PIXCMAP  *cmap;
  *      (6) A better name for this would be: pixGetPixelStatsGray()
  * </pre>
  */
-l_int32
+l_ok
 pixGetAverageMasked(PIX        *pixs,
                     PIX        *pixm,
                     l_int32     x,
@@ -1572,7 +1572,7 @@ PIX       *pixg;
  *          component images are extracted.
  * </pre>
  */
-l_int32
+l_ok
 pixGetAverageTiledRGB(PIX     *pixs,
                       l_int32  sx,
                       l_int32  sy,
@@ -2059,7 +2059,7 @@ l_float32  *famedian, *famode, *famodecount;
  *      (1) If pixs is 8 bpp grayscale, the color selection type is ignored.
  * </pre>
  */
-l_int32
+l_ok
 pixGetRangeValues(PIX      *pixs,
                   l_int32   factor,
                   l_int32   color,
@@ -2137,7 +2137,7 @@ PIXCMAP  *cmap;
  *          one color component (address) must be input.
  * </pre>
  */
-l_int32
+l_ok
 pixGetExtremeValue(PIX      *pixs,
                    l_int32   factor,
                    l_int32   type,
@@ -2274,7 +2274,7 @@ PIXCMAP   *cmap;
  *          numbers.  They are not 8 bpp components in a colorspace.
  * </pre>
  */
-l_int32
+l_ok
 pixGetMaxValueInRect(PIX       *pixs,
                      BOX       *box,
                      l_uint32  *pmaxval,
@@ -2363,7 +2363,7 @@ l_uint32  *data, *line;
  *          where the ranking is done using the specified component.
  * </pre>
  */
-l_int32
+l_ok
 pixGetBinnedComponentRange(PIX        *pixs,
                            l_int32     nbins,
                            l_int32     factor,
@@ -2463,7 +2463,7 @@ PIX       *pixt;
  *          width intensity bins and finds the average color in each bin.
  * </pre>
  */
-l_int32
+l_ok
 pixGetRankColorArray(PIX        *pixs,
                      l_int32     nbins,
                      l_int32     type,
@@ -2625,7 +2625,7 @@ PIXCMAP   *cmap;
  *          and gets the average color in each bin.
  * </pre>
  */
-l_int32
+l_ok
 pixGetBinnedColor(PIX        *pixs,
                   PIX        *pixg,
                   l_int32     factor,
@@ -2971,7 +2971,7 @@ PIX        *pixt, *pixd;
  * \param[in]    pixd pix into which each column is inserted
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixaExtractColumnFromEachPix(PIXA    *pixa,
                              l_int32  col,
                              PIX     *pixd)
@@ -3046,7 +3046,7 @@ PIX       *pixt;
  *          each Pix in the Pixa.
  * </pre>
  */
-l_int32
+l_ok
 pixGetRowStats(PIX        *pixs,
                l_int32     type,
                l_int32     nbins,
@@ -3168,7 +3168,7 @@ l_uint32  *lines, *datas;
  *          for the mode value to be returned (instead of returning 0).
  * </pre>
  */
-l_int32
+l_ok
 pixGetColumnStats(PIX        *pixs,
                   l_int32     type,
                   l_int32     nbins,
@@ -3269,7 +3269,7 @@ l_uint32  *datas;
  * \param[in]    colvect vector of floats
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixSetPixelColumn(PIX        *pix,
                   l_int32     col,
                   l_float32  *colvect)
@@ -3309,7 +3309,7 @@ l_uint32  *data;
  * \param[out]   pbgval [optional] average background value
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixThresholdForFgBg(PIX      *pixs,
                     l_int32   factor,
                     l_int32   thresh,
@@ -3368,7 +3368,7 @@ PIX       *pixg, *pixm;
  *          method of choosing a threshold.
  * </pre>
  */
-l_int32
+l_ok
 pixSplitDistributionFgBg(PIX       *pixs,
                          l_float32  scorefract,
                          l_int32    factor,

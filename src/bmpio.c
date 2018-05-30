@@ -355,7 +355,7 @@ PIXCMAP   *cmap;
  * \param[in]    pix    all depths
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixWriteStreamBmp(FILE  *fp,
                   PIX   *pix)
 {
@@ -400,7 +400,7 @@ size_t    size, nbytes;
  *          a simple memcpy for bmp output.
  * </pre>
  */
-l_int32
+l_ok
 pixWriteMemBmp(l_uint8  **pfdata,
                size_t    *pfsize,
                PIX       *pixs)

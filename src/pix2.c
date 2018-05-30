@@ -176,7 +176,7 @@ LEPT_DLL l_float32  AlphaMaskBorderVals[2] = {0.0, 0.5};
  *          with 0 in %pval.  To avoid spamming output, it fails silently.
  * </pre>
  */
-l_int32
+l_ok
 pixGetPixel(PIX       *pix,
             l_int32    x,
             l_int32    y,
@@ -247,7 +247,7 @@ l_uint32  *line, *data;
  *      (2) See pixGetPixel() for information on performance.
  * </pre>
  */
-l_int32
+l_ok
 pixSetPixel(PIX      *pix,
             l_int32   x,
             l_int32   y,
@@ -310,7 +310,7 @@ l_uint32  *line, *data;
  * \param[out]   pbval [optional] blue component
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixGetRGBPixel(PIX      *pix,
                l_int32   x,
                l_int32   y,
@@ -358,7 +358,7 @@ l_uint32  *data, *ppixel;
  * \param[in]    bval blue component
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixSetRGBPixel(PIX     *pix,
                l_int32  x,
                l_int32  y,
@@ -405,7 +405,7 @@ l_uint32  *data, *line;
  *      (1) If the pix is colormapped, it returns the rgb value.
  * </pre>
  */
-l_int32
+l_ok
 pixGetRandomPixel(PIX       *pix,
                   l_uint32  *pval,
                   l_int32   *px,
@@ -451,7 +451,7 @@ PIXCMAP  *cmap;
  * \param[in]    x,y pixel coords
  * \return  0 if OK; 1 on error.
  */
-l_int32
+l_ok
 pixClearPixel(PIX     *pix,
               l_int32  x,
               l_int32  y)
@@ -507,7 +507,7 @@ l_uint32  *line, *data;
  * \param[in]    x,y pixel coords
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixFlipPixel(PIX     *pix,
              l_int32  x,
              l_int32  y)
@@ -640,7 +640,7 @@ setPixelLow(l_uint32  *line,
  *          the index of the closest color in intensity is returned.
  * </pre>
  */
-l_int32
+l_ok
 pixGetBlackOrWhiteVal(PIX       *pixs,
                       l_int32    op,
                       l_uint32  *pval)
@@ -696,7 +696,7 @@ PIXCMAP  *cmap;
  *          one in the colormap.  Be sure that this is the intended color!
  * </pre>
  */
-l_int32
+l_ok
 pixClearAll(PIX  *pix)
 {
     PROCNAME("pixClearAll");
@@ -725,7 +725,7 @@ pixClearAll(PIX  *pix)
  *          color may not be defined, because the colormap may not be full.
  * </pre>
  */
-l_int32
+l_ok
 pixSetAll(PIX  *pix)
 {
 l_int32   n;
@@ -768,7 +768,7 @@ PIXCMAP  *cmap;
  *          L2 distance of components.  This index is written to all pixels.
  * </pre>
  */
-l_int32
+l_ok
 pixSetAllGray(PIX     *pix,
               l_int32  grayval)
 {
@@ -860,7 +860,7 @@ PIXCMAP  *cmap;
  *          pixSetSpp(pix, 4) can be used to promote an RGB image to RGBA.
  * </pre>
  */
-l_int32
+l_ok
 pixSetAllArbitrary(PIX      *pix,
                    l_uint32  val)
 {
@@ -930,7 +930,7 @@ PIXCMAP   *cmap;
  *          This index is written to all pixels.
  * </pre>
  */
-l_int32
+l_ok
 pixSetBlackOrWhite(PIX     *pixs,
                    l_int32  op)
 {
@@ -977,7 +977,7 @@ PIXCMAP  *cmap;
  *              pixSetComponentArbitrary(pix, L_ALPHA_CHANNEL, 255)
  * </pre>
  */
-l_int32
+l_ok
 pixSetComponentArbitrary(PIX     *pix,
                          l_int32  comp,
                          l_int32  val)
@@ -1027,7 +1027,7 @@ l_uint32  *data;
  *          one in the colormap.  Be sure that this is the intended color!
  * </pre>
  */
-l_int32
+l_ok
 pixClearInRect(PIX  *pix,
                BOX  *box)
 {
@@ -1062,7 +1062,7 @@ l_int32  x, y, w, h;
  *          color may not be defined, because the colormap may not be full.
  * </pre>
  */
-l_int32
+l_ok
 pixSetInRect(PIX  *pix,
              BOX  *box)
 {
@@ -1104,7 +1104,7 @@ PIXCMAP  *cmap;
  *          this index exists in the colormap and that it is the intended one!
  * </pre>
  */
-l_int32
+l_ok
 pixSetInRectArbitrary(PIX      *pix,
                       BOX      *box,
                       l_uint32  val)
@@ -1205,7 +1205,7 @@ PIXCMAP   *cmap;
  *          If no rectangle is specified, it blends over the entire image.
  * </pre>
  */
-l_int32
+l_ok
 pixBlendInRect(PIX       *pixs,
                BOX       *box,
                l_uint32   val,
@@ -1291,7 +1291,7 @@ l_uint32  *datas, *lines;
  *          set to 0 before writing these compressed files.
  * </pre>
  */
-l_int32
+l_ok
 pixSetPadBits(PIX     *pix,
               l_int32  val)
 {
@@ -1351,7 +1351,7 @@ l_uint32  *data, *pword;
  *      (3) For 32 bpp pix, there are no pad bits, so this is a no-op.
  * </pre>
  */
-l_int32
+l_ok
 pixSetPadBitsBand(PIX     *pix,
                   l_int32  by,
                   l_int32  bh,
@@ -1423,7 +1423,7 @@ l_uint32  *data, *pword;
  *          and PIX_CLR for black.
  * </pre>
  */
-l_int32
+l_ok
 pixSetOrClearBorder(PIX     *pixs,
                     l_int32  left,
                     l_int32  right,
@@ -1472,7 +1472,7 @@ l_int32  w, h;
  *      (4) The code is easily generalized for 2 or 4 bpp.
  * </pre>
  */
-l_int32
+l_ok
 pixSetBorderVal(PIX      *pixs,
                 l_int32   left,
                 l_int32   right,
@@ -1576,7 +1576,7 @@ l_uint32  *datas, *lines;
  *          This sets all pixels in a given ring to a value.
  * </pre>
  */
-l_int32
+l_ok
 pixSetBorderRingVal(PIX      *pixs,
                     l_int32   dist,
                     l_uint32  val)
@@ -1627,7 +1627,7 @@ l_int32  w, h, d, i, j, xend, yend;
  *          because there is no overlap between the src and dest rectangles.
  * </pre>
  */
-l_int32
+l_ok
 pixSetMirroredBorder(PIX     *pixs,
                      l_int32  left,
                      l_int32  right,
@@ -2209,7 +2209,7 @@ PIX     *pixd;
  * \param[in]    shiftx, shifty
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixShiftAndTransferAlpha(PIX       *pixd,
                          PIX       *pixs,
                          l_float32  shiftx,
@@ -2447,7 +2447,7 @@ PIX       *pixd;
  *          need not be the same, but a warning is issued if they differ.
  * </pre>
  */
-l_int32
+l_ok
 pixSetRGBComponent(PIX     *pixd,
                    PIX     *pixs,
                    l_int32  comp)
@@ -2594,7 +2594,7 @@ RGBA_QUAD  *cta;
  *          are usually the same, and a warning is issued if they differ.
  * </pre>
  */
-l_int32
+l_ok
 pixCopyRGBComponent(PIX     *pixd,
                     PIX     *pixs,
                     l_int32  comp)
@@ -2655,7 +2655,7 @@ l_uint32  *datas, *datad;
  *            SET_DATA_BYTE(ppixel, COLOR_BLUE, bval);
  * </pre>
  */
-l_int32
+l_ok
 composeRGBPixel(l_int32    rval,
                 l_int32    gval,
                 l_int32    bval,
@@ -2686,7 +2686,7 @@ composeRGBPixel(l_int32    rval,
  *          with 0xff before shifting.
  * </pre>
  */
-l_int32
+l_ok
 composeRGBAPixel(l_int32    rval,
                  l_int32    gval,
                  l_int32    bval,
@@ -2800,7 +2800,7 @@ l_int32  rval, gval, bval, val;
  *          into the given buffers.
  * </pre>
  */
-l_int32
+l_ok
 pixGetRGBLine(PIX      *pixs,
               l_int32   row,
               l_uint8  *bufr,
@@ -2926,7 +2926,7 @@ PIX       *pixd;
  *          order when serialized, so no byte flipping is required.
  * </pre>
  */
-l_int32
+l_ok
 pixEndianByteSwap(PIX  *pixs)
 {
 l_uint32  *data;
@@ -3088,7 +3088,7 @@ PIX       *pixd;
  *          each of the 16-bit entities separately.
  * </pre>
  */
-l_int32
+l_ok
 pixEndianTwoByteSwap(PIX  *pixs)
 {
 l_uint32  *data;
@@ -3142,7 +3142,7 @@ l_uint32   word;
  *          required for flate encoding of pixels in a PostScript file.
  * </pre>
  */
-l_int32
+l_ok
 pixGetRasterData(PIX       *pixs,
                  l_uint8  **pdata,
                  size_t    *pnbytes)
@@ -3216,7 +3216,7 @@ l_uint32  *rline, *rdata;  /* data in pix raster */
  *      Notes:
  *          1) On error, opaque is returned as 0 (FALSE).
  */
-l_int32
+l_ok
 pixAlphaIsOpaque(PIX      *pix,
                  l_int32  *popaque)
 {
@@ -3319,7 +3319,7 @@ l_int32  w, h;
  *          by pixSetupByteProcessing() has finished.
  * </pre>
  */
-l_int32
+l_ok
 pixCleanupByteProcessing(PIX      *pix,
                          l_uint8 **lineptrs)
 {

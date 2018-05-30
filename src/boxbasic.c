@@ -306,7 +306,7 @@ BOX  *box;
  * \param[out]   px, py, pw, ph [optional]  each can be null
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxGetGeometry(BOX      *box,
                l_int32  *px,
                l_int32  *py,
@@ -336,7 +336,7 @@ boxGetGeometry(BOX      *box,
  * \param[in]    x, y, w, h  [optional]  use -1 to leave unchanged
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxSetGeometry(BOX     *box,
                l_int32  x,
                l_int32  y,
@@ -367,7 +367,7 @@ boxSetGeometry(BOX     *box,
  *      (1) All returned values are within the box.
  * </pre>
  */
-l_int32
+l_ok
 boxGetSideLocations(BOX      *box,
                     l_int32  *pl,
                     l_int32  *pr,
@@ -401,7 +401,7 @@ l_int32  x, y, w, h;
  * \param[in]    l, r, t, b  [optional] use -1 to leave unchanged
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxSetSideLocations(BOX     *box,
                     l_int32  l,
                     l_int32  r,
@@ -445,7 +445,7 @@ boxGetRefcount(BOX  *box)
  * \param[in]     delta adjustment, usually -1 or 1
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxChangeRefcount(BOX     *box,
                   l_int32  delta)
 {
@@ -466,7 +466,7 @@ boxChangeRefcount(BOX     *box,
  * \param[out]   pvalid 1 if valid; 0 otherwise
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxIsValid(BOX      *box,
            l_int32  *pvalid)
 {
@@ -612,7 +612,7 @@ BOXA    *boxa;
  * \param[in]    copyflag L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaAddBox(BOXA    *boxa,
            BOX     *box,
            l_int32  copyflag)
@@ -659,7 +659,7 @@ BOX     *boxc;
  *      (1) Reallocs with doubled size of ptr array.
  * </pre>
  */
-l_int32
+l_ok
 boxaExtendArray(BOXA  *boxa)
 {
     PROCNAME("boxaExtendArray");
@@ -683,7 +683,7 @@ boxaExtendArray(BOXA  *boxa)
  *      (1) If necessary, reallocs new boxa ptr array to %size.
  * </pre>
  */
-l_int32
+l_ok
 boxaExtendArrayToSize(BOXA    *boxa,
                       l_int32  size)
 {
@@ -857,7 +857,7 @@ NUMA    *na;
  * \param[out]   px, py, pw, ph [optional]  each can be null
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaGetBoxGeometry(BOXA     *boxa,
                    l_int32   index,
                    l_int32  *px,
@@ -893,7 +893,7 @@ BOX  *box;
  * \param[out]   pfull 1 if boxa is full
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaIsFull(BOXA     *boxa,
            l_int32  *pfull)
 {
@@ -939,7 +939,7 @@ BOX     *box;
  *      (2) The previous box at that location, if any, is destroyed.
  * </pre>
  */
-l_int32
+l_ok
 boxaReplaceBox(BOXA    *boxa,
                l_int32  index,
                BOX     *box)
@@ -977,7 +977,7 @@ boxaReplaceBox(BOXA    *boxa,
  *          because the function is O(n).
  * </pre>
  */
-l_int32
+l_ok
 boxaInsertBox(BOXA    *boxa,
               l_int32  index,
               BOX     *box)
@@ -1022,7 +1022,7 @@ BOX    **array;
  *          large arrays, because the function is O(n).
  * </pre>
  */
-l_int32
+l_ok
 boxaRemoveBox(BOXA    *boxa,
               l_int32  index)
 {
@@ -1064,7 +1064,7 @@ BOX    **array;
  *          large arrays, because the function is O(n).
  * </pre>
  */
-l_int32
+l_ok
 boxaRemoveBoxAndSave(BOXA    *boxa,
                      l_int32  index,
                      BOX    **pbox)
@@ -1170,7 +1170,7 @@ BOXA    *boxad;
  *          use boxaGetValidBox() to return NULL for the invalid boxes.
  * </pre>
  */
-l_int32
+l_ok
 boxaInitFull(BOXA  *boxa,
              BOX   *box)
 {
@@ -1207,7 +1207,7 @@ BOX     *boxt;
  *          to null.  The number of allocated boxes, n, is set to 0.
  * </pre>
  */
-l_int32
+l_ok
 boxaClear(BOXA  *boxa)
 {
 l_int32  i, n;
@@ -1338,7 +1338,7 @@ BOXAA   *baa;
  * \param[in]    copyflag  L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaaAddBoxa(BOXAA   *baa,
              BOXA    *ba,
              l_int32  copyflag)
@@ -1375,7 +1375,7 @@ BOXA    *bac;
  * \param[in]    baa
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaaExtendArray(BOXAA  *baa)
 {
 
@@ -1406,7 +1406,7 @@ boxaaExtendArray(BOXAA  *baa)
  *      (1) If necessary, reallocs the boxa ptr array to %size.
  * </pre>
  */
-l_int32
+l_ok
 boxaaExtendArrayToSize(BOXAA   *baa,
                        l_int32  size)
 {
@@ -1564,7 +1564,7 @@ BOXA  *boxa;
  *          something else, such as a pixa.
  * </pre>
  */
-l_int32
+l_ok
 boxaaInitFull(BOXAA  *baa,
               BOXA   *boxa)
 {
@@ -1604,7 +1604,7 @@ BOXA    *boxat;
  *          Typically, boxa will be empty.
  * </pre>
  */
-l_int32
+l_ok
 boxaaExtendWithInit(BOXAA   *baa,
                     l_int32  maxindex,
                     BOXA    *boxa)
@@ -1645,7 +1645,7 @@ l_int32  i, n;
  *      (2) If the index is invalid, return 1 (error)
  * </pre>
  */
-l_int32
+l_ok
 boxaaReplaceBoxa(BOXAA   *baa,
                  l_int32  index,
                  BOXA    *boxa)
@@ -1686,7 +1686,7 @@ l_int32  n;
  *          because the function is O(n).
  * </pre>
  */
-l_int32
+l_ok
 boxaaInsertBoxa(BOXAA   *baa,
                 l_int32  index,
                 BOXA    *boxa)
@@ -1732,7 +1732,7 @@ BOXA   **array;
  *          because the function is O(n).
  * </pre>
  */
-l_int32
+l_ok
 boxaaRemoveBoxa(BOXAA   *baa,
                 l_int32  index)
 {
@@ -1772,7 +1772,7 @@ BOXA   **array;
  *      (1) Adds to an existing boxa only.
  * </pre>
  */
-l_int32
+l_ok
 boxaaAddBox(BOXAA   *baa,
             l_int32  index,
             BOX     *box,
@@ -1964,7 +1964,7 @@ BOXAA  *baa;
  * \param[in]    baa
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaaWrite(const char  *filename,
            BOXAA       *baa)
 {
@@ -1995,7 +1995,7 @@ FILE    *fp;
  * \param[in]   baa
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaaWriteStream(FILE   *fp,
                  BOXAA  *baa)
 {
@@ -2042,7 +2042,7 @@ BOXA    *boxa;
  *      (1) Serializes a boxaa in memory and puts the result in a buffer.
  * </pre>
  */
-l_int32
+l_ok
 boxaaWriteMem(l_uint8  **pdata,
               size_t    *psize,
               BOXAA     *baa)
@@ -2199,7 +2199,7 @@ BOXA  *boxa;
  *          or cleared by the function setLeptDebugOK().
  * </pre>
  */
-l_int32
+l_ok
 boxaWriteDebug(const char  *filename,
                BOXA        *boxa)
 {
@@ -2221,7 +2221,7 @@ boxaWriteDebug(const char  *filename,
  * \param[in]    boxa
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaWrite(const char  *filename,
           BOXA        *boxa)
 {
@@ -2253,7 +2253,7 @@ FILE    *fp;
  * \param[in]   boxa
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 boxaWriteStream(FILE  *fp,
                 BOXA  *boxa)
 {
@@ -2294,7 +2294,7 @@ BOX     *box;
  *      (1) Serializes a boxa in memory and puts the result in a buffer.
  * </pre>
  */
-l_int32
+l_ok
 boxaWriteMem(l_uint8  **pdata,
              size_t    *psize,
              BOXA      *boxa)
@@ -2351,7 +2351,7 @@ FILE    *fp;
  *          write to file if you want to read the data back.
  * </pre>
  */
-l_int32
+l_ok
 boxPrintStreamInfo(FILE  *fp,
                    BOX   *box)
 {

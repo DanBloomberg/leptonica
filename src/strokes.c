@@ -71,7 +71,7 @@
  *      (1) Returns half the number of fg boundary pixels.
  * </pre>
  */
-l_int32
+l_ok
 pixFindStrokeLength(PIX      *pixs,
                     l_int32  *tab8,
                     l_int32  *plength)
@@ -119,7 +119,7 @@ PIX      *pix1;
  *          the noise. It is typically about 0.15.
  * </pre>
  */
-l_int32
+l_ok
 pixFindStrokeWidth(PIX        *pixs,
                    l_float32   thresh,
                    l_int32    *tab8,

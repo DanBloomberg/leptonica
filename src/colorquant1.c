@@ -1357,7 +1357,7 @@ CQCELL   **cqca;
  *  of the rgb color.
  * </pre>
  */
-l_int32
+l_ok
 makeRGBToIndexTables(l_uint32  **prtab,
                      l_uint32  **pgtab,
                      l_uint32  **pbtab,
@@ -3934,7 +3934,7 @@ l_int32   *rmap, *gmap, *bmap, *tab;
  *          image pixels are re-numbered.
  * </pre>
  */
-l_int32
+l_ok
 pixRemoveUnusedColors(PIX  *pixs)
 {
 l_int32     i, j, w, h, d, nc, wpls, val, newval, index, zerofound;
@@ -4080,7 +4080,7 @@ PIXCMAP    *cmap, *cmapd;
  *          Setting %minfract == 0.0 is taken to mean the same thing.
  * </pre>
  */
-l_int32
+l_ok
 pixNumberOccupiedOctcubes(PIX       *pix,
                           l_int32    level,
                           l_int32    mincount,

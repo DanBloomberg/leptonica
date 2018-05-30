@@ -609,7 +609,7 @@ cleanup_arrays:
  *      (1) If pixs has a colormap, this is a no-op.
  * </pre>
  */
-l_int32
+l_ok
 pixAddGrayColormap8(PIX  *pixs)
 {
 PIXCMAP  *cmap;
@@ -1584,7 +1584,7 @@ PIXCMAP   *cmap;
  *      (4) If the image already has a colormap, it returns a clone.
  * </pre>
  */
-l_int32
+l_ok
 pixQuantizeIfFewColors(PIX     *pixs,
                        l_int32  maxcolors,
                        l_int32  mingraycolors,

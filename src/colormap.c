@@ -295,7 +295,7 @@ PIXCMAP  *cmap;
  *      (2) The alpha component is 255 (opaque)
  * </pre>
  */
-l_int32
+l_ok
 pixcmapAddColor(PIXCMAP  *cmap,
                 l_int32   rval,
                 l_int32   gval,
@@ -333,7 +333,7 @@ RGBA_QUAD  *cta;
  *      (1) This always adds the color if there is room.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapAddRGBA(PIXCMAP  *cmap,
                l_int32   rval,
                l_int32   gval,
@@ -377,7 +377,7 @@ RGBA_QUAD  *cta;
  *          the caller should check the return value.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapAddNewColor(PIXCMAP  *cmap,
                    l_int32   rval,
                    l_int32   gval,
@@ -426,7 +426,7 @@ pixcmapAddNewColor(PIXCMAP  *cmap,
  *          another color, this returns the index of the nearest color.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapAddNearestColor(PIXCMAP  *cmap,
                        l_int32   rval,
                        l_int32   gval,
@@ -473,7 +473,7 @@ pixcmapAddNearestColor(PIXCMAP  *cmap,
  *          room to add it.  It makes no change in the colormap.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapUsableColor(PIXCMAP  *cmap,
                    l_int32   rval,
                    l_int32   gval,
@@ -520,7 +520,7 @@ l_int32  index;
  *          of the closest color.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapAddBlackOrWhite(PIXCMAP  *cmap,
                        l_int32   color,
                        l_int32  *pindex)
@@ -559,7 +559,7 @@ l_int32  index;
  * \param[in]    setwhite 0 for no operation; 1 to set lightest color to white
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixcmapSetBlackAndWhite(PIXCMAP  *cmap,
                         l_int32   setblack,
                         l_int32   setwhite)
@@ -646,7 +646,7 @@ pixcmapGetDepth(PIXCMAP  *cmap)
  *      (1) On error, &mindepth is returned as 0.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapGetMinDepth(PIXCMAP  *cmap,
                    l_int32  *pmindepth)
 {
@@ -682,7 +682,7 @@ l_int32  ncolors;
  *      (1) This removes the colors by setting the count to 0.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapClear(PIXCMAP  *cmap)
 {
     PROCNAME("pixcmapClear");
@@ -705,7 +705,7 @@ pixcmapClear(PIXCMAP  *cmap)
  * \param[out]   prval, pgval, pbval each color value
  * \return  0 if OK, 1 if not accessible caller should check
  */
-l_int32
+l_ok
 pixcmapGetColor(PIXCMAP  *cmap,
                 l_int32   index,
                 l_int32  *prval,
@@ -745,7 +745,7 @@ RGBA_QUAD  *cta;
  *      (1) The returned alpha channel value is 255.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapGetColor32(PIXCMAP   *cmap,
                   l_int32    index,
                   l_uint32  *pval32)
@@ -773,7 +773,7 @@ l_int32  rval, gval, bval;
  * \param[out]   prval, pgval, pbval, paval each color value
  * \return  0 if OK, 1 if not accessible caller should check
  */
-l_int32
+l_ok
 pixcmapGetRGBA(PIXCMAP  *cmap,
                l_int32   index,
                l_int32  *prval,
@@ -811,7 +811,7 @@ RGBA_QUAD  *cta;
  * \param[out]   pval32 32-bit rgba color value
  * \return  0 if OK, 1 if not accessible caller should check
  */
-l_int32
+l_ok
 pixcmapGetRGBA32(PIXCMAP   *cmap,
                  l_int32    index,
                  l_uint32  *pval32)
@@ -847,7 +847,7 @@ l_int32  rval, gval, bval, aval;
  *      (2) The alpha component is 255 (opaque)
  * </pre>
  */
-l_int32
+l_ok
 pixcmapResetColor(PIXCMAP  *cmap,
                   l_int32   index,
                   l_int32   rval,
@@ -888,7 +888,7 @@ RGBA_QUAD  *cta;
  *          without decoding the image.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapSetAlpha(PIXCMAP  *cmap,
                 l_int32   index,
                 l_int32   aval)
@@ -956,7 +956,7 @@ RGBA_QUAD  *cta;
  * \param[out]   pcolor TRUE if cmap has color; FALSE otherwise
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixcmapHasColor(PIXCMAP  *cmap,
                 l_int32  *pcolor)
 {
@@ -995,7 +995,7 @@ l_int32  *rmap, *gmap, *bmap;
  * \param[out]   popaque TRUE if fully opaque: all entries are 255
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixcmapIsOpaque(PIXCMAP  *cmap,
                 l_int32  *popaque)
 {
@@ -1030,7 +1030,7 @@ RGBA_QUAD  *cta;
  *                           black (0,0,0) and white (255,255,255)
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixcmapIsBlackAndWhite(PIXCMAP  *cmap,
                        l_int32  *pblackwhite)
 {
@@ -1071,7 +1071,7 @@ RGBA_QUAD  *cta;
  *      (1) This counts the unique gray colors, including black and white.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapCountGrayColors(PIXCMAP  *cmap,
                        l_int32  *pngray)
 {
@@ -1112,7 +1112,7 @@ l_int32  *array;
  *                      corresponds to the rank intensity color
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixcmapGetRankIntensity(PIXCMAP    *cmap,
                         l_float32   rankval,
                         l_int32    *pindex)
@@ -1163,7 +1163,7 @@ NUMA    *na, *nasort;
  *          from the target color.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapGetNearestIndex(PIXCMAP  *cmap,
                        l_int32   rval,
                        l_int32   gval,
@@ -1221,7 +1221,7 @@ RGBA_QUAD  *cta;
  *          index of the color closest to the target color.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapGetNearestGrayIndex(PIXCMAP  *cmap,
                            l_int32   val,
                            l_int32  *pindex)
@@ -1274,7 +1274,7 @@ RGBA_QUAD  *cta;
  *          and the target color.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapGetDistanceToColor(PIXCMAP  *cmap,
                           l_int32   index,
                           l_int32   rval,
@@ -1330,7 +1330,7 @@ RGBA_QUAD  *cta;
  *          that are found in the cmap.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapGetRangeValues(PIXCMAP  *cmap,
                       l_int32   select,
                       l_int32  *pminval,
@@ -1679,7 +1679,7 @@ PIXCMAP  *cmap;
  * \param[in]    cmap
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixcmapWrite(const char  *filename,
              PIXCMAP     *cmap)
 {
@@ -1711,7 +1711,7 @@ FILE    *fp;
    \param[in]    cmap
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixcmapWriteStream(FILE     *fp,
                    PIXCMAP  *cmap)
 {
@@ -1757,7 +1757,7 @@ l_int32   i;
  *      (1) Serializes a pixcmap in memory and puts the result in a buffer.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapWriteMem(l_uint8  **pdata,
                 size_t    *psize,
                 PIXCMAP   *cmap)
@@ -1809,7 +1809,7 @@ FILE    *fp;
  * \param[out]   pamap [optional] alpha array
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixcmapToArrays(PIXCMAP   *cmap,
                 l_int32  **prmap,
                 l_int32  **pgmap,
@@ -1863,7 +1863,7 @@ RGBA_QUAD  *cta;
  * \param[out]   pncolors [optional] size of table
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixcmapToRGBTable(PIXCMAP    *cmap,
                   l_uint32  **ptab,
                   l_int32    *pncolors)
@@ -1908,7 +1908,7 @@ l_uint32  *tab;
  *      (1) When serializing to store in a pdf, use %cpc = 3.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapSerializeToMemory(PIXCMAP   *cmap,
                          l_int32    cpc,
                          l_int32   *pncolors,
@@ -2075,7 +2075,7 @@ char     buf[4];
  *          for description and use of transform
  * </pre>
  */
-l_int32
+l_ok
 pixcmapGammaTRC(PIXCMAP   *cmap,
                 l_float32  gamma,
                 l_int32    minval,
@@ -2130,7 +2130,7 @@ NUMA    *nag;
  *          for description and use of transform
  * </pre>
  */
-l_int32
+l_ok
 pixcmapContrastTRC(PIXCMAP   *cmap,
                    l_float32  factor)
 {
@@ -2182,7 +2182,7 @@ NUMA    *nac;
  *          but it is considerably more difficult (see numaGammaTRC()).
  * </pre>
  */
-l_int32
+l_ok
 pixcmapShiftIntensity(PIXCMAP   *cmap,
                       l_float32  fraction)
 {
@@ -2232,7 +2232,7 @@ l_int32  i, ncolors, rval, gval, bval;
  *          all ratios are taken with respect to the distance from 255.
  * </pre>
  */
-l_int32
+l_ok
 pixcmapShiftByComponent(PIXCMAP  *cmap,
                         l_uint32  srcval,
                         l_uint32  dstval)

@@ -146,7 +146,7 @@ static const l_float32  DEFAULT_FILL_FRACTION = 0.95;
  *          8.5 x 11.0 inch page.
  * </pre>
  */
-l_int32
+l_ok
 pixWritePSEmbed(const char  *filein,
                 const char  *fileout)
 {
@@ -199,7 +199,7 @@ PIX       *pix;
  *      (2) For details on use of parameters, see pixWriteStringPS().
  * </pre>
  */
-l_int32
+l_ok
 pixWriteStreamPS(FILE      *fp,
                  PIX       *pix,
                  BOX       *box,
@@ -637,7 +637,7 @@ l_uint8  nib;
  *          8.5 x 11.0 inch page.
  * </pre>
  */
-l_int32
+l_ok
 convertJpegToPSEmbed(const char  *filein,
                      const char  *fileout)
 {
@@ -752,7 +752,7 @@ L_COMP_DATA  *cid;
  *          a page directory, which viewers use for navigation.
  * </pre>
  */
-l_int32
+l_ok
 convertJpegToPS(const char  *filein,
                 const char  *fileout,
                 const char  *operation,
@@ -811,7 +811,7 @@ l_int32  nbytes;
  *      (1) For usage, see convertJpegToPS()
  * </pre>
  */
-l_int32
+l_ok
 convertJpegToPSString(const char  *filein,
                       char       **poutstr,
                       l_int32     *pnbytes,
@@ -1034,7 +1034,7 @@ SARRAY  *sa;
  *      (4) We paint this through a mask, over whatever is below.
  * </pre>
  */
-l_int32
+l_ok
 convertG4ToPSEmbed(const char  *filein,
                    const char  *fileout)
 {
@@ -1140,7 +1140,7 @@ L_COMP_DATA  *cid;
  *          a page directory, which viewers use for navigation.
  * </pre>
  */
-l_int32
+l_ok
 convertG4ToPS(const char  *filein,
               const char  *fileout,
               const char  *operation,
@@ -1203,7 +1203,7 @@ l_int32  nbytes;
  *      (2) For usage, see convertG4ToPS().
  * </pre>
  */
-l_int32
+l_ok
 convertG4ToPSString(const char  *filein,
                     char       **poutstr,
                     l_int32     *pnbytes,
@@ -1433,7 +1433,7 @@ SARRAY  *sa;
  *          aspect ratio.
  * </pre>
  */
-l_int32
+l_ok
 convertTiffMultipageToPS(const char  *filein,
                          const char  *fileout,
                          l_float32    fillfract)
@@ -1513,7 +1513,7 @@ FILE      *fp;
  *          8.5 x 11.0 inch page.
  * </pre>
  */
-l_int32
+l_ok
 convertFlateToPSEmbed(const char  *filein,
                       const char  *fileout)
 {
@@ -1626,7 +1626,7 @@ L_COMP_DATA  *cid;
  *          a page directory, which viewers use for navigation.
  * </pre>
  */
-l_int32
+l_ok
 convertFlateToPS(const char  *filein,
                  const char  *fileout,
                  const char  *operation,
@@ -1692,7 +1692,7 @@ l_int32  nbytes, ret;
  *  Usage:  See convertFlateToPS()
  * </pre>
  */
-l_int32
+l_ok
 convertFlateToPSString(const char  *filein,
                        char       **poutstr,
                        l_int32     *pnbytes,
@@ -1917,7 +1917,7 @@ SARRAY  *sa;
  *          writes uncompressed image data to memory.
  * </pre>
  */
-l_int32
+l_ok
 pixWriteMemPS(l_uint8  **pdata,
               size_t    *psize,
               PIX       *pix,
@@ -1952,7 +1952,7 @@ pixWriteMemPS(l_uint8  **pdata,
  *                         to be exceeded; use 0 for default
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 getResLetterPage(l_int32    w,
                  l_int32    h,
                  l_float32  fillfract)
@@ -1977,7 +1977,7 @@ l_int32  resw, resh, res;
  *                        to be exceeded; use 0 for default
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 getResA4Page(l_int32    w,
              l_int32    h,
              l_float32  fillfract)

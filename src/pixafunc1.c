@@ -1075,7 +1075,7 @@ PIXA    *pixad;
  *          components are set subtracted from pixs.
  * </pre>
  */
-l_int32
+l_ok
 pixRemoveWithIndicator(PIX   *pixs,
                        PIXA  *pixa,
                        NUMA  *na)
@@ -1128,7 +1128,7 @@ PIX     *pix;
  *          components are added to pixs.
  * </pre>
  */
-l_int32
+l_ok
 pixAddWithIndicator(PIX   *pixs,
                     PIXA  *pixa,
                     NUMA  *na)
@@ -2144,7 +2144,7 @@ PIXA    *pixa, *pixat;
  *                                            dimensions of all boxes
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixaaSizeRange(PIXAA    *paa,
                l_int32  *pminw,
                l_int32  *pminh,
@@ -2198,7 +2198,7 @@ PIXA    *pixa;
  *                                            dimensions of pix in the array
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixaSizeRange(PIXA     *pixa,
               l_int32  *pminw,
               l_int32  *pminh,
@@ -2317,7 +2317,7 @@ PIXA    *pixad;
  *      (3) See pixClipToForeground().
  * </pre>
  */
-l_int32
+l_ok
 pixaClipToForeground(PIXA   *pixas,
                      PIXA  **ppixad,
                      BOXA  **pboxa)
@@ -2363,7 +2363,7 @@ PIX     *pix1, *pix2;
  * \param[out]   pdepth   depth required to render if all colormaps are removed
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixaGetRenderingDepth(PIXA     *pixa,
                       l_int32  *pdepth)
 {
@@ -2400,7 +2400,7 @@ l_int32  hascolor, maxdepth;
  *                           0 otherwise
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixaHasColor(PIXA     *pixa,
              l_int32  *phascolor)
 {
@@ -2441,7 +2441,7 @@ PIXCMAP  *cmap;
  * \param[out]   phascmap    1 if any pix has a colormap; 0 otherwise
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixaAnyColormaps(PIXA     *pixa,
                  l_int32  *phascmap)
 {
@@ -2480,7 +2480,7 @@ PIXCMAP  *cmap;
  * \param[out]   psame      [optional] true if all depths are equal
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 pixaGetDepthInfo(PIXA     *pixa,
                  l_int32  *pmaxdepth,
                  l_int32  *psame)
@@ -2609,7 +2609,7 @@ PIXA    *pixa1, *pixad;
  *          implemented with a hash function for efficiency.
  * </pre>
  */
-l_int32
+l_ok
 pixaEqual(PIXA     *pixa1,
           PIXA     *pixa2,
           l_int32   maxdist,
@@ -2751,7 +2751,7 @@ PIXA    *pixad;
  *          like pixaSort() that sort based on the boxes.
  * </pre>
  */
-l_int32
+l_ok
 pixaSetFullSizeBoxa(PIXA  *pixa)
 {
 l_int32  i, n, w, h;

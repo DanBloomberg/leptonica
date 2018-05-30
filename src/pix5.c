@@ -123,7 +123,7 @@ static const l_uint32 rmask32[] = {0x0,
  * \param[out]   pnah [optional] numa of pix heights
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixaFindDimensions(PIXA   *pixa,
                    NUMA  **pnaw,
                    NUMA  **pnah)
@@ -173,7 +173,7 @@ PIX     *pixt;
  *      (2) This function is retained because clients are using it.
  * </pre>
  */
-l_int32
+l_ok
 pixFindAreaPerimRatio(PIX        *pixs,
                       l_int32    *tab,
                       l_float32  *pfract)
@@ -274,7 +274,7 @@ PIX       *pixt;
  *          a value ~1/d.
  * </pre>
  */
-l_int32
+l_ok
 pixFindPerimToAreaRatio(PIX        *pixs,
                         l_int32    *tab,
                         l_float32  *pfract)
@@ -378,7 +378,7 @@ PIX       *pixt;
  *          relatively smooth boundaries.
  * </pre>
  */
-l_int32
+l_ok
 pixFindPerimSizeRatio(PIX        *pixs,
                       l_int32    *tab,
                       l_float32  *pratio)
@@ -467,7 +467,7 @@ PIX       *pixt;
  *          single connected component.
  * </pre>
  */
-l_int32
+l_ok
 pixFindAreaFraction(PIX        *pixs,
                     l_int32    *tab,
                     l_float32  *pfract)
@@ -594,7 +594,7 @@ PIX       *pix;
  *          If box == NULL, the UL corners of pixs and pixm are aligned.
  * </pre>
  */
-l_int32
+l_ok
 pixFindAreaFractionMasked(PIX        *pixs,
                           BOX        *box,
                           PIX        *pixm,
@@ -729,7 +729,7 @@ PIX     *pixt;
  *      (2) This measure is similar to the correlation.
  * </pre>
  */
-l_int32
+l_ok
 pixFindOverlapFraction(PIX        *pixs1,
                        PIX        *pixs2,
                        l_int32     x2,
@@ -876,7 +876,7 @@ PIXA    *pixa;
  *          there are no filled pixels farther than %dist from the boundary.
  * </pre>
  */
-l_int32
+l_ok
 pixConformsToRectangle(PIX      *pixs,
                        BOX      *box,
                        l_int32   dist,
@@ -1144,7 +1144,7 @@ PIXCMAP  *cmap;
  *      (3) Note: the images are implicitly aligned to the UL corner.
  * </pre>
  */
-l_int32
+l_ok
 pixCropToMatch(PIX   *pixs1,
                PIX   *pixs2,
                PIX  **ppixd1,
@@ -1395,7 +1395,7 @@ PIX     *pixd;
  *          image, made from pixMakeFrameMask().
  * </pre>
  */
-l_int32
+l_ok
 pixFractionFgInMask(PIX        *pix1,
                     PIX        *pix2,
                     l_float32  *pfract)
@@ -1451,7 +1451,7 @@ PIX     *pix3;
  *      (2) If there are no fg pixels, the returned ptrs are null.
  * </pre>
  */
-l_int32
+l_ok
 pixClipToForeground(PIX   *pixs,
                     PIX  **ppixd,
                     BOX  **pbox)
@@ -1551,7 +1551,7 @@ maxx_found:
  *          Check the output of the subsequent call to pixClipToForeground().
  * </pre>
  */
-l_int32
+l_ok
 pixTestClipToForeground(PIX      *pixs,
                         l_int32  *pcanclip)
 {
@@ -1623,7 +1623,7 @@ l_uint32  *data, *line;
  *          this will leak memory.
  * </pre>
  */
-l_int32
+l_ok
 pixClipBoxToForeground(PIX   *pixs,
                        BOX   *boxs,
                        PIX  **ppixd,
@@ -1689,7 +1689,7 @@ BOX     *boxt, *boxd;
  *      (2) Use %box == NULL to scan from edge of pixs
  * </pre>
  */
-l_int32
+l_ok
 pixScanForForeground(PIX      *pixs,
                      BOX      *box,
                      l_int32   scanflag,
@@ -1805,7 +1805,7 @@ BOX       *boxt;
  *          to pixClipBoxToForeground().
  * </pre>
  */
-l_int32
+l_ok
 pixClipBoxToEdges(PIX     *pixs,
                   BOX     *boxs,
                   l_int32  lowthresh,
@@ -1935,7 +1935,7 @@ BOX     *boxt, *boxd;
  *          cannot be larger than the high threshold.
  * </pre>
  */
-l_int32
+l_ok
 pixScanForEdge(PIX      *pixs,
                BOX      *box,
                l_int32   lowthresh,
@@ -2557,7 +2557,7 @@ PIX      *pixr, *pixg;
  *      (4) The square root of the variance is the RMS deviation from the mean.
  * </pre>
  */
-l_int32
+l_ok
 pixWindowedVarianceOnLine(PIX     *pixs,
                           l_int32  dir,
                           l_int32  loc,
@@ -2675,7 +2675,7 @@ PTA        *pta;
  *      (4) All accessed pixels are clipped to the pix.
  * </pre>
  */
-l_int32
+l_ok
 pixMinMaxNearLine(PIX        *pixs,
                   l_int32     x1,
                   l_int32     y1,

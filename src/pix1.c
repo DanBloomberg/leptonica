@@ -694,7 +694,7 @@ l_uint32  *datas, *datad;
  *      (2) On failure to allocate, pixd is unchanged.
  * </pre>
  */
-l_int32
+l_ok
 pixResizeImageData(PIX  *pixd,
                    PIX  *pixs)
 {
@@ -742,7 +742,7 @@ l_uint32  *data;
  *          the operation is a no-op.
  * </pre>
  */
-l_int32
+l_ok
 pixCopyColormap(PIX  *pixd,
                 PIX  *pixs)
 {
@@ -849,7 +849,7 @@ pixSizesEqual(PIX  *pix1,
  *              maintains an unchanged handle to it.
  * </pre>
  */
-l_int32
+l_ok
 pixTransferAllData(PIX     *pixd,
                    PIX    **ppixs,
                    l_int32  copytext,
@@ -939,7 +939,7 @@ PIX     *pixs;
  * \endcode
  * </pre>
  */
-l_int32
+l_ok
 pixSwapAndDestroy(PIX  **ppixd,
                   PIX  **ppixs)
 {
@@ -1059,7 +1059,7 @@ pixSetDepth(PIX     *pix,
  * \param[out]   pw, ph, pd [optional]  each can be null
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixGetDimensions(PIX      *pix,
                  l_int32  *pw,
                  l_int32  *ph,
@@ -1086,7 +1086,7 @@ pixGetDimensions(PIX      *pix,
  * \param[in]    w, h, d use 0 to skip the setting for any of these
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixSetDimensions(PIX     *pix,
                  l_int32  w,
                  l_int32  h,
@@ -1110,7 +1110,7 @@ pixSetDimensions(PIX     *pix,
  * \param[in]    pixd
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixCopyDimensions(PIX  *pixd,
                   PIX  *pixs)
 {
@@ -1179,7 +1179,7 @@ pixSetSpp(PIX     *pix,
  * \param[in]    pixs
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixCopySpp(PIX  *pixd,
            PIX  *pixs)
 {
@@ -1304,7 +1304,7 @@ pixSetYRes(PIX     *pix,
  * \param[out]   pxres, pyres [optional]  each can be null
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixGetResolution(PIX      *pix,
                  l_int32  *pxres,
                  l_int32  *pyres)
@@ -1330,7 +1330,7 @@ pixGetResolution(PIX      *pix,
  * \param[in]    xres, yres use 0 to skip the setting for either of these
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixSetResolution(PIX     *pix,
                  l_int32  xres,
                  l_int32  yres)
@@ -1473,7 +1473,7 @@ pixGetText(PIX  *pix)
  *          the input textstring there.
  * </pre>
  */
-l_int32
+l_ok
 pixSetText(PIX         *pix,
            const char  *textstring)
 {
@@ -1501,7 +1501,7 @@ pixSetText(PIX         *pix,
  *          string can be null.
  * </pre>
  */
-l_int32
+l_ok
 pixAddText(PIX         *pix,
            const char  *textstring)
 {
@@ -1563,7 +1563,7 @@ pixGetColormap(PIX  *pix)
  *          the new colormap does not belong to any other pix.
  * </pre>
  */
-l_int32
+l_ok
 pixSetColormap(PIX      *pix,
                PIXCMAP  *colormap)
 {
@@ -1584,7 +1584,7 @@ pixSetColormap(PIX      *pix,
  * \param[in]    pix
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixDestroyColormap(PIX  *pix)
 {
 PIXCMAP  *cmap;
@@ -1819,7 +1819,7 @@ extern const char *ImageFileFormatExtensions[];
  * \param[in]    text [optional] identifying string; can be null
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 pixPrintStreamInfo(FILE        *fp,
                    PIX         *pix,
                    const char  *text)

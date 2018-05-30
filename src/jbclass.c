@@ -440,7 +440,7 @@ JBCLASSER  *classer;
  *      (2) The caller is still responsible for destroying the input array.
  * </pre>
  */
-l_int32
+l_ok
 jbAddPages(JBCLASSER  *classer,
            SARRAY     *safiles)
 {
@@ -482,7 +482,7 @@ PIX     *pix;
  * \param[in]    pixs of input page
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 jbAddPage(JBCLASSER  *classer,
           PIX        *pixs)
 {
@@ -527,7 +527,7 @@ PIXA  *pixas;
  *          of empty boxas or pixas, although that's the typical situation.
  * </pre>
  */
-l_int32
+l_ok
 jbAddPageComponents(JBCLASSER  *classer,
                     PIX        *pixs,
                     BOXA       *boxas,
@@ -587,7 +587,7 @@ l_int32  n;
  * \param[in]    pixas of new components for classification
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 jbClassifyRankHaus(JBCLASSER  *classer,
                    BOXA       *boxa,
                    PIXA       *pixas)
@@ -1026,7 +1026,7 @@ PIX     *pixt;
  * \param[in]    pixas of new components for classification
  * \return  0 if OK; 1 on error
  */
-l_int32
+l_ok
 jbClassifyCorrelation(JBCLASSER  *classer,
                       BOXA       *boxa,
                       PIXA       *pixas)
@@ -1307,7 +1307,7 @@ l_uint8     byte;
  * \param[out]   pppixa component items
  * \return  0 if OK, 1 on error
  */
-l_int32
+l_ok
 jbGetComponents(PIX     *pixs,
                 l_int32  components,
                 l_int32  maxwidth,
@@ -1449,7 +1449,7 @@ PIXA      *pixa, *pixat;
  *          fraction (we use a 70% reduction).
  * </pre>
  */
-l_int32
+l_ok
 pixWordMaskByDilation(PIX      *pixs,
                       PIX     **ppixm,
                       l_int32  *psize,
@@ -1590,7 +1590,7 @@ PIX      *pix1, *pix2;
  *      (2) See pixWordMaskByDilation().
  * </pre>
  */
-l_int32
+l_ok
 pixWordBoxesByDilation(PIX      *pixs,
                        l_int32   minwidth,
                        l_int32   minheight,
@@ -1947,7 +1947,7 @@ JBDATA  *data;
  *      (1) Serialization function that writes data in jbdata to file.
  * </pre>
  */
-l_int32
+l_ok
 jbDataWrite(const char  *rootout,
             JBDATA      *jbdata)
 {
@@ -2221,7 +2221,7 @@ PTA      *ptaul;
  *      (3) The templates and stored instances are all bordered.
  * </pre>
  */
-l_int32
+l_ok
 jbGetULCorners(JBCLASSER  *classer,
                PIX        *pixs,
                BOXA       *boxa)
@@ -2313,7 +2313,7 @@ PTA       *ptac, *ptact, *ptaul;
  *          of successive instances is typically close to zero.
  * </pre>
  */
-l_int32
+l_ok
 jbGetLLCorners(JBCLASSER  *classer)
 {
 l_int32    i, iclass, n, x1, y1, h;

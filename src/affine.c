@@ -927,7 +927,7 @@ PTA     *ptad2, *ptas2;
  *  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  * </pre>
  */
-l_int32
+l_ok
 getAffineXformCoeffs(PTA         *ptas,
                      PTA         *ptad,
                      l_float32  **pvc)
@@ -1020,7 +1020,7 @@ l_float32  *a[6];  /* 6x6 matrix A  */
  *
  * </pre>
  */
-l_int32
+l_ok
 affineInvertXform(l_float32   *vc,
                   l_float32  **pvci)
 {
@@ -1103,7 +1103,7 @@ l_float32   b[3] = {1.0, 1.0, 1.0};   /* anything; results ignored */
  *      (2) It does not check ptrs for returned data!
  * </pre>
  */
-l_int32
+l_ok
 affineXformSampledPt(l_float32  *vc,
                      l_int32     x,
                      l_int32     y,
@@ -1135,7 +1135,7 @@ affineXformSampledPt(l_float32  *vc,
  *      (2) It does not check ptrs for returned data!
  * </pre>
  */
-l_int32
+l_ok
 affineXformPt(l_float32  *vc,
               l_int32     x,
               l_int32     y,
@@ -1176,7 +1176,7 @@ affineXformPt(l_float32  *vc,
  *          avoids "jaggies" when rendering sharp edges.
  * </pre>
  */
-l_int32
+l_ok
 linearInterpolatePixelColor(l_uint32  *datas,
                             l_int32    wpls,
                             l_int32    w,
@@ -1263,7 +1263,7 @@ l_uint32  *lines;
  *          avoids "jaggies" when rendering sharp edges.
  * </pre>
  */
-l_int32
+l_ok
 linearInterpolatePixelGray(l_uint32  *datas,
                            l_int32    wpls,
                            l_int32    w,
