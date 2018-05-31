@@ -786,13 +786,13 @@ FILE    *fp;
 
 
 /*
- *  fgetPngColormapInfo()
+ * \brief   fgetPngColormapInfo()
  *
- *      Input:  fp (file stream opened for read)
- *              &cmap (optional <return>; use NULL to skip)
- *              &transparency (optional <return> 1 if colormapped with
- *                transparency, 0 otherwise; use NULL to skip)
- *      Return: 0 if OK; 1 on error
+ * \param[in]    fp     file stream opened for read
+ * \param[out]   pcmap  optional; use NULL to skip
+ * \param[out]   ptransparency   optional; 1 if colormapped with
+ *                      transparency, 0 otherwise; use NULL to skip
+ * \return  0 if OK, 1 on error
  *
  *  Notes:
  *      (1) The transparency information in a png is in the tRNA array,
@@ -801,7 +801,7 @@ FILE    *fp;
  *          transparency.
  *      (2) Side-effect: this rewinds the stream.
  */
-l_int32
+l_ok
 fgetPngColormapInfo(FILE      *fp,
                     PIXCMAP  **pcmap,
                     l_int32   *ptransparency)

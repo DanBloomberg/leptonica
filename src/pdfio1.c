@@ -436,6 +436,7 @@ L_PTRA      *pa_data;
  *
  * \param[in]    pix
  * \param[out]   ptype L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
+ * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
@@ -450,7 +451,7 @@ L_PTRA      *pa_data;
  *          twice the compression as jpeg with quality = 75.
  * </pre>
  */
-l_int32
+l_ok
 selectDefaultPdfEncoding(PIX      *pix,
                          l_int32  *ptype)
 {

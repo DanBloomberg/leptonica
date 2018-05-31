@@ -1950,9 +1950,9 @@ pixWriteMemPS(l_uint8  **pdata,
  * \param[in]    h image height, pixels
  * \param[in]    fillfract fraction in linear dimension of full page, not
  *                         to be exceeded; use 0 for default
- * \return  0 if OK, 1 on error
+ * \return  resolution
  */
-l_ok
+l_int32
 getResLetterPage(l_int32    w,
                  l_int32    h,
                  l_float32  fillfract)
@@ -1975,9 +1975,9 @@ l_int32  resw, resh, res;
  * \param[in]    h image height, pixels
  * \param[in]    fillfract fraction in linear dimension of full page, not
  *                        to be exceeded; use 0 for default
- * \return  0 if OK, 1 on error
+ * \return  resolution
  */
-l_ok
+l_int32
 getResA4Page(l_int32    w,
              l_int32    h,
              l_float32  fillfract)
