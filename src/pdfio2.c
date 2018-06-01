@@ -1631,6 +1631,7 @@ SARRAY  *sa;
  *          that the data is to be interpreted as big-endian, 4 bytes
  *          at a time.  For ascii, the first two bytes are 0 and the
  *          last two bytes are less than 0x80.
+ * </pre>
  */
 static char  *
 generateEscapeString(const char  *str)

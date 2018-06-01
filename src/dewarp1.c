@@ -1062,6 +1062,7 @@ dewarpaUseBothArrays(L_DEWARPA  *dewa,
  *           - useboth = 1 (TRUE)
  *          If there are multiple columns, additionally
  *           - check_columns = 0 (FALSE)
+ *
  * </pre>
  */
 l_ok

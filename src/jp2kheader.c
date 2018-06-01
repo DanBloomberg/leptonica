@@ -66,8 +66,8 @@ static const l_int32  MAX_JP2K_HEIGHT = 100000;
  *
  * \param[in]    filename
  * \param[out]   pw [optional]
- *           [out]   ph ([optional]
- *           [out]   pbps ([optional]  bits/sample
+ * \param[out]   ph [optional]
+ * \param[out]   pbps [optional]  bits/sample
  * \param[out]   pspp [optional]  samples/pixel
  * \return  0 if OK, 1 on error
  */
@@ -103,8 +103,8 @@ FILE    *fp;
  *
  * \param[in]    fp file stream opened for read
  * \param[out]   pw [optional]
- *           [out]   ph ([optional]
- *           [out]   pbps ([optional]  bits/sample
+ * \param[out]   ph [optional]
+ * \param[out]   pbps [optional]  bits/sample
  * \param[out]   pspp [optional]  samples/pixel
  * \return  0 if OK, 1 on error
  */
@@ -144,8 +144,8 @@ l_int32  nread;
  * \param[in]    data
  * \param[in]    size at least 80
  * \param[out]   pw [optional]
- *           [out]   ph ([optional]
- *           [out]   pbps ([optional]  bits/sample
+ * \param[out]   ph [optional]
+ * \param[out]   pbps [optional]  bits/sample
  * \param[out]   pspp [optional]  samples/pixel
  * \return  0 if OK, 1 on error
  *

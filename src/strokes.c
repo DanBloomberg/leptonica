@@ -289,7 +289,7 @@ PIXA      *pixad;
 /*!
  * \brief   pixModifyStrokeWidth()
  *
- * \param[in]   pixa  of 1 bpp pix
+ * \param[in]   pixs  of 1 bpp pix
  * \param[in]   width  measured average stroke width
  * \param[in]   targetw  desired stroke width
  * \return  pix  with modified stroke width, or NULL on error

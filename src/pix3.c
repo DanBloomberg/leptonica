@@ -1059,7 +1059,7 @@ PIX       *pixd;
  *          example, a mask that discriminates against red and in favor
  *          of blue will have rc < 0.0 and bc > 0.0.
  *      (3) To make the result independent of intensity (the 'V' in HSV),
- *          select coefficients so that @thresh = 0.  Then the result
+ *          select coefficients so that %thresh = 0.  Then the result
  *          is not changed when all components are multiplied by the
  *          same constant (as long as nothing saturates).  This can be
  *          useful if, for example, the illumination is not uniform.

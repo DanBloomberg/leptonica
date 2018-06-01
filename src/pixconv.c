@@ -3680,7 +3680,7 @@ pixRemoveAlpha(PIX *pixs)
  * \brief   pixAddAlphaTo1bpp()
  *
  * \param[in]    pixd    [optional] 1 bpp, can be null or equal to pixs
- *               pixs    1 bpp
+ * \param[in]    pixs    1 bpp
  * \return  pixd 1 bpp with colormap and non-opaque alpha,
  *                    or NULL on error
  *

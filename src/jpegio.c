@@ -497,8 +497,8 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
  *
  * \param[in]    filename
  * \param[out]   pw [optional]
- *           [out]   ph ([optional]
- *           [out]   pspp ([optional]  samples/pixel
+ * \param[out]   ph [optional]
+ * \param[out]   pspp  [optional]  samples/pixel
  * \param[out]   pycck [optional]  1 if ycck color space; 0 otherwise
  * \param[out]   pcmyk [optional]  1 if cmyk color space; 0 otherwise
  * \return  0 if OK, 1 on error
@@ -539,8 +539,8 @@ FILE    *fp;
  *
  * \param[in]    fp file stream
  * \param[out]   pw [optional]
- *           [out]   ph ([optional]
- *           [out]   pspp ([optional]  samples/pixel
+ * \param[out]   ph [optional]
+ * \param[out]   pspp  [optional]  samples/pixel
  * \param[out]   pycck [optional]  1 if ycck color space; 0 otherwise
  * \param[out]   pcmyk [optional]  1 if cmyk color space; 0 otherwise
  * \return  0 if OK, 1 on error

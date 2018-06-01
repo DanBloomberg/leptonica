@@ -1406,6 +1406,7 @@ PIXCMAP  *cmap;
  * \param[in]    pix  32 bpp rgb
  * \param[in]    pta  arbitrary set of points
  * \param[in]    rval, gval, bval
+ * \param[in]    fract
  * \return  0 if OK, 1 on error
  *
  * <pre>

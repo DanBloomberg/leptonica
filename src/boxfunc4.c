@@ -2302,9 +2302,9 @@ BOX      *box, *boxt;
  * \param[in]    type           L_SELECT_WIDTH, L_SELECT_HEIGHT
  * \param[out]   pdel_evenodd   [optional] average absolute value of
  *                              (even - odd) size pairs
- * \param[out]   prmsdev_even   [optional] rms deviation of even boxes
- * \param[out]   prmsdev_odd    [optional] rms deviation of odd boxes
- * \param[out]   prmsdev_all    [optional] rms deviation of all boxes
+ * \param[out]   prms_even      [optional] rms deviation of even boxes
+ * \param[out]   prms_odd       [optional] rms deviation of odd boxes
+ * \param[out]   prms_all       [optional] rms deviation of all boxes
  * \return  0 if OK, 1 on error
  *
  * <pre>

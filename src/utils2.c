@@ -120,7 +120,7 @@
   *     and genPathname(), all input pathnames must have unix separators.
  *  (2) On Windows, when you specify a read or write to "/tmp/...",
  *      the filename is rewritten to use the Windows temp directory:
- *         /tmp  ==>   <Temp>...    (windows)
+ *         /tmp  ==>   [Temp]...    (windows)
  *  (3) This filename rewrite, along with the conversion from unix
  *      to windows pathnames, happens in genPathname().
  *  (4) Use fopenReadStream() and fopenWriteStream() to open files,
@@ -1192,11 +1192,15 @@ FILE     *fp;
  *          because it does not require seeking within the file.
  *      (3) For example, you can read an image from stdin into memory
  *          using shell redirection, with one of these shell commands:
+ * \code
  *             cat <imagefile> | readprog
  *             readprog < <imagefile>
+ * \endcode
  *          where readprog is:
+ * \code
  *             l_uint8 *data = l_binaryReadStream(stdin, &nbytes);
  *             Pix *pix = pixReadMem(data, nbytes);
+ * \endcode
  * </pre>
  */
 l_uint8 *
@@ -1591,7 +1595,7 @@ FILE  *fp;
  *      (1) This should be used whenever you want to run fopen() to
  *          read from a stream.  Never call fopen() directory.
  *      (2) This handles the temp directory pathname conversion on windows:
- *              /tmp  ==>  <Windows Temp directory>
+ *              /tmp  ==>  [Windows Temp directory]
  * </pre>
  */
 FILE *
@@ -1634,7 +1638,7 @@ FILE  *fp;
  *      (1) This should be used whenever you want to run fopen() to
  *          write or append to a stream.  Never call fopen() directory.
  *      (2) This handles the temp directory pathname conversion on windows:
- *              /tmp  ==>  <Windows Temp directory>
+ *              /tmp  ==>  [Windows Temp directory]
  * </pre>
  */
 FILE *
@@ -1878,7 +1882,7 @@ lept_free(void *ptr)
  *      (2) This makes any subdirectories of /tmp that are required.
  *      (3) The root temp directory is:
  *            /tmp    (unix)  [default]
- *            <Temp>  (windows)
+ *            [Temp]  (windows)
  * </pre>
  */
 l_int32
@@ -1950,7 +1954,7 @@ l_uint32  attributes;
  *      (2) This removes all files from the specified subdirectory of
  *          the root temp directory:
  *            /tmp    (unix)
- *            <Temp>  (windows)
+ *            [Temp]  (windows)
  *          and then removes the subdirectory.
  *      (3) The combination
  *            lept_rmdir(subdir);
@@ -2028,8 +2032,8 @@ char    *newpath;
  *      (1) Always use unix pathname separators.
  *      (2) By calling genPathname(), if the pathname begins with "/tmp"
  *          this does an automatic directory translation on windows
- *          to a path in the windows <Temp> directory:
- *             "/tmp"  ==>  <Temp> (windows)
+ *          to a path in the windows [Temp] directory:
+ *             "/tmp"  ==>  [Temp] (windows)
  * </pre>
  */
 void
@@ -2083,8 +2087,8 @@ char  *realdir;
  *      (3) Use unix pathname separators.
  *      (4) By calling genPathname(), if the pathname begins with "/tmp"
  *          this does an automatic directory translation on windows
- *          to a path in the windows <Temp> directory:
- *             "/tmp"  ==>  <Temp> (windows)
+ *          to a path in the windows [Temp] directory:
+ *             "/tmp"  ==>  [Temp] (windows)
  *      (5) Error conditions:
  *            * returns -1 if the directory is not found
  *            * returns the number of files (> 0) that it was unable to remove.
@@ -2136,8 +2140,8 @@ SARRAY  *sa;
  * <pre>
  * Notes:
  *      (1) By calling genPathname(), this does an automatic directory
- *          translation on windows to a path in the windows <Temp> directory:
- *             "/tmp/..."  ==>  <Temp>/... (windows)
+ *          translation on windows to a path in the windows [Temp] directory:
+ *             "/tmp/..."  ==>  [Temp]/... (windows)
  * </pre>
  */
 l_int32
@@ -2226,8 +2230,8 @@ l_int32  ret;
  *      (6) Reminders:
  *          (a) specify files using unix pathnames
  *          (b) for windows, translates
- *                 /tmp  ==>  <Temp>
- *              where <Temp> is the windows temp directory
+ *                 /tmp  ==>  [Temp]
+ *              where [Temp] is the windows temp directory
  *      (7) Examples:
  *          * newdir = NULL,    newtail = NULL    ==> /tmp/src-tail
  *          * newdir = NULL,    newtail = abc     ==> /tmp/abc
@@ -2324,8 +2328,8 @@ l_int32  ret;
  *      (6) Reminders:
  *          (a) specify files using unix pathnames
  *          (b) for windows, translates
- *                 /tmp  ==>  <Temp>
- *              where <Temp> is the windows temp directory
+ *                 /tmp  ==>  [Temp]
+ *              where [Temp] is the windows temp directory
  *      (7) Examples:
  *          * newdir = NULL,    newtail = NULL    ==> /tmp/src-tail
  *          * newdir = NULL,    newtail = abc     ==> /tmp/abc
@@ -2693,7 +2697,7 @@ L_BYTEA  *ba;
  * <pre>
  * Notes:
  *      (1) Use unix pathname separators
- *      (2) Allocates a new string:  <basedir>/<subdirs>
+ *      (2) Allocates a new string:  [basedir]/[subdirs]
  * </pre>
  */
 char *
@@ -2797,8 +2801,8 @@ size_t   len;
  *              temp directory is used.
  *      (2) On windows, if the root of %dir is '/tmp', this does a name
  *          translation:
- *             "/tmp"  ==>  <Temp> (windows)
- *          where <Temp> is the windows temp directory.
+ *             "/tmp"  ==>  [Temp] (windows)
+ *          where [Temp] is the windows temp directory.
  *      (3) On unix, the TMPDIR variable is ignored.  No rewriting
  *          of temp directories is permitted.
  *      (4) There are four cases for the input:
@@ -2905,8 +2909,8 @@ l_int32  dirlen, namelen, size;
  *      (2) Caller allocates %result, large enough to hold the path,
  *          which is:
  *            /tmp/%subdir       (unix)
- *            <Temp>/%subdir     (windows)
- *          where <Temp> is a path on windows determined by GenTempPath()
+ *            [Temp]/%subdir     (windows)
+ *          where [Temp] is a path on windows determined by GenTempPath()
  *          and %subdir is in general a set of nested subdirectories:
  *            dir1/dir2/.../dirN
  *          which in use would not typically exceed 2 levels.
@@ -3005,7 +3009,7 @@ size_t  len;
  *               "/tmp/lept.XXXXXX",
  *          where each X is a random character.
  *      (2) On windows, this makes a filename of the form
- *               "/<Temp>/lp.XXXXXX".
+ *               "/[Temp]/lp.XXXXXX".
  *      (3) On all systems, this fails if the file is not writable.
  *      (4) Safest usage is to write to a subdirectory in debug code.
  *      (5) The returned filename must be freed by the caller, using lept_free.
@@ -3015,6 +3019,7 @@ size_t  len;
  *      (7) On unix, whenever possible use tmpfile() instead.  tmpfile()
  *          hides the file name, returns a stream opened for write,
  *          and deletes the temp file when the stream is closed.
+ * </pre>
  */
 char *
 l_makeTempFilename()

@@ -627,6 +627,7 @@ PTAA     *ptaa;
  *          If %pixs is NULL, the dimensions of %pixd are determined by
  *            - %w and %h if both are > 0, or
  *            - the minimum size required using all boxes in %baa.
+ *
  * </pre>
  */
 PIX *
@@ -702,7 +703,7 @@ PIXCMAP  *cmap;
  * <pre>
  * Notes:
  *      (1) All pix in %pixas that are not rgb are converted to rgb.
- *      (2) Each boxa in @baa contains boxes that will be drawn on
+ *      (2) Each boxa in %baa contains boxes that will be drawn on
  *          the corresponding pix in %pixas.
  *      (3) The color of the boxes drawn on each pix are selected with
  *          %colorflag:

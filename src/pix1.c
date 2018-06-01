@@ -1107,7 +1107,7 @@ pixSetDimensions(PIX     *pix,
  * \brief   pixCopyDimensions()
  *
  * \param[in]    pixd
- * \param[in]    pixd
+ * \param[in]    pixs
  * \return  0 if OK, 1 on error
  */
 l_ok

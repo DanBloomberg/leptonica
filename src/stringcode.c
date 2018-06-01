@@ -148,8 +148,8 @@ static char *l_genDescrString(const char *filein, l_int32 ifunc, l_int32 itype);
  * Notes:
  *      (1) This struct exists to build two files containing code for
  *          any number of data objects.  The two files are named
- *             autogen.<fileno>.c
- *             autogen.<fileno>.h
+ *             autogen.[fileno].c
+ *             autogen.[fileno].h
  * </pre>
  */
 L_STRCODE *
@@ -215,8 +215,8 @@ L_STRCODE  *strcode;
  *      (1) The %filein has one filename on each line.
  *          Comment lines begin with "#".
  *      (2) The output is 2 files:
- *             autogen.<fileno>.c
- *             autogen.<fileno>.h
+ *             autogen.[fileno].c
+ *             autogen.[fileno].h
  * </pre>
  */
 l_ok
@@ -278,8 +278,8 @@ L_STRCODE   *strcode;
  * <pre>
  * Notes:
  *      (1) The generated function name is
- *            l_autodecode_<fileno>()
- *          where <fileno> is the index label for the pair of output files.
+ *            l_autodecode_[fileno]()
+ *          where [fileno] is the index label for the pair of output files.
  *      (2) To deserialize this data, the function is called with the
  *          argument 'ifunc', which increments each time strcodeGenerate()
  *          is called.
@@ -519,6 +519,7 @@ SARRAY     *sa1, *sa2, *sa3;
  *      (1) For example, if %field == L_STR_NAME, and the file is a serialized
  *          pixa, this will return "Pixa", the name of the struct.
  *      (2) Caller must free the returned string.
+ * </pre>
  */
 l_int32
 l_getStructStrFromFile(const char  *filename,

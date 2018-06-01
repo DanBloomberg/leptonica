@@ -1190,7 +1190,8 @@ PIX       *pixd;
  * \brief   pixScaleGrayRankCascade()
  *
  * \param[in]    pixs 8 bpp, not cmapped
- * \param[in]    level1, ... level4 rank thresholds, in set {0, 1, 2, 3, 4}
+ * \param[in]    level1, level2, level3, level4 rank thresholds,
+ *                                              in set {0, 1, 2, 3, 4}
  * \return  pixd 8 bpp, downscaled by up to 16x
  *
  * <pre>

@@ -1424,6 +1424,7 @@ PIX        *pixd;
  *          Otherwise, the product will overflow a uint8.  In use, factor
  *          is the same for all pixels in a pix.
  *      (2) No scaling is performed on the transparency ("A") component.
+ * </pre>
  */
 l_uint32
 linearScaleRGBVal(l_uint32   sval,

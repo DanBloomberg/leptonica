@@ -831,7 +831,7 @@ TIFF  *tif;
  *                         IFF_TIFF_RLE, IFF_TIFF_PACKBITS: for 1 bpp only
  *                         IFF_TIFF_G4 and IFF_TIFF_G3: for 1 bpp only
  *                         IFF_TIFF_LZW, IFF_TIFF_ZIP: for any image
- *               natags ([optional] NUMA of custom tiff tags
+ * \param[in]    natags [optional] NUMA of custom tiff tags
  * \param[in]    savals [optional] SARRAY of values
  * \param[in]    satypes [optional] SARRAY of types
  * \param[in]    nasizes [optional] NUMA of sizes
@@ -1146,7 +1146,7 @@ l_uint32   uval, uval2;
  * \brief   pixReadFromMultipageTiff()
  *
  * \param[in]      fname     filename
- * \param[in,out]  &offset   set offset to 0 for first image
+ * \param[in,out]  poffset   set offset to 0 for first image
  * \return  pix, or NULL on error or if previous call returned the last image
  *
  * <pre>
@@ -1271,7 +1271,7 @@ TIFF    *tif;
 /*!
  * \brief   pixaWriteMultipageTiff()
  *
- * \param[in]    filename   input tiff file
+ * \param[in]    fname      input tiff file
  * \param[in]    pixa       any depth; colormap will be removed
  * \return  0 if OK, 1 on error
  *
@@ -2472,7 +2472,7 @@ TIFF     *tif;
  *
  * \param[in]    cdata      const; tiff-encoded
  * \param[in]    size       size of cdata
- * \param[in,out]  &offset  set offset to 0 for first image
+ * \param[in,out]  poffset  set offset to 0 for first image
  * \return  pix, or NULL on error or if previous call returned the last image
  *
  * <pre>
@@ -2572,8 +2572,8 @@ PIXA   *pixa;
 /*!
  * \brief   pixaWriteMemMultipageTiff()
  *
- * \param[in]    cdata     const; tiff-encoded
- * \param[in]    size      size of cdata
+ * \param[in]    pdata     const; tiff-encoded
+ * \param[in]    psize     size of data
  * \param[in]    pixa      any depth; colormap will be removed
  * \return  0 if OK, 1 on error
  *

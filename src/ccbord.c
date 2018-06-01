@@ -523,11 +523,13 @@ ccbaGetCount(CCBORDA  *ccba)
  * \brief   ccbaGetCcb()
  *
  * \param[in]    ccba
+ * \param[in]    index
  * \return  ccb, or NULL on error
  *
  * <pre>
  * Notes:
  *      (1) This returns a clone of the ccb; it must be destroyed
+ * </pre>
  */
 CCBORD *
 ccbaGetCcb(CCBORDA  *ccba,

@@ -35,7 +35,9 @@
  *    |=============================================================|
  *    | Some of these functions require libtiff, libjpeg, and libz  |
  *    | If you do not have these libraries, you must set            |
+ *    | \code                                                       |
  *    |      #define  USE_PDFIO     0                               |
+ *    | \endcode                                                    |
  *    | in environ.h.  This will link pdfiostub.c                   |
  *    |=============================================================|
  *

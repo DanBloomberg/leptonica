@@ -2168,10 +2168,10 @@ PIX  *pixd, *pix1, *pix2, *pix3, *pix4;
  * <pre>
  * Notes:
  *      (1) In-place operation.
- *      (2) Maximum fading fraction @maxfade occurs at the edge of the image,
- *          and the fraction goes to 0 at the fractional distance @distfract
- *          from the edge.  @maxfade must be in [0, 1].
- *      (3) @distrfact must be in [0, 1], and typically it would be <= 0.5.
+ *      (2) Maximum fading fraction %maxfade occurs at the edge of the image,
+ *          and the fraction goes to 0 at the fractional distance %distfract
+ *          from the edge.  %maxfade must be in [0, 1].
+ *      (3) %distrfact must be in [0, 1], and typically it would be <= 0.5.
  * </pre>
  */
 l_ok
