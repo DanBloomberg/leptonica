@@ -51,14 +51,6 @@
 #if  USE_BMPIO   /* defined in environ.h */
 /* --------------------------------------------*/
 
-#if defined(__GNUC__)
-/* BMP_IH is misaligned, therefore we need a packed struct. */
-typedef struct __attribute__((__packed__)) {
-  BMP_FH bmpfh;
-  BMP_IH bmpih;
-} BMP_HEADER;
-#endif
-
     /* Here we're setting the pixel value 0 to white (255) and the
      * value 1 to black (0).  This is the convention for grayscale, but
      * the opposite of the convention for 1 bpp, where 0 is white
