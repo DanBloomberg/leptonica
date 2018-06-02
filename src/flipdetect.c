@@ -111,8 +111,8 @@
  *
  *  The ascender/descender signal is useful for determining text
  *  orientation in Roman alphabets because the incidence of letters
- *  with straight-line ascenders (b, d, h, k, l, <t>) outnumber
- *  those with descenders (<g>, p, q).  The letters <t> and <g>
+ *  with straight-line ascenders (b, d, h, k, l, 't') outnumber
+ *  those with descenders ('g', p, q).  The letters 't' and 'g'
  *  will respond variably to the filter, depending on the type face.
  *
  *  What about the mirror image situations?  These aren't common

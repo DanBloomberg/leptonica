@@ -1076,7 +1076,7 @@ extern const char *ImageFileFormatExtensions[];
  * \brief   writeImageFileInfo()
  *
  * \param[in]    filename    input file
- * \param[in]    fp          output file stream
+ * \param[in]    fpout       output file stream
  * \param[in]    headeronly  1 to read only the header; 0 to read both
  *                           the header and the input file
  * \return  0 if OK; 1 on error

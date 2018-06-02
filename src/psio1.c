@@ -33,7 +33,9 @@
  *    |=============================================================|
  *    | Some of these functions require libtiff, libjpeg and libz.  |
  *    | If you do not have these libraries, you must set            |
+ *    | \code                                                       |
  *    |     #define  USE_PSIO     0                                 |
+ *    | \endcode                                                    |
  *    | in environ.h.  This will link psio1stub.c                   |
  *    |=============================================================|
  *
@@ -182,7 +184,7 @@ SARRAY  *sa;
 
 
 /*
- 
+
  * \brief    sarrayConvertFilesToPS()
  *
  * \param[in]  sarray   of full path names
@@ -709,7 +711,7 @@ PIX       *pixmi, *pixmis, *pixt, *pixg, *pixsc, *pixb, *pixc;
  *
  * \param[in]     pixb      [optional] 1 bpp mask; typically for text
  * \param[in]     pixc      [optional] 8 or 32 bpp image regions
- * \param[in]     scale     scale factor for rendering pixb, relative to pixc; 
+ * \param[in]     scale     scale factor for rendering pixb, relative to pixc;
  *                          typ. 4.0
  * \param[in]     pageno    page number in set; use 1 for new output file
  * \param[in]     fileout   output ps file

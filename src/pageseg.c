@@ -1748,7 +1748,7 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8, *pix9;
  *                          300 ppi; use 0 to skip scaling.
  * \return  pixd if OK, NULL on error
  *
- * </pre>
+ * <pre>
  * Notes:
  *      (1) This handles some common pre-processing operations,
  *          where the page segmentation algorithm takes a 1 bpp image.

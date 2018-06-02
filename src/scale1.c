@@ -1747,9 +1747,9 @@ PIX       *pixs, *pixd;
 /*!
  * \brief   pixScaleSmoothToSize()
  *
- * \param[in]    pix 2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap
- * \param[in]    wd  target width; use 0 if using height as target
- * \param[in]    hd  target height; use 0 if using width as target
+ * \param[in]    pixs 2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap
+ * \param[in]    wd   target width; use 0 if using height as target
+ * \param[in]    hd   target height; use 0 if using width as target
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -2037,9 +2037,9 @@ PIX       *pixs, *pixd;
 /*!
  * \brief   pixScaleAreaMapToSize()
  *
- * \param[in]    pix 2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap
- * \param[in]    wd  target width; use 0 if using height as target
- * \param[in]    hd  target height; use 0 if using width as target
+ * \param[in]    pixs 2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap
+ * \param[in]    wd   target width; use 0 if using height as target
+ * \param[in]    hd   target height; use 0 if using width as target
  * \return  pixd, or NULL on error
  *
  * <pre>

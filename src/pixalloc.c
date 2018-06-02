@@ -141,7 +141,7 @@ static L_PIX_MEM_STORE  *CustomPMS = NULL;
  *
  * \param[in]    minsize of data chunk that can be supplied by pms
  * \param[in]    smallest bytes of the smallest pre-allocated data chunk.
- *              numalloc (array with the number of data chunks for each
+ * \param[in]    numalloc array with the number of data chunks for each
  *                        size that are in the memory store
  * \param[in]    logfile use for debugging; null otherwise
  * \return  0 if OK, 1 on error

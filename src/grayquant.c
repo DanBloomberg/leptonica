@@ -297,7 +297,7 @@ l_uint32  *lined;
  * \brief   ditherToBinaryLineLow()
  *
  * \param[in]    lined  ptr to beginning of dest line
- *              w   (width of image in pixels
+ * \param[in]    w      width of image in pixels
  * \param[in]    bufs1 buffer of current source line
  * \param[in]    bufs2 buffer of next source line
  * \param[in]    lowerclip lower clip distance to black
@@ -1162,7 +1162,7 @@ l_uint32    *lined;
  * \brief   ditherTo2bppLineLow()
  *
  * \param[in]    lined  ptr to beginning of dest line
- *              w   (width of image in pixels
+ * \param[in]    w      width of image in pixels
  * \param[in]    bufs1 buffer of current source line
  * \param[in]    bufs2 buffer of next source line
  * \param[in]    tabval value to assign for current pixel

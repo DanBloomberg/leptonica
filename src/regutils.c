@@ -492,8 +492,8 @@ l_int32  w, h, factor, similar;
  *           * "compare": compares %localname contents with the golden file
  *           * "display": makes the %localname file but does no comparison
  *      (2) The canonical format of the golden filenames is:
- *            /tmp/lept/golden/<root of main name>_golden.<index>.
- *                                                       <ext of localname>
+ *            /tmp/lept/golden/[root of main name]_golden.[index].
+ *                                                       [ext of localname]
  *          e.g.,
  *             /tmp/lept/golden/maze_golden.0.png
  *          It is important to add an extension to the local name, because
@@ -601,8 +601,8 @@ PIX     *pix1, *pix2;
  * Notes:
  *      (1) This only does something in "compare" mode.
  *      (2) The canonical format of the golden filenames is:
- *            /tmp/lept/golden/<root of main name>_golden.<index>.
- *                                                      <ext of localname>
+ *            /tmp/lept/golden/[root of main name]_golden.[index].
+ *                                                      [ext of localname]
  *          e.g.,
  *            /tmp/lept/golden/maze_golden.0.png
  * </pre>
@@ -691,7 +691,7 @@ SARRAY  *sa;
  *             (b) make a local file and "compare" with the golden file
  *             (c) make a local file and "display" the results
  *      (2) The canonical format of the local filename is:
- *            /tmp/lept/regout/<root of main name>.<count>.<format extension>
+ *            /tmp/lept/regout/[root of main name].[count].[format extension]
  *          e.g., for scale_reg,
  *            /tmp/lept/regout/scale.0.png
  *          The golden file name mirrors this in the usual way.
@@ -742,7 +742,7 @@ char  namebuf[256];
  *
  * \param[in]    rp      regtest parameters
  * \param[in]    data    to be written
- * \param[in]    size    of data to be written
+ * \param[in]    nbytes  of data to be written
  * \param[in]    ext     filename extension (e.g.: "ba", "pta")
  * \return  0 if OK, 1 on error a failure in comparison is not an error
  *
@@ -754,7 +754,7 @@ char  namebuf[256];
  *             (b) make a local file and "compare" with the golden file
  *             (c) make a local file and "display" the results
  *      (2) The canonical format of the local filename is:
- *            /tmp/lept/regout/<root of main name>.<count>.<ext>
+ *            /tmp/lept/regout/[root of main name].[count].[ext]
  *          e.g., for the first boxaa in quadtree_reg,
  *            /tmp/lept/regout/quadtree.0.baa
  *          The golden file name mirrors this in the usual way.
@@ -814,6 +814,8 @@ char  namebuf[256];
  *          written file.  The latter case lets you read a pix from a
  *          file that has just been written with regTestWritePixAndCheck(),
  *          which is useful for testing formatted read/write functions.
+ *
+ * </pre>
  */
 char *
 regTestGenLocalFilename(L_REGPARAMS  *rp,

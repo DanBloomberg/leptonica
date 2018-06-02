@@ -684,6 +684,7 @@ NUMA       *na1, *nad;
  *          window of the mean square difference of the pixel value
  *          from the mean:
  *                <(x - <x>)*(x - <x>)> = <x*x> - <x>*<x>
+ *
  * </pre>
  */
 l_ok
@@ -2530,7 +2531,7 @@ NUMA      *nav, *nad;
  * \param[in]    nas input values
  * \param[in]    minreversal relative amount to resolve peaks and valleys
  * \param[out]   pnr [optional] number of reversals
- *           [out]   pnrpl ([optional] reversal density: reversals/length
+ * \param[out]   pnrpl ([optional] reversal density: reversals/length
  * \return  0 if OK, 1 on error
  *
  * <pre>

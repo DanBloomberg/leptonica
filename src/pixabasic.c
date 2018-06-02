@@ -580,6 +580,7 @@ pixaExtendArray(PIXA  *pixa)
  * \brief   pixaExtendArrayToSize()
  *
  * \param[in]    pixa
+ * \param[in]    size
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -633,6 +634,7 @@ pixaGetCount(PIXA  *pixa)
  * \brief   pixaChangeRefcount()
  *
  * \param[in]    pixa
+ * \param[in]    delta
  * \return  0 if OK, 1 on error
  */
 l_ok

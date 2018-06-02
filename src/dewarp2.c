@@ -1352,7 +1352,7 @@ NUMA      *naerr;
  *          disparity only if the absolute value of the fractional
  *          difference equals or exceeds this threshold.
  *      (2) %parity indicates where the binding is: on the left for
- *          %parity == 0 and on the right for @parity == 1.
+ *          %parity == 0 and on the right for %parity == 1.
  *      (3) This takes a 1 bpp %pixb where both vertical and horizontal
  *          disparity have been applied, so the text lines are straight and,
  *          more importantly, the line end points are vertically aligned.

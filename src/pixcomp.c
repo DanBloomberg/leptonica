@@ -2097,7 +2097,6 @@ L_PTRA   *pa_data;
  * \brief   pixacompFastConvertToPdfData()
  *
  * \param[in]    pixac containing images all at the same resolution
- * \param[in]    res input resolution of all images
  * \param[in]    title [optional] pdf title
  * \param[out]   pdata output pdf data (of all images
  * \param[out]   pnbytes size of output pdf data

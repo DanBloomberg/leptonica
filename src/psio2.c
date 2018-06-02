@@ -33,7 +33,9 @@
  *    |=============================================================|
  *    | Some of these functions require libtiff, libjpeg and libz.  |
  *    | If you do not have these libraries, you must set            |
+ *    | \code                                                       |
  *    |     #define  USE_PSIO     0                                 |
+ *    | \endcode                                                    |
  *    | in environ.h.  This will link psio2stub.c                   |
  *    |=============================================================|
  *

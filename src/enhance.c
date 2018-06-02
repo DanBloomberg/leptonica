@@ -1730,7 +1730,7 @@ l_uint32  *data, *line;
  *          and calibration of the printer.  This function can be used
  *          to iteratively match a color print to the original.  On each
  *          iteration, the center offsets are set to the best match so
- *          far, and the @delta increments are typically reduced.
+ *          far, and the %delta increments are typically reduced.
  * </pre>
  */
 PIX *

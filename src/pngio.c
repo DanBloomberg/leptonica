@@ -499,8 +499,8 @@ PIXCMAP     *cmap;
  *
  * \param[in]    filename
  * \param[out]   pw [optional]
- *           [out]   ph ([optional]
- *           [out]   pbps ([optional]  bits/sample
+ * \param[out]   ph ([optional]
+ * \param[out]   pbps ([optional]  bits/sample
  * \param[out]   pspp [optional]  samples/pixel
  * \param[out]   piscmap [optional]
  * \return  0 if OK, 1 on error
@@ -546,8 +546,8 @@ FILE    *fp;
  *
  * \param[in]    fp file stream
  * \param[out]   pw [optional]
- *           [out]   ph ([optional]
- *           [out]   pbps ([optional]  bits/sample
+ * \param[out]   ph ([optional]
+ * \param[out]   pbps ([optional]  bits/sample
  * \param[out]   pspp [optional]  samples/pixel
  * \param[out]   piscmap [optional]
  * \return  0 if OK, 1 on error
@@ -594,8 +594,8 @@ l_uint8  data[40];
  * \param[in]    data
  * \param[in]    size 40 bytes is sufficient
  * \param[out]   pw [optional]
- *           [out]   ph ([optional]
- *           [out]   pbps ([optional]  bits/sample
+ * \param[out]   ph ([optional]
+ * \param[out]   pbps ([optional]  bits/sample
  * \param[out]   pspp [optional]  samples/pixel
  * \param[out]   piscmap [optional]  input NULL to ignore
  * \return  0 if OK, 1 on error
