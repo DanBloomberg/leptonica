@@ -493,11 +493,11 @@ l_float32  sum, sumsq, val, mean, var;
  *          any or all of these derived arrays.
  *      (2) These statistical measures over the values in the
  *          rectangular window are:
- *            ~ average value: <x>  (nam)
- *            ~ average squared value: <x*x> (nams)
- *            ~ variance: <(x - <x>)*(x - <x>)> = <x*x> - <x>*<x>  (nav)
+ *            ~ average value: [x]  (nam)
+ *            ~ average squared value: [x*x] (nams)
+ *            ~ variance: [(x - [x])*(x - [x])] = [x*x] - [x]*[x]  (nav)
  *            ~ square-root of variance: (narv)
- *          where the brackets < .. > indicate that the average value is
+ *          where the brackets [ .. ] indicate that the average value is
  *          to be taken over the window.
  *      (3) Note that the variance is just the mean square difference from
  *          the mean value; and the square root of the variance is the
@@ -683,8 +683,7 @@ NUMA       *na1, *nad;
  *          are returned, where the variance is the average over the
  *          window of the mean square difference of the pixel value
  *          from the mean:
- *                <(x - <x>)*(x - <x>)> = <x*x> - <x>*<x>
- *
+ *                [(x - [x])*(x - [x])] = [x*x] - [x]*[x]
  * </pre>
  */
 l_ok

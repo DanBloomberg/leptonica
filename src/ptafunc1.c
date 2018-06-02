@@ -2161,9 +2161,9 @@ PTAA      *ptaa;
 /*!
  * \brief   ptaGetNeighborPixLocs()
  *
- * \param[in]    pixs any depth
- * \param[in]    x, y pixel from which we search for nearest neighbors
- * \param[in]    conn (4 or 8 connectivity)
+ * \param[in]    pixs    any depth
+ * \param[in]    x, y    pixel from which we search for nearest neighbors
+ * \param[in]    conn    4 or 8 connectivity
  * \return  pta, or NULL on error
  *
  * <pre>

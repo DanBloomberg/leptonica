@@ -1482,7 +1482,6 @@ L_RECOG   *recog;
  *      (2) Identification occurs in scaled mode (typically with h = 40),
  *          optionally using a width-normalized line images derived
  *          from those in %pixas.
- *
  * </pre>
  */
 PIXA  *
@@ -1587,7 +1586,6 @@ PIXA      *pixa1, *pixa2, *pixa3, *pixad;
  *          padded appropriately with templates from a boot recognizer,
  *          and set up with correlation templates derived from
  *          %scaleh and %linew.
- *
  * </pre>
  */
 l_ok
@@ -1872,7 +1870,6 @@ l_int32  ret;
  *         input bitmaps or images with fixed line widths.  To use the
  *         input bitmaps, set %linew = 0; otherwise, set %linew to the
  *         desired line width.
- *
  * </pre>
  */
 L_RECOG  *
@@ -2254,7 +2251,6 @@ PIXA      *pixa1;
  *          - The outlier sample
  *          - The average template from the same class
  *          - The average class template that best matched the outlier sample
- *
  * </pre>
  */
 static PIX  *

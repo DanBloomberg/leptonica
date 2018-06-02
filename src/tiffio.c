@@ -2572,9 +2572,9 @@ PIXA   *pixa;
 /*!
  * \brief   pixaWriteMemMultipageTiff()
  *
- * \param[in]    pdata     const; tiff-encoded
- * \param[in]    psize     size of data
- * \param[in]    pixa      any depth; colormap will be removed
+ * \param[out]    pdata     const; tiff-encoded
+ * \param[out]    psize     size of data
+ * \param[in]     pixa      any depth; colormap will be removed
  * \return  0 if OK, 1 on error
  *
  * <pre>

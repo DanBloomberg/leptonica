@@ -686,19 +686,19 @@ PIX       *pix1, *pix2;
 /*!
  * \brief   pixCorrelationBestShift()
  *
- * \param[in]    pix1   1 bpp, the unknown image; typically larger
- * \param[in]    pix2   1 bpp, the matching template image)
- * \param[in]    nasum1 vertical column pixel sums for pix1
+ * \param[in]    pix1    1 bpp, the unknown image; typically larger
+ * \param[in]    pix2    1 bpp, the matching template image)
+ * \param[in]    nasum1  vertical column pixel sums for pix1
  * \param[in]    namoment1  vertical column first moment of pixels for pix1
- * \param[in]    area2  number of on pixels in pix2
+ * \param[in]    area2   number of on pixels in pix2
  * \param[in]    ycent2  y component of centroid of pix2
  * \param[in]    maxyshift  max y shift of pix2 around the location where
  *                          the centroids of pix2 and a windowed part of pix1
  *                          are vertically aligned
- * \param[in]    tab8 [optional] sum tab for ON pixels in byte; can be NULL
- * \param[out]   pdelx [optional] best x shift of pix2 relative to pix1
- * \param[out]   pdely ([optional] best y shift of pix2 relative to pix1
- * \param[out]   pscore ([optional] maximum score found; can be NULL
+ * \param[in]    tab8    [optional] sum tab for ON pixels in byte; can be NULL
+ * \param[out]   pdelx   [optional] best x shift of pix2 relative to pix1
+ * \param[out]   pdely   [optional] best y shift of pix2 relative to pix1
+ * \param[out]   pscore  [optional] maximum score found; can be NULL
  * \param[in]    debugflag <= 0 to skip; positive to generate output.
  *                         The integer is used to label the debug image.
  * \return  0 if OK, 1 on error

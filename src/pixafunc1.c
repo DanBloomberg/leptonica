@@ -2587,8 +2587,8 @@ PIXA    *pixa1, *pixad;
  * \param[in]    pixa1
  * \param[in]    pixa2
  * \param[in]    maxdist
- * \param[out]   pnaindex    [optional] index array of correspondences
- * \param[out]   psame (1 if equal; 0 otherwise
+ * \param[out]   pnaindex  [optional] index array of correspondences
+ * \param[out]   psame     1 if equal; 0 otherwise
  * \return  0 if OK, 1 on error
  *
  * <pre>

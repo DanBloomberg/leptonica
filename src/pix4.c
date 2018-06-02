@@ -1445,7 +1445,7 @@ PIXCMAP  *cmap;
  *          L_VARIANCE to get the average squared difference from the
  *          expected value.  The variance is the square of the stdev.
  *          For the standard deviation, we use
- *              sqrt(<(<x> - x)>^2) = sqrt(<x^2> - <x>^2)
+ *              sqrt([([x] - x)]^2) = sqrt([x^2] - [x]^2)
  *      (3) Set the subsampling %factor > 1 to reduce the amount of
  *          computation.
  *      (4) Clipping of pixm (if it exists) to pixs is done in the inner loop.

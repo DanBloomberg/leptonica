@@ -498,10 +498,10 @@ PIXCMAP     *cmap;
  * \brief   readHeaderPng()
  *
  * \param[in]    filename
- * \param[out]   pw [optional]
- * \param[out]   ph ([optional]
- * \param[out]   pbps ([optional]  bits/sample
- * \param[out]   pspp [optional]  samples/pixel
+ * \param[out]   pw      [optional]
+ * \param[out]   ph      [optional]
+ * \param[out]   pbps    [optional]  bits/sample
+ * \param[out]   pspp    [optional]  samples/pixel
  * \param[out]   piscmap [optional]
  * \return  0 if OK, 1 on error
  *
@@ -544,12 +544,12 @@ FILE    *fp;
 /*!
  * \brief   freadHeaderPng()
  *
- * \param[in]    fp file stream
- * \param[out]   pw [optional]
- * \param[out]   ph ([optional]
- * \param[out]   pbps ([optional]  bits/sample
- * \param[out]   pspp [optional]  samples/pixel
- * \param[out]   piscmap [optional]
+ * \param[in]    fp       file stream
+ * \param[out]   pw       [optional]
+ * \param[out]   ph       [optional]
+ * \param[out]   pbps     [optional]  bits/sample
+ * \param[out]   pspp     [optional]  samples/pixel
+ * \param[out]   piscmap  [optional]
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -592,11 +592,11 @@ l_uint8  data[40];
  * \brief   readHeaderMemPng()
  *
  * \param[in]    data
- * \param[in]    size 40 bytes is sufficient
- * \param[out]   pw [optional]
- * \param[out]   ph ([optional]
- * \param[out]   pbps ([optional]  bits/sample
- * \param[out]   pspp [optional]  samples/pixel
+ * \param[in]    size    40 bytes is sufficient
+ * \param[out]   pw      [optional]
+ * \param[out]   ph      [optional]
+ * \param[out]   pbps    [optional]  bits/sample
+ * \param[out]   pspp    [optional]  samples/pixel
  * \param[out]   piscmap [optional]  input NULL to ignore
  * \return  0 if OK, 1 on error
  *
