@@ -20,6 +20,7 @@
 *.pc
 .deps
 .libs
+Doxyfile
 makefile
 Makefile
 Makefile.in
