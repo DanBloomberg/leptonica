@@ -97,14 +97,30 @@ typedef uintptr_t l_uintptr_t;
  *  non-functioning stubs to be linked.
  */
 #if !defined(HAVE_CONFIG_H) && !defined(ANDROID_BUILD) && !defined(OS_IOS)
+#if !defined(HAVE_LIBJPEG)
 #define  HAVE_LIBJPEG       1
+#endif
+#if !defined(HAVE_LIBTIFF)
 #define  HAVE_LIBTIFF       1
+#endif
+#if !defined(HAVE_LIBPNG)
 #define  HAVE_LIBPNG        1
+#endif
+#if !defined(HAVE_LIBZ)
 #define  HAVE_LIBZ          1
+#endif
+#if !defined(HAVE_LIBGIF)
 #define  HAVE_LIBGIF        0
+#endif
+#if !defined(HAVE_LIBUNGIF)
 #define  HAVE_LIBUNGIF      0
+#endif
+#if !defined(HAVE_LIBWEBP)
 #define  HAVE_LIBWEBP       0
+#endif
+#if !defined(HAVE_LIBJP2K)
 #define  HAVE_LIBJP2K       0
+#endif
 
 /*-------------------------------------------------------------------------*
  * Leptonica supports OpenJPEG 2.0+.  If you have a version of openjpeg    *
