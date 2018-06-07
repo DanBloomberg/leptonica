@@ -77,12 +77,12 @@
  *        for the example files in the library, using integer "1":
  *
  *            PIX   *pixMorphDwa_1(PIX *pixd, PIX, *pixs,
- *                                 l_int32 operation, char *selname);
+ *                                 l_int32 operation, const char *selname);
  *
  *                 or
  *
  *            PIX   *pixFMorphopGen_1(PIX *pixd, PIX *pixs,
- *                                    l_int32 operation, char *selname);
+ *                                    l_int32 operation, const char *selname);
  *
  *        where the operation is one of {L_MORPH_DILATE, L_MORPH_ERODE.
  *        L_MORPH_OPEN, L_MORPH_CLOSE}, and the selname is one
@@ -317,10 +317,10 @@ SARRAY  *sa1, *sa2, *sa3;
 
         /* Make strings containing function call names */
     sprintf(bigbuf, "PIX *pixMorphDwa_%d(PIX *pixd, PIX *pixs, "
-                    "l_int32 operation, char *selname);", fileindex);
+                    "l_int32 operation, const char *selname);", fileindex);
     str_proto1 = stringNew(bigbuf);
     sprintf(bigbuf, "PIX *pixFMorphopGen_%d(PIX *pixd, PIX *pixs, "
-                    "l_int32 operation, char *selname);", fileindex);
+                    "l_int32 operation, const char *selname);", fileindex);
     str_proto2 = stringNew(bigbuf);
     sprintf(bigbuf, "l_int32 fmorphopgen_low_%d(l_uint32 *datad, l_int32 w,\n"
         "                          l_int32 h, l_int32 wpld,\n"

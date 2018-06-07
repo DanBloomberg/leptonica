@@ -34,8 +34,8 @@
 #include <string.h>
 #include "allheaders.h"
 
-PIX *pixMorphDwa_2(PIX *pixd, PIX *pixs, l_int32 operation, char *selname);
-PIX *pixFMorphopGen_2(PIX *pixd, PIX *pixs, l_int32 operation, char *selname);
+PIX *pixMorphDwa_2(PIX *pixd, PIX *pixs, l_int32 operation, const char *selname);
+PIX *pixFMorphopGen_2(PIX *pixd, PIX *pixs, l_int32 operation, const char *selname);
 l_int32 fmorphopgen_low_2(l_uint32 *datad, l_int32 w,
                           l_int32 h, l_int32 wpld,
                           l_uint32 *datas, l_int32 wpls,
@@ -140,10 +140,10 @@ static char  SEL_NAMES[][80] = {
  * </pre>
  */
 PIX *
-pixMorphDwa_2(PIX     *pixd,
-              PIX     *pixs,
-              l_int32  operation,
-              char    *selname)
+pixMorphDwa_2(PIX        *pixd,
+              PIX        *pixs,
+              l_int32     operation,
+              const char *selname)
 {
 l_int32  bordercolor, bordersize;
 PIX     *pixt1, *pixt2, *pixt3;
@@ -200,10 +200,10 @@ PIX     *pixt1, *pixt2, *pixt3;
  * </pre>
  */
 PIX *
-pixFMorphopGen_2(PIX     *pixd,
-                 PIX     *pixs,
-                 l_int32  operation,
-                 char    *selname)
+pixFMorphopGen_2(PIX        *pixd,
+                 PIX        *pixs,
+                 l_int32     operation,
+                 const char *selname)
 {
 l_int32    i, index, found, w, h, wpls, wpld, bordercolor, erodeop, borderop;
 l_uint32  *datad, *datas, *datat;

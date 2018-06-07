@@ -315,7 +315,7 @@ destroy_helper(node  *n)
  * </pre>
  */
 L_RBTREE_NODE *
-l_rbtreeGetFirst(L_RBTREE  *t)
+l_rbtreeGetFirst(L_RBTREE *t)
 {
 node  *n;
 
@@ -385,7 +385,7 @@ l_rbtreeGetNext(L_RBTREE_NODE  *n)
  * </pre>
  */
 L_RBTREE_NODE *
-l_rbtreeGetLast(L_RBTREE  *t)
+l_rbtreeGetLast(L_RBTREE *t)
 {
 node  *n;
 
@@ -450,7 +450,7 @@ l_rbtreeGetPrev(L_RBTREE_NODE  *n)
  * \return     count  the number of nodes in the tree, or 0 on error
  */
 l_int32
-l_rbtreeGetCount(L_RBTREE  *t)
+l_rbtreeGetCount(L_RBTREE *t)
 {
 l_int32  count = 0;
 node    *n;

@@ -119,8 +119,8 @@ L_BYTEA  *ba;
  * \return  l_bytea, or NULL on error
  */
 L_BYTEA *
-l_byteaInitFromMem(l_uint8  *data,
-                   size_t    size)
+l_byteaInitFromMem(const l_uint8  *data,
+                   size_t          size)
 {
 L_BYTEA  *ba;
 
@@ -360,9 +360,9 @@ l_uint8  *data;
  * \return  0 if OK, 1 on error
  */
 l_ok
-l_byteaAppendData(L_BYTEA  *ba,
-                  l_uint8  *newdata,
-                  size_t    newbytes)
+l_byteaAppendData(L_BYTEA        *ba,
+                  const l_uint8  *newdata,
+                  size_t          newbytes)
 {
 size_t  size, nalloc, reqsize;
 
@@ -379,7 +379,7 @@ size_t  size, nalloc, reqsize;
     if (nalloc < reqsize)
         l_byteaExtendArrayToSize(ba, 2 * reqsize);
 
-    memcpy((char *)(ba->data + size), (char *)newdata, newbytes);
+    memcpy((char *)(ba->data + size), (const char *)newdata, newbytes);
     ba->size += newbytes;
     return 0;
 }
@@ -393,8 +393,8 @@ size_t  size, nalloc, reqsize;
  * \return  0 if OK, 1 on error
  */
 l_ok
-l_byteaAppendString(L_BYTEA  *ba,
-                    char     *str)
+l_byteaAppendString(L_BYTEA        *ba,
+                    const char     *str)
 {
 size_t  size, len, nalloc, reqsize;
 
@@ -537,10 +537,10 @@ size_t    nbytes1, nbytes2;
  * \return  0 if OK, 1 on error
  */
 l_ok
-l_byteaFindEachSequence(L_BYTEA   *ba,
-                        l_uint8   *sequence,
-                        l_int32    seqlen,
-                        L_DNA    **pda)
+l_byteaFindEachSequence(L_BYTEA         *ba,
+                        const l_uint8   *sequence,
+                        size_t           seqlen,
+                        L_DNA          **pda)
 {
 l_uint8  *data;
 size_t    size;
