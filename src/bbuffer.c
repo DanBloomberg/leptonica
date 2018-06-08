@@ -121,8 +121,8 @@ static const l_int32  INITIAL_BUFFER_ARRAYSIZE = 1024;   /*!< n'importe quoi */
  * </pre>
  */
 L_BBUFFER *
-bbufferCreate(l_uint8  *indata,
-              l_int32   nalloc)
+bbufferCreate(const l_uint8  *indata,
+              l_int32         nalloc)
 {
 L_BBUFFER  *bb;
 
