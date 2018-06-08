@@ -2106,8 +2106,8 @@ char  *basename, *selname;
  * </pre>
  */
 SEL *
-selCreateFromColorPix(PIX   *pixs,
-                      char  *selname)
+selCreateFromColorPix(PIX         *pixs,
+                      const char  *selname)
 {
 PIXCMAP  *cmap;
 SEL      *sel;
