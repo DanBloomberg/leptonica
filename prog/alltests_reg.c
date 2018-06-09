@@ -201,7 +201,7 @@ static char  mainName[] = "alltests_reg";
     if (dotest) {
         results_file = genPathname("/tmp/lept", "reg_results.txt");
         sa = sarrayCreate(3);
-        sarrayAddString(sa, (char *)header, L_COPY);
+        sarrayAddString(sa, header, L_COPY);
         sarrayAddString(sa, getLeptonicaVersion(), L_INSERT);
         sarrayAddString(sa, getImagelibVersions(), L_INSERT);
         str = sarrayToString(sa, 1);
