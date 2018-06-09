@@ -444,7 +444,7 @@ sarrayClone(SARRAY  *sa)
  */
 l_ok
 sarrayAddString(SARRAY  *sa,
-                char    *string,
+                const char *string,
                 l_int32  copyflag)
 {
 l_int32  n;
