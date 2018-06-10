@@ -3016,7 +3016,7 @@ l_float32  wratio, hratio;
 
         /* clear dest */
     bpld = 4 * wpld;
-    memset((char *)datad, 0, hd * bpld);
+    memset(datad, 0, hd * bpld);
 
         /* the source row corresponding to dest row i ==> srow[i]
          * the source col corresponding to dest col j ==> scol[j]  */
@@ -3100,7 +3100,7 @@ l_float32  wratio, hratio;
             }
         } else {  /* lines == prevlines; copy prev dest row */
             prevlined = lined - wpld;
-            memcpy((char *)lined, (char *)prevlined, bpld);
+            memcpy(lined, prevlined, bpld);
         }
         prevlines = lines;
     }
@@ -3145,7 +3145,7 @@ l_float32  wratio, hratio, norm;
     PROCNAME("scaleSmoothLow");
 
         /* Clear dest */
-    memset((char *)datad, 0, 4 * wpld * hd);
+    memset(datad, 0, 4 * wpld * hd);
 
         /* Each dest pixel at (j,i) is computed as the average
            of size^2 corresponding src pixels.
@@ -3636,7 +3636,7 @@ l_float32  wratio, hratio;
 
         /* clear dest */
     bpld = 4 * wpld;
-    memset((char *)datad, 0, hd * bpld);
+    memset(datad, 0, hd * bpld);
 
         /* The source row corresponding to dest row i ==> srow[i]
          * The source col corresponding to dest col j ==> scol[j]  */
@@ -3674,7 +3674,7 @@ l_float32  wratio, hratio;
             }
         } else {  /* lines == prevlines; copy prev dest row */
             prevlined = lined - wpld;
-            memcpy((char *)lined, (char *)prevlined, bpld);
+            memcpy(lined, prevlined, bpld);
         }
         prevlines = lines;
     }

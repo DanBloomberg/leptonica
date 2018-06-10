@@ -2978,7 +2978,7 @@ l_uint32   word;
  *          Bytes 0 <==> 3 and 1 <==> 2 are swapped in the dest
  *          byte array data8d, relative to the pix data in datas.
  *      (2) The bytes represent 8 bit pixel values.  They are swapped
- *          for little endians so that when the dest array (char *)datad
+ *          for little endians so that when the dest array datad
  *          is addressed by bytes, the pixels are chosen sequentially
  *          from left to right in the image.
  */
@@ -2997,7 +2997,7 @@ l_uint32  word;
 
 #ifdef L_BIG_ENDIAN
 
-    memcpy((char *)datad, (char *)datas, 4 * wpl);
+    memcpy(datad, datas, 4 * wpl);
     return 0;
 
 #else   /* L_LITTLE_ENDIAN */

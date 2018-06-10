@@ -141,7 +141,7 @@ L_BBUFFER  *bb;
     bb->nwritten = 0;
 
     if (indata) {
-        memcpy((l_uint8 *)bb->array, indata, nalloc);
+        memcpy(bb->array, indata, nalloc);
         bb->n = nalloc;
     } else {
         bb->n = 0;
@@ -229,7 +229,7 @@ L_BBUFFER  *bb;
         L_WARNING("calloc failure for array\n", procName);
         return NULL;
     }
-    memcpy((void *)array, (void *)(bb->array + bb->nwritten), nbytes);
+    memcpy(array, bb->array + bb->nwritten, nbytes);
 
     bbufferDestroy(pbb);
     return array;
@@ -275,8 +275,7 @@ l_int32  navail, nadd, nwritten;
         return ERROR_INT("no bytes to read", procName, 1);
 
     if ((nwritten = bb->nwritten)) {  /* move the unwritten bytes over */
-        memmove((l_uint8 *)bb->array, (l_uint8 *)(bb->array + nwritten),
-                 bb->n - nwritten);
+        memmove(bb->array, bb->array + nwritten, bb->n - nwritten);
         bb->nwritten = 0;
         bb->n -= nwritten;
     }
@@ -290,7 +289,7 @@ l_int32  navail, nadd, nwritten;
     }
 
         /* Read in the new bytes */
-    memcpy((l_uint8 *)(bb->array + bb->n), src, nbytes);
+    memcpy(bb->array + bb->n, src, nbytes);
     bb->n += nbytes;
 
     return 0;
@@ -322,8 +321,7 @@ l_int32  navail, nadd, nread, nwritten;
         return ERROR_INT("no bytes to read", procName, 1);
 
     if ((nwritten = bb->nwritten)) {  /* move any unwritten bytes over */
-        memmove((l_uint8 *)bb->array, (l_uint8 *)(bb->array + nwritten),
-                 bb->n - nwritten);
+        memmove(bb->array, bb->array + nwritten, bb->n - nwritten);
         bb->nwritten = 0;
         bb->n -= nwritten;
     }
@@ -337,7 +335,7 @@ l_int32  navail, nadd, nread, nwritten;
     }
 
         /* Read in the new bytes */
-    nread = fread((void *)(bb->array + bb->n), 1, nbytes, fp);
+    nread = fread(bb->array + bb->n, 1, nbytes, fp);
     bb->n += nread;
 
     return 0;
@@ -418,7 +416,7 @@ size_t  nleft, nout;
     }
 
         /* nout > 0; transfer the data out */
-    memcpy(dest, (l_uint8 *)(bb->array + bb->nwritten), nout);
+    memcpy(dest, bb->array + bb->nwritten, nout);
     bb->nwritten += nout;
 
         /* If all written; "empty" the buffer */
@@ -470,7 +468,7 @@ size_t  nleft, nout;
     }
 
         /* nout > 0; transfer the data out */
-    fwrite((void *)(bb->array + bb->nwritten), 1, nout, fp);
+    fwrite(bb->array + bb->nwritten, 1, nout, fp);
     bb->nwritten += nout;
 
         /* If all written; "empty" the buffer */

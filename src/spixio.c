@@ -391,10 +391,10 @@ PIXCMAP   *cmap;
     data[4] = wpl;
     data[5] = ncolors;
     if (ncolors > 0)
-        memcpy((char *)(data + 6), (char *)cdata, 4 * ncolors);
+        memcpy(data + 6, cdata, 4 * ncolors);
     index = 6 + ncolors;
     data[index] = rdatasize;
-    memcpy((char *)(data + index + 1), (char *)rdata, rdatasize);
+    memcpy(data + index + 1, rdata, rdatasize);
 
 #if  DEBUG_SERIALIZE
     fprintf(stderr, "Serialize:   "
@@ -480,7 +480,7 @@ PIXCMAP   *cmap;
     }
 
     imdata = pixGetData(pixd);
-    memcpy((char *)imdata, (char *)(data + 7 + ncolors), imdata_size);
+    memcpy(imdata, data + 7 + ncolors, imdata_size);
 
 #if  DEBUG_SERIALIZE
     fprintf(stderr, "Deserialize: "

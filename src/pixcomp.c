@@ -408,7 +408,7 @@ PIXC     *pixcd;
     size = pixcs->size;
     datas = pixcs->data;
     datad = (l_uint8 *)LEPT_CALLOC(size, sizeof(l_int8));
-    memcpy((char*)datad, (char*)datas, size);
+    memcpy(datad, datas, size);
     pixcd->data = datad;
     pixcd->size = size;
     return pixcd;

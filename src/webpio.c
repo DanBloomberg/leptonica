@@ -189,7 +189,7 @@ FILE    *fp;
     nbytes = L_MIN(filesize, 100);
     if ((fp = fopenReadStream(filename)) == NULL)
         return ERROR_INT("image file not found", procName, 1);
-    bytesread = fread((char *)data, 1, nbytes, fp);
+    bytesread = fread(data, 1, nbytes, fp);
     fclose(fp);
     if (bytesread != nbytes)
         return ERROR_INT("failed to read requested data", procName, 1);

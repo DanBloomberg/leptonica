@@ -520,7 +520,7 @@ PIXCMAP   *cmap;
                 pixDestroy(&pix);
                 return (PIX *)ERROR_PTR("line read fail", procName, NULL);
             }
-            memcpy((char *)data, (char *)linebuf, tiffbpl);
+            memcpy(data, linebuf, tiffbpl);
             data += bpl;
         }
         if (bps <= 8)
@@ -985,7 +985,7 @@ char      *text;
             pixt = pixEndianByteSwapNew(pix);
         data = (l_uint8 *)pixGetData(pixt);
         for (i = 0; i < h; i++, data += bpl) {
-            memcpy((char *)linebuf, (char *)data, tiffbpl);
+            memcpy(linebuf, data, tiffbpl);
             if (TIFFWriteScanline(tif, linebuf, i, 0) < 0)
                 break;
         }

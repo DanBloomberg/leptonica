@@ -292,7 +292,7 @@ l_float32  *datas, *datad;
             return (FPIX *)ERROR_PTR("fpixd not made", procName, NULL);
         datas = fpixGetData(fpixs);
         datad = fpixGetData(fpixd);
-        memcpy((char *)datad, (char *)datas, bytes);
+        memcpy(datad, datas, bytes);
         return fpixd;
     }
 
@@ -303,7 +303,7 @@ l_float32  *datas, *datad;
     fpixCopyResolution(fpixd, fpixs);
     datas = fpixGetData(fpixs);
     datad = fpixGetData(fpixd);
-    memcpy((char*)datad, (char*)datas, bytes);
+    memcpy(datad, datas, bytes);
     return fpixd;
 }
 
@@ -1290,7 +1290,7 @@ l_float64  *datas, *datad;
             return (DPIX *)ERROR_PTR("dpixd not made", procName, NULL);
         datas = dpixGetData(dpixs);
         datad = dpixGetData(dpixd);
-        memcpy((char *)datad, (char *)datas, bytes);
+        memcpy(datad, datas, bytes);
         return dpixd;
     }
 
@@ -1301,7 +1301,7 @@ l_float64  *datas, *datad;
     dpixCopyResolution(dpixd, dpixs);
     datas = dpixGetData(dpixs);
     datad = dpixGetData(dpixd);
-    memcpy((char*)datad, (char*)datas, bytes);
+    memcpy(datad, datas, bytes);
     return dpixd;
 }
 

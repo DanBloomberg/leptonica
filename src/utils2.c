@@ -804,7 +804,7 @@ stringFindSubstr(const char  *src,
                  const char  *sub,
                  l_int32     *ploc)
 {
-char  *ptr;
+const char *ptr;
 
     PROCNAME("stringFindSubstr");
 
@@ -818,7 +818,7 @@ char  *ptr;
     if (strlen(src) == 0)
         return 0;
 
-    if ((ptr = (char *)strstr(src, sub)) == NULL)  /* not found */
+    if ((ptr = strstr(src, sub)) == NULL)  /* not found */
         return 0;
 
     if (ploc)
@@ -858,8 +858,9 @@ stringReplaceSubstr(const char  *src,
                     l_int32     *pfound,
                     l_int32     *ploc)
 {
-char    *ptr, *dest;
-l_int32  nsrc, nsub1, nsub2, len, npre, loc;
+const char *ptr;
+char       *dest;
+l_int32     nsrc, nsub1, nsub2, len, npre, loc;
 
     PROCNAME("stringReplaceSubstr");
 
@@ -876,7 +877,7 @@ l_int32  nsrc, nsub1, nsub2, len, npre, loc;
         loc = *ploc;
     else
         loc = 0;
-    if ((ptr = (char *)strstr(src + loc, sub1)) == NULL) {
+    if ((ptr = strstr(src + loc, sub1)) == NULL) {
         return NULL;
     }
 
@@ -1134,7 +1135,7 @@ void    *newdata;
     if ((newdata = (void *)LEPT_CALLOC(1, newsize)) == NULL)
         return ERROR_PTR("newdata not made", procName, NULL);
     minsize = L_MIN(oldsize, newsize);
-    memcpy((char *)newdata, (char *)indata, minsize);
+    memcpy(newdata, indata, minsize);
 
     LEPT_FREE(indata);
     *pindata = NULL;
