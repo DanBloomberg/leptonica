@@ -1499,7 +1499,7 @@ PIX      *pix1, *pix2;
     pixDestroy(&pix1);
 
         /* Find the dilation at which the c.c. count has reduced
-         * to 30% of thie initial value.  Although 30% seems high,
+         * to 30% of the initial value.  Although 30% seems high,
          * it seems better to use this but add one to ibest.  */
     diffa = numaGetIArray(nadiff);
     n = numaGetCount(nadiff);

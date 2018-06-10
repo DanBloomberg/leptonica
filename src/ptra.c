@@ -911,7 +911,7 @@ l_int32  n;
     if (index < 0 || index >= n)
         return ERROR_INT("invalid index", procName, 1);
     if (paa->ptra[index] != NULL)
-        return ERROR_INT("ptra alread stored at index", procName, 1);
+        return ERROR_INT("ptra already stored at index", procName, 1);
 
     paa->ptra[index] = pa;
     return 0;

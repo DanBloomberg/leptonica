@@ -1128,13 +1128,13 @@ enum {
  *                            Horizontal warp                              *
  *-------------------------------------------------------------------------*/
 
-/*! Horizonal warp direction */
+/*! Horizontal warp direction */
 enum {
     L_WARP_TO_LEFT = 1,    /*!< increasing stretch or contraction to left  */
     L_WARP_TO_RIGHT = 2    /*!< increasing stretch or contraction to right */
 };
 
-/*! Horizonal warp stretch mode */
+/*! Horizontal warp stretch mode */
 enum {
     L_LINEAR_WARP = 1,     /*!< stretch or contraction grows linearly      */
     L_QUADRATIC_WARP = 2   /*!< stretch or contraction grows quadratically */

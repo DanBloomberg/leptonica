@@ -75,7 +75,7 @@
  *             v' = Av
  *          where v and v' are 1x3 column vectors in the form
  *             v = [x, y, 1]^    ^ denotes transpose
- *          and the affine tranlation matrix is
+ *          and the affine translation matrix is
  *             A = [ 1   0   tx
  *                   0   1   ty
  *                   0   0    1  ]

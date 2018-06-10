@@ -61,7 +61,7 @@ static l_int32 dewarpaTestForValidModel(L_DEWARPA *dewa, L_DEWARP *dew,
                                         l_int32 notests);
 
 #ifndef  NO_CONSOLE_IO
-#define  DEBUG_INVALID_MODELS      0   /* set this to 1 for debuging */
+#define  DEBUG_INVALID_MODELS      0   /* set this to 1 for debugging */
 #endif  /* !NO_CONSOLE_IO */
 
     /* Special parameter values */

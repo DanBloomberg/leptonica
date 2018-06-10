@@ -119,7 +119,7 @@
  *  must work on scaled images.
  *
  *  Here are the steps in doing recog training:
- *  A. Generate a BAR from any exising labeled templates
+ *  A. Generate a BAR from any existing labeled templates
  *    (1) Create a recog and add the templates, using recogAddSample().
  *        This stores the unscaled templates.
  *        [Note: this can be done in one step if the labeled templates are put
@@ -153,7 +153,7 @@
  *  (3) For each candidate, find the average correlation with other
  *      members of its class, and remove those that have a relatively
  *      low average correlation.  This is similar to (1), gives comparable
- *      results and becauses it does not use average templates, it requires
+ *      results and because it does not use average templates, it requires
  *      a bit more computation.
  * </pre>
  */
@@ -1227,7 +1227,7 @@ L_RECOG   *recog;
         }
         pixDestroy(&pix1);
 
-            /* Find the rankscore, corresonding to the 1.0 - minfract.
+            /* Find the rankscore, corresponding to the 1.0 - minfract.
              * To attempt to maintain the minfract of templates, use as a
              * cutoff the minimum of minscore and the rank score.  However,
              * no template is saved with an actual score less than
