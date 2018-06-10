@@ -2625,7 +2625,7 @@ LEPT_DLL extern l_uint8 * l_binaryRead ( const char *filename, size_t *pnbytes )
 LEPT_DLL extern l_uint8 * l_binaryReadStream ( FILE *fp, size_t *pnbytes );
 LEPT_DLL extern l_uint8 * l_binaryReadSelect ( const char *filename, size_t start, size_t nbytes, size_t *pnread );
 LEPT_DLL extern l_uint8 * l_binaryReadSelectStream ( FILE *fp, size_t start, size_t nbytes, size_t *pnread );
-LEPT_DLL extern l_ok l_binaryWrite ( const char *filename, const char *operation, void *data, size_t nbytes );
+LEPT_DLL extern l_ok l_binaryWrite ( const char *filename, const char *operation, const void *data, size_t nbytes );
 LEPT_DLL extern size_t nbytesInFile ( const char *filename );
 LEPT_DLL extern size_t fnbytesInFile ( FILE *fp );
 LEPT_DLL extern l_uint8 * l_binaryCopy ( l_uint8 *datas, size_t size );
