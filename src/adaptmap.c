@@ -2865,7 +2865,7 @@ l_uint32  *data, *datamin, *datamax, *line, *tline, *linemin, *linemax;
             minval = GET_DATA_BYTE(linemin, j);
             maxval = GET_DATA_BYTE(linemax, j);
             if (maxval == minval) {  /* this is bad */
-/*                fprintf(stderr, "should't happen! i,j = %d,%d, minval = %d\n",
+/*                fprintf(stderr, "shouldn't happen! i,j = %d,%d, minval = %d\n",
                         i, j, minval); */
                 continue;
             }

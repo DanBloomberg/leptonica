@@ -235,7 +235,7 @@ LEPT_DLL extern l_int32  LeptDebugOK;  /* default is 0 */
 #endif
 
 #ifndef L_ABS
-/*! Absoulute value of %x */
+/*! Absolute value of %x */
 #define L_ABS(x)     (((x) < 0) ? (-1 * (x)) : (x))
 #endif
 

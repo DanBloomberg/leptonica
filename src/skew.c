@@ -355,7 +355,7 @@ PIX       *pixb, *pixd;
  * \param[in]    pixs  1 bpp
  * \param[out]   pangle   angle required to deskew, in degrees
  * \param[out]   pconf    confidence value is ratio max/min scores
- * \return  0 if OK, 1 on error or if angle measurment not valid
+ * \return  0 if OK, 1 on error or if angle measurement not valid
  *
  * <pre>
  * Notes:
@@ -402,7 +402,7 @@ pixFindSkew(PIX        *pixs,
  * \param[in]    reduction  factor = 1, 2, 4 or 8
  * \param[in]    sweeprange   half the full range; assumed about 0; in degrees
  * \param[in]    sweepdelta   angle increment of sweep; in degrees
- * \return  0 if OK, 1 on error or if angle measurment not valid
+ * \return  0 if OK, 1 on error or if angle measurement not valid
  *
  * <pre>
  * Notes:
@@ -538,7 +538,7 @@ cleanup:
  * \param[in]    sweeprange   half the full range, assumed about 0; in degrees
  * \param[in]    sweepdelta   angle increment of sweep; in degrees
  * \param[in]    minbsdelta   min binary search increment angle; in degrees
- * \return  0 if OK, 1 on error or if angle measurment not valid
+ * \return  0 if OK, 1 on error or if angle measurement not valid
  *
  * <pre>
  * Notes:
@@ -585,7 +585,7 @@ pixFindSkewSweepAndSearch(PIX        *pixs,
  *                            in degrees
  * \param[in]    sweepdelta   angle increment of sweep; in degrees
  * \param[in]    minbsdelta   min binary search increment angle; in degrees
- * \return  0 if OK, 1 on error or if angle measurment not valid
+ * \return  0 if OK, 1 on error or if angle measurement not valid
  *
  * <pre>
  * Notes:
@@ -644,7 +644,7 @@ pixFindSkewSweepAndSearchScore(PIX        *pixs,
  * \param[in]    sweepdelta   angle increment of sweep; in degrees
  * \param[in]    minbsdelta   min binary search increment angle; in degrees
  * \param[in]    pivot  L_SHEAR_ABOUT_CORNER, L_SHEAR_ABOUT_CENTER
- * \return  0 if OK, 1 on error or if angle measurment not valid
+ * \return  0 if OK, 1 on error or if angle measurement not valid
  *
  * <pre>
  * Notes:
@@ -987,7 +987,7 @@ cleanup:
  *              confprior  (amount by which confidence of 90 degree rotated
  *                          result is reduced when comparing with unrotated
  *                          confidence value)
- *      Return: 0 if OK, 1 on error or if angle measurment not valid
+ *      Return: 0 if OK, 1 on error or if angle measurement not valid
  *
  *  Notes:
  *      (1) This searches for the skew angle, first in the range

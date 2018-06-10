@@ -65,7 +65,7 @@
  *          that use background normalization with other techniques.
  *      (3) Sauvola binarization computes a local threshold based on
  *          the local average and square average.  It takes two constants:
- *          the window size for the measurment at each pixel and a
+ *          the window size for the measurement at each pixel and a
  *          parameter that determines the amount of normalized local
  *          standard deviation to subtract from the local average value.
  *      (4) pixThresholdByCC() uses the numbers of 4 and 8 connected

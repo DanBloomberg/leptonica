@@ -1227,7 +1227,7 @@ PIX       *pixc, *pix1, *pix2;
  *          need not be the same size.
  *      (2) Each pixel in pixb is multiplied by 'factor' divided by 255, and
  *          clipped to the range [0 ... 1].  This gives the fade fraction
- *          to be appied to pixs.  Fade either to white (L_BLEND_TO_WHITE)
+ *          to be applied to pixs.  Fade either to white (L_BLEND_TO_WHITE)
  *          or to black (L_BLEND_TO_BLACK).
  * </pre>
  */

@@ -323,7 +323,7 @@ PIX  *pixd;
  *
  * <pre>
  * Notes:
- *      (1) Must set pad bits to avoid reading unitialized data, because
+ *      (1) Must set pad bits to avoid reading uninitialized data, because
  *          some optimized routines (e.g., pixConnComp()) read from pad bits.
  * </pre>
  */

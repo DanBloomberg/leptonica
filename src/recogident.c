@@ -237,9 +237,9 @@ PIXA    *pixa;
  *          row-major (2D) order, and the smaller of overlapping
  *          components are removed if they satisfy conditions of
  *          relative size and fractional overlap.
- *      (3) Note that the spliting function uses unscaled templates
+ *      (3) Note that the splitting function uses unscaled templates
  *          and does not bother returning the class results and scores.
- *          Thes are more accurately found later using the scaled templates.
+ *          These are more accurately found later using the scaled templates.
  * </pre>
  */
 l_ok

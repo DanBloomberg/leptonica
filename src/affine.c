@@ -145,7 +145,7 @@
  *      done in-place and word parallel; arbitrary scaling is
  *      mostly pixel-wise.
  *
- *      Suppose that we are tranforming image 1 to correspond to image 2.
+ *      Suppose that we are transforming image 1 to correspond to image 2.
  *      We have a set of three points, describing the coordinate space
  *      embedded in image 1, and we need to transform image 1 until
  *      those three points exactly correspond to the new coordinate space

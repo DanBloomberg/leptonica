@@ -77,7 +77,7 @@ static l_int32 pixRenderHorizEndPoints(PIX *pixs, PTA *ptal, PTA *ptar,
 
 
 #ifndef  NO_CONSOLE_IO
-#define  DEBUG_TEXTLINE_CENTERS    0   /* set this to 1 for debuging */
+#define  DEBUG_TEXTLINE_CENTERS    0   /* set this to 1 for debugging */
 #define  DEBUG_SHORT_LINES         0   /* ditto */
 #else
 #define  DEBUG_TEXTLINE_CENTERS    0   /* always must be 0 */

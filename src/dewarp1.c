@@ -933,7 +933,7 @@ dewarpaGetDewarp(L_DEWARPA  *dewa,
  *
  * <pre>
  * Notes:
- *      (1) Approximating the line by a quadratic, the coefficent
+ *      (1) Approximating the line by a quadratic, the coefficient
  *          of the quadratic term is the curvature, and distance
  *          units are in pixels (of course).  The curvature is very
  *          small, so we multiply by 10^6 and express the constraints

@@ -447,7 +447,7 @@ TIFF  *tif;
  *          We do not handle 3 spp, 16 bpp (48 bits/pixel)
  *      (2) For colormapped images, we support 8 bits/color in the palette.
  *          Tiff colormaps have 16 bits/color, and we reduce them to 8.
- *      (3) Quoting the libtiff documenation at
+ *      (3) Quoting the libtiff documentation at
  *               http://libtiff.maptools.org/libtiff.html
  *          "libtiff provides a high-level interface for reading image data
  *          from a TIFF file. This interface handles the details of data
