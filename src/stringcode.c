@@ -728,7 +728,7 @@ SARRAY   *sa;
     snprintf(buf, sizeof(buf), "static const char *l_strdata_%d =\n", ifunc);
     sarrayAddString(sa, buf, L_COPY);
     sarrayAddString(sa, cdata2, L_INSERT);
-    sarrayAddString(sa, (char *)";\n", L_COPY);
+    sarrayAddString(sa, ";\n", L_COPY);
     cdata3 = sarrayToString(sa, 0);
     sarrayDestroy(&sa);
     return cdata3;

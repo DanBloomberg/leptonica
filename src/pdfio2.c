@@ -1569,12 +1569,12 @@ SARRAY  *sa;
     l_dnaAddNumber(lpd->objsize, strlen(lpd->obj1));
 
     sa = sarrayCreate(0);
-    sarrayAddString(sa, (char *)"2 0 obj\n"
+    sarrayAddString(sa, "2 0 obj\n"
                                  "<<\n", L_COPY);
     if (var_WRITE_DATE_AND_VERSION) {
         datestr = l_getFormattedDate();
         snprintf(buf, sizeof(buf), "/CreationDate (D:%s)\n", datestr);
-        sarrayAddString(sa, (char *)buf, L_COPY);
+        sarrayAddString(sa, buf, L_COPY);
         LEPT_FREE(datestr);
         version = getLeptonicaVersion();
         snprintf(buf, sizeof(buf),
@@ -1583,18 +1583,18 @@ SARRAY  *sa;
     } else {
         snprintf(buf, sizeof(buf), "/Producer (leptonica)\n");
     }
-    sarrayAddString(sa, (char *)buf, L_COPY);
+    sarrayAddString(sa, buf, L_COPY);
     if (lpd->title) {
         char *hexstr;
         if ((hexstr = generateEscapeString(lpd->title)) != NULL) {
             snprintf(buf, sizeof(buf), "/Title %s\n", hexstr);
-            sarrayAddString(sa, (char *)buf, L_COPY);
+            sarrayAddString(sa, buf, L_COPY);
         } else {
             L_ERROR("title string is not ascii\n", procName);
         }
         LEPT_FREE(hexstr);
     }
-    sarrayAddString(sa, (char *)">>\n"
+    sarrayAddString(sa, ">>\n"
                                 "endobj\n", L_COPY);
     lpd->obj2 = sarrayToString(sa, 0);
     l_dnaAddNumber(lpd->objsize, strlen(lpd->obj2));
@@ -2016,11 +2016,11 @@ SARRAY  *sa;
     snprintf(buf, sizeof(buf), "xref\n"
                                "0 %d\n"
                                "0000000000 65535 f \n", n);
-    sarrayAddString(sa, (char *)buf, L_COPY);
+    sarrayAddString(sa, buf, L_COPY);
     for (i = 1; i < n; i++) {
         l_dnaGetIValue(daloc, i, &linestart);
         snprintf(buf, sizeof(buf), "%010d 00000 n \n", linestart);
-        sarrayAddString(sa, (char *)buf, L_COPY);
+        sarrayAddString(sa, buf, L_COPY);
     }
 
     l_dnaGetIValue(daloc, n, &xrefloc);
@@ -2033,7 +2033,7 @@ SARRAY  *sa;
                                "startxref\n"
                                "%d\n"
                                "%%%%EOF\n", n, xrefloc);
-    sarrayAddString(sa, (char *)buf, L_COPY);
+    sarrayAddString(sa, buf, L_COPY);
     outstr = sarrayToString(sa, 0);
     sarrayDestroy(&sa);
     return outstr;

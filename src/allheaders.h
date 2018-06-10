@@ -2313,7 +2313,7 @@ LEPT_DLL extern SARRAY * sarrayCreateLinesFromString ( const char *string, l_int
 LEPT_DLL extern void sarrayDestroy ( SARRAY **psa );
 LEPT_DLL extern SARRAY * sarrayCopy ( SARRAY *sa );
 LEPT_DLL extern SARRAY * sarrayClone ( SARRAY *sa );
-LEPT_DLL extern l_ok sarrayAddString ( SARRAY *sa, char *string, l_int32 copyflag );
+LEPT_DLL extern l_ok sarrayAddString ( SARRAY *sa, const char *string, l_int32 copyflag );
 LEPT_DLL extern char * sarrayRemoveString ( SARRAY *sa, l_int32 index );
 LEPT_DLL extern l_ok sarrayReplaceString ( SARRAY *sa, l_int32 index, char *newstr, l_int32 copyflag );
 LEPT_DLL extern l_ok sarrayClear ( SARRAY *sa );
