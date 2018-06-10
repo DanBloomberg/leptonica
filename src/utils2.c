@@ -1374,7 +1374,7 @@ size_t    bytesleft, bytestoread, nread, filebytes;
 l_ok
 l_binaryWrite(const char  *filename,
               const char  *operation,
-              void        *data,
+              const void  *data,
               size_t       nbytes)
 {
 char   actualOperation[20];

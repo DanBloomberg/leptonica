@@ -190,8 +190,8 @@ SARRAY  *sa;
  * \return  sarray, or NULL on error
  */
 SARRAY *
-sarrayCreateInitialized(l_int32  n,
-                        char    *initstr)
+sarrayCreateInitialized(l_int32     n,
+                        const char *initstr)
 {
 l_int32  i;
 SARRAY  *sa;
@@ -970,9 +970,9 @@ l_int32  n, i;
  * </pre>
  */
 l_ok
-sarrayPadToSameSize(SARRAY  *sa1,
-                    SARRAY  *sa2,
-                    char    *padstring)
+sarrayPadToSameSize(SARRAY     *sa1,
+                    SARRAY     *sa2,
+                    const char *padstring)
 {
 l_int32  i, n1, n2;
 
@@ -1809,7 +1809,7 @@ SARRAY  *saout;
 
         /* Insert pathnames into the output sarray.
          * Ignore numbers that are out of the range of sarray. */
-    saout = sarrayCreateInitialized(num, (char *)"");
+    saout = sarrayCreateInitialized(num, "");
     for (i = 0; i < nfiles; i++) {
       fname = sarrayGetString(sa, i, L_NOCOPY);
       index = extractNumberFromFilename(fname, numpre, numpost);

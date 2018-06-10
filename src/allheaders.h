@@ -2307,7 +2307,7 @@ LEPT_DLL extern l_ok pixFindMaxVerticalRunOnLine ( PIX *pix, l_int32 x, l_int32 
 LEPT_DLL extern l_ok runlengthMembershipOnLine ( l_int32 *buffer, l_int32 size, l_int32 depth, l_int32 *start, l_int32 *end, l_int32 n );
 LEPT_DLL extern l_int32 * makeMSBitLocTab ( l_int32 bitval );
 LEPT_DLL extern SARRAY * sarrayCreate ( l_int32 n );
-LEPT_DLL extern SARRAY * sarrayCreateInitialized ( l_int32 n, char *initstr );
+LEPT_DLL extern SARRAY * sarrayCreateInitialized ( l_int32 n, const char *initstr );
 LEPT_DLL extern SARRAY * sarrayCreateWordsFromString ( const char *string );
 LEPT_DLL extern SARRAY * sarrayCreateLinesFromString ( const char *string, l_int32 blankflag );
 LEPT_DLL extern void sarrayDestroy ( SARRAY **psa );
@@ -2326,7 +2326,7 @@ LEPT_DLL extern char * sarrayToString ( SARRAY *sa, l_int32 addnlflag );
 LEPT_DLL extern char * sarrayToStringRange ( SARRAY *sa, l_int32 first, l_int32 nstrings, l_int32 addnlflag );
 LEPT_DLL extern l_ok sarrayJoin ( SARRAY *sa1, SARRAY *sa2 );
 LEPT_DLL extern l_ok sarrayAppendRange ( SARRAY *sa1, SARRAY *sa2, l_int32 start, l_int32 end );
-LEPT_DLL extern l_ok sarrayPadToSameSize ( SARRAY *sa1, SARRAY *sa2, char *padstring );
+LEPT_DLL extern l_ok sarrayPadToSameSize ( SARRAY *sa1, SARRAY *sa2, const char *padstring );
 LEPT_DLL extern SARRAY * sarrayConvertWordsToLines ( SARRAY *sa, l_int32 linesize );
 LEPT_DLL extern l_int32 sarraySplitString ( SARRAY *sa, const char *str, const char *separators );
 LEPT_DLL extern SARRAY * sarraySelectBySubstring ( SARRAY *sain, const char *substr );
@@ -2625,7 +2625,7 @@ LEPT_DLL extern l_uint8 * l_binaryRead ( const char *filename, size_t *pnbytes )
 LEPT_DLL extern l_uint8 * l_binaryReadStream ( FILE *fp, size_t *pnbytes );
 LEPT_DLL extern l_uint8 * l_binaryReadSelect ( const char *filename, size_t start, size_t nbytes, size_t *pnread );
 LEPT_DLL extern l_uint8 * l_binaryReadSelectStream ( FILE *fp, size_t start, size_t nbytes, size_t *pnread );
-LEPT_DLL extern l_ok l_binaryWrite ( const char *filename, const char *operation, void *data, size_t nbytes );
+LEPT_DLL extern l_ok l_binaryWrite ( const char *filename, const char *operation, const void *data, size_t nbytes );
 LEPT_DLL extern size_t nbytesInFile ( const char *filename );
 LEPT_DLL extern size_t fnbytesInFile ( FILE *fp );
 LEPT_DLL extern l_uint8 * l_binaryCopy ( l_uint8 *datas, size_t size );
