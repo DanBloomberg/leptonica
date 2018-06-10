@@ -379,7 +379,7 @@ size_t  size, nalloc, reqsize;
     if (nalloc < reqsize)
         l_byteaExtendArrayToSize(ba, 2 * reqsize);
 
-    memcpy((char *)(ba->data + size), (const char *)newdata, newbytes);
+    memcpy(ba->data + size, newdata, newbytes);
     ba->size += newbytes;
     return 0;
 }

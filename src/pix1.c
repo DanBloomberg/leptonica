@@ -649,7 +649,7 @@ l_uint32  *datas, *datad;
             return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
         datas = pixGetData(pixs);
         datad = pixGetData(pixd);
-        memcpy((char *)datad, (char *)datas, bytes);
+        memcpy(datad, datas, bytes);
         return pixd;
     }
 
@@ -672,7 +672,7 @@ l_uint32  *datas, *datad;
         /* Copy image data */
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
-    memcpy((char*)datad, (char*)datas, bytes);
+    memcpy(datad, datas, bytes);
     return pixd;
 }
 
@@ -882,7 +882,7 @@ PIX     *pixs;
     } else {  /* preserve pixs by making a copy of the data, cmap, text */
         pixResizeImageData(pixd, pixs);
         nbytes = 4 * pixGetWpl(pixs) * pixGetHeight(pixs);
-        memcpy((char *)pixGetData(pixd), (char *)pixGetData(pixs), nbytes);
+        memcpy(pixGetData(pixd), pixGetData(pixs), nbytes);
         pixCopyColormap(pixd, pixs);
         if (copytext)
             pixCopyText(pixd, pixs);
@@ -1672,7 +1672,7 @@ l_uint32  *data, *datas;
         datas = pixGetData(pixs);
         if ((data = (l_uint32 *)pix_malloc(bytes)) == NULL)
             return (l_uint32 *)ERROR_PTR("data not made", procName, NULL);
-        memcpy((char *)data, (char *)datas, bytes);
+        memcpy(data, datas, bytes);
     }
 
     return data;

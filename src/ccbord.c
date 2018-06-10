@@ -2424,7 +2424,7 @@ NUMAA    *step;
         return (CCBORDA *)ERROR_PTR("dataout not made", procName, NULL);
 
     offset = 18;
-    memcpy((void *)strbuf, (void *)dataout, offset);
+    memcpy(strbuf, dataout, offset);
     strbuf[17] = '\0';
     if (strncmp(strbuf, "ccba:", 5) != 0) {
         LEPT_FREE(dataout);
@@ -2437,9 +2437,9 @@ NUMAA    *step;
         return (CCBORDA *)ERROR_PTR("ccba not made", procName, NULL);
     }
 
-    memcpy((void *)&width, (void *)(dataout + offset), 4);
+    memcpy(&width, dataout + offset, 4);
     offset += 4;
-    memcpy((void *)&height, (void *)(dataout + offset), 4);
+    memcpy(&height, dataout + offset, 4);
     offset += 4;
     ccba->w = width;
     ccba->h = height;
@@ -2449,29 +2449,29 @@ NUMAA    *step;
         ccb = ccbCreate(NULL);
         ccbaAddCcb(ccba, ccb);
 
-        memcpy((void *)&xoff, (void *)(dataout + offset), 4);
+        memcpy(&xoff, dataout + offset, 4);
         offset += 4;
-        memcpy((void *)&yoff, (void *)(dataout + offset), 4);
+        memcpy(&yoff, dataout + offset, 4);
         offset += 4;
-        memcpy((void *)&w, (void *)(dataout + offset), 4);
+        memcpy(&w, dataout + offset, 4);
         offset += 4;
-        memcpy((void *)&h, (void *)(dataout + offset), 4);
+        memcpy(&h, dataout + offset, 4);
         offset += 4;
         box = boxCreate(xoff, yoff, w, h);
         boxaAddBox(ccb->boxa, box, L_INSERT);
 /*        fprintf(stderr, "xoff = %d, yoff = %d, w = %d, h = %d\n",
                 xoff, yoff, w, h); */
 
-        memcpy((void *)&nb, (void *)(dataout + offset), 4);
+        memcpy(&nb, dataout + offset, 4);
         offset += 4;
 /*        fprintf(stderr, "num borders = %d\n", nb); */
         step = numaaCreate(nb);
         ccb->step = step;
 
         for (j = 0; j < nb; j++) {  /* should be nb */
-            memcpy((void *)&startx, (void *)(dataout + offset), 4);
+            memcpy(&startx, dataout + offset, 4);
             offset += 4;
-            memcpy((void *)&starty, (void *)(dataout + offset), 4);
+            memcpy(&starty, dataout + offset, 4);
             offset += 4;
             ptaAddPt(ccb->start, startx, starty);
 /*            fprintf(stderr, "startx = %d, starty = %d\n", startx, starty); */

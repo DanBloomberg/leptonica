@@ -1134,7 +1134,7 @@ void    *newdata;
     if ((newdata = (void *)LEPT_CALLOC(1, newsize)) == NULL)
         return ERROR_PTR("newdata not made", procName, NULL);
     minsize = L_MIN(oldsize, newsize);
-    memcpy((char *)newdata, (char *)indata, minsize);
+    memcpy(newdata, indata, minsize);
 
     LEPT_FREE(indata);
     *pindata = NULL;

@@ -618,7 +618,7 @@ l_int32  format;
     if (fnbytesInFile(fp) < 12)
         return ERROR_INT("truncated file", procName, 1);
 
-    if (fread((char *)&firstbytes, 1, 12, fp) != 12)
+    if (fread(&firstbytes, 1, 12, fp) != 12)
         return ERROR_INT("failed to read first 12 bytes of file", procName, 1);
     rewind(fp);
 

@@ -2080,12 +2080,12 @@ L_COMP_DATA  *cid;
 
     sizes = l_dnaGetIArray(lpd->objsize);
     locs = l_dnaGetIArray(lpd->objloc);
-    memcpy((char *)data, lpd->id, sizes[0]);
-    memcpy((char *)(data + locs[1]), lpd->obj1, sizes[1]);
-    memcpy((char *)(data + locs[2]), lpd->obj2, sizes[2]);
-    memcpy((char *)(data + locs[3]), lpd->obj3, sizes[3]);
-    memcpy((char *)(data + locs[4]), lpd->obj4, sizes[4]);
-    memcpy((char *)(data + locs[5]), lpd->obj5, sizes[5]);
+    memcpy(data, lpd->id, sizes[0]);
+    memcpy(data + locs[1], lpd->obj1, sizes[1]);
+    memcpy(data + locs[2], lpd->obj2, sizes[2]);
+    memcpy(data + locs[3], lpd->obj3, sizes[3]);
+    memcpy(data + locs[4], lpd->obj4, sizes[4]);
+    memcpy(data + locs[5], lpd->obj5, sizes[5]);
 
         /* Each image has 3 parts: variable preamble, the compressed
          * data stream, and the fixed poststream. */
@@ -2098,21 +2098,21 @@ L_COMP_DATA  *cid;
         }
         str = sarrayGetString(lpd->saprex, i, L_NOCOPY);
         len = strlen(str);
-        memcpy((char *)(data + locs[6 + i]), str, len);
-        memcpy((char *)(data + locs[6 + i] + len),
-               (char *)cid->datacomp, cid->nbytescomp);
-        memcpy((char *)(data + locs[6 + i] + len + cid->nbytescomp),
+        memcpy(data + locs[6 + i], str, len);
+        memcpy(data + locs[6 + i] + len,
+               cid->datacomp, cid->nbytescomp);
+        memcpy(data + locs[6 + i] + len + cid->nbytescomp,
                lpd->poststream, strlen(lpd->poststream));
     }
 
         /* Each colormap is simply a stored string */
     for (i = 0; i < lpd->ncmap; i++) {
         str = sarrayGetString(lpd->sacmap, i, L_NOCOPY);
-        memcpy((char *)(data + locs[6 + nimages + i]), str, strlen(str));
+        memcpy(data + locs[6 + nimages + i], str, strlen(str));
     }
 
         /* And finally the trailer */
-    memcpy((char *)(data + lpd->xrefloc), lpd->trailer, strlen(lpd->trailer));
+    memcpy(data + lpd->xrefloc, lpd->trailer, strlen(lpd->trailer));
     LEPT_FREE(sizes);
     LEPT_FREE(locs);
     return 0;
