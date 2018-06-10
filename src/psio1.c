@@ -530,7 +530,7 @@ SARRAY  *sapage, *samask;
                                              page_numpre, numpost, maxnum);
     samask = getNumberedPathnamesInDirectory(maskdir, maskstr,
                                              mask_numpre, numpost, maxnum);
-    sarrayPadToSameSize(sapage, samask, (char *)"");
+    sarrayPadToSameSize(sapage, samask, "");
     if ((npages = sarrayGetCount(sapage)) == 0) {
         sarrayDestroy(&sapage);
         sarrayDestroy(&samask);
