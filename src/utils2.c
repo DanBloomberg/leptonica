@@ -2425,17 +2425,21 @@ callSystemDebug(const char *cmd)
         L_ERROR("cmd not defined\n", procName);
         return;
     }
-
-#ifdef OS_IOS /* iOS 11 does not support system() */
-
-    L_ERROR("iOS 11 does not support system()\n", procName);
-
-#else /* ! OS_IOS */
-
     if (LeptDebugOK == FALSE) {
         L_INFO("'system' calls are disabled\n", procName);
         return;
     }
+
+#if defined (__APPLE__)  /* iOS 11 does not support system() */
+
+  #include "TargetConditionals.h"
+  #if !defined(TARGET_OS_IPHONE) && !defined(OS_IOS)  /* macOS */
+    (void)system(cmd);
+  #else
+    L_ERROR("iOS 11 does not support system()\n", procName);
+  #endif  /* !TARGET_OS_IPHONE ... */
+
+#else /* ! OS_IOS */
 
     (void)system(cmd);
 

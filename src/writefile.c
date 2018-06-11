@@ -921,7 +921,7 @@ char            fullpath[_MAX_PATH];
     PROCNAME("pixDisplayWithTitle");
 
     if (!LeptDebugOK) {
-        L_INFO("displaying images is disabled; "
+        L_INFO("displaying images is disabled;\n      "
                "use setLeptDebugOK(1) to enable\n", procName);
         return 0;
     }
