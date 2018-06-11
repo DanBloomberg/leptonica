@@ -348,7 +348,7 @@ L_REGPARAMS  *rp;
     sarrayAddString(satypes, "l_uint16-l_uint16", L_COPY);
     pixWriteTiffCustom("/tmp/lept/tiff/tags.tif", pix, IFF_TIFF_G4, "w", naflags,
                        savals, satypes, nasizes);
-    fprintTiffInfo(stderr, (char *)"/tmp/lept/tiff/tags.tif");
+    fprintTiffInfo(stderr, "/tmp/lept/tiff/tags.tif");
     fprintf(stderr, "num flags = %d\n", numaGetCount(naflags));
     fprintf(stderr, "num sizes = %d\n", numaGetCount(nasizes));
     fprintf(stderr, "num vals = %d\n", sarrayGetCount(savals));

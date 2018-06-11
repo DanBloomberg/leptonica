@@ -94,7 +94,7 @@ static char  mainName[] = "byteatest";
     for (i = 0; i < n; i++) {
         str = sarrayGetString(sa, i, L_NOCOPY);
         l_byteaAppendString(lba1, str);
-        l_byteaAppendString(lba1, (char *)"\n");
+        l_byteaAppendString(lba1, "\n");
     }
     data2 = l_byteaGetData(lba1, &size2);
     l_binaryWrite("/tmp/bytea/junk5.dat", "w", data2, size2);

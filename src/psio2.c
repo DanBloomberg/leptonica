@@ -1362,7 +1362,7 @@ SARRAY  *sa;
 
     sarrayAddString(sa, "{", L_COPY);
     sarrayAddString(sa,
-          (char *)"  /RawData currentfile /ASCII85Decode filter def", L_COPY);
+          "  /RawData currentfile /ASCII85Decode filter def", L_COPY);
     sarrayAddString(sa, "  << ", L_COPY);
     sarrayAddString(sa, "    /ImageType 1", L_COPY);
     snprintf(bigbuf, sizeof(bigbuf), "    /Width %d", w);

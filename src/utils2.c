@@ -2626,12 +2626,12 @@ char *
 pathJoin(const char  *dir,
          const char  *fname)
 {
-char     *slash = (char *)"/";
-char     *str, *dest;
-l_int32   i, n1, n2, emptydir;
-size_t    size;
-SARRAY   *sa1, *sa2;
-L_BYTEA  *ba;
+const char *slash = "/";
+char       *str, *dest;
+l_int32     i, n1, n2, emptydir;
+size_t      size;
+SARRAY     *sa1, *sa2;
+L_BYTEA    *ba;
 
     PROCNAME("pathJoin");
 
