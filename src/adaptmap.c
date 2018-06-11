@@ -2864,9 +2864,9 @@ l_uint32  *data, *datamin, *datamax, *line, *tline, *linemin, *linemax;
             xoff = sx * j;
             minval = GET_DATA_BYTE(linemin, j);
             maxval = GET_DATA_BYTE(linemax, j);
-            if (maxval == minval) {  /* this is bad */
-/*                fprintf(stderr, "shouldn't happen! i,j = %d,%d, minval = %d\n",
-                        i, j, minval); */
+            if (maxval == minval) {
+                L_ERROR("shouldn't happen! i,j = %d,%d, minval = %d\n",
+                        procName, i, j, minval);
                 continue;
             }
             if ((ia = iaaGetLinearTRC(iaa, maxval - minval)) == NULL) {
