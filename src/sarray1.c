@@ -190,8 +190,8 @@ SARRAY  *sa;
  * \return  sarray, or NULL on error
  */
 SARRAY *
-sarrayCreateInitialized(l_int32     n,
-                        const char *initstr)
+sarrayCreateInitialized(l_int32      n,
+                        const char  *initstr)
 {
 l_int32  i;
 SARRAY  *sa;
@@ -443,9 +443,9 @@ sarrayClone(SARRAY  *sa)
  * </pre>
  */
 l_ok
-sarrayAddString(SARRAY  *sa,
-                const char *string,
-                l_int32  copyflag)
+sarrayAddString(SARRAY      *sa,
+                const char  *string,
+                l_int32      copyflag)
 {
 l_int32  n;
 
@@ -467,7 +467,6 @@ l_int32  n;
     else  /* L_INSERT or L_NOCOPY */
         sa->array[n] = (char *)string;
     sa->n++;
-
     return 0;
 }
 
@@ -970,9 +969,9 @@ l_int32  n, i;
  * </pre>
  */
 l_ok
-sarrayPadToSameSize(SARRAY     *sa1,
-                    SARRAY     *sa2,
-                    const char *padstring)
+sarrayPadToSameSize(SARRAY      *sa1,
+                    SARRAY      *sa2,
+                    const char  *padstring)
 {
 l_int32  i, n1, n2;
 
@@ -1797,11 +1796,11 @@ SARRAY  *saout;
          * of the sarray.  */
     num = 0;
     for (i = nfiles - 1; i >= 0; i--) {
-      fname = sarrayGetString(sa, i, L_NOCOPY);
-      num = extractNumberFromFilename(fname, numpre, numpost);
-      if (num < 0) continue;
-      num = L_MIN(num + 1, maxnum);
-      break;
+        fname = sarrayGetString(sa, i, L_NOCOPY);
+        num = extractNumberFromFilename(fname, numpre, numpost);
+        if (num < 0) continue;
+        num = L_MIN(num + 1, maxnum);
+        break;
     }
 
     if (num <= 0)  /* none found */
@@ -1811,14 +1810,15 @@ SARRAY  *saout;
          * Ignore numbers that are out of the range of sarray. */
     saout = sarrayCreateInitialized(num, "");
     for (i = 0; i < nfiles; i++) {
-      fname = sarrayGetString(sa, i, L_NOCOPY);
-      index = extractNumberFromFilename(fname, numpre, numpost);
-      if (index < 0 || index >= num) continue;
-      str = sarrayGetString(saout, index, L_NOCOPY);
-      if (str[0] != '\0')
-          L_WARNING("\n  Multiple files with same number: %d\n",
-                    procName, index);
-      sarrayReplaceString(saout, index, fname, L_COPY);
+        fname = sarrayGetString(sa, i, L_NOCOPY);
+        index = extractNumberFromFilename(fname, numpre, numpost);
+        if (index < 0 || index >= num) continue;
+        str = sarrayGetString(saout, index, L_NOCOPY);
+        if (str[0] != '\0') {
+            L_WARNING("\n  Multiple files with same number: %d\n",
+                      procName, index);
+        }
+        sarrayReplaceString(saout, index, fname, L_COPY);
     }
 
     return saout;

@@ -470,16 +470,16 @@ SARRAY  *sa;
                 "{currentfile bpl readhexstring pop} image", L_COPY);
         else  /* d == 32 */
             sarrayAddString(sa,
-              "{currentfile bpl readhexstring pop} false 3 colorimage",
-              L_COPY);
+                "{currentfile bpl readhexstring pop} false 3 colorimage",
+                L_COPY);
     } else {  /* boxflag == 1 */
         if (d == 1 || d == 8)
             sarrayAddString(sa,
-              "{currentfile bpl readhexstring pop} bind image", L_COPY);
+                "{currentfile bpl readhexstring pop} bind image", L_COPY);
         else  /* d == 32 */
             sarrayAddString(sa,
-          "{currentfile bpl readhexstring pop} bind false 3 colorimage",
-                 L_COPY);
+                "{currentfile bpl readhexstring pop} bind false 3 colorimage",
+                L_COPY);
     }
 
     sarrayAddString(sa, hexdata, L_INSERT);
@@ -957,9 +957,8 @@ SARRAY  *sa;
 
     sarrayAddString(sa, "save", L_COPY);
     sarrayAddString(sa,
-           "/RawData currentfile /ASCII85Decode filter def", L_COPY);
-    sarrayAddString(sa,
-           "/Data RawData << >> /DCTDecode filter def", L_COPY);
+                    "/RawData currentfile /ASCII85Decode filter def", L_COPY);
+    sarrayAddString(sa, "/Data RawData << >> /DCTDecode filter def", L_COPY);
 
     snprintf(bigbuf, sizeof(bigbuf),
         "%7.2f %7.2f translate         %%set image origin in pts", xpt, ypt);
@@ -1851,9 +1850,9 @@ SARRAY  *sa;
     }
 
     sarrayAddString(sa,
-              "/RawData currentfile /ASCII85Decode filter def", L_COPY);
+                    "/RawData currentfile /ASCII85Decode filter def", L_COPY);
     sarrayAddString(sa,
-              "/Data RawData << >> /FlateDecode filter def", L_COPY);
+                    "/Data RawData << >> /FlateDecode filter def", L_COPY);
 
     sarrayAddString(sa, "{ << /ImageType 1", L_COPY);
     snprintf(bigbuf, sizeof(bigbuf), "     /Width %d", w);

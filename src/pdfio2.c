@@ -1570,7 +1570,7 @@ SARRAY  *sa;
 
     sa = sarrayCreate(0);
     sarrayAddString(sa, "2 0 obj\n"
-                                 "<<\n", L_COPY);
+                        "<<\n", L_COPY);
     if (var_WRITE_DATE_AND_VERSION) {
         datestr = l_getFormattedDate();
         snprintf(buf, sizeof(buf), "/CreationDate (D:%s)\n", datestr);
