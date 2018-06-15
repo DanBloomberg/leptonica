@@ -2376,6 +2376,7 @@ fopenTiffMemstream(const char  *filename,
                    size_t      *pdatasize)
 {
 L_MEMSTREAM  *mstream;
+TIFF         *tif;
 
     PROCNAME("fopenTiffMemstream");
 
@@ -2397,11 +2398,14 @@ L_MEMSTREAM  *mstream;
 
     TIFFSetWarningHandler(dummyHandler);  /* disable warnings */
 
-    return TIFFClientOpen(filename, operation, (thandle_t)mstream,
-                          tiffReadCallback, tiffWriteCallback,
-                          tiffSeekCallback, tiffCloseCallback,
-                          tiffSizeCallback, tiffMapCallback,
-                          tiffUnmapCallback);
+    tif = TIFFClientOpen(filename, operation, (thandle_t)mstream,
+                         tiffReadCallback, tiffWriteCallback,
+                         tiffSeekCallback, tiffCloseCallback,
+                         tiffSizeCallback, tiffMapCallback,
+                         tiffUnmapCallback);
+    if (!tif)
+        LEPT_FREE(mstream);
+    return tif;
 }
 
 
