@@ -65,6 +65,12 @@
  *           PIXA     *pixaScaleToSize()
  *           PIXA     *pixaScaleToSizeRel()
  *           PIXA     *pixaScale()
+ *           PIXA     *pixaScaleBySampling()
+ *
+ *      Pixa rotation and translation
+ *           PIXA     *pixaRotate()
+ *           PIXA     *pixaRotateOrth()
+ *           PIXA     *pixaTranslate()
  *
  *      Miscellaneous
  *           PIXA     *pixaAddBorderGeneral()
@@ -79,7 +85,6 @@
  *           l_int32   pixaGetDepthInfo()
  *           PIXA     *pixaConvertToSameDepth()
  *           l_int32   pixaEqual()
- *           PIXA     *pixaRotateOrth()
  *           l_int32   pixaSetFullSizeBoxa()
  * </pre>
  */
@@ -91,6 +96,9 @@
      * semi-perimeter (w + h) about 5000 or less, the O(n) binsort
      * is faster than the O(nlogn) shellsort.  */
 static const l_int32   MIN_COMPS_FOR_BIN_SORT = 200;
+ 
+    /* Don't rotate any angle smaller than this */
+static const l_float32  MIN_ANGLE_TO_ROTATE = 0.001;  /* radians; ~0.06 deg */
 
 
 /*---------------------------------------------------------------------*
@@ -1986,6 +1994,229 @@ PIXA    *pixad;
 }
 
 
+/*!
+ * \brief   pixaScaleBySampling()
+ *
+ * \param[in]    pixas
+ * \param[in]    scalex
+ * \param[in]    scaley
+ * \return  pixad, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) If pixas has a full boxes, it is scaled as well.
+ * </pre>
+ */
+PIXA *
+pixaScaleBySampling(PIXA      *pixas,
+                    l_float32  scalex,
+                    l_float32  scaley)
+{
+l_int32  i, n, nb;
+BOXA    *boxa1, *boxa2;
+PIX     *pix1, *pix2;
+PIXA    *pixad;
+
+    PROCNAME("pixaScaleBySampling");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+    if (scalex <= 0.0 || scaley <= 0.0)
+        return (PIXA *)ERROR_PTR("invalid scaling parameters", procName, NULL);
+
+    n = pixaGetCount(pixas);
+    pixad = pixaCreate(n);
+    for (i = 0; i < n; i++) {
+        pix1 = pixaGetPix(pixas, i, L_CLONE);
+        pix2 = pixScaleBySampling(pix1, scalex, scaley);
+        pixCopyText(pix2, pix1);
+        pixaAddPix(pixad, pix2, L_INSERT);
+        pixDestroy(&pix1);
+    }
+
+    boxa1 = pixaGetBoxa(pixas, L_CLONE);
+    nb = boxaGetCount(boxa1);
+    if (nb == n) {
+        boxa2 = boxaTransform(boxa1, 0, 0, scalex, scaley);
+        pixaSetBoxa(pixad, boxa2, L_INSERT);
+    }
+    boxaDestroy(&boxa1);
+    return pixad;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                     Pixa rotation and translation                   *
+ *---------------------------------------------------------------------*/
+/*!
+ * \brief   pixaRotate()
+ *
+ * \param[in]    pixas    1, 2, 4, 8, 32 bpp rgb
+ * \param[in]    angle    rotation angle in radians; clockwise is positive
+ * \param[in]    type     L_ROTATE_AREA_MAP, L_ROTATE_SHEAR, L_ROTATE_SAMPLING
+ * \param[in]    incolor  L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    width    original width; use 0 to avoid embedding
+ * \param[in]    height   original height; use 0 to avoid embedding
+ * \return  pixad, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) See pixRotate() for details.
+ *      (2) The boxa array is copied; no boxes are rotated.
+ * </pre>
+ */
+PIXA *
+pixaRotate(PIXA      *pixas,
+           l_float32  angle,
+           l_int32    type,
+           l_int32    incolor,
+           l_int32    width,
+           l_int32    height)
+{
+l_int32  i, n;
+BOXA    *boxa;
+PIX     *pixs, *pixd;
+PIXA    *pixad;
+
+    PROCNAME("pixaRotate");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+    if (type != L_ROTATE_SHEAR && type != L_ROTATE_AREA_MAP &&
+        type != L_ROTATE_SAMPLING)
+        return (PIXA *)ERROR_PTR("invalid type", procName, NULL);
+    if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
+        return (PIXA *)ERROR_PTR("invalid incolor", procName, NULL);
+    if (L_ABS(angle) < MIN_ANGLE_TO_ROTATE)
+        return pixaCopy(pixas, L_COPY);
+
+    n = pixaGetCount(pixas);
+    if ((pixad = pixaCreate(n)) == NULL)
+        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+    boxa = pixaGetBoxa(pixad, L_COPY);
+    pixaSetBoxa(pixad, boxa, L_INSERT);
+    for (i = 0; i < n; i++) {
+        if ((pixs = pixaGetPix(pixas, i, L_CLONE)) == NULL) {
+            pixaDestroy(&pixad);
+            return (PIXA *)ERROR_PTR("pixs not found", procName, NULL);
+        }
+        pixd = pixRotate(pixs, angle, type, incolor, width, height);
+        pixaAddPix(pixad, pixd, L_INSERT);
+        pixDestroy(&pixs);
+    }
+
+    return pixad;
+}
+
+
+/*!
+ * \brief   pixaRotateOrth()
+ *
+ * \param[in]    pixas
+ * \param[in]    rotation    0 = noop, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg;
+ *                           all rotations are clockwise
+ * \return  pixad, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Rotates each pix in the pixa.  Rotates and saves the boxes in
+ *          the boxa if the boxa is full.
+ * </pre>
+ */
+PIXA *
+pixaRotateOrth(PIXA    *pixas,
+               l_int32  rotation)
+{
+l_int32  i, n, nb, w, h;
+BOX     *boxs, *boxd;
+PIX     *pixs, *pixd;
+PIXA    *pixad;
+
+    PROCNAME("pixaRotateOrth");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+    if (rotation < 0 || rotation > 3)
+        return (PIXA *)ERROR_PTR("rotation not in {0,1,2,3}", procName, NULL);
+    if (rotation == 0)
+        return pixaCopy(pixas, L_COPY);
+
+    n = pixaGetCount(pixas);
+    nb = pixaGetBoxaCount(pixas);
+    if ((pixad = pixaCreate(n)) == NULL)
+        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+    for (i = 0; i < n; i++) {
+        if ((pixs = pixaGetPix(pixas, i, L_CLONE)) == NULL) {
+            pixaDestroy(&pixad);
+            return (PIXA *)ERROR_PTR("pixs not found", procName, NULL);
+        }
+        pixd = pixRotateOrth(pixs, rotation);
+        pixaAddPix(pixad, pixd, L_INSERT);
+        if (n == nb) {
+            boxs = pixaGetBox(pixas, i, L_COPY);
+            pixGetDimensions(pixs, &w, &h, NULL);
+            boxd = boxRotateOrth(boxs, w, h, rotation);
+            pixaAddBox(pixad, boxd, L_INSERT);
+            boxDestroy(&boxs);
+        }
+        pixDestroy(&pixs);
+    }
+
+    return pixad;
+}
+
+
+/*!
+ * \brief   pixaTranslate()
+ *
+ * \param[in]    pixas
+ * \param[in]    hshift   horizontal shift; hshift > 0 is to right
+ * \param[in]    vshift   vertical shift; vshift > 0 is down
+ * \param[in]    incolor  L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \return  pixad, or NULL on error.
+ */
+PIXA *
+pixaTranslate(PIXA    *pixas,
+              l_int32  hshift,
+              l_int32  vshift,
+              l_int32  incolor)
+{
+l_int32  i, n, nb;
+BOXA    *boxas, *boxad;
+PIX     *pixs, *pixd;
+PIXA    *pixad;
+
+    PROCNAME("pixaTranslate");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+    if (hshift == 0 && vshift == 0)
+        return pixaCopy(pixas, L_COPY);
+
+    n = pixaGetCount(pixas);
+    nb = pixaGetBoxaCount(pixas);
+    if ((pixad = pixaCreate(n)) == NULL)
+        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+    for (i = 0; i < n; i++) {
+        if ((pixs = pixaGetPix(pixas, i, L_CLONE)) == NULL) {
+            pixaDestroy(&pixad);
+            return (PIXA *)ERROR_PTR("pixs not found", procName, NULL);
+        }
+        pixd = pixTranslate(NULL, pixs, hshift, vshift, incolor);
+        pixaAddPix(pixad, pixd, L_INSERT);
+        pixDestroy(&pixs);
+    }
+    if (n == nb) {
+        boxas = pixaGetBoxa(pixas, L_CLONE);
+        boxad = boxaTransform(boxas, hshift, vshift, 1.0, 1.0);
+        pixaSetBoxa(pixad, boxad, L_INSERT);
+        boxaDestroy(&boxas);
+    }
+
+    return pixad;
+}
+
+
 /*---------------------------------------------------------------------*
  *                        Miscellaneous functions                      *
  *---------------------------------------------------------------------*/
@@ -2678,63 +2909,6 @@ PIX      *pix1, *pix2;
     else
         numaDestroy(&na);
     return 0;
-}
-
-
-/*!
- * \brief   pixaRotateOrth()
- *
- * \param[in]    pixas
- * \param[in]    rotation    0 = noop, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg;
- *                           all rotations are clockwise
- * \return  pixad, or NULL on error
- *
- * <pre>
- * Notes:
- *      (1) Rotates each pix in the pixa.  Rotates and saves the boxes in
- *          the boxa if the boxa is full.
- * </pre>
- */
-PIXA *
-pixaRotateOrth(PIXA    *pixas,
-               l_int32  rotation)
-{
-l_int32  i, n, nb, w, h;
-BOX     *boxs, *boxd;
-PIX     *pixs, *pixd;
-PIXA    *pixad;
-
-    PROCNAME("pixaRotateOrth");
-
-    if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
-    if (rotation < 0 || rotation > 3)
-        return (PIXA *)ERROR_PTR("rotation not in {0,1,2,3}", procName, NULL);
-    if (rotation == 0)
-        return pixaCopy(pixas, L_COPY);
-
-    n = pixaGetCount(pixas);
-    nb = pixaGetBoxaCount(pixas);
-    if ((pixad = pixaCreate(n)) == NULL)
-        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
-    for (i = 0; i < n; i++) {
-        if ((pixs = pixaGetPix(pixas, i, L_CLONE)) == NULL) {
-            pixaDestroy(&pixad);
-            return (PIXA *)ERROR_PTR("pixs not found", procName, NULL);
-        }
-        pixd = pixRotateOrth(pixs, rotation);
-        pixaAddPix(pixad, pixd, L_INSERT);
-        if (n == nb) {
-            boxs = pixaGetBox(pixas, i, L_COPY);
-            pixGetDimensions(pixs, &w, &h, NULL);
-            boxd = boxRotateOrth(boxs, w, h, rotation);
-            pixaAddBox(pixad, boxd, L_INSERT);
-            boxDestroy(&boxs);
-        }
-        pixDestroy(&pixs);
-    }
-
-    return pixad;
 }
 
 

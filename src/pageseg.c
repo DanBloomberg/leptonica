@@ -1416,7 +1416,7 @@ SEL       *sel1;
     }
 
     if (pixadb) {
-        bmf = bmfCreate(NULL, 8);
+        bmf = bmfCreate(NULL, 6);
         pixaAddPixWithText(pixadb, pix1, 1, bmf, "threshold/crop to binary",
                            0x0000ff00, L_ADD_BELOW);
         pixaAddPixWithText(pixadb, pix3, 2, bmf, "hit-miss for vertical line",
