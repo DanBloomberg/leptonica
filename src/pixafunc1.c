@@ -2061,8 +2061,15 @@ PIXA    *pixad;
  *
  * <pre>
  * Notes:
- *      (1) See pixRotate() for details.
- *      (2) The boxa array is copied; no boxes are rotated.
+ *      (1) Each pix is rotated about its center.  See pixRotate() for details.
+ *      (2) The boxa array is copied.  Why is it not rotated?
+ *          If a boxa exists, the array of boxes is in 1-to-1
+ *          correspondence with the array of pix, and each box typically
+ *          represents the location of the pix relative to an image from
+ *          which it has been extracted.  Like the pix, we could rotate
+ *          each box around its center, and then generate a box that
+ *          contains all four corners, as is done in boxaRotate(), but
+ *          this seems unnecessary.
  * </pre>
  */
 PIXA *

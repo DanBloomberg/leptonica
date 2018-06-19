@@ -201,6 +201,8 @@ PIX     *pixd;
         return (PIX *)ERROR_PTR("depth not 8 or 32", procName, NULL);
 
     pixd = pixBackgroundNormSimple(pixs, pixim, pixg);
+    if (!pixd)
+        return (PIX *)ERROR_PTR("background norm failedd", procName, NULL);
     pixGammaTRC(pixd, pixd, gamma, blackval, whiteval);
     return pixd;
 }
@@ -345,10 +347,12 @@ PIX     *pixmr, *pixmg, *pixmb, *pixmri, *pixmgi, *pixmbi;
         }
 
         pixmi = pixGetInvBackgroundMap(pixm, bgval, smoothx, smoothy);
-        if (!pixmi)
-            ERROR_PTR("pixmi not made", procName, NULL);
-        else
+        if (!pixmi) {
+            L_WARNING("pixmi not made; return a copy of source\n", procName);
+            return pixCopy(NULL, pixs);
+        } else {
             pixd = pixApplyInvBackgroundGrayMap(pixs, pixmi, sx, sy);
+        }
 
         pixDestroy(&pixm);
         pixDestroy(&pixmi);

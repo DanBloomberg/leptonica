@@ -85,7 +85,7 @@ OTHER_PROGS = adaptmap_dark \
 	findpattern1 findpattern2 findpattern3 \
 	flipselgen fmorphautogen \
 	fpixcontours gammatest graphicstest graymorphtest \
-	hashtest histotest htmlviewer iotest \
+	hashtest histotest histoduptest htmlviewer iotest \
 	jbcorrelation jbrankhaus jbwords \
 	listtest livre_adapt livre_hmt \
 	livre_makefigs livre_orient \
