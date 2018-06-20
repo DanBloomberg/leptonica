@@ -349,6 +349,7 @@ PIX     *pixmr, *pixmg, *pixmb, *pixmri, *pixmgi, *pixmbi;
         pixmi = pixGetInvBackgroundMap(pixm, bgval, smoothx, smoothy);
         if (!pixmi) {
             L_WARNING("pixmi not made; return a copy of source\n", procName);
+            pixDestroy(&pixm);
             return pixCopy(NULL, pixs);
         } else {
             pixd = pixApplyInvBackgroundGrayMap(pixs, pixmi, sx, sy);
@@ -372,11 +373,17 @@ PIX     *pixmr, *pixmg, *pixmb, *pixmri, *pixmgi, *pixmbi;
         pixmri = pixGetInvBackgroundMap(pixmr, bgval, smoothx, smoothy);
         pixmgi = pixGetInvBackgroundMap(pixmg, bgval, smoothx, smoothy);
         pixmbi = pixGetInvBackgroundMap(pixmb, bgval, smoothx, smoothy);
-        if (!pixmri || !pixmgi || !pixmbi)
-            ERROR_PTR("not all pixm*i are made", procName, NULL);
-        else
+        if (!pixmri || !pixmgi || !pixmbi) {
+            L_WARNING("not all pixm*i are made; return src copy\n", procName);
+            pixDestroy(&pixmri);
+            pixDestroy(&pixmgi);
+            pixDestroy(&pixmbi);
+            pixDestroy(&pixm);
+            return pixCopy(NULL, pixs);
+        } else {
             pixd = pixApplyInvBackgroundRGBMap(pixs, pixmri, pixmgi, pixmbi,
                                                sx, sy);
+        }
 
         pixDestroy(&pixmr);
         pixDestroy(&pixmg);

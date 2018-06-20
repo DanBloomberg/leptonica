@@ -31,13 +31,16 @@
  *     a specified location.  The parameters @loc and @size are fractions
  *     of the entire file (between 0.0 and 1.0).
  *
- *     Syntax:  corrupttest <file> [loc size]
+ *     Syntax:  corrupttest <file> <deletion> [loc size]
  *
- *     Use: "fuzz testing" jpeg and png reading, under corruption by
+ *        where <deletion> == 1 means that bytes are deleted
+ *              <deletion> == 0 means that bytes are permuted
+ *
+ *     Use: "fuzz testing" jpeg, png and tiff reading, under corruption by
  *     random byte permutation or by deletion of part of the compressed file.
  *
  *     For example,
- *          corrupttest rabi.png 0.0001 0.0001
+ *          corrupttest rabi.png 0 0.0001 0.0001
  *     which tests read functions on rabi.png after 23 bytes (0.01%)
  *     starting at byte 23 have been randomly permuted, emits the following:
  *      > Info in fileCorruptByMutation: Randomizing 23 bytes at location 23
@@ -52,27 +55,23 @@
 #include "string.h"
 #include "allheaders.h"
 
-    /* ------------------------------------------------------------------ */
-    /*  Set this to TRUE for deletion; FALSE for random byte permutation  */
-    /* ------------------------------------------------------------------ */
-// static const l_int32  Deletion = TRUE;
-static const l_int32  Deletion = FALSE;
-
 int main(int     argc,
          char  **argv)
 {
 size_t       filesize;
 l_float32    loc, size;
-l_int32      i, j, w, xres, yres, format, ret, nwarn, hint;
+l_int32      i, j, w, xres, yres, format, ret, nwarn, hint, deletion;
 l_uint8     *comment, *filedata;
 char        *filein;
 FILE        *fp;
 PIX         *pix;
 static char  mainName[] = "corrupttest";
 
-    if (argc != 2 && argc != 4)
-        return ERROR_INT("syntax: corrupttest filein [loc size]", mainName, 1);
+    if (argc != 3 && argc != 5)
+        return ERROR_INT("syntax: corrupttest filein deletion [loc size]",
+        mainName, 1);
     filein = argv[1];
+    deletion = atoi(argv[2]);
     findFileFormat(filein, &format);
 
     setLeptDebugOK(1);
@@ -82,7 +81,7 @@ static char  mainName[] = "corrupttest";
     if (argc == 4) {  /* Single test */
         loc = atof(argv[2]);
         size = atof(argv[3]);
-        if (Deletion == TRUE) {
+        if (deletion == TRUE) {
             fileCorruptByDeletion(filein, loc, size,
                                   "/tmp/lept/corrupt/junkout");
         } else {  /* mutation */
@@ -124,7 +123,7 @@ static char  mainName[] = "corrupttest";
             size = 0.001 * j;
 
                 /* Write corrupt file */
-            if (Deletion == TRUE) {
+            if (deletion == TRUE) {
                 fileCorruptByDeletion(filein, loc, size,
                                       "/tmp/lept/corrupt/junkout");
             } else {
@@ -142,11 +141,11 @@ static char  mainName[] = "corrupttest";
                  * bytes are removed, a corrupted image will occasionally
                  * have nwarn == 0 even though it's visually defective.  */
                 pix = pixReadJpeg("/tmp/lept/corrupt/junkout", 0, 1, &nwarn, 0);
-                if (pix && nwarn != 1 && Deletion == TRUE) {
+                if (pix && nwarn != 1 && deletion == TRUE) {
                     fprintf(stderr, "nwarn[%d,%d] = %d\n", j, i, nwarn);
                     pixDisplay(pix, 20 * i, 50 * j);  /* show the outliers */
                 }
-            } else if (format == IFF_PNG)  {
+            } else if (format == IFF_PNG) {
                 pix = pixRead("/tmp/lept/corrupt/junkout");
                 if (pix) {
                     fprintf(stderr, "pix[%d,%d] is read\n", j, i);
@@ -156,10 +155,27 @@ static char  mainName[] = "corrupttest";
                 filedata = l_binaryRead("/tmp/lept/corrupt/junkout", &filesize);
                 pix = pixReadMemPng(filedata, filesize);
                 lept_free(filedata);
+            } else if (format == IFF_TIFF || format == IFF_TIFF_PACKBITS ||
+                       format == IFF_TIFF_RLE || format == IFF_TIFF_G3 ||
+                       format == IFF_TIFF_G4 || format == IFF_TIFF_LZW ||
+                       format == IFF_TIFF_ZIP) {
+                /* A corrupted pix is often returned, as long as the
+                 * header is not damaged, so we do not display them.  */
+                pix = pixRead("/tmp/lept/corrupt/junkout");
+                if (pix)
+                    fprintf(stderr, "pix[%d,%d] is read\n", j, i);
+                pixDestroy(&pix);
+                filedata = l_binaryRead("/tmp/lept/corrupt/junkout", &filesize);
+                pix = pixReadMemTiff(filedata, filesize, 0);
+                if (!pix) fprintf(stderr, "no pix!\n");
+                lept_free(filedata);
+            } else {
+                fprintf(stderr, "Format %d unknown\n", format);
+                continue;
             }
 
                 /* Effect of 1% byte mangling from interior of data stream */
-            if (pix && j == 10 && i == 10 && Deletion == FALSE)
+            if (pix && j == 10 && i == 10 && deletion == FALSE)
                 pixDisplay(pix, 0, 0);
             pixDestroy(&pix);
 

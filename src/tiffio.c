@@ -355,7 +355,7 @@ lept_size_proc(thandle_t  cookie)
  * \brief   pixReadTiff()
  *
  * \param[in]    filename
- * \param[in]    n page number 0 based
+ * \param[in]    n           page number 0 based
  * \return  pix, or NULL on error
  *
  * <pre>
@@ -393,8 +393,8 @@ PIX   *pix;
 /*!
  * \brief   pixReadStreamTiff()
  *
- * \param[in]    fp file stream
- * \param[in]    n page number: 0 based
+ * \param[in]    fp    file stream
+ * \param[in]    n     page number: 0 based
  * \return  pix, or NULL on error or if there are no more images in the file
  *
  * <pre>
@@ -435,7 +435,7 @@ TIFF  *tif;
 /*!
  * \brief   pixReadFromTiffStream()
  *
- * \param[in]    tif TIFF handle
+ * \param[in]    tif    TIFF handle
  * \return  pix, or NULL on error
  *
  * <pre>
@@ -825,16 +825,16 @@ TIFF  *tif;
 /*!
  * \brief   pixWriteToTiffStream()
  *
- * \param[in]    tif data structure, opened to a file
+ * \param[in]    tif       data structure, opened to a file
  * \param[in]    pix
  * \param[in]    comptype  IFF_TIFF: for any image; no compression
  *                         IFF_TIFF_RLE, IFF_TIFF_PACKBITS: for 1 bpp only
  *                         IFF_TIFF_G4 and IFF_TIFF_G3: for 1 bpp only
  *                         IFF_TIFF_LZW, IFF_TIFF_ZIP: for any image
- * \param[in]    natags [optional] NUMA of custom tiff tags
- * \param[in]    savals [optional] SARRAY of values
- * \param[in]    satypes [optional] SARRAY of types
- * \param[in]    nasizes [optional] NUMA of sizes
+ * \param[in]    natags    [optional] NUMA of custom tiff tags
+ * \param[in]    savals    [optional] SARRAY of values
+ * \param[in]    satypes   [optional] SARRAY of types
+ * \param[in]    nasizes   [optional] NUMA of sizes
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1021,10 +1021,10 @@ char      *text;
  * \brief   writeCustomTiffTags()
  *
  * \param[in]    tif
- * \param[in]    natags [optional] NUMA of custom tiff tags
- * \param[in]    savals [optional] SARRAY of values
- * \param[in]    satypes [optional] SARRAY of types
- * \param[in]    nasizes [optional] NUMA of sizes
+ * \param[in]    natags   [optional] NUMA of custom tiff tags
+ * \param[in]    savals   [optional] SARRAY of values
+ * \param[in]    satypes  [optional] SARRAY of types
+ * \param[in]    nasizes  [optional] NUMA of sizes
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1219,7 +1219,7 @@ TIFF    *tif;
 /*!
  * \brief   pixaReadMultipageTiff()
  *
- * \param[in]    filename input tiff file
+ * \param[in]    filename    input tiff file
  * \return  pixa of page images, or NULL on error
  */
 PIXA *
@@ -1370,8 +1370,8 @@ SARRAY  *sa;
 /*!
  * \brief   writeMultipageTiffSA()
  *
- * \param[in]    sa string array of full path names
- * \param[in]    fileout output ps file
+ * \param[in]    sa       string array of full path names
+ * \param[in]    fileout  output ps file
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1435,8 +1435,8 @@ PIX         *pix, *pix1;
 /*!
  * \brief   fprintTiffInfo()
  *
- * \param[in]    fpout stream for output of tag data
- * \param[in]    tiffile input
+ * \param[in]    fpout    stream for output of tag data
+ * \param[in]    tiffile  input
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -1468,8 +1468,8 @@ TIFF  *tif;
 /*!
  * \brief   tiffGetCount()
  *
- * \param[in]    fp file stream opened for read
- * \param[out]   pn number of images
+ * \param[in]    fp   file stream opened for read
+ * \param[out]   pn   number of images
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -1510,8 +1510,8 @@ TIFF    *tif;
 /*!
  * \brief   getTiffResolution()
  *
- * \param[in]    fp file stream opened for read
- * \param[out]   pxres, pyres resolution in ppi
+ * \param[in]    fp            file stream opened for read
+ * \param[out]   pxres, pyres  resolution in ppi
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -1546,8 +1546,8 @@ TIFF  *tif;
 /*!
  * \brief   getTiffStreamResolution()
  *
- * \param[in]    tif TIFF handle opened for read
- * \param[out]   pxres, pyres resolution in ppi
+ * \param[in]    tif            TIFF handle opened for read
+ * \param[out]   pxres, pyres   resolution in ppi
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -1601,14 +1601,14 @@ l_float32  fxres, fyres;
  * \brief   readHeaderTiff()
  *
  * \param[in]    filename
- * \param[in]    n page image number: 0-based
- * \param[out]   pwidth width
- * \param[out]   pheight height
- * \param[out]   pbps bits per sample -- 1, 2, 4 or 8
- * \param[out]   pspp  samples per pixel -- 1 or 3
- * \param[out]   pres [optional]  resolution in x dir; NULL to ignore
- * \param[out]   pcmap [optional]  colormap exists; input NULL to ignore
- * \param[out]   pformat [optional]  tiff format; input NULL to ignore
+ * \param[in]    n          page image number: 0-based
+ * \param[out]   pw         [optional] width
+ * \param[out]   ph         [optional] height
+ * \param[out]   pbps       [optional] bits per sample -- 1, 2, 4 or 8
+ * \param[out]   pspp       [optional] samples per pixel -- 1 or 3
+ * \param[out]   pres       [optional] resolution in x dir; NULL to ignore
+ * \param[out]   pcmap      [optional] colormap exists; input NULL to ignore
+ * \param[out]   pformat    [optional] tiff format; input NULL to ignore
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1620,8 +1620,8 @@ l_float32  fxres, fyres;
 l_ok
 readHeaderTiff(const char *filename,
                l_int32     n,
-               l_int32    *pwidth,
-               l_int32    *pheight,
+               l_int32    *pw,
+               l_int32    *ph,
                l_int32    *pbps,
                l_int32    *pspp,
                l_int32    *pres,
@@ -1633,18 +1633,21 @@ FILE    *fp;
 
     PROCNAME("readHeaderTiff");
 
-    if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
-    if (!pwidth || !pheight || !pbps || !pspp)
-        return ERROR_INT("input ptr(s) not all defined", procName, 1);
-    *pwidth = *pheight = *pbps = *pspp = 0;
+    if (pw) *pw = 0;
+    if (ph) *ph = 0;
+    if (pbps) *pbps = 0;
+    if (pspp) *pspp = 0;
     if (pres) *pres = 0;
     if (pcmap) *pcmap = 0;
+    if (pformat) *pformat = 0;
+    if (!filename)
+        return ERROR_INT("filename not defined", procName, 1);
+    if (!pw && !ph && !pbps && !pspp && !pres && !pcmap && !pformat)
+        return ERROR_INT("no results requested", procName, 1);
 
     if ((fp = fopenReadStream(filename)) == NULL)
         return ERROR_INT("image file not found", procName, 1);
-    ret = freadHeaderTiff(fp, n, pwidth, pheight, pbps, pspp,
-                          pres, pcmap, pformat);
+    ret = freadHeaderTiff(fp, n, pw, ph, pbps, pspp, pres, pcmap, pformat);
     fclose(fp);
     return ret;
 }
@@ -1653,15 +1656,15 @@ FILE    *fp;
 /*!
  * \brief   freadHeaderTiff()
  *
- * \param[in]    fp file stream
- * \param[in]    n page image number: 0-based
- * \param[out]   pwidth width
- * \param[out]   pheight height
- * \param[out]   pbps bits per sample -- 1, 2, 4 or 8
- * \param[out]   pspp  samples per pixel -- 1 or 3
- * \param[out]   pres [optional]  resolution in x dir; NULL to ignore
- * \param[out]   pcmap [optional]  colormap exists; input NULL to ignore
- * \param[out]   pformat [optional]  tiff format; input NULL to ignore
+ * \param[in]    fp       file stream
+ * \param[in]    n        page image number: 0-based
+ * \param[out]   pw       [optional] width
+ * \param[out]   ph       [optional] height
+ * \param[out]   pbps     [optional] bits per sample -- 1, 2, 4 or 8
+ * \param[out]   pspp     [optional] samples per pixel -- 1 or 3
+ * \param[out]   pres     [optional] resolution in x dir; NULL to ignore
+ * \param[out]   pcmap    [optional] colormap exists; input NULL to ignore
+ * \param[out]   pformat  [optional] tiff format; input NULL to ignore
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1673,8 +1676,8 @@ FILE    *fp;
 l_ok
 freadHeaderTiff(FILE     *fp,
                 l_int32   n,
-                l_int32  *pwidth,
-                l_int32  *pheight,
+                l_int32  *pw,
+                l_int32  *ph,
                 l_int32  *pbps,
                 l_int32  *pspp,
                 l_int32  *pres,
@@ -1686,16 +1689,19 @@ TIFF    *tif;
 
     PROCNAME("freadHeaderTiff");
 
+    if (pw) *pw = 0;
+    if (ph) *ph = 0;
+    if (pbps) *pbps = 0;
+    if (pspp) *pspp = 0;
+    if (pres) *pres = 0;
+    if (pcmap) *pcmap = 0;
+    if (pformat) *pformat = 0;
     if (!fp)
         return ERROR_INT("stream not defined", procName, 1);
     if (n < 0)
         return ERROR_INT("image index must be >= 0", procName, 1);
-    if (!pwidth || !pheight || !pbps || !pspp)
-        return ERROR_INT("input ptr(s) not all defined", procName, 1);
-    *pwidth = *pheight = *pbps = *pspp = 0;
-    if (pres) *pres = 0;
-    if (pcmap) *pcmap = 0;
-    if (pformat) *pformat = 0;
+    if (!pw && !ph && !pbps && !pspp && !pres && !pcmap && !pformat)
+        return ERROR_INT("no results requested", procName, 1);
 
     findFileFormatStream(fp, &format);
     if (format != IFF_TIFF &&
@@ -1712,8 +1718,7 @@ TIFF    *tif;
             return ERROR_INT("image n not found in file", procName, 1);
     }
 
-    ret = tiffReadHeaderTiff(tif, pwidth, pheight, pbps, pspp,
-                             pres, pcmap, pformat);
+    ret = tiffReadHeaderTiff(tif, pw, ph, pbps, pspp, pres, pcmap, pformat);
     TIFFCleanup(tif);
     return ret;
 }
@@ -1722,16 +1727,16 @@ TIFF    *tif;
 /*!
  * \brief   readHeaderMemTiff()
  *
- * \param[in]    cdata const; tiff-encoded
- * \param[in]    size size of data
- * \param[in]    n page image number: 0-based
- * \param[out]   pwidth width
- * \param[out]   pheight height
- * \param[out]   pbps bits per sample -- 1, 2, 4 or 8
- * \param[out]   pspp  samples per pixel -- 1 or 3
- * \param[out]   pres [optional]  resolution in x dir; NULL to ignore
- * \param[out]   pcmap [optional]  colormap exists; input NULL to ignore
- * \param[out]   pformat [optional]  tiff format; input NULL to ignore
+ * \param[in]    cdata     const; tiff-encoded
+ * \param[in]    size      size of data
+ * \param[in]    n         page image number: 0-based
+ * \param[out]   pw        [optional] width
+ * \param[out]   ph        [optional] height
+ * \param[out]   pbps      [optional] bits per sample -- 1, 2, 4 or 8
+ * \param[out]   pspp      [optional] samples per pixel -- 1 or 3
+ * \param[out]   pres      [optional] resolution in x dir; NULL to ignore
+ * \param[out]   pcmap     [optional] colormap exists; input NULL to ignore
+ * \param[out]   pformat   [optional] tiff format; input NULL to ignore
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1743,8 +1748,8 @@ l_ok
 readHeaderMemTiff(const l_uint8  *cdata,
                   size_t          size,
                   l_int32         n,
-                  l_int32        *pwidth,
-                  l_int32        *pheight,
+                  l_int32        *pw,
+                  l_int32        *ph,
                   l_int32        *pbps,
                   l_int32        *pspp,
                   l_int32        *pres,
@@ -1757,14 +1762,17 @@ TIFF     *tif;
 
     PROCNAME("readHeaderMemTiff");
 
-    if (!cdata)
-        return ERROR_INT("cdata not defined", procName, 1);
-    if (!pwidth || !pheight || !pbps || !pspp)
-        return ERROR_INT("input ptr(s) not all defined", procName, 1);
-    *pwidth = *pheight = *pbps = *pspp = 0;
+    if (pw) *pw = 0;
+    if (ph) *ph = 0;
+    if (pbps) *pbps = 0;
+    if (pspp) *pspp = 0;
     if (pres) *pres = 0;
     if (pcmap) *pcmap = 0;
     if (pformat) *pformat = 0;
+    if (!pw && !ph && !pbps && !pspp && !pres && !pcmap && !pformat)
+        return ERROR_INT("no results requested", procName, 1);
+    if (!cdata)
+        return ERROR_INT("cdata not defined", procName, 1);
 
         /* Open a tiff stream to memory */
     data = (l_uint8 *)cdata;  /* we're really not going to change this */
@@ -1778,8 +1786,7 @@ TIFF     *tif;
         }
     }
 
-    ret = tiffReadHeaderTiff(tif, pwidth, pheight, pbps, pspp,
-                             pres, pcmap, pformat);
+    ret = tiffReadHeaderTiff(tif, pw, ph, pbps, pspp, pres, pcmap, pformat);
     TIFFClose(tif);
     return ret;
 }
@@ -1789,19 +1796,19 @@ TIFF     *tif;
  * \brief   tiffReadHeaderTiff()
  *
  * \param[in]    tif
- * \param[out]   pwidth width
- * \param[out]   pheight height
- * \param[out]   pbps bits per sample -- 1, 2, 4 or 8
- * \param[out]   pspp  samples per pixel -- 1 or 3
- * \param[out]   pres [optional]  resolution in x dir; NULL to ignore
- * \param[out]   pcmap [optional]  cmap exists; input NULL to ignore
- * \param[out]   pformat [optional]  tiff format; input NULL to ignore
+ * \param[out]   pw        [optional] width
+ * \param[out]   ph        [optional] height
+ * \param[out]   pbps      [optional] bits per sample -- 1, 2, 4 or 8
+ * \param[out]   pspp      [optional] samples per pixel -- 1 or 3
+ * \param[out]   pres      [optional] resolution in x dir; NULL to ignore
+ * \param[out]   pcmap     [optional] cmap exists; input NULL to ignore
+ * \param[out]   pformat   [optional] tiff format; input NULL to ignore
  * \return  0 if OK, 1 on error
  */
 static l_int32
 tiffReadHeaderTiff(TIFF     *tif,
-                   l_int32  *pwidth,
-                   l_int32  *pheight,
+                   l_int32  *pw,
+                   l_int32  *ph,
                    l_int32  *pbps,
                    l_int32  *pspp,
                    l_int32  *pres,
@@ -1819,27 +1826,32 @@ l_uint32   w, h;
     if (!tif)
         return ERROR_INT("tif not opened", procName, 1);
 
-    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
-    *pwidth = w;
-    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
-    *pheight = h;
-    TIFFGetFieldDefaulted(tif, TIFFTAG_BITSPERSAMPLE, &bps);
-    *pbps = bps;
-    TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLESPERPIXEL, &spp);
-    *pspp = spp;
-
+    if (pw) {
+        TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
+        *pw = w;
+    }
+    if (ph) {
+        TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
+        *ph = h;
+    }
+    if (pbps) {
+        TIFFGetFieldDefaulted(tif, TIFFTAG_BITSPERSAMPLE, &bps);
+        *pbps = bps;
+    }
+    if (pspp) {
+        TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLESPERPIXEL, &spp);
+        *pspp = spp;
+    }
     if (pres) {
         *pres = 300;  /* default ppi */
         if (getTiffStreamResolution(tif, &xres, &yres) == 0)
             *pres = (l_int32)xres;
     }
-
     if (pcmap) {
         *pcmap = 0;
         if (TIFFGetField(tif, TIFFTAG_COLORMAP, &rmap, &gmap, &bmap))
             *pcmap = 1;
     }
-
     if (pformat) {
         TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &tiffcomp);
         *pformat = getTiffCompressedFormat(tiffcomp);
@@ -1851,8 +1863,8 @@ l_uint32   w, h;
 /*!
  * \brief   findTiffCompression()
  *
- * \param[in]    fp file stream; must be rewound to BOF
- * \param[out]   pcomptype compression type
+ * \param[in]    fp         file stream; must be rewound to BOF
+ * \param[out]   pcomptype  compression type
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1894,7 +1906,7 @@ TIFF     *tif;
 /*!
  * \brief   getTiffCompressedFormat()
  *
- * \param[in]    tiffcomp defined in tiff.h
+ * \param[in]    tiffcomp    defined in tiff.h
  * \return  compression format defined in imageio.h
  *
  * <pre>
@@ -1945,11 +1957,11 @@ l_int32  comptype;
  * \brief   extractG4DataFromFile()
  *
  * \param[in]    filein
- * \param[out]   pdata binary data of ccitt g4 encoded stream
- * \param[out]   pnbytes size of binary data
- * \param[out]   pw [optional] image width
- * \param[out]   ph [optional] image height
- * \param[out]   pminisblack [optional] boolean
+ * \param[out]   pdata         binary data of ccitt g4 encoded stream
+ * \param[out]   pnbytes       size of binary data
+ * \param[out]   pw            [optional] image width
+ * \param[out]   ph            [optional] image height
+ * \param[out]   pminisblack   [optional] boolean
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -2050,8 +2062,8 @@ TIFF     *tif;
 /*!
  * \brief   fopenTiff()
  *
- * \param[in]    fp file stream
- * \param[in]    modestring "r", "w", ...
+ * \param[in]    fp           file stream
+ * \param[in]    modestring   "r", "w", ...
  * \return  tiff data structure, opened for a file descriptor
  *
  * <pre>
@@ -2094,7 +2106,7 @@ fopenTiff(FILE        *fp,
  * \brief   openTiff()
  *
  * \param[in]    filename
- * \param[in]    modestring "r", "w", ...
+ * \param[in]    modestring   "r", "w", ...
  * \return  tiff data structure
  *
  * <pre>
@@ -2352,10 +2364,10 @@ tiffUnmapCallback(thandle_t  handle,
 /*!
  * \brief   fopenTiffMemstream()
  *
- * \param[in]    filename for error output; can be ""
- * \param[in]    operation "w" for write, "r" for read
- * \param[out]   pdata written data
- * \param[out]   pdatasize size of written data
+ * \param[in]    filename    for error output; can be ""
+ * \param[in]    operation   "w" for write, "r" for read
+ * \param[out]   pdata       written data
+ * \param[out]   pdatasize   size of written data
  * \return  tiff data structure, opened for write to memory
  *
  * <pre>
@@ -2412,9 +2424,9 @@ TIFF         *tif;
 /*!
  * \brief   pixReadMemTiff()
  *
- * \param[in]    cdata const; tiff-encoded
- * \param[in]    size size of cdata
- * \param[in]    n page image number: 0-based
+ * \param[in]    cdata    const; tiff-encoded
+ * \param[in]    size     size of cdata
+ * \param[in]    n        page image number: 0-based
  * \return  pix, or NULL on error
  *
  * <pre>
@@ -2541,8 +2553,8 @@ TIFF     *tif;
 /*!
  * \brief   pixaReadMemMultipageTiff()
  *
- * \param[in]    data      const; multiple pages; tiff-encoded
- * \param[in]    size      size of cdata
+ * \param[in]    data    const; multiple pages; tiff-encoded
+ * \param[in]    size    size of cdata
  * \return  pixa, or NULL on error
  *
  * <pre>
@@ -2576,9 +2588,9 @@ PIXA   *pixa;
 /*!
  * \brief   pixaWriteMemMultipageTiff()
  *
- * \param[out]    pdata     const; tiff-encoded
- * \param[out]    psize     size of data
- * \param[in]     pixa      any depth; colormap will be removed
+ * \param[out]    pdata   const; tiff-encoded
+ * \param[out]    psize   size of data
+ * \param[in]     pixa    any depth; colormap will be removed
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2644,12 +2656,12 @@ PIX     *pix1, *pix2;
 /*!
  * \brief   pixWriteMemTiff()
  *
- * \param[out]   pdata data of tiff compressed image
- * \param[out]   psize size of returned data
+ * \param[out]   pdata     data of tiff compressed image
+ * \param[out]   psize     size of returned data
  * \param[in]    pix
- * \param[in]    comptype IFF_TIFF, IFF_TIFF_RLE, IFF_TIFF_PACKBITS,
- *                        IFF_TIFF_G3, IFF_TIFF_G4,
- *                        IFF_TIFF_LZW, IFF_TIFF_ZIP
+ * \param[in]    comptype  IFF_TIFF, IFF_TIFF_RLE, IFF_TIFF_PACKBITS,
+ *                         IFF_TIFF_G3, IFF_TIFF_G4,
+ *                         IFF_TIFF_LZW, IFF_TIFF_ZIP
  * \return  0 if OK, 1 on error
  *
  *  Usage:
@@ -2670,16 +2682,16 @@ pixWriteMemTiff(l_uint8  **pdata,
 /*!
  * \brief   pixWriteMemTiffCustom()
  *
- * \param[out]   pdata data of tiff compressed image
- * \param[out]   psize size of returned data
+ * \param[out]   pdata     data of tiff compressed image
+ * \param[out]   psize     size of returned data
  * \param[in]    pix
- * \param[in]    comptype IFF_TIFF, IFF_TIFF_RLE, IFF_TIFF_PACKBITS,
- *                        IFF_TIFF_G3, IFF_TIFF_G4,
- *                        IFF_TIFF_LZW, IFF_TIFF_ZIP
- * \param[in]    natags [optional] NUMA of custom tiff tags
- * \param[in]    savals [optional] SARRAY of values
- * \param[in]    satypes [optional] SARRAY of types
- * \param[in]    nasizes [optional] NUMA of sizes
+ * \param[in]    comptype  IFF_TIFF, IFF_TIFF_RLE, IFF_TIFF_PACKBITS,
+ *                         IFF_TIFF_G3, IFF_TIFF_G4,
+ *                         IFF_TIFF_LZW, IFF_TIFF_ZIP
+ * \param[in]    natags    [optional] NUMA of custom tiff tags
+ * \param[in]    savals    [optional] SARRAY of values
+ * \param[in]    satypes   [optional] SARRAY of types
+ * \param[in]    nasizes   [optional] NUMA of sizes
  * \return  0 if OK, 1 on error
  *
  *  Usage:

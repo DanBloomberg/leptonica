@@ -434,8 +434,10 @@ PIXCMAP   *cmap;
 
     if (!data)
         return (PIX *)ERROR_PTR("data not defined", procName, NULL);
-    if (nbytes < 28)
-        return (PIX *)ERROR_PTR("invalid data", procName, NULL);
+    if (nbytes < 28 || nbytes > ((1LL << 31) - 1)) {
+        L_ERROR("invalid nbytes = %lu\n", procName, (unsigned long)nbytes);
+        return NULL;
+    }
 
     id = (char *)data;
     if (id[0] != 's' || id[1] != 'p' || id[2] != 'i' || id[3] != 'x')
@@ -444,7 +446,6 @@ PIXCMAP   *cmap;
     h = data[2];
     d = data[3];
     ncolors = data[5];
-    imdata_size = data[6 + ncolors];
 
         /* Sanity checks on the amount of image data */
     if (w < 1 || w > L_MAX_ALLOWED_WIDTH)
@@ -453,7 +454,7 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("invalid height", procName, NULL);
     if (1LL * w * h > L_MAX_ALLOWED_AREA)
         return (PIX *)ERROR_PTR("area too large", procName, NULL);
-    if (ncolors < 0 || ncolors > 256)
+    if (ncolors < 0 || ncolors > 256 || ncolors + 6 >= nbytes/sizeof(l_int32))
         return (PIX *)ERROR_PTR("invalid ncolors", procName, NULL);
     if ((pix1 = pixCreateHeader(w, h, d)) == NULL)  /* just make the header */
         return (PIX *)ERROR_PTR("failed to make header", procName, NULL);
