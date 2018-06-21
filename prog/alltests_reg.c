@@ -134,6 +134,7 @@ static const char *tests[] = {
                               "pixa2_reg",
                               "pixadisp_reg",
                               "pixcomp_reg",
+                              "pixmem_reg",
                               "pixserial_reg",
                               "pngio_reg",
                               "pnmio_reg",

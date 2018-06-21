@@ -32,7 +32,7 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	nearline_reg newspaper_reg numa1_reg numa2_reg \
 	overlap_reg pageseg_reg paint_reg paintmask_reg \
 	pdfseg_reg pixa2_reg pixadisp_reg pixcomp_reg \
-	pixserial_reg pngio_reg pnmio_reg \
+	pixmem_reg pixserial_reg pngio_reg pnmio_reg \
 	projection_reg projective_reg \
 	psio_reg psioseg_reg pta_reg \
 	quadtree_reg rank_reg rankbin_reg \
@@ -62,7 +62,7 @@ MANUAL_REG_PROGS = alltests_reg bilateral1_reg \
 	boxa2_reg dwamorph2_reg \
 	fhmtauto_reg files_reg flipdetect_reg fmorphauto_reg \
 	heap_reg morphseq_reg pixa1_reg \
-	pixalloc_reg pixmem_reg pixtile_reg \
+	pixalloc_reg pixtile_reg \
 	ptra1_reg ptra2_reg \
 	rasterop_reg smallpix_reg \
 	smoothedge_reg string_reg

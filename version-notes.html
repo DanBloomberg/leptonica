@@ -77,7 +77,7 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 
 
 <h2 align=center>Version Notes for Leptonica</h2>
-<h3 align=center>1 Jun 2018</h3>
+<h3 align=center>21 Jun 2018</h3>
 
 <hr>
 <h2 align=center>  <IMG SRC="moller52.jpg" border=1 ALIGN_MIDDLE> </h2>
@@ -115,7 +115,9 @@ They are <i>not</i> a complete listing of the modifications.
           Fixed in 1.75.3, which blocks '$' as well as 11 other characters.
         Wrapped the few 'system' calls in an extra layer of debug code.
         More coverity scan fixes; defects are about 1 per 10,000 source lines.
-        New regression tests: numa1_reg, numa2_reg, lowaccess_reg.
+        New regression tests: numa1_reg, numa2_reg, lowaccess_reg,
+          pixmem_reg.
+        New non-regression test programs: histoduptest
         Juergen Buchmueller is working on Lua bindings.  He typedef'd l_ok
           and used it in 1100 functions that return a success/failure status.
           He also helped clean up remaining issues in the doxygen-generated
@@ -125,6 +127,10 @@ They are <i>not</i> a complete listing of the modifications.
         Fixed a bug in the prototype parser for xtractprotos that was
           surfaced by a typedef declaration for the bmp headers.
         Cleaned up IOS guards to avoid compiling a system(3) call on IOS.
+        Renamed autobuild --> autogen.sh
+        Added some basic pixa functions for rotation and translation.
+        Added an iterative method to find rectangular coverings for
+          arbitrary connected components.
 
 1.76.0  1 May 18
         Modify infrastructure to fix outstanding security issues. By default,
