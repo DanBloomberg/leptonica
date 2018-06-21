@@ -34,10 +34,11 @@
  *     Syntax:  corrupttest <file> <deletion> [loc size]
  *
  *        where <deletion> == 1 means that bytes are deleted
- *              <deletion> == 0 means that bytes are permuted
+ *              <deletion> == 0 means that random bytes are substituted
  *
- *     Use: "fuzz testing" jpeg, png and tiff reading, under corruption by
- *     random byte permutation or by deletion of part of the compressed file.
+ *     Use: "fuzz testing" jpeg, png, tiff and bmp reading, under corruption by
+ *          either random byte substitution or deletion of part of the
+ *          compressed file.
  *
  *     For example,
  *          corrupttest rabi.png 0 0.0001 0.0001
@@ -162,12 +163,20 @@ static char  mainName[] = "corrupttest";
                 /* A corrupted pix is often returned, as long as the
                  * header is not damaged, so we do not display them.  */
                 pix = pixRead("/tmp/lept/corrupt/junkout");
-                if (pix)
-                    fprintf(stderr, "pix[%d,%d] is read\n", j, i);
+                if (pix) fprintf(stderr, "pix[%d,%d] is read\n", j, i);
                 pixDestroy(&pix);
                 filedata = l_binaryRead("/tmp/lept/corrupt/junkout", &filesize);
                 pix = pixReadMemTiff(filedata, filesize, 0);
                 if (!pix) fprintf(stderr, "no pix!\n");
+                lept_free(filedata);
+            } else if (format == IFF_BMP) {
+                /* A corrupted pix is always returned if the header is
+                 * not damaged, so we do not display them.  */
+                pix = pixRead("/tmp/lept/corrupt/junkout");
+                if (pix) fprintf(stderr, "pix[%d,%d] is read\n", j, i);
+                pixDestroy(&pix);
+                filedata = l_binaryRead("/tmp/lept/corrupt/junkout", &filesize);
+                pix = pixReadMemBmp(filedata, filesize);
                 lept_free(filedata);
             } else {
                 fprintf(stderr, "Format %d unknown\n", format);
@@ -189,6 +198,14 @@ static char  mainName[] = "corrupttest";
             } else if (format == IFF_PNG)  {
                 freadHeaderPng(fp, &w, NULL, NULL, NULL, NULL);
                 fgetPngResolution(fp, &xres, &yres);
+                fprintf(stderr, "w = %d, xres = %d, yres = %d\n",
+                        w, xres, yres);
+            } else if (format == IFF_TIFF || format == IFF_TIFF_PACKBITS ||
+                       format == IFF_TIFF_RLE || format == IFF_TIFF_G3 ||
+                       format == IFF_TIFF_G4 || format == IFF_TIFF_LZW ||
+                       format == IFF_TIFF_ZIP) {
+                freadHeaderTiff(fp, 0, &w, NULL, NULL, NULL, NULL, NULL, NULL);
+                getTiffResolution(fp, &xres, &yres);
                 fprintf(stderr, "w = %d, xres = %d, yres = %d\n",
                         w, xres, yres);
             }
