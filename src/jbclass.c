@@ -268,15 +268,15 @@ static l_int32 finalPositioningForAlignment(PIX *pixs, l_int32 x, l_int32 y,
 /*!
  * \brief   jbRankHausInit()
  *
- * \param[in]    components JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
- * \param[in]    maxwidth of component; use 0 for default
- * \param[in]    maxheight of component; use 0 for default
- * \param[in]    size  of square structuring element; 2, representing
- *                     2x2 sel, is necessary for reasonable accuracy of
- *                     small components; combine this with rank ~ 0.97
- *                     to avoid undue class expansion
- * \param[in]    rank rank val of match, each way; in [0.5 - 1.0];
- *                    when using size = 2, 0.97 is a reasonable value
+ * \param[in]  components  JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
+ * \param[in]  maxwidth    of component; use 0 for default
+ * \param[in]  maxheight   of component; use 0 for default
+ * \param[in]  size        of square structuring element; 2, representing
+ *                         2x2 sel, is necessary for reasonable accuracy of
+ *                         small components; combine this with rank ~ 0.97
+ *                         to avoid undue class expansion
+ * \param[in]    rank      rank val of match, each way; in [0.5 - 1.0];
+ *                         when using size = 2, 0.97 is a reasonable value
  * \return  jbclasser if OK; NULL on error
  */
 JBCLASSER *
@@ -323,11 +323,11 @@ JBCLASSER  *classer;
 /*!
  * \brief   jbCorrelationInit()
  *
- * \param[in]    components JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
- * \param[in]    maxwidth of component; use 0 for default
- * \param[in]    maxheight of component; use 0 for default
- * \param[in]    thresh value for correlation score: in [0.4 - 0.98]
- * \param[in]    weightfactor corrects thresh for thick characters [0.0 - 1.0]
+ * \param[in]  components    JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
+ * \param[in]  maxwidth      of component; use 0 for default
+ * \param[in]  maxheight     of component; use 0 for default
+ * \param[in]  thresh        value for correlation score: in [0.4 - 0.98]
+ * \param[in]  weightfactor  corrects thresh for thick characters [0.0 - 1.0]
  * \return  jbclasser if OK; NULL on error
  *
  * <pre>
@@ -354,11 +354,11 @@ jbCorrelationInit(l_int32    components,
 /*!
  * \brief   jbCorrelationInitWithoutComponents()
  *
- * \param[in]    components JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
- * \param[in]    maxwidth of component; use 0 for default
- * \param[in]    maxheight of component; use 0 for default
- * \param[in]    thresh value for correlation score: in [0.4 - 0.98]
- * \param[in]    weightfactor corrects thresh for thick characters [0.0 - 1.0]
+ * \param[in]  components    JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
+ * \param[in]  maxwidth      of component; use 0 for default
+ * \param[in]  maxheight     of component; use 0 for default
+ * \param[in]  thresh value  for correlation score: in [0.4 - 0.98]
+ * \param[in]  weightfactor  corrects thresh for thick characters [0.0 - 1.0]
  * \return  jbclasser if OK; NULL on error
  *
  * <pre>
@@ -431,7 +431,7 @@ JBCLASSER  *classer;
  * \brief   jbAddPages()
  *
  * \param[in]    jbclasser
- * \param[in]    safiles of page image file names
+ * \param[in]    safiles      of page image file names
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -479,7 +479,7 @@ PIX     *pix;
  * \brief   jbAddPage()
  *
  * \param[in]    jbclasser
- * \param[in]    pixs of input page
+ * \param[in]    pixs      input page
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -516,9 +516,9 @@ PIXA  *pixas;
  * \brief   jbAddPageComponents()
  *
  * \param[in]    jbclasser
- * \param[in]    pixs of input page
- * \param[in]    boxas b.b. of components for this page
- * \param[in]    pixas components for this page
+ * \param[in]    pixs      input page
+ * \param[in]    boxas     b.b. of components for this page
+ * \param[in]    pixas     components for this page
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -583,8 +583,8 @@ l_int32  n;
  * \brief   jbClassifyRankHaus()
  *
  * \param[in]    jbclasser
- * \param[in]    boxa of new components for classification
- * \param[in]    pixas of new components for classification
+ * \param[in]    boxa      new components for classification
+ * \param[in]    pixas     new components for classification
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -817,14 +817,14 @@ SEL        *sel;
 /*!
  * \brief   pixHaustest()
  *
- * \param[in]    pix1   new pix, not dilated
- * \param[in]    pix2   new pix, dilated
- * \param[in]    pix3   exemplar pix, not dilated
- * \param[in]    pix4   exemplar pix, dilated
- * \param[in]    delx   x comp of centroid difference
- * \param[in]    dely   y comp of centroid difference
- * \param[in]    maxdiffw max width difference of pix1 and pix2
- * \param[in]    maxdiffh max height difference of pix1 and pix2
+ * \param[in]  pix1      new pix, not dilated
+ * \param[in]  pix2      new pix, dilated
+ * \param[in]  pix3      exemplar pix, not dilated
+ * \param[in]  pix4      exemplar pix, dilated
+ * \param[in]  delx      x comp of centroid difference
+ * \param[in]  dely      y comp of centroid difference
+ * \param[in]  maxdiffw  max width difference of pix1 and pix2
+ * \param[in]  maxdiffh  max height difference of pix1 and pix2
  * \return  0 FALSE) if no match, 1 (TRUE if the new
  *              pix is in the same class as the exemplar.
  *
@@ -908,18 +908,18 @@ PIX     *pixt;
 /*!
  * \brief   pixRankHaustest()
  *
- * \param[in]    pix1   new pix, not dilated
- * \param[in]    pix2   new pix, dilated
- * \param[in]    pix3   exemplar pix, not dilated
- * \param[in]    pix4   exemplar pix, dilated
- * \param[in]    delx   x comp of centroid difference
- * \param[in]    dely   y comp of centroid difference
- * \param[in]    maxdiffw max width difference of pix1 and pix2
- * \param[in]    maxdiffh max height difference of pix1 and pix2
- * \param[in]    area1  fg pixels in pix1
- * \param[in]    area3  fg pixels in pix3
- * \param[in]    rank   rank value of test, each way
- * \param[in]    tab8   table of pixel sums for byte
+ * \param[in]   pix1      new pix, not dilated
+ * \param[in]   pix2      new pix, dilated
+ * \param[in]   pix3      exemplar pix, not dilated
+ * \param[in]   pix4      exemplar pix, dilated
+ * \param[in]   delx      x comp of centroid difference
+ * \param[in]   dely      y comp of centroid difference
+ * \param[in]   maxdiffw  max width difference of pix1 and pix2
+ * \param[in]   maxdiffh  max height difference of pix1 and pix2
+ * \param[in]   area1     fg pixels in pix1
+ * \param[in]   area3     fg pixels in pix3
+ * \param[in]   rank      rank value of test, each way
+ * \param[in]   tab8      table of pixel sums for byte
  * \return  0 FALSE) if no match, 1 (TRUE if the new
  *                 pix is in the same class as the exemplar.
  *
@@ -1021,9 +1021,9 @@ PIX     *pixt;
 /*!
  * \brief   jbClassifyCorrelation()
  *
- * \param[in]    jbclasser
- * \param[in]    boxa of new components for classification
- * \param[in]    pixas of new components for classification
+ * \param[in]   jbclasser
+ * \param[in]   boxa      new components for classification
+ * \param[in]   pixas     new components for classification
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -1300,11 +1300,12 @@ l_uint8     byte;
 /*!
  * \brief   jbGetComponents()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    components JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
- * \param[in]    maxwidth, maxheight of saved components; larger are discarded
- * \param[out]   ppboxa b.b. of component items
- * \param[out]   pppixa component items
+ * \param[in]    pixs        1 bpp
+ * \param[in]    components  JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
+ * \param[in]    maxwidth    of saved components; larger are discarded
+ * \param[in]    maxheight   of saved components; larger are discarded
+ * \param[out]   ppboxa      b.b. of component items
+ * \param[out]   pppixa      component items
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1421,10 +1422,10 @@ PIXA      *pixa, *pixat;
 /*!
  * \brief   pixWordMaskByDilation()
  *
- * \param[in]    pixs               1 bpp; typ. at 75 to 150 ppi
- * \param[out]   pmask [optional]   dilated word mask
- * \param[out]   psize [optional]   size of good horizontal dilation
- * \param[out]   pixadb [optional]  debug: pixa of intermediate steps
+ * \param[in]    pixs    1 bpp; typ. at 75 to 150 ppi
+ * \param[out]   pmask   [optional] dilated word mask
+ * \param[out]   psize   [optional] size of good horizontal dilation
+ * \param[out]   pixadb  [optional] debug: pixa of intermediate steps
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1576,12 +1577,14 @@ PIX      *pix1, *pix2;
 /*!
  * \brief   pixWordBoxesByDilation()
  *
- * \param[in]    pixs                  1 bpp; typ. 75 - 200 ppi
- * \param[in]    minwidth, minheight   saved components; smaller are discarded
- * \param[in]    maxwidth, maxheight   saved components; larger are discarded
- * \param[out]   pboxa                 of dilated word mask
- * \param[out]   psize [optional]      size of good horizontal dilation
- * \param[out]   pixadb [optional]     debug: pixa of intermediate steps
+ * \param[in]    pixs       1 bpp; typ. 75 - 200 ppi
+ * \param[in]    minwidth   saved components; smaller are discarded
+ * \param[in]    minheight  saved components; smaller are discarded
+ * \param[in]    maxwidth   saved components; larger are discarded
+ * \param[in]    maxheight  saved components; larger are discarded
+ * \param[out]   pboxa      of dilated word mask
+ * \param[out]   psize      [optional] size of good horizontal dilation
+ * \param[out]   pixadb     [optional] debug: pixa of intermediate steps
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1646,11 +1649,10 @@ PIX   *pix1, *pix2;
 /*!
  * \brief   jbAccumulateComposites()
  *
- * \param[in]    pixaa one pixa for each class
- * \param[out]   ppna number of samples used to build each composite
- * \param[out]   pptat centroids of bordered composites
- * \return  pixad accumulated sum of samples in each class,
- *                     or NULL on error
+ * \param[in]    pixaa   one pixa for each class
+ * \param[out]   ppna    number of samples used to build each composite
+ * \param[out]   pptat   centroids of bordered composites
+ * \return  pixad accumulated sum of samples in each class, or NULL on error
  *
  */
 PIXA *
@@ -1738,8 +1740,8 @@ PTA       *ptat, *pta;
 /*!
  * \brief   jbTemplatesFromComposites()
  *
- * \param[in]    pixac one pix of composites for each class
- * \param[in]    na number of samples used for each class composite
+ * \param[in]    pixac   one pix of composites for each class
+ * \param[in]    na      number of samples used for each class composite
  * \return  pixad 8 bpp templates for each class, or NULL on error
  *
  */
@@ -1784,8 +1786,8 @@ PIXA      *pixad;
 /*!
  * \brief   jbClasserCreate()
  *
- * \param[in]    method JB_RANKHAUS, JB_CORRELATION
- * \param[in]    components JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
+ * \param[in]    method      JB_RANKHAUS, JB_CORRELATION
+ * \param[in]    components  JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
  * \return  jbclasser, or NULL on error
  */
 JBCLASSER *
@@ -1821,10 +1823,10 @@ JBCLASSER  *classer;
 
 
 /*
- *  jbClasserDestroy()
+ * \brief   jbClasserDestroy()
  *
- *      Input: &classer (<inout> to be nulled)
- *      Return: void
+ * \param[in,out]  pclasser   will be set to null before returning
+ * \return  void
  */
 void
 jbClasserDestroy(JBCLASSER  **pclasser)
@@ -1860,8 +1862,9 @@ JBCLASSER  *classer;
  * \brief   jbDataSave()
  *
  * \param[in]    jbclasser
- * \param[in]    latticew, latticeh cell size used to store each
- *                  connected component in the composite
+ * \param[in]    latticew   cell width used to store each connected
+ *                          component in the composite
+ * \param[in]    latticeh   ditto for cell height
  * \return  jbdata, or NULL on error
  *
  * <pre>
@@ -1910,10 +1913,10 @@ PIX     *pix;
 
 
 /*
- *  jbDataDestroy()
+ * \brief   jbDataDestroy()
  *
- *      Input: &data (<inout> to be nulled)
- *      Return: void
+ * \param[in,out]  pdata   will be set to null before returning
+ * \return  void
  */
 void
 jbDataDestroy(JBDATA  **pdata)
@@ -1938,8 +1941,8 @@ JBDATA  *data;
 /*!
  * \brief   jbDataWrite()
  *
- * \param[in]    rootname for output files; everything but the extension
- * \param[in]    jbdata
+ * \param[in]  rootname    for output files; everything but the extension
+ * \param[in]  jbdata
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2004,7 +2007,7 @@ FILE    *fp;
 /*!
  * \brief   jbDataRead()
  *
- * \param[in]    rootname for template and data files
+ * \param[in]  rootname    for template and data files
  * \return  jbdata, or NULL on error
  */
 JBDATA *
@@ -2106,8 +2109,8 @@ SARRAY   *sa;
 /*!
  * \brief   jbDataRender()
  *
- * \param[in]    jbdata
- * \param[in]    debugflag if TRUE, writes into 2 bpp pix and adds
+ * \param[in]  jbdata
+ * \param[in]  debugflag   if TRUE, writes into 2 bpp pix and adds
  *                         component outlines in color
  * \return  pixa reconstruction of original images, using templates or
  *              NULL on error
@@ -2199,9 +2202,9 @@ PTA      *ptaul;
 /*!
  * \brief   jbGetULCorners()
  *
- * \param[in]    jbclasser
- * \param[in]    pixs full res image
- * \param[in]    boxa of c.c. bounding rectangles for this page
+ * \param[in]  jbclasser
+ * \param[in]  pixs       full res image
+ * \param[in]  boxa       of c.c. bounding rectangles for this page
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2392,8 +2395,8 @@ static int two_by_two_walk[50] = {
 /*!
  * \brief   findSimilarSizedTemplatesInit()
  *
- * \param[in]    classer
- * \param[in]    pixs instance to be matched
+ * \param[in]  classer
+ * \param[in]  pixs     instance to be matched
  * \return  Allocated context to be used with findSimilar*
  */
 static JBFINDCTX *
@@ -2434,7 +2437,7 @@ JBFINDCTX  *state;
 /*!
  * \brief   findSimilarSizedTemplatesNext()
  *
- * \param[in]    state from findSimilarSizedTemplatesInit
+ * \param[in]   state   from findSimilarSizedTemplatesInit
  * \return  next template number, or -1 when finished
  *
  *  We have a dna hash table that maps template area to a list of template
@@ -2503,14 +2506,15 @@ PIX     *pixt;
 /*!
  * \brief   finalPositioningForAlignment()
  *
- * \param[in]    pixs input page image
- * \param[in]    x, y location of UL corner of bb of component in pixs
- * \param[in]    idelx, idely compensation to match centroids of component
- *                            and template
- * \param[in]    pixt template, with JB_ADDED_PIXELS of padding on all sides
- * \param[in]    sumtab for summing fg pixels in an image
- * \param[in]    &dx, &dy return delta on position for best match; each
- *                        one is in the set {-1, 0, 1}
+ * \param[in]  pixs          input page image
+ * \param[in]  x, y          location of UL corner of bb of component in pixs
+ * \param[in]  idelx, idely  compensation to match centroids of component
+ *                           and template
+ * \param[in]  pixt          template, with JB_ADDED_PIXELS of padding
+ *                           on all sides
+ * \param[in]  sumtab        for summing fg pixels in an image
+ * \param[in]  pdx, pdy      return delta on position for best match; each
+ *                           one is in the set {-1, 0, 1}
  * \return  0 if OK, 1 on error
  *
  */

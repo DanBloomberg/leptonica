@@ -138,7 +138,7 @@ static const l_int32  MAX_PNM_HEIGHT = 100000;
 /*!
  * \brief   pixReadStreamPnm()
  *
- * \param[in]    fp file stream opened for read
+ * \param[in]    fp   file stream opened for read
  * \return  pix, or NULL on error
  */
 PIX *
@@ -435,12 +435,12 @@ PIX       *pix;
  * \brief   readHeaderPnm()
  *
  * \param[in]    filename
- * \param[out]   pw [optional]
- * \param[out]   ph [optional]
- * \param[out]   pd [optional]
- * \param[out]   ptype [optional] pnm type
- * \param[out]   pbps [optional]  bits/sample
- * \param[out]   pspp [optional]  samples/pixel
+ * \param[out]   pw       [optional]
+ * \param[out]   ph       [optional]
+ * \param[out]   pd       [optional]
+ * \param[out]   ptype    [optional] pnm type
+ * \param[out]   pbps     [optional] bits/sample
+ * \param[out]   pspp     [optional] samples/pixel
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -477,13 +477,13 @@ FILE    *fp;
 /*!
  * \brief   freadHeaderPnm()
  *
- * \param[in]    fp file stream opened for read
- * \param[out]   pw [optional]
- * \param[out]   ph [optional]
- * \param[out]   pd [optional]
- * \param[out]   ptype [optional] pnm type
- * \param[out]   pbps [optional]  bits/sample
- * \param[out]   pspp [optional]  samples/pixel
+ * \param[in]    fp     file stream opened for read
+ * \param[out]   pw     [optional]
+ * \param[out]   ph     [optional]
+ * \param[out]   pd     [optional]
+ * \param[out]   ptype  [optional] pnm type
+ * \param[out]   pbps   [optional]  bits/sample
+ * \param[out]   pspp   [optional]  samples/pixel
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -649,8 +649,8 @@ l_int32  ch;
 /*!
  * \brief   pixWriteStreamPnm()
  *
- * \param[in]    fp file stream opened for write
- * \param[in]    pix
+ * \param[in]   fp    file stream opened for write
+ * \param[in]   pix
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -773,8 +773,8 @@ PIX       *pixs;
 /*!
  * \brief   pixWriteStreamAsciiPnm()
  *
- * \param[in]    fp file stream opened for write
- * \param[in]    pix
+ * \param[in]   fp    file stream opened for write
+ * \param[in]   pix
  * \return  0 if OK; 1 on error
  *
  *  Writes "ASCII" format only:
@@ -893,8 +893,8 @@ PIX       *pixs;
 /*!
  * \brief   pixWriteStreamPam()
  *
- * \param[in]    fp file stream opened for write
- * \param[in]    pix
+ * \param[in]   fp    file stream opened for write
+ * \param[in]   pix
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -1071,8 +1071,8 @@ PIX       *pixs;
 /*!
  * \brief   pixReadMemPnm()
  *
- * \param[in]    data const; pnm-encoded
- * \param[in]    size of data
+ * \param[in]   data   const; pnm-encoded
+ * \param[in]   size   of data
  * \return  pix, or NULL on error
  *
  * <pre>
@@ -1103,14 +1103,14 @@ PIX   *pix;
 /*!
  * \brief   readHeaderMemPnm()
  *
- * \param[in]    data const; pnm-encoded
- * \param[in]    size of data
- * \param[out]   pw [optional]
- * \param[out]   ph [optional]
- * \param[out]   pd [optional]
- * \param[out]   ptype [optional] pnm type
- * \param[out]   pbps [optional]  bits/sample
- * \param[out]   pspp [optional]  samples/pixel
+ * \param[in]    data    const; pnm-encoded
+ * \param[in]    size    of data
+ * \param[out]   pw      [optional]
+ * \param[out]   ph      [optional]
+ * \param[out]   pd      [optional]
+ * \param[out]   ptype   [optional] pnm type
+ * \param[out]   pbps    [optional] bits/sample
+ * \param[out]   pspp    [optional] samples/pixel
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1144,8 +1144,8 @@ FILE    *fp;
 /*!
  * \brief   pixWriteMemPnm()
  *
- * \param[out]   pdata data of PNM image
- * \param[out]   psize size of returned data
+ * \param[out]   pdata   data of PNM image
+ * \param[out]   psize   size of returned data
  * \param[in]    pix
  * \return  0 if OK, 1 on error
  *
@@ -1199,8 +1199,8 @@ FILE    *fp;
 /*!
  * \brief   pixWriteMemPam()
  *
- * \param[out]   pdata data of PAM image
- * \param[out]   psize size of returned data
+ * \param[out]   pdata   data of PAM image
+ * \param[out]   psize   size of returned data
  * \param[in]    pix
  * \return  0 if OK, 1 on error
  *
@@ -1290,8 +1290,8 @@ l_int32   c, ignore;
 /*!
  * \brief   pnmReadNextNumber()
  *
- * \param[in]    fp file stream
- * \param[out]   pval value as an integer
+ * \param[in]    fp    file stream
+ * \param[out]   pval  value as an integer
  * \return  0 if OK, 1 on error or EOF.
  *
  * <pre>
@@ -1344,9 +1344,9 @@ l_int32   i, c, foundws;
 /*!
  * \brief   pnmReadNextString()
  *
- * \param[in]    fp file stream
- * \param[out]   buff pointer to the string buffer
- * \param[in]    size max. number of charactes in buffer
+ * \param[in]    fp    file stream
+ * \param[out]   buff  pointer to the string buffer
+ * \param[in]    size  max. number of charactes in buffer
  * \return  0 if OK, 1 on error or EOF.
  *
  * <pre>

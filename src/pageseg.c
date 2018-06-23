@@ -273,10 +273,10 @@ pixGenHalftoneMask(PIX      *pixs,
 /*!
  * \brief   pixGenerateHalftoneMask()
  *
- * \param[in]    pixs 1 bpp, assumed to be 150 to 200 ppi
- * \param[out]   ppixtext [optional] text part of pixs
- * \param[out]   phtfound [optional] 1 if the mask is not empty
- * \param[in]    pixadb  input for collecting debug pix; use NULL to skip
+ * \param[in]    pixs      1 bpp, assumed to be 150 to 200 ppi
+ * \param[out]   ppixtext  [optional] text part of pixs
+ * \param[out]   phtfound  [optional] 1 if the mask is not empty
+ * \param[in]    pixadb    input for collecting debug pix; use NULL to skip
  * \return  pixd halftone mask, or NULL on error
  *
  * <pre>
@@ -352,10 +352,10 @@ PIX     *pix1, *pix2, *pixhs, *pixhm, *pixd;
 /*!
  * \brief   pixGenTextlineMask()
  *
- * \param[in]    pixs 1 bpp, assumed to be 150 to 200 ppi
- * \param[out]   ppixvws vertical whitespace mask
- * \param[out]   ptlfound [optional] 1 if the mask is not empty
- * \param[in]    pixadb  input for collecting debug pix; use NULL to skip
+ * \param[in]    pixs      1 bpp, assumed to be 150 to 200 ppi
+ * \param[out]   ppixvws   vertical whitespace mask
+ * \param[out]   ptlfound  [optional] 1 if the mask is not empty
+ * \param[in]    pixadb    input for collecting debug pix; use NULL to skip
  * \return  pixd textline mask, or NULL on error
  *
  * <pre>
@@ -442,9 +442,9 @@ PIX     *pix1, *pix2, *pixvws, *pixd;
 /*!
  * \brief   pixGenTextblockMask()
  *
- * \param[in]    pixs 1 bpp, textline mask, assumed to be 150 to 200 ppi
- * \param[in]    pixvws vertical white space mask
- * \param[in]    pixadb  input for collecting debug pix; use NULL to skip
+ * \param[in]    pixs     1 bpp, textline mask, assumed to be 150 to 200 ppi
+ * \param[in]    pixvws   vertical white space mask
+ * \param[in]    pixadb   input for collecting debug pix; use NULL to skip
  * \return  pixd textblock mask, or NULL on error
  *
  * <pre>
@@ -761,11 +761,11 @@ PIXA   *pixa1, *pixadb;
 /*!
  * \brief   pixSplitComponentWithProfile()
  *
- * \param[in]    pixs 1 bpp, exactly one connected component
- * \param[in]    delta distance used in extrema finding in a numa; typ. 10
- * \param[in]    mindel minimum required difference between profile minimum
- *                      and profile values +2 and -2 away; typ. 7
- * \param[out]   ppixdebug [optional] debug image of splitting
+ * \param[in]    pixs       1 bpp, exactly one connected component
+ * \param[in]    delta      distance used in extrema finding in a numa; typ. 10
+ * \param[in]    mindel     minimum required difference between profile
+ *                          minimum and profile values +2 and -2 away; typ. 7
+ * \param[out]   ppixdebug  [optional] debug image of splitting
  * \return  boxa of c.c. after splitting, or NULL on error
  *
  * <pre>
@@ -889,16 +889,16 @@ PIX      *pix1, *pixdb;
 /*!
  * \brief   pixExtractTextlines()
  *
- * \param[in]    pixs       any depth, assumed to have nearly horizontal text
- * \param[in]    maxw, maxh initial filtering: remove any components in pixs
- *                          with components larger than maxw or maxh
- * \param[in]    minw, minh final filtering: remove extracted 'lines'
- *                          with sizes smaller than minw or minh; use
- *                          0 for default.
- * \param[in]    adjw, adjh final adjustment of boxes representing each
- *                          text line.  If > 0, these increase the box
- *                          size at each edge by this amount.
- * \param[in]    pixadb     pixa for saving intermediate steps; NULL to omit
+ * \param[in]    pixs        any depth, assumed to have nearly horizontal text
+ * \param[in]    maxw, maxh  initial filtering: remove any components in pixs
+ *                           with components larger than maxw or maxh
+ * \param[in]    minw, minh  final filtering: remove extracted 'lines'
+ *                           with sizes smaller than minw or minh; use
+ *                           0 for default.
+ * \param[in]    adjw, adjh  final adjustment of boxes representing each
+ *                           text line.  If > 0, these increase the box
+ *                           size at each edge by this amount.
+ * \param[in]    pixadb      pixa for saving intermediate steps; NULL to omit
  * \return  pixa of textline images, including bounding boxes, or
  *                    NULL on error
  *
@@ -1037,14 +1037,14 @@ PIXA    *pixa1, *pixa2, *pixa3;
 /*!
  * \brief   pixExtractRawTextlines()
  *
- * \param[in]    pixs       any depth, assumed to have nearly horizontal text
- * \param[in]    maxw, maxh initial filtering: remove any components in pixs
- *                          with components larger than maxw or maxh;
- *                          use 0 for default values.
- * \param[in]    adjw, adjh final adjustment of boxes representing each
- *                          text line.  If > 0, these increase the box
- *                          size at each edge by this amount.
- * \param[in]    pixadb     pixa for saving intermediate steps; NULL to omit
+ * \param[in]    pixs        any depth, assumed to have nearly horizontal text
+ * \param[in]    maxw, maxh  initial filtering: remove any components in pixs
+ *                           with components larger than maxw or maxh;
+ *                           use 0 for default values.
+ * \param[in]    adjw, adjh  final adjustment of boxes representing each
+ *                           text line.  If > 0, these increase the box
+ *                           size at each edge by this amount.
+ * \param[in]    pixadb      pixa for saving intermediate steps; NULL to omit
  * \return  pixa of textline images, including bounding boxes, or
  *                    NULL on error
  *
@@ -1508,10 +1508,10 @@ SEL       *sel1;
 /*!
  * \brief   pixFindThreshFgExtent()
  *
- * \param[in]    pixs      1 bpp
- * \param[in]    thresh    threshold number of pixels in row
- * \param[out]   ptop      [optional] location of top of region
- * \param[out]   pbot      [optional] location of bottom of region
+ * \param[in]    pixs     1 bpp
+ * \param[in]    thresh   threshold number of pixels in row
+ * \param[out]   ptop     [optional] location of top of region
+ * \param[out]   pbot     [optional] location of bottom of region
  * \return  0 if OK, 1 on error
  */
 l_ok
