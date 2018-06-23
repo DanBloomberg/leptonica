@@ -123,9 +123,9 @@ static BOXA *findTileRegionsForSearch(BOX *box, l_int32 w, l_int32 h,
 /*!
  * \brief   pixSetMasked()
  *
- * \param[in]    pixd 1, 2, 4, 8, 16 or 32 bpp; or colormapped
- * \param[in]    pixm [optional] 1 bpp mask; no operation if NULL
- * \param[in]    val value to set at each masked pixel
+ * \param[in]   pixd   1, 2, 4, 8, 16 or 32 bpp; or colormapped
+ * \param[in]   pixm   [optional] 1 bpp mask; no operation if NULL
+ * \param[in]   val    value to set at each masked pixel
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -264,11 +264,11 @@ l_uint32  *datad, *datam, *lined, *linem;
 /*!
  * \brief   pixSetMaskedGeneral()
  *
- * \param[in]    pixd 8, 16 or 32 bpp
- * \param[in]    pixm [optional] 1 bpp mask; no operation if null
- * \param[in]    val value to set at each masked pixel
- * \param[in]    x, y location of UL corner of pixm relative to pixd;
- *                    can be negative
+ * \param[in]   pixd    8, 16 or 32 bpp
+ * \param[in]   pixm    [optional] 1 bpp mask; no operation if null
+ * \param[in]   val     value to set at each masked pixel
+ * \param[in]   x, y    location of UL corner of pixm relative to pixd;
+ *                      can be negative
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -344,9 +344,9 @@ PIX       *pixmu, *pixc;
 /*!
  * \brief   pixCombineMasked()
  *
- * \param[in]    pixd 1 bpp, 8 bpp gray or 32 bpp rgb; no cmap
- * \param[in]    pixs 1 bpp, 8 bpp gray or 32 bpp rgb; no cmap
- * \param[in]    pixm [optional] 1 bpp mask; no operation if NULL
+ * \param[in]   pixd   1 bpp, 8 bpp gray or 32 bpp rgb; no cmap
+ * \param[in]   pixs   1 bpp, 8 bpp gray or 32 bpp rgb; no cmap
+ * \param[in]   pixm   [optional] 1 bpp mask; no operation if NULL
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -452,10 +452,10 @@ PIX       *pixt;
 /*!
  * \brief   pixCombineMaskedGeneral()
  *
- * \param[in]    pixd 1 bpp, 8 bpp gray or 32 bpp rgb
- * \param[in]    pixs 1 bpp, 8 bpp gray or 32 bpp rgb
- * \param[in]    pixm [optional] 1 bpp mask
- * \param[in]    x, y origin of pixs and pixm relative to pixd; can be negative
+ * \param[in]   pixd   1 bpp, 8 bpp gray or 32 bpp rgb
+ * \param[in]   pixs   1 bpp, 8 bpp gray or 32 bpp rgb
+ * \param[in]   pixm   [optional] 1 bpp mask
+ * \param[in]   x, y   origin of pixs and pixm relative to pixd; can be negative
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -574,10 +574,10 @@ PIX       *pixt;
 /*!
  * \brief   pixPaintThroughMask()
  *
- * \param[in]    pixd 1, 2, 4, 8, 16 or 32 bpp; or colormapped
- * \param[in]    pixm [optional] 1 bpp mask
- * \param[in]    x, y origin of pixm relative to pixd; can be negative
- * \param[in]    val pixel value to set at each masked pixel
+ * \param[in]   pixd   1, 2, 4, 8, 16 or 32 bpp; or colormapped
+ * \param[in]   pixm   [optional] 1 bpp mask
+ * \param[in]   x, y   origin of pixm relative to pixd; can be negative
+ * \param[in]   val    pixel value to set at each masked pixel
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -724,14 +724,14 @@ l_uint32  *data, *datam, *line, *linem;
 /*!
  * \brief   pixPaintSelfThroughMask()
  *
- * \param[in]    pixd 8 bpp gray or 32 bpp rgb; not colormapped
- * \param[in]    pixm 1 bpp mask
- * \param[in]    x, y origin of pixm relative to pixd; must not be negative
- * \param[in]    searchdir L_HORIZ, L_VERT or L_BOTH_DIRECTIONS
- * \param[in]    mindist min distance of nearest tile edge to box; >= 0
- * \param[in]    tilesize requested size for tiling; may be reduced
- * \param[in]    ntiles number of tiles tested in each row/column
- * \param[in]    distblend distance outside the fg used for blending with pixs
+ * \param[in]   pixd       8 bpp gray or 32 bpp rgb; not colormapped
+ * \param[in]   pixm       1 bpp mask
+ * \param[in]   x, y       origin of pixm relative to pixd; must not be negative
+ * \param[in]   searchdir  L_HORIZ, L_VERT or L_BOTH_DIRECTIONS
+ * \param[in]   mindist    min distance of nearest tile edge to box; >= 0
+ * \param[in]   tilesize   requested size for tiling; may be reduced
+ * \param[in]   ntiles     number of tiles tested in each row/column
+ * \param[in]   distblend  distance outside the fg used for blending with pixs
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -928,8 +928,8 @@ PIXA     *pixa;
 /*!
  * \brief   pixMakeMaskFromVal()
  *
- * \param[in]    pixs 2, 4 or 8 bpp; can be colormapped
- * \param[in]    val  pixel value
+ * \param[in]   pixs   2, 4 or 8 bpp; can be colormapped
+ * \param[in]   val    pixel value
  * \return  pixd 1 bpp mask, or NULL on error
  *
  * <pre>
@@ -984,8 +984,8 @@ PIX       *pixd;
 /*!
  * \brief   pixMakeMaskFromLUT()
  *
- * \param[in]    pixs 2, 4 or 8 bpp; can be colormapped
- * \param[in]    tab 256-entry LUT; 1 means to write to mask
+ * \param[in]   pixs   2, 4 or 8 bpp; can be colormapped
+ * \param[in]   tab    256-entry LUT; 1 means to write to mask
  * \return  pixd 1 bpp mask, or NULL on error
  *
  * <pre>
@@ -1043,9 +1043,9 @@ PIX       *pixd;
 /*!
  * \brief   pixMakeArbMaskFromRGB()
  *
- * \param[in]    pixs        32 bpp RGB
- * \param[in]    rc, gc, bc  arithmetic factors; can be negative
- * \param[in]    thresh      lower threshold on weighted sum of components
+ * \param[in]   pixs         32 bpp RGB
+ * \param[in]   rc, gc, bc   arithmetic factors; can be negative
+ * \param[in]   thresh       lower threshold on weighted sum of components
  * \return  pixd 1 bpp mask, or NULL on error
  *
  * <pre>
@@ -1092,9 +1092,9 @@ PIX  *pix1, *pix2;
 /*!
  * \brief   pixSetUnderTransparency()
  *
- * \param[in]    pixs 32 bpp rgba
- * \param[in]    val 32 bit unsigned color to use where alpha == 0
- * \param[in]    debug displays layers of pixs
+ * \param[in]   pixs    32 bpp rgba
+ * \param[in]   val     32 bit unsigned color to use where alpha == 0
+ * \param[in]   debug   displays layers of pixs
  * \return  pixd 32 bpp rgba, or NULL on error
  *
  * <pre>
@@ -1190,9 +1190,9 @@ PIX  *pixg, *pixm, *pixt, *pixd;
 /*!
  * \brief   pixMakeAlphaFromMask()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    dist blending distance; typically 10 - 30
- * \param[out]   pbox [optional]  use NULL to get the full size
+ * \param[in]    pixs   1 bpp
+ * \param[in]    dist   blending distance; typically 10 - 30
+ * \param[out]   pbox   [optional] use NULL to get the full size
  * \return  pixd (8 bpp gray, or NULL on error
  *
  * <pre>
@@ -1272,12 +1272,12 @@ PIX     *pix1, *pixd;
 /*!
  * \brief   pixGetColorNearMaskBoundary()
  *
- * \param[in]    pixs 32 bpp rgb
- * \param[in]    pixm 1 bpp mask, full image
- * \param[in]    box region of mask; typically b.b. of a component
- * \param[in]    dist distance into BG from mask boundary to use
- * \param[out]   pval average pixel value
- * \param[in]    debug 1 to output mask images
+ * \param[in]    pixs    32 bpp rgb
+ * \param[in]    pixm    1 bpp mask, full image
+ * \param[in]    box     region of mask; typically b.b. of a component
+ * \param[in]    dist    distance into BG from mask boundary to use
+ * \param[out]   pval    average pixel value
+ * \param[in]    debug   1 to output mask images
  * \return  0 if OK, 1 on error.
  *
  * <pre>
@@ -1373,9 +1373,9 @@ PIX       *pix1, *pix2, *pix3;
 /*!
  * \brief   pixInvert()
  *
- * \param[in]    pixd  [optional]; this can be null, equal to pixs,
- *                     or different from pixs
- * \param[in]    pixs
+ * \param[in]   pixd  [optional]; this can be null, equal to pixs,
+ *                    or different from pixs
+ * \param[in]   pixs
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1414,10 +1414,10 @@ pixInvert(PIX  *pixd,
 /*!
  * \brief   pixOr()
  *
- * \param[in]    pixd  [optional]; this can be null, equal to pixs1,
- *                     different from pixs1
- * \param[in]    pixs1 can be == pixd
- * \param[in]    pixs2 must be != pixd
+ * \param[in]   pixd    [optional]; this can be null, equal to pixs1,
+ *                      different from pixs1
+ * \param[in]   pixs1   can be == pixd
+ * \param[in]   pixs2   must be != pixd
  * \return  pixd always
  *
  * <pre>
@@ -1478,10 +1478,10 @@ pixOr(PIX  *pixd,
 /*!
  * \brief   pixAnd()
  *
- * \param[in]    pixd  [optional]; this can be null, equal to pixs1,
- *                     different from pixs1
- * \param[in]    pixs1 can be == pixd
- * \param[in]    pixs2 must be != pixd
+ * \param[in]   pixd    [optional]; this can be null, equal to pixs1,
+ *                      different from pixs1
+ * \param[in]   pixs1   can be == pixd
+ * \param[in]   pixs2   must be != pixd
  * \return  pixd always
  *
  * <pre>
@@ -1542,10 +1542,10 @@ pixAnd(PIX  *pixd,
 /*!
  * \brief   pixXor()
  *
- * \param[in]    pixd  [optional]; this can be null, equal to pixs1,
- *                     different from pixs1
- * \param[in]    pixs1 can be == pixd
- * \param[in]    pixs2 must be != pixd
+ * \param[in]   pixd    [optional]; this can be null, equal to pixs1,
+ *                      different from pixs1
+ * \param[in]   pixs1   can be == pixd
+ * \param[in]   pixs2   must be != pixd
  * \return  pixd always
  *
  * <pre>
@@ -1606,10 +1606,10 @@ pixXor(PIX  *pixd,
 /*!
  * \brief   pixSubtract()
  *
- * \param[in]    pixd  [optional]; this can be null, equal to pixs1,
- *                     equal to pixs2, or different from both pixs1 and pixs2
- * \param[in]    pixs1 can be == pixd
- * \param[in]    pixs2 can be == pixd
+ * \param[in]   pixd    [optional]; this can be null, equal to pixs1,
+ *                      equal to pixs2, or different from both pixs1 and pixs2
+ * \param[in]   pixs1   can be == pixd
+ * \param[in]   pixs2   can be == pixd
  * \return  pixd always
  *
  * <pre>
@@ -1683,9 +1683,8 @@ l_int32  w, h;
 /*!
  * \brief   pixZero()
  *
- * \param[in]    pix all depths; colormap OK
- * \param[out]   pempty  1 if all bits in image data field are 0;
- *                       0 otherwise
+ * \param[in]    pix     all depths; colormap OK
+ * \param[out]   pempty  1 if all bits in image data field are 0; 0 otherwise
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -1744,8 +1743,8 @@ l_uint32  *data, *line;
 /*!
  * \brief   pixForegroundFraction()
  *
- * \param[in]    pix 1 bpp
- * \param[out]   pfract fraction of ON pixels
+ * \param[in]    pix      1 bpp
+ * \param[out]   pfract   fraction of ON pixels
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -1772,7 +1771,7 @@ l_int32  w, h, count;
 /*!
  * \brief   pixaCountPixels()
  *
- * \param[in]    pixa array of 1 bpp pix
+ * \param[in]    pixa    array of 1 bpp pix
  * \return  na of ON pixels in each pix, or NULL on error
  */
 NUMA *
@@ -1918,8 +1917,8 @@ PIX     *pix1;
 /*!
  * \brief   pixCountByRow()
  *
- * \param[in]    pix 1 bpp
- * \param[in]    box [optional] clipping box for count; can be null
+ * \param[in]   pix   1 bpp
+ * \param[in]   box   [optional] clipping box for count; can be null
  * \return  na of number of ON pixels by row, or NULL on error
  *
  * <pre>
@@ -1970,8 +1969,8 @@ NUMA      *na;
 /*!
  * \brief   pixCountByColumn()
  *
- * \param[in]    pix 1 bpp
- * \param[in]    box [optional] clipping box for count; can be null
+ * \param[in]   pix   1 bpp
+ * \param[in]   box   [optional] clipping box for count; can be null
  * \return  na of number of ON pixels by column, or NULL on error
  *
  * <pre>
@@ -2022,8 +2021,8 @@ NUMA      *na;
 /*!
  * \brief   pixCountPixelsByRow()
  *
- * \param[in]    pix 1 bpp
- * \param[in]    tab8  [optional] 8-bit pixel lookup table
+ * \param[in]   pix   1 bpp
+ * \param[in]   tab8  [optional] 8-bit pixel lookup table
  * \return  na of counts, or NULL on error
  */
 NUMA *
@@ -2057,7 +2056,7 @@ NUMA     *na;
 /*!
  * \brief   pixCountPixelsByColumn()
  *
- * \param[in]    pix 1 bpp
+ * \param[in]   pix   1 bpp
  * \return  na of counts in each column, or NULL on error
  */
 NUMA *
@@ -2095,10 +2094,10 @@ NUMA       *na;
 /*!
  * \brief   pixCountPixelsInRow()
  *
- * \param[in]    pix 1 bpp
- * \param[in]    row number
- * \param[out]   pcount sum of ON pixels in raster line
- * \param[in]    tab8  [optional] 8-bit pixel lookup table
+ * \param[in]    pix     1 bpp
+ * \param[in]    row     number
+ * \param[out]   pcount  sum of ON pixels in raster line
+ * \param[in]    tab8    [optional] 8-bit pixel lookup table
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -2160,8 +2159,8 @@ l_uint32  *line;
 /*!
  * \brief   pixGetMomentByColumn()
  *
- * \param[in]    pix 1 bpp
- * \param[in]    order of moment, either 1 or 2
+ * \param[in]   pix     1 bpp
+ * \param[in]   order   of moment, either 1 or 2
  * \return  na of first moment of fg pixels, by column, or NULL on error
  */
 NUMA *
@@ -2206,11 +2205,11 @@ NUMA       *na;
 /*!
  * \brief   pixThresholdPixelSum()
  *
- * \param[in]    pix 1 bpp
- * \param[in]    thresh threshold
- * \param[out]   pabove 1 if above threshold;
- *                      0 if equal to or less than threshold
- * \param[in]    tab8  [optional] 8-bit pixel lookup table
+ * \param[in]    pix      1 bpp
+ * \param[in]    thresh   threshold
+ * \param[out]   pabove   1 if above threshold;
+ *                        0 if equal to or less than threshold
+ * \param[in]    tab8     [optional] 8-bit pixel lookup table
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -2384,9 +2383,9 @@ l_int32  *tab;
 /*!
  * \brief   pixAverageByRow()
  *
- * \param[in]    pix 8 or 16 bpp; no colormap
- * \param[in]    box [optional] clipping box for sum; can be null
- * \param[in]    type L_WHITE_IS_MAX, L_BLACK_IS_MAX
+ * \param[in]   pix    8 or 16 bpp; no colormap
+ * \param[in]   box    [optional] clipping box for sum; can be null
+ * \param[in]   type   L_WHITE_IS_MAX, L_BLACK_IS_MAX
  * \return  na of pixel averages by row, or NULL on error
  *
  * <pre>
@@ -2453,9 +2452,9 @@ NUMA      *na;
 /*!
  * \brief   pixAverageByColumn()
  *
- * \param[in]    pix 8 or 16 bpp; no colormap
- * \param[in]    box [optional] clipping box for sum; can be null
- * \param[in]    type L_WHITE_IS_MAX, L_BLACK_IS_MAX
+ * \param[in]   pix   8 or 16 bpp; no colormap
+ * \param[in]   box   [optional] clipping box for sum; can be null
+ * \param[in]   type  L_WHITE_IS_MAX, L_BLACK_IS_MAX
  * \return  na of pixel averages by column, or NULL on error
  *
  * <pre>
@@ -2526,9 +2525,9 @@ NUMA       *na;
 /*!
  * \brief   pixAverageInRect()
  *
- * \param[in]    pix 1, 2, 4, 8 bpp; not cmapped
- * \param[in]    box [optional] if null, use entire image
- * \param[out]   pave average of pixel values in region
+ * \param[in]    pix   1, 2, 4, 8 bpp; not cmapped
+ * \param[in]    box   [optional] if null, use entire image
+ * \param[out]   pave  average of pixel values in region
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -2585,8 +2584,8 @@ l_float64  ave;
 /*!
  * \brief   pixVarianceByRow()
  *
- * \param[in]    pix 8 or 16 bpp; no colormap
- * \param[in]    box [optional] clipping box for variance; can be null
+ * \param[in]   pix   8 or 16 bpp; no colormap
+ * \param[in]   box   [optional] clipping box for variance; can be null
  * \return  na of rmsdev by row, or NULL on error
  *
  * <pre>
@@ -2650,8 +2649,8 @@ NUMA       *na;
 /*!
  * \brief   pixVarianceByColumn()
  *
- * \param[in]    pix 8 or 16 bpp; no colormap
- * \param[in]    box [optional] clipping box for variance; can be null
+ * \param[in]   pix   8 or 16 bpp; no colormap
+ * \param[in]   box   [optional] clipping box for variance; can be null
  * \return  na of rmsdev by column, or NULL on error
  *
  * <pre>
@@ -2715,9 +2714,9 @@ NUMA       *na;
 /*!
  * \brief   pixVarianceInRect()
  *
- * \param[in]    pix 1, 2, 4, 8 bpp; not cmapped
- * \param[in]    box [optional] if null, use entire image
- * \param[out]   prootvar sqrt variance of pixel values in region
+ * \param[in]    pix       1, 2, 4, 8 bpp; not cmapped
+ * \param[in]    box       [optional] if null, use entire image
+ * \param[out]   prootvar  sqrt variance of pixel values in region
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -2785,8 +2784,8 @@ l_float64  sum1, sum2, norm, ave, var;
 /*!
  * \brief   pixAbsDiffByRow()
  *
- * \param[in]    pix 8 bpp; no colormap
- * \param[in]    box [optional] clipping box for region; can be null
+ * \param[in]   pix   8 bpp; no colormap
+ * \param[in]   box   [optional] clipping box for region; can be null
  * \return  na of abs val pixel difference averages by row, or NULL on error
  *
  * <pre>
@@ -2845,8 +2844,8 @@ NUMA      *na;
 /*!
  * \brief   pixAbsDiffByColumn()
  *
- * \param[in]    pix 8 bpp; no colormap
- * \param[in]    box [optional] clipping box for region; can be null
+ * \param[in]   pix   8 bpp; no colormap
+ * \param[in]   box   [optional] clipping box for region; can be null
  * \return  na of abs val pixel difference averages by column,
  *              or NULL on error
  *
@@ -2907,10 +2906,10 @@ NUMA      *na;
 /*!
  * \brief   pixAbsDiffInRect()
  *
- * \param[in]    pix 8 bpp; not cmapped
- * \param[in]    box [optional] if null, use entire image
- * \param[in]    dir differences along L_HORIZONTAL_LINE or L_VERTICAL_LINE
- * \param[out]   pabsdiff average of abs diff pixel values in region
+ * \param[in]   pix       8 bpp; not cmapped
+ * \param[in]   box       [optional] if null, use entire image
+ * \param[in]   dir       differences along L_HORIZONTAL_LINE or L_VERTICAL_LINE
+ * \param[out]  pabsdiff  average of abs diff pixel values in region
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -2984,10 +2983,10 @@ l_float64  norm, sum;
 /*!
  * \brief   pixAbsDiffOnLine()
  *
- * \param[in]    pix 8 bpp; not cmapped
- * \param[in]    x1, y1 first point; x1 <= x2, y1 <= y2
- * \param[in]    x2, y2 first point
- * \param[out]   pabsdiff average of abs diff pixel values on line
+ * \param[in]    pix        8 bpp; not cmapped
+ * \param[in]    x1, y1     first point; x1 <= x2, y1 <= y2
+ * \param[in]    x2, y2     first point
+ * \param[out]   pabsdiff   average of abs diff pixel values on line
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -3064,12 +3063,12 @@ l_uint32   val0, val1;
 /*!
  * \brief   pixCountArbInRect()
  *
- * \param[in]    pixs 8 bpp, or colormapped
- * \param[in]    box [optional] over which count is made;
- *                    use entire image if NULL
- * \param[in]    val pixel value to count
- * \param[in]    factor subsampling factor; integer >= 1
- * \param[out]   pcount count; estimate it if factor > 1
+ * \param[in]    pixs     8 bpp, or colormapped
+ * \param[in]    box      [optional] over which count is made;
+ *                        use entire image if NULL
+ * \param[in]    val      pixel value to count
+ * \param[in]    factor   subsampling factor; integer >= 1
+ * \param[out]   pcount   count; estimate it if factor > 1
  * \return  na histogram, or NULL on error
  *
  * <pre>
@@ -3140,8 +3139,8 @@ l_uint32  *data, *line;
 /*!
  * \brief   pixMirroredTiling()
  *
- * \param[in]    pixs 8 or 32 bpp, small tile; to be replicated
- * \param[in]    w, h dimensions of output pix
+ * \param[in]   pixs   8 or 32 bpp, small tile; to be replicated
+ * \param[in]   w, h   dimensions of output pix
  * \return  pixd usually larger pix, mirror-tiled with pixs,
  *              or NULL on error
  *
@@ -3208,14 +3207,14 @@ PIX      *pixd, *pixsfx, *pixsfy, *pixsfxy, *pix;
 /*!
  * \brief   pixFindRepCloseTile()
  *
- * \param[in]    pixs 32 bpp rgb
- * \param[in]    box region of pixs to search around
- * \param[in]    searchdir L_HORIZ or L_VERT; direction to search
- * \param[in]    mindist min distance of selected tile edge from box; >= 0
- * \param[in]    tsize tile size; > 1; even; typically ~50
- * \param[in]    ntiles number of tiles tested in each row/column
- * \param[out]   pboxtile region of best tile
- * \param[in]    debug 1 for debug output
+ * \param[in]    pixs       32 bpp rgb
+ * \param[in]    box        region of pixs to search around
+ * \param[in]    searchdir  L_HORIZ or L_VERT; direction to search
+ * \param[in]    mindist    min distance of selected tile edge from box; >= 0
+ * \param[in]    tsize      tile size; > 1; even; typically ~50
+ * \param[in]    ntiles     number of tiles tested in each row/column
+ * \param[out]   pboxtile   region of best tile
+ * \param[in]    debug 1    for debug output
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -3355,12 +3354,12 @@ PIXA      *pixa;
 /*!
  * \brief   findTileRegionsForSearch()
  *
- * \param[in]    box region of Pix to search around
- * \param[in]    w, h dimensions of Pix
- * \param[in]    searchdir L_HORIZ or L_VERT; direction to search
- * \param[in]    mindist min distance of selected tile edge from box; >= 0
- * \param[in]    tsize tile size; > 1; even; typically ~50
- * \param[in]    ntiles number of tiles tested in each row/column
+ * \param[in]   box        region of Pix to search around
+ * \param[in]   w, h       dimensions of Pix
+ * \param[in]   searchdir  L_HORIZ or L_VERT; direction to search
+ * \param[in]   mindist    min distance of selected tile edge from box; >= 0
+ * \param[in]   tsize      tile size; > 1; even; typically ~50
+ * \param[in]   ntiles     number of tiles tested in each row/column
  * \return  boxa if OK, or NULL on error
  *
  * <pre>

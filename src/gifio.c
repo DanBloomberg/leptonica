@@ -209,7 +209,7 @@ l_int32         bytesRead;
     if ((buffer = (GifReadBuffer*)gif->UserData) == NULL)
         return ERROR_INT("UserData not set", procName, -1);
 
-    if(buffer->pos >= buffer->size)
+    if(buffer->pos >= buffer->size || bytesToRead > buffer->size)
         return -1;
 
     bytesRead = (buffer->pos < buffer->size - bytesToRead)

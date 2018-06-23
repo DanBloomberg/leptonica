@@ -256,8 +256,8 @@ pix_free(void  *ptr)
 /*!
  * \brief   setPixMemoryManager()
  *
- * \param[in]   allocator [optional]; use NULL to skip
- * \param[in]   deallocator [optional]; use NULL to skip
+ * \param[in]   allocator    [optional] use NULL to skip
+ * \param[in]   deallocator  [optional] use NULL to skip
  * \return  void
  *
  * <pre>
@@ -599,8 +599,8 @@ char      *text;
 /*!
  * \brief   pixCopy()
  *
- * \param[in]    pixd [optional]; can be null, or equal to pixs,
- *                    or different from pixs
+ * \param[in]    pixd   [optional] can be null, equal to pixs,
+ *                      different from pixs
  * \param[in]    pixs
  * \return  pixd, or NULL on error
  *
@@ -680,8 +680,8 @@ l_uint32  *datas, *datad;
 /*!
  * \brief   pixResizeImageData()
  *
- * \param[in]    pixd gets new uninitialized buffer for image data
- * \param[in]    pixs determines the size of the buffer; not changed
+ * \param[in]   pixd   gets new uninitialized buffer for image data
+ * \param[in]   pixs   determines the size of the buffer; not changed
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -733,7 +733,8 @@ l_uint32  *data;
 /*!
  * \brief   pixCopyColormap()
  *
- * \param[in]    pixd, pixs dest and src Pix
+ * \param[in]   pixd
+ * \param[in]   pixs   copies the colormap to %pixd
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -772,7 +773,7 @@ PIXCMAP  *cmaps, *cmapd;
 /*!
  * \brief   pixSizesEqual()
  *
- * \param[in]    pix1, pix2  two pix
+ * \param[in]    pix1, pix2
  * \return  1 if the two pix have same {h, w, d}; 0 otherwise.
  */
 l_int32
@@ -799,10 +800,10 @@ pixSizesEqual(PIX  *pix1,
 /*!
  * \brief   pixTransferAllData()
  *
- * \param[in]      pixd must be different from pixs
- * \param[in,out]  ppixs will be nulled if refcount goes to 0
- * \param[in]      copytext 1 to copy the text field; 0 to skip
- * \param[in]      copyformat 1 to copy the informat field; 0 to skip
+ * \param[in]      pixd        must be different from pixs
+ * \param[in,out]  ppixs       will be nulled if refcount goes to 0
+ * \param[in]      copytext    1 to copy the text field; 0 to skip
+ * \param[in]      copyformat  1 to copy the informat field; 0 to skip
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -904,9 +905,9 @@ PIX     *pixs;
 /*!
  * \brief   pixSwapAndDestroy()
  *
- * \param[out]     ppixd [optional] input pixd can be null,
- *                       and it must be different from pixs
- * \param[in,out]  ppixs will be nulled after the swap
+ * \param[out]     ppixd   [optional] input pixd can be null,
+ *                         and it must be different from pixs
+ * \param[in,out]  ppixs   will be nulled after the swap
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1056,7 +1057,7 @@ pixSetDepth(PIX     *pix,
  * \brief   pixGetDimensions()
  *
  * \param[in]    pix
- * \param[out]   pw, ph, pd [optional]  each can be null
+ * \param[out]   pw, ph, pd    [optional] each can be null
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1083,7 +1084,7 @@ pixGetDimensions(PIX      *pix,
  * \brief   pixSetDimensions()
  *
  * \param[in]    pix
- * \param[in]    w, h, d use 0 to skip the setting for any of these
+ * \param[in]    w, h, d   use 0 to skip the setting for any of these
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1106,8 +1107,8 @@ pixSetDimensions(PIX     *pix,
 /*!
  * \brief   pixCopyDimensions()
  *
- * \param[in]    pixd
- * \param[in]    pixs
+ * \param[in]   pixd
+ * \param[in]   pixs
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1144,17 +1145,20 @@ pixGetSpp(PIX  *pix)
 
 
 /*
- *  pixSetSpp()
- *      Input:  pix
- *              spp (1, 3 or 4)
- *      Return: 0 if OK, 1 on error
+ * \brief   pixSetSpp()
  *
- *  Notes:
+ * \param[in]   pix
+ * \param[in]   spp   1, 3 or 4 samples
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
  *      (1) For a 32 bpp pix, this can be used to ignore the
  *          alpha sample (spp == 3) or to use it (spp == 4).
  *          For example, to write a spp == 4 image without the alpha
  *          sample (as an rgb pix), call pixSetSpp(pix, 3) and
  *          then write it out as a png.
+ * </pre>
  */
 l_int32
 pixSetSpp(PIX     *pix,
@@ -1175,8 +1179,8 @@ pixSetSpp(PIX     *pix,
 /*!
  * \brief   pixCopySpp()
  *
- * \param[in]    pixd
- * \param[in]    pixs
+ * \param[in]   pixd
+ * \param[in]   pixs
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1301,7 +1305,7 @@ pixSetYRes(PIX     *pix,
  * \brief   pixGetResolution()
  *
  * \param[in]    pix
- * \param[out]   pxres, pyres [optional]  each can be null
+ * \param[out]   pxres, pyres   [optional] each can be null
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1326,8 +1330,8 @@ pixGetResolution(PIX      *pix,
 /*!
  * \brief   pixSetResolution()
  *
- * \param[in]    pix
- * \param[in]    xres, yres use 0 to skip the setting for either of these
+ * \param[in]   pix
+ * \param[in]   xres, yres   use 0 to skip setting a value for either of these
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1440,7 +1444,7 @@ pixSetSpecial(PIX     *pix,
 /*!
  * \brief   pixGetText()
  *
- * \param[in]    pix
+ * \param[in]   pix
  * \return  ptr to existing text string
  *
  * <pre>
@@ -1463,8 +1467,8 @@ pixGetText(PIX  *pix)
 /*!
  * \brief   pixSetText()
  *
- * \param[in]    pix
- * \param[in]    textstring can be null
+ * \param[in]   pix
+ * \param[in]   textstring   can be null
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1491,7 +1495,7 @@ pixSetText(PIX         *pix,
  * \brief   pixAddText()
  *
  * \param[in]    pix
- * \param[in]    textstring
+ * \param[in]    textstring   can be null
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1551,8 +1555,8 @@ pixGetColormap(PIX  *pix)
 /*!
  * \brief   pixSetColormap()
  *
- * \param[in]    pix
- * \param[in]    colormap to be assigned
+ * \param[in]   pix
+ * \param[in]   colormap   to be assigned
  * \return  0 if OK, 1 on error.
  *
  * <pre>
@@ -1581,7 +1585,7 @@ pixSetColormap(PIX      *pix,
 /*!
  * \brief   pixDestroyColormap()
  *
- * \param[in]    pix
+ * \param[in]   pix
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1605,9 +1609,14 @@ PIXCMAP  *cmap;
 /*!
  * \brief   pixGetData()
  *
- *  Notes:
+ * \param[in]    pix
+ * \return  ptr to image data
+ *
+ * <pre>
+ * Notes:
  *      (1) This gives a new handle for the data.  The data is still
  *          owned by the pix, so do not call LEPT_FREE() on it.
+ * </pre>
  */
 l_uint32 *
 pixGetData(PIX  *pix)
@@ -1623,9 +1632,15 @@ pixGetData(PIX  *pix)
 /*!
  * \brief   pixSetData()
  *
- *  Notes:
+ * \param[in]   pix
+ * \param[in]   data
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
  *      (1) This does not free any existing data.  To free existing
  *          data, use pixFreeData() before pixSetData().
+ * </pre>
  */
 l_int32
 pixSetData(PIX       *pix,
@@ -1644,13 +1659,18 @@ pixSetData(PIX       *pix,
 /*!
  * \brief   pixExtractData()
  *
- *  Notes:
+ * \param[in]   pix
+ * \return  ptr to data, or null on error
+ *
+ * <pre>
+ * Notes:
  *      (1) This extracts the pix image data for use in another context.
  *          The caller still needs to use pixDestroy() on the input pix.
  *      (2) If refcount == 1, the data is extracted and the
  *          pix->data ptr is set to NULL.
  *      (3) If refcount > 1, this simply returns a copy of the data,
  *          using the pix allocator, and leaving the input pix unchanged.
+ * </pre>
  */
 l_uint32 *
 pixExtractData(PIX  *pixs)
@@ -1682,11 +1702,16 @@ l_uint32  *data, *datas;
 /*!
  * \brief   pixFreeData()
  *
- *  Notes:
+ * \param[in]   pix
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
  *      (1) This frees the data and sets the pix data ptr to null.
  *          It should be used before pixSetData() in the situation where
  *          you want to free any existing data before doing
  *          a subsequent assignment with pixSetData().
+ * </pre>
  */
 l_int32
 pixFreeData(PIX  *pix)
@@ -1713,7 +1738,7 @@ l_uint32  *data;
  * \brief   pixGetLinePtrs()
  *
  * \param[in]    pix
- * \param[out]   psize [optional] array size, which is the pix height
+ * \param[out]   psize   [optional] array size, which is the pix height
  * \return  array of line ptrs, or NULL on error
  *
  * <pre>
@@ -1814,9 +1839,9 @@ extern const char *ImageFileFormatExtensions[];
 /*!
  * \brief   pixPrintStreamInfo()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp    file stream
  * \param[in]    pix
- * \param[in]    text [optional] identifying string; can be null
+ * \param[in]    text  [optional] identifying string; can be null
  * \return  0 if OK, 1 on error
  */
 l_ok
