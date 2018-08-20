@@ -1462,7 +1462,7 @@ MEMIODATA  *thing;
 
     thing = (MEMIODATA *)png_get_io_ptr(png_ptr);
     if (byteCountToRead > (thing->m_Size - thing->m_Count)) {
-      png_error(png_ptr, "read error in memio_png_read_data");
+        png_error(png_ptr, "read error in memio_png_read_data");
     }
     memcpy(outBytes, thing->m_Buffer + thing->m_Count, byteCountToRead);
     thing->m_Count += byteCountToRead;

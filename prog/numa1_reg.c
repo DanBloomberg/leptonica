@@ -142,7 +142,7 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, -999.00, minval,  0.1);    /* 4 */
     regTestCompareValues(rp,  999.00, maxval,  0.1);    /* 5 */
     regTestCompareValues(rp,  0.055,  meanval, 0.001);  /* 6 */
-    regTestCompareValues(rp,  0.30,   median,  0.001);  /* 7 */
+    regTestCompareValues(rp,  0.30,   median,  0.005);  /* 7 */
     regTestCompareValues(rp,  706.41, rmsdev,  0.1);    /* 8 */
     regTestCompareValues(rp,  808.15, rankval, 0.1);    /* 9 */
     regTestCompareValues(rp,  0.800,  rank,    0.01);   /* 10 */

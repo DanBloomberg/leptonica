@@ -2419,6 +2419,8 @@ l_int32  ret;
 void
 callSystemDebug(const char *cmd)
 {
+l_int32  ret;
+
     PROCNAME("callSystemDebug");
 
     if (!cmd) {
@@ -2434,14 +2436,14 @@ callSystemDebug(const char *cmd)
 
   #include "TargetConditionals.h"
   #if !defined(TARGET_OS_IPHONE) && !defined(OS_IOS)  /* macOS */
-    (void)system(cmd);
+    ret = system(cmd);
   #else
     L_ERROR("iOS 11 does not support system()\n", procName);
   #endif  /* !TARGET_OS_IPHONE ... */
 
 #else /* ! OS_IOS */
 
-    (void)system(cmd);
+   ret = system(cmd);
 
 #endif /* OS_IOS */
 }
