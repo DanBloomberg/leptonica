@@ -621,8 +621,8 @@ l_int32  i, j, flatindex, flatsize, outindex, nlines, linewithpad, linecount;
     nlines = (flatsize + linechars - 1) / linechars;
     linewithpad = leadspace + linechars + 1;  /* including newline */
     if (addquotes) linewithpad += 2;
-    if ((outa = (char *)LEPT_CALLOC(nlines * linewithpad, sizeof(char)))
-        == NULL) {
+    if ((outa = (char *)LEPT_CALLOC((size_t)nlines * linewithpad,
+                                    sizeof(char))) == NULL) {
         LEPT_FREE(flata);
         return (char *)ERROR_PTR("outa not made", procName, NULL);
     }

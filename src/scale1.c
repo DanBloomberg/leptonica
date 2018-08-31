@@ -3002,7 +3002,7 @@ scaleBySamplingLow(l_uint32  *datad,
                    l_int32    d,
                    l_int32    wpls)
 {
-l_int32    i, j, bpld;
+l_int32    i, j;
 l_int32    xs, prevxs, sval;
 l_int32   *srow, *scol;
 l_uint32   csval;
@@ -3014,9 +3014,8 @@ l_float32  wratio, hratio;
     if (d != 2 && d != 4 && d !=8 && d != 16 && d != 32)
         return ERROR_INT("pixel depth not supported", procName, 1);
 
-        /* clear dest */
-    bpld = 4 * wpld;
-    memset(datad, 0, hd * bpld);
+        /* Clear dest */
+    memset(datad, 0, 4LL * hd * wpld);
 
         /* the source row corresponding to dest row i ==> srow[i]
          * the source col corresponding to dest col j ==> scol[j]  */
@@ -3100,7 +3099,7 @@ l_float32  wratio, hratio;
             }
         } else {  /* lines == prevlines; copy prev dest row */
             prevlined = lined - wpld;
-            memcpy(lined, prevlined, bpld);
+            memcpy(lined, prevlined, 4 * wpld);
         }
         prevlines = lines;
     }
@@ -3145,7 +3144,7 @@ l_float32  wratio, hratio, norm;
     PROCNAME("scaleSmoothLow");
 
         /* Clear dest */
-    memset(datad, 0, 4 * wpld * hd);
+    memset(datad, 0, 4LL * wpld * hd);
 
         /* Each dest pixel at (j,i) is computed as the average
            of size^2 corresponding src pixels.
@@ -3626,7 +3625,7 @@ scaleBinaryLow(l_uint32  *datad,
                l_int32    hs,
                l_int32    wpls)
 {
-l_int32    i, j, bpld;
+l_int32    i, j;
 l_int32    xs, prevxs, sval;
 l_int32   *srow, *scol;
 l_uint32  *lines, *prevlines, *lined, *prevlined;
@@ -3634,9 +3633,8 @@ l_float32  wratio, hratio;
 
     PROCNAME("scaleBinaryLow");
 
-        /* clear dest */
-    bpld = 4 * wpld;
-    memset(datad, 0, hd * bpld);
+        /* Clear dest */
+    memset(datad, 0, 4LL * hd * wpld);
 
         /* The source row corresponding to dest row i ==> srow[i]
          * The source col corresponding to dest col j ==> scol[j]  */
@@ -3674,7 +3672,7 @@ l_float32  wratio, hratio;
             }
         } else {  /* lines == prevlines; copy prev dest row */
             prevlined = lined - wpld;
-            memcpy(lined, prevlined, bpld);
+            memcpy(lined, prevlined, 4 * wpld);
         }
         prevlines = lines;
     }

@@ -3181,10 +3181,11 @@ l_uint32  *rline, *rdata;  /* data in pix raster */
         databpl = w * (d / 8);
     else  /* d == 32 bpp rgb */
         databpl = 3 * w;
-    if ((data = (l_uint8 *)LEPT_CALLOC(databpl * h, sizeof(l_uint8))) == NULL)
+    if ((data = (l_uint8 *)LEPT_CALLOC((size_t)databpl * h, sizeof(l_uint8)))
+            == NULL)
         return ERROR_INT("data not allocated", procName, 1);
     *pdata = data;
-    *pnbytes = databpl * h;
+    *pnbytes = (size_t)databpl * h;
 
     for (i = 0; i < h; i++) {
          rline = rdata + i * wpl;

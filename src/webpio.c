@@ -135,7 +135,7 @@ WebPBitstreamFeatures  features;
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
     stride = wpl * 4;
-    size = stride * h;
+    size = (size_t)stride * h;
     out = WebPDecodeRGBAInto(filedata, filesize, (uint8_t *)data, size,
                              stride);
     if (out == NULL) {  /* error: out should also point to data */

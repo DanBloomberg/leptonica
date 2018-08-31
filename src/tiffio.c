@@ -530,8 +530,8 @@ PIXCMAP   *cmap;
         LEPT_FREE(linebuf);
     }
     else {  /* rgb */
-        if ((tiffdata = (l_uint32 *)LEPT_CALLOC(w * h, sizeof(l_uint32)))
-            == NULL) {
+        if ((tiffdata = (l_uint32 *)LEPT_CALLOC((size_t)w * h,
+                                                 sizeof(l_uint32))) == NULL) {
             pixDestroy(&pix);
             return (PIX *)ERROR_PTR("calloc fail for tiffdata", procName, NULL);
         }

@@ -1960,7 +1960,8 @@ PIX        *pix;
          * similar images get the same 'classid' value), and 'nai' maps
          * the classid of the image in the input array to the classid
          * of the similarity class.  */
-    if ((scores = (l_float32 *)LEPT_CALLOC(n * n, sizeof(l_float32))) == NULL) {
+    if ((scores = (l_float32 *)LEPT_CALLOC((size_t)n * n, sizeof(l_float32)))
+             == NULL) {
         L_ERROR("calloc fail for scores\n", procName);
         goto cleanup;
     }

@@ -619,8 +619,8 @@ l_float32  *matt;
     if (!matd)
         return ERROR_INT("result matrix not defined", procName, 1);
 
-    if ((matt = (l_float32 *)LEPT_CALLOC(size * size, sizeof(l_float32)))
-        == NULL)
+    if ((matt = (l_float32 *)LEPT_CALLOC((size_t)size * size,
+                                         sizeof(l_float32))) == NULL)
         return ERROR_INT("matt not made", procName, 1);
     l_productMat2(mat1, mat2, matt, size);
     l_productMat2(matt, mat3, matd, size);
@@ -661,8 +661,8 @@ l_float32  *matt;
     if (!matd)
         return ERROR_INT("result matrix not defined", procName, 1);
 
-    if ((matt = (l_float32 *)LEPT_CALLOC(size * size, sizeof(l_float32)))
-         == NULL)
+    if ((matt = (l_float32 *)LEPT_CALLOC((size_t)size * size,
+                                         sizeof(l_float32))) == NULL)
         return ERROR_INT("matt not made", procName, 1);
     l_productMat3(mat1, mat2, mat3, matt, size);
     l_productMat2(matt, mat4, matd, size);

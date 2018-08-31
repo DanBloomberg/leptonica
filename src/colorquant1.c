@@ -2282,6 +2282,14 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+    if (maxcolors < 8) {
+        L_WARNING("max colors < 8; setting to 8\n", procName);
+        maxcolors = 8;
+    }
+    if (maxcolors > 256) {
+        L_WARNING("max colors > 256; setting to 256\n", procName);
+        maxcolors = 256;
+    }
 
     pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
@@ -2291,29 +2299,27 @@ PIXCMAP   *cmap;
        subsample = L_MAX(1, minside / 200);
     }
 
-    if (maxcolors >= 8 && maxcolors <= 16) {
+    if (maxcolors <= 16) {
         bpp = 4;
         pixd = pixCreate(w, h, bpp);
         maxlevel = 2;
         ncubes = 64;   /* 2^6 */
         nbase = 8;
         nextra = maxcolors - nbase;
-    } else if (maxcolors < 64) {
+    } else if (maxcolors <= 64) {
         bpp = 8;
         pixd = pixCreate(w, h, bpp);
         maxlevel = 2;
         ncubes = 64;  /* 2^6 */
         nbase = 8;
         nextra = maxcolors - nbase;
-    } else if (maxcolors >= 64 && maxcolors <= 256) {
+    } else {  /* maxcolors <= 256 */
         bpp = 8;
         pixd = pixCreate(w, h, bpp);
         maxlevel = 3;
         ncubes = 512;  /* 2^9 */
         nbase = 64;
         nextra = maxcolors - nbase;
-    } else {
-        return (PIX *)ERROR_PTR("maxcolors not in {8...256}", procName, NULL);
     }
 
     pixCopyResolution(pixd, pixs);

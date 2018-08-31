@@ -727,7 +727,7 @@ SEL        *sel;
                 pixaAddPix(pixa, pix, L_INSERT);
                 wt = pixGetWidth(pix);
                 ht = pixGetHeight(pix);
-                l_dnaHashAdd(dahash, ht * wt, nt);
+                l_dnaHashAdd(dahash, (l_uint64)ht * wt, nt);
                 box = boxaGetBox(boxa, i, L_CLONE);
                 pixaAddBox(pixa, box, L_INSERT);
                 pixaaAddPixa(pixaa, pixa, L_INSERT);  /* unbordered instance */
@@ -788,7 +788,7 @@ SEL        *sel;
                 pixaAddPix(pixa, pix, L_INSERT);
                 wt = pixGetWidth(pix);
                 ht = pixGetHeight(pix);
-                l_dnaHashAdd(dahash, ht * wt, nt);
+                l_dnaHashAdd(dahash, (l_uint64)ht * wt, nt);
                 box = boxaGetBox(boxa, i, L_CLONE);
                 pixaAddBox(pixa, box, L_INSERT);
                 pixaaAddPixa(pixaa, pixa, L_INSERT);  /* unbordered instance */
@@ -1264,7 +1264,7 @@ l_uint8     byte;
             pixaAddPix(pixa, pix, L_INSERT);
             wt = pixGetWidth(pix);
             ht = pixGetHeight(pix);
-            l_dnaHashAdd(dahash, ht * wt, nt);
+            l_dnaHashAdd(dahash, (l_uint64)ht * wt, nt);
             box = boxaGetBox(boxa, i, L_CLONE);
             pixaAddBox(pixa, box, L_INSERT);
             pixaaAddPixa(pixaa, pixa, L_INSERT);  /* unbordered instance */
@@ -2472,7 +2472,7 @@ PIX     *pixt;
         if (!state->dna) {
                 /* We have yet to start walking the array for the step 'i' */
             state->dna = l_dnaHashGetDna(state->classer->dahash,
-                                         desiredh * desiredw, L_CLONE);
+                              (l_uint64)desiredh * desiredw, L_CLONE);
             if (!state->dna) {  /* nothing there */
                 state->i++;
                 continue;

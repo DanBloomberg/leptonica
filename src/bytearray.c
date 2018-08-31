@@ -628,9 +628,9 @@ size_t    size, nbytes;
     if (startloc >= size)
         return ERROR_INT("invalid startloc", procName, 1);
     if (endloc == 0) endloc = size - 1;
-    nbytes = endloc - startloc + 1;
-    if (nbytes < 1)
+    if (endloc < startloc)
         return ERROR_INT("endloc must be >= startloc", procName, 1);
+    nbytes = endloc - startloc + 1;
 
     fwrite(data + startloc, 1, nbytes, fp);
     return 0;

@@ -473,7 +473,7 @@ l_int32    threshold;
 
         /* Compute the correlation count that is needed so that
          * count * count / (area1 * area2) >= score_threshold */
-    threshold = (l_int32)ceil(sqrt(score_threshold * area1 * area2));
+    threshold = (l_int32)ceil(sqrt((l_float64)score_threshold * area1 * area2));
 
     count = 0;
     wpl1 = pixGetWpl(pix1);

@@ -1932,7 +1932,8 @@ l_uint8  *data;
 
     ncolors = pixcmapGetCount(cmap);
     *pncolors = ncolors;
-    if ((data = (l_uint8 *)LEPT_CALLOC(cpc * ncolors, sizeof(l_uint8))) == NULL)
+    if ((data = (l_uint8 *)LEPT_CALLOC((size_t)cpc * ncolors, sizeof(l_uint8)))
+             == NULL)
         return ERROR_INT("data not made", procName, 1);
     *pdata = data;
 

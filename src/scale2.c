@@ -2269,7 +2269,7 @@ l_float32  ratio, w1, w2;
     PROCNAME("scaleMipmapLow");
 
         /* Clear dest */
-    memset(datad, 0, 4 * wpld * hd);
+    memset(datad, 0, 4LL * wpld * hd);
 
         /* Each dest pixel at (j,i) is computed by interpolating
            between the two src images at the corresponding location.

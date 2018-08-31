@@ -337,7 +337,7 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
                                 procName, NULL);
     }
     if ((spp == 3 && cmapflag == 0) || ycck || cmyk) {  /* rgb or 4 bpp color */
-        rowbuffer = (JSAMPROW)LEPT_CALLOC(sizeof(JSAMPLE), spp * w);
+        rowbuffer = (JSAMPROW)LEPT_CALLOC(sizeof(JSAMPLE), (size_t)spp * w);
         pix = pixCreate(w, h, 32);
     } else {  /* 8 bpp gray or colormapped */
         rowbuffer = (JSAMPROW)LEPT_CALLOC(sizeof(JSAMPLE), w);

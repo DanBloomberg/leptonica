@@ -172,7 +172,7 @@ FPIX       *fpixd;
     fpixSetWpl(fpixd, width);  /* 4-byte words */
     fpixd->refcount = 1;
 
-    data = (l_float32 *)LEPT_CALLOC(width * height, sizeof(l_float32));
+    data = (l_float32 *)LEPT_CALLOC((size_t)width * height, sizeof(l_float32));
     if (!data) {
         fpixDestroy(&fpixd);
         return (FPIX *)ERROR_PTR("calloc fail for data", procName, NULL);
@@ -1171,7 +1171,7 @@ DPIX       *dpix;
     dpixSetWpl(dpix, width);  /* 8 byte words */
     dpix->refcount = 1;
 
-    data = (l_float64 *)LEPT_CALLOC(width * height, sizeof(l_float64));
+    data = (l_float64 *)LEPT_CALLOC((size_t)width * height, sizeof(l_float64));
     if (!data) {
         dpixDestroy(&dpix);
         return (DPIX *)ERROR_PTR("calloc fail for data", procName, NULL);
@@ -1851,7 +1851,7 @@ FPIX       *fpixt;
 
     fpixGetDimensions(fpixt, &w, &h);
     data = fpixGetData(fpixt);
-    nbytes = w * h * sizeof(l_float32);
+    nbytes = (l_uint32)w * h * sizeof(l_float32);
     fpixGetResolution(fpixt, &xres, &yres);
     fprintf(fp, "\nFPix Version %d\n", FPIX_VERSION_NUMBER);
     fprintf(fp, "w = %d, h = %d, nbytes = %d\n", w, h, nbytes);
@@ -2149,7 +2149,7 @@ DPIX       *dpixt;
     dpixGetDimensions(dpixt, &w, &h);
     dpixGetResolution(dpixt, &xres, &yres);
     data = dpixGetData(dpixt);
-    nbytes = w * h * sizeof(l_float64);
+    nbytes = (l_uint32)w * h * sizeof(l_float64);
     fprintf(fp, "\nDPix Version %d\n", DPIX_VERSION_NUMBER);
     fprintf(fp, "w = %d, h = %d, nbytes = %d\n", w, h, nbytes);
     fprintf(fp, "xres = %d, yres = %d\n", xres, yres);
