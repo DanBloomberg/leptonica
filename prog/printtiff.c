@@ -54,9 +54,10 @@
 int main(int    argc,
          char **argv)
 {
-char           *filein, *tempfile, *printer;
-char            buf[512];
-static char     mainName[] = "printtiff";
+l_int32      ret;
+char        *filein, *tempfile, *printer;
+char         buf[512];
+static char  mainName[] = "printtiff";
 
     if (argc != 2 && argc != 3)
         return ERROR_INT(" Syntax:  printtiff filein [printer]", mainName, 1);
@@ -78,7 +79,7 @@ static char     mainName[] = "printtiff";
 
     if (argc == 3) {
         snprintf(buf, sizeof(buf), "lpr -P%s %s &", printer, tempfile);
-        (void)system(buf);
+        ret = system(buf);
     }
 
     lept_free(tempfile);

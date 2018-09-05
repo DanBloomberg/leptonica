@@ -1103,7 +1103,7 @@ L_WALLTIMER  *timer;
 char *
 l_getFormattedDate()
 {
-char        buf[sizeof "199812231952SS-08'00'"] = "", sep = 'Z';
+char        buf[128] = "", sep = 'Z';
 l_int32     gmt_offset, relh, relm;
 time_t      ut, lt;
 struct tm  *tptr;

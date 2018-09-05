@@ -67,7 +67,7 @@ int main(int    argc,
 {
 char        *filein, *printer, *extra, *fname;
 char         buffer[512];
-l_int32      i, w, h;
+l_int32      i, w, h, ret;
 l_float32    scale;
 FILE        *fp;
 PIX         *pixs, *pix1;
@@ -119,11 +119,11 @@ static char  mainName[] = "printimage";
     }
     if (!extra) {
         snprintf(buffer, sizeof(buffer), "lpr %s -P%s &", fname, printer);
-        (void)system(buffer);
+        ret = system(buffer);
     } else {
         snprintf(buffer, sizeof(buffer), "lpr %s -P%s %s &",
                  fname, printer, extra);
-        (void)system(buffer);
+        ret = system(buffer);
     }
 
     lept_free(fname);

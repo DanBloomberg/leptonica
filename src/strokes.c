@@ -299,7 +299,7 @@ pixModifyStrokeWidth(PIX       *pixs,
                      l_float32  width,
                      l_float32  targetw)
 {
-char     buf[16];
+char     buf[32];
 l_int32  diff, size;
 
     PROCNAME("pixModifyStrokeWidth");
