@@ -29,18 +29,18 @@
  * <pre>
  *
  *      Top-level jb2 correlation and rank-hausdorff
- *
  *         l_int32         jbCorrelation()
  *         l_int32         jbRankHaus()
  *
  *      Extract and classify words in textline order
- *
  *         JBCLASSER      *jbWordsInTextlines()
  *         l_int32         pixGetWordsInTextlines()
  *         l_int32         pixGetWordBoxesInTextlines()
  *
- *      Use word bounding boxes to compare page images
+ *      Extract word and character bounding boxes
+ *         l_int32         pixFindWordAndCharacterBoxes()
  *
+ *      Use word bounding boxes to compare page images
  *         NUMAA          *boxaExtractSortedPattern()
  *         l_int32         numaaCompareImagesByBoxes()
  *         static l_int32  testLineAlignmentX()
@@ -487,6 +487,140 @@ NUMA    *nai;
         numaDestroy(&nai);
     boxaDestroy(&boxa1);
     boxaaDestroy(&baa);
+    return 0;
+}
+
+
+/*------------------------------------------------------------------*
+ *             Extract word and character bounding boxes            *
+ *------------------------------------------------------------------*/
+/*!
+ * \brief   pixFindWordAndCharacterBoxes()
+ *
+ * \param[in]    pixs    2, 4, 8 or 32 bpp; colormap OK; typ. 300 ppi
+ * \param[in]    boxs    [optional] region to select in pixs
+ * \param[in]    thresh  binarization threshold (typ. 100 - 150)
+ * \param[in]    pboxaw  return the word boxes
+ * \param[in]    pboxaac return the character boxes
+ * \param[out]   debugfile  [optional] for debug images; use NULL to skip
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) If %boxs == NULL, the entire input image is used.
+ *      (2) Having an input pix that is not 1bpp is necessary to reduce
+ *          touching characters by using a low binarization threshold.
+ *          Suggested thresholds are between 100 and 150.
+ *      (3) The coordinates in the output boxes are global, with respect
+ *          to the input image.
+ * </pre>
+ */
+l_ok
+pixFindWordAndCharacterBoxes(PIX         *pixs,
+                             BOX         *boxs,
+                             l_int32      thresh,
+                             BOXA       **pboxaw,
+                             BOXAA      **pboxaac,
+                             const char  *debugdir)
+{
+char    *debugfile, *subdir;
+l_int32  i, d, xs, ys, xb, yb, nb;
+BOX     *box1, *box2;
+BOXA    *boxa1, *boxa2, *boxa3, *boxa4, *boxaw;
+BOXAA   *boxaac;
+PIX     *pix1, *pix2, *pix3, *pix4, *pix5;
+
+    PROCNAME("pixFindWordAndCharacterBoxes");
+
+    if (pboxaw) *pboxaw = NULL;
+    if (pboxaac) *pboxaac = NULL;
+    if (!pboxaw || !pboxaac)
+        return ERROR_INT("&boxaw and &boxaac not defined", procName, 1);
+    if (!pixs || pixGetDepth(pixs) == 1)
+        return ERROR_INT("pixs not defined or 1 bpp", procName, 1);
+    if (thresh > 150)
+        L_WARNING("threshold is %d; may be too high\n", procName, thresh);
+
+    if (boxs) {
+        if ((pix1 = pixClipRectangle(pixs, boxs, NULL)) == NULL)
+            return ERROR_INT("pix1 not made", procName, 1);
+        boxGetGeometry(boxs, &xs, &ys, NULL, NULL);
+    } else {
+        pix1 = pixClone(pixs);
+        xs = ys = 0;
+    }
+
+        /* Convert pix1 to 8 bpp gray if necessary */
+    pix2 = pixConvertTo8(pix1, FALSE);
+
+        /* To find the words and letters, work with 1 bpp images.
+         * A low threshold reduces the number of touching characters. */
+    pix3 = pixConvertTo1(pix2, thresh);
+
+        /* First find the words, removing the very small things like
+         * dots over the 'i' that weren't included in word boxes. */
+    pixGetWordBoxesInTextlines(pix3, 2, 8, 1000, 100, &boxa1, NULL);
+    if (debugdir) {
+        subdir = stringReplaceSubstr(debugdir, "/tmp/", "", NULL, NULL);
+        lept_mkdir(subdir);
+        LEPT_FREE(subdir);
+        pix4 = pixCopy(NULL, pix2);
+        pixRenderBoxaArb(pix4, boxa1, 2, 255, 0, 0);
+        debugfile = stringJoin(debugdir, "/words.png");
+        pixWrite(debugfile, pix4, IFF_PNG);
+        pixDestroy(&pix4);
+        LEPT_FREE(debugfile);
+    }
+
+        /* Now find the letters */
+    nb = boxaGetCount(boxa1);
+    boxaw = boxaCreate(nb);
+    boxaac = boxaaCreate(nb);
+    *pboxaw = boxaw;
+    *pboxaac = boxaac;
+    for (i = 0; i < nb; i++) {
+        box1 = boxaGetBox(boxa1, i, L_COPY);
+        boxGetGeometry(box1, &xb, &yb, NULL, NULL);
+        pix4 = pixClipRectangle(pix3, box1, NULL);
+            /* Join detached parts of characters vertically */
+        pix5 = pixMorphSequence(pix4, "c1.10", 0);
+            /* The connected components should mostly be characters */
+        boxa2 = pixConnCompBB(pix5, 4);
+            /* Remove very small pieces */
+        boxa3 = boxaSelectBySize(boxa2, 2, 5, L_SELECT_IF_BOTH,
+                                 L_SELECT_IF_GTE, NULL);
+            /* Express locations with reference to the full input image */
+        boxa4 = boxaTransform(boxa3, xs + xb, ys + yb, 1.0, 1.0);
+        box2 = boxTransform(box1, xs, ys, 1.0, 1.0);
+
+            /* Ignore any boxa with no boxes after size filtering */
+        if (boxaGetCount(boxa4) > 0) {
+            boxaAddBox(boxaw, box2, L_INSERT);
+            boxaaAddBoxa(boxaac, boxa4, L_INSERT);
+        }
+        boxDestroy(&box1);
+        pixDestroy(&pix4);
+        pixDestroy(&pix5);
+        boxaDestroy(&boxa2);
+        boxaDestroy(&boxa3);
+    }
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    boxaDestroy(&boxa1);
+    if (debugdir) {
+        pix4 = pixCopy(NULL, pixs);
+        boxa2 = boxaaFlattenToBoxa(boxaac, NULL, L_COPY);
+        pixRenderBoxaArb(pix4, boxa2, 2, 255, 0, 0);
+        boxa3 = boxaAdjustSides(boxaw, -2, 2, -2, 2);
+        pixRenderBoxaArb(pix4, boxa3, 2, 0, 255, 0);
+        debugfile = stringJoin(debugdir, "/chars.png");
+        pixWrite(debugfile, pix4, IFF_PNG);
+        pixDestroy(&pix4);
+        boxaDestroy(&boxa2);
+        boxaDestroy(&boxa3);
+        LEPT_FREE(debugfile);
+    }
     return 0;
 }
 

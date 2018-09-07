@@ -427,6 +427,7 @@ LEPT_DLL extern l_ok jbRankHaus ( const char *dirin, l_int32 size, l_float32 ran
 LEPT_DLL extern JBCLASSER * jbWordsInTextlines ( const char *dirin, l_int32 reduction, l_int32 maxwidth, l_int32 maxheight, l_float32 thresh, l_float32 weight, NUMA **pnatl, l_int32 firstpage, l_int32 npages );
 LEPT_DLL extern l_ok pixGetWordsInTextlines ( PIX *pixs, l_int32 minwidth, l_int32 minheight, l_int32 maxwidth, l_int32 maxheight, BOXA **pboxad, PIXA **ppixad, NUMA **pnai );
 LEPT_DLL extern l_ok pixGetWordBoxesInTextlines ( PIX *pixs, l_int32 minwidth, l_int32 minheight, l_int32 maxwidth, l_int32 maxheight, BOXA **pboxad, NUMA **pnai );
+LEPT_DLL extern l_ok pixFindWordAndCharacterBoxes ( PIX *pixs, BOX *boxs, l_int32 thresh, BOXA **pboxaw, BOXAA **pboxaac, const char *debugdir );
 LEPT_DLL extern NUMAA * boxaExtractSortedPattern ( BOXA *boxa, NUMA *na );
 LEPT_DLL extern l_ok numaaCompareImagesByBoxes ( NUMAA *naa1, NUMAA *naa2, l_int32 nperline, l_int32 nreq, l_int32 maxshiftx, l_int32 maxshifty, l_int32 delx, l_int32 dely, l_int32 *psame, l_int32 debugflag );
 LEPT_DLL extern l_ok pixColorContent ( PIX *pixs, l_int32 rwhite, l_int32 gwhite, l_int32 bwhite, l_int32 mingray, PIX **ppixr, PIX **ppixg, PIX **ppixb );
