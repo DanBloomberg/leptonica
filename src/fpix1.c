@@ -1835,7 +1835,8 @@ l_ok
 fpixWriteStream(FILE  *fp,
                 FPIX  *fpix)
 {
-l_int32     w, h, nbytes, xres, yres;
+l_int32     w, h, xres, yres;
+l_uint32    nbytes;
 l_float32  *data;
 FPIX       *fpixt;
 
@@ -1851,10 +1852,10 @@ FPIX       *fpixt;
 
     fpixGetDimensions(fpixt, &w, &h);
     data = fpixGetData(fpixt);
-    nbytes = (l_uint32)w * h * sizeof(l_float32);
+    nbytes = sizeof(l_float32) * w * h;
     fpixGetResolution(fpixt, &xres, &yres);
     fprintf(fp, "\nFPix Version %d\n", FPIX_VERSION_NUMBER);
-    fprintf(fp, "w = %d, h = %d, nbytes = %d\n", w, h, nbytes);
+    fprintf(fp, "w = %d, h = %d, nbytes = %u\n", w, h, nbytes);
     fprintf(fp, "xres = %d, yres = %d\n", xres, yres);
     fwrite(data, 1, nbytes, fp);
     fprintf(fp, "\n");
@@ -2132,7 +2133,8 @@ l_ok
 dpixWriteStream(FILE  *fp,
                 DPIX  *dpix)
 {
-l_int32     w, h, nbytes, xres, yres;
+l_int32     w, h, xres, yres;
+l_uint32    nbytes;
 l_float64  *data;
 DPIX       *dpixt;
 
@@ -2149,9 +2151,9 @@ DPIX       *dpixt;
     dpixGetDimensions(dpixt, &w, &h);
     dpixGetResolution(dpixt, &xres, &yres);
     data = dpixGetData(dpixt);
-    nbytes = (l_uint32)w * h * sizeof(l_float64);
+    nbytes = sizeof(l_float64) * w * h;
     fprintf(fp, "\nDPix Version %d\n", DPIX_VERSION_NUMBER);
-    fprintf(fp, "w = %d, h = %d, nbytes = %d\n", w, h, nbytes);
+    fprintf(fp, "w = %d, h = %d, nbytes = %u\n", w, h, nbytes);
     fprintf(fp, "xres = %d, yres = %d\n", xres, yres);
     fwrite(data, 1, nbytes, fp);
     fprintf(fp, "\n");
