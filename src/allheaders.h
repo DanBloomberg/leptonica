@@ -2364,6 +2364,7 @@ LEPT_DLL extern l_ok sarrayLookupCSKV ( SARRAY *sa, const char *keystring, char 
 LEPT_DLL extern PIX * pixScale ( PIX *pixs, l_float32 scalex, l_float32 scaley );
 LEPT_DLL extern PIX * pixScaleToSizeRel ( PIX *pixs, l_int32 delw, l_int32 delh );
 LEPT_DLL extern PIX * pixScaleToSize ( PIX *pixs, l_int32 wd, l_int32 hd );
+LEPT_DLL extern PIX * pixScaleToResolution ( PIX *pixs, l_float32 target, l_float32 assumed, l_float32 *pscalefact );
 LEPT_DLL extern PIX * pixScaleGeneral ( PIX *pixs, l_float32 scalex, l_float32 scaley, l_float32 sharpfract, l_int32 sharpwidth );
 LEPT_DLL extern PIX * pixScaleLI ( PIX *pixs, l_float32 scalex, l_float32 scaley );
 LEPT_DLL extern PIX * pixScaleColorLI ( PIX *pixs, l_float32 scalex, l_float32 scaley );

@@ -433,7 +433,7 @@ PIXAA   *paa;
 /*!
  * \brief   pixGetWordBoxesInTextlines()
  *
- * \param[in]    pixs 1 bpp, typ. 300 ppi
+ * \param[in]    pixs 1 bpp, typ. 75 - 150 ppi
  * \param[in]    minwidth, minheight of saved components; smaller are discarded
  * \param[in]    maxwidth, maxheight of saved components; larger are discarded
  * \param[out]   pboxad word boxes sorted in textline line order
@@ -523,12 +523,13 @@ pixFindWordAndCharacterBoxes(PIX         *pixs,
                              BOXAA      **pboxaac,
                              const char  *debugdir)
 {
-char    *debugfile, *subdir;
-l_int32  i, d, xs, ys, xb, yb, nb;
-BOX     *box1, *box2;
-BOXA    *boxa1, *boxa2, *boxa3, *boxa4, *boxaw;
-BOXAA   *boxaac;
-PIX     *pix1, *pix2, *pix3, *pix4, *pix5;
+char      *debugfile, *subdir;
+l_int32    i, d, xs, ys, xb, yb, nb;
+l_float32  scalefact;
+BOX       *box1, *box2;
+BOXA      *boxa1, *boxa1a, *boxa2, *boxa3, *boxa4, *boxa5, *boxaw;
+BOXAA     *boxaac;
+PIX       *pix1, *pix2, *pix3, *pix3a, *pix4, *pix5;
 
     PROCNAME("pixFindWordAndCharacterBoxes");
 
@@ -553,13 +554,17 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5;
         /* Convert pix1 to 8 bpp gray if necessary */
     pix2 = pixConvertTo8(pix1, FALSE);
 
-        /* To find the words and letters, work with 1 bpp images.
-         * A low threshold reduces the number of touching characters. */
+        /* To find the words and letters, work with 1 bpp images and use
+         * a low threshold to reduce the number of touching characters. */
     pix3 = pixConvertTo1(pix2, thresh);
+
+        /* Work at about 120 ppi to find the word bounding boxes. */
+    pix3a = pixScaleToResolution(pix3, 120.0, 300.0, &scalefact);
 
         /* First find the words, removing the very small things like
          * dots over the 'i' that weren't included in word boxes. */
-    pixGetWordBoxesInTextlines(pix3, 2, 8, 1000, 100, &boxa1, NULL);
+    pixGetWordBoxesInTextlines(pix3a, 1, 4, 150, 40, &boxa1a, NULL);
+    boxa1 = boxaTransform(boxa1a, 0, 0, 1.0 / scalefact, 1.0 / scalefact);
     if (debugdir) {
         subdir = stringReplaceSubstr(debugdir, "/tmp/", "", NULL, NULL);
         lept_mkdir(subdir);
@@ -572,7 +577,7 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5;
         LEPT_FREE(debugfile);
     }
 
-        /* Now find the letters */
+        /* Now find the letters at 300 ppi */
     nb = boxaGetCount(boxa1);
     boxaw = boxaCreate(nb);
     boxaac = boxaaCreate(nb);
@@ -589,25 +594,33 @@ PIX     *pix1, *pix2, *pix3, *pix4, *pix5;
             /* Remove very small pieces */
         boxa3 = boxaSelectBySize(boxa2, 2, 5, L_SELECT_IF_BOTH,
                                  L_SELECT_IF_GTE, NULL);
+            /* Order left to right */
+        boxa4 = boxaSort(boxa3, L_SORT_BY_X, L_SORT_INCREASING, NULL);
             /* Express locations with reference to the full input image */
-        boxa4 = boxaTransform(boxa3, xs + xb, ys + yb, 1.0, 1.0);
+        boxa5 = boxaTransform(boxa4, xs + xb, ys + yb, 1.0, 1.0);
         box2 = boxTransform(box1, xs, ys, 1.0, 1.0);
 
             /* Ignore any boxa with no boxes after size filtering */
-        if (boxaGetCount(boxa4) > 0) {
+        if (boxaGetCount(boxa5) > 0) {
             boxaAddBox(boxaw, box2, L_INSERT);
-            boxaaAddBoxa(boxaac, boxa4, L_INSERT);
+            boxaaAddBoxa(boxaac, boxa5, L_INSERT);
+        } else {
+            boxDestroy(&box2);
+            boxaDestroy(&boxa5);
         }
         boxDestroy(&box1);
         pixDestroy(&pix4);
         pixDestroy(&pix5);
         boxaDestroy(&boxa2);
         boxaDestroy(&boxa3);
+        boxaDestroy(&boxa4);
     }
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
+    pixDestroy(&pix3a);
     boxaDestroy(&boxa1);
+    boxaDestroy(&boxa1a);
     if (debugdir) {
         pix4 = pixCopy(NULL, pixs);
         boxa2 = boxaaFlattenToBoxa(boxaac, NULL, L_COPY);

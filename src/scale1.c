@@ -31,6 +31,7 @@
  *               PIX      *pixScale()
  *               PIX      *pixScaleToSizeRel()
  *               PIX      *pixScaleToSize()
+ *               PIX      *pixScaleToResolution()
  *               PIX      *pixScaleGeneral()
  *
  *         Linearly interpreted (usually up-) scaling
@@ -340,6 +341,45 @@ l_float32  scalex, scaley;
     }
 
     return pixScale(pixs, scalex, scaley);
+}
+
+
+/*!
+ * \brief   pixScaleToResolution()
+ *
+ * \param[in]    pixs
+ * \param[in]    target      desired resolution
+ * \param[in]    assumed     assumed resolution if not defined; typ. 300.
+ * \param[out]   pscalefact  [optional] actual scaling factor used
+ * \return  pixd, or NULL on error
+ */
+PIX *
+pixScaleToResolution(PIX        *pixs,
+                     l_float32   target,
+                     l_float32   assumed,
+                     l_float32  *pscalefact)
+{
+l_int32    xres;
+l_float32  factor;
+
+    PROCNAME("pixScaleToResolution");
+
+    if (pscalefact) *pscalefact = 1.0;
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (target <= 0)
+        return (PIX *)ERROR_PTR("target resolution <= 0", procName, NULL);
+
+    xres = pixGetXRes(pixs);
+    if (xres <= 0) {
+        if (assumed == 0)
+            return pixCopy(NULL, pixs);
+        xres = assumed;
+    }
+    factor = target / (l_float32)xres;
+    if (pscalefact) *pscalefact = factor;
+
+    return pixScale(pixs, factor, factor);
 }
 
 
