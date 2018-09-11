@@ -569,7 +569,7 @@ PIX       *pix1, *pix2, *pix3, *pix3a, *pix4, *pix5;
         subdir = stringReplaceSubstr(debugdir, "/tmp/", "", NULL, NULL);
         lept_mkdir(subdir);
         LEPT_FREE(subdir);
-        pix4 = pixCopy(NULL, pix2);
+        pix4 = pixConvertTo32(pix2);
         pixRenderBoxaArb(pix4, boxa1, 2, 255, 0, 0);
         debugfile = stringJoin(debugdir, "/words.png");
         pixWrite(debugfile, pix4, IFF_PNG);
@@ -622,7 +622,7 @@ PIX       *pix1, *pix2, *pix3, *pix3a, *pix4, *pix5;
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa1a);
     if (debugdir) {
-        pix4 = pixCopy(NULL, pixs);
+        pix4 = pixConvertTo32(pixs);
         boxa2 = boxaaFlattenToBoxa(boxaac, NULL, L_COPY);
         pixRenderBoxaArb(pix4, boxa2, 2, 255, 0, 0);
         boxa3 = boxaAdjustSides(boxaw, -2, 2, -2, 2);
