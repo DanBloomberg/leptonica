@@ -1630,7 +1630,7 @@ char     ch;
         return (SEL *)ERROR_PTR("height must be > 0", procName, NULL);
     if (w < 1)
         return (SEL *)ERROR_PTR("width must be > 0", procName, NULL);
-    if (strlen(text) != (l_uint32)w * h)
+    if (strlen(text) != (size_t)w * h)
         return (SEL *)ERROR_PTR("text size != w * h", procName, NULL);
 
     sel = selCreate(h, w, name);
