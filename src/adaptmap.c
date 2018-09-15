@@ -375,11 +375,7 @@ PIX     *pixmr, *pixmg, *pixmb, *pixmri, *pixmgi, *pixmbi;
         pixmbi = pixGetInvBackgroundMap(pixmb, bgval, smoothx, smoothy);
         if (!pixmri || !pixmgi || !pixmbi) {
             L_WARNING("not all pixm*i are made; return src copy\n", procName);
-            pixDestroy(&pixmri);
-            pixDestroy(&pixmgi);
-            pixDestroy(&pixmbi);
-            pixDestroy(&pixm);
-            return pixCopy(NULL, pixs);
+            pixd = pixCopy(NULL, pixs);
         } else {
             pixd = pixApplyInvBackgroundRGBMap(pixs, pixmri, pixmgi, pixmbi,
                                                sx, sy);
