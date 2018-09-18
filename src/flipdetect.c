@@ -256,8 +256,6 @@ PIX       *pix1;
     if (!pixs || pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
 
-    lept_mkdir("lept/orient");
-
         /* Get confidences for orientation */
     pixUpDownDetectDwa(pixs, &upconf, 0, debug);
     pix1 = pixRotate90(pixs, 1);
@@ -384,8 +382,6 @@ PIX  *pix1;
     if (mincount == 0)
         mincount = DEFAULT_MIN_UP_DOWN_COUNT;
 
-    lept_mkdir("lept/orient");
-
     if (pupconf)
         pixUpDownDetect(pixs, pupconf, mincount, debug);
     if (pleftconf) {
@@ -446,8 +442,6 @@ l_float32  absupconf, absleftconf;
         L_INFO("not enough confidence to get orientation\n", procName);
         return 0;
     }
-
-    lept_mkdir("lept/orient");
 
     if (minupconf == 0.0)
         minupconf = DEFAULT_MIN_UP_DOWN_CONF;
@@ -578,7 +572,9 @@ SEL       *sel1, *sel2, *sel3, *sel4;
     if (npixels < 0)
         npixels = 0;
 
-    lept_mkdir("lept/orient");
+    if (debug) {
+        lept_mkdir("lept/orient");
+    }
 
     sel1 = selCreateFromString(textsel1, 5, 6, NULL);
     sel2 = selCreateFromString(textsel2, 5, 6, NULL);
@@ -800,8 +796,6 @@ PIX       *pixt, *pix0, *pix1, *pix2, *pix3, *pixm;
     if (npixels < 0)
         npixels = 0;
 
-    lept_mkdir("lept/orient");
-
         /* One of many reasonable pre-filtering sequences: (1, 8) and (30, 1).
          * This closes holes in x-height characters and joins them at
          * the x-height.  There is more noise in the descender detection
@@ -871,7 +865,10 @@ PIX       *pixt, *pix0, *pix1, *pix2, *pix3, *pixm;
         *pconf = 2. * ((nup - ndown) / sqrt(nup + ndown));
 
     if (debug) {
-        if (pixm) pixWriteDebug("/tmp/lept/orient/pixm2.png", pixm, IFF_PNG);
+        if (pixm) {
+            lept_mkdir("lept/orient");
+            pixWriteDebug("/tmp/lept/orient/pixm2.png", pixm, IFF_PNG);
+        }
         fprintf(stderr, "nup = %7.3f, ndown = %7.3f, conf = %7.3f\n",
                 nup, ndown, *pconf);
         if (*pconf > DEFAULT_MIN_UP_DOWN_CONF)
@@ -950,6 +947,10 @@ SEL       *sel1, *sel2;
         return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
     if (mincount == 0)
         mincount = DEFAULT_MIN_MIRROR_FLIP_COUNT;
+
+    if (debug) {
+        lept_mkdir("lept/orient");
+    }
 
     sel1 = selCreateFromString(textsel1, 5, 6, NULL);
     sel2 = selCreateFromString(textsel2, 5, 6, NULL);
