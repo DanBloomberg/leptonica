@@ -61,6 +61,9 @@
  *           PIX        *pixCropToSize()
  *           PIX        *pixResizeToMatch()
  *
+ *    Select a connected component by size
+ *           PIX        *pixSelectComponentBySize()
+ *
  *    Make a frame mask
  *           PIX        *pixMakeFrameMask()
  *
@@ -1286,6 +1289,85 @@ PIX     *pixd;
             pixRasterop(pixd, 0, i, w, 1, PIX_SRC, pixd, 0, hs - 1);
     }
 
+    return pixd;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                Select a connected component by size                 *
+ *---------------------------------------------------------------------*/
+/*!
+ * \brief   pixSelectComponentBySize()
+ *
+ * \param[in]    pixs          1 bpp
+ * \param[in]    rankorder     in decreasing size: 0 for largest.
+ * \param[in]    type          L_SELECT_BY_WIDTH, L_SELECT_BY_HEIGHT,
+ *                             L_SELECT_BY_MAX_DIMENSION,
+ *                             L_SELECT_BY_AREA, L_SELECT_BY_PERIMETER
+ * \param[in]    connectivity  4 or 8
+ * \param[out]   pbox          [optional] location of returned component
+ * \return  pix of largest connected component, or NULL on error.
+ *
+ * <pre>
+ * Notes:
+ *      (1) This selects the Nth largest connected component, based on
+ *          the selection type and connectivity.
+ *      (2) Note that %rankorder is an integer.  Use %rankorder = 0 for
+ *          the largest component and %rankorder = -1 for the smallest.
+ *          If %rankorder >= number of components, select the smallest.
+ */
+PIX *
+pixSelectComponentBySize(PIX     *pixs,
+                         l_int32  rankorder,
+                         l_int32  type,
+                         l_int32  connectivity,
+                         BOX    **pbox)
+{
+l_int32  n, empty, sorttype, index;
+BOXA    *boxa1;
+NUMA    *naindex;
+NUMA   **pnaindex = NULL;
+PIX     *pixd;
+PIXA    *pixa1, *pixa2;
+
+    PROCNAME("pixSelectComponentBySize");
+
+    if (pbox) *pbox = NULL;
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+    if (type == L_SELECT_BY_WIDTH)
+        sorttype = L_SORT_BY_WIDTH;
+    else if (type == L_SELECT_BY_HEIGHT)
+        sorttype = L_SORT_BY_HEIGHT;
+    else if (type == L_SELECT_BY_MAX_DIMENSION)
+        sorttype = L_SORT_BY_MAX_DIMENSION;
+    else if (type == L_SELECT_BY_AREA)
+        sorttype = L_SORT_BY_AREA;
+    else if (type == L_SELECT_BY_PERIMETER)
+        sorttype = L_SORT_BY_PERIMETER;
+    else
+        return (PIX *)ERROR_PTR("invalid selection type", procName, NULL);
+    if (connectivity != 4 && connectivity != 8)
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+    pixZero(pixs, &empty);
+    if (empty)
+        return (PIX *)ERROR_PTR("no foreground pixels", procName, NULL);
+
+    boxa1 = pixConnComp(pixs, &pixa1, connectivity);
+    n = boxaGetCount(boxa1);
+    if (rankorder < 0 || rankorder >= n)
+        rankorder = n - 1;  /* smallest */
+    if (pbox) pnaindex = &naindex;
+    pixa2 = pixaSort(pixa1, sorttype, L_SORT_DECREASING, pnaindex, L_CLONE);
+    pixd = pixaGetPix(pixa2, rankorder, L_COPY);
+    if (pnaindex) {
+        numaGetIValue(naindex, rankorder, &index);
+        *pbox = boxaGetBox(boxa1, index, L_COPY);
+        numaDestroy(&naindex);
+    }
+    boxaDestroy(&boxa1);
+    pixaDestroy(&pixa1);
+    pixaDestroy(&pixa2);
     return pixd;
 }
 

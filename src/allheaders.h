@@ -607,7 +607,6 @@ LEPT_DLL extern BOXA * pixConnCompPixa ( PIX *pixs, PIXA **ppixa, l_int32 connec
 LEPT_DLL extern BOXA * pixConnCompBB ( PIX *pixs, l_int32 connectivity );
 LEPT_DLL extern l_ok pixCountConnComp ( PIX *pixs, l_int32 connectivity, l_int32 *pcount );
 LEPT_DLL extern l_int32 nextOnPixelInRaster ( PIX *pixs, l_int32 xstart, l_int32 ystart, l_int32 *px, l_int32 *py );
-LEPT_DLL extern l_int32 nextOnPixelInRasterLow ( l_uint32 *data, l_int32 w, l_int32 h, l_int32 wpl, l_int32 xstart, l_int32 ystart, l_int32 *px, l_int32 *py );
 LEPT_DLL extern BOX * pixSeedfillBB ( PIX *pixs, L_STACK *stack, l_int32 x, l_int32 y, l_int32 connectivity );
 LEPT_DLL extern BOX * pixSeedfill4BB ( PIX *pixs, L_STACK *stack, l_int32 x, l_int32 y );
 LEPT_DLL extern BOX * pixSeedfill8BB ( PIX *pixs, L_STACK *stack, l_int32 x, l_int32 y );
@@ -1640,6 +1639,7 @@ LEPT_DLL extern PIX * pixClipMasked ( PIX *pixs, PIX *pixm, l_int32 x, l_int32 y
 LEPT_DLL extern l_ok pixCropToMatch ( PIX *pixs1, PIX *pixs2, PIX **ppixd1, PIX **ppixd2 );
 LEPT_DLL extern PIX * pixCropToSize ( PIX *pixs, l_int32 w, l_int32 h );
 LEPT_DLL extern PIX * pixResizeToMatch ( PIX *pixs, PIX *pixt, l_int32 w, l_int32 h );
+LEPT_DLL extern PIX * pixSelectComponentBySize ( PIX *pixs, l_int32 rankorder, l_int32 type, l_int32 connectivity, BOX **pbox );
 LEPT_DLL extern PIX * pixMakeFrameMask ( l_int32 w, l_int32 h, l_float32 hf1, l_float32 hf2, l_float32 vf1, l_float32 vf2 );
 LEPT_DLL extern PIX * pixMakeCoveringOfRectangles ( PIX *pixs, l_int32 maxiters );
 LEPT_DLL extern l_ok pixFractionFgInMask ( PIX *pix1, PIX *pix2, l_float32 *pfract );

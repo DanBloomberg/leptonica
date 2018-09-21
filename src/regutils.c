@@ -490,7 +490,7 @@ l_int32  w, h, factor, similar;
  *      (1) This function does one of three things, depending on the mode:
  *           * "generate": makes a "golden" file as a copy %localname.
  *           * "compare": compares %localname contents with the golden file
- *           * "display": makes the %localname file but does no comparison
+ *           * "display": this does nothing
  *      (2) The canonical format of the golden filenames is:
  *            /tmp/lept/golden/[root of main name]_golden.[index].
  *                                                       [ext of localname]

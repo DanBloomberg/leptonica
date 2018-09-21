@@ -78,7 +78,7 @@
  *         Sorting flags (by type and direction)
  *         Blending flags
  *         Graphics pixel setting flags
- *         Size filtering flags
+ *         Size and location filter flags
  *         Color component selection flags
  *         16-bit conversion flags
  *         Rotation and shear flags
@@ -790,6 +790,23 @@ enum {
  *                     Size and location filter flags                      *
  *-------------------------------------------------------------------------*/
 
+/*! Size comparison filter flags */
+enum {
+    L_SELECT_IF_LT = 1,         /*!< save if value is less than threshold  */
+    L_SELECT_IF_GT = 2,         /*!< save if value is more than threshold  */
+    L_SELECT_IF_LTE = 3,        /*!< save if value is <= to the threshold  */
+    L_SELECT_IF_GTE = 4         /*!< save if value is >= to the threshold  */
+};
+
+/*! Size selection flags for 1 bpp pix foreground components */
+enum {
+    L_SELECT_BY_WIDTH = 1,          /*!< select by width                   */
+    L_SELECT_BY_HEIGHT = 2,         /*!< select by height                  */
+    L_SELECT_BY_MAX_DIMENSION = 3,  /*!< select by max of width and height */
+    L_SELECT_BY_AREA = 4,           /*!< select by foreground area         */
+    L_SELECT_BY_PERIMETER = 5       /*!< select by perimeter               */
+};
+
 /*! Location filter flags */
 enum {
     L_SELECT_WIDTH = 1,         /*!< width must satisfy constraint         */
@@ -800,14 +817,6 @@ enum {
                                 /*!< or yval) can satisfy                  */
     L_SELECT_IF_BOTH = 6        /*!< both width and height (or xval        */
                                 /*!< and yval must satisfy                 */
-};
-
-/*! Size filter flags */
-enum {
-    L_SELECT_IF_LT = 1,         /*!< save if value is less than threshold  */
-    L_SELECT_IF_GT = 2,         /*!< save if value is more than threshold  */
-    L_SELECT_IF_LTE = 3,        /*!< save if value is <= to the threshold  */
-    L_SELECT_IF_GTE = 4         /*!< save if value is >= to the threshold  */
 };
 
 
