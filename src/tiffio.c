@@ -473,9 +473,8 @@ l_uint16   spp, bps, bpp, photometry, tiffcomp, orientation;
 l_uint16  *redmap, *greenmap, *bluemap;
 l_int32    d, wpl, bpl, comptype, i, j, ncolors, rval, gval, bval;
 l_int32    xres, yres;
-l_uint32   w, h, tiffbpl, tiffword;
-l_uint32  *line, *ppixel, *tiffdata;
-l_uint32   read_oriented;
+l_uint32   w, h, tiffbpl, tiffword, read_oriented;
+l_uint32  *line, *ppixel, *tiffdata, *pixdata;
 PIX       *pix;
 PIXCMAP   *cmap;
 
@@ -511,8 +510,14 @@ PIXCMAP   *cmap;
     wpl = pixGetWpl(pix);
     bpl = 4 * wpl;
 
-        /* Read the data */
-    if (spp == 1) {
+    TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &tiffcomp);
+
+        /* Thanks to Jeff Breidenbach, we now support reading 8 bpp
+         * images encoded in the long-deprecated old jpeg format,
+         * COMPRESSION_OJPEG.  TIFFReadScanline() fails on this format,
+         * so we use RGBA reading, which generates a 4 spp image, and
+         * pull out the red component. */
+    if (spp == 1 && tiffcomp != COMPRESSION_OJPEG) {
         linebuf = (l_uint8 *)LEPT_CALLOC(tiffbpl + 1, sizeof(l_uint8));
         for (i = 0 ; i < h ; i++) {
             if (TIFFReadScanline(tif, linebuf, i, 0) < 0) {
@@ -529,7 +534,7 @@ PIXCMAP   *cmap;
             pixEndianTwoByteSwap(pix);
         LEPT_FREE(linebuf);
     }
-    else {  /* rgb */
+    else {  /* rgb or old jpeg */
         if ((tiffdata = (l_uint32 *)LEPT_CALLOC((size_t)w * h,
                                                  sizeof(l_uint32))) == NULL) {
             pixDestroy(&pix);
@@ -545,16 +550,28 @@ PIXCMAP   *cmap;
             read_oriented = 1;
         }
 
-        line = pixGetData(pix);
-        for (i = 0 ; i < h ; i++, line += wpl) {
-            for (j = 0, ppixel = line; j < w; j++) {
-                    /* TIFFGet* are macros */
-                tiffword = tiffdata[i * w + j];
-                rval = TIFFGetR(tiffword);
-                gval = TIFFGetG(tiffword);
-                bval = TIFFGetB(tiffword);
-                composeRGBPixel(rval, gval, bval, ppixel);
-                ppixel++;
+        if (spp == 1) {  /* 8 bpp, old jpeg format */
+            pixdata = pixGetData(pix);
+            for (i = 0; i < h; i++) {
+                line = pixdata + i * wpl;
+                for (j = 0; j < w; j++) {
+                    tiffword = tiffdata[i * w + j];
+                    rval = TIFFGetR(tiffword);
+                    SET_DATA_BYTE(line, j, rval);
+                }
+            }
+        } else {  /* standard rgb */
+            line = pixGetData(pix);
+            for (i = 0; i < h; i++, line += wpl) {
+                for (j = 0, ppixel = line; j < w; j++) {
+                        /* TIFFGet* are macros */
+                    tiffword = tiffdata[i * w + j];
+                    rval = TIFFGetR(tiffword);
+                    gval = TIFFGetG(tiffword);
+                    bval = TIFFGetB(tiffword);
+                    composeRGBPixel(rval, gval, bval, ppixel);
+                    ppixel++;
+                }
             }
         }
         LEPT_FREE(tiffdata);
