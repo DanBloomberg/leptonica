@@ -88,6 +88,7 @@ static const char *FILE_RLE  =  "/tmp/lept/format/file_rle.tif";
 static const char *FILE_PB   =  "/tmp/lept/format/file_packbits.tif";
 static const char *FILE_LZW  =  "/tmp/lept/format/file_lzw.tif";
 static const char *FILE_ZIP  =  "/tmp/lept/format/file_zip.tif";
+static const char *FILE_TIFF_JPEG =  "/tmp/lept/format/file_jpeg.tif";
 static const char *FILE_TIFF =  "/tmp/lept/format/file.tif";
 static const char *FILE_JPG  =  "/tmp/lept/format/file.jpg";
 static const char *FILE_GIF  =  "/tmp/lept/format/file.gif";
@@ -356,6 +357,7 @@ PIX      *pix;
     case IFF_TIFF_G4:
     case IFF_TIFF_LZW:
     case IFF_TIFF_ZIP:
+    case IFF_TIFF_JPEG:
         if ((pix = pixReadStreamTiff(fp, 0)) == NULL)  /* page 0 by default */
             return (PIX *)ERROR_PTR("tiff: no pix returned", procName, NULL);
         break;
@@ -491,6 +493,7 @@ PIX     *pix;
     case IFF_TIFF_G4:
     case IFF_TIFF_LZW:
     case IFF_TIFF_ZIP:
+    case IFF_TIFF_JPEG:
             /* Reading page 0 by default; possibly redefine format */
         ret = readHeaderTiff(filename, 0, &w, &h, &bps, &spp, NULL, &iscmap,
                              &format);
@@ -793,7 +796,7 @@ l_int32  format;
     if (format == IFF_TIFF || format == IFF_TIFF_PACKBITS ||
         format == IFF_TIFF_RLE || format == IFF_TIFF_G3 ||
         format == IFF_TIFF_G4 || format == IFF_TIFF_LZW ||
-        format == IFF_TIFF_ZIP)
+        format == IFF_TIFF_ZIP || format == IFF_TIFF_JPEG)
         return 1;
     else
         return 0;
@@ -1005,6 +1008,7 @@ PIX     *pix;
     case IFF_TIFF_G4:
     case IFF_TIFF_LZW:
     case IFF_TIFF_ZIP:
+    case IFF_TIFF_JPEG:
             /* Reading page 0 by default; possibly redefine format */
         ret = readHeaderMemTiff(data, size, 0, &w, &h, &bps, &spp,
                                 NULL, &iscmap, &format);
@@ -1402,6 +1406,37 @@ PIXCMAP   *cmap;
         problems = TRUE;
     }
     pixDestroy(&pix1);
+
+        /* tiff jpeg encoding works for grayscale and rgb */
+    if (d == 8 || d == 32) {
+        PIX  *pixc1;
+        L_INFO("write/read jpeg compressed tiff\n", procName);
+        if (d == 8 && pixGetColormap(pixc)) {
+            pixc1 = pixRemoveColormap(pixc, REMOVE_CMAP_BASED_ON_SRC);
+            pixWrite(FILE_TIFF_JPEG, pixc1, IFF_TIFF_JPEG);
+            if ((pix1 = pixRead(FILE_TIFF_JPEG)) == NULL) {
+                L_INFO(" did not read FILE_TIFF_JPEG\n", procName);
+                problems = TRUE;
+            }
+            pixDestroy(&pixc1);
+        } else {
+            pixWrite(FILE_TIFF_JPEG, pixc, IFF_TIFF_JPEG);
+            pix1 = pixRead(FILE_TIFF_JPEG);
+            if (d == 8) {
+                pixCompareGray(pix1, pixc, L_COMPARE_ABS_DIFF, 0, NULL, &diff,
+                               NULL, NULL);
+            } else {
+                pixCompareRGB(pix1, pixc, L_COMPARE_ABS_DIFF, 0, NULL, &diff,
+                              NULL, NULL);
+            }
+            if (diff > 8.0) {
+                L_INFO("   **** bad tiff jpeg compressed image: "
+                       "d = %d, diff = %5.2f ****\n", procName, d, diff);
+                problems = TRUE;
+            }
+        }
+        pixDestroy(&pix1);
+    }
 
         /* tiff g4, g3, rle and packbits work for 1 bpp */
     if (d == 1) {

@@ -113,7 +113,7 @@ static const l_float32  DEFAULT_SCALING = 1.0;
     /* because that makes it static.  The 'const' in the definition of   */
     /* the array refers to the strings in the array; the ptr to the      */
     /* array is not const and can be used 'extern' in other files.)      */
-LEPT_DLL l_int32  NumImageFileFormatExtensions = 19;  /* array size */
+LEPT_DLL l_int32  NumImageFileFormatExtensions = 20;  /* array size */
 LEPT_DLL const char *ImageFileFormatExtensions[] =
          {"unknown",
           "bmp",
@@ -132,6 +132,7 @@ LEPT_DLL const char *ImageFileFormatExtensions[] =
           "jp2",
           "webp",
           "pdf",
+          "tif",
           "default",
           ""};
 
@@ -424,6 +425,7 @@ pixWriteStream(FILE    *fp,
     case IFF_TIFF_G4:        /* compressed, binary only */
     case IFF_TIFF_LZW:       /* compressed, all depths */
     case IFF_TIFF_ZIP:       /* compressed, all depths */
+    case IFF_TIFF_JPEG:      /* compressed, 8 bpp gray and 32 bpp rgb */
         return pixWriteStreamTiff(fp, pix, format);
         break;
 
