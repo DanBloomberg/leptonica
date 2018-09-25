@@ -57,6 +57,9 @@
  *           PIXA     *pixaConstrainedSelect()
  *           l_int32   pixaSelectToPdf()
  *
+ *      Generate pixa from tiled image
+ *           PIXA     *pixaMakeFromTiledPix()
+ *
  *      Pixa display into multiple tiles
  *           PIXA     *pixaDisplayMultiTiled()
  *
@@ -2059,7 +2062,86 @@ PIXA    *pixa1, *pixa2;
 
 
 /*---------------------------------------------------------------------*
- *                     Pixa display into multiple tiles                *
+ *                     Generate pixa from tiled image                  *
+ *---------------------------------------------------------------------*/
+/*!
+ * \brief   pixaMakeFromTiledPix()
+ *
+ * \param[in]    pixs        any depth; colormap OK
+ * \param[in]    w           width of each tile
+ * \param[in]    h           height of each tile
+ * \param[in]    boxa        [optional] location of rectangular regions
+ *                           to be extracted
+ * \return  pixa if OK, NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Operations that generate a pix by tiling from a pixa, and
+ *          the inverse that generate a pixa from tiles of a pix,
+ *          are useful.  One such pair is pixaDisplayUnsplit() and
+ *          pixaSplitPix().  This function is a very simple one that
+ *          generates a pixa from tiles of a pix. There are two cases:
+ *            - the tiles can all be the same size (the inverse of
+ *              pixaDisplayOnLattice(), or
+ *            - the tiles can differ in size, where there is an
+ *              associated boxa (the inverse of pixaCreateFromBoxa().
+ *      (2) If all tiles are the same size, %w by %h, use %boxa = NULL.
+ *          If the tiles differ in size, use %boxa to extract the
+ *          individual images (%w and %h are then ignored).
+ *      (3) Typical usage: a set of character templates all scaled to
+ *          the same size can be stored on a lattice of that size in
+ *          a pix, and this function can regenerate the pixa.  If the
+ *          templates differ in size, a boxa generated when the tiled
+ *          pix was made can be used to indicate the location of
+ *          the templates.
+ * </pre>
+ */
+PIXA *
+pixaMakeFromTiledPix(PIX     *pixs,
+                     l_int32  w,
+                     l_int32  h,
+                     BOXA    *boxa)
+{
+l_int32   i, j, ws, hs, d, nx, ny;
+PIX      *pix1;
+PIXA     *pixa;
+PIXCMAP  *cmap;
+
+    PROCNAME("pixaMakeFromTiledPix");
+
+    if (!pixs)
+        return (PIXA *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!boxa && (w <= 0 || h <= 0))
+        return (PIXA *)ERROR_PTR("w and h must be > 0", procName, NULL);
+
+    if (boxa)  /* general case */
+       return pixaCreateFromBoxa(pixs, boxa, NULL);
+
+        /* All tiles are the same size */
+    pixGetDimensions(pixs, &ws, &hs, &d);
+    nx = ws / w;
+    ny = hs / h;
+    if (nx * w != ws || ny * h != hs)
+        L_WARNING("some tiles will be clipped\n", procName);
+
+    if ((pixa = pixaCreate(nx * ny)) == NULL)
+        return (PIXA *)ERROR_PTR("pixa not made", procName, NULL);
+    cmap = pixGetColormap(pixs);
+    for (i = 0; i < ny; i++) {
+        for (j = 0; j < nx; j++) {
+            pix1 = pixCreate(w, h, d);
+            if (cmap) pixSetColormap(pix1, pixcmapCopy(cmap));
+            pixRasterop(pix1, 0, 0, w, h, PIX_SRC, pixs, j * w, i * h);
+            pixaAddPix(pixa, pix1, L_INSERT);
+        }
+    }
+
+    return pixa;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                    Pixa display into multiple tiles                 *
  *---------------------------------------------------------------------*/
 /*!
  * \brief   pixaDisplayMultiTiled()

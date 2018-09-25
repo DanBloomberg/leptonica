@@ -1801,6 +1801,7 @@ LEPT_DLL extern PIXA * pixaConvertTo8Colormap ( PIXA *pixas, l_int32 dither );
 LEPT_DLL extern PIXA * pixaConvertTo32 ( PIXA *pixas );
 LEPT_DLL extern PIXA * pixaConstrainedSelect ( PIXA *pixas, l_int32 first, l_int32 last, l_int32 nmax, l_int32 use_pairs, l_int32 copyflag );
 LEPT_DLL extern l_ok pixaSelectToPdf ( PIXA *pixas, l_int32 first, l_int32 last, l_int32 res, l_float32 scalefactor, l_int32 type, l_int32 quality, l_uint32 color, l_int32 fontsize, const char *fileout );
+LEPT_DLL extern PIXA * pixaMakeFromTiledPix ( PIX *pixs, l_int32 w, l_int32 h, BOXA *boxa );
 LEPT_DLL extern PIXA * pixaDisplayMultiTiled ( PIXA *pixas, l_int32 nx, l_int32 ny, l_int32 maxw, l_int32 maxh, l_float32 scalefactor, l_int32 spacing, l_int32 border );
 LEPT_DLL extern l_ok pixaSplitIntoFiles ( PIXA *pixas, l_int32 nsplit, l_float32 scale, l_int32 outwidth, l_int32 write_pixa, l_int32 write_pix, l_int32 write_pdf );
 LEPT_DLL extern l_ok convertToNUpFiles ( const char *dir, const char *substr, l_int32 nx, l_int32 ny, l_int32 tw, l_int32 spacing, l_int32 border, l_int32 fontsize, const char *outdir );
