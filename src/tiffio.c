@@ -488,16 +488,22 @@ PIXCMAP   *cmap;
         /* Use default fields for bps and spp */
     TIFFGetFieldDefaulted(tif, TIFFTAG_BITSPERSAMPLE, &bps);
     TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLESPERPIXEL, &spp);
-    bpp = bps * spp;
-    if (bpp > 32)
-        L_WARNING("bpp = %d; stripping 16 bit rgb samples down to 8\n",
-                  procName, bpp);
+    if (bps < 1 || bps > 16) {
+        L_ERROR("invalid bps = %d\n", procName, bps);
+        return NULL;
+    }
     if (spp == 1)
         d = bps;
     else if (spp == 3 || spp == 4)
         d = 32;
     else
         return (PIX *)ERROR_PTR("spp not in set {1,3,4}", procName, NULL);
+    bpp = bps * spp;
+    if (bpp > 32) {  /* for rgb or rgba only */
+        L_WARNING("bpp = %d; stripping 16 bit rgb samples down to 8\n",
+                  procName, bpp);
+        bps = 8;
+    }
 
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);

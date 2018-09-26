@@ -214,7 +214,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		flipselgen.c fmorphautogen.c \
 		fpixcontours.c gammatest.c \
 		graphicstest.c graymorphtest.c \
-		hashtest.c histotest.c histoduptest.c \
+		hashtest.c histoduptest.c histotest.c \
 		htmlviewer.c iotest.c \
 		jbcorrelation.c jbrankhaus.c jbwords.c \
 		listtest.c livre_adapt.c livre_hmt.c \
@@ -898,11 +898,11 @@ graymorphtest:	graymorphtest.o $(LEPTLIB)
 hashtest:	hashtest.o $(LEPTLIB)
 	$(CC) -o hashtest hashtest.o $(ALL_LIBS) $(EXTRALIBS)
 
-histotest:	histotest.o $(LEPTLIB)
-	$(CC) -o histotest histotest.o $(ALL_LIBS) $(EXTRALIBS)
-
 histoduptest:	histoduptest.o $(LEPTLIB)
 	$(CC) -o histoduptest histoduptest.o $(ALL_LIBS) $(EXTRALIBS)
+
+histotest:	histotest.o $(LEPTLIB)
+	$(CC) -o histotest histotest.o $(ALL_LIBS) $(EXTRALIBS)
 
 htmlviewer:	htmlviewer.o $(LEPTLIB)
 	$(CC) -o htmlviewer htmlviewer.o $(ALL_LIBS) $(EXTRALIBS)
