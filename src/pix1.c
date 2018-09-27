@@ -1449,8 +1449,9 @@ pixSetSpecial(PIX     *pix,
  *
  * <pre>
  * Notes:
- *      (1) The text string belongs to the pix.  The caller must
- *          NOT free it!
+ *      (1) The text string belongs to the pix:
+ *          * the caller must NOT free it
+ *          * it must not be used after the pix is destroyed
  * </pre>
  */
 char *

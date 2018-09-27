@@ -1195,7 +1195,7 @@ PTA       *ptau1, *ptau2, *ptad1, *ptad2;
     }
 
         /* Check the lower half */
-    ptad1 = ptaSelectRange(ptas, n / 2 + 1, 0);
+    ptad1 = ptaSelectRange(ptas, n / 2 + 1, -1);
     ptaGetRankValue(ptad1, 0.5, NULL, L_SORT_BY_Y, &rval);
     nd = ptaGetCount(ptad1);
     ptad2 = ptaCreate(nd);

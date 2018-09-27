@@ -367,7 +367,7 @@ PTA     *ptad;
  *
  * \param[in]    ptas
  * \param[in]    first    use 0 to select from the beginning
- * \param[in]    last     use 0 to select to the end
+ * \param[in]    last     use -1 to select to the end
  * \return  ptad, or NULL on error
  */
 PTA *
@@ -388,9 +388,14 @@ PTA       *ptad;
         return ptaCopy(ptas);
     }
     first = L_MAX(0, first);
-    if (last <= 0) last = n - 1;
+    if (last < 0) last = n - 1;
     if (first >= n)
         return (PTA *)ERROR_PTR("invalid first", procName, NULL);
+    if (last >= n) {
+        L_WARNING("last = %d is beyond max index = %d; adjusting\n",
+                  procName, last, n - 1);
+        last = n - 1;
+    }
     if (first > last)
         return (PTA *)ERROR_PTR("first > last", procName, NULL);
 

@@ -96,7 +96,7 @@ static l_int32 boxaFillAll(BOXA *boxa);
  *
  * \param[in]    boxas
  * \param[in]    first use 0 to select from the beginning
- * \param[in]    last use 0 to select to the end
+ * \param[in]    last use -1 to select to the end
  * \param[in]    copyflag L_COPY, L_CLONE
  * \return  boxad, or NULL on error
  *
@@ -128,9 +128,14 @@ BOXA    *boxad;
         return boxaCopy(boxas, copyflag);
     }
     first = L_MAX(0, first);
-    if (last <= 0) last = n - 1;
+    if (last < 0) last = n - 1;
     if (first >= n)
         return (BOXA *)ERROR_PTR("invalid first", procName, NULL);
+    if (last >= n) {
+        L_WARNING("last = %d is beyond max index = %d; adjusting\n",
+                  procName, last, n - 1);
+        last = n - 1;
+    }
     if (first > last)
         return (BOXA *)ERROR_PTR("first > last", procName, NULL);
 
@@ -149,7 +154,7 @@ BOXA    *boxad;
  *
  * \param[in]    baas
  * \param[in]    first use 0 to select from the beginning
- * \param[in]    last use 0 to select to the end
+ * \param[in]    last use -1 to select to the end
  * \param[in]    copyflag L_COPY, L_CLONE
  * \return  baad, or NULL on error
  *
@@ -179,9 +184,14 @@ BOXAA   *baad;
     if ((n = boxaaGetCount(baas)) == 0)
         return (BOXAA *)ERROR_PTR("empty baas", procName, NULL);
     first = L_MAX(0, first);
-    if (last <= 0) last = n - 1;
+    if (last < 0) last = n - 1;
     if (first >= n)
         return (BOXAA *)ERROR_PTR("invalid first", procName, NULL);
+    if (last >= n) {
+        L_WARNING("last = %d is beyond max index = %d; adjusting\n",
+                  procName, last, n - 1);
+        last = n - 1;
+    }
     if (first > last)
         return (BOXAA *)ERROR_PTR("first > last", procName, NULL);
 

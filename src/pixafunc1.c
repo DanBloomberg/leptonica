@@ -1653,7 +1653,7 @@ PIXAA   *paa;
  *
  * \param[in]    pixas
  * \param[in]    first     use 0 to select from the beginning
- * \param[in]    last      use 0 to select to the end
+ * \param[in]    last      use -1 to select to the end
  * \param[in]    copyflag  L_COPY, L_CLONE
  * \return  pixad, or NULL on error
  *
@@ -1682,9 +1682,14 @@ PIXA    *pixad;
         return (PIXA *)ERROR_PTR("invalid copyflag", procName, NULL);
     n = pixaGetCount(pixas);
     first = L_MAX(0, first);
-    if (last <= 0) last = n - 1;
+    if (last < 0) last = n - 1;
     if (first >= n)
         return (PIXA *)ERROR_PTR("invalid first", procName, NULL);
+    if (last >= n) {
+        L_WARNING("last = %d is beyond max index = %d; adjusting\n",
+                  procName, last, n - 1);
+        last = n - 1;
+    }
     if (first > last)
         return (PIXA *)ERROR_PTR("first > last", procName, NULL);
 
@@ -1703,7 +1708,7 @@ PIXA    *pixad;
  *
  * \param[in]    paas
  * \param[in]    first    use 0 to select from the beginning
- * \param[in]    last     use 0 to select to the end
+ * \param[in]    last     use -1 to select to the end
  * \param[in]    copyflag L_COPY, L_CLONE
  * \return  paad, or NULL on error
  *
@@ -1732,9 +1737,14 @@ PIXAA   *paad;
         return (PIXAA *)ERROR_PTR("invalid copyflag", procName, NULL);
     n = pixaaGetCount(paas, NULL);
     first = L_MAX(0, first);
-    if (last <= 0) last = n - 1;
+    if (last < 0) last = n - 1;
     if (first >= n)
         return (PIXAA *)ERROR_PTR("invalid first", procName, NULL);
+    if (last >= n) {
+        L_WARNING("last = %d is beyond max index = %d; adjusting\n", 
+                  procName, last, n - 1);
+        last = n - 1;
+    }
     if (first > last)
         return (PIXAA *)ERROR_PTR("first > last", procName, NULL);
 

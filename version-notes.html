@@ -135,6 +135,9 @@ They are <i>not</i> a complete listing of the modifications.
           ptra1_reg, ptra2_reg
         Enabled read/write for standard jpeg compressed tiff images.
         Enabled reading for the old (deprecated) jpeg-encoded tiffs.
+        Fix range selectors for pixa, pixaa, boxa, boxaa, pta:
+          Now, last = -1 goes to the end.
+        When reading tiff --> pix, insert IMAGEDESCRIPTION into text field.
 
 1.76.0  1 May 18
         Modify infrastructure to fix outstanding security issues. By default,

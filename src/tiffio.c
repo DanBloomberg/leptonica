@@ -468,6 +468,7 @@ TIFF  *tif;
 static PIX *
 pixReadFromTiffStream(TIFF  *tif)
 {
+char      *text;
 l_uint8   *linebuf, *data;
 l_uint16   spp, bps, bpp, photometry, tiffcomp, orientation;
 l_uint16  *redmap, *greenmap, *bluemap;
@@ -644,6 +645,9 @@ PIXCMAP   *cmap;
         }
     }
 
+    text = NULL;
+    TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &text);
+    if (text) pixSetText(pix, text);
     return pix;
 }
 
