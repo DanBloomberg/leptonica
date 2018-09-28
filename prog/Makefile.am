@@ -24,7 +24,7 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	fpix1_reg fpix2_reg genfonts_reg \
 	grayfill_reg graymorph1_reg graymorph2_reg \
 	grayquant_reg hardlight_reg \
-	insert_reg ioformats_reg italic_reg \
+	insert_reg ioformats_reg iomisc_reg italic_reg \
 	jbclass_reg jpegio_reg \
 	kernel_reg label_reg lineremoval_reg \
 	locminmax_reg logicops_reg lowaccess_reg \
@@ -85,7 +85,7 @@ OTHER_PROGS = adaptmap_dark \
 	findpattern1 findpattern2 findpattern3 \
 	flipselgen fmorphautogen \
 	fpixcontours gammatest graphicstest graymorphtest \
-	hashtest histotest histoduptest htmlviewer iotest \
+	hashtest histotest histoduptest htmlviewer \
 	jbcorrelation jbrankhaus jbwords \
 	listtest livre_adapt livre_hmt \
 	livre_makefigs livre_orient \
