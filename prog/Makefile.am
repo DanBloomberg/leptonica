@@ -36,8 +36,8 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	projection_reg projective_reg \
 	psio_reg psioseg_reg pta_reg \
 	ptra1_reg ptra2_reg \
-	quadtree_reg rank_reg rankbin_reg \
-	rankhisto_reg rasteropip_reg \
+	quadtree_reg rankbin_reg rankhisto_reg \
+	rank_reg rasteropip_reg rasterop_reg \
 	rotate1_reg rotate2_reg rotateorth_reg \
 	scale_reg seedspread_reg \
 	selio_reg shear1_reg shear2_reg \
@@ -64,8 +64,7 @@ MANUAL_REG_PROGS = alltests_reg bilateral1_reg \
 	fhmtauto_reg files_reg flipdetect_reg fmorphauto_reg \
 	heap_reg morphseq_reg pixa1_reg \
 	pixalloc_reg pixtile_reg \
-	rasterop_reg smallpix_reg \
-	smoothedge_reg string_reg
+	smallpix_reg smoothedge_reg string_reg
 
 OTHER_PROGS = adaptmap_dark \
 	arabic_lines arithtest \

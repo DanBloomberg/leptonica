@@ -150,6 +150,7 @@ static const char *tests[] = {
                               "rank_reg",
                               "rankbin_reg",
                               "rankhisto_reg",
+                              "rasterop_reg",
                               "rasteropip_reg",
                               "rotate1_reg",
                               "rotate2_reg",
