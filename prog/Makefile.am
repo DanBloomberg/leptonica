@@ -12,7 +12,7 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	bilinear_reg binarize_reg \
 	binmorph1_reg binmorph3_reg blackwhite_reg \
 	blend1_reg blend2_reg blend3_reg blend4_reg blend5_reg \
-	boxa1_reg ccthin1_reg ccthin2_reg cmapquant_reg \
+	boxa1_reg boxa2_reg ccthin1_reg ccthin2_reg cmapquant_reg \
 	colorcontent_reg coloring_reg colorize_reg \
 	colormask_reg colormorph_reg colorquant_reg \
 	colorseg_reg colorspace_reg compare_reg \
@@ -20,7 +20,8 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	convolve_reg dewarp_reg distance_reg \
 	dither_reg dna_reg dwamorph1_reg edge_reg enhance_reg \
 	equal_reg expand_reg extrema_reg \
-	falsecolor_reg findcorners_reg findpattern_reg \
+	falsecolor_reg fhmtauto_reg \
+	findcorners_reg findpattern_reg \
 	fpix1_reg fpix2_reg genfonts_reg \
 	grayfill_reg graymorph1_reg graymorph2_reg \
 	grayquant_reg hardlight_reg \
@@ -60,8 +61,8 @@ endif
 
 MANUAL_REG_PROGS = alltests_reg bilateral1_reg \
 	binmorph2_reg binmorph4_reg binmorph5_reg \
-	boxa2_reg dwamorph2_reg \
-	fhmtauto_reg files_reg flipdetect_reg fmorphauto_reg \
+	dwamorph2_reg \
+	files_reg flipdetect_reg fmorphauto_reg \
 	heap_reg morphseq_reg pixa1_reg \
 	pixalloc_reg pixtile_reg \
 	smallpix_reg smoothedge_reg string_reg
