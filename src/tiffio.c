@@ -1630,6 +1630,10 @@ l_float32  fxres, fyres;
     else if (foundxres && !foundyres)
         fyres = fxres;
 
+        /* Avoid overflow into int32; set max fxres and fyres to 5 x 10^8 */
+    if (fxres < 0 || fxres > (1L << 29) || fyres < 0 || fyres > (1L << 29))
+        return ERROR_INT("fxres and/or fyres values are invalid", procName, 1);
+
     if (resunit == RESUNIT_CENTIMETER) {  /* convert to ppi */
         *pxres = (l_int32)(2.54 * fxres + 0.5);
         *pyres = (l_int32)(2.54 * fyres + 0.5);
