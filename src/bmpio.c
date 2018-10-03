@@ -64,6 +64,7 @@ static const l_int32  L_MAX_ALLOWED_NUM_COLORS = 256;
 static const l_int32  L_MAX_ALLOWED_WIDTH = 1000000;
 static const l_int32  L_MAX_ALLOWED_HEIGHT = 1000000;
 static const l_int64  L_MAX_ALLOWED_PIXELS = 400000000LL;
+static const l_int32  L_MAX_ALLOWED_RES = 10000000;  /* pixels/meter */
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG     0
@@ -169,8 +170,8 @@ PIXCMAP   *cmap;
     yres = convertOnBigEnd32(bmpih->biYPelsPerMeter);
 
         /* Some sanity checking.  We impose limits on the image
-         * dimensions and number of pixels.  We make sure the file
-         * is the correct size to hold the amount of uncompressed data
+         * dimensions, resolution and number of pixels.  We make sure the
+         * file is the correct size to hold the amount of uncompressed data
          * that is specified in the header.  The number of colormap
          * entries is checked: it can be either 0 (no cmap) or some
          * number between 2 and 256.
@@ -181,13 +182,17 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("width < 1", procName, NULL);
     if (width > L_MAX_ALLOWED_WIDTH)
         return (PIX *)ERROR_PTR("width too large", procName, NULL);
+    if (height == 0 || height < -L_MAX_ALLOWED_HEIGHT ||
+        height > L_MAX_ALLOWED_HEIGHT)
+        return (PIX *)ERROR_PTR("invalid height", procName, NULL);
+    if (xres < 0 || xres > L_MAX_ALLOWED_RES ||
+        yres < 0 || yres > L_MAX_ALLOWED_RES)
+        return (PIX *)ERROR_PTR("invalid resolution", procName, NULL);
     height_neg = 0;
     if (height < 0) {
         height_neg = 1;
         height = -height;
     }
-    if (height == 0 || height > L_MAX_ALLOWED_HEIGHT)
-        return (PIX *)ERROR_PTR("invalid height", procName, NULL);
     npixels = 1LL * width * height;
     if (npixels > L_MAX_ALLOWED_PIXELS)
         return (PIX *)ERROR_PTR("npixels too large", procName, NULL);
