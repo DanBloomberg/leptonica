@@ -1629,10 +1629,10 @@ PIX   *pix1, *pix2;
     *pboxa = boxaSelectBySize(boxa2, maxwidth, maxheight, L_SELECT_IF_BOTH,
                              L_SELECT_IF_LTE, NULL);
     if (pixadb) {
-        pix2 = pixCopy(NULL, pixs);
+        pix2 = pixUnpackBinary(pixs, 32, 1);
         pixRenderBoxaArb(pix2, boxa1, 2, 255, 0, 0);
         pixaAddPix(pixadb, pix2, L_INSERT);
-        pix2 = pixCopy(NULL, pixs);
+        pix2 = pixUnpackBinary(pixs, 32, 1);
         pixRenderBoxaArb(pix2, boxa2, 2, 0, 255, 0);
         pixaAddPix(pixadb, pix2, L_INSERT);
     }
