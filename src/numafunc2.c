@@ -145,7 +145,8 @@ static const l_int32 NBinSizes = 24;
  * \brief   numaErode()
  *
  * \param[in]    nas
- * \param[in]    size of sel; greater than 0, odd; origin implicitly in center
+ * \param[in]    size   of sel; greater than 0, odd.  The origin
+ *                      is implicitly in the center.
  * \return  nad eroded, or NULL on error
  *
  * <pre>
@@ -220,7 +221,8 @@ NUMA       *nad;
  * \brief   numaDilate()
  *
  * \param[in]    nas
- * \param[in]    size of sel; greater than 0, odd; origin implicitly in center
+ * \param[in]    size   of sel; greater than 0, odd.  The origin
+ *                      is implicitly in the center.
  * \return  nad dilated, or NULL on error
  *
  * <pre>
@@ -288,7 +290,8 @@ NUMA       *nad;
  * \brief   numaOpen()
  *
  * \param[in]    nas
- * \param[in]    size of sel; greater than 0, odd; origin implicitly in center
+ * \param[in]    size   of sel; greater than 0, odd.  The origin
+ *                      is implicitly in the center.
  * \return  nad opened, or NULL on error
  *
  * <pre>
@@ -328,8 +331,9 @@ NUMA  *nat, *nad;
  * \brief   numaClose()
  *
  * \param[in]    nas
- * \param[in]    size of sel; greater than 0, odd; origin implicitly in center
- * \return  nad opened, or NULL on error
+ * \param[in]    size   of sel; greater than 0, odd.  The origin
+ *                      is implicitly in the center.
+ * \return  nad  closed, or NULL on error
  *
  * <pre>
  * Notes:
@@ -381,8 +385,8 @@ NUMA  *nab, *nat1, *nat2, *nad;
  * \brief   numaTransform()
  *
  * \param[in]    nas
- * \param[in]    shift add this to each number
- * \param[in]    scale multiply each number by this
+ * \param[in]    shift    add this to each number
+ * \param[in]    scale    multiply each number by this
  * \return  nad with all values shifted and scaled, or NULL on error
  *
  * <pre>
@@ -419,12 +423,12 @@ NUMA      *nad;
 /*!
  * \brief   numaSimpleStats()
  *
- * \param[in]    na input numa
- * \param[in]    first first element to use
- * \param[in]    last last element to use; 0 to go to the end
- * \param[out]   pmean [optional] mean value
- * \param[out]   pvar [optional] variance
- * \param[out]   prvar [optional] rms deviation from the mean
+ * \param[in]    na       input numa
+ * \param[in]    first    first element to use
+ * \param[in]    last     last element to use; -1 to go to the end
+ * \param[out]   pmean    [optional] mean value
+ * \param[out]   pvar     [optional] variance
+ * \param[out]   prvar    [optional] rms deviation from the mean
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -449,12 +453,17 @@ l_float32  sum, sumsq, val, mean, var;
         return ERROR_INT("na not defined", procName, 1);
     if ((n = numaGetCount(na)) == 0)
         return ERROR_INT("na is empty", procName, 1);
-    if (last == 0) last = n - 1;
-    last = L_MIN(last, n - 1);
-    if (first > last) {
-        L_ERROR("invalid: first(%d) > last(%d)\n", procName, first, last);
-        return 1;
+    first = L_MAX(0, first);
+    if (last < 0) last = n - 1;
+    if (first >= n)
+        return ERROR_INT("invalid first", procName, 1);
+    if (last >= n) {
+        L_WARNING("last = %d is beyond max index = %d; adjusting\n",
+                  procName, last, n - 1);
+        last = n - 1;
     }
+    if (first > last)
+        return ERROR_INT("first > last\n", procName, 1);
     ni = last - first + 1;
     sum = sumsq = 0.0;
     for (i = first; i <= last; i++) {
@@ -479,12 +488,12 @@ l_float32  sum, sumsq, val, mean, var;
 /*!
  * \brief   numaWindowedStats()
  *
- * \param[in]    nas input numa
- * \param[in]    wc half width of the window
- * \param[out]   pnam [optional] mean value in window
- * \param[out]   pnams [optional] mean square value in window
- * \param[out]   pnav [optional] variance in window
- * \param[out]   pnarv [optional] rms deviation from the mean
+ * \param[in]    nas     input numa
+ * \param[in]    wc      half width of the window
+ * \param[out]   pnam    [optional] mean value in window
+ * \param[out]   pnams   [optional] mean square value in window
+ * \param[out]   pnav    [optional] variance in window
+ * \param[out]   pnarv   [optional] rms deviation from the mean
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -549,7 +558,7 @@ NUMA  *nam, *nams;
  * \brief   numaWindowedMean()
  *
  * \param[in]    nas
- * \param[in]    wc half width of the convolution window
+ * \param[in]    wc    half width of the convolution window
  * \return  nad after low-pass filtering, or NULL on error
  *
  * <pre>
@@ -609,7 +618,7 @@ NUMA       *na1, *nad;
  * \brief   numaWindowedMeanSquare()
  *
  * \param[in]    nas
- * \param[in]    wc half width of the window
+ * \param[in]    wc    half width of the window
  * \return  nad containing windowed mean square values, or NULL on error
  *
  * <pre>
@@ -668,11 +677,11 @@ NUMA       *na1, *nad;
 /*!
  * \brief   numaWindowedVariance()
  *
- * \param[in]    nam windowed mean values
- * \param[in]    nams windowed mean square values
- * \param[out]   pnav [optional] numa of variance -- the ms deviation
- *                     from the mean
- * \param[out]   pnarv [optional] numa of rms deviation from the mean
+ * \param[in]    nam    windowed mean values
+ * \param[in]    nams   windowed mean square values
+ * \param[out]   pnav   [optional] numa of variance -- the ms deviation
+ *                      from the mean
+ * \param[out]   pnarv  [optional] numa of rms deviation from the mean
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -741,7 +750,7 @@ NUMA       *nav, *narv;  /* variance and square root of variance */
  * \brief   numaWindowedMedian()
  *
  * \param[in]    nas
- * \param[in]    halfwin half width of window over which the median is found
+ * \param[in]    halfwin   half width of window over which the median is found
  * \return  nad after windowed median filtering, or NULL on error
  *
  * <pre>
@@ -799,7 +808,7 @@ NUMA      *na1, *na2, *nad;
 /*!
  * \brief   numaConvertToInt()
  *
- * \param[in]    nas source numa
+ * \param[in]    nas   source numa
  * \return  na with all values rounded to nearest integer, or
  *              NULL on error
  */
@@ -833,10 +842,10 @@ NUMA    *nad;
  * \brief   numaMakeHistogram()
  *
  * \param[in]    na
- * \param[in]    maxbins max number of histogram bins
- * \param[out]   pbinsize  size of histogram bins
- * \param[out]   pbinstart [optional] start val of minimum bin;
- *                         input NULL to force start at 0
+ * \param[in]    maxbins    max number of histogram bins
+ * \param[out]   pbinsize   size of histogram bins
+ * \param[out]   pbinstart  [optional] start val of minimum bin;
+ *                          input NULL to force start at 0
  * \return  na consisiting of histogram of integerized values,
  *              or NULL on error.
  *
@@ -948,8 +957,8 @@ NUMA      *nai, *nahist;
 /*!
  * \brief   numaMakeHistogramAuto()
  *
- * \param[in]    na numa of floats; these may be integers
- * \param[in]    maxbins max number of histogram bins; >= 1
+ * \param[in]    na       numa of floats; these may be integers
+ * \param[in]    maxbins  max number of histogram bins; >= 1
  * \return  na consisiting of histogram of quantized float values,
  *              or NULL on error.
  *
@@ -1035,8 +1044,8 @@ NUMA      *nah;
  * \brief   numaMakeHistogramClipped()
  *
  * \param[in]    na
- * \param[in]    binsize typically 1.0
- * \param[in]    maxsize of histogram ordinate
+ * \param[in]    binsize    typically 1.0
+ * \param[in]    maxsize    of histogram ordinate
  * \return  na histogram of bins of size %binsize, starting with
  *                  the na[0] (x = 0.0 and going up to a maximum of
  *                  x = %maxsize, by increments of %binsize), or NULL on error
@@ -1096,8 +1105,8 @@ NUMA      *nad;
 /*!
  * \brief   numaRebinHistogram()
  *
- * \param[in]    nas input histogram
- * \param[in]    newsize number of old bins contained in each new bin
+ * \param[in]    nas      input histogram
+ * \param[in]    newsize  number of old bins contained in each new bin
  * \return  nad more coarsely re-binned histogram, or NULL on error
  */
 NUMA *
@@ -1143,10 +1152,9 @@ NUMA      *nad;
 /*!
  * \brief   numaNormalizeHistogram()
  *
- * \param[in]    nas input histogram
- * \param[in]    tsum target sum of all numbers in dest histogram;
- *                    e.g., use %tsum= 1.0 if this represents a
- *                    probability distribution
+ * \param[in]    nas   input histogram
+ * \param[in]    tsum  target sum of all numbers in dest histogram; e.g., use
+ *                     %tsum= 1.0 if this represents a probability distribution
  * \return  nad normalized histogram, or NULL on error
  */
 NUMA *
@@ -1186,20 +1194,20 @@ NUMA      *nad;
 /*!
  * \brief   numaGetStatsUsingHistogram()
  *
- * \param[in]    na an arbitrary set of numbers; not ordered and not
- *                  a histogram
- * \param[in]    maxbins the maximum number of bins to be allowed in
- *                       the histogram; use an integer larger than the
- *                       largest number in %na for consecutive integer bins
- * \param[out]   pmin [optional] min value of set
- * \param[out]   pmax [optional] max value of set
- * \param[out]   pmean [optional] mean value of set
+ * \param[in]    na        an arbitrary set of numbers; not ordered and not
+ *                         a histogram
+ * \param[in]    maxbins   the maximum number of bins to be allowed in
+ *                         the histogram; use an integer larger than the
+ *                         largest number in %na for consecutive integer bins
+ * \param[out]   pmin      [optional] min value of set
+ * \param[out]   pmax      [optional] max value of set
+ * \param[out]   pmean     [optional] mean value of set
  * \param[out]   pvariance [optional] variance
- * \param[out]   pmedian [optional] median value of set
- * \param[in]    rank in [0.0 ... 1.0]; median has a rank 0.5; ignored
- *                    if &rval == NULL
- * \param[out]   prval [optional] value in na corresponding to %rank
- * \param[out]   phisto [optional] Numa histogram; use NULL to prevent
+ * \param[out]   pmedian   [optional] median value of set
+ * \param[in]    rank      in [0.0 ... 1.0]; median has a rank 0.5;
+ *                         ignored if &rval == NULL
+ * \param[out]   prval     [optional] value in na corresponding to %rank
+ * \param[out]   phisto    [optional] Numa histogram; use NULL to prevent
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1302,15 +1310,15 @@ NUMA      *nah;
 /*!
  * \brief   numaGetHistogramStats()
  *
- * \param[in]    nahisto histogram: y(x(i)), i = 0 ... nbins - 1
- * \param[in]    startx x value of first bin: x(0)
- * \param[in]    deltax x increment between bins; the bin size; x(1) - x(0)
- * \param[out]   pxmean [optional] mean value of histogram
- * \param[out]   pxmedian [optional] median value of histogram
- * \param[out]   pxmode [optional] mode value of histogram:
- *                      xmode = x(imode), where y(xmode) >= y(x(i)) for
- *                      all i != imode
- * \param[out]   pxvariance [optional] variance of x
+ * \param[in]    nahisto     histogram: y(x(i)), i = 0 ... nbins - 1
+ * \param[in]    startx      x value of first bin: x(0)
+ * \param[in]    deltax      x increment between bins; the bin size; x(1) - x(0)
+ * \param[out]   pxmean      [optional] mean value of histogram
+ * \param[out]   pxmedian    [optional] median value of histogram
+ * \param[out]   pxmode      [optional] mode value of histogram:
+ *                           xmode = x(imode), where y(xmode) >= y(x(i)) for
+ *                           all i != imode
+ * \param[out]   pxvariance  [optional] variance of x
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1349,16 +1357,16 @@ numaGetHistogramStats(NUMA       *nahisto,
 /*!
  * \brief   numaGetHistogramStatsOnInterval()
  *
- * \param[in]    nahisto histogram: y(x(i)), i = 0 ... nbins - 1
- * \param[in]    startx x value of first bin: x(0)
- * \param[in]    deltax x increment between bins; the bin size; x(1) - x(0)
- * \param[in]    ifirst first bin to use for collecting stats
- * \param[in]    ilast last bin for collecting stats; use 0 to go to the end
- * \param[out]   pxmean [optional] mean value of histogram
- * \param[out]   pxmedian [optional] median value of histogram
- * \param[out]   pxmode [optional] mode value of histogram:
- *                      xmode = x(imode), where y(xmode) >= y(x(i)) for
- *                      all i != imode
+ * \param[in]    nahisto    histogram: y(x(i)), i = 0 ... nbins - 1
+ * \param[in]    startx     x value of first bin: x(0)
+ * \param[in]    deltax     x increment between bins; the bin size; x(1) - x(0)
+ * \param[in]    ifirst     first bin to use for collecting stats
+ * \param[in]    ilast      last bin for collecting stats; -1 to go to the end
+ * \param[out]   pxmean     [optional] mean value of histogram
+ * \param[out]   pxmedian   [optional] median value of histogram
+ * \param[out]   pxmode     [optional] mode value of histogram:
+ *                          xmode = x(imode), where y(xmode) >= y(x(i)) for
+ *                          all i != imode
  * \param[out]   pxvariance [optional] variance of x
  * \return  0 if OK, 1 on error
  *
@@ -1397,10 +1405,17 @@ l_float32  sum, sumval, halfsum, moment, var, x, y, ymax;
         return ERROR_INT("nothing to compute", procName, 1);
 
     n = numaGetCount(nahisto);
-    if (ilast <= 0) ilast = n - 1;
-    if (ifirst < 0) ifirst = 0;
-    if (ifirst > ilast || ifirst > n - 1)
-        return ERROR_INT("ifirst is too large", procName, 1);
+    ifirst = L_MAX(0, ifirst);
+    if (ilast < 0) ilast = n - 1;
+    if (ifirst >= n)
+        return ERROR_INT("invalid ifirst", procName, 1);
+    if (ilast >= n) {
+        L_WARNING("ilast = %d is beyond max index = %d; adjusting\n",
+                  procName, ilast, n - 1);
+        ilast = n - 1;
+    }
+    if (ifirst > ilast)
+        return ERROR_INT("ifirst > ilast", procName, 1);
     for (sum = 0.0, moment = 0.0, var = 0.0, i = ifirst; i <= ilast ; i++) {
         x = startx + i * deltax;
         numaGetFValue(nahisto, i, &y);
@@ -1450,12 +1465,12 @@ l_float32  sum, sumval, halfsum, moment, var, x, y, ymax;
 /*!
  * \brief   numaMakeRankFromHistogram()
  *
- * \param[in]    startx xval corresponding to first element in nay
- * \param[in]    deltax x increment between array elements in nay
- * \param[in]    nasy input histogram, assumed equally spaced
- * \param[in]    npts number of points to evaluate rank function
- * \param[out]   pnax [optional] array of x values in range
- * \param[out]   pnay rank array of specified npts
+ * \param[in]    startx   xval corresponding to first element in nay
+ * \param[in]    deltax   x increment between array elements in nay
+ * \param[in]    nasy     input histogram, assumed equally spaced
+ * \param[in]    npts     number of points to evaluate rank function
+ * \param[out]   pnax     [optional] array of x values in range
+ * \param[out]   pnay     rank array of specified npts
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1507,9 +1522,9 @@ NUMA      *nan, *nar;
 /*!
  * \brief   numaHistogramGetRankFromVal()
  *
- * \param[in]    na histogram
- * \param[in]    rval value of input sample for which we want the rank
- * \param[out]   prank fraction of total samples below rval
+ * \param[in]    na     histogram
+ * \param[in]    rval   value of input sample for which we want the rank
+ * \param[out]   prank  fraction of total samples below rval
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1578,9 +1593,9 @@ l_float32  startval, binsize, binval, maxval, fractval, total, sum, val;
 /*!
  * \brief   numaHistogramGetValFromRank()
  *
- * \param[in]    na histogram
- * \param[in]    rank fraction of total samples
- * \param[out]   prval approx. to the bin value
+ * \param[in]    na     histogram
+ * \param[in]    rank   fraction of total samples
+ * \param[out]   prval  approx. to the bin value
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1650,15 +1665,15 @@ l_float32  startval, binsize, rankcount, total, sum, fract, val;
 /*!
  * \brief   numaDiscretizeRankAndIntensity()
  *
- * \param[in]    na normalized histogram of probability density vs intensity
- * \param[in]    nbins number of bins at which the rank is divided
- * \param[out]   pnarbin [optional] rank bin value vs intensity
- * \param[out]   pnam [optional] median intensity in a bin vs
- *                     rank bin value, with %nbins of discretized rank values
- * \param[out]   pnar [optional] rank vs intensity; this is
- *                     a cumulative norm histogram
- * \param[out]   pnabb [optional] intensity at the right bin boundary
- *                      vs rank bin
+ * \param[in]    na       normalized histo of probability density vs intensity
+ * \param[in]    nbins    number of bins at which the rank is divided
+ * \param[out]   pnarbin  [optional] rank bin value vs intensity
+ * \param[out]   pnam     [optional] median intensity in a bin vs rank bin
+ *                        value, with %nbins of discretized rank values
+ * \param[out]   pnar     [optional] rank vs intensity; this is
+ *                        a cumulative norm histogram
+ * \param[out]   pnabb    [optional] intensity at the right bin boundary
+ *                        vs rank bin
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1810,11 +1825,11 @@ l_float32  sum, midrank, endrank, val;
 /*!
  * \brief   numaGetRankBinValues()
  *
- * \param[in]    na just an array of values
- * \param[in]    nbins number of bins at which the rank is divided
- * \param[out]   pnarbin [optional] rank bin value vs array value
- * \param[out]   pnam [optional] median intensity in a bin vs
- *                     rank bin value, with %nbins of discretized rank values
+ * \param[in]    na       an array of values
+ * \param[in]    nbins    number of bins at which the rank is divided
+ * \param[out]   pnarbin  [optional] rank bin value vs array value
+ * \param[out]   pnam     [optional] median intensity in a bin vs rank bin
+ *                        value, with %nbins of discretized rank values
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1874,15 +1889,15 @@ l_float32  maxval, delx;
 /*!
  * \brief   numaSplitDistribution()
  *
- * \param[in]    na histogram
- * \param[in]    scorefract fraction of the max score, used to determine
- *                          the range over which the histogram min is searched
- * \param[out]   psplitindex [optional] index for splitting
- * \param[out]   pave1 [optional] average of lower distribution
- * \param[out]   pave2 [optional] average of upper distribution
- * \param[out]   pnum1 [optional] population of lower distribution
- * \param[out]   pnum2 [optional] population of upper distribution
- * \param[out]   pnascore [optional] for debugging; otherwise use NULL
+ * \param[in]    na           histogram
+ * \param[in]    scorefract   fraction of the max score, used to determine
+ *                            range over which the histogram min is searched
+ * \param[out]   psplitindex  [optional] index for splitting
+ * \param[out]   pave1        [optional] average of lower distribution
+ * \param[out]   pave2        [optional] average of upper distribution
+ * \param[out]   pnum1        [optional] population of lower distribution
+ * \param[out]   pnum2        [optional] population of upper distribution
+ * \param[out]   pnascore     [optional] for debugging; otherwise use NULL
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2061,9 +2076,9 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
 /*!
  * \brief   grayHistogramsToEMD()
  *
- * \param[in]    naa1, naa2 two numaa, each with one or more 256-element
- *                          histograms
- * \param[out]   pnad nad of EM distances for each histogram
+ * \param[in]    naa1, naa2    two numaa, each with one or more 256-element
+ *                             histograms
+ * \param[out]   pnad          nad of EM distances for each histogram
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2124,8 +2139,8 @@ NUMA       *na1, *na2, *nad;
 /*!
  * \brief   numaEarthMoverDistance()
  *
- * \param[in]    na1, na2 two numas of the same size, typically histograms
- * \param[out]   pdist EM distance
+ * \param[in]    na1, na2    two numas of the same size, typically histograms
+ * \param[out]   pdist       earthmover distance
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2197,12 +2212,12 @@ NUMA       *na3;
 /*!
  * \brief   grayInterHistogramStats()
  *
- * \param[in]    naa numaa with two or more 256-element histograms
- * \param[in]    wc half-width of the smoothing window
- * \param[out]   pnam [optional] mean values
- * \param[out]   pnams [optional] mean square values
- * \param[out]   pnav [optional] variances
- * \param[out]   pnarv [optional] rms deviations from the mean
+ * \param[in]    naa      numaa with two or more 256-element histograms
+ * \param[in]    wc       half-width of the smoothing window
+ * \param[out]   pnam     [optional] mean values
+ * \param[out]   pnams    [optional] mean square values
+ * \param[out]   pnav     [optional] variances
+ * \param[out]   pnarv    [optional] rms deviations from the mean
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2316,10 +2331,10 @@ NUMA        *na1, *na2, *na3, *na4;
 /*!
  * \brief   numaFindPeaks()
  *
- * \param[in]    nas     source numa
- * \param[in]    nmax    max number of peaks to be found
- * \param[in]    fract1  min fraction of peak value
- * \param[in]    fract2  min slope
+ * \param[in]    nas      source numa
+ * \param[in]    nmax     max number of peaks to be found
+ * \param[in]    fract1   min fraction of peak value
+ * \param[in]    fract2   min slope
  * \return  peak na, or NULL on error.
  *
  * <pre>
@@ -2421,9 +2436,9 @@ NUMA      *na, *napeak;
 /*!
  * \brief   numaFindExtrema()
  *
- * \param[in]    nas input values
- * \param[in]    delta relative amount to resolve peaks and valleys
- * \param[out]   pnav [optional] values of extrema
+ * \param[in]    nas     input values
+ * \param[in]    delta   relative amount to resolve peaks and valleys
+ * \param[out]   pnav    [optional] values of extrema
  * \return  nad (locations of extrema, or NULL on error
  *
  * <pre>
@@ -2527,10 +2542,10 @@ NUMA      *nav, *nad;
 /*!
  * \brief   numaCountReversals()
  *
- * \param[in]    nas input values
- * \param[in]    minreversal relative amount to resolve peaks and valleys
- * \param[out]   pnr [optional] number of reversals
- * \param[out]   pnrpl ([optional] reversal density: reversals/length
+ * \param[in]    nas          input values
+ * \param[in]    minreversal  relative amount to resolve peaks and valleys
+ * \param[out]   pnr          [optional] number of reversals
+ * \param[out]   pnrpl        [optional] reversal density: reversals/length
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2580,11 +2595,11 @@ NUMA      *nat;
 /*!
  * \brief   numaSelectCrossingThreshold()
  *
- * \param[in]    nax [optional] numa of abscissa values; can be NULL
- * \param[in]    nay signal
- * \param[in]    estthresh estimated pixel threshold for crossing: e.g., for
- *                         images, white <--> black; typ. ~120
- * \param[out]   pbestthresh robust estimate of threshold to use
+ * \param[in]    nax          [optional] numa of abscissa values; can be NULL
+ * \param[in]    nay          signal
+ * \param[in]    estthresh    estimated pixel threshold for crossing:
+ *                            e.g., for images, white <--> black; typ. ~120
+ * \param[out]   pbestthresh  robust estimate of threshold to use
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2698,9 +2713,9 @@ NUMA      *nat, *nac;
 /*!
  * \brief   numaCrossingsByThreshold()
  *
- * \param[in]    nax [optional] numa of abscissa values; can be NULL
- * \param[in]    nay numa of ordinate values, corresponding to nax
- * \param[in]    thresh threshold value for nay
+ * \param[in]    nax     [optional] numa of abscissa values; can be NULL
+ * \param[in]    nay     numa of ordinate values, corresponding to nax
+ * \param[in]    thresh  threshold value for nay
  * \return  nad abscissa pts at threshold, or NULL on error
  *
  * <pre>
@@ -2763,9 +2778,9 @@ NUMA      *nad;
 /*!
  * \brief   numaCrossingsByPeaks()
  *
- * \param[in]    nax [optional] numa of abscissa values
- * \param[in]    nay numa of ordinate values, corresponding to nax
- * \param[in]    delta parameter used to identify when a new peak can be found
+ * \param[in]    nax     [optional] numa of abscissa values
+ * \param[in]    nay     numa of ordinate values, corresponding to nax
+ * \param[in]    delta   parameter used to identify when a new peak can be found
  * \return  nad abscissa pts at threshold, or NULL on error
  *
  * <pre>
@@ -2851,19 +2866,18 @@ NUMA      *nap, *nad;
 /*!
  * \brief   numaEvalBestHaarParameters()
  *
- * \param[in]    nas numa of non-negative signal values
- * \param[in]    relweight relative weight of (-1 comb) / (+1 comb)
- *                          contributions to the 'convolution'.  In effect,
- *                          the convolution kernel is a comb consisting of
- *                          alternating +1 and -weight.
- * \param[in]    nwidth number of widths to consider
- * \param[in]    nshift number of shifts to consider for each width
- * \param[in]    minwidth smallest width to consider
- * \param[in]    maxwidth largest width to consider
- * \param[out]   pbestwidth width giving largest score
- * \param[out]   pbestshift shift giving largest score
- * \param[out]   pbestscore [optional] convolution with
- *                          "Haar"-like comb
+ * \param[in]    nas         numa of non-negative signal values
+ * \param[in]    relweight   relative weight of (-1 comb) / (+1 comb)
+ *                           contributions to the 'convolution'.  In effect,
+ *                           the convolution kernel is a comb consisting of
+ *                           alternating +1 and -weight.
+ * \param[in]    nwidth      number of widths to consider
+ * \param[in]    nshift      number of shifts to consider for each width
+ * \param[in]    minwidth    smallest width to consider
+ * \param[in]    maxwidth    largest width to consider
+ * \param[out]   pbestwidth  width giving largest score
+ * \param[out]   pbestshift  shift giving largest score
+ * \param[out]   pbestscore  [optional] convolution with "Haar"-like comb
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2942,14 +2956,14 @@ l_float32  bestwidth, bestshift, bestscore;
 /*!
  * \brief   numaEvalHaarSum()
  *
- * \param[in]    nas numa of non-negative signal values
- * \param[in]    width distance between +1 and -1 in convolution comb
- * \param[in]    shift phase of the comb: location of first +1
- * \param[in]    relweight relative weight of (-1 comb) / (+1 comb)
- *                          contributions to the 'convolution'.  In effect,
- *                          the convolution kernel is a comb consisting of
- *                          alternating +1 and -weight.
- * \param[out]   pscore convolution with "Haar"-like comb
+ * \param[in]    nas         numa of non-negative signal values
+ * \param[in]    width       distance between +1 and -1 in convolution comb
+ * \param[in]    shift       phase of the comb: location of first +1
+ * \param[in]    relweight   relative weight of (-1 comb) / (+1 comb)
+ *                           contributions to the 'convolution'.  In effect,
+ *                           the convolution kernel is a comb consisting of
+ *                           alternating +1 and -weight.
+ * \param[out]   pscore      convolution with "Haar"-like comb
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -3011,9 +3025,9 @@ l_float32  score, weight, val;
 /*!
  * \brief   genConstrainedNumaInRange()
  *
- * \param[in]    first first number to choose; >= 0
- * \param[in]    last biggest possible number to reach; >= first
- * \param[in]    nmax maximum number of numbers to select; > 0
+ * \param[in]    first     first number to choose; >= 0
+ * \param[in]    last      biggest possible number to reach; >= first
+ * \param[in]    nmax      maximum number of numbers to select; > 0
  * \param[in]    use_pairs 1 = select pairs of adjacent numbers;
  *                         0 = select individual numbers
  * \return  0 if OK, 1 on error
