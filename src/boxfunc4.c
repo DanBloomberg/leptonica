@@ -2387,11 +2387,11 @@ NUMA      *nae, *nao, *na_all;
         *pdel_evenodd = sum / nmin;
     }
     if (prms_even)
-        numaSimpleStats(nae, 0, 0, NULL, NULL, prms_even);
+        numaSimpleStats(nae, 0, -1, NULL, NULL, prms_even);
     if (prms_odd)
-        numaSimpleStats(nao, 0, 0, NULL, NULL, prms_odd);
+        numaSimpleStats(nao, 0, -1, NULL, NULL, prms_odd);
     if (prms_all)
-        numaSimpleStats(na_all, 0, 0, NULL, NULL, prms_all);
+        numaSimpleStats(na_all, 0, -1, NULL, NULL, prms_all);
 
     boxaDestroy(&boxae);
     boxaDestroy(&boxao);

@@ -1348,7 +1348,7 @@ numaGetHistogramStats(NUMA       *nahisto,
     if (!nahisto)
         return ERROR_INT("nahisto not defined", procName, 1);
 
-    return numaGetHistogramStatsOnInterval(nahisto, startx, deltax, 0, 0,
+    return numaGetHistogramStatsOnInterval(nahisto, startx, deltax, 0, -1,
                                            pxmean, pxmedian, pxmode,
                                            pxvariance);
 }
@@ -2310,7 +2310,7 @@ NUMA        *na1, *na2, *na3, *na4;
         for (i = 0; i < n; i++) {
             numaAddNumber(na4, arrays[i][j]);
         }
-        numaSimpleStats(na4, 0, 0, &mean, &var, &rvar);
+        numaSimpleStats(na4, 0, -1, &mean, &var, &rvar);
         if (pnam) numaAddNumber(*pnam, mean);
         if (pnams) numaAddNumber(*pnams, mean * mean);
         if (pnav) numaAddNumber(*pnav, var);
