@@ -426,13 +426,14 @@ PIX     *pixd;
  * Notes:
  *      (1) It is assumed that all 32 bit pix have 3 spp.  If there is
  *          a valid alpha channel, this will be set to 4 spp later.
- *      (2) If the number of bytes to be allocated is larger than the
+ *      (2) All pixCreate*() functions call pixCreateHeader().
+            If the number of bytes to be allocated is larger than the
  *          maximum value in an int32, we can get overflow, resulting
  *          in a smaller amount of memory actually being allocated.
  *          Later, an attempt to access memory that wasn't allocated will
  *          cause a crash.  So to avoid crashing a program (or worse)
- *          with bad (or malicious) input, this is where we limit the
- *          requested allocation of image data in a typesafe way.
+ *          with bad (or malicious) input, we limit the requested
+ *          allocation of image data in a typesafe way.
  * </pre>
  */
 PIX *
@@ -455,16 +456,14 @@ PIX      *pixd;
     if (height <= 0)
         return (PIX *)ERROR_PTR("height must be > 0", procName, NULL);
 
-        /* Avoid overflow in malloc arg, malicious or otherwise */
-    wpl = 0;
+        /* Avoid overflow in malloc, malicious or otherwise */
     wpl64 = ((l_uint64)width * (l_uint64)depth + 31) / 32;
     if (wpl64 > ((1LL << 29) - 1)) {
         L_ERROR("requested w = %d, h = %d, d = %d\n",
                 procName, width, height, depth);
         return (PIX *)ERROR_PTR("wpl >= 2^29", procName, NULL);
-    } else {
-      wpl = (l_int32)wpl64;
     }
+    wpl = (l_int32)wpl64;
     bignum = 4L * wpl * height;   /* number of bytes to be requested */
     if (bignum > ((1LL << 31) - 1)) {
         L_ERROR("requested w = %d, h = %d, d = %d\n",
@@ -482,7 +481,6 @@ PIX      *pixd;
         pixSetSpp(pixd, 3);
     else
         pixSetSpp(pixd, 1);
-
     pixd->refcount = 1;
     pixd->informat = IFF_UNKNOWN;
     return pixd;

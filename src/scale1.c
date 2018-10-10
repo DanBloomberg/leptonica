@@ -3243,9 +3243,7 @@ l_float32  wratio, hratio, norm;
                 rval = (l_int32)((l_float32)rval * norm);
                 gval = (l_int32)((l_float32)gval * norm);
                 bval = (l_int32)((l_float32)bval * norm);
-                *(lined + j) = rval << L_RED_SHIFT |
-                               gval << L_GREEN_SHIFT |
-                               bval << L_BLUE_SHIFT;
+                composeRGBPixel(rval, gval, bval, lined + j);
             }
         }
     }

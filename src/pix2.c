@@ -2670,7 +2670,7 @@ composeRGBPixel(l_int32    rval,
     if (!ppixel)
         return ERROR_INT("&pixel not defined", procName, 1);
 
-    *ppixel = (rval << L_RED_SHIFT) | (gval << L_GREEN_SHIFT) |
+    *ppixel = ((l_uint32)rval << L_RED_SHIFT) | (gval << L_GREEN_SHIFT) |
               (bval << L_BLUE_SHIFT);
     return 0;
 }
@@ -2702,7 +2702,7 @@ composeRGBAPixel(l_int32    rval,
     if (!ppixel)
         return ERROR_INT("&pixel not defined", procName, 1);
 
-    *ppixel = (rval << L_RED_SHIFT) | (gval << L_GREEN_SHIFT) |
+    *ppixel = ((l_uint32)rval << L_RED_SHIFT) | (gval << L_GREEN_SHIFT) |
               (bval << L_BLUE_SHIFT) | aval;
     return 0;
 }

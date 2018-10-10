@@ -1238,8 +1238,7 @@ l_uint32  *lines;
         xf * (16 - yf) * ((word10 >> L_BLUE_SHIFT) & 0xff) +
         (16 - xf) * yf * ((word01 >> L_BLUE_SHIFT) & 0xff) +
         xf * yf * ((word11 >> L_BLUE_SHIFT) & 0xff)) / 256;
-    *pval = (rval << L_RED_SHIFT) | (gval << L_GREEN_SHIFT) |
-          (bval << L_BLUE_SHIFT);
+    composeRGBPixel(rval, gval, bval, pval);
     return 0;
 }
 

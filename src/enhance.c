@@ -783,9 +783,8 @@ pixTRCMap(PIX   *pixs,
           NUMA  *na)
 {
 l_int32    w, h, d, wm, hm, wpl, wplm, i, j, sval8, dval8;
-l_int32   *tab;
 l_uint32   sval32, dval32;
-l_uint32  *data, *datam, *line, *linem;
+l_uint32  *data, *datam, *line, *linem, *tab;
 
     PROCNAME("pixTRCMap");
 
@@ -805,7 +804,7 @@ l_uint32  *data, *datam, *line, *linem;
             return ERROR_INT("pixm not 1 bpp", procName, 1);
     }
 
-    tab = numaGetIArray(na);  /* get the array for efficiency */
+    tab = (l_uint32 *)numaGetIArray(na);  /* get the array for efficiency */
     wpl = pixGetWpl(pixs);
     data = pixGetData(pixs);
     if (!pixm) {
