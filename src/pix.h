@@ -819,6 +819,13 @@ enum {
                                 /*!< and yval must satisfy                 */
 };
 
+/*! Boxa modification flags */
+enum {
+    L_CHECK_WIDTH = 1,          /*!< check and possibly modify width       */
+    L_CHECK_HEIGHT = 2,         /*!< check and possibly modify height      */
+    L_CHECK_BOTH = 3            /*!< check and possibly modify both        */
+};
+
 
 /*-------------------------------------------------------------------------*
  *                    Color component selection flags                      *

@@ -38,11 +38,13 @@
  *           BOXA     *boxaReconcileEvenOddHeight()
  *    static l_int32   boxaTestEvenOddHeight()
  *           BOXA     *boxaReconcilePairWidth()
+ *           BOXA     *boxaReconcileSizeByMedian()
  *           l_int32   boxaPlotSides()   [for debugging]
  *           l_int32   boxaPlotSizes()   [for debugging]
  *           BOXA     *boxaFillSequence()
  *    static l_int32   boxaFillAll()
  *           l_int32   boxaSizeVariation()
+ *           l_int32   boxaMedianDimensions()
  * </pre>
  */
 
@@ -1081,6 +1083,208 @@ BOXA    *boxae, *boxao, *boxad;
 
 
 /*!
+ * \brief   boxaReconcileSizeByMedian()
+ *
+ * \param[in]    boxas    containing at least 6 valid boxes
+ * \param[in]    type     L_CHECK_WIDTH, L_CHECK_HEIGHT, L_CHECK_BOTH
+ * \param[in]    fract    threshold fraction of size variation from median;
+ *                        in range (0 ... 1); typ. about 0.1.
+ * \param[in]    factor   expansion for fixed box beyond median width;
+ *                        should be near 1.0.
+ * \param[out]   pnadel   [optional] diff from median for boxes above threshold
+ * \param[out]   ratiowh  [optional] ratio of median width/height of boxas
+ * \return  boxad  possibly adjusted from boxas; a copy of boxas on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The basic idea is to identify significant differences in box
+ *          dimension (either width or height) and modify the outlier boxes.
+ *      (2) %type specifies if we are reconciling the width, height or both.
+ *      (3) %fract specifies the tolerance for different dimensions. Any
+ *          box with a fractional difference from the median size that
+ *          exceeds %fract will be altered.
+ *      (4) If all box dimensions are within threshold of the median,
+ *          just return a copy.  Otherwise, find the side farthest
+ *          from the median location computed for boxes that are
+ *          within the size threshold.  Adjust that side so that the
+ *          final dimension (width or height) is the median dimension
+ *          expanded by %factor.
+ *      (5) The set of boxes that are outliers, and their initial fractional
+ *          deviation from median size, is optionally returned.  Also
+ *          optionally returned are the ratio of even/odd median values and
+ *          the median w/h asperity ratio, both of the input %boxas.
+ * </pre>
+ */
+BOXA *
+boxaReconcileSizeByMedian(BOXA       *boxas,
+                          l_int32     type,
+                          l_float32   fract,
+                          l_float32   factor,
+                          NUMA      **pnadel,
+                          l_float32  *pratiowh)
+{
+l_int32    i, n, outfound, isvalid, ind, ldist, rdist, tdist, bdist;
+l_int32    medw, medh, newloc;
+l_int32    bw, bh, left, right, top, bot, medleft, medtop, medright, medbot;
+l_float32  brat;
+BOX       *box;
+BOXA      *boxa1, *boxad;
+NUMA      *naind, *nadel;
+
+    PROCNAME("boxaReconcileSizeByMedian");
+
+    if (pnadel) *pnadel = NULL;
+    if (pratiowh) *pratiowh = 0.0;
+    if (!boxas)
+        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+    if (type != L_CHECK_WIDTH && type != L_CHECK_HEIGHT &&
+        type != L_CHECK_BOTH) {
+        L_WARNING("invalid type; returning copy\n", procName);
+        return boxaCopy(boxas, L_COPY);
+    }
+    if (fract <= 0.0 || fract >= 1.0) {
+        L_WARNING("invalid fract; returning copy\n", procName);
+        return boxaCopy(boxas, L_COPY);
+    }
+    if (factor < 0.7 || factor > 1.4)
+        L_WARNING("factor %5.3f is typ. closer to 1.0\n", procName, factor);
+    if (boxaGetValidCount(boxas) < 6) {
+        L_WARNING("need at least 6 valid boxes; returning copy\n", procName);
+        return boxaCopy(boxas, L_COPY);
+    }
+
+        /* If reconciling both width and height, optionally return array of
+         * median deviations and even/odd ratio for width measurements */
+    if (type == L_CHECK_BOTH) {
+        boxa1 = boxaReconcileSizeByMedian(boxas, L_CHECK_WIDTH, fract,
+                                          factor, pnadel, pratiowh);
+        boxad = boxaReconcileSizeByMedian(boxa1, L_CHECK_HEIGHT, fract,
+                                          factor, NULL, NULL);
+        boxaDestroy(&boxa1);
+        return boxad;
+    }
+
+    n = boxaGetCount(boxas);
+    naind = numaCreate(n);  /* outlier indicator array */
+    boxa1 = boxaCreate(0);  /* inliers */
+    outfound = FALSE;
+    if (type == L_CHECK_WIDTH) {
+        boxaMedianDimensions(boxas, &medw, &medh, NULL, NULL, NULL, NULL,
+                             &nadel, NULL);
+        if (pratiowh) *pratiowh = medw / medh;
+        if (pnadel)
+            *pnadel = nadel;
+        else
+            numaDestroy(&nadel);
+        L_INFO("median ratio w/h = %5.3f\n", procName, *pratiowh);
+
+            /* Check for outliers; assemble inliers */
+        for (i = 0; i < n; i++) {
+            box = boxaGetBox(boxas, i, L_COPY);
+            boxGetGeometry(box, NULL, NULL, &bw, NULL);
+            brat = (l_float32)bw / medw;
+            if (brat < 1.0 - fract || brat > 1.0 + fract) {
+                outfound = TRUE;
+                numaAddNumber(naind, 1);
+                boxDestroy(&box);
+            } else {
+                numaAddNumber(naind, 0);
+                boxaAddBox(boxa1, box, L_INSERT);
+            }
+        }
+        if (!outfound) {
+            numaDestroy(&naind);
+            boxaDestroy(&boxa1);
+            L_INFO("no outlier boxes found\n", procName);
+            return boxaCopy(boxas, L_COPY);
+        }
+ 
+            /* Get left/right parameters from inliers */
+        boxaGetMedianVals(boxa1, &medleft, NULL, &medright, NULL, NULL, NULL);
+
+            /* Adjust sides of outliers */
+        boxad = boxaCreate(n);
+        for (i = 0; i < n; i++) {
+            box = boxaGetBox(boxas, i, L_COPY);
+            boxIsValid(box, &isvalid);
+            numaGetIValue(naind, i, &ind);
+            if (ind == 1 && isvalid) {  /* adjust side */
+                boxGetGeometry(box, &left, NULL, &right, NULL);
+                ldist = L_ABS(left - medleft);
+                rdist = L_ABS(right - medright);
+                if (ldist > rdist) {  /* adjust left */
+                    newloc = L_MAX(0, right - factor * medw);
+                    boxSetSide(box, L_SET_LEFT, newloc, 0);
+                } else {
+                    newloc = left + factor * medw;
+                    boxSetSide(box, L_SET_RIGHT, newloc, 0);
+                }
+            }
+            boxaAddBox(boxad, box, L_INSERT);
+        }
+    } else {  /* L_CHECK_HEIGHT */
+        boxaMedianDimensions(boxas, &medw, &medh, NULL, NULL, NULL, NULL,
+                             NULL, &nadel);
+        if (pratiowh) *pratiowh = medw / medh;
+        if (pnadel)
+            *pnadel = nadel;
+        else
+            numaDestroy(&nadel);
+        L_INFO("median ratio w/h = %5.3f\n", procName, *pratiowh);
+
+            /* Check for outliers; assemble inliers */
+        for (i = 0; i < n; i++) {
+            box = boxaGetBox(boxas, i, L_COPY);
+            boxGetGeometry(box, NULL, NULL, NULL, &bh);
+            brat = (l_float32)bh / medh;
+            if (brat < 1.0 - fract || brat > 1.0 + fract) {
+                outfound = TRUE;
+                numaAddNumber(naind, 1);
+                boxDestroy(&box);
+            } else {
+                numaAddNumber(naind, 0);
+                boxaAddBox(boxa1, box, L_INSERT);
+            }
+        }
+        if (!outfound) {
+            numaDestroy(&naind);
+            boxaDestroy(&boxa1);
+            L_INFO("no outlier boxes found\n", procName);
+            return boxaCopy(boxas, L_COPY);
+        }
+ 
+            /* Get top/bot parameters from inliers */
+        boxaGetMedianVals(boxa1, NULL, &medtop, NULL, &medbot, NULL, NULL);
+        boxaDestroy(&boxa1);
+
+            /* Adjust sides of outliers */
+        boxad = boxaCreate(n);
+        for (i = 0; i < n; i++) {
+            box = boxaGetBox(boxas, i, L_COPY);
+            boxIsValid(box, &isvalid);
+            numaGetIValue(naind, i, &ind);
+            if (ind == 1 && isvalid) {  /* adjust side */
+                boxGetGeometry(box, NULL, &top, NULL, &bot);
+                tdist = L_ABS(top - medtop);
+                bdist = L_ABS(bot - medbot);
+                if (tdist > bdist) {  /* adjust top */
+                    newloc = L_MAX(0, bot - factor * medh);
+                    boxSetSide(box, L_SET_TOP, newloc, 0);
+                } else {  /* adjust bottom */
+                    newloc = top + factor * medh;
+                    boxSetSide(box, L_SET_BOT, newloc, 0);
+                }
+            }
+            boxaAddBox(boxad, box, L_INSERT);
+        }
+    }
+    numaDestroy(&naind);
+    boxaDestroy(&boxa1);
+    return boxad;
+}
+
+
+/*!
  * \brief   boxaPlotSides()
  *
  * \param[in]    boxa source boxa
@@ -1518,3 +1722,111 @@ NUMA      *nae, *nao, *na_all;
     numaDestroy(&na_all);
     return 0;
 }
+
+
+/*!
+ * \brief   boxaMedianDimensions()
+ *
+ * \param[in]    boxas    containing at least 3 valid boxes in even and odd
+ * \param[out]   pmedw    [optional] median width of all boxes
+ * \param[out]   pmedh    [optional] median height of all boxes
+ * \param[out]   pmedwe   [optional] median width of even boxes
+ * \param[out]   pmedwo   [optional] median width of odd boxes
+ * \param[out]   pmedhe   [optional] median height of even boxes
+ * \param[out]   pmedho   [optional] median height of odd boxes
+ * \param[out]   pnadelw  [optional] width diff of each box from median
+ * \param[out]   pnadelh  [optional] height diff of each box from median
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This provides information that (1) allows identification of
+ *          boxes that have unusual (outlier) width or height, and (2) can
+ *          be used to regularize the sizes of the outlier boxes, assuming
+ *          that the boxes satisfy a fairly regular sequence and should
+ *          mostly have the same width and height.
+ *      (2) This finds the median width and height, as well as separate
+ *          median widths and heights of even and odd boxes.  It also
+ *          generates arrays that give the difference in width and height
+ *          of each box from the median, which can be used to correct
+ *          individual boxes.
+ *      (3) All return values are optional.
+ * </pre>
+ */
+l_ok
+boxaMedianDimensions(BOXA     *boxas,
+                     l_int32  *pmedw,
+                     l_int32  *pmedh,
+                     l_int32  *pmedwe,
+                     l_int32  *pmedwo,
+                     l_int32  *pmedhe,
+                     l_int32  *pmedho,
+                     NUMA    **pnadelw,
+                     NUMA    **pnadelh)
+{
+l_int32  i, n, bw, bh, medw, medh, medwe, medwo, medhe, medho;
+BOXA    *boxae, *boxao;
+NUMA    *nadelw, *nadelh;
+
+    PROCNAME("boxaMedianDimensions");
+
+    if (pmedw) *pmedw = 0;
+    if (pmedh) *pmedh = 0;
+    if (pmedwe) *pmedwe= 0;
+    if (pmedwo) *pmedwo= 0;
+    if (pmedhe) *pmedhe= 0;
+    if (pmedho) *pmedho= 0;
+    if (pnadelw) *pnadelw = NULL;
+    if (pnadelh) *pnadelh = NULL;
+    if (!boxas)
+        return ERROR_INT("boxas not defined", procName, 1);
+    if (boxaGetValidCount(boxas) < 6)
+        return ERROR_INT("need at least 6 valid boxes", procName, 1);
+
+        /* Require at least 3 valid boxes of both types */
+    boxaSplitEvenOdd(boxas, 0, &boxae, &boxao);
+    if (boxaGetValidCount(boxae) < 3 || boxaGetValidCount(boxao) < 3) {
+        boxaDestroy(&boxae);
+        boxaDestroy(&boxao);
+        return ERROR_INT("don't have 3+ valid boxes of each type", procName, 1);
+    }
+
+        /* Get the relevant median widths and heights */
+    boxaGetMedianVals(boxas, NULL, NULL, NULL, NULL, &medw, &medh);
+    boxaGetMedianVals(boxae, NULL, NULL, NULL, NULL, &medwe, &medhe);
+    boxaGetMedianVals(boxao, NULL, NULL, NULL, NULL, &medwo, &medho);
+    if (pmedw) *pmedw = medw;
+    if (pmedh) *pmedh = medh;
+    if (pmedwe) *pmedwe = medwe;
+    if (pmedwo) *pmedwo = medwo;
+    if (pmedhe) *pmedhe = medhe;
+    if (pmedho) *pmedho = medho;
+
+        /* Find the variation from median dimension for each box */
+    n = boxaGetCount(boxas);
+    nadelw = numaCreate(n);
+    nadelh = numaCreate(n);
+    for (i = 0; i < 0; i++) {
+        boxaGetBoxGeometry(boxas, i, NULL, NULL, &bw, &bh);
+        if (bw == 0 || bh == 0) {  /* invalid box */
+            numaAddNumber(nadelw, 0);
+            numaAddNumber(nadelh, 0);
+        } else {
+            numaAddNumber(nadelw, bw - medw);
+            numaAddNumber(nadelh, bh - medh);
+        }
+    }
+    if (pnadelw)
+        *pnadelw = nadelw;
+    else
+        numaDestroy(&nadelw);
+    if (pnadelh)
+        *pnadelh = nadelh;
+    else
+        numaDestroy(&nadelh);
+
+    boxaDestroy(&boxae);
+    boxaDestroy(&boxao);
+    return 0;
+}
+
