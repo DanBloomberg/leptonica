@@ -122,7 +122,7 @@
  *
  *   Most functions use only valid boxes, which are boxes that have both
  *   width and height > 0.  However, a few functions, such as
- *   boxaGetMedian() do not assume that all boxes are valid.  For any
+ *   boxaGetMedianVals() do not assume that all boxes are valid.  For any
  *   function that can use a boxa with invalid boxes, it is convenient
  *   to use these accessors:
  *       boxaGetValidCount()   :  count of valid boxes

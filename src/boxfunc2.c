@@ -1225,25 +1225,30 @@ l_int32  i, n, left, top, right, bot, w, h;
  * \brief   boxaGetRankVals()
  *
  * \param[in]    boxa
- * \param[in]    fract use 0.0 for smallest, 1.0 for largest width and height
- * \param[out]   px  [optional] rank value of x
- * \param[out]   py  [optional] rank value of y
- * \param[out]   pw  [optional] rank value of width
- * \param[out]   ph  [optional] rank value of height
+ * \param[in]    fract   use 0.0 for smallest, 1.0 for largest width and height
+ * \param[out]   px      [optional] rank value of x (left side)
+ * \param[out]   py      [optional] rank value of y (top side)
+ * \param[out]   pr      [optional] rank value of right side
+ * \param[out]   pb      [optional] rank value of bottom side
+ * \param[out]   pw      [optional] rank value of width
+ * \param[out]   ph      [optional] rank value of height
  * \return  0 if OK, 1 on error or if the boxa is empty or has no valid boxes
  *
  * <pre>
  * Notes:
  *      (1) This function does not assume that all boxes in the boxa are valid
- *      (2) The four box parameters are sorted independently.
+ *      (2) The six box parameters are sorted independently.
  *          For rank order, the width and height are sorted in increasing
  *          order.  But what does it mean to sort x and y in "rank order"?
  *          If the boxes are of comparable size and somewhat
  *          aligned (e.g., from multiple images), it makes some sense
  *          to give a "rank order" for x and y by sorting them in
- *          decreasing order.  But in general, the interpretation of a rank
- *          order on x and y is highly application dependent.  In summary:
+ *          decreasing order.  (By the same argument, we choose to sort
+ *          the r and b sides in increasing order.)  In general, the
+ *          interpretation of a rank order on x and y (or on r and b)
+ *          is highly application dependent.  In summary:
  *             ~ x and y are sorted in decreasing order
+ *             ~ r and b are sorted in increasing order
  *             ~ w and h are sorted in increasing order
  * </pre>
  */
@@ -1252,16 +1257,20 @@ boxaGetRankVals(BOXA      *boxa,
                 l_float32  fract,
                 l_int32   *px,
                 l_int32   *py,
+                l_int32   *pr,
+                l_int32   *pb,
                 l_int32   *pw,
                 l_int32   *ph)
 {
-l_float32  xval, yval, wval, hval;
-NUMA      *nax, *nay, *naw, *nah;
+l_float32  xval, yval, rval, bval, wval, hval;
+NUMA      *nax, *nay, *nar, *nab, *naw, *nah;
 
     PROCNAME("boxaGetRankVals");
 
     if (px) *px = 0;
     if (py) *py = 0;
+    if (pr) *pr = 0;
+    if (pb) *pb = 0;
     if (pw) *pw = 0;
     if (ph) *ph = 0;
     if (!boxa)
@@ -1272,7 +1281,7 @@ NUMA      *nax, *nay, *naw, *nah;
         return ERROR_INT("no valid boxes in boxa", procName, 1);
 
         /* Use only the valid boxes */
-    boxaExtractAsNuma(boxa, &nax, &nay, NULL, NULL, &naw, &nah, 0);
+    boxaExtractAsNuma(boxa, &nax, &nay, &nar, &nab, &naw, &nah, 0);
 
     if (px) {
         numaGetRankValue(nax, 1.0 - fract, NULL, 1, &xval);
@@ -1281,6 +1290,14 @@ NUMA      *nax, *nay, *naw, *nah;
     if (py) {
         numaGetRankValue(nay, 1.0 - fract, NULL, 1, &yval);
         *py = (l_int32)yval;
+    }
+    if (pr) {
+        numaGetRankValue(nar, fract, NULL, 1, &rval);
+        *pr = (l_int32)rval;
+    }
+    if (pb) {
+        numaGetRankValue(nab, fract, NULL, 1, &bval);
+        *pb = (l_int32)bval;
     }
     if (pw) {
         numaGetRankValue(naw, fract, NULL, 1, &wval);
@@ -1292,6 +1309,8 @@ NUMA      *nax, *nay, *naw, *nah;
     }
     numaDestroy(&nax);
     numaDestroy(&nay);
+    numaDestroy(&nar);
+    numaDestroy(&nab);
     numaDestroy(&naw);
     numaDestroy(&nah);
     return 0;
@@ -1302,8 +1321,10 @@ NUMA      *nax, *nay, *naw, *nah;
  * \brief   boxaGetMedianVals()
  *
  * \param[in]    boxa
- * \param[out]   px  [optional] median value of x
- * \param[out]   py  [optional] median value of y
+ * \param[out]   px  [optional] median value of x (left side)
+ * \param[out]   py  [optional] median value of y (top side)
+ * \param[out]   pr  [optional] median value of right side
+ * \param[out]   pb  [optional] median value of bottom side
  * \param[out]   pw  [optional] median value of width
  * \param[out]   ph  [optional] median value of height
  * \return  0 if OK, 1 on error or if the boxa is empty or has no valid boxes
@@ -1317,6 +1338,8 @@ l_ok
 boxaGetMedianVals(BOXA     *boxa,
                   l_int32  *px,
                   l_int32  *py,
+                  l_int32  *pr,
+                  l_int32  *pb,
                   l_int32  *pw,
                   l_int32  *ph)
 {
@@ -1327,7 +1350,7 @@ boxaGetMedianVals(BOXA     *boxa,
     if (boxaGetValidCount(boxa) == 0)
         return ERROR_INT("no valid boxes in boxa", procName, 1);
 
-    return boxaGetRankVals(boxa, 0.5, px, py, pw, ph);
+    return boxaGetRankVals(boxa, 0.5, px, py, pr, pb, pw, ph);
 }
 
 

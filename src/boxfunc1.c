@@ -61,6 +61,7 @@
  *           BOXA     *boxaAdjustSides()
  *           BOX      *boxAdjustSides()
  *           BOXA     *boxaSetSide()
+ *           l_int32   boxSetSide()
  *           BOXA     *boxaAdjustWidthToTarget()
  *           BOXA     *boxaAdjustHeightToTarget()
  *           l_int32   boxEqual()
@@ -1862,7 +1863,7 @@ boxaSetSide(BOXA    *boxad,
             l_int32  val,
             l_int32  thresh)
 {
-l_int32  x, y, w, h, n, i, diff;
+l_int32  n, i;
 BOX     *box;
 
     PROCNAME("boxaSetSide");
@@ -1882,28 +1883,67 @@ BOX     *box;
     n = boxaGetCount(boxad);
     for (i = 0; i < n; i++) {
         box = boxaGetBox(boxad, i, L_CLONE);
-        boxGetGeometry(box, &x, &y, &w, &h);
-        if (side == L_SET_LEFT) {
-            diff = x - val;
-            if (L_ABS(diff) >= thresh)
-                boxSetGeometry(box, val, y, w + diff, h);
-        } else if (side == L_SET_RIGHT) {
-            diff = x + w -1 - val;
-            if (L_ABS(diff) >= thresh)
-                boxSetGeometry(box, x, y, val - x + 1, h);
-        } else if (side == L_SET_TOP) {
-            diff = y - val;
-            if (L_ABS(diff) >= thresh)
-                boxSetGeometry(box, x, val, w, h + diff);
-        } else { /* side == L_SET_BOT */
-            diff = y + h - 1 - val;
-            if (L_ABS(diff) >= thresh)
-                boxSetGeometry(box, x, y, w, val - y + 1);
-        }
-        boxDestroy(&box);
+        boxSetSide(box, side, val, thresh);
+        boxDestroy(&box);  /* the clone */
     }
 
     return boxad;
+}
+
+
+/*!
+ * \brief   boxSetSide()
+ *
+ * \param[in]    boxs
+ * \param[in]    side     L_SET_LEFT, L_SET_RIGHT, L_SET_TOP, L_SET_BOT
+ * \param[in]    val      location to set for given side, for each box
+ * \param[in]    thresh   min abs difference to cause resetting to %val
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) In-place operation.
+ *      (2) Use %thresh = 0 to definitely set the side to %val.
+ * </pre>
+ */
+l_ok 
+boxSetSide(BOX     *boxs,
+           l_int32  side,
+           l_int32  val,
+           l_int32  thresh)
+{
+l_int32  x, y, w, h, diff;
+
+    PROCNAME("boxSetSide");
+
+    if (!boxs)
+        return ERROR_INT("box not defined", procName, 1);
+    if (side != L_SET_LEFT && side != L_SET_RIGHT &&
+        side != L_SET_TOP && side != L_SET_BOT)
+        return ERROR_INT("invalid side", procName, 1);
+    if (val < 0)
+        return ERROR_INT("val < 0", procName, 1);
+
+    boxGetGeometry(boxs, &x, &y, &w, &h);
+    if (side == L_SET_LEFT) {
+        diff = x - val;
+        if (L_ABS(diff) >= thresh)
+            boxSetGeometry(boxs, val, y, w + diff, h);
+    } else if (side == L_SET_RIGHT) {
+        diff = x + w -1 - val;
+        if (L_ABS(diff) >= thresh)
+            boxSetGeometry(boxs, x, y, val - x + 1, h);
+    } else if (side == L_SET_TOP) {
+        diff = y - val;
+        if (L_ABS(diff) >= thresh)
+            boxSetGeometry(boxs, x, val, w, h + diff);
+    } else { /* side == L_SET_BOT */
+        diff = y + h - 1 - val;
+        if (L_ABS(diff) >= thresh)
+            boxSetGeometry(boxs, x, y, w, val - y + 1);
+    }
+
+    return 0;
 }
 
 
