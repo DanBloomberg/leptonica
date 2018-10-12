@@ -122,8 +122,8 @@ pixReadMemBmp(const l_uint8  *cdata,
 {
 l_uint8    pel[4];
 l_uint8   *cmapBuf, *fdata, *data;
-l_int16    bftype, offset, depth, d;
-l_int32    width, height, height_neg, xres, yres, compression, imagebytes;
+l_int16    bftype, depth, d;
+l_int32    offset, width, height, height_neg, xres, yres, compression, imagebytes;
 l_int32    cmapbytes, cmapEntries;
 l_int32    fdatabpl, extrabytes, pixWpl, pixBpl, i, j, k;
 l_uint32  *line, *pixdata, *pword;
@@ -147,7 +147,7 @@ PIXCMAP   *cmap;
 
         /* Verify this is an uncompressed bmp */
     bmpfh = (BMP_FH *)cdata;
-    bftype = convertOnBigEnd16(bmpfh->bfType);
+    bftype = bmpfh->bfType[0] + ((l_int32)bmpfh->bfType[1] << 8);
     if (bftype != BMP_ID)
         return (PIX *)ERROR_PTR("not bmf format", procName, NULL);
 #if defined(__GNUC__)
@@ -161,7 +161,10 @@ PIXCMAP   *cmap;
                                 procName, NULL);
 
         /* Read the rest of the useful header information */
-    offset = convertOnBigEnd16(bmpfh->bfOffBits);
+    offset = bmpfh->bfOffBits[0];
+    offset += (l_int32)bmpfh->bfOffBits[1] << 8;
+    offset += (l_int32)bmpfh->bfOffBits[2] << 16;
+    offset += (l_int32)bmpfh->bfOffBits[3] << 24;
     width = convertOnBigEnd32(bmpih->biWidth);
     height = convertOnBigEnd32(bmpih->biHeight);
     depth = convertOnBigEnd16(bmpih->biBitCount);
@@ -209,7 +212,7 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("invalid: cmap size < 0 or 1", procName, NULL);
     if (cmapEntries > L_MAX_ALLOWED_NUM_COLORS)
         return (PIX *)ERROR_PTR("invalid cmap: too large", procName,NULL);
-    if (size != 1LL * offset + 1LL * fdatabpl * height)
+    if (size < 1LL * offset + 1LL * fdatabpl * height)
         return (PIX *)ERROR_PTR("size incommensurate with image data",
                                 procName,NULL);
 
@@ -504,13 +507,18 @@ RGBA_QUAD  *pquad;
     *pfdata = fdata;
     *pfsize = fsize;
 
-        /* Convert to little-endian and write the file header data */
+        /* Write little-endian file header data */
     bmpfh = (BMP_FH *)fdata;
-    bmpfh->bfType = convertOnBigEnd16(BMP_ID);
-    bmpfh->bfSize = convertOnBigEnd16(fsize & 0x0000ffff);
-    bmpfh->bfFill1 = convertOnBigEnd16((fsize >> 16) & 0x0000ffff);
-    bmpfh->bfOffBits = convertOnBigEnd16(offbytes & 0x0000ffff);
-    bmpfh->bfFill2 = convertOnBigEnd16((offbytes >> 16) & 0x0000ffff);
+    bmpfh->bfType[0] = (l_uint8)(BMP_ID >> 0);
+    bmpfh->bfType[1] = (l_uint8)(BMP_ID >> 8);
+    bmpfh->bfSize[0] = (l_uint8)(fsize >>  0);
+    bmpfh->bfSize[1] = (l_uint8)(fsize >>  8);
+    bmpfh->bfSize[2] = (l_uint8)(fsize >> 16);
+    bmpfh->bfSize[3] = (l_uint8)(fsize >> 24);
+    bmpfh->bfOffBits[0] = (l_uint8)(offbytes >>  0);
+    bmpfh->bfOffBits[1] = (l_uint8)(offbytes >>  8);
+    bmpfh->bfOffBits[2] = (l_uint8)(offbytes >> 16);
+    bmpfh->bfOffBits[3] = (l_uint8)(offbytes >> 24);
 
         /* Convert to little-endian and write the info header data */
 #if defined(__GNUC__)
