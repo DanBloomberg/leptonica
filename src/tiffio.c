@@ -145,9 +145,6 @@ static l_int32   getTiffCompressedFormat(l_uint16 tiffcomp);
 static TIFF     *fopenTiffMemstream(const char *filename, const char *operation,
                                     l_uint8 **pdata, size_t *pdatasize);
 
-    /* Static dummy warning/error handler */
-static void  dummyHandler(const char *module, const char *fmt, va_list ap) {};
-
     /* This structure defines a transform to be performed on a TIFF image
      * (note that the same transformation can be represented in
      * several different ways using this structure since
@@ -2146,7 +2143,8 @@ fopenTiff(FILE        *fp,
     if (!modestring)
         return (TIFF *)ERROR_PTR("modestring not defined", procName, NULL);
 
-    TIFFSetWarningHandler(dummyHandler);  /* disable warnings */
+    TIFFSetWarningHandler(NULL);  /* disable warnings */
+    TIFFSetErrorHandler(NULL);  /* disable error messages */
 
     fseek(fp, 0, SEEK_SET);
     return TIFFClientOpen("TIFFstream", modestring, (thandle_t)fp,
@@ -2184,7 +2182,8 @@ TIFF  *tif;
     if (!modestring)
         return (TIFF *)ERROR_PTR("modestring not defined", procName, NULL);
 
-    TIFFSetWarningHandler(dummyHandler);  /* disable warnings */
+    TIFFSetWarningHandler(NULL);  /* disable warnings */
+    TIFFSetErrorHandler(NULL);  /* disable error messages */
 
     fname = genPathname(filename, NULL);
     tif = TIFFOpen(fname, modestring);
@@ -2464,7 +2463,8 @@ TIFF         *tif;
     else
         mstream = memstreamCreateForWrite(pdata, pdatasize);
 
-    TIFFSetWarningHandler(dummyHandler);  /* disable warnings */
+    TIFFSetWarningHandler(NULL);  /* disable warnings */
+    TIFFSetErrorHandler(NULL);  /* disable error messages */
 
     tif = TIFFClientOpen(filename, operation, (thandle_t)mstream,
                          tiffReadCallback, tiffWriteCallback,
