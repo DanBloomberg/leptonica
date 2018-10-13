@@ -212,7 +212,7 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("invalid: cmap size < 0 or 1", procName, NULL);
     if (cmapEntries > L_MAX_ALLOWED_NUM_COLORS)
         return (PIX *)ERROR_PTR("invalid cmap: too large", procName,NULL);
-    if (size < 1LL * offset + 1LL * fdatabpl * height)
+    if (size != 1LL * offset + 1LL * fdatabpl * height)
         return (PIX *)ERROR_PTR("size incommensurate with image data",
                                 procName,NULL);
 

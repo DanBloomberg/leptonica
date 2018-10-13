@@ -27,14 +27,14 @@
 /*
  * displayboxa.c
  *
- *        displayboxa filein width fileout [fontdir]
+ *        displayboxa filein width fileout
  *
  *   This reads a boxa from file and generates a composite view of the
  *   boxes, one per "page", tiled in rows.
  *   The pix that backs each box is chosen to be the minimum size that
  *   supports every box in the boxa.  Each pix (and the box it backs)
  *   is scaled so that the pix width is @width in pixels.
- *   If @fontdir is specified, the number of each box is written below it.
+ *   The number of each box is written below the box.
  *
  *   The minimum allowed width of the backing pix is 30, and the default
  *   width is 100.

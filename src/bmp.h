@@ -47,21 +47,22 @@
  *-------------------------------------------------------------*/
 
 /*! BMP file header
+ *
  * Notes:
- *  1) the bfSize field is stored as 32 bits integer and includes
- *     the size of the BMP_FileHeader, BMP_InfoHeader, the color
- *     table (if any), and the size of the DIB bits.
- *  2) the bfOffBits field is also stored as 32 bits integer and
- *     contains the absolute offset in bytes of the image data 
- *     in this file. This offset may be larger than the sum of
- *     sizeof(BMP_FileHeader) + sizeof(BMP_InfoHeader) in case
- *     there is additional data after the BMP_InfoHeader and before
- *     the color table, or before the DIB bits if no color table
- *     is contained.
- *  3) The size of the unused (by compatible BMP readers) extra data
- *     is: bfOffBits - BMP_InfoHeader.biSize - sizeof(BMP_FileHeader).
- * Use arrays of l_uint8[] to make an endianness agnostic
- * access to the BMP_FileHeader easier.
+ *  (1) The bfSize field is stored as a 32 bit integer and includes
+ *      the size of the BMP_FileHeader, BMP_InfoHeader, the color
+ *      table (if any), and the size of the DIB bits.
+ *  (2) The bfOffBits field is also stored as a 32 bit integer and
+ *      contains the absolute offset in bytes of the image data
+ *      in this file. Some bmp files have additional data after the
+ *      BMP_InfoHeader and before the color table (if it exists).
+ *      However, enabling reading of these files makes the reader
+ *      vulnerable to various malware attacks.  Therefore we do not
+ *      read bmp files with extra data, and require that the size
+ *      of the color table in bytes is
+ *         offset - sizeof(BMP_FileHeader) - sizeof(BMP_InfoHeader)
+ *  (3) Use arrays of l_uint8[] to make an endianness agnostic
+ *      access to the BMP_FileHeader easier.
  */
 struct BMP_FileHeader
 {
@@ -105,6 +106,7 @@ typedef struct BMP_InfoHeader  BMP_IH;
 
 /*! Number of bytes in a BMP info header */
 #define BMP_IHBYTES  sizeof(BMP_IH)
+
 
 /*-------------------------------------------------------------*
  *           Align BMP headers on 4 byte boundaries            *
