@@ -737,8 +737,8 @@ l_uint16  twobytepw;
     }
 
         /* Check for both types of jp2k file */
-    if (memcmp((const char *)buf, (char *)JP2K_CODESTREAM, 4) == 0 ||
-        memcmp((const char *)buf, (char *)JP2K_IMAGE_DATA, 12) == 0) {
+    if (memcmp(buf, JP2K_CODESTREAM, 4) == 0 ||
+        memcmp(buf, JP2K_IMAGE_DATA, 12) == 0) {
         *pformat = IFF_JP2;
         return 0;
     }
