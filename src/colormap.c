@@ -245,7 +245,7 @@ PIXCMAP  *cmapd;
     cmapd = (PIXCMAP *)LEPT_CALLOC(1, sizeof(PIXCMAP));
     nbytes = cmaps->nalloc * sizeof(RGBA_QUAD);
     cmapd->array = (void *)LEPT_CALLOC(1, nbytes);
-    memcpy(cmapd->array, cmaps->array, nbytes);
+    memcpy(cmapd->array, cmaps->array, cmaps->n * sizeof(RGBA_QUAD));
     cmapd->n = cmaps->n;
     cmapd->nalloc = cmaps->nalloc;
     cmapd->depth = cmaps->depth;

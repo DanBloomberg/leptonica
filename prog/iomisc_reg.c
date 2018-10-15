@@ -90,7 +90,7 @@ L_REGPARAMS  *rp;
         pixSetZlibCompression(pixs, 2 * level);
         pixWrite("/tmp/lept/io/zlibtest.png", pixs, IFF_PNG);
         size = nbytesInFile("/tmp/lept/io/zlibtest.png");
-        regTestCompareValues(rp, zlibsize[level], size, 0.0);  /* 3 - 7 */
+        regTestCompareValues(rp, zlibsize[level], size, 10.0);  /* 3 - 7 */
         if (rp->display)
             fprintf(stderr, "zlib level = %d, file size = %ld\n",
                     level, (unsigned long)size);
