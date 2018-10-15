@@ -2426,7 +2426,7 @@ NUMAA    *step;
     offset = 18;
     memcpy(strbuf, dataout, offset);
     strbuf[17] = '\0';
-    if (strncmp(strbuf, "ccba:", 5) != 0) {
+    if (memcmp(strbuf, "ccba:", 5) != 0) {
         LEPT_FREE(dataout);
         return (CCBORDA *)ERROR_PTR("file not type ccba", procName, NULL);
     }

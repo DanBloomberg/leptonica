@@ -705,14 +705,14 @@ PIXCMAP      *cmap = NULL;
         }
 
             /* Is it a data chunk? */
-        if (strncmp((const char *)(pngcomp + i - 4), "IDAT", 4) == 0) {
+        if (memcmp((const char *)(pngcomp + i - 4), "IDAT", 4) == 0) {
             memcpy(datacomp + nbytescomp, pngcomp + i, n);
             nbytescomp += n;
         }
 
             /* Is it a palette chunk? */
         if (cmapflag && !cmap &&
-            strncmp((const char *)(pngcomp + i - 4), "PLTE", 4) == 0) {
+            memcmp((const char *)(pngcomp + i - 4), "PLTE", 4) == 0) {
             if ((n / 3) > (1 << bps)) {
                 LEPT_FREE(pngcomp);
                 LEPT_FREE(datacomp);
@@ -2149,7 +2149,7 @@ SARRAY   *sa;
     if (!bas)
         return ERROR_INT("bas not defined", procName, 1);
     data = l_byteaGetData(bas, &size);
-    if (strncmp((char *)data, "%PDF-1.", 7) != 0)
+    if (memcmp((char *)data, "%PDF-1.", 7) != 0)
         return ERROR_INT("PDF header signature not found", procName, 1);
 
         /* Search for "startxref" starting 50 bytes from the EOF */
