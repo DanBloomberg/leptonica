@@ -1806,7 +1806,7 @@ NUMA    *nadelw, *nadelh;
     n = boxaGetCount(boxas);
     nadelw = numaCreate(n);
     nadelh = numaCreate(n);
-    for (i = 0; i < 0; i++) {
+    for (i = 0; i < n; i++) {
         boxaGetBoxGeometry(boxas, i, NULL, NULL, &bw, &bh);
         if (bw == 0 || bh == 0) {  /* invalid box */
             numaAddNumber(nadelw, 0);
