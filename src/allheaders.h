@@ -359,7 +359,7 @@ LEPT_DLL extern l_ok boxaSizeRange ( BOXA *boxa, l_int32 *pminw, l_int32 *pminh,
 LEPT_DLL extern l_ok boxaLocationRange ( BOXA *boxa, l_int32 *pminx, l_int32 *pminy, l_int32 *pmaxx, l_int32 *pmaxy );
 LEPT_DLL extern l_ok boxaGetSizes ( BOXA *boxa, NUMA **pnaw, NUMA **pnah );
 LEPT_DLL extern l_ok boxaGetArea ( BOXA *boxa, l_int32 *parea );
-LEPT_DLL extern PIX * boxaDisplayTiled ( BOXA *boxas, PIXA *pixa, l_int32 maxwidth, l_int32 linewidth, l_float32 scalefactor, l_int32 background, l_int32 spacing, l_int32 border );
+LEPT_DLL extern PIX * boxaDisplayTiled ( BOXA *boxas, PIXA *pixa, l_int32 first, l_int32 last, l_int32 maxwidth, l_int32 linewidth, l_float32 scalefactor, l_int32 background, l_int32 spacing, l_int32 border );
 LEPT_DLL extern BOXA * boxaSmoothSequenceLS ( BOXA *boxas, l_float32 factor, l_int32 subflag, l_int32 maxdiff, l_int32 extrapixels, l_int32 debug );
 LEPT_DLL extern BOXA * boxaSmoothSequenceMedian ( BOXA *boxas, l_int32 halfwin, l_int32 subflag, l_int32 maxdiff, l_int32 extrapixels, l_int32 debug );
 LEPT_DLL extern BOXA * boxaLinearFit ( BOXA *boxas, l_float32 factor, l_int32 debug );
@@ -368,6 +368,7 @@ LEPT_DLL extern BOXA * boxaModifyWithBoxa ( BOXA *boxas, BOXA *boxam, l_int32 su
 LEPT_DLL extern BOXA * boxaConstrainSize ( BOXA *boxas, l_int32 width, l_int32 widthflag, l_int32 height, l_int32 heightflag );
 LEPT_DLL extern BOXA * boxaReconcileEvenOddHeight ( BOXA *boxas, l_int32 sides, l_int32 delh, l_int32 op, l_float32 factor, l_int32 start );
 LEPT_DLL extern BOXA * boxaReconcilePairWidth ( BOXA *boxas, l_int32 delw, l_int32 op, l_float32 factor, NUMA *na );
+LEPT_DLL extern l_ok boxaEvalSizeConsistency ( BOXA *boxas, l_float32 *pdevw, l_float32 *pdevh, l_int32 debug );
 LEPT_DLL extern BOXA * boxaReconcileSizeByMedian ( BOXA *boxas, l_int32 type, l_float32 fract, l_float32 factor, NUMA **pnadel, l_float32 *pratiowh );
 LEPT_DLL extern l_ok boxaPlotSides ( BOXA *boxa, const char *plotname, NUMA **pnal, NUMA **pnat, NUMA **pnar, NUMA **pnab, PIX **ppixd );
 LEPT_DLL extern l_ok boxaPlotSizes ( BOXA *boxa, const char *plotname, NUMA **pnaw, NUMA **pnah, PIX **ppixd );

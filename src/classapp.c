@@ -74,14 +74,14 @@ static void printRowIndices(l_int32 *index1, l_int32 n1,
 /*!
  * \brief   jbCorrelation()
  *
- * \param[in]    dirin directory of input images
- * \param[in]    thresh typically ~0.8
- * \param[in]    weight typically ~0.6
- * \param[in]    components JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
- * \param[in]    rootname for output files
- * \param[in]    firstpage 0-based
- * \param[in]    npages use 0 for all pages in dirin
- * \param[in]    renderflag 1 to render from templates; 0 to skip
+ * \param[in]    dirin        directory of input images
+ * \param[in]    thresh       typically ~0.8
+ * \param[in]    weight       typically ~0.6
+ * \param[in]    components   JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
+ * \param[in]    rootname     for output files
+ * \param[in]    firstpage    0-based
+ * \param[in]    npages       use 0 for all pages in dirin
+ * \param[in]    renderflag   1 to render from templates; 0 to skip
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -158,14 +158,14 @@ SARRAY     *safiles;
 /*!
  * \brief   jbRankHaus()
  *
- * \param[in]    dirin directory of input images
- * \param[in]    size of Sel used for dilation; typ. 2
- * \param[in]    rank rank value of match; typ. 0.97
- * \param[in]    components JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
- * \param[in]    rootname for output files
- * \param[in]    firstpage 0-based
- * \param[in]    npages use 0 for all pages in dirin
- * \param[in]    renderflag 1 to render from templates; 0 to skip
+ * \param[in]    dirin         directory of input images
+ * \param[in]    size          of Sel used for dilation; typ. 2
+ * \param[in]    rank          rank value of match; typ. 0.97
+ * \param[in]    components    JB_CONN_COMPS, JB_CHARACTERS, JB_WORDS
+ * \param[in]    rootname      for output files
+ * \param[in]    firstpage     0-based
+ * \param[in]    npages        use 0 for all pages in dirin
+ * \param[in]    renderflag    1 to render from templates; 0 to skip
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -244,15 +244,15 @@ SARRAY     *safiles;
 /*!
  * \brief   jbWordsInTextlines()
  *
- * \param[in]    dirin directory of input pages
- * \param[in]    reduction 1 for full res; 2 for half-res
- * \param[in]    maxwidth of word mask components, to be kept
- * \param[in]    maxheight of word mask components, to be kept
- * \param[in]    thresh on correlation; 0.80 is reasonable
- * \param[in]    weight for handling thick text; 0.6 is reasonable
- * \param[out]   pnatl numa with textline index for each component
- * \param[in]    firstpage 0-based
- * \param[in]    npages use 0 for all pages in dirin
+ * \param[in]    dirin       directory of input pages
+ * \param[in]    reduction   1 for full res; 2 for half-res
+ * \param[in]    maxwidth    of word mask components, to be kept
+ * \param[in]    maxheight   of word mask components, to be kept
+ * \param[in]    thresh      on correlation; 0.80 is reasonable
+ * \param[in]    weight      for handling thick text; 0.6 is reasonable
+ * \param[out]   pnatl       numa with textline index for each component
+ * \param[in]    firstpage   0-based
+ * \param[in]    npages      use 0 for all pages in dirin
  * \return  classer for the set of pages
  *
  * <pre>
@@ -333,12 +333,14 @@ SARRAY     *safiles;
 /*!
  * \brief   pixGetWordsInTextlines()
  *
- * \param[in]    pixs 1 bpp, typ. 75 - 150 ppi
- * \param[in]    minwidth, minheight of saved components; smaller are discarded
- * \param[in]    maxwidth, maxheight of saved components; larger are discarded
- * \param[out]   pboxad word boxes sorted in textline line order
- * \param[out]   ppixad word images sorted in textline line order
- * \param[out]   pnai index of textline for each word
+ * \param[in]    pixs        1 bpp, typ. 75 - 150 ppi
+ * \param[in]    minwidth    of saved components; smaller are discarded
+ * \param[in]    minheight   of saved components; smaller are discarded
+ * \param[in]    maxwidth    of saved components; larger are discarded
+ * \param[in]    maxheight   of saved components; larger are discarded
+ * \param[out]   pboxad      word boxes sorted in textline line order
+ * \param[out]   ppixad      word images sorted in textline line order
+ * \param[out]   pnai        index of textline for each word
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -433,11 +435,13 @@ PIXAA   *paa;
 /*!
  * \brief   pixGetWordBoxesInTextlines()
  *
- * \param[in]    pixs 1 bpp, typ. 75 - 150 ppi
- * \param[in]    minwidth, minheight of saved components; smaller are discarded
- * \param[in]    maxwidth, maxheight of saved components; larger are discarded
- * \param[out]   pboxad word boxes sorted in textline line order
- * \param[out]   pnai [optional] index of textline for each word
+ * \param[in]    pixs        1 bpp, typ. 75 - 150 ppi
+ * \param[in]    minwidth    of saved components; smaller are discarded
+ * \param[in]    minheight   of saved components; smaller are discarded
+ * \param[in]    maxwidth    of saved components; larger are discarded
+ * \param[in]    maxheight   of saved components; larger are discarded
+ * \param[out]   pboxad      word boxes sorted in textline line order
+ * \param[out]   pnai        [optional] index of textline for each word
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -497,12 +501,12 @@ NUMA    *nai;
 /*!
  * \brief   pixFindWordAndCharacterBoxes()
  *
- * \param[in]    pixs    2, 4, 8 or 32 bpp; colormap OK; typ. 300 ppi
- * \param[in]    boxs    [optional] region to select in pixs
- * \param[in]    thresh  binarization threshold (typ. 100 - 150)
- * \param[in]    pboxaw  return the word boxes
- * \param[in]    pboxaac return the character boxes
- * \param[out]   debugfile  [optional] for debug images; use NULL to skip
+ * \param[in]    pixs        2, 4, 8 or 32 bpp; colormap OK; typ. 300 ppi
+ * \param[in]    boxs        [optional] region to select in pixs
+ * \param[in]    thresh      binarization threshold (typ. 100 - 150)
+ * \param[out]   pboxaw      return the word boxes
+ * \param[out]   pboxaac     return the character boxes
+ * \param[in]    debugdir    [optional] for debug images; use NULL to skip
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -524,7 +528,7 @@ pixFindWordAndCharacterBoxes(PIX         *pixs,
                              const char  *debugdir)
 {
 char      *debugfile, *subdir;
-l_int32    i, d, xs, ys, xb, yb, nb;
+l_int32    i, xs, ys, xb, yb, nb;
 l_float32  scalefact;
 BOX       *box1, *box2;
 BOXA      *boxa1, *boxa1a, *boxa2, *boxa3, *boxa4, *boxa5, *boxaw;
@@ -644,8 +648,8 @@ PIX       *pix1, *pix2, *pix3, *pix3a, *pix4, *pix5;
 /*!
  * \brief   boxaExtractSortedPattern()
  *
- * \param[in]    boxa typ. of word bounding boxes, in textline order
- * \param[in]    na   index of textline for each box in boxa
+ * \param[in]    boxa    typ. of word bounding boxes, in textline order
+ * \param[in]    na      index of textline for each box in boxa
  * \return  naa NUMAA, where each numa represents one textline,
  *                   or NULL on error
  *
@@ -705,16 +709,16 @@ NUMAA   *naa;
 /*!
  * \brief   numaaCompareImagesByBoxes()
  *
- * \param[in]    naa1 for image 1, formatted by boxaExtractSortedPattern()
- * \param[in]    naa2 ditto; for image 2
- * \param[in]    nperline number of box regions to be used in each textline
- * \param[in]    nreq number of complete row matches required
- * \param[in]    maxshiftx max allowed x shift between two patterns, in pixels
- * \param[in]    maxshifty max allowed y shift between two patterns, in pixels
- * \param[in]    delx max allowed difference in x data, after alignment
- * \param[in]    dely max allowed difference in y data, after alignment
- * \param[out]   psame 1 if %nreq row matches are found; 0 otherwise
- * \param[in]    debugflag 1 for debug output
+ * \param[in]    naa1       for image 1, formatted by boxaExtractSortedPattern()
+ * \param[in]    naa2       for image 2, formatted by boxaExtractSortedPattern()
+ * \param[in]    nperline   number of box regions to be used in each textline
+ * \param[in]    nreq       number of complete row matches required
+ * \param[in]    maxshiftx  max allowed x shift between two patterns, in pixels
+ * \param[in]    maxshifty  max allowed y shift between two patterns, in pixels
+ * \param[in]    delx       max allowed difference in x data, after alignment
+ * \param[in]    dely       max allowed difference in y data, after alignment
+ * \param[out]   psame      1 if %nreq row matches are found; 0 otherwise
+ * \param[in]    debugflag  1 for debug output
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -906,23 +910,27 @@ l_int32  i, xl1, xr1, xl2, xr2, diffl, diffr;
 
 
 /*
- *  countAlignedMatches()
- *      Input:  nai1, nai2 (numas of row pairs for matches)
- *              nasx, nasy (numas of x and y shifts for the matches)
- *              n1, n2 (number of rows in images 1 and 2)
- *              delx, dely (allowed difference in shifts of the match,
- *                          compared to the reference match)
- *              nreq (number of required aligned matches)
- *              &same (<return> 1 if %nreq row matches are found; 0 otherwise)
- *      Return: 0 if OK, 1 on error
+ * \brief   countAlignedMatches()
  *
- *  Notes:
+ * \param[in]    nai1, nai2   numas of row pairs for matches
+ * \param[in]    nasx, nasy   numas of x and y shifts for the matches
+ * \param[in]    n1, n2       number of rows in images 1 and 2
+ * \param[in]    delx, dely   allowed difference in shifts of the match,
+ *                            compared to the reference match
+ * \param[in]    nre1         number of required aligned matches
+ * \param[out]   psame        return 1 if %nreq row matches are found;
+ *                            0 otherwise
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
  *      (1) This takes 4 input arrays giving parameters of all the
  *          line matches.  It looks for the maximum set of aligned
  *          matches (matches with approximately the same overall shifts)
  *          that do not use rows from either image more than once.
+ * </pre>
  */
-static l_int32
+static l_ok
 countAlignedMatches(NUMA     *nai1,
                     NUMA     *nai2,
                     NUMA     *nasx,

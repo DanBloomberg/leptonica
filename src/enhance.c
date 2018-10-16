@@ -1741,7 +1741,7 @@ pixMosaicColorShiftRGB(PIX       *pixs,
                        l_int32    nincr)
 {
 char       buf[64];
-l_int32    i, j;
+l_int32    i;
 l_float32  del;
 L_BMF     *bmf;
 PIX       *pix1, *pix2, *pix3;

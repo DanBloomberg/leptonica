@@ -1457,7 +1457,7 @@ pixWordMaskByDilation(PIX      *pixs,
                       PIXA     *pixadb)
 {
 l_int32   i, n, ndil, maxdiff, diff, ibest;
-l_int32   start, stop, check, count, total, xres;
+l_int32   check, count, total, xres;
 l_int32   ncc[13];  /* max dilation + 1 */
 l_int32  *diffa;
 BOXA     *boxa;
@@ -1479,7 +1479,6 @@ PIX      *pix1, *pix2;
     ndil = 12;  /* appropriate for 75 to 150 ppi */
     nacc = numaCreate(ndil + 1);
     nadiff = numaCreate(ndil + 1);
-    stop = FALSE;
     for (i = 0; i <= ndil; i++) {
         if (i == 0)  /* first one not dilated */
             pix2 = pixCopy(NULL, pix1);
@@ -1505,7 +1504,6 @@ PIX      *pix1, *pix2;
     diffa = numaGetIArray(nadiff);
     n = numaGetCount(nadiff);
     maxdiff = 0;
-    start = 0;
     check = TRUE;
     ibest = 2;
     for (i = 1; i < n; i++) {
@@ -1515,10 +1513,8 @@ PIX      *pix1, *pix2;
             check = FALSE;
         }
         diff = diffa[i];
-        if (diff > maxdiff) {
+        if (diff > maxdiff)
             maxdiff = diff;
-            start = i;
-        }
     }
     LEPT_FREE(diffa);
 

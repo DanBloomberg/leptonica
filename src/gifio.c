@@ -40,9 +40,6 @@
  *          static l_int32  gifWriteFunc()
  *          static l_int32  pixToGif()
  *
- *    Removing interlacing
- *          static PIX     *pixUninterlaceGIF()
- *
  *    The initial version of this module was generously contribued by
  *    Antony Dovgal.
  *
@@ -101,14 +98,6 @@ static l_int32  gifReadFunc(GifFileType *gif, GifByteType *dest,
     /*! Low-level callback for in-memory encoding */
 static l_int32  gifWriteFunc(GifFileType *gif, const GifByteType *src,
                              l_int32 bytesToWrite);
-
-    /* GIF supports 4-way interlacing by raster lines.
-     * Before 5.0, it was necessary for leptonica to restore interlaced
-     * data to normal raster order when reading to a pix. With 5.0,
-     * the de-interlacing is done by the library read function. */
-static PIX * pixUninterlaceGIF(PIX  *pixs);
-static const l_int32 InterlacedOffset[] = {0, 4, 2, 1};
-static const l_int32 InterlacedJumps[] = {8, 8, 4, 2};
 
 
 /*---------------------------------------------------------------------*
@@ -638,9 +627,18 @@ GifByteType     *gif_line;
 }
 
 
+#if 0
 /*---------------------------------------------------------------------*
- *                        Removing interlacing                         *
+ *         Removing interlacing (reference only; not used)             *
  *---------------------------------------------------------------------*/
+    /* GIF supports 4-way interlacing by raster lines.
+     * Before 5.0, it was necessary for leptonica to restore interlaced
+     * data to normal raster order when reading to a pix. With 5.0,
+     * the de-interlacing is done by the library read function.
+     * It is here only as a reference. */
+static const l_int32 InterlacedOffset[] = {0, 4, 2, 1};
+static const l_int32 InterlacedJumps[] = {8, 8, 4, 2};
+
 static PIX *
 pixUninterlaceGIF(PIX  *pixs)
 {
@@ -670,6 +668,7 @@ PIX       *pixd;
 
     return pixd;
 }
+#endif
 
 
 /* -----------------------------------------------------------------*/

@@ -38,6 +38,7 @@
  *           BOXA     *boxaReconcileEvenOddHeight()
  *    static l_int32   boxaTestEvenOddHeight()
  *           BOXA     *boxaReconcilePairWidth()
+ *           l_int32   boxaEvalSizeConsistency()
  *           BOXA     *boxaReconcileSizeByMedian()
  *           l_int32   boxaPlotSides()   [for debugging]
  *           l_int32   boxaPlotSizes()   [for debugging]
@@ -1083,6 +1084,104 @@ BOXA    *boxae, *boxao, *boxad;
 
 
 /*!
+ * \brief   boxaEvalSizeConsistency()
+ *
+ * \param[in]    boxas     of size >= 10
+ * \param[out]   pdevw     average fractional deviation from median width
+ * \param[out]   pdevh     average fractional deviation from median height
+ * \param[in]    debug     1 for debug plot output of regularized
+ *                         width and height
+ *
+ * <pre>
+ * Notes:
+ *      (1) This evaluates a boxa for consistency of the box sizes.
+ *          The intended application is that the boxes are a sequence of
+ *          page regions in a book scan, and the output is a decision
+ *          about whether the pages should be approximately the same size.
+ *          The determination should be robust to outliers, both random
+ *          and (for many cases) systematic.
+ *      (2) Adjacent even and odd boxes are expected to be the same size.
+ *          Take them pairwise, and assume the minimum height, hmin,
+ *          is correct.  Then for (the usual case) wmin/hmin > 0.5, assume
+ *          the minimum width is correct.  If wmin/hmin <= 0.5, assume
+ *          the maximum width is correct.
+ *      (3) Compute the average fractional deviation, from median width and
+ *          height, of these regularized pair boxes.  A deviation of width
+ *          or height by more than 0.05 indicates that the boxes are
+ *          from a non-homogeneous source, such as a volume with different
+ *          page sizes.
+ * </pre>
+ */
+l_ok
+boxaEvalSizeConsistency(BOXA       *boxas,
+                        l_float32  *pdevw,
+                        l_float32  *pdevh,
+                        l_int32     debug)
+{
+l_int32    i, n, bw1, bh1, bw2, bh2, medw, medh;
+l_float32  devw, devh, minw, maxw, minh, fmedw, fmedh, w;
+BOX       *box;
+BOXA      *boxa1;
+PIX       *pix1, *pix2, *pix3;
+PIXA      *pixa;
+
+    PROCNAME("boxaEvalSizeConsistency");
+
+    if (pdevw) *pdevw = 0.0;
+    if (pdevh) *pdevh = 0.0;
+    if (!boxas)
+        return ERROR_INT("boxas not defined", procName, 1);
+    if (!pdevw || !pdevh)
+        return ERROR_INT("&devw and &devh not both defined", procName, 1);
+    n = boxaGetCount(boxas);
+    if (n < 10) {
+        L_WARNING("small boxa; assuming OK", procName);
+        return 0;
+    }
+
+    boxaMedianDimensions(boxas, &medw, &medh, NULL, NULL, NULL, NULL,
+                         NULL, NULL);
+    boxa1 = (debug) ? boxaCreate(n) : NULL;
+    devw = devh = 0.0;
+    for (i = 0; i < n; i += 2) {
+        boxaGetBoxGeometry(boxas, 2 * i, NULL, NULL, &bw1, &bh1);
+        boxaGetBoxGeometry(boxas, 2 * i + 1, NULL, NULL, &bw2, &bh2);
+        minw = (l_float32)L_MIN(bw1, bw2);
+        maxw = (l_float32)L_MAX(bw1, bw2);
+        minh = (l_float32)L_MIN(bh1, bh2);
+        fmedw = (l_float32)medw;
+        fmedh = (l_float32)medh;
+        w = (minw / minh > 0.5) ? minw : maxw;
+        devw += L_ABS((fmedw - w) / fmedw);
+        devh += L_ABS((fmedh - minh) / fmedh);
+        if (debug) {
+            box = boxCreate(0, 0, w, minh);
+            boxaAddBox(boxa1, box, L_COPY);
+            boxaAddBox(boxa1, box, L_INSERT);
+        }
+    }
+    *pdevw = 2.0 * devw / n;
+    *pdevh = 2.0 * devh / n;
+    if (!debug) return 0;
+
+        /* Debug section */
+    boxaPlotSizes(boxas, "Input boxa", NULL, NULL, &pix1);
+    boxaPlotSizes(boxa1, "Regularized boxa", NULL, NULL, &pix2);
+    pixa = pixaCreate(2);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pixaAddPix(pixa, pix2, L_INSERT);
+    pix3 = pixaDisplayTiledInColumns(pixa, 2, 1.0, 3, 2);
+    lept_mkdir("lept/boxa");
+    pixWrite("/tmp/lept/boxa/eval.png", pix2, IFF_PNG);
+    pixDisplay(pix3, 100, 100);
+    boxaDestroy(&boxa1);
+    pixaDestroy(&pixa);
+    pixDestroy(&pix3);
+    return 0;
+}
+
+
+/*!
  * \brief   boxaReconcileSizeByMedian()
  *
  * \param[in]    boxas    containing at least 6 valid boxes
@@ -1198,7 +1297,7 @@ NUMA      *naind, *nadel;
             L_INFO("no outlier boxes found\n", procName);
             return boxaCopy(boxas, L_COPY);
         }
- 
+
             /* Get left/right parameters from inliers */
         boxaGetMedianVals(boxa1, &medleft, NULL, &medright, NULL, NULL, NULL);
 

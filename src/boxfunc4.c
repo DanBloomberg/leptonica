@@ -75,9 +75,9 @@
  * \brief   boxaSelectRange()
  *
  * \param[in]    boxas
- * \param[in]    first use 0 to select from the beginning
- * \param[in]    last use -1 to select to the end
- * \param[in]    copyflag L_COPY, L_CLONE
+ * \param[in]    first      use 0 to select from the beginning
+ * \param[in]    last       use -1 to select to the end
+ * \param[in]    copyflag   L_COPY, L_CLONE
  * \return  boxad, or NULL on error
  *
  * <pre>
@@ -133,9 +133,9 @@ BOXA    *boxad;
  * \brief   boxaaSelectRange()
  *
  * \param[in]    baas
- * \param[in]    first use 0 to select from the beginning
- * \param[in]    last use -1 to select to the end
- * \param[in]    copyflag L_COPY, L_CLONE
+ * \param[in]    first      use 0 to select from the beginning
+ * \param[in]    last       use -1 to select to the end
+ * \param[in]    copyflag   L_COPY, L_CLONE
  * \return  baad, or NULL on error
  *
  * <pre>
@@ -192,12 +192,12 @@ BOXAA   *baad;
  * \brief   boxaSelectBySize()
  *
  * \param[in]    boxas
- * \param[in]    width, height threshold dimensions
- * \param[in]    type L_SELECT_WIDTH, L_SELECT_HEIGHT,
- *                    L_SELECT_IF_EITHER, L_SELECT_IF_BOTH
- * \param[in]    relation L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                        L_SELECT_IF_LTE, L_SELECT_IF_GTE
- * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+ * \param[in]    width, height    threshold dimensions
+ * \param[in]    type             L_SELECT_WIDTH, L_SELECT_HEIGHT,
+ *                                L_SELECT_IF_EITHER, L_SELECT_IF_BOTH
+ * \param[in]    relation         L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                                L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[out]   pchanged         [optional] 1 if changed; 0 if clone returned
  * \return  boxad filtered set, or NULL on error
  *
  * <pre>
@@ -257,11 +257,11 @@ NUMA  *na;
  * \brief   boxaMakeSizeIndicator()
  *
  * \param[in]    boxa
- * \param[in]    width, height threshold dimensions
- * \param[in]    type L_SELECT_WIDTH, L_SELECT_HEIGHT,
- *                    L_SELECT_IF_EITHER, L_SELECT_IF_BOTH
- * \param[in]    relation L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                        L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[in]    width, height   threshold dimensions
+ * \param[in]    type            L_SELECT_WIDTH, L_SELECT_HEIGHT,
+ *                               L_SELECT_IF_EITHER, L_SELECT_IF_BOTH
+ * \param[in]    relation        L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                               L_SELECT_IF_LTE, L_SELECT_IF_GTE
  * \return  na indicator array, or NULL on error
  *
  * <pre>
@@ -348,10 +348,10 @@ NUMA    *na;
  * \brief   boxaSelectByArea()
  *
  * \param[in]    boxas
- * \param[in]    area threshold value of width * height
- * \param[in]    relation L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                        L_SELECT_IF_LTE, L_SELECT_IF_GTE
- * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+ * \param[in]    area       threshold value of width * height
+ * \param[in]    relation   L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                          L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[out]   pchanged   [optional] 1 if changed; 0 if clone returned
  * \return  boxad filtered set, or NULL on error
  *
  * <pre>
@@ -400,9 +400,9 @@ NUMA  *na;
  * \brief   boxaMakeAreaIndicator()
  *
  * \param[in]    boxa
- * \param[in]    area threshold value of width * height
- * \param[in]    relation L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                        L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[in]    area       threshold value of width * height
+ * \param[in]    relation   L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                          L_SELECT_IF_LTE, L_SELECT_IF_GTE
  * \return  na indicator array, or NULL on error
  *
  * <pre>
@@ -452,10 +452,10 @@ NUMA    *na;
  * \brief   boxaSelectByWHRatio()
  *
  * \param[in]    boxas
- * \param[in]    ratio    width/height threshold value
- * \param[in]    relation L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                        L_SELECT_IF_LTE, L_SELECT_IF_GTE
- * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+ * \param[in]    ratio     width/height threshold value
+ * \param[in]    relation  L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                         L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[out]   pchanged  [optional] 1 if changed; 0 if clone returned
  * \return  boxad filtered set, or NULL on error
  *
  * <pre>
@@ -504,9 +504,9 @@ NUMA  *na;
  * \brief   boxaMakeWHRatioIndicator()
  *
  * \param[in]    boxa
- * \param[in]    ratio    width/height threshold value
- * \param[in]    relation L_SELECT_IF_LT, L_SELECT_IF_GT,
- *                        L_SELECT_IF_LTE, L_SELECT_IF_GTE
+ * \param[in]    ratio     width/height threshold value
+ * \param[in]    relation  L_SELECT_IF_LT, L_SELECT_IF_GT,
+ *                         L_SELECT_IF_LTE, L_SELECT_IF_GTE
  * \return  na indicator array, or NULL on error
  *
  * <pre>
@@ -558,8 +558,8 @@ NUMA      *na;
  * \brief   boxaSelectWithIndicator()
  *
  * \param[in]    boxas
- * \param[in]    na indicator numa
- * \param[out]   pchanged [optional] 1 if changed; 0 if clone returned
+ * \param[in]    na         indicator numa
+ * \param[out]   pchanged   [optional] 1 if changed; 0 if clone returned
  * \return  boxad, or NULL on error
  *
  * <pre>
@@ -616,7 +616,7 @@ BOXA    *boxad;
 /*!
  * \brief   boxaPermutePseudorandom()
  *
- * \param[in]    boxas input boxa
+ * \param[in]    boxas   input boxa
  * \return  boxad with boxes permuted, or NULL on error
  *
  * <pre>
@@ -650,8 +650,8 @@ BOXA    *boxad;
 /*!
  * \brief   boxaPermuteRandom()
  *
- * \param[in]    boxad [optional]   can be null or equal to boxas
- * \param[in]    boxas              input boxa
+ * \param[in]    boxad    [optional]   can be null or equal to boxas
+ * \param[in]    boxas    input boxa
  * \return  boxad with boxes permuted, or NULL on error
  *
  * <pre>
@@ -702,7 +702,7 @@ l_int32  i, n, index;
  * \brief   boxaSwapBoxes()
  *
  * \param[in]    boxa
- * \param[in]    i, j two indices of boxes, that are to be swapped
+ * \param[in]    i, j      two indices of boxes, that are to be swapped
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -739,7 +739,7 @@ BOX     *box;
  * \brief   boxaConvertToPta()
  *
  * \param[in]    boxa
- * \param[in]    ncorners 2 or 4 for the representation of each box
+ * \param[in]    ncorners     2 or 4 for the representation of each box
  * \return  pta with %ncorners points for each box in the boxa,
  *                   or NULL on error
  *
@@ -783,7 +783,7 @@ PTA     *pta, *pta1;
  * \brief   ptaConvertToBoxa()
  *
  * \param[in]    pta
- * \param[in]    ncorners 2 or 4 for the representation of each box
+ * \param[in]    ncorners   2 or 4 for the representation of each box
  * \return  boxa with one box for each 2 or 4 points in the pta,
  *                    or NULL on error
  *
@@ -840,7 +840,7 @@ BOXA    *boxa;
  * \brief   boxConvertToPta()
  *
  * \param[in]    box
- * \param[in]    ncorners 2 or 4 for the representation of the box
+ * \param[in]    ncorners   2 or 4 for the representation of the box
  * \return  pta with %ncorners points, or NULL on error
  *
  * <pre>
@@ -924,10 +924,9 @@ l_int32  n, x1, y1, x2, y2, x3, y3, x4, y4, x, y, xmax, ymax;
  * \brief   boxaGetExtent()
  *
  * \param[in]    boxa
- * \param[out]   pw  [optional] width
- * \param[out]   ph  [optional] height
- * \param[out]   pbox [optional]  minimum box containing all boxes
- *                    in boxa
+ * \param[out]   pw      [optional] width
+ * \param[out]   ph      [optional] height
+ * \param[out]   pbox    [optional]  minimum box containing all boxes in boxa
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -987,11 +986,11 @@ l_int32  i, n, x, y, w, h, xmax, ymax, xmin, ymin, found;
  * \brief   boxaGetCoverage()
  *
  * \param[in]    boxa
- * \param[in]    wc, hc dimensions of overall clipping rectangle with UL
- *                      corner at (0, 0 that is covered by the boxes.
- * \param[in]    exactflag 1 for guaranteeing an exact result; 0 for getting
- *                         an exact result only if the boxes do not overlap
- * \param[out]   pfract sum of box area as fraction of w * h
+ * \param[in]    wc, hc     dimensions of overall clipping rectangle with UL
+ *                          corner at (0, 0 that is covered by the boxes.
+ * \param[in]    exactflag  1 for guaranteeing an exact result; 0 for getting
+ *                          an exact result only if the boxes do not overlap
+ * \param[out]   pfract     sum of box area as fraction of w * h
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1061,8 +1060,10 @@ PIX     *pixt;
  * \brief   boxaaSizeRange()
  *
  * \param[in]    baa
- * \param[out]   pminw, pminh, pmaxw, pmaxh [optional] range of
- *                                          dimensions of all boxes
+ * \param[out]   pminw    [optional] min width of all boxes
+ * \param[out]   pmaxw    [optional] max width of all boxes
+ * \param[out]   pminh    [optional] min height of all boxes
+ * \param[out]   pmaxh    [optional] max height of all boxes
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1115,8 +1116,10 @@ BOXA    *boxa;
  * \brief   boxaSizeRange()
  *
  * \param[in]    boxa
- * \param[out]   pminw, pminh, pmaxw, pmaxh [optional] range of
- *                                          dimensions of box in the array
+ * \param[out]   pminw    [optional] min width of all boxes
+ * \param[out]   pmaxw    [optional] max width of all boxes
+ * \param[out]   pminh    [optional] min height of all boxes
+ * \param[out]   pmaxh    [optional] max height of all boxes
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1166,8 +1169,10 @@ l_int32  minw, minh, maxw, maxh, i, n, w, h;
  * \brief   boxaLocationRange()
  *
  * \param[in]    boxa
- * \param[out]   pminx, pminy, pmaxx, pmaxy [optional] range of
- *                                          UL corner positions
+ * \param[out]   pminx    [optional] min (UL corner) x value of all boxes
+ * \param[out]   pminy    [optional] min (UL corner) y value of all boxes
+ * \param[out]   pmaxx    [optional] max (UL corner) x value of all boxes
+ * \param[out]   pmaxy    [optional] max (UL corner) y value of all boxes
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1218,7 +1223,8 @@ l_int32  minx, miny, maxx, maxy, i, n, x, y;
  * \brief   boxaGetSizes()
  *
  * \param[in]    boxa
- * \param[out]   pnaw, pnah [optional] widths and heights of valid boxes
+ * \param[out]   pnaw    [optional] widths of valid boxes
+ * \param[out]   pnah    [optional] heights of valid boxes
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1259,7 +1265,7 @@ BOX     *box;
  * \brief   boxaGetArea()
  *
  * \param[in]    boxa
- * \param[out]   parea total area of all boxes
+ * \param[out]   parea    total area of all boxes
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1294,15 +1300,17 @@ l_int32  i, n, w, h;
  * \brief   boxaDisplayTiled()
  *
  * \param[in]    boxas
- * \param[in]    pixa [optional] background for each box
- * \param[in]    maxwidth of output image
- * \param[in]    linewidth width of box outlines, before scaling
- * \param[in]    scalefactor applied to every box; use 1.0 for no scaling
- * \param[in]    background 0 for white, 1 for black; this is the color
- *                          of the spacing between the images
- * \param[in]    spacing  between images, and on outside
- * \param[in]    border width of black border added to each image;
- *                      use 0 for no border
+ * \param[in]    pixa          [optional] background for each box
+ * \param[in]    first         index of first box
+ * \param[in]    last          index of last box; use -1 to go to end
+ * \param[in]    maxwidth      of output image
+ * \param[in]    linewidth     width of box outlines, before scaling
+ * \param[in]    scalefactor   applied to every box; use 1.0 for no scaling
+ * \param[in]    background    0 for white, 1 for black; this is the color
+ *                             of the spacing between the images
+ * \param[in]    spacing       between images, and on outside
+ * \param[in]    border        width of black border added to each image;
+ *                             use 0 for no border
  * \return  pixd of tiled images of boxes, or NULL on error
  *
  * <pre>
@@ -1318,6 +1326,8 @@ l_int32  i, n, w, h;
 PIX *
 boxaDisplayTiled(BOXA        *boxas,
                  PIXA        *pixa,
+                 l_int32      first,
+                 l_int32      last,
                  l_int32      maxwidth,
                  l_int32      linewidth,
                  l_float32    scalefactor,
@@ -1348,6 +1358,17 @@ PIXA    *pixat;
                                     procName, NULL);
         }
     }
+    first = L_MAX(0, first);
+    if (last < 0) last = n - 1;
+    if (first >= n)
+        return (PIX *)ERROR_PTR("invalid first", procName, NULL);
+    if (last >= n) {
+        L_WARNING("last = %d is beyond max index = %d; adjusting\n",
+                  procName, last, n - 1);
+        last = n - 1;
+    }
+    if (first > last)
+        return (PIX *)ERROR_PTR("first > last", procName, NULL);
 
         /* Because the bitmap font will be reduced when tiled, choose the
          * font size inversely with the scale factor. */
@@ -1364,7 +1385,7 @@ PIXA    *pixat;
 
     pixat = pixaCreate(n);
     boxaGetExtent(boxa, &w, &h, NULL);
-    for (i = 0; i < n; i++) {
+    for (i = first; i <= last; i++) {
         box = boxaGetBox(boxa, i, L_CLONE);
         if (!pixa) {
             pix1 = pixCreate(w, h, 32);

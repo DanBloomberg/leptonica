@@ -552,7 +552,6 @@ pixFindPageForeground(PIX     *pixs,
                       l_int32  showmorph,
                       PIXAC   *pixac)
 {
-char     buf[64];
 l_int32  flag, nbox, intersects;
 l_int32  w, h, bx, by, bw, bh, left, right, top, bottom;
 PIX     *pixb, *pixb2, *pixseed, *pixsf, *pixm, *pix1, *pixg2;
