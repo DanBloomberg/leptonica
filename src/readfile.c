@@ -318,9 +318,10 @@ PIX *
 pixReadStream(FILE    *fp,
               l_int32  hint)
 {
-l_int32   format, ret;
+l_int32   format, ret, valid;
 l_uint8  *comment;
 PIX      *pix;
+PIXCMAP  *cmap;
 
     PROCNAME("pixReadStream");
 
@@ -401,8 +402,16 @@ PIX      *pix;
         break;
     }
 
-    if (pix)
+    if (pix) {
         pixSetInputFormat(pix, format);
+        if ((cmap = pixGetColormap(pix))) {
+            pixcmapIsValid(cmap, &valid);
+            if (!valid) {
+                pixDestroy(&pix);
+                return (PIX *)ERROR_PTR("invalid colormap", procName, NULL);
+            }
+        }
+    }
     return pix;
 }
 
@@ -830,8 +839,9 @@ PIX *
 pixReadMem(const l_uint8  *data,
            size_t          size)
 {
-l_int32  format;
-PIX     *pix;
+l_int32   format, valid;
+PIX      *pix;
+PIXCMAP  *cmap;
 
     PROCNAME("pixReadMem");
 
@@ -911,13 +921,20 @@ PIX     *pix;
     }
 
         /* Set the input format.  For tiff reading from memory we lose
-         * the actual input format; for 1 bpp, default to G4.  */
+         * the actual input format; for 1 bpp, default to G4.  Also
+         * verify that the colormap is valid.  */
     if (pix) {
         if (format == IFF_TIFF && pixGetDepth(pix) == 1)
             format = IFF_TIFF_G4;
         pixSetInputFormat(pix, format);
+        if ((cmap = pixGetColormap(pix))) {
+            pixcmapIsValid(cmap, &valid);
+            if (!valid) {
+                pixDestroy(&pix);
+                return (PIX *)ERROR_PTR("invalid colormap", procName, NULL);
+            }
+        }
     }
-
     return pix;
 }
 

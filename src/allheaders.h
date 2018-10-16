@@ -464,6 +464,7 @@ LEPT_DLL extern PIXCMAP * pixcmapCreateRandom ( l_int32 depth, l_int32 hasblack,
 LEPT_DLL extern PIXCMAP * pixcmapCreateLinear ( l_int32 d, l_int32 nlevels );
 LEPT_DLL extern PIXCMAP * pixcmapCopy ( PIXCMAP *cmaps );
 LEPT_DLL extern void pixcmapDestroy ( PIXCMAP **pcmap );
+LEPT_DLL extern l_ok pixcmapIsValid ( PIXCMAP *cmap, l_int32 *pvalid );
 LEPT_DLL extern l_ok pixcmapAddColor ( PIXCMAP *cmap, l_int32 rval, l_int32 gval, l_int32 bval );
 LEPT_DLL extern l_ok pixcmapAddRGBA ( PIXCMAP *cmap, l_int32 rval, l_int32 gval, l_int32 bval, l_int32 aval );
 LEPT_DLL extern l_ok pixcmapAddNewColor ( PIXCMAP *cmap, l_int32 rval, l_int32 gval, l_int32 bval, l_int32 *pindex );

@@ -101,6 +101,7 @@
 #endif  /* HAVE_CONFIG_H */
 
 #include <string.h>
+#include <math.h>   /* for isnan */
 #include <sys/types.h>
 #ifndef _MSC_VER
 #include <unistd.h>
@@ -486,7 +487,7 @@ PIXCMAP   *cmap;
         /* Use default fields for bps and spp */
     TIFFGetFieldDefaulted(tif, TIFFTAG_BITSPERSAMPLE, &bps);
     TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLESPERPIXEL, &spp);
-    if (bps < 1 || bps > 16) {
+    if (bps != 1 && bps != 2 && bps != 4 && bps != 8 && bps != 16) {
         L_ERROR("invalid bps = %d\n", procName, bps);
         return NULL;
     }
@@ -1622,6 +1623,7 @@ l_float32  fxres, fyres;
     foundxres = TIFFGetField(tif, TIFFTAG_XRESOLUTION, &fxres);
     foundyres = TIFFGetField(tif, TIFFTAG_YRESOLUTION, &fyres);
     if (!foundxres && !foundyres) return 1;
+    if (isnan(fxres) || isnan(fyres)) return 1;
     if (!foundxres && foundyres)
         fxres = fyres;
     else if (foundxres && !foundyres)

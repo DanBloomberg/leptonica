@@ -745,6 +745,7 @@ l_ok
 pixCopyColormap(PIX  *pixd,
                 PIX  *pixs)
 {
+l_int32   valid;
 PIXCMAP  *cmaps, *cmapd;
 
     PROCNAME("pixCopyColormap");
@@ -759,11 +760,13 @@ PIXCMAP  *cmaps, *cmapd;
     pixDestroyColormap(pixd);
     if ((cmaps = pixGetColormap(pixs)) == NULL)  /* not an error */
         return 0;
+    pixcmapIsValid(cmaps, &valid);
+    if (!valid)
+        return ERROR_INT("cmap not valid", procName, 1);
 
     if ((cmapd = pixcmapCopy(cmaps)) == NULL)
         return ERROR_INT("cmapd not made", procName, 1);
     pixSetColormap(pixd, cmapd);
-
     return 0;
 }
 

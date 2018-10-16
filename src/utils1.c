@@ -1106,7 +1106,8 @@ l_getFormattedDate()
 char        buf[128] = "", sep = 'Z';
 l_int32     gmt_offset, relh, relm;
 time_t      ut, lt;
-struct tm  *tptr;
+struct tm   Tm;
+struct tm  *tptr = &Tm;
 
     ut = time(NULL);
 
