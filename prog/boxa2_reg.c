@@ -27,8 +27,9 @@
 /*
  *  boxa2_reg.c
  *
- *  Operations that can search for anomalous sized boxes in a boxa
- *  where the widths and heights of the boxes are expected to be similar.
+ *  Low-level statistical operations that can be used to identify anomalous
+ *  sized boxes in a boxa, where the widths and heights of the boxes
+ *  are expected to be similar.
  *
  *  This tests a number of operations on boxes in a boxa, including
  *  separating them into subsets of different parity.

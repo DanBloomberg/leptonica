@@ -1904,7 +1904,7 @@ PIX       *pixd;
 /*!
  * \brief   pixDarkenGray()
  *
- * \param[in]    pixd     [optional] can be null or equal to pixs
+ * \param[in]    pixd      [optional] can be null or equal to pixs
  * \param[in]    pixs      32 bpp rgb
  * \param[in]    thresh    pixels with max component >= %thresh are unchanged
  * \param[in]    satlimit  pixels with saturation >= %satlimit are unchanged
@@ -1913,9 +1913,9 @@ PIX       *pixd;
  * <pre>
  * Notes:
  *      (1) This darkens gray pixels, by a fraction (sat/%satlimit), where
- *          the sat, the saturation, is the component difference (max - min).
+ *          the saturation, sat, is the component difference (max - min).
  *          The pixel value is unchanged if sat >= %satlimit.  A typical
- *          value of %satlimit might be 50; the larger the value, the
+ *          value of %satlimit might be 40; the larger the value, the
  *          more that pixels with a smaller saturation will be darkened.
  *      (2) Pixels with max component >= %thresh are unchanged. This can be
  *          used to prevent bright pixels with low saturation from being

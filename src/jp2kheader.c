@@ -198,6 +198,9 @@ l_uint8  ihdr[4] = {0x69, 0x68, 0x64, 0x72};  /* 'ihdr' */
 #endif  /* DEBUG_IHDR */
 
     windex = loc / 4 + 1;
+    if (4 * (windex + 2) + 2 >= size)
+        return ERROR_INT("image parameters end are outside of header",
+                         procName, 1);
     val = *((l_uint32 *)data + windex);
     h = convertOnLittleEnd32(val);
     val = *((l_uint32 *)data + windex + 1);

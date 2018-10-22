@@ -65,6 +65,7 @@ static const char *tests[] = {
                               "blend5_reg",
                               "boxa1_reg",
                               "boxa2_reg",
+                              "boxa3_reg",
                               "ccthin1_reg",
                               "ccthin2_reg",
                               "cmapquant_reg",

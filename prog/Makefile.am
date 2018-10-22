@@ -12,7 +12,8 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	bilinear_reg binarize_reg \
 	binmorph1_reg binmorph3_reg blackwhite_reg \
 	blend1_reg blend2_reg blend3_reg blend4_reg blend5_reg \
-	boxa1_reg boxa2_reg ccthin1_reg ccthin2_reg cmapquant_reg \
+	boxa1_reg boxa2_reg boxa3_reg \
+	ccthin1_reg ccthin2_reg cmapquant_reg \
 	colorcontent_reg coloring_reg colorize_reg \
 	colormask_reg colormorph_reg colorquant_reg \
 	colorseg_reg colorspace_reg compare_reg \

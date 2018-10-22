@@ -1118,7 +1118,7 @@ boxaEvalSizeConsistency(BOXA       *boxas,
                         l_float32  *pdevh,
                         l_int32     debug)
 {
-l_int32    i, n, bw1, bh1, bw2, bh2, medw, medh;
+l_int32    i, n, bw1, bh1, bw2, bh2, medw, medh, npairs;
 l_float32  devw, devh, minw, maxw, minh, fmedw, fmedh, w;
 BOX       *box;
 BOXA      *boxa1;
@@ -1141,11 +1141,16 @@ PIXA      *pixa;
 
     boxaMedianDimensions(boxas, &medw, &medh, NULL, NULL, NULL, NULL,
                          NULL, NULL);
+    if (debug) fprintf(stderr, "medw = %d, medh = %d\n", medw, medh);
     boxa1 = (debug) ? boxaCreate(n) : NULL;
     devw = devh = 0.0;
-    for (i = 0; i < n; i += 2) {
-        boxaGetBoxGeometry(boxas, 2 * i, NULL, NULL, &bw1, &bh1);
-        boxaGetBoxGeometry(boxas, 2 * i + 1, NULL, NULL, &bw2, &bh2);
+        /* Take in pairs; skip last box if n is odd */
+    for (i = 0, npairs = 0; i < n - 1; i += 2) {
+        boxaGetBoxGeometry(boxas, i, NULL, NULL, &bw1, &bh1);
+        boxaGetBoxGeometry(boxas, i + 1, NULL, NULL, &bw2, &bh2);
+        if (bw1 == 0 || bh1 == 0 || bw2 == 0 || bh2 == 0)
+            continue;
+        npairs++;
         minw = (l_float32)L_MIN(bw1, bw2);
         maxw = (l_float32)L_MAX(bw1, bw2);
         minh = (l_float32)L_MIN(bh1, bh2);
@@ -1160,13 +1165,21 @@ PIXA      *pixa;
             boxaAddBox(boxa1, box, L_INSERT);
         }
     }
-    *pdevw = 2.0 * devw / n;
-    *pdevh = 2.0 * devh / n;
+    if (npairs == 0) {
+        L_WARNING("no valid box pairs\n", procName);
+        return 0;
+    }
+    *pdevw = devw / npairs;
+    *pdevh = devh / npairs;
     if (!debug) return 0;
 
         /* Debug section */
-    boxaPlotSizes(boxas, "Input boxa", NULL, NULL, &pix1);
-    boxaPlotSizes(boxa1, "Regularized boxa", NULL, NULL, &pix2);
+    boxaPlotSizes(boxas, "input_boxa", NULL, NULL, &pix1);
+    boxaPlotSizes(boxa1, "regularized_boxa", NULL, NULL, &pix2);
+    boxaPlotSizes(boxas, NULL, NULL, NULL, &pix1);
+    boxaPlotSizes(boxa1, NULL, NULL, NULL, &pix2);
+    pixDisplay(pix1, 500, 0);
+    pixDisplay(pix2, 500, 1000);
     pixa = pixaCreate(2);
     pixaAddPix(pixa, pix1, L_INSERT);
     pixaAddPix(pixa, pix2, L_INSERT);
@@ -1190,7 +1203,10 @@ PIXA      *pixa;
  *                        in range (0 ... 1); typ. about 0.1.
  * \param[in]    factor   expansion for fixed box beyond median width;
  *                        should be near 1.0.
- * \param[out]   pnadel   [optional] diff from median for boxes above threshold
+ * \param[out]   pnadelw  [optional] diff from median width for boxes
+ *                        above threshold
+ * \param[out]   pnadelh  [optional] diff from median height for boxes
+ *                        above threshold
  * \param[out]   ratiowh  [optional] ratio of median width/height of boxas
  * \return  boxad  possibly adjusted from boxas; a copy of boxas on error
  *
@@ -1202,16 +1218,19 @@ PIXA      *pixa;
  *      (3) %fract specifies the tolerance for different dimensions. Any
  *          box with a fractional difference from the median size that
  *          exceeds %fract will be altered.
- *      (4) If all box dimensions are within threshold of the median,
+ *      (4) Median width and height are found for all valid boxes (i.e.,
+ *          for all boxes with width and height > 0.
+ *          Median side locations are found separately for even and odd boxes,
+ *          using only boxes that are "inliers"; i.e., that are within
+ *          tolerance for width or height.
+ *      (5) If all box dimensions are within threshold of the median,
  *          just return a copy.  Otherwise, find the side farthest
- *          from the median location computed for boxes that are
- *          within the size threshold.  Adjust that side so that the
- *          final dimension (width or height) is the median dimension
- *          expanded by %factor.
- *      (5) The set of boxes that are outliers, and their initial fractional
- *          deviation from median size, is optionally returned.  Also
- *          optionally returned are the ratio of even/odd median values and
- *          the median w/h asperity ratio, both of the input %boxas.
+ *          from the median side location of the "inliers".  Adjust
+ *          that side so that the final dimension (width or height)
+ *          is the median dimension, expanded by %factor.
+ *      (6) The arrays that are the initial deviation from median size
+ *          (width and height) are optionally returned.  Also optionally
+ *          returned is the median w/h asperity ratio of the input %boxas.
  * </pre>
  */
 BOXA *
@@ -1219,20 +1238,23 @@ boxaReconcileSizeByMedian(BOXA       *boxas,
                           l_int32     type,
                           l_float32   fract,
                           l_float32   factor,
-                          NUMA      **pnadel,
+                          NUMA      **pnadelw,
+                          NUMA      **pnadelh,
                           l_float32  *pratiowh)
 {
-l_int32    i, n, outfound, isvalid, ind, ldist, rdist, tdist, bdist;
-l_int32    medw, medh, newloc;
-l_int32    bw, bh, left, right, top, bot, medleft, medtop, medright, medbot;
+l_int32    i, n, ne, no, outfound, isvalid, ind, ldist, rdist, tdist, bdist;
+l_int32    medw, medh, newloc, bw, bh, left, right, top, bot;
+l_int32    medleft, medlefte, medlefto, medright, medrighte, medrighto;
+l_int32    medtop, medtope, medtopo, medbot, medbote, medboto;
 l_float32  brat;
 BOX       *box;
-BOXA      *boxa1, *boxad;
-NUMA      *naind, *nadel;
+BOXA      *boxa1, *boxae, *boxao, *boxad;
+NUMA      *naind, *nadelw, *nadelh;
 
     PROCNAME("boxaReconcileSizeByMedian");
 
-    if (pnadel) *pnadel = NULL;
+    if (pnadelw) *pnadelw = NULL;
+    if (pnadelh) *pnadelh = NULL;
     if (pratiowh) *pratiowh = 0.0;
     if (!boxas)
         return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
@@ -1256,50 +1278,80 @@ NUMA      *naind, *nadel;
          * median deviations and even/odd ratio for width measurements */
     if (type == L_CHECK_BOTH) {
         boxa1 = boxaReconcileSizeByMedian(boxas, L_CHECK_WIDTH, fract,
-                                          factor, pnadel, pratiowh);
+                                          factor, pnadelw, NULL, pratiowh);
         boxad = boxaReconcileSizeByMedian(boxa1, L_CHECK_HEIGHT, fract,
-                                          factor, NULL, NULL);
+                                          factor, NULL, pnadelh, NULL);
         boxaDestroy(&boxa1);
         return boxad;
     }
 
     n = boxaGetCount(boxas);
     naind = numaCreate(n);  /* outlier indicator array */
-    boxa1 = boxaCreate(0);  /* inliers */
+    boxae = boxaCreate(0);  /* even inliers */
+    boxao = boxaCreate(0);  /* odd inliers */
     outfound = FALSE;
     if (type == L_CHECK_WIDTH) {
         boxaMedianDimensions(boxas, &medw, &medh, NULL, NULL, NULL, NULL,
-                             &nadel, NULL);
-        if (pratiowh) *pratiowh = medw / medh;
-        if (pnadel)
-            *pnadel = nadel;
+                             &nadelw, NULL);
+        if (pratiowh) {
+            *pratiowh = (l_float32)medw / (l_float32)medh;
+            L_INFO("median ratio w/h = %5.3f\n", procName, *pratiowh);
+        }
+        if (pnadelw)
+            *pnadelw = nadelw;
         else
-            numaDestroy(&nadel);
-        L_INFO("median ratio w/h = %5.3f\n", procName, *pratiowh);
+            numaDestroy(&nadelw);
 
             /* Check for outliers; assemble inliers */
         for (i = 0; i < n; i++) {
-            box = boxaGetBox(boxas, i, L_COPY);
+            if ((box = boxaGetValidBox(boxas, i, L_COPY)) == NULL) {
+                numaAddNumber(naind, 0);
+                continue;
+            }
             boxGetGeometry(box, NULL, NULL, &bw, NULL);
-            brat = (l_float32)bw / medw;
+            brat = (l_float32)bw / (l_float32)medw;
             if (brat < 1.0 - fract || brat > 1.0 + fract) {
                 outfound = TRUE;
                 numaAddNumber(naind, 1);
                 boxDestroy(&box);
-            } else {
+            } else {  /* add to inliers */
                 numaAddNumber(naind, 0);
-                boxaAddBox(boxa1, box, L_INSERT);
+                if (i % 2 == 0)
+                    boxaAddBox(boxae, box, L_INSERT);
+                else
+                    boxaAddBox(boxao, box, L_INSERT);
             }
         }
-        if (!outfound) {
+        if (!outfound) {  /* nothing to do */
             numaDestroy(&naind);
-            boxaDestroy(&boxa1);
-            L_INFO("no outlier boxes found\n", procName);
+            boxaDestroy(&boxae);
+            boxaDestroy(&boxao);
+            L_INFO("no width outlier boxes found\n", procName);
             return boxaCopy(boxas, L_COPY);
         }
 
-            /* Get left/right parameters from inliers */
-        boxaGetMedianVals(boxa1, &medleft, NULL, &medright, NULL, NULL, NULL);
+            /* Get left/right parameters from inliers.  Handle the case
+             * where there are no inliers for one of the sets.  For example,
+             * when all the even boxes have a different dimension from
+             * the odd boxes, and the median arbitrarily gets assigned
+             * to the even boxes, there are no odd inliers; in that case,
+             * use the even inliers sides to decide whether to adjust
+             * the left or the right sides of individual outliers. */
+        L_INFO("fixing width of outlier boxes\n", procName);
+        medlefte = medrighte = medlefto = medrighto = 0;
+        if ((ne = boxaGetValidCount(boxae)) > 0)
+            boxaGetMedianVals(boxae, &medlefte, NULL, &medrighte, NULL,
+                              NULL, NULL);
+        if ((no = boxaGetValidCount(boxao)) > 0)
+            boxaGetMedianVals(boxao, &medlefto, NULL, &medrighto, NULL,
+                              NULL, NULL);
+        if (ne == 0) {  /* use odd inliers values for both */
+            medlefte = medlefto;
+            medrighte = medrighto;
+        } else if (no == 0) {  /* use even inliers values for both */
+            medlefto = medlefte;
+            medrighto = medrighte;
+        }
 
             /* Adjust sides of outliers */
         boxad = boxaCreate(n);
@@ -1307,8 +1359,10 @@ NUMA      *naind, *nadel;
             box = boxaGetBox(boxas, i, L_COPY);
             boxIsValid(box, &isvalid);
             numaGetIValue(naind, i, &ind);
+            medleft = (i % 2 == 0) ? medlefte : medlefto;
+            medright = (i % 2 == 0) ? medrighte : medrighto;
             if (ind == 1 && isvalid) {  /* adjust side */
-                boxGetGeometry(box, &left, NULL, &right, NULL);
+                boxGetSideLocations(box, &left, &right, NULL, NULL);
                 ldist = L_ABS(left - medleft);
                 rdist = L_ABS(right - medright);
                 if (ldist > rdist) {  /* adjust left */
@@ -1323,38 +1377,66 @@ NUMA      *naind, *nadel;
         }
     } else {  /* L_CHECK_HEIGHT */
         boxaMedianDimensions(boxas, &medw, &medh, NULL, NULL, NULL, NULL,
-                             NULL, &nadel);
-        if (pratiowh) *pratiowh = medw / medh;
-        if (pnadel)
-            *pnadel = nadel;
+                             NULL, &nadelh);
+        if (pratiowh) {
+            *pratiowh = (l_float32)medw / (l_float32)medh;
+            L_INFO("median ratio w/h = %5.3f\n", procName, *pratiowh);
+        }
+        if (pnadelh)
+            *pnadelh = nadelh;
         else
-            numaDestroy(&nadel);
-        L_INFO("median ratio w/h = %5.3f\n", procName, *pratiowh);
+            numaDestroy(&nadelh);
 
             /* Check for outliers; assemble inliers */
         for (i = 0; i < n; i++) {
-            box = boxaGetBox(boxas, i, L_COPY);
+            if ((box = boxaGetValidBox(boxas, i, L_COPY)) == NULL) {
+                numaAddNumber(naind, 0);
+                continue;
+            }
             boxGetGeometry(box, NULL, NULL, NULL, &bh);
-            brat = (l_float32)bh / medh;
+            brat = (l_float32)bh / (l_float32)medh;
             if (brat < 1.0 - fract || brat > 1.0 + fract) {
                 outfound = TRUE;
                 numaAddNumber(naind, 1);
                 boxDestroy(&box);
-            } else {
+            } else {  /* add to inliers */
                 numaAddNumber(naind, 0);
-                boxaAddBox(boxa1, box, L_INSERT);
+                if (i % 2 == 0)
+                    boxaAddBox(boxae, box, L_INSERT);
+                else
+                    boxaAddBox(boxao, box, L_INSERT);
             }
         }
-        if (!outfound) {
+        if (!outfound) {  /* nothing to do */
             numaDestroy(&naind);
-            boxaDestroy(&boxa1);
-            L_INFO("no outlier boxes found\n", procName);
+            boxaDestroy(&boxae);
+            boxaDestroy(&boxao);
+            L_INFO("no height outlier boxes found\n", procName);
             return boxaCopy(boxas, L_COPY);
         }
- 
-            /* Get top/bot parameters from inliers */
-        boxaGetMedianVals(boxa1, NULL, &medtop, NULL, &medbot, NULL, NULL);
-        boxaDestroy(&boxa1);
+
+            /* Get top/bot parameters from inliers.  Handle the case
+             * where there are no inliers for one of the sets.  For example,
+             * when all the even boxes have a different dimension from
+             * the odd boxes, and the median arbitrarily gets assigned
+             * to the even boxes, there are no odd inliers; in that case,
+             * use the even inlier sides to decide whether to adjust
+             * the top or the bottom sides of individual outliers. */
+        L_INFO("fixing height of outlier boxes\n", procName);
+        medlefte = medtope = medbote = medtopo = medboto = 0;
+        if ((ne = boxaGetValidCount(boxae)) > 0)
+            boxaGetMedianVals(boxae, NULL, &medtope, NULL, &medbote,
+                              NULL, NULL);
+        if ((no = boxaGetValidCount(boxao)) > 0)
+            boxaGetMedianVals(boxao, NULL, &medtopo, NULL, &medboto,
+                              NULL, NULL);
+        if (ne == 0) {  /* use odd inliers values for both */
+            medtope = medtopo;
+            medbote = medboto;
+        } else if (no == 0) {  /* use even inliers values for both */
+            medtopo = medtope;
+            medboto = medbote;
+        }
 
             /* Adjust sides of outliers */
         boxad = boxaCreate(n);
@@ -1362,8 +1444,10 @@ NUMA      *naind, *nadel;
             box = boxaGetBox(boxas, i, L_COPY);
             boxIsValid(box, &isvalid);
             numaGetIValue(naind, i, &ind);
+            medtop = (i % 2 == 0) ? medtope : medtopo;
+            medbot = (i % 2 == 0) ? medbote : medboto;
             if (ind == 1 && isvalid) {  /* adjust side */
-                boxGetGeometry(box, NULL, &top, NULL, &bot);
+                boxGetSideLocations(box, NULL, NULL, &top, &bot);
                 tdist = L_ABS(top - medtop);
                 bdist = L_ABS(bot - medbot);
                 if (tdist > bdist) {  /* adjust top */
@@ -1378,7 +1462,8 @@ NUMA      *naind, *nadel;
         }
     }
     numaDestroy(&naind);
-    boxaDestroy(&boxa1);
+    boxaDestroy(&boxae);
+    boxaDestroy(&boxao);
     return boxad;
 }
 
@@ -1386,13 +1471,13 @@ NUMA      *naind, *nadel;
 /*!
  * \brief   boxaPlotSides()
  *
- * \param[in]    boxa source boxa
- * \param[in]    plotname [optional], can be NULL
- * \param[out]   pnal [optional] na of left sides
- * \param[out]   pnat [optional] na of top sides
- * \param[out]   pnar [optional] na of right sides
- * \param[out]   pnab [optional] na of bottom sides
- * \param[out]   ppixd [optional] pix of the output plot
+ * \param[in]    boxa       source boxa
+ * \param[in]    plotname   [optional], can be NULL
+ * \param[out]   pnal       [optional] na of left sides
+ * \param[out]   pnat       [optional] na of top sides
+ * \param[out]   pnar       [optional] na of right sides
+ * \param[out]   pnab       [optional] na of bottom sides
+ * \param[out]   ppixd      [optional] pix of the output plot
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1403,7 +1488,8 @@ NUMA      *naind, *nadel;
  *          indices have valid boxes), this will fill them with the
  *          nearest valid box before plotting.
  *      (3) The plotfiles are put in /tmp/lept/plots/, and are named
- *          either with %plotname or, if NULL, a default name.
+ *          either with %plotname or, if NULL, a default name.  If
+ *          %plotname is used, make sure is has no whitespace characters.
  * </pre>
  */
 l_ok
@@ -1499,11 +1585,11 @@ NUMA           *nal, *nat, *nar, *nab;
 /*!
  * \brief   boxaPlotSizes()
  *
- * \param[in]    boxa source boxa
- * \param[in]    plotname [optional], can be NULL
- * \param[out]   pnaw [optional] na of widths
- * \param[out]   pnah [optional] na of heights
- * \param[out]   ppixd [optional] pix of the output plot
+ * \param[in]    boxa       source boxa
+ * \param[in]    plotname   [optional], can be NULL
+ * \param[out]   pnaw       [optional] na of widths
+ * \param[out]   pnah       [optional] na of heights
+ * \param[out]   ppixd      [optional] pix of the output plot
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1514,8 +1600,8 @@ NUMA           *nal, *nat, *nar, *nab;
  *          indices have valid boxes), this will fill them with the
  *          nearest valid box before plotting.
  *      (3) The plotfiles are put in /tmp/lept/plots/, and are named
- *          either with %plotname or, if NULL, a default name.  Make sure
- *          that %plotname is a string with no whitespace characters.
+ *          either with %plotname or, if NULL, a default name.  If
+ *          %plotname is used, make sure is has no whitespace characters.
  * </pre>
  */
 l_ok
@@ -1591,9 +1677,9 @@ NUMA           *naw, *nah;
 /*!
  * \brief   boxaFillSequence()
  *
- * \param[in]    boxas with at least 3 boxes
- * \param[in]    useflag L_USE_ALL_BOXES, L_USE_SAME_PARITY_BOXES
- * \param[in]    debug 1 for debug output
+ * \param[in]    boxas      with at least 3 boxes
+ * \param[in]    useflag    L_USE_ALL_BOXES, L_USE_SAME_PARITY_BOXES
+ * \param[in]    debug      1 for debug output
  * \return  boxad filled boxa, or NULL on error
  *
  * <pre>
