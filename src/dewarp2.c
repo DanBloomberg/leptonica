@@ -296,7 +296,7 @@ dewarpFindVertDisparity(L_DEWARP  *dew,
                         l_int32    rotflag)
 {
 l_int32     i, j, nlines, npts, nx, ny, sampling;
-l_float32   c0, c1, c2, x, y, midy, val, medval, medvar, minval, maxval;
+l_float32   c0, c1, c2, x, y, midy, val, medval, meddev, minval, maxval;
 l_float32  *famidys;
 NUMA       *nax, *nafit, *nacurve0, *nacurve1, *nacurves;
 NUMA       *namidy, *namidys, *namidysi;
@@ -374,15 +374,15 @@ FPIX       *fpix;
          * the line curvatures.  It is not rejecting lines based on
          * the magnitude of the curvature.  That is done when constraints
          * are applied for valid models. */
-    numaGetMedianVariation(nacurve0, &medval, &medvar);
+    numaGetMedianDevFromMedian(nacurve0, &medval, &meddev);
     L_INFO("\nPage %d\n", procName, dew->pageno);
-    L_INFO("Pass 1: Curvature: medval = %f, medvar = %f\n",
-           procName, medval, medvar);
+    L_INFO("Pass 1: Curvature: medval = %f, meddev = %f\n",
+           procName, medval, meddev);
     ptaa1 = ptaaCreate(nlines);
     nacurve1 = numaCreate(nlines);
     for (i = 0; i < nlines; i++) {  /* for each line */
         numaGetFValue(nacurve0, i, &val);
-        if (L_ABS(val - medval) > 7.0 * medvar)  /* TODO: reduce to ~ 3.0 */
+        if (L_ABS(val - medval) > 7.0 * meddev)  /* TODO: reduce to ~ 3.0 */
             continue;
         pta = ptaaGetPta(ptaa0, i, L_CLONE);
         ptaaAddPta(ptaa1, pta, L_INSERT);

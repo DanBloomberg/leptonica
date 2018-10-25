@@ -38,8 +38,8 @@
 static const char  *boxafiles[3] = {"boxap1.ba", "boxap2.ba", "boxap3.ba"};
 
 void static TestBoxa(L_REGPARAMS *rp, l_int32 index);
-static l_float32  devwidth[3] = {0.0855, 0.0917, 0.1763};
-static l_float32  devheight[3] = {0.0103, 0.0294, 0.0424};
+static l_float32  devwidth[3] = {0.0864, 0.0895, 0.1174};
+static l_float32  devheight[3] = {0.0048, 0.0294, 0.0023};
 
 
 l_int32 main(int    argc,

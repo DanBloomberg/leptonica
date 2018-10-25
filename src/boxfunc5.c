@@ -329,8 +329,8 @@ PTA       *ptal, *ptat, *ptar, *ptab;
          * First find the median width and the median deviation from
          * the median width.  Ditto for the height. */
     boxaExtractAsNuma(boxas, NULL, NULL, NULL, NULL, &naw, &nah, 0);
-    numaGetMedianVariation(naw, &medw, &medvarw);
-    numaGetMedianVariation(nah, &medh, &medvarh);
+    numaGetMedianDevFromMedian(naw, &medw, &medvarw);
+    numaGetMedianDevFromMedian(nah, &medh, &medvarh);
     numaDestroy(&naw);
     numaDestroy(&nah);
 
@@ -1087,9 +1087,9 @@ BOXA    *boxae, *boxao, *boxad;
  * \brief   boxaEvalSizeConsistency()
  *
  * \param[in]    boxas     of size >= 10
- * \param[out]   pdevw     average fractional deviation from median width
- * \param[out]   pdevh     average fractional deviation from median height
- * \param[in]    debug     1 for debug plot output of regularized
+ * \param[out]   pfdevw    average fractional deviation from median width
+ * \param[out]   pfdevh    average fractional deviation from median height
+ * \param[in]    debug     1 for debug plot output of input and regularized
  *                         width and height
  *
  * <pre>
@@ -1105,46 +1105,45 @@ BOXA    *boxae, *boxao, *boxad;
  *          is correct.  Then for (the usual case) wmin/hmin > 0.5, assume
  *          the minimum width is correct.  If wmin/hmin <= 0.5, assume
  *          the maximum width is correct.
- *      (3) Compute the average fractional deviation, from median width and
- *          height, of these regularized pair boxes.  A deviation of width
- *          or height by more than 0.05 indicates that the boxes are
- *          from a non-homogeneous source, such as a volume with different
- *          page sizes.
+ *      (3) After correcting each pair so that they are the same size,
+ *          compute the average fractional deviation, from median width and
+ *          height.  A deviation of width or height by more than about
+ *          0.02 is evidence that the boxes may be from a non-homogeneous
+ *          source, such as a book with significantly different page sizes.
  * </pre>
  */
 l_ok
 boxaEvalSizeConsistency(BOXA       *boxas,
-                        l_float32  *pdevw,
-                        l_float32  *pdevh,
+                        l_float32  *pfdevw,
+                        l_float32  *pfdevh,
                         l_int32     debug)
 {
-l_int32    i, n, bw1, bh1, bw2, bh2, medw, medh, npairs;
-l_float32  devw, devh, minw, maxw, minh, fmedw, fmedh, w;
+l_int32    i, n, bw1, bh1, bw2, bh2, npairs;
+l_float32  medw, medh, devw, devh, minw, maxw, minh, w;
 BOX       *box;
 BOXA      *boxa1;
+NUMA      *naw, *nah;
 PIX       *pix1, *pix2, *pix3;
 PIXA      *pixa;
 
     PROCNAME("boxaEvalSizeConsistency");
 
-    if (pdevw) *pdevw = 0.0;
-    if (pdevh) *pdevh = 0.0;
+    if (pfdevw) *pfdevw = 0.0;
+    if (pfdevh) *pfdevh = 0.0;
     if (!boxas)
         return ERROR_INT("boxas not defined", procName, 1);
-    if (!pdevw || !pdevh)
-        return ERROR_INT("&devw and &devh not both defined", procName, 1);
+    if (!pfdevw || !pfdevh)
+        return ERROR_INT("&fdevw and &fdevh not both defined", procName, 1);
     n = boxaGetCount(boxas);
     if (n < 10) {
         L_WARNING("small boxa; assuming OK", procName);
         return 0;
     }
 
-    boxaMedianDimensions(boxas, &medw, &medh, NULL, NULL, NULL, NULL,
-                         NULL, NULL);
-    if (debug) fprintf(stderr, "medw = %d, medh = %d\n", medw, medh);
+        /* Regularize w and h in pairs; skip last box if n is odd */
     boxa1 = (debug) ? boxaCreate(n) : NULL;
-    devw = devh = 0.0;
-        /* Take in pairs; skip last box if n is odd */
+    naw = numaCreate(0);
+    nah = numaCreate(0);
     for (i = 0, npairs = 0; i < n - 1; i += 2) {
         boxaGetBoxGeometry(boxas, i, NULL, NULL, &bw1, &bh1);
         boxaGetBoxGeometry(boxas, i + 1, NULL, NULL, &bw2, &bh2);
@@ -1154,11 +1153,9 @@ PIXA      *pixa;
         minw = (l_float32)L_MIN(bw1, bw2);
         maxw = (l_float32)L_MAX(bw1, bw2);
         minh = (l_float32)L_MIN(bh1, bh2);
-        fmedw = (l_float32)medw;
-        fmedh = (l_float32)medh;
         w = (minw / minh > 0.5) ? minw : maxw;
-        devw += L_ABS((fmedw - w) / fmedw);
-        devh += L_ABS((fmedh - minh) / fmedh);
+        numaAddNumber(naw, w);
+        numaAddNumber(nah, minh);
         if (debug) {
             box = boxCreate(0, 0, w, minh);
             boxaAddBox(boxa1, box, L_COPY);
@@ -1167,29 +1164,40 @@ PIXA      *pixa;
     }
     if (npairs == 0) {
         L_WARNING("no valid box pairs\n", procName);
-        return 0;
+        numaDestroy(&naw);
+        numaDestroy(&nah);
+        boxaDestroy(&boxa1);
     }
-    *pdevw = devw / npairs;
-    *pdevh = devh / npairs;
-    if (!debug) return 0;
 
-        /* Debug section */
-    boxaPlotSizes(boxas, "input_boxa", NULL, NULL, &pix1);
-    boxaPlotSizes(boxa1, "regularized_boxa", NULL, NULL, &pix2);
-    boxaPlotSizes(boxas, NULL, NULL, NULL, &pix1);
-    boxaPlotSizes(boxa1, NULL, NULL, NULL, &pix2);
-    pixDisplay(pix1, 500, 0);
-    pixDisplay(pix2, 500, 1000);
-    pixa = pixaCreate(2);
-    pixaAddPix(pixa, pix1, L_INSERT);
-    pixaAddPix(pixa, pix2, L_INSERT);
-    pix3 = pixaDisplayTiledInColumns(pixa, 2, 1.0, 3, 2);
-    lept_mkdir("lept/boxa");
-    pixWrite("/tmp/lept/boxa/eval.png", pix2, IFF_PNG);
-    pixDisplay(pix3, 100, 100);
-    boxaDestroy(&boxa1);
-    pixaDestroy(&pixa);
-    pixDestroy(&pix3);
+        /* Get the median value of the regularized sizes, and find
+         * the average absolute fractional deviation from the median. */
+    numaGetMedian(naw, &medw);
+    numaGetMedian(nah, &medh);
+    numaGetMeanDevFromMedian(naw, medw, &devw);
+    numaGetMeanDevFromMedian(nah, medh, &devh);
+    *pfdevw = devw / medw;
+    *pfdevh = devh / medh;
+    if (debug) {
+        fprintf(stderr, "medw = %5.1f, medh = %5.1f\n", medw, medh);
+        fprintf(stderr, "fdevw = %6.3f, fdevh = %6.3f\n", *pfdevw, *pfdevh);
+        boxaPlotSizes(boxas, "input_boxa", NULL, NULL, &pix1);
+        boxaPlotSizes(boxa1, "regularized_boxa", NULL, NULL, &pix2);
+        pixDisplay(pix1, 500, 0);
+        pixDisplay(pix2, 500, 1000);
+        pixa = pixaCreate(2);
+        pixaAddPix(pixa, pix1, L_INSERT);
+        pixaAddPix(pixa, pix2, L_INSERT);
+        pix3 = pixaDisplayTiledInColumns(pixa, 2, 1.0, 3, 2);
+        lept_mkdir("lept/boxa");
+        pixWrite("/tmp/lept/boxa/eval.png", pix3, IFF_PNG);
+        pixDisplay(pix3, 100, 100);
+        pixDestroy(&pix3);
+        pixaDestroy(&pixa);
+        boxaDestroy(&boxa1);
+    }
+
+    numaDestroy(&naw);
+    numaDestroy(&nah);
     return 0;
 }
 

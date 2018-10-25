@@ -97,8 +97,9 @@
  *          l_int32      numaGetRankValue()
  *          l_int32      numaGetMedian()
  *          l_int32      numaGetBinnedMedian()
+ *          l_int32      numaGetMeanDevFromMedian()
+ *          l_int32      numaGetMedianDevFromMedian()
  *          l_int32      numaGetMode()
- *          l_int32      numaGetMedianVariation()
  *
  *      Rearrangements
  *          l_int32      numaJoin()
@@ -3171,6 +3172,93 @@ l_float32  fval;
 
 
 /*!
+ * \brief   numaGetMeanDevFromMedian()
+ *
+ * \param[in]      na     source numa
+ * \param[in]      med    median value
+ * \param[out]     pdev   average absolute value deviation from median value
+ * \return  0 if OK; 1 on error
+ */
+l_ok
+numaGetMeanDevFromMedian(NUMA       *na,
+                         l_float32   med,
+                         l_float32  *pdev)
+{
+l_int32    i, n;
+l_float32  val, dev;
+
+    PROCNAME("numaGetMeanDevFromMedian");
+
+    if (!pdev)
+        return ERROR_INT("&dev not defined", procName, 1);
+    *pdev = 0.0;  /* init */
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    if ((n = numaGetCount(na)) == 0)
+        return ERROR_INT("na is empty", procName, 1);
+
+    dev = 0.0;
+    for (i = 0; i < n; i++) {
+        numaGetFValue(na, i, &val);
+        dev += L_ABS(val - med);
+    }
+    *pdev = dev / (l_float32)n;
+    return 0;
+}
+
+
+/*!
+ * \brief   numaGetMedianDevFromMedian()
+ *
+ * \param[in]    na        source numa
+ * \param[out]   pmed      [optional] median value
+ * \param[out]   pdev      median deviation from median val
+ * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Finds the median of the absolute value of the deviation from
+ *          the median value in the array.  Why take the absolute value?
+ *          Consider the case where you have values equally distributed
+ *          about both sides of a median value.  Without taking the absolute
+ *          value of the differences, you will get 0 for the deviation,
+ *          and this is not useful.
+ * </pre>
+ */
+l_ok
+numaGetMedianDevFromMedian(NUMA       *na,
+                           l_float32  *pmed,
+                           l_float32  *pdev)
+{
+l_int32    n, i;
+l_float32  val, med;
+NUMA      *nadev;
+
+    PROCNAME("numaGetMedianDevFromMedian");
+
+    if (pmed) *pmed = 0.0;
+    if (!pdev)
+        return ERROR_INT("&dev not defined", procName, 1);
+    *pdev = 0.0;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+
+    numaGetMedian(na, &med);
+    if (pmed) *pmed = med;
+    n = numaGetCount(na);
+    nadev = numaCreate(n);
+    for (i = 0; i < n; i++) {
+        numaGetFValue(na, i, &val);
+        numaAddNumber(nadev, L_ABS(val - med));
+    }
+    numaGetMedian(nadev, pdev);
+
+    numaDestroy(&nadev);
+    return 0;
+}
+
+
+/*!
  * \brief   numaGetMode()
  *
  * \param[in]    na      source numa
@@ -3245,58 +3333,6 @@ NUMA       *nasort;
     numaDestroy(&nasort);
     return 0;
 }
-
-
-/*!
- * \brief   numaGetMedianVariation()
- *
- * \param[in]    na        source numa
- * \param[out]   pmedval   [optional] median value
- * \param[out]   pmedvar   median variation from median val
- * \return  0 if OK; 1 on error
- *
- * <pre>
- * Notes:
- *      (1) Finds the median of the absolute value of the variation from
- *          the median value in the array.  Why take the absolute value?
- *          Consider the case where you have values equally distributed
- *          about both sides of a median value.  Without taking the absolute
- *          value of the differences, you will get 0 for the variation,
- *          and this is not useful.
- * </pre>
- */
-l_ok
-numaGetMedianVariation(NUMA       *na,
-                       l_float32  *pmedval,
-                       l_float32  *pmedvar)
-{
-l_int32    n, i;
-l_float32  val, medval;
-NUMA      *navar;
-
-    PROCNAME("numaGetMedianVar");
-
-    if (pmedval) *pmedval = 0.0;
-    if (!pmedvar)
-        return ERROR_INT("&medvar not defined", procName, 1);
-    *pmedvar = 0.0;
-    if (!na)
-        return ERROR_INT("na not defined", procName, 1);
-
-    numaGetMedian(na, &medval);
-    if (pmedval) *pmedval = medval;
-    n = numaGetCount(na);
-    navar = numaCreate(n);
-    for (i = 0; i < n; i++) {
-        numaGetFValue(na, i, &val);
-        numaAddNumber(navar, L_ABS(val - medval));
-    }
-    numaGetMedian(navar, pmedvar);
-
-    numaDestroy(&navar);
-    return 0;
-}
-
 
 
 /*----------------------------------------------------------------------*
