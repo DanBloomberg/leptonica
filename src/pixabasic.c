@@ -68,6 +68,7 @@
  *           l_int32   pixaInsertPix()
  *           l_int32   pixaRemovePix()
  *           l_int32   pixaRemovePixAndSave()
+ *           l_int32   pixaRemoveSelected()
  *           l_int32   pixaInitFull()
  *           l_int32   pixaClear()
  *
@@ -150,7 +151,7 @@ static l_int32 pixaExtendArray(PIXA  *pixa);
 /*!
  * \brief   pixaCreate()
  *
- * \param[in]    n  initial number of ptrs
+ * \param[in]    n    initial number of ptrs
  * \return  pixa, or NULL on error
  *
  * <pre>
@@ -185,8 +186,8 @@ PIXA  *pixa;
 /*!
  * \brief   pixaCreateFromPix()
  *
- * \param[in]    pixs  with individual components on a lattice
- * \param[in]    n   number of components
+ * \param[in]    pixs    with individual components on a lattice
+ * \param[in]    n       number of components
  * \param[in]    cellw   width of each cell
  * \param[in]    cellh   height of each cell
  * \return  pixa, or NULL on error
@@ -245,8 +246,8 @@ PIXA    *pixa;
  *
  * \param[in]    pixs
  * \param[in]    boxa
- * \param[out]   pcropwarn [optional] TRUE if the boxa extent
- *                         is larger than pixs.
+ * \param[out]   pcropwarn   [optional] TRUE if the boxa extent
+ *                           is larger than pixs.
  * \return  pixad, or NULL on error
  *
  * <pre>
@@ -312,11 +313,11 @@ PIXA    *pixad;
 /*!
  * \brief   pixaSplitPix()
  *
- * \param[in]    pixs  with individual components on a lattice
- * \param[in]    nx   number of mosaic cells horizontally
- * \param[in]    ny   number of mosaic cells vertically
- * \param[in]    borderwidth  of added border on all sides
- * \param[in]    bordercolor  in our RGBA format: 0xrrggbbaa
+ * \param[in]    pixs          with individual components on a lattice
+ * \param[in]    nx            number of mosaic cells horizontally
+ * \param[in]    ny            number of mosaic cells vertically
+ * \param[in]    borderwidth   of added border on all sides
+ * \param[in]    bordercolor   in our RGBA format: 0xrrggbbaa
  * \return  pixa, or NULL on error
  *
  * <pre>
@@ -387,7 +388,7 @@ PIXA    *pixa;
 /*!
  * \brief   pixaDestroy()
  *
- * \param[in,out]  ppixa can be nulled
+ * \param[in,out]  ppixa    use ptr address so it will be nulled
  *
  * <pre>
  * Notes:
@@ -430,7 +431,7 @@ PIXA    *pixa;
  * \brief   pixaCopy()
  *
  * \param[in]    pixa
- * \param[in]    copyflag see pix.h for details:
+ * \param[in]    copyflag  see pix.h for details:
  *                 L_COPY makes a new pixa and copies each pix and each box;
  *                 L_CLONE gives a new ref-counted handle to the input pixa;
  *                 L_COPY_CLONE makes a new pixa and inserts clones of
@@ -486,8 +487,8 @@ PIXA    *pixac;
  * \brief   pixaAddPix()
  *
  * \param[in]    pixa
- * \param[in]    pix  to be added
- * \param[in]    copyflag L_INSERT, L_COPY, L_CLONE
+ * \param[in]    pix        to be added
+ * \param[in]    copyflag   L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -531,7 +532,7 @@ PIX     *pixc;
  *
  * \param[in]    pixa
  * \param[in]    box
- * \param[in]    copyflag L_INSERT, L_COPY, L_CLONE
+ * \param[in]    copyflag    L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -655,8 +656,8 @@ pixaChangeRefcount(PIXA    *pixa,
  * \brief   pixaGetPix()
  *
  * \param[in]    pixa
- * \param[in]    index  to the index-th pix
- * \param[in]    accesstype  L_COPY or L_CLONE
+ * \param[in]    index        to the index-th pix
+ * \param[in]    accesstype   L_COPY or L_CLONE
  * \return  pix, or NULL on error
  */
 PIX *
@@ -690,8 +691,8 @@ PIX  *pix;
  * \brief   pixaGetPixDimensions()
  *
  * \param[in]    pixa
- * \param[in]    index  to the index-th box
- * \param[out]   pw, ph, pd [optional]  each can be null
+ * \param[in]    index         to the index-th box
+ * \param[out]   pw, ph, pd    [optional] each can be null
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -725,7 +726,7 @@ PIX  *pix;
  * \brief   pixaGetBoxa()
  *
  * \param[in]    pixa
- * \param[in]    accesstype  L_COPY, L_CLONE, L_COPY_CLONE
+ * \param[in]    accesstype   L_COPY, L_CLONE, L_COPY_CLONE
  * \return  boxa, or NULL on error
  */
 BOXA *
@@ -768,8 +769,8 @@ pixaGetBoxaCount(PIXA  *pixa)
  * \brief   pixaGetBox()
  *
  * \param[in]    pixa
- * \param[in]    index  to the index-th pix
- * \param[in]    accesstype  L_COPY or L_CLONE
+ * \param[in]    index        to the index-th pix
+ * \param[in]    accesstype   L_COPY or L_CLONE
  * \return  box if null, not automatically an error, or NULL on error
  *
  * <pre>
@@ -818,8 +819,8 @@ BOX  *box;
  * \brief   pixaGetBoxGeometry()
  *
  * \param[in]    pixa
- * \param[in]    index  to the index-th box
- * \param[out]   px, py, pw, ph [optional]  each can be null
+ * \param[in]    index            to the index-th box
+ * \param[out]   px, py, pw, ph   [optional] each can be null
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -856,7 +857,7 @@ BOX  *box;
  *
  * \param[in]    pixa
  * \param[in]    boxa
- * \param[in]    accesstype  L_INSERT, L_COPY, L_CLONE
+ * \param[in]    accesstype   L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1015,8 +1016,8 @@ l_int32  i, n, w, h, maxw, maxh, same;
  * \brief   pixaIsFull()
  *
  * \param[in]    pixa
- * \param[out]   pfullpa [optional] 1 if pixa is full
- * \param[out]   pfullba [optional] 1 if boxa is full
+ * \param[out]   pfullpa   [optional] 1 if pixa is full
+ * \param[out]   pfullba   [optional] 1 if boxa is full
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1066,7 +1067,7 @@ PIX     *pix;
  * \brief   pixaCountText()
  *
  * \param[in]    pixa
- * \param[out]   pntext number of pix with non-empty text strings
+ * \param[out]   pntext    number of pix with non-empty text strings
  * \return  0 if OK, 1 on error.
  *
  * <pre>
@@ -1109,7 +1110,7 @@ PIX     *pix;
  * \brief   pixaSetText()
  *
  * \param[in]    pixa
- * \param[in]    sa  [optional] array of text strings, to insert in each pix
+ * \param[in]    sa    [optional] array of text strings, to insert in each pix
  * \return  0 if OK, 1 on error.
  *
  * <pre>
@@ -1160,8 +1161,8 @@ PIX     *pix;
 /*!
  * \brief   pixaGetLinePtrs()
  *
- * \param[in]    pixa of pix that all have the same depth
- * \param[out]   psize [optional] number of pix in the pixa
+ * \param[in]    pixa    of pix that all have the same depth
+ * \param[out]   psize   [optional] number of pix in the pixa
  * \return  array of array of line ptrs, or NULL on error
  *
  * <pre>
@@ -1214,7 +1215,7 @@ PIX     *pix;
 /*!
  * \brief   pixaWriteStreamInfo()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp     file stream
  * \param[in]    pixa
  * \return  0 if OK, 1 on error.
  *
@@ -1271,9 +1272,9 @@ PIXCMAP  *cmap;
  * \brief   pixaReplacePix()
  *
  * \param[in]    pixa
- * \param[in]    index  to the index-th pix
- * \param[in]    pix insert to replace existing one
- * \param[in]    box [optional] insert to replace existing
+ * \param[in]    index   to the index-th pix
+ * \param[in]    pix     insert to replace existing one
+ * \param[in]    box     [optional] insert to replace existing
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1317,9 +1318,9 @@ BOXA  *boxa;
  * \brief   pixaInsertPix()
  *
  * \param[in]    pixa
- * \param[in]    index at which pix is to be inserted
- * \param[in]    pixs new pix to be inserted
- * \param[in]    box [optional] new box to be inserted
+ * \param[in]    index   at which pix is to be inserted
+ * \param[in]    pixs    new pix to be inserted
+ * \param[in]    box     [optional] new box to be inserted
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1371,7 +1372,7 @@ l_int32  i, n;
  * \brief   pixaRemovePix()
  *
  * \param[in]    pixa
- * \param[in]    index of pix to be removed
+ * \param[in]    index    of pix to be removed
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1420,9 +1421,9 @@ PIX    **array;
  * \brief   pixaRemovePixAndSave()
  *
  * \param[in]    pixa
- * \param[in]    index of pix to be removed
- * \param[out]   ppix [optional] removed pix
- * \param[out]   pbox [optional] removed box
+ * \param[in]    index   of pix to be removed
+ * \param[out]   ppix    [optional] removed pix
+ * \param[out]   pbox    [optional] removed box
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1475,11 +1476,51 @@ PIX    **array;
 
 
 /*!
+ * \brief   pixaRemoveSelected()
+ *
+ * \param[in]    pixa
+ * \param[in]    naindex   numa of indices of pix to be removed
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This gives error messages for invalid indices
+ * </pre>
+ */
+l_ok
+pixaRemoveSelected(PIXA  *pixa,
+                   NUMA  *naindex)
+{
+l_int32  i, n, npix, index;
+NUMA    *na1;
+
+    PROCNAME("pixaRemoveSelected");
+
+    if (!pixa)
+        return ERROR_INT("pixa not defined", procName, 1);
+    if (!naindex)
+        return ERROR_INT("naindex not defined", procName, 1);
+    if ((n = numaGetCount(naindex)) == 0)
+        return ERROR_INT("naindex is empty", procName, 1);
+    npix = pixaGetCount(pixa);
+
+        /* Remove from highest indices first */
+    na1 = numaSort(NULL, naindex, L_SORT_DECREASING);
+    for (i = 0; i < n; i++) {
+        numaGetIValue(na1, i, &index);
+        pixaRemovePix(pixa, index);
+    }
+    numaDestroy(&na1);
+    return 0;
+}
+
+
+/*!
  * \brief   pixaInitFull()
  *
- * \param[in]    pixa typically empty
- * \param[in]    pix [optional] to be replicated into the entire pixa ptr array
- * \param[in]    box [optional] to be replicated into the entire boxa ptr array
+ * \param[in]    pixa   typically empty
+ * \param[in]    pix    [optional] to be replicated to the entire pixa ptr array
+ * \param[in]    box    [optional] to be replicated to the entire boxa ptr array
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1575,10 +1616,10 @@ l_int32  i, n;
 /*!
  * \brief   pixaJoin()
  *
- * \param[in]    pixad  dest pixa; add to this one
- * \param[in]    pixas  [optional] source pixa; add from this one
- * \param[in]    istart  starting index in pixas
- * \param[in]    iend  ending index in pixas; use -1 to cat all
+ * \param[in]    pixad    dest pixa; add to this one
+ * \param[in]    pixas    [optional] source pixa; add from this one
+ * \param[in]    istart   starting index in pixas
+ * \param[in]    iend     ending index in pixas; use -1 to cat all
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1632,9 +1673,9 @@ PIX     *pix;
 /*!
  * \brief   pixaInterleave()
  *
- * \param[in]    pixa1  first src pixa
- * \param[in]    pixa2  second src pixa
- * \param[in]    copyflag L_CLONE, L_COPY
+ * \param[in]    pixa1      first src pixa
+ * \param[in]    pixa2      second src pixa
+ * \param[in]    copyflag   L_CLONE, L_COPY
  * \return  pixa  interleaved from sources, or NULL on error.
  *
  * <pre>
@@ -1697,10 +1738,10 @@ PIXA    *pixad;
 /*!
  * \brief   pixaaJoin()
  *
- * \param[in]    paad  dest pixaa; add to this one
- * \param[in]    paas  [optional] source pixaa; add from this one
- * \param[in]    istart  starting index in pixaas
- * \param[in]    iend  ending index in pixaas; use -1 to cat all
+ * \param[in]    paad     dest pixaa; add to this one
+ * \param[in]    paas     [optional] source pixaa; add from this one
+ * \param[in]    istart   starting index in pixaas
+ * \param[in]    iend     ending index in pixaas; use -1 to cat all
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1749,7 +1790,7 @@ PIXA    *pixa;
 /*!
  * \brief   pixaaCreate()
  *
- * \param[in]    n  initial number of pixa ptrs
+ * \param[in]    n    initial number of pixa ptrs
  * \return  paa, or NULL on error
  *
  * <pre>
@@ -1797,9 +1838,9 @@ PIXAA  *paa;
  * \brief   pixaaCreateFromPixa()
  *
  * \param[in]    pixa
- * \param[in]    n number specifying subdivision of pixa
- * \param[in]    type L_CHOOSE_CONSECUTIVE, L_CHOOSE_SKIP_BY
- * \param[in]    copyflag L_CLONE, L_COPY
+ * \param[in]    n          number specifying subdivision of pixa
+ * \param[in]    type       L_CHOOSE_CONSECUTIVE, L_CHOOSE_SKIP_BY
+ * \param[in]    copyflag   L_CLONE, L_COPY
  * \return  paa, or NULL on error
  *
  * <pre>
@@ -1872,7 +1913,7 @@ PIXAA   *paa;
 /*!
  * \brief   pixaaDestroy()
  *
- * \param[in,out]   ppaa to be nulled
+ * \param[in,out]   ppaa    use ptr address so it will be nulled
  * \return  void
  */
 void
@@ -1910,7 +1951,7 @@ PIXAA   *paa;
  * \brief   pixaaAddPixa()
  *
  * \param[in]    paa
- * \param[in]    pixa  to be added
+ * \param[in]    pixa    to be added
  * \param[in]    copyflag:
  *                 L_INSERT inserts the pixa directly;
  *                 L_COPY makes a new pixa and copies each pix and each box;
@@ -1981,11 +2022,11 @@ pixaaExtendArray(PIXAA  *paa)
 /*!
  * \brief   pixaaAddPix()
  *
- * \param[in]    paa  input paa
- * \param[in]    index index of pixa in paa
- * \param[in]    pix to be added
- * \param[in]    box [optional] to be added
- * \param[in]    copyflag L_INSERT, L_COPY, L_CLONE
+ * \param[in]    paa        input paa
+ * \param[in]    index      index of pixa in paa
+ * \param[in]    pix        to be added
+ * \param[in]    box        [optional] to be added
+ * \param[in]    copyflag   L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -2018,7 +2059,7 @@ PIXA  *pixa;
  *
  * \param[in]    paa
  * \param[in]    box
- * \param[in]    copyflag L_INSERT, L_COPY, L_CLONE
+ * \param[in]    copyflag    L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2054,7 +2095,7 @@ pixaaAddBox(PIXAA   *paa,
  * \brief   pixaaGetCount()
  *
  * \param[in]    paa
- * \param[out]   pna [optional] number of pix in each pixa
+ * \param[out]   pna    [optional] number of pix in each pixa
  * \return  count, or 0 if no pixaa
  *
  * <pre>
@@ -2095,8 +2136,8 @@ PIXA    *pixa;
  * \brief   pixaaGetPixa()
  *
  * \param[in]    paa
- * \param[in]    index  to the index-th pixa
- * \param[in]    accesstype  L_COPY, L_CLONE, L_COPY_CLONE
+ * \param[in]    index        to the index-th pixa
+ * \param[in]    accesstype   L_COPY, L_CLONE, L_COPY_CLONE
  * \return  pixa, or NULL on error
  *
  * <pre>
@@ -2140,7 +2181,7 @@ PIXA  *pixa;
  * \brief   pixaaGetBoxa()
  *
  * \param[in]    paa
- * \param[in]    accesstype  L_COPY, L_CLONE
+ * \param[in]    accesstype    L_COPY, L_CLONE
  * \return  boxa, or NULL on error
  *
  * <pre>
@@ -2168,9 +2209,9 @@ pixaaGetBoxa(PIXAA   *paa,
  * \brief   pixaaGetPix()
  *
  * \param[in]    paa
- * \param[in]    index  index into the pixa array in the pixaa
- * \param[in]    ipix  index into the pix array in the pixa
- * \param[in]    accessflag  L_COPY or L_CLONE
+ * \param[in]    index        index into the pixa array in the pixaa
+ * \param[in]    ipix         index into the pix array in the pixa
+ * \param[in]    accessflag   L_COPY or L_CLONE
  * \return  pix, or NULL on error
  */
 PIX *
@@ -2302,7 +2343,7 @@ PIXA    *pixa;
  * \brief   pixaaIsFull()
  *
  * \param[in]    paa
- * \param[out]   pfull 1 if all pixa in the paa have full pix arrays
+ * \param[out]   pfull    1 if all pixa in the paa have full pix arrays
  * \return  return 0 if OK, 1 on error
  *
  * <pre>
@@ -2344,8 +2385,8 @@ PIXA    *pixa;
 /*!
  * \brief   pixaaInitFull()
  *
- * \param[in]    paa typically empty
- * \param[in]    pixa to be replicated into the entire pixa ptr array
+ * \param[in]    paa     typically empty
+ * \param[in]    pixa    to be replicated into the entire pixa ptr array
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2392,7 +2433,7 @@ PIXA    *pixat;
  *
  * \param[in]    paa
  * \param[in]    index  to the index-th pixa
- * \param[in]    pixa insert to replace existing one
+ * \param[in]    pixa   insert to replace existing one
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2543,7 +2584,7 @@ PIXA  *pixa;
 /*!
  * \brief   pixaReadStream()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp    file stream
  * \return  pixa, or NULL on error
  *
  * <pre>
@@ -2607,8 +2648,8 @@ PIXA    *pixa;
 /*!
  * \brief   pixaReadMem()
  *
- * \param[in]    data  of serialized pixa
- * \param[in]    size  of data in bytes
+ * \param[in]    data   of serialized pixa
+ * \param[in]    size   of data in bytes
  * \return  pixa, or NULL on error
  */
 PIXA *
@@ -2707,7 +2748,7 @@ FILE    *fp;
 /*!
  * \brief   pixaWriteStream()
  *
- * \param[in]    fp file stream opened for "wb"
+ * \param[in]    fp     file stream opened for "wb"
  * \param[in]    pixa
  * \return  0 if OK, 1 on error
  *
@@ -2754,8 +2795,8 @@ PIX     *pix;
 /*!
  * \brief   pixaWriteMem()
  *
- * \param[out]   pdata data of serialized pixa
- * \param[out]   psize size of returned data
+ * \param[out]   pdata    data of serialized pixa
+ * \param[out]   psize    size of returned data
  * \param[in]    pixa
  * \return  0 if OK, 1 on error
  *
@@ -2857,10 +2898,10 @@ PIXAC  *pac;
 /*!
  * \brief   pixaaReadFromFiles()
  *
- * \param[in]    dirname directory
- * \param[in]    substr [optional] substring filter on filenames; can be NULL
- * \param[in]    first 0-based
- * \param[in]    nfiles use 0 for everything from %first to the end
+ * \param[in]    dirname   directory
+ * \param[in]    substr    [optional] substring filter on filenames; can be NULL
+ * \param[in]    first     0-based
+ * \param[in]    nfiles    use 0 for everything from %first to the end
  * \return  paa, or NULL on error or if no pixa files are found.
  *
  * <pre>
@@ -2952,7 +2993,7 @@ PIXAA  *paa;
 /*!
  * \brief   pixaaReadStream()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp    file stream
  * \return  paa, or NULL on error
  *
  * <pre>
@@ -3015,8 +3056,8 @@ PIXAA   *paa;
 /*!
  * \brief   pixaaReadMem()
  *
- * \param[in]    data  of serialized pixaa
- * \param[in]    size  of data in bytes
+ * \param[in]    data   of serialized pixaa
+ * \param[in]    size   of data in bytes
  * \return  paa, or NULL on error
  */
 PIXAA *
@@ -3084,7 +3125,7 @@ FILE    *fp;
 /*!
  * \brief   pixaaWriteStream()
  *
- * \param[in]    fp file stream opened for "wb"
+ * \param[in]    fp    file stream opened for "wb"
  * \param[in]    paa
  * \return  0 if OK, 1 on error
  *
@@ -3130,8 +3171,8 @@ PIXA    *pixa;
 /*!
  * \brief   pixaaWriteMem()
  *
- * \param[out]   pdata data of serialized pixaa
- * \param[out]   psize size of returned data
+ * \param[out]   pdata   data of serialized pixaa
+ * \param[out]   psize   size of returned data
  * \param[in]    paa
  * \return  0 if OK, 1 on error
  *

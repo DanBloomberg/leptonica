@@ -31,6 +31,7 @@
  *       Safe string procs
  *           char      *stringNew()
  *           l_int32    stringCopy()
+ *           l_int32    stringCopySegment()
  *           l_int32    stringReplace()
  *           l_int32    stringLength()
  *           l_int32    stringCat()
@@ -198,8 +199,8 @@
 /*!
  * \brief   stringNew()
  *
- * \param[in]    src string
- * \return  dest copy of src string, or NULL on error
+ * \param[in]    src
+ * \return  dest copy of %src string, or NULL on error
  */
 char *
 stringNew(const char  *src)
@@ -226,9 +227,9 @@ char    *dest;
 /*!
  * \brief   stringCopy()
  *
- * \param[in]    dest existing byte buffer
- * \param[in]    src string [optional] can be null
- * \param[in]    n max number of characters to copy
+ * \param[in]    dest    existing byte buffer
+ * \param[in]    src     string [optional] can be null
+ * \param[in]    n       max number of characters to copy
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -265,10 +266,55 @@ l_int32  i;
 
 
 /*!
+ * \brief   stringCopySegment()
+ *
+ *
+ * \param[in]    src      string
+ * \param[in]    start    byte position at start of segment
+ * \param[in]    nbytes   number of bytes in the segment; use 0 to go to end
+ * \return  copy of segment, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a variant of stringNew() that makes a new string
+ *          from a segment of the input string.  The segment is specified
+ *          by the starting position and the number of bytes.
+ *      (2) The start location %start must be within the string %src.
+ *      (3) The copy is truncated to the end of the source string.
+ *          Use %nbytes = 0 to copy to the end of %src.
+ * </pre>
+ */
+char *
+stringCopySegment(const char  *src,
+                  l_int32      start,
+                  l_int32      nbytes)
+{
+char    *dest;
+l_int32  len;
+
+    PROCNAME("stringCopySegment");
+
+    if (!src)
+        return (char *)ERROR_PTR("src not defined", procName, NULL);
+    len = strlen(src);
+    if (start < 0 || start > len - 1)
+        return (char *)ERROR_PTR("invalid start", procName, NULL);
+    if (nbytes <= 0)  /* copy to the end */
+        nbytes = len - start;
+    if (start + nbytes > len)  /* truncate to the end */
+        nbytes = len - start;
+    if ((dest = (char *)LEPT_CALLOC(nbytes + 1, sizeof(char))) == NULL)
+        return (char *)ERROR_PTR("dest not made", procName, NULL);
+    stringCopy(dest, src + start, nbytes);
+    return dest;
+}
+
+
+/*!
  * \brief   stringReplace()
  *
- * \param[out]   pdest string copy
- * \param[in]    src string [optional] can be null
+ * \param[out]   pdest    string copy
+ * \param[in]    src      [optional] string; can be null
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -301,8 +347,8 @@ stringReplace(char       **pdest,
 /*!
  * \brief   stringLength()
  *
- * \param[in]    src string can be null or NULL-terminated string
- * \param[in]    size size of src buffer
+ * \param[in]    src    string can be null or NULL-terminated string
+ * \param[in]    size   size of src buffer
  * \return  length of src in bytes.
  *
  * <pre>
@@ -338,9 +384,9 @@ l_int32  i;
 /*!
  * \brief   stringCat()
  *
- * \param[in]    dest null-terminated byte buffer
- * \param[in]    size size of dest
- * \param[in]    src string can be null or NULL-terminated string
+ * \param[in]    dest    null-terminated byte buffer
+ * \param[in]    size    size of dest
+ * \param[in]    src     string can be null or NULL-terminated string
  * \return  number of bytes added to dest; -1 on error
  *
  * <pre>
@@ -392,8 +438,8 @@ l_int32  lendest, lensrc;
 /*!
  * \brief   stringConcatNew()
  *
- * \param[in]    first first string in list
- * \param[in]    ...  NULL-terminated list of strings
+ * \param[in]    first    first string in list
+ * \param[in]    ...      NULL-terminated list of strings
  * \return  result new string concatenating the input strings, or
  *                      NULL if first == NULL
  *
@@ -439,8 +485,8 @@ va_list      args;
 /*!
  * \brief   stringJoin()
  *
- * \param[in]    src1 string [optional] can be null
- * \param[in]    src2 string [optional] can be null
+ * \param[in]    src1    [optional] string; can be null
+ * \param[in]    src2    [optional] string; can be null
  * \return  concatenated string, or NULL on error
  *
  * <pre>
@@ -477,8 +523,8 @@ l_int32  srclen1, srclen2, destlen;
 /*!
  * \brief   stringJoinIP()
  *
- * \param[in,out]  psrc1 string address of src1; cannot be on the stack
- * \param[in]      src2 string [optional] can be null
+ * \param[in,out]  psrc1   address of string src1; cannot be on the stack
+ * \param[in]      src2    [optional] string; can be null
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -526,7 +572,7 @@ char  *tmpstr;
 /*!
  * \brief   stringReverse()
  *
- * \param[in]    src string
+ * \param[in]    src    string
  * \return  dest newly-allocated reversed string
  */
 char *
@@ -552,14 +598,14 @@ l_int32  i, len;
 /*!
  * \brief   strtokSafe()
  *
- * \param[in]    cstr input string to be sequentially parsed;
- *                    use NULL after the first call
- * \param[in]    seps a string of character separators
- * \param[out]   psaveptr ptr to the next char after
- *                        the last encountered separator
- * \return  substr a new string that is copied from the previous
- *                      saveptr up to but not including the next
- *                      separator character, or NULL if end of cstr.
+ * \param[in]    cstr      input string to be sequentially parsed;
+ *                         use NULL after the first call
+ * \param[in]    seps      a string of character separators
+ * \param[out]   psaveptr  ptr to the next char after
+ *                         the last encountered separator
+ * \return  substr         a new string that is copied from the previous
+ *                         saveptr up to but not including the next
+ *                         separator character, or NULL if end of cstr.
  *
  * <pre>
  * Notes:
@@ -653,13 +699,13 @@ l_int32  istart, i, j, nchars;
 /*!
  * \brief   stringSplitOnToken()
  *
- * \param[in]    cstr input string to be split; not altered
- * \param[in]    seps a string of character separators
- * \param[out]   phead ptr to copy of the input string, up to
- *                     the first separator token encountered
- * \param[out]   ptail ptr to copy of the part of the input string
- *                     starting with the first non-separator character
- *                     that occurs after the first separator is found
+ * \param[in]    cstr     input string to be split; not altered
+ * \param[in]    seps     a string of character separators
+ * \param[out]   phead    ptr to copy of the input string, up to
+ *                        the first separator token encountered
+ * \param[out]   ptail    ptr to copy of the part of the input string
+ *                        starting with the first non-separator character
+ *                        that occurs after the first separator is found
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -750,8 +796,8 @@ l_int32  i, n;
 /*!
  * \brief   stringRemoveChars()
  *
- * \param[in]    src input string; can be of zero length
- * \param[in]    remchars  string of chars to be removed from src
+ * \param[in]    src        input string; can be of zero length
+ * \param[in]    remchars   string of chars to be removed from src
  * \return  dest string with specified chars removed, or NULL on error
  */
 char *
@@ -785,9 +831,9 @@ l_int32  nsrc, i, k;
 /*!
  * \brief   stringFindSubstr()
  *
- * \param[in]    src input string; can be of zero length
- * \param[in]    sub substring to be searched for
- * \param[out]   ploc [optional] location of substring in src
+ * \param[in]    src     input string; can be of zero length
+ * \param[in]    sub     substring to be searched for
+ * \param[out]   ploc    [optional] location of substring in src
  * \return  1 if found; 0 if not found or on error
  *
  * <pre>
@@ -830,11 +876,11 @@ const char *ptr;
 /*!
  * \brief   stringReplaceSubstr()
  *
- * \param[in]    src input string; can be of zero length
- * \param[in]    sub1 substring to be replaced
- * \param[in]    sub2 substring to put in; can be ""
- * \param[out]   pfound [optional] 1 if sub1 is found; 0 otherwise
- * \param[out]   ploc [optional] location of ptr after replacement
+ * \param[in]    src      input string; can be of zero length
+ * \param[in]    sub1     substring to be replaced
+ * \param[in]    sub2     substring to put in; can be ""
+ * \param[out]   pfound   [optional] 1 if sub1 is found; 0 otherwise
+ * \param[out]   ploc     [optional] location of ptr after replacement
  * \return  dest string with substring replaced, or NULL if the
  *              substring not found or on error.
  *
@@ -903,11 +949,11 @@ l_int32     nsrc, nsub1, nsub2, len, npre, loc;
 /*!
  * \brief   stringReplaceEachSubstr()
  *
- * \param[in]    src input string; can be of zero length
- * \param[in]    sub1 substring to be replaced
- * \param[in]    sub2 substring to put in; can be ""
- * \param[out]   pcount [optional] the number of times that sub1
- *                      is found in src; 0 if not found
+ * \param[in]    src      input string; can be of zero length
+ * \param[in]    sub1     substring to be replaced
+ * \param[in]    sub2     substring to put in; can be ""
+ * \param[out]   pcount   [optional] the number of times that sub1
+ *                        is found in src; 0 if not found
  * \return  dest string with substring replaced, or NULL if the
  *              substring not found or on error.
  *
@@ -958,10 +1004,10 @@ l_int32  loc;
 /*!
  * \brief   arrayFindEachSequence()
  *
- * \param[in]    data byte array
- * \param[in]    datalen length of data, in bytes
- * \param[in]    sequence subarray of bytes to find in data
- * \param[in]    seqlen length of sequence, in bytes
+ * \param[in]    data       byte array
+ * \param[in]    datalen    length of data, in bytes
+ * \param[in]    sequence   subarray of bytes to find in data
+ * \param[in]    seqlen     length of sequence, in bytes
  * \return  dna of offsets where the sequence is found, or NULL if
  *              none are found or on error
  *
@@ -1012,13 +1058,13 @@ L_DNA   *da;
 /*!
  * \brief   arrayFindSequence()
  *
- * \param[in]    data byte array
- * \param[in]    datalen length of data, in bytes
- * \param[in]    sequence subarray of bytes to find in data
- * \param[in]    seqlen length of sequence, in bytes
- * \param[out]   poffset offset from beginning of
- *                       data where the sequence begins
- * \param[out]   pfound 1 if sequence is found; 0 otherwise
+ * \param[in]    data       byte array
+ * \param[in]    datalen    length of data, in bytes
+ * \param[in]    sequence   subarray of bytes to find in data
+ * \param[in]    seqlen     length of sequence, in bytes
+ * \param[out]   poffset    offset from beginning of
+ *                          data where the sequence begins
+ * \param[out]   pfound     1 if sequence is found; 0 otherwise
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1079,9 +1125,9 @@ l_int32  i, j, found, lastpos;
 /*!
  * \brief   reallocNew()
  *
- * \param[in,out]  pindata [optional]; nulls indata
- * \param[in]      oldsize size of input data to be copied, in bytes
- * \param[in]      newsize size of data to be reallocated in bytes
+ * \param[in,out]  pindata    nulls indata before reallocing
+ * \param[in]      oldsize    size of input data to be copied, in bytes
+ * \param[in]      newsize    size of buffer to be reallocated in bytes
  * \return  ptr to new data, or NULL on error
  *
  *  Action: !N.B. 3) and (4!
@@ -1094,7 +1140,7 @@ l_int32  i, j, found, lastpos;
  * <pre>
  * Notes:
  *      (1) If newsize <=0, just frees input data and nulls ptr
- *      (2) If input ptr is null, just callocs new memory
+ *      (2) If input data is null, just callocs new memory
  *      (3) This differs from realloc in that it always allocates
  *          new memory (if newsize > 0) and initializes it to 0,
  *          it requires the amount of old data to be copied,
@@ -1136,7 +1182,6 @@ void    *newdata;
         return ERROR_PTR("newdata not made", procName, NULL);
     minsize = L_MIN(oldsize, newsize);
     memcpy(newdata, indata, minsize);
-
     LEPT_FREE(indata);
     *pindata = NULL;
 
@@ -1151,7 +1196,7 @@ void    *newdata;
  * \brief   l_binaryRead()
  *
  * \param[in]    filename
- * \param[out]   pnbytes number of bytes read
+ * \param[out]   pnbytes    number of bytes read
  * \return  data, or NULL on error
  */
 l_uint8 *
@@ -1180,10 +1225,10 @@ FILE     *fp;
 /*!
  * \brief   l_binaryReadStream()
  *
- * \param[in]    fp file stream opened to read; can be stdin
- * \param[out]   pnbytes number of bytes read
- * \return  null-terminated array, or NULL on error
- *              reading 0 bytes is not an error
+ * \param[in]    fp        file stream opened to read; can be stdin
+ * \param[out]   pnbytes   number of bytes read
+ * \return  null-terminated array, or NULL on error; reading 0 bytes
+ *          is not an error
  *
  * <pre>
  * Notes:
@@ -1260,9 +1305,9 @@ L_BBUFFER  *bb;
  * \brief   l_binaryReadSelect()
  *
  * \param[in]    filename
- * \param[in]    start first byte to read
- * \param[in]    nbytes number of bytes to read; use 0 to read to end of file
- * \param[out]   pnread number of bytes actually read
+ * \param[in]    start     first byte to read
+ * \param[in]    nbytes    number of bytes to read; use 0 to read to end of file
+ * \param[out]   pnread    number of bytes actually read
  * \return  data, or NULL on error
  *
  * <pre>
@@ -1299,12 +1344,12 @@ FILE     *fp;
 /*!
  * \brief   l_binaryReadSelectStream()
  *
- * \param[in]    fp file stream
- * \param[in]    start first byte to read
- * \param[in]    nbytes number of bytes to read; use 0 to read to end of file
- * \param[out]   pnread number of bytes actually read
- * \return  null-terminated array, or NULL on error
- *              reading 0 bytes is not an error
+ * \param[in]    fp       file stream
+ * \param[in]    start    first byte to read
+ * \param[in]    nbytes   number of bytes to read; use 0 to read to end of file
+ * \param[out]   pnread   number of bytes actually read
+ * \return  null-terminated array, or NULL on error; reading 0 bytes
+ *          is not an error
  *
  * <pre>
  * Notes:
@@ -1365,10 +1410,10 @@ size_t    bytesleft, bytestoread, nread, filebytes;
 /*!
  * \brief   l_binaryWrite()
  *
- * \param[in]    filename output
- * \param[in]    operation  "w" for write; "a" for append
- * \param[in]    data  binary data to be written
- * \param[in]    nbytes  size of data array
+ * \param[in]    filename     output file
+ * \param[in]    operation    "w" for write; "a" for append
+ * \param[in]    data         binary data to be written
+ * \param[in]    nbytes       size of data array
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -1434,7 +1479,7 @@ FILE   *fp;
 /*!
  * \brief   fnbytesInFile()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp    file stream
  * \return  nbytes in file; 0 on error
  */
 size_t
@@ -1464,7 +1509,7 @@ l_int64  pos, nbytes;
  * \brief   l_binaryCopy()
  *
  * \param[in]    datas
- * \param[in]    size of data array
+ * \param[in]    size    of data array
  * \return  datad on heap, or NULL on error
  *
  * <pre>
@@ -1499,8 +1544,8 @@ l_uint8  *datad;
 /*!
  * \brief   fileCopy()
  *
- * \param[in]    srcfile copy this file
- * \param[in]    newfile to this file
+ * \param[in]    srcfile   copy from this file
+ * \param[in]    newfile   copy to this file
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1529,8 +1574,8 @@ l_uint8  *data;
 /*!
  * \brief   fileConcatenate()
  *
- * \param[in]    srcfile file to append
- * \param[in]    destfile file to add to
+ * \param[in]    srcfile   append data from this file
+ * \param[in]    destfile  add data to this file
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1558,7 +1603,7 @@ l_uint8  *data;
  * \brief   fileAppendString()
  *
  * \param[in]    filename
- * \param[in]    str string to append to file
+ * \param[in]    str       string to append to file
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1771,7 +1816,7 @@ char    *filename;
  * \brief   lept_fopen()
  *
  * \param[in]    filename
- * \param[in]    mode same as for fopen(); e.g., "rb"
+ * \param[in]    mode       same as for fopen(); e.g., "rb"
  * \return  stream or NULL on error
  *
  * <pre>
@@ -1801,7 +1846,7 @@ lept_fopen(const char  *filename,
 /*!
  * \brief   lept_fclose()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp    file stream
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1825,8 +1870,8 @@ lept_fclose(FILE *fp)
 /*!
  * \brief   lept_calloc()
  *
- * \param[in]    nmemb number of members
- * \param[in]    size of each member
+ * \param[in]    nmemb    number of members
+ * \param[in]    size     of each member
  * \return  void ptr, or NULL on error
  *
  * <pre>
@@ -1873,7 +1918,7 @@ lept_free(void *ptr)
 /*!
  * \brief   lept_mkdir()
  *
- * \param[in]    subdir of /tmp or its equivalent on Windows
+ * \param[in]    subdir    of /tmp or its equivalent on Windows
  * \return  0 on success, non-zero on failure
  *
  * <pre>
@@ -1945,7 +1990,7 @@ l_uint32  attributes;
 /*!
  * \brief   lept_rmdir()
  *
- * \param[in]    subdir of /tmp or its equivalent on Windows
+ * \param[in]    subdir    of /tmp or its equivalent on Windows
  * \return  0 on success, non-zero on failure
  *
  * <pre>
@@ -2025,7 +2070,7 @@ char    *newpath;
  * \brief   lept_direxists()
  *
  * \param[in]    dir
- * \param[out]   pexists 1 if it exists; 0 otherwise
+ * \param[out]   pexists    1 if it exists; 0 otherwise
  * \return  void
  *
  * <pre>
@@ -2073,8 +2118,8 @@ char  *realdir;
 /*!
  * \brief   lept_rm_match()
  *
- * \param[in]    subdir [optional]  If NULL, the removed files are in /tmp
- * \param[in]    substr [optional] pattern to match in filename
+ * \param[in]    subdir    [optional] if NULL, the removed files are in /tmp
+ * \param[in]    substr    [optional] pattern to match in filename
  * \return  0 on success, non-zero on failure
  *
  * <pre>
@@ -2134,8 +2179,8 @@ SARRAY  *sa;
 /*!
  * \brief   lept_rm()
  *
- * \param[in]    subdir [optional] of '/tmp'; can be NULL
- * \param[in]    tail filename without the directory
+ * \param[in]    subdir    [optional] subdir of '/tmp'; can be NULL
+ * \param[in]    tail      filename without the directory
  * \return  0 on success, non-zero on failure
  *
  * <pre>
@@ -2172,7 +2217,7 @@ l_int32  ret;
  *
  *  lept_rmfile()
  *
- * \param[in]    filepath full path to file including the directory
+ * \param[in]    filepath     full path to file including the directory
  * \return  0 on success, non-zero on failure
  *
  * <pre>
@@ -2211,9 +2256,9 @@ l_int32  ret;
  * \brief   lept_mv()
  *
  * \param[in]    srcfile
- * \param[in]    newdir [optional]; can be NULL
- * \param[in]    newtail [optional]; can be NULL
- * \param[out]   pnewpath [optional] of actual path; can be NULL
+ * \param[in]    newdir     [optional]; can be NULL
+ * \param[in]    newtail    [optional]; can be NULL
+ * \param[out]   pnewpath   [optional] of actual path; can be NULL
  * \return  0 on success, non-zero on failure
  *
  * <pre>
@@ -2309,9 +2354,9 @@ l_int32  ret;
  * \brief   lept_cp()
  *
  * \param[in]    srcfile
- * \param[in]    newdir [optional]; can be NULL
- * \param[in]    newtail [optional]; can be NULL
- * \param[out]   pnewpath [optional] of actual path; can be NULL
+ * \param[in]    newdir    [optional]; can be NULL
+ * \param[in]    newtail   [optional]; can be NULL
+ * \param[out]   pnewpath  [optional] of actual path; can be NULL
  * \return  0 on success, non-zero on failure
  *
  * <pre>
@@ -2456,11 +2501,11 @@ l_int32  ret;
  * \brief   splitPathAtDirectory()
  *
  * \param[in]    pathname  full path; can be a directory
- * \param[out]   pdir  [optional] root directory name of
- *                     input path, including trailing '/'
- * \param[out]   ptail [optional] path tail, which is either
- *                     the file name within the root directory or
- *                     the last sub-directory in the path
+ * \param[out]   pdir      [optional] root directory name of
+ *                         input path, including trailing '/'
+ * \param[out]   ptail     [optional] path tail, which is either
+ *                         the file name within the root directory or
+ *                         the last sub-directory in the path
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2526,12 +2571,12 @@ char  *cpathname, *lastslash;
 /*!
  * \brief   splitPathAtExtension()
  *
- * \param[in]    pathname full path; can be a directory
- * \param[out]   pbasename [optional] pathname not including the
- *                        last dot and characters after that
- * \param[out]   pextension [optional] path extension, which is
- *                        the last dot and the characters after it.  If
- *                        there is no extension, it returns the empty string
+ * \param[in]    pathname    full path; can be a directory
+ * \param[out]   pbasename   [optional] pathname not including the
+ *                           last dot and characters after that
+ * \param[out]   pextension  [optional] path extension, which is
+ *                           the last dot and the characters after it.  If
+ *                           there is no extension, it returns the empty string
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2593,8 +2638,8 @@ char   empty[4] = "";
 /*!
  * \brief   pathJoin()
  *
- * \param[in]    dir [optional] can be null
- * \param[in]    fname [optional] can be null
+ * \param[in]    dir     [optional] can be null
+ * \param[in]    fname   [optional] can be null
  * \return  specially concatenated path, or NULL on error
  *
  * <pre>
@@ -2747,7 +2792,7 @@ size_t  len1, len2, len3, len4;
  * \brief   convertSepCharsInPath()
  *
  * \param[in]    path
- * \param[in]    type UNIX_PATH_SEPCHAR, WIN_PATH_SEPCHAR
+ * \param[in]    type    UNIX_PATH_SEPCHAR, WIN_PATH_SEPCHAR
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2791,9 +2836,9 @@ size_t   len;
 /*!
  * \brief   genPathname()
  *
- * \param[in]    dir [optional] directory or full path name, with or without
- *                   trailing '/'
- * \param[in]    fname [optional] file name within a directory
+ * \param[in]    dir     [optional] directory or full path name,
+ *                       with or without the trailing '/'
+ * \param[in]    fname   [optional] file name within a directory
  * \return  pathname either a directory or full path, or NULL on error
  *
  * <pre>
@@ -2904,9 +2949,9 @@ l_int32  dirlen, namelen, size;
 /*!
  * \brief   makeTempDirname()
  *
- * \param[in]    result preallocated on stack or heap and passed in
- * \param[in]    nbytes size of %result array, in bytes
- * \param[in]    subdir [optional]; can be NULL or an empty string
+ * \param[in]    result    preallocated on stack or heap and passed in
+ * \param[in]    nbytes    size of %result array, in bytes
+ * \param[in]    subdir    [optional]; can be NULL or an empty string
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2968,9 +3013,9 @@ size_t   pathlen;
 /*!
  * \brief   modifyTrailingSlash()
  *
- * \param[in]    path preallocated on stack or heap and passed in
- * \param[in]    nbytes size of %path array, in bytes
- * \param[in]    flag L_ADD_TRAIL_SLASH or L_REMOVE_TRAIL_SLASH
+ * \param[in]    path     preallocated on stack or heap and passed in
+ * \param[in]    nbytes   size of %path array, in bytes
+ * \param[in]    flag     L_ADD_TRAIL_SLASH or L_REMOVE_TRAIL_SLASH
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -3070,8 +3115,8 @@ char  dirname[240];
  * \brief   extractNumberFromFilename()
  *
  * \param[in]    fname
- * \param[in]    numpre number of characters before the digits to be found
- * \param[in]    numpost number of characters after the digits to be found
+ * \param[in]    numpre    number of characters before the digits to be found
+ * \param[in]    numpost   number of characters after the digits to be found
  * \return  num number embedded in the filename; -1 on error or if
  *                   not found
  *

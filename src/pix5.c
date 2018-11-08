@@ -63,6 +63,7 @@
  *
  *    Select a connected component by size
  *           PIX        *pixSelectComponentBySize()
+ *           PIX        *pixFilterComponentBySize()
  *
  *    Make a frame mask
  *           PIX        *pixMakeFrameMask()
@@ -1306,7 +1307,7 @@ PIX     *pixd;
  *                             L_SELECT_BY_AREA, L_SELECT_BY_PERIMETER
  * \param[in]    connectivity  4 or 8
  * \param[out]   pbox          [optional] location of returned component
- * \return  pix of largest connected component, or NULL on error.
+ * \return  pix of rank order connected component, or NULL on error.
  *
  * <pre>
  * Notes:
@@ -1326,7 +1327,6 @@ pixSelectComponentBySize(PIX     *pixs,
 l_int32  n, empty, sorttype, index;
 BOXA    *boxa1;
 NUMA    *naindex;
-NUMA   **pnaindex = NULL;
 PIX     *pixd;
 PIXA    *pixa1, *pixa2;
 
@@ -1357,18 +1357,72 @@ PIXA    *pixa1, *pixa2;
     n = boxaGetCount(boxa1);
     if (rankorder < 0 || rankorder >= n)
         rankorder = n - 1;  /* smallest */
-    if (pbox) pnaindex = &naindex;
-    pixa2 = pixaSort(pixa1, sorttype, L_SORT_DECREASING, pnaindex, L_CLONE);
+    pixa2 = pixaSort(pixa1, sorttype, L_SORT_DECREASING, &naindex, L_CLONE);
     pixd = pixaGetPix(pixa2, rankorder, L_COPY);
-    if (pnaindex) {
+    if (pbox) {
         numaGetIValue(naindex, rankorder, &index);
         *pbox = boxaGetBox(boxa1, index, L_COPY);
-        numaDestroy(&naindex);
     }
+
+    numaDestroy(&naindex);
     boxaDestroy(&boxa1);
     pixaDestroy(&pixa1);
     pixaDestroy(&pixa2);
     return pixd;
+}
+
+
+/*!
+ * \brief   pixFilterComponentBySize()
+ *
+ * \param[in]    pixs          1 bpp
+ * \param[in]    rankorder     in decreasing size: 0 for largest.
+ * \param[in]    type          L_SELECT_BY_WIDTH, L_SELECT_BY_HEIGHT,
+ *                             L_SELECT_BY_MAX_DIMENSION,
+ *                             L_SELECT_BY_AREA, L_SELECT_BY_PERIMETER
+ * \param[in]    connectivity  4 or 8
+ * \param[out]   pbox          [optional] location of returned component
+ * \return  pix with all other components removed, or NULL on error.
+ *
+ * <pre>
+ * Notes:
+ *      (1) See notes in pixSelectComponentBySize().
+ *      (2) This returns a copy of %pixs, with all components removed
+ *          except for the selected one.
+ */
+PIX *
+pixFilterComponentBySize(PIX     *pixs,
+                         l_int32  rankorder,
+                         l_int32  type,
+                         l_int32  connectivity,
+                         BOX    **pbox)
+{
+l_int32  x, y, w, h;
+BOX     *box;
+PIX     *pix1, *pix2;
+
+    PROCNAME("pixFilterComponentBySize");
+
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+
+    pix1 = pixSelectComponentBySize(pixs, rankorder, type, connectivity, &box);
+    if (!pix1) {
+        boxDestroy(&box);
+        return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
+    }
+
+        /* Put the selected component in a new pix at the same
+         * location as it had in %pixs */
+    boxGetGeometry(box, &x, &y, &w, &h);
+    pix2 = pixCreateTemplate(pixs);
+    pixRasterop(pix2, x, y, w, h, PIX_SRC, pix1, 0, 0);
+    if (pbox)
+        *pbox = box;
+    else
+        boxDestroy(&box);
+    pixDestroy(&pix1);
+    return pix2;
 }
 
 

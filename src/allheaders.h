@@ -1646,6 +1646,7 @@ LEPT_DLL extern l_ok pixCropToMatch ( PIX *pixs1, PIX *pixs2, PIX **ppixd1, PIX 
 LEPT_DLL extern PIX * pixCropToSize ( PIX *pixs, l_int32 w, l_int32 h );
 LEPT_DLL extern PIX * pixResizeToMatch ( PIX *pixs, PIX *pixt, l_int32 w, l_int32 h );
 LEPT_DLL extern PIX * pixSelectComponentBySize ( PIX *pixs, l_int32 rankorder, l_int32 type, l_int32 connectivity, BOX **pbox );
+LEPT_DLL extern PIX * pixFilterComponentBySize ( PIX *pixs, l_int32 rankorder, l_int32 type, l_int32 connectivity, BOX **pbox );
 LEPT_DLL extern PIX * pixMakeFrameMask ( l_int32 w, l_int32 h, l_float32 hf1, l_float32 hf2, l_float32 vf1, l_float32 vf2 );
 LEPT_DLL extern PIX * pixMakeCoveringOfRectangles ( PIX *pixs, l_int32 maxiters );
 LEPT_DLL extern l_ok pixFractionFgInMask ( PIX *pix1, PIX *pix2, l_float32 *pfract );
@@ -1693,6 +1694,7 @@ LEPT_DLL extern l_ok pixaReplacePix ( PIXA *pixa, l_int32 index, PIX *pix, BOX *
 LEPT_DLL extern l_ok pixaInsertPix ( PIXA *pixa, l_int32 index, PIX *pixs, BOX *box );
 LEPT_DLL extern l_ok pixaRemovePix ( PIXA *pixa, l_int32 index );
 LEPT_DLL extern l_ok pixaRemovePixAndSave ( PIXA *pixa, l_int32 index, PIX **ppix, BOX **pbox );
+LEPT_DLL extern l_ok pixaRemoveSelected ( PIXA *pixa, NUMA *naindex );
 LEPT_DLL extern l_ok pixaInitFull ( PIXA *pixa, PIX *pix, BOX *box );
 LEPT_DLL extern l_ok pixaClear ( PIXA *pixa );
 LEPT_DLL extern l_ok pixaJoin ( PIXA *pixad, PIXA *pixas, l_int32 istart, l_int32 iend );
@@ -2617,6 +2619,7 @@ LEPT_DLL extern l_float32 stopWallTimer ( L_WALLTIMER **ptimer );
 LEPT_DLL extern char * l_getFormattedDate (  );
 LEPT_DLL extern char * stringNew ( const char *src );
 LEPT_DLL extern l_ok stringCopy ( char *dest, const char *src, l_int32 n );
+LEPT_DLL extern char * stringCopySegment ( const char *src, l_int32 start, l_int32 nbytes );
 LEPT_DLL extern l_ok stringReplace ( char **pdest, const char *src );
 LEPT_DLL extern l_int32 stringLength ( const char *src, size_t size );
 LEPT_DLL extern l_int32 stringCat ( char *dest, size_t size, const char *src );

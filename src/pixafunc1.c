@@ -96,7 +96,7 @@
      * semi-perimeter (w + h) about 5000 or less, the O(n) binsort
      * is faster than the O(nlogn) shellsort.  */
 static const l_int32   MIN_COMPS_FOR_BIN_SORT = 200;
- 
+
     /* Don't rotate any angle smaller than this */
 static const l_float32  MIN_ANGLE_TO_ROTATE = 0.001;  /* radians; ~0.06 deg */
 
@@ -1741,7 +1741,7 @@ PIXAA   *paad;
     if (first >= n)
         return (PIXAA *)ERROR_PTR("invalid first", procName, NULL);
     if (last >= n) {
-        L_WARNING("last = %d is beyond max index = %d; adjusting\n", 
+        L_WARNING("last = %d is beyond max index = %d; adjusting\n",
                   procName, last, n - 1);
         last = n - 1;
     }
@@ -2846,7 +2846,7 @@ PIXA    *pixa1, *pixad;
  *          have boxa, the pix in each pixa can differ in ordering
  *          by an amount given by the parameter %maxdist.  If they
  *          don't have a boxa, the %maxdist parameter is ignored,
- *          and the ordering must be identical.
+ *          and the ordering of the pix must be identical.
  *      (2) This applies only to boxa geometry, pixels and ordering;
  *          other fields in the pix are ignored.
  *      (3) naindex[i] gives the position of the box in pixa2 that
@@ -2864,7 +2864,7 @@ pixaEqual(PIXA     *pixa1,
           NUMA    **pnaindex,
           l_int32  *psame)
 {
-l_int32   i, j, n, same, sameboxa;
+l_int32   i, j, n, empty1, empty2, same, sameboxa;
 BOXA     *boxa1, *boxa2;
 NUMA     *na;
 PIX      *pix1, *pix2;
@@ -2882,27 +2882,26 @@ PIX      *pix1, *pix2;
     n = pixaGetCount(pixa1);
     if (n != pixaGetCount(pixa2))
         return 0;
+
+        /* If there are no boxes, strict ordering of the pix in each
+         * pixa  is required. */
     boxa1 = pixaGetBoxa(pixa1, L_CLONE);
     boxa2 = pixaGetBoxa(pixa2, L_CLONE);
-    if (!boxa1 && !boxa2)
-        maxdist = 0;  /* exact ordering required */
-    if (boxa1 && !boxa2) {
-        boxaDestroy(&boxa1);
-        return 0;
-    }
-    if (!boxa1 && boxa2) {
-        boxaDestroy(&boxa2);
-        return 0;
-    }
-    if (boxa1 && boxa2) {
+    empty1 = (boxaGetCount(boxa1) == 0) ? 1 : 0;
+    empty2 = (boxaGetCount(boxa2) == 0) ? 1 : 0;
+    if (!empty1 && !empty2) {
         boxaEqual(boxa1, boxa2, maxdist, &na, &sameboxa);
-        boxaDestroy(&boxa1);
-        boxaDestroy(&boxa2);
         if (!sameboxa) {
+            boxaDestroy(&boxa1);
+            boxaDestroy(&boxa2);
             numaDestroy(&na);
             return 0;
         }
     }
+    boxaDestroy(&boxa1);
+    boxaDestroy(&boxa2);
+    if ((!empty1 && empty2) || (empty1 && !empty2))
+        return 0;
 
     for (i = 0; i < n; i++) {
         pix1 = pixaGetPix(pixa1, i, L_CLONE);
