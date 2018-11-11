@@ -693,8 +693,8 @@ l_uint32  *datas, *datad;
  * </pre>
  */
 l_ok
-pixResizeImageData(PIX  *pixd,
-                   PIX  *pixs)
+pixResizeImageData(PIX        *pixd,
+                   const PIX  *pixs)
 {
 l_int32    w, h, d, wpl, bytes;
 l_uint32  *data;
@@ -778,8 +778,8 @@ PIXCMAP  *cmaps, *cmapd;
  * \return  1 if the two pix have same {h, w, d}; 0 otherwise.
  */
 l_int32
-pixSizesEqual(PIX  *pix1,
-              PIX  *pix2)
+pixSizesEqual(const PIX  *pix1,
+              const PIX  *pix2)
 {
     PROCNAME("pixSizesEqual");
 
@@ -967,7 +967,7 @@ pixSwapAndDestroy(PIX  **ppixd,
  *                                Accessors                           *
  *--------------------------------------------------------------------*/
 l_int32
-pixGetWidth(PIX  *pix)
+pixGetWidth(const PIX  *pix)
 {
     PROCNAME("pixGetWidth");
 
@@ -997,7 +997,7 @@ pixSetWidth(PIX     *pix,
 
 
 l_int32
-pixGetHeight(PIX  *pix)
+pixGetHeight(const PIX  *pix)
 {
     PROCNAME("pixGetHeight");
 
@@ -1027,7 +1027,7 @@ pixSetHeight(PIX     *pix,
 
 
 l_int32
-pixGetDepth(PIX  *pix)
+pixGetDepth(const PIX  *pix)
 {
     PROCNAME("pixGetDepth");
 
@@ -1062,10 +1062,10 @@ pixSetDepth(PIX     *pix,
  * \return  0 if OK, 1 on error
  */
 l_ok
-pixGetDimensions(PIX      *pix,
-                 l_int32  *pw,
-                 l_int32  *ph,
-                 l_int32  *pd)
+pixGetDimensions(const PIX  *pix,
+                 l_int32    *pw,
+                 l_int32    *ph,
+                 l_int32    *pd)
 {
     PROCNAME("pixGetDimensions");
 
@@ -1113,8 +1113,8 @@ pixSetDimensions(PIX     *pix,
  * \return  0 if OK, 1 on error
  */
 l_ok
-pixCopyDimensions(PIX  *pixd,
-                  PIX  *pixs)
+pixCopyDimensions(PIX        *pixd,
+                  const PIX  *pixs)
 {
     PROCNAME("pixCopyDimensions");
 
@@ -1134,7 +1134,7 @@ pixCopyDimensions(PIX  *pixd,
 
 
 l_int32
-pixGetSpp(PIX  *pix)
+pixGetSpp(const PIX  *pix)
 {
     PROCNAME("pixGetSpp");
 
@@ -1185,8 +1185,8 @@ pixSetSpp(PIX     *pix,
  * \return  0 if OK, 1 on error
  */
 l_ok
-pixCopySpp(PIX  *pixd,
-           PIX  *pixs)
+pixCopySpp(PIX        *pixd,
+           const PIX  *pixs)
 {
     PROCNAME("pixCopySpp");
 
@@ -1203,7 +1203,7 @@ pixCopySpp(PIX  *pixd,
 
 
 l_int32
-pixGetWpl(PIX  *pix)
+pixGetWpl(const PIX  *pix)
 {
     PROCNAME("pixGetWpl");
 
@@ -1228,7 +1228,7 @@ pixSetWpl(PIX     *pix,
 
 
 l_int32
-pixGetRefcount(PIX  *pix)
+pixGetRefcount(const PIX  *pix)
 {
     PROCNAME("pixGetRefcount");
 
@@ -1253,7 +1253,7 @@ pixChangeRefcount(PIX     *pix,
 
 
 l_int32
-pixGetXRes(PIX  *pix)
+pixGetXRes(const PIX  *pix)
 {
     PROCNAME("pixGetXRes");
 
@@ -1278,7 +1278,7 @@ pixSetXRes(PIX     *pix,
 
 
 l_int32
-pixGetYRes(PIX  *pix)
+pixGetYRes(const PIX  *pix)
 {
     PROCNAME("pixGetYRes");
 
@@ -1310,9 +1310,9 @@ pixSetYRes(PIX     *pix,
  * \return  0 if OK, 1 on error
  */
 l_ok
-pixGetResolution(PIX      *pix,
-                 l_int32  *pxres,
-                 l_int32  *pyres)
+pixGetResolution(const PIX  *pix,
+                 l_int32    *pxres,
+                 l_int32    *pyres)
 {
     PROCNAME("pixGetResolution");
 
@@ -1351,8 +1351,8 @@ pixSetResolution(PIX     *pix,
 
 
 l_int32
-pixCopyResolution(PIX  *pixd,
-                  PIX  *pixs)
+pixCopyResolution(PIX        *pixd,
+                  const PIX  *pixs)
 {
     PROCNAME("pixCopyResolution");
 
@@ -1388,7 +1388,7 @@ pixScaleResolution(PIX       *pix,
 
 
 l_int32
-pixGetInputFormat(PIX  *pix)
+pixGetInputFormat(const PIX  *pix)
 {
     PROCNAME("pixGetInputFormat");
 
@@ -1412,8 +1412,8 @@ pixSetInputFormat(PIX     *pix,
 
 
 l_int32
-pixCopyInputFormat(PIX  *pixd,
-                   PIX  *pixs)
+pixCopyInputFormat(PIX        *pixd,
+                   const PIX  *pixs)
 {
     PROCNAME("pixCopyInputFormat");
 
