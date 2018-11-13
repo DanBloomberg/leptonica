@@ -98,9 +98,10 @@ OTHER_PROGS = adaptmap_dark \
 	partitiontest pdfiotest percolatetest \
 	pixaatest pixafileinfo plottest \
 	printimage printsplitimage printtiff rbtreetest \
-	recog_bootnum recogsort recogtest1 \
-	recogtest2 recogtest3 recogtest4 recogtest5 \
-	recogtest6 reducetest removecmap \
+	recog_bootnum1 recog_bootnum2 recog_bootnum3 \
+	recogsort recogtest1 recogtest2 recogtest3 \
+	recogtest4 recogtest5 recogtest6 \
+	reducetest removecmap \
 	renderfonts rotatefastalt \
 	rotateorthtest1 rotatetest1 \
 	runlengthtest scaleandtile \

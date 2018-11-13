@@ -1783,7 +1783,7 @@ PIXA    *pixa1, *pixa2;
         return (PIXA *)ERROR_PTR("boot charset not available", procName, NULL);
 
         /* Make boot recog templates */
-    pixa1 = recogMakeBootDigitTemplates(0);
+    pixa1 = recogMakeBootDigitTemplates(0, 0);
     n = pixaGetCount(pixa1);
 
         /* Extract the unscaled templates from %recog */
@@ -1850,30 +1850,35 @@ l_int32  ret;
 /*!
  * \brief   recogMakeBootDigitRecog()
  *
- * \param[in]    scaleh   scale all heights to this; typ. use 40
- * \param[in]    linew    normalized line width; typ. use 5; 0 to skip
- * \param[in]    maxyshift from nominal centroid alignment; typically 0 or 1
- * \param[in]    debug  1 for showing templates; 0 otherwise
+ * \param[in]    nsamp       number of samples of each digit; or 0
+ * \param[in]    scaleh      scale all heights to this; typ. use 40
+ * \param[in]    linew       normalized line width; typ. use 5; 0 to skip
+ * \param[in]    maxyshift   from nominal centroid alignment; typically 0 or 1
+ * \param[in]    debug       1 for showing templates; 0 otherwise
  * \return  recog, or NULL on error
  *
  * <pre>
  * Notes:
  *     (1) This takes a set of pre-computed, labeled pixa of single
- *         digits, and generates a recognizer where the character templates
- *         that will be used are derived from the boot-generated pixa:
- *         - extending by replicating the set with different widths,
- *           keeping the height the same
+ *         digits, and generates a recognizer from them.
+ *         The templates used in the recognizer can be modified by:
  *         - scaling (isotropically to fixed height)
- *         - optionally generating a skeleton and thickening so that
- *           all strokes have the same width.
+ *         - generating a skeleton and thickening so that all strokes
+ *           have the same width.
  *     (2) The resulting templates are scaled versions of either the
  *         input bitmaps or images with fixed line widths.  To use the
  *         input bitmaps, set %linew = 0; otherwise, set %linew to the
  *         desired line width.
+ *     (3) If %nsamp == 0, this uses and extends the output from
+ *         three boot generators:
+ *            l_bootnum_gen1, l_bootnum_gen2, l_bootnum_gen3.
+ *         Otherwise, it uses exactly %nsamp templates of each digit,
+ *         extracted by l_bootnum_gen4.
  * </pre>
  */
 L_RECOG  *
-recogMakeBootDigitRecog(l_int32  scaleh,
+recogMakeBootDigitRecog(l_int32  nsamp,
+                        l_int32  scaleh,
                         l_int32  linew,
                         l_int32  maxyshift,
                         l_int32  debug)
@@ -1883,7 +1888,7 @@ PIXA     *pixa;
 L_RECOG  *recog;
 
         /* Get the templates, extended by horizontal scaling */
-    pixa = recogMakeBootDigitTemplates(debug);
+    pixa = recogMakeBootDigitTemplates(nsamp, debug);
 
         /* Make the boot recog; recogModifyTemplate() will scale the
          * templates and optionally turn them into strokes of fixed width. */
@@ -1899,7 +1904,8 @@ L_RECOG  *recog;
 /*!
  * \brief   recogMakeBootDigitTemplates()
  *
- * \param[in]    debug  1 for display of templates
+ * \param[in]    nsamp     number of samples of each digit; or 0
+ * \param[in]    debug     1 for display of templates
  * \return  pixa   of templates; or NULL on error
  *
  * <pre>
@@ -1908,12 +1914,25 @@ L_RECOG  *recog;
  * </pre>
  */
 PIXA  *
-recogMakeBootDigitTemplates(l_int32  debug)
+recogMakeBootDigitTemplates(l_int32  nsamp,
+                            l_int32  debug)
 {
-NUMA  *na;
+NUMA  *na1;
 PIX   *pix1, *pix2, *pix3;
 PIXA  *pixa1, *pixa2, *pixa3;
 
+    if (nsamp > 0) {
+        pixa1 = l_bootnum_gen4(nsamp);
+        if (debug) {
+            pix1 = pixaDisplayTiledWithText(pixa1, 1500, 1.0, 10,
+                                            2, 6, 0xff000000);
+            pixDisplay(pix1, 0, 0);
+            pixDestroy(&pix1);
+        }
+        return pixa1;
+    }
+
+        /* Else, generate from 3 pixa */
     pixa1 = l_bootnum_gen1();
     pixa2 = l_bootnum_gen2();
     pixa3 = l_bootnum_gen3();
@@ -1934,14 +1953,14 @@ PIXA  *pixa1, *pixa2, *pixa3;
     pixaDestroy(&pixa3);
 
         /* Extend by horizontal scaling */
-    na = numaCreate(4);
-    numaAddNumber(na, 0.9);
-    numaAddNumber(na, 1.1);
-    numaAddNumber(na, 1.2);
-    pixa2 = pixaExtendByScaling(pixa1, na, L_HORIZ, 1);
+    na1 = numaCreate(4);
+    numaAddNumber(na1, 0.9);
+    numaAddNumber(na1, 1.1);
+    numaAddNumber(na1, 1.2);
+    pixa2 = pixaExtendByScaling(pixa1, na1, L_HORIZ, 1);
 
     pixaDestroy(&pixa1);
-    numaDestroy(&na);
+    numaDestroy(&na1);
     return pixa2;
 }
 

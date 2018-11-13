@@ -408,7 +408,7 @@ PIXAA   *paa;
                            &boxa1, NULL, NULL);
 
         /* Generate a pixa of the word images */
-    pixa1 = pixaCreateFromBoxa(pixs, boxa1, NULL);  /* mask over each word */
+    pixa1 = pixaCreateFromBoxa(pixs, boxa1, 0, 0, NULL);
 
         /* Sort the bounding boxes of these words by line.  We use the
          * index mapping to allow identical sorting of the pixa. */

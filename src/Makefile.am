@@ -12,7 +12,8 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
  bilateral.c bilinear.c binarize.c                              \
  binexpand.c binreduce.c                                        \
  blend.c bmf.c bmpio.c bmpiostub.c                              \
- bootnumgen1.c bootnumgen2.c bootnumgen3.c                      \
+ bootnumgen1.c bootnumgen2.c                                    \
+ bootnumgen3.c bootnumgen4.c                                    \
  boxbasic.c boxfunc1.c boxfunc2.c boxfunc3.c                    \
  boxfunc4.c boxfunc5.c bytearray.c                              \
  ccbord.c ccthin.c classapp.c                                   \

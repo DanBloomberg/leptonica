@@ -129,11 +129,11 @@ L_REGPARAMS  *rp;
 
         /* pixaMakeFromTiledPix() and pixaDisplayOnLattice()  */
     pix1 = pixRead("sevens.tif");
-    pixa1 = pixaMakeFromTiledPix(pix1, 20, 30, NULL);
+    pixa1 = pixaMakeFromTiledPix(pix1, 20, 30, 0, 0, NULL);
     pix2 = pixaDisplayOnLattice(pixa1, 20, 30, NULL, NULL);
     regTestComparePix(rp, pix1, pix2);  /* 10 */
     pix3 = pixaDisplayOnLattice(pixa1, 20, 30, NULL, &boxa);
-    pixa2 = pixaMakeFromTiledPix(pix3, 0, 0, boxa);
+    pixa2 = pixaMakeFromTiledPix(pix3, 0, 0, 0, 0, boxa);
     pix4 = pixaDisplayOnLattice(pixa2, 20, 30, NULL, NULL);
     regTestComparePix(rp, pix2, pix4);  /* 11 */
     pixaAddPix(pixa, pixScale(pix4, 2.5, 2.5), L_INSERT);

@@ -246,6 +246,8 @@ PIXA    *pixa;
  *
  * \param[in]    pixs
  * \param[in]    boxa
+ * \param[in]    start       first box to use
+ * \param[in]    num         number of boxes; use 0 to go to the end
  * \param[out]   pcropwarn   [optional] TRUE if the boxa extent
  *                           is larger than pixs.
  * \return  pixad, or NULL on error
@@ -253,8 +255,9 @@ PIXA    *pixa;
  * <pre>
  * Notes:
  *      (1) This simply extracts from pixs the region corresponding to each
- *          box in the boxa.
- *      (2) The 3rd arg is optional.  If the extent of the boxa exceeds the
+ *          box in the boxa.  To extract all the regions, set both %start
+ *          and %num to 0.
+ *      (2) The 5th arg is optional.  If the extent of the boxa exceeds the
  *          size of the pixa, so that some boxes are either clipped
  *          or entirely outside the pix, a warning is returned as TRUE.
  *      (3) pixad will have only the properly clipped elements, and
@@ -264,9 +267,11 @@ PIXA    *pixa;
 PIXA *
 pixaCreateFromBoxa(PIX      *pixs,
                    BOXA     *boxa,
+                   l_int32   start,
+                   l_int32   num,
                    l_int32  *pcropwarn)
 {
-l_int32  i, n, w, h, wbox, hbox, cropwarn;
+l_int32  i, n, end, w, h, wbox, hbox, cropwarn;
 BOX     *box, *boxc;
 PIX     *pixd;
 PIXA    *pixad;
@@ -277,9 +282,12 @@ PIXA    *pixad;
         return (PIXA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (!boxa)
         return (PIXA *)ERROR_PTR("boxa not defined", procName, NULL);
+    if (num < 0)
+        return (PIXA *)ERROR_PTR("num must be >= 0", procName, NULL);
 
     n = boxaGetCount(boxa);
-    if ((pixad = pixaCreate(n)) == NULL)
+    end = (num == 0) ? n - 1 : L_MIN(start + num - 1, n - 1);
+    if ((pixad = pixaCreate(end - start + 1)) == NULL)
         return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
 
     boxaGetExtent(boxa, &wbox, &hbox, NULL);
@@ -290,7 +298,7 @@ PIXA    *pixad;
     if (pcropwarn)
         *pcropwarn = cropwarn;
 
-    for (i = 0; i < n; i++) {
+    for (i = start; i <= end; i++) {
         box = boxaGetBox(boxa, i, L_COPY);
         if (cropwarn) {  /* if box is outside pixs, pixd is NULL */
             pixd = pixClipRectangle(pixs, box, &boxc);  /* may be NULL */
@@ -1110,18 +1118,22 @@ PIX     *pix;
  * \brief   pixaSetText()
  *
  * \param[in]    pixa
+ * \param[in]    text  [optional] single text string, to insert in each pix
  * \param[in]    sa    [optional] array of text strings, to insert in each pix
  * \return  0 if OK, 1 on error.
  *
  * <pre>
  * Notes:
- *      (1) To clear all the text fields, use sa == NULL;
- *      (2) If sa is defined, it must be the same size as %pixa.
+ *      (1) To clear all the text fields, use %sa == NULL and %text == NULL.
+ *      (2) To set all the text fields to the same value %text, use %sa = NULL.
+ *      (3) If %sa is defined, we ignore %text and use it; %sa must have
+ *          the same count as %pixa.
  * </pre>
  */
 l_ok
-pixaSetText(PIXA    *pixa,
-            SARRAY  *sa)
+pixaSetText(PIXA        *pixa,
+            const char  *text,
+            SARRAY      *sa)
 {
 char    *str;
 l_int32  i, n;
@@ -1133,18 +1145,18 @@ PIX     *pix;
         return ERROR_INT("pixa not defined", procName, 1);
 
     n = pixaGetCount(pixa);
+    if (sa && (sarrayGetCount(sa) != n))
+        return ERROR_INT("pixa and sa sizes differ", procName, 1);
+
     if (!sa) {
         for (i = 0; i < n; i++) {
             if ((pix = pixaGetPix(pixa, i, L_CLONE)) == NULL)
                 continue;
-            pixSetText(pix, NULL);
+            pixSetText(pix, text);
             pixDestroy(&pix);
         }
         return 0;
     }
-
-    if (sarrayGetCount(sa) != n)
-        return ERROR_INT("pixa and sa sizes differ", procName, 1);
 
     for (i = 0; i < n; i++) {
         if ((pix = pixaGetPix(pixa, i, L_CLONE)) == NULL)
