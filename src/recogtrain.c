@@ -193,11 +193,11 @@ static const l_float32  LOWER_SCORE_THRESHOLD = 0.5;  /* templates can be
 /*!
  * \brief   recogTrainLabeled()
  *
- * \param[in]    recog in training mode
- * \param[in]    pixs if depth > 1, will be thresholded to 1 bpp
- * \param[in]    box [optional] cropping box
- * \param[in]    text [optional] if null, use text field in pix
- * \param[in]    debug 1 to display images of samples not captured
+ * \param[in]    recog     in training mode
+ * \param[in]    pixs      if depth > 1, will be thresholded to 1 bpp
+ * \param[in]    box       [optional] cropping box
+ * \param[in]    text      [optional] if null, use text field in pix
+ * \param[in]    debug     1 to display images of samples not captured
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -462,7 +462,7 @@ PIX     *pix1, *pix2;
 /*!
  * \brief   recogAverageSamples()
  *
- * \param[in]   precog      addr of existing recog; may be destroyed
+ * \param[in]   precog    addr of existing recog; may be destroyed
  * \param[in]   debug
  * \return  0 on success, 1 on failure
  *
@@ -644,11 +644,11 @@ L_RECOG   *recog;
 /*!
  * \brief   pixaAccumulateSamples()
  *
- * \param[in]    pixa of samples from the same class, 1 bpp
- * \param[in]    pta [optional] of centroids of the samples
- * \param[out]   ppixd accumulated samples, 8 bpp
- * \param[out]   px [optional] average x coordinate of centroids
- * \param[out]   py [optional] average y coordinate of centroids
+ * \param[in]    pixa     of samples from the same class, 1 bpp
+ * \param[in]    pta      [optional] of centroids of the samples
+ * \param[out]   ppixd    accumulated samples, 8 bpp
+ * \param[out]   px       [optional] average x coordinate of centroids
+ * \param[out]   py       [optional] average y coordinate of centroids
  * \return  0 on success, 1 on failure
  *
  * <pre>
@@ -945,8 +945,8 @@ NUMA      *na;
  * \param[in]   setsize       size of character set (number of classes)
  * \param[in]   maxkeep       max number of templates to keep in a class
  * \param[in]   max_ht_ratio  max allowed height ratio (see below)
- * \param[out]  pna     [optional] debug output, giving the number in each
- *                      class after filtering; use NULL to skip
+ * \param[out]  pna           [optional] debug output, giving the number
+ *                            in each class after filtering; use NULL to skip
  * \return  pixa   filtered templates, or NULL on error
  *
  * <pre>
@@ -1032,14 +1032,14 @@ PIXAA     *paa;
 /*!
  * \brief   recogSortPixaByClass()
  *
- * \param[in]   pixa          labeled templates
- * \param[in]   setsize       size of character set (number of classes)
+ * \param[in]   pixa       labeled templates
+ * \param[in]   setsize    size of character set (number of classes)
  * \return  paa   pixaa where each pixa has templates for one class,
  *                or null on error
  */
 PIXAA *
-recogSortPixaByClass(PIXA      *pixa,
-                     l_int32    setsize)
+recogSortPixaByClass(PIXA    *pixa,
+                     l_int32  setsize)
 {
 PIXAA    *paa;
 L_RECOG  *recog;
@@ -1280,11 +1280,11 @@ L_RECOG   *recog;
 /*!
  * \brief   recogRemoveOutliers2()
  *
- * \param[in]   precog       addr of recog with unscaled labeled templates
- * \param[in]   minscore     keep everything with at least this score
- * \param[in]   minsize      minimum number of samples required for a class
- * \param[out]  ppixsave     [optional debug] saved templates, with scores
- * \param[out]  ppixrem      [optional debug] removed templates, with scores
+ * \param[in]   precog      addr of recog with unscaled labeled templates
+ * \param[in]   minscore    keep everything with at least this score
+ * \param[in]   minsize     minimum number of samples required for a class
+ * \param[out]  ppixsave    [optional debug] saved templates, with scores
+ * \param[out]  ppixrem     [optional debug] removed templates, with scores
  * \return  0 if OK, 1 on error.
  *
  * <pre>
@@ -1458,11 +1458,11 @@ L_RECOG   *recog;
 /*!
  * \brief   recogTrainFromBoot()
  *
- * \param[in]    recogboot  labeled boot recognizer
- * \param[in]    pixas      set of unlabeled input characters
- * \param[in]    minscore   min score for accepting the example; e.g., 0.75
- * \param[in]    threshold  for binarization, if needed
- * \param[in]    debug      1 for debug output saved to recogboot; 0 otherwise
+ * \param[in]    recogboot   labeled boot recognizer
+ * \param[in]    pixas       set of unlabeled input characters
+ * \param[in]    minscore    min score for accepting the example; e.g., 0.75
+ * \param[in]    threshold   for binarization, if needed
+ * \param[in]    debug       1 for debug output saved to recogboot; 0 otherwise
  * \return  pixad   labeled version of input pixas, trained on a BSR,
  *                  or NULL on error
  *
@@ -1573,10 +1573,10 @@ PIXA      *pixa1, *pixa2, *pixa3, *pixad;
 /*!
  * \brief   recogPadDigitTrainingSet()
  *
- * \param[in,out]   precog   trained; if padding is needed, it is replaced
- *                           by a a new padded recog
- * \param[in]       scaleh   must be > 0; suggest ~40.
- * \param[in]       linew    use 0 for original scanned images
+ * \param[in,out]   precog    trained; if padding is needed, it is replaced
+ *                            by a a new padded recog
+ * \param[in]       scaleh    must be > 0; suggest ~40.
+ * \param[in]       linew     use 0 for original scanned images
  * \return       0 if OK, 1 on error
  *
  * <pre>
@@ -1812,7 +1812,7 @@ PIXA    *pixa1, *pixa2;
 /*!
  * \brief   recogCharsetAvailable()
  *
- * \param[in]    type of charset for padding
+ * \param[in]    type     of charset for padding
  * \return  1 if available; 0 if not.
  */
 static l_int32
@@ -1971,10 +1971,10 @@ PIXA  *pixa1, *pixa2, *pixa3;
 /*!
  * \brief   recogShowContent()
  *
- * \param[in]    fp file  stream
+ * \param[in]    fp       file stream
  * \param[in]    recog
  * \param[in]    index    for naming of output files of template images
- * \param[in]    display  1 for showing template images, 0 otherwise
+ * \param[in]    display  1 for showing template images; 0 otherwise
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -2310,9 +2310,10 @@ PIXA  *pixa;
  * \brief   recogShowMatchesInRange()
  *
  * \param[in]    recog
- * \param[in]    pixa of 1 bpp images to match
- * \param[in]    minscore, maxscore range to include output
- * \param[in]    display to display the result
+ * \param[in]    pixa        of 1 bpp images to match
+ * \param[in]    minscore    min score to include output
+ * \param[in]    maxscore    max score to include output
+ * \param[in]    display     1 to display the result
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2327,11 +2328,11 @@ PIXA  *pixa;
  * </pre>
  */
 l_ok
-recogShowMatchesInRange(L_RECOG     *recog,
-                        PIXA        *pixa,
-                        l_float32    minscore,
-                        l_float32    maxscore,
-                        l_int32      display)
+recogShowMatchesInRange(L_RECOG   *recog,
+                        PIXA      *pixa,
+                        l_float32  minscore,
+                        l_float32  maxscore,
+                        l_int32    display)
 {
 l_int32    i, n, index, depth;
 l_float32  score;
@@ -2398,11 +2399,11 @@ PIXA      *pixa1, *pixa2;
  * \brief   recogShowMatch()
  *
  * \param[in]    recog
- * \param[in]    pix1  input pix; several possibilities
- * \param[in]    pix2  [optional] matching template
- * \param[in]    box  [optional] region in pix1 for which pix2 matches
- * \param[in]    index  index of matching template; use -1 to disable printing
- * \param[in]    score  score of match
+ * \param[in]    pix1    input pix; several possibilities
+ * \param[in]    pix2    [optional] matching template
+ * \param[in]    box     [optional] region in pix1 for which pix2 matches
+ * \param[in]    index   index of matching template; use -1 to disable printing
+ * \param[in]    score   score of match
  * \return  pixd pair of images, showing input pix and best template,
  *                    optionally with matching information, or NULL on error.
  *

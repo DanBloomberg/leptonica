@@ -57,7 +57,8 @@
  *           PIXA     *pixaConstrainedSelect()
  *           l_int32   pixaSelectToPdf()
  *
- *      Generate pixa from tiled image
+ *      Generate pixa from tiled images
+ *           PIXA     *pixaMakeFromTiledPixa()
  *           PIXA     *pixaMakeFromTiledPix()
  *           l_int32   pixGetTileCount()
  *
@@ -2072,8 +2073,71 @@ PIXA    *pixa1, *pixa2;
 
 
 /*---------------------------------------------------------------------*
- *                     Generate pixa from tiled image                  *
+ *                    Generate pixa from tiled images                  *
  *---------------------------------------------------------------------*/
+/*!
+ * \brief   pixaMakeFromTiledPixa()
+ *
+ * \param[in]    pixas    of mosaiced templates, one for each digit
+ * \param[in]    w        width of samples (use 0 for default = 20)
+ * \param[in]    h        height of samples (use 0 for default = 30)
+ * \param[in]    nsamp    number of requested samples (use 0 for default = 100)
+ * \return  pixa of individual, scaled templates, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This converts from a compressed representation of 1 bpp digit
+ *          templates to a pixa where each pix has a single labeled template.
+ *      (2) The mosaics hold 100 templates each, and the number of templates
+ *          %nsamp selected for each digit can be between 1 and 100.
+ *      (3) Each mosaic has the number of images written in the text field,
+ *          and the i-th pix contains samples of the i-th digit.  That value
+ *          is written into the text field of each template in the output.
+ * </pre>
+ */
+PIXA *
+pixaMakeFromTiledPixa(PIXA    *pixas,
+                      l_int32  w,
+                      l_int32  h,
+                      l_int32  nsamp)
+{
+char     buf[8];
+l_int32  ntiles, i;
+PIX     *pix1;
+PIXA    *pixad, *pixa1;
+
+    PROCNAME("pixaMakeFromTiledPixa");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+    if (nsamp > 1000)
+        return (PIXA *)ERROR_PTR("nsamp too large; typ. 100", procName, NULL);
+
+    if (w <= 0) w = 20;
+    if (h <= 0) h = 30;
+    if (nsamp <= 0) nsamp = 100;
+
+        /* pixas has 10 pix of mosaic'd digits.  Each of these images
+         * must be extracted into a pixa of templates, where each template
+         * is labeled with the digit value, and then selectively
+         * concatenated into an output pixa. */
+    pixad = pixaCreate(10 * nsamp);
+    for (i = 0; i < 10; i++) {
+        pix1 = pixaGetPix(pixas, i, L_CLONE);
+        pixGetTileCount(pix1, &ntiles);
+        if (nsamp > ntiles)
+            L_WARNING("requested %d; only %d tiles\n", procName, nsamp, ntiles);
+        pixa1 = pixaMakeFromTiledPix(pix1, w, h, 0, nsamp, NULL);
+        snprintf(buf, sizeof(buf), "%d", i);
+        pixaSetText(pixa1, buf, NULL);
+        pixaJoin(pixad, pixa1, 0, -1);
+        pixaDestroy(&pixa1);
+        pixDestroy(&pix1);
+    }
+    return pixad;
+}
+
+
 /*!
  * \brief   pixaMakeFromTiledPix()
  *

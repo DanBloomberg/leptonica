@@ -630,7 +630,7 @@ size_t    size, nbytes;
     if (startloc >= size)
         return ERROR_INT("invalid startloc", procName, 1);
     if (endloc >= size) {
-        L_WARNING("endloc = %d is beyond max index = %d; adjusting\n",
+        L_WARNING("endloc = %lu is beyond max index = %lu; adjusting\n",
                   procName, endloc, size - 1);
         endloc = size - 1;
     }

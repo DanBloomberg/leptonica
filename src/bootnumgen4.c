@@ -786,18 +786,16 @@ static const char *l_bootnum4 =
  * Notes:
  *      (1) The encoded string and the code to generate pixa1 was
  *          automatically generated.
- *      (2) We add further processing to make the pixa of labelled digits.
+ *      (2) pixa1 is further processed to make the pixa of labelled digits.
  * </pre>
  */
 PIXA *
 l_bootnum_gen4(l_int32  nsamp)
 {
-char      buf[8];
 l_uint8  *data1, *data2;
-l_int32   size1, ntiles, i;
+l_int32   size1;
 size_t    size2;
-PIX      *pix1;
-PIXA     *pixa1, *pixa2, *pixa3;
+PIXA     *pixa1, *pixa2;
 
     PROCNAME("l_bootnum_gen4");
 
@@ -815,21 +813,7 @@ PIXA     *pixa1, *pixa2, *pixa3;
          * must be extracted into a pixa of templates, where each template
          * is labeled with the digit value, and then selectively
          * concatenated into an output pixa. */
-    pixa2 = pixaCreate(10 * nsamp);
-    for (i = 0; i < 10; i++) {
-        pix1 = pixaGetPix(pixa1, i, L_CLONE);
-        pixGetTileCount(pix1, &ntiles);
-        if (nsamp > ntiles)
-            L_WARNING("requested %d; only %d tiles\n", procName, nsamp, ntiles);
-        pixa3 = pixaMakeFromTiledPix(pix1, 20, 30, 0, nsamp, NULL);
-        snprintf(buf, sizeof(buf), "%d", i);
-        pixaSetText(pixa3, buf, NULL);
-        pixaJoin(pixa2, pixa3, 0, -1);
-        pixaDestroy(&pixa3);
-        pixDestroy(&pix1);
-    }
+    pixa2 = pixaMakeFromTiledPixa(pixa1, 20, 30, nsamp);
     pixaDestroy(&pixa1);
-
-    L_INFO("num pix = %d\n", procName, pixaGetCount(pixa2));
     return pixa2;
 }

@@ -100,7 +100,7 @@ OTHER_PROGS = adaptmap_dark \
 	printimage printsplitimage printtiff rbtreetest \
 	recog_bootnum1 recog_bootnum2 recog_bootnum3 \
 	recogsort recogtest1 recogtest2 recogtest3 \
-	recogtest4 recogtest5 recogtest6 \
+	recogtest4 recogtest5 recogtest6 recogtest7 \
 	reducetest removecmap \
 	renderfonts rotatefastalt \
 	rotateorthtest1 rotatetest1 \

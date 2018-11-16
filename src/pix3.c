@@ -2285,7 +2285,7 @@ l_uint32  *line, *data;
 /*!
  * \brief   makePixelSumTab8()
  *
- * \return  table of 256 l_int32, or NULL on error
+ * \return  table of 256 l_int32.
  *
  * <pre>
  * Notes:
@@ -2300,11 +2300,7 @@ l_uint8   byte;
 l_int32   i;
 l_int32  *tab;
 
-    PROCNAME("makePixelSumTab8");
-
-    if ((tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL)
-        return (l_int32 *)ERROR_PTR("tab not made", procName, NULL);
-
+    tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     for (i = 0; i < 256; i++) {
         byte = (l_uint8)i;
         tab[i] = (byte & 0x1) +
@@ -2316,7 +2312,6 @@ l_int32  *tab;
                  ((byte >> 6) & 0x1) +
                  ((byte >> 7) & 0x1);
     }
-
     return tab;
 }
 
@@ -2324,7 +2319,7 @@ l_int32  *tab;
 /*!
  * \brief   makePixelCentroidTab8()
  *
- * \return  table of 256 l_int32, or NULL on error
+ * \return  table of 256 l_int32.
  *
  * <pre>
  * Notes:
@@ -2344,11 +2339,7 @@ makePixelCentroidTab8(void)
 l_int32   i;
 l_int32  *tab;
 
-    PROCNAME("makePixelCentroidTab8");
-
-    if ((tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL)
-        return (l_int32 *)ERROR_PTR("tab not made", procName, NULL);
-
+    tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     tab[0] = 0;
     tab[1] = 7;
     for (i = 2; i < 4; i++) {
@@ -2372,7 +2363,6 @@ l_int32  *tab;
     for (i = 128; i < 256; i++) {
         tab[i] = tab[i - 128];
     }
-
     return tab;
 }
 
