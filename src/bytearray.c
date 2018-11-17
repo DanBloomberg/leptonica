@@ -36,7 +36,6 @@
  *           L_BYTEA      *l_byteaInitFromFile()
  *           L_BYTEA      *l_byteaInitFromStream()
  *           L_BYTEA      *l_byteaCopy()
- *           L_BYTEA      *l_byteaClone()
  *           void          l_byteaDestroy()
  *
  *      Accessors
@@ -570,15 +569,15 @@ size_t    size;
  * \param[in]    fname      output file
  * \param[in]    ba
  * \param[in]    startloc   first byte to output
- * \param[in]    endloc     last byte to output; use 0 to write to the
- *                          end of the data array
+ * \param[in]    nbytes     number of bytes to write; use 0 to write to
+ *                          the end of the data array
  * \return  0 if OK, 1 on error
  */
 l_ok
 l_byteaWrite(const char  *fname,
              L_BYTEA     *ba,
              size_t       startloc,
-             size_t       endloc)
+             size_t       nbytes)
 {
 l_int32  ret;
 FILE    *fp;
@@ -592,7 +591,7 @@ FILE    *fp;
 
     if ((fp = fopenWriteStream(fname, "wb")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
-    ret = l_byteaWriteStream(fp, ba, startloc, endloc);
+    ret = l_byteaWriteStream(fp, ba, startloc, nbytes);
     fclose(fp);
     return ret;
 }
@@ -604,18 +603,18 @@ FILE    *fp;
  * \param[in]    fp         file stream opened for binary write
  * \param[in]    ba
  * \param[in]    startloc   first byte to output
- * \param[in]    endloc     last byte to output; use -1 to write to the
- *                          end of the data array
+ * \param[in]    nbytes     number of bytes to write; use 0 to write to
+ *                          the end of the data array
  * \return  0 if OK, 1 on error
  */
 l_ok
 l_byteaWriteStream(FILE     *fp,
                    L_BYTEA  *ba,
                    size_t    startloc,
-                   size_t    endloc)
+                   size_t    nbytes)
 {
 l_uint8  *data;
-size_t    size, nbytes;
+size_t    size, maxbytes;
 
     PROCNAME("l_byteaWriteStream");
 
@@ -626,17 +625,10 @@ size_t    size, nbytes;
 
     data = l_byteaGetData(ba, &size);
     startloc = L_MAX(0, startloc);
-    if (endloc < 0) endloc = size - 1;
     if (startloc >= size)
         return ERROR_INT("invalid startloc", procName, 1);
-    if (endloc >= size) {
-        L_WARNING("endloc = %lu is beyond max index = %lu; adjusting\n",
-                  procName, endloc, size - 1);
-        endloc = size - 1;
-    }
-    if (endloc < startloc)
-        return ERROR_INT("endloc must be >= startloc", procName, 1);
-    nbytes = endloc - startloc + 1;
+    maxbytes = size - startloc;
+    nbytes = (nbytes == 0) ? maxbytes : L_MIN(nbytes, maxbytes);
 
     fwrite(data + startloc, 1, nbytes, fp);
     return 0;

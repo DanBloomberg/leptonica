@@ -143,7 +143,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		blackwhite_reg.c \
 		blend1_reg.c blend2_reg.c blend3_reg.c blend4_reg.c \
 		blend5_reg.c boxa1_reg.c boxa2_reg.c boxa3_reg.c \
-		ccthin1_reg.c ccthin2_reg.c \
+		bytea_reg.c ccthin1_reg.c ccthin2_reg.c \
 		cmapquant_reg.c colorcontent_reg.c \
 		coloring_reg.c colorize_reg.c \
 		colormask_reg.c colormorph_reg.c colorquant_reg.c \
@@ -196,7 +196,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		autogentest1.c autogentest2.c barcodetest.c \
 		binarizefiles.c binarize_set.c bincompare.c \
 		blendcmaptest.c buffertest.c \
-		byteatest.c ccbordtest.c cctest1.c \
+		ccbordtest.c cctest1.c \
 		cleanpdf.c colorsegtest.c comparepages.c \
 		comparepixa.c comparetest.c \
 		concatpdf.c contrasttest.c \
@@ -374,6 +374,9 @@ boxa2_reg:	boxa2_reg.o $(LEPTLIB)
 
 boxa3_reg:	boxa3_reg.o $(LEPTLIB)
 	$(CC) -o boxa3_reg boxa3_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+bytea_reg:	bytea_reg.o $(LEPTLIB)
+	$(CC) -o bytea_reg bytea_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 ccthin1_reg:	ccthin1_reg.o $(LEPTLIB)
 	$(CC) -o ccthin1_reg ccthin1_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -758,9 +761,6 @@ blendcmaptest:	blendcmaptest.o $(LEPTLIB)
 
 buffertest:	buffertest.o $(LEPTLIB)
 	$(CC) -o buffertest buffertest.o $(ALL_LIBS) $(EXTRALIBS)
-
-byteatest:	byteatest.o $(LEPTLIB)
-	$(CC) -o byteatest byteatest.o $(ALL_LIBS) $(EXTRALIBS)
 
 ccbordtest:	ccbordtest.o $(LEPTLIB)
 	$(CC) -o ccbordtest ccbordtest.o $(ALL_LIBS) $(EXTRALIBS)

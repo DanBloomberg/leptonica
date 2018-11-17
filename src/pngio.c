@@ -470,6 +470,7 @@ PIXCMAP     *cmap;
         if (!cmap) {
             pixInvert(pix, pix);
         } else {
+            L_INFO("removing opaque cmap from 1 bpp\n", procName);
             pix1 = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
             pixDestroy(&pix);
             pix = pix1;

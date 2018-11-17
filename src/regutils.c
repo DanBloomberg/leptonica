@@ -488,7 +488,7 @@ l_int32  w, h, factor, similar;
  * <pre>
  * Notes:
  *      (1) This function does one of three things, depending on the mode:
- *           * "generate": makes a "golden" file as a copy %localname.
+ *           * "generate": makes a "golden" file as a copy of %localname.
  *           * "compare": compares %localname contents with the golden file
  *           * "display": this does nothing
  *      (2) The canonical format of the golden filenames is:
@@ -496,8 +496,11 @@ l_int32  w, h, factor, similar;
  *                                                       [ext of localname]
  *          e.g.,
  *             /tmp/lept/golden/maze_golden.0.png
- *          It is important to add an extension to the local name, because
- *          the extension is added to the name of the golden file.
+ *      (3) The local file can be made in any subdirectory of /tmp/lept,
+ *          including /tmp/lept/regout/.
+ *      (4) It is important to add an extension to the local name, such as
+ *             /tmp/lept/maze/file1.png    (extension ".png")
+ *          because the extension is added to the name of the golden file.
  * </pre>
  */
 l_ok
