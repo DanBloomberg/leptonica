@@ -231,7 +231,7 @@ PIXCMAP  *cmap;
  * \return  cmapd, or NULL on error
  */
 PIXCMAP *
-pixcmapCopy(PIXCMAP  *cmaps)
+pixcmapCopy(const PIXCMAP  *cmaps)
 {
 l_int32   nbytes, valid;
 PIXCMAP  *cmapd;
@@ -290,8 +290,8 @@ PIXCMAP  *cmap;
  * \return  0 if OK, 1 on error or if cmap is not valid
  */
 l_ok
-pixcmapIsValid(PIXCMAP  *cmap,
-               l_int32  *pvalid)
+pixcmapIsValid(const PIXCMAP  *cmap,
+               l_int32        *pvalid)
 {
 l_int32  d;
 
@@ -632,7 +632,7 @@ l_int32  index;
  * \return  count, or 0 on error
  */
 l_int32
-pixcmapGetCount(PIXCMAP  *cmap)
+pixcmapGetCount(const PIXCMAP  *cmap)
 {
     PROCNAME("pixcmapGetCount");
 
@@ -1723,8 +1723,8 @@ PIXCMAP  *cmap;
  * \return  0 if OK, 1 on error
  */
 l_ok
-pixcmapWrite(const char  *filename,
-             PIXCMAP     *cmap)
+pixcmapWrite(const char     *filename,
+             const PIXCMAP  *cmap)
 {
 l_int32  ret;
 FILE    *fp;
@@ -1755,8 +1755,8 @@ FILE    *fp;
  * \return  0 if OK, 1 on error
  */
 l_ok
-pixcmapWriteStream(FILE     *fp,
-                   PIXCMAP  *cmap)
+pixcmapWriteStream(FILE           *fp,
+                   const PIXCMAP  *cmap)
 {
 l_int32  *rmap, *gmap, *bmap, *amap;
 l_int32   i;
@@ -1801,9 +1801,9 @@ l_int32   i;
  * </pre>
  */
 l_ok
-pixcmapWriteMem(l_uint8  **pdata,
-                size_t    *psize,
-                PIXCMAP   *cmap)
+pixcmapWriteMem(l_uint8        **pdata,
+                size_t         *psize,
+                const PIXCMAP  *cmap)
 {
 l_int32  ret;
 FILE    *fp;
@@ -1853,11 +1853,11 @@ FILE    *fp;
  * \return  0 if OK; 1 on error
  */
 l_ok
-pixcmapToArrays(PIXCMAP   *cmap,
-                l_int32  **prmap,
-                l_int32  **pgmap,
-                l_int32  **pbmap,
-                l_int32  **pamap)
+pixcmapToArrays(const PIXCMAP  *cmap,
+                l_int32       **prmap,
+                l_int32       **pgmap,
+                l_int32       **pbmap,
+                l_int32       **pamap)
 {
 l_int32    *rmap, *gmap, *bmap, *amap;
 l_int32     i, ncolors;
