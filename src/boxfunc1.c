@@ -92,8 +92,8 @@ static l_int32 boxGetDistanceInXorY(l_int32 c1, l_int32 s1, l_int32 c2,
  * \brief   boxContains()
  *
  * \param[in]    box1, box2
- * \param[out]   presult 1 if box2 is entirely contained within
- *                       box1, and 0 otherwise
+ * \param[out]   presult     1 if box2 is entirely contained within box1;
+ *                           0 otherwise
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -123,8 +123,8 @@ l_int32  x1, y1, w1, h1, x2, y2, w2, h2;
  * \brief   boxIntersects()
  *
  * \param[in]    box1, box2
- * \param[out]   presult 1 if any part of box2 is contained
- *                      in box1, and 0 otherwise
+ * \param[out]   presult    1 if any part of box2 is contained in box1;
+ *                          0 otherwise
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -160,9 +160,9 @@ l_int32  l1, l2, r1, r2, t1, t2, b1, b2, w1, h1, w2, h2;
  * \brief   boxaContainedInBox()
  *
  * \param[in]    boxas
- * \param[in]    box for containment
- * \return  boxad boxa with all boxes in boxas that are
- *                     entirely contained in box, or NULL on error
+ * \param[in]    box     for containment
+ * \return  boxad  boxa with all boxes in boxas that are entirely
+ *                 contained in box, or NULL on error
  *
  * <pre>
  * Notes:
@@ -289,9 +289,9 @@ BOX     *box1, *box2;
  * \brief   boxaIntersectsBox()
  *
  * \param[in]    boxas
- * \param[in]    box for intersecting
- * \return  boxad boxa with all boxes in boxas that intersect box,
- *                     or NULL on error
+ * \param[in]    box     for intersecting
+ * \return  boxad    boxa with all boxes in boxas that intersect box,
+ *                   or NULL on error
  *
  * <pre>
  * Notes:
@@ -372,9 +372,8 @@ BOX     *box1;
  * \brief   boxaClipToBox()
  *
  * \param[in]    boxas
- * \param[in]    box for clipping
- * \return  boxad boxa with boxes in boxas clipped to box,
- *                     or NULL on error
+ * \param[in]    box     for clipping
+ * \return  boxad     boxa with boxes in boxas clipped to box, or NULL on error
  *
  * <pre>
  * Notes:
@@ -416,9 +415,8 @@ BOXA    *boxad;
  *
  * \param[in]       boxas
  * \param[in,out]   pixadb     debug output
- * \return  boxad where each set of boxes in boxas that overlap are
- *                     combined into a single bounding box in boxad, or
- *                     NULL on error.
+ * \return  boxad   where each set of boxes in boxas that overlap are combined
+ *                  into a single bounding box in boxad, or NULL on error.
  *
  * <pre>
  * Notes:
@@ -662,9 +660,9 @@ PIX     *pix1;
 /*!
  * \brief   boxOverlapRegion()
  *
- * \param[in]    box1, box2 two boxes
- * \return  box of overlap region between input boxes,
- *              or NULL if no overlap or on error
+ * \param[in]    box1, box2
+ * \return  box     of overlap region between input boxes;
+ *                  NULL if no overlap or on error
  *
  * <pre>
  * Notes:
@@ -704,9 +702,9 @@ l_int32  l1, l2, r1, r2, t1, t2, b1, b2, w1, h1, w2, h2, ld, td, rd, bd;
 /*!
  * \brief   boxBoundingRegion()
  *
- * \param[in]    box1, box2 two boxes
- * \return  box of bounding region containing the input boxes,
- *              or NULL on error
+ * \param[in]    box1, box2
+ * \return  box  of bounding region containing the input boxes;
+ *               NULL on error
  *
  * <pre>
  * Notes:
@@ -743,8 +741,8 @@ l_int32  l1, l2, r1, r2, t1, t2, b1, b2, w1, h1, w2, h2, ld, td, rd, bd;
 /*!
  * \brief   boxOverlapFraction()
  *
- * \param[in]    box1, box2 two boxes
- * \param[out]   pfract the fraction of box2 overlapped by box1
+ * \param[in]    box1, box2
+ * \param[out]   pfract      the fraction of box2 overlapped by box1
  * \return  0 if OK, 1 on error.
  *
  * <pre>
@@ -785,8 +783,8 @@ BOX     *boxo;
 /*!
  * \brief   boxOverlapArea()
  *
- * \param[in]    box1, box2 two boxes
- * \param[out]   parea the number of pixels in the overlap
+ * \param[in]    box1, box2
+ * \param[out]   parea       the number of pixels in the overlap
  * \return  0 if OK, 1 on error.
  */
 l_ok
@@ -821,13 +819,14 @@ BOX     *box;
  * \brief   boxaHandleOverlaps()
  *
  * \param[in]    boxas
- * \param[in]    op L_COMBINE, L_REMOVE_SMALL
- * \param[in]    range > 0, forward distance over which overlaps are checked
- * \param[in]    min_overlap minimum fraction of smaller box required for
- *                           overlap to count; 0.0 to ignore
- * \param[in]    max_ratio maximum fraction of small/large areas for
- *                         overlap to count; 1.0 to ignore
- * \param[out]   pnamap [optional] combining map
+ * \param[in]    op            L_COMBINE, L_REMOVE_SMALL
+ * \param[in]    range         forward distance over which overlaps
+ *                             are checked; > 0
+ * \param[in]    min_overlap   minimum fraction of smaller box required for
+ *                             overlap to count; 0.0 to ignore
+ * \param[in]    max_ratio     maximum fraction of small/large areas for
+ *                             overlap to count; 1.0 to ignore
+ * \param[out]   pnamap        [optional] combining map
  * \return  boxad, or NULL on error.
  *
  * <pre>
@@ -957,9 +956,9 @@ NUMA      *namap;
 /*!
  * \brief   boxSeparationDistance()
  *
- * \param[in]    box1, box2 two boxes, in any order
- * \param[out]   ph_sep [optional] horizontal separation
- * \param[out]   pv_sep [optional] vertical separation
+ * \param[in]    box1, box2    two boxes, in any order
+ * \param[out]   ph_sep        [optional] horizontal separation
+ * \param[out]   pv_sep        [optional] vertical separation
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1018,7 +1017,7 @@ l_int32  l1, t1, w1, h1, r1, b1, l2, t2, w2, h2, r2, b2;
  * \param[in]    type     L_SORT_BY_WIDTH, L_SORT_BY_HEIGHT,
  *                        L_SORT_BY_MAX_DIMENSION, L_SORT_BY_PERIMETER,
  *                        L_SORT_BY_AREA,
- * \param[out]   prel   1 if box1 > box2, 0 if the same, -1 if box1 < box2
+ * \param[out]   prel     1 if box1 > box2, 0 if the same, -1 if box1 < box2
  * \return   0 if OK, 1 on error
  *
  * <pre>
@@ -1073,8 +1072,8 @@ l_int32  w1, h1, w2, h2, size1, size2;
  * \brief   boxContainsPt()
  *
  * \param[in]    box
- * \param[in]    x, y a point
- * \param[out]   pcontains 1 if box contains point; 0 otherwise
+ * \param[in]    x, y        a point
+ * \param[out]   pcontains   1 if box contains point; 0 otherwise
  * \return  0 if OK, 1 on error.
  */
 l_ok
@@ -1103,9 +1102,9 @@ l_int32  bx, by, bw, bh;
  * \brief   boxaGetNearestToPt()
  *
  * \param[in]    boxa
- * \param[in]    x, y  point
- * \return  box with centroid closest to the given point [x,y],
- *              or NULL if no boxes in boxa
+ * \param[in]    x, y    point
+ * \return  box   with centroid closest to the given point [x,y],
+ *                or NULL if no boxes in boxa
  *
  * <pre>
  * Notes:
@@ -1152,8 +1151,8 @@ BOX       *box;
  *
  * \param[in]    boxa
  * \param[in]    x, y   (y = -1 for vertical line; x = -1 for horiz line)
- * \return  box with centroid closest to the given line,
- *              or NULL if no boxes in boxa
+ * \return  box  with centroid closest to the given line,
+ *               or NULL if no boxes in boxa
  *
  * <pre>
  * Notes:
@@ -1213,7 +1212,7 @@ BOX       *box;
  *                            entire boxa (e.g., if it's not 2D sorted)
  * \param[out]   pnaaindex    for each box in %boxa, contains a numa of 4
  *                            box indices (per direction) of the nearest box
- * \param[out]   pnaadist   for each box in %boxa, this contains a numa
+ * \param[out]   pnaadist     for each box in %boxa, this contains a numa
  * \return  0 if OK, 1 on error
  * <pre>
  * Notes:
@@ -1575,7 +1574,7 @@ PTA       *pta;
  * \param[in]    box
  * \param[in]    wi, hi rectangle representing image
  * \return  part of box within given rectangle, or NULL on error
- *              or if box is entirely outside the rectangle
+ *          or if box is entirely outside the rectangle
  *
  * <pre>
  * Notes:
@@ -1691,7 +1690,7 @@ BOX     *boxc;
  * \param[in]    loc new location of the side that is changing
  * \param[in]    sideflag L_FROM_LEFT, etc., indicating the side that moves
  * \return  boxd, or NULL on error or if the computed boxd has
- *              width or height <= 0.
+ *          width or height <= 0.
  *
  * <pre>
  * Notes:
@@ -1783,13 +1782,13 @@ BOXA    *boxad;
 /*!
  * \brief   boxAdjustSides()
  *
- * \param[in]    boxd  [optional]; this can be null, equal to boxs,
- *                     or different from boxs
- * \param[in]    boxs  starting box; to have sides adjusted
- * \param[in]    delleft, delright, deltop, delbot changes in location of
- *                                                 each side
+ * \param[in]    boxd     [optional]; this can be null, equal to boxs,
+ *                        or different from boxs
+ * \param[in]    boxs     starting box; to have sides adjusted
+ * \param[in]    delleft, delright, deltop, delbot    changes in location
+ *                                                    of each side
  * \return  boxd, or NULL on error or if the computed boxd has
- *              width or height <= 0.
+ *          width or height <= 0.
  *
  * <pre>
  * Notes:
@@ -1840,11 +1839,11 @@ l_int32  x, y, w, h, xl, xr, yt, yb, wnew, hnew;
 /*!
  * \brief   boxaSetSide()
  *
- * \param[in]    boxad use NULL to get a new one; same as boxas for in-place
+ * \param[in]    boxad    use NULL to get a new one; same as boxas for in-place
  * \param[in]    boxas
- * \param[in]    side L_SET_LEFT, L_SET_RIGHT, L_SET_TOP, L_SET_BOT
- * \param[in]    val location to set for given side, for each box
- * \param[in]    thresh min abs difference to cause resetting to %val
+ * \param[in]    side     L_SET_LEFT, L_SET_RIGHT, L_SET_TOP, L_SET_BOT
+ * \param[in]    val      location to set for given side, for each box
+ * \param[in]    thresh   min abs difference to cause resetting to %val
  * \return  boxad, or NULL on error
  *
  * <pre>
@@ -1950,11 +1949,11 @@ l_int32  x, y, w, h, diff;
 /*!
  * \brief   boxaAdjustWidthToTarget()
  *
- * \param[in]    boxad use NULL to get a new one; same as boxas for in-place
+ * \param[in]    boxad    use NULL to get a new one; same as boxas for in-place
  * \param[in]    boxas
- * \param[in]    sides L_ADJUST_LEFT, L_ADJUST_RIGHT, L_ADJUST_LEFT_AND_RIGHT
- * \param[in]    target target width if differs by more than thresh
- * \param[in]    thresh min abs difference in width to cause adjustment
+ * \param[in]    sides    L_ADJUST_LEFT, L_ADJUST_RIGHT, L_ADJUST_LEFT_AND_RIGHT
+ * \param[in]    target   target width if differs by more than thresh
+ * \param[in]    thresh   min abs difference in width to cause adjustment
  * \return  boxad, or NULL on error
  *
  * <pre>
@@ -2017,11 +2016,11 @@ BOX     *box;
 /*!
  * \brief   boxaAdjustHeightToTarget()
  *
- * \param[in]    boxad use NULL to get a new one
+ * \param[in]    boxad    use NULL to get a new one
  * \param[in]    boxas
- * \param[in]    sides L_ADJUST_TOP, L_ADJUST_BOT, L_ADJUST_TOP_AND_BOT
- * \param[in]    target target height if differs by more than thresh
- * \param[in]    thresh min abs difference in height to cause adjustment
+ * \param[in]    sides    L_ADJUST_TOP, L_ADJUST_BOT, L_ADJUST_TOP_AND_BOT
+ * \param[in]    target   target height if differs by more than thresh
+ * \param[in]    thresh   min abs difference in height to cause adjustment
  * \return  boxad, or NULL on error
  *
  * <pre>
@@ -2090,7 +2089,7 @@ BOX     *box;
  *
  * \param[in]    box1
  * \param[in]    box2
- * \param[out]   psame 1 if equal; 0 otherwise
+ * \param[out]   psame    1 if equal; 0 otherwise
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -2118,8 +2117,8 @@ boxEqual(BOX      *box1,
  * \param[in]    boxa1
  * \param[in]    boxa2
  * \param[in]    maxdist
- * \param[out]   pnaindex [optional] index array of correspondences
- * \param[out]   psame (1 if equal; 0 otherwise
+ * \param[out]   pnaindex     [optional] index array of correspondences
+ * \param[out]   psame        1 if equal; 0 otherwise
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2209,7 +2208,7 @@ NUMA     *na;
  * \param[in]    box1
  * \param[in]    box2
  * \param[in]    leftdiff, rightdiff, topdiff, botdiff
- * \param[out]   psimilar 1 if similar; 0 otherwise
+ * \param[out]   psimilar   1 if similar; 0 otherwise
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2260,9 +2259,9 @@ l_int32  l1, l2, r1, r2, t1, t2, b1, b2;
  * \param[in]    boxa1
  * \param[in]    boxa2
  * \param[in]    leftdiff, rightdiff, topdiff, botdiff
- * \param[in]    debug output details of non-similar boxes
- * \param[out]   psimilar 1 if similar; 0 otherwise
- * \param[out]   pnasim [optional] na containing 1 if similar; else 0
+ * \param[in]    debug      output details of non-similar boxes
+ * \param[out]   psimilar   1 if similar; 0 otherwise
+ * \param[out]   pnasim     [optional] na containing 1 if similar; else 0
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2334,10 +2333,10 @@ BOX     *box1, *box2;
 /*!
  * \brief   boxaJoin()
  *
- * \param[in]    boxad  dest boxa; add to this one
- * \param[in]    boxas  source boxa; add from this one
- * \param[in]    istart  starting index in boxas
- * \param[in]    iend  ending index in boxas; use -1 to cat all
+ * \param[in]    boxad     dest boxa; add to this one
+ * \param[in]    boxas     source boxa; add from this one
+ * \param[in]    istart    starting index in boxas
+ * \param[in]    iend      ending index in boxas; use -1 to cat all
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2383,10 +2382,10 @@ BOX     *box;
 /*!
  * \brief   boxaaJoin()
  *
- * \param[in]    baad  dest boxaa; add to this one
- * \param[in]    baas  source boxaa; add from this one
- * \param[in]    istart  starting index in baas
- * \param[in]    iend  ending index in baas; use -1 to cat all
+ * \param[in]    baad     dest boxaa; add to this one
+ * \param[in]    baas     source boxaa; add from this one
+ * \param[in]    istart   starting index in baas
+ * \param[in]    iend     ending index in baas; use -1 to cat all
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2434,9 +2433,9 @@ BOXA    *boxa;
  * \brief   boxaSplitEvenOdd()
  *
  * \param[in]    boxa
- * \param[in]    fillflag 1 to put invalid boxes in place; 0 to omit
- * \param[out]   pboxae, pboxao save even and odd boxes in their
- *                 separate boxa, setting the other type to invalid boxes.
+ * \param[in]    fillflag         1 to put invalid boxes in place; 0 to omit
+ * \param[out]   pboxae, pboxao   save even and odd boxes in their separate
+ *                                boxa, setting the other type to invalid boxes.
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2497,9 +2496,9 @@ BOX     *box, *boxt;
 /*!
  * \brief   boxaMergeEvenOdd()
  *
- * \param[in]    boxae boxes to go in even positions in merged boxa
- * \param[in]    boxao boxes to go in odd positions in merged boxa
- * \param[in]    fillflag 1 if there are invalid boxes in placeholders
+ * \param[in]    boxae       boxes to go in even positions in merged boxa
+ * \param[in]    boxao       boxes to go in odd positions in merged boxa
+ * \param[in]    fillflag    1 if there are invalid boxes in placeholders
  * \return  boxad merged, or NULL on error
  *
  * <pre>

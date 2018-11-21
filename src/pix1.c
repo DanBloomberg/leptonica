@@ -530,7 +530,7 @@ pixClone(PIX  *pixs)
 /*!
  * \brief   pixDestroy()
  *
- * \param[in,out]   ppix will be nulled
+ * \param[in,out]   ppix     will be set to null before returning
  * \return  void
  *
  * <pre>

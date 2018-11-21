@@ -265,7 +265,7 @@ boxClone(BOX  *box)
 /*!
  * \brief   boxDestroy()
  *
- * \param[in,out]   pbox will be set to null before returning
+ * \param[in,out]   pbox     will be set to null before returning
  * \return  void
  *
  * <pre>
@@ -333,7 +333,7 @@ boxGetGeometry(BOX      *box,
  * \brief   boxSetGeometry()
  *
  * \param[in]    box
- * \param[in]    x, y, w, h  [optional]  use -1 to leave unchanged
+ * \param[in]    x, y, w, h     [optional] use -1 to leave unchanged
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -359,7 +359,7 @@ boxSetGeometry(BOX     *box,
  * \brief   boxGetSideLocations()
  *
  * \param[in]    box
- * \param[out]   pl, pt, pr, pb [optional]  each can be null
+ * \param[out]   pl, pt, pr, pb     [optional] each can be null
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -398,7 +398,7 @@ l_int32  x, y, w, h;
  * \brief   boxSetSideLocations()
  *
  * \param[in]    box
- * \param[in]    l, r, t, b  [optional] use -1 to leave unchanged
+ * \param[in]    l, r, t, b     [optional] use -1 to leave unchanged
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -425,7 +425,8 @@ l_int32  x, y, w, h;
 
 /*!
  * \brief  Return the current reference count of %box
- * \param[in]     box ptr to Box
+ *
+ * \param[in]     box
  * \return   refcount
  */
 l_int32
@@ -441,6 +442,7 @@ boxGetRefcount(BOX  *box)
 
 /*!
  * \brief  Adjust the current references count of %box by %delta
+ *
  * \param[in]     box ptr to box
  * \param[in]     delta adjustment, usually -1 or 1
  * \return  0 if OK, 1 on error
@@ -463,7 +465,7 @@ boxChangeRefcount(BOX     *box,
  * \brief   boxIsValid()
  *
  * \param[in]    box
- * \param[out]   pvalid 1 if valid; 0 otherwise
+ * \param[out]   pvalid    1 if valid; 0 otherwise
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -490,7 +492,7 @@ boxIsValid(BOX      *box,
 /*!
  * \brief   boxaCreate()
  *
- * \param[in]    n  initial number of ptrs
+ * \param[in]    n    initial number of ptrs; 0 for default
  * \return  boxa, or NULL on error
  */
 BOXA *
@@ -519,7 +521,7 @@ BOXA  *boxa;
  * \brief   boxaCopy()
  *
  * \param[in]    boxa
- * \param[in]    copyflag L_COPY, L_CLONE, L_COPY_CLONE
+ * \param[in]    copyflag    L_COPY, L_CLONE, L_COPY_CLONE
  * \return  new boxa, or NULL on error
  *
  * <pre>
@@ -565,7 +567,7 @@ BOXA    *boxac;
 /*!
  * \brief   boxaDestroy()
  *
- * \param[in,out]   pboxa will be set to null before returning
+ * \param[in,out]   pboxa    will be set to null before returning
  * \return  void
  *
  * <pre>
@@ -608,8 +610,8 @@ BOXA    *boxa;
  * \brief   boxaAddBox()
  *
  * \param[in]    boxa
- * \param[in]    box  to be added
- * \param[in]    copyflag L_INSERT, L_COPY, L_CLONE
+ * \param[in]    box         to be added
+ * \param[in]    copyflag    L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -675,7 +677,7 @@ boxaExtendArray(BOXA  *boxa)
  * \brief   boxaExtendArrayToSize()
  *
  * \param[in]    boxa
- * \param[in]    size new size of boxa array
+ * \param[in]    size     new size of boxa array
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -753,8 +755,8 @@ l_int32  n, i, w, h, count;
  * \brief   boxaGetBox()
  *
  * \param[in]    boxa
- * \param[in]    index  to the index-th box
- * \param[in]    accessflag  L_COPY or L_CLONE
+ * \param[in]    index        to the index-th box
+ * \param[in]    accessflag   L_COPY or L_CLONE
  * \return  box, or NULL on error
  */
 BOX *
@@ -782,8 +784,8 @@ boxaGetBox(BOXA    *boxa,
  * \brief   boxaGetValidBox()
  *
  * \param[in]    boxa
- * \param[in]    index  to the index-th box
- * \param[in]    accessflag  L_COPY or L_CLONE
+ * \param[in]    index        to the index-th box
+ * \param[in]    accessflag   L_COPY or L_CLONE
  * \return  box, or NULL if box is not valid or on error
  *
  * <pre>
@@ -853,8 +855,8 @@ NUMA    *na;
  * \brief   boxaGetBoxGeometry()
  *
  * \param[in]    boxa
- * \param[in]    index  to the index-th box
- * \param[out]   px, py, pw, ph [optional]  each can be null
+ * \param[in]    index            to the index-th box
+ * \param[out]   px, py, pw, ph   [optional] each can be null
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -890,7 +892,7 @@ BOX  *box;
  * \brief   boxaIsFull()
  *
  * \param[in]    boxa
- * \param[out]   pfull 1 if boxa is full
+ * \param[out]   pfull    1 if boxa is full; 0 otherwise
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -929,13 +931,14 @@ BOX     *box;
  * \brief   boxaReplaceBox()
  *
  * \param[in]    boxa
- * \param[in]    index  to the index-th box
- * \param[in]    box insert to replace existing one
+ * \param[in]    index     to the index-th box
+ * \param[in]    box       insert this box to replace existing one
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) In-place replacement of one box.
+ *      (1) In-place replacement of one box; the input %box is now
+ *          owned by the boxa.
  *      (2) The previous box at that location, if any, is destroyed.
  * </pre>
  */
@@ -963,8 +966,8 @@ boxaReplaceBox(BOXA    *boxa,
  * \brief   boxaInsertBox()
  *
  * \param[in]    boxa
- * \param[in]    index location in boxa to insert new value
- * \param[in]    box new box to be inserted
+ * \param[in]    index    location in boxa to insert new value
+ * \param[in]    box      new box to be inserted; the boxa now owns it
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1011,7 +1014,7 @@ BOX    **array;
  * \brief   boxaRemoveBox()
  *
  * \param[in]    boxa
- * \param[in]    index of box to be removed
+ * \param[in]    index    of box to be removed and destroyed
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1026,25 +1029,7 @@ l_ok
 boxaRemoveBox(BOXA    *boxa,
               l_int32  index)
 {
-l_int32  i, n;
-BOX    **array;
-
-    PROCNAME("boxaRemoveBox");
-
-    if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
-    n = boxaGetCount(boxa);
-    if (index < 0 || index >= n)
-        return ERROR_INT("index not in {0...n - 1}", procName, 1);
-
-    array = boxa->box;
-    boxDestroy(&array[index]);
-    for (i = index + 1; i < n; i++)
-        array[i - 1] = array[i];
-    array[n - 1] = NULL;
-    boxa->n--;
-
-    return 0;
+    return boxaRemoveBoxAndSave(boxa, index, NULL);
 }
 
 
@@ -1052,8 +1037,8 @@ BOX    **array;
  * \brief   boxaRemoveBoxAndSave()
  *
  * \param[in]    boxa
- * \param[in]    index of box to be removed
- * \param[out]   pbox [optional] removed box
+ * \param[in]    index     of box to be removed
+ * \param[out]   pbox      [optional] removed box
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1098,7 +1083,7 @@ BOX    **array;
  * \brief   boxaSaveValid()
  *
  * \param[in]    boxas
- * \param[in]    copyflag L_COPY or L_CLONE
+ * \param[in]    copyflag    L_COPY or L_CLONE
  * \return  boxad if OK, NULL on error
  *
  * <pre>
@@ -1135,8 +1120,8 @@ BOXA    *boxad;
 /*!
  * \brief   boxaInitFull()
  *
- * \param[in]    boxa typically empty
- * \param[in]    box [optional] to be replicated into the entire ptr array
+ * \param[in]    boxa    typically empty
+ * \param[in]    box     [optional] to be replicated into the entire ptr array
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1231,7 +1216,7 @@ l_int32  i, n;
 /*!
  * \brief   boxaaCreate()
  *
- * \param[in]    n size of boxa ptr array to be alloc'd; 0 for default
+ * \param[in]    n     size of boxa ptr array to be alloc'd; 0 for default
  * \return  baa, or NULL on error
  */
 BOXAA *
@@ -1258,8 +1243,8 @@ BOXAA  *baa;
 /*!
  * \brief   boxaaCopy()
  *
- * \param[in]    baas input boxaa to be copied
- * \param[in]    copyflag L_COPY, L_CLONE
+ * \param[in]    baas       input boxaa to be copied
+ * \param[in]    copyflag   L_COPY, L_CLONE
  * \return  baad new boxaa, composed of copies or clones of the boxa
  *                    in baas, or NULL on error
  *
@@ -1298,7 +1283,7 @@ BOXAA   *baad;
 /*!
  * \brief   boxaaDestroy()
  *
- * \param[in,out]   pbaa will be set to null before returning
+ * \param[in,out]   pbaa     will be set to null before returning
  */
 void
 boxaaDestroy(BOXAA  **pbaa)
@@ -1334,8 +1319,8 @@ BOXAA   *baa;
  * \brief   boxaaAddBoxa()
  *
  * \param[in]    baa
- * \param[in]    ba     to be added
- * \param[in]    copyflag  L_INSERT, L_COPY, L_CLONE
+ * \param[in]    ba         to be added
+ * \param[in]    copyflag   L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1398,7 +1383,7 @@ boxaaExtendArray(BOXAA  *baa)
  * \brief   boxaaExtendArrayToSize()
  *
  * \param[in]    baa
- * \param[in]    size new size of boxa array
+ * \param[in]    size     new size of boxa array
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -1478,7 +1463,7 @@ l_int32  n, sum, i;
  * \brief   boxaaGetBoxa()
  *
  * \param[in]    baa
- * \param[in]    index  to the index-th boxa
+ * \param[in]    index        to the index-th boxa
  * \param[in]    accessflag   L_COPY or L_CLONE
  * \return  boxa, or NULL on error
  */
@@ -1507,8 +1492,8 @@ l_int32  n;
  * \brief   boxaaGetBox()
  *
  * \param[in]    baa
- * \param[in]    iboxa  index into the boxa array in the boxaa
- * \param[in]    ibox  index into the box array in the boxa
+ * \param[in]    iboxa        index into the boxa array in the boxaa
+ * \param[in]    ibox         index into the box array in the boxa
  * \param[in]    accessflag   L_COPY or L_CLONE
  * \return  box, or NULL on error
  */
@@ -1538,8 +1523,8 @@ BOXA  *boxa;
 /*!
  * \brief   boxaaInitFull()
  *
- * \param[in]    baa typically empty
- * \param[in]    boxa to be replicated into the entire ptr array
+ * \param[in]    baa      typically empty
+ * \param[in]    boxa     to be replicated into the entire ptr array
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1593,7 +1578,7 @@ BOXA    *boxat;
  *
  * \param[in]    baa
  * \param[in]    maxindex
- * \param[in]    boxa to be replicated into the extended ptr array
+ * \param[in]    boxa       to be replicated into the extended ptr array
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1634,8 +1619,8 @@ l_int32  i, n;
  * \brief   boxaaReplaceBoxa()
  *
  * \param[in]    baa
- * \param[in]    index  to the index-th boxa
- * \param[in]    boxa insert and replace any existing one
+ * \param[in]    index    to the index-th boxa
+ * \param[in]    boxa     insert and replace any existing one
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1672,8 +1657,8 @@ l_int32  n;
  * \brief   boxaaInsertBoxa()
  *
  * \param[in]    baa
- * \param[in]    index location in boxaa to insert new boxa
- * \param[in]    boxa new boxa to be inserted
+ * \param[in]    index    location in boxaa to insert new boxa
+ * \param[in]    boxa     new boxa to be inserted
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1720,7 +1705,7 @@ BOXA   **array;
  * \brief   boxaaRemoveBoxa()
  *
  * \param[in]    baa
- * \param[in]    index  of the boxa to be removed
+ * \param[in]    index   of the boxa to be removed and destroyed
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1762,9 +1747,9 @@ BOXA   **array;
  * \brief   boxaaAddBox()
  *
  * \param[in]    baa
- * \param[in]    index of boxa with boxaa
- * \param[in]    box to be added
- * \param[in]    accessflag L_INSERT, L_COPY or L_CLONE
+ * \param[in]    index       of boxa with boxaa
+ * \param[in]    box         to be added
+ * \param[in]    accessflag  L_INSERT, L_COPY or L_CLONE
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1803,10 +1788,10 @@ BOXA    *boxa;
 /*!
  * \brief   boxaaReadFromFiles()
  *
- * \param[in]    dirname directory
- * \param[in]    substr [optional] substring filter on filenames; can be NULL
- * \param[in]    first 0-based
- * \param[in]    nfiles use 0 for everything from %first to the end
+ * \param[in]    dirname   directory
+ * \param[in]    substr    [optional] substring filter on filenames; can be NULL
+ * \param[in]    first     0-based
+ * \param[in]    nfiles    use 0 for everything from %first to the end
  * \return  baa, or NULL on error or if no boxa files are found.
  *
  * <pre>
@@ -1888,7 +1873,7 @@ BOXAA  *baa;
 /*!
  * \brief   boxaaReadStream()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp    input file stream
  * \return  boxaa, or NULL on error
  */
 BOXAA *
@@ -1932,8 +1917,8 @@ BOXAA   *baa;
 /*!
  * \brief   boxaaReadMem()
  *
- * \param[in]    data  serialization of boxaa; in ascii
- * \param[in]    size  of data in bytes; can use strlen to get it
+ * \param[in]    data     serialization of boxaa; in ascii
+ * \param[in]    size     of data in bytes; can use strlen to get it
  * \return  baa, or NULL on error
  */
 BOXAA *
@@ -1991,7 +1976,7 @@ FILE    *fp;
 /*!
  * \brief   boxaaWriteStream()
  *
- * \param[in]   fp file stream
+ * \param[in]   fp    output file stream
  * \param[in]   baa
  * \return  0 if OK, 1 on error
  */
@@ -2032,8 +2017,8 @@ BOXA    *boxa;
 /*!
  * \brief   boxaaWriteMem()
  *
- * \param[out]   pdata  data of serialized boxaa; ascii
- * \param[out]   psize  size of returned data
+ * \param[out]   pdata    data of serialized boxaa; ascii
+ * \param[out]   psize    size of returned data
  * \param[in]    baa
  * \return  0 if OK, 1 on error
  *
@@ -2116,7 +2101,7 @@ BOXA  *boxa;
 /*!
  * \brief   boxaReadStream()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp   input file stream
  * \return  boxa, or NULL on error
  */
 BOXA *
@@ -2158,8 +2143,8 @@ BOXA    *boxa;
 /*!
  * \brief   boxaReadMem()
  *
- * \param[in]    data  serialization of boxa; in ascii
- * \param[in]    size  of data in bytes; can use strlen to get it
+ * \param[in]    data    serialization of boxa; in ascii
+ * \param[in]    size    of data in bytes; can use strlen to get it
  * \return  boxa, or NULL on error
  */
 BOXA *
@@ -2249,7 +2234,7 @@ FILE    *fp;
 /*!
  * \brief   boxaWriteStream()
  *
- * \param[in]   fp file stream
+ * \param[in]   fp  output file stream
  * \param[in]   boxa
  * \return  0 if OK, 1 on error
  */
@@ -2284,8 +2269,8 @@ BOX     *box;
 /*!
  * \brief   boxaWriteMem()
  *
- * \param[out]   pdata data of serialized boxa; ascii
- * \param[out]   psize size of returned data
+ * \param[out]   pdata   data of serialized boxa; ascii
+ * \param[out]   psize   size of returned data
  * \param[in]    boxa
  * \return  0 if OK, 1 on error
  *
@@ -2341,7 +2326,7 @@ FILE    *fp;
 /*!
  * \brief   boxPrintStreamInfo()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp    output file stream
  * \param[in]    box
  * \return  0 if OK, 1 on error
  *

@@ -623,21 +623,22 @@ PIXCMAP      *cmap = NULL;
     findFileFormat(fname, &format);
     spp = 0;  /* init to spp != 4 if not png */
     interlaced = 0;  /* initialize to no interlacing */
+    bps = 0;  /* initialize to a nonsense value */
     if (format == IFF_PNG) {
         isPngInterlaced(fname, &interlaced);
-        readHeaderPng(fname, NULL, NULL, NULL, &spp, NULL);
+        readHeaderPng(fname, NULL, NULL, &bps, &spp, NULL);
     }
 
         /* PDF is capable of inlining some types of PNG files, but not all
-           of them. We need to transcode anything with interlacing or an
-           alpha channel.
+           of them. We need to transcode anything with interlacing, an
+           alpha channel, or 1 bpp (which would otherwise be photo-inverted).
 
            Be careful with spp. Any PNG image file with an alpha
            channel is converted on reading to RGBA (spp == 4). This
            includes the (gray + alpha) format with spp == 2. You
            will get different results if you look at spp via
            readHeaderPng() versus pixGetSpp() */
-    if (format != IFF_PNG || interlaced || spp == 4 || spp == 2) {
+    if (format != IFF_PNG || interlaced || bps == 1 || spp == 4 || spp == 2) {
         if (!pixs)
             pix = pixRead(fname);
         else
