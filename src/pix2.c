@@ -159,7 +159,7 @@ LEPT_DLL l_float32  AlphaMaskBorderVals[2] = {0.0, 0.5};
  * \param[in]    pix
  * \param[in]    x,y    pixel coords
  * \param[out]   pval   pixel value
- * \return  0 if OK; 1 on error
+ * \return  0 if OK; 1 or 2 on error
  *
  * <pre>
  * Notes:
@@ -172,7 +172,7 @@ LEPT_DLL l_float32  AlphaMaskBorderVals[2] = {0.0, 0.5};
  *            * GET_DATA/SET_DATA: ~350 MPix/sec
  *          If speed is important and you're doing random access into
  *          the pix, use pixGetLinePtrs() and the array access macros.
- *      (3) If the point is outside the image, this returns an error (1),
+ *      (3) If the point is outside the image, this returns an error (2),
  *          with 0 in %pval.  To avoid spamming output, it fails silently.
  * </pre>
  */
@@ -195,7 +195,7 @@ l_uint32  *line, *data;
 
     pixGetDimensions(pix, &w, &h, &d);
     if (x < 0 || x >= w || y < 0 || y >= h)
-        return 1;
+        return 2;
 
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
@@ -235,7 +235,7 @@ l_uint32  *line, *data;
  * \param[in]    pix
  * \param[in]    x,y   pixel coords
  * \param[in]    val   value to be inserted
- * \return  0 if OK; 1 on error
+ * \return  0 if OK; 1 or 2 on error
  *
  * <pre>
  * Notes:
@@ -245,6 +245,8 @@ l_uint32  *line, *data;
  *          * For d == 2, 4, 8 and 16, %val is masked to the maximum allowable
  *            pixel value, and any (invalid) higher order bits are discarded.
  *      (2) See pixGetPixel() for information on performance.
+ *      (3) If the point is outside the image, this returns an error (2),
+ *          with 0 in %pval.  To avoid spamming output, it fails silently.
  * </pre>
  */
 l_ok
@@ -261,10 +263,8 @@ l_uint32  *line, *data;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
     pixGetDimensions(pix, &w, &h, &d);
-    if (x < 0 || x >= w)
-        return ERROR_INT("x out of bounds", procName, 1);
-    if (y < 0 || y >= h)
-        return ERROR_INT("y out of bounds", procName, 1);
+    if (x < 0 || x >= w || y < 0 || y >= h)
+        return 2;
 
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
@@ -308,7 +308,11 @@ l_uint32  *line, *data;
  * \param[out]   prval  [optional] red component
  * \param[out]   pgval  [optional] green component
  * \param[out]   pbval  [optional] blue component
- * \return  0 if OK; 1 on error
+ * \return  0 if OK; 1 or 2 on error
+ *
+ * Notes:
+ *      (1) If the point is outside the image, this returns an error (2),
+ *          with 0 in %pval.  To avoid spamming output, it fails silently.
  */
 l_ok
 pixGetRGBPixel(PIX      *pix,
@@ -333,10 +337,8 @@ l_uint32  *data, *ppixel;
     pixGetDimensions(pix, &w, &h, &d);
     if (d != 32)
         return ERROR_INT("pix not 32 bpp", procName, 1);
-    if (x < 0 || x >= w)
-        return ERROR_INT("x out of bounds", procName, 1);
-    if (y < 0 || y >= h)
-        return ERROR_INT("y out of bounds", procName, 1);
+    if (x < 0 || x >= w || y < 0 || y >= h)
+        return 2;
 
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
@@ -356,7 +358,11 @@ l_uint32  *data, *ppixel;
  * \param[in]    rval   red component
  * \param[in]    gval   green component
  * \param[in]    bval   blue component
- * \return  0 if OK; 1 on error
+ * \return  0 if OK; 1 or 2 on error
+ *
+ * Notes:
+ *      (1) If the point is outside the image, this returns an error (2),
+ *          with 0 in %pval.  To avoid spamming output, it fails silently.
  */
 l_ok
 pixSetRGBPixel(PIX     *pix,
@@ -377,10 +383,8 @@ l_uint32  *data, *line;
     pixGetDimensions(pix, &w, &h, &d);
     if (d != 32)
         return ERROR_INT("pix not 32 bpp", procName, 1);
-    if (x < 0 || x >= w)
-        return ERROR_INT("x out of bounds", procName, 1);
-    if (y < 0 || y >= h)
-        return ERROR_INT("y out of bounds", procName, 1);
+    if (x < 0 || x >= w || y < 0 || y >= h)
+        return 2;
 
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
@@ -449,7 +453,11 @@ PIXCMAP  *cmap;
  *
  * \param[in]    pix   any depth; warning if colormapped
  * \param[in]    x,y   pixel coords
- * \return  0 if OK; 1 on error.
+ * \return  0 if OK; 1 or 2 on error.
+ *
+ * Notes:
+ *      (1) If the point is outside the image, this returns an error (2),
+ *          with 0 in %pval.  To avoid spamming output, it fails silently.
  */
 l_ok
 pixClearPixel(PIX     *pix,
@@ -466,10 +474,8 @@ l_uint32  *line, *data;
     if (pixGetColormap(pix))
         L_WARNING("cmapped: setting to 0 may not be intended\n", procName);
     pixGetDimensions(pix, &w, &h, &d);
-    if (x < 0 || x >= w)
-        return ERROR_INT("x out of bounds", procName, 1);
-    if (y < 0 || y >= h)
-        return ERROR_INT("y out of bounds", procName, 1);
+    if (x < 0 || x >= w || y < 0 || y >= h)
+        return 2;
 
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
@@ -507,7 +513,11 @@ l_uint32  *line, *data;
  *
  * \param[in]    pix   any depth, warning if colormapped
  * \param[in]    x,y   pixel coords
- * \return  0 if OK; 1 on error
+ * \return  0 if OK; 1 or 2 on error
+ *
+ * Notes:
+ *      (1) If the point is outside the image, this returns an error (2),
+ *          with 0 in %pval.  To avoid spamming output, it fails silently.
  */
 l_ok
 pixFlipPixel(PIX     *pix,
@@ -525,10 +535,8 @@ l_uint32  *line, *data;
     if (pixGetColormap(pix))
         L_WARNING("cmapped: setting to 0 may not be intended\n", procName);
     pixGetDimensions(pix, &w, &h, &d);
-    if (x < 0 || x >= w)
-        return ERROR_INT("x out of bounds", procName, 1);
-    if (y < 0 || y >= h)
-        return ERROR_INT("y out of bounds", procName, 1);
+    if (x < 0 || x >= w || y < 0 || y >= h)
+        return 2;
 
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);

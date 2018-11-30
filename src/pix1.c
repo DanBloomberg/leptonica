@@ -464,7 +464,7 @@ PIX      *pixd;
         return (PIX *)ERROR_PTR("wpl >= 2^29", procName, NULL);
     }
     wpl = (l_int32)wpl64;
-    bignum = 4L * wpl * height;   /* number of bytes to be requested */
+    bignum = 4LL * wpl * height;   /* number of bytes to be requested */
     if (bignum > ((1LL << 31) - 1)) {
         L_ERROR("requested w = %d, h = %d, d = %d\n",
                 procName, width, height, depth);

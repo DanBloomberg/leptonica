@@ -632,7 +632,11 @@ fpixSetData(FPIX       *fpix,
  * \param[in]    fpix
  * \param[in]    x,y pixel coords
  * \param[out]   pval pixel value
- * \return  0 if OK; 1 on error
+ * \return  0 if OK; 1 or 2 on error
+ *
+ * Notes:
+ *      (1) If the point is outside the image, this returns an error (2),
+ *          with 0.0 in %pval.  To avoid spamming output, it fails silently.
  */
 l_ok
 fpixGetPixel(FPIX       *fpix,
@@ -651,10 +655,8 @@ l_int32  w, h;
         return ERROR_INT("fpix not defined", procName, 1);
 
     fpixGetDimensions(fpix, &w, &h);
-    if (x < 0 || x >= w)
-        return ERROR_INT("x out of bounds", procName, 1);
-    if (y < 0 || y >= h)
-        return ERROR_INT("y out of bounds", procName, 1);
+    if (x < 0 || x >= w || y < 0 || y >= h)
+        return 2;
 
     *pval = *(fpix->data + y * w + x);
     return 0;
@@ -667,7 +669,11 @@ l_int32  w, h;
  * \param[in]    fpix
  * \param[in]    x,y pixel coords
  * \param[in]    val pixel value
- * \return  0 if OK; 1 on error
+ * \return  0 if OK; 1 or 2 on error
+ *
+ * Notes:
+ *      (1) If the point is outside the image, this returns an error (2),
+ *          with 0.0 in %pval.  To avoid spamming output, it fails silently.
  */
 l_ok
 fpixSetPixel(FPIX      *fpix,
@@ -683,10 +689,8 @@ l_int32  w, h;
         return ERROR_INT("fpix not defined", procName, 1);
 
     fpixGetDimensions(fpix, &w, &h);
-    if (x < 0 || x >= w)
-        return ERROR_INT("x out of bounds", procName, 1);
-    if (y < 0 || y >= h)
-        return ERROR_INT("y out of bounds", procName, 1);
+    if (x < 0 || x >= w || y < 0 || y >= h)
+        return 2;
 
     *(fpix->data + y * w + x) = val;
     return 0;
@@ -1622,7 +1626,11 @@ dpixSetData(DPIX       *dpix,
  * \param[in]    dpix
  * \param[in]    x,y pixel coords
  * \param[out]   pval pixel value
- * \return  0 if OK; 1 on error
+ * \return  0 if OK; 1 or 2 on error
+ *
+ * Notes:
+ *      (1) If the point is outside the image, this returns an error (2),
+ *          with 0.0 in %pval.  To avoid spamming output, it fails silently.
  */
 l_ok
 dpixGetPixel(DPIX       *dpix,
@@ -1641,10 +1649,8 @@ l_int32  w, h;
         return ERROR_INT("dpix not defined", procName, 1);
 
     dpixGetDimensions(dpix, &w, &h);
-    if (x < 0 || x >= w)
-        return ERROR_INT("x out of bounds", procName, 1);
-    if (y < 0 || y >= h)
-        return ERROR_INT("y out of bounds", procName, 1);
+    if (x < 0 || x >= w || y < 0 || y >= h)
+        return 2;
 
     *pval = *(dpix->data + y * w + x);
     return 0;
@@ -1657,7 +1663,11 @@ l_int32  w, h;
  * \param[in]    dpix
  * \param[in]    x,y pixel coords
  * \param[in]    val pixel value
- * \return  0 if OK; 1 on error
+ * \return  0 if OK; 1 or 2 on error
+ *
+ * Notes:
+ *      (1) If the point is outside the image, this returns an error (2),
+ *          with 0.0 in %pval.  To avoid spamming output, it fails silently.
  */
 l_ok
 dpixSetPixel(DPIX      *dpix,
@@ -1673,10 +1683,8 @@ l_int32  w, h;
         return ERROR_INT("dpix not defined", procName, 1);
 
     dpixGetDimensions(dpix, &w, &h);
-    if (x < 0 || x >= w)
-        return ERROR_INT("x out of bounds", procName, 1);
-    if (y < 0 || y >= h)
-        return ERROR_INT("y out of bounds", procName, 1);
+    if (x < 0 || x >= w || y < 0 || y >= h)
+        return 2;
 
     *(dpix->data + y * w + x) = val;
     return 0;
