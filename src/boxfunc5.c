@@ -38,7 +38,8 @@
  *           BOXA     *boxaReconcileEvenOddHeight()
  *    static l_int32   boxaTestEvenOddHeight()
  *           BOXA     *boxaReconcilePairWidth()
- *           l_int32   boxaEvalSizeConsistency()
+ *           l_int32   boxaSizeConsistency1()
+ *           l_int32   boxaSizeConsistency2()
  *           BOXA     *boxaReconcileSizeByMedian()
  *           l_int32   boxaPlotSides()   [for debugging]
  *           l_int32   boxaPlotSizes()   [for debugging]
@@ -1084,7 +1085,128 @@ BOXA    *boxae, *boxao, *boxad;
 
 
 /*!
- * \brief   boxaEvalSizeConsistency()
+ * \brief   boxaSizeConsistency1()
+ *
+ * \param[in]    boxas     of size >= 10
+ * \param[in]    type      L_CHECK_WIDTH, L_CHECK_HEIGHT
+ * \param[in]    threshp   threshold for pairwise fractional variation
+ * \param[in]    threshm   threshold for fractional variation from median
+ * \param[out]   pfvarp    [optional] average fractional pairwise variation
+ * \param[out]   pfvarm    [optional] average fractional median variation
+ * \param[out]   psame     decision for uniformity of page size (1, 0, -1)
+ *
+ * <pre>
+ * Notes:
+ *      (1) This evaluates a boxa for particular types of dimensional
+ *          variation.  Select either width or height variation.  Then
+ *          it returns two numbers: one is based on pairwise (even/odd)
+ *          variation; the other is based on the average variation
+ *          from the boxa median.
+ *      (2) For the pairwise variation, get the fraction of the absolute
+ *          difference in dimension of each pair of boxes, and take
+ *          the average value.  The median variation is simply the
+ *          the average of the fractional deviation from the median
+ *          of all the boxes.
+ *      (3) Use 0 for default values of %threshp and %threshm.  They are
+ *            threshp:  0.02
+ *            threshm:  0.015
+ *      (4) The intended application is that the boxes are a sequence of
+ *          page regions in a book scan, and we calculate two numbers
+ *          that can give an indication if the pages are approximately
+ *          the same size.  The pairwise variation should be small if
+ *          the boxes are correctly calculated.  If there are a
+ *          significant number of random or systematic outliers, the
+ *          pairwise variation will be large, and no decision will be made
+ *          (i.e., return same == -1).  Here are the possible outcomes:
+ *            Pairwise Var    Median Var    Decision
+ *            ------------    ----------    --------
+ *            small           small         same size  (1)
+ *            small           large         different size  (0)
+ *            large           small/large   unknown   (-1)
+ * </pre>
+ */
+l_ok
+boxaSizeConsistency1(BOXA       *boxas,
+                     l_int32     type,
+                     l_float32   threshp,
+                     l_float32   threshm,
+                     l_float32  *pfvarp,
+                     l_float32  *pfvarm,
+                     l_int32    *psame)
+{
+l_int32    i, n, bw1, bh1, bw2, bh2, npairs;
+l_float32  ave, fdiff, sumdiff, med, fvarp, fvarm;
+NUMA      *na1;
+
+    PROCNAME("boxaSizeConsistency1");
+
+    if (pfvarp) *pfvarp = 0.0;
+    if (pfvarm) *pfvarm = 0.0;
+    if (!psame)
+        return ERROR_INT("&same not defined", procName, 1);
+    *psame = -1;
+    if (!boxas)
+        return ERROR_INT("boxas not defined", procName, 1);
+    if (boxaGetValidCount(boxas) < 6)
+        return ERROR_INT("need a least 6 valid boxes", procName, 1);
+    if (type != L_CHECK_WIDTH && type != L_CHECK_HEIGHT)
+        return ERROR_INT("invalid type", procName, 1);
+    if (threshp < 0.0 || threshp >= 0.5)
+        return ERROR_INT("invalid threshp", procName, 1);
+    if (threshm < 0.0 || threshm >= 0.5)
+        return ERROR_INT("invalid threshm", procName, 1);
+    if (threshp == 0.0) threshp = 0.02;
+    if (threshm == 0.0) threshm = 0.015;
+
+        /* Evaluate pairwise variation */
+    n = boxaGetCount(boxas);
+    na1 = numaCreate(0);
+    for (i = 0, npairs = 0, sumdiff = 0; i < n - 1; i += 2) {
+        boxaGetBoxGeometry(boxas, i, NULL, NULL, &bw1, &bh1);
+        boxaGetBoxGeometry(boxas, i + 1, NULL, NULL, &bw2, &bh2);
+        if (bw1 == 0 || bh1 == 0 || bw2 == 0 || bh2 == 0)
+            continue;
+        npairs++;
+        if (type == L_CHECK_WIDTH) {
+            ave = (bw1 + bw2) / 2.0;
+            fdiff = L_ABS(bw1 - bw2) / ave;
+            numaAddNumber(na1, bw1);
+            numaAddNumber(na1, bw2);
+        } else {  /* type == L_CHECK_HEIGHT) */
+            ave = (bh1 + bh2) / 2.0;
+            fdiff = L_ABS(bh1 - bh2) / ave;
+            numaAddNumber(na1, bh1);
+            numaAddNumber(na1, bh2);
+        }
+        sumdiff += fdiff;
+    }
+    fvarp = sumdiff / npairs;
+    if (pfvarp) *pfvarp = fvarp;
+
+        /* Evaluate the average abs fractional deviation from the median */
+    numaGetMedian(na1, &med);
+    if (med == 0.0) {
+        L_WARNING("median value is 0\n", procName);
+    } else {
+        numaGetMeanDevFromMedian(na1, med, &fvarm);
+        fvarm /= med;
+        if (pfvarm) *pfvarm = fvarm;
+    }
+    numaDestroy(&na1);
+
+        /* Make decision */
+    if (fvarp < threshp && fvarm < threshm)
+        *psame = 1;
+    else if (fvarp < threshp && fvarm > threshm)
+        *psame = 0;
+    else
+        *psame = -1;  /* unknown */
+    return 0;
+}
+
+
+/*!
+ * \brief   boxaSizeConsistency2()
  *
  * \param[in]    boxas     of size >= 10
  * \param[out]   pfdevw    average fractional deviation from median width
@@ -1100,12 +1222,15 @@ BOXA    *boxae, *boxao, *boxad;
  *          about whether the pages should be approximately the same size.
  *          The determination should be robust to outliers, both random
  *          and (for many cases) systematic.
- *      (2) Adjacent even and odd boxes are expected to be the same size.
+ *      (2) This differs from boxaSizeConsistency1() in that it attempts
+ *          to correct for box dimensional errors before doing the
+ *          evaluation.  For this reason, it may be less robust.
+ *      (3) Adjacent even and odd boxes are expected to be the same size.
  *          Take them pairwise, and assume the minimum height, hmin,
  *          is correct.  Then for (the usual case) wmin/hmin > 0.5, assume
  *          the minimum width is correct.  If wmin/hmin <= 0.5, assume
  *          the maximum width is correct.
- *      (3) After correcting each pair so that they are the same size,
+ *      (4) After correcting each pair so that they are the same size,
  *          compute the average fractional deviation, from median width and
  *          height.  A deviation of width or height by more than about
  *          0.02 is evidence that the boxes may be from a non-homogeneous
@@ -1113,10 +1238,10 @@ BOXA    *boxae, *boxao, *boxad;
  * </pre>
  */
 l_ok
-boxaEvalSizeConsistency(BOXA       *boxas,
-                        l_float32  *pfdevw,
-                        l_float32  *pfdevh,
-                        l_int32     debug)
+boxaSizeConsistency2(BOXA       *boxas,
+                     l_float32  *pfdevw,
+                     l_float32  *pfdevh,
+                     l_int32     debug)
 {
 l_int32    i, n, bw1, bh1, bw2, bh2, npairs;
 l_float32  medw, medh, devw, devh, minw, maxw, minh, w;
@@ -1126,7 +1251,7 @@ NUMA      *naw, *nah;
 PIX       *pix1, *pix2, *pix3;
 PIXA      *pixa;
 
-    PROCNAME("boxaEvalSizeConsistency");
+    PROCNAME("boxaSizeConsistency2");
 
     if (pfdevw) *pfdevw = 0.0;
     if (pfdevh) *pfdevh = 0.0;
@@ -1208,7 +1333,7 @@ PIXA      *pixa;
  * \param[in]    boxas    containing at least 6 valid boxes
  * \param[in]    type     L_CHECK_WIDTH, L_CHECK_HEIGHT, L_CHECK_BOTH
  * \param[in]    fract    threshold fraction of size variation from median;
- *                        in range (0 ... 1); typ. about 0.1.
+ *                        in range (0 ... 1); typ. about 0.05.
  * \param[in]    factor   expansion for fixed box beyond median width;
  *                        should be near 1.0.
  * \param[out]   pnadelw  [optional] diff from median width for boxes
