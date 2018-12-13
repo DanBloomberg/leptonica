@@ -1352,7 +1352,7 @@ LEPT_DLL extern l_ok numaEarthMoverDistance ( NUMA *na1, NUMA *na2, l_float32 *p
 LEPT_DLL extern l_ok grayInterHistogramStats ( NUMAA *naa, l_int32 wc, NUMA **pnam, NUMA **pnams, NUMA **pnav, NUMA **pnarv );
 LEPT_DLL extern NUMA * numaFindPeaks ( NUMA *nas, l_int32 nmax, l_float32 fract1, l_float32 fract2 );
 LEPT_DLL extern NUMA * numaFindExtrema ( NUMA *nas, l_float32 delta, NUMA **pnav );
-LEPT_DLL extern l_ok numaCountReversals ( NUMA *nas, l_float32 minreversal, l_int32 *pnr, l_float32 *pnrpl );
+LEPT_DLL extern l_ok numaCountReversals ( NUMA *nas, l_float32 minreversal, l_int32 *pnr, l_float32 *prd );
 LEPT_DLL extern l_ok numaSelectCrossingThreshold ( NUMA *nax, NUMA *nay, l_float32 estthresh, l_float32 *pbestthresh );
 LEPT_DLL extern NUMA * numaCrossingsByThreshold ( NUMA *nax, NUMA *nay, l_float32 thresh );
 LEPT_DLL extern NUMA * numaCrossingsByPeaks ( NUMA *nax, NUMA *nay, l_float32 delta );

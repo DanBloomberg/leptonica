@@ -2473,6 +2473,8 @@ NUMA      *nav, *nad;
     if (pnav) *pnav = NULL;
     if (!nas)
         return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+    if (delta < 0.0)
+        return (NUMA *)ERROR_PTR("delta < 0", procName, NULL);
 
     n = numaGetCount(nas);
     nad = numaCreate(0);
@@ -2545,7 +2547,7 @@ NUMA      *nav, *nad;
  * \param[in]    nas          input values
  * \param[in]    minreversal  relative amount to resolve peaks and valleys
  * \param[out]   pnr          [optional] number of reversals
- * \param[out]   pnrpl        [optional] reversal density: reversals/length
+ * \param[out]   prd          [optional] reversal density: reversals/length
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2553,38 +2555,76 @@ NUMA      *nav, *nad;
  *      (1) The input numa is can be generated from pixExtractAlongLine().
  *          If so, the x parameters can be used to find the reversal
  *          frequency along a line.
+ *      (2) If the input numa was generated from a 1 bpp pix, the
+ *          values will be 0 and 1.  Use %minreversal == 1 to get
+ *          the number of pixel flips.  If the only values are 0 and 1,
+ *          but %minreversal > 1, set the reversal count to 0 and
+ *          issue a warning.
  * </pre>
  */
 l_ok
 numaCountReversals(NUMA       *nas,
                    l_float32   minreversal,
                    l_int32    *pnr,
-                   l_float32  *pnrpl)
+                   l_float32  *prd)
 {
-l_int32    n, nr;
-l_float32  delx, len;
+l_int32    i, n, nr, ival, binvals;
+l_int32   *ia;
+l_float32  fval, delx, len;
 NUMA      *nat;
 
     PROCNAME("numaCountReversals");
 
     if (pnr) *pnr = 0;
-    if (pnrpl) *pnrpl = 0.0;
-    if (!pnr && !pnrpl)
-        return ERROR_INT("neither &nr nor &nrpl are defined", procName, 1);
+    if (prd) *prd = 0.0;
+    if (!pnr && !prd)
+        return ERROR_INT("neither &nr nor &rd are defined", procName, 1);
     if (!nas)
         return ERROR_INT("nas not defined", procName, 1);
+    if ((n = numaGetCount(nas)) == 0) {
+        L_INFO("nas is empty\n", procName);
+        return 0;
+    }
+    if (minreversal < 0.0)
+        return ERROR_INT("minreversal < 0", procName, 1);
 
-    n = numaGetCount(nas);
-    nat = numaFindExtrema(nas, minreversal, NULL);
-    nr = numaGetCount(nat);
-    if (pnr) *pnr = nr;
-    if (pnrpl) {
-        numaGetParameters(nas, NULL, &delx);
-        len = delx * n;
-        *pnrpl = (l_float32)nr / len;
+        /* Decide if the only values are 0 and 1 */
+    binvals = TRUE;
+    for (i = 0; i < n; i++) {
+        numaGetFValue(nas, i, &fval);
+        if (fval != 0.0 && fval != 1.0) {
+            binvals = FALSE;
+            break;
+        }
     }
 
-    numaDestroy(&nat);
+    nr = 0;
+    if (binvals) {
+        if (minreversal > 1.0) {
+            L_WARNING("binary values but minreversal > 1\n", procName);
+        } else {
+            ia = numaGetIArray(nas);
+            ival = ia[0];
+            for (i = 1; i < n; i++) {
+                if (ia[i] != ival) {
+                    nr++;
+                    ival = ia[i];
+                }
+            }
+            LEPT_FREE(ia);
+        }
+    } else {
+        nat = numaFindExtrema(nas, minreversal, NULL);
+        nr = numaGetCount(nat);
+        numaDestroy(&nat);
+    }
+    if (pnr) *pnr = nr;
+    if (prd) {
+        numaGetParameters(nas, NULL, &delx);
+        len = delx * n;
+        *prd = (l_float32)nr / len;
+    }
+
     return 0;
 }
 
