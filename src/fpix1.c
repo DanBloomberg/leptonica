@@ -28,8 +28,12 @@
  * \file fpix1.c
  * <pre>
  *
- *    This file has basic constructors, destructors and field accessors
- *    for FPix, FPixa and DPix.  It also has uncompressed read/write.
+ *    ---------------------------------------------------
+ *    This file has these FPix, FPixa and DPix utilities:
+ *         - creation and destruction
+ *         - accessors
+ *         - serialization and deserialization
+ *    ---------------------------------------------------
  *
  *    FPix Create/copy/destroy
  *          FPIX          *fpixCreate()

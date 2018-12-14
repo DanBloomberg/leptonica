@@ -29,6 +29,16 @@
  * \file  ptafunc1.c
  * <pre>
  *
+ *      --------------------------------------
+ *      This file has these Pta utilities:
+ *         - simple rearrangements
+ *         - geometric analysis
+ *         - min/max and filtering
+ *         - least squares fitting
+ *         - interconversions with Pix and Numa
+ *         - display into a pix
+ *      --------------------------------------
+ *
  *      Simple rearrangements
  *           PTA      *ptaSubsample()
  *           l_int32   ptaJoin()

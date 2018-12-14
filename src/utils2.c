@@ -28,6 +28,15 @@
  * \file utils2.c
  * <pre>
  *
+ *      ------------------------------------------
+ *      This file has these utilities:
+ *         - safe string operations
+ *         - find/replace operations on strings
+ *         - read/write between file and memory
+ *         - multi-platform file and directory operations
+ *         - file name operations
+ *      ------------------------------------------
+ *
  *       Safe string procs
  *           char      *stringNew()
  *           l_int32    stringCopy()

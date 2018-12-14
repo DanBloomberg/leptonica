@@ -28,6 +28,7 @@
  * \file fpix2.c
  * <pre>
  *
+ *    ------------------------------------------
  *    This file has these FPix utilities:
  *       ~ interconversions with pix, fpix, dpix
  *       ~ min and max values
@@ -37,6 +38,7 @@
  *       ~ border functions
  *       ~ simple rasterop (source --> dest)
  *       ~ geometric transforms
+ *    ------------------------------------------
  *
  *    Interconversions between Pix, FPix and DPix
  *          FPIX          *pixConvertToFPix()

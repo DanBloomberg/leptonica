@@ -28,6 +28,18 @@
  * \file  numafunc1.c
  * <pre>
  *
+ *      --------------------------------------
+ *      This file has these Numa utilities:
+ *         - arithmetic operations
+ *         - simple data analysis
+ *         - generation of special sequences
+ *         - permutations
+ *         - interpolation
+ *         - sorting
+ *         - data analysis requiring sorting
+ *         - joins and rearrangements
+ *      --------------------------------------
+ *
  *      Arithmetic and logic
  *          NUMA        *numaArithOp()
  *          NUMA        *numaLogicalOp()

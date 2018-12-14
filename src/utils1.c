@@ -28,6 +28,17 @@
  * \file utils1.c
  * <pre>
  *
+ *       ------------------------------------------
+ *       This file has these utilities:
+ *         - error, warning and info messages
+ *         - low-level endian conversions
+ *         - file corruption operations
+ *         - random and prime number operations
+ *         - 64-bit hash functions
+ *         - leptonica version number accessor
+ *         - timing and date operations
+ *       ------------------------------------------
+ *
  *       Control of error, warning and info messages
  *           l_int32    setMsgSeverity()
  *

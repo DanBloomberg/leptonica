@@ -28,6 +28,17 @@
  * \file  numafunc2.c
  * <pre>
  *
+ *      --------------------------------------
+ *      This file has these Numa utilities:
+ *         - morphological operations
+ *         - arithmetic transforms
+ *         - windowed statistical operations
+ *         - histogram extraction
+ *         - histogram comparison
+ *         - extrema finding
+ *         - frequency and crossing analysis
+ *      --------------------------------------
+
  *      Morphological (min/max) operations
  *          NUMA        *numaErode()
  *          NUMA        *numaDilate()

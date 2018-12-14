@@ -77,7 +77,7 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 
 
 <h2 align=center>Version Notes for Leptonica</h2>
-<h3 align=center>21 Jun 2018</h3>
+<h3 align=center>14 Dec 2018</h3>
 
 <hr>
 <h2 align=center>  <IMG SRC="moller52.jpg" border=1 ALIGN_MIDDLE> </h2>
@@ -89,7 +89,7 @@ They are <i>not</i> a complete listing of the modifications.
 
 <pre>
 
-1.77.0  To be released
+1.77.0  14 Dec 18
         Here is the current status of CVE issues with leptonica; see
           https://security-tracker.debian.org/tracker/source-package/leptonlib
         * CVE-2018-7442: potential injection attack because '/' is allowed
@@ -154,6 +154,7 @@ They are <i>not</i> a complete listing of the modifications.
         Fixed uninitialized data in pixCentroid() on 1 bpp pix.
         New reg test: bytea_reg.c.  (removed byteatest.c)
         Fixed bug in non-transcoding pdf generation from 1 bpp png.
+        Added LGTM to static analyzers that run over the library.
 
 1.76.0  1 May 18
         Modify infrastructure to fix outstanding security issues. By default,

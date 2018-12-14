@@ -28,6 +28,13 @@
  * \file  ptafunc2.c
  * <pre>
  *
+ *      --------------------------------------
+ *      This file has these Pta utilities:
+ *         - sorting
+ *         - ordered set operations
+ *         - hash map operations
+ *      --------------------------------------
+ *
  *      Sorting
  *           PTA        *ptaSort()
  *           l_int32     ptaGetSortIndex()
