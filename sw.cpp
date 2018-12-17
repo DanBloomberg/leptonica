@@ -1,6 +1,6 @@
 void build(Solution &s)
 {
-    auto &leptonica = s.addTarget<LibraryTarget>("danbloomberg.leptonica", "1.76.0");
+    auto &leptonica = s.addTarget<LibraryTarget>("danbloomberg.leptonica", "1.78.0");
     leptonica += Git("https://github.com/DanBloomberg/leptonica", "{v}");
 
     {
@@ -58,7 +58,7 @@ void build(Solution &s)
         auto add_prog = [&progs, &leptonica](const String &name, const Files &files) -> decltype(auto)
         {
             auto &t = progs.addExecutable(name);
-            t.Scope = TargetScope::Tool;
+            t.Scope = TargetScope::Test;
             t.setRootDirectory("prog");
             t += files;
             t += leptonica;
