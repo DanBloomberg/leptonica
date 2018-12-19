@@ -29,7 +29,7 @@
 
 
 #define LIBLEPT_MAJOR_VERSION   1
-#define LIBLEPT_MINOR_VERSION   77
+#define LIBLEPT_MINOR_VERSION   78
 #define LIBLEPT_PATCH_VERSION   0
 
 #include "alltypes.h"
@@ -371,7 +371,7 @@ LEPT_DLL extern BOXA * boxaReconcileEvenOddHeight ( BOXA *boxas, l_int32 sides, 
 LEPT_DLL extern BOXA * boxaReconcilePairWidth ( BOXA *boxas, l_int32 delw, l_int32 op, l_float32 factor, NUMA *na );
 LEPT_DLL extern l_ok boxaSizeConsistency1 ( BOXA *boxas, l_int32 type, l_float32 threshp, l_float32 threshm, l_float32 *pfvarp, l_float32 *pfvarm, l_int32 *psame );
 LEPT_DLL extern l_ok boxaSizeConsistency2 ( BOXA *boxas, l_float32 *pfdevw, l_float32 *pfdevh, l_int32 debug );
-LEPT_DLL extern BOXA * boxaReconcileSizeByMedian ( BOXA *boxas, l_int32 type, l_float32 fract, l_float32 factor, NUMA **pnadelw, NUMA **pnadelh, l_float32 *pratiowh );
+LEPT_DLL extern BOXA * boxaReconcileSizeByMedian ( BOXA *boxas, l_int32 type, l_float32 dfract, l_float32 sfract, l_float32 factor, NUMA **pnadelw, NUMA **pnadelh, l_float32 *pratiowh );
 LEPT_DLL extern l_ok boxaPlotSides ( BOXA *boxa, const char *plotname, NUMA **pnal, NUMA **pnat, NUMA **pnar, NUMA **pnab, PIX **ppixd );
 LEPT_DLL extern l_ok boxaPlotSizes ( BOXA *boxa, const char *plotname, NUMA **pnaw, NUMA **pnah, PIX **ppixd );
 LEPT_DLL extern BOXA * boxaFillSequence ( BOXA *boxas, l_int32 useflag, l_int32 debug );

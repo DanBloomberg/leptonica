@@ -2183,7 +2183,6 @@ pixaMakeFromTiledPix(PIX     *pixs,
                      l_int32  num,
                      BOXA    *boxa)
 {
-char     *text;
 l_int32   i, j, k, ws, hs, d, nx, ny, n, n_isvalid, ntiles, nmax;
 PIX      *pix1;
 PIXA     *pixa1;
