@@ -97,6 +97,7 @@ void build(Solution &s)
             {"boxa1_reg", {"boxa1_reg.c"}},
             {"boxa2_reg", {"boxa2_reg.c"}},
             {"boxa3_reg", {"boxa3_reg.c"}},
+            {"boxa4_reg", {"boxa4_reg.c"}},
             {"bytea_reg", {"bytea_reg.c"}},
             {"ccthin1_reg", {"ccthin1_reg.c"}},
             {"ccthin2_reg", {"ccthin2_reg.c"}},

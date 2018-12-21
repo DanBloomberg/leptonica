@@ -305,6 +305,7 @@ LEPT_DLL extern BOXA * boxaTransformOrdered ( BOXA *boxas, l_int32 shiftx, l_int
 LEPT_DLL extern BOX * boxTransformOrdered ( BOX *boxs, l_int32 shiftx, l_int32 shifty, l_float32 scalex, l_float32 scaley, l_int32 xcen, l_int32 ycen, l_float32 angle, l_int32 order );
 LEPT_DLL extern BOXA * boxaRotateOrth ( BOXA *boxas, l_int32 w, l_int32 h, l_int32 rotation );
 LEPT_DLL extern BOX * boxRotateOrth ( BOX *box, l_int32 w, l_int32 h, l_int32 rotation );
+LEPT_DLL extern BOXA * boxaShiftWithPta ( BOXA *boxas, PTA *pta, l_int32 dir );
 LEPT_DLL extern BOXA * boxaSort ( BOXA *boxas, l_int32 sorttype, l_int32 sortorder, NUMA **pnaindex );
 LEPT_DLL extern BOXA * boxaBinSort ( BOXA *boxas, l_int32 sorttype, l_int32 sortorder, NUMA **pnaindex );
 LEPT_DLL extern BOXA * boxaSortByIndex ( BOXA *boxas, NUMA *naindex );
@@ -312,6 +313,7 @@ LEPT_DLL extern BOXAA * boxaSort2d ( BOXA *boxas, NUMAA **pnaad, l_int32 delta1,
 LEPT_DLL extern BOXAA * boxaSort2dByIndex ( BOXA *boxas, NUMAA *naa );
 LEPT_DLL extern l_ok boxaExtractAsNuma ( BOXA *boxa, NUMA **pnal, NUMA **pnat, NUMA **pnar, NUMA **pnab, NUMA **pnaw, NUMA **pnah, l_int32 keepinvalid );
 LEPT_DLL extern l_ok boxaExtractAsPta ( BOXA *boxa, PTA **pptal, PTA **pptat, PTA **pptar, PTA **pptab, PTA **pptaw, PTA **pptah, l_int32 keepinvalid );
+LEPT_DLL extern PTA * boxaExtractCorners ( BOXA *boxa, l_int32 corner );
 LEPT_DLL extern l_ok boxaGetRankVals ( BOXA *boxa, l_float32 fract, l_int32 *px, l_int32 *py, l_int32 *pr, l_int32 *pb, l_int32 *pw, l_int32 *ph );
 LEPT_DLL extern l_ok boxaGetMedianVals ( BOXA *boxa, l_int32 *px, l_int32 *py, l_int32 *pr, l_int32 *pb, l_int32 *pw, l_int32 *ph );
 LEPT_DLL extern l_ok boxaGetAverageSize ( BOXA *boxa, l_float32 *pw, l_float32 *ph );

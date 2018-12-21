@@ -101,6 +101,7 @@
  *         Flags for modifying box boundaries using a second box
  *         Handling overlapping bounding boxes in boxa
  *         Flags for replacing invalid boxes
+ *         Flags for box corners
  *         Horizontal warp
  *         Pixel selection for resampling
  *         Thinning flags
@@ -1138,6 +1139,18 @@ enum {
 enum {
     L_USE_ALL_BOXES = 1,         /*!< consider all boxes in the sequence   */
     L_USE_SAME_PARITY_BOXES = 2  /*!< consider boxes with the same parity  */
+};
+
+/*-------------------------------------------------------------------------*
+ *                          Flags for box corners                          *
+ *-------------------------------------------------------------------------*/
+
+/*! Flags for box corners */
+enum {
+    L_UPPER_LEFT = 1,         /*!< UL corner                               */
+    L_UPPER_RIGHT = 2,        /*!< UR corner                               */
+    L_LOWER_LEFT = 3,         /*!< LL corner                               */
+    L_LOWER_RIGHT = 4         /*!< LR corner                               */
 };
 
 /*-------------------------------------------------------------------------*
