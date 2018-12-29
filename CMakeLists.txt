@@ -82,6 +82,10 @@ endif()
 #
 ###############################################################################
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(CLANG 1)
+endif()
+
 set(LIBRARY_TYPE SHARED)
 if (STATIC)
     set(LIBRARY_TYPE)
@@ -91,7 +95,9 @@ if (WIN32)
     if (MSVC)
         add_definitions(-D_CRT_SECURE_NO_WARNINGS)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+        if (NOT CLANG)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+        endif()
     endif()
 endif()
 
