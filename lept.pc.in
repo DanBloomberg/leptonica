@@ -7,6 +7,6 @@ Name: leptonica
 Description: An open source C library for efficient image processing and image analysis operations
 Version: @VERSION@
 Libs: -L${libdir} -llept
-Libs.private: @ZLIB_LIBS@ @LIBPNG_LIBS@ @JPEG_LIBS@ @GIFLIB_LIBS@ @LIBTIFF_LIBS@ @LIBWEBP_LIBS@
+Libs.private: @ZLIB_LIBS@ @LIBPNG_LIBS@ @JPEG_LIBS@ @GIFLIB_LIBS@ @LIBTIFF_LIBS@ @LIBWEBP_LIBS@ @LIBJP2K_LIBS@
 Cflags: -I${includedir}
 
