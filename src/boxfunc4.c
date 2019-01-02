@@ -747,6 +747,10 @@ BOX     *box;
  * Notes:
  *      (1) If ncorners == 2, we select the UL and LR corners.
  *          Otherwise we save all 4 corners in this order: UL, UR, LL, LR.
+ *      (2) Other boxa --> pta functions are:
+ *          * boxaExtractAsPta(): allows extraction of any dimension
+ *            and/or side location, with each in a separate pta.
+ *          * boxaExtractCorners(): extracts any of the four corners as a pta.
  * </pre>
  */
 PTA *

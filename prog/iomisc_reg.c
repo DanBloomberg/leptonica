@@ -42,8 +42,9 @@
  *      * PostScript (tested by psio_reg and psioseg_reg)
  *
  *   The large error values that are being used for tests 3-7 and 36
- *   are required only for the AArch64 (ARM) processor to pass
- *   tests 6, 7 and 36.  The reason is not known.
+ *   are only required for older versions of tifflib (e.g., libtiff 4.0.7).
+ *   For libtiff 4.0.11, small values like 10 will pass tests 6, 7 and 36.
+ *   The issue was initially found on the AArch64 (ARM) processor.
  */
 
 #include "string.h"

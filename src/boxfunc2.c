@@ -551,7 +551,8 @@ l_int32  bx, by, bw, bh, xdist, ydist;
  *
  * \param[in]    boxas
  * \param[in]    pta       aligned with the boxes; determines shift amount
- * \param[in]    dir       1 in positive direction; 2 in negative direction
+ * \param[in]    dir       +1 to shift by the values in pta; -1 to shift
+ *                         by the negative of the values in the pta.
  * \return  boxad, or NULL on error
  *
  * <pre>
@@ -561,6 +562,12 @@ l_int32  bx, by, bw, bh, xdist, ydist;
  *          within it.  The output %boxad is then a boxa in the (global)
  *          coordinates of the containing boxa.  So the input %pta
  *          could come from boxaExtractCorners().
+ *      (2) The operations with %dir == 1 and %dir == -1 are inverses if
+ *          called in order (1, -1).  Starting with an input boxa and
+ *          calling twice with these values of %dir results in a boxa
+ *          identical to the input.  However, because box parameters can
+ *          never be negative, calling in the order (-1, 1) may result
+ *          in clipping at the left side and the top.
  * </pre>
  */
 BOXA *
@@ -581,8 +588,8 @@ BOXA    *boxad;
         return (BOXA *)ERROR_PTR("boxas not full", procName, NULL);
     if (!pta)
         return (BOXA *)ERROR_PTR("pta not defined", procName, NULL);
-    if (dir != 1 && dir != 2)
-        return (BOXA *)ERROR_PTR("pta not defined", procName, NULL);
+    if (dir != 1 && dir != -1)
+        return (BOXA *)ERROR_PTR("invalid dir", procName, NULL);
     n = boxaGetCount(boxas);
     if (n != ptaGetCount(pta))
         return (BOXA *)ERROR_PTR("boxas and pta not same size", procName, NULL);
@@ -592,9 +599,7 @@ BOXA    *boxad;
     for (i = 0; i < n; i++) {
         box1 = boxaGetBox(boxas, i, L_COPY);
         ptaGetIPt(pta, i, &x, &y);
-        x = (dir == 1) ? x : -x;
-        y = (dir == 1) ? y : -y;
-        box2 = boxTransform(box1, x, y, 1.0, 1.0);
+        box2 = boxTransform(box1, dir * x, dir * y, 1.0, 1.0);
         boxaAddBox(boxad, box2, L_INSERT);
         boxDestroy(&box1);
     }

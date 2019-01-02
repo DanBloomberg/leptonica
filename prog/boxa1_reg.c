@@ -86,8 +86,8 @@ L_REGPARAMS  *rp;
     boxaDestroy(&boxa2);
 
     pta = boxaExtractCorners(boxa1, L_UPPER_LEFT);
-    boxa2 = boxaShiftWithPta(boxa1, pta, 1);
-    boxa3 = boxaShiftWithPta(boxa2, pta, 2);
+    boxa2 = boxaShiftWithPta(boxa1, pta, 1);  /* shift */
+    boxa3 = boxaShiftWithPta(boxa2, pta, -1);  /* inverse shift */
     boxaWriteMem(&data1, &size1, boxa1);
     boxaWriteMem(&data2, &size2, boxa3);
     regTestCompareStrings(rp, data1, size1, data2, size2);  /* 7 */

@@ -58,7 +58,7 @@ static char  mainName[] = "convertfilestopdf";
     if (argc != 9) {
         fprintf(stderr,
             " Syntax: convertfilestopdf dirin substr res"
-            " scalefactor encoding_type title fileout\n"
+            " scalefactor encoding_type quality title fileout\n"
             "         dirin:  input directory for image files\n"
             "         substr:  Use 'allfiles' to convert all files\n"
             "                  in the directory.\n"

@@ -1503,12 +1503,12 @@ NUMA      *naind, *nadelw, *nadelh;
             medrighto = medrighte;
         }
 
-            /* Adjust sides of outliers. For each box that is a dimensional
-             * outlier, consider each side.  Any side that differs fractionally
-             * from the median value by more than %sfract times the
-             * median width (medw) is set to the median value for that
-             * side.  Then both sides are moved an equal distance
-             * in or out to make w = %factor * medw. */
+            /* Adjust the left and/or right sides of outliers.
+             * For each box that is a dimensional outlier, consider each side.
+             * Any side that differs fractionally from the median value
+             * by more than %sfract times the median width (medw) is set to
+             * the median value for that side.  Then both sides are moved
+             * an equal distance in or out to make w = %factor * medw. */
         boxad = boxaCreate(n);
         maxdel = (l_int32)(sfract * medw + 0.5);
         for (i = 0; i < n; i++) {
@@ -1590,12 +1590,13 @@ NUMA      *naind, *nadelw, *nadelh;
             medboto = medbote;
         }
 
-            /* Adjust sides of outliers. For each box that is a dimensional
-             * outlier, consider each side.  Any side that differs fractionally
-             * from the median value by more than %sfract times the
-             * median height (medh) is set to the median value for that
-             * that side.  Then both sides are moved an equal distance
-             * in or out to make h = %factor * medh). */
+            /* Adjust the top and/or bottom sides of outliers.
+             * For each box that is a dimensional outlier, consider each side.
+             * Any side that differs fractionally from the median value
+             * by more than %sfract times the median height (medh) is
+             * set to the median value for that that side.  Then both
+             * sides are moved an equal distance in or out to make
+             * h = %factor * medh). */
         boxad = boxaCreate(n);
         maxdel = (l_int32)(sfract * medh + 0.5);
         for (i = 0; i < n; i++) {

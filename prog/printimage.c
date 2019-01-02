@@ -46,8 +46,15 @@
  *   For example, to make 3 color copies, you might use:
  *       printimage myfile.jpg myprinter -#3 -o ColorModel=Color
  *
- *   The intermediate PostScript file generated is level 1 (uncompressed).
+ *   The intermediate PostScript file generated is level 1 (uncompressed):
+ *       /tmp/print_image.ps
  *   This can be large, but it will work on all PostScript printers.
+ *
+ *   If your system doesn't have lpr, it likely has lp.  You can run
+ *   printimage to make the PostScript file, and then use lp on it:
+ *       lp -d <printer> /tmp/print_image.ps
+ *       lp -d <printer> -o ColorModel=Color /tmp/print_image.ps
+ *   etc.
  *
  *   ***************************************************************
  *   N.B.  This requires lpr, which is invoked via 'system'.  It could
