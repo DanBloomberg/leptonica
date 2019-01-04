@@ -567,6 +567,7 @@ NUMA      *na;
  *      (1) Returns a copy of the boxa if no components are removed.
  *      (2) Uses box copies in the new boxa.
  *      (3) The indicator numa has values 0 (ignore) and 1 (accept).
+ *      (4) If all indicator values are 0, the returned boxa is empty.
  * </pre>
  */
 BOXA *

@@ -1551,6 +1551,7 @@ LEPT_DLL extern l_ok pixSetMaskedGeneral ( PIX *pixd, PIX *pixm, l_uint32 val, l
 LEPT_DLL extern l_ok pixCombineMasked ( PIX *pixd, PIX *pixs, PIX *pixm );
 LEPT_DLL extern l_ok pixCombineMaskedGeneral ( PIX *pixd, PIX *pixs, PIX *pixm, l_int32 x, l_int32 y );
 LEPT_DLL extern l_ok pixPaintThroughMask ( PIX *pixd, PIX *pixm, l_int32 x, l_int32 y, l_uint32 val );
+LEPT_DLL extern PIX * pixCopyWithBoxa ( PIX *pixs, BOXA *boxa, l_int32 background );
 LEPT_DLL extern l_ok pixPaintSelfThroughMask ( PIX *pixd, PIX *pixm, l_int32 x, l_int32 y, l_int32 searchdir, l_int32 mindist, l_int32 tilesize, l_int32 ntiles, l_int32 distblend );
 LEPT_DLL extern PIX * pixMakeMaskFromVal ( PIX *pixs, l_int32 val );
 LEPT_DLL extern PIX * pixMakeMaskFromLUT ( PIX *pixs, l_int32 *tab );

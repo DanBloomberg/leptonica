@@ -2584,7 +2584,7 @@ PIXA      *pixa, *pixa2, *pixa3;
  *          exceeds a threshold %minratio, which must be between
  *          0.5 and 1.0.  If set at 1.0, both images must be exactly
  *          the same size.  A typical value for %minratio is 0.9.
- *      (2) The input pixadebug is null unless debug output is requested.
+ *      (3) The input pixadebug is null unless debug output is requested.
  * </pre>
  */
 l_ok

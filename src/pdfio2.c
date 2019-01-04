@@ -152,21 +152,21 @@ static l_int32   var_WRITE_DATE_AND_VERSION = 1;
 /*!
  * \brief   pixConvertToPdfData()
  *
- * \param[in]      pix all depths; cmap OK
- * \param[in]      type L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
- * \param[in]      quality used for JPEG only; 0 for default (75)
- * \param[out]     pdata pdf array
- * \param[out]     pnbytes number of bytes in pdf array
- * \param[in]      x, y location of lower-left corner of image, in pixels,
- *                      relative to the PostScript origin (0,0) at
- *                      the lower-left corner of the page)
- * \param[in]      res override the resolution of the input image, in ppi;
- *                     use 0 to respect the resolution embedded in the input
- * \param[in]      title [optional] pdf title
- * \param[in,out]  plpd ptr to lpd, which is created on the first invocation
- *                      and returned until last image is processed
- * \param[in]      position in image sequence: L_FIRST_IMAGE, L_NEXT_IMAGE,
- *                          L_LAST_IMAGE
+ * \param[in]      pix       all depths; cmap OK
+ * \param[in]      type      L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
+ * \param[in]      quality   used for JPEG only; 0 for default (75)
+ * \param[out]     pdata     pdf array
+ * \param[out]     pnbytes   number of bytes in pdf array
+ * \param[in]      x, y      location of lower-left corner of image, in pixels,
+ *                           relative to the PostScript origin (0,0) at
+ *                           the lower-left corner of the page)
+ * \param[in]      res       override the resolution of the input image, in ppi;
+ *                           use 0 to respect resolution embedded in the input
+ * \param[in]      title     [optional] pdf title; can be null
+ * \param[in,out]  plpd      ptr to lpd; created on the first invocation and
+ *                           returned until last image is processed
+ * \param[in]      position  in image sequence: L_FIRST_IMAGE, L_NEXT_IMAGE,
+ *                           L_LAST_IMAGE
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -272,10 +272,12 @@ L_PDF_DATA   *lpd = NULL;
 /*!
  * \brief   ptraConcatenatePdfToData()
  *
- * \param[in]    pa_data ptra array of pdf strings, each for a single-page pdf file
- * \param[in]    sa string array [optional] of pathnames for input pdf files
- * \param[out]   pdata concatenated pdf data in memory
- * \param[out]   pnbytes number of bytes in pdf data
+ * \param[in]    pa_data    ptra array of pdf strings, each for a
+ *                          single-page pdf file
+ * \param[in]    sa         [optional] string array of pathnames for
+ *                          input pdf files; can be null
+ * \param[out]   pdata      concatenated pdf data in memory
+ * \param[out]   pnbytes    number of bytes in pdf data
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -457,7 +459,7 @@ NUMAA    *naa_objs;  /* object mapping numbers to new values */
 /*!
  * \brief   convertTiffMultipageToPdf()
  *
- * \param[in]    filein   (tiff)
+ * \param[in]    filein    (tiff)
  * \param[in]    fileout   (pdf)
  * \return  0 if OK, 1 on error
  *
@@ -497,10 +499,10 @@ FILE    *fp;
 /*!
  * \brief   l_generateCIDataForPdf()
  *
- * \param[in]    fname [optional]; can be null
- * \param[in]    pix [optional]; can be null
- * \param[in]    quality for jpeg if transcoded; 75 is standard
- * \param[out]   pcid compressed data
+ * \param[in]    fname      [optional] can be null
+ * \param[in]    pix        [optional] can be null
+ * \param[in]    quality    for jpeg if transcoded; 75 is standard
+ * \param[out]   pcid       compressed data
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -579,8 +581,8 @@ PIX          *pixt;
 /*!
  * \brief   l_generateFlateDataPdf()
  *
- * \param[in]    fname preferably png
- * \param[in]    pixs [optional]; can be null
+ * \param[in]    fname     preferably png
+ * \param[in]    pixs      [optional] can be null
  * \return  cid containing png data, or NULL on error
  *
  * <pre>
@@ -778,8 +780,8 @@ PIXCMAP      *cmap = NULL;
 /*!
  * \brief   l_generateJpegData()
  *
- * \param[in]    fname of jpeg file
- * \param[in]    ascii85flag 0 for jpeg; 1 for ascii85-encoded jpeg
+ * \param[in]    fname           of jpeg file
+ * \param[in]    ascii85flag     0 for jpeg; 1 for ascii85-encoded jpeg
  * \return  cid containing jpeg data, or NULL on error
  *
  * <pre>
@@ -816,9 +818,9 @@ size_t        nbytes;
 /*!
  * \brief   l_generateJpegDataMem()
  *
- * \param[in]    data     of jpeg file
- * \param[in]    nbytes
- * \param[in]    ascii85flag 0 for jpeg; 1 for ascii85-encoded jpeg
+ * \param[in]    data           of jpeg file
+ * \param[in]    nbytes         of jpeg file
+ * \param[in]    ascii85flag    0 for jpeg; 1 for ascii85-encoded jpeg
  * \return  cid containing jpeg data, or NULL on error
  *
  * <pre>
@@ -877,7 +879,7 @@ L_COMP_DATA  *cid;
 /*!
  * \brief   l_generateJp2kData()
  *
- * \param[in]    fname of jp2k file
+ * \param[in]    fname     of jp2k file
  * \return  cid containing jp2k data, or NULL on error
  *
  * <pre>
@@ -922,10 +924,11 @@ L_COMP_DATA  *cid;
  * \brief   l_generateCIData()
  *
  * \param[in]    fname
- * \param[in]    type L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE, L_JP2K_ENCODE
- * \param[in]    quality used for jpeg only; 0 for default (75)
- * \param[in]    ascii85 0 for binary; 1 for ascii85-encoded
- * \param[out]   pcid compressed data
+ * \param[in]    type       L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE,
+ *                          L_JP2K_ENCODE
+ * \param[in]    quality    used for jpeg only; 0 for default (75)
+ * \param[in]    ascii85    0 for binary; 1 for ascii85-encoded
+ * \param[out]   pcid       compressed data
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1022,11 +1025,11 @@ PIX          *pix;
 /*!
  * \brief   pixGenerateCIData()
  *
- * \param[in]    pixs 8 or 32 bpp, no colormap
- * \param[in]    type L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
- * \param[in]    quality used for jpeg only; 0 for default (75)
- * \param[in]    ascii85 0 for binary; 1 for ascii85-encoded
- * \param[out]   pcid compressed data
+ * \param[in]    pixs       8 or 32 bpp, no colormap
+ * \param[in]    type       L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
+ * \param[in]    quality    used for jpeg only; 0 for default (75)
+ * \param[in]    ascii85    0 for binary; 1 for ascii85-encoded
+ * \param[out]   pcid       compressed data
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1094,7 +1097,7 @@ PIXCMAP  *cmap;
  * \brief   l_generateFlateData()
  *
  * \param[in]    fname
- * \param[in]    ascii85flag 0 for gzipped; 1 for ascii85-encoded gzipped
+ * \param[in]    ascii85flag    0 for gzipped; 1 for ascii85-encoded gzipped
  * \return  cid flate compressed image data, or NULL on error
  *
  * <pre>
@@ -1133,7 +1136,7 @@ PIX          *pixs;
  * \brief   pixGenerateFlateData()
  *
  * \param[in]    pixs
- * \param[in]    ascii85flag 0 for gzipped; 1 for ascii85-encoded gzipped
+ * \param[in]    ascii85flag 0    for gzipped; 1 for ascii85-encoded gzipped
  * \return  cid flate compressed image data, or NULL on error
  *
  *      Notes:
@@ -1251,9 +1254,9 @@ PIXCMAP      *cmap;
 /*!
  * \brief   pixGenerateJpegData()
  *
- * \param[in]    pixs 8 or 32 bpp, no colormap
- * \param[in]    ascii85flag 0 for jpeg; 1 for ascii85-encoded jpeg
- * \param[in]    quality 0 for default, which is 75
+ * \param[in]    pixs           8 or 32 bpp, no colormap
+ * \param[in]    ascii85flag    0 for jpeg; 1 for ascii85-encoded jpeg
+ * \param[in]    quality        0 for default, which is 75
  * \return  cid jpeg compressed data, or NULL on error
  *
  * <pre>
@@ -1296,8 +1299,8 @@ L_COMP_DATA  *cid;
 /*!
  * \brief   pixGenerateG4Data()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    ascii85flag 0 for gzipped; 1 for ascii85-encoded gzipped
+ * \param[in]    pixs           1 bpp
+ * \param[in]    ascii85flag    0 for gzipped; 1 for ascii85-encoded gzipped
  * \return  cid g4 compressed image data, or NULL on error
  *
  * <pre>
@@ -1335,8 +1338,8 @@ L_COMP_DATA  *cid;
 /*!
  * \brief   l_generateG4Data()
  *
- * \param[in]    fname of g4 compressed file
- * \param[in]    ascii85flag 0 for g4 compressed; 1 for ascii85-encoded g4
+ * \param[in]    fname          of g4 compressed file
+ * \param[in]    ascii85flag    0 for g4 compressed; 1 for ascii85-encoded g4
  * \return  cid g4 compressed image data, or NULL on error
  *
  * <pre>
@@ -1412,10 +1415,10 @@ FILE         *fp;
 /*!
  * \brief   cidConvertToPdfData()
  *
- * \param[in]    cid compressed image data -- of jp2k image
- * \param[in]    title [optional] pdf title; can be NULL
- * \param[out]   pdata output pdf data for image
- * \param[out]   pnbytes size of output pdf data
+ * \param[in]    cid       compressed image data
+ * \param[in]    title     [optional] pdf title; can be NULL
+ * \param[out]   pdata     output pdf data for image
+ * \param[out]   pnbytes   size of output pdf data
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1470,7 +1473,7 @@ L_PDF_DATA  *lpd = NULL;
 /*!
  * \brief   l_CIDataDestroy()
  *
- * \param[in,out]   pcid will be set to null before returning
+ * \param[in,out]   pcid     will be set to null before returning
  * \return  void
  */
 void
@@ -1503,9 +1506,9 @@ L_COMP_DATA  *cid;
 /*!
  * \brief   l_generatePdf()
  *
- * \param[out]   pdata pdf array
- * \param[out]   pnbytes number of bytes in pdf array
- * \param[in]    lpd all the required input image data
+ * \param[out]   pdata     pdf array
+ * \param[out]   pnbytes   number of bytes in pdf array
+ * \param[in]    lpd       all the required input image data
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1620,7 +1623,7 @@ SARRAY  *sa;
 /*!
  * \brief   generateEscapeString()
  *
- * \param[in]   str   input string
+ * \param[in]   str      input string
  * \return   hex escape string, or null on error
  *
  * <pre>
@@ -2044,9 +2047,9 @@ SARRAY  *sa;
 /*!
  * \brief   generateOutputDataPdf()
  *
- * \param[out]   pdata pdf data array
- * \param[out]   pnbytes size of pdf data array
- * \param[in]    lpd input data used to make pdf
+ * \param[out]   pdata      pdf data array
+ * \param[out]   pnbytes    size of pdf data array
+ * \param[in]    lpd        input data used to make pdf
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -2126,8 +2129,8 @@ L_COMP_DATA  *cid;
 /*!
  * \brief   parseTrailerPdf()
  *
- * \param[in]    bas lba of a pdf file
- * \param[out]   pda byte locations of the beginning of each object
+ * \param[in]    bas     lba of a pdf file
+ * \param[out]   pda     byte locations of the beginning of each object
  * \return  0 if OK, 1 on error
  */
 static l_int32
@@ -2269,9 +2272,9 @@ SARRAY  *sa;
 /*!
  * \brief   substituteObjectNumbers()
  *
- *  Input:  bas (lba of a pdf object)
- *          na_objs (object number mapping array)
- *  Return: bad (lba of rewritten pdf for the object)
+ *  Input:  bas        lba of a pdf object
+ *          na_objs    object number mapping array
+ *  Return: bad   lba of rewritten pdf for the object
  *
  *  Notes:
  *      (1) Interpret the first set of bytes as the object number,
@@ -2424,8 +2427,8 @@ pdfdataGetCid(L_PDF_DATA  *lpd,
 /*!
  * \brief   l_pdfSetG4ImageMask()
  *
- * \param[in]    flag 1 for writing g4 data as fg only through a mask;
- *                    0 for writing fg and bg
+ * \param[in]    flag    1 for writing g4 data as fg only through a mask;
+ *                       0 for writing fg and bg
  * \return  void
  *
  * <pre>
@@ -2445,8 +2448,8 @@ l_pdfSetG4ImageMask(l_int32  flag)
 /*!
  * \brief   l_pdfSetDateAndVersion()
  *
- * \param[in]    flag 1 for writing date/time and leptonica version;
- *                    0 for omitting this from the metadata
+ * \param[in]    flag    1 for writing date/time and leptonica version;
+ *                       0 for omitting this from the metadata
  * \return  void
  *
  * <pre>
