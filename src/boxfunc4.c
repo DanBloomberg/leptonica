@@ -936,9 +936,11 @@ l_int32  n, x1, y1, x2, y2, x3, y3, x4, y4, x, y, xmax, ymax;
  *
  * <pre>
  * Notes:
- *      (1) The returned w and h are the minimum size image
+ *      (1) This computes the minimum rectangular bounding region
+ *          that contains all valid boxes in a boxa.
+ *      (2) The returned w and h are the minimum size image
  *          that would contain all boxes untranslated.
- *      (2) If there are no valid boxes, returned w and h are 0 and
+ *      (3) If there are no valid boxes, returned w and h are 0 and
  *          all parameters in the returned box are 0.  This
  *          is not an error, because an empty boxa is valid and
  *          boxaGetExtent() is required for serialization.
