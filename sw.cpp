@@ -54,7 +54,8 @@ void build(Solution &s)
     }
 
     auto &progs = leptonica.addDirectory("progs");
-    progs.Scope = TargetScope::Test;
+    if (s.DryRun)
+        progs.Scope = TargetScope::Test;
 
     {
         auto add_prog = [&s, &progs, &leptonica](const String &name, const Files &files) -> decltype(auto)
