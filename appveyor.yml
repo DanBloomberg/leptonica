@@ -6,10 +6,11 @@ platform:
 
 cache:
   - c:/Users/appveyor/.sw
-  
+  - .sw
+
 configuration:
   - Release
-  
+
 # for curl
 install:
   - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
