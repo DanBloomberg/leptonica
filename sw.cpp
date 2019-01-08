@@ -57,13 +57,13 @@ void build(Solution &s)
     progs.Scope = TargetScope::Test;
 
     {
-        auto add_prog = [&progs, &leptonica](const String &name, const Files &files) -> decltype(auto)
+        auto add_prog = [&s, &progs, &leptonica](const String &name, const Files &files) -> decltype(auto)
         {
             auto &t = progs.addExecutable(name);
             t.setRootDirectory("prog");
             t += files;
             t += leptonica;
-            if (t.Settings.Native.CompilerType == CompilerType::MSVC)
+            if (s.Settings.Native.CompilerType == CompilerType::MSVC)
             {
                 for (auto *f : t.gatherSourceFiles())
                     f->BuildAs = NativeSourceFile::CPP;
