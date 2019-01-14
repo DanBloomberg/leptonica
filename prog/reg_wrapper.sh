@@ -8,8 +8,8 @@
 #      alltests_reg generate
 #      alltests_reg compare
 #
-#  Ten of the tests require gnuplot.  These tests are skipped if
-#  gnuplot is not available.
+#  A few of the tests require gnuplot.  These tests, listed below,
+#  are skipped if gnuplot is not available.
 #
 #  The wrapper receives several parameters in this form:
 #      path/to/source/config/test-driver <TEST DRIVER ARGS> -- ./foo_reg
