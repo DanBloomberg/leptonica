@@ -78,7 +78,14 @@ L_REGPARAMS  *rp;
     l_byteaDestroy(&lba3);
     l_byteaDestroy(&lba4);
 
-        /* Test appending with strings */
+        /* Test appending with strings
+         * This may fail on windows because the lines in the source file
+         * have at some point been terminated with "\r\n" instead of "\n"
+         * in the source distribution.  Here are two ways to fix this.
+         * If the file is opened for read with "rb", as we do throughout
+         * leptonica with fopenReadStream(), it will not append the \r.
+         * Or in the code below: the newline appended to each line string
+         * can be modified to append "\r\n".  */
     data1 = l_binaryRead("kernel_reg.c", &size1);
     lba1 = l_byteaInitFromMem(data1, size1);
     sa = sarrayCreateLinesFromString((char *)data1, 1);
@@ -87,11 +94,7 @@ L_REGPARAMS  *rp;
     for (i = 0; i < n; i++) {
         str = sarrayGetString(sa, i, L_NOCOPY);
         l_byteaAppendString(lba2, str);
-#ifdef _WIN32
-        l_byteaAppendString(lba2, "\r\n");
-#else
         l_byteaAppendString(lba2, "\n");
-#endif
     }
     data2 = l_byteaGetData(lba1, &size2);
     regTestCompareStrings(rp, lba1->data, lba1->size, lba2->data, lba2->size);

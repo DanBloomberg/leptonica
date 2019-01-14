@@ -1132,7 +1132,11 @@ struct tm  *tptr = &Tm;
            "gmtime" always sets "tm_isdst" to 0, which would tell
            "mktime" to presume that DST is not in effect. */
 #ifdef _WIN32
+  #ifdef _MSC_VER
     gmtime_s(tptr, &ut);
+  #else  /* mingw */
+    tptr = gmtime(&ut);
+  #endif
 #else
     gmtime_r(&ut, tptr);
 #endif
