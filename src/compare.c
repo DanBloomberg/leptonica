@@ -2588,19 +2588,20 @@ PIXA      *pixa1, *pixa2, *pixa3;
          * above 150.  */
     numaGetSumOnInterval(narv, 50, 150, &sum1);
     numaGetSumOnInterval(narv, 200, 230, &sum2);
-    if (sum2 == 0.0)  /* shouldn't happen */
+    if (sum2 == 0.0) {  /* shouldn't happen */
+        ratio = 0.001;  /* anything very small for debug output */
         isphoto = 0;  /* be conservative */
-    else {
+    } else {
         ratio = sum1 / sum2;
         isphoto = (ratio > thresh) ? 1 : 0;
-        if (pixadebug) {
-            if (isphoto)
-                L_INFO("ratio %f > %f; isphoto is true\n",
-                       procName, ratio, thresh);
-            else
-                L_INFO("ratio %f < %f; isphoto is false\n",
-                       procName, ratio, thresh);
-        }
+    }
+    if (pixadebug) {
+        if (isphoto)
+            L_INFO("ratio %f > %f; isphoto is true\n",
+                   procName, ratio, thresh);
+        else
+            L_INFO("ratio %f < %f; isphoto is false\n",
+                   procName, ratio, thresh);
     }
     if (isphoto)
         *pnaa = naa;
@@ -2727,15 +2728,6 @@ NUMA      *na1, *na2, *nadist, *nascore;
         return ERROR_INT("naa1 and naa2 not both defined", procName, 1);
 
         /* Filter for different sizes */
-    n = numaaGetCount(naa1);
-    if (n != numaaGetCount(naa2))
-        return ERROR_INT("naa1 and naa2 are different size", procName, 1);
-
-    if (pixadebug) {
-        lept_rmdir("lept/comptile");
-        lept_mkdir("lept/comptile");
-    }
-
     wratio = (w1 < w2) ? (l_float32)w1 / (l_float32)w2 :
              (l_float32)w2 / (l_float32)w1;
     hratio = (h1 < h2) ? (l_float32)h1 / (l_float32)h2 :
@@ -2746,6 +2738,17 @@ NUMA      *na1, *na2, *nadist, *nascore;
                    procName, wratio, hratio);
         return 0;
     }
+    n = numaaGetCount(naa1);
+    if (n != numaaGetCount(naa2)) {  /* due to differing w/h ratio */
+        L_INFO("naa1 and naa2 sizes are different\n", procName);
+        return 0;
+    }
+
+    if (pixadebug) {
+        lept_rmdir("lept/comptile");
+        lept_mkdir("lept/comptile");
+    }
+
 
         /* Evaluate histograms in each tile.  Remove white before
          * computing EMD, because there are may be a lot of white

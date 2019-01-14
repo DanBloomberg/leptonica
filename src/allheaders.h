@@ -2652,6 +2652,7 @@ LEPT_DLL extern l_ok l_binaryWrite ( const char *filename, const char *operation
 LEPT_DLL extern size_t nbytesInFile ( const char *filename );
 LEPT_DLL extern size_t fnbytesInFile ( FILE *fp );
 LEPT_DLL extern l_uint8 * l_binaryCopy ( l_uint8 *datas, size_t size );
+LEPT_DLL extern l_ok l_binaryCompare ( l_uint8 *data1, size_t size1, l_uint8 *data2, size_t size2, l_int32 *psame );
 LEPT_DLL extern l_ok fileCopy ( const char *srcfile, const char *newfile );
 LEPT_DLL extern l_ok fileConcatenate ( const char *srcfile, const char *destfile );
 LEPT_DLL extern l_ok fileAppendString ( const char *filename, const char *str );

@@ -72,8 +72,9 @@
  *           l_int32    nbytesInFile()
  *           l_int32    fnbytesInFile()
  *
- *       Copy in memory
+ *       Copy and compare in memory
  *           l_uint8   *l_binaryCopy()
+ *           l_uint8   *l_binaryCompare()
  *
  *       File copy operations
  *           l_int32    fileCopy()
@@ -1512,7 +1513,7 @@ l_int64  pos, nbytes;
 
 
 /*--------------------------------------------------------------------*
- *                            Copy in memory                          *
+ *                     Copy and compare in memory                     *
  *--------------------------------------------------------------------*/
 /*!
  * \brief   l_binaryCopy()
@@ -1546,6 +1547,31 @@ l_uint8  *datad;
     return datad;
 }
 
+
+l_ok
+l_binaryCompare(l_uint8  *data1,
+                size_t    size1,
+                l_uint8  *data2,
+                size_t    size2,
+                l_int32  *psame)
+{
+l_int32  i;
+
+    PROCNAME("l_binaryCompare");
+
+    if (!psame)
+        return ERROR_INT("&same not defined", procName, 1);
+    *psame = FALSE;
+    if (!data1 || !data2)
+        return ERROR_INT("data1 and data2 not both defined", procName, 1);
+    if (size1 != size2) return 0;
+    for (i = 0; i < size1; i++) {
+        if (data1[i] != data2[i])
+            return 0;
+    }
+    *psame = TRUE;
+    return 0;
+}
 
 /*--------------------------------------------------------------------*
  *                         File copy operations                       *

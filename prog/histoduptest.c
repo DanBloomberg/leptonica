@@ -75,7 +75,7 @@ static char  mainName[] = "histoduptest";
 
 #if TEST1 
     /* -------------------------------------------------------------- *
-     *                         Test rotation                          *
+     *                  Test comparison with rotation                 *
      * -------------------------------------------------------------- */
         /* Make a second set that is rotated; combine with the input set. */
     pixa1 = pixaCreateFromPixacomp(pac, L_COPY);
@@ -89,7 +89,8 @@ static char  mainName[] = "histoduptest";
         pixDestroy(&pix1);
     }
    
-        /* Compare between every pair of images. */
+        /* Compare between every pair of images;
+         * can also use n = 2, simthresh = 0.50.  */
     pixaComparePhotoRegionsByHisto(pixa2, 0.85, 1.3, 1, 3, 0.20,
                                    &nai, &scores, &pix1, debug);
     lept_free(scores);
