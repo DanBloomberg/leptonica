@@ -2638,9 +2638,11 @@ LEPT_DLL extern char * strtokSafe ( char *cstr, const char *seps, char **psavept
 LEPT_DLL extern l_ok stringSplitOnToken ( char *cstr, const char *seps, char **phead, char **ptail );
 LEPT_DLL extern l_ok stringCheckForChars ( const char *src, const char *chars, l_int32 *pfound );
 LEPT_DLL extern char * stringRemoveChars ( const char *src, const char *remchars );
-LEPT_DLL extern l_int32 stringFindSubstr ( const char *src, const char *sub, l_int32 *ploc );
-LEPT_DLL extern char * stringReplaceSubstr ( const char *src, const char *sub1, const char *sub2, l_int32 *pfound, l_int32 *ploc );
 LEPT_DLL extern char * stringReplaceEachSubstr ( const char *src, const char *sub1, const char *sub2, l_int32 *pcount );
+LEPT_DLL extern char * stringReplaceSubstr ( const char *src, const char *sub1, const char *sub2, l_int32 *pfound, l_int32 *ploc );
+LEPT_DLL extern L_DNA * stringFindEachSubstr ( const char *src, const char *sub );
+LEPT_DLL extern l_int32 stringFindSubstr ( const char *src, const char *sub, l_int32 *ploc );
+LEPT_DLL extern l_uint8 * arrayReplaceEachSequence ( const l_uint8 *datas, size_t dataslen, const l_uint8 *seq, size_t seqlen, const l_uint8 *newseq, size_t newseqlen, size_t *pdatadlen, l_int32 *pcount );
 LEPT_DLL extern L_DNA * arrayFindEachSequence ( const l_uint8 *data, size_t datalen, const l_uint8 *sequence, size_t seqlen );
 LEPT_DLL extern l_ok arrayFindSequence ( const l_uint8 *data, size_t datalen, const l_uint8 *sequence, size_t seqlen, l_int32 *poffset, l_int32 *pfound );
 LEPT_DLL extern void * reallocNew ( void **pindata, l_int32 oldsize, l_int32 newsize );
@@ -2651,8 +2653,8 @@ LEPT_DLL extern l_uint8 * l_binaryReadSelectStream ( FILE *fp, size_t start, siz
 LEPT_DLL extern l_ok l_binaryWrite ( const char *filename, const char *operation, const void *data, size_t nbytes );
 LEPT_DLL extern size_t nbytesInFile ( const char *filename );
 LEPT_DLL extern size_t fnbytesInFile ( FILE *fp );
-LEPT_DLL extern l_uint8 * l_binaryCopy ( l_uint8 *datas, size_t size );
-LEPT_DLL extern l_ok l_binaryCompare ( l_uint8 *data1, size_t size1, l_uint8 *data2, size_t size2, l_int32 *psame );
+LEPT_DLL extern l_uint8 * l_binaryCopy ( const l_uint8 *datas, size_t size );
+LEPT_DLL extern l_ok l_binaryCompare ( const l_uint8 *data1, size_t size1, const l_uint8 *data2, size_t size2, l_int32 *psame );
 LEPT_DLL extern l_ok fileCopy ( const char *srcfile, const char *newfile );
 LEPT_DLL extern l_ok fileConcatenate ( const char *srcfile, const char *destfile );
 LEPT_DLL extern l_ok fileAppendString ( const char *filename, const char *str );

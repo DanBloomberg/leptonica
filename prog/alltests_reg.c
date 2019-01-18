@@ -168,6 +168,7 @@ static const char *tests[] = {
                               "skew_reg",
                               "speckle_reg",
                               "splitcomp_reg",
+                              "string_reg",
                               "subpixel_reg",
                               "texturefill_reg",
                               "threshnorm_reg",
