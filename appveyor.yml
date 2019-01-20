@@ -16,7 +16,7 @@ install:
   - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
 
 before_build:
-  - curl -fsS -L -o sw.zip https://github.com/SoftwareNetwork/binaries/raw/master/client_windows.zip
+  - curl -fsS -L -o sw.zip https://github.com/SoftwareNetwork/binaries/raw/master/sw-master-windows-client.zip
   - 7z x sw.zip
   - set PATH=%PATH%;%cd%
 
