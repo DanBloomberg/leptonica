@@ -2639,7 +2639,7 @@ LEPT_DLL extern l_ok stringSplitOnToken ( char *cstr, const char *seps, char **p
 LEPT_DLL extern l_ok stringCheckForChars ( const char *src, const char *chars, l_int32 *pfound );
 LEPT_DLL extern char * stringRemoveChars ( const char *src, const char *remchars );
 LEPT_DLL extern char * stringReplaceEachSubstr ( const char *src, const char *sub1, const char *sub2, l_int32 *pcount );
-LEPT_DLL extern char * stringReplaceSubstr ( const char *src, const char *sub1, const char *sub2, l_int32 *pfound, l_int32 *ploc );
+LEPT_DLL extern char * stringReplaceSubstr ( const char *src, const char *sub1, const char *sub2, l_int32 *ploc, l_int32 *pfound );
 LEPT_DLL extern L_DNA * stringFindEachSubstr ( const char *src, const char *sub );
 LEPT_DLL extern l_int32 stringFindSubstr ( const char *src, const char *sub, l_int32 *ploc );
 LEPT_DLL extern l_uint8 * arrayReplaceEachSequence ( const l_uint8 *datas, size_t dataslen, const l_uint8 *seq, size_t seqlen, const l_uint8 *newseq, size_t newseqlen, size_t *pdatadlen, l_int32 *pcount );

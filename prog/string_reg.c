@@ -63,7 +63,7 @@ L_REGPARAMS  *rp;
 
         /* Replacing a substring */
     loc = 0;
-    str1 = stringReplaceSubstr(strs, "his", "hers", NULL, &loc);
+    str1 = stringReplaceSubstr(strs, "his", "hers", &loc, NULL);
     regTestCompareValues(rp, 5, loc, 0.0);  /* 1 */
     regTestCompareStrings(rp, (l_uint8 *)"Thers is a gooood test!", 23,
                           (l_uint8 *)str1, strlen(str1));   /* 2 */

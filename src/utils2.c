@@ -853,11 +853,19 @@ l_int32  nsrc, i, k;
  *
  * <pre>
  * Notes:
- *      (1) Replaces every instance.
- *      (2) To only remove each instance of sub1, use "" for sub2
- *      (3) Returns a copy of %src if sub1 and sub2 are the same.
- *      (4) If the input %src is binary data that can have null characters,
- *          use arrayReplaceEachSequence().
+ *      (1) This is a wrapper for simple string substitution that uses
+ *          the more general function arrayReplaceEachSequence().
+ *      (2) This finds every non-overlapping occurrence of %sub1 in
+ *          %src, and replaces it with %sub2.  By "non-overlapping"
+ *          we mean that after it finds each match, it removes the
+ *          matching characters, replaces with the substitution string
+ *          (if not empty), and continues.  For example, if you replace
+ *          'aa' by 'X' in 'baaabbb', you find one match at position 1
+ *          and return 'bXabbb'.
+ *      (3) To only remove each instance of sub1, use "" for sub2
+ *      (4) Returns a copy of %src if sub1 and sub2 are the same.
+ *      (5) If the input %src is binary data that can have null characters,
+ *          use arrayReplaceEachSequence() directly.
  * </pre>
  */
 char *
@@ -893,33 +901,34 @@ size_t  datalen;
 /*!
  * \brief   stringReplaceSubstr()
  *
- * \param[in]    src      input string; can be of zero length
- * \param[in]    sub1     substring to be replaced
- * \param[in]    sub2     substring to put in; can be ""
- * \param[out]   pfound   [optional] 1 if sub1 is found; 0 otherwise
- * \param[out]   ploc     [optional] location of ptr after replacement
- * \return  dest string with substring replaced, or NULL if the
- *              substring not found or on error.
+ * \param[in]      src      input string; can be of zero length
+ * \param[in]      sub1     substring to be replaced
+ * \param[in]      sub2     substring to put in; can be ""
+ * \param[in,out]  ploc     input start location; return loc after replacement
+ * \param[out]     pfound   [optional] 1 if sub1 is found; 0 otherwise
+ * \return  dest string with substring replaced, or NULL on error.
  *
  * <pre>
  * Notes:
  *      (1) Replaces the first instance.
  *      (2) To remove sub1 without replacement, use "" for sub2.
- *      (3) Returns a copy of %src if sub1 and sub2 are the same.
- *      (4) The optional loc is input as the byte offset within the src
- *          from which the search starts, and after the search it is the
- *          char position in the string of the next character after
- *          the substituted string.
- *      (5) N.B. If ploc is not null, loc must always be initialized.
- *          To search the string from the beginning, set loc = 0.
+ *      (3) Returns a copy of %src if either no instance of %sub1 is found,
+ *          or if %sub1 and %sub2 are the same.
+ *      (4) %loc must be initialized.  As input, it is the byte offset
+ *          within %src from which the search starts.  To search the
+ *          string from the beginning, set %loc = 0.  After finding
+ *          %sub1 and replacing it with %sub2, %loc is returned as
+ *          the next position in the output string.  Note that the
+ *          output string also includes all the characters from the
+ *          input string that occur after the single substitution.
  * </pre>
  */
 char *
 stringReplaceSubstr(const char  *src,
                     const char  *sub1,
                     const char  *sub2,
-                    l_int32     *pfound,
-                    l_int32     *ploc)
+                    l_int32     *ploc,
+                    l_int32     *pfound)
 {
 const char *ptr;
 char       *dest;
@@ -927,22 +936,18 @@ l_int32     nsrc, nsub1, nsub2, len, npre, loc;
 
     PROCNAME("stringReplaceSubstr");
 
+    if (pfound) *pfound = 0;
     if (!src || !sub1 || !sub2)
         return (char *)ERROR_PTR("src, sub1, sub2 not all defined",
                                  procName, NULL);
 
-    if (pfound)
-        *pfound = 0;
-    if (ploc)
-        loc = *ploc;
-    else
-        loc = 0;
-    if ((ptr = strstr(src + loc, sub1)) == NULL) {
-        return NULL;
-    }
+    loc = *ploc;
+    if ((ptr = strstr(src + loc, sub1)) == NULL)
+        return stringNew(src);
+    if (pfound) *pfound = 1;
+    if (!strcmp(sub1, sub2))
+        return stringNew(src);
 
-    if (pfound)
-        *pfound = 1;
     nsrc = strlen(src);
     nsub1 = strlen(sub1);
     nsub2 = strlen(sub2);
@@ -953,9 +958,7 @@ l_int32     nsrc, nsub1, nsub2, len, npre, loc;
     memcpy(dest, src, npre);
     strcpy(dest + npre, sub2);
     strcpy(dest + npre + nsub2, ptr + nsub1);
-    if (ploc)
-        *ploc = npre + nsub2;
-
+    *ploc = npre + nsub2;
     return dest;
 }
 
@@ -970,7 +973,12 @@ l_int32     nsrc, nsub1, nsub2, len, npre, loc;
  *
  * <pre>
  * Notes:
- *      (1) This finds every occurrence of %sub in %src.
+ *      (1) This finds every non-overlapping occurrence in %src of %sub.
+ *          After it finds each match, it moves forward in %src by the length
+ *          of %sub before continuing the search.  So for example,
+ *          if you search for the sequence 'aa' in the data 'baaabbb',
+ *          you find one match at position 1.
+
  * </pre>
  */
 L_DNA *
@@ -997,11 +1005,11 @@ stringFindEachSubstr(const char  *src,
  *
  * <pre>
  * Notes:
- *      (1) This is a wrapper around strstr().
+ *      (1) This is a wrapper around strstr().  It finds the first
+ *          instance of %sub in %src.  If the substring is not found
+ *          and the location is returned, it has the value -1.
  *      (2) Both %src and %sub must be defined, and %sub must have
  *          length of at least 1.
- *      (3) If the substring is not found and loc is returned, it has
- *          the value -1.
  * </pre>
  */
 l_int32
@@ -1050,8 +1058,10 @@ const char *ptr;
  *          because they can contain null bytes.  Therefore, for each
  *          we must give the length of the array.
  *      (2) If %newseq == NULL, this just removes all instances of %seq.
- *          Otherwise, it replaces every occurrence of %seq in %datas
- *          with %newseq. A new array %datad and its size are returned.
+ *          Otherwise, it replaces every non-overlapping occurrence of
+ *          %seq in %datas with %newseq. A new array %datad and its
+ *          size are returned.  See arrayFindEachSequence() for more
+ *          details on finding non-overlapping occurrences.
  *      (3) If no instances of %seq are found, this returns a copy of %datas.
  *      (4) The returned %datad is null terminated.
  *      (5) Can use stringReplaceEachSubstr() if using C strings.
@@ -1074,13 +1084,13 @@ L_DNA    *da;
 
     PROCNAME("arrayReplaceEachSequence");
 
-    if (pdatadlen) *pdatadlen = 0;
     if (pcount) *pcount = 0;
-    if (!pdatadlen)
-        return (l_uint8 *)ERROR_PTR("&datadlen not defined", procName, NULL);
     if (!datas || !seq)
         return (l_uint8 *)ERROR_PTR("datas & seq not both defined",
                                     procName, NULL);
+    if (!pdatadlen)
+        return (l_uint8 *)ERROR_PTR("&datadlen not defined", procName, NULL);
+    *pdatadlen = 0;
 
         /* Identify the locations of the sequence.  If there are none,
          * return a copy of %datas. */
@@ -1141,7 +1151,11 @@ L_DNA    *da;
  *      (1) The byte arrays %data and %sequence are not C strings,
  *          because they can contain null bytes.  Therefore, for each
  *          we must give the length of the array.
- *      (2) This finds every occurrence in %data of %sequence.
+ *      (2) This finds every non-overlapping occurrence in %data of %sequence.
+ *          After it finds each match, it moves forward by the length
+ *          of the sequence before continuing the search.  So for example,
+ *          if you search for the sequence 'aa' in the data 'baaabbb',
+ *          you find one match at position 1.
  * </pre>
  */
 L_DNA *
