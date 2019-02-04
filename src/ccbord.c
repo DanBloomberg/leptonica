@@ -50,7 +50,7 @@
  *         static PTA      *pixGetOuterBorderPta()
  *
  *     Lower-level border location routines
- *         static PTAA     *pixGetOuterBorder()
+ *         PTAA            *pixGetOuterBorder()
  *         static l_int32   pixGetHoleBorder()
  *         static l_int32   findNextBorderPixel()
  *         static void      locateOutsideSeedPixel()
@@ -282,7 +282,6 @@ static l_int32 ccbaExtendArray(CCBORDA  *ccba);
 static CCBORD *ccbaGetCcb(CCBORDA *ccba, l_int32 index);
 static CCBORD *pixGetCCBorders(PIX *pixs, BOX *box);
 static PTA *pixGetOuterBorderPta(PIX *pixs, BOX *box);
-static l_ok pixGetOuterBorder(CCBORD *ccb, PIX *pixs, BOX *box);
 static l_ok pixGetHoleBorder(CCBORD *ccb, PIX *pixs, BOX *box,
                              l_int32 xs, l_int32 ys);
 static l_int32 findNextBorderPixel(l_int32 w, l_int32 h, l_uint32 *data,
@@ -902,7 +901,7 @@ PTA     *ptaloc, *ptad;
  *          and we do not store the second pixel again.
  * </pre>
  */
-static l_ok
+l_ok
 pixGetOuterBorder(CCBORD   *ccb,
                   PIX      *pixs,
                   BOX      *box)
