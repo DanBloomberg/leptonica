@@ -671,7 +671,7 @@ L_PTRA       *pa_data;
  * \param[out]   pdata      output pdf data for image
  * \param[out]   pnbytes    size of output pdf data
  * \return  0 if OK, 1 on error
- * 
+ *
  * <pre>
  * Notes:
  *      (1) For jpeg and jp2k image files, this is very fast because the

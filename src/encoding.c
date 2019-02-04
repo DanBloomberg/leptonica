@@ -84,9 +84,9 @@ static l_int32 convertChunkToAscii85(l_uint8 *inarray, l_int32 insize,
 /*!
  * \brief   encodeBase64()
  *
- * \param[in]    inarray input binary data
- * \param[in]    insize number of bytes in input array
- * \param[out]   poutsize number of bytes in output char array
+ * \param[in]    inarray     input binary data
+ * \param[in]    insize      number of bytes in input array
+ * \param[out]   poutsize    number of bytes in output char array
  * \return  chara with MAX_BASE64_LINE characters + \n in each line
  *
  * <pre>
@@ -168,9 +168,9 @@ l_int32   outsize, i, j, index, linecount;
 /*!
  * \brief   decodeBase64()
  *
- * \param[in]    inarray input encoded char data, with 72 chars/line)
- * \param[in]    insize number of bytes in input array
- * \param[out]   poutsize number of bytes in output byte array
+ * \param[in]    inarray    input encoded char data, with 72 chars/line)
+ * \param[in]    insize     number of bytes in input array
+ * \param[out]   poutsize   number of bytes in output byte array
  * \return  bytea decoded byte data, or NULL on error
  *
  * <pre>
@@ -323,9 +323,9 @@ byteConvert4to3(l_uint8  *in4,
 /*!
  * \brief   encodeAscii85()
  *
- * \param[in]    inarray input data
- * \param[in]    insize number of bytes in input array
- * \param[out]   poutsize number of bytes in output char array
+ * \param[in]    inarray    input data
+ * \param[in]    insize     number of bytes in input array
+ * \param[out]   poutsize   number of bytes in output char array
  * \return  chara with 64 characters + \n in each line
  *
  * <pre>
@@ -391,11 +391,11 @@ l_int32  maxsize, i, index, outindex, linecount, nbout, eof;
 /*!
  * \brief   convertChunkToAscii85()
  *
- * \param[in]    inarray input data
- * \param[in]    insize  number of bytes in input array
- * \param[out]   pindex use and -- ptr
- * \param[in]    outbuf holds 8 ascii chars; we use no more than 7
- * \param[out]   pnbsout number of bytes written to outbuf
+ * \param[in]    inarray    input data
+ * \param[in]    insize     number of bytes in input array
+ * \param[out]   pindex     use and -- ptr
+ * \param[in]    outbuf     holds 8 ascii chars; we use no more than 7
+ * \param[out]   pnbsout    number of bytes written to outbuf
  * \return  boolean for eof 0 if more data, 1 if end of file
  *
  * <pre>
@@ -456,9 +456,9 @@ l_int32   eof, index, nread, nbout, i;
 /*!
  * \brief   decodeAscii85()
  *
- * \param[in]    inarray ascii85 input data
- * \param[in]    insize number of bytes in input array
- * \param[out]   poutsize number of bytes in output l_uint8 array
+ * \param[in]    inarray     ascii85 input data
+ * \param[in]    insize      number of bytes in input array
+ * \param[out]   poutsize    number of bytes in output l_uint8 array
  * \return  outarray binary
  *
  * <pre>
@@ -565,12 +565,12 @@ l_uint32  oword;
 /*!
  * \brief   reformatPacked64()
  *
- * \param[in]    inarray base64 encoded string with newlines
- * \param[in]    insize number of bytes in input array
- * \param[in]    leadspace number of spaces in each line before the data
- * \param[in]    linechars number of bytes of data in each line; multiple of 4
- * \param[in]    addquotes 1 to add quotes to each line of data; 0 to skip
- * \param[out]   poutsize number of bytes in output char array
+ * \param[in]    inarray     base64 encoded string with newlines
+ * \param[in]    insize      number of bytes in input array
+ * \param[in]    leadspace   number of spaces in each line before the data
+ * \param[in]    linechars   number of bytes of data in each line; multiple of 4
+ * \param[in]    addquotes   1 to add quotes to each line of data; 0 to skip
+ * \param[out]   poutsize    number of bytes in output char array
  * \return  outarray ascii
  *
  * <pre>

@@ -2272,17 +2272,19 @@ SARRAY  *sa;
 /*!
  * \brief   substituteObjectNumbers()
  *
- *  Input:  bas        lba of a pdf object
- *          na_objs    object number mapping array
- *  Return: bad   lba of rewritten pdf for the object
+ * \param[in]   bas        lba of a pdf object
+ * \param[in]   na_objs    object number mapping array
+ * \return    bad   lba of rewritten pdf for the object
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Interpret the first set of bytes as the object number,
  *          map to the new number, and write it out.
  *      (2) Find all occurrences of this 4-byte sequence: " 0 R"
  *      (3) Find the location and value of the integer preceding this,
  *          and map it to the new value.
  *      (4) Rewrite the object with new object numbers.
+ * </pre>
  */
 static L_BYTEA *
 substituteObjectNumbers(L_BYTEA  *bas,

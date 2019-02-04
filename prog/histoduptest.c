@@ -73,7 +73,7 @@ static char  mainName[] = "histoduptest";
     lept_mkdir("lept/comp");
     pac = pixacompRead("dinos.pac");  /* resolution = 75 ppi */
 
-#if TEST1 
+#if TEST1
     /* -------------------------------------------------------------- *
      *                  Test comparison with rotation                 *
      * -------------------------------------------------------------- */
@@ -88,7 +88,7 @@ static char  mainName[] = "histoduptest";
         pixaAddPix(pixa2, pix2, L_INSERT);
         pixDestroy(&pix1);
     }
-   
+
         /* Compare between every pair of images;
          * can also use n = 2, simthresh = 0.50.  */
     pixaComparePhotoRegionsByHisto(pixa2, 0.85, 1.3, 1, 3, 0.20,
@@ -119,7 +119,7 @@ static char  mainName[] = "histoduptest";
     pixa2 = pixaScaleBySampling(pixa1, 2.0, 2.0);  /* to resolution 150 ppi */
     pixa3 = pixaTranslate(pixa2, 15, -21, L_BRING_IN_WHITE);
     pixaJoin(pixa2, pixa3, 0, -1);
-   
+
         /* Compare between every pair of images. */
     pixaComparePhotoRegionsByHisto(pixa2, 0.85, 1.3, 1, 3, 0.20,
                                    &nai, &scores, &pix1, debug);
