@@ -399,6 +399,7 @@ LEPT_DLL extern CCBORD * ccbCreate ( PIX *pixs );
 LEPT_DLL extern void ccbDestroy ( CCBORD **pccb );
 LEPT_DLL extern l_ok ccbaAddCcb ( CCBORDA *ccba, CCBORD *ccb );
 LEPT_DLL extern l_int32 ccbaGetCount ( CCBORDA *ccba );
+LEPT_DLL extern CCBORD * ccbaGetCcb ( CCBORDA *ccba, l_int32 index );
 LEPT_DLL extern CCBORDA * pixGetAllCCBorders ( PIX *pixs );
 LEPT_DLL extern PTAA * pixGetOuterBordersPtaa ( PIX *pixs );
 LEPT_DLL extern l_ok pixGetOuterBorder ( CCBORD *ccb, PIX *pixs, BOX *box );

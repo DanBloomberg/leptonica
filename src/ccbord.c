@@ -41,7 +41,7 @@
  *
  *     CCBORDA accessors
  *         l_int32          ccbaGetCount()
- *         static l_int32   ccbaGetCcb()
+ *         l_int32          ccbaGetCcb()
  *
  *     Top-level border-finding routines
  *         CCBORDA         *pixGetAllCCBorders()
@@ -279,7 +279,6 @@ static const l_int32   qpostab[] = {6, 6, 0, 0, 2, 2, 4, 4};
 
     /* Static functions */
 static l_int32 ccbaExtendArray(CCBORDA  *ccba);
-static CCBORD *ccbaGetCcb(CCBORDA *ccba, l_int32 index);
 static CCBORD *pixGetCCBorders(PIX *pixs, BOX *box);
 static PTA *pixGetOuterBorderPta(PIX *pixs, BOX *box);
 static l_ok pixGetHoleBorder(CCBORD *ccb, PIX *pixs, BOX *box,
@@ -542,7 +541,7 @@ ccbaGetCount(CCBORDA  *ccba)
  *      (1) This returns a clone of the ccb; it must be destroyed
  * </pre>
  */
-static CCBORD *
+CCBORD *
 ccbaGetCcb(CCBORDA  *ccba,
            l_int32   index)
 {
