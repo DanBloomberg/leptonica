@@ -73,7 +73,7 @@ static const l_uint32  power85[5] = {1,
                                      85 * 85 * 85,
                                      85 * 85 * 85 * 85};
 
-static l_int32 convertChunkToAscii85(l_uint8 *inarray, l_int32 insize,
+static l_int32 convertChunkToAscii85(const l_uint8 *inarray, l_int32 insize,
                                      l_int32 *pindex, char *outbuf,
                                      l_int32 *pnbout);
 
@@ -97,14 +97,14 @@ static l_int32 convertChunkToAscii85(l_uint8 *inarray, l_int32 insize,
  * </pre>
  */
 char *
-encodeBase64(l_uint8  *inarray,
-             l_int32   insize,
-             l_int32  *poutsize)
+encodeBase64(const l_uint8 *inarray,
+             l_int32        insize,
+             l_int32       *poutsize)
 {
-char     *chara;
-l_uint8  *bytea;
-l_uint8   array3[3], array4[4];
-l_int32   outsize, i, j, index, linecount;
+char          *chara;
+const l_uint8 *bytea;
+l_uint8        array3[3], array4[4];
+l_int32        outsize, i, j, index, linecount;
 
     PROCNAME("encodeBase64");
 
@@ -336,9 +336,9 @@ byteConvert4to3(l_uint8  *in4,
  * </pre>
  */
 char *
-encodeAscii85(l_uint8  *inarray,
-              l_int32   insize,
-              l_int32  *poutsize)
+encodeAscii85(const l_uint8 *inarray,
+              l_int32        insize,
+              l_int32       *poutsize)
 {
 char    *chara;
 char     outbuf[8];
@@ -405,11 +405,11 @@ l_int32  maxsize, i, index, outindex, linecount, nbout, eof;
  * </pre>
  */
 static l_int32
-convertChunkToAscii85(l_uint8  *inarray,
-                      l_int32   insize,
-                      l_int32  *pindex,
-                      char     *outbuf,
-                      l_int32  *pnbout)
+convertChunkToAscii85(const l_uint8 *inarray,
+                      l_int32        insize,
+                      l_int32       *pindex,
+                      char          *outbuf,
+                      l_int32       *pnbout)
 {
 l_uint8   inbyte;
 l_uint32  inword, val;
@@ -470,16 +470,16 @@ l_int32   eof, index, nread, nbout, i;
  * </pre>
  */
 l_uint8 *
-decodeAscii85(char     *inarray,
-              l_int32   insize,
-              l_int32  *poutsize)
+decodeAscii85(const char *inarray,
+              l_int32     insize,
+              l_int32    *poutsize)
 {
-char      inc;
-char     *pin;
-l_uint8   val;
-l_uint8  *outa;
-l_int32   maxsize, ocount, bytecount, index;
-l_uint32  oword;
+char        inc;
+const char *pin;
+l_uint8     val;
+l_uint8    *outa;
+l_int32     maxsize, ocount, bytecount, index;
+l_uint32    oword;
 
     PROCNAME("decodeAscii85");
 
@@ -584,12 +584,12 @@ l_uint32  oword;
  * </pre>
  */
 char *
-reformatPacked64(char     *inarray,
-                 l_int32   insize,
-                 l_int32   leadspace,
-                 l_int32   linechars,
-                 l_int32   addquotes,
-                 l_int32  *poutsize)
+reformatPacked64(const char *inarray,
+                 l_int32     insize,
+                 l_int32     leadspace,
+                 l_int32     linechars,
+                 l_int32     addquotes,
+                 l_int32    *poutsize)
 {
 char    *flata, *outa;
 l_int32  i, j, flatindex, flatsize, outindex, nlines, linewithpad, linecount;
