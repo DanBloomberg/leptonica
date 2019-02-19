@@ -628,7 +628,7 @@ PIX *
 pixCopy(PIX        *pixd,   /* can be null */
         const PIX  *pixs)
 {
-l_int32    bytes;
+l_int32  bytes;
 
     PROCNAME("pixCopy");
 
@@ -732,8 +732,7 @@ l_uint32  *data;
  *
  * <pre>
  * Notes:
- *      (1) This always destroys any colormap in pixd (except if
- *          the operation is a no-op.
+ *      (1) This destroys the colormap in pixd, unless the operation is a no-op
  * </pre>
  */
 l_ok
@@ -1860,10 +1859,10 @@ const PIXCMAP  *cmap;
     if (text)
         fprintf(fp, "  Pix Info for %s:\n", text);
     fprintf(fp, "    width = %d, height = %d, depth = %d, spp = %d\n",
-               pixGetWidth(pix), pixGetHeight(pix), pixGetDepth(pix),
-               pixGetSpp(pix));
+            pixGetWidth(pix), pixGetHeight(pix), pixGetDepth(pix),
+            pixGetSpp(pix));
     fprintf(fp, "    wpl = %d, data = %p, refcount = %d\n",
-               pixGetWpl(pix), pix->data, pixGetRefcount(pix));
+            pixGetWpl(pix), pix->data, pixGetRefcount(pix));
     fprintf(fp, "    xres = %d, yres = %d\n", pixGetXRes(pix), pixGetYRes(pix));
     if ((cmap = pix->colormap) != NULL)
         pixcmapWriteStream(fp, cmap);

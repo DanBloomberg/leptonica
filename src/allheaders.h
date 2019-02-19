@@ -1645,6 +1645,7 @@ LEPT_DLL extern PIX * pixCropToSize ( PIX *pixs, l_int32 w, l_int32 h );
 LEPT_DLL extern PIX * pixResizeToMatch ( PIX *pixs, PIX *pixt, l_int32 w, l_int32 h );
 LEPT_DLL extern PIX * pixSelectComponentBySize ( PIX *pixs, l_int32 rankorder, l_int32 type, l_int32 connectivity, BOX **pbox );
 LEPT_DLL extern PIX * pixFilterComponentBySize ( PIX *pixs, l_int32 rankorder, l_int32 type, l_int32 connectivity, BOX **pbox );
+LEPT_DLL extern PIX * pixMakeSymmetricMask ( l_int32 w, l_int32 h, l_float32 hf, l_float32 vf, l_int32 type );
 LEPT_DLL extern PIX * pixMakeFrameMask ( l_int32 w, l_int32 h, l_float32 hf1, l_float32 hf2, l_float32 vf1, l_float32 vf2 );
 LEPT_DLL extern PIX * pixMakeCoveringOfRectangles ( PIX *pixs, l_int32 maxiters );
 LEPT_DLL extern l_ok pixFractionFgInMask ( PIX *pix1, PIX *pix2, l_float32 *pfract );
