@@ -1444,9 +1444,20 @@ PIX     *pix1, *pix2;
  *      (1) This is a convenience function for generating masks with
  *          horizontal and vertical reflection symmetry, over either
  *          the inner or outer parts of an image.
- *      (2) Examples:
- *           * inner 50% central part: hf = vf = 0.5, type = L_USE_INNER
- *           * outer 50% frame: hf = vf = 0.5, type = L_USE_OUTER
+ *      (2) Using L_USE_INNER to generate a mask over the inner part
+ *          of the image, the mask is a solid rectangle, and the fractions
+ *          describe the distance between the boundary of the image and
+ *          the rectangle boundary.  For example, with hf == vf == 0.0,
+ *          the mask covers the full image.
+ *      (3) Using L_USE_OUTER to generate a mask over an outer frame
+ *          of the image, the mask touches the boundary of the image,
+ *          and the fractions describe the location of the inner
+ *          boundary of the frame.  For example, with hf == vf == 1.0,
+ *          the inner boundary is at the center of the image, so the
+ *          mask covers the full image.
+ *      (4) More examples:
+ *           * mask covering the inner 70%: hf = vf = 0.3, type = L_USE_INNER
+ *           * frame covering the outer 30%: hf = vf = 0.3, type = L_USE_OUTER
  * </pre>
  */
 PIX *

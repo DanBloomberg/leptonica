@@ -2610,6 +2610,10 @@ l_int32  ret;
 /*--------------------------------------------------------------------*
  *          Special debug/test function for calling 'system'          *
  *--------------------------------------------------------------------*/
+#if defined(__APPLE__)
+  #include "TargetConditionals.h"
+#endif  /* __APPLE__ */
+
 /*!
  * \brief   callSystemDebug()
  *
@@ -2641,9 +2645,8 @@ l_int32  ret;
         return;
     }
 
-#if defined (__APPLE__)  /* iOS 11 does not support system() */
+#if defined(__APPLE__)  /* iOS 11 does not support system() */
 
-  #include "TargetConditionals.h"
   #if !defined(TARGET_OS_IPHONE) && !defined(OS_IOS)  /* macOS */
     ret = system(cmd);
   #else

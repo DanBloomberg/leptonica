@@ -783,6 +783,7 @@ LEPT_DLL extern NUMA * numaContrastTRC ( l_float32 factor );
 LEPT_DLL extern PIX * pixEqualizeTRC ( PIX *pixd, PIX *pixs, l_float32 fract, l_int32 factor );
 LEPT_DLL extern NUMA * numaEqualizeTRC ( PIX *pix, l_float32 fract, l_int32 factor );
 LEPT_DLL extern l_int32 pixTRCMap ( PIX *pixs, PIX *pixm, NUMA *na );
+LEPT_DLL extern l_int32 pixTRCMapGeneral ( PIX *pixs, PIX *pixm, NUMA *nar, NUMA *nag, NUMA *nab );
 LEPT_DLL extern PIX * pixUnsharpMasking ( PIX *pixs, l_int32 halfwidth, l_float32 fract );
 LEPT_DLL extern PIX * pixUnsharpMaskingGray ( PIX *pixs, l_int32 halfwidth, l_float32 fract );
 LEPT_DLL extern PIX * pixUnsharpMaskingFast ( PIX *pixs, l_int32 halfwidth, l_float32 fract, l_int32 direction );
