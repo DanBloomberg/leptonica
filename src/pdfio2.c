@@ -54,6 +54,7 @@
  *          L_COMP_DATA         *l_generateFlateData()
  *          static L_COMP_DATA  *pixGenerateFlateData()
  *          static L_COMP_DATA  *pixGenerateJpegData()
+ *          static L_COMP_DATA  *pixGenerateJp2kData()
  *          static L_COMP_DATA  *pixGenerateG4Data()
  *          L_COMP_DATA         *l_generateG4Data()
  *
@@ -106,6 +107,7 @@ static L_COMP_DATA  *l_generateJp2kData(const char *fname);
 static L_COMP_DATA  *pixGenerateFlateData(PIX *pixs, l_int32 ascii85flag);
 static L_COMP_DATA  *pixGenerateJpegData(PIX *pixs, l_int32 ascii85flag,
                                          l_int32 quality);
+static L_COMP_DATA  *pixGenerateJp2kData(PIX *pixs, l_int32 quality);
 static L_COMP_DATA  *pixGenerateG4Data(PIX *pixs, l_int32 ascii85flag);
 
 static l_int32       l_generatePdf(l_uint8 **pdata, size_t *pnbytes,
@@ -153,8 +155,10 @@ static l_int32   var_WRITE_DATE_AND_VERSION = 1;
  * \brief   pixConvertToPdfData()
  *
  * \param[in]      pix       all depths; cmap OK
- * \param[in]      type      L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
- * \param[in]      quality   used for JPEG only; 0 for default (75)
+ * \param[in]      type      L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE,
+ *                           L_JP2K_ENCODE
+ * \param[in]      quality   for jpeg: 1-100; 0 for default (75)
+ *                           for jp2k: 27-45; 0 for default (34)
  * \param[out]     pdata     pdf array
  * \param[out]     pnbytes   number of bytes in pdf array
  * \param[in]      x, y      location of lower-left corner of image, in pixels,
@@ -501,7 +505,8 @@ FILE    *fp;
  *
  * \param[in]    fname      [optional] can be null
  * \param[in]    pix        [optional] can be null
- * \param[in]    quality    for jpeg if transcoded; 75 is standard
+ * \param[in]    quality    for jpeg if transcoded: 1-100; 0 for default (75)
+ *                          for jp2k if transcoded: 27-45; 0 for default (34)
  * \param[out]   pcid       compressed data
  * \return  0 if OK, 1 on error
  *
@@ -890,9 +895,10 @@ L_COMP_DATA  *cid;
 static L_COMP_DATA *
 l_generateJp2kData(const char  *fname)
 {
-l_int32       w, h, bps, spp;
+l_int32       w, h, bps, spp, xres, yres;
 size_t        nbytes;
 L_COMP_DATA  *cid;
+FILE         *fp;
 
     PROCNAME("l_generateJp2kData");
 
@@ -909,13 +915,18 @@ L_COMP_DATA  *cid;
     }
 
     readHeaderJp2k(fname, &w, &h, &bps, &spp);
+    xres = yres = 0;
+    if ((fp = fopenReadStream(fname)) != NULL) {
+        fgetJp2kResolution(fp, &xres, &yres);
+        fclose(fp);
+    }
     cid->type = L_JP2K_ENCODE;
     cid->nbytescomp = nbytes;
     cid->w = w;
     cid->h = h;
     cid->bps = bps;
     cid->spp = spp;
-    cid->res = 0;  /* don't know how to extract this */
+    cid->res = xres;
     return cid;
 }
 
@@ -926,7 +937,8 @@ L_COMP_DATA  *cid;
  * \param[in]    fname
  * \param[in]    type       L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE,
  *                          L_JP2K_ENCODE
- * \param[in]    quality    used for jpeg only; 0 for default (75)
+ * \param[in]    quality    for jpeg if transcoded: 1-100; 0 for default (75)
+ *                          for jp2k if transcoded: 27-45; 0 for default (34)
  * \param[in]    ascii85    0 for binary; 1 for ascii85-encoded
  * \param[out]   pcid       compressed data
  * \return  0 if OK, 1 on error
@@ -1002,7 +1014,7 @@ PIX          *pix;
         } else {
             if ((pix = pixRead(fname)) == NULL)
                 return ERROR_INT("pix not returned", procName, 1);
-            cid = pixGenerateJpegData(pix, ascii85, quality);
+            cid = pixGenerateJp2kData(pix, quality);
             pixDestroy(&pix);
         }
         if (!cid)
@@ -1026,8 +1038,10 @@ PIX          *pix;
  * \brief   pixGenerateCIData()
  *
  * \param[in]    pixs       8 or 32 bpp, no colormap
- * \param[in]    type       L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
- * \param[in]    quality    used for jpeg only; 0 for default (75)
+ * \param[in]    type       L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE or
+ *                          L_JP2K_ENCODE
+ * \param[in]    quality    for jpeg if transcoded: 1-100; 0 for default (75)
+ *                          for jp2k if transcoded: 27-45; 0 for default (34)
  * \param[in]    ascii85    0 for binary; 1 for ascii85-encoded
  * \param[out]   pcid       compressed data
  * \return  0 if OK, 1 on error
@@ -1057,7 +1071,7 @@ PIXCMAP  *cmap;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
     if (type != L_G4_ENCODE && type != L_JPEG_ENCODE &&
-        type != L_FLATE_ENCODE)
+        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE)
         return ERROR_INT("invalid conversion type", procName, 1);
     if (ascii85 != 0 && ascii85 != 1)
         return ERROR_INT("invalid ascii85", procName, 1);
@@ -1068,7 +1082,7 @@ PIXCMAP  *cmap;
     if (cmap && type != L_FLATE_ENCODE) {
         L_WARNING("pixs has cmap; using flate encoding\n", procName);
         type = L_FLATE_ENCODE;
-    } else if (d < 8 && type == L_JPEG_ENCODE) {
+    } else if (d < 8 && (type == L_JPEG_ENCODE || type == L_JP2K_ENCODE)) {
         L_WARNING("pixs has < 8 bpp; using flate encoding\n", procName);
         type = L_FLATE_ENCODE;
     } else if (d > 1 && type == L_G4_ENCODE) {
@@ -1079,6 +1093,9 @@ PIXCMAP  *cmap;
     if (type == L_JPEG_ENCODE) {
         if ((*pcid = pixGenerateJpegData(pixs, ascii85, quality)) == NULL)
             return ERROR_INT("jpeg data not made", procName, 1);
+    } else if (type == L_JP2K_ENCODE) {
+        if ((*pcid = pixGenerateJp2kData(pixs, quality)) == NULL)
+            return ERROR_INT("jp2k data not made", procName, 1);
     } else if (type == L_G4_ENCODE) {
         if ((*pcid = pixGenerateG4Data(pixs, ascii85)) == NULL)
             return ERROR_INT("g4 data not made", procName, 1);
@@ -1141,10 +1158,10 @@ PIX          *pixs;
  *
  *      Notes:
  *          1) This should not be called with an RGBA pix (spp == 4; it
- *              will ignore the alpha channel.  Likewise, if called with a
- *              colormapped pix, the alpha component in the colormap will
- *              be ignored as it is for all leptonica operations
- *              on colormapped pix.
+ *             will ignore the alpha channel.  Likewise, if called with a
+ *             colormapped pix, the alpha component in the colormap will
+ *             be ignored as it is for all leptonica operations
+ *             on colormapped pix.
  */
 static L_COMP_DATA *
 pixGenerateFlateData(PIX     *pixs,
@@ -1289,7 +1306,52 @@ L_COMP_DATA  *cid;
     fname = l_makeTempFilename();
     pixWriteJpeg(fname, pixs, quality, 0);
 
+        /* Generate the data */
     cid = l_generateJpegData(fname, ascii85flag);
+    lept_rmfile(fname);
+    LEPT_FREE(fname);
+    return cid;
+}
+
+
+/*!
+ * \brief   pixGenerateJp2kData()
+ *
+ * \param[in]    pixs           8 or 32 bpp, no colormap
+ * \param[in]    quality        0 for default, which is 34
+ * \return  cid jp2k compressed data, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The quality can be set between 27 (very poor) and 45
+ *          (nearly perfect).  Use 0 for default (34). Use 100 for lossless,
+ *          but this is very expensive and not recommended.
+ * </pre>
+ */
+static L_COMP_DATA *
+pixGenerateJp2kData(PIX     *pixs,
+                    l_int32  quality)
+{
+l_int32       d;
+char         *fname;
+L_COMP_DATA  *cid;
+
+    PROCNAME("pixGenerateJp2kData");
+
+    if (!pixs)
+        return (L_COMP_DATA *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (pixGetColormap(pixs))
+        return (L_COMP_DATA *)ERROR_PTR("pixs has colormap", procName, NULL);
+    d = pixGetDepth(pixs);
+    if (d != 8 && d != 32)
+        return (L_COMP_DATA *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
+
+        /* Compress to a temp jp2k file */
+    fname = l_makeTempFilename();
+    pixWriteJp2k(fname, pixs, quality, 5, 0, 0);
+
+        /* Generate the data */
+    cid = l_generateJp2kData(fname);
     lept_rmfile(fname);
     LEPT_FREE(fname);
     return cid;

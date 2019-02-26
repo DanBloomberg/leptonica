@@ -31,14 +31,21 @@
  *    Higher-level operations for generating pdf.
  *
  *    |=============================================================|
- *    |                         Important note                      |
+ *    |                        Important notes                      |
  *    |=============================================================|
- *    | Some of these functions require libtiff, libjpeg, and libz  |
- *    | If you do not have these libraries, you must set            |
+ *    | Some of these functions require I/O libraries such as       |
+ *    | libtiff, libjpeg, libpng, libz and libopenjp2.  If you do   |
+ *    | not have these libraries, some calls will fail.  For        |
+ *    | example, if you do not have libopenjp2, you cannot write a  |
+ *    | pdf where transcoding is required to incorporate a          |
+ *    | jp2k image.                                                 |
+ *    |                                                             |
+ *    | You can manually deactivate all pdf writing by setting      |
+ *    | this in environ.h:                                          |
  *    | \code                                                       |
  *    |      #define  USE_PDFIO     0                               |
  *    | \endcode                                                    |
- *    | in environ.h.  This will link pdfiostub.c                   |
+ *    | This will link the stub file pdfiostub.c.                   |
  *    |=============================================================|
  *
  *     Set 1. These functions convert a set of image files
@@ -49,14 +56,14 @@
  *     or an array of bytes in memory.
  *
  *     Set 2. These functions are a special case of set 1, where
- *     no scaling or change in quality is requires.  For jpeg and
- *     jp2k images, the bytes in each jpeg file can be directly
- *     incorporated into the output pdf, and the wrapping up of
- *     multiple image files is very fast.  For non-interlaced png,
- *     the data bytes including the predictors can also be written
- *     directly into the flate pdf data.  For other image formats,
- *     transcoding is required, where the image data is first
- *     decompressed and then the G4 or Flate (gzip) encodings are generated.
+ *     no scaling or change in quality is required.  For jpeg and jp2k
+ *     images, the bytes in each file can be directly incorporated
+ *     into the output pdf, and the wrapping up of multiple image
+ *     files is very fast.  For non-interlaced png, the data bytes
+ *     including the predictors can also be written directly into the
+ *     flate pdf data.  For other image formats (e.g., tiff-g4),
+ *     transcoding is required, where the image data is first decompressed
+ *     and then the G4 or Flate (gzip) encodings are generated.
  *
  *     Set 3. These functions convert a set of images in memory
  *     to a multi-page pdf, with one image on each page.  The pdf
@@ -80,13 +87,12 @@
  *     for the page.  The input image can be either a file or a Pix.
  *
  *     Set 7. These functions take a set of single-page pdf files
- *     and concatenates them into a multi-page pdf.
- *     The input can be a set of single page pdf files, or of
- *     pdf 'strings' in memory.  The output can be either a file or
- *     an array of bytes in memory.
+ *     and concatenates it into a multi-page pdf.  The input can be
+ *     a set of either single page pdf files or pdf 'strings' in memory.
+ *     The output can be either a file or an array of bytes in memory.
  *
  *     The images in the pdf file can be rendered using a pdf viewer,
- *     such as gv, evince, xpdf or acroread.
+ *     such as evince, gv, xpdf or acroread.
  *
  *     Reference on the pdf file format:
  *         http://www.adobe.com/devnet/pdf/pdf_reference_archive.html
@@ -178,14 +184,14 @@
  *     including predictors that occur as the first byte in each
  *     raster line, but it is necessary to store only the png IDAT chunk
  *     data in the pdf array.  The alternative for wrapping png images
- *     is to uncompress into a raster (a pix) and then gzip the raster data.
- *     This typically results in a larger pdf file, because it doesn't
- *     use the two-dimensional png predictor.  Colormaps, which are found
- *     in png PLTE chunks, must always be pulled out and included separately
- *     in the pdf.  For CCITT-G4 compression, you can not simply
- *     include a tiff G4 file -- you must either parse it and extract the
- *     G4 compressed data within it, or uncompress to a raster and
- *     G4 compress again.
+ *     is to transcode them: uncompress into a raster (a pix) and then
+ *     gzip the raster data.  This typically results in a larger pdf file
+ *     because it doesn't use the two-dimensional png predictor.
+ *     Colormaps, which are found in png PLTE chunks, must always be
+ *     pulled out and included separately in the pdf.  For CCITT-G4
+ *     compression, you can not simply include a tiff G4 file -- you must
+ *     either parse it and extract the G4 compressed data within it,
+ *     or uncompress to a raster and G4 compress again.
  * </pre>
  */
 
@@ -213,8 +219,9 @@ static const l_int32  DEFAULT_INPUT_RES = 300;
  * \param[in]    res           input resolution of all images
  * \param[in]    scalefactor   scaling factor applied to each image; > 0.0
  * \param[in]    type          encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                             L_FLATE_ENCODE, or 0 for default
- * \param[in]    quality       used for JPEG only; 0 for default (75)
+ *                             L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
+ *                             for jp2k: 27-45; 0 for default (34)
  * \param[in]    title         [optional] pdf title; if null, taken from
  *                             the first image filename
  * \param[in]    fileout       pdf file of all images
@@ -230,7 +237,7 @@ static const l_int32  DEFAULT_INPUT_RES = 300;
  *          before concatenation.
  *      (3) The scalefactor is applied to each image before encoding.
  *          If you enter a value <= 0.0, it will be set to 1.0.
- *      (4) Specifying one of the three encoding types for %type forces
+ *      (4) Specifying one of the four encoding types for %type forces
  *          all images to be compressed with that type.  Use 0 to have
  *          the type determined for each image based on depth and whether
  *          or not it has a colormap.
@@ -272,8 +279,9 @@ SARRAY  *sa;
  * \param[in]    res           input resolution of all images
  * \param[in]    scalefactor   scaling factor applied to each image; > 0.0
  * \param[in]    type          encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                             L_FLATE_ENCODE, or 0 for default
- * \param[in]    quality       used for JPEG only; 0 for default (75)
+ *                             L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
+ *                             for jp2k: 27-45; 0 for default (34)
  * \param[in]    title         [optional] pdf title; if null, taken from
  *                             the first image filename
  * \param[in]    fileout       pdf file of all images
@@ -324,8 +332,9 @@ size_t    nbytes;
  * \param[in]    res           input resolution of all images
  * \param[in]    scalefactor   scaling factor applied to each image; > 0.0
  * \param[in]    type          encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                             L_FLATE_ENCODE, or 0 for default
- * \param[in]    quality       used for JPEG only; 0 for default (75)
+ *                             L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
+ *                             for jp2k: 27-45; 0 for default (34)
  * \param[in]    title         [optional] pdf title; if null, taken from
  *                             the first image filename
  * \param[out]   pdata         output pdf data (of all images
@@ -367,7 +376,7 @@ L_PTRA      *pa_data;
     if (!sa)
         return ERROR_INT("sa not defined", procName, 1);
     if (scalefactor <= 0.0) scalefactor = 1.0;
-    if (type < 0 || type > L_FLATE_ENCODE) {
+    if (type < 0 || type > L_FLATE_ENCODE + 1) {  // FIX_THIS
         L_WARNING("invalid compression type; using per-page default\n",
                   procName);
         type = 0;
@@ -512,9 +521,9 @@ PIXCMAP  *cmap;
  *      (2) The files in the directory, after optional filtering by
  *          the substring, are lexically sorted in increasing order
  *          before concatenation.
- *      (3) For jpeg and jp2k, this is very fast because the compressed
- *          data is wrapped up and concatenated.  For png and tiffg4,
- *          the images must be read and recompressed.
+ *      (3) This is very fast for jpeg, jp2k and some png files, because
+ *          the compressed data is wrapped up and concatenated.  For tiffg4
+ *          and other types of png, the images must be read and recompressed.
  * </pre>
  */
 l_ok
@@ -595,9 +604,9 @@ size_t    nbytes;
  *
  * <pre>
  * Notes:
- *      (1) For jpeg and jp2k image files, this is very fast because the
- *          compressed data is wrapped up and concatenated.  For png
- *          and tiffg4, the images must be read and recompressed.
+ *      (1) This is very fast for jpeg, jp2k and some png files, because
+ *          the compressed data is wrapped up and concatenated.  For tiffg4
+ *          and other types of png, the images must be read and recompressed.
  * </pre>
  */
 l_ok
@@ -674,9 +683,9 @@ L_PTRA       *pa_data;
  *
  * <pre>
  * Notes:
- *      (1) For jpeg and jp2k image files, this is very fast because the
- *          compressed data is wrapped up and concatenated.  For png
- *          and tiffg4, the images must be read and recompressed.
+ *      (1) This is very fast for jpeg, jp2k and some png files, because
+ *          the compressed data is wrapped up and concatenated.  For tiffg4
+ *          and other types of png, the images must be read and recompressed.
  * </pre>
  */
 l_ok
@@ -712,8 +721,8 @@ L_COMP_DATA  *cid;
     }
 
         /* Generate the image data required for pdf generation, always
-         * in binary (not ascii85) coding; jpeg and jp2k files are
-         * not transcoded.  */
+         * in binary (not ascii85) coding.  Note that jpeg, jp2k and
+         * some png files are not transcoded.  */
     l_generateCIDataForPdf(fname, NULL, 0, &cid);
     if (!cid) {
         L_ERROR("file %s format is %d; unreadable\n", procName, fname, format);
@@ -748,8 +757,9 @@ L_COMP_DATA  *cid;
  *                             embedded in the input images
  * \param[in]    scalefactor   scaling factor applied to each image; > 0.0
  * \param[in]    type          encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                             L_FLATE_ENCODE, or 0 for default
- * \param[in]    quality       used for JPEG only; 0 for default (75)
+ *                             L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
+ *                             for jp2k: 27-45; 0 for default (34)
  * \param[in]    title         [optional] pdf title
  * \param[in]    fileout       pdf file of all images
  * \return  0 if OK, 1 on error
@@ -805,8 +815,9 @@ size_t    nbytes;
  * \param[in]    res            input resolution of all images
  * \param[in]    scalefactor    scaling factor applied to each image; > 0.0
  * \param[in]    type           encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                              L_FLATE_ENCODE, or 0 for default
- * \param[in]    quality        used for JPEG only; 0 for default (75)
+ *                              L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ * \param[in]    quality        for jpeg: 1-100; 0 for default (75)
+ *                              for jp2k: 27-45; 0 for default (34)
  * \param[in]    title          [optional] pdf title
  * \param[out]   pdata          output pdf data of all images
  * \param[out]   pnbytes        size of output pdf data
@@ -912,8 +923,10 @@ L_PTRA   *pa_data;
  * \brief   convertToPdf()
  *
  * \param[in]      filein       input image file -- any format
- * \param[in]      type         L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
- * \param[in]      quality      used for JPEG only; 0 for default (75)
+ * \param[in]      type         encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
+ *                              L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ * \param[in]      quality      for jpeg: 1-100; 0 for default (75)
+ *                              for jp2k: 27-45; 0 for default (34)
  * \param[in]      fileout      output pdf file; only required on last
  *                              image on page
  * \param[in]      x, y         location of lower-left corner of image,
@@ -1013,8 +1026,10 @@ size_t    nbytes;
  *
  * \param[in]      imdata       array of formatted image data; e.g., png, jpeg
  * \param[in]      size         size of image data
- * \param[in]      type         L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
- * \param[in]      quality      used for JPEG only; 0 for default (75)
+ * \param[in]      type         encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
+ *                              L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ * \param[in]      quality      for jpeg: 1-100; 0 for default (75)
+ *                              for jp2k: 27-45; 0 for default (34)
  * \param[in]      fileout      output pdf file; only required on last
  *                              image on page
  * \param[in]      x, y         location of lower-left corner of image,
@@ -1079,8 +1094,10 @@ PIX     *pix;
  * \brief   convertToPdfData()
  *
  * \param[in]      filein       input image file -- any format
- * \param[in]      type         L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
- * \param[in]      quality      used for JPEG only; 0 for default (75)
+ * \param[in]      type         encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
+ *                              L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ * \param[in]      quality      for jpeg: 1-100; 0 for default (75)
+ *                              for jp2k: 27-45; 0 for default (34)
  * \param[out]     pdata        pdf data in memory
  * \param[out]     pnbytes      number of bytes in pdf data
  * \param[in]      x, y         location of lower-left corner of image,
@@ -1148,8 +1165,10 @@ PIX  *pix;
  *
  * \param[in]    imdata       array of formatted image data; e.g., png, jpeg
  * \param[in]    size         size of image data
- * \param[in]    type         L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
- * \param[in]    quality      used for JPEG only; 0 for default (75)
+ * \param[in]    type         encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
+ *                            L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ * \param[in]    quality      for jpeg: 1-100; 0 for default (75)
+ *                            for jp2k: 27-45; 0 for default (34)
  * \param[out]   pdata        pdf data in memory
  * \param[out]   pnbytes      number of bytes in pdf data
  * \param[in]    x, y         location of lower-left corner of image,
@@ -1218,8 +1237,10 @@ PIX     *pix;
  * \brief   pixConvertToPdf()
  *
  * \param[in]      pix
- * \param[in]      type         L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE
- * \param[in]      quality      used for JPEG only; 0 for default (75)
+ * \param[in]      type         encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
+ *                              L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ * \param[in]      quality      for jpeg: 1-100; 0 for default (75)
+ *                              for jp2k: 27-45; 0 for default (34)
  * \param[in]      fileout      output pdf file; only required on last
  *                              image on page
  * \param[in]      x, y         location of lower-left corner of image,
@@ -1544,11 +1565,11 @@ SARRAY   *sa;
 /*!
  * \brief   convertNumberedMasksToBoxaa()
  *
- * \param[in]    dirname    directory name containing mask images
- * \param[in]    substr     [optional] substring filter on filenames; can be NULL
- * \param[in]    numpre     number of characters in name before number
- * \param[in]    numpost    number of characters in name after number, up
- *                          to a dot before an extension
+ * \param[in]    dirname   directory name containing mask images
+ * \param[in]    substr    [optional] substring filter on filenames; can be NULL
+ * \param[in]    numpre    number of characters in name before number
+ * \param[in]    numpost   number of characters in name after number, up
+ *                         to a dot before an extension
  * \return  boxaa of mask regions, or NULL on error
  *
  * <pre>
