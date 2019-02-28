@@ -28,7 +28,9 @@
  * \file pdfio1.c
  * <pre>
  *
- *    Higher-level operations for generating pdf.
+ *    Higher-level operations for generating pdf from images.
+ *    Use poppler's pdfimages to invert the process, extracting
+ *    raster images from pdf.
  *
  *    |=============================================================|
  *    |                        Important notes                      |
@@ -376,7 +378,8 @@ L_PTRA      *pa_data;
     if (!sa)
         return ERROR_INT("sa not defined", procName, 1);
     if (scalefactor <= 0.0) scalefactor = 1.0;
-    if (type < 0 || type > L_FLATE_ENCODE + 1) {  // FIX_THIS
+    if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
+        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE) {
         L_WARNING("invalid compression type; using per-page default\n",
                   procName);
         type = 0;
@@ -856,7 +859,8 @@ L_PTRA   *pa_data;
     if (!pixa)
         return ERROR_INT("pixa not defined", procName, 1);
     if (scalefactor <= 0.0) scalefactor = 1.0;
-    if (type < 0 || type > L_FLATE_ENCODE) {
+    if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
+        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE) {
         L_WARNING("invalid compression type; using per-page default\n",
                   procName);
         type = 0;
@@ -1002,8 +1006,8 @@ size_t    nbytes;
         if (!fileout)
             return ERROR_INT("fileout not defined", procName, 1);
     }
-    if (type != L_G4_ENCODE && type != L_JPEG_ENCODE &&
-        type != L_FLATE_ENCODE)
+    if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
+        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE)
         return ERROR_INT("invalid conversion type", procName, 1);
 
     if (convertToPdfData(filein, type, quality, &data, &nbytes, x, y,
@@ -1073,8 +1077,8 @@ PIX     *pix;
 
     if (!imdata)
         return ERROR_INT("image data not defined", procName, 1);
-    if (type != L_G4_ENCODE && type != L_JPEG_ENCODE &&
-        type != L_FLATE_ENCODE)
+    if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
+        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE)
         return ERROR_INT("invalid conversion type", procName, 1);
     if (!plpd || (position == L_LAST_IMAGE)) {
         if (!fileout)
@@ -1146,8 +1150,8 @@ PIX  *pix;
     *pnbytes = 0;
     if (!filein)
         return ERROR_INT("filein not defined", procName, 1);
-    if (type != L_G4_ENCODE && type != L_JPEG_ENCODE &&
-        type != L_FLATE_ENCODE)
+    if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
+        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE)
         return ERROR_INT("invalid conversion type", procName, 1);
 
     if ((pix = pixRead(filein)) == NULL)
@@ -1286,8 +1290,8 @@ size_t    nbytes;
 
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
-    if (type != L_G4_ENCODE && type != L_JPEG_ENCODE &&
-        type != L_FLATE_ENCODE)
+    if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
+        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE)
         return ERROR_INT("invalid conversion type", procName, 1);
     if (!plpd || (position == L_LAST_IMAGE)) {
         if (!fileout)

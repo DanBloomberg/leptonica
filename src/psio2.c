@@ -31,8 +31,12 @@
  *    |=============================================================|
  *    |                         Important note                      |
  *    |=============================================================|
- *    | Some of these functions require libtiff, libjpeg and libz.  |
- *    | If you do not have these libraries, you must set            |
+ *    | Some of these functions require I/O libraries such as       |
+ *    | libtiff, libjpeg, and libz.  If you do not have these       |
+ *    | libraries, some calls will fail.                            |
+ *    |                                                             |
+ *    | You can manually deactivate all PostScript writing by       |
+ *    | setting this in environ.h:                                  |
  *    | \code                                                       |
  *    |     #define  USE_PSIO     0                                 |
  *    | \endcode                                                    |
@@ -1975,10 +1979,10 @@ l_int32  resw, resh, res;
 /*!
  * \brief   getResA4Page()
  *
- * \param[in]    w image width, pixels
- * \param[in]    h image height, pixels
- * \param[in]    fillfract fraction in linear dimension of full page, not
- *                        to be exceeded; use 0 for default
+ * \param[in]    w           image width, pixels
+ * \param[in]    h           image height, pixels
+ * \param[in]    fillfract   fraction in linear dimension of full page,
+ *                           not to be exceeded; use 0 for default
  * \return  resolution
  */
 l_int32

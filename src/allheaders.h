@@ -2002,12 +2002,13 @@ LEPT_DLL extern l_ok convertFilesToPS ( const char *dirin, const char *substr, l
 LEPT_DLL extern l_ok sarrayConvertFilesToPS ( SARRAY *sa, l_int32 res, const char *fileout );
 LEPT_DLL extern l_ok convertFilesFittedToPS ( const char *dirin, const char *substr, l_float32 xpts, l_float32 ypts, const char *fileout );
 LEPT_DLL extern l_ok sarrayConvertFilesFittedToPS ( SARRAY *sa, l_float32 xpts, l_float32 ypts, const char *fileout );
-LEPT_DLL extern l_ok writeImageCompressedToPSFile ( const char *filein, const char *fileout, l_int32 res, l_int32 *pfirstfile, l_int32 *pindex );
+LEPT_DLL extern l_ok writeImageCompressedToPSFile ( const char *filein, const char *fileout, l_int32 res, l_int32 *pindex );
 LEPT_DLL extern l_ok convertSegmentedPagesToPS ( const char *pagedir, const char *pagestr, l_int32 page_numpre, const char *maskdir, const char *maskstr, l_int32 mask_numpre, l_int32 numpost, l_int32 maxnum, l_float32 textscale, l_float32 imagescale, l_int32 threshold, const char *fileout );
 LEPT_DLL extern l_ok pixWriteSegmentedPageToPS ( PIX *pixs, PIX *pixm, l_float32 textscale, l_float32 imagescale, l_int32 threshold, l_int32 pageno, const char *fileout );
 LEPT_DLL extern l_ok pixWriteMixedToPS ( PIX *pixb, PIX *pixc, l_float32 scale, l_int32 pageno, const char *fileout );
 LEPT_DLL extern l_ok convertToPSEmbed ( const char *filein, const char *fileout, l_int32 level );
 LEPT_DLL extern l_ok pixaWriteCompressedToPS ( PIXA *pixa, const char *fileout, l_int32 res, l_int32 level );
+LEPT_DLL extern l_ok pixWriteCompressedToPS ( PIX *pix, const char *fileout, l_int32 res, l_int32 level, l_int32 *pindex );
 LEPT_DLL extern l_ok pixWritePSEmbed ( const char *filein, const char *fileout );
 LEPT_DLL extern l_ok pixWriteStreamPS ( FILE *fp, PIX *pix, BOX *box, l_int32 res, l_float32 scale );
 LEPT_DLL extern char * pixWriteStringPS ( PIX *pixs, BOX *box, l_int32 res, l_float32 scale );
