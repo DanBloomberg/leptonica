@@ -871,7 +871,7 @@ PIX     *pix, *pixs;
     if ((d == 2 || d == 4) && !pixGetColormap(pixs))
         pix = pixConvertTo8(pixs, 0);
     else if (d == 16)
-        pix = pixConvert16To8(pixs, 1);
+        pix = pixConvert16To8(pixs, L_MS_BYTE);
     else
         pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
 
@@ -901,24 +901,17 @@ PIX     *pix, *pixs;
  *
  * \param[in]     pixa      any set of images
  * \param[in]     fileout   output ps file
- * \param[in]     res       of input image
- * \param[in]     level     PostScript compression: 1 (uncompressed), 2 or 3
+ * \param[in]     res       resolution for the set of input images
+ * \param[in]     level     PostScript compression capability: 2 or 3
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This generates a PS file of multiple page images, all
- *          with bounding boxes.
- *      (2) It compresses to:
- *              cmap + level2:        jpeg
- *              cmap + level3:        flate
- *              1 bpp:                tiffg4
- *              2 or 4 bpp + level2:  jpeg
- *              2 or 4 bpp + level3:  flate
- *              8 bpp:                jpeg
- *              16 bpp:               flate
- *              32 bpp:               jpeg
- *      (3) To generate a pdf, use: ps2pdf <infile.ps> <outfile.pdf>
+ *      (1) This generates a PostScript file of multiple page images,
+ *          all with bounding boxes.
+ *      (2) See pixWriteCompressedToPS() for details.
+ *      (3) To generate a pdf from %fileout, use:
+ *             ps2pdf <infile.ps> <outfile.pdf>
  * </pre>
  */
 l_ok
@@ -956,33 +949,42 @@ PIX     *pix;
 /*
  * \brief  pixWriteCompressedToPS()
  *
- * \param[in]      pixa       any set of images
+ * \param[in]      pix        any depth; colormap OK
  * \param[in]      fileout    output ps file
  * \param[in]      res        of input image
- * \param[in]      level      PostScript compression: 1 (uncompressed), 2 or 3
+ * \param[in]      level      PostScript compression capability: 2 or 3
  * \param[in,out]  pindex     index of image in output ps file
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This writes a PostScript string to a file, with a bounding box.
+ *      (1) This generates a PostScript string for %pix, and writes it
+ *          to a file, with a bounding box.
  *      (2) *pindex keeps track of the number of images that have been
  *          written to %fileout.  If this is the first image to be
  *          converted, set *pindex == 0 before passing it in.  If the
  *          PostScript string is successfully generated, this will increment
  *          *pindex.  If *pindex > 0, the PostScript string will be
  *          appended to %fileout.
- *      (3) This compresses to:
+ *      (3) PostScript level 2 enables lossless tiffg4 and lossy jpeg
+ *          compression.  Level 3 adds lossless flate (essentially gzip)
+ *          compression.
+ *          * For images with a colormap, lossless flate is often better in
+ *            both quality and size than jpeg, so if %level == 3, we use flate.
+ *          * The decision for images without a colormap is made depending
+ *            on compression efficiency, preferring jpeg to flate even if
+ *            flate is available (%level == 3).
+ *          * Because jpeg does not handle 16 bpp, if %level == 2, the image
+ *            is converted to 8 bpp (using MSB) and compressed with jpeg,
  *              cmap + level2:        jpeg
  *              cmap + level3:        flate
  *              1 bpp:                tiffg4
  *              2 or 4 bpp + level2:  jpeg
  *              2 or 4 bpp + level3:  flate
  *              8 bpp:                jpeg
- *              16 bpp:               flate
+ *              16 bpp + level2:      jpeg   [converted to 8 bpp, with warning]
+ *              16 bpp + level3:      flate
  *              32 bpp:               jpeg
- *      (4) A pdf can be generated from the output, using
- *              ps2pdf <infile.ps> <outfile.pdf>
  * </pre>
  */
 l_ok
@@ -1025,9 +1027,14 @@ PIXCMAP  *cmap;
             pixWrite(tname, pix, IFF_PNG);
         }
     } else if (d == 16) {
-        if (level == 2)
-            L_WARNING("d = 16; must write out flate\n", procName);
-        pixWrite(tname, pix, IFF_PNG);
+        if (level == 2) {
+            L_WARNING("d = 16; converting to 8 bpp for jpeg\n", procName);
+            pixt = pixConvert16To8(pix, L_MS_BYTE);
+            pixWrite(tname, pixt, IFF_JFIF_JPEG);
+            pixDestroy(&pixt);
+        } else {  /* level == 3 */
+            pixWrite(tname, pix, IFF_PNG);
+        }
     } else if (d == 2 || d == 4) {
         if (level == 2) {
             pixt = pixConvertTo8(pix, 0);
