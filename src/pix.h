@@ -197,7 +197,7 @@ typedef struct RGBA_Quad  RGBA_QUAD;
  * </pre>
  */
 
-/*! RGBA Color Flags */
+/*! RGBA Color */
 enum {
     COLOR_RED = 0,        /*!< red color index in RGBA_QUAD    */
     COLOR_GREEN = 1,      /*!< green color index in RGBA_QUAD  */
@@ -218,7 +218,7 @@ static const l_int32  L_ALPHA_SHIFT =
 /*-------------------------------------------------------------------------*
  *                       Colors for drawing boxes                          *
  *-------------------------------------------------------------------------*/
-/*! Box Color Flags */
+/*! Box Color */
 enum {
     L_DRAW_RED = 0,         /*!< draw in red                   */
     L_DRAW_GREEN = 1,       /*!< draw in green                 */
@@ -249,7 +249,7 @@ static const l_float32 L_BLUE_WEIGHT =  0.2f; /*!< Percept. weight for blue  */
 /*-------------------------------------------------------------------------*
  *                        Flags for colormap conversion                    *
  *-------------------------------------------------------------------------*/
-/*! Cmap Conversion Flags */
+/*! Cmap Conversion */
 enum {
     REMOVE_CMAP_TO_BINARY = 0,     /*!< remove colormap for conv to 1 bpp  */
     REMOVE_CMAP_TO_GRAYSCALE = 1,  /*!< remove colormap for conv to 8 bpp  */
@@ -712,7 +712,7 @@ typedef struct PixaComp PIXAC;
  * </pre>
  */
 
-/*! Access Flags */
+/*! Object Access */
 enum {
     L_NOCOPY = 0,     /*!< do not copy the object; do not delete the ptr  */
     L_INSERT = L_NOCOPY,    /*!< stuff it in; do not copy or clone        */
@@ -726,19 +726,19 @@ enum {
 /*----------------------------------------------------------------------------*
  *                              Sort flags                                    *
  *----------------------------------------------------------------------------*/
-/*! Sort Mode Flags */
+/*! Sort Mode */
 enum {
     L_SHELL_SORT = 1,            /*!< use shell sort                        */
     L_BIN_SORT = 2               /*!< use bin sort                          */
 };
 
-/*! Sort Order Flags */
+/*! Sort Order */
 enum {
     L_SORT_INCREASING = 1,       /*!< sort in increasing order              */
     L_SORT_DECREASING = 2        /*!< sort in decreasing order              */
 };
 
-/*! Sort Type Flags */
+/*! Sort Type */
 enum {
     L_SORT_BY_X = 1,             /*!< sort box or c.c. by left edge location  */
     L_SORT_BY_Y = 2,             /*!< sort box or c.c. by top edge location   */
@@ -757,7 +757,7 @@ enum {
 /*---------------------------------------------------------------------------*
  *                             Blend flags                                   *
  *---------------------------------------------------------------------------*/
-/*! Blend Flags */
+/*! Blend Types */
 enum {
     L_BLEND_WITH_INVERSE = 1,     /*!< add some of src inverse to itself     */
     L_BLEND_TO_WHITE = 2,         /*!< shift src colors towards white        */
@@ -767,7 +767,7 @@ enum {
                                   /*!< based on blender pix value            */
 };
 
-/*! Paint Flags */
+/*! Paint Selection */
 enum {
     L_PAINT_LIGHT = 1,            /*!< colorize non-black pixels             */
     L_PAINT_DARK = 2              /*!< colorize non-white pixels             */
@@ -777,7 +777,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                        Graphics pixel setting                           *
  *-------------------------------------------------------------------------*/
-/*! Pixel Setting Flags */
+/*! Pixel Setting */
 enum {
     L_SET_PIXELS = 1,           /*!< set all bits in each pixel to 1       */
     L_CLEAR_PIXELS = 2,         /*!< set all bits in each pixel to 0       */
@@ -788,7 +788,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                     Size and location filter flags                      *
  *-------------------------------------------------------------------------*/
-/*! Size Comparison Flags */
+/*! Size Comparison */
 enum {
     L_SELECT_IF_LT = 1,         /*!< save if value is less than threshold  */
     L_SELECT_IF_GT = 2,         /*!< save if value is more than threshold  */
@@ -796,7 +796,7 @@ enum {
     L_SELECT_IF_GTE = 4         /*!< save if value is >= to the threshold  */
 };
 
-/*! Size Selection Flags */
+/*! Size Selection */
 enum {
     L_SELECT_BY_WIDTH = 1,          /*!< select by width; 1 bpp            */
     L_SELECT_BY_HEIGHT = 2,         /*!< select by height; 1 bpp           */
@@ -806,7 +806,7 @@ enum {
     L_SELECT_BY_PERIMETER = 5       /*!< select by perimeter; 1 bpp        */
 };
 
-/*! Location filter flags */
+/*! Location Filter */
 enum {
     L_SELECT_WIDTH = 1,         /*!< width must satisfy constraint         */
     L_SELECT_HEIGHT = 2,        /*!< height must satisfy constraint        */
@@ -818,7 +818,7 @@ enum {
                                 /*!< and yval must satisfy constraint      */
 };
 
-/*! Boxa Check Flags */
+/*! Boxa Check */
 enum {
     L_CHECK_WIDTH = 1,          /*!< check and possibly modify width       */
     L_CHECK_HEIGHT = 2,         /*!< check and possibly modify height      */
@@ -829,7 +829,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                    Color component selection flags                      *
  *-------------------------------------------------------------------------*/
-/*! Color Selection Flags */
+/*! Color Selection */
 enum {
     L_SELECT_RED = 1,           /*!< use red component                     */
     L_SELECT_GREEN = 2,         /*!< use green component                   */
@@ -845,7 +845,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                         16-bit conversion flags                         *
  *-------------------------------------------------------------------------*/
-/*! 16-bit Conversion Flags */
+/*! 16-bit Conversion */
 enum {
     L_LS_BYTE = 1,              /*!< use LSB                               */
     L_MS_BYTE = 2,              /*!< use MSB                               */
@@ -860,20 +860,20 @@ enum {
 /*-------------------------------------------------------------------------*
  *                        Rotate and shear flags                           *
  *-------------------------------------------------------------------------*/
-/*! Rotate Flags */
+/*! Rotation Type */
 enum {
     L_ROTATE_AREA_MAP = 1,     /*!< use area map rotation, if possible     */
     L_ROTATE_SHEAR = 2,        /*!< use shear rotation                     */
     L_ROTATE_SAMPLING = 3      /*!< use sampling                           */
 };
 
-/*! Background Color Flags */
+/*! Background Color */
 enum {
     L_BRING_IN_WHITE = 1,      /*!< bring in white pixels from the outside */
     L_BRING_IN_BLACK = 2       /*!< bring in black pixels from the outside */
 };
 
-/*! Shear Flags */
+/*! Shear Point */
 enum {
     L_SHEAR_ABOUT_CORNER = 1,  /*!< shear image about UL corner            */
     L_SHEAR_ABOUT_CENTER = 2   /*!< shear image about center               */
@@ -883,7 +883,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                     Affine transform order flags                        *
  *-------------------------------------------------------------------------*/
-/*! Affine Transform Flags */
+/*! Affine Transform Order */
 enum {
     L_TR_SC_RO = 1,            /*!< translate, scale, rotate               */
     L_SC_RO_TR = 2,            /*!< scale, rotate, translate               */
@@ -897,7 +897,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                       Grayscale filling flags                           *
  *-------------------------------------------------------------------------*/
-/*! Grayscale Fill Flags */
+/*! Grayscale Fill */
 enum {
     L_FILL_WHITE = 1,         /*!< fill white pixels (e.g, in fg map)      */
     L_FILL_BLACK = 2          /*!< fill black pixels (e.g., in bg map)     */
@@ -907,7 +907,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                   Flags for setting to white or black                   *
  *-------------------------------------------------------------------------*/
-/*! BlackWhite Set Flags */
+/*! BlackWhite Set */
 enum {
     L_SET_WHITE = 1,         /*!< set pixels to white                      */
     L_SET_BLACK = 2          /*!< set pixels to black                      */
@@ -917,7 +917,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                  Flags for getting white or black value                 *
  *-------------------------------------------------------------------------*/
-/*! BlackWhite Get Flags */
+/*! BlackWhite Get */
 enum {
     L_GET_WHITE_VAL = 1,     /*!< get white pixel value                    */
     L_GET_BLACK_VAL = 2      /*!< get black pixel value                    */
@@ -927,7 +927,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                  Flags for 8 bit and 16 bit pixel sums                  *
  *-------------------------------------------------------------------------*/
-/*! BlackWhite Sum Flags */
+/*! BlackWhite Sum */
 enum {
     L_WHITE_IS_MAX = 1, /*!< white pixels are 0xff or 0xffff; black are 0  */
     L_BLACK_IS_MAX = 2  /*!< black pixels are 0xff or 0xffff; white are 0  */
@@ -939,7 +939,7 @@ enum {
  *         If within this grayscale distance from black or white,          *
  *         do not propagate excess or deficit to neighboring pixels.       *
  *-------------------------------------------------------------------------*/
-/*! Dither Flags */
+/*! Dither Distance */
 enum {
     DEFAULT_CLIP_LOWER_1 = 10, /*!< dist to black with no prop; 1 bpp      */
     DEFAULT_CLIP_UPPER_1 = 10, /*!< dist to black with no prop; 1 bpp      */
@@ -951,7 +951,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                          Distance type flags                            *
  *-------------------------------------------------------------------------*/
-/*! Distance Type Flags */
+/*! Distance Type */
 enum {
     L_MANHATTAN_DISTANCE = 1,  /*!< L1 distance (e.g., in color space)     */
     L_EUCLIDEAN_DISTANCE = 2   /*!< L2 distance                            */
@@ -961,7 +961,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                         Distance Value flags                            *
  *-------------------------------------------------------------------------*/
-/*! Distance Value Flags */
+/*! Distance Value */
 enum {
     L_NEGATIVE = 1,      /*!< values < 0                                   */
     L_NON_NEGATIVE = 2,  /*!< values >= 0                                  */
@@ -975,7 +975,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                         Statistical measures                            *
  *-------------------------------------------------------------------------*/
-/*! Stats Measure Flags */
+/*! Stats Type */
 enum {
     L_MEAN_ABSVAL = 1,         /*!< average of abs values                  */
     L_MEDIAN_VAL = 2,          /*!< median value of set                    */
@@ -990,7 +990,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                       Set index selection flags                         *
  *-------------------------------------------------------------------------*/
-/*! Index Selection Flags */
+/*! Index Selection */
 enum {
     L_CHOOSE_CONSECUTIVE = 1,  /*!< select 'n' consecutive                 */
     L_CHOOSE_SKIP_BY = 2       /*!< select at intervals of 'n'             */
@@ -1000,7 +1000,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                         Text orientation flags                          *
  *-------------------------------------------------------------------------*/
-/*! Text Orientation Flags */
+/*! Text Orientation */
 enum {
     L_TEXT_ORIENT_UNKNOWN = 0, /*!< low confidence on text orientation     */
     L_TEXT_ORIENT_UP = 1,      /*!< portrait, text rightside-up            */
@@ -1013,7 +1013,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                         Edge orientation flags                          *
  *-------------------------------------------------------------------------*/
-/*! Edge Orientation Flags */
+/*! Edge Orientation */
 enum {
     L_HORIZONTAL_EDGES = 0,   /*!< filters for horizontal edges            */
     L_VERTICAL_EDGES = 1,     /*!< filters for vertical edges              */
@@ -1024,7 +1024,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                         Line orientation flags                          *
  *-------------------------------------------------------------------------*/
-/*! Line Orientation Flags */
+/*! Line Orientation */
 enum {
     L_HORIZONTAL_LINE = 0,   /*!< horizontal line                          */
     L_POS_SLOPE_LINE = 1,    /*!< 45 degree line with positive slope       */
@@ -1037,7 +1037,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                         Image orientation flags                         *
  *-------------------------------------------------------------------------*/
-/*! Image Orientation Flags */
+/*! Image Orientation */
 enum {
     L_PORTRAIT_MODE = 0,   /*!< typical: page is viewed with height > width  */
     L_LANDSCAPE_MODE = 1   /*!< page is viewed at 90 deg to portrait mode    */
@@ -1047,7 +1047,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                           Scan direction flags                          *
  *-------------------------------------------------------------------------*/
-/*! Scan Direction Flags */
+/*! Scan Direction */
 enum {
     L_FROM_LEFT = 0,         /*!< scan from left                           */
     L_FROM_RIGHT = 1,        /*!< scan from right                          */
@@ -1064,7 +1064,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                Box size adjustment and location flags                   *
  *-------------------------------------------------------------------------*/
-/*! Box Adjustment Flags */
+/*! Box Adjustment */
 enum {
     L_ADJUST_SKIP = 0,           /*!< do not adjust                        */
     L_ADJUST_LEFT = 1,           /*!< adjust left edge                     */
@@ -1089,7 +1089,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *          Flags for modifying box boundaries using a second box          *
  *-------------------------------------------------------------------------*/
-/*! Box Boundary Mod Flags */
+/*! Box Boundary Mod */
 enum {
     L_USE_MINSIZE = 1,           /*!< use boundaries giving min size       */
     L_USE_MAXSIZE = 2,           /*!< use boundaries giving max size       */
@@ -1103,7 +1103,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *              Handling overlapping bounding boxes in boxa                *
  *-------------------------------------------------------------------------*/
-/*! Box Overlap Mod Flags */
+/*! Box Overlap Mod */
 enum {
     L_COMBINE = 1,         /*!< resize to bounding region; remove smaller  */
     L_REMOVE_SMALL = 2     /*!< only remove smaller                        */
@@ -1113,7 +1113,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                    Flags for replacing invalid boxes                    *
  *-------------------------------------------------------------------------*/
-/*! Invalid Box Replacement Flags */
+/*! Box Replacement */
 enum {
     L_USE_ALL_BOXES = 1,         /*!< consider all boxes in the sequence   */
     L_USE_SAME_PARITY_BOXES = 2  /*!< consider boxes with the same parity  */
@@ -1123,7 +1123,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                          Flags for box corners                          *
  *-------------------------------------------------------------------------*/
-/*! Box CornerFlags */
+/*! Box Corners */
 enum {
     L_UPPER_LEFT = 1,         /*!< UL corner                               */
     L_UPPER_RIGHT = 2,        /*!< UR corner                               */
@@ -1135,13 +1135,13 @@ enum {
 /*-------------------------------------------------------------------------*
  *                            Horizontal warp                              *
  *-------------------------------------------------------------------------*/
-/*! Horiz Warp Stretch Flags */
+/*! Horiz Warp Stretch */
 enum {
     L_WARP_TO_LEFT = 1,    /*!< increasing stretch or contraction to left  */
     L_WARP_TO_RIGHT = 2    /*!< increasing stretch or contraction to right */
 };
 
-/*! Horiz Warp Mode Flags */
+/*! Horiz Warp Mode */
 enum {
     L_LINEAR_WARP = 1,     /*!< stretch or contraction grows linearly      */
     L_QUADRATIC_WARP = 2   /*!< stretch or contraction grows quadratically */
@@ -1151,7 +1151,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                      Pixel selection for resampling                     *
  *-------------------------------------------------------------------------*/
-/*! Pixel Selection Flags */
+/*! Pixel Selection */
 enum {
     L_INTERPOLATED = 1,    /*!< linear interpolation from src pixels       */
     L_SAMPLED = 2          /*!< nearest src pixel sampling only            */
@@ -1161,7 +1161,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                             Thinning flags                              *
  *-------------------------------------------------------------------------*/
-/*! Thinning Flags */
+/*! Thinning Polarity */
 enum {
     L_THIN_FG = 1,             /*!< thin foreground of 1 bpp image         */
     L_THIN_BG = 2              /*!< thin background of 1 bpp image         */
@@ -1171,7 +1171,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                            Runlength flags                              *
  *-------------------------------------------------------------------------*/
-/*! Runlength Flags */
+/*! Runlength Direction */
 enum {
     L_HORIZONTAL_RUNS = 0,   /*!< determine runlengths of horizontal runs  */
     L_VERTICAL_RUNS = 1      /*!< determine runlengths of vertical runs    */
@@ -1181,7 +1181,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                          Edge filter flags                              *
  *-------------------------------------------------------------------------*/
-/*! Edge Filter Flags */
+/*! Edge Filter */
 enum {
     L_SOBEL_EDGE = 1,        /*!< Sobel edge filter                        */
     L_TWO_SIDED_EDGE = 2     /*!< Two-sided edge filter                    */
@@ -1191,7 +1191,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *             Subpixel color component ordering in LCD display            *
  *-------------------------------------------------------------------------*/
-/*! Subpixel Color Order Flags */
+/*! Subpixel Color Order */
 enum {
     L_SUBPIXEL_ORDER_RGB = 1,   /*!< sensor order left-to-right RGB        */
     L_SUBPIXEL_ORDER_BGR = 2,   /*!< sensor order left-to-right BGR        */
@@ -1203,7 +1203,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                          HSV histogram flags                            *
  *-------------------------------------------------------------------------*/
-/*! HSV Histogram Flags */
+/*! HSV Histogram */
 enum {
     L_HS_HISTO = 1,            /*!< Use hue-saturation histogram           */
     L_HV_HISTO = 2,            /*!< Use hue-value histogram                */
@@ -1214,7 +1214,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                HSV Region flags (inclusion, exclusion)                  *
  *-------------------------------------------------------------------------*/
-/*! HSV Region Flags */
+/*! HSV Region */
 enum {
     L_INCLUDE_REGION = 1,      /*!< Use pixels with specified HSV region   */
     L_EXCLUDE_REGION = 2       /*!< Use pixels outside HSV region          */
@@ -1224,7 +1224,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                Location flags for adding text to a pix                  *
  *-------------------------------------------------------------------------*/
-/*! Add Text Location Flags */
+/*! Add Text Location */
 enum {
     L_ADD_ABOVE = 1,           /*!< Add text above the image               */
     L_ADD_BELOW = 2,           /*!< Add text below the image               */
@@ -1240,7 +1240,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                       Flags for plotting on a pix                       *
  *-------------------------------------------------------------------------*/
-/*! Pix Plot Flags */
+/*! Pix Plot */
 enum {
     L_PLOT_AT_TOP = 1,         /*!< Plot horizontally at top               */
     L_PLOT_AT_MID_HORIZ = 2,   /*!< Plot horizontally at middle            */
@@ -1254,7 +1254,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                    Flags for making simple masks                        *
  *-------------------------------------------------------------------------*/
-/*! Mask Generation Flags */
+/*! Mask Generation */
 enum {
     L_USE_INNER = 1,           /*!< Select the interior part               */
     L_USE_OUTER = 2            /*!< Select the outer part (e.g., a frame)  */
@@ -1264,7 +1264,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                   Flags for selecting display program                   *
  *-------------------------------------------------------------------------*/
-/*! Display Program Select Flags */
+/*! Display Program */
 enum {
     L_DISPLAY_WITH_XZGV = 1,  /*!< Use xzgv with pixDisplay()              */
     L_DISPLAY_WITH_XLI = 2,   /*!< Use xli with pixDisplay()               */
@@ -1288,7 +1288,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *          Handling negative values in conversion to unsigned int         *
  *-------------------------------------------------------------------------*/
-/*! Negative Value Handling Flags */
+/*! Negative Value */
 enum {
     L_CLIP_TO_ZERO = 1,      /*!< Clip negative values to 0                */
     L_TAKE_ABSVAL = 2        /*!< Convert to positive using L_ABS()        */
@@ -1298,7 +1298,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *                        Relative to zero flags                           *
  *-------------------------------------------------------------------------*/
-/*! Relative To Zero Flags */
+/*! Relative To Zero */
 enum {
     L_LESS_THAN_ZERO = 1,    /*!< Choose values less than zero             */
     L_EQUAL_TO_ZERO = 2,     /*!< Choose values equal to zero              */
@@ -1309,7 +1309,7 @@ enum {
 /*-------------------------------------------------------------------------*
  *         Flags for adding or removing trailing slash from string         *
  *-------------------------------------------------------------------------*/
-/*! Trailing Slash Flags */
+/*! Trailing Slash */
 enum {
     L_ADD_TRAIL_SLASH = 1,     /*!< Add trailing slash to string           */
     L_REMOVE_TRAIL_SLASH = 2   /*!< Remove trailing slash from string      */

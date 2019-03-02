@@ -119,14 +119,14 @@ struct JbData
 typedef struct JbData  JBDATA;
 
 
-/*! JB Classifier Type */
+/*! JB Classifier */
 enum {
    JB_RANKHAUS = 0,
    JB_CORRELATION = 1
 };
 
     /*! For jbGetComponents(): type of component to extract from images */
-/*! JB Component Type */
+/*! JB Component */
 enum {
    JB_CONN_COMPS = 0,
    JB_CHARACTERS = 1,
