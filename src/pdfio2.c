@@ -1352,7 +1352,8 @@ L_COMP_DATA  *cid;
 
         /* Generate the data */
     cid = l_generateJp2kData(fname);
-    lept_rmfile(fname);
+    if (lept_rmfile(fname) != 0)
+        L_ERROR("temp file %s was not deleted\n", procName, fname);
     LEPT_FREE(fname);
     return cid;
 }

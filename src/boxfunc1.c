@@ -763,8 +763,8 @@ l_int32  valid1, valid2;
         return (BOX *)ERROR_PTR("boxes not both defined", procName, NULL);
     boxIsValid(box1, &valid1);
     boxIsValid(box2, &valid2);
-    if (!valid1 || !valid2) {
-        L_WARNING("boxes not both valid\n", procName);
+    if (!valid1 && !valid2) {
+        L_WARNING("both boxes are invalid\n", procName);
         return boxCreate(0, 0, 0, 0);
     }
     if (valid1 && !valid2)

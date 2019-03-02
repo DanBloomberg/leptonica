@@ -1053,7 +1053,8 @@ PIXCMAP  *cmap;
     if (writeout)
         writeImageCompressedToPSFile(tname, fileout, res, pindex);
 
-    lept_rmfile(tname);
+    if (lept_rmfile(tname) != 0)
+        L_ERROR("temp file %s was not deleted\n", procName, tname);
     LEPT_FREE(tname);
     return 0;
 }
