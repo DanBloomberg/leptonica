@@ -485,7 +485,6 @@ struct Box
     l_int32            w;           /*!< box width                         */
     l_int32            h;           /*!< box height                        */
     l_uint32           refcount;    /*!< reference count (1 if no clones)  */
-
 };
 typedef struct Box    BOX;
 
