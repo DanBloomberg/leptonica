@@ -282,7 +282,7 @@ LEPT_DLL extern l_int32  LeptDebugOK;  /* default is 0 */
 /*------------------------------------------------------------------------*
  *                    Simple search state variables                       *
  *------------------------------------------------------------------------*/
-/*! Simple search state variables */
+/*! Search State Params */
 enum {
     L_NOT_FOUND = 0,
     L_FOUND = 1
@@ -292,7 +292,7 @@ enum {
 /*------------------------------------------------------------------------*
  *                     Path separator conversion                          *
  *------------------------------------------------------------------------*/
-/*! Path separator conversion */
+/*! Path Separator Flags */
 enum {
     UNIX_PATH_SEPCHAR = 0,
     WIN_PATH_SEPCHAR = 1
@@ -365,7 +365,8 @@ typedef struct L_WallTimer  L_WALLTIMER;
  *  "Print messages that have an equal or greater severity than this."    *
  *------------------------------------------------------------------------*/
 
-/*! Control printing of error, warning and info messages */
+    /*! Control printing of error, warning and info messages */
+/*! Message Control Flags */
 enum {
     L_SEVERITY_EXTERNAL = 0,   /* Get the severity from the environment   */
     L_SEVERITY_ALL      = 1,   /* Lowest severity: print all messages     */

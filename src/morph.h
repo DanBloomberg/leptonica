@@ -105,7 +105,7 @@ typedef struct L_Kernel  L_KERNEL;
  *  See notes in morph.c for usage.                                        *
  *-------------------------------------------------------------------------*/
 
-/*! Morphological boundary condition flags */
+/*! Morph Boundary Flags */
 enum {
     SYMMETRIC_MORPH_BC = 0,
     ASYMMETRIC_MORPH_BC = 1
@@ -115,7 +115,7 @@ enum {
  *                        Structuring element types                        *
  *-------------------------------------------------------------------------*/
 
-/*! Structuring element types */
+/*! Struct Element Types */
 enum {
     SEL_DONT_CARE  = 0,
     SEL_HIT        = 1,
@@ -126,7 +126,7 @@ enum {
  *                  Runlength flags for granulometry                       *
  *-------------------------------------------------------------------------*/
 
-/*! Runlength flags for granulometry */
+/*! Runlength Polarity Flags */
 enum {
     L_RUN_OFF = 0,
     L_RUN_ON  = 1
@@ -137,7 +137,7 @@ enum {
  *                 composable Sels, convolution, etc.                      *
  *-------------------------------------------------------------------------*/
 
-/*! Direction flags */
+/*! Direction Flags */
 enum {
     L_HORIZ            = 1,
     L_VERT             = 2,
@@ -148,7 +148,7 @@ enum {
  *                   Morphological operation flags                         *
  *-------------------------------------------------------------------------*/
 
-/*! Morphological operation flags */
+/*! Morph Type */
 enum {
     L_MORPH_DILATE    = 1,
     L_MORPH_ERODE     = 2,
@@ -161,7 +161,7 @@ enum {
  *                    Grayscale intensity scaling flags                    *
  *-------------------------------------------------------------------------*/
 
-/*! Grayscale intensity scaling flags */
+/*! Pixel Value Scaling Flags */
 enum {
     L_LINEAR_SCALE  = 1,
     L_LOG_SCALE     = 2
@@ -171,7 +171,7 @@ enum {
  *                      Morphological tophat flags                         *
  *-------------------------------------------------------------------------*/
 
-/*! Morphological tophat flags */
+/*! Morph Tophat Flags */
 enum {
     L_TOPHAT_WHITE = 0,
     L_TOPHAT_BLACK = 1
@@ -182,7 +182,7 @@ enum {
  *                 (use on grayscale images and Numas)                     *
  *-------------------------------------------------------------------------*/
 
-/*! Arithmetic and logical operator flags */
+/*! Arith_and_logical Flags */
 enum {
     L_ARITH_ADD       = 1,
     L_ARITH_SUBTRACT  = 2,
@@ -198,7 +198,7 @@ enum {
  *                        Min/max selection flags                          *
  *-------------------------------------------------------------------------*/
 
-/*! Min/max selection flags */
+/*! Min_max Selection Flags */
 enum {
     L_CHOOSE_MIN = 1,         /* useful in a downscaling "erosion"       */
     L_CHOOSE_MAX = 2,         /* useful in a downscaling "dilation"      */
@@ -211,7 +211,7 @@ enum {
  *                    Distance function b.c. flags                         *
  *-------------------------------------------------------------------------*/
 
-/*! Distance function b.c. flags */
+/*! Distance BC Flags */
 enum {
     L_BOUNDARY_BG = 1,  /* assume bg outside image */
     L_BOUNDARY_FG = 2   /* assume fg outside image */
@@ -221,7 +221,7 @@ enum {
  *                         Image comparison flags                          *
  *-------------------------------------------------------------------------*/
 
-/*! Image comparison flags */
+/*! Image Comparison Flags */
 enum {
     L_COMPARE_XOR = 1,
     L_COMPARE_SUBTRACT = 2,
@@ -232,7 +232,7 @@ enum {
  *                          Color content flags                            *
  *-------------------------------------------------------------------------*/
 
-/*! Color content flags */
+/*! Color Content Flags */
 enum {
     L_MAX_DIFF_FROM_AVERAGE_2 = 1,
     L_MAX_MIN_DIFF_FROM_2 = 2,
