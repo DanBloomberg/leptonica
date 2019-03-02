@@ -1367,15 +1367,19 @@ PIXA    *pixat;
     }
     first = L_MAX(0, first);
     if (last < 0) last = n - 1;
-    if (first >= n)
+    if (first >= n) {
+        boxaDestroy(&boxa);
         return (PIX *)ERROR_PTR("invalid first", procName, NULL);
+    }
     if (last >= n) {
         L_WARNING("last = %d is beyond max index = %d; adjusting\n",
                   procName, last, n - 1);
         last = n - 1;
     }
-    if (first > last)
+    if (first > last) {
+        boxaDestroy(&boxa);
         return (PIX *)ERROR_PTR("first > last", procName, NULL);
+    }
 
         /* Because the bitmap font will be reduced when tiled, choose the
          * font size inversely with the scale factor. */
