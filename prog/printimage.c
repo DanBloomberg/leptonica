@@ -51,7 +51,8 @@
  *   For example, to make 3 color copies, you might use:
  *       printimage myfile.jpg myprinter -#3 -o ColorModel=Color
  *
- *   The intermediate PostScript file generated is level 3 (compressed):
+ *   By default, the intermediate PostScript file generated is
+ *   level 3 (compressed):
  *       /tmp/print_image.ps
  *
  *   If your system does not have lpr, it likely has lp.  You can run

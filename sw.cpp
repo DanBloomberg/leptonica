@@ -276,6 +276,7 @@ void build(Solution &s)
             {"histotest", {"histotest.c"}},
             {"histoduptest", {"histoduptest.c"}},
             {"htmlviewer", {"htmlviewer.c"}},
+            {"imagetops", {"imagetops.c"}},
             {"jbcorrelation", {"jbcorrelation.c"}},
             {"jbrankhaus", {"jbrankhaus.c"}},
             {"jbwords", {"jbwords.c"}},

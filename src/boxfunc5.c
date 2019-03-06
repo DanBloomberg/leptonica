@@ -1657,8 +1657,10 @@ boxaPlotSides(BOXA        *boxa,
               PIX        **ppixd)
 {
 char            buf[128], titlebuf[128];
+char           *dataname;
 static l_int32  plotid = 0;
 l_int32         n, i, w, h, left, top, right, bot;
+l_float32       med, dev;
 BOXA           *boxat;
 GPLOT          *gplot;
 NUMA           *nal, *nat, *nar, *nab;
@@ -1715,6 +1717,23 @@ NUMA           *nal, *nat, *nar, *nab;
     if (ppixd) {
         stringCat(buf, sizeof(buf), ".png");
         *ppixd = pixRead(buf);
+        dataname = (plotname) ? stringNew(plotname) : stringNew("no_name");
+        numaGetMedian(nal, &med);
+        numaGetMeanDevFromMedian(nal, med, &dev);
+        fprintf(stderr, "%s left: med = %7.3f, meandev = %7.3f\n",
+                dataname, med, dev);
+        numaGetMedian(nat, &med);
+        numaGetMeanDevFromMedian(nat, med, &dev);
+        fprintf(stderr, "%s top: med = %7.3f, meandev = %7.3f\n",
+                dataname, med, dev);
+        numaGetMedian(nar, &med);
+        numaGetMeanDevFromMedian(nar, med, &dev);
+        fprintf(stderr, "%s right: med = %7.3f, meandev = %7.3f\n",
+                dataname, med, dev);
+        numaGetMedian(nab, &med);
+        numaGetMeanDevFromMedian(nab, med, &dev);
+        fprintf(stderr, "%s bot: med = %7.3f, meandev = %7.3f\n",
+                dataname, med, dev);
     }
 
     if (pnal)

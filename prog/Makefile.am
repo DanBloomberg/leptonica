@@ -87,7 +87,7 @@ OTHER_PROGS = adaptmap_dark \
 	flipselgen fmorphautogen \
 	fpixcontours gammatest graphicstest graymorphtest \
 	hashtest histotest histoduptest htmlviewer \
-	jbcorrelation jbrankhaus jbwords \
+	imagetops jbcorrelation jbrankhaus jbwords \
 	listtest livre_adapt livre_hmt \
 	livre_makefigs livre_orient \
 	livre_pageseg livre_seedgen livre_tophat \

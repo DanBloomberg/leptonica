@@ -970,10 +970,9 @@ PIX     *pix;
  *          compression.  Level 3 adds lossless flate (essentially gzip)
  *          compression.
  *          * For images with a colormap, lossless flate is often better in
- *            both quality and size than jpeg, so if %level == 3, we use flate.
- *          * The decision for images without a colormap is made depending
- *            on compression efficiency, preferring jpeg to flate even if
- *            flate is available (%level == 3).
+ *            both quality and size than jpeg.
+ *          * The decision for images without a colormap affects compression
+ *            efficiency: %level2 (jpeg) is usually better than %level3 (flate)
  *          * Because jpeg does not handle 16 bpp, if %level == 2, the image
  *            is converted to 8 bpp (using MSB) and compressed with jpeg,
  *              cmap + level2:        jpeg
@@ -981,10 +980,12 @@ PIX     *pix;
  *              1 bpp:                tiffg4
  *              2 or 4 bpp + level2:  jpeg
  *              2 or 4 bpp + level3:  flate
- *              8 bpp:                jpeg
+ *              8 bpp + level2:       jpeg
+ *              8 bpp + level3:       flate
  *              16 bpp + level2:      jpeg   [converted to 8 bpp, with warning]
  *              16 bpp + level3:      flate
- *              32 bpp:               jpeg
+ *              32 bpp + level2:      jpeg
+ *              32 bpp + level3:      flate
  * </pre>
  */
 l_ok
@@ -1044,7 +1045,11 @@ PIXCMAP  *cmap;
             pixWrite(tname, pix, IFF_PNG);
         }
     } else if (d == 8 || d == 32) {
-        pixWrite(tname, pix, IFF_JFIF_JPEG);
+        if (level == 2) {
+            pixWrite(tname, pix, IFF_JFIF_JPEG);
+        } else {  /* level == 3 */
+            pixWrite(tname, pix, IFF_PNG);
+        }
     } else {  /* shouldn't happen */
         L_ERROR("invalid depth: %d\n", procName, d);
         writeout = FALSE;
