@@ -1019,40 +1019,28 @@ PIXCMAP  *cmap;
     cmap = pixGetColormap(pix);
     if (d == 1) {
         pixWrite(tname, pix, IFF_TIFF_G4);
-    } else if (cmap) {
-        if (level == 2) {
+    } else if (level == 3) {
+        pixWrite(tname, pix, IFF_PNG);
+    } else {  /* level == 2 */
+        if (cmap) {
             pixt = pixConvertForPSWrap(pix);
             pixWrite(tname, pixt, IFF_JFIF_JPEG);
             pixDestroy(&pixt);
-        } else {  /* level == 3 */
-            pixWrite(tname, pix, IFF_PNG);
-        }
-    } else if (d == 16) {
-        if (level == 2) {
+        } else if (d == 16) {
             L_WARNING("d = 16; converting to 8 bpp for jpeg\n", procName);
             pixt = pixConvert16To8(pix, L_MS_BYTE);
             pixWrite(tname, pixt, IFF_JFIF_JPEG);
             pixDestroy(&pixt);
-        } else {  /* level == 3 */
-            pixWrite(tname, pix, IFF_PNG);
-        }
-    } else if (d == 2 || d == 4) {
-        if (level == 2) {
+        } else if (d == 2 || d == 4) {
             pixt = pixConvertTo8(pix, 0);
             pixWrite(tname, pixt, IFF_JFIF_JPEG);
             pixDestroy(&pixt);
-        } else {  /* level == 3 */
-            pixWrite(tname, pix, IFF_PNG);
-        }
-    } else if (d == 8 || d == 32) {
-        if (level == 2) {
+        } else if (d == 8 || d == 32) {
             pixWrite(tname, pix, IFF_JFIF_JPEG);
-        } else {  /* level == 3 */
-            pixWrite(tname, pix, IFF_PNG);
+        } else {  /* shouldn't happen */
+            L_ERROR("invalid depth with level 2: %d\n", procName, d);
+            writeout = FALSE;
         }
-    } else {  /* shouldn't happen */
-        L_ERROR("invalid depth: %d\n", procName, d);
-        writeout = FALSE;
     }
 
     if (writeout)
