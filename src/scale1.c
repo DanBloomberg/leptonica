@@ -2481,8 +2481,8 @@ scaleColor2xLILineLow(l_uint32  *lined,
                       l_int32    lastlineflag)
 {
 l_int32    j, jd, wsm;
-l_int32    rval1, rval2, rval3, rval4, gval1, gval2, gval3, gval4;
-l_int32    bval1, bval2, bval3, bval4;
+l_uint32   rval1, rval2, rval3, rval4, gval1, gval2, gval3, gval4;
+l_uint32   bval1, bval2, bval3, bval4;
 l_uint32   pixels1, pixels2, pixels3, pixels4, pixel;
 l_uint32  *linesp, *linedp;
 
@@ -2680,7 +2680,7 @@ scaleGray2xLILineLow(l_uint32  *lined,
                      l_int32    lastlineflag)
 {
 l_int32    j, jd, wsm, w;
-l_int32    sval1, sval2, sval3, sval4;
+l_uint32   sval1, sval2, sval3, sval4;
 l_uint32  *linesp, *linedp;
 l_uint32   words, wordsp, wordd, worddp;
 

@@ -1734,6 +1734,7 @@ NUMA           *nal, *nat, *nar, *nab;
         numaGetMeanDevFromMedian(nab, med, &dev);
         fprintf(stderr, "%s bot: med = %7.3f, meandev = %7.3f\n",
                 dataname, med, dev);
+        LEPT_FREE(dataname);
     }
 
     if (pnal)
