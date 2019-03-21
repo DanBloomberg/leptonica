@@ -5,7 +5,7 @@ LDADD = $(top_builddir)/src/liblept.la $(LIBM)
  
 INSTALL_PROGS = convertfilestopdf convertfilestops \
 	convertformat convertsegfilestopdf convertsegfilestops \
-	converttopdf converttops fileinfo xtractprotos
+	converttopdf converttops fileinfo imagetops xtractprotos
 
 AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	alphaxform_reg baseline_reg bilateral2_reg \
@@ -87,7 +87,7 @@ OTHER_PROGS = adaptmap_dark \
 	flipselgen fmorphautogen \
 	fpixcontours gammatest graphicstest graymorphtest \
 	hashtest histotest histoduptest htmlviewer \
-	imagetops jbcorrelation jbrankhaus jbwords \
+	jbcorrelation jbrankhaus jbwords \
 	listtest livre_adapt livre_hmt \
 	livre_makefigs livre_orient \
 	livre_pageseg livre_seedgen livre_tophat \
