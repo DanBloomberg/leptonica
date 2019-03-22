@@ -164,7 +164,7 @@ PIXCMAP   *cmap;
     offset = bmpfh->bfOffBits[0];
     offset += (l_int32)bmpfh->bfOffBits[1] << 8;
     offset += (l_int32)bmpfh->bfOffBits[2] << 16;
-    offset += (l_int32)bmpfh->bfOffBits[3] << 24;
+    offset += (l_uint32)bmpfh->bfOffBits[3] << 24;
     width = convertOnBigEnd32(bmpih->biWidth);
     height = convertOnBigEnd32(bmpih->biHeight);
     depth = convertOnBigEnd16(bmpih->biBitCount);

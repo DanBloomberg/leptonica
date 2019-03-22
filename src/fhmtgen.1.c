@@ -25,7 +25,7 @@
  *====================================================================*/
 
 /*!
- * \brief       Top-level fast hit-miss transform with auto-generated sels
+ *      Top-level fast hit-miss transform with auto-generated sels
  *
  *             PIX     *pixHMTDwa_1()
  *             PIX     *pixFHMTGen_1()
@@ -55,12 +55,12 @@ static char  SEL_NAMES[][80] = {
                              "sel_lrc"};
 
 /*!
- * \brief   pixHMTDwa_1()
+ * \brief  pixHMTDwa_1()
  *
- * \param[in]    pixd usual 3 choices: null, == pixs, != pixs
- * \param[in]    pixs 1 bpp
- * \param[in]    sel name
- * \return  pixd
+ * \param[in]    pixd      usual 3 choices: null, == pixs, != pixs
+ * \param[in]    pixs      1 bpp
+ * \param[in]    sel       name
+ * \return   pixd
  *
  * <pre>
  * Notes:
@@ -99,12 +99,12 @@ PIX  *pixt1, *pixt2, *pixt3;
 
 
 /*!
- * \brief   pixFHMTGen_1()
+ * \brief  pixFHMTGen_1()
  *
- * \param[in]    pixd usual 3 choices: null, == pixs, != pixs
- * \param[in]    pixs 1 bpp
- * \param[in]    sel name
- * \return  pixd
+ * \param[in]    pixd     usual 3 choices: null, == pixs, != pixs
+ * \param[in]    pixs     1 bpp
+ * \param[in]    sel      name
+ * \return   pixd
  *
  * <pre>
  * Notes:

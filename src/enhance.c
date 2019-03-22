@@ -123,10 +123,6 @@
      * between 0.0 and 1.0 */
 static const l_float32  ENHANCE_SCALE_FACTOR = 5.;
 
-    /* Default number of pixels sampled to determine histogram */
-static const l_int32  DEFAULT_HISTO_SAMPLES = 100000;
-
-
 /*-------------------------------------------------------------*
  *         Gamma TRC (tone reproduction curve) mapping         *
  *-------------------------------------------------------------*/

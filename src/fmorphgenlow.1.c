@@ -25,7 +25,7 @@
  *====================================================================*/
 
 /*!
- * \brief      Low-level fast binary morphology with auto-generated sels
+ *     Low-level fast binary morphology with auto-generated sels
  *
  *      Dispatcher:
  *             l_int32    fmorphopgen_low_1()
@@ -159,7 +159,7 @@ static void  ferode_1_57(l_uint32 *, l_int32, l_int32, l_int32, l_uint32 *, l_in
  *                          Fast morph dispatcher                      *
  *---------------------------------------------------------------------*/
 /*!
- * \brief   fmorphopgen_low_1()
+ *  fmorphopgen_low_1()
  *
  *       a dispatcher to appropriate low-level code
  */
@@ -548,9 +548,9 @@ fdilate_1_0(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -572,9 +572,9 @@ ferode_1_0(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -596,9 +596,9 @@ fdilate_1_1(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -621,9 +621,9 @@ ferode_1_1(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -646,9 +646,9 @@ fdilate_1_2(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -672,9 +672,9 @@ ferode_1_2(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -698,9 +698,9 @@ fdilate_1_3(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -725,9 +725,9 @@ ferode_1_3(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -752,9 +752,9 @@ fdilate_1_4(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -780,9 +780,9 @@ ferode_1_4(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -808,9 +808,9 @@ fdilate_1_5(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -837,9 +837,9 @@ ferode_1_5(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -866,9 +866,9 @@ fdilate_1_6(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -896,9 +896,9 @@ ferode_1_6(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -926,9 +926,9 @@ fdilate_1_7(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -957,9 +957,9 @@ ferode_1_7(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -988,9 +988,9 @@ fdilate_1_8(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1020,9 +1020,9 @@ ferode_1_8(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1052,9 +1052,9 @@ fdilate_1_9(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1085,9 +1085,9 @@ ferode_1_9(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1118,9 +1118,9 @@ fdilate_1_10(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1152,9 +1152,9 @@ ferode_1_10(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1186,9 +1186,9 @@ fdilate_1_11(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1221,9 +1221,9 @@ ferode_1_11(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1256,9 +1256,9 @@ fdilate_1_12(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1292,9 +1292,9 @@ ferode_1_12(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1328,9 +1328,9 @@ fdilate_1_13(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1365,9 +1365,9 @@ ferode_1_13(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1402,9 +1402,9 @@ fdilate_1_14(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1444,9 +1444,9 @@ ferode_1_14(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1486,9 +1486,9 @@ fdilate_1_15(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1529,9 +1529,9 @@ ferode_1_15(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1572,9 +1572,9 @@ fdilate_1_16(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1619,9 +1619,9 @@ ferode_1_16(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1666,9 +1666,9 @@ fdilate_1_17(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1718,9 +1718,9 @@ ferode_1_17(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1770,9 +1770,9 @@ fdilate_1_18(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1823,9 +1823,9 @@ ferode_1_18(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1876,9 +1876,9 @@ fdilate_1_19(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1933,9 +1933,9 @@ ferode_1_19(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -1990,9 +1990,9 @@ fdilate_1_20(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -2052,9 +2052,9 @@ ferode_1_20(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -2114,9 +2114,9 @@ fdilate_1_21(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -2177,9 +2177,9 @@ ferode_1_21(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -2240,9 +2240,9 @@ fdilate_1_22(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -2307,9 +2307,9 @@ ferode_1_22(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -2374,9 +2374,9 @@ fdilate_1_23(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -2446,9 +2446,9 @@ ferode_1_23(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -2518,9 +2518,9 @@ fdilate_1_24(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -2591,9 +2591,9 @@ ferode_1_24(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -2664,9 +2664,9 @@ fdilate_1_25(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -2688,9 +2688,9 @@ ferode_1_25(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -2712,9 +2712,9 @@ fdilate_1_26(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -2737,9 +2737,9 @@ ferode_1_26(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -2762,9 +2762,9 @@ fdilate_1_27(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2;
 
     wpls2 = 2 * wpls;
@@ -2790,9 +2790,9 @@ ferode_1_27(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2;
 
     wpls2 = 2 * wpls;
@@ -2818,9 +2818,9 @@ fdilate_1_28(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2;
 
     wpls2 = 2 * wpls;
@@ -2847,9 +2847,9 @@ ferode_1_28(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2;
 
     wpls2 = 2 * wpls;
@@ -2876,9 +2876,9 @@ fdilate_1_29(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3;
 
     wpls2 = 2 * wpls;
@@ -2907,9 +2907,9 @@ ferode_1_29(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3;
 
     wpls2 = 2 * wpls;
@@ -2938,9 +2938,9 @@ fdilate_1_30(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3;
 
     wpls2 = 2 * wpls;
@@ -2970,9 +2970,9 @@ ferode_1_30(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3;
 
     wpls2 = 2 * wpls;
@@ -3002,9 +3002,9 @@ fdilate_1_31(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 
     wpls2 = 2 * wpls;
@@ -3036,9 +3036,9 @@ ferode_1_31(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 
     wpls2 = 2 * wpls;
@@ -3070,9 +3070,9 @@ fdilate_1_32(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 
     wpls2 = 2 * wpls;
@@ -3105,9 +3105,9 @@ ferode_1_32(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 
     wpls2 = 2 * wpls;
@@ -3140,9 +3140,9 @@ fdilate_1_33(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5;
 
@@ -3178,9 +3178,9 @@ ferode_1_33(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5;
 
@@ -3216,9 +3216,9 @@ fdilate_1_34(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5;
 
@@ -3255,9 +3255,9 @@ ferode_1_34(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5;
 
@@ -3294,9 +3294,9 @@ fdilate_1_35(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6;
 
@@ -3335,9 +3335,9 @@ ferode_1_35(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6;
 
@@ -3376,9 +3376,9 @@ fdilate_1_36(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6;
 
@@ -3418,9 +3418,9 @@ ferode_1_36(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6;
 
@@ -3460,9 +3460,9 @@ fdilate_1_37(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7;
 
@@ -3504,9 +3504,9 @@ ferode_1_37(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7;
 
@@ -3548,9 +3548,9 @@ fdilate_1_38(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7;
 
@@ -3593,9 +3593,9 @@ ferode_1_38(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7;
 
@@ -3638,9 +3638,9 @@ fdilate_1_39(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10;
@@ -3692,9 +3692,9 @@ ferode_1_39(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10;
@@ -3746,9 +3746,9 @@ fdilate_1_40(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10;
@@ -3801,9 +3801,9 @@ ferode_1_40(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10;
@@ -3856,9 +3856,9 @@ fdilate_1_41(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -3917,9 +3917,9 @@ ferode_1_41(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -3978,9 +3978,9 @@ fdilate_1_42(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -4048,9 +4048,9 @@ ferode_1_42(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -4118,9 +4118,9 @@ fdilate_1_43(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -4189,9 +4189,9 @@ ferode_1_43(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -4260,9 +4260,9 @@ fdilate_1_44(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -4338,9 +4338,9 @@ ferode_1_44(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -4416,9 +4416,9 @@ fdilate_1_45(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -4502,9 +4502,9 @@ ferode_1_45(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -4588,9 +4588,9 @@ fdilate_1_46(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -4675,9 +4675,9 @@ ferode_1_46(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -4762,9 +4762,9 @@ fdilate_1_47(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -4856,9 +4856,9 @@ ferode_1_47(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -4950,9 +4950,9 @@ fdilate_1_48(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -5053,9 +5053,9 @@ ferode_1_48(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -5156,9 +5156,9 @@ fdilate_1_49(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -5260,9 +5260,9 @@ ferode_1_49(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2, wpls3, wpls4;
 l_int32             wpls5, wpls6, wpls7, wpls8;
 l_int32             wpls9, wpls10, wpls11, wpls12;
@@ -5364,9 +5364,9 @@ fdilate_1_50(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -5390,9 +5390,9 @@ ferode_1_50(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -5416,9 +5416,9 @@ fdilate_1_51(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -5447,9 +5447,9 @@ ferode_1_51(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -5478,9 +5478,9 @@ fdilate_1_52(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2;
 
     wpls2 = 2 * wpls;
@@ -5518,9 +5518,9 @@ ferode_1_52(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2;
 
     wpls2 = 2 * wpls;
@@ -5558,9 +5558,9 @@ fdilate_1_53(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2;
 
     wpls2 = 2 * wpls;
@@ -5607,9 +5607,9 @@ ferode_1_53(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2;
 
     wpls2 = 2 * wpls;
@@ -5656,9 +5656,9 @@ fdilate_1_54(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -5680,9 +5680,9 @@ ferode_1_54(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -5704,9 +5704,9 @@ fdilate_1_55(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -5728,9 +5728,9 @@ ferode_1_55(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 
@@ -5752,9 +5752,9 @@ fdilate_1_56(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2;
 
     wpls2 = 2 * wpls;
@@ -5781,9 +5781,9 @@ ferode_1_56(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2;
 
     wpls2 = 2 * wpls;
@@ -5810,9 +5810,9 @@ fdilate_1_57(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2;
 
     wpls2 = 2 * wpls;
@@ -5839,9 +5839,9 @@ ferode_1_57(l_uint32  *datad,
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 l_int32             wpls2;
 
     wpls2 = 2 * wpls;
@@ -5859,3 +5859,4 @@ l_int32             wpls2;
         }
     }
 }
+

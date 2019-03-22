@@ -25,7 +25,7 @@
  *====================================================================*/
 
 /*!
- * \brief       Top-level fast binary morphology with auto-generated sels
+ *      Top-level fast binary morphology with auto-generated sels
  *
  *             PIX     *pixMorphDwa_1()
  *             PIX     *pixFMorphopGen_1()
@@ -105,12 +105,12 @@ static char  SEL_NAMES[][80] = {
 /*!
  * \brief   pixMorphDwa_1()
  *
- * \param[in]    pixd usual 3 choices: null, == pixs, != pixs
- * \param[in]    pixs 1 bpp
- * \param[in]    operation  L_MORPH_DILATE, L_MORPH_ERODE,
- *                          L_MORPH_OPEN, L_MORPH_CLOSE
- * \param[in]    sel name
- * \return  pixd
+ * \param[in]    pixd         usual 3 choices: null, == pixs, != pixs
+ * \param[in]    pixs         1 bpp
+ * \param[in]    operation    L_MORPH_DILATE, L_MORPH_ERODE,
+ *                            L_MORPH_OPEN, L_MORPH_CLOSE
+ * \param[in]    sel          name
+ * \return    pixd
  *
  * <pre>
  * Notes:
@@ -161,12 +161,12 @@ PIX     *pixt1, *pixt2, *pixt3;
 /*!
  * \brief   pixFMorphopGen_1()
  *
- * \param[in]    pixd usual 3 choices: null, == pixs, != pixs
- * \param[in]    pixs 1 bpp
- * \param[in]    operation  L_MORPH_DILATE, L_MORPH_ERODE,
- *                          L_MORPH_OPEN, L_MORPH_CLOSE
+ * \param[in]    pixd        usual 3 choices: null, == pixs, != pixs
+ * \param[in]    pixs        1 bpp
+ * \param[in]    operation   L_MORPH_DILATE, L_MORPH_ERODE,
+ *                           L_MORPH_OPEN, L_MORPH_CLOSE
  * \param[in]    sel name
- * \return  pixd
+ * \return     pixd
  *
  * <pre>
  * Notes:
@@ -274,3 +274,4 @@ PIX       *pixt;
 
     return pixd;
 }
+

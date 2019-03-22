@@ -397,7 +397,7 @@ SARRAY     *sa1, *sa2, *sa3;
     sarrayAppendRange(sa3, sa1, actstart, end);
 
         /* Function name (as comment) */
-    snprintf(buf, sizeof(buf), " *  l_autodecode_%d()", fileno);
+    snprintf(buf, sizeof(buf), " * \\brief  l_autodecode_%d()", fileno);
     sarrayAddString(sa3, buf, L_COPY);
 
         /* Input and return values */

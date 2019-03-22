@@ -78,7 +78,6 @@
 #include "allheaders.h"
 
 static const l_int32  MIN_BUFFER_SIZE = 20;             /* n'importe quoi */
-static const l_int32  INITIAL_BUFFER_ARRAYSIZE = 128;   /* n'importe quoi */
 
 #define SWAP_ITEMS(i, j)       { void *tempitem = lh->array[(i)]; \
                                  lh->array[(i)] = lh->array[(j)]; \

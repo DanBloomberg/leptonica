@@ -87,9 +87,9 @@ l_int32
             l_uint32  *datas,
             l_int32    wpls)
 {
-l_int32             i;
-register l_int32    j, pwpls;
-register l_uint32  *sptr, *dptr;
+l_int32   i;
+l_int32   j, pwpls;
+l_uint32  *sptr, *dptr;
 ---     declare wplsN args as necessary ...
     pwpls = (l_uint32)(w + 31) / 32;  /* proper wpl of src */
 

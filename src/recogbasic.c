@@ -189,7 +189,6 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;  /* n'import quoi */
 static const l_int32  MAX_EXAMPLES_IN_CLASS = 256;
 
     /* Default recog parameters that can be changed */
