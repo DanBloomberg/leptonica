@@ -323,6 +323,7 @@ void build(Solution &s)
             {"reducetest", {"reducetest.c"}},
             {"removecmap", {"removecmap.c"}},
             {"renderfonts", {"renderfonts.c"}},
+            {"replacebytes", {"replacebytes.c"}},
             {"rotatefastalt", {"rotatefastalt.c"}},
             {"rotateorthtest1", {"rotateorthtest1.c"}},
             {"rotateorth_reg", {"rotateorth_reg.c"}},

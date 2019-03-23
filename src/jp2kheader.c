@@ -250,7 +250,7 @@ l_uint16   xnum, ynum, xdenom, ydenom;  /* these jp2k fields are 2-byte */
 l_int32    loc, found;
 l_uint8    resc[4] = {0x72, 0x65, 0x73, 0x63};  /* 'resc' */
 size_t     nbytes;
-l_float64  xres, yres;
+l_float64  xres, yres, maxres;
 
     PROCNAME("fgetJp2kResolution");
 
@@ -291,8 +291,15 @@ l_float64  xres, yres;
         /* Convert from pixels/meter to ppi */
     yres *= (300.0 / 11811.0);
     xres *= (300.0 / 11811.0);
-    *pyres = (l_int32)(yres + 0.5);
-    *pxres = (l_int32)(xres + 0.5);
+
+        /* Sanity check for bad data */
+    maxres = 100000.0;  /* ppi */
+    if (xres > maxres || yres > maxres) {
+        L_WARNING("ridiculously large resolution\n", procName);
+    } else {
+        *pyres = (l_int32)(yres + 0.5);
+        *pxres = (l_int32)(xres + 0.5);
+    }
 
     LEPT_FREE(data);
     return 0;
