@@ -4,7 +4,9 @@
 # build directories
 /build*
 /.cppan*
+/.sw*
 /win*
+/bin
 
 # files in prog without a .
 /prog/*
