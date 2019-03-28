@@ -50,7 +50,7 @@
  *
  *       With transcoding
  *          l_int32              l_generateCIData()
- *          static l_int32       pixGenerateCIData()
+ *          l_int32              pixGenerateCIData()
  *          L_COMP_DATA         *l_generateFlateData()
  *          static L_COMP_DATA  *pixGenerateFlateData()
  *          static L_COMP_DATA  *pixGenerateJpegData()
@@ -210,6 +210,10 @@ L_PDF_DATA   *lpd = NULL;
     *pnbytes = 0;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
+    if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
+        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE) {
+        selectDefaultPdfEncoding(pix, &type);
+    }
     if (plpd) {  /* part of multi-page invocation */
         if (position == L_FIRST_IMAGE)
             *plpd = NULL;
@@ -1071,8 +1075,9 @@ PIXCMAP  *cmap;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
     if (type != L_G4_ENCODE && type != L_JPEG_ENCODE &&
-        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE)
-        return ERROR_INT("invalid conversion type", procName, 1);
+        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE) {
+        selectDefaultPdfEncoding(pixs, &type);
+    }
     if (ascii85 != 0 && ascii85 != 1)
         return ERROR_INT("invalid ascii85", procName, 1);
 
@@ -1099,13 +1104,10 @@ PIXCMAP  *cmap;
     } else if (type == L_G4_ENCODE) {
         if ((*pcid = pixGenerateG4Data(pixs, ascii85)) == NULL)
             return ERROR_INT("g4 data not made", procName, 1);
-    } else if (type == L_FLATE_ENCODE) {
+    } else {  /* type == L_FLATE_ENCODE */
         if ((*pcid = pixGenerateFlateData(pixs, ascii85)) == NULL)
             return ERROR_INT("flate data not made", procName, 1);
-    } else {
-        return ERROR_INT("invalid conversion type", procName, 1);
     }
-
     return 0;
 }
 

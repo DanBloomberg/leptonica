@@ -1934,7 +1934,8 @@ FILE    *fp;
  *                             in the input
  * \param[in]    scalefactor   scaling factor applied to each image; > 0.0
  * \param[in]    type          encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                             L_FLATE_ENCODE, or L_DEFAULT_ENCODE for default
+ *                             L_FLATE_ENCODE, L_JP2K_ENCODE, or
+ *                             L_DEFAULT_ENCODE for default)
  * \param[in]    quality       used for JPEG only; 0 for default (75)
  * \param[in]    title         [optional] pdf title
  * \param[in]    fileout       pdf file of all images
@@ -1996,7 +1997,8 @@ size_t    nbytes;
  * \param[in]    res           input resolution of all images
  * \param[in]    scalefactor   scaling factor applied to each image; > 0.0
  * \param[in]    type          encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                             L_FLATE_ENCODE, or L_DEFAULT_ENCODE for default
+ *                             L_FLATE_ENCODE, L_JP2K_ENCODE, or
+ *                             L_DEFAULT_ENCODE for default)
  * \param[in]    quality       used for JPEG only; 0 for default (75)
  * \param[in]    title         [optional] pdf title
  * \param[out]   pdata         output pdf data (of all images
@@ -2036,7 +2038,9 @@ L_PTRA   *pa_data;
     if (!pixac)
         return ERROR_INT("pixac not defined", procName, 1);
     if (scalefactor <= 0.0) scalefactor = 1.0;
-    if (type < L_DEFAULT_ENCODE || type > L_FLATE_ENCODE) {
+    if (type != L_DEFAULT_ENCODE && type != L_JPEG_ENCODE &&
+        type != L_G4_ENCODE && type != L_FLATE_ENCODE &&
+        type != L_JP2K_ENCODE) {
         L_WARNING("invalid compression type; using per-page default\n",
                   procName);
         type = L_DEFAULT_ENCODE;
@@ -2062,6 +2066,8 @@ L_PTRA   *pa_data;
             pix = pixClone(pixs);
         pixDestroy(&pixs);
         scaledres = (l_int32)(res * scalefactor);
+
+            /* Select the encoding type */
         if (type != L_DEFAULT_ENCODE) {
             pagetype = type;
         } else if (selectDefaultPdfEncoding(pix, &pagetype) != 0) {
@@ -2070,6 +2076,7 @@ L_PTRA   *pa_data;
             pixDestroy(&pix);
             continue;
         }
+
         ret = pixConvertToPdfData(pix, pagetype, quality, &imdata, &imbytes,
                                   0, 0, scaledres, title, NULL, 0);
         pixDestroy(&pix);

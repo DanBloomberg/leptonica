@@ -221,7 +221,8 @@ static const l_int32  DEFAULT_INPUT_RES = 300;
  * \param[in]    res           input resolution of all images
  * \param[in]    scalefactor   scaling factor applied to each image; > 0.0
  * \param[in]    type          encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                             L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ *                             L_FLATE_ENCODE, L_JP2K_ENCODE or
+ *                             L_DEFAULT_ENCODE for default)
  * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
  *                             for jp2k: 27-45; 0 for default (34)
  * \param[in]    title         [optional] pdf title; if null, taken from
@@ -281,7 +282,8 @@ SARRAY  *sa;
  * \param[in]    res           input resolution of all images
  * \param[in]    scalefactor   scaling factor applied to each image; > 0.0
  * \param[in]    type          encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                             L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ *                             L_FLATE_ENCODE, L_JP2K_ENCODE or
+ *                             L_DEFAULT_ENCODE for default)
  * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
  *                             for jp2k: 27-45; 0 for default (34)
  * \param[in]    title         [optional] pdf title; if null, taken from
@@ -334,7 +336,8 @@ size_t    nbytes;
  * \param[in]    res           input resolution of all images
  * \param[in]    scalefactor   scaling factor applied to each image; > 0.0
  * \param[in]    type          encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                             L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ *                             L_FLATE_ENCODE, L_JP2K_ENCODE or
+ *                             L_DEFAULT_ENCODE for default)
  * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
  *                             for jp2k: 27-45; 0 for default (34)
  * \param[in]    title         [optional] pdf title; if null, taken from
@@ -380,9 +383,7 @@ L_PTRA      *pa_data;
     if (scalefactor <= 0.0) scalefactor = 1.0;
     if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
         type != L_FLATE_ENCODE && type != L_JP2K_ENCODE) {
-        L_WARNING("invalid compression type; using per-page default\n",
-                  procName);
-        type = 0;
+        type = L_DEFAULT_ENCODE;
     }
 
         /* Generate all the encoded pdf strings */
@@ -404,7 +405,9 @@ L_PTRA      *pa_data;
             pix = pixClone(pixs);
         pixDestroy(&pixs);
         scaledres = (l_int32)(res * scalefactor);
-        if (type != 0) {
+
+            /* Select the encoding type */
+        if (type != L_DEFAULT_ENCODE) {
             pagetype = type;
         } else if (selectDefaultPdfEncoding(pix, &pagetype) != 0) {
             pixDestroy(&pix);
@@ -412,6 +415,7 @@ L_PTRA      *pa_data;
                     procName, fname);
             continue;
         }
+
         ret = pixConvertToPdfData(pix, pagetype, quality, &imdata, &imbytes,
                                   0, 0, scaledres, pdftitle, NULL, 0);
         pixDestroy(&pix);
@@ -475,11 +479,11 @@ PIXCMAP  *cmap;
 
     PROCNAME("selectDefaultPdfEncoding");
 
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
     if (!ptype)
         return ERROR_INT("&type not defined", procName, 1);
     *ptype = L_FLATE_ENCODE;  /* default universal encoding */
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
     pixGetDimensions(pix, &w, &h, &d);
     cmap = pixGetColormap(pix);
     if (d == 8 && !cmap) {
@@ -760,7 +764,8 @@ L_COMP_DATA  *cid;
  *                             embedded in the input images
  * \param[in]    scalefactor   scaling factor applied to each image; > 0.0
  * \param[in]    type          encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                             L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ *                             L_FLATE_ENCODE, L_JP2K_ENCODE, or
+ *                             L_DEFAULT_ENCODE for default)
  * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
  *                             for jp2k: 27-45; 0 for default (34)
  * \param[in]    title         [optional] pdf title
@@ -818,7 +823,8 @@ size_t    nbytes;
  * \param[in]    res            input resolution of all images
  * \param[in]    scalefactor    scaling factor applied to each image; > 0.0
  * \param[in]    type           encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                              L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ *                              L_FLATE_ENCODE, L_JP2K_ENCODE, or
+ *                              L_DEFAULT_ENCODE for default)
  * \param[in]    quality        for jpeg: 1-100; 0 for default (75)
  *                              for jp2k: 27-45; 0 for default (34)
  * \param[in]    title          [optional] pdf title
@@ -859,11 +865,12 @@ L_PTRA   *pa_data;
     if (!pixa)
         return ERROR_INT("pixa not defined", procName, 1);
     if (scalefactor <= 0.0) scalefactor = 1.0;
-    if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
-        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE) {
+    if (type != L_DEFAULT_ENCODE && type != L_JPEG_ENCODE &&
+        type != L_G4_ENCODE && type != L_FLATE_ENCODE &&
+        type != L_JP2K_ENCODE) {
         L_WARNING("invalid compression type; using per-page default\n",
                   procName);
-        type = 0;
+        type = L_DEFAULT_ENCODE;
     }
 
         /* Generate all the encoded pdf strings */
@@ -880,7 +887,9 @@ L_PTRA   *pa_data;
             pix = pixClone(pixs);
         pixDestroy(&pixs);
         scaledres = (l_int32)(res * scalefactor);
-        if (type != 0) {
+
+            /* Select the encoding type */
+        if (type != L_DEFAULT_ENCODE) {
             pagetype = type;
         } else if (selectDefaultPdfEncoding(pix, &pagetype) != 0) {
             L_ERROR("encoding type selection failed for pix[%d]\n",
@@ -888,6 +897,7 @@ L_PTRA   *pa_data;
             pixDestroy(&pix);
             continue;
         }
+
         ret = pixConvertToPdfData(pix, pagetype, quality, &imdata, &imbytes,
                                   0, 0, scaledres, title, NULL, 0);
         pixDestroy(&pix);
@@ -928,7 +938,7 @@ L_PTRA   *pa_data;
  *
  * \param[in]      filein       input image file -- any format
  * \param[in]      type         encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                              L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ *                              L_FLATE_ENCODE, or L_JP2K_ENCODE)
  * \param[in]      quality      for jpeg: 1-100; 0 for default (75)
  *                              for jp2k: 27-45; 0 for default (34)
  * \param[in]      fileout      output pdf file; only required on last
@@ -1006,9 +1016,6 @@ size_t    nbytes;
         if (!fileout)
             return ERROR_INT("fileout not defined", procName, 1);
     }
-    if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
-        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE)
-        return ERROR_INT("invalid conversion type", procName, 1);
 
     if (convertToPdfData(filein, type, quality, &data, &nbytes, x, y,
                          res, title, plpd, position))
@@ -1031,7 +1038,7 @@ size_t    nbytes;
  * \param[in]      imdata       array of formatted image data; e.g., png, jpeg
  * \param[in]      size         size of image data
  * \param[in]      type         encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                              L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ *                              L_FLATE_ENCODE, or L_JP2K_ENCODE)
  * \param[in]      quality      for jpeg: 1-100; 0 for default (75)
  *                              for jp2k: 27-45; 0 for default (34)
  * \param[in]      fileout      output pdf file; only required on last
@@ -1077,9 +1084,6 @@ PIX     *pix;
 
     if (!imdata)
         return ERROR_INT("image data not defined", procName, 1);
-    if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
-        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE)
-        return ERROR_INT("invalid conversion type", procName, 1);
     if (!plpd || (position == L_LAST_IMAGE)) {
         if (!fileout)
             return ERROR_INT("fileout not defined", procName, 1);
@@ -1087,6 +1091,10 @@ PIX     *pix;
 
     if ((pix = pixReadMem(imdata, size)) == NULL)
         return ERROR_INT("pix not read", procName, 1);
+    if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
+        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE) {
+        selectDefaultPdfEncoding(pix, &type);
+    }
     ret = pixConvertToPdf(pix, type, quality, fileout, x, y, res,
                           title, plpd, position);
     pixDestroy(&pix);
@@ -1099,7 +1107,7 @@ PIX     *pix;
  *
  * \param[in]      filein       input image file -- any format
  * \param[in]      type         encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                              L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ *                              L_FLATE_ENCODE, or L_JP2K_ENCODE)
  * \param[in]      quality      for jpeg: 1-100; 0 for default (75)
  *                              for jp2k: 27-45; 0 for default (34)
  * \param[out]     pdata        pdf data in memory
@@ -1150,9 +1158,6 @@ PIX  *pix;
     *pnbytes = 0;
     if (!filein)
         return ERROR_INT("filein not defined", procName, 1);
-    if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
-        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE)
-        return ERROR_INT("invalid conversion type", procName, 1);
 
     if ((pix = pixRead(filein)) == NULL)
         return ERROR_INT("pix not made", procName, 1);
@@ -1170,7 +1175,7 @@ PIX  *pix;
  * \param[in]    imdata       array of formatted image data; e.g., png, jpeg
  * \param[in]    size         size of image data
  * \param[in]    type         encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                            L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ *                            L_FLATE_ENCODE, or L_JP2K_ENCODE)
  * \param[in]    quality      for jpeg: 1-100; 0 for default (75)
  *                            for jp2k: 27-45; 0 for default (34)
  * \param[out]   pdata        pdf data in memory
@@ -1230,6 +1235,10 @@ PIX     *pix;
 
     if ((pix = pixReadMem(imdata, size)) == NULL)
         return ERROR_INT("pix not read", procName, 1);
+    if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
+        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE) {
+        selectDefaultPdfEncoding(pix, &type);
+    }
     ret = pixConvertToPdfData(pix, type, quality, pdata, pnbytes,
                               x, y, res, title, plpd, position);
     pixDestroy(&pix);
@@ -1242,7 +1251,7 @@ PIX     *pix;
  *
  * \param[in]      pix
  * \param[in]      type         encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
- *                              L_FLATE_ENCODE, L_JP2K_ENCODE or 0 for default
+ *                              L_FLATE_ENCODE, L_JP2K_ENCODE)
  * \param[in]      quality      for jpeg: 1-100; 0 for default (75)
  *                              for jp2k: 27-45; 0 for default (34)
  * \param[in]      fileout      output pdf file; only required on last
@@ -1290,9 +1299,6 @@ size_t    nbytes;
 
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
-    if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
-        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE)
-        return ERROR_INT("invalid conversion type", procName, 1);
     if (!plpd || (position == L_LAST_IMAGE)) {
         if (!fileout)
             return ERROR_INT("fileout not defined", procName, 1);
@@ -1378,8 +1384,8 @@ size_t    nbytes, nbytes_written;
  * Notes:
  *      (1) This is the simplest interface for writing a single image
  *          with pdf encoding to memory.  It uses G4 encoding for 1 bpp,
- *          JPEG encoding for 8 bpp (no cmap) and 32 bpp, and FLATE
- *          encoding for everything else.
+ *          and makes a guess whether to use JPEG or FLATE encoding for
+ *          everything else.
  * </pre>
  */
 l_ok
@@ -1389,8 +1395,7 @@ pixWriteMemPdf(l_uint8    **pdata,
                l_int32      res,
                const char  *title)
 {
-l_int32   ret, d, type;
-PIXCMAP  *cmap;
+l_int32  ret, type;
 
     PROCNAME("pixWriteMemPdf");
 
@@ -1401,15 +1406,7 @@ PIXCMAP  *cmap;
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
 
-    d = pixGetDepth(pix);
-    cmap = pixGetColormap(pix);
-    if (d == 1)
-        type = L_G4_ENCODE;
-    else if (cmap || d == 2 || d == 4 || d == 16)
-        type = L_FLATE_ENCODE;
-    else  /* d == 8 (no cmap) or d == 32 */
-        type = L_JPEG_ENCODE;
-
+    selectDefaultPdfEncoding(pix, &type);
     ret = pixConvertToPdfData(pix, type, 75, pdata, pnbytes,
                               0, 0, res, title, NULL, 0);
     if (ret)
