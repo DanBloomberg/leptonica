@@ -145,7 +145,7 @@ PIX *
 pixReadStreamPnm(FILE  *fp)
 {
 l_uint8    val8, rval8, gval8, bval8, aval8, mask8;
-l_uint16   val16, rval16, gval16, bval16, aval16, mask16;
+l_uint16   val16, rval16, gval16, bval16, aval16;
 l_int32    w, h, d, bps, spp, bpl, wpl, i, j, type;
 l_int32    val, rval, gval, bval;
 l_uint32   rgbval;
@@ -168,6 +168,11 @@ PIX       *pix;
     pixSetInputFormat(pix, IFF_PNM);
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
+
+        /* If type == 6 and bps == 16, we use the code in type 7
+         * to read 6 bytes/pixel from the input file. */
+    if (type == 6 && bps == 16)
+        type = 7;
 
     switch (type) {
     case 1:
@@ -237,7 +242,7 @@ PIX       *pix;
         break;
 
     case 6:
-        /* "raw" format, type == 6; rgb */
+        /* "raw" format, type == 6; 8 bps, rgb */
         for (i = 0; i < h; i++) {
             line = data + i * wpl;
             for (j = 0; j < wpl; j++) {
@@ -343,21 +348,25 @@ PIX       *pix;
                 break;
             }
         } else {  /* bps == 16 */
-            mask16 = (1 << 16) - 1;
+                /* I have only seen one example that is type 6, 16 bps.
+                 * It was 3 spp (rgb), and the 8 bps of real data was stored
+                 * in the second byte.  In the following, I make the wild
+                 * assumption that for all 16 bpp pnm/pam files, we can
+                 * take the second byte. */
             switch (spp) {
-            case 1: /* 16 bpp grayscale */
+            case 1: /* 16 bps grayscale */
                 for (i = 0; i < h; i++) {
                     for (j = 0; j < w; j++) {
                         if (fread(&val16, 2, 1, fp) != 1)
                             return (PIX *)ERROR_PTR("read error type 7",
                                                     procName, pix);
-                        val8 = (val16 & mask16) >> 8;
+                        val8 = val16 & 0xff;
                         pixSetPixel(pix, j, i, val8);
                     }
                 }
                 break;
 
-            case 2: /* 16 bpp grayscale + alpha */
+            case 2: /* 16 bps grayscale + alpha */
                 for (i = 0; i < h; i++) {
                     for (j = 0; j < w; j++) {
                         if (fread(&val16, 2, 1, fp) != 1)
@@ -366,8 +375,8 @@ PIX       *pix;
                         if (fread(&aval16, 2, 1, fp) != 1)
                             return (PIX *)ERROR_PTR("read error type 7",
                                                     procName, pix);
-                        val8 = (val16 & mask16) >> 8;
-                        aval8 = (aval16 & mask16) >> 8;
+                        val8 = val16 & 0xff;
+                        aval8 = aval16 & 0xff;
                         composeRGBAPixel(val8, val8, val8, aval8, &rgbval);
                         pixSetPixel(pix, j, i, rgbval);
                     }
@@ -375,7 +384,7 @@ PIX       *pix;
                 pixSetSpp(pix, 4);
                 break;
 
-            case 3: /* 16bpp rgb */
+            case 3: /* 16bps rgb */
                 for (i = 0; i < h; i++) {
                     line = data + i * wpl;
                     for (j = 0; j < wpl; j++) {
@@ -388,16 +397,16 @@ PIX       *pix;
                         if (fread(&bval16, 2, 1, fp) != 1)
                             return (PIX *)ERROR_PTR("read error type 7",
                                                     procName, pix);
-                        rval8 = (rval16 & mask16) >> 8;
-                        gval8 = (gval16 & mask16) >> 8;
-                        bval8 = (bval16 & mask16) >> 8;
+                        rval8 = rval16 & 0xff;
+                        gval8 = gval16 & 0xff;
+                        bval8 = bval16 & 0xff;
                         composeRGBPixel(rval8, gval8, bval8, &rgbval);
                         line[j] = rgbval;
                     }
                 }
                 break;
 
-            case 4: /* 16bpp rgba */
+            case 4: /* 16bps rgba */
                 for (i = 0; i < h; i++) {
                     line = data + i * wpl;
                     for (j = 0; j < wpl; j++) {
@@ -413,10 +422,10 @@ PIX       *pix;
                         if (fread(&aval16, 2, 1, fp) != 1)
                             return (PIX *)ERROR_PTR("read error type 7",
                                                     procName, pix);
-                        rval8 = (rval16 & mask16) >> 8;
-                        gval8 = (gval16 & mask16) >> 8;
-                        bval8 = (bval16 & mask16) >> 8;
-                        aval8 = (aval16 & mask16) >> 8;
+                        rval8 = rval16 & 0xff;
+                        gval8 = gval16 & 0xff;
+                        bval8 = bval16 & 0xff;
+                        aval8 = aval16 & 0xff;
                         composeRGBAPixel(rval8, gval8, bval8, aval8, &rgbval);
                         line[j] = rgbval;
                     }
@@ -629,11 +638,11 @@ l_int32  ch;
         } else {  /* type == 3 || type == 6; this is rgb  */
             if (pnmReadNextNumber(fp, &maxval))
                 return ERROR_INT("invalid read for maxval (3,6)", procName, 1);
-            if (maxval != 255)
+            if (maxval != 255 && maxval != 0xffff)
                 L_WARNING("unexpected maxval = %d\n", procName, maxval);
+            bps = (maxval == 255) ? 8 : 16;
             d = 32;
             spp = 3;
-            bps = 8;
         }
     }
     if (pw) *pw = w;
