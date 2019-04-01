@@ -36,6 +36,8 @@
 l_int32 main(l_int32  argc,
              char   **argv)
 {
+l_uint8      *data;
+size_t        size;
 FILE         *fp;
 PIX          *pix1, *pix2, *pix3, *pix4, *pix5;
 L_REGPARAMS  *rp;
@@ -127,18 +129,26 @@ L_REGPARAMS  *rp;
         /* Test ppm (24 bpp rgb) read/write */
     pix1 = pixRead("marge.jpg");
     fp = lept_fopen("/tmp/lept/pnm/pix1.24.pnm", "wb");
+        /* write ascii */
     pixWriteStreamAsciiPnm(fp, pix1);
     lept_fclose(fp);
     pix2 = pixRead("/tmp/lept/pnm/pix1.24.pnm");
+        /* write pnm */
     pixWrite("/tmp/lept/pnm/pix2.24.pnm", pix2, IFF_PNM);
     pix3 = pixRead("/tmp/lept/pnm/pix2.24.pnm");
     regTestComparePix(rp, pix1, pix3);  /* 8 */
-        /* write PAM */
+    pixDestroy(&pix3);
+        /* write mem pnm */
+    pixWriteMemPnm(&data, &size, pix1);
+    pix3 = pixReadMemPnm(data, size);
+    regTestComparePix(rp, pix1, pix3);  /* 9 */
+    lept_free(data);
+        /* write pam */
     fp = lept_fopen("/tmp/lept/pnm/pix3.24.pnm", "wb");
     pixWriteStreamPam(fp, pix1);
     lept_fclose(fp);
     pix4 = pixRead("/tmp/lept/pnm/pix3.24.pnm");
-    regTestComparePix(rp, pix1, pix4);  /* 9 */
+    regTestComparePix(rp, pix1, pix4);  /* 10 */
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
@@ -152,7 +162,7 @@ L_REGPARAMS  *rp;
     pix2 = pixRead("/tmp/lept/pnm/pix1.32.pnm");
     pixWrite("/tmp/lept/pnm/pix2.32.pnm", pix2, IFF_PNM);
     pix3 = pixRead("/tmp/lept/pnm/pix2.32.pnm");
-    regTestComparePix(rp, pix1, pix3);  /* 10 */
+    regTestComparePix(rp, pix1, pix3);  /* 11 */
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
