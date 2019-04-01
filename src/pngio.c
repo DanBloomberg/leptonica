@@ -626,7 +626,7 @@ readHeaderMemPng(const l_uint8  *data,
 {
 l_uint16   twobytes;
 l_uint16  *pshort;
-l_int32    colortype, bps, spp;
+l_int32    colortype, w, h, bps, spp;
 l_uint32  *pword;
 
     PROCNAME("readHeaderMemPng");
@@ -649,8 +649,10 @@ l_uint32  *pword;
 
     pword = (l_uint32 *)data;
     pshort = (l_uint16 *)data;
-    if (pw) *pw = convertOnLittleEnd32(pword[4]);
-    if (ph) *ph = convertOnLittleEnd32(pword[5]);
+    w = convertOnLittleEnd32(pword[4]);
+    h = convertOnLittleEnd32(pword[5]);
+    if (w < 1 || h < 1)
+        return ERROR_INT("invalid w or h", procName, 1);
     twobytes = convertOnLittleEnd16(pshort[12]); /* contains depth/sample  */
                                                  /* and the color type     */
     colortype = twobytes & 0xff;  /* color type */
@@ -673,6 +675,10 @@ l_uint32  *pword;
     } else {  /* gray (0) or cmap (3) or cmap+alpha (3) */
         spp = 1;
     }
+    if (bps < 1 || bps > 16 || spp < 1 || spp > 4)
+        return ERROR_INT("invalid bps or spp", procName, 1);
+    if (pw) *pw = w;
+    if (ph) *ph = h;
     if (pbps) *pbps = bps;
     if (pspp) *pspp = spp;
     if (piscmap) {

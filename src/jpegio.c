@@ -553,7 +553,7 @@ freadHeaderJpeg(FILE     *fp,
                 l_int32  *pycck,
                 l_int32  *pcmyk)
 {
-l_int32                        spp;
+l_int32                        spp, w, h;
 struct jpeg_decompress_struct  cinfo;
 struct jpeg_error_mgr          jerr;
 jmp_buf                        jmpbuf;  /* must be local to the function */
@@ -584,8 +584,15 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
     jpeg_stdio_src(&cinfo, fp);
     jpeg_read_header(&cinfo, TRUE);
     jpeg_calc_output_dimensions(&cinfo);
-
     spp = cinfo.out_color_components;
+    w = cinfo.output_width;
+    h = cinfo.output_height;
+    if (w < 1 || h < 1 || spp < 1 || spp > 4) {
+        jpeg_destroy_decompress(&cinfo);
+        rewind(fp);
+        return ERROR_INT("bad jpeg image parameters", procName, 1);
+    }
+
     if (pspp) *pspp = spp;
     if (pw) *pw = cinfo.output_width;
     if (ph) *ph = cinfo.output_height;

@@ -637,7 +637,8 @@ PIXCMAP      *cmap = NULL;
     bps = 0;  /* initialize to a nonsense value */
     if (format == IFF_PNG) {
         isPngInterlaced(fname, &interlaced);
-        readHeaderPng(fname, NULL, NULL, &bps, &spp, NULL);
+        if (readHeaderPng(fname, NULL, NULL, &bps, &spp, NULL))
+            return (L_COMP_DATA *)ERROR_PTR("bad png input", procName, NULL);
     }
 
         /* PDF is capable of inlining some types of PNG files, but not all
@@ -853,7 +854,8 @@ L_COMP_DATA  *cid;
         return (L_COMP_DATA *)ERROR_PTR("data not defined", procName, NULL);
 
         /* Read the metadata */
-    readHeaderMemJpeg(data, nbytes, &w, &h, &spp, NULL, NULL);
+    if (readHeaderMemJpeg(data, nbytes, &w, &h, &spp, NULL, NULL))
+        return (L_COMP_DATA *)ERROR_PTR("bad jpeg metadata", procName, NULL);
     bps = 8;
     readResolutionMemJpeg(data, nbytes, &xres, &yres);
 
@@ -909,6 +911,9 @@ FILE         *fp;
     if (!fname)
         return (L_COMP_DATA *)ERROR_PTR("fname not defined", procName, NULL);
 
+    if (readHeaderJp2k(fname, &w, &h, &bps, &spp))
+        return (L_COMP_DATA *)ERROR_PTR("bad jp2k metadata", procName, NULL);
+
     if ((cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA))) == NULL)
         return (L_COMP_DATA *)ERROR_PTR("cid not made", procName, NULL);
 
@@ -918,7 +923,6 @@ FILE         *fp;
         return (L_COMP_DATA *)ERROR_PTR("data not extracted", procName, NULL);
     }
 
-    readHeaderJp2k(fname, &w, &h, &bps, &spp);
     xres = yres = 0;
     if ((fp = fopenReadStream(fname)) != NULL) {
         fgetJp2kResolution(fp, &xres, &yres);
@@ -1022,7 +1026,7 @@ PIX          *pix;
             pixDestroy(&pix);
         }
         if (!cid)
-            return ERROR_INT("jpeg data not made", procName, 1);
+            return ERROR_INT("jp2k data not made", procName, 1);
     } else if (type == L_G4_ENCODE) {
         if ((cid = l_generateG4Data(fname, ascii85)) == NULL)
             return ERROR_INT("g4 data not made", procName, 1);

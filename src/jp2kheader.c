@@ -116,7 +116,7 @@ freadHeaderJp2k(FILE     *fp,
                 l_int32  *pspp)
 {
 l_uint8  buf[80];  /* just need the first 80 bytes */
-l_int32  nread;
+l_int32  nread, ret;
 
     PROCNAME("freadHeaderJp2k");
 
@@ -132,9 +132,9 @@ l_int32  nread;
     if (nread != sizeof(buf))
         return ERROR_INT("read failure", procName, 1);
 
-    readHeaderMemJp2k(buf, sizeof(buf), pw, ph, pbps, pspp);
+    ret = readHeaderMemJp2k(buf, sizeof(buf), pw, ph, pbps, pspp);
     rewind(fp);
-    return 0;
+    return ret;
 }
 
 
@@ -208,12 +208,18 @@ l_uint8  ihdr[4] = {0x69, 0x68, 0x64, 0x72};  /* 'ihdr' */
     val = *((l_uint16 *)data + 2 * (windex + 2));
     spp = convertOnLittleEnd16(val);
     bps = *(data + 4 * (windex + 2) + 2) + 1;
+    if (w < 1 || h < 1)
+        return ERROR_INT("w and h must both be > 0", procName, 1);
     if (w > MAX_JP2K_WIDTH || h > MAX_JP2K_HEIGHT)
         return ERROR_INT("unrealistically large sizes", procName, 1);
+    if (spp != 1 && spp != 3 && spp != 4)
+        return ERROR_INT("spp must be in 1, 3 or 4", procName, 1);
+    if (bps != 8 && bps != 16)
+        return ERROR_INT("bps must be 8 or 16", procName, 1);
     if (pw) *pw = w;
     if (ph) *ph = h;
-    if (pbps) *pbps = bps;
     if (pspp) *pspp = spp;
+    if (pbps) *pbps = bps;
     return 0;
 }
 
