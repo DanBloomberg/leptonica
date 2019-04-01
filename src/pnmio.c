@@ -259,7 +259,6 @@ PIX       *pix;
                 line[j] = rgbval;
             }
         }
-        pixSetSpp(pix, 4);
         break;
 
     case 7:
