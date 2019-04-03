@@ -98,9 +98,9 @@ char          psname[256];
 char         *tempname;
 l_uint8      *data;
 l_int32       i, d, n, success, failure, same;
-l_int32       w, h, bps, spp;
+l_int32       w, h, bps, spp, iscmap;
 size_t        size, nbytes;
-PIX          *pix1, *pix2, *pix4, *pix8, *pix16, *pix32;
+PIX          *pix1, *pix2, *pix3, *pix4, *pix8, *pix16, *pix32;
 PIX          *pix, *pixt, *pixd;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
@@ -257,6 +257,27 @@ L_REGPARAMS  *rp;
             success = FALSE;
         pixDestroy(&pix);
     }
+        /* Test writing and reading tiff colormaps */
+    pix1 = pixRead(FILE_8BPP_2);
+    pixWrite("/tmp/lept/regout/weas8.tif", pix1, IFF_TIFF);
+    readHeaderTiff("/tmp/lept/regout/weas8.tif", 0, &w, &h, &bps, &spp,
+                   NULL, &iscmap, NULL);
+    if (w != 82 || h != 73 || bps != 8 || spp != 1 || iscmap != 1) {
+        fprintf(stderr, "Header error testing tiff cmaps\n");
+        success = FALSE;
+    }
+    pix2 = pixRead("/tmp/lept/regout/weas8.tif");
+    pixWrite("/tmp/lept/regout/weas8a.tif", pix2, IFF_TIFF);
+    pix3 = pixRead("/tmp/lept/regout/weas8a.tif");
+    pixEqual(pix1, pix3, &same);
+    if (!same) {
+        fprintf(stderr, "Tiff read/write failed for cmaps\n");
+        success = FALSE;
+    }
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    
     if (success)
         fprintf(stderr,
             "\n  ********** Success on tiff r/w to file *********\n\n");

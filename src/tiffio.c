@@ -785,7 +785,7 @@ TIFF    *tif;
  * <pre>
  * Notes:
  *      (1) This writes a single image to a file stream opened for writing.
- *      (2) This removes any existing colormaps.
+ *      (2) If the pix has a colormap, it is preserved in the output file.
  *      (3) For images with bpp > 1, this resets the comptype, if
  *          necessary, to write uncompressed data.
  *      (4) G3 and G4 are only defined for 1 bpp.
@@ -818,6 +818,11 @@ pixWriteStreamTiff(FILE    *fp,
  *                        IFF_TIFF_LZW, IFF_TIFF_ZIP, IFF_TIFF_JPEG
  * \param[in]    modestr  "w" or "a"
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) See pixWriteStreamTiff()
+ * </pre>
  */
 l_ok
 pixWriteStreamTiffWA(FILE        *fp,
@@ -825,7 +830,6 @@ pixWriteStreamTiffWA(FILE        *fp,
                      l_int32      comptype,
                      const char  *modestr)
 {
-PIX   *pix1;
 TIFF  *tif;
 
     PROCNAME("pixWriteStreamTiffWA");
@@ -837,30 +841,22 @@ TIFF  *tif;
     if (strcmp(modestr, "w") && strcmp(modestr, "a"))
         return ERROR_INT("modestr not 'w' or 'a'", procName, 1 );
 
-    if (pixGetColormap(pix))
-        pix1 = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
-    else
-        pix1 = pixClone(pix);
-    if (pixGetDepth(pix1) != 1 && comptype != IFF_TIFF &&
+    if (pixGetDepth(pix) != 1 && comptype != IFF_TIFF &&
         comptype != IFF_TIFF_LZW && comptype != IFF_TIFF_ZIP &&
         comptype != IFF_TIFF_JPEG) {
         L_WARNING("invalid compression type for bpp > 1\n", procName);
         comptype = IFF_TIFF_ZIP;
     }
 
-    if ((tif = fopenTiff(fp, modestr)) == NULL) {
-        pixDestroy(&pix1);
+    if ((tif = fopenTiff(fp, modestr)) == NULL)
         return ERROR_INT("tif not opened", procName, 1);
-    }
 
-    if (pixWriteToTiffStream(tif, pix1, comptype, NULL, NULL, NULL, NULL)) {
-        pixDestroy(&pix1);
+    if (pixWriteToTiffStream(tif, pix, comptype, NULL, NULL, NULL, NULL)) {
         TIFFCleanup(tif);
         return ERROR_INT("tif write error", procName, 1);
     }
 
     TIFFCleanup(tif);
-    pixDestroy(&pix1);
     return 0;
 }
 
@@ -1878,22 +1874,20 @@ l_uint32   w, h;
     if (!tif)
         return ERROR_INT("tif not opened", procName, 1);
 
-    if (pw) {
-        TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
-        *pw = w;
-    }
-    if (ph) {
-        TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
-        *ph = h;
-    }
-    if (pbps) {
-        TIFFGetFieldDefaulted(tif, TIFFTAG_BITSPERSAMPLE, &bps);
-        *pbps = bps;
-    }
-    if (pspp) {
-        TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLESPERPIXEL, &spp);
-        *pspp = spp;
-    }
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
+    TIFFGetFieldDefaulted(tif, TIFFTAG_BITSPERSAMPLE, &bps);
+    TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLESPERPIXEL, &spp);
+    if (w < 1 || h < 1)
+        return ERROR_INT("tif w and h not both > 0", procName, 1);
+    if (bps != 1 && bps != 2 && bps != 4 && bps != 8 && bps > 16)
+        return ERROR_INT("bps not in set {1,2,4,8,16}", procName, 1);
+    if (spp != 1 && spp != 3 && spp != 4)
+        return ERROR_INT("spp not in set {1,3,4}", procName, 1);
+    if (pw) *pw = w;
+    if (ph) *ph = h;
+    if (pbps) *pbps = bps;
+    if (pspp) *pspp = spp;
     if (pres) {
         *pres = 300;  /* default ppi */
         if (getTiffStreamResolution(tif, &xres, &yres) == 0)
