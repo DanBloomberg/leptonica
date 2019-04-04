@@ -83,10 +83,6 @@ FILE    *fp;
 
     PROCNAME("readHeaderJp2k");
 
-    if (pw) *pw = 0;
-    if (ph) *ph = 0;
-    if (pbps) *pbps = 0;
-    if (pspp) *pspp = 0;
     if (!filename)
         return ERROR_INT("filename not defined", procName, 1);
 
@@ -120,10 +116,6 @@ l_int32  nread, ret;
 
     PROCNAME("freadHeaderJp2k");
 
-    if (pw) *pw = 0;
-    if (ph) *ph = 0;
-    if (pbps) *pbps = 0;
-    if (pspp) *pspp = 0;
     if (!fp)
         return ERROR_INT("fp not defined", procName, 1);
 

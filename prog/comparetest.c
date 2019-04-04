@@ -88,8 +88,7 @@ static char  mainName[] = "comparetest";
         if (same) {
             fprintf(stderr, "Images are identical\n");
             pixd = pixCreateTemplate(pixs1);  /* write empty pix for diff */
-        }
-        else {
+        } else {
             if (type == 0)
                 comptype = L_COMPARE_XOR;
             else
@@ -98,8 +97,7 @@ static char  mainName[] = "comparetest";
             fprintf(stderr, "Fraction of different pixels: %10.6f\n", fract);
         }
         pixWrite(fileout, pixd, IFF_PNG);
-    }
-    else {
+    } else {
         if (type == 0)
             comptype = L_COMPARE_ABS_DIFF;
         else

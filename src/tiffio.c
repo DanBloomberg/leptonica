@@ -439,10 +439,10 @@ TIFF  *tif;
  * <pre>
  * Notes:
  *      (1) We handle pixels up to 32 bits.  This includes:
- *          1 spp (grayscale): 1, 2, 4, 8, 16 bpp
- *          1 spp (colormapped): 1, 2, 4, 8 bpp
- *          3 spp (color): 8 bpp
- *          We do not handle 3 spp, 16 bpp (48 bits/pixel)
+ *          1 spp (grayscale): 1, 2, 4, 8, 16 bps
+ *          1 spp (colormapped): 1, 2, 4, 8 bps
+ *          3 spp (color): 8 bps
+ *          We do not handle 3 spp, 16 bps (48 bits/pixel)
  *      (2) For colormapped images, we support 8 bits/color in the palette.
  *          Tiff colormaps have 16 bits/color, and we reduce them to 8.
  *      (3) Quoting the libtiff documentation at
@@ -538,8 +538,7 @@ PIXCMAP   *cmap;
         else   /* bps == 16 */
             pixEndianTwoByteSwap(pix);
         LEPT_FREE(linebuf);
-    }
-    else {  /* rgb or old jpeg */
+    } else {  /* rgb or old jpeg */
         if ((tiffdata = (l_uint32 *)LEPT_CALLOC((size_t)w * h,
                                                  sizeof(l_uint32))) == NULL) {
             pixDestroy(&pix);
@@ -743,7 +742,6 @@ pixWriteTiffCustom(const char  *filename,
                    NUMA        *nasizes)
 {
 l_int32  ret;
-PIX     *pix1;
 TIFF    *tif;
 
     PROCNAME("pixWriteTiffCustom");
@@ -752,19 +750,12 @@ TIFF    *tif;
         return ERROR_INT("filename not defined", procName, 1);
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
-    if (pixGetColormap(pix))
-        pix1 = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
-    else
-        pix1 = pixClone(pix);
 
-    if ((tif = openTiff(filename, modestr)) == NULL) {
-        pixDestroy(&pix1);
+    if ((tif = openTiff(filename, modestr)) == NULL)
         return ERROR_INT("tif not opened", procName, 1);
-    }
-    ret = pixWriteToTiffStream(tif, pix1, comptype, natags, savals,
+    ret = pixWriteToTiffStream(tif, pix, comptype, natags, savals,
                                satypes, nasizes);
     TIFFClose(tif);
-    pixDestroy(&pix1);
     return ret;
 }
 
@@ -1330,7 +1321,7 @@ pixaWriteMultipageTiff(const char  *fname,
 {
 const char  *modestr;
 l_int32      i, n;
-PIX         *pix1, *pix2;
+PIX         *pix1;
 
     PROCNAME("pixaWriteMultipageTiff");
 
@@ -1343,17 +1334,10 @@ PIX         *pix1, *pix2;
     for (i = 0; i < n; i++) {
         modestr = (i == 0) ? "w" : "a";
         pix1 = pixaGetPix(pixa, i, L_CLONE);
-        if (pixGetDepth(pix1) == 1) {
+        if (pixGetDepth(pix1) == 1)
             pixWriteTiff(fname, pix1, IFF_TIFF_G4, modestr);
-        } else {
-            if (pixGetColormap(pix1)) {
-                pix2 = pixRemoveColormap(pix1, REMOVE_CMAP_BASED_ON_SRC);
-            } else {
-                pix2 = pixClone(pix1);
-            }
-            pixWriteTiff(fname, pix2, IFF_TIFF_ZIP, modestr);
-            pixDestroy(&pix2);
-        }
+        else
+            pixWriteTiff(fname, pix1, IFF_TIFF_ZIP, modestr);
         pixDestroy(&pix1);
     }
 
@@ -1428,7 +1412,7 @@ writeMultipageTiffSA(SARRAY      *sa,
 char        *fname;
 const char  *op;
 l_int32      i, nfiles, firstfile, format;
-PIX         *pix, *pix1;
+PIX         *pix;
 
     PROCNAME("writeMultipageTiffSA");
 
@@ -1452,17 +1436,10 @@ PIX         *pix, *pix1;
             L_WARNING("pix not made for file: %s\n", procName, fname);
             continue;
         }
-        if (pixGetDepth(pix) == 1) {
+        if (pixGetDepth(pix) == 1)
             pixWriteTiff(fileout, pix, IFF_TIFF_G4, op);
-        } else {
-            if (pixGetColormap(pix)) {
-                pix1 = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
-            } else {
-                pix1 = pixClone(pix);
-            }
-            pixWriteTiff(fileout, pix1, IFF_TIFF_ZIP, op);
-            pixDestroy(&pix1);
-        }
+        else
+            pixWriteTiff(fileout, pix, IFF_TIFF_ZIP, op);
         firstfile = FALSE;
         pixDestroy(&pix);
     }
@@ -2660,9 +2637,9 @@ pixaWriteMemMultipageTiff(l_uint8  **pdata,
                           PIXA      *pixa)
 {
 const char  *modestr;
-l_int32  i, n;
-FILE    *fp;
-PIX     *pix1, *pix2;
+l_int32      i, n;
+FILE        *fp;
+PIX         *pix1;
 
     PROCNAME("pixaWriteMemMultipageTiff");
 
@@ -2684,17 +2661,10 @@ PIX     *pix1, *pix2;
     for (i = 0; i < n; i++) {
         modestr = (i == 0) ? "w" : "a";
         pix1 = pixaGetPix(pixa, i, L_CLONE);
-        if (pixGetDepth(pix1) == 1) {
+        if (pixGetDepth(pix1) == 1)
             pixWriteStreamTiffWA(fp, pix1, IFF_TIFF_G4, modestr);
-        } else {
-            if (pixGetColormap(pix1)) {
-                pix2 = pixRemoveColormap(pix1, REMOVE_CMAP_BASED_ON_SRC);
-            } else {
-                pix2 = pixClone(pix1);
-            }
-            pixWriteStreamTiffWA(fp, pix2, IFF_TIFF_ZIP, modestr);
-            pixDestroy(&pix2);
-        }
+        else
+            pixWriteStreamTiffWA(fp, pix1, IFF_TIFF_ZIP, modestr);
         pixDestroy(&pix1);
     }
 

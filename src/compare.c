@@ -753,8 +753,8 @@ PIX      *pixt;
 /*!
  * \brief   pixCompareGrayOrRGB()
  *
- * \param[in]    pix1      8 or 16 bpp gray, 32 bpp rgb, or colormapped
- * \param[in]    pix2      8 or 16 bpp gray, 32 bpp rgb, or colormapped
+ * \param[in]    pix1      2,4,8,16 bpp gray, 32 bpp rgb, or colormapped
+ * \param[in]    pix2      2,4,8,16 bpp gray, 32 bpp rgb, or colormapped
  * \param[in]    comptype  L_COMPARE_SUBTRACT, L_COMPARE_ABS_DIFF
  * \param[in]    plottype  gplot plot output type, or 0 for no plot
  * \param[out]   psame     [optional] 1 if pixel values are identical
@@ -785,6 +785,10 @@ PIX      *pixt;
  *      (9) The RMS difference is optionally returned in the
  *          parameter 'rmsdiff'.  For RGB, we return the average of
  *          the RMS differences for each of the components.
+ *     (10) Because pixel values are compared, pix1 and pix2 can be equal when:
+ *          * they are both gray with different depth
+ *          * one is colormapped and the other is not
+ *          * they are both colormapped and have different size colormaps
  * </pre>
  */
 l_ok
@@ -797,20 +801,19 @@ pixCompareGrayOrRGB(PIX        *pix1,
                     l_float32  *prmsdiff,
                     PIX       **ppixdiff)
 {
-l_int32  retval, d;
-PIX     *pixt1, *pixt2;
+l_int32  retval, d1, d2;
+PIX     *pixt1, *pixt2, *pixs1, *pixs2;
 
     PROCNAME("pixCompareGrayOrRGB");
 
+    if (psame) *psame = 0;
+    if (pdiff) *pdiff = 255.0;
+    if (prmsdiff) *prmsdiff = 255.0;
     if (ppixdiff) *ppixdiff = NULL;
-    if (!pix1)
-        return ERROR_INT("pix1 not defined", procName, 1);
-    if (!pix2)
-        return ERROR_INT("pix2 not defined", procName, 1);
-    if (pixGetDepth(pix1) < 8 && !pixGetColormap(pix1))
-        return ERROR_INT("pix1 depth < 8 bpp and not cmapped", procName, 1);
-    if (pixGetDepth(pix2) < 8 && !pixGetColormap(pix2))
-        return ERROR_INT("pix2 depth < 8 bpp and not cmapped", procName, 1);
+    if (!pix1 || pixGetDepth(pix1) == 1)
+        return ERROR_INT("pix1 not defined or 1 bpp", procName, 1);
+    if (!pix2 || pixGetDepth(pix2) == 1)
+        return ERROR_INT("pix2 not defined or 1 bpp", procName, 1);
     if (comptype != L_COMPARE_SUBTRACT && comptype != L_COMPARE_ABS_DIFF)
         return ERROR_INT("invalid comptype", procName, 1);
     if (plottype < 0 || plottype >= NUM_GPLOT_OUTPUTS)
@@ -818,21 +821,34 @@ PIX     *pixt1, *pixt2;
 
     pixt1 = pixRemoveColormap(pix1, REMOVE_CMAP_BASED_ON_SRC);
     pixt2 = pixRemoveColormap(pix2, REMOVE_CMAP_BASED_ON_SRC);
-    d = pixGetDepth(pixt1);
-    if (d != pixGetDepth(pixt2)) {
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
+    d1 = pixGetDepth(pixt1);
+    d2 = pixGetDepth(pixt2);
+    if (d1 < 8)
+        pixs1 = pixConvertTo8(pixt1, FALSE);
+    else
+        pixs1 = pixClone(pixt1);
+    if (d2 < 8)
+        pixs2 = pixConvertTo8(pixt2, FALSE);
+    else
+        pixs2 = pixClone(pixt2);
+    pixDestroy(&pixt1);
+    pixDestroy(&pixt2);
+    d1 = pixGetDepth(pixs1);
+    d2 = pixGetDepth(pixs2);
+    if (d1 != d2) {
+        pixDestroy(&pixs1);
+        pixDestroy(&pixs2);
         return ERROR_INT("intrinsic depths are not equal", procName, 1);
     }
 
-    if (d == 8 || d == 16)
-        retval = pixCompareGray(pixt1, pixt2, comptype, plottype, psame,
+    if (d1 == 8 || d1 == 16)
+        retval = pixCompareGray(pixs1, pixs2, comptype, plottype, psame,
                                 pdiff, prmsdiff, ppixdiff);
-    else  /* d == 32 */
-        retval = pixCompareRGB(pixt1, pixt2, comptype, plottype, psame,
+    else  /* d1 == 32 */
+        retval = pixCompareRGB(pixs1, pixs2, comptype, plottype, psame,
                                pdiff, prmsdiff, ppixdiff);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
+    pixDestroy(&pixs1);
+    pixDestroy(&pixs2);
     return retval;
 }
 
@@ -878,8 +894,8 @@ PIX            *pixt;
     PROCNAME("pixCompareGray");
 
     if (psame) *psame = 0;
-    if (pdiff) *pdiff = 0.0;
-    if (prmsdiff) *prmsdiff = 0.0;
+    if (pdiff) *pdiff = 255.0;
+    if (prmsdiff) *prmsdiff = 255.0;
     if (ppixdiff) *ppixdiff = NULL;
     if (!pix1)
         return ERROR_INT("pix1 not defined", procName, 1);
