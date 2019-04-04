@@ -675,8 +675,10 @@ l_uint32  *pword;
     } else {  /* gray (0) or cmap (3) or cmap+alpha (3) */
         spp = 1;
     }
-    if (bps < 1 || bps > 16 || spp < 1 || spp > 4)
-        return ERROR_INT("invalid bps or spp", procName, 1);
+    if (bps < 1 || bps > 16) {
+        L_ERROR("invalid bps = %d\n", procName, bps);
+        return 1;
+    }
     if (pw) *pw = w;
     if (ph) *ph = h;
     if (pbps) *pbps = bps;
