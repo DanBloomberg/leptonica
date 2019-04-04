@@ -574,7 +574,10 @@ PIX          *pixt;
             pixt = pixClone(pix);
         if (!pixt)
             return ERROR_INT("pixt not made", procName, 1);
-        selectDefaultPdfEncoding(pixt, &type);
+        if (selectDefaultPdfEncoding(pixt, &type)) {
+            pixDestroy(&pixt);
+            return 1;
+        }
         pixGenerateCIData(pixt, type, quality, 0, &cid);
         pixDestroy(&pixt);
     }
@@ -801,7 +804,8 @@ PIXCMAP      *cmap = NULL;
  *           ~ 1 for ascii85 (5 for 4) encoded binary data
  *               (not permitted in pdf)
  *      (2) Do not free the data.  l_generateJpegDataMem() will free
- *          the data if it does not use ascii encoding.
+ *          the data if the data is invalid, or if it does not use
+ *          ascii encoding.
  * </pre>
  */
 L_COMP_DATA *
@@ -854,8 +858,10 @@ L_COMP_DATA  *cid;
         return (L_COMP_DATA *)ERROR_PTR("data not defined", procName, NULL);
 
         /* Read the metadata */
-    if (readHeaderMemJpeg(data, nbytes, &w, &h, &spp, NULL, NULL))
+    if (readHeaderMemJpeg(data, nbytes, &w, &h, &spp, NULL, NULL)) {
+        LEPT_FREE(data);
         return (L_COMP_DATA *)ERROR_PTR("bad jpeg metadata", procName, NULL);
+    }
     bps = 8;
     readResolutionMemJpeg(data, nbytes, &xres, &yres);
 
@@ -1310,11 +1316,15 @@ L_COMP_DATA  *cid;
 
         /* Compress to a temp jpeg file */
     fname = l_makeTempFilename();
-    pixWriteJpeg(fname, pixs, quality, 0);
+    if (pixWriteJpeg(fname, pixs, quality, 0)) {
+        LEPT_FREE(fname);
+        return NULL;
+    }
 
         /* Generate the data */
     cid = l_generateJpegData(fname, ascii85flag);
-    lept_rmfile(fname);
+    if (lept_rmfile(fname) != 0)
+        L_ERROR("temp file %s was not deleted\n", procName, fname);
     LEPT_FREE(fname);
     return cid;
 }
@@ -1354,7 +1364,10 @@ L_COMP_DATA  *cid;
 
         /* Compress to a temp jp2k file */
     fname = l_makeTempFilename();
-    pixWriteJp2k(fname, pixs, quality, 5, 0, 0);
+    if (pixWriteJp2k(fname, pixs, quality, 5, 0, 0)) {
+        LEPT_FREE(fname);
+        return NULL;
+    }
 
         /* Generate the data */
     cid = l_generateJp2kData(fname);
@@ -1383,7 +1396,7 @@ static L_COMP_DATA *
 pixGenerateG4Data(PIX     *pixs,
                   l_int32  ascii85flag)
 {
-char         *tname;
+char         *fname;
 L_COMP_DATA  *cid;
 
     PROCNAME("pixGenerateG4Data");
@@ -1394,12 +1407,16 @@ L_COMP_DATA  *cid;
         return (L_COMP_DATA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
         /* Compress to a temp tiff g4 file */
-    tname = l_makeTempFilename();
-    pixWrite(tname, pixs, IFF_TIFF_G4);
+    fname = l_makeTempFilename();
+    if (pixWrite(fname, pixs, IFF_TIFF_G4)) {
+        LEPT_FREE(fname);
+        return NULL;
+    }
 
-    cid = l_generateG4Data(tname, ascii85flag);
-    lept_rmfile(tname);
-    LEPT_FREE(tname);
+    cid = l_generateG4Data(fname, ascii85flag);
+    if (lept_rmfile(fname) != 0)
+        L_ERROR("temp file %s was not deleted\n", procName, fname);
+    LEPT_FREE(fname);
     return cid;
 }
 
