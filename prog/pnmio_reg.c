@@ -50,7 +50,7 @@ L_REGPARAMS  *rp;
             "See environ.h: #define USE_PNMIO 1\n\n");
 
     regTestCleanup(rp);
-    return 1;
+    return 0;
 #endif  /* abort */
 
     lept_rmdir("lept/pnm");

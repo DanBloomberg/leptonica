@@ -122,15 +122,28 @@ endif
 # To enable webp read/write:
 #    (1) In src/environ.h:  #define  HAVE_LIBWEBP
 #    (2) Install libwebp
+#    (3) Include -lwebp in ALL_LIBS
+# To enable webpanim read/write:
+#    (1) In src/environ.h:  #define  HAVE_LIBWEBP_ANIM
+#    (2) Install libwebp with
+#          ./configure --enable-everything (to get mux/demux libs)
+#        Modify makefile.unix to add -fPIC:    
+#          CFLAGS = -O3 -DNDEBUG $(EXTRA_FLAGS) -fPIC
+#    (3) Include -lwebpmux in ALL_LIBS
 # To enable gif read/write:
 #    (1) In src/environ.h:  #define  HAVE_LIBGIF
 #    (2) Install libgif
+#    (3) Include -lgif in ALL_LIBS
+
 # Be sure LD_LIBRARY_PATH includes the appropriate library directories, such
 # as /usr/local/include, in which libwebp.so and/or libgif.so are installed
-#    (3) Use the appropriate line below for ALL_LIBS
+# Use or modify an appropriate line below for ALL_LIBS:
 ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm
 #ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lwebp -lz -lm
-#ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lgif -lwebp -lz -lm
+#ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lwebp -lwebpmux -lz -lm
+#ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lwebp -lopenjp2 -lz -lm
+#ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lwebp -lopenjp2 -lgif -lz -lm
+#ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lwebp -lwebpmux -lopenjp2 -lgif -lz -lm
 
 #########################################################################
 
@@ -190,7 +203,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		string_reg.c subpixel_reg.c \
 		texturefill_reg.c threshnorm_reg.c \
 		translate_reg.c warper_reg.c \
-		watershed_reg.c webpio_reg.c \
+		watershed_reg.c webpanimio_reg.c webpio_reg.c \
 		wordboxes_reg.c writetext_reg.c xformbox_reg.c \
 		adaptmap_dark.c arabic_lines.c arithtest.c \
 		autogentest1.c autogentest2.c barcodetest.c \
@@ -719,6 +732,9 @@ warper_reg:	warper_reg.o $(LEPTLIB)
 
 watershed_reg:	watershed_reg.o $(LEPTLIB)
 	$(CC) -o watershed_reg watershed_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+webpanimio_reg:	webpanimio_reg.o $(LEPTLIB)
+	$(CC) -o webpanimio_reg webpanimio_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 webpio_reg:	webpio_reg.o $(LEPTLIB)
 	$(CC) -o webpio_reg webpio_reg.o $(ALL_LIBS) $(EXTRALIBS)

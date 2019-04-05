@@ -33,7 +33,6 @@
  *    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  *
  *    This tests reading and writing of images in webp format.
- *         http://code.google.com/speed/webp/index.html
  *
  *    webp supports 32 bpp rgb and rgba.
  *    Lossy writing is slow; reading is fast, comparable to reading jpeg files.
@@ -58,22 +57,23 @@ int main(int    argc,
 {
 L_REGPARAMS  *rp;
 
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
+
+#if !HAVE_LIBJPEG
+    fprintf(stderr, "libjpeg is required for webpio_reg\n\n");
+    regTestCleanup(rp);
+    return 0;
+#endif  /* abort */
+
 #if !HAVE_LIBWEBP
     fprintf(stderr, "webpio is not enabled\n"
             "libwebp is required for webpio_reg\n"
             "See environ.h: #define HAVE_LIBWEBP\n"
             "See prog/Makefile: link in -lwebp\n\n");
+    regTestCleanup(rp);
     return 0;
 #endif  /* abort */
-
-        /* This test uses libjpeg */
-#if !HAVE_LIBJPEG
-    fprintf(stderr, "libjpeg is required for webpio_reg\n\n");
-    return 0;
-#endif  /* abort */
-
-    if (regTestSetup(argc, argv, &rp))
-        return 1;
 
     lept_rmdir("lept/webp");
     lept_mkdir("lept/webp");

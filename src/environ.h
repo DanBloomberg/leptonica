@@ -119,6 +119,9 @@ typedef uintptr_t l_uintptr_t;
   #if !defined(HAVE_LIBWEBP)
   #define  HAVE_LIBWEBP       0
   #endif
+  #if !defined(HAVE_LIBWEBP_ANIM)
+  #define  HAVE_LIBWEBP_ANIM  0
+  #endif
   #if !defined(HAVE_LIBJP2K)
   #define  HAVE_LIBJP2K       0
   #endif

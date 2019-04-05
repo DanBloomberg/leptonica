@@ -87,16 +87,17 @@ PIX          *pix;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
 
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
+
 #if !HAVE_LIBGIF && !HAVE_LIBUNGIF
     fprintf(stderr, "gifio is not enabled\n"
             "libgif or libungif are required for gifio_reg\n"
             "See environ.h: #define HAVE_LIBGIF or HAVE_LIBUNGIF 1\n"
             "See prog/Makefile: link in -lgif or -lungif\n\n");
-    return 1;
+    regTestCleanup(rp);
+    return 0;
 #endif  /* abort */
-
-    if (regTestSetup(argc, argv, &rp))
-        return 1;
 
         /* 5.1+ and not 5.1.2 */
     snprintf(buf, sizeof(buf), "%s_reg", rp->testname);

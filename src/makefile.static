@@ -40,9 +40,10 @@
 #   To remove object files in src: make clean
 #   To remove object files and executables in prog: make clean
 #
-#   Customization for I/O with external libraries (jpeg, png, tiff, webp, gif):
+#   Customization for I/O with external libraries:
+#          jpeg, png, tiff, webp, jp2k, gif
 #   Set flags in environ.h.  The default is to have libjpeg, libpng,
-#   libtiff and libz, but not libgif.
+#   libtiff and libz, but not libwebp, libopenjp or libgif.
 #
 #   Customization for non-POSIX-compliant GNU functions
 #   fmemopen() and open_memstream().
@@ -222,6 +223,7 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		strokes.c sudoku.c \
 		textops.c tiffio.c tiffiostub.c \
 		utils1.c utils2.c warper.c watershed.c \
+                webpanimio.c webpanimiostub.c \
 		webpio.c webpiostub.c writefile.c \
 		zlibmem.c zlibmemstub.c
 
@@ -394,7 +396,5 @@ depend:
 
 ###########################################################
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-
-
 
 

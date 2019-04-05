@@ -294,10 +294,12 @@ Building leptonica
        * By default, cmake builds a shared library.  To make a static
          library: 
             cmake .. -DSTATIC=1
+            make
 
        * By default, cmake only builds the library, not the programs.
          To make both the library and the programs:
             cmake .. -DBUILD_PROG=1
+            make
          The programs are put in build/bin/
          To run these (e.g., for testing), move them to the prog
          directory and run them from there:

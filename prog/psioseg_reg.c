@@ -64,7 +64,7 @@ L_REGPARAMS  *rp;
     fprintf(stderr, "psio writing is not enabled\n"
             "See environ.h: #define USE_PSIO 1\n\n");
     regTestCleanup(rp);
-    return 1;
+    return 0;
 #endif  /* abort */
 
         /* Source for generating images */
