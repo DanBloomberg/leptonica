@@ -14,16 +14,17 @@ void build(Solution &s)
         leptonica.Public +=
             "src"_id;
 
-        leptonica.Private += "HAVE_LIBGIF"_d;
-        leptonica.Private += "HAVE_LIBJP2K"_d;
-        leptonica.Private += "HAVE_LIBJPEG"_d;
-        leptonica.Private += "HAVE_LIBPNG"_d;
-        leptonica.Private += "HAVE_LIBTIFF"_d;
-        leptonica.Private += "HAVE_LIBWEBP"_d;
-        leptonica.Private += "HAVE_LIBZ"_d;
-        leptonica.Private += "LIBJP2K_HEADER=\"openjpeg.h\""_d;
+        leptonica += "HAVE_LIBGIF"_d;
+        leptonica += "HAVE_LIBJP2K"_d;
+        leptonica += "HAVE_LIBJPEG"_d;
+        leptonica += "HAVE_LIBPNG"_d;
+        leptonica += "HAVE_LIBTIFF"_d;
+        leptonica += "HAVE_LIBWEBP"_d;
+        leptonica += "HAVE_LIBWEBP_ANIM"_d;
+        leptonica += "HAVE_LIBZ"_d;
+        leptonica += "LIBJP2K_HEADER=\"openjpeg.h\""_d;
         leptonica.Public += "HAVE_CONFIG_H"_d;
-        leptonica.Private += sw::Shared, "LIBLEPT_EXPORTS"_d;
+        leptonica += sw::Shared, "LIBLEPT_EXPORTS"_d;
         leptonica.Interface += sw::Shared, "LIBLEPT_IMPORTS"_d;
 
         leptonica += "org.sw.demo.gif-5"_dep;
@@ -31,7 +32,7 @@ void build(Solution &s)
         leptonica += "org.sw.demo.uclouvain.openjpeg.openjp2-2"_dep;
         leptonica += "org.sw.demo.glennrp.png-1"_dep;
         leptonica += "org.sw.demo.tiff-4"_dep;
-        leptonica += "org.sw.demo.webmproject.webp-*"_dep;
+        leptonica += "org.sw.demo.webmproject.webp"_dep;
 
         if (leptonica.Variables["WORDS_BIGENDIAN"] == 1)
             leptonica.Variables["ENDIANNESS"] = "L_BIG_ENDIAN";
@@ -211,6 +212,7 @@ void build(Solution &s)
             {"warper_reg", {"warper_reg.c"}},
             {"watershed_reg", {"watershed_reg.c"}},
             {"webpio_reg", {"webpio_reg.c"}},
+            {"webpanimio_reg", {"webpanimio_reg.c"}},
             {"wordboxes_reg", {"wordboxes_reg.c"}},
             {"writetext_reg", {"writetext_reg.c"}},
             {"xformbox_reg", {"xformbox_reg.c"}},
