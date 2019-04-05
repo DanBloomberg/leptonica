@@ -113,6 +113,7 @@ endif()
 
 if (WEBP_FOUND)
     set(HAVE_LIBWEBP 1)
+    set(HAVE_LIBWEBP_ANIM 1)
 endif()
 
 if (ZLIB_FOUND)
@@ -137,6 +138,9 @@ file(APPEND ${AUTOCONFIG_SRC} "
 
 /* Define to 1 if you have libwebp. */
 #cmakedefine HAVE_LIBWEBP 1
+
+/* Define to 1 if you have libwebpmux. */
+#cmakedefine HAVE_LIBWEBP_ANIM 1
 
 /* Define to 1 if you have zlib. */
 #cmakedefine HAVE_LIBZ 1

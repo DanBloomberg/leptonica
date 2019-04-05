@@ -56,6 +56,7 @@ if(NOT EXISTS ${PROJECT_SOURCE_DIR}/.cppan)
     find_package(PkgConfig)
     if (PKG_CONFIG_FOUND)
         pkg_check_modules(WEBP libwebp)
+        pkg_check_modules(WEBP libwebpmux)
         pkg_check_modules(JP2K libopenjp2)
     endif()
     if(NOT WEBP)
@@ -99,6 +100,7 @@ else()
         -DHAVE_LIBPNG=1
         -DHAVE_LIBTIFF=1
         -DHAVE_LIBWEBP=1
+        -DHAVE_LIBWEBP_ANIM=1
         -DHAVE_LIBZ=1
 
         -DHAVE_LIBJP2K=1
