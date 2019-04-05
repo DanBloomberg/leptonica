@@ -874,21 +874,29 @@ PIX     *pix, *pixs;
         pix = pixConvert16To8(pixs, L_MS_BYTE);
     else
         pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
+    pixDestroy(&pixs);
+    if (!pix)
+        return ERROR_INT("converted pix not made", procName, 1);
 
     d = pixGetDepth(pix);
     tname = l_makeTempFilename();
     if (d == 1) {
-        pixWrite(tname, pix, IFF_TIFF_G4);
+        if (pixWrite(tname, pix, IFF_TIFF_G4)) {
+            pixDestroy(&pix);
+            return ERROR_INT("g4 tiff not written", procName, 1);
+        }
         convertG4ToPSEmbed(tname, fileout);
     } else {
-        pixWrite(tname, pix, IFF_JFIF_JPEG);
+        if (pixWrite(tname, pix, IFF_JFIF_JPEG)) {
+            pixDestroy(&pix);
+            return ERROR_INT("jpeg not written", procName, 1);
+        }
         convertJpegToPSEmbed(tname, fileout);
     }
 
     lept_rmfile(tname);
     LEPT_FREE(tname);
     pixDestroy(&pix);
-    pixDestroy(&pixs);
     return 0;
 }
 
@@ -1018,25 +1026,31 @@ PIXCMAP  *cmap;
     d = pixGetDepth(pix);
     cmap = pixGetColormap(pix);
     if (d == 1) {
-        pixWrite(tname, pix, IFF_TIFF_G4);
+        if (pixWrite(tname, pix, IFF_TIFF_G4))
+            writeout = FALSE;
     } else if (level == 3) {
-        pixWrite(tname, pix, IFF_PNG);
+        if (pixWrite(tname, pix, IFF_PNG))
+            writeout = FALSE;
     } else {  /* level == 2 */
         if (cmap) {
             pixt = pixConvertForPSWrap(pix);
-            pixWrite(tname, pixt, IFF_JFIF_JPEG);
+            if (pixWrite(tname, pixt, IFF_JFIF_JPEG))
+                writeout = FALSE;
             pixDestroy(&pixt);
         } else if (d == 16) {
             L_WARNING("d = 16; converting to 8 bpp for jpeg\n", procName);
             pixt = pixConvert16To8(pix, L_MS_BYTE);
-            pixWrite(tname, pixt, IFF_JFIF_JPEG);
+            if (pixWrite(tname, pixt, IFF_JFIF_JPEG))
+                writeout = FALSE;
             pixDestroy(&pixt);
         } else if (d == 2 || d == 4) {
             pixt = pixConvertTo8(pix, 0);
-            pixWrite(tname, pixt, IFF_JFIF_JPEG);
+            if (pixWrite(tname, pixt, IFF_JFIF_JPEG))
+                writeout = FALSE;
             pixDestroy(&pixt);
         } else if (d == 8 || d == 32) {
-            pixWrite(tname, pix, IFF_JFIF_JPEG);
+            if (pixWrite(tname, pix, IFF_JFIF_JPEG))
+                writeout = FALSE;
         } else {  /* shouldn't happen */
             L_ERROR("invalid depth with level 2: %d\n", procName, d);
             writeout = FALSE;
@@ -1049,7 +1063,7 @@ PIXCMAP  *cmap;
     if (lept_rmfile(tname) != 0)
         L_ERROR("temp file %s was not deleted\n", procName, tname);
     LEPT_FREE(tname);
-    return 0;
+    return (writeout) ? 0 : 1;
 }
 
 /* --------------------------------------------*/

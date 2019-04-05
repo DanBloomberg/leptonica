@@ -45,6 +45,14 @@ L_REGPARAMS  *rp;
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
+#if !USE_PNMIO
+    fprintf(stderr, "pnm/pam writing is not enabled\n"
+            "See environ.h: #define USE_PNMIO 1\n\n");
+
+    regTestCleanup(rp);
+    return 1;
+#endif  /* abort */
+
     lept_rmdir("lept/pnm");
     lept_mkdir("lept/pnm");
 

@@ -60,6 +60,13 @@ L_REGPARAMS  *rp;
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
+#if !USE_PSIO
+    fprintf(stderr, "psio writing is not enabled\n"
+            "See environ.h: #define USE_PSIO 1\n\n");
+    regTestCleanup(rp);
+    return 1;
+#endif  /* abort */
+
         /* Source for generating images */
     pixs = pixRead("pageseg2.tif");   /* 1 bpp */
     pixc = pixRead("tetons.jpg");     /* 32 bpp */
