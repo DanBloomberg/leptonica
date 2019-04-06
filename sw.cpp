@@ -1,5 +1,24 @@
 void build(Solution &s)
 {
+    auto add_deps = [](auto &t)
+    {
+        t += "HAVE_LIBGIF"_d;
+        t += "HAVE_LIBJP2K"_d;
+        t += "HAVE_LIBJPEG"_d;
+        t += "HAVE_LIBPNG"_d;
+        t += "HAVE_LIBTIFF"_d;
+        t += "HAVE_LIBWEBP"_d;
+        t += "HAVE_LIBWEBP_ANIM"_d;
+        t += "HAVE_LIBZ"_d;
+
+        t += "org.sw.demo.gif-5"_dep;
+        t += "org.sw.demo.jpeg-9"_dep;
+        t += "org.sw.demo.uclouvain.openjpeg.openjp2-2"_dep;
+        t += "org.sw.demo.glennrp.png-1"_dep;
+        t += "org.sw.demo.tiff-4"_dep;
+        t += "org.sw.demo.webmproject.webp"_dep;
+    };
+
     auto &leptonica = s.addTarget<LibraryTarget>("danbloomberg.leptonica", "1.79.0");
     leptonica += Git("https://github.com/DanBloomberg/leptonica", "{v}");
 
@@ -14,25 +33,12 @@ void build(Solution &s)
         leptonica.Public +=
             "src"_id;
 
-        leptonica += "HAVE_LIBGIF"_d;
-        leptonica += "HAVE_LIBJP2K"_d;
-        leptonica += "HAVE_LIBJPEG"_d;
-        leptonica += "HAVE_LIBPNG"_d;
-        leptonica += "HAVE_LIBTIFF"_d;
-        leptonica += "HAVE_LIBWEBP"_d;
-        leptonica += "HAVE_LIBWEBP_ANIM"_d;
-        leptonica += "HAVE_LIBZ"_d;
+        add_deps(leptonica);
+
         leptonica += "LIBJP2K_HEADER=\"openjpeg.h\""_d;
         leptonica.Public += "HAVE_CONFIG_H"_d;
         leptonica += sw::Shared, "LIBLEPT_EXPORTS"_d;
         leptonica.Interface += sw::Shared, "LIBLEPT_IMPORTS"_d;
-
-        leptonica += "org.sw.demo.gif-5"_dep;
-        leptonica += "org.sw.demo.jpeg-9"_dep;
-        leptonica += "org.sw.demo.uclouvain.openjpeg.openjp2-2"_dep;
-        leptonica += "org.sw.demo.glennrp.png-1"_dep;
-        leptonica += "org.sw.demo.tiff-4"_dep;
-        leptonica += "org.sw.demo.webmproject.webp"_dep;
 
         if (leptonica.Variables["WORDS_BIGENDIAN"] == 1)
             leptonica.Variables["ENDIANNESS"] = "L_BIG_ENDIAN";
@@ -59,7 +65,7 @@ void build(Solution &s)
         progs.Scope = TargetScope::Test;
 
     {
-        auto add_prog = [&s, &progs, &leptonica](const String &name, const Files &files) -> decltype(auto)
+        auto add_prog = [&s, &progs, &leptonica, &add_deps](const String &name, const Files &files) -> decltype(auto)
         {
             auto &t = progs.addExecutable(name);
             t.setRootDirectory("prog");
@@ -70,6 +76,7 @@ void build(Solution &s)
                 for (auto *f : t.gatherSourceFiles())
                     f->BuildAs = NativeSourceFile::CPP;
             }
+            add_deps(t);
             return t;
         };
 
