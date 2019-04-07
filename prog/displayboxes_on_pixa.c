@@ -56,12 +56,11 @@
 int main(int    argc,
          char **argv)
 {
-char        *fileout;
-l_int32      width, type, display;
-BOXAA       *baa;
-PIX         *pix1;
-PIXA        *pixa1, *pixa2;
-static char  mainName[] = "displayboxes_on_pixa";
+char    *fileout;
+l_int32  width, type, display;
+BOXAA   *baa;
+PIX     *pix1;
+PIXA    *pixa1, *pixa2;
 
     if (argc != 7) {
         fprintf(stderr, "Syntax error:"

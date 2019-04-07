@@ -47,7 +47,6 @@
 int main(int    argc,
          char **argv)
 {
-l_int32       errorfound, same;
 PIX          *pixs, *pix1, *pix2, *pix3, *pix4;
 L_REGPARAMS  *rp;
 

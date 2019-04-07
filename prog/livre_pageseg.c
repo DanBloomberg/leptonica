@@ -77,32 +77,32 @@ l_int32
 DoPageSegmentation(PIX     *pixs,   /* should be at least 300 ppi */
                    l_int32  which)  /* 1, 2, 3, 4 */
 {
-char         buf[256];
-l_int32      zero;
-BOXA        *boxatm, *boxahm;
-PIX         *pixr;   /* image reduced to 150 ppi */
-PIX         *pixhs;  /* image of halftone seed, 150 ppi */
-PIX         *pixm;   /* image of mask of components, 150 ppi */
-PIX         *pixhm1; /* image of halftone mask, 150 ppi */
-PIX         *pixhm2; /* image of halftone mask, 300 ppi */
-PIX         *pixht;  /* image of halftone components, 150 ppi */
-PIX         *pixnht; /* image without halftone components, 150 ppi */
-PIX         *pixi;   /* inverted image, 150 ppi */
-PIX         *pixvws; /* image of vertical whitespace, 150 ppi */
-PIX         *pixm1;  /* image of closed textlines, 150 ppi */
-PIX         *pixm2;  /* image of refined text line mask, 150 ppi */
-PIX         *pixm3;  /* image of refined text line mask, 300 ppi */
-PIX         *pixb1;  /* image of text block mask, 150 ppi */
-PIX         *pixb2;  /* image of text block mask, 300 ppi */
-PIX         *pixnon; /* image of non-text or halftone, 150 ppi */
-PIX         *pix1, *pix2, *pix3, *pix4;
-PIXA        *pixa;
-PIXCMAP     *cmap;
-PTAA        *ptaa;
-l_int32      ht_flag = 0;
-l_int32      ws_flag = 0;
-l_int32      text_flag = 0;
-l_int32      block_flag = 0;
+char      buf[256];
+l_int32   zero;
+BOXA     *boxatm, *boxahm;
+PIX      *pixr;   /* image reduced to 150 ppi */
+PIX      *pixhs;  /* image of halftone seed, 150 ppi */
+PIX      *pixm;   /* image of mask of components, 150 ppi */
+PIX      *pixhm1; /* image of halftone mask, 150 ppi */
+PIX      *pixhm2; /* image of halftone mask, 300 ppi */
+PIX      *pixht;  /* image of halftone components, 150 ppi */
+PIX      *pixnht; /* image without halftone components, 150 ppi */
+PIX      *pixi;   /* inverted image, 150 ppi */
+PIX      *pixvws; /* image of vertical whitespace, 150 ppi */
+PIX      *pixm1;  /* image of closed textlines, 150 ppi */
+PIX      *pixm2;  /* image of refined text line mask, 150 ppi */
+PIX      *pixm3;  /* image of refined text line mask, 300 ppi */
+PIX      *pixb1;  /* image of text block mask, 150 ppi */
+PIX      *pixb2;  /* image of text block mask, 300 ppi */
+PIX      *pixnon; /* image of non-text or halftone, 150 ppi */
+PIX      *pix1, *pix2, *pix3;
+PIXA     *pixa;
+PIXCMAP  *cmap;
+PTAA     *ptaa;
+l_int32   ht_flag = 0;
+l_int32   ws_flag = 0;
+l_int32   text_flag = 0;
+l_int32   block_flag = 0;
 
     PROCNAME("DoPageSegmentation");
 

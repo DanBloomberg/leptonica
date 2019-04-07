@@ -38,8 +38,7 @@ int main(int    argc,
 {
 char        *filein;
 l_int32      i, n, ns;
-BOX         *box;
-BOXA        *boxa, *boxas;
+BOXA        *boxa;
 PIX         *pixs, *pixt;
 PIXA        *pixa, *pixas, *pixas2;
 static char  mainName[] = "sorttest";

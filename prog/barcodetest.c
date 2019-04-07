@@ -43,7 +43,7 @@ int main(int    argc,
 {
 char        *filein;
 PIX         *pixs;
-SARRAY      *saw1, *saw2, *saw3, *sad1, *sad2, *sad3;
+SARRAY      *saw1, *saw2, *sad1, *sad2;
 static char  mainName[] = "barcodetest";
 
     if (argc != 2)
@@ -69,11 +69,16 @@ static char  mainName[] = "barcodetest";
     sarrayDestroy(&saw2);
     sarrayDestroy(&sad2);
 
-/*    sad3 = pixProcessBarcodes(pixs, L_BF_ANY, L_USE_WINDOW, &saw3, 1);
+/*
+{
+    SARRAY  *saw3, *sad3;
+    sad3 = pixProcessBarcodes(pixs, L_BF_ANY, L_USE_WINDOW, &saw3, 1);
     sarrayWrite("/tmp/lept/barc/saw3", saw3);
     sarrayWrite("/tmp/lept/barc/sad3", sad3);
     sarrayDestroy(&saw3);
-    sarrayDestroy(&sad3); */
+    sarrayDestroy(&sad3);
+}
+*/
 
     pixDestroy(&pixs);
     return 0;

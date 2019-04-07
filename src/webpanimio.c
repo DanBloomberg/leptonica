@@ -174,7 +174,6 @@ pixaWriteMemWebPAnim(l_uint8  **pencdata,
                      l_int32    lossless)
 {
 l_int32                 i, n, same, w, h, wpl, ret;
-size_t                  size;
 l_uint8                *data;
 PIX                    *pix1, *pix2;
 WebPAnimEncoder        *enc;

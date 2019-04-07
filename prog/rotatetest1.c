@@ -40,7 +40,7 @@ int main(int    argc,
 {
 l_int32      i, w, h, d, rotflag;
 PIX         *pixs, *pixt, *pixd;
-l_float32    angle, deg2rad, pops, ang;
+l_float32    angle, deg2rad, ang;
 char        *filein, *fileout;
 static char  mainName[] = "rotatetest1";
 
@@ -107,6 +107,9 @@ static char  mainName[] = "rotatetest1";
 #endif
 
 #if 0
+{
+    l_float32  pops;
+
         /* timing of various rotation operations (choose) */
     startTimer();
     w = pixGetWidth(pixs);
@@ -130,6 +133,7 @@ static char  mainName[] = "rotatetest1";
         pixRotateShearIP(pixs, w/2, h/2, -deg2rad * angle, L_BRING_IN_WHITE);
     }
     pixWrite("/usr/tmp/junkout", pixs, IFF_PNG);
+}
 #endif
 
 #if 0

@@ -68,7 +68,6 @@ static const l_float32  ROTATION = 0.11;   /* radian */
 int main(int    argc,
          char **argv)
 {
-char          bufname[256];
 l_int32       i, w, h;
 l_float32    *mat1, *mat2, *mat3, *mat1i, *mat2i, *mat3i, *matdinv;
 l_float32     matd[9], matdi[9];

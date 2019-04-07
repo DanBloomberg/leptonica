@@ -95,13 +95,11 @@ int main(int    argc,
          char **argv)
 {
 char        *filein, *str, *tempfile, *prestring, *outprotos, *protostr;
-const char  *spacestr = " ";
 char         buf[L_BUFSIZE];
-l_uint8     *allheaders;
 l_int32      i, maxindex, in_line, nflags, protos_added, firstfile, len, ret;
 size_t       nbytes;
 L_BYTEA     *ba, *ba2;
-SARRAY      *sa, *safirst;
+SARRAY      *sa;
 static char  mainName[] = "xtractprotos";
 
     if (argc == 1) {

@@ -162,8 +162,7 @@ PixTestEqual(L_REGPARAMS  *rp,
              l_int32       set,
              l_int32       connectivity)
 {
-l_int32  same;
-PIX     *pixc11, *pixc12, *pixc21, *pixc22, *pixmi;
+PIX  *pixc11, *pixc12, *pixc21, *pixc22, *pixmi;
 
     pixmi = pixInvert(NULL, pixm);
     pixc11 = pixCopy(NULL, pixs1);

@@ -49,11 +49,11 @@ l_int32 main(int    argc,
              char **argv)
 {
 char      buf[256];
-l_int32   i, n, item;
+l_int32   i, item;
 l_int32   example[6] = {17, 20, 21, 22, 23, 24};  /* for decoding */
 BOXA     *boxa;
-PIX      *pix1, *pix2, *pix3, *pixdb;
-PIXA     *pixa1, *pixa2, *pixa3;
+PIX      *pix1, *pix2, *pixdb;
+PIXA     *pixa1, *pixa2;
 L_RECOG  *recog;
 
     if (argc != 1) {

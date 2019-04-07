@@ -79,7 +79,7 @@ static char  mainName[] = "livre_hmt";
         pixt = pixReduceRankBinaryCascade(pixs, 4, 4, 0, 0);
     else if (reduction == 8)
         pixt = pixReduceRankBinaryCascade(pixs, 4, 4, 2, 0);
-    else if (reduction == 16)
+    else  /* reduction == 16 */
         pixt = pixReduceRankBinaryCascade(pixs, 4, 4, 2, 2);
 
         /* Make a hit-miss sel */
@@ -87,7 +87,7 @@ static char  mainName[] = "livre_hmt";
         selhm = pixGenerateSelBoundary(pixt, 2, 2, 20, 30, 1, 1, 0, 0, &pixp);
     else if (reduction == 8)
         selhm = pixGenerateSelBoundary(pixt, 1, 2, 6, 12, 1, 1, 0, 0, &pixp);
-    else if (reduction == 16)
+    else  /* reduction == 16 */
         selhm = pixGenerateSelBoundary(pixt, 1, 1, 4, 8, 0, 0, 0, 0, &pixp);
 
         /* Display the sel */
@@ -101,7 +101,7 @@ static char  mainName[] = "livre_hmt";
         pixr = pixClone(pix);
     else if (reduction == 8)
         pixr = pixReduceRankBinaryCascade(pix, 2, 0, 0, 0);
-    else if (reduction == 16)
+    else  /* reduction == 16 */
         pixr = pixReduceRankBinaryCascade(pix, 2, 2, 0, 0);
 
     startTimer();

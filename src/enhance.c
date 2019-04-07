@@ -1684,7 +1684,7 @@ l_uint32  *data, *line;
  * \param[in]    pixs     32 bpp rgb
  * \param[in]    factor   subsampling factor; integer >= 1
  * \param[out]   psat     average saturation
- * \return  pixd, or NULL on error
+ * \return  0 if OK, 1 on error
  */
 l_int32
 pixMeasureSaturation(PIX        *pixs,

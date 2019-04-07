@@ -119,7 +119,7 @@ static void
 TestSetIterator(L_ASET  *s,
                 l_int32  print)
 {
-l_int32       count, npix, val;
+l_int32       count;
 L_ASET_NODE  *n;
 
     n = l_asetGetFirst(s);

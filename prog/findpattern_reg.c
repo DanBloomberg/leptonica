@@ -130,7 +130,7 @@ SEL     *selhm;
         pixr = pixClone(pix);
     else if (red == 8)
         pixr = pixReduceRankBinaryCascade(pix, 2, 0, 0, 0);
-    else if (red == 16)
+    else  /* red == 16 */
         pixr = pixReduceRankBinaryCascade(pix, 2, 2, 0, 0);
     pixDestroy(&pix);
 

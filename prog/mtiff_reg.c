@@ -48,12 +48,11 @@ char         *fname, *filename;
 const char   *str;
 char          buf[512];
 l_int32       i, n, npages, equal, success;
-size_t        length, offset, size;
+size_t        offset, size;
 FILE         *fp;
-NUMA         *naflags, *nasizes;
-PIX          *pix, *pix1, *pix2;
+PIX          *pix1, *pix2;
 PIXA         *pixa, *pixa1, *pixa2, *pixa3;
-SARRAY       *savals, *satypes, *sa;
+SARRAY       *sa;
 L_REGPARAMS  *rp;
 
    if (regTestSetup(argc, argv, &rp))
@@ -312,8 +311,13 @@ L_REGPARAMS  *rp;
     pixaDestroy(&pixa);
 
 
-#if 0    /* -----   test adding custom public tags to a tiff header ----- */
-    pix = pixRead("feyn.tif");
+#if 1    /* -----   test adding custom public tags to a tiff header ----- */
+{
+    size_t        length;
+    NUMA         *naflags, *nasizes;
+    SARRAY       *savals, *satypes;
+
+    pix1 = pixRead("feyn.tif");
     naflags = numaCreate(10);
     savals = sarrayCreate(10);
     satypes = sarrayCreate(10);
@@ -346,7 +350,7 @@ L_REGPARAMS  *rp;
     numaAddNumber(naflags, 297);  /* PAGENUMBER */
     sarrayAddString(savals, "1-412", L_COPY);
     sarrayAddString(satypes, "l_uint16-l_uint16", L_COPY);
-    pixWriteTiffCustom("/tmp/lept/tiff/tags.tif", pix, IFF_TIFF_G4, "w", naflags,
+    pixWriteTiffCustom("/tmp/lept/tiff/tags.tif", pix1, IFF_TIFF_G4, "w", naflags,
                        savals, satypes, nasizes);
     fprintTiffInfo(stderr, "/tmp/lept/tiff/tags.tif");
     fprintf(stderr, "num flags = %d\n", numaGetCount(naflags));
@@ -357,7 +361,8 @@ L_REGPARAMS  *rp;
     numaDestroy(&nasizes);
     sarrayDestroy(&savals);
     sarrayDestroy(&satypes);
-    pixDestroy(&pix);
+    pixDestroy(&pix1);
+}
 #endif
 
     return regTestCleanup(rp);

@@ -47,7 +47,7 @@ int main(int    argc,
          char **argv)
 {
 l_uint8      *data1, *data2;
-l_int32       i, n;
+l_int32       i;
 size_t        size1, size2;
 BOX          *box;
 PIX          *pix, *pix1, *pix2, *pix3;

@@ -55,7 +55,7 @@ l_float32    sum1, sum2, ave1, ave2, ave3, ave4, diff1, diff2;
 l_float32    var1, var2, var3;
 BOX         *box1, *box2;
 NUMA        *na, *na1, *na2, *na3, *na4;
-PIX         *pix, *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pixg, *pixd;
+PIX         *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pixg, *pixd;
 PIXA        *pixa;
 L_REGPARAMS  *rp;
 

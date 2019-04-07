@@ -48,7 +48,7 @@ int main(int    argc,
          char **argv)
 {
 char         buf[32];
-char        *fileout, *fontdir, *textstr;
+char        *fileout, *textstr;
 l_int32      n, i, same, maxd, ntext, border, lossless, display, showtext;
 l_float32    scalefact;
 L_BMF       *bmf;

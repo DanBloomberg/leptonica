@@ -42,17 +42,11 @@ static const l_int32 scaledh = 40;
 l_int32 main(int    argc,
              char **argv)
 {
-l_int32    i, j, n, index, w, h, linew, same;
-l_float32  score;
-char      *fname, *strchar;
-char       buf[256];
-BOX       *box;
-BOXA      *boxat;
-NUMA      *na1;
-PIX       *pixs, *pixd, *pix1, *pix2, *pixdb;
-PIXA      *pixa1, *pixa2, *pixa3, *pixa4;
-L_RECOG   *recog1, *recog2;
-SARRAY    *sa, *satext;
+l_int32   i, linew, same;
+BOXA     *boxat;
+PIX      *pixd, *pix1, *pix2, *pixdb;
+PIXA     *pixa1, *pixa2, *pixa3;
+L_RECOG  *recog1, *recog2;
 
     if (argc != 1) {
         fprintf(stderr, " Syntax: recogtest1\n");

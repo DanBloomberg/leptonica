@@ -192,10 +192,10 @@ fhmt_1_0(l_uint32  *datad,
          l_uint32  *datas,
          l_int32    wpls)
 {
-l_int32              i;
-register l_int32     j, pwpls;
-register l_uint32   *sptr, *dptr;
-l_int32              wpls2, wpls3;
+l_int32    i;
+l_int32    j, pwpls;
+l_uint32  *sptr, *dptr;
+l_int32    wpls2, wpls3;
 
     wpls2 = 2 * wpls;
     wpls3 = 3 * wpls;
@@ -234,10 +234,10 @@ fhmt_1_1(l_uint32  *datad,
          l_uint32  *datas,
          l_int32    wpls)
 {
-l_int32              i;
-register l_int32     j, pwpls;
-register l_uint32   *sptr, *dptr;
-l_int32              wpls2, wpls3;
+l_int32    i;
+l_int32    j, pwpls;
+l_uint32  *sptr, *dptr;
+l_int32    wpls2, wpls3;
 
     wpls2 = 2 * wpls;
     wpls3 = 3 * wpls;
@@ -276,10 +276,10 @@ fhmt_1_2(l_uint32  *datad,
          l_uint32  *datas,
          l_int32    wpls)
 {
-l_int32              i;
-register l_int32     j, pwpls;
-register l_uint32   *sptr, *dptr;
-l_int32              wpls2, wpls3;
+l_int32    i;
+l_int32    j, pwpls;
+l_uint32  *sptr, *dptr;
+l_int32    wpls2, wpls3;
 
     wpls2 = 2 * wpls;
     wpls3 = 3 * wpls;
@@ -318,10 +318,10 @@ fhmt_1_3(l_uint32  *datad,
          l_uint32  *datas,
          l_int32    wpls)
 {
-l_int32              i;
-register l_int32     j, pwpls;
-register l_uint32   *sptr, *dptr;
-l_int32              wpls2, wpls3;
+l_int32    i;
+l_int32    j, pwpls;
+l_uint32  *sptr, *dptr;
+l_int32    wpls2, wpls3;
 
     wpls2 = 2 * wpls;
     wpls3 = 3 * wpls;

@@ -41,7 +41,7 @@ int main(int    argc,
          char **argv)
 {
 const char   *str;
-l_int32       equal, index, w, h;
+l_int32       index, w, h;
 BOX          *box;
 PIX          *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pix6;
 PIXA         *pixa;

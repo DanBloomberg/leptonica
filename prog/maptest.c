@@ -57,7 +57,7 @@ static void TestMapIterator5(L_AMAP *m, l_int32  print);
 l_int32 main(int    argc,
              char **argv)
 {
-l_int32    i, n, w, h, val;
+l_int32    i, n, w, h;
 l_uint32   val32;
 L_AMAP    *m;
 NUMA      *na;
@@ -226,7 +226,7 @@ DisplayMapRGBHistogram(L_AMAP      *m,
 {
 char          buf[128];
 l_int32       ncolors, npix, ival, maxn, maxn2;
-l_uint32      val32, maxcolor;
+l_uint32      maxcolor;
 L_AMAP_NODE  *n;
 NUMA         *na;
 
@@ -378,7 +378,7 @@ TestMapIterator5(L_AMAP  *m,
 l_int32       count, npix, ival;
 l_uint32      ukey;
 L_AMAP       *m2;
-L_AMAP_NODE  *n, *np, *n2;
+L_AMAP_NODE  *n, *np;
 
     m2 = l_amapCreate(L_UINT_TYPE);
     n = l_amapGetLast(m);

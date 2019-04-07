@@ -47,7 +47,6 @@ l_int32       loc, count;
 size_t        size1, size2;
 char         *str0, *str1, *str2, *str3, *str4, *str5, *str6;
 l_uint8      *data1, *data2;
-l_int32       same;
 L_DNA        *da;
 SARRAY       *sa1, *sa2, *sa3;
 L_REGPARAMS  *rp;

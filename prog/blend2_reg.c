@@ -38,7 +38,7 @@ int main(int    argc,
 {
 l_int32       i, j, w1, h1, w2, h2, w, h;
 BOX          *box1, *box2;
-PIX          *pixg, *pixs, *pixs1, *pixs2, *pix1, *pix2, *pix3, *pix4, *pix5;
+PIX          *pixg, *pixs1, *pixs2, *pix1, *pix2, *pix3, *pix4, *pix5;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
 

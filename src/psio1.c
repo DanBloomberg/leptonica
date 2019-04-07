@@ -1004,7 +1004,7 @@ pixWriteCompressedToPS(PIX         *pix,
                        l_int32     *pindex)
 {
 char     *tname;
-l_int32   i, n, writeout, d;
+l_int32   writeout, d;
 PIX      *pixt;
 PIXCMAP  *cmap;
 

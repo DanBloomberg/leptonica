@@ -39,10 +39,8 @@ static PIX * QuantizeNonImageRegion(PIX *pixs, PIX *pixm, l_int32 levels);
 int main(int    argc,
          char **argv)
 {
-char         buffer[512];
-char        *tempfile1, *tempfile2;
 l_uint8     *data;
-l_int32      i, j, w, h, seq, ret, same;
+l_int32      i, j, w, h, seq, same;
 size_t       nbytes;
 const char  *title;
 BOX         *box;
@@ -355,6 +353,11 @@ static char  mainName[] = "pdfiotest";
 #endif
 
 #if 0
+{
+    char     buffer[512];
+    char    *tempfile1, *tempfile2;
+    l_int32  ret;
+
     fprintf(stderr, "\n*** pdftk writes multipage pdfs from images\n");
     tempfile1 = genPathname("/tmp/lept/pdf", "file*.pdf");
     tempfile2 = genPathname("/tmp/lept/pdf", "cat_pdftk.pdf");
@@ -363,6 +366,7 @@ static char  mainName[] = "pdfiotest";
     ret = system(buffer);  /* pdftk */
     lept_free(tempfile1);
     lept_free(tempfile2);
+}
 #endif
 
 #if 1

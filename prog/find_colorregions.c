@@ -54,10 +54,9 @@ pixFindColorRegionsLight(PIX *pixs, PIX *pixm, l_int32 factor,
 int main(int    argc,
          char **argv)
 {
-l_float32    fcolor;
-PIX         *pix1, *pix2, *pix3, *pix4;
-PIXA        *pixadb;
-static char  mainName[] = "find_colorregions";
+l_float32  fcolor;
+PIX       *pix1, *pix2, *pix3, *pix4;
+PIXA      *pixadb;
 
     setLeptDebugOK(1);
     lept_mkdir("lept/color");
@@ -185,7 +184,7 @@ pixFindColorRegionsLight(PIX        *pixs,
                          PIXA       *pixadb)
 {
 l_int32    lightbg, w, h, count;
-l_float32  ratio, val95, rank;
+l_float32  ratio, val95;
 BOXA      *boxa1, *boxa2;
 NUMA      *nah;
 PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;

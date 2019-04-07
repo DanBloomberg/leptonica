@@ -40,7 +40,7 @@
 l_int32 main(int    argc,
              char **argv)
 {
-l_int32       i, w, h, n, val, ne, no, nbins, minw, maxw, minh, maxh;
+l_int32       i, n, val, ne, no, nbins, minw, maxw, minh, maxh;
 l_int32       mine, mino, maxe, maxo;
 l_int32       w_diff, h_diff, median_w_diff, median_h_diff;
 l_int32       noutw, nouth;

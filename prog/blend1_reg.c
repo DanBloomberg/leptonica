@@ -45,7 +45,7 @@ PIX *MakeColorWash(l_int32 w, l_int32 h, l_int32 color);
 int main(int    argc,
          char **argv)
 {
-PIX          *pixs, *pixg, *pixc, *pix1, *pix2;
+PIX          *pixs, *pixg, *pixc, *pix1;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
 
