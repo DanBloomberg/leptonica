@@ -4,7 +4,7 @@ notifications:
   email: false
   
 sudo: required
-dist: trusty
+dist: xenial
 
 os:
   - linux
@@ -26,6 +26,7 @@ addons:
     #- libtiff5-dev
     #- libgif-dev
     #- libopenjp2-7-dev
+    update: true
   homebrew:
     packages:
     - webp
