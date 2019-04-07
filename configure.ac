@@ -27,6 +27,7 @@ AC_ARG_WITH([jpeg], AS_HELP_STRING([--without-jpeg], [do not include jpeg suppor
 AC_ARG_WITH([giflib], AS_HELP_STRING([--without-giflib], [do not include giflib support]))
 AC_ARG_WITH([libtiff], AS_HELP_STRING([--without-libtiff], [do not include libtiff support]))
 AC_ARG_WITH([libwebp], AS_HELP_STRING([--without-libwebp], [do not include libwebp support]))
+AC_ARG_WITH([libwebpmux], AS_HELP_STRING([--without-libwebpmux], [do not include libwebpmux support]))
 AC_ARG_WITH([libopenjpeg], AS_HELP_STRING([--without-libopenjpeg], [do not include libopenjpeg support]))
 
 AC_ARG_ENABLE([programs], AS_HELP_STRING([--disable-programs], [do not build additional programs]))
@@ -165,6 +166,26 @@ AS_IF([test "x$with_libwebp" = xno], [
 ])
 
 AM_CONDITIONAL([HAVE_LIBWEBP], [test "x$libwebp_missing" = x])
+
+AS_IF([test "x$with_libwebpmux" = xno], [
+  libwebpmux_missing=untried
+], [
+  libwebpmux_missing=
+
+  PKG_CHECK_MODULES([LIBWEBPMUX], [libwebpmux], [
+    AC_DEFINE([HAVE_LIBWEBP_ANIM], 1, [Define to 1 if you have libwebpmux.])
+  ], [
+    AC_CHECK_LIB([webpmux], [WebPAnimEncoderOptionsInit], [:], [libwebpmux_missing=library], [$LIBM])
+
+    AS_IF([test "x$libwebpmux_missing" = x], [
+      AC_DEFINE([HAVE_LIBWEBP_ANIM], 1, [Define to 1 if you have libwebpmux.]) AC_SUBST([LIBWEBPMUX_LIBS], [-lwebpmux])
+    ], [
+      AS_IF([test "x$with_libwebpmux" = xyes], AC_MSG_ERROR([libwebpmux support requested but $libwebpmux_missing not found]))
+    ])
+  ])
+])
+
+AM_CONDITIONAL([HAVE_LIBWEBP_ANIM], [test "x$libwebpmux_missing" = x])
 
 AS_IF([test "x$with_libopenjpeg" = xno], [
   libopenjpeg_missing=untried
