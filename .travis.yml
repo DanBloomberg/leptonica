@@ -53,5 +53,5 @@ install:
 script:
   - mkdir build
   - cd build
-  - cmake .. -DBUILD_PROG=1 -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
+  - cmake .. -DBUILD_PROG=1
   - make
