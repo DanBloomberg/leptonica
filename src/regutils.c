@@ -876,6 +876,8 @@ char    *root;
 #else
     if (strstr(root, ".exe") != NULL)
         len -= 4;
+    if (strstr(root, "_reg") == root + len - 4)
+        len -= 4;
 #endif  /* ! _WIN32 */
 
     root[len] = '\0';  /* remove the suffix */
