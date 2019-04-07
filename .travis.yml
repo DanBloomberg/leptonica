@@ -26,10 +26,12 @@ addons:
     #- libtiff5-dev
     #- libgif-dev
     #- libopenjp2-7-dev
-  brew:
+  homebrew:
     packages:
-      - webp
-      - openjpeg
+    - webp
+    - openjpeg
+    update: true
+
 
 before_install:
   - if [[ $TRAVIS_OS_NAME == linux   ]]; then LINUX=true; fi
