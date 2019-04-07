@@ -871,12 +871,13 @@ char    *root;
             root = newroot;
             len = strlen(root);
         }
+        len -= 4;
     }
 #else
     if (strstr(root, ".exe") != NULL)
         len -= 4;
 #endif  /* ! _WIN32 */
 
-    root[len - 4] = '\0';  /* remove the suffix */
+    root[len] = '\0';  /* remove the suffix */
     return root;
 }
