@@ -529,7 +529,7 @@ l_uint8  *datain, *dataout;
 
     datain = l_binaryRead(filein, &inbytes);
     if (start + nbytes > inbytes)
-        L_WARNING("start + nbytes > length(filein) = %lu\n", procName, inbytes);
+        L_WARNING("start + nbytes > length(filein) = %zu\n", procName, inbytes);
 
     if (!newdata) newsize = 0;
     outbytes = inbytes - nbytes + newsize;
