@@ -63,7 +63,6 @@ static PIXA  *MakeBootnum2(void);
 l_int32 main(int    argc,
              char **argv)
 {
-l_uint8      *data1, *data2;
 PIX          *pix1;
 PIXA         *pixa1, *pixa2, *pixa3;
 L_STRCODE    *strc;

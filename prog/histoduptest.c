@@ -47,19 +47,17 @@ l_int32 main(int    argc,
              char **argv)
 {
 l_uint8     *bytea1, *bytea2;
-l_int32      i, j, n, w, h, maxi, maxj, istext, w1, h1, w2, h2;
+l_int32      i, j, n, maxi, maxj, istext, w1, h1, w2, h2;
 l_int32      debug;
 size_t       size1, size2;
 l_float32    score, maxscore;
 l_float32   *scores;
 BOX         *box1, *box2;
-BOXA        *boxa;
 NUMA        *nai;
 NUMAA       *naa1, *naa2, *naa3, *naa4;
 PIX         *pix1, *pix2;
 PIXA        *pixa1, *pixa2, *pixa3;
 PIXAC       *pac;
-static char  mainName[] = "histoduptest";
 
     if (argc != 1) {
         fprintf(stderr, "Syntax: histoduptest\n");
