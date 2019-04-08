@@ -56,6 +56,10 @@ if HAVE_LIBWEBP
 AUTO_REG_PROGS += webpio_reg
 endif
 
+if HAVE_LIBWEBP_ANIM
+AUTO_REG_PROGS += webpanimio_reg
+endif
+
 if HAVE_LIBJP2K
 AUTO_REG_PROGS += jp2kio_reg
 endif
