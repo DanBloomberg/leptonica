@@ -332,11 +332,11 @@ char     buf[256];
         /* Output on failure */
     if (!same) {
             /* Write the two strings to file */
-        snprintf(buf, sizeof(buf), "/tmp/lept/regout/string1_%d_%lu", rp->index,
-                 (unsigned long)bytes1);
+        snprintf(buf, sizeof(buf), "/tmp/lept/regout/string1_%d_%zu",
+                 rp->index, bytes1);
         l_binaryWrite(buf, "w", string1, bytes1);
-        snprintf(buf, sizeof(buf), "/tmp/lept/regout/string2_%d_%lu", rp->index,
-                 (unsigned long)bytes2);
+        snprintf(buf, sizeof(buf), "/tmp/lept/regout/string2_%d_%zu",
+                 rp->index, bytes2);
         l_binaryWrite(buf, "w", string2, bytes2);
 
             /* Report comparison failure */
@@ -871,7 +871,7 @@ char    *root;
             root = newroot;
             len = strlen(root);
         }
-        len -= 4;
+        len -= 4;  /* remove the "_reg" suffix */
     }
 #else
     if (strstr(root, ".exe") != NULL)
@@ -880,6 +880,6 @@ char    *root;
         len -= 4;
 #endif  /* ! _WIN32 */
 
-    root[len] = '\0';  /* remove the suffix */
+    root[len] = '\0';  /* terminate */
     return root;
 }

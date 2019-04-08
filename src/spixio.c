@@ -435,7 +435,7 @@ PIXCMAP   *cmap;
     if (!data)
         return (PIX *)ERROR_PTR("data not defined", procName, NULL);
     if (nbytes < 28 || nbytes > ((1LL << 31) - 1)) {
-        L_ERROR("invalid nbytes = %lu\n", procName, (unsigned long)nbytes);
+        L_ERROR("invalid nbytes = %zu\n", procName, nbytes);
         return NULL;
     }
 
@@ -485,7 +485,7 @@ PIXCMAP   *cmap;
 
 #if  DEBUG_SERIALIZE
     fprintf(stderr, "Deserialize: "
-            "raster size = %d, ncolors in cmap = %d, total bytes = %lu\n",
+            "raster size = %d, ncolors in cmap = %d, total bytes = %zu\n",
             imdata_size, ncolors, nbytes);
 #endif  /* DEBUG_SERIALIZE */
 

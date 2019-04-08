@@ -1894,8 +1894,7 @@ struct stat     st;
 #else
         size = strlen(realdir) + strlen(pdirentry->d_name) + 2;
         if (size > PATH_MAX) {
-            L_ERROR("size = %lu too large; skipping\n", procName,
-                    (unsigned long)size);
+            L_ERROR("size = %zu too large; skipping\n", procName, size);
             continue;
         }
         stat_path = (char *)LEPT_CALLOC(size, 1);

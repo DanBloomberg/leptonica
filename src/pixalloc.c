@@ -397,9 +397,8 @@ L_PTRA           *pa;
  *      (2) If logging is on, only write out allocs that are as large as
  *          the minimum size handled by the memory store.
  *      (3) size_t is %lu on 64 bit platforms and %u on 32 bit platforms.
- *          The C99 platform-independent format specifier for size_t is %zu,
- *          but windows hasn't conformed, so we are forced to go back to
- *          C89, use %lu, and cast to get platform-independence.  Ugh.
+ *          The C99 platform-independent format specifier for size_t is %zu.
+ *          Windows since at least VC-2015 is conforming; we can now use %zu.
  * </pre>
  */
 void *
@@ -418,7 +417,7 @@ L_PIX_MEM_STORE  *pms;
         return (void *)ERROR_PTR("data not made", procName, NULL);
     if (pms->logfile && nbytes >= pms->smallest) {
         fp = fopenWriteStream(pms->logfile, "a");
-        fprintf(fp, "Alloc %lu bytes at %p\n", (unsigned long)nbytes, data);
+        fprintf(fp, "Alloc %zu bytes at %p\n", nbytes, data);
         fclose(fp);
     }
 
@@ -518,18 +517,18 @@ L_PIX_MEM_STORE  *pms;
 
     fprintf(stderr, "Total number of pix used at each level\n");
     for (i = 0; i < pms->nlevels; i++)
-         fprintf(stderr, " Level %d (%lu bytes): %d\n", i,
-                 (unsigned long)pms->sizes[i], pms->memused[i]);
+         fprintf(stderr, " Level %d (%zu bytes): %d\n", i,
+                 pms->sizes[i], pms->memused[i]);
 
     fprintf(stderr, "Max number of pix in use at any time in each level\n");
     for (i = 0; i < pms->nlevels; i++)
-         fprintf(stderr, " Level %d (%lu bytes): %d\n", i,
-                 (unsigned long)pms->sizes[i], pms->memmax[i]);
+         fprintf(stderr, " Level %d (%zu bytes): %d\n", i,
+                 pms->sizes[i], pms->memmax[i]);
 
     fprintf(stderr, "Number of pix alloc'd because none were available\n");
     for (i = 0; i < pms->nlevels; i++)
-         fprintf(stderr, " Level %d (%lu bytes): %d\n", i,
-                 (unsigned long)pms->sizes[i], pms->memempty[i]);
+         fprintf(stderr, " Level %d (%zu bytes): %d\n", i,
+                 pms->sizes[i], pms->memempty[i]);
 
     return;
 }

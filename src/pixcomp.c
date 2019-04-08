@@ -1858,8 +1858,8 @@ PIXC    *pixc;
             return ERROR_INT("pixc not found", procName, 1);
         fprintf(fp, "\nPixcomp[%d]: w = %d, h = %d, d = %d\n",
                 i, pixc->w, pixc->h, pixc->d);
-        fprintf(fp, "  comptype = %d, size = %lu, cmapflag = %d\n",
-                pixc->comptype, (unsigned long)pixc->size, pixc->cmapflag);
+        fprintf(fp, "  comptype = %d, size = %zu, cmapflag = %d\n",
+                pixc->comptype, pixc->size, pixc->cmapflag);
         fprintf(fp, "  xres = %d, yres = %d\n", pixc->xres, pixc->yres);
         fwrite(pixc->data, 1, pixc->size, fp);
         fprintf(fp, "\n");
@@ -2313,8 +2313,8 @@ pixcompWriteStreamInfo(FILE        *fp,
         fprintf(fp, "  Pixcomp Info:");
     fprintf(fp, " width = %d, height = %d, depth = %d\n",
             pixc->w, pixc->h, pixc->d);
-    fprintf(fp, "    xres = %d, yres = %d, size in bytes = %lu\n",
-            pixc->xres, pixc->yres, (unsigned long)pixc->size);
+    fprintf(fp, "    xres = %d, yres = %d, size in bytes = %zu\n",
+            pixc->xres, pixc->yres, pixc->size);
     if (pixc->cmapflag)
         fprintf(fp, "    has colormap\n");
     else

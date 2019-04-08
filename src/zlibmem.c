@@ -142,23 +142,21 @@ z_stream    z;
             z.next_in = bufferin;
             bbufferWrite(bbin, bufferin, L_BUF_SIZE, &nbytes);
 #if DEBUG
-            fprintf(stderr, " wrote %lu bytes to bufferin\n",
-                    (unsigned long)nbytes);
+            fprintf(stderr, " wrote %zu bytes to bufferin\n", nbytes);
 #endif  /* DEBUG */
             z.avail_in = nbytes;
         }
         flush = (bbin->n) ? Z_SYNC_FLUSH : Z_FINISH;
         status = deflate(&z, flush);
 #if DEBUG
-        fprintf(stderr, " status is %d, bytesleft = %u, totalout = %lu\n",
+        fprintf(stderr, " status is %d, bytesleft = %u, totalout = %zu\n",
                   status, z.avail_out, z.total_out);
 #endif  /* DEBUG */
         nbytes = L_BUF_SIZE - z.avail_out;
         if (nbytes) {
             bbufferRead(bbout, bufferout, nbytes);
 #if DEBUG
-            fprintf(stderr, " read %lu bytes from bufferout\n",
-                    (unsigned long)nbytes);
+            fprintf(stderr, " read %zu bytes from bufferout\n", nbytes);
 #endif  /* DEBUG */
         }
         z.next_out = bufferout;

@@ -921,8 +921,8 @@ jmp_buf                      jmpbuf;  /* must be local to the function */
          * Just to be safe, subtract 100 to cover the Adobe name space.  */
     if ((text = pixGetText(pix)) != NULL) {
         if (strlen(text) > 65433) {
-            L_WARNING("text is %lu bytes; clipping to 65433\n",
-                   procName, (unsigned long)strlen(text));
+            L_WARNING("text is %zu bytes; clipping to 65433\n",
+                   procName, strlen(text));
             text[65433] = '\0';
         }
         jpeg_write_marker(&cinfo, JPEG_COM, (const JOCTET *)text, strlen(text));

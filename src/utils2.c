@@ -1522,8 +1522,8 @@ size_t    bytesleft, bytestoread, nread, filebytes;
     filebytes = ftell(fp);
     fseek(fp, 0, SEEK_SET);
     if (start > filebytes) {
-        L_ERROR("start = %lu but filebytes = %lu\n", procName,
-                (unsigned long)start, (unsigned long)filebytes);
+        L_ERROR("start = %zu but filebytes = %zu\n", procName,
+                start, filebytes);
         return NULL;
     }
     if (filebytes == 0)  /* start == 0; nothing to read; return null byte */
@@ -1538,8 +1538,8 @@ size_t    bytesleft, bytestoread, nread, filebytes;
     fseek(fp, start, SEEK_SET);
     nread = fread(data, 1, bytestoread, fp);
     if (nbytes != nread)
-        L_INFO("%lu bytes requested; %lu bytes read\n", procName,
-               (unsigned long)nbytes, (unsigned long)nread);
+        L_INFO("%zu bytes requested; %zu bytes read\n", procName,
+               nbytes, nread);
     *pnread = nread;
     fseek(fp, 0, SEEK_SET);
     return data;

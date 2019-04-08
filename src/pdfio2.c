@@ -715,8 +715,8 @@ PIXCMAP      *cmap = NULL;
             LEPT_FREE(pngcomp);
             LEPT_FREE(datacomp);
             pixcmapDestroy(&cmap);
-            L_ERROR("invalid png: i = %d, n = %d, nbytes = %lu\n", procName,
-                    i, n, (unsigned long)nbytespng);
+            L_ERROR("invalid png: i = %d, n = %d, nbytes = %zu\n", procName,
+                    i, n, nbytespng);
             return NULL;
         }
 
@@ -1980,7 +1980,7 @@ SARRAY       *sa;
         snprintf(buf, sizeof(buf),
                  "%d 0 obj\n"
                  "<<\n"
-                 "/Length %lu\n"
+                 "/Length %zu\n"
                  "/Subtype /Image\n"
                  "%s\n"  /* colorspace */
                  "/Width %d\n"
@@ -1990,7 +1990,7 @@ SARRAY       *sa;
                  "%s"   /* decode parms; can be empty */
                  ">>\n"
                  "stream\n",
-                 6 + i, (unsigned long)cid->nbytescomp, cstr,
+                 6 + i, cid->nbytescomp, cstr,
                  cid->w, cid->h, bstr, fstr, pstr);
         xstr = stringNew(buf);
         sarrayAddString(sa, xstr, L_INSERT);

@@ -2271,8 +2271,7 @@ size_t        amount;
 
         /* Fuzzed files can create this condition! */
     if (mstream->offset + amount > mstream->hw) {
-        fprintf(stderr, "Bad file: amount too big: %lu\n",
-                (unsigned long)amount);
+        fprintf(stderr, "Bad file: amount too big: %zu\n", amount);
         return 0;
     }
 

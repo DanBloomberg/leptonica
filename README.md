@@ -77,3 +77,5 @@ www.leptonica.org
   * Egor Pugin: Egor is co-maintainer of Leptonica on GitHub. He ported everything, including all the old distributions, from Google Code when it shut down. He set Leptonica up for appveyor and travis testing, and has implemented the cppan project, which simplifies building executables on Windows.
   * Jürgen Buchmüller: Jürgen wrote text converters to modify Leptonica source code so that it generates documentation using doxygen. He also wrote tiff wrappers for memory I/O.
   * Stefan Weil: Stefan has worked from the beginning to clean up the Leptonica GitHub distribution, including removing errors in the source code.  He also suggested and implemented the use of Coverity Scan.
+  * Zdenko Podobny: Zdenko has worked, mostly behind the scenes as a primary maintainer of tesseract, to help with leptonica builds on all platforms, and coordinate with its use in tesseract.
+

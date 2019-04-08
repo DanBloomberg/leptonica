@@ -263,7 +263,7 @@ WebPPicture             frame;
 
     *pencdata = (l_uint8 *)webp_data.bytes;
     *pencsize = webp_data.size;
-    L_INFO("data size = %lu\n", procName, webp_data.size);
+    L_INFO("data size = %zu\n", procName, webp_data.size);
     return 0;
 }
 

@@ -709,6 +709,7 @@ PIXCMAP  *cmap;
  *          need to be the same size.
  *      (2) If using L_COMPARE_SUBTRACT, pix2 is subtracted from pix1.
  *      (3) The total number of pixels is determined by pix1.
+ *      (4) On error, the returned fraction is 1.0.
  * </pre>
  */
 l_ok
@@ -726,7 +727,7 @@ PIX      *pixt;
     if (ppixdiff) *ppixdiff = NULL;
     if (!pfract)
         return ERROR_INT("&pfract not defined", procName, 1);
-    *pfract = 0.0;
+    *pfract = 1.0;  /* initialize to max difference */
     if (!pix1 || pixGetDepth(pix1) != 1)
         return ERROR_INT("pix1 not defined or not 1 bpp", procName, 1);
     if (!pix2 || pixGetDepth(pix2) != 1)
