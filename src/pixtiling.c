@@ -91,13 +91,13 @@
 /*!
  * \brief   pixTilingCreate()
  *
- * \param[in]    pixs  pix to be tiled; any depth; colormap OK
- * \param[in]    nx    number of tiles across image
- * \param[in]    ny    number of tiles down image
- * \param[in]    w     desired width of each tile
- * \param[in]    h     desired height of each tile
- * \param[in]    xoverlap overlap into neighboring tiles on each side
- * \param[in]    yoverlap overlap into neighboring tiles above and below
+ * \param[in]    pixs       pix to be tiled; any depth; colormap OK
+ * \param[in]    nx         number of tiles across image
+ * \param[in]    ny         number of tiles down image
+ * \param[in]    w          desired width of each tile
+ * \param[in]    h          desired height of each tile
+ * \param[in]    xoverlap   overlap into neighboring tiles on each side
+ * \param[in]    yoverlap   overlap into neighboring tiles above and below
  * \return  pixtiling, or NULL on error
  *
  * <pre>
@@ -171,7 +171,7 @@ PIXTILING  *pt;
 /*!
  * \brief   pixTilingDestroy()
  *
- * \param[in,out]   ppt will be set to null before returning
+ * \param[in,out]   ppt   will be set to null before returning
  * \return  void
  */
 void
@@ -199,9 +199,9 @@ PIXTILING  *pt;
 /*!
  * \brief   pixTilingGetCount()
  *
- * \param[in]    pt pixtiling
- * \param[out]   pnx [optional] nx; can be null
- * \param[out]   pny [optional] ny; can be null
+ * \param[in]    pt     pixtiling
+ * \param[out]   pnx    [optional] nx; can be null
+ * \param[out]   pny    [optional] ny; can be null
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -222,9 +222,9 @@ pixTilingGetCount(PIXTILING  *pt,
 /*!
  * \brief   pixTilingGetSize()
  *
- * \param[in]    pt pixtiling
- * \param[out]   pw [optional] tile width; can be null
- * \param[out]   ph [optional] tile height; can be null
+ * \param[in]    pt    pixtiling
+ * \param[out]   pw    [optional] tile width; can be null
+ * \param[out]   ph    [optional] tile height; can be null
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -245,10 +245,10 @@ pixTilingGetSize(PIXTILING  *pt,
 /*!
  * \brief   pixTilingGetTile()
  *
- * \param[in]    pt pixtiling
- * \param[in]    i tile row index
- * \param[in]    j tile column index
- * \return  pixd tile with appropriate boundary (overlap) pixels added,
+ * \param[in]    pt    pixtiling
+ * \param[in]    i     tile row index
+ * \param[in]    j     tile column index
+ * \return  pixd   tile with appropriate boundary (overlap) pixels added,
  *                    or NULL on error
  */
 PIX *
@@ -352,7 +352,7 @@ PIX     *pixs, *pixt, *pixd;
 /*!
  * \brief   pixTilingNoStripOnPaint()
  *
- * \param[in]    pt pixtiling
+ * \param[in]    pt    pixtiling
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -379,11 +379,11 @@ pixTilingNoStripOnPaint(PIXTILING  *pt)
 /*!
  * \brief   pixTilingPaintTile()
  *
- * \param[in]    pixd dest: paint tile onto this, without overlap
- * \param[in]    i tile row index
- * \param[in]    j tile column index
- * \param[in]    pixs source: tile to be painted from
- * \param[in]    pt pixtiling struct
+ * \param[in]    pixd    dest: paint tile onto this, without overlap
+ * \param[in]    i       tile row index
+ * \param[in]    j       tile column index
+ * \param[in]    pixs    source: tile to be painted from
+ * \param[in]    pt      pixtiling struct
  * \return  0 if OK, 1 on error
  */
 l_ok

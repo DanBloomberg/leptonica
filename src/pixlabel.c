@@ -91,10 +91,10 @@
 /*!
  * \brief   pixConnCompTransform()
  *
- * \param[in]     pixs 1 bpp
- * \param[in]     connect connectivity: 4 or 8
- * \param[in]     depth of pixd: 8 or 16 bpp; use 0 for auto determination
- * \return   pixd 8, 16 or 32 bpp, or NULL on error
+ * \param[in]     pixs       1 bpp
+ * \param[in]     connect    connectivity: 4 or 8
+ * \param[in]     depth      of pixd: 8 or 16 bpp; use 0 for auto determination
+ * \return   pixd   8, 16 or 32 bpp, or NULL on error
  *
  * <pre>
  * Notes:
@@ -178,9 +178,9 @@ PIXA    *pixa;
 /*!
  * \brief   pixConnCompAreaTransform()
  *
- * \param[in]     pixs 1 bpp
- * \param[in]     connect connectivity: 4 or 8
- * \return   pixd 32 bpp, 1 spp, or NULL on error
+ * \param[in]     pixs       1 bpp
+ * \param[in]     connect    connectivity: 4 or 8
+ * \return   pixd   32 bpp, 1 spp, or NULL on error
  *
  * <pre>
  * Notes:
@@ -242,11 +242,11 @@ PIXA     *pixa;
 /*!
  * \brief   pixConnCompIncrInit()
  *
- * \param[in]     pixs 1 bpp
- * \param[in]     conn connectivity: 4 or 8
- * \param[out]    ppixd 32 bpp, with c.c. labelled
- * \param[out]    pptaa with pixel locations indexed by c.c.
- * \param[out]    pncc initial number of c.c.
+ * \param[in]     pixs     1 bpp
+ * \param[in]     conn     connectivity: 4 or 8
+ * \param[out]    ppixd    32 bpp, with c.c. labelled
+ * \param[out]    pptaa    with pixel locations indexed by c.c.
+ * \param[out]    pncc     initial number of c.c.
  * \return   0 if OK, 1 on error
  *
  * <pre>
@@ -315,12 +315,12 @@ PTAA    *ptaa;
 /*!
  * \brief   pixConnCompIncrAdd()
  *
- * \param[in]     pixs 32 bpp, with pixels labeled by c.c.
- * \param[in]     ptaa with each pta of pixel locations indexed by c.c.
- * \param[out]    pncc number of c.c
- * \param[in]     x,y location of added pixel
- * \param[in]     debug 0 for no output; otherwise output whenever
- *                      debug <= nvals, up to debug == 3
+ * \param[in]     pixs     32 bpp, with pixels labeled by c.c.
+ * \param[in]     ptaa     with each pta of pixel locations indexed by c.c.
+ * \param[out]    pncc     number of c.c
+ * \param[in]     x,y      location of added pixel
+ * \param[in]     debug    0 for no output; otherwise output whenever
+ *                         debug <= nvals, up to debug == 3
  * \return   -1 if nothing happens; 0 if a pixel is added; 1 on error
  *
  * <pre>
@@ -457,12 +457,12 @@ PTA      *ptas, *ptad;
 /*!
  * \brief   pixGetSortedNeighborValues()
  *
- * \param[in]     pixs 8, 16 or 32 bpp, with pixels labeled by c.c.
- * \param[in]     x, y location of pixel
- * \param[in]     conn 4 or 8 connected neighbors
- * \param[out]    pneigh array of integers, to be filled with
- *                      the values of the neighbors, if any
- * \param[out]    pnvals the number of unique neighbor values found
+ * \param[in]     pixs     8, 16 or 32 bpp, with pixels labeled by c.c.
+ * \param[in]     x, y     location of pixel
+ * \param[in]     conn     4 or 8 connected neighbors
+ * \param[out]    pneigh   array of integers, to be filled with
+ *                         the values of the neighbors, if any
+ * \param[out]    pnvals   the number of unique neighbor values found
  * \return   0 if OK, 1 on error
  *
  * <pre>
@@ -547,8 +547,8 @@ RB_TYPE       key;
 /*!
  * \brief   pixLocToColorTransform()
  *
- * \param[in]     pixs 1 bpp
- * \return   pixd 32 bpp rgb, or NULL on error
+ * \param[in]     pixs    1 bpp
+ * \return   pixd   32 bpp rgb, or NULL on error
  *
  * <pre>
  * Notes:

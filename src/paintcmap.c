@@ -70,23 +70,23 @@
 /*!
  * \brief   pixSetSelectCmap()
  *
- * \param[in]    pixs 1, 2, 4 or 8 bpp, with colormap
- * \param[in]    box [optional] region to set color; can be NULL
- * \param[in]    sindex colormap index of pixels to be changed
- * \param[in]    rval, gval, bval new color to paint
+ * \param[in]    pixs              1, 2, 4 or 8 bpp, with colormap
+ * \param[in]    box               [optional] region to set color; can be NULL
+ * \param[in]    sindex            colormap index of pixels to be changed
+ * \param[in]    rval, gval, bval  new color to paint
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
  *      (1) This is an in-place operation.
  *      (2) It sets all pixels in region that have the color specified
- *          by the colormap index 'sindex' to the new color.
- *      (3) sindex must be in the existing colormap; otherwise an
+ *          by the colormap index %sindex to the new color.
+ *      (3) %sindex must be in the existing colormap; otherwise an
  *          error is returned.
  *      (4) If the new color exists in the colormap, it is used;
  *          otherwise, it is added to the colormap.  If it cannot be
  *          added because the colormap is full, an error is returned.
- *      (5) If box is NULL, applies function to the entire image; otherwise,
+ *      (5) If %box is NULL, applies function to the entire image; otherwise,
  *          clips the operation to the intersection of the box and pix.
  *      (6) An example of use would be to set to a specific color all
  *          the light (background) pixels within a certain region of
@@ -191,18 +191,18 @@ PIXCMAP   *cmap;
 /*!
  * \brief   pixColorGrayRegionsCmap()
  *
- * \param[in]    pixs 8 bpp, with colormap
- * \param[in]    boxa of regions in which to apply color
- * \param[in]    type L_PAINT_LIGHT, L_PAINT_DARK
- * \param[in]    rval, gval, bval target color
+ * \param[in]    pixs               8 bpp, with colormap
+ * \param[in]    boxa               of regions in which to apply color
+ * \param[in]    type               L_PAINT_LIGHT, L_PAINT_DARK
+ * \param[in]    rval, gval, bval   target color
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
  *      (1) This is an in-place operation.
- *      (2) If type == L_PAINT_LIGHT, it colorizes non-black pixels,
+ *      (2) If %type == L_PAINT_LIGHT, it colorizes non-black pixels,
  *          preserving antialiasing.
- *          If type == L_PAINT_DARK, it colorizes non-white pixels,
+ *          If %type == L_PAINT_DARK, it colorizes non-white pixels,
  *          preserving antialiasing.  See pixColorGrayCmap() for details.
  *      (3) This can also be called through pixColorGrayRegions().
  *      (4) This increases the colormap size by the number of
@@ -210,7 +210,7 @@ PIXCMAP   *cmap;
  *          selected regions of pixs.  If there is not enough room in
  *          the colormap for this expansion, it returns 1 (error),
  *          and the caller should check the return value.
- *      (5) Because two boxes in the boxa can overlap, pixels that
+ *      (5) Because two boxes in %boxa can overlap, pixels that
  *          are colorized in the first box must be excluded in the
  *          second because their value exceeds the size of the map.
  * </pre>
@@ -288,20 +288,20 @@ PIXCMAP   *cmap;
 /*!
  * \brief   pixColorGrayCmap()
  *
- * \param[in]    pixs 2, 4 or 8 bpp, with colormap
- * \param[in]    box [optional] region to set color; can be NULL
- * \param[in]    type L_PAINT_LIGHT, L_PAINT_DARK
- * \param[in]    rval, gval, bval target color
+ * \param[in]    pixs               2, 4 or 8 bpp, with colormap
+ * \param[in]    box                [optional] region to set color; can be NULL
+ * \param[in]    type               L_PAINT_LIGHT, L_PAINT_DARK
+ * \param[in]    rval, gval, bval   target color
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
  *      (1) This is an in-place operation.
- *      (2) If type == L_PAINT_LIGHT, it colorizes non-black pixels,
+ *      (2) If %type == L_PAINT_LIGHT, it colorizes non-black pixels,
  *          preserving antialiasing.
- *          If type == L_PAINT_DARK, it colorizes non-white pixels,
+ *          If %type == L_PAINT_DARK, it colorizes non-white pixels,
  *          preserving antialiasing.
- *      (3) box gives the region to apply color; if NULL, this
+ *      (3) %box gives the region to apply color; if NULL, this
  *          colorizes the entire image.
  *      (4) If the cmap is only 2 or 4 bpp, pixs is converted in-place
  *          to an 8 bpp cmap.  A 1 bpp cmap is not a valid input pix.
@@ -313,12 +313,12 @@ PIXCMAP   *cmap;
  *          should check the return value.
  *      (7) Using the darkness of each original pixel in the rect,
  *          it generates a new color (based on the input rgb values).
- *          If type == L_PAINT_LIGHT, the new color is a (generally)
- *          darken-to-black version of the  input rgb color, where the
+ *          If %type == L_PAINT_LIGHT, the new color is a (generally)
+ *          darken-to-black version of the input rgb color, where the
  *          amount of darkening increases with the darkness of the
  *          original pixel color.
- *          If type == L_PAINT_DARK, the new color is a (generally)
- *          faded-to-white version of the  input rgb color, where the
+ *          If %type == L_PAINT_DARK, the new color is a (generally)
+ *          faded-to-white version of the input rgb color, where the
  *          amount of fading increases with the brightness of the
  *          original pixel color.
  * </pre>
@@ -372,18 +372,18 @@ PIXCMAP  *cmap;
 /*!
  * \brief   pixColorGrayMaskedCmap()
  *
- * \param[in]    pixs 8 bpp, with colormap
- * \param[in]    pixm 1 bpp mask, through which to apply color
- * \param[in]    type L_PAINT_LIGHT, L_PAINT_DARK
- * \param[in]    rval, gval, bval target color
+ * \param[in]    pixs               8 bpp, with colormap
+ * \param[in]    pixm               1 bpp mask, through which to apply color
+ * \param[in]    type               L_PAINT_LIGHT, L_PAINT_DARK
+ * \param[in]    rval, gval, bval   target color
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
  *      (1) This is an in-place operation.
- *      (2) If type == L_PAINT_LIGHT, it colorizes non-black pixels,
+ *      (2) If %type == L_PAINT_LIGHT, it colorizes non-black pixels,
  *          preserving antialiasing.
- *          If type == L_PAINT_DARK, it colorizes non-white pixels,
+ *          If %type == L_PAINT_DARK, it colorizes non-white pixels,
  *          preserving antialiasing.  See pixColorGrayCmap() for details.
  *      (3) This increases the colormap size by the number of
  *          different gray (non-black or non-white) colors in the
@@ -462,17 +462,17 @@ PIXCMAP   *cmap;
 /*!
  * \brief   addColorizedGrayToCmap()
  *
- * \param[in]    cmap from 2 or 4 bpp pix
- * \param[in]    type L_PAINT_LIGHT, L_PAINT_DARK
- * \param[in]    rval, gval, bval target color
- * \param[out]   pna [optional] table for mapping new cmap entries
+ * \param[in]    cmap              from 2 or 4 bpp pix
+ * \param[in]    type              L_PAINT_LIGHT, L_PAINT_DARK
+ * \param[in]    rval, gval, bval  target color
+ * \param[out]   pna               [optional] table for mapping new cmap entries
  * \return  0 if OK; 1 on error; 2 if new colors will not fit in cmap.
  *
  * <pre>
  * Notes:
- *      (1) If type == L_PAINT_LIGHT, it colorizes non-black pixels,
+ *      (1) If %type == L_PAINT_LIGHT, it colorizes non-black pixels,
  *          preserving antialiasing.
- *          If type == L_PAINT_DARK, it colorizes non-white pixels,
+ *          If %type == L_PAINT_DARK, it colorizes non-white pixels,
  *          preserving antialiasing.
  *      (2) This increases the colormap size by the number of
  *          different gray (non-black or non-white) colors in the
@@ -559,20 +559,20 @@ NUMA    *na;
 /*!
  * \brief   pixSetSelectMaskedCmap()
  *
- * \param[in]    pixs 2, 4 or 8 bpp, with colormap
- * \param[in]    pixm [optional] 1 bpp mask; no-op if NULL
- * \param[in]    x, y UL corner of mask relative to pixs
- * \param[in]    sindex colormap index of pixels in pixs to be changed
- * \param[in]    rval, gval, bval new color to substitute
+ * \param[in]    pixs               2, 4 or 8 bpp, with colormap
+ * \param[in]    pixm               [optional] 1 bpp mask; no-op if NULL
+ * \param[in]    x, y               UL corner of mask relative to pixs
+ * \param[in]    sindex             cmap index of pixels in pixs to be changed
+ * \param[in]    rval, gval, bval   new color to substitute
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
  *      (1) This is an in-place operation.
  *      (2) This paints through the fg of pixm and replaces all pixels
- *          in pixs that have a particular value (sindex) with the new color.
+ *          in pixs that have the value %sindex with the new color.
  *      (3) If pixm == NULL, a warning is given.
- *      (4) sindex must be in the existing colormap; otherwise an
+ *      (4) %sindex must be in the existing colormap; otherwise an
  *          error is returned.
  *      (5) If the new color exists in the colormap, it is used;
  *          otherwise, it is added to the colormap.  If the colormap
@@ -669,21 +669,22 @@ PIXCMAP   *cmap;
 /*!
  * \brief   pixSetMaskedCmap()
  *
- * \param[in]    pixs 2, 4 or 8 bpp, colormapped
- * \param[in]    pixm [optional] 1 bpp mask; no-op if NULL
- * \param[in]    x, y origin of pixm relative to pixs; can be negative
- * \param[in]    rval, gval, bval new color to set at each masked pixel
+ * \param[in]    pixs               2, 4 or 8 bpp, colormapped
+ * \param[in]    pixm               [optional] 1 bpp mask; no-op if NULL
+ * \param[in]    x, y               origin of pixm relative to pixs;
+ *                                  can be negative
+ * \param[in]    rval, gval, bval   new color to set at each masked pixel
  * \return  0 if OK; 1 on error
  *
  * <pre>
  * Notes:
  *      (1) This is an in-place operation.
  *      (2) It paints a single color through the mask (as a stencil).
- *      (3) The mask origin is placed at (x,y) on pixs, and the
+ *      (3) The mask origin is placed at (%x,%y) on %pixs, and the
  *          operation is clipped to the intersection of the mask and pixs.
- *      (4) If pixm == NULL, a warning is given.
- *      (5) Typically, pixm is a small binary mask located somewhere
- *          on the larger pixs.
+ *      (4) If %pixm == NULL, a warning is given.
+ *      (5) Typically, %pixm is a small binary mask located somewhere
+ *          on the larger %pixs.
  *      (6) If the color is in the colormap, it is used.  Otherwise,
  *          it is added if possible; an error is returned if the
  *          colormap is already full.

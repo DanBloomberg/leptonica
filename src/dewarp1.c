@@ -430,8 +430,8 @@ static const l_int32     DEFAULT_MAX_EDGESLOPE = 80;
 /*!
  * \brief   dewarpCreate()
  *
- * \param[in]   pixs 1 bpp
- * \param[in]   pageno page number
+ * \param[in]   pixs     1 bpp
+ * \param[in]   pageno   page number
  * \return  dew or NULL on error
  *
  * <pre>
@@ -468,8 +468,8 @@ L_DEWARP  *dew;
 /*!
  * \brief   dewarpCreateRef()
  *
- * \param[in]    pageno this page number
- * \param[in]    refpage page number of dewarp disparity arrays to be used
+ * \param[in]    pageno    this page number
+ * \param[in]    refpage   page number of dewarp disparity arrays to be used
  * \return  dew or NULL on error
  *
  * <pre>
@@ -502,7 +502,7 @@ L_DEWARP  *dew;
 /*!
  * \brief   dewarpDestroy()
  *
- * \param[in,out]   pdew will be set to null before returning
+ * \param[in,out]   pdew    will be set to null before returning
  * \return  void
  */
 void
@@ -540,11 +540,11 @@ L_DEWARP  *dew;
 /*!
  * \brief   dewarpaCreate()
  *
- * \param[in]   nptrs number of dewarp page ptrs; typically the number of pages
- * \param[in]   sampling use 0 for default value; the minimum allowed is 8
- * \param[in]   redfactor of input images: 1 is full resolution; 2 is 2x reduced
- * \param[in]   minlines minimum number of lines to accept; use 0 for default
- * \param[in]   maxdist for locating reference disparity; use -1 for default
+ * \param[in]   nptrs       number of dewarp page ptrs; typ. the number of pages
+ * \param[in]   sampling    use 0 for default value; the minimum allowed is 8
+ * \param[in]   redfactor   of input images: 1 is full res; 2 is 2x reduced
+ * \param[in]   minlines    minimum number of lines to accept; use 0 for default
+ * \param[in]   maxdist     for locating reference disparity; use -1 for default
  * \return  dewa or NULL on error
  *
  * <pre>
@@ -630,11 +630,11 @@ L_DEWARPA  *dewa;
 /*!
  * \brief   dewarpaCreateFromPixacomp()
  *
- * \param[in]   pixac pixacomp of G4, 1 bpp images; with 1x1x1 placeholders
- * \param[in]   useboth 0 for only vert disparity; 1 for both vert and horiz
- * \param[in]   sampling use -1 or 0 for default value; otherwise minimum of 5
- * \param[in]   minlines minimum number of lines to accept; e.g., 10
- * \param[in]   maxdist for locating reference disparity; use -1 for default
+ * \param[in]   pixac      pixacomp of G4, 1 bpp images; with 1x1x1 placeholders
+ * \param[in]   useboth    0 for only vert disparity; 1 for both vert and horiz
+ * \param[in]   sampling   use -1 or 0 for default value; otherwise minimum of 5
+ * \param[in]   minlines   minimum number of lines to accept; e.g., 10
+ * \param[in]   maxdist    for locating reference disparity; use -1 for default
  * \return  dewa or NULL on error
  *
  * <pre>
@@ -715,7 +715,7 @@ PIX        *pixt;
 /*!
  * \brief   dewarpaDestroy()
  *
- * \param[in,out]   pdewa will be set to null before returning
+ * \param[in,out]   pdewa    will be set to null before returning
  * \return  void
  */
 void
@@ -755,7 +755,7 @@ L_DEWARPA  *dewa;
  * \brief   dewarpaDestroyDewarp()
  *
  * \param[in]    dewa
- * \param[in]    pageno of dew to be destroyed
+ * \param[in]    pageno    of dew to be destroyed
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -786,7 +786,7 @@ L_DEWARP   *dew;
  * \brief   dewarpaInsertDewarp()
  *
  * \param[in]    dewa
- * \param[in]    dew  to be added
+ * \param[in]    dew     to be added
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -858,7 +858,7 @@ L_DEWARP  *prevdew;
  * \brief   dewarpaExtendArraysToSize()
  *
  * \param[in]    dewa
- * \param[in]    size new size of dewarpa array
+ * \param[in]    size    new size of dewarpa array
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -894,9 +894,9 @@ dewarpaExtendArraysToSize(L_DEWARPA  *dewa,
 /*!
  * \brief   dewarpaGetDewarp()
  *
- * \param[in]    dewa populated with dewarp structs for pages
- * \param[in]    index into dewa: this is the pageno
- * \return  dew handle; still owned by dewa, or NULL on error
+ * \param[in]    dewa    populated with dewarp structs for pages
+ * \param[in]    index   into dewa: this is the pageno
+ * \return  dew   handle; still owned by dewa, or NULL on error
  */
 L_DEWARP *
 dewarpaGetDewarp(L_DEWARPA  *dewa,
@@ -923,12 +923,12 @@ dewarpaGetDewarp(L_DEWARPA  *dewa,
  * \brief   dewarpaSetCurvatures()
  *
  * \param[in]    dewa
- * \param[in]    max_linecurv -1 for default
- * \param[in]    min_diff_linecurv -1 for default; 0 to accept all models
- * \param[in]    max_diff_linecurv -1 for default
- * \param[in]    max_edgecurv -1 for default
- * \param[in]    max_diff_edgecurv -1 for default
- * \param[in]    max_edgeslope -1 for default
+ * \param[in]    max_linecurv        -1 for default
+ * \param[in]    min_diff_linecurv   -1 for default; 0 to accept all models
+ * \param[in]    max_diff_linecurv   -1 for default
+ * \param[in]    max_edgecurv        -1 for default
+ * \param[in]    max_diff_edgecurv   -1 for default
+ * \param[in]    max_edgeslope       -1 for default
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1045,7 +1045,7 @@ dewarpaUseBothArrays(L_DEWARPA  *dewa,
  * \brief   dewarpaSetCheckColumns()
  *
  * \param[in]    dewa
- * \param[in]    check_columns 0 for false, 1 for true
+ * \param[in]    check_columns    0 for false, 1 for true
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1083,7 +1083,7 @@ dewarpaSetCheckColumns(L_DEWARPA  *dewa,
  * \brief   dewarpaSetMaxDistance()
  *
  * \param[in]    dewa
- * \param[in]    maxdist for using ref models
+ * \param[in]    maxdist    for using ref models
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1141,8 +1141,8 @@ L_DEWARP  *dew;
 /*!
  * \brief   dewarpReadStream()
  *
- * \param[in]    fp file stream
- * \return  dew, or NULL on error
+ * \param[in]    fp    file stream
+ * \return  dew  dewarp, or NULL on error
  *
  * <pre>
  * Notes:
@@ -1256,8 +1256,8 @@ FPIX      *fpixv, *fpixh;
 /*!
  * \brief   dewarpReadMem()
  *
- * \param[in]    data  serialization of dewarp
- * \param[in]    size  of data in bytes
+ * \param[in]    data     serialization of dewarp
+ * \param[in]    size     of data in bytes
  * \return  dew  dewarp, or NULL on error
  */
 L_DEWARP  *
@@ -1315,7 +1315,7 @@ FILE    *fp;
 /*!
  * \brief   dewarpWriteStream()
  *
- * \param[in]    fp file stream opened for "wb"
+ * \param[in]    fp     file stream opened for "wb"
  * \param[in]    dew
  * \return  0 if OK, 1 on error
  *
@@ -1372,8 +1372,8 @@ l_int32  vdispar, hdispar;
 /*!
  * \brief   dewarpWriteMem()
  *
- * \param[out]   pdata data of serialized dewarp (not ascii)
- * \param[out]   psize size of returned data
+ * \param[out]   pdata    data of serialized dewarp (not ascii)
+ * \param[out]   psize    size of returned data
  * \param[in]    dew
  * \return  0 if OK, 1 on error
  *
@@ -1458,7 +1458,7 @@ L_DEWARPA  *dewa;
 /*!
  * \brief   dewarpaReadStream()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp    file stream
  * \return  dewa, or NULL on error
  *
  * <pre>
@@ -1596,7 +1596,7 @@ FILE    *fp;
 /*!
  * \brief   dewarpaWriteStream()
  *
- * \param[in]    fp file stream opened for "wb"
+ * \param[in]    fp     file stream opened for "wb"
  * \param[in]    dewa
  * \return  0 if OK, 1 on error
  */
@@ -1646,8 +1646,8 @@ l_int32  ndewarp, i, pageno;
 /*!
  * \brief   dewarpaWriteMem()
  *
- * \param[out]   pdata data of serialized dewarpa (not ascii)
- * \param[out]   psize size of returned data
+ * \param[out]   pdata    data of serialized dewarpa (not ascii)
+ * \param[out]   psize    size of returned data
  * \param[in]    dewa
  * \return  0 if OK, 1 on error
  *

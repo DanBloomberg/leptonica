@@ -137,7 +137,7 @@ L_KERNEL  *kel;
 /*!
  * \brief   kernelDestroy()
  *
- * \param[in,out]   pkel to be nulled
+ * \param[in,out]   pkel    will be set to null before returning
  * \return  void
  */
 void
@@ -168,8 +168,8 @@ L_KERNEL  *kel;
 /*!
  * \brief   kernelCopy()
  *
- * \param[in]    kels source kernel
- * \return  keld copy of kels, or NULL on error
+ * \param[in]    kels    source kernel
+ * \return  keld   copy of kels, or NULL on error
  */
 L_KERNEL *
 kernelCopy(L_KERNEL  *kels)
@@ -262,8 +262,8 @@ kernelSetElement(L_KERNEL  *kel,
 /*!
  * \brief   kernelGetParameters()
  *
- * \param[in]    kel  kernel
- * \param[out]   psy, psx, pcy, pcx [optional]  each can be null
+ * \param[in]    kel                  kernel
+ * \param[out]   psy, psx, pcy, pcx   [optional] each can be null
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -292,7 +292,7 @@ kernelGetParameters(L_KERNEL  *kel,
 /*!
  * \brief   kernelSetOrigin()
  *
- * \param[in]    kel  kernel
+ * \param[in]    kel       kernel
  * \param[in]    cy, cx
  * \return  0 if OK; 1 on error
  */
@@ -314,8 +314,8 @@ kernelSetOrigin(L_KERNEL  *kel,
 /*!
  * \brief   kernelGetSum()
  *
- * \param[in]    kel  kernel
- * \param[out]   psum sum of all kernel values
+ * \param[in]    kel      kernel
+ * \param[out]   psum     sum of all kernel values
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -345,9 +345,9 @@ l_int32    sx, sy, i, j;
 /*!
  * \brief   kernelGetMinMax()
  *
- * \param[in]    kel  kernel
- * \param[out]   pmin [optional] minimum value
- * \param[out]   pmax [optional] maximum value
+ * \param[in]    kel      kernel
+ * \param[out]   pmin     [optional] minimum value
+ * \param[out]   pmax     [optional] maximum value
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -394,10 +394,10 @@ l_float32  val, minval, maxval;
 /*!
  * \brief   kernelNormalize()
  *
- * \param[in]    kels source kel, to be normalized
- * \param[in]    normsum desired sum of elements in keld
- * \return  keld normalized version of kels, or NULL on error
- *                   or if sum of elements is very close to 0)
+ * \param[in]    kels      source kel, to be normalized
+ * \param[in]    normsum   desired sum of elements in keld
+ * \return  keld   normalized version of kels, or NULL on error
+ *                 or if sum of elements is very close to 0)
  *
  * <pre>
  * Notes:
@@ -443,8 +443,8 @@ L_KERNEL  *keld;
 /*!
  * \brief   kernelInvert()
  *
- * \param[in]    kels source kel, to be inverted
- * \return  keld spatially inverted, about the origin, or NULL on error
+ * \param[in]    kels   source kel, to be inverted
+ * \return  keld   spatially inverted, about the origin, or NULL on error
  *
  * <pre>
  * Notes:
@@ -483,14 +483,14 @@ L_KERNEL  *keld;
 /*!
  * \brief   create2dFloatArray()
  *
- * \param[in]    sy rows == height
- * \param[in]    sx columns == width
+ * \param[in]    sy   rows == height
+ * \param[in]    sx   columns == width
  * \return  doubly indexed array i.e., an array of sy row pointers,
  *              each of which points to an array of sx floats
  *
  * <pre>
  * Notes:
- *      (1) The array[sy][sx] is indexed in standard "matrix notation",
+ *      (1) The array[%sy][%sx] is indexed in standard "matrix notation",
  *          with the row index first.
  *      (2) The caller kernelCreate() limits the size to < 2^29 pixels.
  * </pre>
@@ -519,7 +519,7 @@ l_float32  **array;
 /*!
  * \brief   kernelRead()
  *
- * \param[in]    fname filename
+ * \param[in]    fname    filename
  * \return  kernel, or NULL on error
  */
 L_KERNEL *
@@ -548,7 +548,7 @@ L_KERNEL  *kel;
 /*!
  * \brief   kernelReadStream()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp    file stream
  * \return  kernel, or NULL on error
  */
 L_KERNEL *
@@ -590,8 +590,8 @@ L_KERNEL  *kel;
 /*!
  * \brief   kernelWrite()
  *
- * \param[in]    fname output file
- * \param[in]    kel kernel
+ * \param[in]    fname    output file
+ * \param[in]    kel      kernel
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -619,7 +619,7 @@ FILE  *fp;
 /*!
  * \brief   kernelWriteStream()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp    file stream
  * \param[in]    kel
  * \return  0 if OK, 1 on error
  */
@@ -853,7 +853,7 @@ L_KERNEL  *kel;
  * \brief   kernelCreateFromPix()
  *
  * \param[in]    pix
- * \param[in]    cy, cx origin of kernel
+ * \param[in]    cy, cx    origin of kernel
  * \return  kernel, or NULL on error
  *
  * <pre>
@@ -899,12 +899,12 @@ L_KERNEL  *kel;
 /*!
  * \brief   kernelDisplayInPix()
  *
- * \param[in]    kel kernel
- * \param[in]    size of grid interiors; odd; either 1 or a minimum size
- *                    of 17 is enforced
- * \param[in]    gthick grid thickness; either 0 or a minimum size of 2
- *                      is enforced
- * \return  pix display of kernel, or NULL on error
+ * \param[in]    kel       kernel
+ * \param[in]    size      of grid interiors; odd; either 1 or a minimum size
+ *                         of 17 is enforced
+ * \param[in]    gthick    grid thickness; either 0 or a minimum size of 2
+ *                         is enforced
+ * \return  pix   display of kernel, or NULL on error
  *
  * <pre>
  * Notes:
@@ -1027,9 +1027,9 @@ PIX       *pixd, *pixt0, *pixt1;
 /*!
  * \brief   parseStringForNumbers()
  *
- * \param[in]    str string containing numbers; not changed
- * \param[in]    seps string of characters that can be used between ints
- * \return  numa of numbers found, or NULL on error
+ * \param[in]    str     string containing numbers; not changed
+ * \param[in]    seps    string of characters that can be used between ints
+ * \return  numa   of numbers found, or NULL on error
  *
  * <pre>
  * Notes:
@@ -1074,7 +1074,7 @@ NUMA      *na;
  * \brief   makeFlatKernel()
  *
  * \param[in]    height, width
- * \param[in]    cy, cx origin of kernel
+ * \param[in]    cy, cx          origin of kernel
  * \return  kernel, or NULL on error
  *
  * <pre>
@@ -1083,8 +1083,8 @@ NUMA      *na;
  *          in the block convolution functions.
  *      (2) The kernel origin (%cy, %cx) is typically placed as near
  *          the center of the kernel as possible.  If height and
- *          width are odd, then using cy = height / 2 and
- *          cx = width / 2 places the origin at the exact center.
+ *          width are odd, then using %cy = height / 2 and
+ *          %cx = width / 2 places the origin at the exact center.
  *      (3) This returns a normalized kernel.
  * </pre>
  */
@@ -1117,16 +1117,17 @@ L_KERNEL  *kel;
 /*!
  * \brief   makeGaussianKernel()
  *
- * \param[in]    halfheight, halfwidth sx = 2 * halfwidth + 1, etc
- * \param[in]    stdev standard deviation
- * \param[in]    max value at (cx,cy)
+ * \param[in]    halfh     sy = 2 * halfh + 1
+ * \param[in]    halfw     sx = 2 * halfw + 1
+ * \param[in]    stdev     standard deviation
+ * \param[in]    max       value at (cx,cy)
  * \return  kernel, or NULL on error
  *
  * <pre>
  * Notes:
- *      (1) The kernel size (sx, sy) = (2 * halfwidth + 1, 2 * halfheight + 1).
- *      (2) The kernel center (cx, cy) = (halfwidth, halfheight).
- *      (3) The halfwidth and halfheight are typically equal, and
+ *      (1) The kernel size (sx, sy) = (2 * %halfw + 1, 2 * %halfh + 1)
+ *      (2) The kernel center (cx, cy) = (%halfw, %halfh).
+ *      (3) %halfw and %halfh are typically equal, and
  *          are typically several times larger than the standard deviation.
  *      (4) If pixConvolve() is invoked with normalization (the sum of
  *          kernel elements = 1.0), use 1.0 for max (or any number that's
@@ -1134,8 +1135,8 @@ L_KERNEL  *kel;
  * </pre>
  */
 L_KERNEL *
-makeGaussianKernel(l_int32    halfheight,
-                   l_int32    halfwidth,
+makeGaussianKernel(l_int32    halfh,
+                   l_int32    halfw,
                    l_float32  stdev,
                    l_float32  max)
 {
@@ -1145,15 +1146,15 @@ L_KERNEL  *kel;
 
     PROCNAME("makeGaussianKernel");
 
-    sx = 2 * halfwidth + 1;
-    sy = 2 * halfheight + 1;
+    sx = 2 * halfw + 1;
+    sy = 2 * halfh + 1;
     if ((kel = kernelCreate(sy, sx)) == NULL)
         return (L_KERNEL *)ERROR_PTR("kel not made", procName, NULL);
-    kernelSetOrigin(kel, halfheight, halfwidth);
+    kernelSetOrigin(kel, halfh, halfw);
     for (i = 0; i < sy; i++) {
         for (j = 0; j < sx; j++) {
-            val = expf(-(l_float32)((i - halfheight) * (i - halfheight) +
-                                    (j - halfwidth) * (j - halfwidth)) /
+            val = expf(-(l_float32)((i - halfh) * (i - halfh) +
+                                    (j - halfw) * (j - halfw)) /
                         (2. * stdev * stdev));
             kernelSetElement(kel, i, j, max * val);
         }
@@ -1166,11 +1167,12 @@ L_KERNEL  *kel;
 /*!
  * \brief   makeGaussianKernelSep()
  *
- * \param[in]    halfheight, halfwidth sx = 2 * halfwidth + 1, etc
- * \param[in]    stdev standard deviation
- * \param[in]    max value at (cx,cy)
- * \param[out]   pkelx x part of kernel
- * \param[out]   pkely y part of kernel
+ * \param[in]    halfh     sy = 2 * halfh + 1
+ * \param[in]    halfw     sx = 2 * halfw + 1
+ * \param[in]    stdev     standard deviation
+ * \param[in]    max       value at (cx,cy)
+ * \param[out]   pkelx     x part of kernel
+ * \param[out]   pkely     y part of kernel
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1180,16 +1182,16 @@ L_KERNEL  *kel;
  *          normalized and un-normalized convolution will be the same
  *          as when convolving with pixConvolve() using the full kernel.
  *      (3) The trick for the un-normalized convolution is to have the
- *          product of the two kernel elemets at (cx,cy) be equal to max,
- *          not max**2.  That's why the max for kely is 1.0.  If instead
- *          we use sqrt(max) for both, the results are slightly less
+ *          product of the two kernel elemets at (cx,cy) be equal to %max,
+ *          not max**2.  That's why %max for kely is 1.0.  If instead
+ *          we use sqrt(%max) for both, the results are slightly less
  *          accurate, when compared to using the full kernel in
  *          makeGaussianKernel().
  * </pre>
  */
 l_ok
-makeGaussianKernelSep(l_int32    halfheight,
-                      l_int32    halfwidth,
+makeGaussianKernelSep(l_int32    halfh,
+                      l_int32    halfw,
                       l_float32  stdev,
                       l_float32  max,
                       L_KERNEL **pkelx,
@@ -1200,8 +1202,8 @@ makeGaussianKernelSep(l_int32    halfheight,
     if (!pkelx || !pkely)
         return ERROR_INT("&kelx and &kely not defined", procName, 1);
 
-    *pkelx = makeGaussianKernel(0, halfwidth, stdev, max);
-    *pkely = makeGaussianKernel(halfheight, 0, stdev, 1.0);
+    *pkelx = makeGaussianKernel(0, halfw, stdev, max);
+    *pkely = makeGaussianKernel(halfh, 0, stdev, 1.0);
     return 0;
 }
 
@@ -1209,9 +1211,10 @@ makeGaussianKernelSep(l_int32    halfheight,
 /*!
  * \brief   makeDoGKernel()
  *
- * \param[in]    halfheight, halfwidth sx = 2 * halfwidth + 1, etc
- * \param[in]    stdev standard deviation of narrower gaussian
- * \param[in]    ratio of stdev for wide filter to stdev for narrow one
+ * \param[in]    halfh     sy = 2 * halfh + 1
+ * \param[in]    halfw     sx = 2 * halfw + 1
+ * \param[in]    stdev     standard deviation of narrower gaussian
+ * \param[in]    ratio     of stdev for wide filter to stdev for narrow one
  * \return  kernel, or NULL on error
  *
  * <pre>
@@ -1222,19 +1225,19 @@ makeGaussianKernelSep(l_int32    halfheight,
  *          frequencies passed by the narrow gaussian but stopped
  *          by the wide one.See:
  *               http://en.wikipedia.org/wiki/Difference_of_Gaussians
- *      (2) The kernel size (sx, sy) = (2 * halfwidth + 1, 2 * halfheight + 1).
- *      (3) The kernel center (cx, cy) = (halfwidth, halfheight).
- *      (4) The halfwidth and halfheight are typically equal, and
- *          are typically several times larger than the standard deviation.
- *      (5) The ratio is the ratio of standard deviations of the wide
+ *      (2) The kernel size (sx, sy) = (2 * halfw + 1, 2 * halfh + 1).
+ *      (3) The kernel center (cx, cy) = (halfw, halfh).
+ *      (4) %halfw and %halfh are typically equal, and are typically
+ *          several times larger than the standard deviation.
+ *      (5) %ratio is the ratio of standard deviations of the wide
  *          to narrow gaussian.  It must be >= 1.0; 1.0 is a no-op.
  *      (6) Because the kernel is a null sum, it must be invoked without
  *          normalization in pixConvolve().
  * </pre>
  */
 L_KERNEL *
-makeDoGKernel(l_int32    halfheight,
-              l_int32    halfwidth,
+makeDoGKernel(l_int32    halfh,
+              l_int32    halfw,
               l_float32  stdev,
               l_float32  ratio)
 {
@@ -1244,17 +1247,17 @@ L_KERNEL  *kel;
 
     PROCNAME("makeDoGKernel");
 
-    sx = 2 * halfwidth + 1;
-    sy = 2 * halfheight + 1;
+    sx = 2 * halfw + 1;
+    sy = 2 * halfh + 1;
     if ((kel = kernelCreate(sy, sx)) == NULL)
         return (L_KERNEL *)ERROR_PTR("kel not made", procName, NULL);
-    kernelSetOrigin(kel, halfheight, halfwidth);
+    kernelSetOrigin(kel, halfh, halfw);
 
     pi = 3.1415926535;
     for (i = 0; i < sy; i++) {
         for (j = 0; j < sx; j++) {
-            squaredist = (l_float32)((i - halfheight) * (i - halfheight) +
-                                     (j - halfwidth) * (j - halfwidth));
+            squaredist = (l_float32)((i - halfh) * (i - halfh) +
+                                     (j - halfw) * (j - halfw));
             highnorm = 1. / (2 * stdev * stdev);
             lownorm = highnorm / (ratio * ratio);
             val = (highnorm / pi) * expf(-(highnorm * squaredist))

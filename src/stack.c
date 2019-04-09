@@ -71,7 +71,7 @@ static l_int32 lstackExtendArray(L_STACK *lstack);
 /*!
  * \brief   lstackCreate()
  *
- * \param[in]    nalloc initial ptr array size; use 0 for default
+ * \param[in]    nalloc   initial ptr array size; use 0 for default
  * \return  lstack, or NULL on error
  */
 L_STACK *
@@ -101,14 +101,14 @@ L_STACK  *lstack;
 /*!
  * \brief   lstackDestroy()
  *
- * \param[in,out]   plstack to be nulled
+ * \param[in,out]   plstack    will be set to null before returning
  * \param[in]    freeflag TRUE to free each remaining struct in the array
  * \return  void
  *
  * <pre>
  * Notes:
- *      (1) If freeflag is TRUE, frees each struct in the array.
- *      (2) If freeflag is FALSE but there are elements on the array,
+ *      (1) If %freeflag is TRUE, frees each struct in the array.
+ *      (2) If %freeflag is FALSE but there are elements on the array,
  *          gives a warning and destroys the array.  This will
  *          cause a memory leak of all the items that were on the lstack.
  *          So if the items require their own destroy function, they
@@ -160,7 +160,7 @@ L_STACK  *lstack;
  * \brief   lstackAdd()
  *
  * \param[in]    lstack
- * \param[in]    item to be added to the lstack
+ * \param[in]    item      to be added to the lstack
  * \return  0 if OK; 1 on error.
  */
 l_ok
@@ -262,7 +262,7 @@ lstackGetCount(L_STACK  *lstack)
 /*!
  * \brief   lstackPrint()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp       file stream
  * \param[in]    lstack
  * \return  0 if OK; 1 on error
  */

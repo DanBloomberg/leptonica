@@ -69,18 +69,18 @@ static PIX *pixFindMinRunsOrthogonal(PIX *pixs, l_float32 angle, l_int32 depth);
 /*!
  * \brief   pixStrokeWidthTransform()
  *
- * \param[in]     pixs 1 bpp
- * \param[in]     color 0 for white runs, 1 for black runs
- * \param[in]     depth of pixd: 8 or 16 bpp
- * \param[in]     nangles 2, 4, 6 or 8
- * \return   pixd 8 or 16 bpp, or NULL on error
+ * \param[in]     pixs      1 bpp
+ * \param[in]     color     0 for white runs, 1 for black runs
+ * \param[in]     depth     of pixd: 8 or 16 bpp
+ * \param[in]     nangles   2, 4, 6 or 8
+ * \return   pixd   8 or 16 bpp, or NULL on error
  *
  * <pre>
  * Notes:
  *      (1) The dest Pix is 8 or 16 bpp, with the pixel values
  *          equal to the stroke width in which it is a member.
  *          The values are clipped to the max pixel value if necessary.
- *      (2) The color determines if we're labelling white or black strokes.
+ *      (2) %color determines if we're labelling white or black strokes.
  *      (3) A pixel that is not a member of the chosen color gets
  *          value 0; it belongs to a width of length 0 of the
  *          chosen color.
@@ -92,7 +92,7 @@ static PIX *pixFindMinRunsOrthogonal(PIX *pixs, l_float32 angle, l_int32 depth);
  *               4          45       {0, 45, 90, 135}
  *               6          30       {0, 30, 60, 90, 120, 150}
  *               8          22.5     {0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5}
- *      (5) Runtime scales linearly with (nangles - 2).
+ *      (5) Runtime scales linearly with (%nangles - 2).
  * </pre>
  */
 PIX *
@@ -171,9 +171,9 @@ PIX       *pixh, *pixv, *pixt, *pixg1, *pixg2, *pixg3, *pixg4;
 /*!
  * \brief   pixFindMinRunsOrthogonal()
  *
- * \param[in]     pixs 1 bpp
- * \param[in]     angle in radians
- * \param[in]     depth of pixd: 8 or 16 bpp
+ * \param[in]     pixs     1 bpp
+ * \param[in]     angle    in radians
+ * \param[in]     depth    of pixd: 8 or 16 bpp
  * \return   pixd 8 or 16 bpp, or NULL on error
  *
  * <pre>
@@ -239,18 +239,18 @@ BOX     *box;
 /*!
  * \brief   pixRunlengthTransform()
  *
- * \param[in]     pixs 1 bpp
- * \param[in]     color 0 for white runs, 1 for black runs
- * \param[in]     direction L_HORIZONTAL_RUNS, L_VERTICAL_RUNS
- * \param[in]     depth 8 or 16 bpp
- * \return   pixd 8 or 16 bpp, or NULL on error
+ * \param[in]     pixs        1 bpp
+ * \param[in]     color       0 for white runs, 1 for black runs
+ * \param[in]     direction   L_HORIZONTAL_RUNS, L_VERTICAL_RUNS
+ * \param[in]     depth       8 or 16 bpp
+ * \return   pixd   8 or 16 bpp, or NULL on error
  *
  * <pre>
  * Notes:
  *      (1) The dest Pix is 8 or 16 bpp, with the pixel values
  *          equal to the runlength in which it is a member.
  *          The length is clipped to the max pixel value if necessary.
- *      (2) The color determines if we're labelling white or black runs.
+ *      (2) %color determines if we're labelling white or black runs.
  *      (3) A pixel that is not a member of the chosen color gets
  *          value 0; it belongs to a run of length 0 of the
  *          chosen color.
@@ -351,11 +351,11 @@ PIX       *pixt, *pixd;
 /*!
  * \brief   pixFindHorizontalRuns()
  *
- * \param[in]    pix 1 bpp
- * \param[in]    y line to traverse
- * \param[in]    xstart returns array of start positions for fg runs
- * \param[in]    xend returns array of end positions for fg runs
- * \param[out]   pn  the number of runs found
+ * \param[in]    pix      1 bpp
+ * \param[in]    y        line to traverse
+ * \param[in]    xstart   returns array of start positions for fg runs
+ * \param[in]    xend     returns array of end positions for fg runs
+ * \param[out]   pn       the number of runs found
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -363,7 +363,7 @@ PIX       *pixt, *pixd;
  *      (1) This finds foreground horizontal runs on a single scanline.
  *      (2) To find background runs, use pixInvert() before applying
  *          this function.
- *      (3) The xstart and xend arrays are input.  They should be
+ *      (3) %xstart and %xend arrays are input.  They should be
  *          of size w/2 + 1 to insure that they can hold
  *          the maximum number of runs in the raster line.
  * </pre>
@@ -428,11 +428,11 @@ l_uint32  *line;
 /*!
  * \brief   pixFindVerticalRuns()
  *
- * \param[in]    pix 1 bpp
- * \param[in]    x line to traverse
- * \param[in]    ystart returns array of start positions for fg runs
- * \param[in]    yend returns array of end positions for fg runs
- * \param[out]   pn   the number of runs found
+ * \param[in]    pix      1 bpp
+ * \param[in]    x        line to traverse
+ * \param[in]    ystart   returns array of start positions for fg runs
+ * \param[in]    yend     returns array of end positions for fg runs
+ * \param[out]   pn       the number of runs found
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -440,7 +440,7 @@ l_uint32  *line;
  *      (1) This finds foreground vertical runs on a single scanline.
  *      (2) To find background runs, use pixInvert() before applying
  *          this function.
- *      (3) The ystart and yend arrays are input.  They should be
+ *      (3) %ystart and %yend arrays are input.  They should be
  *          of size h/2 + 1 to insure that they can hold
  *          the maximum number of runs in the raster line.
  * </pre>
@@ -509,9 +509,9 @@ l_uint32  *data, *line;
 /*!
  * \brief   pixFindMaxRuns()
  *
- * \param[in]    pix 1 bpp
- * \param[in]    direction L_HORIZONTAL_RUNS or L_VERTICAL_RUNS
- * \param[out]   pnastart [optional] start locations of longest runs
+ * \param[in]    pix         1 bpp
+ * \param[in]    direction   L_HORIZONTAL_RUNS or L_VERTICAL_RUNS
+ * \param[out]   pnastart    [optional] start locations of longest runs
  * \return  na of lengths of runs, or NULL on error
  *
  * <pre>
@@ -561,10 +561,10 @@ NUMA    *nasize;
 /*!
  * \brief   pixFindMaxHorizontalRunOnLine()
  *
- * \param[in]    pix 1 bpp
- * \param[in]    y line to traverse
- * \param[out]   pxstart [optional] start position
- * \param[out]   psize  the size of the run
+ * \param[in]    pix       1 bpp
+ * \param[in]    y         line to traverse
+ * \param[out]   pxstart   [optional] start position
+ * \param[out]   psize     the size of the run
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -635,10 +635,10 @@ l_uint32  *line;
 /*!
  * \brief   pixFindMaxVerticalRunOnLine()
  *
- * \param[in]    pix 1 bpp
- * \param[in]    x column to traverse
- * \param[out]   pystart [optional] start position
- * \param[out]   psize  the size of the run
+ * \param[in]    pix       1 bpp
+ * \param[in]    x         column to traverse
+ * \param[out]   pystart   [optional] start position
+ * \param[out]   psize     the size of the run
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -713,12 +713,12 @@ l_uint32  *data, *line;
 /*!
  * \brief   runlengthMembershipOnLine()
  *
- * \param[in]     buffer into which full line of data is placed
- * \param[in]     size full size of line; w or h
- * \param[in]     depth 8 or 16 bpp
- * \param[in]     start array of start positions for fg runs
- * \param[in]     end array of end positions for fg runs
- * \param[in]     n   the number of runs
+ * \param[in]     buffer   into which full line of data is placed
+ * \param[in]     size     full size of line; w or h
+ * \param[in]     depth    8 or 16 bpp
+ * \param[in]     start    array of start positions for fg runs
+ * \param[in]     end      array of end positions for fg runs
+ * \param[in]     n        the number of runs
  * \return   0 if OK; 1 on error
  *
  * <pre>
@@ -767,22 +767,20 @@ l_int32  i, j, first, last, diff, max;
 }
 
 
-
 /*-----------------------------------------------------------------------*
  *                       Make byte position LUT                          *
  *-----------------------------------------------------------------------*/
 /*!
  * \brief   makeMSBitLocTab()
  *
- * \param[in]    bitval either 0 or 1
- * \return  table giving, for an input byte, the MS bit location,
- *                     starting at 0 with the MSBit in the byte,
- *                     or NULL on error.
+ * \param[in]    bitval   either 0 or 1
+ * \return  table:  for an input byte, the MS bit location, starting at 0
+ *                  with the MSBit in the byte, or NULL on error.
  *
  * <pre>
  * Notes:
- *      (1) If bitval == 1, it finds the leftmost ON pixel in a byte;
- *          otherwise if bitval == 0, it finds the leftmost OFF pixel.
+ *      (1) If %bitval == 1, it finds the leftmost ON pixel in a byte;
+ *          otherwise if %bitval == 0, it finds the leftmost OFF pixel.
  *      (2) If there are no pixels of the indicated color in the byte,
  *          this returns 8.
  * </pre>

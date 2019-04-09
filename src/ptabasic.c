@@ -109,7 +109,7 @@ static l_int32 ptaaExtendArray(PTAA *ptaa);
 /*!
  * \brief   ptaCreate()
  *
- * \param[in]    n  initial array sizes
+ * \param[in]    n    initial array sizes
  * \return  pta, or NULL on error.
  */
 PTA *
@@ -141,7 +141,7 @@ PTA  *pta;
 /*!
  * \brief   ptaCreateFromNuma()
  *
- * \param[in]    nax [optional] can be null
+ * \param[in]    nax   [optional] can be null
  * \param[in]    nay
  * \return  pta, or NULL on error.
  */
@@ -179,7 +179,7 @@ PTA       *pta;
 /*!
  * \brief   ptaDestroy()
  *
- * \param[in,out]   ppta to be nulled
+ * \param[in,out]   ppta   will be set to null before returning
  * \return  void
  *
  * <pre>
@@ -249,8 +249,8 @@ PTA       *npta;
  * \brief   ptaCopyRange()
  *
  * \param[in]    ptas
- * \param[in]    istart  starting index in ptas
- * \param[in]    iend  ending index in ptas; use 0 to copy to end
+ * \param[in]    istart    starting index in ptas
+ * \param[in]    iend      ending index in ptas; use 0 to copy to end
  * \return  0 if OK, 1 on error
  */
 PTA *
@@ -396,8 +396,8 @@ ptaExtendArrays(PTA  *pta)
  * \brief   ptaInsertPt()
  *
  * \param[in]    pta
- * \param[in]    index at which pt is to be inserted
- * \param[in]    x, y point values
+ * \param[in]    index   at which pt is to be inserted
+ * \param[in]    x, y    point values
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -433,7 +433,7 @@ l_int32  i, n;
  * \brief   ptaRemovePt()
  *
  * \param[in]    pta
- * \param[in]    index of point to be removed
+ * \param[in]    index    of point to be removed
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -516,9 +516,9 @@ ptaGetCount(PTA  *pta)
  * \brief   ptaGetPt()
  *
  * \param[in]    pta
- * \param[in]    index  into arrays
- * \param[out]   px [optional] float x value
- * \param[out]   py [optional] float y value
+ * \param[in]    index    into arrays
+ * \param[out]   px       [optional] float x value
+ * \param[out]   py       [optional] float y value
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -546,9 +546,9 @@ ptaGetPt(PTA        *pta,
  * \brief   ptaGetIPt()
  *
  * \param[in]    pta
- * \param[in]    index  into arrays
- * \param[out]   px [optional] integer x value
- * \param[out]   py [optional] integer y value
+ * \param[in]    index    into arrays
+ * \param[out]   px       [optional] integer x value
+ * \param[out]   py       [optional] integer y value
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -576,7 +576,7 @@ ptaGetIPt(PTA      *pta,
  * \brief   ptaSetPt()
  *
  * \param[in]    pta
- * \param[in]    index  into arrays
+ * \param[in]    index    into arrays
  * \param[in]    x, y
  * \return  0 if OK; 1 on error
  */
@@ -603,8 +603,8 @@ ptaSetPt(PTA       *pta,
  * \brief   ptaGetArrays()
  *
  * \param[in]    pta
- * \param[out]   pnax [optional] numa of x array
- * \param[out]   pnay [optional] numa of y array
+ * \param[out]   pnax    [optional] numa of x array
+ * \param[out]   pnay    [optional] numa of y array
  * \return  0 if OK; 1 on error or if pta is empty
  *
  * <pre>
@@ -684,7 +684,7 @@ PTA   *pta;
 /*!
  * \brief   ptaReadStream()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp    file stream
  * \return  pta, or NULL on error
  */
 PTA *
@@ -736,8 +736,8 @@ PTA       *pta;
 /*!
  * \brief   ptaReadMem()
  *
- * \param[in]    data  serialization in ascii
- * \param[in]    size  of data in bytes; can use strlen to get it
+ * \param[in]    data    serialization in ascii
+ * \param[in]    size    of data in bytes; can use strlen to get it
  * \return  pta, or NULL on error
  */
 PTA *
@@ -766,7 +766,7 @@ PTA   *pta;
  *
  * \param[in]    filename
  * \param[in]    pta
- * \param[in]    type  0 for float values; 1 for integer values
+ * \param[in]    type       0 for float values; 1 for integer values
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -799,7 +799,7 @@ ptaWriteDebug(const char  *filename,
  *
  * \param[in]    filename
  * \param[in]    pta
- * \param[in]    type  0 for float values; 1 for integer values
+ * \param[in]    type       0 for float values; 1 for integer values
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -830,9 +830,9 @@ FILE    *fp;
 /*!
  * \brief   ptaWriteStream()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp      file stream
  * \param[in]    pta
- * \param[in]    type  0 for float values; 1 for integer values
+ * \param[in]    type    0 for float values; 1 for integer values
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -873,10 +873,10 @@ l_float32  x, y;
 /*!
  * \brief   ptaWriteMem()
  *
- * \param[out]   pdata data of serialized pta; ascii
- * \param[out]   psize size of returned data
+ * \param[out]   pdata    data of serialized pta; ascii
+ * \param[out]   psize    size of returned data
  * \param[in]    pta
- * \param[in]    type  0 for float values; 1 for integer values
+ * \param[in]    type     0 for float values; 1 for integer values
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -932,7 +932,7 @@ FILE    *fp;
 /*!
  * \brief   ptaaCreate()
  *
- * \param[in]    n  initial number of ptrs
+ * \param[in]    n    initial number of ptrs
  * \return  ptaa, or NULL on error
  */
 PTAA *
@@ -960,7 +960,7 @@ PTAA  *ptaa;
 /*!
  * \brief   ptaaDestroy()
  *
- * \param[in,out]   pptaa to be nulled
+ * \param[in,out]   pptaa   will be set to null before returning
  * \return  void
  */
 void
@@ -996,8 +996,8 @@ PTAA    *ptaa;
  * \brief   ptaaAddPta()
  *
  * \param[in]    ptaa
- * \param[in]    pta  to be added
- * \param[in]    copyflag  L_INSERT, L_COPY, L_CLONE
+ * \param[in]    pta         to be added
+ * \param[in]    copyflag    L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1086,8 +1086,8 @@ ptaaGetCount(PTAA  *ptaa)
  * \brief   ptaaGetPta()
  *
  * \param[in]    ptaa
- * \param[in]    index  to the i-th pta
- * \param[in]    accessflag  L_COPY or L_CLONE
+ * \param[in]    index         to the i-th pta
+ * \param[in]    accessflag    L_COPY or L_CLONE
  * \return  pta, or NULL on error
  */
 PTA *
@@ -1115,10 +1115,10 @@ ptaaGetPta(PTAA    *ptaa,
  * \brief   ptaaGetPt()
  *
  * \param[in]    ptaa
- * \param[in]    ipta  to the i-th pta
- * \param[in]    jpt index to the j-th pt in the pta
- * \param[out]   px [optional] float x value
- * \param[out]   py [optional] float y value
+ * \param[in]    ipta   to the i-th pta
+ * \param[in]    jpt    index to the j-th pt in the pta
+ * \param[out]   px     [optional] float x value
+ * \param[out]   py     [optional] float y value
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -1157,8 +1157,8 @@ PTA  *pta;
 /*!
  * \brief   ptaaInitFull()
  *
- * \param[in]    ptaa can have non-null ptrs in the ptr array
- * \param[in]    pta to be replicated into the entire ptr array
+ * \param[in]    ptaa    can have non-null ptrs in the ptr array
+ * \param[in]    pta     to be replicated into the entire ptr array
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -1189,15 +1189,15 @@ PTA     *ptat;
  * \brief   ptaaReplacePta()
  *
  * \param[in]    ptaa
- * \param[in]    index  to the index-th pta
- * \param[in]    pta insert and replace any existing one
+ * \param[in]    index   to the index-th pta
+ * \param[in]    pta     insert and replace any existing one
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
  *      (1) Any existing pta is destroyed, and the input one
  *          is inserted in its place.
- *      (2) If the index is invalid, return 1 (error)
+ *      (2) If %index is invalid, return 1 (error)
  * </pre>
  */
 l_ok
@@ -1227,8 +1227,8 @@ l_int32  n;
  * \brief   ptaaAddPt()
  *
  * \param[in]    ptaa
- * \param[in]    ipta  to the i-th pta
- * \param[in]    x,y point coordinates
+ * \param[in]    ipta   to the i-th pta
+ * \param[in]    x,y    point coordinates
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -1330,7 +1330,7 @@ PTAA  *ptaa;
 /*!
  * \brief   ptaaReadStream()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp    file stream
  * \return  ptaa, or NULL on error
  */
 PTAA *
@@ -1369,8 +1369,8 @@ PTAA    *ptaa;
 /*!
  * \brief   ptaaReadMem()
  *
- * \param[in]    data  serialization in ascii
- * \param[in]    size  of data in bytes; can use strlen to get it
+ * \param[in]    data    serialization in ascii
+ * \param[in]    size    of data in bytes; can use strlen to get it
  * \return  ptaa, or NULL on error
  */
 PTAA *
@@ -1399,7 +1399,7 @@ PTAA  *ptaa;
  *
  * \param[in]    filename
  * \param[in]    ptaa
- * \param[in]    type  0 for float values; 1 for integer values
+ * \param[in]    type      0 for float values; 1 for integer values
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1432,7 +1432,7 @@ ptaaWriteDebug(const char  *filename,
  *
  * \param[in]    filename
  * \param[in]    ptaa
- * \param[in]    type  0 for float values; 1 for integer values
+ * \param[in]    type      0 for float values; 1 for integer values
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -1463,9 +1463,9 @@ FILE    *fp;
 /*!
  * \brief   ptaaWriteStream()
  *
- * \param[in]    fp file stream
+ * \param[in]    fp      file stream
  * \param[in]    ptaa
- * \param[in]    type  0 for float values; 1 for integer values
+ * \param[in]    type    0 for float values; 1 for integer values
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -1499,15 +1499,15 @@ PTA     *pta;
 /*!
  * \brief   ptaaWriteMem()
  *
- * \param[out]   pdata data of serialized ptaa; ascii
- * \param[out]   psize size of returned data
+ * \param[out]   pdata    data of serialized ptaa; ascii
+ * \param[out]   psize    size of returned data
  * \param[in]    ptaa
- * \param[in]    type  0 for float values; 1 for integer values
+ * \param[in]    type     0 for float values; 1 for integer values
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) Serializes a ptaa in memory and puts the result in a buffer.
+ *      (1) Serializes %ptaa in memory and puts the result in a buffer.
  * </pre>
  */
 l_ok
@@ -1550,4 +1550,3 @@ FILE    *fp;
     fclose(fp);
     return ret;
 }
-

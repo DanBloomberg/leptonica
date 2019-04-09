@@ -1102,9 +1102,9 @@ LEPT_DLL extern L_KERNEL * kernelCreateFromPix ( PIX *pix, l_int32 cy, l_int32 c
 LEPT_DLL extern PIX * kernelDisplayInPix ( L_KERNEL *kel, l_int32 size, l_int32 gthick );
 LEPT_DLL extern NUMA * parseStringForNumbers ( const char *str, const char *seps );
 LEPT_DLL extern L_KERNEL * makeFlatKernel ( l_int32 height, l_int32 width, l_int32 cy, l_int32 cx );
-LEPT_DLL extern L_KERNEL * makeGaussianKernel ( l_int32 halfheight, l_int32 halfwidth, l_float32 stdev, l_float32 max );
-LEPT_DLL extern l_ok makeGaussianKernelSep ( l_int32 halfheight, l_int32 halfwidth, l_float32 stdev, l_float32 max, L_KERNEL **pkelx, L_KERNEL **pkely );
-LEPT_DLL extern L_KERNEL * makeDoGKernel ( l_int32 halfheight, l_int32 halfwidth, l_float32 stdev, l_float32 ratio );
+LEPT_DLL extern L_KERNEL * makeGaussianKernel ( l_int32 halfh, l_int32 halfw, l_float32 stdev, l_float32 max );
+LEPT_DLL extern l_ok makeGaussianKernelSep ( l_int32 halfh, l_int32 halfw, l_float32 stdev, l_float32 max, L_KERNEL **pkelx, L_KERNEL **pkely );
+LEPT_DLL extern L_KERNEL * makeDoGKernel ( l_int32 halfh, l_int32 halfw, l_float32 stdev, l_float32 ratio );
 LEPT_DLL extern char * getImagelibVersions (  );
 LEPT_DLL extern void listDestroy ( DLLIST **phead );
 LEPT_DLL extern l_ok listAddToHead ( DLLIST **phead, void *data );

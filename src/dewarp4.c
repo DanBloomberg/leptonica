@@ -74,15 +74,15 @@ static const l_int32     GRAYIN_VALUE = 200;
 /*!
  * \brief   dewarpSinglePage()
  *
- * \param[in]    pixs with text, any depth
- * \param[in]    thresh for global thresholding to 1 bpp; ignored otherwise
- * \param[in]    adaptive 1 for adaptive thresholding; 0 for global threshold
- * \param[in]    useboth 1 for horizontal and vertical; 0 for vertical only
- * \param[in]    check_columns 1 to skip horizontal if multiple columns;
- *                             0 otherwise; default is to skip
- * \param[out]   ppixd dewarped result
- * \param[out]   pdewa [optional] dewa with single page; NULL to skip
- * \param[in]    debug 1 for debugging output, 0 otherwise
+ * \param[in]    pixs            with text, any depth
+ * \param[in]    thresh          for global thresh to 1 bpp; ignore otherwise
+ * \param[in]    adaptive        1 for adaptive thresh; 0 for global threshold
+ * \param[in]    useboth         1 for both horiz and vert; 0 for vertical only
+ * \param[in]    check_columns   1 to skip horizontal if multiple columns;
+ *                               0 otherwise; default is to skip
+ * \param[out]   ppixd           dewarped result
+ * \param[out]   pdewa           [optional] dewa with single page; NULL to skip
+ * \param[in]    debug           1 for debugging output, 0 otherwise
  * \return  0 if OK, 1 on error list of page numbers, or NULL on error
  *
  * <pre>
@@ -136,14 +136,14 @@ PIX        *pixb;
 /*!
  * \brief   dewarpSinglePageInit()
  *
- * \param[in]    pixs with text, any depth
- * \param[in]    thresh for global thresholding to 1 bpp; ignored otherwise
- * \param[in]    adaptive 1 for adaptive thresholding; 0 for global threshold
- * \param[in]    useboth 1 for horizontal and vertical; 0 for vertical only
- * \param[in]    check_columns 1 to skip horizontal if multiple columns;
- *                             0 otherwise; default is to skip
- * \param[out]   ppixb 1 bpp image
- * \param[out]   pdewa initialized dewa
+ * \param[in]    pixs            with text, any depth
+ * \param[in]    thresh          for global thresh to 1 bpp; ignore otherwise
+ * \param[in]    adaptive        1 for adaptive thresh; 0 for global threshold
+ * \param[in]    useboth         1 for both horiz and vert; 0 for vertical only
+ * \param[in]    check_columns   1 to skip horizontal if multiple columns;
+ *                               0 otherwise; default is to skip
+ * \param[out]   ppixb           1 bpp debug image
+ * \param[out]   pdewa           initialized dewa
  * \return  0 if OK, 1 on error list of page numbers, or NULL on error
  *
  * <pre>
@@ -203,11 +203,11 @@ PIX  *pix1;
 /*!
  * \brief   dewarpSinglePageRun()
  *
- * \param[in]    pixs any depth
- * \param[in]    pixb 1 bpp
- * \param[in]    dewa initialized
- * \param[out]   ppixd dewarped result
- * \param[in]    debug 1 for debugging output, 0 otherwise
+ * \param[in]    pixs    any depth
+ * \param[in]    pixb    1 bpp
+ * \param[in]    dewa    initialized
+ * \param[out]   ppixd   dewarped result
+ * \param[in]    debug   1 for debugging output, 0 otherwise
  * \return  0 if OK, 1 on error list of page numbers, or NULL on error
  *
  * <pre>
@@ -272,7 +272,7 @@ L_DEWARP    *dew;
 /*!
  * \brief   dewarpaListPages()
  *
- * \param[in]    dewa populated with dewarp structs for pages
+ * \param[in]    dewa    populated with dewarp structs for pages
  * \return  0 if OK, 1 on error list of page numbers, or NULL on error
  *
  * <pre>
@@ -319,7 +319,7 @@ NUMA      *namodels, *napages;
  *
  * \param[in]    dewa
  * \param[in]    notests
- * \param[in]    debug 1 to output information on invalid page models
+ * \param[in]    debug     1 to output information on invalid page models
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -408,8 +408,8 @@ L_DEWARP  *dew;
  * \brief   dewarpaInsertRefModels()
  *
  * \param[in]    dewa
- * \param[in]    notests if 1, ignore curvature constraints on model
- * \param[in]    debug 1 to output information on invalid page models
+ * \param[in]    notests    if 1, ignore curvature constraints on model
+ * \param[in]    debug      1 to output information on invalid page models
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -563,7 +563,7 @@ NUMA      *na, *nah;
 /*!
  * \brief   dewarpaStripRefModels()
  *
- * \param[in]    dewa populated with dewarp structs for pages
+ * \param[in]    dewa    populated with dewarp structs for pages
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -602,7 +602,7 @@ L_DEWARP  *dew;
 /*!
  * \brief   dewarpaRestoreModels()
  *
- * \param[in]    dewa populated with dewarp structs for pages
+ * \param[in]    dewa     populated with dewarp structs for pages
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -721,12 +721,12 @@ L_DEWARP  *dew;
  * \brief   dewarpaModelStats()
  *
  * \param[in]    dewa
- * \param[out]   pnnone [optional] number without any model
- * \param[out]   pnvsuccess [optional] number with a vert model
- * \param[out]   pnvvalid [optional] number with a valid vert model
- * \param[out]   pnhsuccess [optional] number with both models
- * \param[out]   pnhvalid [optional] number with both models valid
- * \param[out]   pnref [optional] number with a reference model
+ * \param[out]   pnnone       [optional] number without any model
+ * \param[out]   pnvsuccess   [optional] number with a vert model
+ * \param[out]   pnvvalid     [optional] number with a valid vert model
+ * \param[out]   pnhsuccess   [optional] number with both models
+ * \param[out]   pnhvalid     [optional] number with both models valid
+ * \param[out]   pnref        [optional] number with a reference model
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -897,9 +897,9 @@ l_int32  maxcurv, diffcurv, diffedge;
  * \brief   dewarpaShowArrays()
  *
  * \param[in]    dewa
- * \param[in]    scalefact on contour images; typ. 0.5
- * \param[in]    first first page model to render
- * \param[in]    last last page model to render; use 0 to go to end
+ * \param[in]    scalefact    on contour images; typ. 0.5
+ * \param[in]    first        first page model to render
+ * \param[in]    last         last page model to render; use 0 to go to end
  * \return  0 if OK, 1 on error
  *
  * <pre>

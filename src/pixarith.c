@@ -98,8 +98,8 @@
 /*!
  * \brief   pixAddConstantGray()
  *
- * \param[in]    pixs 8, 16 or 32 bpp
- * \param[in]    val  amount to add to each pixel
+ * \param[in]    pixs   8, 16 or 32 bpp
+ * \param[in]    val    amount to add to each pixel
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -171,8 +171,8 @@ l_uint32  *data, *line;
 /*!
  * \brief   pixMultConstantGray()
  *
- * \param[in]    pixs 8, 16 or 32 bpp
- * \param[in]    val  >= 0.0; amount to multiply by each pixel
+ * \param[in]    pixs   8, 16 or 32 bpp
+ * \param[in]    val    >= 0.0; amount to multiply by each pixel
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -237,9 +237,9 @@ l_uint32  *data, *line;
 /*!
  * \brief   pixAddGray()
  *
- * \param[in]    pixd [optional]; this can be null, equal to pixs1, or
- *                    different from pixs1
- * \param[in]    pixs1 can be == to pixd
+ * \param[in]    pixd    [optional]; this can be null, equal to pixs1, or
+ *                       different from pixs1
+ * \param[in]    pixs1   can be equal to pixd
  * \param[in]    pixs2
  * \return  pixd always
  *
@@ -329,9 +329,9 @@ l_uint32  *datas, *datad, *lines, *lined;
 /*!
  * \brief   pixSubtractGray()
  *
- * \param[in]    pixd [optional]; this can be null, equal to pixs1, or
- *                    different from pixs1
- * \param[in]    pixs1 can be == to pixd
+ * \param[in]    pixd     [optional]; this can be null, equal to pixs1, or
+ *                        different from pixs1
+ * \param[in]    pixs1    can be equal to pixd
  * \param[in]    pixs2
  * \return  pixd always
  *
@@ -424,8 +424,8 @@ l_uint32  *datas, *datad, *lines, *lined;
 /*!
  * \brief   pixThresholdToValue()
  *
- * \param[in]    pixd [optional]; if not null, must be equal to pixs
- * \param[in]    pixs 8, 16, 32 bpp
+ * \param[in]    pixd       [optional]; if not null, must be equal to pixs
+ * \param[in]    pixs       8, 16, 32 bpp
  * \param[in]    threshval
  * \param[in]    setval
  * \return  pixd always
@@ -433,9 +433,9 @@ l_uint32  *datas, *datad, *lines, *lined;
  * <pre>
  * Notes:
  *    ~ operation can be in-place (pixs == pixd) or to a new pixd
- *    ~ if setval > threshval, sets pixels with a value >= threshval to setval
- *    ~ if setval < threshval, sets pixels with a value <= threshval to setval
- *    ~ if setval == threshval, no-op
+ *    ~ if %setval > %threshval, sets pixels with a value >= threshval to setval
+ *    ~ if %setval < %threshval, sets pixels with a value <= threshval to setval
+ *    ~ if %setval == %threshval, no-op
  * </pre>
  */
 PIX *
@@ -527,15 +527,15 @@ l_uint32  *datad, *lined;
 /*!
  * \brief   pixInitAccumulate()
  *
- * \param[in]    w, h of accumulate array
- * \param[in]    offset initialize the 32 bpp to have this
- *                      value; not more than 0x40000000
- * \return  pixd 32 bpp, or NULL on error
+ * \param[in]    w, h      of accumulate array
+ * \param[in]    offset    initialize the 32 bpp to have this
+ *                         value; not more than 0x40000000
+ * \return  pixd   32 bpp, or NULL on error
  *
  * <pre>
  * Notes:
- *      (1) The offset must be >= 0.
- *      (2) The offset is used so that we can do arithmetic
+ *      (1) %offset must be >= 0.
+ *      (2) %offset is used so that we can do arithmetic
  *          with negative number results on l_uint32 data; it
  *          prevents the l_uint32 data from going negative.
  *      (3) Because we use l_int32 intermediate data results,
@@ -544,7 +544,7 @@ l_uint32  *datad, *lined;
  *          which is half way between 0 and the max of l_int32.
  *      (4) The same offset should be used for initialization,
  *          multiplication by a constant, and final extraction!
- *      (5) If you're only adding positive values, offset can be 0.
+ *      (5) If you're only adding positive values, %offset can be 0.
  * </pre>
  */
 PIX *
@@ -568,15 +568,15 @@ PIX  *pixd;
 /*!
  * \brief   pixFinalAccumulate()
  *
- * \param[in]    pixs 32 bpp
- * \param[in]    offset same as used for initialization
- * \param[in]    depth  8, 16 or 32 bpp, of destination
- * \return  pixd 8, 16 or 32 bpp, or NULL on error
+ * \param[in]    pixs     32 bpp
+ * \param[in]    offset   same as used for initialization
+ * \param[in]    depth    8, 16 or 32 bpp, of destination
+ * \return  pixd   8, 16 or 32 bpp, or NULL on error
  *
  * <pre>
  * Notes:
- *      (1) The offset must be >= 0 and should not exceed 0x40000000.
- *      (2) The offset is subtracted from the src 32 bpp image
+ *      (1) %offset must be >= 0 and should not exceed 0x40000000.
+ *      (2) %offset is subtracted from the src 32 bpp image
  *      (3) For 8 bpp dest, the result is clipped to [0, 0xff]
  *      (4) For 16 bpp dest, the result is clipped to [0, 0xffff]
  * </pre>
@@ -647,15 +647,15 @@ PIX       *pixd;
 /*!
  * \brief   pixFinalAccumulateThreshold()
  *
- * \param[in]    pixs 32 bpp
- * \param[in]    offset same as used for initialization
- * \param[in]    threshold values less than this are set in the destination
- * \return  pixd 1 bpp, or NULL on error
+ * \param[in]    pixs        32 bpp
+ * \param[in]    offset      same as used for initialization
+ * \param[in]    threshold   values less than this are set in the destination
+ * \return  pixd   1 bpp, or NULL on error
  *
  * <pre>
  * Notes:
- *      (1) The offset must be >= 0 and should not exceed 0x40000000.
- *      (2) The offset is subtracted from the src 32 bpp image
+ *      (1) %offset must be >= 0 and should not exceed 0x40000000.
+ *      (2) %offset is subtracted from the src 32 bpp image
  * </pre>
  */
 PIX *
@@ -702,9 +702,9 @@ PIX       *pixd;
 /*!
  * \brief   pixAccumulate()
  *
- * \param[in]    pixd 32 bpp
- * \param[in]    pixs 1, 8, 16 or 32 bpp
- * \param[in]    op  L_ARITH_ADD or L_ARITH_SUBTRACT
+ * \param[in]    pixd    32 bpp
+ * \param[in]    pixs    1, 8, 16 or 32 bpp
+ * \param[in]    op      L_ARITH_ADD or L_ARITH_SUBTRACT
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -802,16 +802,16 @@ l_uint32  *datas, *datad, *lines, *lined;
 /*!
  * \brief   pixMultConstAccumulate()
  *
- * \param[in]    pixs 32 bpp
+ * \param[in]    pixs      32 bpp
  * \param[in]    factor
- * \param[in]    offset same as used for initialization
+ * \param[in]    offset    same as used for initialization
  * \return  0 if OK; 1 on error
  *
  * <pre>
  * Notes:
- *      (1) The offset must be >= 0 and should not exceed 0x40000000.
- *      (2) This multiplies each pixel, relative to offset, by the input factor
- *      (3) The result is returned with the offset back in place.
+ *      (1) %offset must be >= 0 and should not exceed 0x40000000.
+ *      (2) This multiplies each pixel, relative to offset, by %factor.
+ *      (3) The result is returned with %offset back in place.
  * </pre>
  */
 l_ok
@@ -854,7 +854,7 @@ l_uint32  *data, *line;
 /*!
  * \brief   pixAbsDifference()
  *
- * \param[in]    pixs1, pixs2  both either 8 or 16 bpp gray, or 32 bpp RGB
+ * \param[in]    pixs1, pixs2    both either 8 or 16 bpp gray, or 32 bpp RGB
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -952,7 +952,7 @@ PIX       *pixd;
 /*!
  * \brief   pixAddRGB()
  *
- * \param[in]    pixs1, pixs2  32 bpp RGB, or colormapped
+ * \param[in]    pixs1, pixs2    32 bpp RGB, or colormapped
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1031,11 +1031,11 @@ PIX       *pixc1, *pixc2, *pixd;
 /*!
  * \brief   pixMinOrMax()
  *
- * \param[in]    pixd  [optional] destination: this can be null,
- *                     equal to pixs1, or different from pixs1
- * \param[in]    pixs1 can be == to pixd
+ * \param[in]    pixd     [optional] destination: this can be null,
+ *                        equal to pixs1, or different from pixs1
+ * \param[in]    pixs1    can be equal to pixd
  * \param[in]    pixs2
- * \param[in]    type L_CHOOSE_MIN, L_CHOOSE_MAX
+ * \param[in]    type     L_CHOOSE_MIN, L_CHOOSE_MAX
  * \return  pixd always
  *
  * <pre>
@@ -1138,9 +1138,9 @@ l_uint32  *datas, *datad, *lines, *lined;
 /*!
  * \brief   pixMaxDynamicRange()
  *
- * \param[in]    pixs  4, 8, 16 or 32 bpp source
- * \param[in]    type  L_LINEAR_SCALE or L_LOG_SCALE
- * \return  pixd 8 bpp, or NULL on error
+ * \param[in]    pixs    4, 8, 16 or 32 bpp source
+ * \param[in]    type    L_LINEAR_SCALE or L_LOG_SCALE
+ * \return  pixd    8 bpp, or NULL on error
  *
  * <pre>
  * Notes:
@@ -1325,9 +1325,9 @@ PIX        *pixd;
 /*!
  * \brief   pixMaxDynamicRangeRGB()
  *
- * \param[in]    pixs  32 bpp rgb source
- * \param[in]    type  L_LINEAR_SCALE or L_LOG_SCALE
- * \return  pixd 32 bpp, or NULL on error
+ * \param[in]    pixs    32 bpp rgb source
+ * \param[in]    type    L_LINEAR_SCALE or L_LOG_SCALE
+ * \return  pixd   32 bpp, or NULL on error
  *
  * <pre>
  * Notes:
@@ -1413,8 +1413,8 @@ PIX        *pixd;
 /*!
  * \brief   linearScaleRGBVal()
  *
- * \param[in]    sval   32-bit rgb pixel value
- * \param[in]    factor multiplication factor on each component
+ * \param[in]    sval     32-bit rgb pixel value
+ * \param[in]    factor   multiplication factor on each component
  * \return  dval  linearly scaled version of %sval
  *
  * <pre>
@@ -1443,9 +1443,9 @@ l_uint32  dval;
 /*!
  * \brief   logScaleRGBVal()
  *
- * \param[in]    sval   32-bit rgb pixel value
- * \param[in]    tab  256 entry log-base-2 table
- * \param[in]    factor multiplication factor on each component
+ * \param[in]    sval     32-bit rgb pixel value
+ * \param[in]    tab      256 entry log-base-2 table
+ * \param[in]    factor   multiplication factor on each component
  * \return  dval  log scaled version of %sval
  *
  * <pre>
@@ -1507,9 +1507,9 @@ l_float32  *tab;
 /*
  * \brief   getLogBase2()
  *
- * \param[in]    val   in range [0 ... 255]
- * \param[in]    logtab  256-entry table of logs
- * \return       logval  log[base2] of %val, or 0 on error
+ * \param[in]    val       in range [0 ... 255]
+ * \param[in]    logtab    256-entry table of logs
+ * \return       logval    log[base2] of %val, or 0 on error
  */
 l_float32
 getLogBase2(l_int32     val,
