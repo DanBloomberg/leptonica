@@ -711,7 +711,7 @@ PIXCMAP      *cmap = NULL;
         n += pngcomp[i - 7] << 16;
         n += pngcomp[i - 6] << 8;
         n += pngcomp[i - 5] << 0;
-        if (i + n >= nbytespng) {
+        if (n >= nbytespng - i) {  /* "n + i" can overflow */
             LEPT_FREE(pngcomp);
             LEPT_FREE(datacomp);
             pixcmapDestroy(&cmap);

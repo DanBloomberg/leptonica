@@ -270,6 +270,11 @@ l_float64  xres, yres, maxres;
         LEPT_FREE(data);
         return 1;
     }
+    if (nbytes < 80 || loc >= nbytes - 13) {
+        L_WARNING("image resolution found without enough space\n", procName);
+        LEPT_FREE(data);
+        return 1;
+    }
 
         /* Extract the fields and calculate the resolution in pixels/meter.
          * See section 1.5.3.7.1 of JPEG 2000 ISO/IEC 15444-1 spec.  */
