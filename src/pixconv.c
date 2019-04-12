@@ -323,7 +323,7 @@ pixRemoveColormap(PIX     *pixs,
                   l_int32  type)
 {
 l_int32    sval, rval, gval, bval, val0, val1;
-l_int32    i, j, k, w, h, d, wpls, wpld, ncolors, count;
+l_int32    i, j, k, w, h, d, wpls, wpld, ncolors, nalloc, count;
 l_int32    opaque, colorfound, blackwhite;
 l_int32   *rmap, *gmap, *bmap, *amap;
 l_uint32  *datas, *lines, *datad, *lined, *lut, *graymap;
@@ -337,7 +337,6 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if ((cmap = pixGetColormap(pixs)) == NULL)
         return pixClone(pixs);
-
     if (type != REMOVE_CMAP_TO_BINARY &&
         type != REMOVE_CMAP_TO_GRAYSCALE &&
         type != REMOVE_CMAP_TO_FULL_COLOR &&
@@ -346,10 +345,15 @@ PIX       *pixd;
         L_WARNING("Invalid type; converting based on src\n", procName);
         type = REMOVE_CMAP_BASED_ON_SRC;
     }
-
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1 && d != 2 && d != 4 && d != 8)
         return (PIX *)ERROR_PTR("pixs must be {1,2,4,8} bpp", procName, NULL);
+
+    ncolors = pixcmapGetCount(cmap);
+    nalloc = 1 << d;  /* allocate for max size in case of pixel corruption */
+    if (ncolors > nalloc)
+        return (PIX *)ERROR_PTR("too many colors for pixel depth",
+                                procName, NULL);
 
     if (pixcmapToArrays(cmap, &rmap, &gmap, &bmap, &amap))
         return (PIX *)ERROR_PTR("colormap arrays not made", procName, NULL);
@@ -376,7 +380,6 @@ PIX       *pixd;
         }
     }
 
-    ncolors = pixcmapGetCount(cmap);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if (type == REMOVE_CMAP_TO_BINARY) {
@@ -400,8 +403,8 @@ PIX       *pixd;
         pixCopyInputFormat(pixd, pixs);
         datad = pixGetData(pixd);
         wpld = pixGetWpl(pixd);
-        graymap = (l_uint32 *)LEPT_CALLOC(ncolors, sizeof(l_int32));
-        for (i = 0; i < pixcmapGetCount(cmap); i++) {
+        graymap = (l_uint32 *)LEPT_CALLOC(nalloc, sizeof(l_uint32));
+        for (i = 0; i < ncolors; i++) {
             graymap[i] = (l_uint32)(L_RED_WEIGHT * rmap[i] +
                                     L_GREEN_WEIGHT * gmap[i] +
                                     L_BLUE_WEIGHT * bmap[i] + 0.5);
@@ -557,7 +560,7 @@ PIX       *pixd;
             pixSetSpp(pixd, 4);
         datad = pixGetData(pixd);
         wpld = pixGetWpl(pixd);
-        lut = (l_uint32 *)LEPT_CALLOC(ncolors, sizeof(l_uint32));
+        lut = (l_uint32 *)LEPT_CALLOC(nalloc, sizeof(l_uint32));
         for (i = 0; i < ncolors; i++) {
             if (type == REMOVE_CMAP_TO_FULL_COLOR)
                 composeRGBPixel(rmap[i], gmap[i], bmap[i], lut + i);
