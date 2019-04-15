@@ -98,10 +98,10 @@
 /*!
  * \brief   pixColorGrayRegions()
  *
- * \param[in]    pixs 2, 4 or 8 bpp gray, rgb, or colormapped
- * \param[in]    boxa of regions in which to apply color
- * \param[in]    type L_PAINT_LIGHT, L_PAINT_DARK
- * \param[in]    thresh average value below/above which pixel is unchanged
+ * \param[in]    pixs       2, 4 or 8 bpp gray, rgb, or colormapped
+ * \param[in]    boxa       of regions in which to apply color
+ * \param[in]    type       L_PAINT_LIGHT, L_PAINT_DARK
+ * \param[in]    thresh     average value below/above which pixel is unchanged
  * \param[in]    rval, gval, bval new color to paint
  * \return  pixd, or NULL on error
  *
@@ -186,11 +186,11 @@ PIXCMAP  *cmap;
 /*!
  * \brief   pixColorGray()
  *
- * \param[in]    pixs 8 bpp gray, rgb or colormapped image
- * \param[in]    box [optional] region in which to apply color; can be NULL
- * \param[in]    type L_PAINT_LIGHT, L_PAINT_DARK
- * \param[in]    thresh average value below/above which pixel is unchanged
- * \param[in]    rval, gval, bval new color to paint
+ * \param[in]    pixs     8 bpp gray, rgb or colormapped image
+ * \param[in]    box      [optional] region in which to apply color; can be NULL
+ * \param[in]    type     L_PAINT_LIGHT, L_PAINT_DARK
+ * \param[in]    thresh   average value below/above which pixel is unchanged
+ * \param[in]    rval, gval, bval    new color to paint
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -323,11 +323,11 @@ PIXCMAP   *cmap;
 /*!
  * \brief   pixColorGrayMasked()
  *
- * \param[in]    pixs 8 bpp gray, rgb or colormapped image
- * \param[in]    pixm 1 bpp mask, through which to apply color
- * \param[in]    type L_PAINT_LIGHT, L_PAINT_DARK
- * \param[in]    thresh average value below/above which pixel is unchanged
- * \param[in]    rval, gval, bval new color to paint
+ * \param[in]    pixs      8 bpp gray, rgb or colormapped image
+ * \param[in]    pixm      1 bpp mask, through which to apply color
+ * \param[in]    type      L_PAINT_LIGHT, L_PAINT_DARK
+ * \param[in]    thresh    average value below/above which pixel is unchanged
+ * \param[in]    rval, gval, bval    new color to paint
  * \return  pixd colorized, or NULL on error
  *
  * <pre>
@@ -455,13 +455,13 @@ PIXCMAP   *cmap;
 /*!
  * \brief   pixSnapColor()
  *
- * \param[in]    pixd [optional]; either NULL or equal to pixs for in-place
- * \param[in]    pixs colormapped or 8 bpp gray or 32 bpp rgb
- * \param[in]    srcval color center to be selected for change: 0xrrggbb00
- * \param[in]    dstval target color for pixels: 0xrrggbb00
- * \param[in]    diff max absolute difference, applied to all components
- * \return  pixd with all pixels within diff of pixval set to pixval,
- *                    or pixd on error
+ * \param[in]    pixd     [optional]; either NULL or equal to pixs for in-place
+ * \param[in]    pixs     colormapped or 8 bpp gray or 32 bpp rgb
+ * \param[in]    srcval   color center to be selected for change: 0xrrggbb00
+ * \param[in]    dstval   target color for pixels: 0xrrggbb00
+ * \param[in]    diff     max absolute difference, applied to all components
+ * \return  pixd   with all pixels within diff of pixval set to pixval,
+ *                 or pixd on error
  *
  * <pre>
  * Notes:
@@ -542,13 +542,13 @@ l_uint32  *line, *data;
 /*!
  * \brief   pixSnapColorCmap()
  *
- * \param[in]    pixd [optional]; either NULL or equal to pixs for in-place
- * \param[in]    pixs colormapped
- * \param[in]    srcval color center to be selected for change: 0xrrggbb00
- * \param[in]    dstval target color for pixels: 0xrrggbb00
- * \param[in]    diff max absolute difference, applied to all components
- * \return  pixd with all pixels within diff of srcval set to dstval,
- *                    or pixd on error
+ * \param[in]    pixd     [optional]; either NULL or equal to pixs for in-place
+ * \param[in]    pixs     colormapped
+ * \param[in]    srcval   color center to be selected for change: 0xrrggbb00
+ * \param[in]    dstval   target color for pixels: 0xrrggbb00
+ * \param[in]    diff     max absolute difference, applied to all components
+ * \return  pixd   with all pixels within diff of srcval set to dstval,
+ *                 or pixd on error
  *
  * <pre>
  * Notes:
@@ -651,12 +651,12 @@ PIXCMAP   *cmap;
 /*!
  * \brief   pixLinearMapToTargetColor()
  *
- * \param[in]    pixd [optional]; either NULL or equal to pixs for in-place
- * \param[in]    pixs 32 bpp rgb
- * \param[in]    srcval source color: 0xrrggbb00
- * \param[in]    dstval target color: 0xrrggbb00
- * \return  pixd with all pixels mapped based on the srcval/destval
- *                    mapping, or pixd on error
+ * \param[in]    pixd     [optional]; either NULL or equal to pixs for in-place
+ * \param[in]    pixs     32 bpp rgb
+ * \param[in]    srcval   source color: 0xrrggbb00
+ * \param[in]    dstval   target color: 0xrrggbb00
+ * \return  pixd   with all pixels mapped based on the srcval/destval mapping,
+ *                 or pixd on error
  *
  * <pre>
  * Notes:
@@ -749,10 +749,10 @@ l_uint32  *line, *data;
 /*!
  * \brief   pixelLinearMapToTargetColor()
  *
- * \param[in]    scolor rgb source color: 0xrrggbb00
- * \param[in]    srcmap source mapping color: 0xrrggbb00
- * \param[in]    dstmap target mapping color: 0xrrggbb00
- * \param[out]   pdcolor rgb dest color: 0xrrggbb00
+ * \param[in]    scolor    rgb source color: 0xrrggbb00
+ * \param[in]    srcmap    source mapping color: 0xrrggbb00
+ * \param[in]    dstmap    target mapping color: 0xrrggbb00
+ * \param[out]   pdcolor   rgb dest color: 0xrrggbb00
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -820,12 +820,12 @@ l_int32    srmap, sgmap, sbmap, drmap, dgmap, dbmap;
 /*!
  * \brief   pixShiftByComponent()
  *
- * \param[in]    pixd [optional]; either NULL or equal to pixs for in-place
- * \param[in]    pixs 32 bpp rgb
- * \param[in]    srcval source color: 0xrrggbb00
- * \param[in]    dstval target color: 0xrrggbb00
- * \return  pixd with all pixels mapped based on the srcval/destval
- *                    mapping, or pixd on error
+ * \param[in]    pixd     [optional]; either NULL or equal to pixs for in-place
+ * \param[in]    pixs     32 bpp rgb
+ * \param[in]    srcval   source color: 0xrrggbb00
+ * \param[in]    dstval   target color: 0xrrggbb00
+ * \return  pixd   with all pixels mapped based on the srcval/destval mapping,
+ *                 or pixd on error
  *
  * <pre>
  * Notes:
@@ -945,9 +945,9 @@ cleanup:
  * \brief   pixelShiftByComponent()
  *
  * \param[in]    rval, gval, bval
- * \param[in]    srcval source color: 0xrrggbb00
- * \param[in]    dstval target color: 0xrrggbb00
- * \param[out]   ppixel rgb value
+ * \param[in]    srcval    source color: 0xrrggbb00
+ * \param[in]    dstval    target color: 0xrrggbb00
+ * \param[out]   ppixel    rgb value
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1004,8 +1004,8 @@ l_int32  rsval, rdval, gsval, gdval, bsval, bdval, rs, gs, bs;
  * \brief   pixelFractionalShift()
  *
  * \param[in]    rval, gval, bval
- * \param[in]    fraction negative toward black; positive toward white
- * \param[out]   ppixel rgb value
+ * \param[in]    fraction   negative toward black; positive toward white
+ * \param[out]   ppixel     rgb value
  * \return  0 if OK, 1 on error
  *
  * <pre>

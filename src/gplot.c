@@ -120,11 +120,11 @@ const char  *gplotfileoutputs[] = {"",
 /*!
  * \brief   gplotCreate()
  *
- * \param[in]    rootname root for all output files
- * \param[in]    outformat GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
- * \param[in]    title  [optional] overall title
- * \param[in]    xlabel [optional] x axis label
- * \param[in]    ylabel [optional] y axis label
+ * \param[in]    rootname    root for all output files
+ * \param[in]    outformat   GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    title       [optional] overall title
+ * \param[in]    xlabel      [optional] x axis label
+ * \param[in]    ylabel      [optional] y axis label
  * \return  gplot, or NULL on error
  *
  * <pre>
@@ -191,7 +191,7 @@ GPLOT   *gplot;
 /*!
  * \brief    gplotDestroy()
  *
- * \param[in,out] pgplot to be nulled
+ * \param[in,out]   pgplot    will be set to null before returning
  */
 void
 gplotDestroy(GPLOT  **pgplot)
@@ -233,27 +233,27 @@ GPLOT  *gplot;
  * \brief   gplotAddPlot()
  *
  * \param[in]    gplot
- * \param[in]    nax [optional] numa: set to null for Y_VS_I;
- *                   required for Y_VS_X
- * \param[in]    nay numa: required for both Y_VS_I and Y_VS_X
- * \param[in]    plotstyle GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
- *                         GPLOT_LINESPOINTS, GPLOT_DOTS
- * \param[in]    plottitle  [optional] title for individual plot
+ * \param[in]    nax         [optional] numa: set to null for Y_VS_I;
+ *                           required for Y_VS_X
+ * \param[in]    nay         numa; required for both Y_VS_I and Y_VS_X
+ * \param[in]    plotstyle   GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
+ *                           GPLOT_LINESPOINTS, GPLOT_DOTS
+ * \param[in]    plottitle   [optional] title for individual plot
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
  *      (1) There are 2 options for (x,y) values:
  *            o  To plot an array vs a linear function of the
- *               index, set nax = NULL.
- *            o  To plot one array vs another, use both nax and nay.
- *      (2) If nax is NULL, the x value corresponding to the i-th
- *          value of nay is found from the startx and delx fields
- *          in nay:
+ *               index, set %nax = NULL.
+ *            o  To plot one array vs another, use both %nax and %nay.
+ *      (2) If %nax is NULL, the x value corresponding to the i-th
+ *          value of %nay is found from the startx and delx fields
+ *          in %nay:
  *               x = startx + i * delx
  *          These are set with numaSetParameters().  Their default
  *          values are startx = 0.0, delx = 1.0.
- *      (3) If nax is defined, it must be the same size as nay, and
+ *      (3) If %nax is defined, it must be the same size as %nay, and
  *          must have at least one number.
  *      (4) The 'plottitle' string can have spaces, double
  *          quotes and backquotes, but not single quotes.
@@ -329,8 +329,8 @@ SARRAY    *sa;
  * \brief   gplotSetScaling()
  *
  * \param[in]    gplot
- * \param[in]    scaling GPLOT_LINEAR_SCALE, GPLOT_LOG_SCALE_X,
- *                       GPLOT_LOG_SCALE_Y, GPLOT_LOG_SCALE_X_Y
+ * \param[in]    scaling   GPLOT_LINEAR_SCALE, GPLOT_LOG_SCALE_X,
+ *                         GPLOT_LOG_SCALE_Y, GPLOT_LOG_SCALE_X_Y
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -556,10 +556,10 @@ FILE    *fp;
 /*!
  * \brief   gplotSimple1()
  *
- * \param[in]    na numa; plot Y_VS_I
- * \param[in]    outformat GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
- * \param[in]    outroot root of output files
- * \param[in]    title  [optional], can be NULL
+ * \param[in]    na          numa; plot Y_VS_I
+ * \param[in]    outformat   GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outroot     root of output files
+ * \param[in]    title       [optional], can be NULL
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -584,11 +584,11 @@ gplotSimple1(NUMA        *na,
 /*!
  * \brief   gplotSimple2()
  *
- * \param[in]    na1 numa; plotted with Y_VS_I
- * \param[in]    na2 ditto
- * \param[in]    outformat GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
- * \param[in]    outroot root of output files
- * \param[in]    title  [optional]
+ * \param[in]    na1         numa; plot with Y_VS_I
+ * \param[in]    na2         ditto
+ * \param[in]    outformat   GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outroot     root of output files
+ * \param[in]    title       [optional]
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -615,10 +615,10 @@ gplotSimple2(NUMA        *na1,
 /*!
  * \brief   gplotSimpleN()
  *
- * \param[in]    naa numaa; we plotted with Y_VS_I for each numa
- * \param[in]    outformat GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
- * \param[in]    outroot root of output files
- * \param[in]    title [optional]
+ * \param[in]    naa         numaa; we plotted with Y_VS_I for each numa
+ * \param[in]    outformat   GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outroot     root of output files
+ * \param[in]    title       [optional]
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -644,13 +644,13 @@ gplotSimpleN(NUMAA       *naa,
 /*!
  * \brief   gplotSimpleXY1()
  *
- * \param[in]    nax [optional]
- * \param[in]    nay
- * \param[in]    plotstyle GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
- *                         GPLOT_LINESPOINTS, GPLOT_DOTS
- * \param[in]    outformat GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
- * \param[in]    outroot root of output files
- * \param[in]    title  [optional], can be NULL
+ * \param[in]    nax         [optional]
+ * \param[in]    nay         [required]
+ * \param[in]    plotstyle   GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
+ *                           GPLOT_LINESPOINTS, GPLOT_DOTS
+ * \param[in]    outformat   GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outroot     root of output files
+ * \param[in]    title       [optional], can be NULL
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -698,19 +698,19 @@ GPLOT  *gplot;
 /*!
  * \brief   gplotSimpleXY2()
  *
- * \param[in]    nax <optional; can be NULL
+ * \param[in]    nax          [optional], can be NULL
  * \param[in]    nay1
  * \param[in]    nay2
- * \param[in]    plotstyle GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
- *                         GPLOT_LINESPOINTS, GPLOT_DOTS
- * \param[in]    outformat GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
- * \param[in]    outroot root of output files
- * \param[in]    title  [optional]
+ * \param[in]    plotstyle    GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
+ *                            GPLOT_LINESPOINTS, GPLOT_DOTS
+ * \param[in]    outformat    GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outroot      root of output files
+ * \param[in]    title        [optional]
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This gives plots of %nay1 and %nay2 against nax, generated
+ *      (1) This gives plots of %nay1 and %nay2 against %nax, generated
  *          in the specified output format.  The title is optional.
  *      (2) Use 0 for default plotstyle (lines).
  *      (3) %nax is optional.  If NULL, %nay1 and %nay2 are plotted
@@ -755,18 +755,18 @@ GPLOT  *gplot;
 /*!
  * \brief   gplotSimpleXYN()
  *
- * \param[in]    nax [optional]; can be NULL
- * \param[in]    naay numaa of arrays to plot against %nax
- * \param[in]    plotstyle GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
- *                         GPLOT_LINESPOINTS, GPLOT_DOTS
- * \param[in]    outformat GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
- * \param[in]    outroot root of output files
- * \param[in]    title [optional]
+ * \param[in]    nax          [optional]; can be NULL
+ * \param[in]    naay         numaa of arrays to plot against %nax
+ * \param[in]    plotstyle    GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
+ *                            GPLOT_LINESPOINTS, GPLOT_DOTS
+ * \param[in]    outformat    GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outroot      root of output files
+ * \param[in]    title        [optional]
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This gives plots of each Numa in %naa against nax,
+ *      (1) This gives plots of each Numa in %naa against %nax,
  *          generated in the specified output format.  The title is optional.
  *      (2) Use 0 for default plotstyle (lines).
  *      (3) %nax is optional.  If NULL, each Numa array is plotted against

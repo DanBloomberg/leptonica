@@ -220,7 +220,7 @@
 /*!
  * \brief   listDestroy()
  *
- * \param[in,out]   phead   to be nulled; head of list
+ * \param[in,out]   phead   head of list; will be set to null before returning
  * \return  void
  *
  * <pre>
@@ -261,13 +261,13 @@ DLLIST  *elem, *next, *head;
 /*!
  * \brief   listAddToHead()
  *
- * \param[in,out]   phead  [optional] input head
- * \param[in]    data  void* ptr, to be added
+ * \param[in,out]   phead    [optional] input head
+ * \param[in]       data     void* ptr, to be added
  * \return  0 if OK; 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This makes a new cell, attaches the data, and adds the
+ *      (1) This makes a new cell, attaches %data, and adds the
  *          cell to the head of the list.
  *      (2) When consing from NULL, be sure to initialize head to NULL
  *          before calling this function.
@@ -307,14 +307,14 @@ DLLIST  *cell, *head;
 /*!
  * \brief   listAddToTail()
  *
- * \param[in,out]   phead  [may be updated], can be NULL
- * \param[in,out]   ptail  [updated], can be NULL
- * \param[in]    data  void* ptr, to be hung on tail cons cell
+ * \param[in,out]   phead    [may be updated], can be NULL
+ * \param[in,out]   ptail    [updated], can be NULL
+ * \param[in]       data     void* ptr, to be hung on tail cons cell
  * \return  0 if OK; 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This makes a new cell, attaches the data, and adds the
+ *      (1) This makes a new cell, attaches %data, and adds the
  *          cell to the tail of the list.
  *      (2) &head is input to allow the list to be "cons'd" up from NULL.
  *      (3) &tail is input to allow the tail to be updated
@@ -370,10 +370,10 @@ DLLIST  *cell, *head, *tail;
 /*!
  * \brief   listInsertBefore()
  *
- * \param[in,out]   phead  [optional] input head
- * \param[in]     elem  list element to be inserted in front of;
- *                      must be NULL if head is NULL
- * \param[in]     data  void*  address, to be added
+ * \param[in,out]   phead    [optional] input head
+ * \param[in]       elem     list element to be inserted in front of;
+ *                           must be NULL if head is NULL
+ * \param[in]       data     void* address, to be added
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -434,10 +434,10 @@ DLLIST  *cell, *head;
 /*!
  * \brief   listInsertAfter()
  *
- * \param[in,out]   phead  [optional] input head
- * \param[in]     elem  list element to be inserted after;
- *                      must be NULL if head is NULL
- * \param[in]     data  void*  ptr, to be added
+ * \param[in,out]   phead    [optional] input head
+ * \param[in]       elem     list element to be inserted after;
+ *                           must be NULL if head is NULL
+ * \param[in]       data     void* ptr, to be added
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -498,8 +498,8 @@ DLLIST  *cell, *head;
 /*!
  * \brief   listRemoveElement()
  *
- * \param[in,out]   phead [can be changed] input head
- * \param[in]    elem list element to be removed
+ * \param[in,out]   phead    input head; can be changed
+ * \param[in]       elem     list element to be removed
  * \return  data  void* struct on cell
  *
  * <pre>
@@ -551,7 +551,7 @@ DLLIST  *head;
 /*!
  * \brief   listRemoveFromHead()
  *
- * \param[in,out]   phead head of list [to be updated]
+ * \param[in,out]   phead     head of list; updated
  * \return  data  void* struct on cell, or NULL on error
  *
  * <pre>
@@ -591,8 +591,8 @@ void    *data;
 /*!
  * \brief   listRemoveFromTail()
  *
- * \param[in,out]   phead [may be changed], head must NOT be NULL
- * \param[in,out]   ptail [always updated], tail may be NULL
+ * \param[in,out]   phead    list head must NOT be NULL; may be changed
+ * \param[in,out]   ptail    list tail may be NULL; always updated
  * \return  data  void* struct on cell or NULL on error
  *
  * <pre>
@@ -649,8 +649,8 @@ void    *data;
 /*!
  * \brief   listFindElement()
  *
- * \param[in]    head  list head
- * \param[in]    data  void*  address, to be searched for
+ * \param[in]    head    list head
+ * \param[in]    data    void* address, to be searched for
  * \return  cell  the containing cell, or NULL if not found or on error
  *
  * <pre>
@@ -714,7 +714,7 @@ DLLIST  *cell;
 /*!
  * \brief   listGetCount()
  *
- * \param[in]    head  of list
+ * \param[in]    head     of list
  * \return  number of elements; 0 if no list or on error
  */
 l_int32
@@ -739,7 +739,7 @@ DLLIST  *elem;
 /*!
  * \brief   listReverse()
  *
- * \param[in,out]   phead  [may be changed] list head
+ * \param[in,out]   phead    list head; may be changed
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -774,8 +774,8 @@ DLLIST  *head, *rhead;
 /*!
  * \brief   listJoin()
  *
- * \param[in,out]   phead1  [may be changed] head of first list
- * \param[in,out]   phead2  to be nulled; head of second list
+ * \param[in,out]   phead1   head of first list; may be changed
+ * \param[in,out]   phead2   head of second list; to be nulled
  * \return  0 if OK, 1 on error
  *
  * <pre>

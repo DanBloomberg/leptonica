@@ -62,10 +62,10 @@
 /*!
  * \brief   l_dnaJoin()
  *
- * \param[in]    dad  dest dna; add to this one
- * \param[in]    das  [optional] source dna; add from this one
- * \param[in]    istart  starting index in das
- * \param[in]    iend  ending index in das; use -1 to cat all
+ * \param[in]    dad       dest dna; add to this one
+ * \param[in]    das       [optional] source dna; add from this one
+ * \param[in]    istart    starting index in das
+ * \param[in]    iend      ending index in das; use -1 to cat all
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -343,7 +343,7 @@ L_DNA     *da_small, *da_big, *dad;
 /*!
  * \brief   l_asetCreateFromDna()
  *
- * \param[in]    da source dna
+ * \param[in]    da    source dna
  * \return  set using the doubles in %da as keys
  */
 L_ASET *
@@ -377,7 +377,7 @@ RB_TYPE    key;
 /*!
  * \brief   l_dnaDiffAdjValues()
  *
- * \param[in]    das input l_dna
+ * \param[in]    das    input l_dna
  * \return  dad of difference values val[i+1] - val[i],
  *                   or NULL on error
  */

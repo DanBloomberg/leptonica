@@ -358,20 +358,21 @@ PTA       *ptas, *ptad;
  * \brief   pixGetLocalSkewTransform()
  *
  * \param[in]    pixs
- * \param[in]    nslices  the number of horizontal overlapping slices; must
- *                  be larger than 1 and not exceed 20; use 0 for default
- * \param[in]    redsweep sweep reduction factor: 1, 2, 4 or 8;
- *                        use 0 for default value
- * \param[in]    redsearch search reduction factor: 1, 2, 4 or 8, and
- *                         not larger than redsweep; use 0 for default value
- * \param[in]    sweeprange half the full range, assumed about 0; in degrees;
- *                          use 0.0 for default value
- * \param[in]    sweepdelta angle increment of sweep; in degrees;
- *                          use 0.0 for default value
- * \param[in]    minbsdelta min binary search increment angle; in degrees;
- *                          use 0.0 for default value
- * \param[out]   pptas  4 points in the source
- * \param[out]   pptad  the corresponding 4 pts in the dest
+ * \param[in]    nslices      the number of horizontal overlapping slices;
+ *                            must be larger than 1 and not exceed 20;
+ *                            use 0 for default
+ * \param[in]    redsweep     sweep reduction factor: 1, 2, 4 or 8;
+ *                            use 0 for default value
+ * \param[in]    redsearch    search reduction factor: 1, 2, 4 or 8, and not
+ *                            larger than redsweep; use 0 for default value
+ * \param[in]    sweeprange   half the full range, assumed about 0;
+ *                            in degrees; use 0.0 for default value
+ * \param[in]    sweepdelta   angle increment of sweep; in degrees;
+ *                            use 0.0 for default value
+ * \param[in]    minbsdelta   min binary search increment angle; in degrees;
+ *                            use 0.0 for default value
+ * \param[out]   pptas        4 points in the source
+ * \param[out]   pptad        the corresponding 4 pts in the dest
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -468,22 +469,25 @@ PTA       *ptas, *ptad;
 /*!
  * \brief   pixGetLocalSkewAngles()
  *
- * \param[in]    pixs         1 bpp
- * \param[in]    nslices      the number of horizontal overlapping slices; must
- *                            be larger than 1 and not exceed 20; 0 for default
- * \param[in]    redsweep     sweep reduction factor: 1, 2, 4 or 8;
- *                            use 0 for default value
- * \param[in]    redsearch    search reduction factor: 1, 2, 4 or 8, and not
- *                            larger than redsweep; use 0 for default value
- * \param[in]    sweeprange   half the full range, assumed about 0; in degrees;
- *                            use 0.0 for default value
- * \param[in]    sweepdelta   angle increment of sweep; in degrees;
- *                            use 0.0 for default value
- * \param[in]    minbsdelta   min binary search increment angle; in degrees;
- *                            use 0.0 for default value
- * \param[out]   pa [optional] slope of skew as fctn of y
- * \param[out]   pb [optional] intercept at y=0 of skew as fctn of y
- * \param[in]    debug   1 for generating plot of skew angle vs. y; 0 otherwise
+ * \param[in]    pixs          1 bpp
+ * \param[in]    nslices       the number of horizontal overlapping slices;
+ *                             must be larger than 1 and not exceed 20;
+ *                             use 0 for default
+ * \param[in]    redsweep      sweep reduction factor: 1, 2, 4 or 8;
+ *                             use 0 for default value
+ * \param[in]    redsearch     search reduction factor: 1, 2, 4 or 8, and not
+ *                             larger than redsweep; use 0 for default value
+ * \param[in]    sweeprange    half the full range, assumed about 0;
+ *                             in degrees; use 0.0 for default value
+ * \param[in]    sweepdelta    angle increment of sweep; in degrees;
+ *                             use 0.0 for default value
+ * \param[in]    minbsdelta    min binary search increment angle; in degrees;
+ *                             use 0.0 for default value
+ * \param[out]   pa            [optional] slope of skew as fctn of y
+ * \param[out]   pb            [optional] intercept at y = 0 of skew,
+ 8                             as a function of y
+ * \param[in]    debug         1 for generating plot of skew angle vs. y;
+ *                             0 otherwise
  * \return  naskew, or NULL on error
  *
  * <pre>

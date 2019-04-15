@@ -48,13 +48,14 @@
  * \brief   convertFilesTo1bpp()
  *
  * \param[in]    dirin
- * \param[in]    substr [optional] substring filter on filenames; can be NULL
- * \param[in]    upscaling 1, 2 or 4; only for input color or grayscale
- * \param[in]    thresh  global threshold for binarization; use 0 for default
+ * \param[in]    substr       [optional] substring filter on filenames;
+ 8                            can be NULL
+ * \param[in]    upscaling    1, 2 or 4; only for input color or grayscale
+ * \param[in]    thresh       global threshold for binarization; 0 for default
  * \param[in]    firstpage
- * \param[in]    npages use 0 to do all from %firstpage to the end
+ * \param[in]    npages       use 0 to do all from %firstpage to the end
  * \param[in]    dirout
- * \param[in]    outformat IFF_PNG, IFF_TIFF_G4
+ * \param[in]    outformat    IFF_PNG, IFF_TIFF_G4
  * \return  0 if OK, 1 on error
  *
  * <pre>

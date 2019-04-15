@@ -59,6 +59,7 @@
  *           l_int32   boxClipToRectangleParams()
  *           BOX      *boxRelocateOneSide()
  *           BOXA     *boxaAdjustSides()
+ *           BOXA     *boxaAdjustBoxSides()
  *           BOX      *boxAdjustSides()
  *           BOXA     *boxaSetSide()
  *           l_int32   boxSetSide()
@@ -1847,6 +1848,47 @@ BOXA    *boxad;
     }
 
     return boxad;
+}
+
+
+/*!
+ * \brief   boxaAdjustBoxSides()
+ *
+ * \param[in]    boxas
+ * \param[in]    index
+ * \param[in]    delleft, delright, deltop, delbot   changes to box side locs
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) In-place operation on a box in a boxa.
+ *      (2) New box dimensions are cropped at left and top to x >= 0 and y >= 0.
+ *      (3) If a box ends up with no area, an error message is emitted,
+ *          but the box dimensions are not changed.
+ *      (4) See boxaAdjustSides().
+ * </pre>
+ */
+l_ok
+boxaAdjustBoxSides(BOXA    *boxa,
+                   l_int32  index,
+                   l_int32  delleft,
+                   l_int32  delright,
+                   l_int32  deltop,
+                   l_int32  delbot)
+{
+BOX  *box;
+
+    PROCNAME("boxaAdjustBoxSides");
+
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+
+    if ((box = boxaGetBox(boxa, index, L_CLONE)) == NULL)
+        return ERROR_INT("invalid index", procName, 1);
+
+    boxAdjustSides(box, box, delleft, delright, deltop, delbot);
+    boxDestroy(&box);  /* the clone */
+    return 0;
 }
 
 

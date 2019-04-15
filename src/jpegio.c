@@ -1289,6 +1289,10 @@ struct callback_data  *pcb_data;
 
         /* Save the comment and return */
     pcb_data = (struct callback_data *)cinfo->client_data;
+    if (pcb_data->comment) {  /* clear before overwriting previous comment */
+        LEPT_FREE(pcb_data->comment);
+        pcb_data->comment = NULL;
+    }
     pcb_data->comment = comment;
     return 1;
 }

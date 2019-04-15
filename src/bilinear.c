@@ -123,10 +123,10 @@ extern l_float32  AlphaMaskBorderVals[2];
 /*!
  * \brief   pixBilinearSampledPta()
  *
- * \param[in]    pixs all depths
- * \param[in]    ptad  4 pts of final coordinate space
- * \param[in]    ptas  4 pts of initial coordinate space
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    pixs      all depths
+ * \param[in]    ptad      4 pts of final coordinate space
+ * \param[in]    ptas      4 pts of initial coordinate space
+ * \param[in]    incolor   L_BRING_IN_WHITE, L_BRING_IN_BLACK
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -175,9 +175,9 @@ PIX        *pixd;
 /*!
  * \brief   pixBilinearSampled()
  *
- * \param[in]    pixs all depths
- * \param[in]    vc  vector of 8 coefficients for bilinear transformation
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    pixs      all depths
+ * \param[in]    vc        vector of 8 coefficients for bilinear transformation
+ * \param[in]    incolor   L_BRING_IN_WHITE, L_BRING_IN_BLACK
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -270,10 +270,10 @@ PIXCMAP    *cmap;
 /*!
  * \brief   pixBilinearPta()
  *
- * \param[in]    pixs all depths; colormap ok
- * \param[in]    ptad  4 pts of final coordinate space
- * \param[in]    ptas  4 pts of initial coordinate space
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    pixs      all depths; colormap ok
+ * \param[in]    ptad      4 pts of final coordinate space
+ * \param[in]    ptas      4 pts of initial coordinate space
+ * \param[in]    incolor   L_BRING_IN_WHITE, L_BRING_IN_BLACK
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -341,9 +341,9 @@ PIX      *pixt1, *pixt2, *pixd;
 /*!
  * \brief   pixBilinear()
  *
- * \param[in]    pixs all depths; colormap ok
- * \param[in]    vc  vector of 8 coefficients for bilinear transformation
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    pixs       all depths; colormap ok
+ * \param[in]    vc         vector of 8 coefficients for bilinear transformation
+ * \param[in]    incolor    L_BRING_IN_WHITE, L_BRING_IN_BLACK
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -402,10 +402,10 @@ PIX      *pixt1, *pixt2, *pixd;
 /*!
  * \brief   pixBilinearPtaColor()
  *
- * \param[in]    pixs 32 bpp
- * \param[in]    ptad  4 pts of final coordinate space
- * \param[in]    ptas  4 pts of initial coordinate space
- * \param[in]    colorval e.g., 0 to bring in BLACK, 0xffffff00 for WHITE
+ * \param[in]    pixs        32 bpp
+ * \param[in]    ptad        4 pts of final coordinate space
+ * \param[in]    ptas        4 pts of initial coordinate space
+ * \param[in]    colorval    e.g., 0 to bring in BLACK, 0xffffff00 for WHITE
  * \return  pixd, or NULL on error
  */
 PIX *
@@ -444,9 +444,9 @@ PIX        *pixd;
 /*!
  * \brief   pixBilinearColor()
  *
- * \param[in]    pixs 32 bpp
- * \param[in]    vc  vector of 8 coefficients for bilinear transformation
- * \param[in]    colorval e.g., 0 to bring in BLACK, 0xffffff00 for WHITE
+ * \param[in]    pixs       32 bpp
+ * \param[in]    vc         vector of 8 coefficients for bilinear transformation
+ * \param[in]    colorval   e.g., 0 to bring in BLACK, 0xffffff00 for WHITE
  * \return  pixd, or NULL on error
  */
 PIX *
@@ -505,10 +505,10 @@ PIX       *pix1, *pix2, *pixd;
 /*!
  * \brief   pixBilinearPtaGray()
  *
- * \param[in]    pixs 8 bpp
- * \param[in]    ptad  4 pts of final coordinate space
- * \param[in]    ptas  4 pts of initial coordinate space
- * \param[in]    grayval 0 to bring in BLACK, 255 for WHITE
+ * \param[in]    pixs       8 bpp
+ * \param[in]    ptad       4 pts of final coordinate space
+ * \param[in]    ptas       4 pts of initial coordinate space
+ * \param[in]    grayval    e.g., 0 to bring in BLACK, 255 for WHITE
  * \return  pixd, or NULL on error
  */
 PIX *
@@ -547,9 +547,9 @@ PIX        *pixd;
 /*!
  * \brief   pixBilinearGray()
  *
- * \param[in]    pixs 8 bpp
- * \param[in]    vc  vector of 8 coefficients for bilinear transformation
- * \param[in]    grayval 0 to bring in BLACK, 255 for WHITE
+ * \param[in]    pixs      8 bpp
+ * \param[in]    vc        vector of 8 coefficients for bilinear transformation
+ * \param[in]    grayval   e.g., 0 to bring in BLACK, 255 for WHITE
  * \return  pixd, or NULL on error
  */
 PIX *
@@ -600,13 +600,13 @@ PIX       *pixd;
 /*!
  * \brief   pixBilinearPtaWithAlpha()
  *
- * \param[in]    pixs 32 bpp rgb
- * \param[in]    ptad  4 pts of final coordinate space
- * \param[in]    ptas  4 pts of initial coordinate space
- * \param[in]    pixg [optional] 8 bpp, can be null
- * \param[in]    fract between 0.0 and 1.0, with 0.0 fully transparent
- *                     and 1.0 fully opaque
- * \param[in]    border of pixels added to capture transformed source pixels
+ * \param[in]    pixs     32 bpp rgb
+ * \param[in]    ptad     4 pts of final coordinate space
+ * \param[in]    ptas     4 pts of initial coordinate space
+ * \param[in]    pixg     [optional] 8 bpp, can be null
+ * \param[in]    fract    between 0.0 and 1.0, with 0.0 fully transparent
+ *                        and 1.0 fully opaque
+ * \param[in]    border   of pixels added to capture transformed source pixels
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -616,10 +616,10 @@ PIX       *pixd;
  *          boundary of the transformed pixs.  For pixels that are fully
  *          transparent, a blending function like pixBlendWithGrayMask()
  *          will give zero weight to corresponding pixels in pixs.
- *      (2) If pixg is NULL, it is generated as an alpha layer that is
+ *      (2) If %pixg is NULL, it is generated as an alpha layer that is
  *          partially opaque, using %fract.  Otherwise, it is cropped
- *          to pixs if required and %fract is ignored.  The alpha channel
- *          in pixs is never used.
+ *          to %pixs if required and %fract is ignored.  The alpha channel
+ *          in %pixs is never used.
  *      (3) Colormaps are removed.
  *      (4) When pixs is transformed, it doesn't matter what color is brought
  *          in because the alpha channel will be transparent (0) there.
@@ -721,9 +721,9 @@ PTA     *ptad2, *ptas2;
 /*!
  * \brief   getBilinearXformCoeffs()
  *
- * \param[in]    ptas  source 4 points; unprimed
- * \param[in]    ptad  transformed 4 points; primed
- * \param[out]   pvc   vector of coefficients of transform
+ * \param[in]    ptas    source 4 points; unprimed
+ * \param[in]    ptad    transformed 4 points; primed
+ * \param[out]   pvc     vector of coefficients of transform
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -854,8 +854,8 @@ l_float32  *a[8];  /* 8x8 matrix A  */
 /*!
  * \brief   bilinearXformSampledPt()
  *
- * \param[in]    vc vector of 8 coefficients
- * \param[in]    x, y  initial point
+ * \param[in]    vc         vector of 8 coefficients
+ * \param[in]    x, y       initial point
  * \param[out]   pxp, pyp   transformed point
  * \return  0 if OK; 1 on error
  *
@@ -887,9 +887,9 @@ bilinearXformSampledPt(l_float32  *vc,
 /*!
  * \brief   bilinearXformPt()
  *
- * \param[in]    vc vector of 8 coefficients
- * \param[in]    x, y  initial point
- * \param[out]   pxp, pyp   transformed point
+ * \param[in]    vc           vector of 8 coefficients
+ * \param[in]    x, y         initial point
+ * \param[out]   pxp, pyp     transformed point
  * \return  0 if OK; 1 on error
  *
  * <pre>

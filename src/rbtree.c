@@ -228,7 +228,7 @@ node  *n, *inserted_node;
  * \brief   l_rbtreeDelete()
  *
  * \param[in]   t     rbtree, including root node
- * \param[in]   key  (delete the node with this key
+ * \param[in]   key   delete the node with this key
  * \return      void
  */
 void
@@ -271,7 +271,7 @@ node  *n, *child;
 /*!
  * \brief   l_rbtreeDestroy()
  *
- * \param[in]   pt     ptr to rbtree
+ * \param[in]   pt     pointer to tree; will be wet to null before returning
  * \return      void
  *
  * <pre>

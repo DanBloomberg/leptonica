@@ -95,6 +95,7 @@
  *           PIX        *pixConvert8To16()
  *
  *      Top-level conversion to 1 bpp
+ *           PIX        *pixConvertTo1Adaptive()
  *           PIX        *pixConvertTo1()
  *           PIX        *pixConvertTo1BySampling()
  *
@@ -2917,6 +2918,62 @@ PIX       *pixs, *pixd;
 /*---------------------------------------------------------------------------*
  *                     Top-level conversion to 1 bpp                         *
  *---------------------------------------------------------------------------*/
+/*!
+ * \brief   pixConvertTo1Adaptive()
+ *
+ * \param[in]    pixs       1, 2, 4, 8, 16 or 32 bpp
+ * \return  pixd 1 bpp, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a top-level function, that uses default values for
+ *          adaptive thresholding, if necessary.  Otherwise, it is the same as
+ *          pixConvertTo1(), which uses a global threshold for binarization.
+ * </pre>
+ */
+PIX *
+pixConvertTo1Adaptive(PIX     *pixs)
+{
+l_int32   d, color0, color1, rval, gval, bval;
+PIX      *pix1, *pix2, *pixd;
+PIXCMAP  *cmap;
+
+    PROCNAME("pixConvertTo1Adaptive");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    d = pixGetDepth(pixs);
+    if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
+        return (PIX *)ERROR_PTR("depth not {1,2,4,8,16,32}", procName, NULL);
+
+    cmap = pixGetColormap(pixs);
+    if (d == 1) {
+        if (!cmap) {
+            return pixCopy(NULL, pixs);
+        } else {  /* strip the colormap off, and invert if reasonable
+                   for standard binary photometry.  */
+            pixcmapGetColor(cmap, 0, &rval, &gval, &bval);
+            color0 = rval + gval + bval;
+            pixcmapGetColor(cmap, 1, &rval, &gval, &bval);
+            color1 = rval + gval + bval;
+            pixd = pixCopy(NULL, pixs);
+            pixDestroyColormap(pixd);
+            if (color1 > color0)
+                pixInvert(pixd, pixd);
+            return pixd;
+        }
+    }
+
+        /* For all other depths, use 8 bpp as an intermediary */
+    pix1 = pixConvertTo8(pixs, FALSE);
+    pix2 = pixBackgroundNormSimple(pix1, NULL, NULL);
+    pixd = pixThresholdToBinary(pix2, 180);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    return pixd;
+}
+
+
 /*!
  * \brief   pixConvertTo1()
  *
