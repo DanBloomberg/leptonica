@@ -158,7 +158,6 @@ static l_ok convertFlateToPSString(const char *filein, char **poutstr,
 static char *generateFlatePS(const char *filein, L_COMP_DATA *cid,
                              l_float32 xpt, l_float32 ypt, l_float32 wpt,
                              l_float32 hpt, l_int32 pageno, l_int32 endpage);
-static l_int32 getResA4Page(l_int32 w, l_int32 h, l_float32 fillfract);
 
 
 /*-------------------------------------------------------------*
@@ -2010,7 +2009,7 @@ l_int32  resw, resh, res;
  *                           not to be exceeded; use 0 for default
  * \return  resolution
  */
-static l_int32
+l_int32
 getResA4Page(l_int32    w,
              l_int32    h,
              l_float32  fillfract)

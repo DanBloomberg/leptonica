@@ -53,7 +53,7 @@ static l_ok boxaRemoveVGaps(BOXA *boxa);
  * \param[in]    substr     required filename substring; use NULL for all files
  * \param[in]    nparts     number of parts to generate (counting from top)
  * \param[in]    outroot    root name of output pdf files
- * \param[in]    debug      1 for debug output; 0 otherwise
+ * \param[in]    debugfile  [optional] set to NULL for no debug output
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -70,9 +70,8 @@ partifyFiles(const char  *dirname,
              const char  *substr,
              l_int32      nparts,
              const char  *outroot,
-             l_int32      debug)
+             const char  *debugfile)
 {
-char   *namedb;
 PIXA   *pixadb;
 PIXAC  *pixac;
 
@@ -85,14 +84,13 @@ PIXAC  *pixac;
     if (!outroot || outroot[0] == '\n')
         return ERROR_INT("outroot undefined or empty", procName, 1);
 
-    pixadb = (debug == 1) ? pixaCreate(0) : NULL;
+    pixadb = (debugfile) ? pixaCreate(0) : NULL;
     pixac = pixacompCreateFromFiles(dirname, substr, IFF_PNG);
     partifyPixac(pixac, nparts, outroot, pixadb);
     if (pixadb) {
-        namedb = genPathname("/tmp", "partify-debug.pdf");
+        L_INFO("writing debug output to %s\n", procName, debugfile);
         pixaConvertToPdf(pixadb, 300, 1.0, L_FLATE_ENCODE, 0,
-                         "Partify Debug", namedb);
-        LEPT_FREE(namedb);
+                         "Partify Debug", debugfile);
     }
     pixacompDestroy(&pixac);
     pixaDestroy(&pixadb);
@@ -118,7 +116,7 @@ partifyPixac(PIXAC       *pixac,
 char     buf[512];
 l_int32  i, j, pageno, npage, nbox, icount;
 BOX     *box1, *box2;
-BOXA    *boxa1, *boxa2, *boxa3, *boxa4;
+BOXA    *boxa1, *boxa2, *boxa3;
 PIX     *pix1, *pix2, *pix3, *pix4, *pix5;
 PIXAC  **pixaca;
 
@@ -128,7 +126,7 @@ PIXAC  **pixaca;
         return ERROR_INT("pixac not defined", procName, 1);
     if ((npage = pixacompGetCount(pixac)) == 0)
         return ERROR_INT("pixac is empty", procName, 1);
-    if (nparts < 0 || nparts > 10)
+    if (nparts < 1 || nparts > 10)
         return ERROR_INT("nparts not in [1 ... 10]", procName, 1);
     if (!outroot || outroot[0] == '\n')
         return ERROR_INT("outroot undefined or empty", procName, 1);
@@ -192,10 +190,13 @@ PIXAC  **pixaca;
             boxaRemoveVGaps(boxa3);
             icount = boxaGetCount(boxa3);
             if (icount < nparts)
-                L_WARNING("nparts = %d is more than number of parts\n",
-                          procName, nparts);
+                L_WARNING("nparts requested = %d, but only found %d\n",
+                          procName, nparts, icount);
             for (j = 0; j < icount && j < nparts; j++) {
                 box2 = boxaGetBox(boxa3, j, L_COPY);
+                if (j == nparts - 1)  /* extend the box to the bottom */
+                    boxSetSideLocations(box2, -1, -1, -1,
+                                        pixGetHeight(pix1) - 1);
                 pix4 = pixClipRectangle(pix1, box2, NULL);
                 pixacompAddPix(pixaca[j], pix4, IFF_TIFF_G4);
                 boxDestroy(&box2);
@@ -238,8 +239,6 @@ static  l_ok
 boxaRemoveVGaps(BOXA  *boxa)
 {
 l_int32  nbox, i, y1, h1, y2, h2, delta;
-
-    PROCNAME("boxaRemoveVGaps");
 
     nbox = boxaGetCount(boxa);
     for (i = 0; i < nbox - 1; i++) {

@@ -1382,7 +1382,7 @@ LEPT_DLL extern l_ok addColorizedGrayToCmap ( PIXCMAP *cmap, l_int32 type, l_int
 LEPT_DLL extern l_ok pixSetSelectMaskedCmap ( PIX *pixs, PIX *pixm, l_int32 x, l_int32 y, l_int32 sindex, l_int32 rval, l_int32 gval, l_int32 bval );
 LEPT_DLL extern l_ok pixSetMaskedCmap ( PIX *pixs, PIX *pixm, l_int32 x, l_int32 y, l_int32 rval, l_int32 gval, l_int32 bval );
 LEPT_DLL extern char * parseForProtos ( const char *filein, const char *prestring );
-LEPT_DLL extern l_ok partifyFiles ( const char *dirname, const char *substr, l_int32 nparts, const char *outroot, l_int32 debug );
+LEPT_DLL extern l_ok partifyFiles ( const char *dirname, const char *substr, l_int32 nparts, const char *outroot, const char *debugfile );
 LEPT_DLL extern l_ok partifyPixac ( PIXAC *pixac, l_int32 nparts, const char *outroot, PIXA *pixadb );
 LEPT_DLL extern BOXA * boxaGetWhiteblocks ( BOXA *boxas, BOX *box, l_int32 sortflag, l_int32 maxboxes, l_float32 maxoverlap, l_int32 maxperim, l_float32 fract, l_int32 maxpops );
 LEPT_DLL extern BOXA * boxaPruneSortedOnOverlap ( BOXA *boxas, l_float32 maxoverlap );
@@ -2026,6 +2026,7 @@ LEPT_DLL extern l_ok convertFlateToPSEmbed ( const char *filein, const char *fil
 LEPT_DLL extern l_ok convertFlateToPS ( const char *filein, const char *fileout, const char *operation, l_int32 x, l_int32 y, l_int32 res, l_float32 scale, l_int32 pageno, l_int32 endpage );
 LEPT_DLL extern l_ok pixWriteMemPS ( l_uint8 **pdata, size_t *psize, PIX *pix, BOX *box, l_int32 res, l_float32 scale );
 LEPT_DLL extern l_int32 getResLetterPage ( l_int32 w, l_int32 h, l_float32 fillfract );
+LEPT_DLL extern l_int32 getResA4Page ( l_int32 w, l_int32 h, l_float32 fillfract );
 LEPT_DLL extern void l_psWriteBoundingBox ( l_int32 flag );
 LEPT_DLL extern PTA * ptaCreate ( l_int32 n );
 LEPT_DLL extern PTA * ptaCreateFromNuma ( NUMA *nax, NUMA *nay );

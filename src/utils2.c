@@ -182,7 +182,7 @@
 #ifdef _MSC_VER
 #include <process.h>
 #include <direct.h>
-#define getcwd _getcwd  // fix MSVC warning
+#define getcwd _getcwd  /* fix MSVC warning */
 #else
 #include <unistd.h>
 #endif   /* _MSC_VER */
@@ -2316,7 +2316,7 @@ SARRAY  *sa;
 
     PROCNAME("lept_rm_match");
 
-    makeTempDirname(tempdir, 256, subdir);
+    makeTempDirname(tempdir, sizeof(tempdir), subdir);
     if ((sa = getSortedPathnamesInDirectory(tempdir, substr, 0, 0)) == NULL)
         return ERROR_INT("sa not made", procName, -1);
     n = sarrayGetCount(sa);
@@ -2368,7 +2368,7 @@ l_int32  ret;
     if (!tail || strlen(tail) == 0)
         return ERROR_INT("tail undefined or empty", procName, 1);
 
-    if (makeTempDirname(newtemp, 256, subdir))
+    if (makeTempDirname(newtemp, sizeof(newtemp), subdir))
         return ERROR_INT("temp dirname not made", procName, 1);
     path = genPathname(newtemp, tail);
     ret = lept_rmfile(path);
@@ -2456,7 +2456,7 @@ lept_mv(const char  *srcfile,
         const char  *newtail,
         char       **pnewpath)
 {
-char    *srcpath, *newpath, *realpath, *dir, *srctail;
+char    *srcpath, *newpath, *dir, *srctail;
 char     newtemp[256];
 l_int32  ret;
 
@@ -2466,7 +2466,7 @@ l_int32  ret;
         return ERROR_INT("srcfile not defined", procName, 1);
 
         /* Require output pathname to be in /tmp/ or a subdirectory */
-    if (makeTempDirname(newtemp, 256, newdir) == 1)
+    if (makeTempDirname(newtemp, sizeof(newtemp), newdir) == 1)
         return ERROR_INT("newdir not NULL or a subdir of /tmp", procName, 1);
 
         /* Get canonical src pathname */
@@ -2485,8 +2485,8 @@ l_int32  ret;
 
         /* Overwrite any existing file at 'newpath' */
     ret = fileCopy(srcpath, newpath);
-    if (!ret) {
-        realpath = genPathname(srcpath, NULL);
+    if (!ret) {  /* and remove srcfile */
+        char *realpath = genPathname(srcpath, NULL);
         remove(realpath);
         LEPT_FREE(realpath);
     }
@@ -2565,7 +2565,7 @@ l_int32  ret;
         return ERROR_INT("srcfile not defined", procName, 1);
 
         /* Require output pathname to be in /tmp or a subdirectory */
-    if (makeTempDirname(newtemp, 256, newdir) == 1)
+    if (makeTempDirname(newtemp, sizeof(newtemp), newdir) == 1)
         return ERROR_INT("newdir not NULL or a subdir of /tmp", procName, 1);
 
        /* Get canonical src pathname */
@@ -3137,7 +3137,7 @@ l_int32  dirlen, namelen, size;
  *      (3) Usage example:
  * \code
  *           char  result[256];
- *           makeTempDirname(result, 256, "lept/golden");
+ *           makeTempDirname(result, sizeof(result), "lept/golden");
  * \endcode
  * </pre>
  */

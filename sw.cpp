@@ -308,6 +308,7 @@ void build(Solution &s)
             {"otsutest2", {"otsutest2.c"}},
             {"pagesegtest1", {"pagesegtest1.c"}},
             {"pagesegtest2", {"pagesegtest2.c"}},
+            {"partifytest", {"partifytest.c"}},
             {"partitiontest", {"partitiontest.c"}},
             {"pdfiotest", {"pdfiotest.c"}},
             {"percolatetest", {"percolatetest.c"}},

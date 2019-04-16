@@ -99,7 +99,8 @@ OTHER_PROGS = adaptmap_dark \
 	modifyhuesat morphtest1 \
 	numaranktest otsutest1 otsutest2 \
 	pagesegtest1 pagesegtest2 \
-	partitiontest pdfiotest percolatetest \
+	partifytest partitiontest \
+	pdfiotest percolatetest \
 	pixaatest pixafileinfo plottest \
 	printimage printsplitimage printtiff rbtreetest \
 	recog_bootnum1 recog_bootnum2 recog_bootnum3 \
