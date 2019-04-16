@@ -153,7 +153,7 @@ PIXAC  **pixaca;
             continue;
         }
 
-            /* Find the major sets at 4x reduction */
+            /* Find the stave sets at 4x reduction */
         pix4 = pixMorphSequence(pix3, "r11", 0);
         boxa1 = pixConnCompBB(pix4, 8);
         boxa2 = boxaSelectByArea(boxa1, 15000, L_SELECT_IF_GT, NULL);
@@ -176,7 +176,15 @@ PIXAC  **pixaca;
         }
         pixDestroy(&pix4);
 
-            /* Identify the parts at full resolution */
+            /* Locate the stave sets at full resolution, and break
+             * each one into the separate staves (parts).  A typical
+             * set will have more than one part, but if one of the
+             * parts is a keyboard, it will usually have two staves
+             * (also called a Grand Staff), composed of treble and
+             * bass staves.  For example, a classical violin sonata
+             * could have a staff for the violin and two staves for 
+             * the piano.  We would set nparts == 2, and extract both
+             * of the piano staves as the piano part.  */
         boxa1 = boxaTransform(boxa3, 0, 0, 4.0, 4.0);
         boxaDestroy(&boxa3);
         nbox = boxaGetCount(boxa1);

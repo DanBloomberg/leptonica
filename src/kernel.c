@@ -84,6 +84,9 @@
 #include <math.h>
 #include "allheaders.h"
 
+    /* Array size must be > 0 and not larger than this */
+static const l_uint32  MaxArraySize = 100000;
+
 
 /*------------------------------------------------------------------------*
  *                           Create / Destroy                             *
@@ -504,9 +507,13 @@ l_float32  **array;
 
     PROCNAME("create2dFloatArray");
 
+    if (sx <= 0 || sx > MaxArraySize)
+        return (l_float32 **)ERROR_PTR("sx out of bounds", procName, NULL);
+    if (sy <= 0 || sy > MaxArraySize)
+        return (l_float32 **)ERROR_PTR("sy out of bounds", procName, NULL);
+
     if ((array = (l_float32 **)LEPT_CALLOC(sy, sizeof(l_float32 *))) == NULL)
         return (l_float32 **)ERROR_PTR("ptr array not made", procName, NULL);
-
     for (i = 0; i < sy; i++)
         array[i] = (l_float32 *)LEPT_CALLOC(sx, sizeof(l_float32));
     return array;

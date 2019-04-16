@@ -149,7 +149,9 @@
 #include <math.h>
 #include "allheaders.h"
 
-static const l_int32 INITIAL_PTR_ARRAYSIZE = 50;      /*!< n'importe quoi */
+    /* Bounds on initial array size */
+static const l_uint32  MaxPtrArraySize = 100000000;
+static const l_int32 InitialPtrArraySize = 50;      /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 l_dnaExtendArray(L_DNA *da);
@@ -172,8 +174,8 @@ L_DNA  *da;
 
     PROCNAME("l_dnaCreate");
 
-    if (n <= 0)
-        n = INITIAL_PTR_ARRAYSIZE;
+    if (n <= 0 || n > MaxPtrArraySize)
+        n = InitialPtrArraySize;
 
     da = (L_DNA *)LEPT_CALLOC(1, sizeof(L_DNA));
     if ((da->array = (l_float64 *)LEPT_CALLOC(n, sizeof(l_float64))) == NULL) {
@@ -1130,8 +1132,8 @@ L_DNAA  *daa;
 
     PROCNAME("l_dnaaCreate");
 
-    if (n <= 0)
-        n = INITIAL_PTR_ARRAYSIZE;
+    if (n <= 0 || n > MaxPtrArraySize)
+        n = InitialPtrArraySize;
 
     daa = (L_DNAA *)LEPT_CALLOC(1, sizeof(L_DNAA));
     if ((daa->dna = (L_DNA **)LEPT_CALLOC(n, sizeof(L_DNA *))) == NULL) {

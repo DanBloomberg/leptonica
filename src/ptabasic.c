@@ -96,7 +96,8 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;   /* n'import quoi */
+static const l_uint32  MaxPtrArraySize = 10000000;
+static const l_int32 InitialPtrArraySize = 50;      /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 ptaExtendArrays(PTA *pta);
@@ -119,14 +120,13 @@ PTA  *pta;
 
     PROCNAME("ptaCreate");
 
-    if (n <= 0)
-        n = INITIAL_PTR_ARRAYSIZE;
+    if (n <= 0 || n > MaxPtrArraySize)
+        n = InitialPtrArraySize;
 
     pta = (PTA *)LEPT_CALLOC(1, sizeof(PTA));
     pta->n = 0;
     pta->nalloc = n;
     ptaChangeRefcount(pta, 1);  /* sets to 1 */
-
     pta->x = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32));
     pta->y = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32));
     if (!pta->x || !pta->y) {
@@ -942,11 +942,10 @@ PTAA  *ptaa;
 
     PROCNAME("ptaaCreate");
 
-    if (n <= 0)
-        n = INITIAL_PTR_ARRAYSIZE;
+    if (n <= 0 || n > MaxPtrArraySize)
+        n = InitialPtrArraySize;
 
-    if ((ptaa = (PTAA *)LEPT_CALLOC(1, sizeof(PTAA))) == NULL)
-        return (PTAA *)ERROR_PTR("ptaa not made", procName, NULL);
+    ptaa = (PTAA *)LEPT_CALLOC(1, sizeof(PTAA));
     ptaa->n = 0;
     ptaa->nalloc = n;
     if ((ptaa->pta = (PTA **)LEPT_CALLOC(n, sizeof(PTA *))) == NULL) {

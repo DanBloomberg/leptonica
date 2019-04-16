@@ -151,7 +151,9 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;   /* n'import quoi */
+    /* Bounds on initial array size */
+static const l_uint32  MaxPtrArraySize = 1000000;
+static const l_int32 InitialPtrArraySize = 20;      /*!< n'importe quoi */
 
     /* These two globals are defined in writefile.c */
 extern l_int32 NumImageFileFormatExtensions;
@@ -597,15 +599,13 @@ PIXAC  *pixac;
 
     PROCNAME("pixacompCreate");
 
-    if (n <= 0)
-        n = INITIAL_PTR_ARRAYSIZE;
+    if (n <= 0 || n > MaxPtrArraySize)
+        n = InitialPtrArraySize;
 
-    if ((pixac = (PIXAC *)LEPT_CALLOC(1, sizeof(PIXAC))) == NULL)
-        return (PIXAC *)ERROR_PTR("pixac not made", procName, NULL);
+    pixac = (PIXAC *)LEPT_CALLOC(1, sizeof(PIXAC));
     pixac->n = 0;
     pixac->nalloc = n;
     pixac->offset = 0;
-
     if ((pixac->pixc = (PIXC **)LEPT_CALLOC(n, sizeof(PIXC *))) == NULL) {
         pixacompDestroy(&pixac);
         return (PIXAC *)ERROR_PTR("pixc ptrs not made", procName, NULL);
@@ -670,8 +670,8 @@ PIXAC   *pixac;
 
     PROCNAME("pixacompCreateWithInit");
 
-    if (n <= 0)
-        return (PIXAC *)ERROR_PTR("n must be > 0", procName, NULL);
+    if (n <= 0 || n > MaxPtrArraySize)
+        return (PIXAC *)ERROR_PTR("n out of valid bounds", procName, NULL);
     if (pix) {
         if (comptype != IFF_DEFAULT && comptype != IFF_TIFF_G4 &&
             comptype != IFF_PNG && comptype != IFF_JFIF_JPEG)

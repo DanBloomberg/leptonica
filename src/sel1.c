@@ -141,9 +141,12 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  L_BUFSIZE = 256;  /* hardcoded below in sscanf */
-static const l_int32  INITIAL_PTR_ARRAYSIZE = 50;  /* n'import quoi */
-static const l_int32  MANY_SELS = 1000;
+    /* Bounds on sel ptr array size */
+static const l_uint32  MaxPtrArraySize = 10000;
+static const l_int32 InitialPtrArraySize = 50;      /*!< n'importe quoi */
+
+    /* Bounds on kernel size */
+static const l_uint32  MaxKernelSize = 10000;
 
     /* Static functions */
 static l_int32 selaExtendArray(SELA *sela);
@@ -242,18 +245,13 @@ SELA  *sela;
 
     PROCNAME("selaCreate");
 
-    if (n <= 0)
-        n = INITIAL_PTR_ARRAYSIZE;
-    if (n > MANY_SELS)
-        L_WARNING("%d sels\n", procName, n);
+    if (n <= 0 || n > MaxPtrArraySize)
+        n = InitialPtrArraySize;
 
-    if ((sela = (SELA *)LEPT_CALLOC(1, sizeof(SELA))) == NULL)
-        return (SELA *)ERROR_PTR("sela not made", procName, NULL);
-
+        /* Make array of sel ptrs */
+    sela = (SELA *)LEPT_CALLOC(1, sizeof(SELA));
     sela->nalloc = n;
     sela->n = 0;
-
-        /* make array of se ptrs */
     if ((sela->sel = (SEL **)LEPT_CALLOC(n, sizeof(SEL *))) == NULL) {
         LEPT_FREE(sela);
         return (SELA *)ERROR_PTR("sel ptrs not made", procName, NULL);
@@ -521,9 +519,13 @@ l_int32  **array;
 
     PROCNAME("create2dIntArray");
 
+    if (sx <= 0 || sx > MaxKernelSize)
+        return (l_int32 **)ERROR_PTR("sx out of bounds", procName, NULL);
+    if (sy <= 0 || sy > MaxKernelSize)
+        return (l_int32 **)ERROR_PTR("sy out of bounds", procName, NULL);
+
     if ((array = (l_int32 **)LEPT_CALLOC(sy, sizeof(l_int32 *))) == NULL)
         return (l_int32 **)ERROR_PTR("ptr array not made", procName, NULL);
-
     success = TRUE;
     for (i = 0; i < sy; i++) {
         if ((array[i] = (l_int32 *)LEPT_CALLOC(sx, sizeof(l_int32))) == NULL) {
@@ -979,7 +981,7 @@ selaGetCombName(SELA    *sela,
                 l_int32  direction)
 {
 char    *selname;
-char     combname[L_BUFSIZE];
+char     combname[256];
 l_int32  i, nsels, sx, sy, found;
 SEL     *sel;
 
@@ -992,9 +994,9 @@ SEL     *sel;
 
         /* Derive the comb name we're looking for */
     if (direction == L_HORIZ)
-        snprintf(combname, L_BUFSIZE, "sel_comb_%dh", size);
+        snprintf(combname, sizeof(combname), "sel_comb_%dh", size);
     else  /* direction == L_VERT */
-        snprintf(combname, L_BUFSIZE, "sel_comb_%dv", size);
+        snprintf(combname, sizeof(combname), "sel_comb_%dv", size);
 
     found = FALSE;
     nsels = selaGetCount(sela);
@@ -1042,7 +1044,7 @@ static void
 selaComputeCompositeParameters(const char  *fileout)
 {
 char    *str, *nameh1, *nameh2, *namev1, *namev2;
-char     buf[L_BUFSIZE];
+char     buf[256];
 l_int32  size, size1, size2, len;
 SARRAY  *sa;
 SELA    *selabasic, *selacomb;
@@ -1061,7 +1063,7 @@ SELA    *selabasic, *selacomb;
             nameh2 = stringNew("");
             namev2 = stringNew("");
         }
-        snprintf(buf, L_BUFSIZE,
+        snprintf(buf, sizeof(buf),
                  "      { %d, %d, %d, \"%s\", \"%s\", \"%s\", \"%s\" },",
                  size, size1, size2, nameh1, nameh2, namev1, namev2);
         sarrayAddString(sa, buf, L_COPY);
@@ -1410,7 +1412,7 @@ SEL  *
 selReadStream(FILE  *fp)
 {
 char    *selname;
-char     linebuf[L_BUFSIZE];
+char     linebuf[256];
 l_int32  sy, sx, cy, cx, i, j, version, ignore;
 SEL     *sel;
 
@@ -1424,7 +1426,7 @@ SEL     *sel;
     if (version != SEL_VERSION_NUMBER)
         return (SEL *)ERROR_PTR("invalid sel version", procName, NULL);
 
-    if (fgets(linebuf, L_BUFSIZE, fp) == NULL)
+    if (fgets(linebuf, sizeof(linebuf), fp) == NULL)
         return (SEL *)ERROR_PTR("error reading into linebuf", procName, NULL);
     selname = stringNew(linebuf);
     sscanf(linebuf, "  ------  %200s  ------", selname);

@@ -167,12 +167,13 @@
 #include <math.h>
 #include "allheaders.h"
 
-static const l_int32 INITIAL_PTR_ARRAYSIZE = 50;      /* n'importe quoi */
+    /* Bounds on initial array size */
+static const l_uint32  MaxPtrArraySize = 100000000;
+static const l_int32 InitialPtrArraySize = 50;      /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 numaExtendArray(NUMA  *na);
 static l_int32 numaaExtendArray(NUMAA  *naa);
-
 
 /*--------------------------------------------------------------------------*
  *               Numa creation, destruction, copy, clone, etc.              *
@@ -190,11 +191,10 @@ NUMA  *na;
 
     PROCNAME("numaCreate");
 
-    if (n <= 0)
-        n = INITIAL_PTR_ARRAYSIZE;
+    if (n <= 0 || n > MaxPtrArraySize)
+        n = InitialPtrArraySize;
 
-    if ((na = (NUMA *)LEPT_CALLOC(1, sizeof(NUMA))) == NULL)
-        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+    na = (NUMA *)LEPT_CALLOC(1, sizeof(NUMA));
     if ((na->array = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32))) == NULL) {
         numaDestroy(&na);
         return (NUMA *)ERROR_PTR("number array not made", procName, NULL);
@@ -1343,11 +1343,10 @@ NUMAA  *naa;
 
     PROCNAME("numaaCreate");
 
-    if (n <= 0)
-        n = INITIAL_PTR_ARRAYSIZE;
+    if (n <= 0 || n > MaxPtrArraySize)
+        n = InitialPtrArraySize;
 
-    if ((naa = (NUMAA *)LEPT_CALLOC(1, sizeof(NUMAA))) == NULL)
-        return (NUMAA *)ERROR_PTR("naa not made", procName, NULL);
+    naa = (NUMAA *)LEPT_CALLOC(1, sizeof(NUMAA));
     if ((naa->numa = (NUMA **)LEPT_CALLOC(n, sizeof(NUMA *))) == NULL) {
         numaaDestroy(&naa);
         return (NUMAA *)ERROR_PTR("numa ptr array not made", procName, NULL);
