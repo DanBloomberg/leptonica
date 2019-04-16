@@ -182,6 +182,7 @@
 #ifdef _MSC_VER
 #include <process.h>
 #include <direct.h>
+#define getcwd _getcwd  // fix MSVC warning
 #else
 #include <unistd.h>
 #endif   /* _MSC_VER */
