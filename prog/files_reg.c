@@ -37,9 +37,9 @@
 #include <string.h>
 #ifndef _MSC_VER
 #include <unistd.h>
-#define getcwd _getcwd  // fix MSVC warning
 #else
 #include <direct.h>
+#define getcwd _getcwd  // fix MSVC warning
 #endif  /* !_MSC_VER */
 
 void TestPathJoin(L_REGPARAMS *rp, const char *first, const char *second,
