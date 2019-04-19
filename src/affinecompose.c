@@ -92,10 +92,7 @@ createMatrix2dTranslate(l_float32  transx,
 {
 l_float32  *mat;
 
-    PROCNAME("createMatrix2dTranslate");
-
-    if ((mat = (l_float32 *)LEPT_CALLOC(9, sizeof(l_float32))) == NULL)
-        return (l_float32 *)ERROR_PTR("mat not made", procName, NULL);
+    mat = (l_float32 *)LEPT_CALLOC(9, sizeof(l_float32));
     mat[0] = mat[4] = mat[8] = 1;
     mat[2] = transx;
     mat[5] = transy;
@@ -132,10 +129,7 @@ createMatrix2dScale(l_float32  scalex,
 {
 l_float32  *mat;
 
-    PROCNAME("createMatrix2dScale");
-
-    if ((mat = (l_float32 *)LEPT_CALLOC(9, sizeof(l_float32))) == NULL)
-        return (l_float32 *)ERROR_PTR("mat not made", procName, NULL);
+    mat = (l_float32 *)LEPT_CALLOC(9, sizeof(l_float32));
     mat[0] = scalex;
     mat[4] = scaley;
     mat[8] = 1;
@@ -186,10 +180,7 @@ createMatrix2dRotate(l_float32  xc,
 l_float32   sina, cosa;
 l_float32  *mat;
 
-    PROCNAME("createMatrix2dRotate");
-
-    if ((mat = (l_float32 *)LEPT_CALLOC(9, sizeof(l_float32))) == NULL)
-        return (l_float32 *)ERROR_PTR("mat not made", procName, NULL);
+    mat = (l_float32 *)LEPT_CALLOC(9, sizeof(l_float32));
     sina = sin(angle);
     cosa = cos(angle);
     mat[0] = mat[4] = cosa;

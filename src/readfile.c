@@ -935,6 +935,7 @@ PIXCMAP  *cmap;
                 return (PIX *)ERROR_PTR("invalid colormap", procName, NULL);
             }
         }
+        pixSetPadBits(pix, 0);
     }
     return pix;
 }

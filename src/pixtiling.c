@@ -154,8 +154,7 @@ PIXTILING  *pt;
         return (PIXTILING *)ERROR_PTR("overlap too large", procName, NULL);
     }
 
-    if ((pt = (PIXTILING *)LEPT_CALLOC(1, sizeof(PIXTILING))) == NULL)
-        return (PIXTILING *)ERROR_PTR("pt not made", procName, NULL);
+    pt = (PIXTILING *)LEPT_CALLOC(1, sizeof(PIXTILING));
     pt->pix = pixClone(pixs);
     pt->xoverlap = xoverlap;
     pt->yoverlap = yoverlap;

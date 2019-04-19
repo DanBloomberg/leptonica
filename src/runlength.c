@@ -792,11 +792,7 @@ l_int32   i, j;
 l_int32  *tab;
 l_uint8   byte, mask;
 
-    PROCNAME("makeMSBitLocTab");
-
-    if ((tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL)
-        return (l_int32 *)ERROR_PTR("tab not made", procName, NULL);
-
+    tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     for (i = 0; i < 256; i++) {
         byte = (l_uint8)i;
         if (bitval == 0)
@@ -811,6 +807,5 @@ l_uint8   byte, mask;
             mask >>= 1;
         }
     }
-
     return tab;
 }

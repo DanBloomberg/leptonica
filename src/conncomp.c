@@ -1119,15 +1119,10 @@ L_STACK  *auxstack;
         }
 
             /* Get a fillseg to use */
-        if (lstackGetCount(auxstack) > 0) {
+        if (lstackGetCount(auxstack) > 0)
             fseg = (FILLSEG *)lstackRemove(auxstack);
-        } else {
-            if ((fseg = (FILLSEG *)LEPT_CALLOC(1, sizeof(FILLSEG))) == NULL) {
-                L_ERROR("fillseg not made\n", procName);
-                return;
-            }
-        }
-
+        else
+            fseg = (FILLSEG *)LEPT_CALLOC(1, sizeof(FILLSEG));
         fseg->xleft = xleft;
         fseg->xright = xright;
         fseg->y = y;
@@ -1181,15 +1176,10 @@ L_STACK  *auxstack;
         }
 
             /* Get a fillseg to use */
-        if (lstackGetCount(auxstack) > 0) {
+        if (lstackGetCount(auxstack) > 0)
             fseg = (FILLSEG *)lstackRemove(auxstack);
-        } else {
-            if ((fseg = (FILLSEG *)LEPT_CALLOC(1, sizeof(FILLSEG))) == NULL) {
-                L_ERROR("fillseg not made\n", procName);
-                return;
-            }
-        }
-
+        else
+            fseg = (FILLSEG *)LEPT_CALLOC(1, sizeof(FILLSEG));
         fseg->xleft = xleft;
         fseg->xright = xright;
         fseg->y = y;

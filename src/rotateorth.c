@@ -64,8 +64,8 @@ static l_uint8 *makeReverseByteTab4(void);
 /*!
  * \brief   pixRotateOrth()
  *
- * \param[in]    pixs all depths
- * \param[in]    quads 0-3; number of 90 degree cw rotations
+ * \param[in]    pixs       all depths
+ * \param[in]    quads      0-3; number of 90 degree cw rotations
  * \return  pixd, or NULL on error
  */
 PIX *
@@ -96,9 +96,9 @@ pixRotateOrth(PIX     *pixs,
 /*!
  * \brief   pixRotate180()
  *
- * \param[in]    pixd  [optional]; can be null, equal to pixs,
- *                     or different from pixs
- * \param[in]    pixs all depths
+ * \param[in]    pixd    [optional]; can be null, equal to pixs,
+ *                       or different from pixs
+ * \param[in]    pixs    all depths
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -148,8 +148,8 @@ l_int32  d;
 /*!
  * \brief   pixRotate90()
  *
- * \param[in]    pixs all depths
- * \param[in]    direction 1 = clockwise,  -1 = counter-clockwise
+ * \param[in]    pixs         all depths
+ * \param[in]    direction    clockwise = 1, counterclockwise = -1
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -379,9 +379,9 @@ PIX       *pixd;
 /*!
  * \brief   pixFlipLR()
  *
- * \param[in]    pixd  [optional]; can be null, equal to pixs,
- *                     or different from pixs
- * \param[in]    pixs all depths
+ * \param[in]    pixd    [optional]; can be null, equal to pixs,
+ *                       or different from pixs
+ * \param[in]    pixs    all depths
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -572,9 +572,9 @@ l_uint32  *line, *data, *buffer;
 /*!
  * \brief   pixFlipTB()
  *
- * \param[in]    pixd  [optional]; can be null, equal to pixs,
- *                     or different from pixs
- * \param[in]    pixs all depths
+ * \param[in]    pixd   [optional]; can be null, equal to pixs,
+ *                      or different from pixs
+ * \param[in]    pixs   all depths
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -654,11 +654,7 @@ makeReverseByteTab1(void)
 l_int32   i;
 l_uint8  *tab;
 
-    PROCNAME("makeReverseByteTab1");
-
-    if ((tab = (l_uint8 *)LEPT_CALLOC(256, sizeof(l_uint8))) == NULL)
-        return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
-
+    tab = (l_uint8 *)LEPT_CALLOC(256, sizeof(l_uint8));
     for (i = 0; i < 256; i++)
         tab[i] = ((0x80 & i) >> 7) |
                  ((0x40 & i) >> 5) |
@@ -668,7 +664,6 @@ l_uint8  *tab;
                  ((0x04 & i) << 3) |
                  ((0x02 & i) << 5) |
                  ((0x01 & i) << 7);
-
     return tab;
 }
 
@@ -686,11 +681,7 @@ makeReverseByteTab2(void)
 l_int32   i;
 l_uint8  *tab;
 
-    PROCNAME("makeReverseByteTab2");
-
-    if ((tab = (l_uint8 *)LEPT_CALLOC(256, sizeof(l_uint8))) == NULL)
-        return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
-
+    tab = (l_uint8 *)LEPT_CALLOC(256, sizeof(l_uint8));
     for (i = 0; i < 256; i++)
         tab[i] = ((0xc0 & i) >> 6) |
                  ((0x30 & i) >> 2) |
@@ -713,11 +704,7 @@ makeReverseByteTab4(void)
 l_int32   i;
 l_uint8  *tab;
 
-    PROCNAME("makeReverseByteTab4");
-
-    if ((tab = (l_uint8 *)LEPT_CALLOC(256, sizeof(l_uint8))) == NULL)
-        return (l_uint8 *)ERROR_PTR("calloc fail for tab", procName, NULL);
-
+    tab = (l_uint8 *)LEPT_CALLOC(256, sizeof(l_uint8));
     for (i = 0; i < 256; i++)
         tab[i] = ((0xf0 & i) >> 4) | ((0x0f & i) << 4);
     return tab;

@@ -139,11 +139,11 @@ static L_PIX_MEM_STORE  *CustomPMS = NULL;
 /*!
  * \brief   pmsCreate()
  *
- * \param[in]    minsize of data chunk that can be supplied by pms
- * \param[in]    smallest bytes of the smallest pre-allocated data chunk.
- * \param[in]    numalloc array with the number of data chunks for each
- *                        size that are in the memory store
- * \param[in]    logfile use for debugging; null otherwise
+ * \param[in]    minsize    of data chunk that can be supplied by pms
+ * \param[in]    smallest   bytes of the smallest pre-allocated data chunk.
+ * \param[in]    numalloc   array with the number of data chunks for each
+ *                          size that are in the memory store
+ * \param[in]    logfile    use for debugging; null otherwise
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -188,9 +188,7 @@ L_PTRAA          *paa;
     if (nchunks > 1000.0)
         L_WARNING("There are %.0f chunks\n", procName, nchunks);
 
-    if ((pms = (L_PIX_MEM_STORE *)LEPT_CALLOC(1, sizeof(L_PIX_MEM_STORE)))
-        == NULL)
-        return ERROR_INT("pms not made", procName, 1);
+    pms = (L_PIX_MEM_STORE *)LEPT_CALLOC(1, sizeof(L_PIX_MEM_STORE));
     CustomPMS = pms;
 
         /* Make sure that minsize and smallest are multiples of 32 bit words */
@@ -295,7 +293,7 @@ L_PIX_MEM_STORE  *pms;
 /*!
  * \brief   pmsCustomAlloc()
  *
- * \param[in]   nbytes min number of bytes in the chunk to be retrieved
+ * \param[in]   nbytes    min number of bytes in the chunk to be retrieved
  * \return  data ptr to chunk
  *
  * <pre>
@@ -348,7 +346,7 @@ L_PTRA           *pa;
 /*!
  * \brief   pmsCustomDealloc()
  *
- * \param[in]   data to be freed or returned to the storage
+ * \param[in]   data    to be freed or returned to the storage
  * \return  void
  */
 void

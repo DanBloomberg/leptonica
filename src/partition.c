@@ -76,24 +76,24 @@ static const l_int32  DEFAULT_MAX_POPS = 20000;
 /*!
  * \brief   boxaGetWhiteblocks()
  *
- * \param[in]    boxas typically, a set of bounding boxes of fg components
- * \param[in]    box initial region; typically including all boxes in boxas;
- *                   if null, it computes the region to include all boxes
- *                   in boxas
- * \param[in]    sortflag L_SORT_BY_WIDTH, L_SORT_BY_HEIGHT,
- *                        L_SORT_BY_MIN_DIMENSION, L_SORT_BY_MAX_DIMENSION,
- *                        L_SORT_BY_PERIMETER, L_SORT_BY_AREA
- * \param[in]    maxboxes maximum number of output whitespace boxes; e.g., 100
- * \param[in]    maxoverlap maximum fractional overlap of a box by any
- *                          of the larger boxes; e.g., 0.2
- * \param[in]    maxperim maximum half-perimeter, in pixels, for which
- *                        pivot is selected by proximity to box centroid;
- *                        e.g., 200
- * \param[in]    fract fraction of box diagonal that is an acceptable
- *                     distance from the box centroid to select the pivot;
- *                     e.g., 0.2
- * \param[in]    maxpops maximum number of pops from the heap; use 0 as default
- * \return  boxa of sorted whitespace boxes, or NULL on error
+ * \param[in]    boxas        typ. a set of bounding boxes of fg components
+ * \param[in]    box          initial region; typically including all boxes
+ *                            in boxas; if null, it computes the region to
+ *                            include all boxes in boxas
+ * \param[in]    sortflag     L_SORT_BY_WIDTH, L_SORT_BY_HEIGHT,
+ *                            L_SORT_BY_MIN_DIMENSION, L_SORT_BY_MAX_DIMENSION,
+ *                            L_SORT_BY_PERIMETER, L_SORT_BY_AREA
+ * \param[in]    maxboxes     max number of output whitespace boxes; e.g., 100
+ * \param[in]    maxoverlap   maximum fractional overlap of a box by any
+ *                            of the larger boxes; e.g., 0.2
+ * \param[in]    maxperim     maximum half-perimeter, in pixels, for which
+ *                            pivot is selected by proximity to box centroid;
+ *                            e.g., 200
+ * \param[in]    fract        fraction of box diagonal that is an acceptable
+ *                            distance from the box centroid to select
+ *                            the pivot; e.g., 0.2
+ * \param[in]    maxpops      max number of pops from the heap; use 0 as default
+ * \return  boxa  of sorted whitespace boxes, or NULL on error
  *
  * <pre>
  * Notes:
@@ -306,7 +306,7 @@ L_HEAP  *lh;
 /*!
  * \brief   partelCreate()
  *
- * \param[in]    box region; inserts a copy
+ * \param[in]    box    region; inserts a copy
  * \return  partel, or NULL on error
  */
 static PARTEL *
@@ -314,11 +314,7 @@ partelCreate(BOX  *box)
 {
 PARTEL  *partel;
 
-    PROCNAME("partelCreate");
-
-    if ((partel = (PARTEL *)LEPT_CALLOC(1, sizeof(PARTEL))) == NULL)
-        return (PARTEL *)ERROR_PTR("partel not made", procName, NULL);
-
+    partel = (PARTEL *)LEPT_CALLOC(1, sizeof(PARTEL));
     partel->box = boxCopy(box);
     return partel;
 }
@@ -327,7 +323,7 @@ PARTEL  *partel;
 /*!
  * \brief   partelDestroy()
  *
- * \param[in,out]   ppartel  contents will be set to null before returning
+ * \param[in,out]   ppartel   contents will be set to null before returning
  * \return  void
  */
 static void
@@ -357,9 +353,9 @@ PARTEL  *partel;
  * \brief   partelSetSize()
  *
  * \param[in]    partel
- * \param[in]    sortflag L_SORT_BY_WIDTH, L_SORT_BY_HEIGHT,
- *                        L_SORT_BY_MIN_DIMENSION, L_SORT_BY_MAX_DIMENSION,
- *                        L_SORT_BY_PERIMETER, L_SORT_BY_AREA
+ * \param[in]    sortflag   L_SORT_BY_WIDTH, L_SORT_BY_HEIGHT,
+ *                          L_SORT_BY_MIN_DIMENSION, L_SORT_BY_MAX_DIMENSION,
+ *                          L_SORT_BY_PERIMETER, L_SORT_BY_AREA
  * \return  0 if OK, 1 on error
  */
 static l_int32
@@ -395,14 +391,15 @@ l_int32  w, h;
 /*!
  * \brief   boxaGenerateSubboxes()
  *
- * \param[in]    box region to be split into up to four overlapping subregions
- * \param[in]    boxa boxes of rectangles intersecting the box
- * \param[in]    maxperim maximum half-perimeter for which pivot
- *                        is selected by proximity to box centroid
- * \param[in]    fract fraction of box diagonal that is an acceptable
- *                     distance from the box centroid to select the pivot
- * \return  boxa of four or less overlapping subrectangles of the box,
- *              or NULL on error
+ * \param[in]    box         region to be split into up to four overlapping
+ *                           subregions
+ * \param[in]    boxa        boxes of rectangles intersecting the box
+ * \param[in]    maxperim    maximum half-perimeter for which pivot
+ *                           is selected by proximity to box centroid
+ * \param[in]    fract       fraction of box diagonal that is an acceptable
+ *                           distance from the box centroid to select the pivot
+ * \return  boxa             of four or less overlapping subrectangles of
+ *                           the box, or NULL on error
  */
 static BOXA *
 boxaGenerateSubboxes(BOX       *box,
@@ -451,14 +448,14 @@ BOXA    *boxa4;
 /*!
  * \brief   boxaSelectPivotBox()
  *
- * \param[in]    box containing box; to be split by the pivot box
- * \param[in]    boxa boxes of rectangles, from which 1 is to be chosen
- * \param[in]    maxperim maximum half-perimeter for which pivot
- *                        is selected by proximity to box centroid
- * \param[in]    fract fraction of box diagonal that is an acceptable
- *                     distance from the box centroid to select the pivot
- * \return  box pivot box for subdivision into 4 rectangles, or
- *                   NULL on error
+ * \param[in]    box        containing box; to be split by the pivot box
+ * \param[in]    boxa       boxes of rectangles, from which 1 is to be chosen
+ * \param[in]    maxperim   maximum half-perimeter for which pivot
+ *                          is selected by proximity to box centroid
+ * \param[in]    fract      fraction of box diagonal that is an acceptable
+ *                          distance from the box centroid to select the pivot
+ * \return  box             pivot box for subdivision into 4 rectangles,
+ *                          or NULL on error
  *
  * <pre>
  * Notes:
@@ -555,11 +552,11 @@ BOX       *boxt;
 /*!
  * \brief   boxCheckIfOverlapIsBig()
  *
- * \param[in]    box to be tested
- * \param[in]    boxa of boxes already stored
- * \param[in]    maxoverlap maximum fractional overlap of the input box
- *                          by any of the boxes in boxa
- * \return  0 if box has small overlap with every box in boxa;
+ * \param[in]    box          to be tested
+ * \param[in]    boxa         of boxes already stored
+ * \param[in]    maxoverlap   maximum fractional overlap of the input box
+ *                            by any of the boxes in boxa
+ * \return      0 if box has small overlap with every box in boxa;
  *              1 otherwise or on error
  */
 static l_int32
@@ -602,9 +599,9 @@ BOX       *boxt;
 /*!
  * \brief   boxaPruneSortedOnOverlap()
  *
- * \param[in]    boxas sorted by size in decreasing order
- * \param[in]    maxoverlap maximum fractional overlap of a box by any
- *                          of the larger boxes
+ * \param[in]    boxas        sorted by size in decreasing order
+ * \param[in]    maxoverlap   maximum fractional overlap of a box by any
+ *                            of the larger boxes
  * \return  boxad pruned, or NULL on error
  *
  * <pre>

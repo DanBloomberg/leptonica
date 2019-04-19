@@ -108,9 +108,9 @@
 /*!
  * \brief   l_dnaHashCreate()
  *
- * \param[in]   nbuckets the number of buckets in the hash table,
- *                       which should be prime.
- * \param[in]   initsize initial size of each allocated dna; 0 for default
+ * \param[in]   nbuckets   the number of buckets in the hash table,
+ *                         which should be prime.
+ * \param[in]   initsize   initial size of each allocated dna; 0 for default
  * \return  ptr to new dnahash, or NULL on error
  *
  * <pre>
@@ -128,8 +128,7 @@ L_DNAHASH  *dahash;
 
     if (nbuckets <= 0)
         return (L_DNAHASH *)ERROR_PTR("negative hash size", procName, NULL);
-    if ((dahash = (L_DNAHASH *)LEPT_CALLOC(1, sizeof(L_DNAHASH))) == NULL)
-        return (L_DNAHASH *)ERROR_PTR("dahash not made", procName, NULL);
+    dahash = (L_DNAHASH *)LEPT_CALLOC(1, sizeof(L_DNAHASH));
     if ((dahash->dna = (L_DNA **)LEPT_CALLOC(nbuckets, sizeof(L_DNA *)))
         == NULL) {
         LEPT_FREE(dahash);
@@ -145,7 +144,7 @@ L_DNAHASH  *dahash;
 /*!
  * \brief   l_dnaHashDestroy()
  *
- * \param[in,out]   pdahash to be nulled, if it exists
+ * \param[in,out]   pdahash   will be set to null before returning
  * \return  void
  */
 void
@@ -224,8 +223,8 @@ L_DNA   *da;
  * \brief   l_dnaHashGetDna()
  *
  * \param[in]    dahash
- * \param[in]    key  key to be hashed into a bucket number
- * \param[in]    copyflag L_NOCOPY, L_COPY, L_CLONE
+ * \param[in]    key        key to be hashed into a bucket number
+ * \param[in]    copyflag   L_NOCOPY, L_COPY, L_CLONE
  * \return  ptr to dna
  */
 L_DNA *
@@ -259,8 +258,8 @@ L_DNA   *da;
  * \brief   l_dnaHashAdd()
  *
  * \param[in]    dahash
- * \param[in]    key  key to be hashed into a bucket number
- * \param[in]    value  float value to be appended to the specific dna
+ * \param[in]    key      key to be hashed into a bucket number
+ * \param[in]    value    float value to be appended to the specific dna
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -334,8 +333,8 @@ L_DNAHASH  *dahash;
  * \brief   l_dnaRemoveDupsByHash()
  *
  * \param[in]    das
- * \param[out]   pdad hash set
- * \param[out]   pdahash [optional] dnahash used for lookup
+ * \param[out]   pdad      hash set
+ * \param[out]   pdahash   [optional] dnahash used for lookup
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -395,9 +394,9 @@ L_DNAHASH  *dahash;
  * \brief   l_dnaMakeHistoByHash()
  *
  * \param[in]    das
- * \param[out]   pdahash hash map: val --> index
- * \param[out]   pdav array of values: index --> val
- * \param[out]   pdac histo array of counts: index --> count
+ * \param[out]   pdahash    hash map: val --> index
+ * \param[out]   pdav       array of values: index --> val
+ * \param[out]   pdac       histo array of counts: index --> count
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -473,7 +472,7 @@ L_DNAHASH  *dahash;
  * \brief   l_dnaIntersectionByHash()
  *
  * \param[in]    da1, da2
- * \return  dad intersection of the number arrays, or NULL on error
+ * \return  dad   intersection of the number arrays, or NULL on error
  *
  * <pre>
  * Notes:
@@ -537,9 +536,9 @@ L_DNA      *da_small, *da_big, *dad;
  * \brief   l_dnaFindValByHash()
  *
  * \param[in]    da
- * \param[in]    dahash containing indices into %da
- * \param[in]    val  searching for this number in %da
- * \param[out]   pindex index into da if found; -1 otherwise
+ * \param[in]    dahash    containing indices into %da
+ * \param[in]    val       searching for this number in %da
+ * \param[out]   pindex    index into da if found; -1 otherwise
  * \return  0 if OK; 1 on error
  *
  * <pre>

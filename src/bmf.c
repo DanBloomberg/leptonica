@@ -122,8 +122,8 @@ PIXA  *pixa;
     if (fontsize < 4 || fontsize > 20 || (fontsize % 2))
         return (L_BMF *)ERROR_PTR("fontsize must be in {4, 6, ..., 20}",
                                   procName, NULL);
-    if ((bmf = (L_BMF *)LEPT_CALLOC(1, sizeof(L_BMF))) == NULL)
-        return (L_BMF *)ERROR_PTR("bmf not made", procName, NULL);
+
+    bmf = (L_BMF *)LEPT_CALLOC(1, sizeof(L_BMF));
 
     if (!dir) {  /* Generate from a string */
         pixa = pixaGenerateFontFromString(fontsize, &bmf->baseline1,
@@ -811,16 +811,14 @@ PIX      *pix;
         return ERROR_INT("bmf not defined", procName, 1);
 
         /* First get the fonttab; we use this later for the char widths */
-    if ((fonttab = (l_int32 *)LEPT_CALLOC(128, sizeof(l_int32))) == NULL)
-        return ERROR_INT("fonttab not made", procName, 1);
+    fonttab = (l_int32 *)LEPT_CALLOC(128, sizeof(l_int32));
     bmf->fonttab = fonttab;
     for (i = 0; i < 128; i++)
         fonttab[i] = UNDEF;
     for (i = 32; i < 127; i++)
         fonttab[i] = i - 32;
 
-    if ((baselinetab = (l_int32 *)LEPT_CALLOC(128, sizeof(l_int32))) == NULL)
-        return ERROR_INT("baselinetab not made", procName, 1);
+    baselinetab = (l_int32 *)LEPT_CALLOC(128, sizeof(l_int32));
     bmf->baselinetab = baselinetab;
     for (i = 0; i < 128; i++)
         baselinetab[i] = UNDEF;
@@ -833,8 +831,7 @@ PIX      *pix;
         baselinetab[i] = bmf->baseline3;
 
         /* Generate array of character widths; req's fonttab to exist */
-    if ((widthtab = (l_int32 *)LEPT_CALLOC(128, sizeof(l_int32))) == NULL)
-        return ERROR_INT("widthtab not made", procName, 1);
+    widthtab = (l_int32 *)LEPT_CALLOC(128, sizeof(l_int32));
     bmf->widthtab = widthtab;
     for (i = 0; i < 128; i++)
         widthtab[i] = UNDEF;

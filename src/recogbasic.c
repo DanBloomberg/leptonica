@@ -433,8 +433,7 @@ L_RECOG  *recog;
          L_WARNING("Using maxyshift = 2; slower\n", procName);
     }
 
-    if ((recog = (L_RECOG *)LEPT_CALLOC(1, sizeof(L_RECOG))) == NULL)
-        return (L_RECOG *)ERROR_PTR("rec not made", procName, NULL);
+    recog = (L_RECOG *)LEPT_CALLOC(1, sizeof(L_RECOG));
     recog->templ_use = L_USE_ALL_TEMPLATES;  /* default */
     recog->threshold = threshold;
     recog->scalew = scalew;

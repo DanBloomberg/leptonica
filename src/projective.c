@@ -121,10 +121,10 @@ extern l_float32  AlphaMaskBorderVals[2];
 /*!
  * \brief   pixProjectiveSampledPta()
  *
- * \param[in]    pixs all depths
- * \param[in]    ptad  4 pts of final coordinate space
- * \param[in]    ptas  4 pts of initial coordinate space
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    pixs      all depths
+ * \param[in]    ptad      4 pts of final coordinate space
+ * \param[in]    ptas      4 pts of initial coordinate space
+ * \param[in]    incolor   L_BRING_IN_WHITE, L_BRING_IN_BLACK
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -173,9 +173,9 @@ PIX        *pixd;
 /*!
  * \brief   pixProjectiveSampled()
  *
- * \param[in]    pixs all depths
- * \param[in]    vc  vector of 8 coefficients for projective transformation
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    pixs      all depths
+ * \param[in]    vc        vector of 8 coefficients for projective transform
+ * \param[in]    incolor   L_BRING_IN_WHITE, L_BRING_IN_BLACK
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -268,10 +268,10 @@ PIXCMAP    *cmap;
 /*!
  * \brief   pixProjectivePta()
  *
- * \param[in]    pixs all depths; colormap ok
- * \param[in]    ptad  4 pts of final coordinate space
- * \param[in]    ptas  4 pts of initial coordinate space
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    pixs      all depths; colormap ok
+ * \param[in]    ptad      4 pts of final coordinate space
+ * \param[in]    ptas      4 pts of initial coordinate space
+ * \param[in]    incolor   L_BRING_IN_WHITE, L_BRING_IN_BLACK
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -339,9 +339,9 @@ PIX      *pixt1, *pixt2, *pixd;
 /*!
  * \brief   pixProjective()
  *
- * \param[in]    pixs all depths; colormap ok
- * \param[in]    vc  vector of 8 coefficients for projective transformation
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    pixs      all depths; colormap ok
+ * \param[in]    vc        vector of 8 coefficients for projective transform
+ * \param[in]    incolor   L_BRING_IN_WHITE, L_BRING_IN_BLACK
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -442,9 +442,9 @@ PIX        *pixd;
 /*!
  * \brief   pixProjectiveColor()
  *
- * \param[in]    pixs 32 bpp
- * \param[in]    vc  vector of 8 coefficients for projective transformation
- * \param[in]    colorval e.g., 0 to bring in BLACK, 0xffffff00 for WHITE
+ * \param[in]    pixs       32 bpp
+ * \param[in]    vc         vector of 8 coefficients for projective transform
+ * \param[in]    colorval   e.g., 0 to bring in BLACK, 0xffffff00 for WHITE
  * \return  pixd, or NULL on error
  */
 PIX *
@@ -503,10 +503,10 @@ PIX       *pix1, *pix2, *pixd;
 /*!
  * \brief   pixProjectivePtaGray()
  *
- * \param[in]    pixs 8 bpp
- * \param[in]    ptad  4 pts of final coordinate space
- * \param[in]    ptas  4 pts of initial coordinate space
- * \param[in]    grayval 0 to bring in BLACK, 255 for WHITE
+ * \param[in]    pixs      8 bpp
+ * \param[in]    ptad      4 pts of final coordinate space
+ * \param[in]    ptas      4 pts of initial coordinate space
+ * \param[in]    grayval   0 to bring in BLACK, 255 for WHITE
  * \return  pixd, or NULL on error
  */
 PIX *
@@ -546,9 +546,9 @@ PIX        *pixd;
 /*!
  * \brief   pixProjectiveGray()
  *
- * \param[in]    pixs 8 bpp
- * \param[in]    vc  vector of 8 coefficients for projective transformation
- * \param[in]    grayval 0 to bring in BLACK, 255 for WHITE
+ * \param[in]    pixs      8 bpp
+ * \param[in]    vc        vector of 8 coefficients for projective transform
+ * \param[in]    grayval   0 to bring in BLACK, 255 for WHITE
  * \return  pixd, or NULL on error
  */
 PIX *
@@ -599,13 +599,13 @@ PIX       *pixd;
 /*!
  * \brief   pixProjectivePtaWithAlpha()
  *
- * \param[in]    pixs 32 bpp rgb
- * \param[in]    ptad  4 pts of final coordinate space
- * \param[in]    ptas  4 pts of initial coordinate space
- * \param[in]    pixg [optional] 8 bpp, for alpha channel, can be null
- * \param[in]    fract between 0.0 and 1.0, with 0.0 fully transparent
- *                     and 1.0 fully opaque
- * \param[in]    border of pixels added to capture transformed source pixels
+ * \param[in]    pixs     32 bpp rgb
+ * \param[in]    ptad     4 pts of final coordinate space
+ * \param[in]    ptas     4 pts of initial coordinate space
+ * \param[in]    pixg     [optional] 8 bpp, for alpha channel, can be null
+ * \param[in]    fract    between 0.0 and 1.0, with 0.0 fully transparent
+ *                        and 1.0 fully opaque
+ * \param[in]    border   of pixels added to capture transformed source pixels
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -722,9 +722,9 @@ PTA     *ptad2, *ptas2;
 /*!
  * \brief   getProjectiveXformCoeffs()
  *
- * \param[in]    ptas  source 4 points; unprimed
- * \param[in]    ptad  transformed 4 points; primed
- * \param[out]   pvc   vector of coefficients of transform
+ * \param[in]    ptas   source 4 points; unprimed
+ * \param[in]    ptad   transformed 4 points; primed
+ * \param[out]   pvc    vector of coefficients of transform
  * \return  0 if OK; 1 on error
  *
  *  We have a set of 8 equations, describing the projective
@@ -790,10 +790,8 @@ l_float32  *a[8];  /* 8x8 matrix A  */
     if (!pvc)
         return ERROR_INT("&vc not defined", procName, 1);
 
-    if ((b = (l_float32 *)LEPT_CALLOC(8, sizeof(l_float32))) == NULL)
-        return ERROR_INT("b not made", procName, 1);
+    b = (l_float32 *)LEPT_CALLOC(8, sizeof(l_float32));
     *pvc = b;
-
     ptaGetPt(ptas, 0, &x1, &y1);
     ptaGetPt(ptas, 1, &x2, &y2);
     ptaGetPt(ptas, 2, &x3, &y3);
@@ -803,11 +801,8 @@ l_float32  *a[8];  /* 8x8 matrix A  */
     ptaGetPt(ptad, 2, &b[4], &b[5]);
     ptaGetPt(ptad, 3, &b[6], &b[7]);
 
-    for (i = 0; i < 8; i++) {
-        if ((a[i] = (l_float32 *)LEPT_CALLOC(8, sizeof(l_float32))) == NULL)
-            return ERROR_INT("a[i] not made", procName, 1);
-    }
-
+    for (i = 0; i < 8; i++)
+        a[i] = (l_float32 *)LEPT_CALLOC(8, sizeof(l_float32));
     a[0][0] = x1;
     a[0][1] = y1;
     a[0][2] = 1.;
@@ -861,8 +856,8 @@ l_float32  *a[8];  /* 8x8 matrix A  */
 /*!
  * \brief   projectiveXformSampledPt()
  *
- * \param[in]    vc vector of 8 coefficients
- * \param[in]    x, y  initial point
+ * \param[in]    vc         vector of 8 coefficients
+ * \param[in]    x, y       initial point
  * \param[out]   pxp, pyp   transformed point
  * \return  0 if OK; 1 on error
  *
@@ -896,8 +891,8 @@ l_float32  factor;
 /*!
  * \brief   projectiveXformPt()
  *
- * \param[in]    vc vector of 8 coefficients
- * \param[in]    x, y  initial point
+ * \param[in]    vc         vector of 8 coefficients
+ * \param[in]    x, y       initial point
  * \param[out]   pxp, pyp   transformed point
  * \return  0 if OK; 1 on error
  *

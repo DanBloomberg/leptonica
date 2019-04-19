@@ -1209,16 +1209,23 @@ struct tm  *tptr = &Tm;
         /* Calls "difftime" to obtain the resulting difference in seconds,
          * because "time_t" is an opaque type, per the C standard. */
     gmt_offset = (l_int32) difftime(ut, lt);
-
     if (gmt_offset > 0)
         sep = '+';
     else if (gmt_offset < 0)
         sep = '-';
-
     relh = L_ABS(gmt_offset) / 3600;
     relm = (L_ABS(gmt_offset) % 3600) / 60;
 
-    strftime(buf, sizeof(buf), "%Y%m%d%H%M%S", localtime(&ut));
+#ifdef _WIN32
+  #ifdef _MSC_VER
+    localtime_s(tptr, &ut);
+  #else  /* mingw */
+    tptr = localtime(&ut);
+  #endif
+#else
+    localtime_r(&ut, tptr);
+#endif
+    strftime(buf, sizeof(buf), "%Y%m%d%H%M%S", tptr);
     sprintf(buf + 14, "%c%02d'%02d'", sep, relh, relm);
     return stringNew(buf);
 }

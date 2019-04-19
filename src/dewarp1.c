@@ -455,8 +455,7 @@ L_DEWARP  *dew;
     if (pixGetDepth(pixs) != 1)
         return (L_DEWARP *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
 
-    if ((dew = (L_DEWARP *)LEPT_CALLOC(1, sizeof(L_DEWARP))) == NULL)
-        return (L_DEWARP *)ERROR_PTR("dew not made", procName, NULL);
+    dew = (L_DEWARP *)LEPT_CALLOC(1, sizeof(L_DEWARP));
     dew->pixs = pixClone(pixs);
     dew->pageno = pageno;
     dew->w = pixGetWidth(pixs);
@@ -490,8 +489,7 @@ L_DEWARP  *dew;
 
     PROCNAME("dewarpCreateRef");
 
-    if ((dew = (L_DEWARP *)LEPT_CALLOC(1, sizeof(L_DEWARP))) == NULL)
-        return (L_DEWARP *)ERROR_PTR("dew not made", procName, NULL);
+    dew = (L_DEWARP *)LEPT_CALLOC(1, sizeof(L_DEWARP));
     dew->pageno = pageno;
     dew->hasref = 1;
     dew->refpage = refpage;

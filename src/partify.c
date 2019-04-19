@@ -114,7 +114,8 @@ partifyPixac(PIXAC       *pixac,
              PIXA        *pixadb)
 {
 char     buf[512];
-l_int32  i, j, pageno, npage, nbox, icount;
+l_int32  i, j, pageno, npage, nbox, icount, line;
+L_BMF   *bmf;
 BOX     *box1, *box2;
 BOXA    *boxa1, *boxa2, *boxa3;
 PIX     *pix1, *pix2, *pix3, *pix4, *pix5;
@@ -137,6 +138,8 @@ PIXAC  **pixaca;
         pixaca[i] = pixacompCreate(0);
 
         /* Process each page */
+    line = 1;
+    bmf = bmfCreate(NULL, 10);
     for (pageno = 0; pageno < npage; pageno++) {
         if ((pix1 = pixacompGetPix(pixac, pageno)) == NULL) {
             L_ERROR("pix for page %d not found\n", procName, pageno);
@@ -189,7 +192,8 @@ PIXAC  **pixaca;
         boxaDestroy(&boxa3);
         nbox = boxaGetCount(boxa1);
         fprintf(stderr, "number of boxes in page %d: %d\n", pageno, nbox);
-        for (i = 0; i < nbox; i++) {
+        for (i = 0; i < nbox; i++, line++) {
+            snprintf(buf, sizeof(buf), "%d", line);
             box1 = boxaGetBox(boxa1, i, L_COPY);
             pix1 = pixClipRectangle(pix3, box1, NULL);
             pix2 = pixMorphSequence(pix1, "d1.20 + o50.1 + o1.30", 0);
@@ -206,9 +210,11 @@ PIXAC  **pixaca;
                     boxSetSideLocations(box2, -1, -1, -1,
                                         pixGetHeight(pix1) - 1);
                 pix4 = pixClipRectangle(pix1, box2, NULL);
-                pixacompAddPix(pixaca[j], pix4, IFF_TIFF_G4);
+                pix5 = pixAddTextlines(pix4, bmf, buf, 1, L_ADD_LEFT);
+                pixacompAddPix(pixaca[j], pix5, IFF_TIFF_G4);
                 boxDestroy(&box2);
                 pixDestroy(&pix4);
+                pixDestroy(&pix5);
             }
             boxaDestroy(&boxa2);
             boxaDestroy(&boxa3);
@@ -227,6 +233,7 @@ PIXAC  **pixaca;
         pixacompDestroy(&pixaca[i]);
     }
     LEPT_FREE(pixaca);
+    bmfDestroy(&bmf);
     return 0;
 }
 

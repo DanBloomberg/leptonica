@@ -287,10 +287,8 @@ DLLIST  *cell, *head;
     if (!data)
         return ERROR_INT("data not defined", procName, 1);
 
-    if ((cell = (DLLIST *)LEPT_CALLOC(1, sizeof(DLLIST))) == NULL)
-        return ERROR_INT("cell not made", procName, 1);
+    cell = (DLLIST *)LEPT_CALLOC(1, sizeof(DLLIST));
     cell->data = data;
-
     if (!head) {  /* start the list; initialize the ptrs */
         cell->prev = NULL;
         cell->next = NULL;
@@ -344,10 +342,8 @@ DLLIST  *cell, *head, *tail;
     if (!data)
         return ERROR_INT("data not defined", procName, 1);
 
-    if ((cell = (DLLIST *)LEPT_CALLOC(1, sizeof(DLLIST))) == NULL)
-        return ERROR_INT("cell not made", procName, 1);
+    cell = (DLLIST *)LEPT_CALLOC(1, sizeof(DLLIST));
     cell->data = data;
-
     if (!head) {  /*   Start the list and initialize the ptrs.  *ptail
                    *   should also have been initialized to NULL */
         cell->prev = NULL;
@@ -408,10 +404,8 @@ DLLIST  *cell, *head;
         return ERROR_INT("head and elem not consistent", procName, 1);
 
         /* New cell to insert */
-    if ((cell = (DLLIST *)LEPT_CALLOC(1, sizeof(DLLIST))) == NULL)
-        return ERROR_INT("cell not made", procName, 1);
+    cell = (DLLIST *)LEPT_CALLOC(1, sizeof(DLLIST));
     cell->data = data;
-
     if (!head) {  /* start the list; initialize the ptrs */
         cell->prev = NULL;
         cell->next = NULL;
@@ -473,10 +467,8 @@ DLLIST  *cell, *head;
         return ERROR_INT("head and elem not consistent", procName, 1);
 
         /* New cell to insert */
-    if ((cell = (DLLIST *)LEPT_CALLOC(1, sizeof(DLLIST))) == NULL)
-        return ERROR_INT("cell not made", procName, 1);
+    cell = (DLLIST *)LEPT_CALLOC(1, sizeof(DLLIST));
     cell->data = data;
-
     if (!head) {  /* start the list; initialize the ptrs */
         cell->prev = NULL;
         cell->next = NULL;

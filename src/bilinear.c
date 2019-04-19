@@ -791,10 +791,8 @@ l_float32  *a[8];  /* 8x8 matrix A  */
     if (!pvc)
         return ERROR_INT("&vc not defined", procName, 1);
 
-    if ((b = (l_float32 *)LEPT_CALLOC(8, sizeof(l_float32))) == NULL)
-        return ERROR_INT("b not made", procName, 1);
+    b = (l_float32 *)LEPT_CALLOC(8, sizeof(l_float32));
     *pvc = b;
-
     ptaGetPt(ptas, 0, &x1, &y1);
     ptaGetPt(ptas, 1, &x2, &y2);
     ptaGetPt(ptas, 2, &x3, &y3);
@@ -804,11 +802,8 @@ l_float32  *a[8];  /* 8x8 matrix A  */
     ptaGetPt(ptad, 2, &b[4], &b[5]);
     ptaGetPt(ptad, 3, &b[6], &b[7]);
 
-    for (i = 0; i < 8; i++) {
-        if ((a[i] = (l_float32 *)LEPT_CALLOC(8, sizeof(l_float32))) == NULL)
-            return ERROR_INT("a[i] not made", procName, 1);
-    }
-
+    for (i = 0; i < 8; i++)
+        a[i] = (l_float32 *)LEPT_CALLOC(8, sizeof(l_float32));
     a[0][0] = x1;
     a[0][1] = y1;
     a[0][2] = x1 * y1;
@@ -846,7 +841,6 @@ l_float32  *a[8];  /* 8x8 matrix A  */
 
     for (i = 0; i < 8; i++)
         LEPT_FREE(a[i]);
-
     return 0;
 }
 

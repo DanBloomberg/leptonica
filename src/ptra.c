@@ -797,8 +797,7 @@ L_PTRAA  *paa;
     if (n <= 0)
         return (L_PTRAA *)ERROR_PTR("n must be > 0", procName, NULL);
 
-    if ((paa = (L_PTRAA *)LEPT_CALLOC(1, sizeof(L_PTRAA))) == NULL)
-        return (L_PTRAA *)ERROR_PTR("paa not made", procName, NULL);
+    paa = (L_PTRAA *)LEPT_CALLOC(1, sizeof(L_PTRAA));
     if ((paa->ptra = (L_PTRA **)LEPT_CALLOC(n, sizeof(L_PTRA *))) == NULL) {
         ptraaDestroy(&paa, 0, 0);
         return (L_PTRAA *)ERROR_PTR("ptr array not made", procName, NULL);

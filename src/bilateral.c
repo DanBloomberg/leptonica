@@ -95,12 +95,13 @@ static void bilateralDestroy(L_BILATERAL **pbil);
 /*!
  * \brief   pixBilateral()
  *
- * \param[in]    pixs 8 bpp gray or 32 bpp rgb, no colormap
- * \param[in]    spatial_stdev  of gaussian kernel; in pixels, > 0.5
- * \param[in]    range_stdev  of gaussian range kernel; > 5.0; typ. 50.0
- * \param[in]    ncomps number of intermediate sums J(k,x); in [4 ... 30]
- * \param[in]    reduction  1, 2 or 4
- * \return  pixd bilateral filtered image, or NULL on error
+ * \param[in]    pixs            8 bpp gray or 32 bpp rgb, no colormap
+ * \param[in]    spatial_stdev   of gaussian kernel; in pixels, > 0.5
+ * \param[in]    range_stdev     of gaussian range kernel; > 5.0; typ. 50.0
+ * \param[in]    ncomps          number of intermediate sums J(k,x);
+ *                               in [4 ... 30]
+ * \param[in]    reduction       1, 2 or 4
+ * \return  pixd   bilateral filtered image, or NULL on error
  *
  * <pre>
  * Notes:
@@ -203,12 +204,13 @@ PIX          *pixt, *pixr, *pixg, *pixb, *pixd;
 /*!
  * \brief   pixBilateralGray()
  *
- * \param[in]    pixs 8 bpp gray
- * \param[in]    spatial_stdev  of gaussian kernel; in pixels, > 0.5
- * \param[in]    range_stdev  of gaussian range kernel; > 5.0; typ. 50.0
- * \param[in]    ncomps number of intermediate sums J(k,x); in [4 ... 30]
- * \param[in]    reduction  1, 2 or 4
- * \return  pixd 8 bpp bilateral filtered image, or NULL on error
+ * \param[in]    pixs             8 bpp gray
+ * \param[in]    spatial_stdev    of gaussian kernel; in pixels, > 0.5
+ * \param[in]    range_stdev      of gaussian range kernel; > 5.0; typ. 50.0
+ * \param[in]    ncomps           number of intermediate sums J(k,x);
+ *                                in [4 ... 30]
+ * \param[in]    reduction        1, 2 or 4
+ * \return  pixd   8 bpp bilateral filtered image, or NULL on error
  *
  * <pre>
  * Notes:
@@ -259,11 +261,12 @@ L_BILATERAL  *bil;
 /*!
  * \brief   bilateralCreate()
  *
- * \param[in]    pixs 8 bpp gray, no colormap
- * \param[in]    spatial_stdev  of gaussian kernel; in pixels, > 0.5
- * \param[in]    range_stdev  of gaussian range kernel; > 5.0; typ. 50.0
- * \param[in]    ncomps number of intermediate sums J(k,x); in [4 ... 30]
- * \param[in]    reduction  1, 2 or 4
+ * \param[in]    pixs            8 bpp gray, no colormap
+ * \param[in]    spatial_stdev   of gaussian kernel; in pixels, > 0.5
+ * \param[in]    range_stdev     of gaussian range kernel; > 5.0; typ. 50.0
+ * \param[in]    ncomps          number of intermediate sums J(k,x);
+ *                               in [4 ... 30]
+ * \param[in]    reduction       1, 2 or 4
  * \return  bil, or NULL on error
  *
  * <pre>
@@ -515,7 +518,7 @@ PIXA        *pixac;
 /*!
  * \brief   bilateralDestroy()
  *
- * \param[in,out]   pbil will be nulled
+ * \param[in,out]   pbil    will be set to null before returning
  */
 static void
 bilateralDestroy(L_BILATERAL  **pbil)
@@ -556,10 +559,10 @@ L_BILATERAL  *bil;
 /*!
  * \brief   pixBilateralExact()
  *
- * \param[in]    pixs 8 bpp gray or 32 bpp rgb
- * \param[in]    spatial_kel  gaussian kernel
- * \param[in]    range_kel [optional] 256 x 1, monotonically decreasing
- * \return  pixd 8 bpp bilateral filtered image
+ * \param[in]    pixs          8 bpp gray or 32 bpp rgb
+ * \param[in]    spatial_kel   gaussian kernel
+ * \param[in]    range_kel     [optional] 256 x 1, monotonically decreasing
+ * \return  pixd   8 bpp bilateral filtered image
  *
  * <pre>
  * Notes:
@@ -620,10 +623,10 @@ PIX     *pixt, *pixr, *pixg, *pixb, *pixd;
 /*!
  * \brief   pixBilateralGrayExact()
  *
- * \param[in]    pixs 8 bpp gray
- * \param[in]    spatial_kel  gaussian kernel
- * \param[in]    range_kel [optional] 256 x 1, monotonically decreasing
- * \return  pixd 8 bpp bilateral filtered image
+ * \param[in]    pixs          8 bpp gray
+ * \param[in]    spatial_kel   gaussian kernel
+ * \param[in]    range_kel     [optional] 256 x 1, monotonically decreasing
+ * \return  pixd   8 bpp bilateral filtered image
  *
  * <pre>
  * Notes:
@@ -698,10 +701,10 @@ PIX       *pixt, *pixd;
 /*!
  * \brief   pixBlockBilateralExact()
  *
- * \param[in]    pixs 8 bpp gray or 32 bpp rgb
- * \param[in]    spatial_stdev > 0.0
- * \param[in]    range_stdev > 0.0
- * \return  pixd 8 bpp or 32 bpp bilateral filtered image
+ * \param[in]    pixs             8 bpp gray or 32 bpp rgb
+ * \param[in]    spatial_stdev    must be > 0.0
+ * \param[in]    range_stdev      must be > 0.0
+ * \return  pixd   8 bpp or 32 bpp bilateral filtered image
  *
  * <pre>
  * Notes:
@@ -770,7 +773,7 @@ PIX       *pixd;
 /*!
  * \brief   makeRangeKernel()
  *
- * \param[in]    range_stdev > 0
+ * \param[in]    range_stdev   must be > 0.0
  * \return  kel, or NULL on error
  *
  * <pre>

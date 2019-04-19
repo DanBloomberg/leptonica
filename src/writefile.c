@@ -718,6 +718,7 @@ l_int32  ret;
 
     if (format == IFF_DEFAULT)
         format = pixChooseOutputFormat(pix);
+    pixSetPadBits(pix, 0);
 
     switch(format)
     {

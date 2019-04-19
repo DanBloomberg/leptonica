@@ -92,6 +92,13 @@
  *           l_int32     pixcmapContrastTRC()
  *           l_int32     pixcmapShiftIntensity()
  *           l_int32     pixcmapShiftByComponent()
+ *
+ *  Note:
+ *      (1) colormaps in leptonica have a maximum of 256 entries.
+ *      (2) nalloc, the allocated size of the palette array, is related
+ *          to the depth d of the pixels by:
+ *                 nalloc = 2^(d)
+ *       
  * </pre>
  */
 
@@ -1848,7 +1855,7 @@ FILE    *fp;
  * \brief   pixcmapToArrays()
  *
  * \param[in]    cmap     colormap
- * \param[out]   prmap,   pgmap, pbmap  colormap arrays
+ * \param[out]   prmap,   pgmap, pbmap colormap arrays
  * \param[out]   pamap    [optional] alpha array
  * \return  0 if OK; 1 on error
  */
@@ -1873,10 +1880,9 @@ RGBA_QUAD  *cta;
         return ERROR_INT("cmap not defined", procName, 1);
 
     ncolors = pixcmapGetCount(cmap);
-    if (((rmap = (l_int32 *)LEPT_CALLOC(ncolors, sizeof(l_int32))) == NULL) ||
-        ((gmap = (l_int32 *)LEPT_CALLOC(ncolors, sizeof(l_int32))) == NULL) ||
-        ((bmap = (l_int32 *)LEPT_CALLOC(ncolors, sizeof(l_int32))) == NULL))
-            return ERROR_INT("calloc fail for *map", procName, 1);
+    rmap = (l_int32 *)LEPT_CALLOC(ncolors, sizeof(l_int32));
+    gmap = (l_int32 *)LEPT_CALLOC(ncolors, sizeof(l_int32));
+    bmap = (l_int32 *)LEPT_CALLOC(ncolors, sizeof(l_int32));
     *prmap = rmap;
     *pgmap = gmap;
     *pbmap = bmap;
@@ -1923,10 +1929,8 @@ l_uint32  *tab;
         return ERROR_INT("cmap not defined", procName, 1);
 
     ncolors = pixcmapGetCount(cmap);
-    if (pncolors)
-        *pncolors = ncolors;
-    if ((tab = (l_uint32 *)LEPT_CALLOC(ncolors, sizeof(l_uint32))) == NULL)
-        return ERROR_INT("tab not made", procName, 1);
+    if (pncolors) *pncolors = ncolors;
+    tab = (l_uint32 *)LEPT_CALLOC(ncolors, sizeof(l_uint32));
     *ptab = tab;
 
     for (i = 0; i < ncolors; i++) {
@@ -1975,9 +1979,7 @@ l_uint8  *data;
 
     ncolors = pixcmapGetCount(cmap);
     *pncolors = ncolors;
-    if ((data = (l_uint8 *)LEPT_CALLOC((size_t)cpc * ncolors, sizeof(l_uint8)))
-             == NULL)
-        return ERROR_INT("data not made", procName, 1);
+    data = (l_uint8 *)LEPT_CALLOC((size_t)cpc * ncolors, sizeof(l_uint8));
     *pdata = data;
 
     for (i = 0; i < ncolors; i++) {

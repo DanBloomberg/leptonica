@@ -67,7 +67,9 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  INITIAL_ARRAYSIZE = 200;   /* n'import quoi */
+    /* Bounds on array size */
+static const l_uint32  MaxArraySize = 1000000000;   /* 10^9 bytes */
+static const l_int32   InitialArraySize = 200;      /*!< n'importe quoi */
 
     /* Static function */
 static l_int32 l_byteaExtendArrayToSize(L_BYTEA *ba, size_t size);
@@ -95,9 +97,8 @@ L_BYTEA  *ba;
 
     PROCNAME("l_byteaCreate");
 
-    if (nbytes <= 0)
-        nbytes = INITIAL_ARRAYSIZE;
-
+    if (nbytes <= 0 || nbytes > MaxArraySize)
+        nbytes = InitialArraySize;
     ba = (L_BYTEA *)LEPT_CALLOC(1, sizeof(L_BYTEA));
     ba->data = (l_uint8 *)LEPT_CALLOC(nbytes + 1, sizeof(l_uint8));
     if (!ba->data) {
@@ -129,6 +130,8 @@ L_BYTEA  *ba;
         return (L_BYTEA *)ERROR_PTR("data not defined", procName, NULL);
     if (size <= 0)
         return (L_BYTEA *)ERROR_PTR("no bytes to initialize", procName, NULL);
+    if (size > MaxArraySize)
+        return (L_BYTEA *)ERROR_PTR("size is too big", procName, NULL);
 
     if ((ba = l_byteaCreate(size)) == NULL)
         return (L_BYTEA *)ERROR_PTR("ba not made", procName, NULL);

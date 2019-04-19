@@ -188,11 +188,9 @@ BOX  *box;
             return (BOX *)ERROR_PTR("y < 0 and box off +quad", procName, NULL);
     }
 
-    if ((box = (BOX *)LEPT_CALLOC(1, sizeof(BOX))) == NULL)
-        return (BOX *)ERROR_PTR("box not made", procName, NULL);
+    box = (BOX *)LEPT_CALLOC(1, sizeof(BOX));
     boxSetGeometry(box, x, y, w, h);
     box->refcount = 1;
-
     return box;
 }
 

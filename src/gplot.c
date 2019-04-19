@@ -157,8 +157,7 @@ GPLOT   *gplot;
     if (badchar)  /* danger of command injection */
         return (GPLOT *)ERROR_PTR("invalid rootname", procName, NULL);
 
-    if ((gplot = (GPLOT *)LEPT_CALLOC(1, sizeof(GPLOT))) == NULL)
-        return (GPLOT *)ERROR_PTR("gplot not made", procName, NULL);
+    gplot = (GPLOT *)LEPT_CALLOC(1, sizeof(GPLOT));
     gplot->cmddata = sarrayCreate(0);
     gplot->datanames = sarrayCreate(0);
     gplot->plotdata = sarrayCreate(0);

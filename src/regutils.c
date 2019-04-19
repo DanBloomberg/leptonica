@@ -137,10 +137,7 @@ L_REGPARAMS  *rp;
 
     setLeptDebugOK(1);  /* required for testing */
 
-    if ((rp = (L_REGPARAMS *)LEPT_CALLOC(1, sizeof(L_REGPARAMS))) == NULL) {
-        LEPT_FREE(testname);
-        return ERROR_INT("rp not made", procName, 1);
-    }
+    rp = (L_REGPARAMS *)LEPT_CALLOC(1, sizeof(L_REGPARAMS));
     *prp = rp;
     rp->testname = testname;
     rp->index = -1;  /* increment before each test */

@@ -1842,13 +1842,10 @@ PIXCMAP   *cmap;
 l_int32 *
 makeGrayQuantIndexTable(l_int32  nlevels)
 {
-l_int32   *tab;
-l_int32    i, j, thresh;
+l_int32  *tab;
+l_int32   i, j, thresh;
 
-    PROCNAME("makeGrayQuantIndexTable");
-
-    if ((tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL)
-        return (l_int32 *)ERROR_PTR("calloc fail for tab", procName, NULL);
+    tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     for (i = 0; i < 256; i++) {
         for (j = 0; j < nlevels; j++) {
             thresh = 255 * (2 * j + 1) / (2 * nlevels - 2);
@@ -1895,14 +1892,10 @@ static l_int32 *
 makeGrayQuantTargetTable(l_int32  nlevels,
                          l_int32  depth)
 {
-l_int32   *tab;
-l_int32    i, j, thresh, maxval, quantval;
+l_int32  *tab;
+l_int32   i, j, thresh, maxval, quantval;
 
-    PROCNAME("makeGrayQuantTargetTable");
-
-    if ((tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL)
-        return (l_int32 *)ERROR_PTR("calloc fail for tab", procName, NULL);
-
+    tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     maxval = (1 << depth) - 1;
     if (depth < 8)
         nlevels = 1 << depth;

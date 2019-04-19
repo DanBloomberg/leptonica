@@ -142,8 +142,8 @@
 #endif  /* ! _WIN32 */
 #include "allheaders.h"
 
-static const l_int32  INITIAL_PTR_ARRAYSIZE = 50;     /* n'importe quoi */
-static const l_int32  L_BUF_SIZE = 512;
+static const l_uint32  MaxPtrArraySize = 100000;
+static const l_int32   InitialPtrArraySize = 50;      /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 sarrayExtendArray(SARRAY *sa);
@@ -165,8 +165,8 @@ SARRAY  *sa;
 
     PROCNAME("sarrayCreate");
 
-    if (n <= 0)
-        n = INITIAL_PTR_ARRAYSIZE;
+    if (n <= 0 || n > MaxPtrArraySize)
+        n = InitialPtrArraySize;
 
     sa = (SARRAY *)LEPT_CALLOC(1, sizeof(SARRAY));
     if ((sa->array = (char **)LEPT_CALLOC(n, sizeof(char *))) == NULL) {
@@ -1406,7 +1406,7 @@ SARRAY  *sa;
     success = TRUE;
     if ((sa = sarrayCreate(n)) == NULL)
         return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
-    bufsize = L_BUF_SIZE + 1;
+    bufsize = 512 + 1;
     stringbuf = (char *)LEPT_CALLOC(bufsize, sizeof(char));
 
     for (i = 0; i < n; i++) {

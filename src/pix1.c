@@ -471,8 +471,7 @@ PIX      *pixd;
         return (PIX *)ERROR_PTR("requested bytes >= 2^31", procName, NULL);
     }
 
-    if ((pixd = (PIX *)LEPT_CALLOC(1, sizeof(PIX))) == NULL)
-        return (PIX *)ERROR_PTR("LEPT_CALLOC fail for pixd", procName, NULL);
+    pixd = (PIX *)LEPT_CALLOC(1, sizeof(PIX));
     pixSetWidth(pixd, width);
     pixSetHeight(pixd, height);
     pixSetDepth(pixd, depth);

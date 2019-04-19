@@ -153,11 +153,14 @@
 
     /* Bounds on initial array size */
 static const l_uint32  MaxPtrArraySize = 1000000;
-static const l_int32 InitialPtrArraySize = 20;      /*!< n'importe quoi */
+static const l_int32  InitialPtrArraySize = 20;      /*!< n'importe quoi */
+
+    /* Bound on data size */
+static const size_t  MaxDataSize = 1000000000;
 
     /* These two globals are defined in writefile.c */
-extern l_int32 NumImageFileFormatExtensions;
-extern const char *ImageFileFormatExtensions[];
+extern l_int32  NumImageFileFormatExtensions;
+extern const char  *ImageFileFormatExtensions[];
 
     /* Static functions */
 static l_int32 pixacompExtendArray(PIXAC *pixac);
@@ -201,8 +204,7 @@ PIXC     *pixc;
         comptype != IFF_PNG && comptype != IFF_JFIF_JPEG)
         return (PIXC *)ERROR_PTR("invalid comptype", procName, NULL);
 
-    if ((pixc = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC))) == NULL)
-        return (PIXC *)ERROR_PTR("pixc not made", procName, NULL);
+    pixc = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC));
     pixGetDimensions(pix, &pixc->w, &pixc->h, &pixc->d);
     pixGetResolution(pix, &pixc->xres, &pixc->yres);
     if (pixGetColormap(pix))
@@ -257,8 +259,7 @@ PIXC    *pixc;
 
     if (pixReadHeaderMem(data, size, &format, &w, &h, &bps, &spp, &iscmap) == 1)
         return (PIXC *)ERROR_PTR("header data not read", procName, NULL);
-    if ((pixc = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC))) == NULL)
-        return (PIXC *)ERROR_PTR("pixc not made", procName, NULL);
+    pixc = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC));
     d = (spp == 3) ? 32 : bps * spp;
     pixc->w = w;
     pixc->h = h;
@@ -394,8 +395,7 @@ PIXC     *pixcd;
     if (!pixcs)
         return (PIXC *)ERROR_PTR("pixcs not defined", procName, NULL);
 
-    if ((pixcd = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC))) == NULL)
-        return (PIXC *)ERROR_PTR("pixcd not made", procName, NULL);
+    pixcd = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC));
     pixcd->w = pixcs->w;
     pixcd->h = pixcs->h;
     pixcd->d = pixcs->d;
@@ -409,7 +409,10 @@ PIXC     *pixcd;
         /* Copy image data */
     size = pixcs->size;
     datas = pixcs->data;
-    datad = (l_uint8 *)LEPT_CALLOC(size, sizeof(l_int8));
+    if ((datad = (l_uint8 *)LEPT_CALLOC(size, sizeof(l_int8))) == NULL) {
+        pixcompDestroy(&pixcd);
+        return (PIXC *)ERROR_PTR("pixcd not made", procName, NULL);
+    }
     memcpy(datad, datas, size);
     pixcd->data = datad;
     pixcd->size = size;
@@ -1675,7 +1678,8 @@ pixacompReadStream(FILE  *fp)
 char      buf[256];
 l_uint8  *data;
 l_int32   n, offset, i, w, h, d, ignore;
-l_int32   comptype, size, cmapflag, version, xres, yres;
+l_int32   comptype, cmapflag, version, xres, yres;
+size_t    size;
 BOXA     *boxa;
 PIXC     *pixc;
 PIXAC    *pixac;
@@ -1708,12 +1712,17 @@ PIXAC    *pixac;
         if (fscanf(fp, "\nPixcomp[%d]: w = %d, h = %d, d = %d\n",
                    &ignore, &w, &h, &d) != 4) {
             pixacompDestroy(&pixac);
-            return (PIXAC *)ERROR_PTR("size reading", procName, NULL);
+            return (PIXAC *)ERROR_PTR("dimension reading", procName, NULL);
         }
-        if (fscanf(fp, "  comptype = %d, size = %d, cmapflag = %d\n",
+        if (fscanf(fp, "  comptype = %d, size = %zu, cmapflag = %d\n",
                    &comptype, &size, &cmapflag) != 3) {
             pixacompDestroy(&pixac);
             return (PIXAC *)ERROR_PTR("comptype/size reading", procName, NULL);
+        }
+        if (size > MaxDataSize) {
+            pixacompDestroy(&pixac);
+            L_ERROR("data size = %zu is too big", procName, size);
+            return NULL;
         }
 
            /* Use fgets() and sscanf(); not fscanf(), for the last
