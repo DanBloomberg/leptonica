@@ -62,6 +62,14 @@ endif()
 
 if (UNIX)
     target_link_libraries       (leptonica m)
+    set(lib ${CMAKE_SHARED_LIBRARY_PREFIX})
+    set(dll ${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(old_target ${lib}lept${dll})
+    add_custom_target(lept ALL
+        ${CMAKE_COMMAND} -E create_symlink "$<TARGET_FILE:leptonica>" ${old_target}
+        DEPENDS ${PROJECT_NAME}
+        COMMENT "Creating lept symlink")
+    install(FILES ${CMAKE_BINARY_DIR}/src/${old_target} DESTINATION lib)
 endif()
 
 if (NOT CPPAN_BUILD)
