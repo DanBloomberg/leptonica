@@ -70,7 +70,6 @@ if (UNIX)
         DEPENDS ${PROJECT_NAME}
         COMMENT "Creating lept symlink")
     install(FILES ${CMAKE_BINARY_DIR}/src/${old_target} DESTINATION lib)
-    # install(EXPORT LeptonicaTargets DESTINATION cmake)
 endif()
 
 if (NOT CPPAN_BUILD)
