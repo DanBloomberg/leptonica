@@ -197,6 +197,10 @@
 #include <sys/types.h>
 #endif
 
+#ifdef OS_IOS
+#include <unistd.h>
+#endif
+
 #include <string.h>
 #include <stddef.h>
 #include "allheaders.h"
@@ -3129,8 +3133,10 @@ l_int32  dirlen, namelen, size;
  *      (2) Caller allocates %result, large enough to hold the path,
  *          which is:
  *            /tmp/%subdir       (unix)
- *            [Temp]/%subdir     (windows)
- *          where [Temp] is a path on windows determined by GenTempPath()
+ *            [Temp]/%subdir     (windows, mac, ios)
+ *          where [Temp] is a path determined
+ *             - on windows, mac: by GetTempPath()
+ *             - on ios: by confstr() (see man page)
  *          and %subdir is in general a set of nested subdirectories:
  *            dir1/dir2/.../dirN
  *          which in use would not typically exceed 2 levels.
@@ -3158,7 +3164,22 @@ size_t   pathlen;
         return ERROR_INT("subdir not an actual subdirectory", procName, 1);
 
     memset(result, 0, nbytes);
+
+#ifdef OS_IOS
+    {
+        size_t n = confstr(_CS_DARWIN_USER_TEMP_DIR, result, nbytes);
+        if (n == 0) {
+            L_ERROR("failed to find tmp dir, %s\n", procName, strerror(errno));
+            return 1;
+        } else if (n > nbytes) {
+            return ERROR_INT("result array too small for path\n", procName, 1);
+        }
+        dir = pathJoin(result, subdir);
+    }
+#else
     dir = pathJoin("/tmp", subdir);
+#endif /*  ~ OS_IOS */
+
 #ifndef _WIN32
     path = stringNew(dir);
 #else
