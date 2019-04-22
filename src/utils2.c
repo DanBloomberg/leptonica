@@ -199,6 +199,7 @@
 
 #ifdef OS_IOS
 #include <unistd.h>
+#include <errno.h>
 #endif
 
 #include <string.h>
