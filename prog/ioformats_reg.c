@@ -64,22 +64,23 @@
 #include <config_auto.h>
 #endif /* HAVE_CONFIG_H */
 
-#define   BMP_FILE            "test1.bmp"
-#define   FILE_1BPP           "feyn.tif"
-#define   FILE_2BPP           "speckle2.png"
-#define   FILE_2BPP_C         "weasel2.4g.png"
-#define   FILE_4BPP           "speckle4.png"
-#define   FILE_4BPP_C         "weasel4.16c.png"
-#define   FILE_8BPP_1         "dreyfus8.png"
-#define   FILE_8BPP_2         "weasel8.240c.png"
-#define   FILE_8BPP_3         "test8.jpg"
-#define   FILE_16BPP          "test16.tif"
-#define   FILE_32BPP          "marge.jpg"
-#define   FILE_32BPP_ALPHA    "test32-alpha.png"
-#define   FILE_1BIT_ALPHA     "test-1bit-alpha.png"
-#define   FILE_CMAP_ALPHA     "test-cmap-alpha.png"
-#define   FILE_TRANS_ALPHA    "test-fulltrans-alpha.png"
-#define   FILE_GRAY_ALPHA     "test-gray-alpha.png"
+#define   BMP_FILE             "test1.bmp"
+#define   FILE_1BPP            "feyn.tif"
+#define   FILE_2BPP            "speckle2.png"
+#define   FILE_2BPP_C          "weasel2.4g.png"
+#define   FILE_4BPP            "speckle4.png"
+#define   FILE_4BPP_C          "weasel4.16c.png"
+#define   FILE_8BPP_1          "dreyfus8.png"
+#define   FILE_8BPP_2          "weasel8.240c.png"
+#define   FILE_8BPP_3          "test8.jpg"
+#define   FILE_16BPP           "test16.tif"
+#define   FILE_32BPP           "marge.jpg"
+#define   FILE_32BPP_ALPHA     "test32-alpha.png"
+#define   FILE_1BIT_ALPHA      "test-1bit-alpha.png"
+#define   FILE_CMAP_ALPHA      "test-cmap-alpha.png"
+#define   FILE_TRANS_ALPHA     "test-fulltrans-alpha.png"
+#define   FILE_GRAY_ALPHA      "test-gray-alpha.png"
+#define   FILE_GRAY_ALPHA_TIF  "gray-alpha.tif"
 
 static l_int32 testcomp(const char *filename, PIX *pix, l_int32 comptype);
 static l_int32 testcomp_mem(PIX *pixs, PIX **ppixt, l_int32 index,
@@ -277,6 +278,34 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
+    
+        /* Test writing and reading tiff with alpha */
+    pix1 = pixRead(FILE_GRAY_ALPHA_TIF);  /* converts to RGBA */
+    pixWrite("/tmp/lept/regout/graya.tif", pix1, IFF_TIFF);
+    readHeaderTiff("/tmp/lept/regout/graya.tif", 0, &w, &h, &bps, &spp,
+                   NULL, &iscmap, NULL);
+    if (w != 100 || h != 100 || bps != 8 || spp != 4 || iscmap != 0) {
+        fprintf(stderr, "Header error testing tiff with alpha\n");
+        success = FALSE;
+    }
+    pix2 = pixRead("/tmp/lept/regout/graya.tif");
+    pixEqual(pix1, pix2, &same);
+    if (!same) {
+        fprintf(stderr, "Tiff read/write failed for graya.tif\n");
+        success = FALSE;
+    }
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pix1 = pixRead(FILE_GRAY_ALPHA);  /* converts to RGBA */
+    pixWriteTiff("/tmp/lept/regout/graya2.tif", pix1, IFF_TIFF_ZIP, "w");
+    pix2 = pixRead("/tmp/lept/regout/graya2.tif");
+    pixEqual(pix1, pix2, &same);
+    if (!same) {
+        fprintf(stderr, "Tiff read/write failed for graya2.tif\n");
+        success = FALSE;
+    }
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
     
     if (success)
         fprintf(stderr,

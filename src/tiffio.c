@@ -467,10 +467,10 @@ static PIX *
 pixReadFromTiffStream(TIFF  *tif)
 {
 char      *text;
-l_uint8   *linebuf, *data;
+l_uint8   *linebuf, *data, *rowptr;
 l_uint16   spp, bps, bpp, photometry, tiffcomp, orientation;
 l_uint16  *redmap, *greenmap, *bluemap;
-l_int32    d, wpl, bpl, comptype, i, j, ncolors, rval, gval, bval;
+l_int32    d, wpl, bpl, comptype, i, j, k, ncolors, rval, gval, bval, aval;
 l_int32    xres, yres;
 l_uint32   w, h, tiffbpl, tiffword, read_oriented;
 l_uint32  *line, *ppixel, *tiffdata, *pixdata;
@@ -493,10 +493,12 @@ PIXCMAP   *cmap;
     }
     if (spp == 1)
         d = bps;
+    else if (spp == 2)  /* gray plus alpha */
+        d = 32;  /* will convert to RGBA */
     else if (spp == 3 || spp == 4)
         d = 32;
     else
-        return (PIX *)ERROR_PTR("spp not in set {1,3,4}", procName, NULL);
+        return (PIX *)ERROR_PTR("spp not in set {1,2,3,4}", procName, NULL);
     bpp = bps * spp;
     if (bpp > 32) {  /* for rgb or rgba only */
         L_WARNING("bpp = %d; stripping 16 bit rgb samples down to 8\n",
@@ -524,7 +526,7 @@ PIXCMAP   *cmap;
          * pull out the red component. */
     if (spp == 1 && tiffcomp != COMPRESSION_OJPEG) {
         linebuf = (l_uint8 *)LEPT_CALLOC(tiffbpl + 1, sizeof(l_uint8));
-        for (i = 0 ; i < h ; i++) {
+        for (i = 0; i < h; i++) {
             if (TIFFReadScanline(tif, linebuf, i, 0) < 0) {
                 LEPT_FREE(linebuf);
                 pixDestroy(&pix);
@@ -538,7 +540,30 @@ PIXCMAP   *cmap;
         else   /* bps == 16 */
             pixEndianTwoByteSwap(pix);
         LEPT_FREE(linebuf);
-    } else {  /* rgb or old jpeg */
+    } else if (spp == 2 && bps == 8) {  /* gray plus alpha */
+        L_INFO("gray+alpha is not supported; converting to RGBA\n", procName);
+        pixSetSpp(pix, 4);
+        linebuf = (l_uint8 *)LEPT_CALLOC(tiffbpl + 1, sizeof(l_uint8));
+        pixdata = pixGetData(pix);
+        for (i = 0; i < h; i++) {
+            if (TIFFReadScanline(tif, linebuf, i, 0) < 0) {
+                LEPT_FREE(linebuf);
+                pixDestroy(&pix);
+                return (PIX *)ERROR_PTR("line read fail", procName, NULL);
+            }
+            rowptr = linebuf;
+            ppixel = pixdata + i * wpl;
+            for (j = k = 0; j < w; j++) {
+                    /* Copy gray value into r, g and b */
+                SET_DATA_BYTE(ppixel, COLOR_RED, rowptr[k]);
+                SET_DATA_BYTE(ppixel, COLOR_GREEN, rowptr[k]);
+                SET_DATA_BYTE(ppixel, COLOR_BLUE, rowptr[k++]);
+                SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL, rowptr[k++]);
+                ppixel++;
+            }
+        }
+        LEPT_FREE(linebuf);
+    } else {  /* rgb, rgba, or old jpeg */
         if ((tiffdata = (l_uint32 *)LEPT_CALLOC((size_t)w * h,
                                                  sizeof(l_uint32))) == NULL) {
             pixDestroy(&pix);
@@ -564,7 +589,8 @@ PIXCMAP   *cmap;
                     SET_DATA_BYTE(line, j, rval);
                 }
             }
-        } else {  /* standard rgb */
+        } else {  /* rgb or rgba */
+            if (spp == 4) pixSetSpp(pix, 4);
             line = pixGetData(pix);
             for (i = 0; i < h; i++, line += wpl) {
                 for (j = 0, ppixel = line; j < w; j++) {
@@ -573,7 +599,12 @@ PIXCMAP   *cmap;
                     rval = TIFFGetR(tiffword);
                     gval = TIFFGetG(tiffword);
                     bval = TIFFGetB(tiffword);
-                    composeRGBPixel(rval, gval, bval, ppixel);
+                    if (spp == 3) {
+                        composeRGBPixel(rval, gval, bval, ppixel);
+                    } else {  /* spp == 4 */
+                        aval = TIFFGetA(tiffword);
+                        composeRGBAPixel(rval, gval, bval, aval, ppixel);
+                    }
                     ppixel++;
                 }
             }
@@ -898,7 +929,7 @@ pixWriteToTiffStream(TIFF    *tif,
 {
 l_uint8   *linebuf, *data;
 l_uint16   redmap[256], greenmap[256], bluemap[256];
-l_int32    w, h, d, i, j, k, wpl, bpl, tiffbpl, ncolors, cmapsize;
+l_int32    w, h, d, spp, i, j, k, wpl, bpl, tiffbpl, ncolors, cmapsize;
 l_int32   *rmap, *gmap, *bmap;
 l_int32    xres, yres;
 l_uint32  *line, *ppixel;
@@ -915,6 +946,7 @@ char      *text;
 
     pixSetPadBits(pix, 0);
     pixGetDimensions(pix, &w, &h, &d);
+    spp = pixGetSpp(pix);
     xres = pixGetXRes(pix);
     yres = pixGetYRes(pix);
     if (xres == 0) xres = DEFAULT_RESOLUTION;
@@ -934,11 +966,20 @@ char      *text;
 
     if (d == 1)
         TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISWHITE);
-    else if (d == 32 || d == 24) {
+    else if ((d == 32 && spp == 3) || d == 24) {
         TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+        TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, (l_uint16)3);
         TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE,
                        (l_uint16)8, (l_uint16)8, (l_uint16)8);
-        TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, (l_uint16)3);
+    } else if (d == 32 && spp == 4) {
+        /* TODO: figure out why tiffinfo complains that 3 + 1 != 4 spp */
+        TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+        TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, (l_uint16)4);
+        TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE,
+                     (l_uint16)8, (l_uint16)8, (l_uint16)8, (l_uint16)8);
+        TIFFSetField(tif, TIFFTAG_EXTRASAMPLES, EXTRASAMPLE_UNASSALPHA);
+    } else if (d == 16) {  /* we only support spp = 1, bps = 16 */
+        TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
     } else if ((cmap = pixGetColormap(pix)) == NULL) {
         TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
     } else {  /* Save colormap in the tiff; not more than 256 colors */
@@ -969,7 +1010,7 @@ char      *text;
         TIFFSetField(tif, TIFFTAG_COLORMAP, redmap, greenmap, bluemap);
     }
 
-    if (d != 24 && d != 32) {
+    if (d <= 16) {
         TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, (l_uint16)d);
         TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, (l_uint16)1);
     }
@@ -1029,13 +1070,15 @@ char      *text;
             if (TIFFWriteScanline(tif, (l_uint8 *)line, i, 0) < 0)
                 break;
         }
-    } else {  /* standard 32 bpp rgb */
+    } else {  /* 32 bpp rgb or rgba */
         for (i = 0; i < h; i++) {
             line = pixGetData(pix) + i * wpl;
             for (j = 0, k = 0, ppixel = line; j < w; j++) {
                 linebuf[k++] = GET_DATA_BYTE(ppixel, COLOR_RED);
                 linebuf[k++] = GET_DATA_BYTE(ppixel, COLOR_GREEN);
                 linebuf[k++] = GET_DATA_BYTE(ppixel, COLOR_BLUE);
+                if (spp == 4)
+                    linebuf[k++] = GET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL);
                 ppixel++;
             }
             if (TIFFWriteScanline(tif, linebuf, i, 0) < 0)
@@ -1859,8 +1902,8 @@ l_uint32   w, h;
         return ERROR_INT("tif w and h not both > 0", procName, 1);
     if (bps != 1 && bps != 2 && bps != 4 && bps != 8 && bps > 16)
         return ERROR_INT("bps not in set {1,2,4,8,16}", procName, 1);
-    if (spp != 1 && spp != 3 && spp != 4)
-        return ERROR_INT("spp not in set {1,3,4}", procName, 1);
+    if (spp != 1 && spp != 2 && spp != 3 && spp != 4)
+        return ERROR_INT("spp not in set {1,2,3,4}", procName, 1);
     if (pw) *pw = w;
     if (ph) *ph = h;
     if (pbps) *pbps = bps;

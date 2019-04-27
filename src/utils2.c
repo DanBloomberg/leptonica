@@ -2765,6 +2765,9 @@ char  *cpathname, *lastslash;
  *            ./.jpg            -->  basename: ./              ext: .jpg
  *      (4) The input can have either forward (unix) or backward (win)
  *          slash separators.  The output has unix separators.
+ *      (5) Note that basename, as used here, is different from the result
+ *          of the unix program 'basename'.  Here, basename is the entire
+ *          pathname up to a final extension and its preceding dot.
  * </pre>
  */
 l_ok
