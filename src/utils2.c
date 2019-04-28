@@ -2688,11 +2688,18 @@ l_int32  ret;
  *          tail ptr.
  *      (3) This function makes decisions based only on the lexical
  *          structure of the input.  Examples:
- *            /usr/tmp/abc  -->  dir: /usr/tmp/       tail: abc
- *            /usr/tmp/     -->  dir: /usr/tmp/       tail: [empty string]
- *            /usr/tmp      -->  dir: /usr/           tail: tmp
- *            abc           -->  dir: [empty string]  tail: abc
- *      (4) The input can have either forward (unix) or backward (win)
+ *            /usr/tmp/abc.d  -->  dir: /usr/tmp/       tail: abc.d
+ *            /usr/tmp/       -->  dir: /usr/tmp/       tail: [empty string]
+ *            /usr/tmp        -->  dir: /usr/           tail: tmp
+ *            abc.d           -->  dir: [empty string]  tail: abc.d
+ *      (4  Consider the first example above: /usr/tmp/abc.d.
+ *          Suppose you want the stem of the file, abc, without either
+ *          the directory or the extension.  This can be extracted in two steps:
+ *              splitPathAtDirectory("usr/tmp/abc.d", NULL, &tail);
+ *                   [sets tail: "abc.d"]
+ *              splitPathAtExtension(tail, &basename, NULL);
+ *                   [sets basename: "abc"]
+ *      (5) The input can have either forward (unix) or backward (win)
  *          slash separators.  The output has unix separators.
  *          Note that Win32 pathname functions generally accept both
  *          slash forms, but the windows command line interpreter
