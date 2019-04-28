@@ -438,14 +438,17 @@ TIFF  *tif;
  *
  * <pre>
  * Notes:
- *      (1) We handle pixels up to 32 bits.  This includes:
+ *      (1) We can read the following images (up to 32 bits/pixel):
  *          1 spp (grayscale): 1, 2, 4, 8, 16 bps
  *          1 spp (colormapped): 1, 2, 4, 8 bps
- *          3 spp (color): 8 bps
- *          We do not handle 3 spp, 16 bps (48 bits/pixel)
- *      (2) For colormapped images, we support 8 bits/color in the palette.
+ *          2 spp (gray+alpha): 8 bps
+ *          3 spp (rgb) and 4 spp (rgba): 8 bps
+ *      (2) We do not handle 16 bps for spp > 1.
+ *      (3) 2 bpp gray+alpha are rasterized as 32 bit/pixel rgba, with
+ *          the gray value replicated in r, g and b.
+ *      (4) For colormapped images, we support 8 bits/color in the palette.
  *          Tiff colormaps have 16 bits/color, and we reduce them to 8.
- *      (3) Quoting the libtiff documentation at
+ *      (5) Quoting the libtiff documentation at
  *               http://libtiff.maptools.org/libtiff.html
  *          "libtiff provides a high-level interface for reading image data
  *          from a TIFF file. This interface handles the details of data
@@ -468,7 +471,7 @@ pixReadFromTiffStream(TIFF  *tif)
 {
 char      *text;
 l_uint8   *linebuf, *data, *rowptr;
-l_uint16   spp, bps, bpp, photometry, tiffcomp, orientation;
+l_uint16   spp, bps, photometry, tiffcomp, orientation;
 l_uint16  *redmap, *greenmap, *bluemap;
 l_int32    d, wpl, bpl, comptype, i, j, k, ncolors, rval, gval, bval, aval;
 l_int32    xres, yres;
@@ -491,6 +494,10 @@ PIXCMAP   *cmap;
         L_ERROR("invalid bps = %d\n", procName, bps);
         return NULL;
     }
+    if (spp > 1 && bps != 8) {
+        L_WARNING("only handle 8 bps for 2, 3 or 4 spp\n", procName);
+        return NULL;
+    }
     if (spp == 1)
         d = bps;
     else if (spp == 2)  /* gray plus alpha */
@@ -499,12 +506,6 @@ PIXCMAP   *cmap;
         d = 32;
     else
         return (PIX *)ERROR_PTR("spp not in set {1,2,3,4}", procName, NULL);
-    bpp = bps * spp;
-    if (bpp > 32) {  /* for rgb or rgba only */
-        L_WARNING("bpp = %d; stripping 16 bit rgb samples down to 8\n",
-                  procName, bpp);
-        bps = 8;
-    }
 
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
@@ -977,7 +978,6 @@ char      *text;
         TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, (l_uint16)4);
         TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE,
                      (l_uint16)8, (l_uint16)8, (l_uint16)8, (l_uint16)8);
-        TIFFSetField(tif, TIFFTAG_EXTRASAMPLES, EXTRASAMPLE_UNASSALPHA);
     } else if (d == 16) {  /* we only support spp = 1, bps = 16 */
         TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
     } else if ((cmap = pixGetColormap(pix)) == NULL) {
