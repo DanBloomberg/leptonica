@@ -442,8 +442,8 @@ TIFF  *tif;
  *          1 spp (grayscale): 1, 2, 4, 8, 16 bps
  *          1 spp (colormapped): 1, 2, 4, 8 bps
  *          2 spp (gray+alpha): 8 bps
- *          3 spp (rgb) and 4 spp (rgba): 8 bps
- *      (2) We do not handle 16 bps for spp > 1.
+ *          3 spp (rgb) and 4 spp (rgba): 8 or 16 bps
+ *      (2) We do not handle 16 bps for spp == 2.
  *      (3) 2 bpp gray+alpha are rasterized as 32 bit/pixel rgba, with
  *          the gray value replicated in r, g and b.
  *      (4) For colormapped images, we support 8 bits/color in the palette.
@@ -494,8 +494,8 @@ PIXCMAP   *cmap;
         L_ERROR("invalid bps = %d\n", procName, bps);
         return NULL;
     }
-    if (spp > 1 && bps != 8) {
-        L_WARNING("only handle 8 bps for 2, 3 or 4 spp\n", procName);
+    if (spp == 2 && bps != 8) {
+        L_WARNING("only handle 8 bps for 2 spp\n", procName);
         return NULL;
     }
     if (spp == 1)
