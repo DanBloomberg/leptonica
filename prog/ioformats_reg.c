@@ -81,6 +81,7 @@
 #define   FILE_TRANS_ALPHA     "test-fulltrans-alpha.png"
 #define   FILE_GRAY_ALPHA      "test-gray-alpha.png"
 #define   FILE_GRAY_ALPHA_TIF  "gray-alpha.tif"
+#define   FILE_RGB16_TIF       "rgb16.tif"
 
 static l_int32 testcomp(const char *filename, PIX *pix, l_int32 comptype);
 static l_int32 testcomp_mem(PIX *pixs, PIX **ppixt, l_int32 index,
@@ -307,6 +308,24 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     
+        /* Test reading 16 bit sampled rgb tiff */
+    pix1 = pixRead(FILE_RGB16_TIF);  /* converts 16 to 8 bits RGB */
+    pixWrite("/tmp/lept/regout/rgb16.tif", pix1, IFF_TIFF_ZIP);
+    readHeaderTiff("/tmp/lept/regout/rgb16.tif", 0, &w, &h, &bps, &spp,
+                   NULL, &iscmap, NULL);
+    if (w != 129 || h != 90 || bps != 8 || spp != 3 || iscmap != 0) {
+        fprintf(stderr, "Header error testing tiff with alpha\n");
+        success = FALSE;
+    }
+    pix2 = pixRead("/tmp/lept/regout/rgb16.tif");
+    pixEqual(pix1, pix2, &same);
+    if (!same) {
+        fprintf(stderr, "Tiff read/write failed for rgb16.tif\n");
+        success = FALSE;
+    }
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+
     if (success)
         fprintf(stderr,
             "\n  ********** Success on tiff r/w to file *********\n\n");

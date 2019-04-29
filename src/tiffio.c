@@ -973,7 +973,9 @@ char      *text;
         TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE,
                        (l_uint16)8, (l_uint16)8, (l_uint16)8);
     } else if (d == 32 && spp == 4) {
-        /* TODO: figure out why tiffinfo complains that 3 + 1 != 4 spp */
+        l_uint16  val[1];
+        val[0] = EXTRASAMPLE_ASSOCALPHA;
+        TIFFSetField(tif, TIFFTAG_EXTRASAMPLES, (l_uint16)1, &val);
         TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
         TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, (l_uint16)4);
         TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE,

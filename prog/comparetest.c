@@ -73,8 +73,11 @@ static char  mainName[] = "comparetest";
     type = atoi(argv[3]);
     pixd = NULL;
     fileout = argv[4];
-    l_pngSetReadStrip16To8(0);
     setLeptDebugOK(1);
+
+        /* If comparing image files with 16 bps and spp > 1,
+         * comment this line out to strip 16 --> 8 spp */
+    l_pngSetReadStrip16To8(0);
 
     if ((pixs1 = pixRead(filein1)) == NULL)
         return ERROR_INT("pixs1 not made", mainName, 1);

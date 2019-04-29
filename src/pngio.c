@@ -233,10 +233,11 @@ PIXCMAP     *cmap;
     png_init_io(png_ptr, fp);
 
         /* ---------------------------------------------------------- *
-         *  Set the transforms flags.  Whatever happens here,
-         *  NEVER invert 1 bpp using PNG_TRANSFORM_INVERT_MONO.
-         *  Also, do not use PNG_TRANSFORM_EXPAND, which would
-         *  expand all images with bpp < 8 to 8 bpp.
+         *  - Set the transforms flags.  Whatever happens here,
+         *    NEVER invert 1 bpp using PNG_TRANSFORM_INVERT_MONO.
+         *  - Do not use PNG_TRANSFORM_EXPAND, which would
+         *    expand all images with bpp < 8 to 8 bpp.
+         *  - Strip 16 --> 8 if reading 16-bit gray+alpha
          * ---------------------------------------------------------- */
         /* To strip 16 --> 8 bit depth, use PNG_TRANSFORM_STRIP_16 */
     if (var_PNG_STRIP_16_TO_8 == 1) {  /* our default */
@@ -266,10 +267,11 @@ PIXCMAP     *cmap;
     }
 
         /* Remove if/when this is implemented for all bit_depths */
-    if (spp == 3 && bit_depth != 8) {
-        fprintf(stderr, "Help: spp = 3 and depth = %d != 8\n!!", bit_depth);
+    if (spp != 1 && bit_depth != 8) {
+        L_ERROR("spp = %d and bps = %d != 8\n"
+                "turn on 16 --> 8 stripping\n", procName, spp, bit_depth);
         png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
-        return (PIX *)ERROR_PTR("not implemented for this depth",
+        return (PIX *)ERROR_PTR("not implemented for this image",
             procName, NULL);
     }
 
