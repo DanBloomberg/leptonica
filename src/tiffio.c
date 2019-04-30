@@ -471,7 +471,7 @@ pixReadFromTiffStream(TIFF  *tif)
 {
 char      *text;
 l_uint8   *linebuf, *data, *rowptr;
-l_uint16   spp, bps, photometry, tiffcomp, orientation;
+l_uint16   spp, bps, photometry, tiffcomp, orientation, sample_fmt;
 l_uint16  *redmap, *greenmap, *bluemap;
 l_int32    d, wpl, bpl, comptype, i, j, k, ncolors, rval, gval, bval, aval;
 l_int32    xres, yres;
@@ -486,6 +486,17 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("tif not defined", procName, NULL);
 
     read_oriented = 0;
+
+        /* Only accept uint image data:
+         *   SAMPLEFORMAT_UINT = 1;
+         *   SAMPLEFORMAT_INT = 2;
+         *   SAMPLEFORMAT_IEEEFP = 3;
+         *   SAMPLEFORMAT_VOID = 4;   */
+    TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLEFORMAT, &sample_fmt);
+    if (sample_fmt != SAMPLEFORMAT_UINT) {
+        L_ERROR("sample format = %d is not uint\n", procName, sample_fmt);
+        return NULL;
+    }
 
         /* Use default fields for bps and spp */
     TIFFGetFieldDefaulted(tif, TIFFTAG_BITSPERSAMPLE, &bps);
@@ -630,11 +641,11 @@ PIXCMAP   *cmap;
              * the pix cmap takes the most significant byte. */
         if (bps > 8) {
             pixDestroy(&pix);
-            return (PIX *)ERROR_PTR("invalid bps; > 8", procName, NULL);
+            return (PIX *)ERROR_PTR("colormap size > 256", procName, NULL);
         }
         if ((cmap = pixcmapCreate(bps)) == NULL) {
             pixDestroy(&pix);
-            return (PIX *)ERROR_PTR("cmap not made", procName, NULL);
+            return (PIX *)ERROR_PTR("colormap not made", procName, NULL);
         }
         ncolors = 1 << bps;
         for (i = 0; i < ncolors; i++)
