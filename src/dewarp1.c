@@ -416,9 +416,9 @@ static const l_int32     DEFAULT_USE_BOTH = TRUE;
 static const l_int32     DEFAULT_CHECK_COLUMNS = TRUE;
 
     /* Parameter values used in dewarpaSetCurvatures() */
-static const l_int32     DEFAULT_MAX_LINECURV = 180;
+static const l_int32     DEFAULT_MAX_LINECURV = 150;
 static const l_int32     DEFAULT_MIN_DIFF_LINECURV = 0;
-static const l_int32     DEFAULT_MAX_DIFF_LINECURV = 200;
+static const l_int32     DEFAULT_MAX_DIFF_LINECURV = 170;
 static const l_int32     DEFAULT_MAX_EDGECURV = 50;
 static const l_int32     DEFAULT_MAX_DIFF_EDGECURV = 40;
 static const l_int32     DEFAULT_MAX_EDGESLOPE = 80;
@@ -957,7 +957,7 @@ dewarpaGetDewarp(L_DEWARPA  *dewa,
  *          A model having maximum line curvature larger than about 150
  *          micro-units should probably not be used.
  *      (5) A model having a left or right edge curvature larger than
- *          about 100 micro-units should probably not be used.
+ *          about 50 micro-units should probably not be used.
  * </pre>
  */
 l_ok

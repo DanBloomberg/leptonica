@@ -606,6 +606,10 @@ FPIX      *fpix;
     ret = dewarpFilterLineEndPoints(dew, ptal1, ptar1, &ptal2, &ptar2);
     ptaDestroy(&ptal1);
     ptaDestroy(&ptar1);
+    if (ret) {
+        L_INFO("Not enough filtered end points\n", procName);
+        return 1;
+    }
 
         /* Do a quadratic fit to the left and right endpoints of the
          * longest lines.  Each line is represented by 3 coefficients:
