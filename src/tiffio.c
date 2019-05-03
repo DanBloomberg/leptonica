@@ -498,6 +498,14 @@ PIXCMAP   *cmap;
         return NULL;
     }
 
+        /* Can't read tiff in tiled format. For what is involved, see, e.g:
+         *   https://www.cs.rochester.edu/~nelson/courses/vision/\
+         *     resources/tiff/libtiff.html#Tiles   */
+    if (TIFFIsTiled(tif)) {
+        L_ERROR("tiled format is not supported\n", procName);
+        return NULL;
+    }
+
         /* Use default fields for bps and spp */
     TIFFGetFieldDefaulted(tif, TIFFTAG_BITSPERSAMPLE, &bps);
     TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLESPERPIXEL, &spp);

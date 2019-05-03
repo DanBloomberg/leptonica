@@ -910,7 +910,8 @@ size_t  datalen;
  * \param[in]      src      input string; can be of zero length
  * \param[in]      sub1     substring to be replaced
  * \param[in]      sub2     substring to put in; can be ""
- * \param[in,out]  ploc     input start location; return loc after replacement
+ * \param[in,out]  ploc     [optional] input start location for search;
+ *                          returns the loc after replacement
  * \param[out]     pfound   [optional] 1 if sub1 is found; 0 otherwise
  * \return  dest string with substring replaced, or NULL on error.
  *
@@ -920,13 +921,14 @@ size_t  datalen;
  *      (2) To remove sub1 without replacement, use "" for sub2.
  *      (3) Returns a copy of %src if either no instance of %sub1 is found,
  *          or if %sub1 and %sub2 are the same.
- *      (4) %loc must be initialized.  As input, it is the byte offset
+ *      (4) If %ploc == NULL, the search will start at the beginning of %src.
+ *          If %ploc != NULL, *ploc must be initialized to the byte offset
  *          within %src from which the search starts.  To search the
- *          string from the beginning, set %loc = 0.  After finding
- *          %sub1 and replacing it with %sub2, %loc is returned as
- *          the next position in the output string.  Note that the
- *          output string also includes all the characters from the
- *          input string that occur after the single substitution.
+ *          string from the beginning, set %loc = 0 and input &loc.
+ *          After finding %sub1 and replacing it with %sub2, %loc will be
+ *          returned as the next position after %sub2 in the output string.
+ *      (5) Note that the output string also includes all the characters
+ *          from the input string that occur after the single substitution.
  * </pre>
  */
 char *
@@ -936,9 +938,9 @@ stringReplaceSubstr(const char  *src,
                     l_int32     *ploc,
                     l_int32     *pfound)
 {
-const char *ptr;
-char       *dest;
-l_int32     nsrc, nsub1, nsub2, len, npre, loc;
+const char  *ptr;
+char        *dest;
+l_int32      nsrc, nsub1, nsub2, len, npre, loc;
 
     PROCNAME("stringReplaceSubstr");
 
@@ -947,12 +949,15 @@ l_int32     nsrc, nsub1, nsub2, len, npre, loc;
         return (char *)ERROR_PTR("src, sub1, sub2 not all defined",
                                  procName, NULL);
 
-    loc = *ploc;
+    if (ploc)
+        loc = *ploc;
+    else
+        loc = 0;
+    if (!strcmp(sub1, sub2))
+        return stringNew(src);
     if ((ptr = strstr(src + loc, sub1)) == NULL)
         return stringNew(src);
     if (pfound) *pfound = 1;
-    if (!strcmp(sub1, sub2))
-        return stringNew(src);
 
     nsrc = strlen(src);
     nsub1 = strlen(sub1);
@@ -964,7 +969,7 @@ l_int32     nsrc, nsub1, nsub2, len, npre, loc;
     memcpy(dest, src, npre);
     strcpy(dest + npre, sub2);
     strcpy(dest + npre + nsub2, ptr + nsub1);
-    *ploc = npre + nsub2;
+    if (ploc) *ploc = npre + nsub2;
     return dest;
 }
 
