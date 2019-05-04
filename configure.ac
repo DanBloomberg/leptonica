@@ -211,6 +211,15 @@ AS_IF([test "x$with_libopenjpeg" = xno], [
 
 AM_CONDITIONAL([HAVE_LIBJP2K], [test "x$libopenjpeg_missing" = x])
 
+# Check whether to enable debugging
+AC_MSG_CHECKING([whether to enable debugging])
+AC_ARG_ENABLE([debug],
+  AS_HELP_STRING([--enable-debug], [turn on debugging [default=no]]))
+AC_MSG_RESULT([$enable_debug])
+if test x"$enable_debug" = x"yes"; then
+    CFLAGS="-g -Wall -DDEBUG -pedantic -Og -g3"
+fi
+
 case "$host_os" in
   mingw32*)
   AC_SUBST([GDI_LIBS], [-lgdi32])
