@@ -1,5 +1,4 @@
 AUTOMAKE_OPTIONS = parallel-tests
-AM_CFLAGS = $(DEBUG_FLAGS)
 AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src
 LDADD = $(top_builddir)/src/liblept.la $(LIBM)
  
