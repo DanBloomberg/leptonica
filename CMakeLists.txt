@@ -9,6 +9,7 @@
 ###############################################################################
 
 cmake_minimum_required(VERSION 2.8.11)
+cmake_policy(SET CMP0054 NEW)
 
 # In-source builds are disabled.
 if ("${CMAKE_CURRENT_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_BINARY_DIR}")
@@ -144,6 +145,15 @@ if (STATIC)
     set(LIBRARY_TYPE)
 endif()
 
+# Set a default build type if none was specified
+if(NOT CMAKE_BUILD_TYPE)
+    message(STATUS "Setting build type to 'Release' as none was specified.")
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release")
+else()
+    message("CMAKE_BUILD_TYPE = ${CMAKE_BUILD_TYPE}")
+endif()
+
 if (WIN32)
     if (MSVC)
         add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -154,7 +164,7 @@ if (WIN32)
         endif()
     endif()
 else()
-   if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         # Enable warnings
         add_compile_options(-Wall -Wextra -Werror=format-security -pedantic)
         add_compile_options(-g -DDEBUG -Og -g3)
