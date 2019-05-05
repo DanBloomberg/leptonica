@@ -500,7 +500,9 @@ PIXCMAP   *cmap;
 
         /* Can't read tiff in tiled format. For what is involved, see, e.g:
          *   https://www.cs.rochester.edu/~nelson/courses/vision/\
-         *     resources/tiff/libtiff.html#Tiles   */
+         *     resources/tiff/libtiff.html#Tiles
+         * A tiled tiff can be converted to a normal (strip) tif:
+         *   tiffcp -s <input-tiled-tif> <output-strip-tif>    */
     if (TIFFIsTiled(tif)) {
         L_ERROR("tiled format is not supported\n", procName);
         return NULL;

@@ -68,7 +68,8 @@ static l_int32 dewarpFilterLineEndPoints(L_DEWARP  *dew, PTA *ptal1, PTA *ptar1,
                                          PTA **pptal2, PTA **pptar2);
 static PTA *dewarpRemoveBadEndPoints(l_int32 w, PTA *ptas);
 static l_int32 dewarpIsLineCoverageValid(PTAA *ptaa2, l_int32 h,
-                                         l_int32 *ptopline, l_int32 *pbotline);
+                                         l_int32 *pntop, l_int32 *pnbot,
+                                         l_int32 *pytop, l_int32 *pybot);
 static l_int32 dewarpQuadraticLSF(PTA *ptad, l_float32 *pa, l_float32 *pb,
                                   l_float32 *pc, l_float32 *pmederr);
 static l_int32 pixRenderMidYs(PIX *pixs, NUMA *namidys, l_int32 linew);
@@ -148,7 +149,7 @@ l_ok
 dewarpBuildPageModel(L_DEWARP    *dew,
                      const char  *debugfile)
 {
-l_int32  linecount, topline, botline, ret;
+l_int32  linecount, ntop, nbot, ytop, ybot, ret;
 PIX     *pixs, *pix1, *pix2, *pix3;
 PTA     *pta;
 PTAA    *ptaa1, *ptaa2;
@@ -213,12 +214,13 @@ PTAA    *ptaa1, *ptaa2;
     }
 
         /* Verify that the lines have a reasonable coverage of the
-         * vertical extent of the image foreground. */
+         * vertical extent of the page. */
     if (dewarpIsLineCoverageValid(ptaa2, pixGetHeight(pixs),
-                                  &topline, &botline) == FALSE) {
+                                  &ntop, &nbot, &ytop, &ybot) == FALSE) {
         ptaaDestroy(&ptaa2);
-        L_WARNING("invalid line coverage: [%d ... %d] in height %d\n",
-                  procName, topline, botline, pixGetHeight(pixs));
+        L_WARNING("invalid line coverage: ntop = %d, nbot = %d;"
+                  " spanning [%d ... %d] in height %d\n", procName,
+                  ntop, nbot, ytop, ybot, pixGetHeight(pixs));
         return 1;
     }
 
@@ -1228,26 +1230,31 @@ PTA       *ptau1, *ptau2, *ptad1, *ptad2;
  *
  * \param[in]    ptaa       of validated lines
  * \param[in]    h          height of pix
- * \param[out]   ptopline   location of top line
- * \param[out]   pbotline   location of bottom line
+ * \param[out]   pntop      number of lines in top half
+ * \param[out]   pnbot      number of lines in bottom half
+ * \param[out]   pytop      location of top line
+ * \param[out]   pybot      location of bottom line
  * \return  1 if coverage is valid, 0 if not or on error.
  *
  * <pre>
  * Notes:
  *      (1) The criterion for valid coverage is:
- *          (a) there must be lines in both halves (top and bottom)
+ *          (a) there must be at least 4 lines in each half (top and bottom)
  *              of the image.
- *          (b) the coverage must be at least 40% of the image height
+ *          (b) the coverage must be at least 50% of the image height
  * </pre>
  */
 static l_int32
 dewarpIsLineCoverageValid(PTAA     *ptaa,
                           l_int32   h,
-                          l_int32  *ptopline,
-                          l_int32  *pbotline)
+                          l_int32  *pntop,
+                          l_int32  *pnbot,
+                          l_int32  *pytop,
+                          l_int32  *pybot)
 {
-l_int32    i, n, both_halves;
-l_float32  top, bot, y, fraction;
+l_int32    i, n, iy, both_halves, ntop, nbot, ytop, ybot, nmin;
+l_float32  y, fraction;
+NUMA      *na;
 
     PROCNAME("dewarpIsLineCoverageValid");
 
@@ -1257,21 +1264,34 @@ l_float32  top, bot, y, fraction;
         return ERROR_INT("ptaa empty", procName, 0);
     if (h <= 0)
         return ERROR_INT("invalid h", procName, 0);
-    if (!ptopline || !pbotline)
-        return ERROR_INT("&topline and &botline not defined", procName, 0);
+    if (!pntop || !pnbot)
+        return ERROR_INT("&ntop and &nbot not defined", procName, 0);
+    if (!pytop || !pybot)
+        return ERROR_INT("&ytop and &ybot not defined", procName, 0);
 
-    top = 100000.0;
-    bot = 0.0;
+    na = numaCreate(n);
     for (i = 0; i < n; i++) {
         ptaaGetPt(ptaa, i, 0, NULL, &y);
-        if (y < top) top = y;
-        if (y > bot) bot = y;
+        numaAddNumber(na, y);
     }
-    *ptopline = (l_int32)top;
-    *pbotline = (l_int32)bot;
-    both_halves = top < 0.5 * h && bot > 0.5 * h;
-    fraction = (bot - top) / h;
-    if (both_halves && fraction > 0.40)
+    numaSort(na, na, L_SORT_INCREASING);
+    for (i = 0, ntop = 0; i < n; i++) {
+        numaGetIValue(na, i, &iy);
+        if (i == 0) ytop = iy;
+        if (i == n - 1) ybot = iy;
+        if (iy < 0.5 * h)
+            ntop++;
+    }
+    numaDestroy(&na);
+    nbot = n - ntop;
+    *pntop = ntop;
+    *pnbot = nbot;
+    *pytop = ytop;
+    *pybot = ybot;
+    nmin = 4;  /* minimum number of lines required in each half */
+    both_halves = (ntop >= nmin) && (nbot >= nmin);
+    fraction = (l_float32)(ybot - ytop) / (l_float32)h;
+    if (both_halves && fraction > 0.50)
         return 1;
     return 0;
 }
