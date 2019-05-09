@@ -190,13 +190,6 @@ configure_file(${AUTOCONFIG_SRC} ${AUTOCONFIG} @ONLY)
 
 set(INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include" "${CMAKE_INSTALL_PREFIX}/include/leptonica")
 
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/LeptonicaConfig-version.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig-version.cmake @ONLY)
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/LeptonicaConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig.cmake @ONLY)
-
 ###############################################################################
 #
 # build
@@ -217,7 +210,15 @@ add_subdirectory(src)
 get_target_property(leptonica_NAME leptonica NAME)
 get_target_property(leptonica_VERSION leptonica VERSION)
 get_target_property(leptonica_OUTPUT_NAME leptonica OUTPUT_NAME)
+
 configure_file(lept.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/lept.pc @ONLY)
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/LeptonicaConfig-version.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig-version.cmake @ONLY)
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/LeptonicaConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig.cmake @ONLY)
+
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lept.pc DESTINATION lib/pkgconfig)
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig.cmake
