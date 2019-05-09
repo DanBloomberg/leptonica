@@ -42,4 +42,4 @@ set(Leptonica_INCLUDE_DIRS      "@INCLUDE_DIR@")
 # Link libraries:
 # ====================================================================
 
-set(Leptonica_LIBRARIES         @leptonica_OUTPUT_NAME@)
+set(Leptonica_LIBRARIES         @leptonica_NAME@)
