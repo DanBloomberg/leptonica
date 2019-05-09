@@ -271,4 +271,6 @@ AC_CONFIG_FILES(cmake/templates/LeptonicaConfig.cmake)
 AC_CONFIG_FILES(cmake/templates/LeptonicaConfig-version.cmake)
 
 # Create symlink
+AC_PROG_LN_S
+
 AC_OUTPUT
