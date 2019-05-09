@@ -86,3 +86,17 @@ $(top_builddir)/prog/xtractprotos$(EXEEXT): liblept.la
 
 allheaders: $(top_builddir)/prog/xtractprotos$(EXEEXT) $(liblept_la_SOURCES)
 	cd $(srcdir) && $(abs_top_builddir)/prog/xtractprotos$(EXEEXT) -prestring=LEPT_DLL -protos=inline $(liblept_la_SOURCES)
+
+install-data-hook:
+	cd $(DESTDIR)$(libdir);\
+	for ext in a la so sl dylib; do\
+		if test -f liblept.$$ext; then\
+			$(LN_S) liblept.$$ext libleptonica.$$ext;\
+		fi;\
+	done
+
+uninstall-hook:
+	cd $(DESTDIR)$(libdir);\
+	for ext in a la so sl dylib; do\
+		rm -f libleptonica.$$ext;\
+	done

@@ -255,5 +255,22 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM()],
 AC_CHECK_FUNCS([fmemopen])
 AC_CHECK_FUNC([fstatat])
 
+# Configuration files
 AC_CONFIG_FILES([Makefile src/endianness.h src/Makefile prog/Makefile lept.pc])
+
+# cmake configuration. Get versions from PACKAGE_VERSION.
+AX_SPLIT_VERSION
+AC_SUBST([VERSION_PLAIN], ["${PACKAGE_VERSION}"])
+AC_SUBST([VERSION_MAJOR], [$(echo "$AX_MAJOR_VERSION" | $SED 's/^[[^0-9]]*//')])
+AC_SUBST([VERSION_MINOR], [$AX_MINOR_VERSION])
+AC_SUBST([VERSION_PATCH], [$(echo "$AX_POINT_VERSION" | $SED 's/^\([[0-9]][[0-9]]*\).*/\1/')])
+INCLUDE_PATH=`eval echo $includedir`
+AC_SUBST([INCLUDE_DIR], ["${INCLUDE_PATH}/leptonica"])
+AC_SUBST([leptonica_NAME], ["lept"])
+AC_CONFIG_FILES(cmake/templates/LeptonicaConfig.cmake)
+AC_CONFIG_FILES(cmake/templates/LeptonicaConfig-version.cmake)
+
+# Create symlink
+AC_PROG_LN_S
+
 AC_OUTPUT

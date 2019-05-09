@@ -36,10 +36,10 @@ SET(Leptonica_VERSION_PATCH     @VERSION_PATCH@)
 # ======================================================
 
 # Provide the include directories to the caller
-set(Leptonica_INCLUDE_DIRS "@INCLUDE_DIR@")
+set(Leptonica_INCLUDE_DIRS      "@INCLUDE_DIR@")
 
 # ====================================================================
 # Link libraries:
 # ====================================================================
 
-set(Leptonica_LIBRARIES leptonica)
+set(Leptonica_LIBRARIES         @leptonica_NAME@)
