@@ -48,8 +48,13 @@ set(VERSION_PLAIN ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 set(MINIMUM_WEBPMUX_VERSION 0.5.0)
 
 option(BUILD_PROG "Build utility programs" OFF)
+option(CPPAN_BUILD "Build with cppan" ON)
 
-if(NOT EXISTS ${PROJECT_SOURCE_DIR}/.cppan)
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.cppan)
+    set(CPPAN_BUILD OFF)
+endif()
+
+if(NOT CPPAN_BUILD)
     find_package(GIF)
     find_package(JPEG)
     find_package(PNG)
@@ -112,8 +117,7 @@ if(NOT EXISTS ${PROJECT_SOURCE_DIR}/.cppan)
              message(STATUS "Found openjpeg library: ${JP2K_LIBRARIES}")
         endif()
     endif()
-
-else()
+else()  # CPPAN_BUILD=ON
     add_subdirectory(.cppan)
 
     add_definitions(
