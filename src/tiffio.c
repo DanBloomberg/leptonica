@@ -118,8 +118,9 @@
 #include "tiff.h"
 #include "tiffio.h"
 
-static const l_int32  DEFAULT_RESOLUTION = 300;   /* ppi */
-static const l_int32  MANY_PAGES_IN_TIFF_FILE = 3000;  /* warn if big */
+static const l_int32  DefaultResolution = 300;   /* ppi */
+static const l_int32  ManyPagesInTiffFile = 3000;  /* warn if big */
+static const l_uint32  MaxTiffBufferSize = 1 << 24;  /* 16MiB */
 
 
     /* All functions with TIFF interfaces are static. */
@@ -531,6 +532,12 @@ PIXCMAP   *cmap;
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
     tiffbpl = TIFFScanlineSize(tif);
+    if (tiffbpl < (bps * spp * w + 7) / 8)
+        return (PIX *)ERROR_PTR("bad tiff file: tiffbpl is too small",
+                                procName, NULL);
+    if (tiffbpl > MaxTiffBufferSize)
+        return (PIX *)ERROR_PTR("bad tiff file: tiffbpl is too large",
+                                procName, NULL);
 
     if ((pix = pixCreate(w, h, d)) == NULL)
         return (PIX *)ERROR_PTR("pix not made", procName, NULL);
@@ -971,8 +978,8 @@ char      *text;
     spp = pixGetSpp(pix);
     xres = pixGetXRes(pix);
     yres = pixGetYRes(pix);
-    if (xres == 0) xres = DEFAULT_RESOLUTION;
-    if (yres == 0) yres = DEFAULT_RESOLUTION;
+    if (xres == 0) xres = DefaultResolution;
+    if (yres == 0) yres = DefaultResolution;
 
         /* ------------------ Write out the header -------------  */
     TIFFSetField(tif, TIFFTAG_RESOLUTIONUNIT, (l_uint32)RESUNIT_INCH);
@@ -1578,9 +1585,9 @@ TIFF    *tif;
     for (i = 1; ; i++) {
         if (TIFFReadDirectory(tif) == 0)
             break;
-        if (i == MANY_PAGES_IN_TIFF_FILE + 1) {
+        if (i == ManyPagesInTiffFile + 1) {
             L_WARNING("big file: more than %d pages\n", procName,
-                      MANY_PAGES_IN_TIFF_FILE);
+                      ManyPagesInTiffFile);
         }
     }
     *pn = i;
@@ -2566,9 +2573,9 @@ TIFF     *tif;
         }
         if (TIFFReadDirectory(tif) == 0)
             break;
-        if (i == MANY_PAGES_IN_TIFF_FILE + 1) {
+        if (i == ManyPagesInTiffFile + 1) {
             L_WARNING("big file: more than %d pages\n", procName,
-                      MANY_PAGES_IN_TIFF_FILE);
+                      ManyPagesInTiffFile);
         }
     }
 
