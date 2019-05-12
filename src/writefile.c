@@ -96,7 +96,7 @@ static l_int32  var_DISPLAY_PROG = L_DISPLAY_WITH_OPEN;  /* default */
 static l_int32  var_DISPLAY_PROG = L_DISPLAY_WITH_XZGV;  /* default */
 #endif  /* _WIN32 */
 
-static const l_int32  LBufsize = 512;
+static const l_int32  Bufsize = 512;
 static const l_int32  MaxDisplayWidth = 1000;
 static const l_int32  MaxDisplayHeight = 800;
 static const l_int32  MaxSizeForPng = 200;
@@ -244,7 +244,7 @@ pixaWriteFiles(const char  *rootname,
                PIXA        *pixa,
                l_int32      format)
 {
-char     bigbuf[LBufsize];
+char     bigbuf[Bufsize];
 l_int32  i, n, pixformat;
 PIX     *pix;
 
@@ -265,7 +265,7 @@ PIX     *pix;
             pixformat = pixChooseOutputFormat(pix);
         else
             pixformat = format;
-        snprintf(bigbuf, LBufsize, "%s%03d.%s", rootname, i,
+        snprintf(bigbuf, Bufsize, "%s%03d.%s", rootname, i,
                  ImageFileFormatExtensions[pixformat]);
         pixWrite(bigbuf, pix, pixformat);
         pixDestroy(&pix);
@@ -907,7 +907,7 @@ pixDisplayWithTitle(PIX         *pixs,
                     l_int32      dispflag)
 {
 char           *tempname;
-char            buffer[LBufsize];
+char            buffer[Bufsize];
 static l_int32  index = 0;  /* caution: not .so or thread safe */
 l_int32         w, h, d, spp, maxheight, opaque, threeviews;
 l_float32       ratw, rath, ratmin;
@@ -998,10 +998,10 @@ char            fullpath[_MAX_PATH];
     index++;
     if (pixGetDepth(pix2) < 8 || pixGetColormap(pix2) ||
         (w < MaxSizeForPng && h < MaxSizeForPng)) {
-        snprintf(buffer, LBufsize, "/tmp/lept/disp/write.%03d.png", index);
+        snprintf(buffer, Bufsize, "/tmp/lept/disp/write.%03d.png", index);
         pixWrite(buffer, pix2, IFF_PNG);
     } else {
-        snprintf(buffer, LBufsize, "/tmp/lept/disp/write.%03d.jpg", index);
+        snprintf(buffer, Bufsize, "/tmp/lept/disp/write.%03d.jpg", index);
         pixWrite(buffer, pix2, IFF_JFIF_JPEG);
     }
     tempname = genPathname(buffer, NULL);
@@ -1012,30 +1012,30 @@ char            fullpath[_MAX_PATH];
     if (var_DISPLAY_PROG == L_DISPLAY_WITH_XZGV) {
             /* no way to display title */
         pixGetDimensions(pix2, &wt, &ht, NULL);
-        snprintf(buffer, LBufsize,
+        snprintf(buffer, Bufsize,
                  "xzgv --geometry %dx%d+%d+%d %s &", wt + 10, ht + 10,
                  x, y, tempname);
     } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_XLI) {
         if (title) {
-            snprintf(buffer, LBufsize,
+            snprintf(buffer, Bufsize,
                "xli -dispgamma 1.0 -quiet -geometry +%d+%d -title \"%s\" %s &",
                x, y, title, tempname);
         } else {
-            snprintf(buffer, LBufsize,
+            snprintf(buffer, Bufsize,
                "xli -dispgamma 1.0 -quiet -geometry +%d+%d %s &",
                x, y, tempname);
         }
     } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_XV) {
         if (title) {
-            snprintf(buffer, LBufsize,
+            snprintf(buffer, Bufsize,
                      "xv -quit -geometry +%d+%d -name \"%s\" %s &",
                      x, y, title, tempname);
         } else {
-            snprintf(buffer, LBufsize,
+            snprintf(buffer, Bufsize,
                      "xv -quit -geometry +%d+%d %s &", x, y, tempname);
         }
     } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_OPEN) {
-        snprintf(buffer, LBufsize, "open %s &", tempname);
+        snprintf(buffer, Bufsize, "open %s &", tempname);
     }
     callSystemDebug(buffer);
 
@@ -1045,11 +1045,11 @@ char            fullpath[_MAX_PATH];
     pathname = genPathname(tempname, NULL);
     _fullpath(fullpath, pathname, sizeof(fullpath));
     if (title) {
-        snprintf(buffer, LBufsize,
+        snprintf(buffer, Bufsize,
                  "i_view32.exe \"%s\" /pos=(%d,%d) /title=\"%s\"",
                  fullpath, x, y, title);
     } else {
-        snprintf(buffer, LBufsize, "i_view32.exe \"%s\" /pos=(%d,%d)",
+        snprintf(buffer, Bufsize, "i_view32.exe \"%s\" /pos=(%d,%d)",
                  fullpath, x, y);
     }
     callSystemDebug(buffer);
@@ -1349,7 +1349,7 @@ l_ok
 pixDisplayWrite(PIX     *pixs,
                 l_int32  reduction)
 {
-char            buf[LBufsize];
+char            buf[Bufsize];
 char           *fname;
 l_float32       scale;
 PIX            *pix1, *pix2;
@@ -1389,16 +1389,16 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
 
     if (pixGetDepth(pix1) == 16) {
         pix2 = pixMaxDynamicRange(pix1, L_LOG_SCALE);
-        snprintf(buf, LBufsize, "file.%03d.png", index);
+        snprintf(buf, Bufsize, "file.%03d.png", index);
         fname = pathJoin("/tmp/lept/display", buf);
         pixWrite(fname, pix2, IFF_PNG);
         pixDestroy(&pix2);
     } else if (pixGetDepth(pix1) < 8 || pixGetColormap(pix1)) {
-        snprintf(buf, LBufsize, "file.%03d.png", index);
+        snprintf(buf, Bufsize, "file.%03d.png", index);
         fname = pathJoin("/tmp/lept/display", buf);
         pixWrite(fname, pix1, IFF_PNG);
     } else {
-        snprintf(buf, LBufsize, "file.%03d.jpg", index);
+        snprintf(buf, Bufsize, "file.%03d.jpg", index);
         fname = pathJoin("/tmp/lept/display", buf);
         pixWrite(fname, pix1, IFF_JFIF_JPEG);
     }

@@ -107,7 +107,7 @@ L_HEAP  *lh;
 
     PROCNAME("lheapCreate");
 
-    if (n <= 0 || n > MaxPtrArraySize)
+    if (n < InitialPtrArraySize || n > MaxPtrArraySize)
         n = InitialPtrArraySize;
 
         /* Allocate ptr array and initialize counters. */

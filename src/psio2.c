@@ -103,7 +103,7 @@
     /* Set default for writing bounding box hint */
 static l_int32  var_PS_WRITE_BOUNDING_BOX = 1;
 
-static const l_int32  BufSize         = 512;
+static const l_int32  Bufsize         = 512;
 static const l_int32  DefaultInputRes = 300;  /* typical scan res, ppi */
 static const l_int32  MinRes          = 5;
 static const l_int32  MaxRes          = 3000;
@@ -457,7 +457,7 @@ generateUncompressedPS(char      *hexdata,
                        l_int32    boxflag)
 {
 char    *outstr;
-char     bigbuf[BufSize];
+char     bigbuf[Bufsize];
 SARRAY  *sa;
 
     PROCNAME("generateUncompressedPS");
@@ -954,7 +954,7 @@ generateJpegPS(const char   *filein,
 {
 l_int32  w, h, bps, spp;
 char    *outstr;
-char     bigbuf[BufSize];
+char     bigbuf[Bufsize];
 SARRAY  *sa;
 
     PROCNAME("generateJpegPS");
@@ -1346,7 +1346,7 @@ generateG4PS(const char   *filein,
 {
 l_int32  w, h;
 char    *outstr;
-char     bigbuf[BufSize];
+char     bigbuf[Bufsize];
 SARRAY  *sa;
 
     PROCNAME("generateG4PS");
@@ -1822,7 +1822,7 @@ generateFlatePS(const char   *filein,
 {
 l_int32  w, h, bps, spp;
 char    *outstr;
-char     bigbuf[BufSize];
+char     bigbuf[Bufsize];
 SARRAY  *sa;
 
     PROCNAME("generateFlatePS");
