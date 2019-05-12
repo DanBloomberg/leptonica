@@ -1,3 +1,4 @@
+#pragma optimize("", off)
 void build(Solution &s)
 {
     auto add_deps = [](auto &t)
@@ -50,13 +51,13 @@ void build(Solution &s)
         leptonica.configureFile("src/endianness.h.in", "endianness.h");
         leptonica.writeFileOnce("config_auto.h");
 
-        if (s.Settings.Native.CompilerType == CompilerType::MSVC)
+        if (leptonica.getCompilerType() == CompilerType::MSVC)
         {
             for (auto *f : leptonica.gatherSourceFiles())
                 f->BuildAs = NativeSourceFile::CPP;
         }
 
-        if (s.Settings.TargetOS.Type == OSType::Windows)
+        if (leptonica.getSettings().TargetOS.Type == OSType::Windows)
             leptonica += "User32.lib"_l, "Gdi32.lib"_l;
     }
 
@@ -71,7 +72,7 @@ void build(Solution &s)
             t.setRootDirectory("prog");
             t += files;
             t += leptonica;
-            if (s.Settings.Native.CompilerType == CompilerType::MSVC)
+            if (leptonica.getCompilerType() == CompilerType::MSVC)
             {
                 for (auto *f : t.gatherSourceFiles())
                     f->BuildAs = NativeSourceFile::CPP;
@@ -365,6 +366,7 @@ void build(Solution &s)
             add_prog(p, files);
     }
 }
+#pragma optimize("", on)
 
 void check(Checker &c)
 {
