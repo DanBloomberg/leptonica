@@ -70,20 +70,19 @@
 #include "allheaders.h"
 
 
-    /* default minimum distance of a hit-miss pixel element to
+    /* Default minimum distance of a hit-miss pixel element to
      * a boundary pixel of its color. */
-static const l_int32  DEFAULT_DISTANCE_TO_BOUNDARY = 1;
-static const l_int32  MAX_DISTANCE_TO_BOUNDARY = 4;
+static const l_int32  DefaultDistanceToBoundary = 1;
+static const l_int32  MaxDistanceToBoundary = 4;
 
-    /* default min runlength to accept a hit or miss element located
+    /* Default min runlength to accept a hit or miss element located
      * at its center */
-static const l_int32  DEFAULT_MIN_RUNLENGTH = 3;
+static const l_int32  DefaultMinRunlength = 3;
 
-
-    /* default scalefactor for displaying image and hit-miss sel
+    /* Default scalefactor for displaying image and hit-miss sel
      * that is derived from it */
-static const l_int32  DEFAULT_SEL_SCALEFACTOR = 7;
-static const l_int32  MAX_SEL_SCALEFACTOR = 31;  /* should be big enough */
+static const l_int32  DefaultSelScalefactor = 7;
+static const l_int32  MaxSelScalefactor = 31;  /* should be big enough */
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_DISPLAY_HM_SEL   0
@@ -172,12 +171,12 @@ SEL       *seld, *sel;
         return (SEL *)ERROR_PTR("nvlines and nhlines both < 1", procName, NULL);
 
     if (distance <= 0)
-        distance = DEFAULT_DISTANCE_TO_BOUNDARY;
+        distance = DefaultDistanceToBoundary;
     if (minlength <= 0)
-        minlength = DEFAULT_MIN_RUNLENGTH;
-    if (distance > MAX_DISTANCE_TO_BOUNDARY) {
+        minlength = DefaultMinRunlength;
+    if (distance > MaxDistanceToBoundary) {
         L_WARNING("distance too large; setting to max value\n", procName);
-        distance = MAX_DISTANCE_TO_BOUNDARY;
+        distance = MaxDistanceToBoundary;
     }
 
         /* Locate the foreground */
@@ -361,10 +360,10 @@ SEL       *seld, *sel;
         return (SEL *)ERROR_PTR("fraction can't be > 1.0", procName, NULL);
 
     if (distance <= 0)
-        distance = DEFAULT_DISTANCE_TO_BOUNDARY;
-    if (distance > MAX_DISTANCE_TO_BOUNDARY) {
+        distance = DefaultDistanceToBoundary;
+    if (distance > MaxDistanceToBoundary) {
         L_WARNING("distance too large; setting to max value\n", procName);
-        distance = MAX_DISTANCE_TO_BOUNDARY;
+        distance = MaxDistanceToBoundary;
     }
 
         /* Locate the foreground */
@@ -919,7 +918,7 @@ l_uint32  val;
  * \return  pixd RGB showing both pixs and sel, or NULL on error
  * <pre>
  * Notes:
- *    (1) We don't allow scalefactor to be larger than MAX_SEL_SCALEFACTOR
+ *    (1) We don't allow scalefactor to be larger than MaxSelScalefactor
  *    (2) The colors are conveniently given as 4 bytes in hex format,
  *        such as 0xff008800.  The least significant byte is ignored.
  * </pre>
@@ -946,10 +945,10 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("sel not defined", procName, NULL);
 
     if (scalefactor <= 0)
-        scalefactor = DEFAULT_SEL_SCALEFACTOR;
-    if (scalefactor > MAX_SEL_SCALEFACTOR) {
+        scalefactor = DefaultSelScalefactor;
+    if (scalefactor > MaxSelScalefactor) {
         L_WARNING("scalefactor too large; using max value\n", procName);
-        scalefactor = MAX_SEL_SCALEFACTOR;
+        scalefactor = MaxSelScalefactor;
     }
 
         /* Generate a version of pixs with a colormap */

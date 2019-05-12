@@ -83,8 +83,6 @@
 #include <math.h>
 #include "allheaders.h"
 
-
-
 /*-----------------------------------------------------------------------*
  *      Label pixels by an index for connected component membership      *
  *-----------------------------------------------------------------------*/

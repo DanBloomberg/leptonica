@@ -64,8 +64,8 @@ static l_int32 dewarpaTestForValidModel(L_DEWARPA *dewa, L_DEWARP *dew,
 #define  DEBUG_INVALID_MODELS      0   /* set this to 1 for debugging */
 #endif  /* !NO_CONSOLE_IO */
 
-    /* Special parameter values */
-static const l_int32     GRAYIN_VALUE = 200;
+    /* Special parameter value */
+static const l_int32  GrayInValue = 200;
 
 
 /*----------------------------------------------------------------------*
@@ -993,8 +993,8 @@ PIXA      *pixa;
  * \brief   dewarpDebug()
  *
  * \param[in]    dew
- * \param[in]    subdirs one or more subdirectories of /tmp; e.g., "dew1"
- * \param[in]    index to help label output images; e.g., the page number
+ * \param[in]    subdirs   one or more subdirectories of /tmp; e.g., "dew1"
+ * \param[in]    index     to help label output images; e.g., the page number
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1074,10 +1074,11 @@ PIX     *pixv, *pixh;
  * \brief   dewarpShowResults()
  *
  * \param[in]    dewa
- * \param[in]    sa of indexed input images
- * \param[in]    boxa crop boxes for input images; can be null
- * \param[in]    firstpage, lastpage
- * \param[in]    pdfout filename
+ * \param[in]    sa          of indexed input images
+ * \param[in]    boxa        crop boxes for input images; can be null
+ * \param[in]    firstpage
+ * \param[in]    lastpage
+ * \param[in]    pdfout      filename
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1136,7 +1137,7 @@ PIXA      *pixa;
         pixd = NULL;
         if (dew) {
             dewarpaApplyDisparity(dewa, dew->pageno, pixc,
-                                        GRAYIN_VALUE, 0, 0, &pixd, NULL);
+                                  GrayInValue, 0, 0, &pixd, NULL);
             dewarpMinimize(dew);
         }
         pixa = pixaCreate(2);

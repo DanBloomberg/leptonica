@@ -86,10 +86,10 @@ static l_int32 pixRenderHorizEndPoints(PIX *pixs, PTA *ptal, PTA *ptar,
 #endif  /* !NO_CONSOLE_IO */
 
     /* Special parameter values for reducing horizontal disparity */
-static const l_float32   L_MIN_RATIO_LINES_TO_HEIGHT = 0.45;
-static const l_int32     L_MIN_LINES_FOR_HORIZ_1 = 10; /* initially */
-static const l_int32     L_MIN_LINES_FOR_HORIZ_2 = 3;  /* after, in each half */
-static const l_float32   L_ALLOWED_W_FRACT = 0.05;  /* no bigger */
+static const l_float32   MinRatioLinesToHeight = 0.45;
+static const l_int32     MinLinesForHoriz1 = 10; /* initially */
+static const l_int32     MinLinesForHoriz2 = 3;  /* after, in each half */
+static const l_float32   AllowedWidthFract = 0.05;  /* no bigger */
 
 
 /*----------------------------------------------------------------------*
@@ -1021,7 +1021,7 @@ PTA       *pta, *ptal1, *ptar1;
 
         /* Are there at least 10 lines? */
     n = ptaaGetCount(ptaa);
-    if (n < L_MIN_LINES_FOR_HORIZ_1) {
+    if (n < MinLinesForHoriz1) {
         L_INFO("only %d lines; too few\n", procName, n);
         return 1;
     }
@@ -1042,7 +1042,7 @@ PTA       *pta, *ptal1, *ptar1;
         /* Use the min and max of the y value on the left side. */
     ptaGetRange(ptal1, &miny, &maxy, NULL, NULL);
     ratio = (maxy - miny) / (l_float32)h;
-    if (ratio < L_MIN_RATIO_LINES_TO_HEIGHT) {
+    if (ratio < MinRatioLinesToHeight) {
         L_INFO("ratio lines to height, %f, too small\n", procName, ratio);
         ptaDestroy(&ptal1);
         ptaDestroy(&ptar1);
@@ -1118,7 +1118,7 @@ PTA       *ptal1, *ptar1, *ptal2, *ptar2;
     }
 
     n = L_MIN(ptaGetCount(ptal1), ptaGetCount(ptar1));
-    if (n < L_MIN_LINES_FOR_HORIZ_1 - 2) {
+    if (n < MinLinesForHoriz1 - 2) {
         ptaDestroy(&ptal1);
         ptaDestroy(&ptar1);
         L_INFO("First filter: only %d endpoints; needed 8\n", procName, n);
@@ -1179,7 +1179,7 @@ PTA       *ptau1, *ptau2, *ptad1, *ptad2;
     if (!ptas)
         return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
 
-    delta = w * L_ALLOWED_W_FRACT;
+    delta = AllowedWidthFract * w;
     n = ptaGetCount(ptas);  /* will be at least 8 */
 
         /* Check the upper half */
@@ -1193,7 +1193,7 @@ PTA       *ptau1, *ptau2, *ptad1, *ptad2;
             ptaAddPt(ptau2, xval, yval);
     }
     ptaDestroy(&ptau1);
-    if (ptaGetCount(ptau2) < L_MIN_LINES_FOR_HORIZ_2) {
+    if (ptaGetCount(ptau2) < MinLinesForHoriz2) {
         ptaDestroy(&ptau2);
         L_INFO("Second filter: upper set is too small after outliers removed\n",
                procName);
@@ -1211,7 +1211,7 @@ PTA       *ptau1, *ptau2, *ptad1, *ptad2;
             ptaAddPt(ptad2, xval, yval);
     }
     ptaDestroy(&ptad1);
-    if (ptaGetCount(ptad2) < L_MIN_LINES_FOR_HORIZ_2) {
+    if (ptaGetCount(ptad2) < MinLinesForHoriz2) {
         ptaDestroy(&ptau2);
         ptaDestroy(&ptad2);
         L_INFO("Second filter: lower set is too small after outliers removed\n",

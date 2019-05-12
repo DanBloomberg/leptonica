@@ -76,9 +76,9 @@ static l_int32 applyWarpTransform(l_float32 xmag, l_float32 ymag,
 
     /* Suggested input to pixStereoFromPair().  These are weighting
      * factors for input to the red channel from the left image. */
-static const l_float32  L_DEFAULT_RED_WEIGHT   = 0.0;
-static const l_float32  L_DEFAULT_GREEN_WEIGHT = 0.7;
-static const l_float32  L_DEFAULT_BLUE_WEIGHT  = 0.3;
+static const l_float32  DefaultRedWeight   = 0.0;
+static const l_float32  DefaultGreenWeight = 0.7;
+static const l_float32  DefaultBlueWeight  = 0.3;
 
 
 /*----------------------------------------------------------------------*
@@ -87,13 +87,13 @@ static const l_float32  L_DEFAULT_BLUE_WEIGHT  = 0.3;
 /*!
  * \brief   pixSimpleCaptcha()
  *
- * \param[in]    pixs 8 bpp; no colormap
- * \param[in]    border added white pixels on each side
- * \param[in]    nterms number of x and y harmonic terms
- * \param[in]    seed of random number generator
- * \param[in]    color for colorizing; in 0xrrggbb00 format; use 0 for black
- * \param[in]    cmapflag 1 for colormap output; 0 for rgb
- * \return  pixd 8 bpp cmap or 32 bpp rgb, or NULL on error
+ * \param[in]    pixs      8 bpp; no colormap
+ * \param[in]    border    added white pixels on each side
+ * \param[in]    nterms    number of x and y harmonic terms
+ * \param[in]    seed      of random number generator
+ * \param[in]    color     for colorizing; in 0xrrggbb00 format; use 0 for black
+ * \param[in]    cmapflag  1 for colormap output; 0 for rgb
+ * \return  pixd   8 bpp cmap or 32 bpp rgb, or NULL on error
  *
  * <pre>
  * Notes:
@@ -145,14 +145,14 @@ PIX       *pixg, *pixgb, *pixw, *pixd;
 /*!
  * \brief   pixRandomHarmonicWarp()
  *
- * \param[in]    pixs 8 bpp; no colormap
- * \param[in]    xmag, ymag maximum magnitude of x and y distortion
- * \param[in]    xfreq, yfreq maximum magnitude of x and y frequency
- * \param[in]    nx, ny number of x and y harmonic terms
- * \param[in]    seed of random number generator
- * \param[in]    grayval color brought in from the outside;
- *                       0 for black, 255 for white
- * \return  pixd 8 bpp; no colormap, or NULL on error
+ * \param[in]    pixs          8 bpp; no colormap
+ * \param[in]    xmag, ymag    maximum magnitude of x and y distortion
+ * \param[in]    xfreq, yfreq  maximum magnitude of x and y frequency
+ * \param[in]    nx, ny        number of x and y harmonic terms
+ * \param[in]    seed          of random number generator
+ * \param[in]    grayval       color brought in from the outside;
+ *                             0 for black, 255 for white
+ * \return  pixd   8 bpp; no colormap, or NULL on error
  *
  * <pre>
  * Notes:
@@ -307,14 +307,14 @@ static l_float32 getSinFromLUT(l_float32 *tab, l_int32 npts,
 /*!
  * \brief   pixRandomHarmonicWarpLUT()
  *
- * \param[in]    pixs 8 bpp; no colormap
- * \param[in]    xmag, ymag maximum magnitude of x and y distortion
- * \param[in]    xfreq, yfreq maximum magnitude of x and y frequency
- * \param[in]    nx, ny number of x and y harmonic terms
- * \param[in]    seed of random number generator
- * \param[in]    grayval color brought in from the outside;
- *                       0 for black, 255 for white
- * \return  pixd 8 bpp; no colormap, or NULL on error
+ * \param[in]    pixs           8 bpp; no colormap
+ * \param[in]    xmag, ymag     maximum magnitude of x and y distortion
+ * \param[in]    xfreq, yfreq   maximum magnitude of x and y frequency
+ * \param[in]    nx, ny         number of x and y harmonic terms
+ * \param[in]    seed           of random number generator
+ * \param[in]    grayval        color brought in from the outside;
+ *                              0 for black, 255 for white
+ * \return  pixd   8 bpp; no colormap, or NULL on error
  *
  * <pre>
  * Notes:
@@ -496,25 +496,25 @@ l_float32  twopi, invtwopi, findex, diff;
 /*!
  * \brief   pixWarpStereoscopic()
  *
- * \param[in]    pixs any depth, colormap ok
- * \param[in]    zbend horizontal separation in pixels of red and cyan
- *                    at the left and right sides, that gives rise to
- *                    quadratic curvature out of the image plane
- * \param[in]    zshiftt uniform pixel translation difference between
- *                      red and cyan, that pushes the top of the image
- *                      plane away from the viewer (zshiftt > 0) or
- *                      towards the viewer (zshiftt < 0)
- * \param[in]    zshiftb uniform pixel translation difference between
- *                      red and cyan, that pushes the bottom of the image
- *                      plane away from the viewer (zshiftb > 0) or
- *                      towards the viewer (zshiftb < 0)
- * \param[in]    ybendt multiplicative parameter for in-plane vertical
- *                      displacement at the left or right edge at the top:
- *                        y = ybendt * (2x/w - 1)^2
- * \param[in]    ybendb same as ybendt, except at the left or right edge
- *                      at the bottom
- * \param[in]    redleft 1 if the red filter is on the left; 0 otherwise
- * \return  pixd 32 bpp, or NULL on error
+ * \param[in]    pixs      any depth, colormap ok
+ * \param[in]    zbend     horizontal separation in pixels of red and cyan
+ *                         at the left and right sides, that gives rise to
+ *                         quadratic curvature out of the image plane
+ * \param[in]    zshiftt   uniform pixel translation difference between
+ *                         red and cyan, that pushes the top of the image
+ *                         plane away from the viewer (zshiftt > 0) or
+ *                         towards the viewer (zshiftt < 0)
+ * \param[in]    zshiftb   uniform pixel translation difference between
+ *                         red and cyan, that pushes the bottom of the image
+ *                         plane away from the viewer (zshiftb > 0) or
+ *                         towards the viewer (zshiftb < 0)
+ * \param[in]    ybendt    multiplicative parameter for in-plane vertical
+ *                         displacement at the left or right edge at the top:
+ *                           y = ybendt * (2x/w - 1)^2
+ * \param[in]    ybendb    same as ybendt, except at the left or right edge
+ *                         at the bottom
+ * \param[in]    redleft   1 if the red filter is on the left; 0 otherwise
+ * \return  pixd   32 bpp, or NULL on error
  *
  * <pre>
  * Notes:
@@ -704,13 +704,13 @@ PIX       *pixd;
 /*!
  * \brief   pixStretchHorizontal()
  *
- * \param[in]    pixs 1, 8 or 32 bpp
- * \param[in]    dir L_WARP_TO_LEFT or L_WARP_TO_RIGHT
- * \param[in]    type L_LINEAR_WARP or L_QUADRATIC_WARP
- * \param[in]    hmax horizontal displacement at edge
- * \param[in]    operation L_SAMPLED or L_INTERPOLATED
- * \param[in]    incolor L_BRING_IN_WHITE or L_BRING_IN_BLACK
- * \return  pixd stretched/compressed, or NULL on error
+ * \param[in]    pixs        1, 8 or 32 bpp
+ * \param[in]    dir         L_WARP_TO_LEFT or L_WARP_TO_RIGHT
+ * \param[in]    type        L_LINEAR_WARP or L_QUADRATIC_WARP
+ * \param[in]    hmax        horizontal displacement at edge
+ * \param[in]    operation   L_SAMPLED or L_INTERPOLATED
+ * \param[in]    incolor     L_BRING_IN_WHITE or L_BRING_IN_BLACK
+ * \return  pixd   stretched/compressed, or NULL on error
  *
  * <pre>
  * Notes:
@@ -769,12 +769,12 @@ l_int32  d;
 /*!
  * \brief   pixStretchHorizontalSampled()
  *
- * \param[in]    pixs 1, 8 or 32 bpp
- * \param[in]    dir L_WARP_TO_LEFT or L_WARP_TO_RIGHT
- * \param[in]    type L_LINEAR_WARP or L_QUADRATIC_WARP
- * \param[in]    hmax horizontal displacement at edge
- * \param[in]    incolor L_BRING_IN_WHITE or L_BRING_IN_BLACK
- * \return  pixd stretched/compressed, or NULL on error
+ * \param[in]    pixs      1, 8 or 32 bpp
+ * \param[in]    dir       L_WARP_TO_LEFT or L_WARP_TO_RIGHT
+ * \param[in]    type      L_LINEAR_WARP or L_QUADRATIC_WARP
+ * \param[in]    hmax      horizontal displacement at edge
+ * \param[in]    incolor   L_BRING_IN_WHITE or L_BRING_IN_BLACK
+ * \return  pixd   stretched/compressed, or NULL on error
  *
  * <pre>
  * Notes:
@@ -867,12 +867,12 @@ PIX       *pixd;
 /*!
  * \brief   pixStretchHorizontalLI()
  *
- * \param[in]    pixs 1, 8 or 32 bpp
- * \param[in]    dir L_WARP_TO_LEFT or L_WARP_TO_RIGHT
- * \param[in]    type L_LINEAR_WARP or L_QUADRATIC_WARP
- * \param[in]    hmax horizontal displacement at edge
- * \param[in]    incolor L_BRING_IN_WHITE or L_BRING_IN_BLACK
- * \return  pixd stretched/compressed, or NULL on error
+ * \param[in]    pixs      1, 8 or 32 bpp
+ * \param[in]    dir       L_WARP_TO_LEFT or L_WARP_TO_RIGHT
+ * \param[in]    type      L_LINEAR_WARP or L_QUADRATIC_WARP
+ * \param[in]    hmax      horizontal displacement at edge
+ * \param[in]    incolor   L_BRING_IN_WHITE or L_BRING_IN_BLACK
+ * \return  pixd   stretched/compressed, or NULL on error
  *
  * <pre>
  * Notes:
@@ -989,13 +989,13 @@ PIX       *pixd;
 /*!
  * \brief   pixQuadraticVShear()
  *
- * \param[in]    pixs 1, 8 or 32 bpp
- * \param[in]    dir L_WARP_TO_LEFT or L_WARP_TO_RIGHT
- * \param[in]    vmaxt max vertical displacement at edge and at top
- * \param[in]    vmaxb max vertical displacement at edge and at bottom
- * \param[in]    operation L_SAMPLED or L_INTERPOLATED
- * \param[in]    incolor L_BRING_IN_WHITE or L_BRING_IN_BLACK
- * \return  pixd stretched, or NULL on error
+ * \param[in]    pixs        1, 8 or 32 bpp
+ * \param[in]    dir         L_WARP_TO_LEFT or L_WARP_TO_RIGHT
+ * \param[in]    vmaxt       max vertical displacement at edge and at top
+ * \param[in]    vmaxb       max vertical displacement at edge and at bottom
+ * \param[in]    operation   L_SAMPLED or L_INTERPOLATED
+ * \param[in]    incolor     L_BRING_IN_WHITE or L_BRING_IN_BLACK
+ * \return  pixd   stretched, or NULL on error
  *
  * <pre>
  * Notes:
@@ -1057,12 +1057,12 @@ l_int32    w, h, d;
 /*!
  * \brief   pixQuadraticVShearSampled()
  *
- * \param[in]    pixs 1, 8 or 32 bpp
- * \param[in]    dir L_WARP_TO_LEFT or L_WARP_TO_RIGHT
- * \param[in]    vmaxt max vertical displacement at edge and at top
- * \param[in]    vmaxb max vertical displacement at edge and at bottom
- * \param[in]    incolor L_BRING_IN_WHITE or L_BRING_IN_BLACK
- * \return  pixd stretched, or NULL on error
+ * \param[in]    pixs      1, 8 or 32 bpp
+ * \param[in]    dir       L_WARP_TO_LEFT or L_WARP_TO_RIGHT
+ * \param[in]    vmaxt     max vertical displacement at edge and at top
+ * \param[in]    vmaxb     max vertical displacement at edge and at bottom
+ * \param[in]    incolor   L_BRING_IN_WHITE or L_BRING_IN_BLACK
+ * \return  pixd   stretched, or NULL on error
  *
  * <pre>
  * Notes:
@@ -1163,12 +1163,12 @@ PIX       *pixd;
 /*!
  * \brief   pixQuadraticVShearLI()
  *
- * \param[in]    pixs 8 or 32 bpp, or colormapped
- * \param[in]    dir L_WARP_TO_LEFT or L_WARP_TO_RIGHT
- * \param[in]    vmaxt max vertical displacement at edge and at top
- * \param[in]    vmaxb max vertical displacement at edge and at bottom
- * \param[in]    incolor L_BRING_IN_WHITE or L_BRING_IN_BLACK
- * \return  pixd stretched, or NULL on error
+ * \param[in]    pixs      8 or 32 bpp, or colormapped
+ * \param[in]    dir       L_WARP_TO_LEFT or L_WARP_TO_RIGHT
+ * \param[in]    vmaxt     max vertical displacement at edge and at top
+ * \param[in]    vmaxb     max vertical displacement at edge and at bottom
+ * \param[in]    incolor   L_BRING_IN_WHITE or L_BRING_IN_BLACK
+ * \return  pixd   stretched, or NULL on error
  *
  * <pre>
  * Notes:
@@ -1301,11 +1301,11 @@ PIXCMAP   *cmap;
 /*!
  * \brief   pixStereoFromPair()
  *
- * \param[in]    pix1 32 bpp rgb
- * \param[in]    pix2 32 bpp rgb
- * \param[in]    rwt, gwt, bwt weighting factors used for each component in
-                               pix1 to determine the output red channel
- * \return  pixd stereo enhanced, or NULL on error
+ * \param[in]    pix1   32 bpp rgb
+ * \param[in]    pix2   32 bpp rgb
+ * \param[in]    rwt, gwt, bwt   weighting factors used for each component in
+                                 pix1 to determine the output red channel
+ * \return  pixd   stereo enhanced, or NULL on error
  *
  * <pre>
  * Notes:
@@ -1351,9 +1351,9 @@ PIX       *pixd;
         /* Make sure the sum of weights is 1.0; otherwise, you can get
          * overflow in the gray value. */
     if (rwt == 0.0 && gwt == 0.0 && bwt == 0.0) {
-        rwt = L_DEFAULT_RED_WEIGHT;
-        gwt = L_DEFAULT_GREEN_WEIGHT;
-        bwt = L_DEFAULT_BLUE_WEIGHT;
+        rwt = DefaultRedWeight;
+        gwt = DefaultGreenWeight;
+        bwt = DefaultBlueWeight;
     }
     sum = rwt + gwt + bwt;
     if (L_ABS(sum - 1.0) > 0.0001) {  /* maintain ratios with sum == 1.0 */

@@ -141,13 +141,13 @@
      *        shrinking the dynamic range
      *    (3) results should otherwise not be sensitive to these values
      */
-static const l_int32  DEFAULT_TILE_WIDTH = 10;    /*!< default tile width    */
-static const l_int32  DEFAULT_TILE_HEIGHT = 15;   /*!< default tile height   */
-static const l_int32  DEFAULT_FG_THRESHOLD = 60;  /*!< default fg threshold  */
-static const l_int32  DEFAULT_MIN_COUNT = 40;     /*!< default minimum count */
-static const l_int32  DEFAULT_BG_VAL = 200;       /*!< default bg value      */
-static const l_int32  DEFAULT_X_SMOOTH_SIZE = 2;  /*!< default x smooth size */
-static const l_int32  DEFAULT_Y_SMOOTH_SIZE = 1;  /*!< default y smooth size */
+static const l_int32  DefaultTileWidth = 10;    /*!< default tile width    */
+static const l_int32  DefaultTileHeight = 15;   /*!< default tile height   */
+static const l_int32  DefaultFgThreshold = 60;  /*!< default fg threshold  */
+static const l_int32  DefaultMinCount = 40;     /*!< default minimum count */
+static const l_int32  DefaultBgVal = 200;       /*!< default bg value      */
+static const l_int32  DefaultXSmoothSize = 2;  /*!< default x smooth size */
+static const l_int32  DefaultYSmoothSize = 1;  /*!< default y smooth size */
 
 static l_int32 *iaaGetLinearTRC(l_int32 **iaa, l_int32 diff);
 
@@ -233,10 +233,10 @@ pixBackgroundNormSimple(PIX  *pixs,
                         PIX  *pixg)
 {
     return pixBackgroundNorm(pixs, pixim, pixg,
-                             DEFAULT_TILE_WIDTH, DEFAULT_TILE_HEIGHT,
-                             DEFAULT_FG_THRESHOLD, DEFAULT_MIN_COUNT,
-                             DEFAULT_BG_VAL, DEFAULT_X_SMOOTH_SIZE,
-                             DEFAULT_Y_SMOOTH_SIZE);
+                             DefaultTileWidth, DefaultTileHeight,
+                             DefaultFgThreshold, DefaultMinCount,
+                             DefaultBgVal, DefaultXSmoothSize,
+                             DefaultYSmoothSize);
 }
 
 

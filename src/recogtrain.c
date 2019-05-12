@@ -174,15 +174,15 @@ static PIX *recogDisplayOutlier(L_RECOG *recog, l_int32 iclass, l_int32 jsamp,
      * in outlier removal functions, and that use template set size
      * to decide if the set of templates (before outliers are removed)
      * is valid.  Values are set to accept most sets of sample templates. */
-static const l_int32    DEFAULT_MIN_SET_SIZE = 1;  /* minimum number of
+static const l_int32    DefaultMinSetSize = 1;  /* minimum number of
                                        samples for a valid class */
-static const l_float32  DEFAULT_MIN_SET_FRACT = 0.4;  /* minimum fraction
+static const l_float32  DefaultMinSetFract = 0.4;  /* minimum fraction
                                of classes required for a valid recog */
 
     /* Defaults in pixaRemoveOutliers1() and pixaRemoveOutliers2() */
-static const l_float32  DEFAULT_MIN_SCORE = 0.75; /* keep everything above */
-static const l_int32    DEFAULT_MIN_TARGET = 3;  /* to be kept if possible */
-static const l_float32  LOWER_SCORE_THRESHOLD = 0.5;  /* templates can be
+static const l_float32  DefaultMinScore = 0.75; /* keep everything above */
+static const l_int32    DefaultMinTarget = 3;  /* to be kept if possible */
+static const l_float32  LowerScoreThreshold = 0.5;  /* templates can be
                  * kept down to this score to if needed to retain the
                  * desired minimum number of templates */
 
@@ -922,8 +922,8 @@ NUMA      *na;
     if (!recog)
         return ERROR_INT("recog not defined", procName, 1);
 
-    minsize = (minsize < 0) ? DEFAULT_MIN_SET_SIZE : minsize;
-    minfract = (minfract < 0) ? DEFAULT_MIN_SET_FRACT : minfract;
+    minsize = (minsize < 0) ? DefaultMinSetSize : minsize;
+    minfract = (minfract < 0) ? DefaultMinSetFract : minfract;
     n = pixaaGetCount(recog->pixaa_u, &na);
     validsets = 0;
     for (i = 0, validsets = 0; i < n; i++) {
@@ -1142,9 +1142,9 @@ L_RECOG  *recog;
  *          we supplement a minimum score for retention with a score
  *          necessary to acquire the minimum target number of templates.
  *          To do this we are willing to use a lower threshold,
- *          LOWER_SCORE_THRESHOLD, on the score.  Consequently, with
+ *          LowerScoreThreshold, on the score.  Consequently, with
  *          poor quality templates, we may keep samples with a score
- *          less than %minscore, but never less than LOWER_SCORE_THRESHOLD.
+ *          less than %minscore, but never less than LowerScoreThreshold.
  *          And if the number of samples is less than %minsize, we do
  *          not use any.
  *      (3) This is meant to be used on a BAR, where the templates all
@@ -1179,12 +1179,12 @@ L_RECOG   *recog;
         return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
     minscore = L_MIN(minscore, 1.0);
     if (minscore <= 0.0)
-        minscore = DEFAULT_MIN_SCORE;
+        minscore = DefaultMinScore;
     mintarget = L_MIN(mintarget, 3);
     if (mintarget <= 0)
-        mintarget = DEFAULT_MIN_TARGET;
+        mintarget = DefaultMinTarget;
     if (minsize < 0)
-        minsize = DEFAULT_MIN_SET_SIZE;
+        minsize = DefaultMinSetSize;
 
         /* Make a special height-scaled recognizer with average templates */
     debug = (ppixsave || ppixrem) ? 1 : 0;
@@ -1234,7 +1234,7 @@ L_RECOG   *recog;
              * that at least one template is kept. */
         minfract = (l_float32)mintarget / (l_float32)n;
         numaGetRankValue(nascore, 1.0 - minfract, NULL, 0, &rankscore);
-        threshscore = L_MAX(LOWER_SCORE_THRESHOLD,
+        threshscore = L_MAX(LowerScoreThreshold,
                             L_MIN(minscore, rankscore));
         if (debug) {
             L_INFO("minscore = %4.2f, rankscore = %4.2f, threshscore = %4.2f\n",
@@ -1381,9 +1381,9 @@ L_RECOG   *recog;
         return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
     minscore = L_MIN(minscore, 1.0);
     if (minscore <= 0.0)
-        minscore = DEFAULT_MIN_SCORE;
+        minscore = DefaultMinScore;
     if (minsize < 0)
-        minsize = DEFAULT_MIN_SET_SIZE;
+        minsize = DefaultMinSetSize;
 
         /* Make a special height-scaled recognizer with average templates */
     debug = (ppixsave || ppixrem) ? 1 : 0;

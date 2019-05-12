@@ -41,61 +41,111 @@ typedef struct HeapElement  HEAPEL;
 
 static const l_int32  NELEM = 50;
 
+NUMA *ExtractNumaFromHeap(L_HEAP  *lh);
+
 
 int main(int    argc,
          char **argv)
 {
-l_int32      i;
-l_float32    frand, fval;
-HEAPEL      *item;
-NUMA        *na;
-L_HEAP      *lh;
-static char  mainName[] = "heap_reg";
+l_uint8      *data;
+l_int32       i;
+size_t        size;
+l_float32     frand, fval;
+HEAPEL       *item;
+NUMA         *na1, *na2, *na3, *na4, *na5;
+L_HEAP       *lh;
+L_REGPARAMS  *rp;
 
-    if (argc != 1)
-        return ERROR_INT(" Syntax: heap_reg", mainName, 1);
-    setLeptDebugOK(1);
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
-        /* make a numa of random numbers */
-    na = numaCreate(5);
+    lept_mkdir("lept/heap");
+
+        /* Make a numa of random numbers */
+    na1 = numaCreate(5);
     for (i = 0; i < NELEM; i++) {
         frand = (l_float32)rand() / (l_float32)RAND_MAX;
-        numaAddNumber(na, frand);
+        numaAddNumber(na1, frand);
     }
+    numaWriteMem(&data, &size, na1);
+    regTestWriteDataAndCheck(rp, data, size, "na");  /* 0 */
+    LEPT_FREE(data);
 
-        /* make an array of HEAPELs with the same numbers */
+        /* Make an array of HEAPELs with the same numbers */
     lh = lheapCreate(5, L_SORT_INCREASING);
     for (i = 0; i < NELEM; i++) {
-        numaGetFValue(na, i, &fval);
+        numaGetFValue(na1, i, &fval);
         item = (HEAPEL *)lept_calloc(1, sizeof(HEAPEL));
         item->distance = fval;
         lheapAdd(lh, item);
     }
-    lheapPrint(stderr, lh);
 
-        /* switch the direction and resort into a heap */
-    lh->direction = L_SORT_DECREASING;
-    lheapSort(lh);
-    lheapPrint(stderr, lh);
-
-        /* resort for strict order */
+        /* Re-sort for strict order */
     lheapSortStrictOrder(lh);
-    lheapPrint(stderr, lh);
+    na2 = ExtractNumaFromHeap(lh);
+    numaWriteMem(&data, &size, na2);
+    regTestWriteDataAndCheck(rp, data, size, "na");  /* 1 */
+    LEPT_FREE(data);
 
-        /* switch the direction again and resort into a heap */
+        /* Switch the direction and re-sort strict order */
+    lh->direction = L_SORT_DECREASING;
+    lheapSortStrictOrder(lh);
+    na3 = ExtractNumaFromHeap(lh);
+    numaWriteMem(&data, &size, na3);
+    regTestWriteDataAndCheck(rp, data, size, "na");  /* 2 */
+    LEPT_FREE(data);
+
+        /* Switch direction again and re-sort strict sort */
     lh->direction = L_SORT_INCREASING;
-    lheapSort(lh);
-    lheapPrint(stderr, lh);
+    lheapSortStrictOrder(lh);
+    na4 = ExtractNumaFromHeap(lh);
+    numaWriteMem(&data, &size, na4);
+    regTestWriteDataAndCheck(rp, data, size, "na");  /* 3 */
+    LEPT_FREE(data);
 
-        /* remove the elements, one at a time */
+        /* Switch direction again and re-sort strict sort */
+    lh->direction = L_SORT_DECREASING;
+    lheapSortStrictOrder(lh);
+    na5 = ExtractNumaFromHeap(lh);
+    numaWriteMem(&data, &size, na5);
+    regTestWriteDataAndCheck(rp, data, size, "na");  /* 4 */
+    LEPT_FREE(data);
+
+    regTestCompareFiles(rp, 1, 3);  /* 5 */
+    regTestCompareFiles(rp, 2, 4);  /* 6 */
+
+        /* Remove the elements, one at a time */
     for (i = 0; lheapGetCount(lh) > 0; i++) {
         item = (HEAPEL *)lheapRemove(lh);
-        fprintf(stderr, "item %d: %f\n", i, item->distance);
+        if (rp->display)
+           fprintf(stderr, "item %d: %f\n", i, item->distance);
         lept_free(item);
     }
 
     lheapDestroy(&lh, 1);
-    numaDestroy(&na);
-    return 0;
+    numaDestroy(&na1);
+    numaDestroy(&na2);
+    numaDestroy(&na3);
+    numaDestroy(&na4);
+    numaDestroy(&na5);
+    return regTestCleanup(rp);
 }
 
+
+    /* This just uses the heap array.  It will only be
+       ordered if the heap is in strict ordering.  */
+NUMA *
+ExtractNumaFromHeap(L_HEAP  *lh)
+{
+l_int32  i, n;
+HEAPEL  *item;
+NUMA    *na;
+
+    n = lheapGetCount(lh);
+    na = numaCreate(0);
+    for (i = 0; i < n; i++) {
+        item = (HEAPEL *)lh->array[i];
+        numaAddNumber(na, item->distance);
+    }
+    return na;
+}

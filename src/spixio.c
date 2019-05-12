@@ -60,9 +60,9 @@
 #include "allheaders.h"
 
     /* Image dimension limits */
-static const l_int32  L_MAX_ALLOWED_WIDTH = 1000000;
-static const l_int32  L_MAX_ALLOWED_HEIGHT = 1000000;
-static const l_int64  L_MAX_ALLOWED_AREA = 400000000LL;
+static const l_int32  MaxAllowedWidth = 1000000;
+static const l_int32  MaxAllowedHeight = 1000000;
+static const l_int64  MaxAllowedArea = 400000000LL;
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_SERIALIZE      0
@@ -448,11 +448,11 @@ PIXCMAP   *cmap;
     ncolors = data[5];
 
         /* Sanity checks on the amount of image data */
-    if (w < 1 || w > L_MAX_ALLOWED_WIDTH)
+    if (w < 1 || w > MaxAllowedWidth)
         return (PIX *)ERROR_PTR("invalid width", procName, NULL);
-    if (h < 1 || h > L_MAX_ALLOWED_HEIGHT)
+    if (h < 1 || h > MaxAllowedHeight)
         return (PIX *)ERROR_PTR("invalid height", procName, NULL);
-    if (1LL * w * h > L_MAX_ALLOWED_AREA)
+    if (1LL * w * h > MaxAllowedArea)
         return (PIX *)ERROR_PTR("area too large", procName, NULL);
     if (ncolors < 0 || ncolors > 256 || ncolors + 6 >= nbytes/sizeof(l_int32))
         return (PIX *)ERROR_PTR("invalid ncolors", procName, NULL);

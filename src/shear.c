@@ -57,7 +57,7 @@
 #include "allheaders.h"
 
     /* Shear angle must not get too close to -pi/2 or pi/2 */
-static const l_float32   MIN_DIFF_FROM_HALF_PI = 0.04;
+static const l_float32   MinDiffFromHalfPi = 0.04;
 
 static l_float32 normalizeAngleForShear(l_float32 radang, l_float32 mindif);
 
@@ -105,7 +105,7 @@ static l_float32 normalizeAngleForShear(l_float32 radang, l_float32 mindif);
  *          because the in-place operation only blits in 0 or 1 bits,
  *          not an arbitrary colormap index.
  *      (8) The angle is brought into the range [-pi, -pi].  It is
- *          not permitted to be within MIN_DIFF_FROM_HALF_PI radians
+ *          not permitted to be within MinDiffFromHalfPi radians
  *          from either -pi/2 or pi/2.
  * </pre>
  */
@@ -143,7 +143,7 @@ l_float32  tanangle, invangle;
     }
 
         /* Normalize angle.  If no rotation, return a copy */
-    radang = normalizeAngleForShear(radang, MIN_DIFF_FROM_HALF_PI);
+    radang = normalizeAngleForShear(radang, MinDiffFromHalfPi);
     if (radang == 0.0 || tan(radang) == 0.0)
         return pixCopy(pixd, pixs);
 
@@ -222,7 +222,7 @@ l_float32  tanangle, invangle;
  *          because the in-place operation only blits in 0 or 1 bits,
  *          not an arbitrary colormap index.
  *      (8) The angle is brought into the range [-pi, -pi].  It is
- *          not permitted to be within MIN_DIFF_FROM_HALF_PI radians
+ *          not permitted to be within MinDiffFromHalfPi radians
  *          from either -pi/2 or pi/2.
  * </pre>
  */
@@ -260,7 +260,7 @@ l_float32  tanangle, invangle;
     }
 
         /* Normalize angle.  If no rotation, return a copy */
-    radang = normalizeAngleForShear(radang, MIN_DIFF_FROM_HALF_PI);
+    radang = normalizeAngleForShear(radang, MinDiffFromHalfPi);
     if (radang == 0.0 || tan(radang) == 0.0)
         return pixCopy(pixd, pixs);
 
@@ -475,7 +475,7 @@ l_float32  tanangle, invangle;
         return ERROR_INT("pixs is colormapped", procName, 1);
 
         /* Normalize angle */
-    radang = normalizeAngleForShear(radang, MIN_DIFF_FROM_HALF_PI);
+    radang = normalizeAngleForShear(radang, MinDiffFromHalfPi);
     if (radang == 0.0 || tan(radang) == 0.0)
         return 0;
 
@@ -550,7 +550,7 @@ l_float32  tanangle, invangle;
         return ERROR_INT("pixs is colormapped", procName, 1);
 
         /* Normalize angle */
-    radang = normalizeAngleForShear(radang, MIN_DIFF_FROM_HALF_PI);
+    radang = normalizeAngleForShear(radang, MinDiffFromHalfPi);
     if (radang == 0.0 || tan(radang) == 0.0)
         return 0;
 
@@ -610,7 +610,7 @@ l_float32  tanangle, invangle;
  *          move to the left.
  *      (3) Any colormap is removed.
  *      (4) The angle is brought into the range [-pi/2 + del, pi/2 - del],
- *          where del == MIN_DIFF_FROM_HALF_PI.
+ *          where del == MinDiffFromHalfPi.
  * </pre>
  */
 PIX *
@@ -643,7 +643,7 @@ PIX       *pix, *pixd;
         pix = pixClone(pixs);
 
         /* Normalize angle.  If no rotation, return a copy */
-    radang = normalizeAngleForShear(radang, MIN_DIFF_FROM_HALF_PI);
+    radang = normalizeAngleForShear(radang, MinDiffFromHalfPi);
     if (radang == 0.0 || tan(radang) == 0.0) {
         pixDestroy(&pix);
         return pixCopy(NULL, pixs);
@@ -722,7 +722,7 @@ PIX       *pix, *pixd;
  *          of the line move upward.
  *      (3) Any colormap is removed.
  *      (4) The angle is brought into the range [-pi/2 + del, pi/2 - del],
- *          where del == MIN_DIFF_FROM_HALF_PI.
+ *          where del == MinDiffFromHalfPi.
  * </pre>
  */
 PIX *
@@ -755,7 +755,7 @@ PIX       *pix, *pixd;
         pix = pixClone(pixs);
 
         /* Normalize angle.  If no rotation, return a copy */
-    radang = normalizeAngleForShear(radang, MIN_DIFF_FROM_HALF_PI);
+    radang = normalizeAngleForShear(radang, MinDiffFromHalfPi);
     if (radang == 0.0 || tan(radang) == 0.0) {
         pixDestroy(&pix);
         return pixCopy(NULL, pixs);

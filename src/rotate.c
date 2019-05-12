@@ -57,9 +57,9 @@
 #include "allheaders.h"
 
 extern l_float32  AlphaMaskBorderVals[2];
-static const l_float32  MIN_ANGLE_TO_ROTATE = 0.001;  /* radians; ~0.06 deg */
-static const l_float32  MAX_1BPP_SHEAR_ANGLE = 0.06;  /* radians; ~3 deg    */
-static const l_float32  LIMIT_SHEAR_ANGLE = 0.35;     /* radians; ~20 deg   */
+static const l_float32  MinAngleToRotate = 0.001;  /* radians; ~0.06 deg */
+static const l_float32  Max1BppShearAngle = 0.06;  /* radians; ~3 deg    */
+static const l_float32  LimitShearAngle = 0.35;    /* radians; ~20 deg   */
 
 
 /*------------------------------------------------------------------*
@@ -118,7 +118,7 @@ PIXCMAP   *cmap;
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
         return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
 
-    if (L_ABS(angle) < MIN_ANGLE_TO_ROTATE)
+    if (L_ABS(angle) < MinAngleToRotate)
         return pixClone(pixs);
 
         /* Adjust rotation type if necessary:
@@ -127,7 +127,7 @@ PIXCMAP   *cmap;
          *  - If d > 1, only allow shear rotation up to about 20 degrees;
          *    beyond that, default a shear request to sampling. */
     if (pixGetDepth(pixs) == 1) {
-        if (L_ABS(angle) > MAX_1BPP_SHEAR_ANGLE) {
+        if (L_ABS(angle) > Max1BppShearAngle) {
             if (type != L_ROTATE_SAMPLING)
                 L_INFO("1 bpp, large angle; rotate by sampling\n", procName);
             type = L_ROTATE_SAMPLING;
@@ -135,7 +135,7 @@ PIXCMAP   *cmap;
             L_INFO("1 bpp; rotate by shear\n", procName);
             type = L_ROTATE_SHEAR;
         }
-    } else if (L_ABS(angle) > LIMIT_SHEAR_ANGLE && type == L_ROTATE_SHEAR) {
+    } else if (L_ABS(angle) > LimitShearAngle && type == L_ROTATE_SHEAR) {
         L_INFO("large angle; rotate by sampling\n", procName);
         type = L_ROTATE_SAMPLING;
     }
@@ -254,7 +254,7 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
         return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
-    if (L_ABS(angle) < MIN_ANGLE_TO_ROTATE)
+    if (L_ABS(angle) < MinAngleToRotate)
         return pixClone(pixs);
 
         /* Test if big enough to hold any rotation of the original image */
@@ -342,7 +342,7 @@ PIX       *pixd;
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
         return (PIX *)ERROR_PTR("invalid depth", procName, NULL);
 
-    if (L_ABS(angle) < MIN_ANGLE_TO_ROTATE)
+    if (L_ABS(angle) < MinAngleToRotate)
         return pixClone(pixs);
 
     if ((pixd = pixCreateTemplateNoInit(pixs)) == NULL)

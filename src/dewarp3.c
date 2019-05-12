@@ -62,8 +62,6 @@ static PIX * pixApplyHorizDisparity(L_DEWARP *dew, PIX *pixs, l_int32 grayin);
 static BOXA *boxaApplyDisparity(L_DEWARP *dew, BOXA *boxa, l_int32 direction,
                                 l_int32 mapdir);
 
-
-
 /*----------------------------------------------------------------------*
  *                 Apply warping disparity array to pixa                *
  *----------------------------------------------------------------------*/
@@ -930,6 +928,7 @@ FPIX      *fpixd;
     return fpixd;
 }
 
+static const l_float32  DefaultSlopeFactor = 0.1;  /* just a guess; fix it */
 
 /*!
  * \brief   fpixExtraHorizDisparity()
@@ -972,7 +971,7 @@ FPIX       *fpixh;
     if (!pxwid)
         return (FPIX *)ERROR_PTR("&xwid not defined", procName, NULL);
     if (factor == 0.0)
-        factor = DEFAULT_SLOPE_FACTOR;
+        factor = DefaultSlopeFactor;
 
         /* Estimate horizontal disparity from the vertical disparity
          * difference between the top and bottom, normalized to the

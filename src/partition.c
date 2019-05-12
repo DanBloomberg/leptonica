@@ -62,7 +62,7 @@ static BOX * boxaSelectPivotBox(BOX *box, BOXA *boxa, l_int32 maxperim,
 static l_int32 boxCheckIfOverlapIsBig(BOX *box, BOXA *boxa,
                                       l_float32 maxoverlap);
 
-static const l_int32  DEFAULT_MAX_POPS = 20000;
+static const l_int32  DefaultMaxPops = 20000;
 
 
 #ifndef  NO_CONSOLE_IO
@@ -217,7 +217,7 @@ L_HEAP  *lh;
     if (maxoverlap < 0.0 || maxoverlap > 1.0)
         return (BOXA *)ERROR_PTR("invalid maxoverlap", procName, NULL);
     if (maxpops == 0)
-        maxpops = DEFAULT_MAX_POPS;
+        maxpops = DefaultMaxPops;
 
     if (!box) {
         boxaGetExtent(boxas, &w, &h, NULL);

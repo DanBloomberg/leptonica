@@ -405,24 +405,23 @@
 static l_int32 dewarpaExtendArraysToSize(L_DEWARPA *dewa, l_int32 size);
 
     /* Parameter values used in dewarpaCreate() */
-static const l_int32     INITIAL_PTR_ARRAYSIZE = 20;   /* n'import quoi */
-static const l_int32     MAX_PTR_ARRAYSIZE = 10000;
-static const l_int32     DEFAULT_ARRAY_SAMPLING = 30;
-static const l_int32     MIN_ARRAY_SAMPLING = 8;
-static const l_int32     DEFAULT_MIN_LINES = 15;
-static const l_int32     MIN_MIN_LINES = 4;
-static const l_int32     DEFAULT_MAX_REF_DIST = 16;
-static const l_int32     DEFAULT_USE_BOTH = TRUE;
-static const l_int32     DEFAULT_CHECK_COLUMNS = TRUE;
+static const l_int32     InitialPtrArraySize = 20;   /* n'import quoi */
+static const l_int32     MaxPtrArraySize = 10000;
+static const l_int32     DefaultArraySampling = 30;
+static const l_int32     MinArraySampling = 8;
+static const l_int32     DefaultMinLines = 15;
+static const l_int32     MinMinLines = 4;
+static const l_int32     DefaultMaxRefDist = 16;
+static const l_int32     DefaultUseBoth = TRUE;
+static const l_int32     DefaultCheckColumns = TRUE;
 
     /* Parameter values used in dewarpaSetCurvatures() */
-static const l_int32     DEFAULT_MAX_LINECURV = 150;
-static const l_int32     DEFAULT_MIN_DIFF_LINECURV = 0;
-static const l_int32     DEFAULT_MAX_DIFF_LINECURV = 170;
-static const l_int32     DEFAULT_MAX_EDGECURV = 50;
-static const l_int32     DEFAULT_MAX_DIFF_EDGECURV = 40;
-static const l_int32     DEFAULT_MAX_EDGESLOPE = 80;
-
+static const l_int32     DefaultMaxLineCurv = 150;
+static const l_int32     DefaultMinDiffLineCurv = 0;
+static const l_int32     DefaultMaxDiffLineCurv = 170;
+static const l_int32     DefaultMaxEdgeCurv = 50;
+static const l_int32     DefaultMaxDiffEdgeCurv = 40;
+static const l_int32     DefaultMaxEdgeSlope = 80;
 
 /*----------------------------------------------------------------------*
  *                           Create/destroy Dewarp                      *
@@ -578,28 +577,28 @@ L_DEWARPA  *dewa;
     PROCNAME("dewarpaCreate");
 
     if (nptrs <= 0)
-        nptrs = INITIAL_PTR_ARRAYSIZE;
-    if (nptrs > MAX_PTR_ARRAYSIZE)
+        nptrs = InitialPtrArraySize;
+    if (nptrs > MaxPtrArraySize)
         return (L_DEWARPA *)ERROR_PTR("too many pages", procName, NULL);
     if (redfactor != 1 && redfactor != 2)
         return (L_DEWARPA *)ERROR_PTR("redfactor not in {1,2}",
                                       procName, NULL);
     if (sampling == 0) {
-         sampling = DEFAULT_ARRAY_SAMPLING;
-    } else if (sampling < MIN_ARRAY_SAMPLING) {
+         sampling = DefaultArraySampling;
+    } else if (sampling < MinArraySampling) {
          L_WARNING("sampling too small; setting to %d\n", procName,
-                   MIN_ARRAY_SAMPLING);
-         sampling = MIN_ARRAY_SAMPLING;
+                   MinArraySampling);
+         sampling = MinArraySampling;
     }
     if (minlines == 0) {
-        minlines = DEFAULT_MIN_LINES;
-    } else if (minlines < MIN_MIN_LINES) {
+        minlines = DefaultMinLines;
+    } else if (minlines < MinMinLines) {
         L_WARNING("minlines too small; setting to %d\n", procName,
-                  MIN_MIN_LINES);
-        minlines = DEFAULT_MIN_LINES;
+                  MinMinLines);
+        minlines = DefaultMinLines;
     }
     if (maxdist < 0)
-         maxdist = DEFAULT_MAX_REF_DIST;
+         maxdist = DefaultMaxRefDist;
 
     dewa = (L_DEWARPA *)LEPT_CALLOC(1, sizeof(L_DEWARPA));
     dewa->dewarp = (L_DEWARP **)LEPT_CALLOC(nptrs, sizeof(L_DEWARPA *));
@@ -613,14 +612,14 @@ L_DEWARPA  *dewa;
     dewa->redfactor = redfactor;
     dewa->minlines = minlines;
     dewa->maxdist = maxdist;
-    dewa->max_linecurv = DEFAULT_MAX_LINECURV;
-    dewa->min_diff_linecurv = DEFAULT_MIN_DIFF_LINECURV;
-    dewa->max_diff_linecurv = DEFAULT_MAX_DIFF_LINECURV;
-    dewa->max_edgeslope = DEFAULT_MAX_EDGESLOPE;
-    dewa->max_edgecurv = DEFAULT_MAX_EDGECURV;
-    dewa->max_diff_edgecurv = DEFAULT_MAX_DIFF_EDGECURV;
-    dewa->check_columns = DEFAULT_CHECK_COLUMNS;
-    dewa->useboth = DEFAULT_USE_BOTH;
+    dewa->max_linecurv = DefaultMaxLineCurv;
+    dewa->min_diff_linecurv = DefaultMinDiffLineCurv;
+    dewa->max_diff_linecurv = DefaultMaxDiffLineCurv;
+    dewa->max_edgeslope = DefaultMaxEdgeSlope;
+    dewa->max_edgecurv = DefaultMaxEdgeCurv;
+    dewa->max_diff_edgecurv = DefaultMaxDiffEdgeCurv;
+    dewa->check_columns = DefaultCheckColumns;
+    dewa->useboth = DefaultUseBoth;
     return dewa;
 }
 
@@ -815,7 +814,7 @@ L_DEWARP  *prevdew;
 
     dew->dewa = dewa;
     pageno = dew->pageno;
-    if (pageno > MAX_PTR_ARRAYSIZE)
+    if (pageno > MaxPtrArraySize)
         return ERROR_INT("too many pages", procName, 1);
     if (pageno > dewa->maxpage)
         dewa->maxpage = pageno;
@@ -975,32 +974,32 @@ dewarpaSetCurvatures(L_DEWARPA  *dewa,
         return ERROR_INT("dewa not defined", procName, 1);
 
     if (max_linecurv == -1)
-        dewa->max_linecurv = DEFAULT_MAX_LINECURV;
+        dewa->max_linecurv = DefaultMaxLineCurv;
     else
         dewa->max_linecurv = L_ABS(max_linecurv);
 
     if (min_diff_linecurv == -1)
-        dewa->min_diff_linecurv = DEFAULT_MIN_DIFF_LINECURV;
+        dewa->min_diff_linecurv = DefaultMinDiffLineCurv;
     else
         dewa->min_diff_linecurv = L_ABS(min_diff_linecurv);
 
     if (max_diff_linecurv == -1)
-        dewa->max_diff_linecurv = DEFAULT_MAX_DIFF_LINECURV;
+        dewa->max_diff_linecurv = DefaultMaxDiffLineCurv;
     else
         dewa->max_diff_linecurv = L_ABS(max_diff_linecurv);
 
     if (max_edgecurv == -1)
-        dewa->max_edgecurv = DEFAULT_MAX_EDGECURV;
+        dewa->max_edgecurv = DefaultMaxEdgeCurv;
     else
         dewa->max_edgecurv = L_ABS(max_edgecurv);
 
     if (max_diff_edgecurv == -1)
-        dewa->max_diff_edgecurv = DEFAULT_MAX_DIFF_EDGECURV;
+        dewa->max_diff_edgecurv = DefaultMaxDiffEdgeCurv;
     else
         dewa->max_diff_edgecurv = L_ABS(max_diff_edgecurv);
 
     if (max_edgeslope == -1)
-        dewa->max_edgeslope = DEFAULT_MAX_EDGESLOPE;
+        dewa->max_edgeslope = DefaultMaxEdgeSlope;
     else
         dewa->max_edgeslope = L_ABS(max_edgeslope);
 

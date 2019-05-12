@@ -95,10 +95,10 @@
     /* For more than this number of c.c. in a binarized image of
      * semi-perimeter (w + h) about 5000 or less, the O(n) binsort
      * is faster than the O(nlogn) shellsort.  */
-static const l_int32   MIN_COMPS_FOR_BIN_SORT = 200;
+static const l_int32   MinCompsForBinSort = 200;
 
     /* Don't rotate any angle smaller than this */
-static const l_float32  MIN_ANGLE_TO_ROTATE = 0.001;  /* radians; ~0.06 deg */
+static const l_float32  MinAngleToRotate = 0.001;  /* radians; ~0.06 deg */
 
 
 /*---------------------------------------------------------------------*
@@ -1379,7 +1379,7 @@ PIXA    *pixad;
         return (PIXA *)ERROR_PTR("boxa and pixa counts differ", procName, NULL);
 
         /* Use O(n) binsort if possible */
-    if (n > MIN_COMPS_FOR_BIN_SORT &&
+    if (n > MinCompsForBinSort &&
         ((sorttype == L_SORT_BY_X) || (sorttype == L_SORT_BY_Y) ||
          (sorttype == L_SORT_BY_WIDTH) || (sorttype == L_SORT_BY_HEIGHT) ||
          (sorttype == L_SORT_BY_PERIMETER)))
@@ -2104,7 +2104,7 @@ PIXA    *pixad;
         return (PIXA *)ERROR_PTR("invalid type", procName, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
         return (PIXA *)ERROR_PTR("invalid incolor", procName, NULL);
-    if (L_ABS(angle) < MIN_ANGLE_TO_ROTATE)
+    if (L_ABS(angle) < MinAngleToRotate)
         return pixaCopy(pixas, L_COPY);
 
     n = pixaGetCount(pixas);

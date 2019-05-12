@@ -46,7 +46,7 @@
 l_int32 main(int    argc,
              char **argv)
 {
-l_int32      method, pageno;
+l_int32      d, method, pageno;
 L_DEWARP    *dew1;
 L_DEWARPA   *dewa;
 PIX         *pixs, *pixn, *pixg, *pixb, *pixd;
@@ -76,17 +76,28 @@ static char  mainName[] = "dewarptest2";
         dewa = dewarpaCreate(40, 30, 1, 8, 50);
         dewarpaUseBothArrays(dewa, 1);
         dewarpaSetCheckColumns(dewa, 0);
+        d = pixGetDepth(pixs);
 
 #if NORMALIZE
             /* Normalize for varying background and binarize */
-        pixn = pixBackgroundNormSimple(pixs, NULL, NULL);
-        pixg = pixConvertRGBToGray(pixn, 0.5, 0.3, 0.2);
-        pixb = pixThresholdToBinary(pixg, 130);
-        pixDestroy(&pixn);
+        if (d > 1) {
+            pixn = pixBackgroundNormSimple(pixs, NULL, NULL);
+            pixg = pixConvertRGBToGray(pixn, 0.5, 0.3, 0.2);
+            pixb = pixThresholdToBinary(pixg, 130);
+            pixDestroy(&pixn);
+            pixDestroy(&pixg);
+        } else {
+            pixb = pixClone(pixs);
+        }
 #else
             /* Don't normalize; just threshold and clean edges */
-        pixg = pixConvertTo8(pixs, 0);
-        pixb = pixThresholdToBinary(pixg, 100);
+        if (d > 1) {
+            pixg = pixConvertTo8(pixs, 0);
+            pixb = pixThresholdToBinary(pixg, 100);
+            pixDestroy(&pixg);
+        } else {
+            pixb = pixClone(pixs);
+        }
         pixSetOrClearBorder(pixb, 30, 30, 40, 40, PIX_CLR);
 #endif
 
@@ -94,12 +105,11 @@ static char  mainName[] = "dewarptest2";
         dew1 = dewarpCreate(pixb, pageno);
         dewarpaInsertDewarp(dewa, dew1);
         dewarpBuildPageModel(dew1, "/tmp/lept/dewarp/test2_model.pdf");
-        dewarpaApplyDisparity(dewa, pageno, pixg, -1, 0, 0, &pixd,
+        dewarpaApplyDisparity(dewa, pageno, pixb, -1, 0, 0, &pixd,
                               "/tmp/lept/dewarp/test2_apply.pdf");
 
         dewarpaInfo(stderr, dewa);
         dewarpaDestroy(&dewa);
-        pixDestroy(&pixg);
         pixDestroy(&pixb);
     }
 

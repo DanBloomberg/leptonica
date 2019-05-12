@@ -123,7 +123,7 @@
  *   This data structure is used for pixOctreeColorQuant(),
  *   a color octree that adjusts to the color distribution
  *   in the image that is being quantized.  The best settings
- *   are with CQ_NLEVELS = 6 and DITHERING set on.
+ *   are with CqNLevels = 6 and DITHERING set on.
  *
  * Notes:
  *      (1) the CTE (color table entry) index is sequentially
@@ -166,12 +166,12 @@ struct ColorQuantCell
 typedef struct ColorQuantCell    CQCELL;
 
     /* Constants for pixOctreeColorQuant() */
-static const l_int32  CQ_NLEVELS = 5;   /* only 4, 5 and 6 are allowed */
-static const l_int32  CQ_RESERVED_COLORS = 64;  /* to allow for level 2 */
-                                                /* remainder CTEs */
-static const l_int32  EXTRA_RESERVED_COLORS = 25;  /* to avoid running out */
-static const l_int32  TREE_GEN_WIDTH = 350;  /* big enough for good stats */
-static const l_int32  MIN_DITHER_SIZE = 250;  /* don't dither if smaller */
+static const l_int32  CqNLevels = 5;   /* only 4, 5 and 6 are allowed */
+static const l_int32  CqReservedColors = 64;     /* to allow for level 2 */
+                                                 /* remainder CTEs */
+static const l_int32  ExtraReservedColors = 25;  /* to avoid running out */
+static const l_int32  TreeGenWidth = 350;      /* big enough for good stats */
+static const l_int32  MinDitherSize = 250;     /* don't dither if smaller */
 
 
 /*
@@ -644,19 +644,19 @@ PIXCMAP   *cmap;
     }
 
         /* Conditionally subsample to speed up the first pass */
-    if (w > TREE_GEN_WIDTH) {
-        scalefactor = (l_float32)TREE_GEN_WIDTH / (l_float32)w;
+    if (w > TreeGenWidth) {
+        scalefactor = (l_float32)TreeGenWidth / (l_float32)w;
         pixsub = pixScaleBySampling(pixs, scalefactor, scalefactor);
     } else {
         pixsub = pixClone(pixs);
     }
 
         /* Drop the number of requested colors if image is very small */
-    if (w < MIN_DITHER_SIZE && h < MIN_DITHER_SIZE)
+    if (w < MinDitherSize && h < MinDitherSize)
         colors = L_MIN(colors, 220);
 
         /* Make the pruned octree */
-    cqcaa = octreeGenerateAndPrune(pixsub, colors, CQ_RESERVED_COLORS, &cmap);
+    cqcaa = octreeGenerateAndPrune(pixsub, colors, CqReservedColors, &cmap);
     if (!cqcaa) {
         pixDestroy(&pixsub);
         return (PIX *)ERROR_PTR("tree not made", procName, NULL);
@@ -667,7 +667,7 @@ PIXCMAP   *cmap;
 #endif  /* DEBUG_COLORQUANT */
 
         /* Do not dither if image is very small */
-    if (w < MIN_DITHER_SIZE && h < MIN_DITHER_SIZE && ditherflag == 1) {
+    if (w < MinDitherSize && h < MinDitherSize && ditherflag == 1) {
         L_INFO("Small image: dithering turned off\n", procName);
         ditherflag = 0;
     }
@@ -761,7 +761,7 @@ NUMA      *nar;  /* accumulates levels for residual cells */
 
         /* Make the canonical index tables */
     rtab = gtab = btab = NULL;
-    makeRGBToIndexTables(CQ_NLEVELS, &rtab, &gtab, &btab);
+    makeRGBToIndexTables(CqNLevels, &rtab, &gtab, &btab);
 
         /* Generate an 8 bpp cmap (max size 256) */
     cmap = pixcmapCreate(8);
@@ -769,14 +769,14 @@ NUMA      *nar;  /* accumulates levels for residual cells */
 
     pixGetDimensions(pixs, &w, &h, NULL);
     npix = w * h;  /* initialize to all pixels */
-    ncolor = colors - reservedcolors - EXTRA_RESERVED_COLORS;
+    ncolor = colors - reservedcolors - ExtraReservedColors;
     ppc = npix / ncolor;
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
 
-        /* Accumulate the centers of each cluster at level CQ_NLEVELS */
-    ncells = 1 << (3 * CQ_NLEVELS);
-    cqca = cqcaa[CQ_NLEVELS];
+        /* Accumulate the centers of each cluster at level CqNLevels */
+    ncells = 1 << (3 * CqNLevels);
+    cqca = cqcaa[CqNLevels];
     for (i = 0; i < h; i++) {
         lines = datas + i * wpls;
         for (j = 0; j < w; j++) {
@@ -792,7 +792,7 @@ NUMA      *nar;  /* accumulates levels for residual cells */
     nar = numaCreate(0);
 
         /* Prune back from the lowest level and generate the colormap */
-    for (level = CQ_NLEVELS - 1; level >= 2; level--) {
+    for (level = CqNLevels - 1; level >= 2; level--) {
         thresh = thresholdFactor[level];
         cqca = cqcaa[level];
         cqcasub = cqcaa[level + 1];
@@ -874,7 +874,7 @@ NUMA      *nar;  /* accumulates levels for residual cells */
                                   procName);
                             /* This is very bad.  It will only cause trouble
                              * with dithering, and we try to avoid it with
-                             * EXTRA_RESERVED_PIXELS. */
+                             * ExtraReservedColors. */
                         pixcmapGetNearestIndex(cmap, rv, gv, bv, &cindex);
                         cqc->index = cindex;  /* assign to the nearest */
                         pixcmapGetColor(cmap, cindex, &rval, &gval, &bval);
@@ -929,10 +929,10 @@ l_int32    nt, nr, ival;
         rc[ival]++;
     }
     fprintf(stderr, " Threshold cells formed: %d\n", nt);
-    for (i = 1; i < CQ_NLEVELS + 1; i++)
+    for (i = 1; i < CqNLevels + 1; i++)
         fprintf(stderr, "   level %d:  %d\n", i, tc[i]);
     fprintf(stderr, "\n Residual cells formed: %d\n", nr);
-    for (i = 0; i < CQ_NLEVELS ; i++)
+    for (i = 0; i < CqNLevels ; i++)
         fprintf(stderr, "   level %d:  %d\n", i, rc[i]);
 }
 #endif  /* PRINT_OCTCUBE_STATS */
@@ -1008,7 +1008,7 @@ PIX       *pixd;
 
         /* Make the canonical index tables */
     rtab = gtab = btab = NULL;
-    makeRGBToIndexTables(CQ_NLEVELS, &rtab, &gtab, &btab);
+    makeRGBToIndexTables(CqNLevels, &rtab, &gtab, &btab);
 
         /* Traverse tree from root, looking for lowest cube
          * that is a leaf, and set dest pix to its
@@ -1199,7 +1199,7 @@ l_int32  baseindex, subindex;
 CQCELL  *cqc, *cqcsub;
 
         /* Use rgb values stored in the cubes; a little faster */
-    for (level = 2; level < CQ_NLEVELS; level++) {
+    for (level = 2; level < CqNLevels; level++) {
         getOctcubeIndices(octindex, level, &baseindex, &subindex);
         cqc = cqcaa[level][baseindex];
         cqcsub = cqcaa[level + 1][subindex];
@@ -1209,7 +1209,7 @@ CQCELL  *cqc, *cqcsub;
             *pgval = cqc->gc;
             *pbval = cqc->bc;
             break;
-        } else if (level == CQ_NLEVELS - 1) {  /* reached the bottom */
+        } else if (level == CqNLevels - 1) {  /* reached the bottom */
             *pindex = cqcsub->index;
             *prval = cqcsub->rc;
             *pgval = cqcsub->gc;
@@ -1220,7 +1220,7 @@ CQCELL  *cqc, *cqcsub;
 
 #if 0
         /* Generate rgb values for each cube on the fly; slower */
-    for (level = 2; level < CQ_NLEVELS; level++) {
+    for (level = 2; level < CqNLevels; level++) {
         l_int32  rv, gv, bv;
         getOctcubeIndices(octindex, level, &baseindex, &subindex);
         cqc = cqcaa[level][baseindex];
@@ -1232,7 +1232,7 @@ CQCELL  *cqc, *cqcsub;
             *pgval = gv;
             *pbval = bv;
             break;
-        } else if (level == CQ_NLEVELS - 1) {  /* reached the bottom */
+        } else if (level == CqNLevels - 1) {  /* reached the bottom */
             getRGBFromOctcube(subindex, level + 1, &rv, &gv, &bv);
            *pindex = cqcsub->index;
             *prval = rv;
@@ -1266,10 +1266,10 @@ CQCELL   **cqca;   /* one array for each octree level */
     PROCNAME("cqcellTreeCreate");
 
         /* Make array of accumulation cell arrays from levels 1 to 5 */
-    if ((cqcaa = (CQCELL ***)LEPT_CALLOC(CQ_NLEVELS + 1, sizeof(CQCELL **)))
+    if ((cqcaa = (CQCELL ***)LEPT_CALLOC(CqNLevels + 1, sizeof(CQCELL **)))
         == NULL)
         return (CQCELL ***)ERROR_PTR("cqcaa not made", procName, NULL);
-    for (level = 0; level <= CQ_NLEVELS; level++) {
+    for (level = 0; level <= CqNLevels; level++) {
         ncells = 1 << (3 * level);
         if ((cqca = (CQCELL **)LEPT_CALLOC(ncells, sizeof(CQCELL *))) == NULL) {
             cqcellTreeDestroy(&cqcaa);
@@ -1310,7 +1310,7 @@ CQCELL   **cqca;
     if ((cqcaa = *pcqcaa) == NULL)
         return;
 
-    for (level = 0; level <= CQ_NLEVELS; level++) {
+    for (level = 0; level <= CqNLevels; level++) {
         cqca = cqcaa[level];
         ncells = 1 << (3 * level);
         for (i = 0; i < ncells; i++)
@@ -1564,11 +1564,11 @@ l_int32  rgbindex;
  *
  * <pre>
  * Notes:
- *  for CQ_NLEVELS = 6, the full RGB index is in the form:
+ *  for CqNLevels = 6, the full RGB index is in the form:
  *     index = (0[13] 0 r7 g7 b7 r6 g6 b6 r5 g5 b5 r4 g4 b4 r3 g3 b3 r2 g2 b2)
- *  for CQ_NLEVELS = 5, the full RGB index is in the form:
+ *  for CqNLevels = 5, the full RGB index is in the form:
  *     index = (0[16] 0 r7 g7 b7 r6 g6 b6 r5 g5 b5 r4 g4 b4 r3 g3 b3)
- *  for CQ_NLEVELS = 4, the full RGB index is in the form:
+ *  for CqNLevels = 4, the full RGB index is in the form:
  *     index = (0[19] 0 r7 g7 b7 r6 g6 b6 r5 g5 b5 r4 g4 b4)
  *
  *  The base index is the index of the octcube at the level given,
@@ -1597,15 +1597,15 @@ getOctcubeIndices(l_int32   rgbindex,
 {
     PROCNAME("getOctcubeIndex");
 
-    if (level < 0 || level > CQ_NLEVELS - 1)
+    if (level < 0 || level > CqNLevels - 1)
         return ERROR_INT("level must be in e.g., [0 ... 5]", procName, 1);
     if (!pbindex)
         return ERROR_INT("&bindex not defined", procName, 1);
     if (!psindex)
         return ERROR_INT("&sindex not defined", procName, 1);
 
-    *pbindex = rgbindex >> (3 * (CQ_NLEVELS - level));
-    *psindex = rgbindex >> (3 * (CQ_NLEVELS - 1 - level));
+    *pbindex = rgbindex >> (3 * (CqNLevels - level));
+    *psindex = rgbindex >> (3 * (CqNLevels - 1 - level));
     return 0;
 }
 
@@ -1725,7 +1725,7 @@ PIXCMAP        *cmap;
 
         /* Do not dither if image is very small */
     pixGetDimensions(pixs, &w, &h, NULL);
-    if (w < MIN_DITHER_SIZE && h < MIN_DITHER_SIZE && ditherflag == 1) {
+    if (w < MinDitherSize && h < MinDitherSize && ditherflag == 1) {
         L_INFO("Small image: dithering turned off\n", procName);
         ditherflag = 0;
     }
@@ -2831,7 +2831,7 @@ PIXCMAP   *cmap;
 
         /* Do not dither if image is very small */
     pixGetDimensions(pixs, &w, &h, NULL);
-    if (w < MIN_DITHER_SIZE && h < MIN_DITHER_SIZE && ditherflag == 1) {
+    if (w < MinDitherSize && h < MinDitherSize && ditherflag == 1) {
         L_INFO("Small image: dithering turned off\n", procName);
         ditherflag = 0;
     }

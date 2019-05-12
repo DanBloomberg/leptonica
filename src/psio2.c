@@ -103,17 +103,17 @@
     /* Set default for writing bounding box hint */
 static l_int32  var_PS_WRITE_BOUNDING_BOX = 1;
 
-static const l_int32  L_BUF_SIZE = 512;
-static const l_int32  DEFAULT_INPUT_RES   = 300;  /* typical scan res, ppi */
-static const l_int32  MIN_RES             = 5;
-static const l_int32  MAX_RES             = 3000;
+static const l_int32  BufSize         = 512;
+static const l_int32  DefaultInputRes = 300;  /* typical scan res, ppi */
+static const l_int32  MinRes          = 5;
+static const l_int32  MaxRes          = 3000;
 
     /* For computing resolution that fills page to desired amount */
-static const l_int32  LETTER_WIDTH            = 612;   /* points */
-static const l_int32  LETTER_HEIGHT           = 792;   /* points */
-static const l_int32  A4_WIDTH                = 595;   /* points */
-static const l_int32  A4_HEIGHT               = 842;   /* points */
-static const l_float32  DEFAULT_FILL_FRACTION = 0.95;
+static const l_int32  LetterWidth  = 612;   /* points */
+static const l_int32  LetterHeight = 792;   /* points */
+static const l_int32  A4Width      = 595;   /* points */
+static const l_int32  A4Height     = 842;   /* points */
+static const l_float32  DefaultFillFraction = 0.95;
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_JPEG       0
@@ -457,7 +457,7 @@ generateUncompressedPS(char      *hexdata,
                        l_int32    boxflag)
 {
 char    *outstr;
-char     bigbuf[L_BUF_SIZE];
+char     bigbuf[BufSize];
 SARRAY  *sa;
 
     PROCNAME("generateUncompressedPS");
@@ -567,7 +567,7 @@ l_float32  winch, hinch, xinch, yinch, fres;
     PROCNAME("getScaledParametersPS");
 
     if (res == 0)
-        res = DEFAULT_INPUT_RES;
+        res = DefaultInputRes;
     fres = (l_float32)res;
 
         /* Allow the PS interpreter to scale the resolution */
@@ -579,10 +579,10 @@ l_float32  winch, hinch, xinch, yinch, fres;
     }
 
         /* Limit valid resolution interval */
-    if (res < MIN_RES || res > MAX_RES) {
+    if (res < MinRes || res > MaxRes) {
         L_WARNING("res %d out of bounds; using default res; no scaling\n",
                   procName, res);
-        res = DEFAULT_INPUT_RES;
+        res = DefaultInputRes;
         fres = (l_float32)res;
     }
 
@@ -887,7 +887,7 @@ L_COMP_DATA  *cid;
         if (cid->res > 0)
             res = cid->res;
         else
-            res = DEFAULT_INPUT_RES;
+            res = DefaultInputRes;
     }
 
         /* Get scaled location in pts */
@@ -954,7 +954,7 @@ generateJpegPS(const char   *filein,
 {
 l_int32  w, h, bps, spp;
 char    *outstr;
-char     bigbuf[L_BUF_SIZE];
+char     bigbuf[BufSize];
 SARRAY  *sa;
 
     PROCNAME("generateJpegPS");
@@ -1346,7 +1346,7 @@ generateG4PS(const char   *filein,
 {
 l_int32  w, h;
 char    *outstr;
-char     bigbuf[L_BUF_SIZE];
+char     bigbuf[BufSize];
 SARRAY  *sa;
 
     PROCNAME("generateG4PS");
@@ -1453,7 +1453,7 @@ SARRAY  *sa;
  * \param[in]    filein      input tiff multipage file
  * \param[in]    fileout     output ps file
  * \param[in]    fillfract   factor for filling 8.5 x 11 inch page;
- *                           use 0.0 for DEFAULT_FILL_FRACTION
+ *                           use 0.0 for DefaultFillFraction
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1494,7 +1494,7 @@ FILE      *fp;
     fclose(fp);
 
     if (fillfract == 0.0)
-        fillfract = DEFAULT_FILL_FRACTION;
+        fillfract = DefaultFillFraction;
 
     for (i = 0; i < npages; i++) {
         if ((pix = pixReadTiff(filein, i)) == NULL)
@@ -1764,7 +1764,7 @@ L_COMP_DATA  *cid;
         if (cid->res > 0)
             res = cid->res;
         else
-            res = DEFAULT_INPUT_RES;
+            res = DefaultInputRes;
     }
     xpt = scale * x * 72. / res;
     ypt = scale * y * 72. / res;
@@ -1822,7 +1822,7 @@ generateFlatePS(const char   *filein,
 {
 l_int32  w, h, bps, spp;
 char    *outstr;
-char     bigbuf[L_BUF_SIZE];
+char     bigbuf[BufSize];
 SARRAY  *sa;
 
     PROCNAME("generateFlatePS");
@@ -1992,9 +1992,9 @@ getResLetterPage(l_int32    w,
 l_int32  resw, resh, res;
 
     if (fillfract == 0.0)
-        fillfract = DEFAULT_FILL_FRACTION;
-    resw = (l_int32)((w * 72.) / (LETTER_WIDTH * fillfract));
-    resh = (l_int32)((h * 72.) / (LETTER_HEIGHT * fillfract));
+        fillfract = DefaultFillFraction;
+    resw = (l_int32)((w * 72.) / (LetterWidth * fillfract));
+    resh = (l_int32)((h * 72.) / (LetterHeight * fillfract));
     res = L_MAX(resw, resh);
     return res;
 }
@@ -2017,9 +2017,9 @@ getResA4Page(l_int32    w,
 l_int32  resw, resh, res;
 
     if (fillfract == 0.0)
-        fillfract = DEFAULT_FILL_FRACTION;
-    resw = (l_int32)((w * 72.) / (A4_WIDTH * fillfract));
-    resh = (l_int32)((h * 72.) / (A4_HEIGHT * fillfract));
+        fillfract = DefaultFillFraction;
+    resw = (l_int32)((w * 72.) / (A4Width * fillfract));
+    resh = (l_int32)((h * 72.) / (A4Height * fillfract));
     res = L_MAX(resw, resh);
     return res;
 }

@@ -206,7 +206,7 @@
  /* --------------------------------------------*/
 
     /* Typical scan resolution in ppi (pixels/inch) */
-static const l_int32  DEFAULT_INPUT_RES = 300;
+static const l_int32  DefaultInputRes = 300;
 
 
 /*---------------------------------------------------------------------*
@@ -1060,7 +1060,7 @@ size_t    nbytes;
  * <pre>
  * Notes:
  *      (1) If %res == 0 and the input resolution field is 0,
- *          this will use DEFAULT_INPUT_RES.
+ *          this will use DefaultInputRes.
  *      (2) See comments in convertToPdf().
  * </pre>
  */
@@ -1129,7 +1129,7 @@ PIX     *pix;
  * <pre>
  * Notes:
  *      (1) If %res == 0 and the input resolution field is 0,
- *          this will use DEFAULT_INPUT_RES.
+ *          this will use DefaultInputRes.
  *      (2) See comments in convertToPdf().
  * </pre>
  */
@@ -1197,7 +1197,7 @@ PIX  *pix;
  * <pre>
  * Notes:
  *      (1) If %res == 0 and the input resolution field is 0,
- *          this will use DEFAULT_INPUT_RES.
+ *          this will use DefaultInputRes.
  *      (2) See comments in convertToPdf().
  * </pre>
  */
@@ -1273,7 +1273,7 @@ PIX     *pix;
  * <pre>
  * Notes:
  *      (1) If %res == 0 and the input resolution field is 0,
- *          this will use DEFAULT_INPUT_RES.
+ *          this will use DefaultInputRes.
  *      (2) This only writes data to fileout if it is the last
  *          image to be written on the page.
  *      (3) See comments in convertToPdf().
@@ -1923,7 +1923,7 @@ L_PDF_DATA  *lpd;
 
         /* Adjust scalefactor so that the product with res gives an integer */
     if (res <= 0)
-        res = DEFAULT_INPUT_RES;
+        res = DefaultInputRes;
     scale = (l_float32)((l_int32)(scalefactor * res + 0.5)) / (l_float32)res;
     cmap = pixGetColormap(pixs);
 

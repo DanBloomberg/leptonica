@@ -96,13 +96,13 @@ static l_int32  var_DISPLAY_PROG = L_DISPLAY_WITH_OPEN;  /* default */
 static l_int32  var_DISPLAY_PROG = L_DISPLAY_WITH_XZGV;  /* default */
 #endif  /* _WIN32 */
 
-static const l_int32  L_BUFSIZE = 512;
-static const l_int32  MAX_DISPLAY_WIDTH = 1000;
-static const l_int32  MAX_DISPLAY_HEIGHT = 800;
-static const l_int32  MAX_SIZE_FOR_PNG = 200;
+static const l_int32  LBufsize = 512;
+static const l_int32  MaxDisplayWidth = 1000;
+static const l_int32  MaxDisplayHeight = 800;
+static const l_int32  MaxSizeForPng = 200;
 
     /* PostScript output for printing */
-static const l_float32  DEFAULT_SCALING = 1.0;
+static const l_float32  DefaultScaling = 1.0;
 
     /* Global array of image file format extension names.                */
     /* This is in 1-1 corrspondence with format enum in imageio.h.       */
@@ -244,7 +244,7 @@ pixaWriteFiles(const char  *rootname,
                PIXA        *pixa,
                l_int32      format)
 {
-char     bigbuf[L_BUFSIZE];
+char     bigbuf[LBufsize];
 l_int32  i, n, pixformat;
 PIX     *pix;
 
@@ -265,7 +265,7 @@ PIX     *pix;
             pixformat = pixChooseOutputFormat(pix);
         else
             pixformat = format;
-        snprintf(bigbuf, L_BUFSIZE, "%s%03d.%s", rootname, i,
+        snprintf(bigbuf, LBufsize, "%s%03d.%s", rootname, i,
                  ImageFileFormatExtensions[pixformat]);
         pixWrite(bigbuf, pix, pixformat);
         pixDestroy(&pix);
@@ -434,7 +434,7 @@ pixWriteStream(FILE    *fp,
         break;
 
     case IFF_PS:
-        return pixWriteStreamPS(fp, pix, NULL, 0, DEFAULT_SCALING);
+        return pixWriteStreamPS(fp, pix, NULL, 0, DefaultScaling);
         break;
 
     case IFF_GIF:
@@ -748,7 +748,7 @@ l_int32  ret;
         break;
 
     case IFF_PS:
-        ret = pixWriteMemPS(pdata, psize, pix, NULL, 0, DEFAULT_SCALING);
+        ret = pixWriteMemPS(pdata, psize, pix, NULL, 0, DefaultScaling);
         break;
 
     case IFF_GIF:
@@ -856,8 +856,8 @@ PIX  *pixs, *pixd;
  *          The display program must be on your $PATH variable.  It is
  *          chosen by setting the global var_DISPLAY_PROG, using
  *          l_chooseDisplayProg().  Default on Unix is xzgv.
- *      (4) Images with dimensions larger than MAX_DISPLAY_WIDTH or
- *          MAX_DISPLAY_HEIGHT are downscaled to fit those constraints.
+ *      (4) Images with dimensions larger than MaxDisplayWidth or
+ *          MaxDisplayHeight are downscaled to fit those constraints.
  *          This is particularly important for displaying 1 bpp images
  *          with xv, because xv automatically downscales large images
  *          by subsampling, which looks poor.  For 1 bpp, we use
@@ -907,7 +907,7 @@ pixDisplayWithTitle(PIX         *pixs,
                     l_int32      dispflag)
 {
 char           *tempname;
-char            buffer[L_BUFSIZE];
+char            buffer[LBufsize];
 static l_int32  index = 0;  /* caution: not .so or thread safe */
 l_int32         w, h, d, spp, maxheight, opaque, threeviews;
 l_float32       ratw, rath, ratmin;
@@ -959,14 +959,14 @@ char            fullpath[_MAX_PATH];
 
         /* Scale if necessary; this will also remove a colormap */
     pixGetDimensions(pix0, &w, &h, &d);
-    maxheight = (threeviews) ? MAX_DISPLAY_HEIGHT / 3 : MAX_DISPLAY_HEIGHT;
-    if (w <= MAX_DISPLAY_WIDTH && h <= maxheight) {
+    maxheight = (threeviews) ? MaxDisplayHeight / 3 : MaxDisplayHeight;
+    if (w <= MaxDisplayWidth && h <= maxheight) {
         if (d == 16)  /* take MSB */
             pix1 = pixConvert16To8(pix0, L_MS_BYTE);
         else
             pix1 = pixClone(pix0);
     } else {
-        ratw = (l_float32)MAX_DISPLAY_WIDTH / (l_float32)w;
+        ratw = (l_float32)MaxDisplayWidth / (l_float32)w;
         rath = (l_float32)maxheight / (l_float32)h;
         ratmin = L_MIN(ratw, rath);
         if (ratmin < 0.125 && d == 1)
@@ -997,11 +997,11 @@ char            fullpath[_MAX_PATH];
 
     index++;
     if (pixGetDepth(pix2) < 8 || pixGetColormap(pix2) ||
-        (w < MAX_SIZE_FOR_PNG && h < MAX_SIZE_FOR_PNG)) {
-        snprintf(buffer, L_BUFSIZE, "/tmp/lept/disp/write.%03d.png", index);
+        (w < MaxSizeForPng && h < MaxSizeForPng)) {
+        snprintf(buffer, LBufsize, "/tmp/lept/disp/write.%03d.png", index);
         pixWrite(buffer, pix2, IFF_PNG);
     } else {
-        snprintf(buffer, L_BUFSIZE, "/tmp/lept/disp/write.%03d.jpg", index);
+        snprintf(buffer, LBufsize, "/tmp/lept/disp/write.%03d.jpg", index);
         pixWrite(buffer, pix2, IFF_JFIF_JPEG);
     }
     tempname = genPathname(buffer, NULL);
@@ -1012,30 +1012,30 @@ char            fullpath[_MAX_PATH];
     if (var_DISPLAY_PROG == L_DISPLAY_WITH_XZGV) {
             /* no way to display title */
         pixGetDimensions(pix2, &wt, &ht, NULL);
-        snprintf(buffer, L_BUFSIZE,
+        snprintf(buffer, LBufsize,
                  "xzgv --geometry %dx%d+%d+%d %s &", wt + 10, ht + 10,
                  x, y, tempname);
     } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_XLI) {
         if (title) {
-            snprintf(buffer, L_BUFSIZE,
+            snprintf(buffer, LBufsize,
                "xli -dispgamma 1.0 -quiet -geometry +%d+%d -title \"%s\" %s &",
                x, y, title, tempname);
         } else {
-            snprintf(buffer, L_BUFSIZE,
+            snprintf(buffer, LBufsize,
                "xli -dispgamma 1.0 -quiet -geometry +%d+%d %s &",
                x, y, tempname);
         }
     } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_XV) {
         if (title) {
-            snprintf(buffer, L_BUFSIZE,
+            snprintf(buffer, LBufsize,
                      "xv -quit -geometry +%d+%d -name \"%s\" %s &",
                      x, y, title, tempname);
         } else {
-            snprintf(buffer, L_BUFSIZE,
+            snprintf(buffer, LBufsize,
                      "xv -quit -geometry +%d+%d %s &", x, y, tempname);
         }
     } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_OPEN) {
-        snprintf(buffer, L_BUFSIZE, "open %s &", tempname);
+        snprintf(buffer, LBufsize, "open %s &", tempname);
     }
     callSystemDebug(buffer);
 
@@ -1045,11 +1045,11 @@ char            fullpath[_MAX_PATH];
     pathname = genPathname(tempname, NULL);
     _fullpath(fullpath, pathname, sizeof(fullpath));
     if (title) {
-        snprintf(buffer, L_BUFSIZE,
+        snprintf(buffer, LBufsize,
                  "i_view32.exe \"%s\" /pos=(%d,%d) /title=\"%s\"",
                  fullpath, x, y, title);
     } else {
-        snprintf(buffer, L_BUFSIZE, "i_view32.exe \"%s\" /pos=(%d,%d)",
+        snprintf(buffer, LBufsize, "i_view32.exe \"%s\" /pos=(%d,%d)",
                  fullpath, x, y);
     }
     callSystemDebug(buffer);
@@ -1349,7 +1349,7 @@ l_ok
 pixDisplayWrite(PIX     *pixs,
                 l_int32  reduction)
 {
-char            buf[L_BUFSIZE];
+char            buf[LBufsize];
 char           *fname;
 l_float32       scale;
 PIX            *pix1, *pix2;
@@ -1389,16 +1389,16 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
 
     if (pixGetDepth(pix1) == 16) {
         pix2 = pixMaxDynamicRange(pix1, L_LOG_SCALE);
-        snprintf(buf, L_BUFSIZE, "file.%03d.png", index);
+        snprintf(buf, LBufsize, "file.%03d.png", index);
         fname = pathJoin("/tmp/lept/display", buf);
         pixWrite(fname, pix2, IFF_PNG);
         pixDestroy(&pix2);
     } else if (pixGetDepth(pix1) < 8 || pixGetColormap(pix1)) {
-        snprintf(buf, L_BUFSIZE, "file.%03d.png", index);
+        snprintf(buf, LBufsize, "file.%03d.png", index);
         fname = pathJoin("/tmp/lept/display", buf);
         pixWrite(fname, pix1, IFF_PNG);
     } else {
-        snprintf(buf, L_BUFSIZE, "file.%03d.jpg", index);
+        snprintf(buf, LBufsize, "file.%03d.jpg", index);
         fname = pathJoin("/tmp/lept/display", buf);
         pixWrite(fname, pix1, IFF_JFIF_JPEG);
     }

@@ -24,7 +24,7 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	findcorners_reg findpattern_reg \
 	fpix1_reg fpix2_reg genfonts_reg \
 	grayfill_reg graymorph1_reg graymorph2_reg \
-	grayquant_reg hardlight_reg \
+	grayquant_reg hardlight_reg heap_reg \
 	insert_reg ioformats_reg iomisc_reg italic_reg \
 	jbclass_reg jpegio_reg \
 	kernel_reg label_reg lineremoval_reg \
@@ -67,7 +67,7 @@ MANUAL_REG_PROGS = alltests_reg bilateral1_reg \
 	binmorph2_reg binmorph4_reg binmorph5_reg \
 	dwamorph2_reg \
 	files_reg flipdetect_reg fmorphauto_reg \
-	heap_reg morphseq_reg pixa1_reg \
+	morphseq_reg pixa1_reg \
 	pixalloc_reg pixtile_reg \
 	smallpix_reg smoothedge_reg
 

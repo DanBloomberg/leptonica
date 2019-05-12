@@ -100,7 +100,7 @@
  /* --------------------------------------------*/
 
     /* Typical scan resolution in ppi (pixels/inch) */
-static const l_int32  DEFAULT_INPUT_RES = 300;
+static const l_int32  DefaultInputRes = 300;
 
     /* Static helpers */
 static L_COMP_DATA  *l_generateJp2kData(const char *fname);
@@ -176,7 +176,7 @@ static l_int32   var_WRITE_DATE_AND_VERSION = 1;
  * <pre>
  * Notes:
  *      (1) If %res == 0 and the input resolution field is 0,
- *          this will use DEFAULT_INPUT_RES.
+ *          this will use DefaultInputRes.
  *      (2) This only writes %data if it is the last image to be
  *          written on the page.
  *      (3) See comments in convertToPdf().
@@ -235,7 +235,7 @@ L_PDF_DATA   *lpd = NULL;
         if (pixres > 0)
             res = pixres;
         else
-            res = DEFAULT_INPUT_RES;
+            res = DefaultInputRes;
     }
     xpt = x * 72. / res;
     ypt = y * 72. / res;
@@ -1535,7 +1535,7 @@ L_PDF_DATA  *lpd = NULL;
         /* Get media box parameters, in pts */
     res = cid->res;
     if (res <= 0)
-        res = DEFAULT_INPUT_RES;
+        res = DefaultInputRes;
     wpt = cid->w * 72. / res;
     hpt = cid->h * 72. / res;
 

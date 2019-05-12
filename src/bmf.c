@@ -70,7 +70,7 @@
 #include "allheaders.h"
 #include "bmfdata.h"
 
-static const l_float32  VERT_FRACT_SEP = 0.3;
+static const l_float32  VertFractSep = 0.3;
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_BASELINE     0
@@ -868,7 +868,7 @@ PIX      *pix;
     bmf->spacewidth = charwidth;
 
         /* Save the extra vertical space between lines */
-    bmf->vertlinesep = (l_int32)(VERT_FRACT_SEP * bmf->lineheight + 0.5);
+    bmf->vertlinesep = (l_int32)(VertFractSep * bmf->lineheight + 0.5);
 
     return 0;
 }

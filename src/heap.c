@@ -77,7 +77,9 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  MIN_BUFFER_SIZE = 20;             /* n'importe quoi */
+    /* Bounds on initial array size */
+static const l_uint32  MaxPtrArraySize = 100000;
+static const l_int32 InitialPtrArraySize = 20;      /*!< n'importe quoi */
 
 #define SWAP_ITEMS(i, j)       { void *tempitem = lh->array[(i)]; \
                                  lh->array[(i)] = lh->array[(j)]; \
@@ -93,28 +95,28 @@ static l_int32 lheapExtendArray(L_HEAP *lh);
 /*!
  * \brief   lheapCreate()
  *
- * \param[in]    nalloc      size of ptr array to be alloc'd 0 for default
+ * \param[in]    n           size of ptr array to be alloc'd; use 0 for default
  * \param[in]    direction   L_SORT_INCREASING, L_SORT_DECREASING
  * \return  lheap, or NULL on error
  */
 L_HEAP *
-lheapCreate(l_int32  nalloc,
+lheapCreate(l_int32  n,
             l_int32  direction)
 {
 L_HEAP  *lh;
 
     PROCNAME("lheapCreate");
 
-    if (nalloc < MIN_BUFFER_SIZE)
-        nalloc = MIN_BUFFER_SIZE;
+    if (n <= 0 || n > MaxPtrArraySize)
+        n = InitialPtrArraySize;
 
         /* Allocate ptr array and initialize counters. */
     lh = (L_HEAP *)LEPT_CALLOC(1, sizeof(L_HEAP));
-    if ((lh->array = (void **)LEPT_CALLOC(nalloc, sizeof(void *))) == NULL) {
+    if ((lh->array = (void **)LEPT_CALLOC(n, sizeof(void *))) == NULL) {
         lheapDestroy(&lh, FALSE);
         return (L_HEAP *)ERROR_PTR("ptr array not made", procName, NULL);
     }
-    lh->nalloc = nalloc;
+    lh->nalloc = n;
     lh->n = 0;
     lh->direction = direction;
     return lh;
@@ -490,6 +492,9 @@ l_int32  i, index, size;
 
   if (!lh)
       return ERROR_INT("lh not defined", procName, 1);
+
+      /* Start from a sorted heap */
+  lheapSort(lh);
 
   size = lh->n;  /* save the actual size */
   for (i = 0; i < size; i++) {

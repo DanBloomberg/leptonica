@@ -70,7 +70,7 @@
     /* For more than this number of c.c. in a binarized image of
      * semi-perimeter (w + h) about 5000 or less, the O(n) binsort
      * is faster than the O(nlogn) shellsort.  */
-static const l_int32   MIN_COMPS_FOR_BIN_SORT = 200;
+static const l_int32   MinCompsForBinSort = 200;
 
 
 /*---------------------------------------------------------------------*
@@ -662,7 +662,7 @@ NUMA      *na, *naindex;
         return (BOXA *)ERROR_PTR("invalid sort order", procName, NULL);
 
         /* Use O(n) binsort if possible */
-    if (n > MIN_COMPS_FOR_BIN_SORT &&
+    if (n > MinCompsForBinSort &&
         ((sorttype == L_SORT_BY_X) || (sorttype == L_SORT_BY_Y) ||
          (sorttype == L_SORT_BY_WIDTH) || (sorttype == L_SORT_BY_HEIGHT) ||
          (sorttype == L_SORT_BY_PERIMETER)))

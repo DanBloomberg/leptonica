@@ -59,7 +59,9 @@
 
 #include "allheaders.h"
 
-static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;
+    /* Bounds on initial array size */
+static const l_uint32  MaxPtrArraySize = 100000;
+static const l_int32 InitialPtrArraySize = 20;      /*!< n'importe quoi */
 
     /* Static function */
 static l_int32 lstackExtendArray(L_STACK *lstack);
@@ -71,29 +73,28 @@ static l_int32 lstackExtendArray(L_STACK *lstack);
 /*!
  * \brief   lstackCreate()
  *
- * \param[in]    nalloc   initial ptr array size; use 0 for default
+ * \param[in]    n   initial ptr array size; use 0 for default
  * \return  lstack, or NULL on error
  */
 L_STACK *
-lstackCreate(l_int32  nalloc)
+lstackCreate(l_int32  n)
 {
 L_STACK  *lstack;
 
     PROCNAME("lstackCreate");
 
-    if (nalloc <= 0)
-        nalloc = INITIAL_PTR_ARRAYSIZE;
+    if (n <= 0 || n > MaxPtrArraySize)
+        n = InitialPtrArraySize;
 
     lstack = (L_STACK *)LEPT_CALLOC(1, sizeof(L_STACK));
-    lstack->array = (void **)LEPT_CALLOC(nalloc, sizeof(void *));
+    lstack->array = (void **)LEPT_CALLOC(n, sizeof(void *));
     if (!lstack->array) {
         lstackDestroy(&lstack, FALSE);
         return (L_STACK *)ERROR_PTR("lstack array not made", procName, NULL);
     }
 
-    lstack->nalloc = nalloc;
+    lstack->nalloc = n;
     lstack->n = 0;
-
     return lstack;
 }
 

@@ -206,10 +206,6 @@
 #include <stddef.h>
 #include "allheaders.h"
 
-/*  This is only used to test "/tmp" --> TMPDIR rewriting on Windows,
- *  by emulating it in unix.  It should never be on in production. */
-#define DEBUG_REWRITE    0
-
 
 /*--------------------------------------------------------------------*
  *                       Safe string operations                       *

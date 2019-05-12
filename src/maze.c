@@ -59,11 +59,11 @@
 #endif  /* _WIN32 */
 #include "allheaders.h"
 
-static const l_int32  MIN_MAZE_WIDTH = 50;
-static const l_int32  MIN_MAZE_HEIGHT = 50;
+static const l_int32  MinMazeWidth = 50;
+static const l_int32  MinMazeHeight = 50;
 
-static const l_float32  DEFAULT_WALL_PROBABILITY = 0.65;
-static const l_float32  DEFAULT_ANISOTROPY_RATIO = 0.25;
+static const l_float32  DefaultWallProbability = 0.65;
+static const l_float32  DefaultAnisotropyRatio = 0.25;
 
 enum {  /* direction from parent to newly created element */
     START_LOC = 0,
@@ -162,18 +162,18 @@ L_QUEUE   *lq;
     srand(28*333);
 #endif /* _WIN32 */
 
-    if (w < MIN_MAZE_WIDTH)
-        w = MIN_MAZE_WIDTH;
-    if (h < MIN_MAZE_HEIGHT)
-        h = MIN_MAZE_HEIGHT;
+    if (w < MinMazeWidth)
+        w = MinMazeWidth;
+    if (h < MinMazeHeight)
+        h = MinMazeHeight;
     if (xi <= 0 || xi >= w)
         xi = w / 6;
     if (yi <= 0 || yi >= h)
         yi = h / 5;
     if (wallps < 0.05 || wallps > 0.95)
-        wallps = DEFAULT_WALL_PROBABILITY;
+        wallps = DefaultWallProbability;
     if (ranis < 0.05 || ranis > 1.0)
-        ranis = DEFAULT_ANISOTROPY_RATIO;
+        ranis = DefaultAnisotropyRatio;
     wallpf = wallps * ranis;
 
 #if  DEBUG_MAZE

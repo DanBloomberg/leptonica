@@ -100,7 +100,7 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  L_BUFSIZE = 512;  /* hardcoded below in fscanf */
+static const l_int32  LBufsize = 512;  /* hardcoded below in fscanf */
 
 const char  *gplotstylenames[] = {"with lines",
                                   "with points",
@@ -142,7 +142,7 @@ gplotCreate(const char  *rootname,
             const char  *ylabel)
 {
 char    *newroot;
-char     buf[L_BUFSIZE];
+char     buf[LBufsize];
 l_int32  badchar;
 GPLOT   *gplot;
 
@@ -168,16 +168,16 @@ GPLOT   *gplot;
     newroot = genPathname(rootname, NULL);
     gplot->rootname = newroot;
     gplot->outformat = outformat;
-    snprintf(buf, L_BUFSIZE, "%s.cmd", rootname);
+    snprintf(buf, LBufsize, "%s.cmd", rootname);
     gplot->cmdname = stringNew(buf);
     if (outformat == GPLOT_PNG)
-        snprintf(buf, L_BUFSIZE, "%s.png", newroot);
+        snprintf(buf, LBufsize, "%s.png", newroot);
     else if (outformat == GPLOT_PS)
-        snprintf(buf, L_BUFSIZE, "%s.ps", newroot);
+        snprintf(buf, LBufsize, "%s.ps", newroot);
     else if (outformat == GPLOT_EPS)
-        snprintf(buf, L_BUFSIZE, "%s.eps", newroot);
+        snprintf(buf, LBufsize, "%s.eps", newroot);
     else if (outformat == GPLOT_LATEX)
-        snprintf(buf, L_BUFSIZE, "%s.tex", newroot);
+        snprintf(buf, LBufsize, "%s.tex", newroot);
     gplot->outname = stringNew(buf);
     if (title) gplot->title = stringNew(title);
     if (xlabel) gplot->xlabel = stringNew(xlabel);
@@ -265,7 +265,7 @@ gplotAddPlot(GPLOT       *gplot,
              l_int32      plotstyle,
              const char  *plottitle)
 {
-char       buf[L_BUFSIZE];
+char       buf[LBufsize];
 char       emptystring[] = "";
 char      *datastr, *title;
 l_int32    n, i;
@@ -302,7 +302,7 @@ SARRAY    *sa;
 
         /* Generate and save data filename */
     gplot->nplots++;
-    snprintf(buf, L_BUFSIZE, "%s.data.%d", gplot->rootname, gplot->nplots);
+    snprintf(buf, LBufsize, "%s.data.%d", gplot->rootname, gplot->nplots);
     sarrayAddString(gplot->datanames, buf, L_COPY);
 
         /* Generate data and save as a string */
@@ -313,7 +313,7 @@ SARRAY    *sa;
         else
             valx = startx + i * delx;
         numaGetFValue(nay, i, &valy);
-        snprintf(buf, L_BUFSIZE, "%f %f\n", valx, valy);
+        snprintf(buf, LBufsize, "%f %f\n", valx, valy);
         sarrayAddString(sa, buf, L_COPY);
     }
     datastr = sarrayToString(sa, 0);
@@ -377,7 +377,7 @@ gplotSetScaling(GPLOT   *gplot,
 l_ok
 gplotMakeOutput(GPLOT  *gplot)
 {
-char     buf[L_BUFSIZE];
+char     buf[LBufsize];
 char    *cmdname;
 
     PROCNAME("gplotMakeOutput");
@@ -400,9 +400,9 @@ char    *cmdname;
     cmdname = genPathname(gplot->cmdname, NULL);
 
 #ifndef _WIN32
-    snprintf(buf, L_BUFSIZE, "gnuplot %s", cmdname);
+    snprintf(buf, LBufsize, "gnuplot %s", cmdname);
 #else
-    snprintf(buf, L_BUFSIZE, "wgnuplot %s", cmdname);
+    snprintf(buf, LBufsize, "wgnuplot %s", cmdname);
 #endif  /* _WIN32 */
 
     callSystemDebug(buf);  /* gnuplot || wgnuplot */
@@ -420,7 +420,7 @@ char    *cmdname;
 l_ok
 gplotGenCommandFile(GPLOT  *gplot)
 {
-char     buf[L_BUFSIZE];
+char     buf[LBufsize];
 char    *cmdstr, *plottitle, *dataname;
 l_int32  i, plotstyle, nplots;
 FILE    *fp;
@@ -435,43 +435,43 @@ FILE    *fp;
 
         /* Generate command data instructions */
     if (gplot->title) {   /* set title */
-        snprintf(buf, L_BUFSIZE, "set title '%s'", gplot->title);
+        snprintf(buf, LBufsize, "set title '%s'", gplot->title);
         sarrayAddString(gplot->cmddata, buf, L_COPY);
     }
     if (gplot->xlabel) {   /* set xlabel */
-        snprintf(buf, L_BUFSIZE, "set xlabel '%s'", gplot->xlabel);
+        snprintf(buf, LBufsize, "set xlabel '%s'", gplot->xlabel);
         sarrayAddString(gplot->cmddata, buf, L_COPY);
     }
     if (gplot->ylabel) {   /* set ylabel */
-        snprintf(buf, L_BUFSIZE, "set ylabel '%s'", gplot->ylabel);
+        snprintf(buf, LBufsize, "set ylabel '%s'", gplot->ylabel);
         sarrayAddString(gplot->cmddata, buf, L_COPY);
     }
 
         /* Set terminal type and output */
     if (gplot->outformat == GPLOT_PNG) {
-        snprintf(buf, L_BUFSIZE, "set terminal png; set output '%s'",
+        snprintf(buf, LBufsize, "set terminal png; set output '%s'",
                  gplot->outname);
     } else if (gplot->outformat == GPLOT_PS) {
-        snprintf(buf, L_BUFSIZE, "set terminal postscript; set output '%s'",
+        snprintf(buf, LBufsize, "set terminal postscript; set output '%s'",
                  gplot->outname);
     } else if (gplot->outformat == GPLOT_EPS) {
-        snprintf(buf, L_BUFSIZE,
+        snprintf(buf, LBufsize,
                  "set terminal postscript eps; set output '%s'",
                  gplot->outname);
     } else if (gplot->outformat == GPLOT_LATEX) {
-        snprintf(buf, L_BUFSIZE, "set terminal latex; set output '%s'",
+        snprintf(buf, LBufsize, "set terminal latex; set output '%s'",
                  gplot->outname);
     }
     sarrayAddString(gplot->cmddata, buf, L_COPY);
 
     if (gplot->scaling == GPLOT_LOG_SCALE_X ||
         gplot->scaling == GPLOT_LOG_SCALE_X_Y) {
-        snprintf(buf, L_BUFSIZE, "set logscale x");
+        snprintf(buf, LBufsize, "set logscale x");
         sarrayAddString(gplot->cmddata, buf, L_COPY);
     }
     if (gplot->scaling == GPLOT_LOG_SCALE_Y ||
         gplot->scaling == GPLOT_LOG_SCALE_X_Y) {
-        snprintf(buf, L_BUFSIZE, "set logscale y");
+        snprintf(buf, LBufsize, "set logscale y");
         sarrayAddString(gplot->cmddata, buf, L_COPY);
     }
 
@@ -481,17 +481,17 @@ FILE    *fp;
         dataname = sarrayGetString(gplot->datanames, i, L_NOCOPY);
         numaGetIValue(gplot->plotstyles, i, &plotstyle);
         if (nplots == 1) {
-            snprintf(buf, L_BUFSIZE, "plot '%s' title '%s' %s",
+            snprintf(buf, LBufsize, "plot '%s' title '%s' %s",
                      dataname, plottitle, gplotstylenames[plotstyle]);
         } else {
             if (i == 0)
-                snprintf(buf, L_BUFSIZE, "plot '%s' title '%s' %s, \\",
+                snprintf(buf, LBufsize, "plot '%s' title '%s' %s, \\",
                      dataname, plottitle, gplotstylenames[plotstyle]);
             else if (i < nplots - 1)
-                snprintf(buf, L_BUFSIZE, " '%s' title '%s' %s, \\",
+                snprintf(buf, LBufsize, " '%s' title '%s' %s, \\",
                      dataname, plottitle, gplotstylenames[plotstyle]);
             else
-                snprintf(buf, L_BUFSIZE, " '%s' title '%s' %s",
+                snprintf(buf, LBufsize, " '%s' title '%s' %s",
                      dataname, plottitle, gplotstylenames[plotstyle]);
         }
         sarrayAddString(gplot->cmddata, buf, L_COPY);
@@ -825,7 +825,7 @@ NUMA    *nay;
 GPLOT *
 gplotRead(const char  *filename)
 {
-char     buf[L_BUFSIZE];
+char     buf[LBufsize];
 char    *rootname, *title, *xlabel, *ylabel, *ignores;
 l_int32  outformat, ret, version, ignore;
 FILE    *fp;
@@ -849,16 +849,16 @@ GPLOT   *gplot;
         return (GPLOT *)ERROR_PTR("invalid gplot version", procName, NULL);
     }
 
-    ignore = fscanf(fp, "Rootname: %511s\n", buf);  /* L_BUFSIZE - 1 */
+    ignore = fscanf(fp, "Rootname: %511s\n", buf);  /* LBufsize - 1 */
     rootname = stringNew(buf);
     ignore = fscanf(fp, "Output format: %d\n", &outformat);
-    ignores = fgets(buf, L_BUFSIZE, fp);   /* Title: ... */
+    ignores = fgets(buf, LBufsize, fp);   /* Title: ... */
     title = stringNew(buf + 7);
     title[strlen(title) - 1] = '\0';
-    ignores = fgets(buf, L_BUFSIZE, fp);   /* X axis label: ... */
+    ignores = fgets(buf, LBufsize, fp);   /* X axis label: ... */
     xlabel = stringNew(buf + 14);
     xlabel[strlen(xlabel) - 1] = '\0';
-    ignores = fgets(buf, L_BUFSIZE, fp);   /* Y axis label: ... */
+    ignores = fgets(buf, LBufsize, fp);   /* Y axis label: ... */
     ylabel = stringNew(buf + 14);
     ylabel[strlen(ylabel) - 1] = '\0';
 
@@ -877,7 +877,7 @@ GPLOT   *gplot;
     sarrayDestroy(&gplot->plottitles);
     numaDestroy(&gplot->plotstyles);
 
-    ignore = fscanf(fp, "Commandfile name: %511s\n", buf);  /* L_BUFSIZE - 1 */
+    ignore = fscanf(fp, "Commandfile name: %511s\n", buf);  /* LBufsize - 1 */
     stringReplace(&gplot->cmdname, buf);
     ignore = fscanf(fp, "\nCommandfile data:");
     gplot->cmddata = sarrayReadStream(fp);

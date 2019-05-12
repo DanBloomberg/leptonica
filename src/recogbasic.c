@@ -189,17 +189,17 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  MAX_EXAMPLES_IN_CLASS = 256;
+static const l_int32    MaxExamplesInClass = 256;
 
     /* Default recog parameters that can be changed */
-static const l_int32    DEFAULT_CHARSET_TYPE = L_ARABIC_NUMERALS;
-static const l_int32    DEFAULT_MIN_NOPAD = 1;
-static const l_float32  DEFAULT_MAX_WH_RATIO = 3.0;  /* max allowed w/h
+static const l_int32    DefaultCharsetType = L_ARABIC_NUMERALS;
+static const l_int32    DefaultMinNopad = 1;
+static const l_float32  DefaultMaxWHRatio = 3.0;  /* max allowed w/h
                                     ratio for a component to be split  */
-static const l_float32  DEFAULT_MAX_HT_RATIO = 2.6;  /* max allowed ratio of
+static const l_float32  DefaultMaxHTRatio = 2.6;  /* max allowed ratio of
                                max/min unscaled averaged template heights  */
-static const l_int32    DEFAULT_THRESHOLD = 150;  /* for binarization */
-static const l_int32    DEFAULT_MAXYSHIFT = 1;  /* for identification */
+static const l_int32    DefaultThreshold = 150;  /* for binarization */
+static const l_int32    DefaultMaxYShift = 1;  /* for identification */
 
     /* Static functions */
 static l_int32 recogGetCharsetSize(l_int32 type);
@@ -418,14 +418,14 @@ L_RECOG  *recog;
         return (L_RECOG *)ERROR_PTR("invalid scalew or scaleh", procName, NULL);
     if (linew > 10)
         return (L_RECOG *)ERROR_PTR("invalid linew > 10", procName, NULL);
-    if (threshold == 0) threshold = DEFAULT_THRESHOLD;
+    if (threshold == 0) threshold = DefaultThreshold;
     if (threshold < 0 || threshold > 255) {
         L_WARNING("invalid threshold; using default\n", procName);
-        threshold = DEFAULT_THRESHOLD;
+        threshold = DefaultThreshold;
     }
     if (maxyshift < 0 || maxyshift > 2) {
          L_WARNING("invalid maxyshift; using default value\n", procName);
-         maxyshift = DEFAULT_MAXYSHIFT;
+         maxyshift = DefaultMaxYShift;
     } else if (maxyshift == 0) {
          L_WARNING("Using maxyshift = 0; faster, worse correlation results\n",
                    procName);
@@ -443,7 +443,7 @@ L_RECOG  *recog;
     recogSetParams(recog, 1, -1, -1.0, -1.0);
     recog->bmf = bmfCreate(NULL, 6);
     recog->bmf_size = 6;
-    recog->maxarraysize = MAX_EXAMPLES_IN_CLASS;
+    recog->maxarraysize = MaxExamplesInClass;
 
         /* Generate the LUTs */
     recog->centtab = makePixelCentroidTab8();
@@ -578,13 +578,13 @@ recogSetParams(L_RECOG   *recog,
     if (!recog)
         return ERROR_INT("recog not defined", procName, 1);
 
-    recog->charset_type = (type >= 0) ? type : DEFAULT_CHARSET_TYPE;
+    recog->charset_type = (type >= 0) ? type : DefaultCharsetType;
     recog->charset_size = recogGetCharsetSize(recog->charset_type);
-    recog->min_nopad = (min_nopad >= 0) ? min_nopad : DEFAULT_MIN_NOPAD;
+    recog->min_nopad = (min_nopad >= 0) ? min_nopad : DefaultMinNopad;
     recog->max_wh_ratio = (max_wh_ratio > 0.0) ? max_wh_ratio :
-                          DEFAULT_MAX_WH_RATIO;
+                          DefaultMaxWHRatio;
     recog->max_ht_ratio = (max_ht_ratio > 1.0) ? max_ht_ratio :
-                          DEFAULT_MAX_HT_RATIO;
+                          DefaultMaxHTRatio;
     return 0;
 }
 

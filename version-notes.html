@@ -93,15 +93,18 @@ They are <i>not</i> a complete listing of the modifications.
         * Cleaned up auto-generation of files; removed 'register'
         * Some fixes for issues identified by fuzzer
         * New programs: replacebytes.c, webpanimio_reg.c, partifytest.c
-        * improved data checking when reading image file headers
+        * Convert to standard reg test: heap_reg.c
+        * Improved data checking when reading image file headers
           (pnm, png, jpeg, tiff)
-        * fixed some bugs in pnm reading
-        * fixed inconsistencies with the encoding type flags in pdf writing
-        * allow tiff to write images with colormaps
-        * fixed errors in PS code; made some functions static
-        * added code for animated webp (requires webp mux and demux libraries)
-        * added "partify" application for separating parts in a musical score
-        * enable tif read/write of gray+alpha and rgba
+        * Fixed some bugs in pnm reading
+        * Fixed inconsistencies with the encoding type flags in pdf writing
+        * Allow tiff to write images with colormaps
+        * Fixed errors in PS code; made some functions static
+        * Added code for animated webp (requires webp mux and demux libraries)
+        * Added "partify" application for separating parts in a musical score
+        * Enable tif read/write of gray+alpha and rgba; filter out tiff
+          pixels that are not uint and compression by tile
+        * Apply consistent formatting of static const variables
 
 1.78.0  21 Mar 19
         * Various improvements in handling boxa sequences and transforms.
