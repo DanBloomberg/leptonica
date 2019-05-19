@@ -121,7 +121,7 @@
      *--------------------------------------------------*/
 /*! 1 bit access - get */
 #define  GET_DATA_BIT(pdata, n) \
-    ((*((l_uint32 *)(pdata) + ((n) >> 5)) >> (31 - ((n) & 31))) & 1)
+    ((*((const l_uint32 *)(pdata) + ((n) >> 5)) >> (31 - ((n) & 31))) & 1)
 
 /*! 1 bit access - set */
 #define  SET_DATA_BIT(pdata, n) \
@@ -143,7 +143,7 @@
      *--------------------------------------------------*/
 /*! 2 bit access - get */
 #define  GET_DATA_DIBIT(pdata, n) \
-    ((*((l_uint32 *)(pdata) + ((n) >> 4)) >> (2 * (15 - ((n) & 15)))) & 3)
+    ((*((const l_uint32 *)(pdata) + ((n) >> 4)) >> (2 * (15 - ((n) & 15)))) & 3)
 
 /*! 2 bit access - set value (0 ... 3) */
 #define  SET_DATA_DIBIT(pdata, n, val) \
@@ -162,7 +162,7 @@
      *--------------------------------------------------*/
 /*! 4 bit access - get */
 #define  GET_DATA_QBIT(pdata, n) \
-     ((*((l_uint32 *)(pdata) + ((n) >> 3)) >> (4 * (7 - ((n) & 7)))) & 0xf)
+     ((*((const l_uint32 *)(pdata) + ((n) >> 3)) >> (4 * (7 - ((n) & 7)))) & 0xf)
 
 /*! 4 bit access - set value (0 ... 15) */
 #define  SET_DATA_QBIT(pdata, n, val) \
@@ -182,11 +182,11 @@
 #ifdef  L_BIG_ENDIAN
 /*! 8 bit access - get */
 #define  GET_DATA_BYTE(pdata, n) \
-             (*((l_uint8 *)(pdata) + (n)))
+             (*((const l_uint8 *)(pdata) + (n)))
 #else  /* L_LITTLE_ENDIAN */
 /*! 8 bit access - get */
 #define  GET_DATA_BYTE(pdata, n) \
-             (*(l_uint8 *)((l_uintptr_t)((l_uint8 *)(pdata) + (n)) ^ 3))
+             (*(l_uint8 *)((l_uintptr_t)((const l_uint8 *)(pdata) + (n)) ^ 3))
 #endif  /* L_BIG_ENDIAN */
 
 #ifdef  L_BIG_ENDIAN
@@ -206,11 +206,11 @@
 #ifdef  L_BIG_ENDIAN
 /*! 16 bit access - get */
 #define  GET_DATA_TWO_BYTES(pdata, n) \
-             (*((l_uint16 *)(pdata) + (n)))
+             (*((const l_uint16 *)(pdata) + (n)))
 #else  /* L_LITTLE_ENDIAN */
 /*! 16 bit access - get */
 #define  GET_DATA_TWO_BYTES(pdata, n) \
-             (*(l_uint16 *)((l_uintptr_t)((l_uint16 *)(pdata) + (n)) ^ 2))
+             (*(l_uint16 *)((l_uintptr_t)((const l_uint16 *)(pdata) + (n)) ^ 2))
 #endif  /* L_BIG_ENDIAN */
 
 #ifdef  L_BIG_ENDIAN
@@ -229,7 +229,7 @@
      *--------------------------------------------------*/
 /*! 32 bit access - get */
 #define  GET_DATA_FOUR_BYTES(pdata, n) \
-             (*((l_uint32 *)(pdata) + (n)))
+             (*((const l_uint32 *)(pdata) + (n)))
 
 /*! 32 bit access - set (0 ... 4294967295) */
 #define  SET_DATA_FOUR_BYTES(pdata, n, val) \
