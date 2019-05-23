@@ -32,14 +32,16 @@
  *         l_int32          partifyFiles()
  *         l_int32          partifyPixac()
  *
- *     Helper
+ *     Helpers
+ *         static BOXA     *pixLocateStaveSets()
  *         static l_int32   boxaRemoveVGaps()
  * </pre>
  */
 
 #include "allheaders.h"
 
-    /* Static helpler */
+    /* Static helplers */
+static BOXA *pixLocateStaveSets(PIX *pixs, l_int32 pageno, PIXA *pixadb);
 static l_ok boxaRemoveVGaps(BOXA *boxa);
 
 
@@ -59,8 +61,9 @@ static l_ok boxaRemoveVGaps(BOXA *boxa);
  * <pre>
  * Notes:
  *      (1) All page images are compressed in png format into a pixacomp.
- *      (2) Each page image is deskewed, binarized, partified into %nparts,
- *          and saved in a set of pixacomps in tiff-g4 format.
+ *      (2) Each page image is deskewed, binarized at 300 ppi,
+ *          partified into %nparts, and saved in a set of pixacomps
+ *          in tiff-g4 format.
  *      (3) Each partified pixacomp is rendered into a set of page images,
  *          and output as a pdf.
  * </pre>
@@ -106,6 +109,12 @@ PIXAC  *pixac;
  * \param[in]    outroot    root name of output pdf files
  * \param[in]    pixadb     [optional] debug pixa; can be NULL
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) See partifyPixac().
+ *      (2) If the image files do not have a resolution, 300 ppi is assumed.
+ * </pre>
  */
 l_ok
 partifyPixac(PIXAC       *pixac,
@@ -113,13 +122,14 @@ partifyPixac(PIXAC       *pixac,
              const char  *outroot,
              PIXA        *pixadb)
 {
-char     buf[512];
-l_int32  i, j, pageno, npage, nbox, icount, line;
-L_BMF   *bmf;
-BOX     *box1, *box2;
-BOXA    *boxa1, *boxa2, *boxa3;
-PIX     *pix1, *pix2, *pix3, *pix4, *pix5;
-PIXAC  **pixaca;
+char       buf[512];
+l_int32    i, j, pageno, res, npage, nbox, icount, line;
+l_float32  factor;
+L_BMF     *bmf;
+BOX       *box1, *box2;
+BOXA      *boxa1, *boxa2, *boxa3;
+PIX       *pix1, *pix2, *pix3, *pix4, *pix5;
+PIXAC    **pixaca;
 
     PROCNAME("partifyPixac");
 
@@ -146,58 +156,47 @@ PIXAC  **pixaca;
             continue;
         }
 
-            /* Binarize and deskew */
-        pix2 = pixConvertTo1Adaptive(pix1);
-        pix3 = pixDeskew(pix2, 0);
+            /* Scale, binarize and deskew */
+        res = pixGetXRes(pix1);
+        if (res == 0 || res == 300 || res > 600) {
+            pix2 = pixClone(pix1);
+        } else {
+            factor = 300.0 / (l_float32)res;
+            if (factor > 3)
+                L_WARNING("resolution is very low\n", procName);
+            pix2 = pixScale(pix1, factor, factor);
+        }
+        pix3 = pixConvertTo1Adaptive(pix2);
+        pix4 = pixDeskew(pix3, 0);
         pixDestroy(&pix1);
         pixDestroy(&pix2);
-        if (!pix3) {
+        pixDestroy(&pix3);
+        if (!pix4) {
             L_ERROR("pix for page %d not deskewed\n", procName, pageno);
             continue;
         }
-
-            /* Find the stave sets at 4x reduction */
-        pix4 = pixMorphSequence(pix3, "r11", 0);
-        boxa1 = pixConnCompBB(pix4, 8);
-        boxa2 = boxaSelectByArea(boxa1, 15000, L_SELECT_IF_GT, NULL);
-        boxa3 = boxaSort(boxa2, L_SORT_BY_Y, L_SORT_INCREASING, NULL);
-        if (pixadb) {
-            pix5 = pixConvertTo32(pix4);
-            pixRenderBoxaArb(pix5, boxa3, 2, 255, 0, 0);
-            pixaAddPix(pixadb, pix5, L_INSERT);
-            pixDisplay(pix5, 100 * pageno, 100);
-        }
-        boxaDestroy(&boxa1);
-        boxaDestroy(&boxa2);
-
-        boxaRemoveVGaps(boxa3);
-        if (pixadb) {
-            pix5 = pixConvertTo32(pix4);
-            pixRenderBoxaArb(pix5, boxa3, 2, 0, 255, 0);
-            pixaAddPix(pixadb, pix5, L_INSERT);
-            pixDisplay(pix5, 100 * pageno, 600);
-        }
+        pix1 = pixClone(pix4);  /* rename */
         pixDestroy(&pix4);
 
-            /* Locate the stave sets at full resolution, and break
-             * each one into the separate staves (parts).  A typical
-             * set will have more than one part, but if one of the
-             * parts is a keyboard, it will usually have two staves
+            /* Find the stave sets at 4x reduction */
+        boxa1 = pixLocateStaveSets(pix1, pageno, pixadb); 
+
+            /* Break each stave set into the separate staves (parts).
+             * A typical set will have more than one part, but if one of
+             * the parts is a keyboard, it will usually have two staves
              * (also called a Grand Staff), composed of treble and
              * bass staves.  For example, a classical violin sonata
              * could have a staff for the violin and two staves for 
              * the piano.  We would set nparts == 2, and extract both
              * of the piano staves as the piano part.  */
-        boxa1 = boxaTransform(boxa3, 0, 0, 4.0, 4.0);
-        boxaDestroy(&boxa3);
         nbox = boxaGetCount(boxa1);
         fprintf(stderr, "number of boxes in page %d: %d\n", pageno, nbox);
         for (i = 0; i < nbox; i++, line++) {
             snprintf(buf, sizeof(buf), "%d", line);
             box1 = boxaGetBox(boxa1, i, L_COPY);
-            pix1 = pixClipRectangle(pix3, box1, NULL);
-            pix2 = pixMorphSequence(pix1, "d1.20 + o50.1 + o1.30", 0);
-            boxa2 = pixConnCompBB(pix2, 8);
+            pix2 = pixClipRectangle(pix1, box1, NULL);
+            pix3 = pixMorphSequence(pix2, "d1.20 + o50.1 + o1.30", 0);
+            boxa2 = pixConnCompBB(pix3, 8);
             boxa3 = boxaSort(boxa2, L_SORT_BY_Y, L_SORT_INCREASING, NULL);
             boxaRemoveVGaps(boxa3);
             icount = boxaGetCount(boxa3);
@@ -209,7 +208,7 @@ PIXAC  **pixaca;
                 if (j == nparts - 1)  /* extend the box to the bottom */
                     boxSetSideLocations(box2, -1, -1, -1,
                                         pixGetHeight(pix1) - 1);
-                pix4 = pixClipRectangle(pix1, box2, NULL);
+                pix4 = pixClipRectangle(pix2, box2, NULL);
                 pix5 = pixAddTextlines(pix4, bmf, buf, 1, L_ADD_LEFT);
                 pixacompAddPix(pixaca[j], pix5, IFF_TIFF_G4);
                 boxDestroy(&box2);
@@ -219,13 +218,14 @@ PIXAC  **pixaca;
             boxaDestroy(&boxa2);
             boxaDestroy(&boxa3);
             boxDestroy(&box1);
-            pixDestroy(&pix1);
             pixDestroy(&pix2);
+            pixDestroy(&pix3);
         }
         boxaDestroy(&boxa1);
-        pixDestroy(&pix3);
+        pixDestroy(&pix1);
     }
 
+        /* Output separate pdfs for each part */
     for (i = 0; i < nparts; i++) {
         snprintf(buf, sizeof(buf), "%s-%d.pdf", outroot, i);
         L_INFO("writing part %d: %s\n", procName, i, buf);
@@ -235,6 +235,50 @@ PIXAC  **pixaca;
     LEPT_FREE(pixaca);
     bmfDestroy(&bmf);
     return 0;
+}
+
+
+/*
+ * \brief   pixLocateStaveSets()
+ *
+ * \param[in]    pixs       1 bpp, 300 ppi, deskewed
+ * \param[in]    pageno     page number; used for debug output
+ * \param[in]    pixadb     [optional] debug pixa; can be NULL
+ * \return   boxa   containing the stave sets at full resolution
+ */
+static BOXA *
+pixLocateStaveSets(PIX     *pixs, 
+                   l_int32  pageno,
+                   PIXA    *pixadb)
+{
+BOXA  *boxa1, *boxa2, *boxa3, *boxa4;
+PIX   *pix1, *pix2;
+
+        /* Find the stave sets at 4x reduction */
+    pix1 = pixMorphSequence(pixs, "r11", 0);
+    boxa1 = pixConnCompBB(pix1, 8);
+    boxa2 = boxaSelectByArea(boxa1, 15000, L_SELECT_IF_GT, NULL);
+    boxa3 = boxaSort(boxa2, L_SORT_BY_Y, L_SORT_INCREASING, NULL);
+    if (pixadb) {
+        pix2 = pixConvertTo32(pix1);
+        pixRenderBoxaArb(pix2, boxa3, 2, 255, 0, 0);
+        pixaAddPix(pixadb, pix2, L_INSERT);
+        pixDisplay(pix2, 100 * pageno, 100);
+    }
+    boxaDestroy(&boxa1);
+    boxaDestroy(&boxa2);
+
+    boxaRemoveVGaps(boxa3);
+    if (pixadb) {
+        pix2 = pixConvertTo32(pix1);
+        pixRenderBoxaArb(pix2, boxa3, 2, 0, 255, 0);
+        pixaAddPix(pixadb, pix2, L_INSERT);
+        pixDisplay(pix2, 100 * pageno, 600);
+    }
+    boxa4 = boxaTransform(boxa3, 0, 0, 4.0, 4.0);  /* back to full res */
+    boxaDestroy(&boxa3);
+    pixDestroy(&pix1);
+    return boxa4;
 }
 
 

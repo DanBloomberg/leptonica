@@ -38,7 +38,7 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	psio_reg psioseg_reg pta_reg \
 	ptra1_reg ptra2_reg \
 	quadtree_reg rankbin_reg rankhisto_reg \
-	rank_reg rasteropip_reg rasterop_reg \
+	rank_reg rasteropip_reg rasterop_reg rectangle_reg \
 	rotate1_reg rotate2_reg rotateorth_reg \
 	scale_reg seedspread_reg \
 	selio_reg shear1_reg shear2_reg skew_reg \

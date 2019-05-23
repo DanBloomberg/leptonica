@@ -27,8 +27,7 @@
 /*
  *  maze_reg.c
  *
- *    Tests the functions in maze.c: binary and gray maze search,
- *    largest rectangle in bg or fg.
+ *    Tests the functions in maze.c: binary and gray maze search
  */
 
 #include <string.h>
@@ -40,18 +39,12 @@ static const l_int32 y0[NPATHS] = {117, 319, 319, 117, 170, 201};
 static const l_int32 x1[NPATHS] = {419, 419, 233, 326, 418, 128};
 static const l_int32 y1[NPATHS] = {383, 383, 112, 168, 371, 341};
 
-static const l_int32  NBOXES = 20;
-static const l_int32  POLARITY = 0;  /* background */
-
 int main(int    argc,
          char **argv)
 {
-l_int32       i, w, h, bx, by, bw, bh, index, rval, gval, bval;
-BOX          *box;
-BOXA         *boxa;
+l_int32       i, w, h;
 PIX          *pixm, *pixs, *pixg, *pixt, *pixd;
 PIXA         *pixa;
-PIXCMAP      *cmap;
 PTA          *pta;
 PTAA         *ptaa;
 L_REGPARAMS  *rp;
@@ -78,7 +71,6 @@ L_REGPARAMS  *rp;
     pixDestroy(&pixd);
     pixDestroy(&pixm);
 
-
     /* ---------------- Shortest path in gray maze ---------------- */
     pixg = pixRead("test8.jpg");
     pixGetDimensions(pixg, &w, &h, NULL);
@@ -101,39 +93,9 @@ L_REGPARAMS  *rp;
     pixDestroy(&pixt);
     pixDestroy(&pixd);
 
-
-    /* ---------------- Largest rectangles in image ---------------- */
-    pixs = pixRead("test1.png");
-    pixd = pixConvertTo8(pixs, FALSE);
-    cmap = pixcmapCreateRandom(8, 1, 1);
-    pixSetColormap(pixd, cmap);
-
-    boxa = boxaCreate(0);
-    for (i = 0; i < NBOXES; i++) {
-        pixFindLargestRectangle(pixs, POLARITY, &box, NULL);
-        boxGetGeometry(box, &bx, &by, &bw, &bh);
-        pixSetInRect(pixs, box);
-        fprintf(stderr, "bx = %5d, by = %5d, bw = %5d, bh = %5d, area = %d\n",
-                bx, by, bw, bh, bw * bh);
-        boxaAddBox(boxa, box, L_INSERT);
-    }
-
-    for (i = 0; i < NBOXES; i++) {
-        index = 32 + (i & 254);
-        pixcmapGetColor(cmap, index, &rval, &gval, &bval);
-        box = boxaGetBox(boxa, i, L_CLONE);
-        pixRenderHashBoxArb(pixd, box, 6, 2, L_NEG_SLOPE_LINE, 1,
-                            rval, gval, bval);
-        boxDestroy(&box);
-    }
-    pixSaveTiledOutline(pixd, pixa, 1.0, 1, 20, 2, 32);
-    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 2 */
-    pixDestroy(&pixs);
-    pixDestroy(&pixd);
-    boxaDestroy(&boxa);
-
+        /* Bundle it all up */
     pixd = pixaDisplay(pixa, 0, 0);
-    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 3 */
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 2 */
     pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);

@@ -100,6 +100,7 @@
  *         Box size adjustment flags
  *         Flags for modifying box boundaries using a second box
  *         Handling overlapping bounding boxes in boxa
+ *         Selecting or making a box from two (intersecting) boxes
  *         Flags for replacing invalid boxes
  *         Flags for box corners
  *         Horizontal warp
@@ -1106,6 +1107,18 @@ enum {
 enum {
     L_COMBINE = 1,         /*!< resize to bounding region; remove smaller  */
     L_REMOVE_SMALL = 2     /*!< only remove smaller                        */
+};
+
+
+/*-------------------------------------------------------------------------*
+ *        Selecting or making a box from two (intersecting) boxes          *
+ *-------------------------------------------------------------------------*/
+/*! Box Combine or Select */
+enum {
+    L_GEOMETRIC_UNION = 1,         /*!< use union of two boxes             */
+    L_GEOMETRIC_INTERSECTION = 2,  /*!< use intersection of two boxes      */
+    L_LARGEST_AREA = 3,            /*!< use box with largest area          */
+    L_SMALLEST_AREA = 4            /*!< use box with smallest area         */
 };
 
 

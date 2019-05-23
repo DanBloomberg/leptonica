@@ -194,7 +194,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		psio_reg.c psioseg_reg.c \
 		pta_reg.c ptra1_reg.c ptra2_reg.c quadtree_reg.c \
 		rankbin_reg.c rankhisto_reg.c rank_reg.c \
-		rasteropip_reg.c rasterop_reg.c \
+		rasteropip_reg.c rasterop_reg.c rectangle_reg.c \
 		rotate1_reg.c rotate2_reg.c rotateorth_reg.c \
 		scale_reg.c seedspread_reg.c selio_reg.c \
 		shear1_reg.c shear2_reg.c skew_reg.c \
@@ -673,6 +673,9 @@ rasterop_reg:	rasterop_reg.o $(LEPTLIB)
 
 rasteropip_reg:	rasteropip_reg.o $(LEPTLIB)
 	$(CC) -o rasteropip_reg rasteropip_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+rectangle_reg:	rectangle_reg.o $(LEPTLIB)
+	$(CC) -o rectangle_reg rectangle_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 rotate1_reg:	rotate1_reg.o $(LEPTLIB)
 	$(CC) -o rotate1_reg rotate1_reg.o $(ALL_LIBS) $(EXTRALIBS)

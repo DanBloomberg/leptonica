@@ -201,6 +201,7 @@ void build(Solution &s)
             {"rank_reg", {"rank_reg.c"}},
             {"rasteropip_reg", {"rasteropip_reg.c"}},
             {"rasterop_reg", {"rasterop_reg.c"}},
+            {"rectangle_reg", {"rectangle_reg.c"}},
             {"rotate1_reg", {"rotate1_reg.c"}},
             {"rotate2_reg", {"rotate2_reg.c"}},
             {"scale_reg", {"scale_reg.c"}},

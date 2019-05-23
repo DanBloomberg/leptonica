@@ -69,6 +69,9 @@
  *      Largest white or black rectangles in an image
  *          l_int32   pixFindLargeRectangles()
  *          l_int32   pixFindLargestRectangle()
+ *
+ *      Generate rectangle inside connected component
+ *          BOX      *pixFindRectangleInCC()
  * </pre>
  */
 
@@ -2141,3 +2144,200 @@ PIX       *pixw, *pixh;  /* keeps the width and height for the largest */
     pixDestroy(&pixh);
     return 0;
 }
+
+
+/*---------------------------------------------------------------------*
+ *            Generate rectangle inside connected component            *
+ *---------------------------------------------------------------------*/
+/*!
+ * \brief   pixFindRectangleInCC()
+ *
+ * \param[in]    pixs     1 bpp, with sufficient closings to make the fg be
+ *                        a single c.c. that is a convex hull
+ * \param[in]    boxs     [optional] if NULL, %pixs should be a minimum
+ *                        container of a single c.c.
+ * \param[in]    fract    first and all consecutive lines found must be at
+ *                        least this fraction of the fast scan dimension
+ * \param[in]    dir      L_SCAN_HORIZONTAL, L_SCAN_VERTICAL; direction of
+ *                        fast scan
+ * \param[in]    select   L_GEOMETRIC_UNION, L_GEOMETRIC_INTERSECTION,
+ *                        L_LARGEST_AREA, L_SMALEST_AREA
+ * \param[in]    debug    if 1, generates output pdf showing intermediate
+ *                        computation and final result
+ * \return  box  of included rectangle, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Computation is similar to pixFindLargestRectangle(), but allows
+ *          a different set of results to choose from.
+ *      (2) Select the fast scan direction.  Then, scanning in the slow
+ *          direction, finds the longest run of ON pixels in the fast
+ *          scan direction and look for the first first run that is longer
+ *          than %fract of the dimension.  Continues until a shorter run
+ *          is found.  This generates a box of ON pixels fitting into the c.c.
+ *      (3) Do this from both slow scan directions and use %select to get
+ *          a resulting box from these two.
+ *      (4) The extracted rectangle is not necessarily the largest that
+ *          can fit in the c.c.  To get that, use pixFindLargestRectangle().
+ */
+BOX *
+pixFindRectangleInCC(PIX       *pixs,
+                     BOX       *boxs,
+                     l_float32  fract,
+                     l_int32    dir,
+                     l_int32    select,
+                     l_int32    debug)
+{
+l_int32  x, y, i, j, w, h, w1, h1, w2, h2, found, res;
+l_int32  xfirst, xlast, xstart, yfirst, ylast, length;
+BOX     *box1, *box2, *box3, *box4, *box5;
+PIX     *pix1, *pix2, *pixdb1, *pixdb2;
+PIXA    *pixadb;
+
+    PROCNAME("pixFindRectangleInCC");
+
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return (BOX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+    if (fract <= 0.0 || fract > 1.0)
+        return (BOX *)ERROR_PTR("invalid fraction", procName, NULL);
+    if (dir != L_SCAN_VERTICAL && dir != L_SCAN_HORIZONTAL)
+        return (BOX *)ERROR_PTR("invalid scan direction", procName, NULL);
+    if (select != L_GEOMETRIC_UNION && select != L_GEOMETRIC_INTERSECTION &&
+        select != L_LARGEST_AREA && select != L_SMALLEST_AREA)
+        return (BOX *)ERROR_PTR("invalid select", procName, NULL);
+
+        /* Extract the c.c. if necessary */
+    x = y = 0;
+    if (boxs) {
+        pix1 = pixClipRectangle(pixs, boxs, NULL);
+        boxGetGeometry(boxs, &x, &y, NULL, NULL);
+    } else {
+        pix1 = pixClone(pixs);
+    }
+
+        /* All fast scans are horizontal; rotate 90 deg cw if necessary */
+    if (dir == L_SCAN_VERTICAL)
+        pix2 = pixRotate90(pix1, 1);
+    else  /* L_SCAN_HORIZONTAL */
+        pix2 = pixClone(pix1);
+    pixGetDimensions(pix2, &w, &h, NULL);
+
+    pixadb = (debug) ? pixaCreate(0) : NULL;
+    if (pixadb) {
+        lept_mkdir("lept/rect");
+        pixaAddPix(pixadb, pix1, L_CLONE);
+        pixdb1 = pixConvertTo32(pix2);
+    }
+    pixDestroy(&pix1);
+
+        /* Scanning down, find the first scanline with a long enough run.
+         * That run goes from (xfirst, yfirst) to (xlast, yfirst).  */
+    found = FALSE;
+    for (i = 0; i < h; i++) {
+        pixFindMaxHorizontalRunOnLine(pix2, i, &xstart, &length);
+        if (length >= (l_int32)(fract * w + 0.5)) {
+            yfirst = i;
+            xfirst = xstart;
+            xlast = xfirst + length - 1;
+            found = TRUE;
+            break;
+        }
+    }
+    if (!found) {
+        L_WARNING("no run of sufficient size was found\n", procName);
+        pixDestroy(&pix2);
+        return NULL;
+    }
+
+         /* Continue down until the condition fails */
+    for (i = yfirst + 1; i < h; i++) {
+        pixFindMaxHorizontalRunOnLine(pix2, i, &xstart, &length);
+        if (xstart > xfirst || (xstart + length - 1 < xlast) ||
+            i == h - 1) {
+            ylast = i - 1;
+            w1 = xlast - xfirst + 1;
+            h1 = ylast - yfirst + 1;
+            box1 = boxCreate(xfirst, yfirst, w1, h1);
+            break;
+        }
+    }
+
+        /* Scanning up, find the first scanline with a long enough run.
+         * That run goes from (xfirst, ylast) to (xlast, ylast).  */
+    for (i = h - 1; i >= 0; i--) {
+        pixFindMaxHorizontalRunOnLine(pix2, i, &xstart, &length);
+        if (length >= (l_int32)(fract * w + 0.5)) {
+            ylast = i;
+            xfirst = xstart;
+            xlast = xfirst + length - 1;
+            break;
+        }
+    }
+
+         /* Continue up until the condition fails */
+    for (i = ylast - 1; i >= 0; i--) {
+        pixFindMaxHorizontalRunOnLine(pix2, i, &xstart, &length);
+        if (xstart > xfirst || (xstart + length - 1 < xlast) ||
+            i == 0) {
+            yfirst = i + 1;
+            w2 = xlast - xfirst + 1;
+            h2 = ylast - yfirst + 1;
+            box2 = boxCreate(xfirst, yfirst, w2, h2);
+            break;
+        }
+    }
+    pixDestroy(&pix2);
+
+    if (pixadb) {
+        pixRenderBoxArb(pixdb1, box1, 2, 255, 0, 0);
+        pixRenderBoxArb(pixdb1, box2, 2, 0, 255, 0);
+        pixaAddPix(pixadb, pixdb1, L_INSERT);
+    }
+
+        /* Select the final result from the two boxes */
+    if (select == L_GEOMETRIC_UNION)
+        box3 = boxBoundingRegion(box1, box2);
+    else if (select == L_GEOMETRIC_INTERSECTION)
+        box3 = boxOverlapRegion(box1, box2);
+    else if (select == L_LARGEST_AREA)
+        box3 = (w1 * h1 >= w2 * h2) ? boxCopy(box1) : boxCopy(box2);
+    else  /* select == L_SMALLEST_AREA) */
+        box3 = (w1 * h1 <= w2 * h2) ? boxCopy(box1) : boxCopy(box2);
+    boxDestroy(&box1);
+    boxDestroy(&box2);
+
+        /* Rotate the box 90 degrees ccw if necessary */
+    box4 = NULL;
+    if (box3) {
+        if (dir == L_SCAN_VERTICAL)
+            box4 = boxRotateOrth(box3, w, h, 3);
+        else
+            box4 = boxCopy(box3);
+    }
+
+        /* Transform back to global coordinates if %boxs exists */
+    box5 = (box4) ? boxTransform(box4, x, y, 1.0, 1.0) : NULL;
+    boxDestroy(&box3);
+    boxDestroy(&box4);
+
+        /* Debug output */
+    if (pixadb) {
+        pixdb1 = pixConvertTo8(pixs, 0);
+        pixAddConstantGray(pixdb1, 190);
+        pixdb2 = pixConvertTo32(pixdb1);
+        if (box5) pixRenderBoxArb(pixdb2, box5, 4, 0, 0, 255);
+        pixaAddPix(pixadb, pixdb2, L_INSERT);
+        res = pixGetXRes(pixs);
+        L_INFO("Writing debug files to /tmp/lept/rect/\n", procName);
+        pixaConvertToPdf(pixadb, res, 1.0, L_DEFAULT_ENCODE, 75, NULL,
+                        "/tmp/lept/rect/fitrect.pdf");
+        pix1 = pixaDisplayTiledAndScaled(pixadb, 32, 800, 1, 0, 40, 2);
+        pixWrite("/tmp/lept/rect/fitrect.png", pix1, IFF_PNG);
+        pixDestroy(&pix1);
+        pixDestroy(&pixdb1);
+        pixaDestroy(&pixadb);
+    }
+
+    return box5;
+}
+

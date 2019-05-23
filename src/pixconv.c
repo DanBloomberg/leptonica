@@ -2396,6 +2396,7 @@ l_uint32  *tab, *datas, *datad, *lines, *lined;
     }
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
+    pixSetPadBits(pixs, 0);
 
         /* Use a table to convert 4 src bits at a time */
     tab = (l_uint32 *)LEPT_CALLOC(16, sizeof(l_uint32));
