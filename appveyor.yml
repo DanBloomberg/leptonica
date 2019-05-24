@@ -21,3 +21,4 @@ before_build:
 
 build_script:
   - sw -show-output -platform %platform% build
+
