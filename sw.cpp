@@ -166,6 +166,7 @@ void build(Solution &s)
             {"locminmax_reg", {"locminmax_reg.c"}},
             {"logicops_reg", {"logicops_reg.c"}},
             {"lowaccess_reg", {"lowaccess_reg.c"}},
+            {"lowsat_reg", {"lowsat_reg.c"}},
             {"maze_reg", {"maze_reg.c"}},
             {"mtiff_reg", {"mtiff_reg.c"}},
             {"multitype_reg", {"multitype_reg.c"}},

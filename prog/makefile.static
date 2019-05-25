@@ -180,7 +180,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		iomisc_reg.c italic_reg.c \
 		jbclass_reg.c jp2kio_reg.c jpegio_reg.c kernel_reg.c \
 		label_reg.c lineremoval_reg.c locminmax_reg.c \
-		logicops_reg.c lowaccess_reg.c \
+		logicops_reg.c lowaccess_reg.c lowsat_reg.c \
 		maze_reg.c morphseq_reg.c mtiff_reg.c \
 		multitype_reg.c nearline_reg.c newspaper_reg.c \
 		numa1_reg.c numa2_reg.c \
@@ -562,6 +562,9 @@ locminmax_reg:	locminmax_reg.o $(LEPTLIB)
 
 logicops_reg:	logicops_reg.o $(LEPTLIB)
 	$(CC) -o logicops_reg logicops_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+lowsat_reg:	lowsat_reg.o $(LEPTLIB)
+	$(CC) -o lowsat_reg lowsat_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 lowaccess_reg:	lowaccess_reg.o $(LEPTLIB)
 	$(CC) -o lowaccess_reg lowaccess_reg.o $(ALL_LIBS) $(EXTRALIBS)

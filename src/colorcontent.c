@@ -570,9 +570,15 @@ PIXCMAP   *cmap;
  *
  * <pre>
  * Notes:
- *      (1) This generates a mask over rgb pixels that are sufficiently
- *          dark "gray"; i.e., that have low brightness and saturation.
- *      (2) The algorithm is related to pixDarkenPixels().
+ *      (1) This generates a mask over rgb pixels that are gray (i.e.,
+ *          have low saturation) and are not too bright.  For example, if
+ *          we know that the gray pixels in %pixs have saturation
+ *          (max - min) less than 10, and brightness (max) less than 200,
+ *             pixMaskOverGrayPixels(pixs, 220, 10)
+ *          will generate a mask over the gray pixels.  Other pixels that
+ *          are not too dark and have a relatively large saturation will
+ *          be little affected.
+ *      (2) The algorithm is related to pixDarkenGray().
  * </pre>
  */
 PIX *

@@ -28,7 +28,7 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	insert_reg ioformats_reg iomisc_reg italic_reg \
 	jbclass_reg jpegio_reg \
 	kernel_reg label_reg lineremoval_reg \
-	locminmax_reg logicops_reg lowaccess_reg \
+	locminmax_reg logicops_reg lowaccess_reg lowsat_reg \
 	maze_reg mtiff_reg multitype_reg \
 	nearline_reg newspaper_reg numa1_reg numa2_reg \
 	overlap_reg pageseg_reg paint_reg paintmask_reg \

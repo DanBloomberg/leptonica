@@ -2017,6 +2017,8 @@ PIX       *pixd;
  *          causes the darkening to be applied to all pixels.
  *      (3) This function is useful to enhance pixels relative to a
  *          gray background.
+ *      (4) A related function that builds a 1 bpp mask over the gray
+ *          pixels is pixMaskOverGrayPixels().
  * </pre>
  */
 PIX *
