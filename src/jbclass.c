@@ -611,11 +611,15 @@ SEL        *sel;
     PROCNAME("jbClassifyRankHaus");
 
     if (!classer)
-        return ERROR_INT("classer not found", procName, 1);
+        return ERROR_INT("classer not defined", procName, 1);
     if (!boxa)
-        return ERROR_INT("boxa not found", procName, 1);
+        return ERROR_INT("boxa not defined", procName, 1);
     if (!pixas)
-        return ERROR_INT("pixas not found", procName, 1);
+        return ERROR_INT("pixas not defined", procName, 1);
+    if ((n = pixaGetCount(pixas)) == 0)
+        return ERROR_INT("pixas is empty", procName, 1);
+    if ((nafg = pixaCountPixels(pixas)) == NULL)  /* areas for this page */
+        return ERROR_INT("fg counting failed", procName, 1);
 
     npages = classer->npages;
     size = classer->sizehaus;
@@ -623,7 +627,6 @@ SEL        *sel;
 
         /* Generate the bordered pixa, with and without dilation.
          * pixa1 and pixa2 contain all the input components. */
-    n = pixaGetCount(pixas);
     pixa1 = pixaCreate(n);
     pixa2 = pixaCreate(n);
     for (i = 0; i < n; i++) {
@@ -740,8 +743,6 @@ SEL        *sel;
             }
         }
     } else {  /* rank < 1.0 */
-        if ((nafg = pixaCountPixels(pixas)) == NULL)  /* areas for this page */
-            return ERROR_INT("nafg not made", procName, 1);
         nafgt = classer->nafgt;
         tab8 = makePixelSumTab8();
         for (i = 0; i < n; i++) {   /* all instances on this page */
@@ -802,10 +803,10 @@ SEL        *sel;
             }
         }
         LEPT_FREE(tab8);
-        numaDestroy(&nafg);
     }
     classer->nclass = pixaGetCount(pixat);
 
+    numaDestroy(&nafg);
     ptaDestroy(&pta);
     pixaDestroy(&pixa1);
     pixaDestroy(&pixa2);

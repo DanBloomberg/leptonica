@@ -578,7 +578,10 @@ L_KERNEL  *kel;
     if (fscanf(fp, "  sy = %d, sx = %d, cy = %d, cx = %d\n",
             &sy, &sx, &cy, &cx) != 4)
         return (L_KERNEL *)ERROR_PTR("dimensions not read", procName, NULL);
-
+    if (sx > MaxArraySize || sy > MaxArraySize) {
+        L_ERROR("sx = %d or sy = %d > %d\n", procName, sx, sy, MaxArraySize);
+        return NULL;
+    }
     if ((kel = kernelCreate(sy, sx)) == NULL)
         return (L_KERNEL *)ERROR_PTR("kel not made", procName, NULL);
     kernelSetOrigin(kel, cy, cx);
@@ -809,6 +812,10 @@ L_KERNEL  *kel;
     if (sscanf(line, "%d %d", &h, &w) != 2) {
         sarrayDestroy(&sa);
         return (L_KERNEL *)ERROR_PTR("error reading h,w", procName, NULL);
+    }
+    if (h > MaxArraySize || w > MaxArraySize) {
+        L_ERROR("h = %d or w = %d > %d\n", procName, h, w, MaxArraySize);
+        return NULL;
     }
     line = sarrayGetString(sa, first + 1, L_NOCOPY);
     if (sscanf(line, "%d %d", &cy, &cx) != 2) {

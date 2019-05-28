@@ -150,8 +150,9 @@
 #include "allheaders.h"
 
     /* Bounds on initial array size */
-static const l_uint32  MaxPtrArraySize = 100000000;
-static const l_int32 InitialPtrArraySize = 50;      /*!< n'importe quoi */
+static const l_uint32  MaxArraySize = 100000000;  /* dna */
+static const l_uint32  MaxPtrArraySize = 10000;   /* dnaa */
+static const l_int32  InitialArraySize = 50;      /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 l_dnaExtendArray(L_DNA *da);
@@ -174,8 +175,8 @@ L_DNA  *da;
 
     PROCNAME("l_dnaCreate");
 
-    if (n <= 0 || n > MaxPtrArraySize)
-        n = InitialPtrArraySize;
+    if (n <= 0 || n > MaxArraySize)
+        n = InitialArraySize;
 
     da = (L_DNA *)LEPT_CALLOC(1, sizeof(L_DNA));
     if ((da->array = (l_float64 *)LEPT_CALLOC(n, sizeof(l_float64))) == NULL) {
@@ -1030,6 +1031,10 @@ L_DNA     *da;
     if (fscanf(fp, "Number of numbers = %d\n", &n) != 1)
         return (L_DNA *)ERROR_PTR("invalid number of numbers", procName, NULL);
 
+    if (n > MaxArraySize) {
+        L_ERROR("n = %d > %d\n", procName, n, MaxArraySize);
+        return NULL;
+    }
     if ((da = l_dnaCreate(n)) == NULL)
         return (L_DNA *)ERROR_PTR("da not made", procName, NULL);
     for (i = 0; i < n; i++) {
@@ -1133,7 +1138,7 @@ L_DNAA  *daa;
     PROCNAME("l_dnaaCreate");
 
     if (n <= 0 || n > MaxPtrArraySize)
-        n = InitialPtrArraySize;
+        n = InitialArraySize;
 
     daa = (L_DNAA *)LEPT_CALLOC(1, sizeof(L_DNAA));
     if ((daa->dna = (L_DNA **)LEPT_CALLOC(n, sizeof(L_DNA *))) == NULL) {
@@ -1586,6 +1591,11 @@ L_DNAA    *daa;
         return (L_DNAA *)ERROR_PTR("invalid l_dnaa version", procName, NULL);
     if (fscanf(fp, "Number of L_Dna = %d\n\n", &n) != 1)
         return (L_DNAA *)ERROR_PTR("invalid number of l_dna", procName, NULL);
+
+    if (n > MaxPtrArraySize) {
+        L_ERROR("n = %d > %d\n", procName, n, MaxPtrArraySize);
+        return NULL;
+    }
     if ((daa = l_dnaaCreate(n)) == NULL)
         return (L_DNAA *)ERROR_PTR("daa not made", procName, NULL);
 

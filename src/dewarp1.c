@@ -1504,6 +1504,9 @@ NUMA       *namodels;
     if (fscanf(fp, "fullmodel = %d\n", &useboth) != 1)
         return (L_DEWARPA *)ERROR_PTR("read fail for useboth", procName, NULL);
 
+    if (ndewarp > MaxPtrArraySize)
+        return (L_DEWARPA *)ERROR_PTR("too many pages", procName, NULL);
+
     dewa = dewarpaCreate(maxpage + 1, sampling, redfactor, minlines, maxdist);
     dewa->maxpage = maxpage;
     dewa->max_linecurv = max_linecurv;
@@ -1518,6 +1521,7 @@ NUMA       *namodels;
     for (i = 0; i < ndewarp; i++) {
         if ((dew = dewarpReadStream(fp)) == NULL) {
             L_ERROR("read fail for dew[%d]\n", procName, i);
+            dewarpaDestroy(&dewa);
             return NULL;
         }
         dewarpaInsertDewarp(dewa, dew);
@@ -1526,7 +1530,6 @@ NUMA       *namodels;
 
         /* Validate the models and insert reference models */
     dewarpaInsertRefModels(dewa, 0, 0);
-
     return dewa;
 }
 

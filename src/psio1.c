@@ -882,12 +882,14 @@ PIX     *pix, *pixs;
     tname = l_makeTempFilename();
     if (d == 1) {
         if (pixWrite(tname, pix, IFF_TIFF_G4)) {
+            LEPT_FREE(tname);
             pixDestroy(&pix);
             return ERROR_INT("g4 tiff not written", procName, 1);
         }
         convertG4ToPSEmbed(tname, fileout);
     } else {
         if (pixWrite(tname, pix, IFF_JFIF_JPEG)) {
+            LEPT_FREE(tname);
             pixDestroy(&pix);
             return ERROR_INT("jpeg not written", procName, 1);
         }

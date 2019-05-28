@@ -2223,6 +2223,7 @@ PIXA    *pixadb;
     pixGetDimensions(pix2, &w, &h, NULL);
 
     pixadb = (debug) ? pixaCreate(0) : NULL;
+    pixdb1 = NULL;
     if (pixadb) {
         lept_mkdir("lept/rect");
         pixaAddPix(pixadb, pix1, L_CLONE);
@@ -2246,21 +2247,24 @@ PIXA    *pixadb;
     if (!found) {
         L_WARNING("no run of sufficient size was found\n", procName);
         pixDestroy(&pix2);
+        pixDestroy(&pixdb1);
+        pixaDestroy(&pixadb);
         return NULL;
     }
 
          /* Continue down until the condition fails */
+    w1 = xlast - xfirst + 1;
+    h1 = h - yfirst;  /* initialize */
     for (i = yfirst + 1; i < h; i++) {
         pixFindMaxHorizontalRunOnLine(pix2, i, &xstart, &length);
         if (xstart > xfirst || (xstart + length - 1 < xlast) ||
             i == h - 1) {
             ylast = i - 1;
-            w1 = xlast - xfirst + 1;
             h1 = ylast - yfirst + 1;
-            box1 = boxCreate(xfirst, yfirst, w1, h1);
             break;
         }
     }
+    box1 = boxCreate(xfirst, yfirst, w1, h1);
 
         /* Scanning up, find the first scanline with a long enough run.
          * That run goes from (xfirst, ylast) to (xlast, ylast).  */
@@ -2275,17 +2279,18 @@ PIXA    *pixadb;
     }
 
          /* Continue up until the condition fails */
+    w2 = xlast - xfirst + 1;
+    h2 = ylast + 1;  /* initialize */
     for (i = ylast - 1; i >= 0; i--) {
         pixFindMaxHorizontalRunOnLine(pix2, i, &xstart, &length);
         if (xstart > xfirst || (xstart + length - 1 < xlast) ||
             i == 0) {
             yfirst = i + 1;
-            w2 = xlast - xfirst + 1;
             h2 = ylast - yfirst + 1;
-            box2 = boxCreate(xfirst, yfirst, w2, h2);
             break;
         }
     }
+    box2 = boxCreate(xfirst, yfirst, w2, h2);
     pixDestroy(&pix2);
 
     if (pixadb) {

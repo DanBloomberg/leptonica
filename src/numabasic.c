@@ -168,8 +168,9 @@
 #include "allheaders.h"
 
     /* Bounds on initial array size */
-static const l_uint32  MaxPtrArraySize = 100000000;
-static const l_int32 InitialPtrArraySize = 50;      /*!< n'importe quoi */
+static const l_uint32  MaxArraySize = 100000000;  /* for numa */
+static const l_uint32  MaxPtrArraySize = 10000;  /* for numaa */
+static const l_int32 InitialArraySize = 50;      /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 numaExtendArray(NUMA  *na);
@@ -191,8 +192,8 @@ NUMA  *na;
 
     PROCNAME("numaCreate");
 
-    if (n <= 0 || n > MaxPtrArraySize)
-        n = InitialPtrArraySize;
+    if (n <= 0 || n > MaxArraySize)
+        n = InitialArraySize;
 
     na = (NUMA *)LEPT_CALLOC(1, sizeof(NUMA));
     if ((na->array = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32))) == NULL) {
@@ -1126,6 +1127,10 @@ NUMA      *na;
     if (fscanf(fp, "Number of numbers = %d\n", &n) != 1)
         return (NUMA *)ERROR_PTR("invalid number of numbers", procName, NULL);
 
+    if (n > MaxArraySize) {
+        L_ERROR("n = %d > %d\n", procName, n, MaxArraySize);
+        return NULL;
+    }
     if ((na = numaCreate(n)) == NULL)
         return (NUMA *)ERROR_PTR("na not made", procName, NULL);
 
@@ -1344,7 +1349,7 @@ NUMAA  *naa;
     PROCNAME("numaaCreate");
 
     if (n <= 0 || n > MaxPtrArraySize)
-        n = InitialPtrArraySize;
+        n = InitialArraySize;
 
     naa = (NUMAA *)LEPT_CALLOC(1, sizeof(NUMAA));
     if ((naa->numa = (NUMA **)LEPT_CALLOC(n, sizeof(NUMA *))) == NULL) {
@@ -1844,6 +1849,11 @@ NUMAA     *naa;
         return (NUMAA *)ERROR_PTR("invalid numaa version", procName, NULL);
     if (fscanf(fp, "Number of numa = %d\n\n", &n) != 1)
         return (NUMAA *)ERROR_PTR("invalid number of numa", procName, NULL);
+
+    if (n > MaxPtrArraySize) {
+        L_ERROR("n = %d > %d\n", procName, n, MaxPtrArraySize);
+        return NULL;
+    }
     if ((naa = numaaCreate(n)) == NULL)
         return (NUMAA *)ERROR_PTR("naa not made", procName, NULL);
 
