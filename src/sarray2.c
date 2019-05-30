@@ -79,9 +79,9 @@
 /*!
  * \brief   sarraySort()
  *
- * \param[in]    saout output sarray; can be NULL or equal to sain
- * \param[in]    sain input sarray
- * \param[in]    sortorder L_SORT_INCREASING or L_SORT_DECREASING
+ * \param[in]    saout       output sarray; can be NULL or equal to sain
+ * \param[in]    sain        input sarray
+ * \param[in]    sortorder   L_SORT_INCREASING or L_SORT_DECREASING
  * \return  saout output sarray, sorted by ascii value, or NULL on error
  *
  * <pre>
@@ -138,7 +138,7 @@ l_int32  n, i, j, gap;
  * \brief   sarraySortByIndex()
  *
  * \param[in]    sain
- * \param[in]    naindex na that maps from the new sarray to the input sarray
+ * \param[in]    naindex   na that maps from the new sarray to the input sarray
  * \return  saout sorted, or NULL on error
  */
 SARRAY *
@@ -221,7 +221,7 @@ l_int32  i, len1, len2, len;
  * \brief   sarrayUnionByAset()
  *
  * \param[in]    sa1, sa2
- * \return  sad with the union of the string set, or NULL on error
+ * \return  sad   with the union of the string set, or NULL on error
  *
  * <pre>
  * Notes:
@@ -261,7 +261,7 @@ SARRAY  *sa3, *sad;
  * \brief   sarrayRemoveDupsByAset()
  *
  * \param[in]    sas
- * \return  sad with duplicates removed, or NULL on error
+ * \return  sad  with duplicates removed, or NULL on error
  *
  * <pre>
  * Notes:
@@ -310,7 +310,7 @@ SARRAY   *sad;
  * \brief   sarrayIntersectionByAset()
  *
  * \param[in]    sa1, sa2
- * \return  sad with the intersection of the string set, or NULL on error
+ * \return  sad  with the intersection of the string set, or NULL on error
  *
  * <pre>
  * Notes:
@@ -409,8 +409,8 @@ RB_TYPE   key;
  * \brief   sarrayRemoveDupsByHash()
  *
  * \param[in]    sas
- * \param[out]   psad unique set of strings; duplicates removed
- * \param[out]   pdahash [optional] dnahash used for lookup
+ * \param[out]   psad      unique set of strings; duplicates removed
+ * \param[out]   pdahash   [optional] dnahash used for lookup
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -476,7 +476,7 @@ L_DNAHASH  *dahash;
  * \brief   sarrayIntersectionByHash()
  *
  * \param[in]    sa1, sa2
- * \return  sad intersection of the strings, or NULL on error
+ * \return  sad  intersection of the strings, or NULL on error
  *
  * <pre>
  * Notes:
@@ -539,10 +539,9 @@ SARRAY     *sa_small, *sa_big, *sad;
  * \brief   sarrayFindStringByHash()
  *
  * \param[in]    sa
- * \param[in]    dahash built from sa
- * \param[in]    str  arbitrary string
- * \param[out]   pindex index into %sa if %str is in %sa;
- *              -1 otherwise
+ * \param[in]    dahash   built from sa
+ * \param[in]    str      arbitrary string
+ * \param[out]   pindex   index into %sa if %str is in %sa; -1 otherwise
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -642,7 +641,7 @@ L_DNAHASH  *dahash;
  * \brief   sarrayGenerateIntegers()
  *
  * \param[in]   n
- * \return  sa  (of printed numbers, 1 - n, or NULL on error
+ * \return  sa  of printed numbers, 1 - n, or NULL on error
  */
 SARRAY *
 sarrayGenerateIntegers(l_int32  n)
@@ -666,11 +665,12 @@ SARRAY  *sa;
 /*!
  * \brief   sarrayLookupCSKV()
  *
- * \param[in]    sa (of strings, each being a comma-separated pair of strings,
- *                  the first being a key and the second a value)
- * \param[in]    keystring (an input string to match with each key in %sa
- * \param[out]   pvalstring (the returned value string corresponding to the
- *                           input key string, if found; otherwise NULL)
+ * \param[in]    sa          of strings, each being a comma-separated pair
+ *                           of strings, the first being a key and the
+ *                           second a value
+ * \param[in]    keystring   an input string to match with each key in %sa
+ * \param[out]   pvalstring  the returned value string corresponding to the
+ *                           input key string, if found; otherwise NULL
  * \return  0 if OK, 1 on error
  *
  * <pre>

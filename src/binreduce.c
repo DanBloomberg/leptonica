@@ -51,8 +51,8 @@
  * \brief   pixReduceBinary2()
  *
  * \param[in]    pixs
- * \param[in]    intab [optional]; if null, a table is made here
- *                   and destroyed before exit
+ * \param[in]    intab   [optional]; if null, a table is made here
+ *                       and destroyed before exit
  * \return  pixd 2x subsampled, or NULL on error
  *
  * <pre>
@@ -131,11 +131,11 @@ PIX       *pixd;
 /*!
  * \brief   pixReduceRankBinaryCascade()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    level1 threshold, in the set {0, 1, 2, 3, 4}
- * \param[in]    level2 threshold, in the set {0, 1, 2, 3, 4}
- * \param[in]    level3 threshold, in the set {0, 1, 2, 3, 4}
- * \param[in]    level4 threshold, in the set {0, 1, 2, 3, 4}
+ * \param[in]    pixs    1 bpp
+ * \param[in]    level1  threshold, in the set {0, 1, 2, 3, 4}
+ * \param[in]    level2  threshold, in the set {0, 1, 2, 3, 4}
+ * \param[in]    level3  threshold, in the set {0, 1, 2, 3, 4}
+ * \param[in]    level4  threshold, in the set {0, 1, 2, 3, 4}
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -201,11 +201,11 @@ l_uint8  *tab;
 /*!
  * \brief   pixReduceRankBinary2()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    level rank threshold: 1, 2, 3, 4
- * \param[in]    intab [optional]; if null, a table is made here
- *                     and destroyed before exit
- * \return  pixd 1 bpp, 2x rank threshold reduced, or NULL on error
+ * \param[in]    pixs    1 bpp
+ * \param[in]    level   rank threshold: 1, 2, 3, 4
+ * \param[in]    intab   [optional]; if null, a table is made here
+ *                       and destroyed before exit
+ * \return  pixd   1 bpp, 2x rank threshold reduced, or NULL on error
  *
  * <pre>
  * Notes:
@@ -369,15 +369,17 @@ PIX       *pixd;
 
 
 /*!
- * \brief  Permutation table for 2x rank binary reduction
+ * \brief  makeSubsampleTab2x()
  *
- * \return tab table of 256 permutations, or NULL on error
+ * \return tab   table of 256 permutations, or NULL on error
  *
  * <pre>
- *  This table permutes the bits in a byte, from
- *      0 4 1 5 2 6 3 7
- *  to
- *      0 1 2 3 4 5 6 7
+ * Notes:
+ *      Permutation table for 2x rank binary reduction
+ *      This table permutes the bits in a byte, from
+ *          0 4 1 5 2 6 3 7
+ *      to
+ *          0 1 2 3 4 5 6 7
  * </pre>
  */
 l_uint8 *

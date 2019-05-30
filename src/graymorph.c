@@ -641,9 +641,9 @@ cleanup:
 /*!
  * \brief   pixErodeGray3()
  *
- * \param[in]    pixs 8 bpp, not cmapped
- * \param[in]    hsize  1 or 3
- * \param[in]    vsize  1 or 3
+ * \param[in]    pixs    8 bpp, not cmapped
+ * \param[in]    hsize   1 or 3
+ * \param[in]    vsize   1 or 3
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -701,7 +701,7 @@ PIX  *pixt, *pixb, *pixbd, *pixd;
 /*!
  * \brief   pixErodeGray3h()
  *
- * \param[in]    pixs 8 bpp, not cmapped
+ * \param[in]    pixs    8 bpp, not cmapped
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -765,7 +765,7 @@ PIX       *pixd;
 /*!
  * \brief   pixErodeGray3v()
  *
- * \param[in]    pixs 8 bpp, not cmapped
+ * \param[in]    pixs    8 bpp, not cmapped
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -832,9 +832,9 @@ PIX       *pixd;
 /*!
  * \brief   pixDilateGray3()
  *
- * \param[in]    pixs 8 bpp, not cmapped
- * \param[in]    hsize  1 or 3
- * \param[in]    vsize  1 or 3
+ * \param[in]    pixs    8 bpp, not cmapped
+ * \param[in]    hsize   1 or 3
+ * \param[in]    vsize   1 or 3
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -887,7 +887,7 @@ PIX  *pixt, *pixb, *pixbd, *pixd;
 /*!
  * \brief   pixDilateGray3h()
  *
- * \param[in]    pixs 8 bpp, not cmapped
+ * \param[in]    pixs    8 bpp, not cmapped
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -951,7 +951,7 @@ PIX       *pixd;
 /*!
  * \brief   pixDilateGray3v()
  *
- * \param[in]    pixs 8 bpp, not cmapped
+ * \param[in]    pixs    8 bpp, not cmapped
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1015,9 +1015,9 @@ PIX       *pixd;
 /*!
  * \brief   pixOpenGray3()
  *
- * \param[in]    pixs 8 bpp, not cmapped
- * \param[in]    hsize  1 or 3
- * \param[in]    vsize  1 or 3
+ * \param[in]    pixs    8 bpp, not cmapped
+ * \param[in]    hsize   1 or 3
+ * \param[in]    vsize   1 or 3
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1083,9 +1083,9 @@ PIX  *pixt, *pixb, *pixbd, *pixd;
 /*!
  * \brief   pixCloseGray3()
  *
- * \param[in]    pixs 8 bpp, not cmapped
- * \param[in]    hsize  1 or 3
- * \param[in]    vsize  1 or 3
+ * \param[in]    pixs    8 bpp, not cmapped
+ * \param[in]    hsize   1 or 3
+ * \param[in]    vsize   1 or 3
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1152,12 +1152,15 @@ PIX  *pixt, *pixb, *pixbd, *pixd;
 /*!
  * \brief   dilateGrayLow()
  *
- * \param[in]    datad, w, h, wpld 8 bpp image
- * \param[in]    datas, wpls  8 bpp image, of same dimensions
- * \param[in]    size  full length of SEL; restricted to odd numbers
- * \param[in]    direction  L_HORIZ or L_VERT
- * \param[in]    buffer  holds full line or column of src image pixels
- * \param[in]    maxarray  array of dimension 2*size+1
+ * \param[in]    datad       8 bpp dsst image
+ * \param[in]    w, h        dimensions of src and dest
+ * \param[in]    wpld        words/line of dest
+ * \param[in]    datas       8 bpp src image
+ * \param[in]    wpls        words/line of src
+ * \param[in]    size        full length of SEL; restricted to odd numbers
+ * \param[in]    direction   L_HORIZ or L_VERT
+ * \param[in]    buffer      holds full line or column of src image pixels
+ * \param[in]    maxarray    array of dimension 2*size+1
  * \return  void
  *
  * <pre>
@@ -1265,12 +1268,15 @@ l_uint32  *lines, *lined;
 /*!
  * \brief   erodeGrayLow()
  *
- * \param[in]    datad, w, h, wpld 8 bpp image
- * \param[in]    datas, wpls  8 bpp image, of same dimensions
- * \param[in]    size  full length of SEL; restricted to odd numbers
- * \param[in]    direction  L_HORIZ or L_VERT
- * \param[in]    buffer  holds full line or column of src image pixels
- * \param[in]    minarray  array of dimension 2*size+1
+ * \param[in]    datad       8 bpp dsst image
+ * \param[in]    w, h        dimensions of src and dest
+ * \param[in]    wpld        words/line of dest
+ * \param[in]    datas       8 bpp src image
+ * \param[in]    wpls        words/line of src
+ * \param[in]    size        full length of SEL; restricted to odd numbers
+ * \param[in]    direction   L_HORIZ or L_VERT
+ * \param[in]    buffer      holds full line or column of src image pixels
+ * \param[in]    minarray    array of dimension 2*size+1
  * \return  void
  *
  * <pre>

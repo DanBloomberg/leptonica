@@ -48,10 +48,10 @@
  * \brief   pixColorMorph()
  *
  * \param[in]    pixs
- * \param[in]    type  L_MORPH_DILATE, L_MORPH_ERODE, L_MORPH_OPEN,
- *                     or L_MORPH_CLOSE
- * \param[in]    hsize  of Sel; must be odd; origin implicitly in center
- * \param[in]    vsize  ditto
+ * \param[in]    type    L_MORPH_DILATE, L_MORPH_ERODE, L_MORPH_OPEN,
+ *                       or L_MORPH_CLOSE
+ * \param[in]    hsize   width of Sel; must be odd; origin implicitly in center
+ * \param[in]    vsize   ditto for height of Sel
  * \return  pixd
  *
  * <pre>

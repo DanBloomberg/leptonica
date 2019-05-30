@@ -211,10 +211,10 @@ static const l_int32  MaxIters = 40;
 /*!
  * \brief   pixSeedfillBinary()
  *
- * \param[in]    pixd  [optional]; can be null, equal to pixs,
- *                     or different from pixs; 1 bpp
- * \param[in]    pixs  1 bpp seed
- * \param[in]    pixm  1 bpp filling mask
+ * \param[in]    pixd          [optional]; can be null, equal to pixs,
+ *                             or different from pixs; 1 bpp
+ * \param[in]    pixs          1 bpp seed
+ * \param[in]    pixm          1 bpp filling mask
  * \param[in]    connectivity  4 or 8
  * \return  pixd always
  *

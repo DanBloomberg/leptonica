@@ -25,7 +25,8 @@
  *====================================================================*/
 
 /*
- * finditalic.c
+ * \file  finditalic.c
+ * <pre>
  *
  *      l_int32   pixItalicWords()
  *
@@ -34,6 +35,7 @@
  *    (filling from a seed into a mask).
  *
  *    To see how this works, run with prog/italic.png.
+ * </pre>
  */
 
 #include "allheaders.h"

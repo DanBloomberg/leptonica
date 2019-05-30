@@ -52,11 +52,11 @@
 /*!
  * \brief   pixaThinConnected()
  *
- * \param[in]    pixas  of 1 bpp pix
- * \param[in]    type L_THIN_FG, L_THIN_BG
- * \param[in]    connectivity 4 or 8
- * \param[in]    maxiters max number of iters allowed; use 0 to iterate
- *                        until completion
+ * \param[in]   pixas          of 1 bpp pix
+ * \param[in]   type           L_THIN_FG, L_THIN_BG
+ * \param[in]   connectivity   4 or 8
+ * \param[in]   maxiters       max number of iters allowed;
+ *                             use 0 to iterate until completion
  * \return  pixds, or NULL on error
  *
  * <pre>
@@ -111,11 +111,11 @@ SELA    *sela;
 /*!
  * \brief   pixThinConnected()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    type L_THIN_FG, L_THIN_BG
- * \param[in]    connectivity 4 or 8
- * \param[in]    maxiters max number of iters allowed; use 0 to iterate
- *                        until completion
+ * \param[in]   pixs           1 bpp
+ * \param[in]   type           L_THIN_FG, L_THIN_BG
+ * \param[in]   connectivity   4 or 8
+ * \param[in]   maxiters       max number of iters allowed;
+ *                             use 0 to iterate until completion
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -190,11 +190,11 @@ SELA  *sela;
 /*!
  * \brief   pixThinConnectedBySet()
  *
- * \param[in]    pixs 1 bpp
- * \param[in]    type L_THIN_FG, L_THIN_BG
- * \param[in]    sela of Sels for parallel composite HMTs
- * \param[in]    maxiters max number of iters allowed; use 0 to iterate
- *                        until completion
+ * \param[in]   pixs       1 bpp
+ * \param[in]   type       L_THIN_FG, L_THIN_BG
+ * \param[in]   sela       of Sels for parallel composite HMTs
+ * \param[in]   maxiters   max number of iters allowed;
+ *                         use 0 to iterate until completion
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -311,8 +311,8 @@ SEL     *sel, *selr;
 /*!
  * \brief   selaMakeThinSets()
  *
- * \param[in]    index  into specific sets
- * \param[in]    debug  1 to output display of sela
+ * \param[in]   index   into specific sets
+ * \param[in]   debug   1 to output display of sela
  * \return  sela, or NULL on error
  *
  * <pre>
@@ -470,4 +470,3 @@ SELA  *sela1, *sela2, *sela3;
     selaDestroy(&sela1);
     return sela2;
 }
-

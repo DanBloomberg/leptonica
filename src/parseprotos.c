@@ -25,7 +25,8 @@
  *====================================================================*/
 
 /*
- * parseprotos.c
+ * \file  parseprotos.c
+ * <pre>
  *
  *       char             *parseForProtos()
  *
@@ -41,12 +42,13 @@
  *       static l_int32    skipToSemicolon()
  *       static l_int32    getOffsetForCharacter()
  *       static l_int32    getOffsetForMatchingRP()
+ * </pre>
  */
 
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  L_BUF_SIZE = 2048;    /* max token size */
+static const l_int32  Bufsize = 2048;    /* max token size */
 
 static l_int32 getNextNonCommentLine(SARRAY *sa, l_int32 start, l_int32 *pnext);
 static l_int32 getNextNonBlankLine(SARRAY *sa, l_int32 start, l_int32 *pnext);
@@ -72,14 +74,15 @@ static l_int32 getOffsetForMatchingRP(SARRAY *sa, l_int32 start,
 
 
 /*
- *  parseForProtos()
+ * \brief  parseForProtos()
  *
- *      Input:  filein (output of cpp)
- *              prestring (<optional> string that prefaces each decl;
- *                        use NULL to omit)
- *      Return: parsestr (string of function prototypes), or NULL on error
+ * \param[in]   filein      output of cpp
+ * \param[in]   prestring   [optional] string that prefaces each decl;
+ *                          use NULL to omit
+ * \return   parsestr  string of function prototypes, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) We parse the output of cpp:
  *              cpp -ansi <filein>
  *          Three plans were attempted, with success on the third.
@@ -137,6 +140,7 @@ static l_int32 getOffsetForMatchingRP(SARRAY *sa, l_int32 start,
  *          Here, we set: %prestring = "LEPT_DLL ".  Note in particular
  *          the space character that will separate 'LEPT_DLL' from
  *          the standard unix prototype that follows.
+ * </pre>
  */
 char *
 parseForProtos(const char *filein,
@@ -215,17 +219,18 @@ SARRAY  *sa, *saout, *satest;
 
 
 /*
- *  getNextNonCommentLine()
+ * \brief  getNextNonCommentLine()
  *
- *      Input:  sa (output from cpp, by line)
- *              start (starting index to search)
- *              &next (<return> index of first uncommented line after
- *                     the start line)
- *      Return: 0 if OK, 1 on error
+ * \param[in]   sa      output from cpp, by line)
+ * \param[in]   start   starting index to search)
+ * \param[out]  pnext   index of first uncommented line after the start line
+ * \return  0 if OK, o on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Skips over all consecutive comment lines, beginning at 'start'
  *      (2) If all lines to the end are '#' comments, return next = -1
+ * </pre>
  */
 static l_int32
 getNextNonCommentLine(SARRAY  *sa,
@@ -260,18 +265,19 @@ l_int32  i, n;
 
 
 /*
- *  getNextNonBlankLine()
+ * \brief  getNextNonBlankLine()
  *
- *      Input:  sa (output from cpp, by line)
- *              start (starting index to search)
- *              &next (<return> index of first nonblank line after
- *                     the start line)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    sa      output from cpp, by line
+ * \param[in]    start   starting index to search
+ * \param[out]   pnext   index of first nonblank line after the start line
+ * \return   0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Skips over all consecutive blank lines, beginning at 'start'
  *      (2) A blank line has only whitespace characters (' ', '\t', '\n', '\r')
  *      (3) If all lines to the end are blank, return next = -1
+ * </pre>
  */
 static l_int32
 getNextNonBlankLine(SARRAY  *sa,
@@ -310,17 +316,18 @@ l_int32  i, j, n, len;
 
 
 /*
- *  getNextNonDoubleSlashLine()
+ * \brief  getNextNonDoubleSlashLine()
  *
- *      Input:  sa (output from cpp, by line)
- *              start (starting index to search)
- *              &next (<return> index of first uncommented line after
- *                     the start line)
- *      Return: 0 if OK, 1 on error
+ * \param[in]     sa      output from cpp, by line
+ * \param[in]     start   starting index to search
+ * \param[out]    pnext   index of first uncommented line after the start line
+ * \return   0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Skips over all consecutive '//' lines, beginning at 'start'
  *      (2) If all lines to the end start with '//', return next = -1
+ * </pre>
  */
 static l_int32
 getNextNonDoubleSlashLine(SARRAY  *sa,
@@ -357,17 +364,18 @@ l_int32  i, n, len;
 
 
 /*
- *  searchForProtoSignature()
+ * \brief  searchForProtoSignature()
  *
- *      Input:  sa (output from cpp, by line)
- *              begin (beginning index to search)
- *              &start (<return> starting index for function definition)
- *              &stop (<return> index of line on which proto is completed)
- *              &charindex (<return> char index of completing ')' character)
- *              &found (<return> 1 if valid signature is found; 0 otherwise)
- *      Return: 0 if OK, 1 on error
+ * \param[in]     sa           output from cpp, by line
+ * \param[in]     begin        beginning index to search
+ * \param[out]    pstart       starting index for function definition
+ * \param[out]    pstop        index of line on which proto is completed
+ * \param[out]    pcharindex   char index of completing ')' character
+ * \param[out]    pfound       1 if valid signature is found; 0 otherwise
+ * \return   0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If this returns found == 0, it means that there are no
  *          more function definitions in the file.  Caller must check
  *          this value and exit the loop over the entire cpp file.
@@ -385,6 +393,7 @@ l_int32  i, n, len;
  *          with 'start' being the first line of the definition and
  *          'charindex' being the position of the ')' in line 'stop'
  *          at the end of the arg list.
+ * </pre>
  */
 static l_int32
 searchForProtoSignature(SARRAY   *sa,
@@ -495,16 +504,18 @@ l_int32  toffsetlp, toffsetrp, toffsetlb, toffsetsc;
 
 
 /*
- *  captureProtoSignature()
+ * \brief  captureProtoSignature()
  *
- *      Input:  sa (output from cpp, by line)
- *              start (starting index to search; never a comment line)
- *              stop (index of line on which pattern is completed)
- *              charindex (char index of completing ')' character)
- *      Return: cleanstr (prototype string), or NULL on error
+ * \param[in]    sa          output from cpp, by line
+ * \param[in]    start       starting index to search; never a comment line
+ * \param[in]    stop        index of line on which pattern is completed
+ * \param[in]    charindex   char index of completing ')' character
+ * \return  cleanstr   prototype string, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Return all characters, ending with a ';' after the ')'
+ * </pre>
  */
 static char *
 captureProtoSignature(SARRAY  *sa,
@@ -541,20 +552,22 @@ l_int32  i;
 
 
 /*
- *  cleanProtoSignature()
+ * \brief  cleanProtoSignature()
  *
- *      Input:  instr (input prototype string)
- *      Return: cleanstr (clean prototype string), or NULL on error
+ * \param[in]   instr  input prototype string
+ * \return  cleanstr   clean prototype string, or NULL on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) Adds 'extern' at beginning and regularizes spaces
  *          between tokens.
+ * </pre>
  */
 static char *
 cleanProtoSignature(char *instr)
 {
 char    *str, *cleanstr;
-char     buf[L_BUF_SIZE];
+char     buf[Bufsize];
 char     externstring[] = "extern";
 l_int32  i, j, nwords, nchars, index, len;
 SARRAY  *sa, *saout;
@@ -573,7 +586,7 @@ SARRAY  *sa, *saout;
         nchars = strlen(str);
         index = 0;
         for (j = 0; j < nchars; j++) {
-            if (index > L_BUF_SIZE - 6) {
+            if (index > Bufsize - 6) {
                 sarrayDestroy(&sa);
                 sarrayDestroy(&saout);
                 return (char *)ERROR_PTR("token too large", procName, NULL);
@@ -606,13 +619,13 @@ SARRAY  *sa, *saout;
 
 
 /*
- *  skipToEndOfFunction()
+ * \brief  skipToEndOfFunction()
  *
- *      Input:  sa (output from cpp, by line)
- *              start (index of starting line with left bracket to search)
- *              lbindex (starting char index for left bracket)
- *              &next (index of line following the ending '}' for function
- *      Return: 0 if OK, 1 on error
+ * \param[in]    sa        output from cpp, by line
+ * \param[in]    start     index of starting line with left bracket to search
+ * \param[in]    lbindex   starting char index for left bracket
+ * \param[out]   pnext     index of line following the ending '}' for function
+ * \return  0 if OK, 1 on error
  */
 static l_int32
 skipToEndOfFunction(SARRAY   *sa,
@@ -644,18 +657,20 @@ l_int32 soffsetlb, boffsetlb, toffsetlb;
 
 
 /*
- *  skipToMatchingBrace()
+ * \brief  skipToMatchingBrace()
  *
- *      Input:  sa (output from cpp, by line)
- *              start (index of starting line with left bracket to search)
- *              lbindex (starting char index for left bracket)
- *              &stop (index of line with the matching right bracket)
- *              &rbindex (char index of matching right bracket)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    sa         output from cpp, by line
+ * \param[in]    start      index of starting line with left bracket to search
+ * \param[in]    lbindex    starting char index for left bracket
+ * \param[out]   pstop      index of line with the matching right bracket
+ * \param[out]   prbindex   char index of matching right bracket
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If the matching right brace is not found, returns
  *          stop = -1.  This shouldn't happen.
+ * </pre>
  */
 static l_int32
 skipToMatchingBrace(SARRAY   *sa,
@@ -718,19 +733,21 @@ l_int32  i, j, jstart, n, sumbrace, found, instring, nchars;
 
 
 /*
- *  skipToSemicolon()
+ * \brief  skipToSemicolon()
  *
- *      Input:  sa (output from cpp, by line)
- *              start (index of starting line to search)
- *              charindex (starting char index for search)
- *              &next (index of line containing the next ';')
- *      Return: 0 if OK, 1 on error
+ * \param[in]     sa          output from cpp, by line
+ * \param[in]     start       index of starting line to search
+ * \param[in]     charindex   starting char index for search
+ * \param[out]    pnext       index of line containing the next ';'
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) If the semicolon isn't found, returns next = -1.
  *          This shouldn't happen.
  *      (2) This is only used in contexts where the semicolon is
  *          not within a string.
+ * </pre>
  */
 static l_int32
 skipToSemicolon(SARRAY   *sa,
@@ -774,20 +791,22 @@ l_int32  i, j, n, jstart, nchars, found;
 
 
 /*
- *  getOffsetForCharacter()
+ * \brief  getOffsetForCharacter()
  *
- *      Input:  sa (output from cpp, by line)
- *              start (starting index in sa to search; never a comment line)
- *              tchar (we are searching for the first instance of this)
- *              &soffset (<return> offset in strings from start index)
- *              &boffset (<return> offset in bytes within string in which
- *                        the character is first found)
- *              &toffset (<return> offset in total bytes from beginning of
- *                        string indexed by 'start' to the location where
- *                        the character is first found)
- *      Return: 0 if OK, 1 on error
+ * \param[in]    sa         output from cpp, by line
+ * \param[in]    start      starting index in sa to search;
+ *                          never a comment line
+ * \param[in]    tchar      we are searching for the first instance of this
+ * \param[out]   psoffset   offset in strings from start index
+ * \param[out]   pboffset   offset in bytes within string in which
+ *                          the character is first found
+ * \param[out]   ptoffset   offset in total bytes from beginning of string
+ *                          indexed by 'start' to the location where
+ *                          the character is first found
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) We are searching for the first instance of 'tchar', starting
  *          at the beginning of the string indexed by start.
  *      (2) If the character is not found, soffset is returned as -1,
@@ -795,6 +814,7 @@ l_int32  i, j, n, jstart, nchars, found;
  *          caller must check the value of soffset.
  *      (3) This is only used in contexts where it is not necessary to
  *          consider if the character is inside a string.
+ * </pre>
  */
 static l_int32
 getOffsetForCharacter(SARRAY   *sa,
@@ -851,22 +871,24 @@ l_int32  i, j, n, nchars, totchars, found;
 
 
 /*
- *  getOffsetForMatchingRP()
+ * \brief  getOffsetForMatchingRP()
  *
- *      Input:  sa (output from cpp, by line)
- *              start (starting index in sa to search; never a comment line)
- *              soffsetlp (string offset to first LP)
- *              boffsetlp (byte offset within string to first LP)
- *              toffsetlp (total byte offset to first LP)
- *              &soffset (<return> offset in strings from start index)
- *              &boffset (<return> offset in bytes within string in which
- *                        the matching RP is found)
- *              &toffset (<return> offset in total bytes from beginning of
- *                        string indexed by 'start' to the location where
- *                        the matching RP is found);
- *      Return: 0 if OK, 1 on error
+ * \param[in]    sa          output from cpp, by line
+ * \param[in]    start       starting index in sa to search;
+ *                           never a comment line
+ * \param[in]    soffsetlp   string offset to first LP
+ * \param[in]    boffsetlp   byte offset within string to first LP
+ * \param[in]    toffsetlp   total byte offset to first LP
+ * \param[out]   psoffset    offset in strings from start index
+ * \param[out]   pboffset    offset in bytes within string in which
+ *                           the matching RP is found
+ * \param[out]   ptoffset    offset in total bytes from beginning of string
+ *                           indexed by 'start' to the location where
+ *                           the matching RP is found
+ * \return  0 if OK, 1 on error
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) We are searching for the matching right parenthesis (RP) that
  *          corresponds to the first LP found beginning at the string
  *          indexed by start.
@@ -882,6 +904,7 @@ l_int32  i, j, n, nchars, totchars, found;
  *          are strict, and require that for functions passed in as args,
  *          the function name arg be placed in parenthesis, as well
  *          as its arg list, thus incurring two extra levels of parentheses.
+ * </pre>
  */
 static l_int32
 getOffsetForMatchingRP(SARRAY   *sa,

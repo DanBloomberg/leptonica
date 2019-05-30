@@ -71,9 +71,9 @@
 /*!
  * \brief   pixaccCreate()
  *
- * \param[in]    w, h of 32 bpp internal Pix
- * \param[in]    negflag 0 if only positive numbers are involved;
- *                       1 if there will be negative numbers
+ * \param[in]    w, h      of 32 bpp internal Pix
+ * \param[in]    negflag   0 if only positive numbers are involved;
+ *                         1 if there will be negative numbers
  * \return  pixacc, or NULL on error
  *
  * <pre>
@@ -118,8 +118,8 @@ PIXACC  *pixacc;
  * \brief   pixaccCreateFromPix()
  *
  * \param[in]    pix
- * \param[in]    negflag 0 if only positive numbers are involved;
- *                       1 if there will be negative numbers
+ * \param[in]    negflag   0 if only positive numbers are involved;
+ *                         1 if there will be negative numbers
  * \return  pixacc, or NULL on error
  *
  * <pre>
@@ -149,7 +149,8 @@ PIXACC  *pixacc;
 /*!
  * \brief   pixaccDestroy()
  *
- * \param[in,out] ppixacc to be nulled
+ * \param[in,out]   ppixacc   will be set to null before returning
+ * \return  void
  *
  * <pre>
  * Notes:
@@ -185,8 +186,8 @@ PIXACC  *pixacc;
  * \brief   pixaccFinal()
  *
  * \param[in]    pixacc
- * \param[in]    outdepth 8, 16 or 32 bpp
- * \return  pixd 8 , 16 or 32 bpp, or NULL on error
+ * \param[in]    outdepth    8, 16 or 32 bpp
+ * \return  pixd 8, 16 or 32 bpp, or NULL on error
  */
 PIX *
 pixaccFinal(PIXACC  *pixacc,
@@ -246,7 +247,7 @@ pixaccGetOffset(PIXACC  *pixacc)
  * \brief   pixaccAdd()
  *
  * \param[in]    pixacc
- * \param[in]    pix to be added
+ * \param[in]    pix     to be added
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -268,7 +269,7 @@ pixaccAdd(PIXACC  *pixacc,
  * \brief   pixaccSubtract()
  *
  * \param[in]    pixacc
- * \param[in]    pix to be subtracted
+ * \param[in]    pix      to be subtracted
  * \return  0 if OK, 1 on error
  */
 l_ok

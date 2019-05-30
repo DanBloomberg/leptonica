@@ -126,9 +126,9 @@
 /*!
  * \brief   pixRankFilter()
  *
- * \param[in]    pixs 8 or 32 bpp; no colormap
- * \param[in]    wf, hf  width and height of filter; each is >= 1
- * \param[in]    rank in [0.0 ... 1.0]
+ * \param[in]    pixs     8 or 32 bpp; no colormap
+ * \param[in]    wf, hf   width and height of filter; each is >= 1
+ * \param[in]    rank     in [0.0 ... 1.0]
  * \return  pixd of rank values, or NULL on error
  *
  * <pre>
@@ -177,9 +177,9 @@ l_int32  d;
 /*!
  * \brief   pixRankFilterRGB()
  *
- * \param[in]    pixs 32 bpp
- * \param[in]    wf, hf  width and height of filter; each is >= 1
- * \param[in]    rank in [0.0 ... 1.0]
+ * \param[in]    pixs     32 bpp
+ * \param[in]    wf, hf   width and height of filter; each is >= 1
+ * \param[in]    rank     in [0.0 ... 1.0]
  * \return  pixd of rank values, or NULL on error
  *
  * <pre>
@@ -238,9 +238,9 @@ PIX  *pixr, *pixg, *pixb, *pixrf, *pixgf, *pixbf, *pixd;
 /*!
  * \brief   pixRankFilterGray()
  *
- * \param[in]    pixs 8 bpp; no colormap
- * \param[in]    wf, hf  width and height of filter; each is >= 1
- * \param[in]    rank in [0.0 ... 1.0]
+ * \param[in]    pixs     8 bpp; no colormap
+ * \param[in]    wf, hf   width and height of filter; each is >= 1
+ * \param[in]    rank     in [0.0 ... 1.0]
  * \return  pixd of rank values, or NULL on error
  *
  * <pre>
@@ -459,8 +459,8 @@ PIX       *pixt, *pixd;
 /*!
  * \brief   pixMedianFilter()
  *
- * \param[in]    pixs 8 or 32 bpp; no colormap
- * \param[in]    wf, hf  width and height of filter; each is >= 1
+ * \param[in]    pixs     8 or 32 bpp; no colormap
+ * \param[in]    wf, hf   width and height of filter; each is >= 1
  * \return  pixd of median values, or NULL on error
  */
 PIX  *
@@ -482,10 +482,10 @@ pixMedianFilter(PIX     *pixs,
 /*!
  * \brief   pixRankFilterWithScaling()
  *
- * \param[in]    pixs 8 or 32 bpp; no colormap
- * \param[in]    wf, hf  width and height of filter; each is >= 1
- * \param[in]    rank in [0.0 ... 1.0]
- * \param[in]    scalefactor scale factor; must be >= 0.2 and <= 0.7
+ * \param[in]    pixs          8 or 32 bpp; no colormap
+ * \param[in]    wf, hf        width and height of filter; each is >= 1
+ * \param[in]    rank          in [0.0 ... 1.0]
+ * \param[in]    scalefactor   scale factor; must be >= 0.2 and <= 0.7
  * \return  pixd of rank values, or NULL on error
  *
  * <pre>

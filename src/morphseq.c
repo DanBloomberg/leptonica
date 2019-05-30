@@ -61,12 +61,12 @@
  * \brief   pixMorphSequence()
  *
  * \param[in]    pixs
- * \param[in]    sequence string specifying sequence
- * \param[in]    dispsep controls debug display of each result in the sequence:
- *                       0: no output
- *                       > 0: gives horizontal separation in pixels between
- *                            successive displays
- *                       < 0: pdf output; abs(dispsep) is used for naming
+ * \param[in]    sequence   string specifying sequence
+ * \param[in]    dispsep    controls debug display results in the sequence:
+ *                          0: no output
+ *                          > 0: gives horizontal separation in pixels between
+ *                               successive displays
+ *                          < 0: pdf output; abs(dispsep) is used for naming
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -257,12 +257,12 @@ SARRAY  *sa;
  * \brief   pixMorphCompSequence()
  *
  * \param[in]    pixs
- * \param[in]    sequence string specifying sequence
- * \param[in]    dispsep controls debug display of each result in the sequence:
- *                       0: no output
- *                       > 0: gives horizontal separation in pixels between
- *                            successive displays
- *                       < 0: pdf output; abs(dispsep) is used for naming
+ * \param[in]    sequence   string specifying sequence
+ * \param[in]    dispsep    controls debug display of results in the sequence:
+ *                          0: no output
+ *                          > 0: gives horizontal separation in pixels between
+ *                               successive displays
+ *                          < 0: pdf output; abs(dispsep) is used for naming
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -425,12 +425,12 @@ SARRAY  *sa;
  * \brief   pixMorphSequenceDwa()
  *
  * \param[in]    pixs
- * \param[in]    sequence string specifying sequence
- * \param[in]    dispsep controls debug display of each result in the sequence:
- *                       0: no output
- *                       > 0: gives horizontal separation in pixels between
- *                            successive displays
- *                       < 0: pdf output; abs(dispsep) is used for naming
+ * \param[in]    sequence   string specifying sequence
+ * \param[in]    dispsep    controls debug display of results in the sequence:
+ *                          0: no output
+ *                          > 0: gives horizontal separation in pixels between
+ *                               successive displays
+ *                          < 0: pdf output; abs(dispsep) is used for naming
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -574,12 +574,12 @@ SARRAY  *sa;
  * \brief   pixMorphCompSequenceDwa()
  *
  * \param[in]    pixs
- * \param[in]    sequence string specifying sequence
- * \param[in]    dispsep controls debug display of each result in the sequence:
- *                       0: no output
- *                       > 0: gives horizontal separation in pixels between
- *                            successive displays
- *                       < 0: pdf output; abs(dispsep) is used for naming
+ * \param[in]    sequence   string specifying sequence
+ * \param[in]    dispsep    controls debug display of results in the sequence:
+ *                          0: no output
+ *                          > 0: gives horizontal separation in pixels between
+ *                               successive displays
+ *                          < 0: pdf output; abs(dispsep) is used for naming
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -722,7 +722,7 @@ SARRAY  *sa;
 /*!
  * \brief   morphSequenceVerify()
  *
- * \param[in]    sa string array of operation sequence
+ * \param[in]    sa    string array of operation sequence
  * \return  TRUE if valid; FALSE otherwise or on error
  *
  * <pre>
@@ -864,14 +864,14 @@ l_int32  intlogbase2[5] = {1, 2, 3, 0, 4};  /* of arg/4 */
  * \brief   pixGrayMorphSequence()
  *
  * \param[in]    pixs
- * \param[in]    sequence string specifying sequence
- * \param[in]    dispsep controls debug display of each result in the sequence:
- *                       0: no output
- *                       > 0: gives horizontal separation in pixels between
- *                            successive displays
- *                       < 0: pdf output; abs(dispsep) is used for naming
- * \param[in]    dispy if dispsep > 0, this gives the y-value of the
- *                     UL corner for display; otherwise it is ignored
+ * \param[in]    sequence   string specifying sequence
+ * \param[in]    dispsep    controls debug display of results in the sequence:
+ *                          0: no output
+ *                          > 0: gives horizontal separation in pixels between
+ *                               successive displays
+ *                          < 0: pdf output; abs(dispsep) is used for naming
+ * \param[in]    dispy      if dispsep > 0, this gives the y-value of the
+ *                          UL corner for display; otherwise it is ignored
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1074,14 +1074,14 @@ SARRAY  *sa;
  * \brief   pixColorMorphSequence()
  *
  * \param[in]    pixs
- * \param[in]    sequence string specifying sequence
- * \param[in]    dispsep controls debug display of each result in the sequence:
- *                       0: no output
- *                       > 0: gives horizontal separation in pixels between
- *                            successive displays
- *                       < 0: pdf output; abs(dispsep) is used for naming
- * \param[in]    dispy if dispsep > 0, this gives the y-value of the
- *                     UL corner for display; otherwise it is ignored
+ * \param[in]    sequence   string specifying sequence
+ * \param[in]    dispsep    controls debug display of results in the sequence:
+ *                          0: no output
+ *                          > 0: gives horizontal separation in pixels between
+ *                               successive displays
+ *                          < 0: pdf output; abs(dispsep) is used for naming
+ * \param[in]    dispy      if dispsep > 0, this gives the y-value of the
+ *                          UL corner for display; otherwise it is ignored
  * \return  pixd, or NULL on error
  *
  * <pre>
