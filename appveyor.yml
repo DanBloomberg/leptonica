@@ -5,7 +5,7 @@ platform:
   - Win64
 
 cache:
-  - c:/Users/appveyor/.sw
+  - c:/Users/appveyor/.sw -> appveyor.yml
 
 configuration:
   - Release
@@ -22,3 +22,10 @@ before_build:
 build_script:
   - sw -show-output -platform %platform% build
 
+after_build:
+  - 7z a leptonica.zip %APPVEYOR_BUILD_FOLDER%\.sw\Windows_*_Shared_Release_MSVC_*\*.exe %APPVEYOR_BUILD_FOLDER%\.sw\Windows_*_Shared_Release_MSVC_*\*.dll
+
+artifacts:
+  - path: leptonica.zip
+    name: leptonica-$(APPVEYOR_BUILD_VERSION)
+    
