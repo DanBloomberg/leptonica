@@ -2654,17 +2654,17 @@ l_int32  ret;
 
 #if defined(__APPLE__)  /* iOS 11 does not support system() */
 
-  #if !defined(TARGET_OS_IPHONE) && !defined(OS_IOS)  /* macOS */
+  #if TARGET_OS_OSX /* Mac OS X */
     ret = system(cmd);
-  #else
+  #elif TARGET_OS_IPHONE || defined(OS_IOS)  /* iOS */
     L_ERROR("iOS 11 does not support system()\n", procName);
-  #endif  /* !TARGET_OS_IPHONE ... */
+  #endif  /* TARGET_OS_OSX */
 
-#else /* ! OS_IOS */
+#else /* ! __APPLE__ */
 
    ret = system(cmd);
 
-#endif /* OS_IOS */
+#endif /* __APPLE__ */
 }
 
 
