@@ -164,9 +164,16 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_float32  MinAngleToRotate = 0.001;  /* radians; ~0.06 deg */
-static const l_float32  MaxTwoShearAngle = 0.06;   /* radians; ~3 deg    */
-static const l_float32  LimitShearAngle = 0.35;    /* radians; ~20 deg   */
+    /* Angle limits:
+     *     angle < MinAngleToRotate    ==>  clone
+     *     angle > MaxTwoShearAngle    ==>  warning
+     *     angle > MaxThreeShearAngle  ==>  warning
+     *     angle > MaxShearAngle       ==>  error
+     */
+static const l_float32  MinAngleToRotate = 0.001;   /* radians; ~0.06 deg */
+static const l_float32  MaxTwoShearAngle = 0.06;    /* radians; ~3 deg    */
+static const l_float32  MaxThreeShearAngle = 0.30;  /* radians; ~20 deg   */
+static const l_float32  MaxShearAngle = 0.50;       /* radians; ~29 deg   */
 
 /*------------------------------------------------------------------*
  *                Rotations about an arbitrary point                *
@@ -206,16 +213,18 @@ pixRotateShear(PIX       *pixs,
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
         return (PIX *)(PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
 
+    if (L_ABS(angle) > MaxShearAngle) {
+        L_ERROR("%6.2f radians; too large for shear rotation\n", procName,
+                L_ABS(angle));
+        return NULL;
+    }
     if (L_ABS(angle) < MinAngleToRotate)
         return pixClone(pixs);
 
     if (L_ABS(angle) <= MaxTwoShearAngle)
         return pixRotate2Shear(pixs, xcen, ycen, angle, incolor);
-
-    if (L_ABS(angle) > LimitShearAngle)
-        L_WARNING("%6.2f radians; large angle for shear rotation\n",
-                  procName, L_ABS(angle));
-    return pixRotate3Shear(pixs, xcen, ycen, angle, incolor);
+    else
+        return pixRotate3Shear(pixs, xcen, ycen, angle, incolor);
 }
 
 
@@ -231,7 +240,7 @@ pixRotateShear(PIX       *pixs,
  * <pre>
  * Notes:
  *      (1) This rotates the image about the given point, using the 2-shear
- *          method.  It should only be used for angles smaller than
+ *          method.  It should only be used for angles no larger than
  *          MaxTwoShearAngle.  For larger angles, a warning is issued.
  *      (2) A positive angle gives a clockwise rotation.
  *      (3) 2-shear rotation by a specified angle is equivalent
@@ -260,6 +269,11 @@ PIX  *pix1, *pix2, *pixd;
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
         return (PIX *)(PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
 
+    if (L_ABS(angle) > MaxShearAngle) {
+        L_ERROR("%6.2f radians; too large for shear rotation\n", procName,
+                L_ABS(angle));
+        return NULL;
+    }
     if (L_ABS(angle) < MinAngleToRotate)
         return pixClone(pixs);
     if (L_ABS(angle) > MaxTwoShearAngle)
@@ -297,7 +311,7 @@ PIX  *pix1, *pix2, *pixd;
  * Notes:
  *      (1) This rotates the image about the given point, using the 3-shear
  *          method.  It should only be used for angles smaller than
- *          LimitShearAngle.  For larger angles, a warning is issued.
+ *          MaxThreeShearAngle.  For larger angles, a warning is issued.
  *      (2) A positive angle gives a clockwise rotation.
  *      (3) 3-shear rotation by a specified angle is equivalent
  *          to the sequential transformations
@@ -332,9 +346,14 @@ PIX       *pix1, *pix2, *pixd;
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
         return (PIX *)(PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
 
+    if (L_ABS(angle) > MaxShearAngle) {
+        L_ERROR("%6.2f radians; too large for shear rotation\n", procName,
+                L_ABS(angle));
+        return NULL;
+    }
     if (L_ABS(angle) < MinAngleToRotate)
         return pixClone(pixs);
-    if (L_ABS(angle) > LimitShearAngle) {
+    if (L_ABS(angle) > MaxThreeShearAngle) {
         L_WARNING("%6.2f radians; large angle for 3-shear rotation\n",
                   procName, L_ABS(angle));
     }
@@ -377,7 +396,7 @@ PIX       *pix1, *pix2, *pixd;
  * Notes:
  *      (1) This does an in-place rotation of the image about the
  *          specified point, using the 3-shear method.  It should only
- *          be used for angles smaller than LimitShearAngle.
+ *          be used for angles smaller than MaxThreeShearAngle.
  *          For larger angles, a warning is issued.
  *      (2) A positive angle gives a clockwise rotation.
  *      (3) 3-shear rotation by a specified angle is equivalent
@@ -411,7 +430,7 @@ l_float32  hangle;
 
     if (angle == 0.0)
         return 0;
-    if (L_ABS(angle) > LimitShearAngle) {
+    if (L_ABS(angle) > MaxThreeShearAngle) {
         L_WARNING("%6.2f radians; large angle for in-place 3-shear rotation\n",
                   procName, L_ABS(angle));
     }

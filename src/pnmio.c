@@ -637,8 +637,10 @@ l_int32  ch;
         } else {  /* type == 3 || type == 6; this is rgb  */
             if (pnmReadNextNumber(fp, &maxval))
                 return ERROR_INT("invalid read for maxval (3,6)", procName, 1);
-            if (maxval != 255 && maxval != 0xffff)
-                L_WARNING("unexpected maxval = %d\n", procName, maxval);
+            if (maxval != 255 && maxval != 0xffff) {
+                L_ERROR("unexpected maxval = %d\n", procName, maxval);
+                return 1;
+            }
             bps = (maxval == 255) ? 8 : 16;
             d = 32;
             spp = 3;

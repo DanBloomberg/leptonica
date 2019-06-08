@@ -1242,7 +1242,7 @@ PIX        *pixb, *pixd;
         lined = datad + i * wpld;
         for (j = 0; j < wd; j++) {
             val = line2[j + wincr] - line2[j] - line1[j + wincr] + line1[j];
-            ival = (l_uint32)(norm * val);
+            ival = (l_uint32)(norm * val + 0.5);  /* to round up */
             lined[j] = ival;
         }
     }
