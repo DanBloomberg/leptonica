@@ -93,9 +93,10 @@
  *  without buffering, and then rewrite old pixels that are
  *  no longer covered by sheared pixels.  For that rewriting,
  *  you have the choice of using white or black pixels.
- *  (Note that this may give undesirable results for colormapped
- *  images, where the white and black values are arbitrary
- *  indexes into the colormap, and may not even exist.)
+ *  When not in-place, the new pix is initialized with white or black
+ *  pixels by pixSetBlackOrWhite(), which also works for cmapped pix.
+ *  But for in-place, this initialization is not possible, so
+ *  in-place shear operations on cmapped pix are not allowed.
  *
  *  Rotation by shear is fast and depth-independent.  However, it
  *  does not work well for large rotation angles.  In fact, for
@@ -166,13 +167,13 @@
 
     /* Angle limits:
      *     angle < MinAngleToRotate    ==>  clone
-     *     angle > MaxTwoShearAngle    ==>  warning
-     *     angle > MaxThreeShearAngle  ==>  warning
+     *     angle > MaxTwoShearAngle    ==>  warning for 2-angle shears
+     *     angle > MaxThreeShearAngle  ==>  warning for 3-angle shears
      *     angle > MaxShearAngle       ==>  error
      */
 static const l_float32  MinAngleToRotate = 0.001;   /* radians; ~0.06 deg */
 static const l_float32  MaxTwoShearAngle = 0.06;    /* radians; ~3 deg    */
-static const l_float32  MaxThreeShearAngle = 0.30;  /* radians; ~20 deg   */
+static const l_float32  MaxThreeShearAngle = 0.35;  /* radians; ~20 deg   */
 static const l_float32  MaxShearAngle = 0.50;       /* radians; ~29 deg   */
 
 /*------------------------------------------------------------------*
@@ -181,11 +182,11 @@ static const l_float32  MaxShearAngle = 0.50;       /* radians; ~29 deg   */
 /*!
  * \brief   pixRotateShear()
  *
- * \param[in]    pixs
- * \param[in]    xcen x value for which there is no horizontal shear
- * \param[in]    ycen y value for which there is no vertical shear
- * \param[in]    angle radians
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK;
+ * \param[in]    pixs     any depth; cmap ok
+ * \param[in]    xcen     x value for which there is no horizontal shear
+ * \param[in]    ycen     y value for which there is no vertical shear
+ * \param[in]    angle    radians
+ * \param[in]    incolor  L_BRING_IN_WHITE, L_BRING_IN_BLACK;
  * \return  pixd, or NULL on error.
  *
  * <pre>
@@ -231,10 +232,10 @@ pixRotateShear(PIX       *pixs,
 /*!
  * \brief   pixRotate2Shear()
  *
- * \param[in]    pixs
- * \param[in]    xcen, ycen center of rotation
- * \param[in]    angle radians
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK;
+ * \param[in]    pixs         any depth; cmap ok
+ * \param[in]    xcen, ycen   center of rotation
+ * \param[in]    angle        radians
+ * \param[in]    incolor      L_BRING_IN_WHITE, L_BRING_IN_BLACK;
  * \return  pixd, or NULL on error.
  *
  * <pre>
@@ -298,13 +299,14 @@ PIX  *pix1, *pix2, *pixd;
     return pixd;
 }
 
+
 /*!
  * \brief   pixRotate3Shear()
  *
- * \param[in]    pixs
- * \param[in]    xcen, ycen center of rotation
- * \param[in]    angle radians
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK;
+ * \param[in]    pixs         any depth; cmap ok
+ * \param[in]    xcen, ycen   center of rotation
+ * \param[in]    angle        radians
+ * \param[in]    incolor      L_BRING_IN_WHITE, L_BRING_IN_BLACK;
  * \return  pixd, or NULL on error.
  *
  * <pre>
@@ -386,10 +388,10 @@ PIX       *pix1, *pix2, *pixd;
 /*!
  * \brief   pixRotateShearIP()
  *
- * \param[in]    pixs any depth; not colormapped
- * \param[in]    xcen, ycen center of rotation
- * \param[in]    angle radians
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    pixs         any depth; no cmap
+ * \param[in]    xcen, ycen   center of rotation
+ * \param[in]    angle        radians
+ * \param[in]    incolor      L_BRING_IN_WHITE, L_BRING_IN_BLACK
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -449,9 +451,9 @@ l_float32  hangle;
 /*!
  * \brief   pixRotateShearCenter()
  *
- * \param[in]    pixs
- * \param[in]    angle radians
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    pixs      any depth; cmap ok
+ * \param[in]    angle     radians
+ * \param[in]    incolor   L_BRING_IN_WHITE, L_BRING_IN_BLACK
  * \return  pixd, or NULL on error
  */
 PIX *
@@ -472,9 +474,9 @@ pixRotateShearCenter(PIX       *pixs,
 /*!
  * \brief   pixRotateShearCenterIP()
  *
- * \param[in]    pixs
- * \param[in]    angle radians
- * \param[in]    incolor L_BRING_IN_WHITE, L_BRING_IN_BLACK
+ * \param[in]    pixs      any depth; no cmap
+ * \param[in]    angle     radians
+ * \param[in]    incolor   L_BRING_IN_WHITE, L_BRING_IN_BLACK
  * \return  0 if OK, 1 on error
  */
 l_ok
