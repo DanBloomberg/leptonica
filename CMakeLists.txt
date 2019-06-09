@@ -49,6 +49,7 @@ set(MINIMUM_WEBPMUX_VERSION 0.5.0)
 
 option(BUILD_PROG "Build utility programs" OFF)
 option(CPPAN_BUILD "Build with cppan" ON)
+option(SYM_LINK "Create symlink leptonica -> lept on UNIX" OFF)
 
 if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.cppan)
     set(CPPAN_BUILD OFF)
