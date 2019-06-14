@@ -29,6 +29,7 @@
  * <pre>
  *
  *      Top-level deskew interfaces
+ *          PIX       *pixDeskewBoth()
  *          PIX       *pixDeskew()
  *          PIX       *pixFindSkewAndDeskew()
  *          PIX       *pixDeskewGeneral()
@@ -98,8 +99,8 @@
 #include "allheaders.h"
 
     /* Default sweep angle parameters for pixFindSkew() */
-static const l_float32  DefaultSweepRange = 7.;    /* degrees */
-static const l_float32  DefaultSweepDelta = 1.;    /* degrees */
+static const l_float32  DefaultSweepRange = 7.0;   /* degrees */
+static const l_float32  DefaultSweepDelta = 1.0;   /* degrees */
 
     /* Default final angle difference parameter for binary
      * search in pixFindSkew().  The expected accuracy is

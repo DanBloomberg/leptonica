@@ -217,7 +217,8 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		convertformat.c \
 		convertsegfilestopdf.c convertsegfilestops.c \
 		converttogray.c converttopdf.c converttops.c \
-		cornertest.c corrupttest.c croptest.c croptext.c \
+		cornertest.c corrupttest.c \
+		croptest.c croptext.c deskew_it.c \
 		dewarprules.c dewarptest1.c dewarptest2.c \
 		dewarptest3.c dewarptest4.c dewarptest5.c \
 		digitprep1.c displayboxa.c displayboxes_on_pixa.c \
@@ -247,10 +248,11 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		recogsort.c recogtest1.c recogtest2.c recogtest3.c \
 		recogtest4.c recogtest5.c recogtest6.c recogtest7.c \
 		reducetest.c removecmap.c \
-		renderfonts.c replacebytes.c rotatefastalt.c \
+		renderfonts.c replacebytes.c \
+		rotatefastalt.c rotate_it.c \
 		rotateorthtest1.c rotatetest1.c \
 		runlengthtest.c scaleandtile.c \
-		scaletest1.c scaletest2.c \
+		scale_it.c scaletest1.c scaletest2.c \
 		seedfilltest.c settest.c sharptest.c \
 		sheartest.c showedges.c \
 		skewtest.c sorttest.c splitimage2pdf.c \
@@ -851,6 +853,9 @@ croptest:	croptest.o $(LEPTLIB)
 croptext:	croptext.o $(LEPTLIB)
 	$(CC) -o croptext croptext.o $(ALL_LIBS) $(EXTRALIBS)
 
+deskew_it:	deskew_it.o $(LEPTLIB)
+	$(CC) -o deskew_it deskew_it.o $(ALL_LIBS) $(EXTRALIBS)
+
 dewarprules:	dewarprules.o $(LEPTLIB)
 	$(CC) -o dewarprules dewarprules.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -1088,6 +1093,9 @@ replacebytes:	replacebytes.o $(LEPTLIB)
 rotatefastalt:	rotatefastalt.o $(LEPTLIB)
 	$(CC) -o rotatefastalt rotatefastalt.o $(ALL_LIBS) $(EXTRALIBS)
 
+rotate_it:	rotate_it.o $(LEPTLIB)
+	$(CC) -o rotate_it rotate_it.o $(ALL_LIBS) $(EXTRALIBS)
+
 rotateorthtest1:	rotateorthtest1.o $(LEPTLIB)
 	$(CC) -o rotateorthtest1 rotateorthtest1.o $(ALL_LIBS) $(EXTRALIBS)
 
@@ -1099,6 +1107,9 @@ runlengthtest:	runlengthtest.o $(LEPTLIB)
 
 scaleandtile:	scaleandtile.o $(LEPTLIB)
 	$(CC) -o scaleandtile scaleandtile.o $(ALL_LIBS) $(EXTRALIBS)
+
+scale_it:	scale_it.o $(LEPTLIB)
+	$(CC) -o scale_it scale_it.o $(ALL_LIBS) $(EXTRALIBS)
 
 scaletest1:	scaletest1.o $(LEPTLIB)
 	$(CC) -o scaletest1 scaletest1.o $(ALL_LIBS) $(EXTRALIBS)
