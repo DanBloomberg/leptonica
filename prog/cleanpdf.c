@@ -170,6 +170,7 @@ static char  mainName[] = "cleanpdf";
 
 #if 1
         /* Generate the pdf */
+    fprintf(stderr, "Write output to /tmp/output.pdf\n");
     convertFilesToPdf(imagedir, "tif", res, 1.0, L_G4_ENCODE, 0, NULL,
                       "/tmp/output.pdf");
 #endif

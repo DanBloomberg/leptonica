@@ -44,6 +44,7 @@
  *           l_int32   boxOverlapFraction()
  *           l_int32   boxOverlapArea()
  *           BOXA     *boxaHandleOverlaps()
+ *           l_int32   boxOverlapDistance()
  *           l_int32   boxSeparationDistance()
  *           l_int32   boxCompareSize()
  *           l_int32   boxContainsPt()
@@ -1012,19 +1013,100 @@ NUMA      *namap;
 
 
 /*!
- * \brief   boxSeparationDistance()
+ * \brief   boxOverlapDistance()
  *
  * \param[in]    box1, box2    two boxes, in any order
- * \param[out]   ph_sep        [optional] horizontal separation
- * \param[out]   pv_sep        [optional] vertical separation
+ * \param[out]   ph_ovl        [optional] horizontal overlap
+ * \param[out]   pv_ovl        [optional] vertical overlap
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This measures horizontal and vertical separation of the
- *          two boxes.  If the boxes are touching but have no pixels
- *          in common, the separation is 0.  If the boxes overlap by
- *          a distance d, the returned separation is -d.
+ *      (1) This measures horizontal and vertical overlap of the
+ *          two boxes.  Horizontal and vertical overlap are measured
+ *          independently.  We need to consider several cases to clarify.
+ *      (2) A positive horizontal overlap means that there is at least
+ *          one point on the the %box1 boundary with the same x-component
+ *          as some point on the %box2 boundary.  Conversely, with a zero
+ *          or negative horizontal overlap, there are no boundary pixels
+ *          in %box1 that share an x-component with a boundary pixel in %box2.
+ *      (3) For a zero or negative horizontal overlap, o <= 0, the minimum
+ *          difference in the x-component between pixels on the boundaries
+ *          of the two boxes is d = -o + 1.
+ *      (4) Likewise for vertical overlaps.
+ * </pre>
+ */
+l_ok
+boxOverlapDistance(BOX      *box1,
+                   BOX      *box2,
+                   l_int32  *ph_ovl,
+                   l_int32  *pv_ovl)
+{
+l_int32  l1, t1, w1, h1, r1, b1, l2, t2, w2, h2, r2, b2, valid1, valid2;
+
+    PROCNAME("boxOverlapDistance");
+
+    if (!ph_ovl && !pv_ovl)
+        return ERROR_INT("nothing to do", procName, 1);
+    if (ph_ovl) *ph_ovl = 0;
+    if (pv_ovl) *pv_ovl = 0;
+    if (!box1 || !box2)
+        return ERROR_INT("boxes not both defined", procName, 1);
+    boxIsValid(box1, &valid1);
+    boxIsValid(box2, &valid2);
+    if (!valid1 || !valid2)
+        return ERROR_INT("boxes not both valid", procName, 1);
+
+    if (ph_ovl) {
+        boxGetGeometry(box1, &l1, NULL, &w1, NULL);
+        boxGetGeometry(box2, &l2, NULL, &w2, NULL);
+        r1 = l1 + w1;  /* 1 pixel to the right of box 1 */
+        r2 = l2 + w2;
+        if (l2 >= l1)
+            *ph_ovl = r1 - l2;
+        else
+            *ph_ovl = r2 - l1;
+    }
+    if (pv_ovl) {
+        boxGetGeometry(box1, NULL, &t1, NULL, &h1);
+        boxGetGeometry(box2, NULL, &t2, NULL, &h2);
+        b1 = t1 + h1;  /* 1 pixel below box 1 */
+        b2 = t2 + h2;
+        if (t2 >= t1)
+            *pv_ovl = b1 - t2;
+        else
+            *pv_ovl = b2 - t1;
+    }
+    return 0;
+}
+
+
+/*!
+ * \brief   boxSeparationDistance()
+ *
+ * \param[in]    box1, box2    two boxes, in any order
+ * \param[out]   ph_sep        horizontal separation
+ * \param[out]   pv_sep        vertical separation
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This measures the Manhattan distance between the closest points
+ *          on the boundaries of the two boxes.  When the boxes overlap
+ *          (including touching along a line or at a corner), the
+ *          horizontal and vertical distances are 0.
+ *      (2) The distances represent the horizontal and vertical separation
+ *          of the two boxes.  The boxes have a nonzero intersection when
+ *          both the horizontal and vertical overlaps are positive, and
+ *          for that case both horizontal and vertical separation
+ *          distances are 0.
+ *      (3) If the horizontal overlap of the boxes is positive, the
+ *          horizontal separation between nearest points on respective
+ *          boundaries is 0, and likewise for the vertical overlap.
+ *      (4) If the horizontal overlap ho <= 0, the horizontal
+ *          separation between nearest points is d = -ho + 1.
+ *          Likewise, if the vertical overlap vo <= 0, the vertical
+ *          separation between nearest points is d = -vo + 1.
  * </pre>
  */
 l_ok
@@ -1033,14 +1115,14 @@ boxSeparationDistance(BOX      *box1,
                       l_int32  *ph_sep,
                       l_int32  *pv_sep)
 {
-l_int32  l1, t1, w1, h1, r1, b1, l2, t2, w2, h2, r2, b2, valid1, valid2;
+l_int32  h_ovl, v_ovl, valid1, valid2;
 
     PROCNAME("boxSeparationDistance");
 
-    if (!ph_sep && !pv_sep)
-        return ERROR_INT("nothing to do", procName, 1);
     if (ph_sep) *ph_sep = 0;
     if (pv_sep) *pv_sep = 0;
+    if (!ph_sep || !pv_sep)
+        return ERROR_INT("&h_sep and &v_sep not both defined", procName, 1);
     if (!box1 || !box2)
         return ERROR_INT("boxes not both defined", procName, 1);
     boxIsValid(box1, &valid1);
@@ -1048,26 +1130,11 @@ l_int32  l1, t1, w1, h1, r1, b1, l2, t2, w2, h2, r2, b2, valid1, valid2;
     if (!valid1 || !valid2)
         return ERROR_INT("boxes not both valid", procName, 1);
 
-    if (ph_sep) {
-        boxGetGeometry(box1, &l1, NULL, &w1, NULL);
-        boxGetGeometry(box2, &l2, NULL, &w2, NULL);
-        r1 = l1 + w1;  /* 1 pixel to the right of box 1 */
-        r2 = l2 + w2;
-        if (l2 >= l1)
-            *ph_sep = l2 - r1;
-        else
-            *ph_sep = l1 - r2;
-    }
-    if (pv_sep) {
-        boxGetGeometry(box1, NULL, &t1, NULL, &h1);
-        boxGetGeometry(box2, NULL, &t2, NULL, &h2);
-        b1 = t1 + h1;  /* 1 pixel below box 1 */
-        b2 = t2 + h2;
-        if (t2 >= t1)
-            *pv_sep = t2 - b1;
-        else
-            *pv_sep = t1 - b2;
-    }
+    boxOverlapDistance(box1, box2, &h_ovl, &v_ovl);
+    if (h_ovl <= 0)
+      *ph_sep = -h_ovl + 1;
+    if (v_ovl <= 0)
+      *pv_sep = -v_ovl + 1;
     return 0;
 }
 

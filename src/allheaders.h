@@ -271,6 +271,7 @@ LEPT_DLL extern BOX * boxBoundingRegion ( BOX *box1, BOX *box2 );
 LEPT_DLL extern l_ok boxOverlapFraction ( BOX *box1, BOX *box2, l_float32 *pfract );
 LEPT_DLL extern l_ok boxOverlapArea ( BOX *box1, BOX *box2, l_int32 *parea );
 LEPT_DLL extern BOXA * boxaHandleOverlaps ( BOXA *boxas, l_int32 op, l_int32 range, l_float32 min_overlap, l_float32 max_ratio, NUMA **pnamap );
+LEPT_DLL extern l_ok boxOverlapDistance ( BOX *box1, BOX *box2, l_int32 *ph_ovl, l_int32 *pv_ovl );
 LEPT_DLL extern l_ok boxSeparationDistance ( BOX *box1, BOX *box2, l_int32 *ph_sep, l_int32 *pv_sep );
 LEPT_DLL extern l_ok boxCompareSize ( BOX *box1, BOX *box2, l_int32 type, l_int32 *prel );
 LEPT_DLL extern l_ok boxContainsPt ( BOX *box, l_float32 x, l_float32 y, l_int32 *pcontains );
