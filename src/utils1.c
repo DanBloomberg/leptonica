@@ -911,7 +911,7 @@ size_t  bufsize = 100;
 /*---------------------------------------------------------------------*
  *                           Timing procs                              *
  *---------------------------------------------------------------------*/
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__Fuchsia__)
 
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -1006,6 +1006,41 @@ struct timeval tv;
     return;
 }
 
+#elif defined(__Fuchsia__) /* resource.h not implemented on Fuchsia. */
+
+    /* Timer functions are used for testing and debugging, and
+     * are stubbed out.  If they are needed in the future, they
+     * can be implemented in Fuchsia using the zircon syscall
+     * zx_object_get_info() in ZX_INFOR_THREAD_STATS mode.  */
+
+void
+startTimer(void)
+{
+}
+
+l_float32
+stopTimer(void)
+{
+    return 0.0;
+}
+
+L_TIMER
+startTimerNested(void)
+{
+    return NULL;
+}
+
+l_float32
+stopTimerNested(L_TIMER  rusage_start)
+{
+    return 0.0;
+}
+
+void
+l_getCurrentTime(l_int32  *sec,
+                 l_int32  *usec)
+{
+}
 
 #else   /* _WIN32 : resource.h not implemented under Windows */
 
