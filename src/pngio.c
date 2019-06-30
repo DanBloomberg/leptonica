@@ -330,8 +330,7 @@ PIXCMAP     *cmap;
                 SET_DATA_BYTE(ppixel, COLOR_RED, rowptr[k++]);
                 SET_DATA_BYTE(ppixel, COLOR_GREEN, rowptr[k++]);
                 SET_DATA_BYTE(ppixel, COLOR_BLUE, rowptr[k++]);
-                if (spp == 4)
-                    SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL, rowptr[k++]);
+                SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL, (spp == 4) ? rowptr[k++] : 255);
                 ppixel++;
             }
         }
