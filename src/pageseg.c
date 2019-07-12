@@ -149,12 +149,17 @@ PIX     *pixtb;    /* textblock mask */
     pixDestroy(&pixtext);
     pixDestroy(&pixvws);
 
+    if (pixtb2)
+    {
         /* Remove small components from the mask, where a small
          * component is defined as one with both width and height < 60 */
-    pixtbf2 = pixSelectBySize(pixtb2, 60, 60, 4, L_SELECT_IF_EITHER,
-                              L_SELECT_IF_GTE, NULL);
-    pixDestroy(&pixtb2);
-    if (pixadb) pixaAddPix(pixadb, pixtbf2, L_COPY);
+        pixtbf2 = pixSelectBySize(pixtb2, 60, 60, 4, L_SELECT_IF_EITHER,
+            L_SELECT_IF_GTE, NULL);
+        pixDestroy(&pixtb2);
+        if (pixadb) pixaAddPix(pixadb, pixtbf2, L_COPY);
+    }else {
+        pixtbf2 = NULL;
+    }
 
         /* Expand all masks to full resolution, and do filling or
          * small dilations for better coverage. */
@@ -169,10 +174,16 @@ PIX     *pixtb;    /* textblock mask */
     pixDestroy(&pix1);
     if (pixadb) pixaAddPix(pixadb, pixtm, L_COPY);
 
-    pix1 = pixExpandReplicate(pixtbf2, 2);
-    pixtb = pixDilateBrick(NULL, pix1, 3, 3);
-    pixDestroy(&pix1);
-    if (pixadb) pixaAddPix(pixadb, pixtb, L_COPY);
+    if (pixtbf2)
+    {
+        pix1 = pixExpandReplicate(pixtbf2, 2);
+        pixtb = pixDilateBrick(NULL, pix1, 3, 3);
+        pixDestroy(&pix1);
+        if (pixadb) pixaAddPix(pixadb, pixtb, L_COPY);
+    }else {
+        // set to white
+        pixtb = pixCreateTemplate(pixs);
+    }
 
     pixDestroy(&pixhm2);
     pixDestroy(&pixtm2);
@@ -468,7 +479,7 @@ pixGenTextblockMask(PIX   *pixs,
                     PIX   *pixvws,
                     PIXA  *pixadb)
 {
-l_int32  w, h;
+l_int32  w, h, empty;
 PIX     *pix1, *pix2, *pix3, *pixd;
 
     PROCNAME("pixGenTextblockMask");
@@ -485,6 +496,14 @@ PIX     *pix1, *pix2, *pix3, *pixd;
 
         /* Join pixels vertically to make a textblock mask */
     pix1 = pixMorphSequence(pixs, "c1.10 + o4.1", 0);
+        /* Check if result is not empty */
+    pixZero(pix1, &empty);
+    if (empty) {
+        pixDestroy(&pix1);
+        L_INFO("no fg pixels in textblock mask\n", procName);
+        return NULL;
+    }
+
     if (pixadb) pixaAddPix(pixadb, pix1, L_COPY);
 
         /* Solidify the textblock mask and remove noise:
