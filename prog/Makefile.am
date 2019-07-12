@@ -40,11 +40,13 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	quadtree_reg rankbin_reg rankhisto_reg \
 	rank_reg rasteropip_reg rasterop_reg rectangle_reg \
 	rotate1_reg rotate2_reg rotateorth_reg \
-	scale_reg seedspread_reg \
-	selio_reg shear1_reg shear2_reg skew_reg \
-	speckle_reg splitcomp_reg string_reg subpixel_reg \
-	texturefill_reg threshnorm_reg translate_reg \
-	warper_reg watershed_reg wordboxes_reg \
+	scale_reg seedspread_reg selio_reg \
+	shear1_reg shear2_reg skew_reg \
+	speckle_reg splitcomp_reg \
+	string_reg subpixel_reg \
+	texturefill_reg threshnorm_reg \
+	translate_reg warper_reg \
+	watershed_reg wordboxes_reg \
 	writetext_reg xformbox_reg
 
 if HAVE_LIBGIF
@@ -80,7 +82,8 @@ OTHER_PROGS = adaptmap_dark \
 	colorsegtest comparepages comparepixa \
 	comparetest concatpdf \
 	contrasttest converttogray \
-	cornertest corrupttest croptest croptext \
+	cornertest corrupttest \
+	croptest croptext deskew_it \
 	dewarprules dewarptest1 dewarptest2 \
 	dewarptest3 dewarptest4 dewarptest5 \
 	digitprep1 displayboxa displayboxes_on_pixa \
@@ -106,10 +109,11 @@ OTHER_PROGS = adaptmap_dark \
 	recogsort recogtest1 recogtest2 recogtest3 \
 	recogtest4 recogtest5 recogtest6 recogtest7 \
 	reducetest removecmap \
-	renderfonts replacebytes rotatefastalt \
+	renderfonts replacebytes \
+	rotatefastalt rotate_it \
 	rotateorthtest1 rotatetest1 \
 	runlengthtest scaleandtile \
-	scaletest1 scaletest2 \
+	scale_it scaletest1 scaletest2 \
 	seedfilltest settest sharptest \
 	sheartest showedges skewtest \
 	sorttest splitimage2pdf sudokutest textorient trctest \

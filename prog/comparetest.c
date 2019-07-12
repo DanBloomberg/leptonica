@@ -131,9 +131,6 @@ static char  mainName[] = "comparetest";
         if (d1 != 16 && !same) {
             na1 = pixCompareRankDifference(pixs1, pixs2, 1);
             if (na1) {
-                fprintf(stderr, "na1[150] = %20.10f\n", na1->array[150]);
-                fprintf(stderr, "na1[200] = %20.10f\n", na1->array[200]);
-                fprintf(stderr, "na1[250] = %20.10f\n", na1->array[250]);
                 numaGetNonzeroRange(na1, 0.00005, &first, &last);
                 fprintf(stderr, "Nonzero diff range: first = %d, last = %d\n",
                         first, last);

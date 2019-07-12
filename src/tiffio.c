@@ -2347,7 +2347,8 @@ size_t        amount;
     amount = L_MIN((size_t)length, mstream->hw - mstream->offset);
 
         /* Fuzzed files can create this condition! */
-    if (mstream->offset + amount > mstream->hw) {
+    if (mstream->offset + amount < amount ||  /* overflow */
+        mstream->offset + amount > mstream->hw) {
         fprintf(stderr, "Bad file: amount too big: %zu\n", amount);
         return 0;
     }
@@ -2397,6 +2398,9 @@ L_MEMSTREAM  *mstream;
     switch (whence) {
         case SEEK_SET:
 /*            fprintf(stderr, "seek_set: offset = %d\n", offset); */
+            if((size_t)offset != offset) {  /* size_t overflow on uint32 */
+                return (toff_t)ERROR_INT("too large offset value", procName, 1);
+            }
             mstream->offset = offset;
             break;
         case SEEK_CUR:

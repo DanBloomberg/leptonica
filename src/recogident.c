@@ -1634,7 +1634,7 @@ recogExtractNumbers(L_RECOG   *recog,
                     NUMAA    **pnaa)
 {
 char      *str, *text;
-l_int32    i, n, x1, x2, h_sep, v_sep;
+l_int32    i, n, x1, x2, h_ovl, v_ovl, h_sep, v_sep;
 l_float32  score;
 BOX       *box, *prebox;
 BOXA      *ba;
@@ -1687,7 +1687,9 @@ SARRAY    *satext, *sa, *saout;
             box = boxaGetBox(boxas, i, L_CLONE);
             boxGetGeometry(prebox, &x1, NULL, NULL, NULL);
             boxGetGeometry(box, &x2, NULL, NULL, NULL);
-            boxSeparationDistance(box, prebox, &h_sep, &v_sep);
+            boxOverlapDistance(box, prebox, &h_ovl, &v_ovl);
+            h_sep = -h_ovl;
+            v_sep = -v_ovl;
             boxDestroy(&prebox);
             if (x1 < x2 && h_sep <= spacethresh &&
                 v_sep < 0 && score >= scorethresh) {  /* add to number */

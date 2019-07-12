@@ -421,7 +421,7 @@ PIX     *pix1, *pix2, *pixvws, *pixd;
          *   (1) close the characters and words in the textlines
          *   (2) open the vertical whitespace corridors back up
          *   (3) small opening to remove noise    */
-    pix1 = pixCloseSafeBrick(NULL, pixs, 30, 1);
+    pix1 = pixMorphSequence(pixs, "c30.1", 0);
     if (pixadb) pixaAddPix(pixadb, pix1, L_COPY);
     pixd = pixSubtract(NULL, pix1, pixvws);
     pixOpenBrick(pixd, pixd, 3, 3);
