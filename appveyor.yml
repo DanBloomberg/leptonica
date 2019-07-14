@@ -26,7 +26,8 @@ before_build:
   - set PATH=%PATH%;%cd%
 
 build_script:
-  - sw -bt -show-output -platform %platform% build
+  - sw -version
+  - sw -show-output -platform %platform% build
 
 after_build:
   - 7z a leptonica.zip %APPVEYOR_BUILD_FOLDER%\.sw\Windows_*_Shared_Release_MSVC_*\*.exe %APPVEYOR_BUILD_FOLDER%\.sw\Windows_*_Shared_Release_MSVC_*\*.dll
