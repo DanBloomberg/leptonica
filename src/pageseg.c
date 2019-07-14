@@ -151,32 +151,38 @@ PIX     *pixtb;    /* textblock mask */
 
         /* Remove small components from the mask, where a small
          * component is defined as one with both width and height < 60 */
-    pixtbf2 = pixSelectBySize(pixtb2, 60, 60, 4, L_SELECT_IF_EITHER,
-                              L_SELECT_IF_GTE, NULL);
-    pixDestroy(&pixtb2);
-    if (pixadb) pixaAddPix(pixadb, pixtbf2, L_COPY);
+    pixtbf2 = NULL;
+    if (pixtb2) {
+        pixtbf2 = pixSelectBySize(pixtb2, 60, 60, 4, L_SELECT_IF_EITHER,
+                                  L_SELECT_IF_GTE, NULL);
+        pixDestroy(&pixtb2);
+        if (pixadb) pixaAddPix(pixadb, pixtbf2, L_COPY);
+    }
 
         /* Expand all masks to full resolution, and do filling or
          * small dilations for better coverage. */
     pixhm = pixExpandReplicate(pixhm2, 2);
     pix1 = pixSeedfillBinary(NULL, pixhm, pixs, 8);
     pixOr(pixhm, pixhm, pix1);
+    pixDestroy(&pixhm2);
     pixDestroy(&pix1);
     if (pixadb) pixaAddPix(pixadb, pixhm, L_COPY);
 
     pix1 = pixExpandReplicate(pixtm2, 2);
     pixtm = pixDilateBrick(NULL, pix1, 3, 3);
+    pixDestroy(&pixtm2);
     pixDestroy(&pix1);
     if (pixadb) pixaAddPix(pixadb, pixtm, L_COPY);
 
-    pix1 = pixExpandReplicate(pixtbf2, 2);
-    pixtb = pixDilateBrick(NULL, pix1, 3, 3);
-    pixDestroy(&pix1);
-    if (pixadb) pixaAddPix(pixadb, pixtb, L_COPY);
-
-    pixDestroy(&pixhm2);
-    pixDestroy(&pixtm2);
-    pixDestroy(&pixtbf2);
+    if (pixtbf2) {
+        pix1 = pixExpandReplicate(pixtbf2, 2);
+        pixtb = pixDilateBrick(NULL, pix1, 3, 3);
+        pixDestroy(&pixtbf2);
+        pixDestroy(&pix1);
+        if (pixadb) pixaAddPix(pixadb, pixtb, L_COPY);
+    } else {
+        pixtb = pixCreateTemplate(pixs);  /* empty mask */
+    }
 
         /* Debug: identify objects that are neither text nor halftone image */
     if (pixadb) {
@@ -448,7 +454,7 @@ PIX     *pix1, *pix2, *pixvws, *pixd;
  * \param[in]    pixs     1 bpp, textline mask, assumed to be 150 to 200 ppi
  * \param[in]    pixvws   vertical white space mask
  * \param[in]    pixadb   input for collecting debug pix; use NULL to skip
- * \return  pixd textblock mask, or NULL on error
+ * \return  pixd textblock mask, or NULL if empty or on error
  *
  * <pre>
  * Notes:
@@ -468,7 +474,7 @@ pixGenTextblockMask(PIX   *pixs,
                     PIX   *pixvws,
                     PIXA  *pixadb)
 {
-l_int32  w, h;
+l_int32  w, h, empty;
 PIX     *pix1, *pix2, *pix3, *pixd;
 
     PROCNAME("pixGenTextblockMask");
@@ -485,6 +491,12 @@ PIX     *pix1, *pix2, *pix3, *pixd;
 
         /* Join pixels vertically to make a textblock mask */
     pix1 = pixMorphSequence(pixs, "c1.10 + o4.1", 0);
+    pixZero(pix1, &empty);
+    if (empty) {
+        pixDestroy(&pix1);
+        L_INFO("no fg pixels in textblock mask\n", procName);
+        return NULL;
+    }
     if (pixadb) pixaAddPix(pixadb, pix1, L_COPY);
 
         /* Solidify the textblock mask and remove noise:
