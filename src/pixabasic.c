@@ -1315,6 +1315,7 @@ BOXA  *boxa;
 
     pixDestroy(&(pixa->pix[index]));
     pixa->pix[index] = pix;
+    pixChangeRefCount(pix, 1);
 
     if (box) {
         boxa = pixa->boxa;
