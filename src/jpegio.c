@@ -403,6 +403,9 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
                     SET_DATA_BYTE(ppixel, COLOR_RED, rowbuffer[k++]);
                     SET_DATA_BYTE(ppixel, COLOR_GREEN, rowbuffer[k++]);
                     SET_DATA_BYTE(ppixel, COLOR_BLUE, rowbuffer[k++]);
+                        /* should not use alpha byte, but for buggy readers,
+                         * set it to opaque  */
+                    SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL, 255);
                     ppixel++;
                 }
             } else {

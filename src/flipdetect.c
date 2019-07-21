@@ -361,7 +361,13 @@ PIX       *pix1;
  *      (6) One should probably not interpret the direction unless
  *          there are a sufficient number of counts for both orientations,
  *          in which case neither upconf nor leftconf will be 0.0.
- *      (7) Uses rasterop implementation of HMT.
+ *      (7) This algorithm will fail on some images, such as tables,
+ *          where most of the characters are numbers and appear as
+ *          uppercase, but there are some repeated words that give a
+ *          biased signal.  It may be advisable to run a table detector
+ *          first (e.g., pixDecideIfTable()), and not run the orientation
+ *          detector if it is a table.
+ *      (8) Uses rasterop implementation of HMT.
  * </pre>
  */
 l_ok

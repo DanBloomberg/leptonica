@@ -310,6 +310,9 @@ PIXCMAP   *cmap;
                 *((l_uint8 *)pword + COLOR_RED) = pel[2];
                 *((l_uint8 *)pword + COLOR_GREEN) = pel[1];
                 *((l_uint8 *)pword + COLOR_BLUE) = pel[0];
+                    /* should not use alpha byte, but for buggy readers,
+                     * set it to opaque  */
+                *((l_uint8 *)pword + L_ALPHA_CHANNEL) = 255;
             }
             if (extrabytes) {
                 for (k = 0; k < extrabytes; k++) {
