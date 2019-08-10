@@ -57,7 +57,7 @@ void build(Solution &s)
                 f->BuildAs = NativeSourceFile::CPP;
         }
 
-        if (leptonica.getSettings().TargetOS.Type == OSType::Windows)
+        if (leptonica.getBuildSettings().TargetOS.Type == OSType::Windows)
             leptonica += "User32.lib"_l, "Gdi32.lib"_l;
     }
 
