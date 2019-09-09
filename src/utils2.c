@@ -410,7 +410,8 @@ l_int32  i;
  *          rather than the number of bytes to copy), and does not complain
  *          if %src is null.
  *      (2) Never writes past end of dest.
- *      (3) If it can't append src (an error), it does nothing.
+ *      (3) If there is not enough room to append the src, which is an error,
+ *          it does nothing.
  *      (4) N.B. The order of 2nd and 3rd args is reversed from that in
  *          strncat, as in the Windows function strcat_s().
  * </pre>
@@ -438,7 +439,7 @@ l_int32  lendest, lensrc;
     lensrc = stringLength(src, size);
     if (lensrc == 0)
         return 0;
-    n = (lendest + lensrc > size - 1 ? size - lendest - 1 : lensrc);
+    n = (lendest + lensrc > size - 1 ? 0 : lensrc);
     if (n < 1)
         return ERROR_INT("dest too small for append", procName, -1);
 
@@ -527,9 +528,9 @@ l_int32  srclen1, srclen2, destlen;
         return (char *)ERROR_PTR("calloc fail for dest", procName, NULL);
 
     if (src1)
-        stringCopy(dest, src1, srclen1);
+        stringCat(dest, destlen, src1);
     if (src2)
-        strncat(dest, src2, srclen2);
+        stringCat(dest, destlen, src2);
     return dest;
 }
 
@@ -1588,7 +1589,7 @@ FILE  *fp;
         /* The 'b' flag to fopen() is ignored for all POSIX
          * conforming systems.  However, Windows needs the 'b' flag. */
     stringCopy(actualOperation, operation, 2);
-    strncat(actualOperation, "b", 2);
+    stringCat(actualOperation, 20, "b");
 
     if ((fp = fopenWriteStream(filename, actualOperation)) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
@@ -2951,16 +2952,16 @@ size_t  len1, len2, len3, len4;
 
     len1 = strlen(basedir);
     len2 = strlen(subdirs);
-    len3 = len1 + len2 + 6;
-    if ((newdir = (char *)LEPT_CALLOC(len3 + 1, 1)) == NULL)
+    len3 = len1 + len2 + 8;
+    if ((newdir = (char *)LEPT_CALLOC(len3, 1)) == NULL)
         return (char *)ERROR_PTR("newdir not made", procName, NULL);
-    strncat(newdir, basedir, len3);  /* add basedir */
+    stringCat(newdir, len3, basedir);
     if (newdir[len1 - 1] != '/')  /* add '/' if necessary */
         newdir[len1] = '/';
     if (subdirs[0] == '/')  /* add subdirs, stripping leading '/' */
-        strncat(newdir, subdirs + 1, len3);
+        stringCat(newdir, len3, subdirs + 1);
     else
-        strncat(newdir, subdirs, len3);
+        stringCat(newdir, len3, subdirs);
     len4 = strlen(newdir);
     if (newdir[len4 - 1] == '/')  /* strip trailing '/' */
         newdir[len4 - 1] = '\0';
@@ -3057,7 +3058,8 @@ genPathname(const char  *dir,
 {
 l_int32  is_win32 = FALSE;
 char    *cdir, *pathout;
-l_int32  dirlen, namelen, size;
+l_int32  dirlen, namelen;
+size_t   size;
 
     PROCNAME("genPathname");
 
@@ -3122,7 +3124,7 @@ l_int32  dirlen, namelen, size;
     if (fname && strlen(fname) > 0) {
         dirlen = strlen(pathout);
         pathout[dirlen] = '/';
-        strncat(pathout, fname, namelen);
+        stringCat(pathout, size, fname);
     }
 
     LEPT_FREE(cdir);
@@ -3199,7 +3201,7 @@ size_t   pathlen;
 #endif  /*  ~ _WIN32 */
     pathlen = strlen(path);
     if (pathlen < nbytes - 1) {
-        strncpy(result, path, pathlen);
+        stringCat(result, nbytes, path);
     } else {
         L_ERROR("result array too small for path\n", procName);
         ret = 1;
