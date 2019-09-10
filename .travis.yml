@@ -43,9 +43,9 @@ install:
   - if [[ $LINUX ]]; then sudo apt-get install -y libpng12-dev libjpeg8-dev libtiff5-dev libopenjpeg-dev; fi
   #- if [[ $LINUX ]]; then sudo apt-get install -y libwebp-dev libpng12-dev libjpeg8-dev libtiff5-dev libgif-dev libopenjpeg-dev; fi
   # install giflib5
-  - if [[ $LINUX ]]; then wget https://vorboss.dl.sourceforge.net/project/giflib/giflib-5.1.4.tar.bz2; fi
-  - if [[ $LINUX ]]; then tar -xf giflib-5.1.4.tar.bz2; fi
-  - if [[ $LINUX ]]; then cd giflib-5.1.4; fi
+  - if [[ $LINUX ]]; then wget https://datapacket.dl.sourceforge.net/project/giflib/giflib-5.2.1.tar.gz; fi
+  - if [[ $LINUX ]]; then tar -xf giflib-5.2.1.tar.bz2; fi
+  - if [[ $LINUX ]]; then cd giflib-5.2.1; fi
   - if [[ $LINUX ]]; then ./configure && make && sudo make install; fi
   - if [[ $LINUX ]]; then cd -; fi
   - if [[ $LINUX ]]; then wget https://github.com/webmproject/libwebp/archive/v1.0.2.tar.gz; fi
