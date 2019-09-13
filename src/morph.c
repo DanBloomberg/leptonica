@@ -702,11 +702,17 @@ SEL  *sel, *selh, *selv;
         return pixCopy(pixd, pixs);
     if (hsize == 1 || vsize == 1) {  /* no intermediate result */
         sel = selCreateBrick(vsize, hsize, vsize / 2, hsize / 2, SEL_HIT);
+        if (!sel)
+            return (PIX *)ERROR_PTR("sel not made", procName, pixd);
         pixd = pixDilate(pixd, pixs, sel);
         selDestroy(&sel);
     } else {
-        selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
-        selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
+        if ((selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT)) == NULL)
+            return (PIX *)ERROR_PTR("selh not made", procName, pixd);
+        if ((selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT)) == NULL) {
+            selDestroy(&selh);
+            return (PIX *)ERROR_PTR("selv not made", procName, pixd);
+        }
         pixt = pixDilate(NULL, pixs, selh);
         pixd = pixDilate(pixd, pixt, selv);
         pixDestroy(&pixt);
@@ -766,11 +772,17 @@ SEL  *sel, *selh, *selv;
         return pixCopy(pixd, pixs);
     if (hsize == 1 || vsize == 1) {  /* no intermediate result */
         sel = selCreateBrick(vsize, hsize, vsize / 2, hsize / 2, SEL_HIT);
+        if (!sel)
+            return (PIX *)ERROR_PTR("sel not made", procName, pixd);
         pixd = pixErode(pixd, pixs, sel);
         selDestroy(&sel);
     } else {
-        selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
-        selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
+        if ((selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT)) == NULL)
+            return (PIX *)ERROR_PTR("selh not made", procName, pixd);
+        if ((selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT)) == NULL) {
+            selDestroy(&selh);
+            return (PIX *)ERROR_PTR("selv not made", procName, pixd);
+        }
         pixt = pixErode(NULL, pixs, selh);
         pixd = pixErode(pixd, pixt, selv);
         pixDestroy(&pixt);
@@ -830,11 +842,17 @@ SEL  *sel, *selh, *selv;
         return pixCopy(pixd, pixs);
     if (hsize == 1 || vsize == 1) {  /* no intermediate result */
         sel = selCreateBrick(vsize, hsize, vsize / 2, hsize / 2, SEL_HIT);
+        if (!sel)
+            return (PIX *)ERROR_PTR("sel not made", procName, pixd);
         pixd = pixOpen(pixd, pixs, sel);
         selDestroy(&sel);
     } else {  /* do separably */
-        selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
-        selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
+        if ((selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT)) == NULL)
+            return (PIX *)ERROR_PTR("selh not made", procName, pixd);
+        if ((selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT)) == NULL) {
+            selDestroy(&selh);
+            return (PIX *)ERROR_PTR("selv not made", procName, pixd);
+        }
         pixt = pixErode(NULL, pixs, selh);
         pixd = pixErode(pixd, pixt, selv);
         pixDilate(pixt, pixd, selh);
@@ -896,11 +914,17 @@ SEL  *sel, *selh, *selv;
         return pixCopy(pixd, pixs);
     if (hsize == 1 || vsize == 1) {  /* no intermediate result */
         sel = selCreateBrick(vsize, hsize, vsize / 2, hsize / 2, SEL_HIT);
+        if (!sel)
+            return (PIX *)ERROR_PTR("sel not made", procName, pixd);
         pixd = pixClose(pixd, pixs, sel);
         selDestroy(&sel);
     } else {  /* do separably */
-        selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
-        selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
+        if ((selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT)) == NULL)
+            return (PIX *)ERROR_PTR("selh not made", procName, pixd);
+        if ((selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT)) == NULL) {
+            selDestroy(&selh);
+            return (PIX *)ERROR_PTR("selv not made", procName, pixd);
+        }
         pixt = pixDilate(NULL, pixs, selh);
         pixd = pixDilate(pixd, pixt, selv);
         pixErode(pixt, pixd, selh);
@@ -977,11 +1001,17 @@ SEL     *sel, *selh, *selv;
 
     if (hsize == 1 || vsize == 1) {  /* no intermediate result */
         sel = selCreateBrick(vsize, hsize, vsize / 2, hsize / 2, SEL_HIT);
+        if (!sel)
+            return (PIX *)ERROR_PTR("sel not made", procName, pixd);
         pixdb = pixClose(NULL, pixsb, sel);
         selDestroy(&sel);
     } else {  /* do separably */
-        selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
-        selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
+        if ((selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT)) == NULL)
+            return (PIX *)ERROR_PTR("selh not made", procName, pixd);
+        if ((selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT)) == NULL) {
+            selDestroy(&selh);
+            return (PIX *)ERROR_PTR("selv not made", procName, pixd);
+        }
         pixt = pixDilate(NULL, pixsb, selh);
         pixdb = pixDilate(NULL, pixt, selv);
         pixErode(pixt, pixdb, selh);
@@ -1001,7 +1031,6 @@ SEL     *sel, *selh, *selv;
         pixCopy(pixd, pixt);
         pixDestroy(&pixt);
     }
-
     return pixd;
 }
 
@@ -1049,8 +1078,8 @@ l_int32  factor1, factor2;
         return ERROR_INT("neither &sel1 nor &sel2 are defined", procName, 1);
     if (psel1) *psel1 = NULL;
     if (psel2) *psel2 = NULL;
-    if (size < 1 || size > 250 * 250)
-        return ERROR_INT("size < 1", procName, 1);
+    if (size < 1 || size > 10000)
+        return ERROR_INT("size < 1 or size > 10000", procName, 1);
     if (direction != L_HORIZ && direction != L_VERT)
         return ERROR_INT("invalid direction", procName, 1);
 
@@ -1079,7 +1108,7 @@ l_int32  factor1, factor2;
  *
  * <pre>
  * Notes:
- *      (1) This works for Sel sizes up to 62500, which seems sufficient.
+ *      (1) This works for Sel sizes up to 10000, which seems sufficient.
  *      (2) The composable sel size is typically within +- 1 of
  *          the requested size.  Up to size = 300, the maximum difference
  *          is +- 2.
@@ -1105,8 +1134,8 @@ l_int32  diff[256];  /* diff between product (sel size) and input size */
 
     PROCNAME("selectComposableSizes");
 
-    if (size < 1 || size > 250 * 250)
-        return ERROR_INT("size < 1", procName, 1);
+    if (size < 1 || size > 10000)
+        return ERROR_INT("size < 1 or size > 10000", procName, 1);
     if (!pfactor1 || !pfactor2)
         return ERROR_INT("&factor1 or &factor2 not defined", procName, 1);
 
@@ -1209,7 +1238,10 @@ pixDilateCompBrick(PIX     *pixd,
                    l_int32  vsize)
 {
 PIX  *pix1, *pix2, *pix3;
-SEL  *selh1, *selh2, *selv1, *selv2;
+SEL  *selh1 = NULL;
+SEL  *selh2 = NULL;
+SEL  *selv1 = NULL;
+SEL  *selv2 = NULL;
 
     PROCNAME("pixDilateCompBrick");
 
@@ -1222,10 +1254,22 @@ SEL  *selh1, *selh2, *selv1, *selv2;
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
-    if (hsize > 1)
-        selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
-    if (vsize > 1)
-        selectComposableSels(vsize, L_VERT, &selv1, &selv2);
+    if (hsize > 1) {
+        if (selectComposableSels(hsize, L_HORIZ, &selh1, &selh2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            return (PIX *)ERROR_PTR("horiz sels not made", procName, pixd);
+        }
+    }
+    if (vsize > 1) {
+        if (selectComposableSels(vsize, L_VERT, &selv1, &selv2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            selDestroy(&selv1);
+            selDestroy(&selv2);
+            return (PIX *)ERROR_PTR("vert sels not made", procName, pixd);
+        }
+    }
 
     pix1 = pixAddBorder(pixs, 32, 0);
     if (vsize == 1) {
@@ -1243,14 +1287,10 @@ SEL  *selh1, *selh2, *selv1, *selv2;
     pixDestroy(&pix1);
     pixDestroy(&pix2);
 
-    if (hsize > 1) {
-        selDestroy(&selh1);
-        selDestroy(&selh2);
-    }
-    if (vsize > 1) {
-        selDestroy(&selv1);
-        selDestroy(&selv2);
-    }
+    selDestroy(&selh1);
+    selDestroy(&selh2);
+    selDestroy(&selv1);
+    selDestroy(&selv2);
 
     pix1 = pixRemoveBorder(pix3, 32);
     pixDestroy(&pix3);
@@ -1309,7 +1349,10 @@ pixErodeCompBrick(PIX     *pixd,
                   l_int32  vsize)
 {
 PIX  *pixt;
-SEL  *selh1, *selh2, *selv1, *selv2;
+SEL  *selh1 = NULL;
+SEL  *selh2 = NULL;
+SEL  *selv1 = NULL;
+SEL  *selv2 = NULL;
 
     PROCNAME("pixErodeCompBrick");
 
@@ -1322,10 +1365,23 @@ SEL  *selh1, *selh2, *selv1, *selv2;
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
-    if (hsize > 1)
-        selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
-    if (vsize > 1)
-        selectComposableSels(vsize, L_VERT, &selv1, &selv2);
+    if (hsize > 1) {
+        if (selectComposableSels(hsize, L_HORIZ, &selh1, &selh2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            return (PIX *)ERROR_PTR("horiz sels not made", procName, pixd);
+        }
+    }
+    if (vsize > 1) {
+        if (selectComposableSels(vsize, L_VERT, &selv1, &selv2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            selDestroy(&selv1);
+            selDestroy(&selv2);
+            return (PIX *)ERROR_PTR("vert sels not made", procName, pixd);
+        }
+    }
+
     if (vsize == 1) {
         pixt = pixErode(NULL, pixs, selh1);
         pixd = pixErode(pixd, pixt, selh2);
@@ -1340,15 +1396,10 @@ SEL  *selh1, *selh2, *selv1, *selv2;
     }
     pixDestroy(&pixt);
 
-    if (hsize > 1) {
-        selDestroy(&selh1);
-        selDestroy(&selh2);
-    }
-    if (vsize > 1) {
-        selDestroy(&selv1);
-        selDestroy(&selv2);
-    }
-
+    selDestroy(&selh1);
+    selDestroy(&selh2);
+    selDestroy(&selv1);
+    selDestroy(&selv2);
     return pixd;
 }
 
@@ -1400,7 +1451,10 @@ pixOpenCompBrick(PIX     *pixd,
                  l_int32  vsize)
 {
 PIX  *pixt;
-SEL  *selh1, *selh2, *selv1, *selv2;
+SEL  *selh1 = NULL;
+SEL  *selh2 = NULL;
+SEL  *selv1 = NULL;
+SEL  *selv2 = NULL;
 
     PROCNAME("pixOpenCompBrick");
 
@@ -1413,10 +1467,23 @@ SEL  *selh1, *selh2, *selv1, *selv2;
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
-    if (hsize > 1)
-        selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
-    if (vsize > 1)
-        selectComposableSels(vsize, L_VERT, &selv1, &selv2);
+    if (hsize > 1) {
+        if (selectComposableSels(hsize, L_HORIZ, &selh1, &selh2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            return (PIX *)ERROR_PTR("horiz sels not made", procName, pixd);
+        }
+    }
+    if (vsize > 1) {
+        if (selectComposableSels(vsize, L_VERT, &selv1, &selv2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            selDestroy(&selv1);
+            selDestroy(&selv2);
+            return (PIX *)ERROR_PTR("vert sels not made", procName, pixd);
+        }
+    }
+
     if (vsize == 1) {
         pixt = pixErode(NULL, pixs, selh1);
         pixd = pixErode(pixd, pixt, selh2);
@@ -1439,15 +1506,10 @@ SEL  *selh1, *selh2, *selv1, *selv2;
     }
     pixDestroy(&pixt);
 
-    if (hsize > 1) {
-        selDestroy(&selh1);
-        selDestroy(&selh2);
-    }
-    if (vsize > 1) {
-        selDestroy(&selv1);
-        selDestroy(&selv2);
-    }
-
+    selDestroy(&selh1);
+    selDestroy(&selh2);
+    selDestroy(&selv1);
+    selDestroy(&selv2);
     return pixd;
 }
 
@@ -1499,7 +1561,10 @@ pixCloseCompBrick(PIX     *pixd,
                   l_int32  vsize)
 {
 PIX  *pixt;
-SEL  *selh1, *selh2, *selv1, *selv2;
+SEL  *selh1 = NULL;
+SEL  *selh2 = NULL;
+SEL  *selv1 = NULL;
+SEL  *selv2 = NULL;
 
     PROCNAME("pixCloseCompBrick");
 
@@ -1512,10 +1577,23 @@ SEL  *selh1, *selh2, *selv1, *selv2;
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
-    if (hsize > 1)
-        selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
-    if (vsize > 1)
-        selectComposableSels(vsize, L_VERT, &selv1, &selv2);
+    if (hsize > 1) {
+        if (selectComposableSels(hsize, L_HORIZ, &selh1, &selh2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            return (PIX *)ERROR_PTR("horiz sels not made", procName, pixd);
+        }
+    }
+    if (vsize > 1) {
+        if (selectComposableSels(vsize, L_VERT, &selv1, &selv2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            selDestroy(&selv1);
+            selDestroy(&selv2);
+            return (PIX *)ERROR_PTR("vert sels not made", procName, pixd);
+        }
+    }
+
     if (vsize == 1) {
         pixt = pixDilate(NULL, pixs, selh1);
         pixd = pixDilate(pixd, pixt, selh2);
@@ -1538,15 +1616,10 @@ SEL  *selh1, *selh2, *selv1, *selv2;
     }
     pixDestroy(&pixt);
 
-    if (hsize > 1) {
-        selDestroy(&selh1);
-        selDestroy(&selh2);
-    }
-    if (vsize > 1) {
-        selDestroy(&selv1);
-        selDestroy(&selv2);
-    }
-
+    selDestroy(&selh1);
+    selDestroy(&selh2);
+    selDestroy(&selv1);
+    selDestroy(&selv2);
     return pixd;
 }
 
@@ -1604,7 +1677,10 @@ pixCloseSafeCompBrick(PIX     *pixd,
 {
 l_int32  maxtrans, bordsize;
 PIX     *pixsb, *pixt, *pixdb;
-SEL     *selh1, *selh2, *selv1, *selv2;
+SEL     *selh1 = NULL;
+SEL     *selh2 = NULL;
+SEL     *selv1 = NULL;
+SEL     *selv2 = NULL;
 
     PROCNAME("pixCloseSafeCompBrick");
 
@@ -1626,10 +1702,23 @@ SEL     *selh1, *selh2, *selv1, *selv2;
     bordsize = 32 * ((maxtrans + 31) / 32);  /* full 32 bit words */
     pixsb = pixAddBorder(pixs, bordsize, 0);
 
-    if (hsize > 1)
-        selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
-    if (vsize > 1)
-        selectComposableSels(vsize, L_VERT, &selv1, &selv2);
+    if (hsize > 1) {
+        if (selectComposableSels(hsize, L_HORIZ, &selh1, &selh2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            return (PIX *)ERROR_PTR("horiz sels not made", procName, pixd);
+        }
+    }
+    if (vsize > 1) {
+        if (selectComposableSels(vsize, L_VERT, &selv1, &selv2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            selDestroy(&selv1);
+            selDestroy(&selv2);
+            return (PIX *)ERROR_PTR("vert sels not made", procName, pixd);
+        }
+    }
+
     if (vsize == 1) {
         pixt = pixDilate(NULL, pixsb, selh1);
         pixdb = pixDilate(NULL, pixt, selh2);
@@ -1663,15 +1752,10 @@ SEL     *selh1, *selh2, *selv1, *selv2;
         pixDestroy(&pixt);
     }
 
-    if (hsize > 1) {
-        selDestroy(&selh1);
-        selDestroy(&selh2);
-    }
-    if (vsize > 1) {
-        selDestroy(&selv1);
-        selDestroy(&selv2);
-    }
-
+    selDestroy(&selh1);
+    selDestroy(&selh2);
+    selDestroy(&selv1);
+    selDestroy(&selv2);
     return pixd;
 }
 

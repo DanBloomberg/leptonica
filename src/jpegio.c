@@ -333,6 +333,7 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
     ycck = (cinfo.jpeg_color_space == JCS_YCCK && spp == 4 && cmapflag == 0);
     cmyk = (cinfo.jpeg_color_space == JCS_CMYK && spp == 4 && cmapflag == 0);
     if (spp != 1 && spp != 3 && !ycck && !cmyk) {
+        jpeg_destroy_decompress(&cinfo);
         return (PIX *)ERROR_PTR("spp must be 1 or 3, or YCCK or CMYK",
                                 procName, NULL);
     }
@@ -347,6 +348,7 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
     if (!rowbuffer || !pix) {
         LEPT_FREE(rowbuffer);
         pixDestroy(&pix);
+        jpeg_destroy_decompress(&cinfo);
         return (PIX *)ERROR_PTR("rowbuffer or pix not made", procName, NULL);
     }
 

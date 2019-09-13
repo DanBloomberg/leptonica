@@ -158,13 +158,13 @@ PIX       *pix;
         return (PIX *)ERROR_PTR("fp not defined", procName, NULL);
 
     if (freadHeaderPnm(fp, &w, &h, &d, &type, &bps, &spp))
-        return (PIX *)ERROR_PTR( "header read failed", procName, NULL);
+        return (PIX *)ERROR_PTR("header read failed", procName, NULL);
     if (bps < 1 || bps > 16)
-        return (PIX *)ERROR_PTR( "invalid bps", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid bps", procName, NULL);
     if (spp < 1 || spp > 4)
-        return (PIX *)ERROR_PTR( "invalid spp", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid spp", procName, NULL);
     if ((pix = pixCreate(w, h, d)) == NULL)
-        return (PIX *)ERROR_PTR( "pix not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not made", procName, NULL);
     pixSetInputFormat(pix, IFF_PNM);
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
@@ -180,8 +180,10 @@ PIX       *pix;
         /* Old "ASCII" binary or gray format */
         for (i = 0; i < h; i++) {
             for (j = 0; j < w; j++) {
-                if (pnmReadNextAsciiValue(fp, &val))
-                    return (PIX *)ERROR_PTR( "read abend", procName, pix);
+                if (pnmReadNextAsciiValue(fp, &val)) {
+                    pixDestroy(&pix);
+                    return (PIX *)ERROR_PTR("read abend", procName, NULL);
+                }
                 pixSetPixel(pix, j, i, val);
             }
         }
@@ -191,12 +193,18 @@ PIX       *pix;
         /* Old "ASCII" rgb format */
         for (i = 0; i < h; i++) {
             for (j = 0; j < w; j++) {
-                if (pnmReadNextAsciiValue(fp, &rval))
-                    return (PIX *)ERROR_PTR("read abend", procName, pix);
-                if (pnmReadNextAsciiValue(fp, &gval))
-                    return (PIX *)ERROR_PTR("read abend", procName, pix);
-                if (pnmReadNextAsciiValue(fp, &bval))
-                    return (PIX *)ERROR_PTR("read abend", procName, pix);
+                if (pnmReadNextAsciiValue(fp, &rval)) {
+                    pixDestroy(&pix);
+                    return (PIX *)ERROR_PTR("read abend", procName, NULL);
+                }
+                if (pnmReadNextAsciiValue(fp, &gval)) {
+                    pixDestroy(&pix);
+                    return (PIX *)ERROR_PTR("read abend", procName, NULL);
+                }
+                if (pnmReadNextAsciiValue(fp, &bval)) {
+                    pixDestroy(&pix);
+                    return (PIX *)ERROR_PTR("read abend", procName, NULL);
+                }
                 composeRGBPixel(rval, gval, bval, &rgbval);
                 pixSetPixel(pix, j, i, rgbval);
             }
@@ -209,8 +217,10 @@ PIX       *pix;
         for (i = 0; i < h; i++) {
             line = data + i * wpl;
             for (j = 0; j < bpl; j++) {
-                if (fread(&val8, 1, 1, fp) != 1)
-                    return (PIX *)ERROR_PTR("read error in 4", procName, pix);
+                if (fread(&val8, 1, 1, fp) != 1) {
+                    pixDestroy(&pix);
+                    return (PIX *)ERROR_PTR("read error in 4", procName, NULL);
+                }
                 SET_DATA_BYTE(line, j, val8);
             }
         }
@@ -222,8 +232,10 @@ PIX       *pix;
             line = data + i * wpl;
             if (d != 16) {
                 for (j = 0; j < w; j++) {
-                    if (fread(&val8, 1, 1, fp) != 1)
-                        return (PIX *)ERROR_PTR("error in 5", procName, pix);
+                    if (fread(&val8, 1, 1, fp) != 1) {
+                        pixDestroy(&pix);
+                        return (PIX *)ERROR_PTR("error in 5", procName, NULL);
+                    }
                     if (d == 2)
                         SET_DATA_DIBIT(line, j, val8);
                     else if (d == 4)
@@ -233,8 +245,10 @@ PIX       *pix;
                 }
             } else {  /* d == 16 */
                 for (j = 0; j < w; j++) {
-                    if (fread(&val16, 2, 1, fp) != 1)
-                        return (PIX *)ERROR_PTR("16 bpp error", procName, pix);
+                    if (fread(&val16, 2, 1, fp) != 1) {
+                        pixDestroy(&pix);
+                        return (PIX *)ERROR_PTR("16 bpp error", procName, NULL);
+                    }
                     SET_DATA_TWO_BYTES(line, j, val16);
                 }
             }
@@ -246,15 +260,21 @@ PIX       *pix;
         for (i = 0; i < h; i++) {
             line = data + i * wpl;
             for (j = 0; j < wpl; j++) {
-                if (fread(&rval8, 1, 1, fp) != 1)
+                if (fread(&rval8, 1, 1, fp) != 1) {
+                    pixDestroy(&pix);
                     return (PIX *)ERROR_PTR("read error type 6",
-                                            procName, pix);
-                if (fread(&gval8, 1, 1, fp) != 1)
+                                            procName, NULL);
+                }
+                if (fread(&gval8, 1, 1, fp) != 1) {
+                    pixDestroy(&pix);
                     return (PIX *)ERROR_PTR("read error type 6",
-                                            procName, pix);
-                if (fread(&bval8, 1, 1, fp) != 1)
+                                            procName, NULL);
+                }
+                if (fread(&bval8, 1, 1, fp) != 1) {
+                    pixDestroy(&pix);
                     return (PIX *)ERROR_PTR("read error type 6",
-                                            procName, pix);
+                                            procName, NULL);
+                }
                 composeRGBPixel(rval8, gval8, bval8, &rgbval);
                 line[j] = rgbval;
             }
@@ -269,9 +289,11 @@ PIX       *pix;
             case 1: /* 1, 2, 4, 8 bpp grayscale */
                 for (i = 0; i < h; i++) {
                     for (j = 0; j < w; j++) {
-                        if (fread(&val8, 1, 1, fp) != 1)
+                        if (fread(&val8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
+                                                    procName, NULL);
+                        }
                         val8 = val8 & mask8;
                         if (bps == 1) val8 ^= 1;  /* white-is-1 photometry */
                         pixSetPixel(pix, j, i, val8);
@@ -282,12 +304,16 @@ PIX       *pix;
             case 2: /* 1, 2, 4, 8 bpp grayscale + alpha */
                 for (i = 0; i < h; i++) {
                     for (j = 0; j < w; j++) {
-                        if (fread(&val8, 1, 1, fp) != 1)
+                        if (fread(&val8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
-                        if (fread(&aval8, 1, 1, fp) != 1)
+                                                    procName, NULL);
+                        }
+                        if (fread(&aval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
+                                                    procName, NULL);
+                        }
                         val8 = val8 & mask8;
                         aval8 = aval8 & mask8;
                         composeRGBAPixel(val8, val8, val8, aval8, &rgbval);
@@ -301,15 +327,21 @@ PIX       *pix;
                 for (i = 0; i < h; i++) {
                     line = data + i * wpl;
                     for (j = 0; j < wpl; j++) {
-                        if (fread(&rval8, 1, 1, fp) != 1)
+                        if (fread(&rval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
-                        if (fread(&gval8, 1, 1, fp) != 1)
+                                                    procName, NULL);
+                        }
+                        if (fread(&gval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
-                        if (fread(&bval8, 1, 1, fp) != 1)
+                                                    procName, NULL);
+                        }
+                        if (fread(&bval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
+                                                    procName, NULL);
+                        }
                         rval8 = rval8 & mask8;
                         gval8 = gval8 & mask8;
                         bval8 = bval8 & mask8;
@@ -323,18 +355,26 @@ PIX       *pix;
                 for (i = 0; i < h; i++) {
                     line = data + i * wpl;
                     for (j = 0; j < wpl; j++) {
-                        if (fread(&rval8, 1, 1, fp) != 1)
+                        if (fread(&rval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
-                        if (fread(&gval8, 1, 1, fp) != 1)
+                                                    procName, NULL);
+                        }
+                        if (fread(&gval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
-                        if (fread(&bval8, 1, 1, fp) != 1)
+                                                    procName, NULL);
+                        }
+                        if (fread(&bval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
-                        if (fread(&aval8, 1, 1, fp) != 1)
+                                                    procName, NULL);
+                        }
+                        if (fread(&aval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
+                                                    procName, NULL);
+                        }
                         rval8 = rval8 & mask8;
                         gval8 = gval8 & mask8;
                         bval8 = bval8 & mask8;
@@ -356,9 +396,11 @@ PIX       *pix;
             case 1: /* 16 bps grayscale */
                 for (i = 0; i < h; i++) {
                     for (j = 0; j < w; j++) {
-                        if (fread(&val16, 2, 1, fp) != 1)
+                        if (fread(&val16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
+                                                    procName, NULL);
+                        }
                         val8 = val16 & 0xff;
                         pixSetPixel(pix, j, i, val8);
                     }
@@ -368,12 +410,16 @@ PIX       *pix;
             case 2: /* 16 bps grayscale + alpha */
                 for (i = 0; i < h; i++) {
                     for (j = 0; j < w; j++) {
-                        if (fread(&val16, 2, 1, fp) != 1)
+                        if (fread(&val16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
-                        if (fread(&aval16, 2, 1, fp) != 1)
+                                                    procName, NULL);
+                        }
+                        if (fread(&aval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
+                                                    procName, NULL);
+                        }
                         val8 = val16 & 0xff;
                         aval8 = aval16 & 0xff;
                         composeRGBAPixel(val8, val8, val8, aval8, &rgbval);
@@ -387,15 +433,21 @@ PIX       *pix;
                 for (i = 0; i < h; i++) {
                     line = data + i * wpl;
                     for (j = 0; j < wpl; j++) {
-                        if (fread(&rval16, 2, 1, fp) != 1)
+                        if (fread(&rval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
-                        if (fread(&gval16, 2, 1, fp) != 1)
+                                                    procName, NULL);
+                        }
+                        if (fread(&gval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
-                        if (fread(&bval16, 2, 1, fp) != 1)
+                                                    procName, NULL);
+                        }
+                        if (fread(&bval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
+                                                    procName, NULL);
+                        }
                         rval8 = rval16 & 0xff;
                         gval8 = gval16 & 0xff;
                         bval8 = bval16 & 0xff;
@@ -409,18 +461,26 @@ PIX       *pix;
                 for (i = 0; i < h; i++) {
                     line = data + i * wpl;
                     for (j = 0; j < wpl; j++) {
-                        if (fread(&rval16, 2, 1, fp) != 1)
+                        if (fread(&rval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
-                        if (fread(&gval16, 2, 1, fp) != 1)
+                                                    procName, NULL);
+                        }
+                        if (fread(&gval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
-                        if (fread(&bval16, 2, 1, fp) != 1)
+                                                    procName, NULL);
+                        }
+                        if (fread(&bval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
-                        if (fread(&aval16, 2, 1, fp) != 1)
+                                                    procName, NULL);
+                        }
+                        if (fread(&aval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
                             return (PIX *)ERROR_PTR("read error type 7",
-                                                    procName, pix);
+                                                    procName, NULL);
+                        }
                         rval8 = rval16 & 0xff;
                         gval8 = gval16 & 0xff;
                         bval8 = bval16 & 0xff;
