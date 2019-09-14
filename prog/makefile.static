@@ -185,7 +185,8 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		multitype_reg.c nearline_reg.c newspaper_reg.c \
 		numa1_reg.c numa2_reg.c \
 		overlap_reg.c pageseg_reg.c paint_reg.c paintmask_reg.c \
-		pdfseg_reg.c pixa1_reg.c pixa2_reg.c \
+		pdfio1_reg.c pdfio2_reg.c pdfseg_reg.c \
+		pixa1_reg.c pixa2_reg.c \
 		pixadisp_reg.c pixalloc_reg.c \
 		pixcomp_reg.c pixmem_reg.c \
 		pixserial_reg.c pixtile_reg.c \
@@ -239,8 +240,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		modifyhuesat.c morphtest1.c \
 		numaranktest.c otsutest1.c otsutest2.c \
 		pagesegtest1.c pagesegtest2.c \
-		partifytest.c partitiontest.c \
-		pdfiotest.c percolatetest.c \
+		partifytest.c partitiontest.c percolatetest.c \
 		pixaatest.c pixafileinfo.c plottest.c \
 		printimage.c printsplitimage.c printtiff.c \
 		rbtreetest.c \
@@ -606,6 +606,12 @@ paint_reg:	paint_reg.o $(LEPTLIB)
 
 paintmask_reg:	paintmask_reg.o $(LEPTLIB)
 	$(CC) -o paintmask_reg paintmask_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+pdfio1_reg:	pdfio1_reg.o $(LEPTLIB)
+	$(CC) -o pdfio1_reg pdfio1_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+pdfio2_reg:	pdfio2_reg.o $(LEPTLIB)
+	$(CC) -o pdfio2_reg pdfio2_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 pdfseg_reg:	pdfseg_reg.o $(LEPTLIB)
 	$(CC) -o pdfseg_reg pdfseg_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -1017,9 +1023,6 @@ partifytest:	partifytest.o $(LEPTLIB)
 
 partitiontest:	partitiontest.o $(LEPTLIB)
 	$(CC) -o partitiontest partitiontest.o $(ALL_LIBS) $(EXTRALIBS)
-
-pdfiotest:	pdfiotest.o $(LEPTLIB)
-	$(CC) -o pdfiotest pdfiotest.o $(ALL_LIBS) $(EXTRALIBS)
 
 percolatetest:	percolatetest.o $(LEPTLIB)
 	$(CC) -o percolatetest percolatetest.o $(ALL_LIBS) $(EXTRALIBS)

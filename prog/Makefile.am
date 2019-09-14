@@ -32,7 +32,8 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	maze_reg mtiff_reg multitype_reg \
 	nearline_reg newspaper_reg numa1_reg numa2_reg \
 	overlap_reg pageseg_reg paint_reg paintmask_reg \
-	pdfseg_reg pixa2_reg pixadisp_reg pixcomp_reg \
+	pdfio1_reg pdfio2_reg pdfseg_reg \
+	pixa2_reg pixadisp_reg pixcomp_reg \
 	pixmem_reg pixserial_reg pngio_reg pnmio_reg \
 	projection_reg projective_reg \
 	psio_reg psioseg_reg pta_reg \
@@ -101,8 +102,7 @@ OTHER_PROGS = adaptmap_dark \
 	modifyhuesat morphtest1 \
 	numaranktest otsutest1 otsutest2 \
 	pagesegtest1 pagesegtest2 \
-	partifytest partitiontest \
-	pdfiotest percolatetest \
+	partifytest partitiontest percolatetest \
 	pixaatest pixafileinfo plottest \
 	printimage printsplitimage printtiff rbtreetest \
 	recog_bootnum1 recog_bootnum2 recog_bootnum3 \
