@@ -474,10 +474,12 @@ SEL     *sel;
 
     size = factor1 * factor2;
     if (direction == L_HORIZ) {
-        sel = selCreate(1, size, NULL);
+        if ((sel = selCreate(1, size, NULL)) == NULL)
+            return (SEL *)ERROR_PTR("horiz sel not made", procName, NULL);
         selSetOrigin(sel, 0, size / 2);
     } else {
-        sel = selCreate(size, 1, NULL);
+        if ((sel = selCreate(size, 1, NULL)) == NULL)
+            return (SEL *)ERROR_PTR("vert sel not made", procName, NULL);
         selSetOrigin(sel, size / 2, 0);
     }
 

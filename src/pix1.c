@@ -1368,15 +1368,20 @@ pixScaleResolution(PIX       *pix,
                    l_float32  xscale,
                    l_float32  yscale)
 {
+l_float64  xres, yres;
+l_float64  maxres = 100000000.0;
+
     PROCNAME("pixScaleResolution");
 
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
+    if (xscale <= 0 || yscale <= 0)
+        return ERROR_INT("invalid scaling ratio", procName, 1);
 
-    if (pix->xres != 0 && pix->yres != 0) {
-        pix->xres = (l_uint32)(xscale * (l_float32)(pix->xres) + 0.5);
-        pix->yres = (l_uint32)(yscale * (l_float32)(pix->yres) + 0.5);
-    }
+    xres = (l_float64)xscale * (l_float32)(pix->xres) + 0.5;
+    yres = (l_float64)yscale * (l_float32)(pix->yres) + 0.5;
+    pix->xres = (l_uint32)L_MIN(xres, maxres);
+    pix->yres = (l_uint32)L_MIN(yres, maxres);
     return 0;
 }
 

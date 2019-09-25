@@ -1,0 +1,234 @@
+/*====================================================================*
+ -  Copyright (C) 2001 Leptonica.  All rights reserved.
+ -
+ -  Redistribution and use in source and binary forms, with or without
+ -  modification, are permitted provided that the following conditions
+ -  are met:
+ -  1. Redistributions of source code must retain the above copyright
+ -     notice, this list of conditions and the following disclaimer.
+ -  2. Redistributions in binary form must reproduce the above
+ -     copyright notice, this list of conditions and the following
+ -     disclaimer in the documentation and/or other materials
+ -     provided with the distribution.
+ -
+ -  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ -  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ -  A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL ANY
+ -  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ -  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ -  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ -  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ -  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ -  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *====================================================================*/
+
+/*
+ *  pdfio1_reg.c
+ */
+
+#include <string.h>
+#include "allheaders.h"
+
+int main(int    argc,
+         char **argv)
+{
+l_int32       i, j, seq;
+size_t        nbytes;
+const char   *title;
+BOX          *box;
+L_PDF_DATA   *lpd;
+PIX          *pix1, *pix2, *pix3;
+PIX          *pixs, *pixt, *pixg, *pixgc, *pixc;
+PIXCMAP      *cmap;
+L_REGPARAMS  *rp;
+
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
+
+    l_pdfSetDateAndVersion(0);
+    lept_mkdir("lept/pdf");
+
+#if 1
+    /* ---------------  Single image tests  ------------------- */
+    fprintf(stderr, "\n*** Writing single images as pdf files\n");
+
+    convertToPdf("weasel2.4c.png", L_FLATE_ENCODE, 0, "/tmp/lept/pdf/file00.pdf",
+                 0, 0, 72, "weasel2.4c.png", NULL, 0);
+    convertToPdf("test24.jpg", L_JPEG_ENCODE, 0, "/tmp/lept/pdf/file01.pdf",
+                 0, 0, 72, "test24.jpg", NULL, 0);
+    convertToPdf("feyn.tif", L_G4_ENCODE, 0, "/tmp/lept/pdf/file02.pdf",
+                 0, 0, 300, "feyn.tif", NULL, 0);
+
+    pixs = pixRead("feyn.tif");
+    pixConvertToPdf(pixs, L_G4_ENCODE, 0, "/tmp/lept/pdf/file03.pdf", 0, 0, 300,
+                    "feyn.tif", NULL, 0);
+    pixDestroy(&pixs);
+
+    pixs = pixRead("test24.jpg");
+    pixConvertToPdf(pixs, L_JPEG_ENCODE, 5, "/tmp/lept/pdf/file04.pdf",
+                    0, 0, 72, "test24.jpg", NULL, 0);
+    pixDestroy(&pixs);
+
+    pixs = pixRead("feyn.tif");
+    pixt = pixScaleToGray2(pixs);
+    pixWrite("/tmp/lept/pdf/feyn8.png", pixt, IFF_PNG);
+    convertToPdf("/tmp/lept/pdf/feyn8.png", L_JPEG_ENCODE, 0,
+                 "/tmp/lept/pdf/file05.pdf", 0, 0, 150, "feyn8.png", NULL, 0);
+    pixDestroy(&pixs);
+    pixDestroy(&pixt);
+
+    convertToPdf("weasel4.16g.png", L_FLATE_ENCODE, 0,
+                 "/tmp/lept/pdf/file06.pdf", 0, 0, 30,
+                 "weasel4.16g.png", NULL, 0);
+
+    pixs = pixRead("test24.jpg");
+    pixg = pixConvertTo8(pixs, 0);
+    box = boxCreate(100, 100, 100, 100);
+    pixc = pixClipRectangle(pixs, box, NULL);
+    pixgc = pixClipRectangle(pixg, box, NULL);
+    pixWrite("/tmp/lept/pdf/pix32.jpg", pixc, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/pdf/pix8.jpg", pixgc, IFF_JFIF_JPEG);
+    convertToPdf("/tmp/lept/pdf/pix32.jpg", L_FLATE_ENCODE, 0,
+                 "/tmp/lept/pdf/file07.pdf", 0, 0, 72, "pix32.jpg", NULL, 0);
+    convertToPdf("/tmp/lept/pdf/pix8.jpg", L_FLATE_ENCODE, 0,
+                 "/tmp/lept/pdf/file08.pdf", 0, 0, 72, "pix8.jpg", NULL, 0);
+    pixDestroy(&pixs);
+    pixDestroy(&pixg);
+    pixDestroy(&pixc);
+    pixDestroy(&pixgc);
+    boxDestroy(&box);
+#endif
+
+
+#if 1
+    /* ---------------  Multiple image tests  ------------------- */
+    fprintf(stderr, "\n*** Writing multiple images as single page pdf files\n");
+
+    pix1 = pixRead("feyn-fract.tif");
+    pix2 = pixRead("weasel8.240c.png");
+
+        /* First, write the 1 bpp image through the mask onto the weasels */
+    for (i = 0; i < 5; i++) {
+        for (j = 0; j < 10; j++) {
+            seq = (i == 0 && j == 0) ? L_FIRST_IMAGE : L_NEXT_IMAGE;
+            title = (i == 0 && j == 0) ? "feyn-fract.tif" : NULL;
+            pixConvertToPdf(pix2, L_FLATE_ENCODE, 0, NULL, 100 * j,
+                            100 * i, 70, title, &lpd, seq);
+        }
+    }
+    pixConvertToPdf(pix1, L_G4_ENCODE, 0, "/tmp/lept/pdf/file09.pdf", 0, 0, 80,
+                    NULL, &lpd, L_LAST_IMAGE);
+
+        /* Now, write the 1 bpp image over the weasels */
+    l_pdfSetG4ImageMask(0);
+    for (i = 0; i < 5; i++) {
+        for (j = 0; j < 10; j++) {
+            seq = (i == 0 && j == 0) ? L_FIRST_IMAGE : L_NEXT_IMAGE;
+            title = (i == 0 && j == 0) ? "feyn-fract.tif" : NULL;
+            pixConvertToPdf(pix2, L_FLATE_ENCODE, 0, NULL, 100 * j,
+                            100 * i, 70, title, &lpd, seq);
+        }
+    }
+    pixConvertToPdf(pix1, L_G4_ENCODE, 0, "/tmp/lept/pdf/file10.pdf", 0, 0, 80,
+                    NULL, &lpd, L_LAST_IMAGE);
+    l_pdfSetG4ImageMask(1);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+#endif
+
+#if 1
+    /* -------- pdf convert segmented with no image regions -------- */
+    fprintf(stderr, "\n*** Writing segmented images without image regions\n");
+
+    pix1 = pixRead("rabi.png");
+    pix2 = pixScaleToGray2(pix1);
+    pixWrite("/tmp/lept/pdf/rabi8.jpg", pix2, IFF_JFIF_JPEG);
+    pix3 = pixThresholdTo4bpp(pix2, 16, 1);
+    pixWrite("/tmp/lept/pdf/rabi4.png", pix3, IFF_PNG);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+
+        /* 1 bpp input */
+    convertToPdfSegmented("rabi.png", 300, L_G4_ENCODE, 128, NULL, 0, 0,
+                          NULL, "/tmp/lept/pdf/file11.pdf");
+    convertToPdfSegmented("rabi.png", 300, L_JPEG_ENCODE, 128, NULL, 0, 0,
+                          NULL, "/tmp/lept/pdf/file12.pdf");
+    convertToPdfSegmented("rabi.png", 300, L_FLATE_ENCODE, 128, NULL, 0, 0,
+                          NULL, "/tmp/lept/pdf/file13.pdf");
+
+        /* 8 bpp input, no cmap */
+    convertToPdfSegmented("/tmp/lept/pdf/rabi8.jpg", 150, L_G4_ENCODE, 128,
+                          NULL, 0, 0, NULL, "/tmp/lept/pdf/file14.pdf");
+    convertToPdfSegmented("/tmp/lept/pdf/rabi8.jpg", 150, L_JPEG_ENCODE, 128,
+                          NULL, 0, 0, NULL, "/tmp/lept/pdf/file15.pdf");
+    convertToPdfSegmented("/tmp/lept/pdf/rabi8.jpg", 150, L_FLATE_ENCODE, 128,
+                          NULL, 0, 0, NULL, "/tmp/lept/pdf/file16.pdf");
+
+        /* 4 bpp input, cmap */
+    convertToPdfSegmented("/tmp/lept/pdf/rabi4.png", 150, L_G4_ENCODE, 128,
+                          NULL, 0, 0, NULL, "/tmp/lept/pdf/file17.pdf");
+    convertToPdfSegmented("/tmp/lept/pdf/rabi4.png", 150, L_JPEG_ENCODE, 128,
+                          NULL, 0, 0, NULL, "/tmp/lept/pdf/file18.pdf");
+    convertToPdfSegmented("/tmp/lept/pdf/rabi4.png", 150, L_FLATE_ENCODE, 128,
+                          NULL, 0, 0, NULL, "/tmp/lept/pdf/file19.pdf");
+
+#endif
+
+#if 1
+    /* ---------------  Generating from 1 bpp images ------------------- */
+    fprintf(stderr, "\n*** Writing 1 bpp images as pdf files\n");
+    pix1 = pixRead("feyn-fract.tif");
+    pixWrite("/tmp/lept/pdf/feyn-nocmap.png", pix1, IFF_PNG);
+    pix2 = pixCopy(NULL, pix1);
+    cmap = pixcmapCreate(1);
+    pixcmapAddColor(cmap, 0, 0, 0);  /* with cmap: black bg, white letters */
+    pixcmapAddColor(cmap, 255, 255, 255);
+    pixSetColormap(pix2, cmap);
+    pixWrite("/tmp/lept/pdf/feyn-cmap1.png", pix2, IFF_PNG);
+    cmap = pixcmapCreate(1);
+    pixcmapAddColor(cmap, 200, 0, 0);  /* with cmap: red bg, white letters */
+    pixcmapAddColor(cmap, 255, 255, 255);
+    pixSetColormap(pix1, cmap);
+    pixWrite("/tmp/lept/pdf/feyn-cmap2.png", pix1, IFF_PNG);
+
+    convertToPdf("/tmp/lept/pdf/feyn-nocmap.png", L_FLATE_ENCODE, 0,
+                 "/tmp/lept/pdf/file20.pdf",
+                 0, 0, 0, NULL, NULL, 0);
+    convertToPdf("/tmp/lept/pdf/feyn-cmap1.png", L_FLATE_ENCODE, 0,
+                 "/tmp/lept/pdf/file21.pdf",
+                 0, 0, 0, NULL, NULL, 0);
+    convertToPdf("/tmp/lept/pdf/feyn-cmap2.png", L_FLATE_ENCODE, 0,
+                 "/tmp/lept/pdf/file22.pdf",
+                 0, 0, 0, NULL, NULL, 0);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+#endif
+
+    regTestCheckFile(rp, "/tmp/lept/pdf/file00.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file01.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file02.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file03.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file04.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file05.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file06.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file07.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file08.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file09.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file10.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file11.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file12.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file13.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file14.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file15.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file16.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file17.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file18.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file19.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file20.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file21.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file22.pdf");
+    return regTestCleanup(rp);
+}
