@@ -58,7 +58,7 @@ void build(Solution &s)
         }
 
         if (leptonica.getBuildSettings().TargetOS.Type == OSType::Windows)
-            leptonica += "User32.lib"_l, "Gdi32.lib"_l;
+            leptonica += "User32.lib"_slib, "Gdi32.lib"_slib;
     }
 
     auto &progs = leptonica.addDirectory("progs");
