@@ -962,7 +962,7 @@ PIXCMAP  *cmap;
  *          png, it requires less than 30 bytes, but for jpeg it can
  *          require most of the compressed file.  In practice, the data
  *          is typically the entire compressed file in memory.
- *      (3) findFileFormatBuffer() requires up to 8 bytes to decide on
+ *      (3) findFileFormatBuffer() requires up to 12 bytes to decide on
  *          the format, which we require.
  * </pre>
  */
@@ -991,8 +991,8 @@ PIX     *pix;
     iscmap = 0;  /* init to false */
     if (!data)
         return ERROR_INT("data not defined", procName, 1);
-    if (size < 8)
-        return ERROR_INT("size < 8", procName, 1);
+    if (size < 12)
+        return ERROR_INT("size < 12", procName, 1);
 
     findFileFormatBuffer(data, &format);
 

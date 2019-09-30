@@ -420,7 +420,7 @@ pixScaleGeneral(PIX       *pixs,
 {
 l_int32    d;
 l_float32  maxscale;
-PIX       *pixt, *pixt2, *pixd;
+PIX       *pix1, *pix2, *pixd;
 
     PROCNAME("pixScaleGeneral");
 
@@ -438,31 +438,31 @@ PIX       *pixt, *pixt2, *pixd;
         return pixScaleBinary(pixs, scalex, scaley);
 
         /* Remove colormap; clone if possible; result is either 8 or 32 bpp */
-    if ((pixt = pixConvertTo8Or32(pixs, L_CLONE, 0)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+    if ((pix1 = pixConvertTo8Or32(pixs, L_CLONE, 0)) == NULL)
+        return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
 
         /* Scale (up or down) */
-    d = pixGetDepth(pixt);
+    d = pixGetDepth(pix1);
     maxscale = L_MAX(scalex, scaley);
     if (maxscale < 0.7) {  /* area mapping for anti-aliasing */
-        pixt2 = pixScaleAreaMap(pixt, scalex, scaley);
+        pix2 = pixScaleAreaMap(pix1, scalex, scaley);
         if (maxscale > 0.2 && sharpfract > 0.0 && sharpwidth > 0)
-            pixd = pixUnsharpMasking(pixt2, sharpwidth, sharpfract);
+            pixd = pixUnsharpMasking(pix2, sharpwidth, sharpfract);
         else
-            pixd = pixClone(pixt2);
+            pixd = pixClone(pix2);
     } else {  /* use linear interpolation */
         if (d == 8)
-            pixt2 = pixScaleGrayLI(pixt, scalex, scaley);
+            pix2 = pixScaleGrayLI(pix1, scalex, scaley);
         else  /* d == 32 */
-            pixt2 = pixScaleColorLI(pixt, scalex, scaley);
+            pix2 = pixScaleColorLI(pix1, scalex, scaley);
         if (maxscale < 1.4 && sharpfract > 0.0 && sharpwidth > 0)
-            pixd = pixUnsharpMasking(pixt2, sharpwidth, sharpfract);
+            pixd = pixUnsharpMasking(pix2, sharpwidth, sharpfract);
         else
-            pixd = pixClone(pixt2);
+            pixd = pixClone(pix2);
     }
 
-    pixDestroy(&pixt);
-    pixDestroy(&pixt2);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
     pixCopyText(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
     return pixd;
@@ -484,7 +484,7 @@ PIX       *pixt, *pixt2, *pixd;
  * Notes:
  *      (1) This function should only be used when the scale factors are
  *          greater than or equal to 0.7, and typically greater than 1.
- *          If either scale factor is larger than 0.7, we issue a warning
+ *          If both scale factors are smaller than 0.7, we issue a warning
  *          and call pixScaleGeneral(), which will invoke area mapping
  *          without sharpening.
  *      (2) This works on 2, 4, 8, 16 and 32 bpp images, as well as on
@@ -544,7 +544,7 @@ PIX       *pixt, *pixd;
  *
  * <pre>
  * Notes:
- *      (1) If either scale factor is larger than 0.7, we issue a warning
+ *      (1) If both scale factors are smaller than 0.7, we issue a warning
  *          and call pixScaleGeneral(), which will invoke area mapping
  *          without sharpening.  This is particularly important for
  *          document images with sharp edges.
@@ -553,9 +553,6 @@ PIX       *pixt, *pixd;
  *          out of each of the 3 components, scale each component
  *          using the pixScaleGrayLI(), and combine the results back
  *          into an rgb image.
- *      (3) The speed on intel hardware for the general case (not 2x)
- *          is about 10 * 10^6 dest-pixels/sec/GHz.  (The special 2x
- *          case runs at about 80 * 10^6 dest-pixels/sec/GHz.)
  * </pre>
  */
 PIX *
@@ -620,8 +617,6 @@ PIX       *pixd;
  *          the generic pixScaleColorLI(), and about 4x faster than
  *          using the special 2x scale function pixScaleGray2xLI()
  *          on each of the three components separately.
- *      (2) The speed on intel hardware is about
- *          80 * 10^6 dest-pixels/sec/GHz.
  * </pre>
  */
 PIX *
@@ -665,9 +660,7 @@ PIX       *pixd;
  *      (1) This is a special case of color linear interpolated scaling,
  *          for 4x upscaling.  It is about 3x faster than using
  *          the generic pixScaleColorLI().
- *      (2) The speed on intel hardware is about
- *          30 * 10^6 dest-pixels/sec/GHz
- *      (3) This scales each component separately, using pixScaleGray4xLI().
+ *      (2) This scales each component separately, using pixScaleGray4xLI().
  *          It would be about 4x faster to inline the color code properly,
  *          in analogy to scaleColor4xLILow(), and I leave this as
  *          an exercise for someone who really needs it.
@@ -718,65 +711,57 @@ PIX  *pixd;
  * \param[in]    scaley     must be >= 0.7
  * \return  pixd, or NULL on error
  *
- *  This function is appropriate for upscaling magnification, where the
- *  scale factor is > 1, as well as for a small amount of downscaling
- *  reduction, with scale factor > 0.7.  If the scale factor is < 0.7,
- *  the best result is obtained by area mapping, but this is relatiely
- *  expensive.  A less expensive alternative with scale factor < 0.7
- *  is low-pass filtering followed by subsampling (pixScaleSmooth()),
- *  which is effectively a cheap form of area mapping.
- *
- *  Some more details follow.
- *
- *  For each pixel in the dest, this does a linear
- *  interpolation of 4 neighboring pixels in the src.
- *  Specifically, consider the UL corner of src and
- *  dest pixels.  The UL corner of the dest falls within
- *  a src pixel, whose four corners are the UL corners
- *  of 4 adjacent src pixels.  The value of the dest
- *  is taken by linear interpolation using the values of
- *  the four src pixels and the distance of the UL corner
- *  of the dest from each corner.
- *
- *  If the image is expanded so that the dest pixel is
- *  smaller than the src pixel, such interpolation
- *  is a reasonable approach.  This interpolation is
- *  also good for a small image reduction factor that
- *  is not more than a 2x reduction.
- *
- *  Note that the linear interpolation algorithm for scaling
- *  is identical in form to the area-mapping algorithm
- *  for grayscale rotation.  The latter corresponds to a
- *  translation of each pixel without scaling.
- *
- *  This function is NOT optimal if the scaling involves
- *  a large reduction.    If the image is significantly
- *  reduced, so that the dest pixel is much larger than
- *  the src pixels, this interpolation, which is over src
- *  pixels only near the UL corner of the dest pixel,
- *  is not going to give a good area-mapping average.
- *  Because area mapping for image scaling is considerably
- *  more computationally intensive than linear interpolation,
- *  we choose not to use it.   For large image reduction,
- *  linear interpolation over adjacent src pixels
- *  degenerates asymptotically to subsampling.  But
- *  subsampling without a low-pass pre-filter causes
- *  aliasing by the nyquist theorem.  To avoid aliasing,
- *  a low-pass filter e.g., an averaging filter of
- *  size roughly equal to the dest pixel i.e., the
- *  reduction factor should be applied to the src before
- *  subsampling.
- *
- *  As an alternative to low-pass filtering and subsampling
- *  for large reduction factors, linear interpolation can
- *  also be done between the widely separated src pixels in
- *  which the corners of the dest pixel lie.  This also is
- *  not optimal, as it samples src pixels only near the
- *  corners of the dest pixel, and it is not implemented.
- *
- *  The speed on circa 2005 Intel hardware for the general case (not 2x)
- *  is about 13 * 10^6 dest-pixels/sec/GHz.  The special 2x case runs
- *  at about 100 * 10^6 dest-pixels/sec/GHz.
+ * <pre>
+ * Notes:
+ *      (1) This function is appropriate for upscaling magnification, where the
+ *          scale factor is > 1, as well as for a small amount of downscaling
+ *          reduction, with scale factor > 0.7.  If the scale factor is < 0.7,
+ *          the best result is obtained by area mapping, but this is relatiely
+ *          expensive.  A less expensive alternative with scale factor < 0.7
+ *          is low-pass filtering followed by subsampling (pixScaleSmooth()),
+ *          which is effectively a cheap form of area mapping.
+ *      (2) Here are some details:
+ *          - For each pixel in the dest, this does a linear
+ *            interpolation of 4 neighboring pixels in the src.
+ *            Specifically, consider the UL corner of src and
+ *            dest pixels.  The UL corner of the dest falls within
+ *            a src pixel, whose four corners are the UL corners
+ *            of 4 adjacent src pixels.  The value of the dest
+ *            is taken by linear interpolation using the values of
+ *            the four src pixels and the distance of the UL corner
+ *            of the dest from each corner.
+ *          - If the image is expanded so that the dest pixel is
+ *            smaller than the src pixel, such interpolation
+ *            is a reasonable approach.  This interpolation is
+ *            also good for a small image reduction factor that
+ *            is not more than a 2x reduction.
+ *          - The linear interpolation algorithm for scaling is
+ *            identical in form to the area-mapping algorithm
+ *            for grayscale rotation.  The latter corresponds to a
+ *            translation of each pixel without scaling.
+ *          - This function is NOT optimal if the scaling involves
+ *            a large reduction.  If the image is significantly
+ *            reduced, so that the dest pixel is much larger than
+ *            the src pixels, this interpolation, which is over src
+ *            pixels only near the UL corner of the dest pixel,
+ *            is not going to give a good area-mapping average.
+ *            Because area mapping for image scaling is considerably
+ *            more computationally intensive than linear interpolation,
+ *            we choose not to use it.  For large image reduction,
+ *            linear interpolation over adjacent src pixels
+ *            degenerates asymptotically to subsampling.  But
+ *            subsampling without a low-pass pre-filter causes
+ *            aliasing by the nyquist theorem.  To avoid aliasing,
+ *            a low-pass filter e.g., an averaging filter of
+ *            size roughly equal to the dest pixel i.e., the reduction
+ *            factor should be applied to the src before subsampling.
+ *          - As an alternative to low-pass filtering and subsampling
+ *            for large reduction factors, linear interpolation can
+ *            also be done between the widely separated src pixels in
+ *            which the corners of the dest pixel lie.  This also is
+ *            not optimal, as it samples src pixels only near the
+ *            corners of the dest pixel, and it is not implemented.
+ * </pre>
  */
 PIX *
 pixScaleGrayLI(PIX       *pixs,
@@ -837,8 +822,6 @@ PIX       *pixd;
  *      (1) This is a special case of gray linear interpolated scaling,
  *          for 2x upscaling.  It is about 6x faster than using
  *          the generic pixScaleGrayLI().
- *      (2) The speed on intel hardware is about
- *          100 * 10^6 dest-pixels/sec/GHz
  * </pre>
  */
 PIX *
@@ -880,8 +863,6 @@ PIX       *pixd;
  *      (1) This is a special case of gray linear interpolated scaling,
  *          for 4x upscaling.  It is about 12x faster than using
  *          the generic pixScaleGrayLI().
- *      (2) The speed on intel hardware is about
- *          160 * 10^6 dest-pixels/sec/GHz.
  * </pre>
  */
 PIX *
@@ -1394,11 +1375,11 @@ PIX       *pixd;
  * Notes:
  *      (1) This guarantees that the output scaled image has the
  *          dimension(s) you specify.
- *           ~ To specify the width with isotropic scaling, set %hd = 0.
- *           ~ To specify the height with isotropic scaling, set %wd = 0.
- *           ~ If both %wd and %hd are specified, the image is scaled
- *             (in general, anisotropically) to that size.
- *           ~ It is an error to set both %wd and %hd to 0.
+ *          ~ To specify the width with isotropic scaling, set %hd = 0.
+ *          ~ To specify the height with isotropic scaling, set %wd = 0.
+ *          ~ If both %wd and %hd are specified, the image is scaled
+ *            (in general, anisotropically) to that size.
+ *          ~ It is an error to set both %wd and %hd to 0.
  * </pre>
  */
 PIX *
@@ -1692,8 +1673,8 @@ PIX       *pixd;
  * <pre>
  * Notes:
  *      (1) This function should only be used when the scale factors are less
- *          than or equal to 0.7 (i.e., more than about 1.42x reduction).
- *          If either scale factor is larger than 0.7, we issue a warning
+ *          than 0.7 (i.e., more than about 1.42x reduction).  If either
+ *          scale factor is greater than or equal to 0.7, we issue a warning
  *          and call pixScaleGeneral(), which will invoke linear
  *          interpolation without sharpening.
  *      (2) This works only on 2, 4, 8 and 32 bpp images, and if there is
@@ -1802,11 +1783,11 @@ PIX       *pixs, *pixd;
  * Notes:
  *      (1) See notes in pixScaleSmooth().
  *      (2) The output scaled image has the dimension(s) you specify:
- *          * To specify the width with isotropic scaling, set %hd = 0.
- *          * To specify the height with isotropic scaling, set %wd = 0.
- *          * If both %wd and %hd are specified, the image is scaled
+ *          - To specify the width with isotropic scaling, set %hd = 0.
+ *          - To specify the height with isotropic scaling, set %wd = 0.
+ *          - If both %wd and %hd are specified, the image is scaled
  *             (in general, anisotropically) to that size.
- *          * It is an error to set both %wd and %hd to 0.
+ *          - It is an error to set both %wd and %hd to 0.
  * </pre>
  */
 PIX *
@@ -1889,15 +1870,15 @@ PIX       *pixd;
  * \brief   pixScaleAreaMap()
  *
  * \param[in]    pix       2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap
- * \param[in]    scalex    must be <= 0.7
- * \param[in]    scaley    must be <= 0.7
+ * \param[in]    scalex    must be < 0.7
+ * \param[in]    scaley    must be < 0.7
  * \return  pixd, or NULL on error
  *
  * <pre>
  * Notes:
  *      (1) This function should only be used when the scale factors are less
- *          than or equal to 0.7 (i.e., more than about 1.42x reduction).
- *          If either scale factor is larger than 0.7, we issue a warning
+ *          than 0.7 (i.e., more than about 1.42x reduction).  If either
+ *          scale factor is greater than or equal to 0.7, we issue a warning
  *          and call pixScaleGeneral(), which will invoke linear
  *          interpolation without sharpening.
  *      (2) This works only on 2, 4, 8 and 32 bpp images.  If there is
@@ -1907,12 +1888,20 @@ PIX       *pixd;
  *      (4) It does a relatively expensive area mapping computation, to
  *          avoid antialiasing.  It is about 2x slower than pixScaleSmooth(),
  *          but the results are much better on fine text.
- *      (5) This is typically about 20% faster for the special cases of
- *          2x, 4x, 8x and 16x reduction.
- *      (6) Surprisingly, there is no speedup (and a slight quality
- *          impairment) if you do as many successive 2x reductions as
- *          possible, ending with a reduction with a scale factor larger
- *          than 0.5.
+ *      (5) pixScaleAreaMap2() is typically about 7x faster for the special
+ *          case of 2x reduction for color images, and about 9x faster
+ *          for grayscale images.  Surprisingly, the improvement in speed
+ *          when using a cascade of 2x reductions for small scale factors is
+ *          less than one might expect, and in most situations gives
+ *          poorer image quality.  But see (6).
+ *      (6) For reductions between 0.35 and 0.5, a 2x area map reduction
+ *          followed by using pixScaleGeneral() on a 2x larger scalefactor
+ *          (which further reduces the image size using bilinear interpolation)
+ *          would give a significant speed increase, with little loss of
+ *          quality, but this is not enabled as it would break too many tests.
+ *          For scaling factors below 0.35, scaling atomically is nearly
+ *          as fast as using a cascade of 2x scalings, and gives
+ *          better results.
  * </pre>
  */
 PIX *
@@ -1923,7 +1912,7 @@ pixScaleAreaMap(PIX       *pix,
 l_int32    ws, hs, d, wd, hd, wpls, wpld;
 l_uint32  *datas, *datad;
 l_float32  maxscale;
-PIX       *pixs, *pixd, *pixt1, *pixt2, *pixt3;
+PIX       *pixs, *pixd, *pix1, *pix2, *pix3;
 
     PROCNAME("pixScaleAreaMap");
 
@@ -1942,29 +1931,41 @@ PIX       *pixs, *pixd, *pixt1, *pixt2, *pixt3;
     if (scalex == 0.5 && scaley == 0.5)
         return pixScaleAreaMap2(pix);
     if (scalex == 0.25 && scaley == 0.25) {
-        pixt1 = pixScaleAreaMap2(pix);
-        pixd = pixScaleAreaMap2(pixt1);
-        pixDestroy(&pixt1);
+        pix1 = pixScaleAreaMap2(pix);
+        pixd = pixScaleAreaMap2(pix1);
+        pixDestroy(&pix1);
         return pixd;
     }
     if (scalex == 0.125 && scaley == 0.125) {
-        pixt1 = pixScaleAreaMap2(pix);
-        pixt2 = pixScaleAreaMap2(pixt1);
-        pixd = pixScaleAreaMap2(pixt2);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
+        pix1 = pixScaleAreaMap2(pix);
+        pix2 = pixScaleAreaMap2(pix1);
+        pixd = pixScaleAreaMap2(pix2);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
         return pixd;
     }
     if (scalex == 0.0625 && scaley == 0.0625) {
-        pixt1 = pixScaleAreaMap2(pix);
-        pixt2 = pixScaleAreaMap2(pixt1);
-        pixt3 = pixScaleAreaMap2(pixt2);
-        pixd = pixScaleAreaMap2(pixt3);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
-        pixDestroy(&pixt3);
+        pix1 = pixScaleAreaMap2(pix);
+        pix2 = pixScaleAreaMap2(pix1);
+        pix3 = pixScaleAreaMap2(pix2);
+        pixd = pixScaleAreaMap2(pix3);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
+        pixDestroy(&pix3);
         return pixd;
     }
+
+#if 0  /* Not enabled because it breaks too many tests that rely on exact
+        * pixel matches.  */
+        /* Special case where it is significantly faster to downscale first
+         * by 2x, with relatively little degradation in image quality.  */
+    if (scalex > 0.35 && scalex < 0.5) {
+        pix1 = pixScaleAreaMap2(pix);
+        pixd = pixScaleAreaMap(pix1, 2.0 * scalex, 2.0 * scaley);
+        pixDestroy(&pix1);
+        return pixd;
+    }
+#endif
 
         /* Remove colormap if necessary.
          * If 2 bpp or 4 bpp gray, convert to 8 bpp */
@@ -2022,17 +2023,11 @@ PIX       *pixs, *pixd, *pixt1, *pixt2, *pixt3;
  *          reduction.
  *      (2) This works only on 2, 4, 8 and 32 bpp images.  If there is
  *          a colormap, it is removed by converting to RGB.
- *      (3) Speed on 3 GHz processor:
- *             Color: 160 Mpix/sec
- *             Gray: 700 Mpix/sec
- *          This contrasts with the speed of the general pixScaleAreaMap():
- *             Color: 35 Mpix/sec
- *             Gray: 50 Mpix/sec
- *      (4) From (3), we see that this special function is about 4.5x
- *          faster for color and 14x faster for grayscale
- *      (5) Consequently, pixScaleAreaMap2() is incorporated into the
- *          general area map scaling function, for the special cases
- *          of 2x, 4x, 8x and 16x reduction.
+ *      (3) Compared to the general pixScaleAreaMap(), for this function
+ *          gray processing is about 14x faster and color processing
+ *          is about 4x faster.  Consequently, pixScaleAreaMap2() is
+ *          incorporated into the general area map scaling function,
+ *          for the special cases of 2x, 4x, 8x and 16x reduction.
  * </pre>
  */
 PIX *
@@ -2093,11 +2088,11 @@ PIX       *pixs, *pixd;
  * Notes:
  *      (1) See notes in pixScaleAreaMap().
  *      (2) The output scaled image has the dimension(s) you specify:
- *          * To specify the width with isotropic scaling, set %hd = 0.
- *          * To specify the height with isotropic scaling, set %wd = 0.
- *          * If both %wd and %hd are specified, the image is scaled
+ *          - To specify the width with isotropic scaling, set %hd = 0.
+ *          - To specify the height with isotropic scaling, set %wd = 0.
+ *          - If both %wd and %hd are specified, the image is scaled
  *             (in general, anisotropically) to that size.
- *          * It is an error to set both %wd and %hd to 0.
+ *          - It is an error to set both %wd and %hd to 0.
  * </pre>
  */
 PIX *
@@ -2198,13 +2193,14 @@ PIX       *pixd;
 /*!
  * \brief   scaleColorLILow()
  *
- *  We choose to divide each pixel into 16 x 16 sub-pixels.
- *  Linear interpolation is equivalent to finding the
- *  fractional area (i.e., number of sub-pixels divided
- *  by 256) associated with each of the four nearest src pixels,
- *  and weighting each pixel value by this fractional area.
- *
- *  P3 speed is about 7 x 10^6 dst pixels/sec/GHz
+ * <pre>
+ * Notes:
+ *      (1) We choose to divide each pixel into 16 x 16 sub-pixels.
+ *          Linear interpolation is equivalent to finding the
+ *          fractional area (i.e., number of sub-pixels divided
+ *          by 256) associated with each of the four nearest src pixels,
+ *          and weighting each pixel value by this fractional area.
+ * </pre>
  */
 static void
 scaleColorLILow(l_uint32  *datad,
@@ -2302,11 +2298,14 @@ l_float32  scx, scy;
 /*!
  * \brief   scaleGrayLILow()
  *
- *  We choose to divide each pixel into 16 x 16 sub-pixels.
- *  Linear interpolation is equivalent to finding the
- *  fractional area (i.e., number of sub-pixels divided
- *  by 256) associated with each of the four nearest src pixels,
- *  and weighting each pixel value by this fractional area.
+ * <pre>
+ * Notes:
+ *      (1) We choose to divide each pixel into 16 x 16 sub-pixels.
+ *          Linear interpolation is equivalent to finding the
+ *          fractional area (i.e., number of sub-pixels divided
+ *          by 256) associated with each of the four nearest src pixels,
+ *          and weighting each pixel value by this fractional area.
+ * </pre>
  */
 static void
 scaleGrayLILow(l_uint32  *datad,
@@ -2388,12 +2387,14 @@ l_float32  scx, scy;
 /*!
  * \brief   scaleColor2xLILow()
  *
- *  This is a special case of 2x expansion by linear
- *  interpolation.  Each src pixel contains 4 dest pixels.
- *  The 4 dest pixels in src pixel 1 are numbered at
- *  their UL corners.  The 4 dest pixels in src pixel 1
- *  are related to that src pixel and its 3 neighboring
- *  src pixels as follows:
+ * <pre>
+ * Notes:
+ *      (1) This is a special case of 2x expansion by linear
+ *          interpolation.  Each src pixel contains 4 dest pixels.
+ *          The 4 dest pixels in src pixel 1 are numbered at
+ *          their UL corners.  The 4 dest pixels in src pixel 1
+ *          are related to that src pixel and its 3 neighboring
+ *          src pixels as follows:
  *
  *             1-----2-----|-----|-----|
  *             |     |     |     |     |
@@ -2416,13 +2417,12 @@ l_float32  scx, scy;
  *           dp3    =  (sp1 + sp3) / 2
  *           dp4    =  (sp1 + sp2 + sp3 + sp4) / 4
  *
- *  We iterate over the src pixels, and unroll the calculation
- *  for each set of 4 dest pixels corresponding to that src
- *  pixel, caching pixels for the next src pixel whenever possible.
- *  The method is exactly analogous to the one we use for
- *  scaleGray2xLILow() and its line version.
- *
- *  P3 speed is about 5 x 10^7 dst pixels/sec/GHz
+ *      (2) We iterate over the src pixels, and unroll the calculation
+ *          for each set of 4 dest pixels corresponding to that src
+ *          pixel, caching pixels for the next src pixel whenever possible.
+ *          The method is exactly analogous to the one we use for
+ *          scaleGray2xLILow() and its line version.
+ * </pre>
  */
 static void
 scaleColor2xLILow(l_uint32  *datad,
@@ -2591,12 +2591,14 @@ l_uint32  *linesp, *linedp;
 /*!
  * \brief   scaleGray2xLILow()
  *
- *  This is a special case of 2x expansion by linear
- *  interpolation.  Each src pixel contains 4 dest pixels.
- *  The 4 dest pixels in src pixel 1 are numbered at
- *  their UL corners.  The 4 dest pixels in src pixel 1
- *  are related to that src pixel and its 3 neighboring
- *  src pixels as follows:
+ * <pre>
+ * Notes:
+ *      (1) This is a special case of 2x expansion by linear
+ *          interpolation.  Each src pixel contains 4 dest pixels.
+ *          The 4 dest pixels in src pixel 1 are numbered at
+ *          their UL corners.  The 4 dest pixels in src pixel 1
+ *          are related to that src pixel and its 3 neighboring
+ *          src pixels as follows:
  *
  *             1-----2-----|-----|-----|
  *             |     |     |     |     |
@@ -2619,9 +2621,10 @@ l_uint32  *linesp, *linedp;
  *           dp3    =  (sp1 + sp3) / 2
  *           dp4    =  (sp1 + sp2 + sp3 + sp4) / 4
  *
- *  We iterate over the src pixels, and unroll the calculation
- *  for each set of 4 dest pixels corresponding to that src
- *  pixel, caching pixels for the next src pixel whenever possible.
+ *      (2) We iterate over the src pixels, and unroll the calculation
+ *          for each set of 4 dest pixels corresponding to that src
+ *          pixel, caching pixels for the next src pixel whenever possible.
+ * </pre>
  */
 static void
 scaleGray2xLILow(l_uint32  *datad,
@@ -2813,12 +2816,14 @@ l_uint32   words, wordsp, wordd, worddp;
 /*!
  * \brief   scaleGray4xLILow()
  *
- *  This is a special case of 4x expansion by linear
- *  interpolation.  Each src pixel contains 16 dest pixels.
- *  The 16 dest pixels in src pixel 1 are numbered at
- *  their UL corners.  The 16 dest pixels in src pixel 1
- *  are related to that src pixel and its 3 neighboring
- *  src pixels as follows:
+ * <pre>
+ * Notes:
+ *      (1) This is a special case of 4x expansion by linear
+ *          interpolation.  Each src pixel contains 16 dest pixels.
+ *          The 16 dest pixels in src pixel 1 are numbered at
+ *          their UL corners.  The 16 dest pixels in src pixel 1
+ *          are related to that src pixel and its 3 neighboring
+ *          src pixels as follows:
  *
  *             1---2---3---4---|---|---|---|---|
  *             |   |   |   |   |   |   |   |   |
@@ -2857,9 +2862,10 @@ l_uint32   words, wordsp, wordd, worddp;
  *           dp15   =  (sp1 + sp2 + 3 * sp3 + 3 * sp4) / 8
  *           dp16   =  (sp1 + 3 * sp2 + 3 * sp3 + 9 * sp4) / 16
  *
- *  We iterate over the src pixels, and unroll the calculation
- *  for each set of 16 dest pixels corresponding to that src
- *  pixel, caching pixels for the next src pixel whenever possible.
+ *      (2) We iterate over the src pixels, and unroll the calculation
+ *          for each set of 16 dest pixels corresponding to that src
+ *          pixel, caching pixels for the next src pixel whenever possible.
+ * </pre>
  */
 static void
 scaleGray4xLILow(l_uint32  *datad,
@@ -3029,7 +3035,8 @@ l_uint32  *linesp, *linedp1, *linedp2, *linedp3;
 /*!
  * \brief   scaleBySamplingLow()
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The dest must be cleared prior to this operation,
  *          and we clear it here in the low-level code.
  *      (2) We reuse dest pixels and dest pixel rows whenever
@@ -3038,6 +3045,7 @@ l_uint32  *linesp, *linedp1, *linedp2, *linedp3;
  *      (3) Because we are sampling and not interpolating, this
  *          routine works directly, without conversion to full
  *          RGB color, for 2, 4 or 8 bpp palette color images.
+ * </pre>
  */
 static l_int32
 scaleBySamplingLow(l_uint32  *datad,
@@ -3164,11 +3172,13 @@ l_float32  wratio, hratio;
 /*!
  * \brief   scaleSmoothLow()
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function is called on 8 or 32 bpp src and dest images.
  *      (2) size is the full width of the lowpass smoothing filter.
  *          It is correlated with the reduction ratio, being the
  *          nearest integer such that size is approximately equal to hs / hd.
+ * </pre>
  */
 static l_int32
 scaleSmoothLow(l_uint32  *datad,
@@ -3265,9 +3275,11 @@ l_float32  wratio, hratio, norm;
 /*!
  * \brief   scaleRGBToGray2Low()
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) This function is called with 32 bpp RGB src and 8 bpp,
  *          half-resolution dest.  The weights should add to 1.0.
+ * </pre>
  */
 static void
 scaleRGBToGray2Low(l_uint32  *datad,
@@ -3322,14 +3334,17 @@ l_uint32   pixel;
 /*!
  * \brief   scaleColorAreaMapLow()
  *
- *  This should only be used for downscaling.
- *  We choose to divide each pixel into 16 x 16 sub-pixels.
- *  This is much slower than scaleSmoothLow(), but it gives a
- *  better representation, esp. for downscaling factors between
- *  1.5 and 5.  All src pixels are subdivided into 256 sub-pixels,
- *  and are weighted by the number of sub-pixels covered by
- *  the dest pixel.  This is about 2x slower than scaleSmoothLow(),
- *  but the results are significantly better on small text.
+ * <pre>
+ * Notes:
+ *      (1) This should only be used for downscaling.
+ *          We choose to divide each pixel into 16 x 16 sub-pixels.
+ *          This is much slower than scaleSmoothLow(), but it gives a
+ *          better representation, esp. for downscaling factors between
+ *          1.5 and 5.  All src pixels are subdivided into 256 sub-pixels,
+ *          and are weighted by the number of sub-pixels covered by
+ *          the dest pixel.  This is about 2x slower than scaleSmoothLow(),
+ *          but the results are significantly better on small text.
+ * </pre>
  */
 static void
 scaleColorAreaMapLow(l_uint32  *datad,
@@ -3478,13 +3493,16 @@ l_float32  scx, scy;
 /*!
  * \brief   scaleGrayAreaMapLow()
  *
- *  This should only be used for downscaling.
- *  We choose to divide each pixel into 16 x 16 sub-pixels.
- *  This is about 2x slower than scaleSmoothLow(), but the results
- *  are significantly better on small text, esp. for downscaling
- *  factors between 1.5 and 5.  All src pixels are subdivided
- *  into 256 sub-pixels, and are weighted by the number of
- *  sub-pixels covered by the dest pixel.
+ * <pre>
+ * Notes:
+ *      (1) This should only be used for downscaling.
+ *          We choose to divide each pixel into 16 x 16 sub-pixels.
+ *          This is about 2x slower than scaleSmoothLow(), but the results
+ *          are significantly better on small text, esp. for downscaling
+ *          factors between 1.5 and 5.  All src pixels are subdivided
+ *          into 256 sub-pixels, and are weighted by the number of
+ *          sub-pixels covered by the dest pixel.
+ * </pre>
  */
 static void
 scaleGrayAreaMapLow(l_uint32  *datad,
@@ -3587,9 +3605,11 @@ l_float32  scx, scy;
 /*!
  * \brief   scaleAreaMapLow2()
  *
- *  Notes:
- *        This function is called with either 8 bpp gray or 32 bpp RGB.
- *        The result is a 2x reduced dest.
+ * <pre>
+ * Notes:
+ *      (1) This function is called with either 8 bpp gray or 32 bpp RGB.
+ *          The result is a 2x reduced dest.
+ * </pre>
  */
 static void
 scaleAreaMapLow2(l_uint32  *datad,
@@ -3652,14 +3672,16 @@ l_uint32   pixel;
  *              Binary scaling by closest pixel sampling            *
  *------------------------------------------------------------------*/
 /*
- *  scaleBinaryLow()
+ * \brief   scaleBinaryLow()
  *
- *  Notes:
+ * <pre>
+ * Notes:
  *      (1) The dest must be cleared prior to this operation,
  *          and we clear it here in the low-level code.
  *      (2) We reuse dest pixels and dest pixel rows whenever
  *          possible for upscaling; downscaling is done by
  *          strict subsampling.
+ * </pre>
  */
 static l_int32
 scaleBinaryLow(l_uint32  *datad,
@@ -3727,4 +3749,3 @@ l_float32  wratio, hratio;
     LEPT_FREE(scol);
     return 0;
 }
-
