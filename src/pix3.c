@@ -2570,55 +2570,105 @@ NUMA       *na;
 /*!
  * \brief   pixAverageInRect()
  *
- * \param[in]    pix   1, 2, 4, 8 bpp; not cmapped
- * \param[in]    box   [optional] if null, use entire image
- * \param[out]   pave  average of pixel values in region
- * \return  0 if OK; 1 on error
+ * \param[in]    pixs     1, 2, 4, 8 bpp; not cmapped
+ * \param[in]    pixm     [optional] 1 bpp mask; if null, use all pixels
+ * \param[in]    box      [optional] if null, use entire image
+ * \param[in]    minval   ignore values less than this
+ * \param[in]    maxval   ignore values greater than this
+ * \param[in]    subsamp  subsample factor: integer; use 1 for all pixels
+ * \param[out]   pave     average of pixel values under consideration
+ * \return  0 if OK; 1 on error; 2 if all pixels are filtered out
+ *
+ * <pre>
+ * Notes:
+ *      (1) The average is computed with 4 optional filters: a rectangle,
+ *          a mask, a contiguous set of range values, and subsampling.
+ *          In practice you might use only one or two of these.
+ *      (2) The mask %pixm is a blocking mask: only count pixels in the bg.
+ *          It must be at least as large as %pixs.
+ *      (3) Set the range limits %minval = 0 and %maxval = 255 to use
+ *          all non-masked pixels (regardless of value) in the average.
+ *      (4) If no pixels are used in the averaging, the returned average
+ *          value is 0 and the function returns 2.  This is not an error,
+ *          but it says to disregard the returned average value.
+ *      (5) For example, to average all pixels in a given clipping rect %box,
+ *              pixAverageInRect(pixs, NULL, box, 0, 255, 1, &aveval);
+ * </pre>
  */
 l_ok
-pixAverageInRect(PIX        *pix,
+pixAverageInRect(PIX        *pixs,
+                 PIX        *pixm,
                  BOX        *box,
+                 l_int32     minval,
+                 l_int32     maxval,
+                 l_int32     subsamp,
                  l_float32  *pave)
 {
-l_int32    w, h, d, wpl, i, j, xstart, xend, ystart, yend, bw, bh;
-l_uint32  *data, *line;
-l_float64  ave;
+l_int32    w, h, d, wpls, wm, hm, dm, wplm, val, nu;
+l_int32    i, j, xstart, xend, ystart, yend;
+l_uint32  *datas, *datam, *lines, *linem;
+l_float32  ave;
+l_float64  sum;
 
     PROCNAME("pixAverageInRect");
 
     if (!pave)
         return ERROR_INT("&ave not defined", procName, 1);
     *pave = 0;
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
-    pixGetDimensions(pix, &w, &h, &d);
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    if (pixGetColormap(pixs) != NULL)
+        return ERROR_INT("pixs is colormapped", procName, 1);
+    pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1 && d != 2 && d != 4 && d != 8)
-        return ERROR_INT("pix not 1, 2, 4 or 8 bpp", procName, 1);
-    if (pixGetColormap(pix) != NULL)
-        return ERROR_INT("pix is colormapped", procName, 1);
+        return ERROR_INT("pixs not 1, 2, 4 or 8 bpp", procName, 1);
+    if (pixm) {
+        pixGetDimensions(pixm, &wm, &hm, &dm);
+        if (dm != 1)
+            return ERROR_INT("pixm not 1 bpp", procName, 1);
+        if (wm < w || hm < h)
+            return ERROR_INT("pixm too small", procName, 1);
+    }
+    if (subsamp < 1)
+        return ERROR_INT("subsamp must be >= 1", procName, 1);
 
     if (boxClipToRectangleParams(box, w, h, &xstart, &ystart, &xend, &yend,
-                                 &bw, &bh) == 1)
+                                 NULL, NULL) == 1)
         return ERROR_INT("invalid clipping box", procName, 1);
 
-    wpl = pixGetWpl(pix);
-    data = pixGetData(pix);
-    ave = 0;
-    for (i = ystart; i < yend; i++) {
-        line = data + i * wpl;
-        for (j = xstart; j < xend; j++) {
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    if (pixm) {
+        datam = pixGetData(pixm);
+        wplm = pixGetWpl(pixm);
+    }
+    sum = 0.0;
+    nu = 0;  /* number used */
+    for (i = ystart; i < yend; i += subsamp) {
+        lines = datas + i * wpls;
+        if (pixm)
+            linem = datam + i * wplm;
+        for (j = xstart; j < xend; j += subsamp) {
+            if (pixm && (GET_DATA_BIT(linem, j) == 1))
+                continue;
             if (d == 1)
-                ave += GET_DATA_BIT(line, j);
+                val = GET_DATA_BIT(lines, j);
             else if (d == 2)
-                ave += GET_DATA_DIBIT(line, j);
+                val = GET_DATA_DIBIT(lines, j);
             else if (d == 4)
-                ave += GET_DATA_QBIT(line, j);
+                val = GET_DATA_QBIT(lines, j);
             else  /* d == 8 */
-                ave += GET_DATA_BYTE(line, j);
+                val = GET_DATA_BYTE(lines, j);
+            if (val >= minval && val <= maxval) {
+                sum += val;
+                nu++;
+            }
         }
     }
 
-    *pave = ave / ((l_float32)(bw) * bh);
+    if (nu == 0)
+        return 2;  /* not an error; don't use the average value (0.0) */
+    *pave = sum / (l_float32)nu;
     return 0;
 }
 

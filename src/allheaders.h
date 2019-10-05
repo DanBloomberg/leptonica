@@ -1580,7 +1580,7 @@ LEPT_DLL extern l_int32 * makePixelSumTab8 ( void );
 LEPT_DLL extern l_int32 * makePixelCentroidTab8 ( void );
 LEPT_DLL extern NUMA * pixAverageByRow ( PIX *pix, BOX *box, l_int32 type );
 LEPT_DLL extern NUMA * pixAverageByColumn ( PIX *pix, BOX *box, l_int32 type );
-LEPT_DLL extern l_ok pixAverageInRect ( PIX *pix, BOX *box, l_float32 *pave );
+LEPT_DLL extern l_ok pixAverageInRect ( PIX *pixs, PIX *pixm, BOX *box, l_int32 minval, l_int32 maxval, l_int32 subsamp, l_float32 *pave );
 LEPT_DLL extern NUMA * pixVarianceByRow ( PIX *pix, BOX *box );
 LEPT_DLL extern NUMA * pixVarianceByColumn ( PIX *pix, BOX *box );
 LEPT_DLL extern l_ok pixVarianceInRect ( PIX *pix, BOX *box, l_float32 *prootvar );

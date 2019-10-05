@@ -1523,15 +1523,18 @@ PIX     *pixd, *pix32, *pixg2, *pixgs;
  * \param[in]    valtab    made from makeValTabSG2()
  * \return  0 if OK; 1 on error.
  *
- *  The output is processed in sets of 4 output bytes on a row,
- *  corresponding to 4 2x2 bit-blocks in the input image.
- *  Two lookup tables are used.  The first, sumtab, gets the
- *  sum of ON pixels in 4 sets of two adjacent bits,
- *  storing the result in 4 adjacent bytes.  After sums from
- *  two rows have been added, the second table, valtab,
- *  converts from the sum of ON pixels in the 2x2 block to
- *  an 8 bpp grayscale value between 0 for 4 bits ON
- *  and 255 for 0 bits ON.
+ * <pre>
+ * Notes:
+ *      (1) The output is processed in sets of 4 output bytes on a row,
+ *          corresponding to 4 2x2 bit-blocks in the input image.
+ *          Two lookup tables are used.  The first, sumtab, gets the
+ *          sum of ON pixels in 4 sets of two adjacent bits,
+ *          storing the result in 4 adjacent bytes.  After sums from
+ *          two rows have been added, the second table, valtab,
+ *          converts from the sum of ON pixels in the 2x2 block to
+ *          an 8 bpp grayscale value between 0 for 4 bits ON
+ *          and 255 for 0 bits ON.
+ * </pre>
  */
 static void
 scaleToGray2Low(l_uint32  *datad,
@@ -1586,11 +1589,14 @@ l_uint32  *lines, *lined;
 /*!
  * \brief   makeSumTabSG2()
  *
- *  Returns a table of 256 l_uint32s, giving the four output
- *  8-bit grayscale sums corresponding to 8 input bits of a binary
- *  image, for a 2x scale-to-gray op.  The sums from two
- *  adjacent scanlines are then added and transformed to
- *  output four 8 bpp pixel values, using makeValTabSG2().
+ * <pre>
+ * Notes:
+ *      (1) Returns a table of 256 l_uint32s, giving the four output
+ *          8-bit grayscale sums corresponding to 8 input bits of a binary
+ *          image, for a 2x scale-to-gray op.  The sums from two
+ *          adjacent scanlines are then added and transformed to
+ *          output four 8 bpp pixel values, using makeValTabSG2().
+ * </pre>
  */
 static l_uint32  *
 makeSumTabSG2(void)
@@ -1616,12 +1622,13 @@ l_uint32  *tab;
 /*!
  * \brief   makeValTabSG2()
  *
- *  Returns an 8 bit value for the sum of ON pixels
- *  in a 2x2 square, according to
- *
- *         val = 255 - (255 * sum)/4
- *
- *  where sum is in set {0,1,2,3,4}
+ * <pre>
+ * Notes:
+ *      (1) Returns an 8 bit value for the sum of ON pixels
+ *          in a 2x2 square, according to
+ *               val = 255 - (255 * sum)/4
+ *          where sum is in set {0,1,2,3,4}
+ * </pre>
  */
 static l_uint8 *
 makeValTabSG2(void)
@@ -1656,25 +1663,24 @@ l_uint8  *tab;
  *
  * <pre>
  * Notes:
- *  Each set of 8 3x3 bit-blocks in the source image, which
- *  consist of 72 pixels arranged 24 pixels wide by 3 scanlines,
- *  is converted to a row of 8 8-bit pixels in the dest image.
- *  These 72 pixels of the input image are runs of 24 pixels
- *  in three adjacent scanlines.  Each run of 24 pixels is
- *  stored in the 24 LSbits of a 32-bit word.  We use 2 LUTs.
- *  The first, sumtab, takes 6 of these bits and stores
- *  sum, taken 3 bits at a time, in two bytes.  (See
- *  makeSumTabSG3).  This is done for each of the 3 scanlines,
- *  and the results are added.  We now have the sum of ON pixels
- *  in the first two 3x3 blocks in two bytes.  The valtab LUT
- *  then converts these values (which go from 0 to 9) to
- *  grayscale values between between 255 and 0.  (See makeValTabSG3).
- *  This process is repeated for each of the other 3 sets of
- *  6x3 input pixels, giving 8 output pixels in total.
- *
- *  Note: because the input image is processed in groups of
- *        24 x 3 pixels, the process clips the input height to
- *        (h - h % 3) and the input width to (w - w % 24).
+ *      (1) Each set of 8 3x3 bit-blocks in the source image, which
+ *          consist of 72 pixels arranged 24 pixels wide by 3 scanlines,
+ *          is converted to a row of 8 8-bit pixels in the dest image.
+ *          These 72 pixels of the input image are runs of 24 pixels
+ *          in three adjacent scanlines.  Each run of 24 pixels is
+ *          stored in the 24 LSbits of a 32-bit word.  We use 2 LUTs.
+ *          The first, sumtab, takes 6 of these bits and stores
+ *          sum, taken 3 bits at a time, in two bytes.  (See
+ *          makeSumTabSG3).  This is done for each of the 3 scanlines,
+ *          and the results are added.  We now have the sum of ON pixels
+ *          in the first two 3x3 blocks in two bytes.  The valtab LUT
+ *          then converts these values (which go from 0 to 9) to
+ *          grayscale values between between 255 and 0.  (See makeValTabSG3).
+ *          This process is repeated for each of the other 3 sets of
+ *          6x3 input pixels, giving 8 output pixels in total.
+ *      (2) Note: because the input image is processed in groups of
+ *           24 x 3 pixels, the process clips the input height to
+ *           (h - h % 3) and the input width to (w - w % 24).
  * </pre>
  */
 static void
@@ -1746,12 +1752,15 @@ l_uint32  *lines, *lined;
 /*!
  * \brief   makeSumTabSG3()
  *
- *  Returns a table of 64 l_uint32s, giving the two output
- *  8-bit grayscale sums corresponding to 6 input bits of a binary
- *  image, for a 3x scale-to-gray op.  In practice, this would
- *  be used three times (on adjacent scanlines), and the sums would
- *  be added and then transformed to output 8 bpp pixel values,
- *  using makeValTabSG3().
+ * <pre>
+ * Notes:
+ *      (1) Returns a table of 64 l_uint32s, giving the two output
+ *          8-bit grayscale sums corresponding to 6 input bits of a binary
+ *          image, for a 3x scale-to-gray op.  In practice, this would
+ *          be used three times (on adjacent scanlines), and the sums would
+ *          be added and then transformed to output 8 bpp pixel values,
+ *          using makeValTabSG3().
+ * </pre>
  */
 static l_uint32  *
 makeSumTabSG3(void)
@@ -1776,10 +1785,13 @@ l_uint32  *tab;
 /*!
  * \brief   makeValTabSG3()
  *
- *  Returns an 8 bit value for the sum of ON pixels
- *  in a 3x3 square, according to
- *      val = 255 - (255 * sum)/9
- *  where sum is in set {0, ... ,9}
+ * <pre>
+ * Notes:
+ *      (1) Returns an 8 bit value for the sum of ON pixels
+ *          in a 3x3 square, according to
+ *               val = 255 - (255 * sum)/9
+ *          where sum is in set {0, ... ,9}
+ * </pre>
  */
 static l_uint8 *
 makeValTabSG3(void)
@@ -1812,15 +1824,18 @@ l_uint8  *tab;
  * \param[in]    valtab    made from makeValTabSG4()
  * \return  0 if OK; 1 on error.
  *
- *  The output is processed in sets of 2 output bytes on a row,
- *  corresponding to 2 4x4 bit-blocks in the input image.
- *  Two lookup tables are used.  The first, sumtab, gets the
- *  sum of ON pixels in two sets of four adjacent bits,
- *  storing the result in 2 adjacent bytes.  After sums from
- *  four rows have been added, the second table, valtab,
- *  converts from the sum of ON pixels in the 4x4 block to
- *  an 8 bpp grayscale value between 0 for 16 bits ON
- *  and 255 for 0 bits ON.
+ * <pre>
+ * Notes:
+ *      (1) The output is processed in sets of 2 output bytes on a row,
+ *          corresponding to 2 4x4 bit-blocks in the input image.
+ *          Two lookup tables are used.  The first, sumtab, gets the
+ *          sum of ON pixels in two sets of four adjacent bits,
+ *          storing the result in 2 adjacent bytes.  After sums from
+ *          four rows have been added, the second table, valtab,
+ *          converts from the sum of ON pixels in the 4x4 block to
+ *          an 8 bpp grayscale value between 0 for 16 bits ON
+ *          and 255 for 0 bits ON.
+ * </pre>
  */
 static void
 scaleToGray4Low(l_uint32  *datad,
@@ -1864,11 +1879,14 @@ l_uint32  *lines, *lined;
 /*!
  * \brief   makeSumTabSG4()
  *
- *  Returns a table of 256 l_uint32s, giving the two output
- *  8-bit grayscale sums corresponding to 8 input bits of a binary
- *  image, for a 4x scale-to-gray op.  The sums from four
- *  adjacent scanlines are then added and transformed to
- *  output 8 bpp pixel values, using makeValTabSG4().
+ * <pre>
+ * Notes:
+ *      (1) Returns a table of 256 l_uint32s, giving the two output
+ *          8-bit grayscale sums corresponding to 8 input bits of a
+ *          binary image, for a 4x scale-to-gray op.  The sums from
+ *          four adjacent scanlines are then added and transformed to
+ *          output 8 bpp pixel values, using makeValTabSG4().
+ * </pre>
  */
 static l_uint32  *
 makeSumTabSG4(void)
@@ -1893,12 +1911,13 @@ l_uint32  *tab;
 /*!
  * \brief   makeValTabSG4()
  *
- *  Returns an 8 bit value for the sum of ON pixels
- *  in a 4x4 square, according to
- *
- *         val = 255 - (255 * sum)/16
- *
- *  where sum is in set {0, ... ,16}
+ * <pre>
+ * Notes:
+ *      (1) Returns an 8 bit value for the sum of ON pixels
+ *          in a 4x4 square, according to
+ *              val = 255 - (255 * sum)/16
+ *          where sum is in set {0, ... ,16}
+ * </pre>
  */
 static l_uint8 *
 makeValTabSG4(void)
@@ -1933,25 +1952,23 @@ l_uint8  *tab;
  *
  * <pre>
  * Notes:
- *  Each set of 4 6x6 bit-blocks in the source image, which
- *  consist of 144 pixels arranged 24 pixels wide by 6 scanlines,
- *  is converted to a row of 4 8-bit pixels in the dest image.
- *  These 144 pixels of the input image are runs of 24 pixels
- *  in six adjacent scanlines.  Each run of 24 pixels is
- *  stored in the 24 LSbits of a 32-bit word.  We use 2 LUTs.
- *  The first, tab8, takes 6 of these bits and stores
- *  sum in one byte.  This is done for each of the 6 scanlines,
- *  and the results are added.
- *  We now have the sum of ON pixels in the first 6x6 block.  The
- *  valtab LUT then converts these values (which go from 0 to 36) to
- *  grayscale values between between 255 and 0.  (See makeValTabSG6).
- *  This process is repeated for each of the other 3 sets of
- *  6x6 input pixels, giving 4 output pixels in total.
- *
- *  Note: because the input image is processed in groups of
- *        24 x 6 pixels, the process clips the input height to
- *        (h - h % 6) and the input width to (w - w % 24).
- *
+ *      (1) Each set of 4 6x6 bit-blocks in the source image, which
+ *          consist of 144 pixels arranged 24 pixels wide by 6 scanlines,
+ *          is converted to a row of 4 8-bit pixels in the dest image.
+ *          These 144 pixels of the input image are runs of 24 pixels
+ *          in six adjacent scanlines.  Each run of 24 pixels is
+ *          stored in the 24 LSbits of a 32-bit word.  We use 2 LUTs.
+ *          The first, tab8, takes 6 of these bits and stores
+ *          sum in one byte.  This is done for each of the 6 scanlines,
+ *          and the results are added.
+ *          We now have the sum of ON pixels in the first 6x6 block.  The
+ *          valtab LUT then converts these values (which go from 0 to 36) to
+ *          grayscale values between between 255 and 0.  (See makeValTabSG6).
+ *          This process is repeated for each of the other 3 sets of
+ *          6x6 input pixels, giving 4 output pixels in total.
+ *      (2) Note: because the input image is processed in groups of
+ *          24 x 6 pixels, the process clips the input height to
+ *          (h - h % 6) and the input width to (w - w % 24).
  * </pre>
  */
 static void
@@ -2043,10 +2060,13 @@ l_uint32  *lines, *lined;
 /*!
  * \brief   makeValTabSG6()
  *
- *  Returns an 8 bit value for the sum of ON pixels
- *  in a 6x6 square, according to
- *      val = 255 - (255 * sum)/36
- *  where sum is in set {0, ... ,36}
+ * <pre>
+ * Notes:
+ *      (1) Returns an 8 bit value for the sum of ON pixels
+ *          in a 6x6 square, according to
+ *              val = 255 - (255 * sum)/36
+ *          where sum is in set {0, ... ,36}
+ * </pre>
  */
 static l_uint8 *
 makeValTabSG6(void)
@@ -2079,13 +2099,17 @@ l_uint8  *tab;
  * \param[in]    valtab    made from makeValTabSG8()
  * \return  0 if OK; 1 on error.
  *
- *  The output is processed one dest byte at a time,
- *  corresponding to 8 rows of src bytes in the input image.
- *  Two lookup tables are used.  The first, tab8, gets the
- *  sum of ON pixels in a byte.  After sums from 8 rows have
- *  been added, the second table, valtab, converts from this
- *  value which is between 0 and 64 to an 8 bpp grayscale
- *  value between 0 for all 64 bits ON) and 255 (for 0 bits ON.
+ * <pre>
+ * Notes:
+ *      (1) The output is processed one dest byte at a time,
+ *          corresponding to 8 rows of src bytes in the input image.
+ *          Two lookup tables are used.  The first, %tab8, gets the
+ *          sum of ON pixels in a byte.  After sums from 8 rows have
+ *          been added, the second table, %valtab, converts from this
+ *          value which is between 0 and 64 to an 8 bpp grayscale
+ *          value between 0 and 255: 0 for all 64 bits ON and 255
+ *          for all 64 bits OFF.
+ * </pre>
  */
 static void
 scaleToGray8Low(l_uint32  *datad,
@@ -2133,10 +2157,13 @@ l_uint32  *lines, *lined;
 /*!
  * \brief   makeValTabSG8()
  *
- *  Returns an 8 bit value for the sum of ON pixels
- *  in an 8x8 square, according to
- *      val = 255 - (255 * sum)/64
- *  where sum is in set {0, ... ,64}
+ * <pre>
+ * Notes:
+ *      (1) Returns an 8 bit value for the sum of ON pixels
+ *          in an 8x8 square, according to
+ *              val = 255 - (255 * sum)/64
+ *          where sum is in set {0, ... ,64}
+ * </pre>
  */
 static l_uint8 *
 makeValTabSG8(void)
@@ -2168,13 +2195,16 @@ l_uint8  *tab;
  * \param[in]    tab8      made from makePixelSumTab8()
  * \return  0 if OK; 1 on error.
  *
- *  The output is processed one dest byte at a time, corresponding
- *  to 16 rows consisting each of 2 src bytes in the input image.
- *  This uses one lookup table, tab8, which gives the sum of
- *  ON pixels in a byte.  After summing for all ON pixels in the
- *  32 src bytes, which is between 0 and 256, this is converted
- *  to an 8 bpp grayscale value between 0 for 255 or 256 bits ON
- *  and 255 for 0 bits ON.
+ * <pre>
+ * Notes:
+ *      (1) The output is processed one dest byte at a time, corresponding
+ *          to 16 rows consisting each of 2 src bytes in the input image.
+ *          This uses one lookup table, tab8, which gives the sum of
+ *          ON pixels in a byte.  After summing for all ON pixels in the
+ *          32 src bytes, which is between 0 and 256, this is converted
+ *          to an 8 bpp grayscale value between 0 for 255 or 256 bits ON
+ *          and 255 for 0 bits ON.
+ * </pre>
  */
 static void
 scaleToGray16Low(l_uint32  *datad,
@@ -2248,9 +2278,12 @@ l_uint32  *lines, *lined;
 /*!
  * \brief   scaleMipmapLow()
  *
- *  See notes in scale.c for pixScaleToGrayMipmap().  This function
- *  is here for pedagogical reasons.  It gives poor results on document
- *  images because of aliasing.
+ * <pre>
+ * Notes:
+ *      (1) See notes in scale.c for pixScaleToGrayMipmap().  This function
+ *          is here for pedagogical reasons.  It gives poor results on document
+ *          images because of aliasing.
+ * </pre>
  */
 static l_int32
 scaleMipmapLow(l_uint32  *datad,
