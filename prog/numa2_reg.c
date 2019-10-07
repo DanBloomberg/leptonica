@@ -43,20 +43,23 @@
 
 #define   DO_ALL     0
 
+/* Tiny helper */
+void SaveColorSquare(PIXA *pixa, l_uint32  rgbval);
+
 
 int main(int    argc,
          char **argv)
 {
 l_int32      i, j;
 l_int32      w, h, bw, bh, wpls, rval, gval, bval, same;
-l_uint32     pixel;
+l_uint32     pixel, avergb;
 l_uint32    *lines, *datas;
 l_float32    sum1, sum2, ave1, ave2, ave3, ave4, diff1, diff2;
 l_float32    var1, var2, var3;
-BOX         *box1, *box2;
+BOX         *box1, *box2, *box3;
 NUMA        *na, *na1, *na2, *na3, *na4;
 PIX         *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pixg, *pixd;
-PIXA        *pixa;
+PIXA        *pixa1;
 L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &rp))
@@ -84,18 +87,18 @@ L_REGPARAMS  *rp;
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 2 */
     regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 3 */
     regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 4 */
-    pixa = pixaCreate(5);
-    pixaAddPix(pixa, pix1, L_INSERT);
-    pixaAddPix(pixa, pix2, L_INSERT);
-    pixaAddPix(pixa, pix3, L_INSERT);
-    pixaAddPix(pixa, pix4, L_INSERT);
-    pixaAddPix(pixa, pix5, L_INSERT);
+    pixa1 = pixaCreate(5);
+    pixaAddPix(pixa1, pix1, L_INSERT);
+    pixaAddPix(pixa1, pix2, L_INSERT);
+    pixaAddPix(pixa1, pix3, L_INSERT);
+    pixaAddPix(pixa1, pix4, L_INSERT);
+    pixaAddPix(pixa1, pix5, L_INSERT);
     if (rp->display) {
-        pixd = pixaDisplayTiledInRows(pixa, 32, 1500, 1.0, 0, 20, 2);
+        pixd = pixaDisplayTiledInRows(pixa1, 32, 1500, 1.0, 0, 20, 2);
         pixDisplayWithTitle(pixd, 0, 0, NULL, 1);
         pixDestroy(&pixd);
     }
-    pixaDestroy(&pixa);
+    pixaDestroy(&pixa1);
     numaDestroy(&na);
     numaDestroy(&na1);
     numaDestroy(&na2);
@@ -142,17 +145,17 @@ L_REGPARAMS  *rp;
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 7 */
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 8 */
     regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 9 */
-    pixa = pixaCreate(4);
-    pixaAddPix(pixa, pix1, L_INSERT);
-    pixaAddPix(pixa, pix2, L_INSERT);
-    pixaAddPix(pixa, pix3, L_INSERT);
-    pixaAddPix(pixa, pix4, L_INSERT);
+    pixa1 = pixaCreate(4);
+    pixaAddPix(pixa1, pix1, L_INSERT);
+    pixaAddPix(pixa1, pix2, L_INSERT);
+    pixaAddPix(pixa1, pix3, L_INSERT);
+    pixaAddPix(pixa1, pix4, L_INSERT);
     if (rp->display) {
-        pixd = pixaDisplayTiledInRows(pixa, 32, 1500, 1.0, 0, 20, 2);
+        pixd = pixaDisplayTiledInRows(pixa1, 32, 1500, 1.0, 0, 20, 2);
         pixDisplayWithTitle(pixd, 300, 0, NULL, 1);
         pixDestroy(&pixd);
     }
-    pixaDestroy(&pixa);
+    pixaDestroy(&pixa1);
     pixDestroy(&pixg);
     pixDestroy(&pixs);
     numaDestroy(&na1);
@@ -262,15 +265,15 @@ L_REGPARAMS  *rp;
     pixRenderPlotFromNuma(&pix2, na2, L_PLOT_AT_BOT, 3, 60, 0x00ff0000);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 19 */
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 20 */
-    pixa = pixaCreate(2);
-    pixaAddPix(pixa, pix1, L_INSERT);
-    pixaAddPix(pixa, pix2, L_INSERT);
+    pixa1 = pixaCreate(2);
+    pixaAddPix(pixa1, pix1, L_INSERT);
+    pixaAddPix(pixa1, pix2, L_INSERT);
     if (rp->display) {
-        pixd = pixaDisplayTiledInRows(pixa, 32, 1500, 1.0, 0, 20, 2);
+        pixd = pixaDisplayTiledInRows(pixa1, 32, 1500, 1.0, 0, 20, 2);
         pixDisplayWithTitle(pixd, 400, 600, NULL, 1);
         pixDestroy(&pixd);
     }
-    pixaDestroy(&pixa);
+    pixaDestroy(&pixa1);
     boxDestroy(&box1);
     numaDestroy(&na1);
     numaDestroy(&na2);
@@ -301,15 +304,15 @@ L_REGPARAMS  *rp;
     pixRenderPlotFromNumaGen(&pix5, na2, L_HORIZONTAL_LINE, 3, bh - 1, 70, 1,
                              0x00ff0000);
     regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 22 */
-    pixa = pixaCreate(2);
-    pixaAddPix(pixa, pix3, L_INSERT);
-    pixaAddPix(pixa, pix5, L_INSERT);
+    pixa1 = pixaCreate(2);
+    pixaAddPix(pixa1, pix3, L_INSERT);
+    pixaAddPix(pixa1, pix5, L_INSERT);
     if (rp->display) {
-        pixd = pixaDisplayTiledInRows(pixa, 32, 1500, 1.0, 0, 20, 2);
+        pixd = pixaDisplayTiledInRows(pixa1, 32, 1500, 1.0, 0, 20, 2);
         pixDisplayWithTitle(pixd, 800, 600, NULL, 1);
         pixDestroy(&pixd);
     }
-    pixaDestroy(&pixa);
+    pixaDestroy(&pixa1);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix4);
@@ -341,15 +344,15 @@ L_REGPARAMS  *rp;
     pixRenderPlotFromNuma(&pix3, na2, L_PLOT_AT_RIGHT, 3, 60, 0x00ff0000);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 23 */
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 24 */
-    pixa = pixaCreate(2);
-    pixaAddPix(pixa, pix1, L_INSERT);
-    pixaAddPix(pixa, pix3, L_INSERT);
+    pixa1 = pixaCreate(2);
+    pixaAddPix(pixa1, pix1, L_INSERT);
+    pixaAddPix(pixa1, pix3, L_INSERT);
     if (rp->display) {
-        pixd = pixaDisplayTiledInRows(pixa, 32, 1500, 1.0, 0, 20, 2);
+        pixd = pixaDisplayTiledInRows(pixa1, 32, 1500, 1.0, 0, 20, 2);
         pixDisplayWithTitle(pixd, 1200, 600, NULL, 1);
         pixDestroy(&pixd);
     }
-    pixaDestroy(&pixa);
+    pixaDestroy(&pixa1);
     pixDestroy(&pix2);
     numaDestroy(&na1);
     numaDestroy(&na2);
@@ -423,5 +426,61 @@ L_REGPARAMS  *rp;
     boxDestroy(&box1);
     boxDestroy(&box2);
 
+    /* -------------------------------------------------------------------*
+     *               Test pixel average function for color                *
+     * -------------------------------------------------------------------*/
+    pix1 = pixRead("lyra.005.jpg");
+    box1 = boxCreate(20, 150, 700, 515);
+    pix2 = pixClipRectangle(pix1, box1, NULL);
+    pixa1 = pixaCreate(0);
+        /* No mask, no box, different subsampling */
+    pixAverageInRectRGB(pix2, NULL, NULL, 1, &avergb);
+    regTestCompareValues(rp, 0xc7b09000, avergb, 0);  /* 37 */
+    SaveColorSquare(pixa1, avergb);
+    pixAverageInRectRGB(pix2, NULL, NULL, 10, &avergb);
+    regTestCompareValues(rp, 0xc7af8f00, avergb, 0);  /* 38 */
+    SaveColorSquare(pixa1, avergb);
+        /* Mask allows bg, no box */
+    pix3 = pixConvertTo1(pix2, 128);  /* use light pixels */
+    pixAverageInRectRGB(pix2, pix3, NULL, 1, &avergb);
+    regTestCompareValues(rp, 0xd5bf9d00, avergb, 0);  /* 39 */
+    SaveColorSquare(pixa1, avergb);
+        /* Mask allows fg, no box */
+    pixInvert(pix3, pix3);  /* use dark pixels */
+    pixAverageInRectRGB(pix2, pix3, NULL, 1, &avergb);
+    regTestCompareValues(rp, 0x5c3b2800, avergb, 0);  /* 40 */
+    SaveColorSquare(pixa1, avergb);
+        /* Mask allows bg, box at lower left */
+    pixInvert(pix3, pix3);  /* use light pixels */
+    box2 = boxCreate(20, 400, 100, 100);
+    pixAverageInRectRGB(pix2, pix3, box2, 1, &avergb);
+    regTestCompareValues(rp, 0xbba48500, avergb, 0);  /* 41 */
+    SaveColorSquare(pixa1, avergb);
+        /* Mask allows bg, box at upper right */
+    box3 = boxCreate(600, 20, 100, 100);
+    pixAverageInRectRGB(pix2, pix3, box3, 1, &avergb);
+    regTestCompareValues(rp, 0xfdfddd00, avergb, 0);  /* 42 */
+    SaveColorSquare(pixa1, avergb);
+    if (rp->display) {
+        pix4 = pixaDisplayTiledInRows(pixa1, 32, 1500, 1.0, 0, 20, 2);
+        pixDisplay(pix4, 0, 800);
+        pixDestroy(&pix4);
+    }
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    boxDestroy(&box1);
+    boxDestroy(&box2);
+    boxDestroy(&box3);
+    pixaDestroy(&pixa1);
+
     return regTestCleanup(rp);;
 }
+
+
+void SaveColorSquare(PIXA     *pixa,
+                     l_uint32  rgbval) {
+    PIX *pixc = pixMakeColorSquare(rgbval, 0, 1, L_ADD_BELOW, 0xff000000);
+    pixaAddPix(pixa, pixc, L_INSERT);
+}
+

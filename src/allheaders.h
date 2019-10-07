@@ -1581,6 +1581,7 @@ LEPT_DLL extern l_int32 * makePixelCentroidTab8 ( void );
 LEPT_DLL extern NUMA * pixAverageByRow ( PIX *pix, BOX *box, l_int32 type );
 LEPT_DLL extern NUMA * pixAverageByColumn ( PIX *pix, BOX *box, l_int32 type );
 LEPT_DLL extern l_ok pixAverageInRect ( PIX *pixs, PIX *pixm, BOX *box, l_int32 minval, l_int32 maxval, l_int32 subsamp, l_float32 *pave );
+LEPT_DLL extern l_ok pixAverageInRectRGB ( PIX *pixs, PIX *pixm, BOX *box, l_int32 subsamp, l_uint32 *pave );
 LEPT_DLL extern NUMA * pixVarianceByRow ( PIX *pix, BOX *box );
 LEPT_DLL extern NUMA * pixVarianceByColumn ( PIX *pix, BOX *box );
 LEPT_DLL extern l_ok pixVarianceInRect ( PIX *pix, BOX *box, l_float32 *prootvar );
@@ -2726,6 +2727,7 @@ LEPT_DLL extern l_ok pixDisplayWithTitle ( PIX *pixs, l_int32 x, l_int32 y, cons
 LEPT_DLL extern l_ok pixSaveTiled ( PIX *pixs, PIXA *pixa, l_float32 scalefactor, l_int32 newrow, l_int32 space, l_int32 dp );
 LEPT_DLL extern l_ok pixSaveTiledOutline ( PIX *pixs, PIXA *pixa, l_float32 scalefactor, l_int32 newrow, l_int32 space, l_int32 linewidth, l_int32 dp );
 LEPT_DLL extern l_ok pixSaveTiledWithText ( PIX *pixs, PIXA *pixa, l_int32 outwidth, l_int32 newrow, l_int32 space, l_int32 linewidth, L_BMF *bmf, const char *textstr, l_uint32 val, l_int32 location );
+LEPT_DLL extern PIX * pixMakeColorSquare ( l_uint32 color, l_int32 size, l_int32 addlabel, l_int32 location, l_uint32 textcolor );
 LEPT_DLL extern void l_chooseDisplayProg ( l_int32 selection );
 LEPT_DLL extern l_ok pixDisplayWrite ( PIX *pixs, l_int32 reduction );
 LEPT_DLL extern l_uint8 * zlibCompress ( l_uint8 *datain, size_t nin, size_t *pnout );

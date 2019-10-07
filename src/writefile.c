@@ -57,6 +57,7 @@
  *        l_int32     pixSaveTiled()
  *        l_int32     pixSaveTiledOutline()
  *        l_int32     pixSaveTiledWithText()
+ *        PIX        *pixMakeColorSquare()
  *        void        l_chooseDisplayProg()
  *
  *     Deprecated pix output for debugging (still used in tesseract 3.05)
@@ -1295,6 +1296,63 @@ PIX  *pix1, *pix2, *pix3, *pix4;
     pixDestroy(&pix3);
     pixDestroy(&pix4);
     return 0;
+}
+
+
+/*!
+ * \brief   pixMakeColorSquare()
+ *
+ * \param[in]    color      in 0xrrggbb00 format
+ * \param[in]    size       in pixels; >= 100; use 0 for default (min size)
+ * \param[in]    addlabel   use 1 to display the color component values
+ * \param[in]    location   of text: L_ADD_ABOVE, etc; ignored if %addlabel == 0
+ * \param[in]    textcolor  of text label; in 0xrrggbb00 format
+ * \return  32 bpp rgb pixd if OK; NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) If %addlabel == 0, %location and %textcolor are ignored.
+ * </pre>
+ */
+PIX *
+pixMakeColorSquare(l_uint32  color,
+                   l_int32   size,
+                   l_int32   addlabel,
+                   l_int32   location,
+                   l_uint32  textcolor)
+{
+char     buf[32];
+l_int32  w, rval, gval, bval;
+L_BMF   *bmf;
+PIX     *pix1, *pix2;
+
+    PROCNAME("pixMakeColorSquare");
+
+    w = (size == 0) ? 100 : size;
+    if (addlabel && w < 100) {
+        L_WARNING("size too small for label; omitting label\n", procName);
+        addlabel = 0;
+    }
+
+    if ((pix1 = pixCreate(w, w, 32)) == NULL)
+        return (PIX *)ERROR_PTR("pix1 not madel", procName, NULL);
+    pixSetAllArbitrary(pix1, color);
+    if (!addlabel)
+        return pix1;
+
+        /* Adding text of color component values */
+    if (location != L_ADD_ABOVE && location != L_ADD_AT_TOP &&
+        location != L_ADD_AT_BOT && location != L_ADD_BELOW) {
+        L_ERROR("invalid location: adding below\n", procName);
+        location = L_ADD_BELOW;
+    }
+    bmf = bmfCreate(NULL, 4);
+    extractRGBValues(color, &rval, &gval, &bval);
+    snprintf(buf, sizeof(buf), "%d,%d,%d", rval, gval, bval);
+    pix2 = pixAddSingleTextblock(pix1, bmf, buf, textcolor, location, NULL);
+    pixDestroy(&pix1);
+    bmfDestroy(&bmf);
+    return pix2;
 }
 
 

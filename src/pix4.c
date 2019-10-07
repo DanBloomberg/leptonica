@@ -1170,6 +1170,8 @@ NUMA  *na;
  *          uint32 RGBA packing.
  *      (4) Clipping of pixm (if it exists) to pixs is done in the inner loop.
  *      (5) Input x,y are ignored if %pixm does not exist.
+ *      (6) For general averaging of 1, 2, 4 or 8 bpp grayscale, use
+ *          pixAverageInRect().
  * </pre>
  */
 l_ok
@@ -1260,11 +1262,11 @@ PIX       *pix1;
     if (count == 0)
         return ERROR_INT("no pixels sampled", procName, 1);
     if (d == 8) {
-        *pval = (l_uint32)((l_float64)sum / (l_float64)count);
+        *pval = (l_uint32)(sum / (l_float64)count);
     } else {  /* d == 32 */
-        rval = (l_uint32)((l_float64)rsum / (l_float64)count);
-        gval = (l_uint32)((l_float64)gsum / (l_float64)count);
-        bval = (l_uint32)((l_float64)bsum / (l_float64)count);
+        rval = (l_uint32)(rsum / (l_float64)count);
+        gval = (l_uint32)(gsum / (l_float64)count);
+        bval = (l_uint32)(bsum / (l_float64)count);
         composeRGBPixel(rval, gval, bval, pval);
     }
 
