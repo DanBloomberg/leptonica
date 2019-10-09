@@ -279,7 +279,7 @@ L_REGPARAMS  *rp;
     pixWrite("/tmp/lept/io/fract8.tif", pixg, IFF_TIFF_JPEG);
     regTestCheckFile(rp, "/tmp/lept/io/fract8.tif");  /* 37 */
     size = nbytesInFile("/tmp/lept/io/fract8.tif");
-    regTestCompareValues(rp, tiffsize[7], size, 0.0);  /* 38 */
+    regTestCompareValues(rp, tiffsize[7], size, 100.0);  /* 38 */
     if (rp->display)
         fprintf(stderr, "jpeg: %ld\n", (unsigned long)size);
     pixDestroy(&pixs);
