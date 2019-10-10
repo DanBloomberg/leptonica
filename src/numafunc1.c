@@ -3139,8 +3139,8 @@ numaGetMedian(NUMA       *na,
     if (!pval)
         return ERROR_INT("&val not defined", procName, 1);
     *pval = 0.0;  /* init */
-    if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+    if (!na || numaGetCount(na) == 0)
+        return ERROR_INT("na not defined or empty", procName, 1);
 
     return numaGetRankValue(na, 0.5, NULL, 0, pval);
 }
@@ -3173,8 +3173,8 @@ l_float32  fval;
     if (!pval)
         return ERROR_INT("&val not defined", procName, 1);
     *pval = 0;  /* init */
-    if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+    if (!na || numaGetCount(na) == 0)
+        return ERROR_INT("na not defined or empty", procName, 1);
 
     ret = numaGetRankValue(na, 0.5, NULL, 1, &fval);
     *pval = lept_roundftoi(fval);
@@ -3251,8 +3251,8 @@ NUMA      *nadev;
     if (!pdev)
         return ERROR_INT("&dev not defined", procName, 1);
     *pdev = 0.0;
-    if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+    if (!na || numaGetCount(na) == 0)
+        return ERROR_INT("na not defined or empty", procName, 1);
 
     numaGetMedian(na, &med);
     if (pmed) *pmed = med;
@@ -3304,7 +3304,7 @@ NUMA       *nasort;
     if (!na)
         return ERROR_INT("na not defined", procName, 1);
     if ((n = numaGetCount(na)) == 0)
-        return 1;
+        return ERROR_INT("na is empty", procName, 1);
 
     if ((nasort = numaSort(NULL, na, L_SORT_DECREASING)) == NULL)
         return ERROR_INT("nas not made", procName, 1);

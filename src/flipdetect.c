@@ -167,6 +167,39 @@
  *
  *  A high-level interface, pixOrientCorrect() combines the detection
  *  of the orientation with the rotation decision and the rotation itself.
+ *
+ *  Finally, use can be made of programs such as exiftool and convert to
+ *  read exif camera orientation data in jpeg files and conditionally rotate.
+ *  Here is an example shell script, made by Dan9er:
+ *  ==================================================================
+ *  #!/bin/sh
+ *  #   orientByExif.sh
+ *  #   Dependencies: exiftool (exiflib) and convert (ImageMagick)
+ *  #   Note: if there is no exif orientation data in the jpeg file,
+ *  #         this simply copies the input file.
+ *  #
+ *  if [[ -z $(command -v exiftool) || -z $(command -v convert) ]]; then
+ *      echo "You need to install dependencies; e.g.:"
+ *      echo "   sudo apt install libimage-exiftool-perl"
+ *      echo "   sudo apt install imagemagick"
+ *      exit 1
+ *  fi
+ *  if [[ $# != 2 ]]; then
+ *      echo "Syntax: orientByExif infile outfile"
+ *      exit 2
+ *  fi
+ *  if [[ ${1: -4} != ".jpg" ]]; then
+ *      echo "File is not a jpeg"
+ *      exit 3
+ *  fi
+ *  if [[ $(exiftool -s3 -n -Orientation "$1") = 1 ]]; then
+ *      echo "Image is already upright"
+ *      exit 0
+ *  fi
+ *  convert "$1" -auto-orient "$2"
+ *  echo "Done"
+ *  exit 0
+ *  ==================================================================
  * </pre>
  */
 
