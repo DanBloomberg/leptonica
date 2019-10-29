@@ -103,6 +103,9 @@
  *           l_int32     extractMinMaxComponent()
  *           l_int32     pixGetRGBLine()
  *
+ *      Raster line pixel setter
+ *           l_int32     setLineDataVal()
+ *
  *      Conversion between big and little endians
  *           PIX        *pixEndianByteSwapNew()
  *           l_int32     pixEndianByteSwap()
@@ -2847,6 +2850,56 @@ l_int32    wpls;
         bufb[j] = GET_DATA_BYTE(lines + j, COLOR_BLUE);
     }
 
+    return 0;
+}
+
+
+/*-------------------------------------------------------------*
+ *                   Raster line pixel setter                  *
+ *-------------------------------------------------------------*/
+/*!
+ * \brief   setLineDataVal()
+ *
+ * \param[in]    line    ptr to first word in raster line data
+ * \param[in]    j       index of pixels into the raster line
+ * \param[in]    d       depth of the pixel
+ * \param[in]    val     pixel value to be set
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a convenience function to set a pixel value in a
+ *          raster line where the depth of the image can have different
+ *          values (1, 2, 4, 8, 16 or 32).
+ * </pre>
+ */
+l_ok
+setLineDataVal(l_uint32  *line,
+               l_int32    j,
+               l_int32    d,
+               l_uint32   val)
+{
+    PROCNAME("setLineDataVal");
+
+    if (!line) 
+        return ERROR_INT("line not defined", procName, 1);
+    if (j < 0) 
+        return ERROR_INT("j must be >= 0", procName, 1);
+    if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
+        return ERROR_INT("invalid d", procName, 1);
+
+    if (d == 1)
+        SET_DATA_BIT_VAL(line, j, val);
+    else if (d == 2)
+        SET_DATA_DIBIT(line, j, val);
+    else if (d == 4)
+        SET_DATA_QBIT(line, j, val);
+    else if (d == 8)
+        SET_DATA_BYTE(line, j, val);
+    else if (d == 16)
+        SET_DATA_TWO_BYTES(line, j, val);
+    else  /* d == 32 */
+        *(line + j) = val;
     return 0;
 }
 

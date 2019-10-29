@@ -71,7 +71,7 @@ L_REGPARAMS  *rp;
         /* Do a simple color quantization with sigbits = 3 */
     pix1 = pixRead("wyom.jpg");
     pixNumColors(pix1, 1, &ncolors);  /* >255, so should give 0 */
-    regTestCompareValues(rp, ncolors, 0, 0.0);  /* 4 */
+    regTestCompareValues(rp, ncolors, 132165, 0.0);  /* 4 */
     pix2 = pixSimpleColorQuantize(pix1, 3, 3, 20);
     pixDisplayWithTitle(pix2, 1000, 0, NULL, rp->display);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 5 */

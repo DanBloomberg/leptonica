@@ -26,6 +26,14 @@
 
 /*
  *  pdfio1_reg.c
+ *
+ *    Basic high-level interface tests
+ *       Single images
+ *       Multiple images
+ *       Segmented images, with and without colormaps
+ *       1 bpp images
+ *
+ *    Low-level interface tests for 1 bpp images
  */
 
 #include <string.h>
@@ -34,10 +42,12 @@
 int main(int    argc,
          char **argv)
 {
+l_uint8      *data8;
 l_int32       i, j, seq;
 size_t        nbytes;
 const char   *title;
 BOX          *box;
+L_COMP_DATA  *cid;
 L_PDF_DATA   *lpd;
 PIX          *pix1, *pix2, *pix3;
 PIX          *pixs, *pixt, *pixg, *pixgc, *pixc;
@@ -178,8 +188,8 @@ L_REGPARAMS  *rp;
 #endif
 
 #if 1
-    /* ---------------  Generating from 1 bpp images ------------------- */
-    fprintf(stderr, "\n*** Writing 1 bpp images as pdf files\n");
+    /* ----------  Generating from 1 bpp images (high-level) -------------- */
+    fprintf(stderr, "\n*** Writing 1 bpp images as pdf files (high-level)\n");
     pix1 = pixRead("feyn-fract.tif");
     pixWrite("/tmp/lept/pdf/feyn-nocmap.png", pix1, IFF_PNG);
     pix2 = pixCopy(NULL, pix1);
@@ -207,6 +217,61 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix2);
 #endif
 
+#if 1
+    /* ----------  Generating from 1 bpp images (low-level) -------------- */
+    fprintf(stderr, "\n*** Writing 1 bpp images as pdf files (low-level)\n");
+    pix1 = pixRead("cat-and-mouse.png");
+    pix2 = pixConvertRGBToCmap(pix1);  /* restore the cmap */
+
+        /* Add a black/white colormap */
+    cmap = pixcmapCreate(1);
+    pixcmapAddColor(cmap, 255, 255, 255);  /* white = 0 */
+    pixcmapAddColor(cmap, 0, 0, 0);  /* black = 1 */
+    pixSetColormap(pix2, cmap);  /* replace with a b/w colormap */
+    pixWrite("/tmp/lept/pdf/cat-and-mouse-cmap1.png", pix2, IFF_PNG);
+
+        /* Generate a pdf from this pix. The pdf has the colormap */
+    pixGenerateCIData(pix2, L_FLATE_ENCODE, 0, 0, &cid);
+    fprintf(stderr, "  Should have 2 colors: %d\n", cid->ncolors);
+    cidConvertToPdfData(cid, "with colormap", &data8, &nbytes);
+    l_binaryWrite("/tmp/lept/pdf/file23.pdf", "w", data8, nbytes);
+    lept_free(data8);
+
+        /* Generate a pdf from the colormap file:
+         *   l_generateCIDataForPdf() calls l_generateFlateDataPdf()
+         *   which calls pixRead(), removing the cmap  */
+    l_generateCIDataForPdf("/tmp/lept/pdf/cat-and-mouse-cmap1.png",
+                           NULL, 75, &cid);
+    fprintf(stderr, "  Should have 0 colors: %d\n", cid->ncolors);
+    cidConvertToPdfData(cid, "no colormap", &data8, &nbytes);
+    l_binaryWrite("/tmp/lept/pdf/file24.pdf", "w", data8, nbytes);
+    lept_free(data8);
+
+        /* Use an arbitrary colormap */
+    cmap = pixcmapCreate(1);
+    pixcmapAddColor(cmap, 254, 240, 185);  // yellow
+    pixcmapAddColor(cmap, 50, 50, 130);   // blue
+    pixSetColormap(pix2, cmap);
+    pixWrite("/tmp/lept/pdf/cat-and-mouse-cmap2.png", pix2, IFF_PNG);
+
+       /* Generate a pdf from this pix. The pdf has the colormap. */
+    pixGenerateCIData(pix2, L_FLATE_ENCODE, 0, 0, &cid);
+    fprintf(stderr, "  Should have 2 colors: %d\n", cid->ncolors);
+    cidConvertToPdfData(cid, "with colormap", &data8, &nbytes);
+    l_binaryWrite("/tmp/lept/pdf/file25.pdf", "w", data8, nbytes);
+    lept_free(data8);
+
+        /* Generate a pdf from the cmap file.  No cmap in the pdf. */
+    l_generateCIDataForPdf("/tmp/lept/pdf/cat-and-mouse-cmap2.png",
+                           NULL, 75, &cid);
+    fprintf(stderr, "  Should have 0 colors: %d\n", cid->ncolors);
+    cidConvertToPdfData(cid, "no colormap", &data8, &nbytes);
+    l_binaryWrite("/tmp/lept/pdf/file26.pdf", "w", data8, nbytes);
+    lept_free(data8);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+#endif
+
     regTestCheckFile(rp, "/tmp/lept/pdf/file00.pdf");
     regTestCheckFile(rp, "/tmp/lept/pdf/file01.pdf");
     regTestCheckFile(rp, "/tmp/lept/pdf/file02.pdf");
@@ -230,5 +295,9 @@ L_REGPARAMS  *rp;
     regTestCheckFile(rp, "/tmp/lept/pdf/file20.pdf");
     regTestCheckFile(rp, "/tmp/lept/pdf/file21.pdf");
     regTestCheckFile(rp, "/tmp/lept/pdf/file22.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file23.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file24.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file25.pdf");
+    regTestCheckFile(rp, "/tmp/lept/pdf/file26.pdf");
     return regTestCleanup(rp);
 }

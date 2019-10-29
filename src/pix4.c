@@ -824,23 +824,35 @@ NUMA       *na;
 /*!
  * \brief   pixCountRGBColors()
  *
- * \param[in]    pixs    rgb or rgba
- * \return  ncolors, or -1 on error
+ * \param[in]    pixs       rgb or rgba
+ * \param[in]    factor     subsampling factor; integer >= 1
+ * \param[out]   pncolors   number of colors found
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) If %factor == 1, this gives the exact number of colors.
+ * </pre>
  */
-l_int32
-pixCountRGBColors(PIX  *pixs)
+l_ok
+pixCountRGBColors(PIX      *pixs,
+                  l_int32   factor,
+                  l_int32  *pncolors)
 {
-l_int32  ncolors;
 L_AMAP  *amap;
 
     PROCNAME("pixCountRGBColors");
 
+    if (!pncolors)
+        return ERROR_INT("&ncolors not defined", procName, 1);
     if (!pixs || pixGetDepth(pixs) != 32)
-        return ERROR_INT("pixs not defined or not 32 bpp", procName, -1);
-    amap = pixGetColorAmapHistogram(pixs, 1);
-    ncolors = l_amapSize(amap);
+        return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
+    if (factor <= 0)
+        return ERROR_INT("factor must be > 0", procName, 1);
+    amap = pixGetColorAmapHistogram(pixs, factor);
+    *pncolors = l_amapSize(amap);
     l_amapDestroy(&amap);
-    return ncolors;
+    return 0;
 }
 
 
@@ -873,6 +885,8 @@ RB_TYPE   *pval;
         return (L_AMAP *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
         return (L_AMAP *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+    if (factor <= 0)
+        return (L_AMAP *)ERROR_PTR("factor must be > 0", procName, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);

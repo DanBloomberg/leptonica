@@ -443,6 +443,7 @@ LEPT_DLL extern l_ok pixFindColorRegions ( PIX *pixs, PIX *pixm, l_int32 factor,
 LEPT_DLL extern l_ok pixNumSignificantGrayColors ( PIX *pixs, l_int32 darkthresh, l_int32 lightthresh, l_float32 minfract, l_int32 factor, l_int32 *pncolors );
 LEPT_DLL extern l_ok pixColorsForQuantization ( PIX *pixs, l_int32 thresh, l_int32 *pncolors, l_int32 *piscolor, l_int32 debug );
 LEPT_DLL extern l_ok pixNumColors ( PIX *pixs, l_int32 factor, l_int32 *pncolors );
+LEPT_DLL extern PIX * pixConvertRGBToCmap ( PIX *pixs );
 LEPT_DLL extern l_ok pixGetMostPopulatedColors ( PIX *pixs, l_int32 sigbits, l_int32 factor, l_int32 ncolors, l_uint32 **parray, PIXCMAP **pcmap );
 LEPT_DLL extern PIX * pixSimpleColorQuantize ( PIX *pixs, l_int32 sigbits, l_int32 factor, l_int32 ncolors );
 LEPT_DLL extern NUMA * pixGetRGBHistogram ( PIX *pixs, l_int32 sigbits, l_int32 factor );
@@ -1535,6 +1536,7 @@ LEPT_DLL extern void extractRGBValues ( l_uint32 pixel, l_int32 *prval, l_int32 
 LEPT_DLL extern void extractRGBAValues ( l_uint32 pixel, l_int32 *prval, l_int32 *pgval, l_int32 *pbval, l_int32 *paval );
 LEPT_DLL extern l_int32 extractMinMaxComponent ( l_uint32 pixel, l_int32 type );
 LEPT_DLL extern l_ok pixGetRGBLine ( PIX *pixs, l_int32 row, l_uint8 *bufr, l_uint8 *bufg, l_uint8 *bufb );
+LEPT_DLL extern l_ok setLineDataVal ( l_uint32 *line, l_int32 j, l_int32 d, l_uint32 val );
 LEPT_DLL extern PIX * pixEndianByteSwapNew ( PIX *pixs );
 LEPT_DLL extern l_ok pixEndianByteSwap ( PIX *pixs );
 LEPT_DLL extern l_int32 lineEndianByteSwap ( l_uint32 *datad, l_uint32 *datas, l_int32 wpl );
@@ -1600,7 +1602,7 @@ LEPT_DLL extern l_ok pixGetColorHistogramMasked ( PIX *pixs, PIX *pixm, l_int32 
 LEPT_DLL extern NUMA * pixGetCmapHistogram ( PIX *pixs, l_int32 factor );
 LEPT_DLL extern NUMA * pixGetCmapHistogramMasked ( PIX *pixs, PIX *pixm, l_int32 x, l_int32 y, l_int32 factor );
 LEPT_DLL extern NUMA * pixGetCmapHistogramInRect ( PIX *pixs, BOX *box, l_int32 factor );
-LEPT_DLL extern l_int32 pixCountRGBColors ( PIX *pixs );
+LEPT_DLL extern l_ok pixCountRGBColors ( PIX *pixs, l_int32 factor, l_int32 *pncolors );
 LEPT_DLL extern L_AMAP * pixGetColorAmapHistogram ( PIX *pixs, l_int32 factor );
 LEPT_DLL extern l_int32 amapGetCountForColor ( L_AMAP *amap, l_uint32 val );
 LEPT_DLL extern l_ok pixGetRankValue ( PIX *pixs, l_int32 factor, l_float32 rank, l_uint32 *pvalue );
