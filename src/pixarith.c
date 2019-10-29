@@ -35,6 +35,7 @@
  *      Two-image grayscale arithmetic operations (8, 16, 32 bpp)
  *           PIX        *pixAddGray()
  *           PIX        *pixSubtractGray()
+ *           PIX        *pixMultiplyGray()
  *
  *      Grayscale threshold operation (8, 16, 32 bpp)
  *           PIX        *pixThresholdToValue()
@@ -411,6 +412,99 @@ l_uint32  *datas, *datad, *lines, *lined;
         } else {  /* d == 32; no clipping */
             for (j = 0; j < w; j++)
                 *(lined + j) -= *(lines + j);
+        }
+    }
+
+    return pixd;
+}
+
+
+/*!
+ * \brief   pixMultiplyGray()
+ *
+ * \param[in]    pixs    32 bpp rgb or 8 bpp gray
+ * \param[in]    pixg    8 bpp gray
+ * \param[in]    norm    multiplicative factor to avoid overflow; 0 for default
+ * \return  pixd, or null on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This function can be used for correcting a scanned image
+ *          under non-uniform illumination.  For that application,
+ *          %pixs is the scanned image, %pixg is an image whose values
+ *          are inversely related to light from a uniform (say, white)
+ *          target, and %norm is typically the inverse of the maximum
+ *          pixel value in %pixg.
+ *      (2) Set norm = 0 to get the default value, which is the inverse
+ *          of the max value in %pixg.  This avoids overflow in the product.
+ *      (3) For 32 bpp %pixs, all 3 components are multiplied by the
+ *          same number.
+ *      (4) Alignment is to UL corner.
+ * </pre>
+ */
+PIX *
+pixMultiplyGray(PIX        *pixs,
+                PIX        *pixg,
+                l_float32   norm)
+{
+l_int32    i, j, w, h, d, ws, hs, ds, wpls, wplg, wpld;
+l_int32    rval, gval, bval, rval2, gval2, bval2, vals, valg, val, maxgray;
+l_uint32   val32;
+l_uint32  *datas, *datag, *datad, *lines, *lineg, *lined;
+PIX       *pixd;
+
+    PROCNAME("pixMultiplyGray");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    pixGetDimensions(pixs, &ws, &hs, &ds);
+    if (ds != 8 && ds != 32)
+        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
+    if (!pixg)
+        return (PIX *)ERROR_PTR("pixg not defined", procName, NULL);
+    pixGetDimensions(pixg, &w, &h, &d);
+    if (d != 8)
+        return (PIX *)ERROR_PTR("pixg not 8 bpp", procName, NULL);
+
+    if (norm <= 0.0) {
+        pixGetExtremeValue(pixg, 1, L_SELECT_MAX, NULL, NULL, NULL, &maxgray);
+        norm = (maxgray > 0) ? 1.0 / (l_float32)maxgray : 1.0;
+    }
+
+    if ((pixd = pixCreateTemplate(pixs)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    datas = pixGetData(pixs);
+    datag = pixGetData(pixg);
+    datad = pixGetData(pixd);
+    wpls = pixGetWpl(pixs);
+    wplg = pixGetWpl(pixg);
+    wpld = pixGetWpl(pixd);
+    w = L_MIN(ws, w);
+    h = L_MIN(hs, h);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        lineg = datag + i * wplg;
+        lined = datad + i * wpld;
+        if (ds == 8) {
+            for (j = 0; j < w; j++) {
+                vals = GET_DATA_BYTE(lines, j);
+                valg = GET_DATA_BYTE(lineg, j);
+                val = (l_int32)(vals * valg * norm + 0.5);
+                val = L_MIN(255, val);
+                SET_DATA_BYTE(lined, j, val);
+            }
+        } else {  /* ds == 32 */
+            for (j = 0; j < w; j++)
+                val32 = *(lines + j);
+                extractRGBValues(val32, &rval, &gval, &bval);
+                valg = GET_DATA_BYTE(lineg, j);
+                rval2 = (l_int32)(rval * valg * norm + 0.5);
+                rval2 = L_MIN(255, rval2);
+                gval2 = (l_int32)(gval * valg * norm + 0.5);
+                gval2 = L_MIN(255, gval2);
+                bval2 = (l_int32)(bval * valg * norm + 0.5);
+                bval2 = L_MIN(255, bval2);
+                composeRGBPixel(rval2, gval2, bval2, lined + j);
         }
     }
 

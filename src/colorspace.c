@@ -128,6 +128,8 @@ static l_float32 lab_reverse(l_float32 v);
  *                v = 1
  *                s = 1
  *                h = 1/2 (if r = 0), 5/6 (if g = 0), 1/6 (if b = 0)
+ *      (6) Dividing each component by a constant c > 1 reduces the
+ *          brightness v, but leaves the saturation and hue invariant.
  * </pre>
  */
 PIX *

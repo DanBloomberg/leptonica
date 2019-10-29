@@ -517,7 +517,7 @@ PIXCMAP   *cmap;
         return NULL;
     }
     if (spp == 2 && bps != 8) {
-        L_WARNING("only handle 8 bps for 2 spp\n", procName);
+        L_WARNING("for 2 spp, only handle 8 bps\n", procName);
         return NULL;
     }
     if (spp == 1)
@@ -599,7 +599,7 @@ PIXCMAP   *cmap;
             return (PIX *)ERROR_PTR("calloc fail for tiffdata", procName, NULL);
         }
             /* TIFFReadRGBAImageOriented() converts to 8 bps */
-        if (!TIFFReadRGBAImageOriented(tif, w, h, (uint32 *)tiffdata,
+        if (!TIFFReadRGBAImageOriented(tif, w, h, tiffdata,
                                        ORIENTATION_TOPLEFT, 0)) {
             LEPT_FREE(tiffdata);
             pixDestroy(&pix);

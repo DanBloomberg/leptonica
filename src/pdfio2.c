@@ -1168,12 +1168,15 @@ PIX          *pixs;
  * \param[in]    ascii85flag 0    for gzipped; 1 for ascii85-encoded gzipped
  * \return  cid flate compressed image data, or NULL on error
  *
- *      Notes:
- *          1) This should not be called with an RGBA pix (spp == 4; it
- *             will ignore the alpha channel.  Likewise, if called with a
- *             colormapped pix, the alpha component in the colormap will
- *             be ignored as it is for all leptonica operations
- *             on colormapped pix.
+ * <pre>
+ * Notes:
+ *     (1) If called with an RGBA pix (spp == 4), the alpha channel
+ *         will be removed, projecting a white backgrouond through
+ *         any transparency.
+ *     (2) If called with a colormapped pix, any transparency in the
+ *         alpha component in the colormap will be ignored, as it is
+ *         for all leptonica operations on colormapped pix.
+ * </pre>
  */
 static L_COMP_DATA *
 pixGenerateFlateData(PIX     *pixs,
@@ -1213,10 +1216,12 @@ PIXCMAP      *cmap;
         pixt = pixConvertTo8(pixs, cmapflag);
         cmap = pixGetColormap(pixt);
         d = pixGetDepth(pixt);
+    } else if (d == 32 && pixGetSpp(pixs) == 4) {  /* remove alpha */
+        pixt = pixAlphaBlendUniform(pixs, 0xffffff00);
     } else {
         pixt = pixClone(pixs);
     }
-    spp = (d == 32) ? 3 : 1;  /* ignores alpha */
+    spp = (d == 32) ? 3 : 1;
     bps = (d == 32) ? 8 : d;
 
         /* Extract and encode the colormap data as both ascii85 and hexascii  */

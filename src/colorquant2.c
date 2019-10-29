@@ -296,7 +296,13 @@ pixMedianCutQuant(PIX     *pixs,
  *          maximum subsampling to be allowed, where the actual subsampling
  *          will be the minimum of this value and the internally
  *          determined default value.
- *      (6) If the image appears gray because either most of the pixels
+ *      (6) %sigbits can be 5 or 6.  There are 2^24 colors in the color space.
+ *              sigbits     # of volume elems    # of colors in a volume elem
+ *              --------------------------------------------------------------
+ *                 5              2^15                  2^9 = 512
+ *                 6              2^18                  2^6 = 64
+ *          Volume in color space is measured in the number of volume elements.
+ *      (7) If the image appears gray because either most of the pixels
  *          are gray or most of the pixels are essentially black or white,
  *          the image is trivially quantized with a grayscale colormap.  The
  *          reason is that median cut divides the color space into rectangular
@@ -316,7 +322,7 @@ pixMedianCutQuantGeneral(PIX     *pixs,
 l_int32    i, subsample, histosize, smalln, ncolors, niters, popcolors;
 l_int32    w, h, minside, factor, index, rval, gval, bval;
 l_int32   *histo;
-l_float32  pixfract, colorfract;
+l_float32  maxprod, prod, norm, pixfract, colorfract;
 L_BOX3D   *vbox, *vbox1, *vbox2;
 L_HEAP    *lh, *lhs;
 PIX       *pixd;
@@ -360,7 +366,7 @@ PIXCMAP   *cmap;
     }
 
         /* Compute the color space histogram.  Default sampling
-         * is about 10^5 pixels.  */
+         * is about 10^5 sampled pixels.  */
     if (maxsub == 1) {
         subsample = 1;
     } else {
@@ -448,10 +454,19 @@ PIXCMAP   *cmap;
     }
 
         /* Re-sort by the product of pixel occupancy times the size
-         * in color space. */
+         * in color space.  Normalize to the largest product to avoid
+         * integer overflow. */
+    maxprod = 0.0;
+    for (i = 0; i < lh->n; i++) {
+        if ((vbox = (L_BOX3D *)lheapGetElement(lh, i)) == NULL)
+            continue;
+        prod = (l_float32)vbox->npix * (l_float32)vbox->vol;
+        if (prod > maxprod) maxprod = prod;
+    }
+    norm = (maxprod == 0) ? 1.0 : 1000000.0 / maxprod;
     lhs = lheapCreate(0, L_SORT_DECREASING);
     while ((vbox = (L_BOX3D *)lheapRemove(lh))) {
-        vbox->sortparam = vbox->npix * vbox->vol;
+        vbox->sortparam = norm * vbox->npix * vbox->vol;
         lheapAdd(lhs, vbox);
     }
     lheapDestroy(&lh, TRUE);
@@ -470,12 +485,12 @@ PIXCMAP   *cmap;
             break;
         }
         if (vbox1->vol > 1)
-            vbox1->sortparam = vbox1->npix * vbox1->vol;
+            vbox1->sortparam = norm * vbox1->npix * vbox1->vol;
         LEPT_FREE(vbox);
         lheapAdd(lhs, vbox1);
         if (vbox2) {  /* vbox2 can be NULL */
             if (vbox2->vol > 1)
-                vbox2->sortparam = vbox2->npix * vbox2->vol;
+                vbox2->sortparam = norm * vbox2->npix * vbox2->vol;
             lheapAdd(lhs, vbox2);
             ncolors++;
         }

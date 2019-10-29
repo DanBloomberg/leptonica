@@ -37,14 +37,17 @@
  *          static l_int32  lheapExtendArray()
  *          void           *lheapRemove()
  *
- *      Heap operations
- *          l_int32         lheapSwapUp()
- *          l_int32         lheapSwapDown()
+ *      Other accessors
+ *          l_int32         lheapGetCount()
+ *          void           *lheapGetElement()
+ *
+ *      Heap sort
  *          l_int32         lheapSort()
  *          l_int32         lheapSortStrictOrder()
  *
- *      Accessors
- *          l_int32         lheapGetCount()
+ *      Low-level heap operations
+ *          static l_int32  lheapSwapUp()
+ *          static l_int32  lheapSwapDown()
  *
  *      Debug output
  *          l_int32         lheapPrint()
@@ -85,8 +88,10 @@ static const l_int32 InitialPtrArraySize = 20;      /*!< n'importe quoi */
                                  lh->array[(i)] = lh->array[(j)]; \
                                  lh->array[(j)] = tempitem; }
 
-    /* Static function */
+    /* Static functions */
 static l_int32 lheapExtendArray(L_HEAP *lh);
+static l_ok lheapSwapUp(L_HEAP *lh, l_int32 index);
+static l_ok lheapSwapDown(L_HEAP *lh);
 
 
 /*--------------------------------------------------------------------------*
@@ -173,7 +178,7 @@ L_HEAP  *lh;
 }
 
 /*--------------------------------------------------------------------------*
- *                                  Accessors                               *
+ *                Operations to add/remove to/from the heap                 *
  *--------------------------------------------------------------------------*/
 /*!
  * \brief   lheapAdd()
@@ -261,6 +266,9 @@ void   *item;
 }
 
 
+/*--------------------------------------------------------------------------*
+ *                            Other accessors                               *
+ *--------------------------------------------------------------------------*/
 /*!
  * \brief   lheapGetCount()
  *
@@ -279,164 +287,40 @@ lheapGetCount(L_HEAP  *lh)
 }
 
 
+/*!
+ * \brief   lheapGetElement()
+ *
+ * \param[in]    lh       heap
+ * \param[in]    index    into the internal heap array
+ * \return  ptr to the element at array[index], or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is useful for retrieving an arbitrary element in the
+ *          heap array without disturbing the heap.  It allows all the
+ *          elements on the heap to be queried in linear time; for
+ *          example, to find the min or max of some value.
+ *      (2) Tbe retrieved element is owned by the heap.  Do not destroy it.
+ * </pre>
+ */
+void *
+lheapGetElement(L_HEAP  *lh,
+                l_int32  index)
+{
+    PROCNAME("lheapGetElement");
+
+    if (!lh)
+        return ERROR_PTR("lh not defined", procName, NULL);
+    if (index < 0 || index >= lh->n)
+        return ERROR_PTR("invalid index", procName, NULL);
+
+    return (void *)lh->array[index];
+}
+
 
 /*--------------------------------------------------------------------------*
- *                               Heap operations                            *
+ *                                 Heap sort                                *
  *--------------------------------------------------------------------------*/
-/*!
- * \brief   lheapSwapUp()
- *
- * \param[in]    lh      heap
- * \param[in]    index   of array corresponding to node to be swapped up
- * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) This is called after a new item is put on the heap, at the
- *          bottom of a complete tree.
- *      (2) To regain the heap order, we let it bubble up,
- *          iteratively swapping with its parent, until it either
- *          reaches the root of the heap or it finds a parent that
- *          is in the correct position already vis-a-vis the child.
- * </pre>
- */
-l_ok
-lheapSwapUp(L_HEAP  *lh,
-            l_int32  index)
-{
-l_int32    ip;  /* index to heap for parent; 1 larger than array index */
-l_int32    ic;  /* index into heap for child */
-l_float32  valp, valc;
-
-  PROCNAME("lheapSwapUp");
-
-  if (!lh)
-      return ERROR_INT("lh not defined", procName, 1);
-  if (index < 0 || index >= lh->n)
-      return ERROR_INT("invalid index", procName, 1);
-
-  ic = index + 1;  /* index into heap: add 1 to array index */
-  if (lh->direction == L_SORT_INCREASING) {
-      while (1) {
-          if (ic == 1)  /* root of heap */
-              break;
-          ip = ic / 2;
-          valc = *(l_float32 *)(lh->array[ic - 1]);
-          valp = *(l_float32 *)(lh->array[ip - 1]);
-          if (valp <= valc)
-             break;
-          SWAP_ITEMS(ip - 1, ic - 1);
-          ic = ip;
-      }
-  } else {  /* lh->direction == L_SORT_DECREASING */
-      while (1) {
-          if (ic == 1)  /* root of heap */
-              break;
-          ip = ic / 2;
-          valc = *(l_float32 *)(lh->array[ic - 1]);
-          valp = *(l_float32 *)(lh->array[ip - 1]);
-          if (valp >= valc)
-             break;
-          SWAP_ITEMS(ip - 1, ic - 1);
-          ic = ip;
-      }
-  }
-  return 0;
-}
-
-
-/*!
- * \brief   lheapSwapDown()
- *
- * \param[in]    lh   heap
- * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) This is called after an item has been popped off the
- *          root of the heap, and the last item in the heap has
- *          been placed at the root.
- *      (2) To regain the heap order, we let it bubble down,
- *          iteratively swapping with one of its children.  For a
- *          decreasing sort, it swaps with the largest child; for
- *          an increasing sort, the smallest.  This continues until
- *          it either reaches the lowest level in the heap, or the
- *          parent finds that neither child should swap with it
- *          (e.g., for a decreasing heap, the parent is larger
- *          than or equal to both children).
- * </pre>
- */
-l_ok
-lheapSwapDown(L_HEAP  *lh)
-{
-l_int32    ip;  /* index to heap for parent; 1 larger than array index */
-l_int32    icr, icl;  /* index into heap for left/right children */
-l_float32  valp, valcl, valcr;
-
-  PROCNAME("lheapSwapDown");
-
-  if (!lh)
-      return ERROR_INT("lh not defined", procName, 1);
-  if (lheapGetCount(lh) < 1)
-      return 0;
-
-  ip = 1;  /* index into top of heap: corresponds to array[0] */
-  if (lh->direction == L_SORT_INCREASING) {
-      while (1) {
-          icl = 2 * ip;
-          if (icl > lh->n)
-             break;
-          valp = *(l_float32 *)(lh->array[ip - 1]);
-          valcl = *(l_float32 *)(lh->array[icl - 1]);
-          icr = icl + 1;
-          if (icr > lh->n) {  /* only a left child; no iters below */
-              if (valp > valcl)
-                  SWAP_ITEMS(ip - 1, icl - 1);
-              break;
-          } else {  /* both children exist; swap with the smallest if bigger */
-              valcr = *(l_float32 *)(lh->array[icr - 1]);
-              if (valp <= valcl && valp <= valcr)  /* smaller than both */
-                  break;
-              if (valcl <= valcr) {  /* left smaller; swap */
-                  SWAP_ITEMS(ip - 1, icl - 1);
-                  ip = icl;
-              } else { /* right smaller; swap */
-                  SWAP_ITEMS(ip - 1, icr - 1);
-                  ip = icr;
-              }
-          }
-      }
-  } else {  /* lh->direction == L_SORT_DECREASING */
-      while (1) {
-          icl = 2 * ip;
-          if (icl > lh->n)
-             break;
-          valp = *(l_float32 *)(lh->array[ip - 1]);
-          valcl = *(l_float32 *)(lh->array[icl - 1]);
-          icr = icl + 1;
-          if (icr > lh->n) {  /* only a left child; no iters below */
-              if (valp < valcl)
-                  SWAP_ITEMS(ip - 1, icl - 1);
-              break;
-          } else {  /* both children exist; swap with the biggest if smaller */
-              valcr = *(l_float32 *)(lh->array[icr - 1]);
-              if (valp >= valcl && valp >= valcr)  /* bigger than both */
-                  break;
-              if (valcl >= valcr) {  /* left bigger; swap */
-                  SWAP_ITEMS(ip - 1, icl - 1);
-                  ip = icl;
-              } else {  /* right bigger; swap */
-                  SWAP_ITEMS(ip - 1, icr - 1);
-                  ip = icr;
-              }
-          }
-      }
-  }
-
-  return 0;
-}
-
-
 /*!
  * \brief   lheapSort()
  *
@@ -511,6 +395,162 @@ l_int32  i, index, size;
   return 0;
 }
 
+
+/*--------------------------------------------------------------------------*
+ *                         Low-level heap operations                        *
+ *--------------------------------------------------------------------------*/
+/*!
+ * \brief   lheapSwapUp()
+ *
+ * \param[in]    lh      heap
+ * \param[in]    index   of array corresponding to node to be swapped up
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is called after a new item is put on the heap, at the
+ *          bottom of a complete tree.
+ *      (2) To regain the heap order, we let it bubble up,
+ *          iteratively swapping with its parent, until it either
+ *          reaches the root of the heap or it finds a parent that
+ *          is in the correct position already vis-a-vis the child.
+ * </pre>
+ */
+static l_ok
+lheapSwapUp(L_HEAP  *lh,
+            l_int32  index)
+{
+l_int32    ip;  /* index to heap for parent; 1 larger than array index */
+l_int32    ic;  /* index into heap for child */
+l_float32  valp, valc;
+
+  PROCNAME("lheapSwapUp");
+
+  if (!lh)
+      return ERROR_INT("lh not defined", procName, 1);
+  if (index < 0 || index >= lh->n)
+      return ERROR_INT("invalid index", procName, 1);
+
+  ic = index + 1;  /* index into heap: add 1 to array index */
+  if (lh->direction == L_SORT_INCREASING) {
+      while (1) {
+          if (ic == 1)  /* root of heap */
+              break;
+          ip = ic / 2;
+          valc = *(l_float32 *)(lh->array[ic - 1]);
+          valp = *(l_float32 *)(lh->array[ip - 1]);
+          if (valp <= valc)
+             break;
+          SWAP_ITEMS(ip - 1, ic - 1);
+          ic = ip;
+      }
+  } else {  /* lh->direction == L_SORT_DECREASING */
+      while (1) {
+          if (ic == 1)  /* root of heap */
+              break;
+          ip = ic / 2;
+          valc = *(l_float32 *)(lh->array[ic - 1]);
+          valp = *(l_float32 *)(lh->array[ip - 1]);
+          if (valp >= valc)
+             break;
+          SWAP_ITEMS(ip - 1, ic - 1);
+          ic = ip;
+      }
+  }
+  return 0;
+}
+
+
+/*!
+ * \brief   lheapSwapDown()
+ *
+ * \param[in]    lh   heap
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is called after an item has been popped off the
+ *          root of the heap, and the last item in the heap has
+ *          been placed at the root.
+ *      (2) To regain the heap order, we let it bubble down,
+ *          iteratively swapping with one of its children.  For a
+ *          decreasing sort, it swaps with the largest child; for
+ *          an increasing sort, the smallest.  This continues until
+ *          it either reaches the lowest level in the heap, or the
+ *          parent finds that neither child should swap with it
+ *          (e.g., for a decreasing heap, the parent is larger
+ *          than or equal to both children).
+ * </pre>
+ */
+static l_ok
+lheapSwapDown(L_HEAP  *lh)
+{
+l_int32    ip;  /* index to heap for parent; 1 larger than array index */
+l_int32    icr, icl;  /* index into heap for left/right children */
+l_float32  valp, valcl, valcr;
+
+  PROCNAME("lheapSwapDown");
+
+  if (!lh)
+      return ERROR_INT("lh not defined", procName, 1);
+  if (lheapGetCount(lh) < 1)
+      return 0;
+
+  ip = 1;  /* index into top of heap: corresponds to array[0] */
+  if (lh->direction == L_SORT_INCREASING) {
+      while (1) {
+          icl = 2 * ip;
+          if (icl > lh->n)
+             break;
+          valp = *(l_float32 *)(lh->array[ip - 1]);
+          valcl = *(l_float32 *)(lh->array[icl - 1]);
+          icr = icl + 1;
+          if (icr > lh->n) {  /* only a left child; no iters below */
+              if (valp > valcl)
+                  SWAP_ITEMS(ip - 1, icl - 1);
+              break;
+          } else {  /* both children exist; swap with the smallest if bigger */
+              valcr = *(l_float32 *)(lh->array[icr - 1]);
+              if (valp <= valcl && valp <= valcr)  /* smaller than both */
+                  break;
+              if (valcl <= valcr) {  /* left smaller; swap */
+                  SWAP_ITEMS(ip - 1, icl - 1);
+                  ip = icl;
+              } else { /* right smaller; swap */
+                  SWAP_ITEMS(ip - 1, icr - 1);
+                  ip = icr;
+              }
+          }
+      }
+  } else {  /* lh->direction == L_SORT_DECREASING */
+      while (1) {
+          icl = 2 * ip;
+          if (icl > lh->n)
+             break;
+          valp = *(l_float32 *)(lh->array[ip - 1]);
+          valcl = *(l_float32 *)(lh->array[icl - 1]);
+          icr = icl + 1;
+          if (icr > lh->n) {  /* only a left child; no iters below */
+              if (valp < valcl)
+                  SWAP_ITEMS(ip - 1, icl - 1);
+              break;
+          } else {  /* both children exist; swap with the biggest if smaller */
+              valcr = *(l_float32 *)(lh->array[icr - 1]);
+              if (valp >= valcl && valp >= valcr)  /* bigger than both */
+                  break;
+              if (valcl >= valcr) {  /* left bigger; swap */
+                  SWAP_ITEMS(ip - 1, icl - 1);
+                  ip = icl;
+              } else {  /* right bigger; swap */
+                  SWAP_ITEMS(ip - 1, icr - 1);
+                  ip = icr;
+              }
+          }
+      }
+  }
+
+  return 0;
+}
 
 
 /*---------------------------------------------------------------------*
