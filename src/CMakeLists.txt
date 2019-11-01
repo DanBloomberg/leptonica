@@ -56,7 +56,7 @@ if (WEBP_FOUND)
     target_link_libraries       (leptonica ${WEBP_LIBRARIES})
 endif()
 if (ZLIB_LIBRARIES)
-    target_include_directories  (leptonica PUBLIC ${ZLIB_INCLUDE_DIR})
+    target_include_directories  (leptonica PUBLIC ${ZLIB_INCLUDE_DIRS})
     target_link_libraries       (leptonica ${ZLIB_LIBRARIES})
 endif()
 
