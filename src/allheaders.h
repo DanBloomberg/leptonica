@@ -155,6 +155,7 @@ LEPT_DLL extern PIX * pixMaskedThreshOnBackgroundNorm ( PIX *pixs, PIX *pixim, l
 LEPT_DLL extern l_ok pixSauvolaBinarizeTiled ( PIX *pixs, l_int32 whsize, l_float32 factor, l_int32 nx, l_int32 ny, PIX **ppixth, PIX **ppixd );
 LEPT_DLL extern l_ok pixSauvolaBinarize ( PIX *pixs, l_int32 whsize, l_float32 factor, l_int32 addborder, PIX **ppixm, PIX **ppixsd, PIX **ppixth, PIX **ppixd );
 LEPT_DLL extern l_ok pixThresholdByConnComp ( PIX *pixs, PIX *pixm, l_int32 start, l_int32 end, l_int32 incr, l_float32 thresh48, l_float32 threshdiff, l_int32 *pglobthresh, PIX **ppixd, l_int32 debugflag );
+LEPT_DLL extern l_ok pixThresholdByHisto ( PIX *pixs, l_int32 factor, l_int32 halfw, l_float32 delta, l_int32 *pthresh, PIX **ppixd, PIX **ppixhisto );
 LEPT_DLL extern PIX * pixExpandBinaryReplicate ( PIX *pixs, l_int32 xfact, l_int32 yfact );
 LEPT_DLL extern PIX * pixExpandBinaryPower2 ( PIX *pixs, l_int32 factor );
 LEPT_DLL extern PIX * pixReduceBinary2 ( PIX *pixs, l_uint8 *intab );
@@ -1351,6 +1352,7 @@ LEPT_DLL extern l_ok numaEarthMoverDistance ( NUMA *na1, NUMA *na2, l_float32 *p
 LEPT_DLL extern l_ok grayInterHistogramStats ( NUMAA *naa, l_int32 wc, NUMA **pnam, NUMA **pnams, NUMA **pnav, NUMA **pnarv );
 LEPT_DLL extern NUMA * numaFindPeaks ( NUMA *nas, l_int32 nmax, l_float32 fract1, l_float32 fract2 );
 LEPT_DLL extern NUMA * numaFindExtrema ( NUMA *nas, l_float32 delta, NUMA **pnav );
+LEPT_DLL extern l_ok numaFindLocForThreshold ( NUMA *na, l_int32 skip, l_int32 *pthresh, l_float32 *pfract );
 LEPT_DLL extern l_ok numaCountReversals ( NUMA *nas, l_float32 minreversal, l_int32 *pnr, l_float32 *prd );
 LEPT_DLL extern l_ok numaSelectCrossingThreshold ( NUMA *nax, NUMA *nay, l_float32 estthresh, l_float32 *pbestthresh );
 LEPT_DLL extern NUMA * numaCrossingsByThreshold ( NUMA *nax, NUMA *nay, l_float32 thresh );

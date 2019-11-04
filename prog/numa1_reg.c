@@ -33,6 +33,7 @@
  *     * integration/differentiation
  *     * rank extraction
  *     * numa-morphology
+ *     * find threshold from numa
  */
 
 #include <math.h>
@@ -41,7 +42,8 @@
 int main(int    argc,
          char **argv)
 {
-l_int32      i, n, binsize, binstart, nbins;
+char         buf1[64], buf2[64];
+l_int32      i, n, binsize, binstart, nbins, hw, thresh;
 l_float32    pi, val, angle, xval, yval, x0, y0, startval, fbinsize;
 l_float32    minval, maxval, meanval, median, variance, rankval, rank, rmsdev;
 GPLOT       *gplot;
@@ -430,6 +432,41 @@ L_REGPARAMS  *rp;
     numaDestroy(&na3);
     numaDestroy(&na4);
     pixaDestroy(&pixa);
+
+    /* -------------------------------------------------------------------*
+     *                   Find threshold from numa                         *
+     * -------------------------------------------------------------------*/
+    na1 = numaRead("two-peak-histo.na");
+    na4 = numaCreate(0);
+    pixa = pixaCreate(0);
+    for (hw = 2; hw < 21; hw += 2) {
+        na2 = numaWindowedMean(na1, hw);  /* smoothing */
+        numaGetMax(na2, &maxval, NULL);
+        na3 = numaTransform(na2, 0.0, 1.0 / maxval);
+        numaFindLocForThreshold(na3, 0, &thresh, NULL);
+        numaAddNumber(na4, thresh);
+        snprintf(buf1, sizeof(buf1), "/tmp/lept/numa1/histoplot-%d", hw);
+        snprintf(buf2, sizeof(buf2), "halfwidth = %d, skip = 20, thresh = %d",
+                 hw, thresh);
+        gplotSimple1(na3, GPLOT_PNG, buf1, buf2);
+        snprintf(buf1, sizeof(buf1), "/tmp/lept/numa1/histoplot-%d.png", hw);
+        pix1 = pixRead(buf1);
+        if (hw == 4 || hw == 20)
+            regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 27, 28 */
+        pixaAddPix(pixa, pix1, L_INSERT);
+        numaDestroy(&na2);
+        numaDestroy(&na3);
+    }
+    numaWrite("/tmp/lept/numa1/threshvals.na", na4);
+    regTestCheckFile(rp, "/tmp/lept/numa1/threshvals.na");  /* 29 */
+    L_INFO("writing /tmp/lept/numa1/histoplots.pdf\n", "numa1_reg");
+    pixaConvertToPdf(pixa, 0, 1.0, L_FLATE_ENCODE, 0,
+                     "Effect of smoothing on threshold value",
+                     "/tmp/lept/numa1/histoplots.pdf");
+    numaDestroy(&na1);
+    numaDestroy(&na4);
+    pixaDestroy(&pixa);
+
 
     return regTestCleanup(rp);
 }

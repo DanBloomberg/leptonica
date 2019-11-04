@@ -52,8 +52,11 @@
  *          static PIX   *pixSauvolaGetThreshold()
  *          static PIX   *pixApplyLocalThreshold();
  *
- *      Thresholding using connected components
+ *      Global thresholding using connected components
  *          PIX          *pixThresholdByConnComp()
+ *
+ *      Global thresholding by histogram
+ *          PIX          *pixThresholdByHisto()
  *
  *  Notes:
  *      (1) pixOtsuAdaptiveThreshold() computes a global threshold over each
@@ -68,7 +71,7 @@
  *          the window size for the measurement at each pixel and a
  *          parameter that determines the amount of normalized local
  *          standard deviation to subtract from the local average value.
- *      (4) pixThresholdByCC() uses the numbers of 4 and 8 connected
+ *      (4) pixThresholdByConnComp() uses the numbers of 4 and 8 connected
  *          components at different thresholding to determine if a
  *          global threshold can be used (for text or line-art) and the
  *          value it should have.
@@ -828,7 +831,7 @@ PIX       *pixd;
 
 
 /*----------------------------------------------------------------------*
- *                  Thresholding using connected components             *
+ *            Global thresholding using connected components            *
  *----------------------------------------------------------------------*/
 /*!
  * \brief   pixThresholdByConnComp()
@@ -1011,3 +1014,85 @@ PIX       *pix1, *pix2, *pix3;
     pixDestroy(&pix2);
     return 1;
 }
+
+/*----------------------------------------------------------------------*
+ *                   Global thresholding by histogram                   *
+ *----------------------------------------------------------------------*/
+/*!
+ * \brief   pixThresholdByHisto()
+ *
+ * \param[in]    pixs          gray 8 bpp, no colormap
+ * \param[in]    factor        subsampling factor >= 1
+ * \param[in]    halfw         half of window width for smoothing;
+ *                             use 0 for default
+ * \param[in]    delta         relative amount to resolve peaks and valleys;
+ *                             in (0 ... 1], use 0 for default
+ * \param[out]   pthresh       best global threshold; 0 if no threshold is found
+ * \param[out]   ppixd         [optional] thresholded 1 bpp pix
+ * \param[out]   ppixhisto     [optional] rescaled histogram of gray values
+ * \return  0 if OK, 1 on error or if no threshold is found
+ *
+ * <pre>
+ * Notes:
+ *      (1) This finds a global threshold.  It is best for an image that
+ *          has a fairly well-defined fg and bg.
+ *      (2) If it finds a good threshold and %ppixd is defined, the binarized
+ *          image is returned in &pixd; otherwise it return null.
+ *      (3) Suggest using default values for %half and %delta.
+ *      (4) Returns 0 in %pthresh if it can't find a good threshold.
+ * </pre>
+ */
+l_ok
+pixThresholdByHisto(PIX       *pixs,
+                    l_int32    factor,
+                    l_int32    halfw,
+                    l_float32  delta,
+                    l_int32   *pthresh,
+                    PIX      **ppixd,
+                    PIX      **ppixhisto)
+{
+l_int32    i, n;
+l_float32  maxval, val1, val2, fract;
+NUMA      *na1, *na2, *na3, *naloc, *nav;
+PIX       *pix1;
+
+    PROCNAME("pixThresholdByHisto");
+
+    if (ppixhisto) *ppixhisto = NULL;
+    if (ppixd) *ppixd = NULL;
+    if (!pthresh)
+        return ERROR_INT("&thresh not defined", procName, 1);
+    *pthresh = 0;
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs undefined or not 8 bpp", procName, 1);
+    if (pixGetColormap(pixs))
+        return ERROR_INT("pixs has colormap", procName, 1);
+    if (factor < 1)
+        return ERROR_INT("sampling must be >= 1", procName, 1);
+    if (halfw <= 0) halfw = 20;
+    if (delta <= 0.0) delta = 0.1;
+
+        /* Make a histogram of pixel values where the largest peak
+         * is normalized to a value of 1.0. */
+    na1 = pixGetGrayHistogram(pixs, factor);
+    na2 = numaWindowedMean(na1, halfw);  /* smoothing */
+    numaGetMax(na2, &maxval, NULL);
+    na3 = numaTransform(na2, 0.0, 1.0 / maxval);  /* rescale to max of 1.0 */
+    numaDestroy(&na1);
+    numaDestroy(&na2);
+
+    numaFindLocForThreshold(na3, 0, pthresh, &fract);
+    L_INFO("fractional area under first peak: %5.3f\n", procName, fract);
+
+    if (ppixhisto) {
+        lept_mkdir("lept/histo");
+        gplotSimple1(na3, GPLOT_PNG, "/tmp/lept/histo/histo", NULL);
+        *ppixhisto = pixRead("/tmp/lept/histo/histo.png");
+    }
+    numaDestroy(&na3);
+
+    if (*pthresh > 0 && ppixd)
+        *ppixd = pixThresholdToBinary(pixs, *pthresh);
+    return 0; 
+}
+
