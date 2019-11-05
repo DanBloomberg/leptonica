@@ -1093,6 +1093,6 @@ PIX       *pix1;
 
     if (*pthresh > 0 && ppixd)
         *ppixd = pixThresholdToBinary(pixs, *pthresh);
-    return 0; 
+    return 0;
 }
 
