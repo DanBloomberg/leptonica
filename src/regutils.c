@@ -713,27 +713,7 @@ char  namebuf[256];
 
         /* Use bmp format for testing if library for requested
          * format for jpeg, png or tiff is not available */
-#if !defined(HAVE_LIBJPEG)
-    if (format == IFF_JFIF_JPEG) {
-        L_WARNING("jpeg library missing; output bmp format", procName);
-        format = IFF_BMP;
-    }
-#endif  /* !defined(HAVE_LIBJPEG) */
-#if !defined(HAVE_LIBPNG)
-    if (format == IFF_PNG) {
-        L_WARNING("png library missing; output bmp format", procName);
-        format = IFF_BMP;
-    }
-#endif  /* !defined(HAVE_LIBPNG) */
-#if !defined(HAVE_LIBTIFF)
-    if (format == IFF_TIFF || format == IFF_TIFF_PACKBITS ||
-        format == IFF_TIFF_RLE || format == IFF_TIFF_G3 ||
-        format == IFF_TIFF_G4 || format == IFF_TIFF_LZW ||
-        format == IFF_TIFF_ZIP) {
-        L_WARNING("tiff library missing; output bmp format", procName);
-        format = IFF_BMP;
-    }
-#endif  /* !defined(HAVE_LIBTIFF) */
+    changeFormatForMissingLib(&format);
 
         /* Generate the local file name */
     snprintf(namebuf, sizeof(namebuf), "/tmp/lept/regout/%s.%02d.%s",

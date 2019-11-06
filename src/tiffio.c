@@ -1805,11 +1805,7 @@ TIFF    *tif;
         return ERROR_INT("no results requested", procName, 1);
 
     findFileFormatStream(fp, &format);
-    if (format != IFF_TIFF &&
-        format != IFF_TIFF_G3 && format != IFF_TIFF_G4 &&
-        format != IFF_TIFF_RLE && format != IFF_TIFF_PACKBITS &&
-        format != IFF_TIFF_LZW && format != IFF_TIFF_ZIP &&
-        format != IFF_TIFF_JPEG)
+    if (!L_FORMAT_IS_TIFF(format))
         return ERROR_INT("file not tiff format", procName, 1);
 
     if ((tif = fopenTiff(fp, "r")) == NULL)

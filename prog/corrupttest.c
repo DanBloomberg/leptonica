@@ -187,10 +187,7 @@ static char  mainName[] = "corrupttest";
                 filedata = l_binaryRead(corruptfile, &filesize);
                 pix = pixReadMemPng(filedata, filesize);
                 lept_free(filedata);
-            } else if (format == IFF_TIFF || format == IFF_TIFF_PACKBITS ||
-                       format == IFF_TIFF_RLE || format == IFF_TIFF_G3 ||
-                       format == IFF_TIFF_G4 || format == IFF_TIFF_LZW ||
-                       format == IFF_TIFF_ZIP) {
+            } else if (L_FORMAT_IS_TIFF(format)) {
                 /* A corrupted pix is often returned, as long as the
                  * header is not damaged, so we do not display them.  */
                 pix = pixRead(corruptfile);
@@ -249,10 +246,7 @@ static char  mainName[] = "corrupttest";
                 if (fgetPngResolution(fp, &xres, &yres) == 0)
                     fprintf(stderr, "w = %d, xres = %d, yres = %d\n",
                     w, xres, yres);
-            } else if (format == IFF_TIFF || format == IFF_TIFF_PACKBITS ||
-                       format == IFF_TIFF_RLE || format == IFF_TIFF_G3 ||
-                       format == IFF_TIFF_G4 || format == IFF_TIFF_LZW ||
-                       format == IFF_TIFF_ZIP) {
+            } else if (L_FORMAT_IS_TIFF(format)) {
                 freadHeaderTiff(fp, 0, &w, NULL, NULL, NULL, NULL, NULL, NULL);
                 getTiffResolution(fp, &xres, &yres);
                 fprintf(stderr, "w = %d, xres = %d, yres = %d\n",

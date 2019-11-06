@@ -60,6 +60,9 @@
  *        PIX        *pixMakeColorSquare()
  *        void        l_chooseDisplayProg()
  *
+ *     Change format for missing library
+ *        void        changeFormatForMissingLib()
+ *
  *     Deprecated pix output for debugging (still used in tesseract 3.05)
  *        l_int32     pixDisplayWrite()
  *
@@ -350,27 +353,7 @@ FILE    *fp;
 
         /* Use bmp format for testing if library for requested
          * format for jpeg, png or tiff is not available */
-#if !defined(HAVE_LIBJPEG)
-    if (format == IFF_JFIF_JPEG) {
-        L_WARNING("jpeg library missing; output bmp format", procName);
-        format = IFF_BMP;
-    }
-#endif  /* !defined(HAVE_LIBJPEG) */
-#if !defined(HAVE_LIBPNG)
-    if (format == IFF_PNG) {
-        L_WARNING("png library missing; output bmp format", procName);
-        format = IFF_BMP;
-    }
-#endif  /* !defined(HAVE_LIBPNG) */
-#if !defined(HAVE_LIBTIFF)
-    if (format == IFF_TIFF || format == IFF_TIFF_PACKBITS ||
-        format == IFF_TIFF_RLE || format == IFF_TIFF_G3 ||
-        format == IFF_TIFF_G4 || format == IFF_TIFF_LZW ||
-        format == IFF_TIFF_ZIP) {
-        L_WARNING("tiff library missing; output bmp format", procName);
-        format = IFF_BMP;
-    }
-#endif  /* !defined(HAVE_LIBTIFF) */
+    changeFormatForMissingLib(&format);
 
     ret = pixWriteStream(fp, pix, format);
     fclose(fp);
@@ -743,6 +726,10 @@ l_int32  ret;
 
     if (format == IFF_DEFAULT)
         format = pixChooseOutputFormat(pix);
+
+        /* Use bmp format for testing if library for requested
+         * format for jpeg, png or tiff is not available */
+    changeFormatForMissingLib(&format);
 
     switch(format)
     {
@@ -1393,6 +1380,48 @@ l_chooseDisplayProg(l_int32  selection)
         L_ERROR("invalid display program\n", "l_chooseDisplayProg");
     }
     return;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                   Change format for missing lib                     *
+ *---------------------------------------------------------------------*/
+/*!
+ * \brief   changeFormatForMissingLib()
+ *
+ * \param[in,out]    pformat    addr of requested output image format
+ * \return  void
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is useful for testing functionality when the library for
+ *          the requested output format (jpeg, png or tiff) is not linked.
+ *          In that case, the output format is changed to bmp.
+ * </pre>
+ */
+void
+changeFormatForMissingLib(l_int32  *pformat)
+{
+    PROCNAME("changeFormatForMissingLib");
+
+#if !defined(HAVE_LIBJPEG)
+    if (*pformat == IFF_JFIF_JPEG) {
+        L_WARNING("jpeg library missing; output bmp format\n", procName);
+        *pformat = IFF_BMP;
+    }
+#endif  /* !defined(HAVE_LIBJPEG) */
+#if !defined(HAVE_LIBPNG)
+    if (*pformat == IFF_PNG) {
+        L_WARNING("png library missing; output bmp format\n", procName);
+        *pformat = IFF_BMP;
+    }
+#endif  /* !defined(HAVE_LIBPNG) */
+#if !defined(HAVE_LIBTIFF)
+    if (L_FORMAT_IS_TIFF(*pformat)) {
+        L_WARNING("tiff library missing; output bmp format\n", procName);
+        *pformat = IFF_BMP;
+    }
+#endif  /* !defined(HAVE_LIBTIFF) */
 }
 
 

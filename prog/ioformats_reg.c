@@ -793,10 +793,7 @@ size_t      size1, size2;
         return 0;
 #endif  /* !HAVE_LIBPNG */
 #if !HAVE_LIBTIFF
-    if (true_format == IFF_TIFF_G3 || true_format == IFF_TIFF_G4 ||
-        true_format == IFF_TIFF_ZIP || true_format == IFF_TIFF_LZW ||
-        true_format == IFF_TIFF_PACKBITS || true_format == IFF_TIFF_RLE ||
-        true_format == IFF_TIFF_JPEG || true_format == IFF_TIFF)
+    if (L_FORMAT_IS_TIFF(true_format))
         return 0;
 #endif  /* !HAVE_LIBTIFF */
 
@@ -808,10 +805,7 @@ size_t      size1, size2;
     if (ret1)
         fprintf(stderr, "Error: couldn't read header data: %s\n", filename);
     else {
-        if (format1 == IFF_TIFF || format1 == IFF_TIFF_PACKBITS ||
-            format1 == IFF_TIFF_RLE || format1 == IFF_TIFF_G3 ||
-            format1 == IFF_TIFF_G4 || format1 == IFF_TIFF_LZW ||
-            format1 == IFF_TIFF_ZIP || format1 == IFF_TIFF_JPEG) {
+        if (L_FORMAT_IS_TIFF(format1)) {
             tiff_compression_name = get_tiff_compression_name(format1);
             fprintf(stderr, "Format data for image %s with format %s:\n"
                 "  nbytes = %lu, size (w, h, d) = (%d, %d, %d)\n"

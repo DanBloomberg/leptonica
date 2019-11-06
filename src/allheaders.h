@@ -2733,6 +2733,7 @@ LEPT_DLL extern l_ok pixSaveTiledOutline ( PIX *pixs, PIXA *pixa, l_float32 scal
 LEPT_DLL extern l_ok pixSaveTiledWithText ( PIX *pixs, PIXA *pixa, l_int32 outwidth, l_int32 newrow, l_int32 space, l_int32 linewidth, L_BMF *bmf, const char *textstr, l_uint32 val, l_int32 location );
 LEPT_DLL extern PIX * pixMakeColorSquare ( l_uint32 color, l_int32 size, l_int32 addlabel, l_int32 location, l_uint32 textcolor );
 LEPT_DLL extern void l_chooseDisplayProg ( l_int32 selection );
+LEPT_DLL extern void changeFormatForMissingLib ( l_int32 *pformat );
 LEPT_DLL extern l_ok pixDisplayWrite ( PIX *pixs, l_int32 reduction );
 LEPT_DLL extern l_uint8 * zlibCompress ( l_uint8 *datain, size_t nin, size_t *pnout );
 LEPT_DLL extern l_uint8 * zlibUncompress ( l_uint8 *datain, size_t nin, size_t *pnout );
