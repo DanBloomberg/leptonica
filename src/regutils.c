@@ -711,8 +711,8 @@ char  namebuf[256];
         return ERROR_INT("invalid format", procName, 1);
     }
 
-        /* Use bmp format for testing if library for request format
-         * for jpeg, png or tiff_g4 is not available */
+        /* Use bmp format for testing if library for requested
+         * format for jpeg, png or tiff is not available */
 #if !defined(HAVE_LIBJPEG)
     if (format == IFF_JFIF_JPEG)
         format = IFF_BMP;
@@ -722,9 +722,12 @@ char  namebuf[256];
         format = IFF_BMP;
 #endif  /* !defined(HAVE_LIBPNG) */
 #if !defined(HAVE_LIBTIFF)
-    if (format == IFF_TIFF_G4)
+    if (format == IFF_TIFF || format == IFF_TIFF_PACKBITS ||
+        format == IFF_TIFF_RLE || format == IFF_TIFF_G3 ||
+        format == IFF_TIFF_G4 || format == IFF_TIFF_LZW ||
+        format == IFF_TIFF_ZIP)
         format = IFF_BMP;
-#endif  /* !defined(HAVE_LIBPNG) */
+#endif  /* !defined(HAVE_LIBTIFF) */
 
         /* Generate the local file name */
     snprintf(namebuf, sizeof(namebuf), "/tmp/lept/regout/%s.%02d.%s",
