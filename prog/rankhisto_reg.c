@@ -50,6 +50,11 @@ PIX          *pixs, *pixt, *pixd;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
 
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "rankhisto_reg");
+    exit(77);
+#endif
+
     if (regTestSetup(argc, argv, &rp))
         return 1;
 

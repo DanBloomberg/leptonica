@@ -43,7 +43,7 @@
 
 #define  GPLOT_VERSION_NUMBER    1
 
-#define  NUM_GPLOT_STYLES      5
+#define  NUM_GPLOT_STYLES  5
 enum GPLOT_STYLE {
     GPLOT_LINES       = 0,
     GPLOT_POINTS      = 1,
@@ -52,13 +52,14 @@ enum GPLOT_STYLE {
     GPLOT_DOTS        = 4
 };
 
-#define  NUM_GPLOT_OUTPUTS     5
+#define  NUM_GPLOT_OUTPUTS  6
 enum GPLOT_OUTPUT {
     GPLOT_NONE  = 0,
     GPLOT_PNG   = 1,
     GPLOT_PS    = 2,
     GPLOT_EPS   = 3,
-    GPLOT_LATEX = 4
+    GPLOT_LATEX = 4,
+    GPLOT_PNM   = 5,
 };
 
 enum GPLOT_SCALING {

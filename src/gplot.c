@@ -111,7 +111,8 @@ const char  *gplotfileoutputs[] = {"",
                                    "PNG",
                                    "PS",
                                    "EPS",
-                                   "LATEX"};
+                                   "LATEX",
+                                   "PNM"};
 
 
 /*-----------------------------------------------------------------*
@@ -121,7 +122,8 @@ const char  *gplotfileoutputs[] = {"",
  * \brief   gplotCreate()
  *
  * \param[in]    rootname    root for all output files
- * \param[in]    outformat   GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outformat   GPLOT_PNG, GPLOT_PS, GPLOT_EPS,
+ *                           GPLOT_LATEX, GPLOT_PNM
  * \param[in]    title       [optional] overall title
  * \param[in]    xlabel      [optional] x axis label
  * \param[in]    ylabel      [optional] y axis label
@@ -151,11 +153,19 @@ GPLOT   *gplot;
     if (!rootname)
         return (GPLOT *)ERROR_PTR("rootname not defined", procName, NULL);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
-        outformat != GPLOT_EPS && outformat != GPLOT_LATEX)
+        outformat != GPLOT_EPS && outformat != GPLOT_LATEX &&
+        outformat != GPLOT_PNM)
         return (GPLOT *)ERROR_PTR("outformat invalid", procName, NULL);
     stringCheckForChars(rootname, "`;&|><\"?*$()", &badchar);
     if (badchar)  /* danger of command injection */
         return (GPLOT *)ERROR_PTR("invalid rootname", procName, NULL);
+
+#if !defined(HAVE_LIBPNG)
+    if (outformat == GPLOT_PNG) {
+        L_WARNING("png library missing; output pnm format\n", procName);
+        outformat = GPLOT_PNM;
+    }
+#endif
 
     gplot = (GPLOT *)LEPT_CALLOC(1, sizeof(GPLOT));
     gplot->cmddata = sarrayCreate(0);
@@ -178,6 +188,8 @@ GPLOT   *gplot;
         snprintf(buf, Bufsize, "%s.eps", newroot);
     else if (outformat == GPLOT_LATEX)
         snprintf(buf, Bufsize, "%s.tex", newroot);
+    else if (outformat == GPLOT_PNM)
+        snprintf(buf, Bufsize, "%s.pnm", newroot);
     gplot->outname = stringNew(buf);
     if (title) gplot->title = stringNew(title);
     if (xlabel) gplot->xlabel = stringNew(xlabel);
@@ -455,11 +467,13 @@ FILE    *fp;
         snprintf(buf, Bufsize, "set terminal postscript; set output '%s'",
                  gplot->outname);
     } else if (gplot->outformat == GPLOT_EPS) {
-        snprintf(buf, Bufsize,
-                 "set terminal postscript eps; set output '%s'",
+        snprintf(buf, Bufsize, "set terminal postscript eps; set output '%s'",
                  gplot->outname);
     } else if (gplot->outformat == GPLOT_LATEX) {
         snprintf(buf, Bufsize, "set terminal latex; set output '%s'",
+                 gplot->outname);
+    } else if (gplot->outformat == GPLOT_PNM) {
+        snprintf(buf, Bufsize, "set terminal pbm color; set output '%s'",
                  gplot->outname);
     }
     sarrayAddString(gplot->cmddata, buf, L_COPY);
@@ -556,7 +570,8 @@ FILE    *fp;
  * \brief   gplotSimple1()
  *
  * \param[in]    na          numa; plot Y_VS_I
- * \param[in]    outformat   GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outformat   GPLOT_PNG, GPLOT_PS, GPLOT_EPS,
+ *                           GPLOT_LATEX, GPLOT_PNM
  * \param[in]    outroot     root of output files
  * \param[in]    title       [optional], can be NULL
  * \return  0 if OK, 1 on error
@@ -585,7 +600,8 @@ gplotSimple1(NUMA        *na,
  *
  * \param[in]    na1         numa; plot with Y_VS_I
  * \param[in]    na2         ditto
- * \param[in]    outformat   GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outformat   GPLOT_PNG, GPLOT_PS, GPLOT_EPS,
+ *                           GPLOT_LATEX, GPLOT_PNM
  * \param[in]    outroot     root of output files
  * \param[in]    title       [optional]
  * \return  0 if OK, 1 on error
@@ -615,7 +631,8 @@ gplotSimple2(NUMA        *na1,
  * \brief   gplotSimpleN()
  *
  * \param[in]    naa         numaa; we plotted with Y_VS_I for each numa
- * \param[in]    outformat   GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outformat   GPLOT_PNG, GPLOT_PS, GPLOT_EPS,
+ *                           GPLOT_LATEX, GPLOT_PNM
  * \param[in]    outroot     root of output files
  * \param[in]    title       [optional]
  * \return  0 if OK, 1 on error
@@ -647,7 +664,8 @@ gplotSimpleN(NUMAA       *naa,
  * \param[in]    nay         [required]
  * \param[in]    plotstyle   GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
  *                           GPLOT_LINESPOINTS, GPLOT_DOTS
- * \param[in]    outformat   GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outformat   GPLOT_PNG, GPLOT_PS, GPLOT_EPS,
+ *                           GPLOT_LATEX, GPLOT_PNM
  * \param[in]    outroot     root of output files
  * \param[in]    title       [optional], can be NULL
  * \return  0 if OK, 1 on error
@@ -680,7 +698,8 @@ GPLOT  *gplot;
     if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
         return ERROR_INT("invalid plotstyle", procName, 1);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
-        outformat != GPLOT_EPS && outformat != GPLOT_LATEX)
+        outformat != GPLOT_EPS && outformat != GPLOT_LATEX &&
+        outformat != GPLOT_PNM)
         return ERROR_INT("invalid outformat", procName, 1);
     if (!outroot)
         return ERROR_INT("outroot not specified", procName, 1);
@@ -702,7 +721,8 @@ GPLOT  *gplot;
  * \param[in]    nay2
  * \param[in]    plotstyle    GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
  *                            GPLOT_LINESPOINTS, GPLOT_DOTS
- * \param[in]    outformat    GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outformat    GPLOT_PNG, GPLOT_PS, GPLOT_EPS,
+ *                            GPLOT_LATEX, GPLOT_PNM
  * \param[in]    outroot      root of output files
  * \param[in]    title        [optional]
  * \return  0 if OK, 1 on error
@@ -736,7 +756,8 @@ GPLOT  *gplot;
     if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
         return ERROR_INT("invalid plotstyle", procName, 1);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
-        outformat != GPLOT_EPS && outformat != GPLOT_LATEX)
+        outformat != GPLOT_EPS && outformat != GPLOT_LATEX &&
+        outformat != GPLOT_PNM)
         return ERROR_INT("invalid outformat", procName, 1);
     if (!outroot)
         return ERROR_INT("outroot not specified", procName, 1);
@@ -758,7 +779,8 @@ GPLOT  *gplot;
  * \param[in]    naay         numaa of arrays to plot against %nax
  * \param[in]    plotstyle    GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
  *                            GPLOT_LINESPOINTS, GPLOT_DOTS
- * \param[in]    outformat    GPLOT_PNG, GPLOT_PS, GPLOT_EPS, GPLOT_LATEX
+ * \param[in]    outformat    GPLOT_PNG, GPLOT_PS, GPLOT_EPS,
+ *                            GPLOT_LATEX, GPLOT_PNM
  * \param[in]    outroot      root of output files
  * \param[in]    title        [optional]
  * \return  0 if OK, 1 on error
@@ -795,7 +817,8 @@ NUMA    *nay;
     if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
         return ERROR_INT("invalid plotstyle", procName, 1);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
-        outformat != GPLOT_EPS && outformat != GPLOT_LATEX)
+        outformat != GPLOT_EPS && outformat != GPLOT_LATEX &&
+        outformat != GPLOT_PNM)
         return ERROR_INT("invalid outformat", procName, 1);
     if (!outroot)
         return ERROR_INT("outroot not specified", procName, 1);
