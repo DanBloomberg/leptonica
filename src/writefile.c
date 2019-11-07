@@ -351,10 +351,6 @@ FILE    *fp;
     if ((fp = fopenWriteStream(fname, "wb+")) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
 
-        /* Use bmp format for testing if library for requested
-         * format for jpeg, png or tiff is not available */
-    changeFormatForMissingLib(&format);
-
     ret = pixWriteStream(fp, pix, format);
     fclose(fp);
     if (ret)
@@ -411,6 +407,10 @@ pixWriteStream(FILE    *fp,
 
     if (format == IFF_DEFAULT)
         format = pixChooseOutputFormat(pix);
+
+        /* Use bmp format for testing if library for requested
+         * format for jpeg, png or tiff is not available */
+    changeFormatForMissingLib(&format);
 
     switch(format)
     {
