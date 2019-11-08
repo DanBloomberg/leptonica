@@ -99,7 +99,7 @@
  * </pre>
  */
 char *
-getImagelibVersions()
+getImagelibVersions(void)
 {
 char     buf[128];
 l_int32  first = TRUE;

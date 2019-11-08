@@ -262,7 +262,7 @@ L_PTRAA          *paa;
  * </pre>
  */
 void
-pmsDestroy()
+pmsDestroy(void)
 {
 L_PIX_MEM_STORE  *pms;
 
@@ -505,7 +505,7 @@ L_PIX_MEM_STORE  *pms;
  * \brief   pmsLogInfo()
  */
 void
-pmsLogInfo()
+pmsLogInfo(void)
 {
 l_int32           i;
 L_PIX_MEM_STORE  *pms;

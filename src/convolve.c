@@ -2548,7 +2548,7 @@ PIX       *pixd;
  * </pre>
  */
 l_float32
-gaussDistribSampling()
+gaussDistribSampling(void)
 {
 static l_int32    select = 0;  /* flips between 0 and 1 on successive calls */
 static l_float32  saveval;
