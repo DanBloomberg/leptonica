@@ -88,6 +88,10 @@
  *              level 2 (g4, dct and flate encoding: requires tiff, jpg, zlib)
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config_auto.h"
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -1404,24 +1408,24 @@ changeFormatForMissingLib(l_int32  *pformat)
 {
     PROCNAME("changeFormatForMissingLib");
 
-#if !defined(HAVE_LIBJPEG)
+#if !HAVE_LIBJPEG
     if (*pformat == IFF_JFIF_JPEG) {
         L_WARNING("jpeg library missing; output bmp format\n", procName);
         *pformat = IFF_BMP;
     }
-#endif  /* !defined(HAVE_LIBJPEG) */
-#if !defined(HAVE_LIBPNG)
+#endif  /* !HAVE_LIBJPEG */
+#if !HAVE_LIBPNG
     if (*pformat == IFF_PNG) {
         L_WARNING("png library missing; output bmp format\n", procName);
         *pformat = IFF_BMP;
     }
-#endif  /* !defined(HAVE_LIBPNG) */
-#if !defined(HAVE_LIBTIFF)
+#endif  /* !HAVE_LIBPNG */
+#if !HAVE_LIBTIFF
     if (L_FORMAT_IS_TIFF(*pformat)) {
         L_WARNING("tiff library missing; output bmp format\n", procName);
         *pformat = IFF_BMP;
     }
-#endif  /* !defined(HAVE_LIBTIFF) */
+#endif  /* !HAVE_LIBTIFF */
 }
 
 
