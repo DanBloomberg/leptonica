@@ -36,6 +36,10 @@
  *     * find threshold from numa
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -53,7 +57,7 @@ PIX         *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pixd;
 PIXA        *pixa;
 L_REGPARAMS  *rp;
 
-#if !defined(HAVE_LIBPNG)
+#if !HAVE_LIBPNG
     L_ERROR("This test requires libpng to run.\n", "numa1_reg");
     exit(77);
 #endif

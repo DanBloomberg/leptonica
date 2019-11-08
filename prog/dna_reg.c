@@ -30,6 +30,10 @@
  *   Tests basic functioning of L_Dna (number array of doubles)
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -44,7 +48,7 @@ GPLOT        *gplot;
 NUMA         *na, *nahisto, *nax;
 L_REGPARAMS  *rp;
 
-#if !defined(HAVE_LIBPNG)
+#if !HAVE_LIBPNG
     L_ERROR("This test requires libpng to run.\n", "dna_reg");
     exit(77);
 #endif

@@ -35,6 +35,10 @@
  *       mottled text image.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
@@ -46,7 +50,7 @@ PIXA         *pixadb;
 PTA          *pta;
 L_REGPARAMS  *rp;
 
-#if !defined(HAVE_LIBPNG)
+#if !HAVE_LIBPNG
     L_ERROR("This test requires libpng to run.\n", "baseline_reg");
     exit(77);
 #endif

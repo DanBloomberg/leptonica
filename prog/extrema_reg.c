@@ -31,6 +31,10 @@
  *     of a sampled function.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -46,7 +50,7 @@ NUMA         *na1, *na2, *na3;
 PIX          *pix1;
 L_REGPARAMS  *rp;
 
-#if !defined(HAVE_LIBPNG)
+#if !HAVE_LIBPNG
     L_ERROR("This test requires libpng to run.\n", "extrema_reg");
     exit(77);
 #endif

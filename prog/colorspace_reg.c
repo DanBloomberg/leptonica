@@ -32,6 +32,10 @@
  *       - global linear color mapping and extraction of color magnitude
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
@@ -49,7 +53,7 @@ PIXA         *pixa, *pixat;
 PIXCMAP      *cmap;
 L_REGPARAMS  *rp;
 
-#if !defined(HAVE_LIBPNG)
+#if !HAVE_LIBPNG
     L_ERROR("This test requires libpng to run.\n", "colorspace_reg");
     exit(77);
 #endif
