@@ -37,8 +37,8 @@
 
 static const char  *boxafiles[3] = {"boxap1.ba", "boxap2.ba", "boxap3.ba"};
 
-void static TestBoxa(L_REGPARAMS *rp, l_int32 index);
-void static PlotBoxa(L_REGPARAMS *rp, l_int32 index);
+static void TestBoxa(L_REGPARAMS *rp, l_int32 index);
+static void PlotBoxa(L_REGPARAMS *rp, l_int32 index);
 static l_float32  varp[3] = {0.0165, 0.0432, 0.0716};
 static l_float32  varm[3] = {0.0088, 0.0213, 0.0357};
 static l_int32  same[3] = {1, -1, -1};
@@ -67,7 +67,7 @@ L_REGPARAMS  *rp;
     return regTestCleanup(rp);
 }
 
-void static
+static void
 TestBoxa(L_REGPARAMS  *rp,
          l_int32       index)
 {
@@ -158,7 +158,7 @@ PIX       *pix1;
 }
 
 
-void static
+static void
 PlotBoxa(L_REGPARAMS  *rp,
          l_int32       index)
 {
