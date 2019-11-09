@@ -52,6 +52,11 @@ l_int32 main(int    argc,
 l_int32       i;
 L_REGPARAMS  *rp;
 
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "boxa3_reg");
+    exit(77);
+#endif
+
     if (regTestSetup(argc, argv, &rp))
         return 1;
 

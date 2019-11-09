@@ -45,6 +45,11 @@ int main(int    argc,
 {
 L_REGPARAMS  *rp;
 
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "ptra2_reg");
+    exit(77);
+#endif
+
     if (regTestSetup(argc, argv, &rp))
         return 1;
 

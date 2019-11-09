@@ -78,10 +78,10 @@ int main(int    argc,
 l_int32       success, failure;
 L_REGPARAMS  *rp;
 
-#if !HAVE_LIBPNG || !HAVE_LIBZ
-    fprintf(stderr, "libpng & libz are required for testing pngio_reg\n");
-    return 1;
-#endif  /* abort */
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "pngio_reg");
+    exit(77);
+#endif
 
     if (regTestSetup(argc, argv, &rp))
         return 1;

@@ -45,6 +45,11 @@ PIXAA        *paa;
 L_REGPARAMS  *rp;
 SELA         *sela;
 
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "ccthin_reg");
+    exit(77);
+#endif
+
     if (regTestSetup(argc, argv, &rp))
         return 1;
 

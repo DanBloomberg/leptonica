@@ -53,6 +53,11 @@ PIX          *pix8, *pix9, *pix10, *pix11, *pix12, *pix13, *pix14, *pix15;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
 
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "colorize_reg");
+    exit(77);
+#endif
+
     if (regTestSetup(argc, argv, &rp))
               return 1;
 

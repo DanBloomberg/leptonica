@@ -494,7 +494,7 @@ PIX       *pixd;
                 SET_DATA_BYTE(lined, j, val);
             }
         } else {  /* ds == 32 */
-            for (j = 0; j < w; j++)
+            for (j = 0; j < w; j++) {
                 val32 = *(lines + j);
                 extractRGBValues(val32, &rval, &gval, &bval);
                 valg = GET_DATA_BYTE(lineg, j);
@@ -505,6 +505,7 @@ PIX       *pixd;
                 bval2 = (l_int32)(bval * valg * norm + 0.5);
                 bval2 = L_MIN(255, bval2);
                 composeRGBPixel(rval2, gval2, bval2, lined + j);
+            }
         }
     }
 
