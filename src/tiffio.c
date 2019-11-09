@@ -1204,7 +1204,7 @@ l_uint32   uval, uval2;
         numaGetIValue(natags, i, &tagval);
         sval = sarrayGetString(savals, i, L_NOCOPY);
         type = sarrayGetString(satypes, i, L_NOCOPY);
-        if (!strcmp(type, "char*")) {
+        if (!strcmp(type, "char*") || !strcmp(type, "const char*")) {
             TIFFSetField(tif, tagval, sval);
         } else if (!strcmp(type, "l_uint16")) {
             if (sscanf(sval, "%u", &uval) == 1) {
@@ -1242,6 +1242,7 @@ l_uint32   uval, uval2;
                 return ERROR_INT("custom tag(s) not written", procName, 1);
             }
         } else {
+            fprintf(stderr, "unknown type %s\n",type);
             return ERROR_INT("unknown type; tag(s) not written", procName, 1);
         }
     }
