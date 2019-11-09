@@ -1940,7 +1940,7 @@ FILE  *fp;
  * </pre>
  */
 FILE *
-fopenWriteWinTempfile()
+fopenWriteWinTempfile(void)
 {
 #ifdef _WIN32
 l_int32  handle;
@@ -3277,7 +3277,7 @@ size_t  len;
  * </pre>
  */
 char *
-l_makeTempFilename()
+l_makeTempFilename(void)
 {
 char  dirname[240];
 
