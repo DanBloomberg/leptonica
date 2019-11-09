@@ -420,11 +420,9 @@ pixWriteStream(FILE    *fp,
 
     case IFF_JFIF_JPEG:   /* default quality; baseline sequential */
         return pixWriteStreamJpeg(fp, pix, var_JPEG_QUALITY, 0);
-        break;
 
     case IFF_PNG:   /* no gamma value stored */
         return pixWriteStreamPng(fp, pix, 0.0);
-        break;
 
     case IFF_TIFF:           /* uncompressed */
     case IFF_TIFF_PACKBITS:  /* compressed, binary only */
@@ -435,39 +433,30 @@ pixWriteStream(FILE    *fp,
     case IFF_TIFF_ZIP:       /* compressed, all depths */
     case IFF_TIFF_JPEG:      /* compressed, 8 bpp gray and 32 bpp rgb */
         return pixWriteStreamTiff(fp, pix, format);
-        break;
 
     case IFF_PNM:
         return pixWriteStreamPnm(fp, pix);
-        break;
 
     case IFF_PS:
         return pixWriteStreamPS(fp, pix, NULL, 0, DefaultScaling);
-        break;
 
     case IFF_GIF:
         return pixWriteStreamGif(fp, pix);
-        break;
 
     case IFF_JP2:
         return pixWriteStreamJp2k(fp, pix, 34, 4, 0, 0);
-        break;
 
     case IFF_WEBP:
         return pixWriteStreamWebP(fp, pix, 80, 0);
-        break;
 
     case IFF_LPDF:
         return pixWriteStreamPdf(fp, pix, 0, NULL);
-        break;
 
     case IFF_SPIX:
         return pixWriteStreamSpix(fp, pix);
-        break;
 
     default:
         return ERROR_INT("unknown format", procName, 1);
-        break;
     }
 
     return 0;
@@ -785,7 +774,6 @@ l_int32  ret;
 
     default:
         return ERROR_INT("unknown format", procName, 1);
-        break;
     }
 
     return ret;
