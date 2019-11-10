@@ -55,6 +55,10 @@
  *  accurately represented by float64.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static SARRAY *BuildShortStrings(l_int32 nchars, l_int32 add_dups);
@@ -67,6 +71,7 @@ l_int32 main(int    argc,
 L_ASET     *set;
 L_DNA      *da1, *da2, *da3, *da4, *da5, *da6, *da7, *da8, *dav, *dac;
 L_DNAHASH  *dahash;
+GPLOT      *gplot;
 NUMA       *nav, *nac;
 PTA        *pta1, *pta2, *pta3;
 SARRAY     *sa1, *sa2, *sa3, *sa4;
@@ -192,8 +197,9 @@ SARRAY     *sa1, *sa2, *sa3, *sa4;
     nav = l_dnaConvertToNuma(dav);
     nac = l_dnaConvertToNuma(dac);
     fprintf(stderr, "  dna number of histo points = %d\n", l_dnaGetCount(dac));
-    gplotSimpleXY1(nav, nac, GPLOT_IMPULSES, GPLOT_PNG,
-                   "/tmp/lept/hash/histo", "Histo");
+    gplot = gplotSimpleXY1(nav, nac, GPLOT_IMPULSES, GPLOT_PNG,
+                           "/tmp/lept/hash/histo", "Histo");
+    gplotDestroy(&gplot);
     da7 = l_dnaIntersectionByHash(da2, da3);
     fprintf(stderr, "  dna number of points: da2 = %d, da3 = %d\n",
             l_dnaGetCount(da2), l_dnaGetCount(da3));

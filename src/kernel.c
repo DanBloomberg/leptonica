@@ -815,6 +815,7 @@ L_KERNEL  *kel;
     }
     if (h > MaxArraySize || w > MaxArraySize) {
         L_ERROR("h = %d or w = %d > %d\n", procName, h, w, MaxArraySize);
+        sarrayDestroy(&sa);
         return NULL;
     }
     line = sarrayGetString(sa, first + 1, L_NOCOPY);

@@ -1001,16 +1001,21 @@ SEL     *sel, *selh, *selv;
 
     if (hsize == 1 || vsize == 1) {  /* no intermediate result */
         sel = selCreateBrick(vsize, hsize, vsize / 2, hsize / 2, SEL_HIT);
-        if (!sel)
+        if (!sel) {
+            pixDestroy(&pixsb);
             return (PIX *)ERROR_PTR("sel not made", procName, pixd);
+        }
         pixdb = pixClose(NULL, pixsb, sel);
         selDestroy(&sel);
     } else {  /* do separably */
-        if ((selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT)) == NULL)
-            return (PIX *)ERROR_PTR("selh not made", procName, pixd);
-        if ((selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT)) == NULL) {
+        selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
+        selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
+        if (!selh || !selv) {
             selDestroy(&selh);
-            return (PIX *)ERROR_PTR("selv not made", procName, pixd);
+            selDestroy(&selh);
+            pixDestroy(&pixsb);
+            return (PIX *)ERROR_PTR("selh and selv not both made",
+                                    procName, pixd);
         }
         pixt = pixDilate(NULL, pixsb, selh);
         pixdb = pixDilate(NULL, pixt, selv);
@@ -1698,10 +1703,6 @@ SEL     *selv2 = NULL;
     if (MORPH_BC == SYMMETRIC_MORPH_BC)
         return pixCloseCompBrick(pixd, pixs, hsize, vsize);
 
-    maxtrans = L_MAX(hsize / 2, vsize / 2);
-    bordsize = 32 * ((maxtrans + 31) / 32);  /* full 32 bit words */
-    pixsb = pixAddBorder(pixs, bordsize, 0);
-
     if (hsize > 1) {
         if (selectComposableSels(hsize, L_HORIZ, &selh1, &selh2)) {
             selDestroy(&selh1);
@@ -1718,6 +1719,10 @@ SEL     *selv2 = NULL;
             return (PIX *)ERROR_PTR("vert sels not made", procName, pixd);
         }
     }
+
+    maxtrans = L_MAX(hsize / 2, vsize / 2);
+    bordsize = 32 * ((maxtrans + 31) / 32);  /* full 32 bit words */
+    pixsb = pixAddBorder(pixs, bordsize, 0);
 
     if (vsize == 1) {
         pixt = pixDilate(NULL, pixsb, selh1);
