@@ -74,16 +74,16 @@ if (UNIX)
     endif(SYM_LINK)
 endif()
 
-if (NOT CPPAN_BUILD)
+if (NOT SW_BUILD)
     export(TARGETS leptonica FILE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake)
 else()
     target_link_libraries       (leptonica
-        pvt.cppan.demo.gif
-        pvt.cppan.demo.jpeg
-        pvt.cppan.demo.png
-        pvt.cppan.demo.tiff
-        pvt.cppan.demo.webmproject.webp
-        pvt.cppan.demo.openjpeg.openjp2
+        org.sw.demo.gif
+        org.sw.demo.jpeg
+        org.sw.demo.glennrp.png
+        org.sw.demo.tiff
+        org.sw.demo.webmproject.webp
+        org.sw.demo.uclouvain.openjpeg.openjp2
     )
     file(WRITE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake "include(${CMAKE_BINARY_DIR}/cppan.cmake)\n")
     export(TARGETS leptonica APPEND FILE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake)

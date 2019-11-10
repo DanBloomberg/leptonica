@@ -48,14 +48,10 @@ set(VERSION_PLAIN ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 set(MINIMUM_WEBPMUX_VERSION 0.5.0)
 
 option(BUILD_PROG "Build utility programs" OFF)
-option(CPPAN_BUILD "Build with cppan" ON)
+option(SW_BUILD "Build with sw" ON)
 option(SYM_LINK "Create symlink leptonica -> lept on UNIX" OFF)
 
-if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.cppan)
-    set(CPPAN_BUILD OFF)
-endif()
-
-if(NOT CPPAN_BUILD)
+if(NOT SW_BUILD)
     find_package(GIF)
     find_package(JPEG)
     find_package(PNG)
@@ -105,8 +101,17 @@ if(NOT CPPAN_BUILD)
              set(HAVE_LIBJP2K 1)
         endif()
     endif()
-else()  # CPPAN_BUILD=ON
-    add_subdirectory(.cppan)
+else() # SW_BUILD=ON
+    find_package(SW REQUIRED)
+    sw_add_package(
+        org.sw.demo.gif
+        org.sw.demo.jpeg
+        org.sw.demo.glennrp.png
+        org.sw.demo.tiff
+        org.sw.demo.webmproject.webp
+        org.sw.demo.uclouvain.openjpeg.openjp2
+    )
+    sw_execute()
 
     add_definitions(
         -DHAVE_LIBGIF=1
@@ -197,9 +202,9 @@ message( STATUS "C compiler options: ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE_UP}} ${C
 message( STATUS "Linker options: ${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS_${CMAKE_BUILD_TYPE_UP}}")
 message( STATUS "Install directory: ${CMAKE_INSTALL_PREFIX}")
 message( STATUS )
-message( STATUS "Build with cppan [CPPAN_BUILD]: ${CPPAN_BUILD}")
+message( STATUS "Build with sw [SW_BUILD]: ${SW_BUILD}")
 message( STATUS "Build utility programs [BUILD_PROG]: ${BUILD_PROG}")
-if(NOT CPPAN_BUILD)
+if(NOT SW_BUILD)
     message( STATUS "Used ZLIB library: ${ZLIB_LIBRARIES}")
     message( STATUS "Used PNG library:  ${PNG_LIBRARIES}")
     message( STATUS "Used JPEG library: ${JPEG_LIBRARIES}")
