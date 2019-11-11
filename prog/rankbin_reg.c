@@ -32,6 +32,10 @@
  *      (2) numaGetRankBinValues()
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
@@ -40,7 +44,8 @@ int main(int    argc,
 l_int32       i, n, w, h;
 BOXA         *boxa;
 NUMA         *naindex, *naw, *nah, *naw_med, *nah_med;
-PIX          *pixs, *pix1;
+PIX          *pixs, *pix1, *pix2, *pix3;
+PIXA         *pixa;
 L_REGPARAMS  *rp;
 
 #if !defined(HAVE_LIBPNG)
@@ -68,48 +73,37 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix1);
 
         /* Make the rank bin arrays of median values, with 10 bins */
-    lept_rmfile("/tmp/lept/regout/w_10bin.png");  /* remove existing ones */
-    lept_rmfile("/tmp/lept/regout/h_10bin.png");
-    lept_rmfile("/tmp/lept/regout/w_30bin.png");
-    lept_rmfile("/tmp/lept/regout/h_30bin.png");
+    pixa = pixaCreate(0);
     numaGetRankBinValues(naw, 10, NULL, &naw_med);
     numaGetRankBinValues(nah, 10, NULL, &nah_med);
-    gplotSimple1(naw_med, GPLOT_PNG, "/tmp/lept/regout/w_10bin",
-                 "width vs rank bins (10)");
-    gplotSimple1(nah_med, GPLOT_PNG, "/tmp/lept/regout/h_10bin",
-                 "height vs rank bins (10)");
+    pix1 = gplotSimplePix1(naw_med, "width vs rank bins (10)");
+    pix2 = gplotSimplePix1(nah_med, "height vs rank bins (10)");
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 1 */
     numaDestroy(&naw_med);
     numaDestroy(&nah_med);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pixaAddPix(pixa, pix2, L_INSERT);
 
         /* Make the rank bin arrays of median values, with 30 bins */
     numaGetRankBinValues(naw, 30, NULL, &naw_med);
     numaGetRankBinValues(nah, 30, NULL, &nah_med);
-    gplotSimple1(naw_med, GPLOT_PNG, "/tmp/lept/regout/w_30bin",
-                 "width vs rank bins (30)");
-    gplotSimple1(nah_med, GPLOT_PNG, "/tmp/lept/regout/h_30bin",
-                 "height vs rank bins (30)");
+    pix1 = gplotSimplePix1(naw_med, "width vs rank bins (30)");
+    pix2 = gplotSimplePix1(nah_med, "height vs rank bins (30)");
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 3 */
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 4 */
     numaDestroy(&naw_med);
     numaDestroy(&nah_med);
-
-        /* Save as golden files, or check against them */
-    regTestCheckFile(rp, "/tmp/lept/regout/w_10bin.png");  /* 0 */
-    regTestCheckFile(rp, "/tmp/lept/regout/h_10bin.png");  /* 1 */
-    regTestCheckFile(rp, "/tmp/lept/regout/w_30bin.png");  /* 2 */
-    regTestCheckFile(rp, "/tmp/lept/regout/h_30bin.png");  /* 3 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pixaAddPix(pixa, pix2, L_INSERT);
 
         /* Display results for debugging */
-    pix1 = pixRead("/tmp/lept/regout/w_10bin.png");
-    pixDisplayWithTitle(pix1, 0, 0, NULL, rp->display);
-    pixDestroy(&pix1);
-    pix1 = pixRead("/tmp/lept/regout/h_10bin.png");
-    pixDisplayWithTitle(pix1, 650, 0, NULL, rp->display);
-    pixDestroy(&pix1);
-    pix1 = pixRead("/tmp/lept/regout/w_30bin.png");
-    pixDisplayWithTitle(pix1, 0, 550, NULL, rp->display);
-    pixDestroy(&pix1);
-    pix1 = pixRead("/tmp/lept/regout/h_30bin.png");
-    pixDisplayWithTitle(pix1, 650, 550, NULL, rp->display);
-    pixDestroy(&pix1);
+    if (rp->display) {
+        pix3 = pixaDisplayTiledInColumns(pixa, 2, 1.0, 25, 0);
+        pixDisplayWithTitle(pix3, 0, 0, NULL, 1);
+        pixDestroy(&pix3);
+    }
+    pixaDestroy(&pixa);
 
     pixDestroy(&pixs);
     numaDestroy(&naw);

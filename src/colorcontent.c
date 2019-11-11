@@ -143,6 +143,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 /* ----------------------------------------------------------------------- *
@@ -928,7 +932,7 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
         /* Get the light background color.  Use the average component value
          * and select the lightest of 10 buckets.  Require that it is
          * reddish and, using lightthresh, not too dark. */
-    pixGetRankColorArray(pixs, 10, L_SELECT_AVERAGE, factor, &carray, 0, 0);
+    pixGetRankColorArray(pixs, 10, L_SELECT_AVERAGE, factor, &carray, NULL, 0);
     if (!carray)
         return ERROR_INT("rank color array not made", procName, 1);
     extractRGBValues(carray[9], &rval, &gval, &bval);

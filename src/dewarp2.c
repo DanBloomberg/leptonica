@@ -58,6 +58,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -1410,6 +1414,7 @@ l_float32  fract, delta, sum, aveval, fval, del, denom;
 l_float32  ca, cb, cc, cd, ce, y;
 BOX       *box;
 BOXA      *boxa1, *boxa2;
+GPLOT     *gplot;
 NUMA      *na1, *na2, *na3, *na4, *nasum;
 PIX       *pix1;
 PTA       *pta1;
@@ -1529,8 +1534,9 @@ FPIX      *fpix;
     ptaGetQuarticLSF(pta1, &ca, &cb, &cc, &cd, &ce, &na3);
     ptaGetArrays(pta1, &na4, NULL);
     if (dew->debug) {
-        gplotSimpleXY1(na4, na3, GPLOT_LINES, GPLOT_PNG,
-                       "/tmp/lept/dew/0094", NULL);
+        gplot = gplotSimpleXY1(na4, na3, GPLOT_LINES, GPLOT_PNG,
+                              "/tmp/lept/dew/0094", NULL);
+        gplotDestroy(&gplot);
         lept_mv("/tmp/lept/dew/0094.png", "lept/dewmod", NULL, NULL);
     }
     ptaDestroy(&pta1);
