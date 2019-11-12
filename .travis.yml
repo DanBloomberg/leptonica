@@ -60,5 +60,5 @@ install:
 script:
   - mkdir build
   - cd build
-  - cmake .. -DBUILD_PROG=1 -DSW_BUILD=0
+  - cmake .. -DBUILD_PROG=1
   - make
