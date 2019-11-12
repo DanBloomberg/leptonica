@@ -48,7 +48,11 @@ set(VERSION_PLAIN ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 set(MINIMUM_WEBPMUX_VERSION 0.5.0)
 
 option(BUILD_PROG "Build utility programs" OFF)
-option(SW_BUILD "Build with sw" ON)
+if (WIN32)
+    option(SW_BUILD "Build with sw" ON)
+else()
+    option(SW_BUILD "Build with sw" OFF)
+endif()
 option(SYM_LINK "Create symlink leptonica -> lept on UNIX" OFF)
 
 if(NOT SW_BUILD)
