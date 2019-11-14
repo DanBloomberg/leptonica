@@ -33,6 +33,11 @@
 
 #include "allheaders.h"
 
+    /* In case libpng is not enabled */
+static const char fname_png[64] = "/tmp/lept/regout/blend2.14.png";
+static const char fname_bmp[64] = "/tmp/lept/regout/blend2.14.bmp";
+
+
 int main(int    argc,
          char **argv)
 {
@@ -146,8 +151,12 @@ L_REGPARAMS  *rp;
     regTestWritePixAndCheck(rp, pix4, IFF_JFIF_JPEG);  /* 15 */
     pixDestroy(&pix4);
 
-        /* Read the RGBA image back */
-    pix4 = pixRead("/tmp/lept/regout/blend2.14.png");
+        /* Read the RGBA image #14 back */
+#if defined(HAVE_LIBPNG)
+    pix4 = pixRead(fname_png);
+#else
+    pix4 = pixRead(fname_bmp);
+#endif
 
         /* Make sure that the alpha channel image hasn't changed */
     pix5 = pixGetRGBComponent(pix4, L_ALPHA_CHANNEL);

@@ -1770,7 +1770,7 @@ NUMA           *nal, *nat, *nar, *nab;
  * \param[in]    plotname   [optional], can be NULL
  * \param[out]   pnaw       [optional] na of widths
  * \param[out]   pnah       [optional] na of heights
- * \param[out]   ppixd      [optional] pix of the output plot
+ * \param[out]   ppixd      pix of the output plot
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1803,18 +1803,18 @@ NUMA           *naw, *nah;
 
     if (pnaw) *pnaw = NULL;
     if (pnah) *pnah = NULL;
-    if (ppixd) *ppixd = NULL;
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 1);
     if ((n = boxaGetCount(boxa)) < 2)
         return ERROR_INT("less than 2 boxes", procName, 1);
+    if (!ppixd)
+        return ERROR_INT("&pixd not defined", procName, 1);
 
     boxat = boxaFillSequence(boxa, L_USE_ALL_BOXES, 0);
 
         /* Build the numas for the width and height */
     naw = numaCreate(n);
     nah = numaCreate(n);
-
     for (i = 0; i < n; i++) {
         boxaGetBoxGeometry(boxat, i, NULL, NULL, &w, &h);
         numaAddNumber(naw, w);
@@ -1835,13 +1835,8 @@ NUMA           *naw, *nah;
                         "box index", "box dimension");
     gplotAddPlot(gplot, NULL, naw, GPLOT_LINES, "width");
     gplotAddPlot(gplot, NULL, nah, GPLOT_LINES, "height");
-    gplotMakeOutput(gplot);
+    *ppixd = gplotMakeOutputPix(gplot);
     gplotDestroy(&gplot);
-
-    if (ppixd) {
-        stringCat(buf, sizeof(buf), ".png");
-        *ppixd = pixRead(buf);
-    }
 
     if (pnaw)
         *pnaw = naw;

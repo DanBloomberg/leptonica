@@ -3446,11 +3446,10 @@ PIX       *pixg;
         numaReplaceNumber(nay, 1, (l_int32)(0.5 * maxnum));
         snprintf(buf, sizeof(buf), "score fract = %3.1f", scorefract);
         gplotAddPlot(gplot, nax, nay, GPLOT_LINES, buf);
-        gplotMakeOutput(gplot);
+        *ppixdb = gplotMakeOutputPix(gplot);
         gplotDestroy(&gplot);
         numaDestroy(&nax);
         numaDestroy(&nay);
-        *ppixdb = pixRead("/tmp/lept/redout/histplot.png");
     }
 
     pixDestroy(&pixg);

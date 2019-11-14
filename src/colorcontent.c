@@ -158,7 +158,9 @@
  * \brief   pixColorContent()
  *
  * \param[in]    pixs      32 bpp rgb or 8 bpp colormapped
- * \param[in]    rwhite, gwhite, bwhite  color value associated with white point
+ * \param[in]    rref, gref, bref   reference color values (e.g. median
+ *                                  or mean, to compare with the pixel
+ *                                  component values.
  * \param[in]    mingray   min gray value for which color is measured
  * \param[out]   ppixr     [optional] 8 bpp red 'content'
  * \param[out]   ppixg     [optional] 8 bpp green 'content'
@@ -172,11 +174,16 @@
  *          as the difference between the component and the average of
  *          the other two components.  See the discussion at the
  *          top of this file.
- *      (2) The three numbers (rwhite, gwhite and bwhite) can be thought
- *          of as the values in the image corresponding to white.
- *          They are used to compensate for an unbalanced color white point.
- *          They must either be all 0 or all non-zero.  To turn this
- *          off, set them all to 0.
+ *      (2) The three numbers (rref, gref and bref) can be thought
+ *          of in two ways:
+ *            (a) as the values in the image corresponding to white,
+ *                to compensate for an unbalanced color white point.
+ *            (b) the median or mean values of the background color of
+ *                a scan.
+ *          The gamma TRC transformation is used to modify all colors so that
+ *          these reference values become white.  
+ *          These three numbers must either be all 0 or all non-zero.
+ *          To skip the TRC transform, set them all to 0.
  *      (3) If the maximum component after white point correction,
  *          max(r,g,b), is less than mingray, all color components
  *          for that pixel are set to zero.
@@ -188,9 +195,9 @@
  */
 l_ok
 pixColorContent(PIX     *pixs,
-                l_int32  rwhite,
-                l_int32  gwhite,
-                l_int32  bwhite,
+                l_int32  rref,
+                l_int32  gref,
+                l_int32  bref,
                 l_int32  mingray,
                 PIX    **ppixr,
                 PIX    **ppixg,
@@ -219,10 +226,11 @@ PIXCMAP   *cmap;
     pixGetDimensions(pixs, &w, &h, &d);
     if (mingray > 255)
         return ERROR_INT("mingray > 255", procName, 1);
-    if (rwhite < 0 || gwhite < 0 || bwhite < 0)
-        return ERROR_INT("some white vals are negative", procName, 1);
-    if ((rwhite || gwhite || bwhite) && (rwhite * gwhite * bwhite == 0))
-        return ERROR_INT("white vals not all zero or all nonzero", procName, 1);
+    if (rref < 0 || gref < 0 || bref < 0)
+        return ERROR_INT("some reference vals are negative", procName, 1);
+    if ((rref || gref || bref) && (rref * gref * bref == 0))
+        return ERROR_INT("reference vals not all zero or all nonzero",
+                         procName, 1);
 
     cmap = pixGetColormap(pixs);
     if (!cmap && d != 32)
@@ -255,12 +263,12 @@ PIXCMAP   *cmap;
 
     datac = pixGetData(pixc);
     wplc = pixGetWpl(pixc);
-    if (rwhite) {  /* all white pt vals are nonzero */
-        nar = numaGammaTRC(1.0, 0, rwhite);
+    if (rref) {  /* all reference vals are nonzero */
+        nar = numaGammaTRC(1.0, 0, rref);
         rtab = numaGetIArray(nar);
-        nag = numaGammaTRC(1.0, 0, gwhite);
+        nag = numaGammaTRC(1.0, 0, gref);
         gtab = numaGetIArray(nag);
-        nab = numaGammaTRC(1.0, 0, bwhite);
+        nab = numaGammaTRC(1.0, 0, bref);
         btab = numaGetIArray(nab);
     }
     for (i = 0; i < h; i++) {
@@ -274,7 +282,7 @@ PIXCMAP   *cmap;
         for (j = 0; j < w; j++) {
             pixel = linec[j];
             extractRGBValues(pixel, &rval, &gval, &bval);
-            if (rwhite) {  /* color correct for white point */
+            if (rref) {  /* color correct for reference values */
                 rval = rtab[rval];
                 gval = gtab[gval];
                 bval = btab[bval];
@@ -303,7 +311,7 @@ PIXCMAP   *cmap;
         }
     }
 
-    if (rwhite) {
+    if (rref) {
         numaDestroy(&nar);
         numaDestroy(&nag);
         numaDestroy(&nab);
@@ -324,7 +332,9 @@ PIXCMAP   *cmap;
  * \brief   pixColorMagnitude()
  *
  * \param[in]    pixs    32 bpp rgb or 8 bpp colormapped
- * \param[in]    rwhite, gwhite, bwhite  color value associated with white point
+ * \param[in]    rref, gref, bref   reference color values (e.g. median
+ *                                  or mean, to compare with the pixel
+ *                                  component values.
  * \param[in]    type    chooses the method for calculating the color magnitude:
  *                       L_MAX_DIFF_FROM_AVERAGE_2, L_MAX_MIN_DIFF_FROM_2,
  *                       L_MAX_DIFF
@@ -363,18 +373,23 @@ PIXCMAP   *cmap;
  *            (a) L_MAX_DIFF_FROM_AVERAGE_2
  *            (b) L_MAX_MIN_DIFF_FROM_2
  *            (c) L_MAX_DIFF
- *      (4) The three numbers (rwhite, gwhite and bwhite) can be thought
- *          of as the values in the image corresponding to white.
- *          They are used to compensate for an unbalanced color white point.
- *          They must either be all 0 or all non-zero.  To turn this
- *          off, set them all to 0.
+ *      (4) The three numbers (rref, gref and bref) can be thought
+ *          of in two ways:
+ *            (a) as the values in the image corresponding to white,
+ *                to compensate for an unbalanced color white point.
+ *            (b) the median or mean values of the background color of
+ *                a scan.
+ *          The gamma TRC transformation is used to modify all colors so that
+ *          these reference values become white.  
+ *          These three numbers must either be all 0 or all non-zero.
+ *          To skip the TRC transform, set them all to 0.
  * </pre>
  */
 PIX *
 pixColorMagnitude(PIX     *pixs,
-                  l_int32  rwhite,
-                  l_int32  gwhite,
-                  l_int32  bwhite,
+                  l_int32  rref,
+                  l_int32  gref,
+                  l_int32  bref,
                   l_int32  type)
 {
 l_int32    w, h, d, i, j, wplc, wpld;
@@ -395,10 +410,11 @@ PIXCMAP   *cmap;
     if (type != L_MAX_DIFF_FROM_AVERAGE_2 && type != L_MAX_MIN_DIFF_FROM_2 &&
         type != L_MAX_DIFF)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
-    if (rwhite < 0 || gwhite < 0 || bwhite < 0)
-        return (PIX *)ERROR_PTR("some white vals are negative", procName, NULL);
-    if ((rwhite || gwhite || bwhite) && (rwhite * gwhite * bwhite == 0))
-        return (PIX *)ERROR_PTR("white vals not all zero or all nonzero",
+    if (rref < 0 || gref < 0 || bref < 0)
+        return (PIX *)ERROR_PTR("some reference vals are negative",
+                procName, NULL);
+    if ((rref || gref || bref) && (rref * gref * bref == 0))
+        return (PIX *)ERROR_PTR("reference vals not all zero or all nonzero",
                                 procName, NULL);
 
     cmap = pixGetColormap(pixs);
@@ -414,12 +430,12 @@ PIXCMAP   *cmap;
     wpld = pixGetWpl(pixd);
     datac = pixGetData(pixc);
     wplc = pixGetWpl(pixc);
-    if (rwhite) {  /* all white pt vals are nonzero */
-        nar = numaGammaTRC(1.0, 0, rwhite);
+    if (rref) {  /* all ref vals are nonzero */
+        nar = numaGammaTRC(1.0, 0, rref);
         rtab = numaGetIArray(nar);
-        nag = numaGammaTRC(1.0, 0, gwhite);
+        nag = numaGammaTRC(1.0, 0, gref);
         gtab = numaGetIArray(nag);
-        nab = numaGammaTRC(1.0, 0, bwhite);
+        nab = numaGammaTRC(1.0, 0, bref);
         btab = numaGetIArray(nab);
     }
     for (i = 0; i < h; i++) {
@@ -428,7 +444,7 @@ PIXCMAP   *cmap;
         for (j = 0; j < w; j++) {
             pixel = linec[j];
             extractRGBValues(pixel, &rval, &gval, &bval);
-            if (rwhite) {  /* color correct for white point */
+            if (rref) {  /* color correct for reference values */
                 rval = rtab[rval];
                 gval = gtab[gval];
                 bval = btab[bval];
@@ -464,7 +480,7 @@ PIXCMAP   *cmap;
         }
     }
 
-    if (rwhite) {
+    if (rref) {
         numaDestroy(&nar);
         numaDestroy(&nag);
         numaDestroy(&nab);

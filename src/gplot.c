@@ -33,11 +33,12 @@
  *          void        gplotDestroy()
  *          l_int32     gplotAddPlot()
  *          l_int32     gplotSetScaling()
+ *          PIX        *gplotMakeOutputPix()
  *          l_int32     gplotMakeOutput()
  *          l_int32     gplotGenCommandFile()
  *          l_int32     gplotGenDataFiles()
  *
- *     Quick and dirty plots
+ *     Quick, one-line plots
  *          l_int32     gplotSimple1()
  *          l_int32     gplotSimple2()
  *          l_int32     gplotSimpleN()
@@ -47,6 +48,9 @@
  *          GPLOT      *gplotSimpleXY1()
  *          GPLOT      *gplotSimpleXY2()
  *          GPLOT      *gplotSimpleXYN()
+ *          PIX        *gplotGeneralPix1()
+ *          PIX        *gplotGeneralPix2()
+ *          PIX        *gplotGeneralPixN()
  *
  *     Serialize for I/O
  *          GPLOT      *gplotRead()
@@ -56,18 +60,18 @@
  *     Utility for programmatic plotting using gnuplot 4.6 or later
  *     Enabled:
  *         ~ output to png (color), ps and eps (mono), latex (mono)
- *         ~ optional title for graph
+ *         ~ optional title for plot
  *         ~ optional x and y axis labels
  *         ~ multiple plots on one frame
- *         ~ optional title for each plot on the frame
+ *         ~ optional label for each plot on the frame
  *         ~ optional log scaling on either or both axes
- *         ~ choice of 5 plot styles for each plot
+ *         ~ choice of 5 plot styles for each array of input data
  *         ~ choice of 2 plot modes, either using one input array
- *           (Y vs index) or two input arrays (Y vs X).  This
- *           choice is made implicitly depending on the number of
- *           input arrays.
+ *           (Y vs index) or two input arrays (Y vs X).  For functions
+ *           that take two arrays, the first mode (Y vs index) is
+ *           employed if the first array is NULL.
  *
- *     Usage:
+ *     General usage:
  *         gplotCreate() initializes for plotting
  *         gplotAddPlot() for each plot on the frame
  *         gplotMakeOutput() to generate all output files and run gnuplot
@@ -82,6 +86,42 @@
  *         gplotMakeOutput(gplot);
  *         gplotDestroy(&gplot);
  *
+ *     Example usage of one-line plot generators:
+ *
+ *         -- Simple plots --
+ *         Specify the root of output files, the output format,
+ *         and the title (optional), but not the x and y coordinate labels
+ *         or the plot labels.  The plotstyle defaults to GPLOT_LINES.
+ *            gplotSimple2(na1, na2, GPLOT_PNG, "/tmp/lept/histo/gray",
+ *                         "gray histogram");
+ *         Multiple plots can be generated using gplotSimpleN().
+ *
+ *         -- Simple plots with more options --
+ *         Specify the root of output files, the plotstyle, the output format,
+ *         and optionally the title, but not the x and y coordinate labels
+ *         or the plot labels.
+ *            gplotSimpleXY1(na1, na2, GPLOT_LINES, GPLOT_PNG,
+ *                           "/tmp/lept/histo/gray", "gray histogram");
+ *         Multiple plots can be generated using gplotSimpleXYN().
+ *
+ *         -- Simple plots returning a pix --
+ *         Specify only the title (optional).  The plotstyle defaults
+ *         GPLOT_LINES and the output format is GPLOT_PNG..
+ *         You can't specify the x and y coordinate lables or the plot label.
+ *         The rootname of the generated files is determined internally.
+ *            Pix *pix = gplotSimplePix2(na1, na2, "gray histogram");
+ *         Multiple plots can be generated using gplotSimplePixN().
+ *
+ *         -- General plots returning a pix --
+ *         Specify the root of the output files, the plotstyle, and optionally
+ *         the title and axis labels.  This does not allow the individual
+ *         plots to have plot labels, or to use different plotstyles
+ *         for each plot.
+ *            Pix *pix = gplotGeneralPix2(na1, na2, "/tmp/lept/histo/gray",
+ *                                   GPLOT_LINES, "gray histogram",
+ *                                   "pix value", "num pixels");
+ *         Multiple plots can be generated using gplotGeneralPixN().
+ *        
  *     Note for output to GPLOT_LATEX:
  *         This creates latex output of the plot, named <rootname>.tex.
  *         It needs to be placed in a latex file <latexname>.tex
@@ -178,7 +218,7 @@ GPLOT   *gplot;
     gplot->cmddata = sarrayCreate(0);
     gplot->datanames = sarrayCreate(0);
     gplot->plotdata = sarrayCreate(0);
-    gplot->plottitles = sarrayCreate(0);
+    gplot->plotlabels = sarrayCreate(0);
     gplot->plotstyles = numaCreate(0);
 
         /* Save title, labels, rootname, outformat, cmdname, outname */
@@ -231,7 +271,7 @@ GPLOT  *gplot;
     sarrayDestroy(&gplot->cmddata);
     sarrayDestroy(&gplot->datanames);
     sarrayDestroy(&gplot->plotdata);
-    sarrayDestroy(&gplot->plottitles);
+    sarrayDestroy(&gplot->plotlabels);
     numaDestroy(&gplot->plotstyles);
     LEPT_FREE(gplot->outname);
     if (gplot->title)
@@ -256,7 +296,7 @@ GPLOT  *gplot;
  * \param[in]    nay         numa; required for both Y_VS_I and Y_VS_X
  * \param[in]    plotstyle   GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
  *                           GPLOT_LINESPOINTS, GPLOT_DOTS
- * \param[in]    plottitle   [optional] title for individual plot
+ * \param[in]    plotlabel   [optional] label for individual plot
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -273,7 +313,7 @@ GPLOT  *gplot;
  *          values are startx = 0.0, delx = 1.0.
  *      (3) If %nax is defined, it must be the same size as %nay, and
  *          must have at least one number.
- *      (4) The 'plottitle' string can have spaces, double
+ *      (4) The 'plotlabel' string can have spaces, double
  *          quotes and backquotes, but not single quotes.
  * </pre>
  */
@@ -282,7 +322,7 @@ gplotAddPlot(GPLOT       *gplot,
              NUMA        *nax,
              NUMA        *nay,
              l_int32      plotstyle,
-             const char  *plottitle)
+             const char  *plotlabel)
 {
 char       buf[Bufsize];
 char       emptystring[] = "";
@@ -309,14 +349,14 @@ SARRAY    *sa;
         plotstyle = GPLOT_POINTS;
     }
 
-        /* Save plotstyle and plottitle */
+        /* Save plotstyle and plotlabel */
     numaGetParameters(nay, &startx, &delx);
     numaAddNumber(gplot->plotstyles, plotstyle);
-    if (plottitle) {
-        title = stringNew(plottitle);
-        sarrayAddString(gplot->plottitles, title, L_INSERT);
+    if (plotlabel) {
+        title = stringNew(plotlabel);
+        sarrayAddString(gplot->plotlabels, title, L_INSERT);
     } else {
-        sarrayAddString(gplot->plottitles, emptystring, L_COPY);
+        sarrayAddString(gplot->plotlabels, emptystring, L_COPY);
     }
 
         /* Generate and save data filename */
@@ -376,6 +416,35 @@ gplotSetScaling(GPLOT   *gplot,
 
 
 /*!
+ * \brief   gplotMakeOutputPix()
+ *
+ * \param[in]    gplot
+ * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This wraps gplotMakeOutput(), and returns a pix.
+ *          See gplotMakeOutput() for details.
+ *      (2) The gplot output format must be an image (png or pnm).
+ * </pre>
+ */
+PIX *
+gplotMakeOutputPix(GPLOT  *gplot)
+{
+    PROCNAME("gplotMakeOutputPix");
+
+    if (!gplot)
+        return (PIX *)ERROR_PTR("gplot not defined", procName, NULL);
+    if (gplot->outformat != GPLOT_PNG && gplot->outformat != GPLOT_PNM)
+        return (PIX *)ERROR_PTR("output format not an image", procName, NULL);
+
+    if (gplotMakeOutput(gplot))
+        return (PIX *)ERROR_PTR("plot output not made", procName, NULL);
+    return pixRead(gplot->outname);
+}
+
+
+/*!
  * \brief   gplotMakeOutput()
  *
  * \param[in]    gplot
@@ -386,8 +455,9 @@ gplotSetScaling(GPLOT   *gplot,
  *      (1) This uses gplot and the new arrays to add a plot
  *          to the output, by writing a new data file and appending
  *          the appropriate plot commands to the command file.
- *      (2) This is the only function in this file that requires the
- *          gnuplot executable, to actually generate the plot.
+ *      (2) Along with gplotMakeOutputPix(), these are the only functions
+ *          in this file that requires the gnuplot executable to
+ *          actually generate the plot.
  *      (3) The command file name for unix is canonical (i.e., directory /tmp)
  *          but the temp filename paths in the command file must be correct.
  *      (4) The gnuplot program for windows is wgnuplot.exe.
@@ -440,7 +510,7 @@ l_ok
 gplotGenCommandFile(GPLOT  *gplot)
 {
 char     buf[Bufsize];
-char    *cmdstr, *plottitle, *dataname;
+char    *cmdstr, *plotlabel, *dataname;
 l_int32  i, plotstyle, nplots;
 FILE    *fp;
 
@@ -498,22 +568,22 @@ FILE    *fp;
 
     nplots = sarrayGetCount(gplot->datanames);
     for (i = 0; i < nplots; i++) {
-        plottitle = sarrayGetString(gplot->plottitles, i, L_NOCOPY);
+        plotlabel = sarrayGetString(gplot->plotlabels, i, L_NOCOPY);
         dataname = sarrayGetString(gplot->datanames, i, L_NOCOPY);
         numaGetIValue(gplot->plotstyles, i, &plotstyle);
         if (nplots == 1) {
             snprintf(buf, Bufsize, "plot '%s' title '%s' %s",
-                     dataname, plottitle, gplotstylenames[plotstyle]);
+                     dataname, plotlabel, gplotstylenames[plotstyle]);
         } else {
             if (i == 0)
                 snprintf(buf, Bufsize, "plot '%s' title '%s' %s, \\",
-                     dataname, plottitle, gplotstylenames[plotstyle]);
+                     dataname, plotlabel, gplotstylenames[plotstyle]);
             else if (i < nplots - 1)
                 snprintf(buf, Bufsize, " '%s' title '%s' %s, \\",
-                     dataname, plottitle, gplotstylenames[plotstyle]);
+                     dataname, plotlabel, gplotstylenames[plotstyle]);
             else
                 snprintf(buf, Bufsize, " '%s' title '%s' %s",
-                     dataname, plottitle, gplotstylenames[plotstyle]);
+                     dataname, plotlabel, gplotstylenames[plotstyle]);
         }
         sarrayAddString(gplot->cmddata, buf, L_COPY);
     }
@@ -571,7 +641,7 @@ FILE    *fp;
 
 
 /*-----------------------------------------------------------------*
- *                       Quick and Dirty Plots                     *
+ *                        Quick one-line plots                     *
  *-----------------------------------------------------------------*/
 /*!
  * \brief   gplotSimple1()
@@ -997,6 +1067,166 @@ NUMA    *nay;
 }
 
 
+/*!
+ * \brief   gplotGeneralPix1()
+ *
+ * \param[in]    na          data array
+ * \param[in]    plotstyle   GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
+ *                           GPLOT_LINESPOINTS, GPLOT_DOTS
+ * \param[in]    rootname    root for all output files
+ * \param[in]    title       [optional] overall title
+ * \param[in]    xlabel      [optional] x axis label
+ * \param[in]    ylabel      [optional] y axis label
+ * \return  pix   of plot, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The 'title', 'xlabel' and 'ylabel' strings can have spaces,
+ *          double quotes and backquotes, but not single quotes.
+ * </pre>
+ */
+PIX *
+gplotGeneralPix1(NUMA        *na,
+                 l_int32      plotstyle,
+                 const char  *rootname,
+                 const char  *title,
+                 const char  *xlabel,
+                 const char  *ylabel)
+{
+GPLOT *gplot;
+PIX   *pix;
+
+    PROCNAME("gplotGeneralPix1");
+
+    if (!na)
+        return (PIX *)ERROR_PTR("na not defined", procName, NULL);
+    if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
+        return (PIX *)ERROR_PTR("invalid plotstyle", procName, NULL);
+    if (!rootname)
+        return (PIX *)ERROR_PTR("rootname not defined", procName, NULL);
+
+    gplot = gplotCreate(rootname, GPLOT_PNG, title, xlabel, ylabel);
+    if (!gplot)
+        return (PIX *)ERROR_PTR("gplot not made", procName, NULL);
+    gplotAddPlot(gplot, NULL, na, plotstyle, NULL);
+    pix = gplotMakeOutputPix(gplot);
+    gplotDestroy(&gplot);
+    return pix;
+}
+
+
+/*!
+ * \brief   gplotGeneralPix2()
+ *
+ * \param[in]    na1         x-axis data array
+ * \param[in]    na2         y-axis data array
+ * \param[in]    plotstyle   GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
+ *                           GPLOT_LINESPOINTS, GPLOT_DOTS
+ * \param[in]    rootname    root for all output files
+ * \param[in]    title       [optional] overall title
+ * \param[in]    xlabel      [optional] x axis label
+ * \param[in]    ylabel      [optional] y axis label
+ * \return  pix   of plot, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The 'title', 'xlabel' and 'ylabel' strings can have spaces,
+ *          double quotes and backquotes, but not single quotes.
+ * </pre>
+ */
+PIX *
+gplotGeneralPix2(NUMA        *na1,
+                 NUMA        *na2,
+                 l_int32      plotstyle,
+                 const char  *rootname,
+                 const char  *title,
+                 const char  *xlabel,
+                 const char  *ylabel)
+{
+GPLOT *gplot;
+PIX   *pix;
+
+    PROCNAME("gplotGeneralPix2");
+
+    if (!na1)
+        return (PIX *)ERROR_PTR("na1 not defined", procName, NULL);
+    if (!na2)
+        return (PIX *)ERROR_PTR("na2 not defined", procName, NULL);
+    if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
+        return (PIX *)ERROR_PTR("invalid plotstyle", procName, NULL);
+    if (!rootname)
+        return (PIX *)ERROR_PTR("rootname not defined", procName, NULL);
+
+    gplot = gplotCreate(rootname, GPLOT_PNG, title, xlabel, ylabel);
+    if (!gplot)
+        return (PIX *)ERROR_PTR("gplot not made", procName, NULL);
+    gplotAddPlot(gplot, na1, na2, plotstyle, NULL);
+    pix = gplotMakeOutputPix(gplot);
+    gplotDestroy(&gplot);
+    return pix;
+}
+
+
+/*!
+ * \brief   gplotGeneralPixN()
+ *
+ * \param[in]    nax         x-axis data array
+ * \param[in]    naay        array of y-axis data arrays
+ * \param[in]    plotstyle   GPLOT_LINES, GPLOT_POINTS, GPLOT_IMPULSES,
+ *                           GPLOT_LINESPOINTS, GPLOT_DOTS
+ * \param[in]    rootname    root for all output files
+ * \param[in]    title       [optional] overall title
+ * \param[in]    xlabel      [optional] x axis label
+ * \param[in]    ylabel      [optional] y axis label
+ * \return  pix   of plot, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The 'title', 'xlabel' and 'ylabel' strings can have spaces,
+ *          double quotes and backquotes, but not single quotes.
+ * </pre>
+ */
+PIX *
+gplotGeneralPixN(NUMA        *nax,
+                 NUMAA       *naay,
+                 l_int32      plotstyle,
+                 const char  *rootname,
+                 const char  *title,
+                 const char  *xlabel,
+                 const char  *ylabel)
+{
+l_int32  i, n;
+GPLOT   *gplot;
+NUMA    *nay;
+PIX     *pix;
+
+    PROCNAME("gplotGeneralPixN");
+
+    if (!nax)
+        return (PIX *)ERROR_PTR("nax not defined", procName, NULL);
+    if (!naay)
+        return (PIX *)ERROR_PTR("naay not defined", procName, NULL);
+    if ((n = numaaGetCount(naay)) == 0)
+        return (PIX *)ERROR_PTR("no numa in array", procName, NULL);
+    if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
+        return (PIX *)ERROR_PTR("invalid plotstyle", procName, NULL);
+    if (!rootname)
+        return (PIX *)ERROR_PTR("rootname not defined", procName, NULL);
+
+    gplot = gplotCreate(rootname, GPLOT_PNG, title, xlabel, ylabel);
+    if (!gplot)
+        return (PIX *)ERROR_PTR("gplot not made", procName, NULL);
+    for (i = 0; i < n; i++) {
+        nay = numaaGetNuma(naay, i, L_CLONE);
+        gplotAddPlot(gplot, nax, nay, plotstyle, NULL);
+        numaDestroy(&nay);
+    }
+    pix = gplotMakeOutputPix(gplot);
+    gplotDestroy(&gplot);
+    return pix;
+}
+
+
 /*-----------------------------------------------------------------*
  *                           Serialize for I/O                     *
  *-----------------------------------------------------------------*/
@@ -1058,7 +1288,7 @@ GPLOT   *gplot;
     sarrayDestroy(&gplot->cmddata);
     sarrayDestroy(&gplot->datanames);
     sarrayDestroy(&gplot->plotdata);
-    sarrayDestroy(&gplot->plottitles);
+    sarrayDestroy(&gplot->plotlabels);
     numaDestroy(&gplot->plotstyles);
 
     ignore = fscanf(fp, "Commandfile name: %511s\n", buf);  /* Bufsize - 1 */
@@ -1070,7 +1300,7 @@ GPLOT   *gplot;
     ignore = fscanf(fp, "\nPlot data:");
     gplot->plotdata = sarrayReadStream(fp);
     ignore = fscanf(fp, "\nPlot titles:");
-    gplot->plottitles = sarrayReadStream(fp);
+    gplot->plotlabels = sarrayReadStream(fp);
     ignore = fscanf(fp, "\nPlot styles:");
     gplot->plotstyles = numaReadStream(fp);
 
@@ -1122,7 +1352,7 @@ FILE  *fp;
     fprintf(fp, "\nPlot data:");
     sarrayWriteStream(fp, gplot->plotdata);
     fprintf(fp, "\nPlot titles:");
-    sarrayWriteStream(fp, gplot->plottitles);
+    sarrayWriteStream(fp, gplot->plotlabels);
     fprintf(fp, "\nPlot styles:");
     numaWriteStream(fp, gplot->plotstyles);
 

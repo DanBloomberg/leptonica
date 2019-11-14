@@ -964,7 +964,8 @@ PIX       *pix1, *pix2, *pix3;
         pixDestroy(&pix3);
     }
     if (debugflag) {
-        gplot = gplotCreate("/tmp/threshroot", GPLOT_PNG,
+        lept_mkdir("lept/binarize");
+        gplot = gplotCreate("/tmp/lept/binarize", GPLOT_PNG,
                             "number of cc vs. threshold",
                             "threshold", "number of cc");
         gplotAddPlot(gplot, NULL, na4, GPLOT_LINES, "plot 4cc");

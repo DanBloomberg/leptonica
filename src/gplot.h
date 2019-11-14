@@ -80,7 +80,7 @@ struct GPlot
     struct Sarray *cmddata;    /*!< command file contents            */
     struct Sarray *datanames;  /*!< data file names                  */
     struct Sarray *plotdata;   /*!< plot data (1 string/file)        */
-    struct Sarray *plottitles; /*!< title for each individual plot   */
+    struct Sarray *plotlabels; /*!< label for each individual plot   */
     struct Numa   *plotstyles; /*!< plot style for individual plots  */
     l_int32        nplots;     /*!< current number of plots          */
     char          *outname;    /*!< output file name                 */

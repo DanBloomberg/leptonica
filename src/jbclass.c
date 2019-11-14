@@ -1535,23 +1535,17 @@ PIX      *pix1, *pix2;
          PIX   *pix3, *pix4;
             L_INFO("Best dilation: %d\n", procName, L_MAX(3, ibest + 1));
             naseq = numaMakeSequence(1, 1, numaGetCount(nacc));
-            gplot = gplotCreate("/tmp/lept/jb/numcc", GPLOT_PNG,
-                                "Number of cc vs. horizontal dilation",
-                                "Sel horiz", "Number of cc");
-            gplotAddPlot(gplot, naseq, nacc, GPLOT_LINES, "");
-            gplotMakeOutput(gplot);
-            gplotDestroy(&gplot);
-            pix3 = pixRead("/tmp/lept/jb/numcc.png");
+            pix3 = gplotGeneralPix2(naseq, nacc, GPLOT_LINES,
+                                    "/tmp/lept/jb/numcc",
+                                    "Number of cc vs. horizontal dilation",
+                                    "Sel horiz", "Number of cc");
             pixaAddPix(pixadb, pix3, L_INSERT);
             numaDestroy(&naseq);
             naseq = numaMakeSequence(1, 1, numaGetCount(nadiff));
-            gplot = gplotCreate("/tmp/lept/jb/diffcc", GPLOT_PNG,
-                                "Diff count of cc vs. horizontal dilation",
-                                "Sel horiz", "Diff in cc");
-            gplotAddPlot(gplot, naseq, nadiff, GPLOT_LINES, "");
-            gplotMakeOutput(gplot);
-            gplotDestroy(&gplot);
-            pix3 = pixRead("/tmp/lept/jb/diffcc.png");
+            pix3 = gplotGeneralPix2(naseq, nadiff, GPLOT_LINES,
+                                    "/tmp/lept/jb/diffcc",
+                                    "Diff count of cc vs. horizontal dilation",
+                                    "Sel horiz", "Diff in cc");
             pixaAddPix(pixadb, pix3, L_INSERT);
             numaDestroy(&naseq);
             pix3 = pixCloseBrick(NULL, pixs, ibest + 1, 1);
