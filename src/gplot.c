@@ -121,7 +121,7 @@
  *                                   GPLOT_LINES, "gray histogram",
  *                                   "pix value", "num pixels");
  *         Multiple plots can be generated using gplotGeneralPixN().
- *        
+ *
  *     Note for output to GPLOT_LATEX:
  *         This creates latex output of the plot, named <rootname>.tex.
  *         It needs to be placed in a latex file <latexname>.tex

@@ -147,6 +147,7 @@ static const char *tests[] = {
                               "pdfio1_reg",
                               "pdfio2_reg",
                               "pdfseg_reg",
+                              "pixa1_reg",
                               "pixa2_reg",
                               "pixadisp_reg",
                               "pixcomp_reg",
