@@ -32,6 +32,10 @@
  *      where level = {1,2,3} and 2 is the default
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,

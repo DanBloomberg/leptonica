@@ -30,8 +30,11 @@
  *    Test dithering from 8 bpp to 1 bpp and 2 bpp.
  */
 
-#include "allheaders.h"
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
+#include "allheaders.h"
 
 int main(int    argc,
          char **argv)

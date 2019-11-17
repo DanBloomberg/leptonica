@@ -35,6 +35,10 @@
  *   which is a much simpler function.  See testmisc1.c for examples.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 

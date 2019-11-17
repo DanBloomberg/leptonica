@@ -64,6 +64,10 @@
  *              poppler-0.26.5-1
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #ifdef _WIN32
 # if defined(_MSC_VER) || defined(__MINGW32__)
 #  include <direct.h>

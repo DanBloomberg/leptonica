@@ -49,6 +49,10 @@
  *      180 6 0 6     (3 colors)
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const l_int32    MAX_DIST      = 120;

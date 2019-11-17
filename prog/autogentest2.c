@@ -34,6 +34,10 @@
  *  It then writes them to file and compares with the original.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 #include "autogen.137.h"    /* this must be included */
 

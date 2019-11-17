@@ -39,6 +39,10 @@
  *   Others are 1555.007.jpg, shearer.148.tif, lapide.052.100.jpg, etc.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define  NORMALIZE     1

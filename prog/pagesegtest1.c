@@ -31,6 +31,10 @@
  *                   pageseg1.tif, pageseg2.tif, pageseg3.tif, pageseg4.tif
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,

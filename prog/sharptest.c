@@ -34,6 +34,10 @@
  *      (2) Use fract in typical range (0.2 - 0.7)
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,

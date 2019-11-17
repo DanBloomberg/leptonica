@@ -30,6 +30,10 @@
  *    Test false color generation from 8 and 16 bpp gray
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const l_float32  gamma[] = {1.0, 2.0, 3.0};

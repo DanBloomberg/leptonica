@@ -30,6 +30,10 @@
  *   Tests scale-to-gray, unsharp masking, smoothing, and color scaling
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   DISPLAY      0    /* set to 1 to see the results */

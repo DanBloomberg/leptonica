@@ -46,6 +46,10 @@
  *            /tmp/lept/lion-out/lion-links.html   (html file of links)
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 

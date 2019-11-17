@@ -47,6 +47,10 @@
  *   about 600 ppi.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Mask at 4x reduction */

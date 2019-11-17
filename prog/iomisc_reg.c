@@ -47,6 +47,10 @@
  *   The issue was initially found on the AArch64 (ARM) processor.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "string.h"
 #include "allheaders.h"
 

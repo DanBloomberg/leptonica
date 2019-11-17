@@ -30,6 +30,10 @@
  *    Regression test for shear, both IP and to new pix.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   BINARY_IMAGE              "test1.png"

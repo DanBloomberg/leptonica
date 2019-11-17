@@ -32,6 +32,10 @@
  *   in the process.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   DO_QUAD     1

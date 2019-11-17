@@ -33,6 +33,10 @@
  *    Also tests the overlap and separation distance between boxes.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Determines maximum size of randomly-generated boxes.  Note the

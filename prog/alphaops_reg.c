@@ -45,6 +45,10 @@
  *         binary and ascii colormap serialization.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static PIX *DoBlendTest(PIX *pix, BOX *box, l_uint32 val, l_float32 gamma,

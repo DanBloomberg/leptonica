@@ -33,6 +33,10 @@
  *    visualizing the difference between sampling and interpolation.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const char  *opstr[3] = {"", "interpolated", "sampled"};

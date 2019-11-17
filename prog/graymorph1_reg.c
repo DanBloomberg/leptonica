@@ -48,6 +48,10 @@
  *          the stamp, using the tophat.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define     WSIZE              7

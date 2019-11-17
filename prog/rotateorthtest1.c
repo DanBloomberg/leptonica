@@ -33,6 +33,10 @@
  *        direction = 1 for cw; -1 for ccw
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define  NTIMES   10

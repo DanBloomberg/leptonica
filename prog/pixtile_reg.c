@@ -28,6 +28,10 @@
  *   pixtile_reg.c
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static l_int32 TestTiling(PIX *pixd, PIX *pixs, l_int32 nx, l_int32 ny,

@@ -31,6 +31,10 @@
  *     based on size, using logical combinations of indicator arrays.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static void Count_pieces(L_REGPARAMS *rp, PIX  *pix, l_int32 nexp);

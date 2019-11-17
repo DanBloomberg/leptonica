@@ -45,6 +45,10 @@
  *               /tmp/lept/jb/result
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Choose one of these */

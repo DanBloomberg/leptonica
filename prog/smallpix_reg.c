@@ -46,6 +46,10 @@
  *  effects (e.g., in pixScaleSmooth()) do not affect the results.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 void DisplayPix(PIXA **ppixa, l_int32 x, l_int32 y, char *fname)

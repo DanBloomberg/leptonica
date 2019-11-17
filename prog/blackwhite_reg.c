@@ -30,6 +30,10 @@
  *   Tests functions that handle black and white pixels in an image.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 const char *fnames[11] = {"test1.png", "speckle2.png", "weasel2.4g.png",

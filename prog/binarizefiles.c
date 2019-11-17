@@ -32,6 +32,10 @@
  *    The resolution is preserved.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "string.h"
 #include <sys/stat.h>
 #include <sys/types.h>

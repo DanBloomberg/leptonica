@@ -30,6 +30,10 @@
  *    Uses computation of half edge function, along with thresholding.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   SMOOTH_WIDTH_1       2  /* must be smaller */

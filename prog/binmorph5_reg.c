@@ -33,6 +33,10 @@
  *       (2) dwa composite     vs.    morph non-composite
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 void  TestAll(L_REGPARAMS *rp, PIX *pixs, l_int32 symmetric);

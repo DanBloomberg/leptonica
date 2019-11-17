@@ -54,6 +54,10 @@
  *            one in autogen.101.h, and recompile.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 #include "bmfdata.h"
 

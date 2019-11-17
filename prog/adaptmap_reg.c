@@ -30,6 +30,10 @@
  *   Regression test demonstrating adaptive mappings in both gray and color
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
    /* Location of image region in wet-day.jpg */

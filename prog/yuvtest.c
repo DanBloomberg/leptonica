@@ -34,6 +34,10 @@
  *    yuv value does not necessarily represent a valid rgb value.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 void AddTransformsRGB(PIXA *pixa, L_BMF *bmf, l_int32 gval);

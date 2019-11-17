@@ -30,6 +30,10 @@
  *   Tests sudoku solver and generator.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const char *startsol = "3 8 7 2 6 4 1 9 5 "

@@ -59,6 +59,10 @@
  *        /tmp/lept/image/output.pdf, from the images.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <sys/stat.h>
 #include "allheaders.h"
 

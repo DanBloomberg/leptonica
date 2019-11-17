@@ -41,6 +41,10 @@
  *   * test RGB histogram and counting functions in pix4.c
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static L_AMAP *BuildMapHistogram(PIX *pix, l_int32 factor, l_int32 print);

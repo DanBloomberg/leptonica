@@ -30,6 +30,10 @@
  *    Regression test for in-place translation
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   BINARY_IMAGE        "test1.png"

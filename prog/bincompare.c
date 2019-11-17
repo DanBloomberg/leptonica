@@ -30,6 +30,10 @@
  *    Bitwise comparison of two binary images
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* set one of these to 1 */

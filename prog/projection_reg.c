@@ -31,6 +31,10 @@
  *    Just for interest, a number of different tests are done.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 void TestProjection(L_REGPARAMS *rp, PIX *pix);

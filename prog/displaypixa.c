@@ -41,6 +41,10 @@
  *   No scaling is done if @scalefact == 0.0 or @scalefact == 1.0.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 

@@ -37,6 +37,10 @@
  *     5x faster than greedy splitting, DID is the default that is used.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "string.h"
 #include "allheaders.h"
 

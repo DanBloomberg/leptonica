@@ -33,6 +33,10 @@
  *         Color coded transform of 1 bpp images
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 void FindEMD(PIX *pix1, PIX *pix2, l_float32 *pdistr, l_float32 *pdistg,

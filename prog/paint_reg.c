@@ -32,6 +32,10 @@
  *      (2) painting through masks (test by reconstructing cmapped image)
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static PIX * ReconstructByValue(L_REGPARAMS *rp, const char *fname);

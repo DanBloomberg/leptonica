@@ -30,6 +30,10 @@
  *    Tests various functions against a set of the different image types.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const char *fnames[10] = {"feyn-fract.tif", "speckle2.png",

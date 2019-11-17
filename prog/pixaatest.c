@@ -30,6 +30,10 @@
  *     Syntax:  pixaatest
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const l_int32  nx = 10;

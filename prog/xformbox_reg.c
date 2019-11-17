@@ -31,6 +31,10 @@
  *      Also tests the various box hashing graphics operations.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Consts for second set */

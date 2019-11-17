@@ -30,6 +30,10 @@
  *   Regression test for gray filling operations
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 void PixTestEqual(L_REGPARAMS *rp, PIX *pixs1, PIX *pixs2, PIX *pixm,

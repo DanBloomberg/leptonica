@@ -42,8 +42,6 @@
  *    large number of images will be displayed on the screen.
  */
 
-    /* Needed for: HAVE_LIBJP2K, HAVE_LIBGIF,
-     *             HAVE_LIBWEBP and HAVE_LIBWEBP_ANIM  */
 #ifdef HAVE_CONFIG_H
 #include <config_auto.h>
 #endif /* HAVE_CONFIG_H */

@@ -30,6 +30,10 @@
  *   Analyzes edges of a 1 bpp (connected component) image for smoothness.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static l_int32 MIN_JUMP = 2;

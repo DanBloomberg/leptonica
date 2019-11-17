@@ -35,6 +35,10 @@
  *     boundary cond :  L_BOUNDARY_BG or L_BOUNDARY_FG
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static void TestDistance(PIXA *pixa, PIX *pixs, l_int32 conn,

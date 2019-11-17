@@ -33,6 +33,10 @@
  *     b.c., the rasterop function must be pixCloseSafe().
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* defined in morph.c */

@@ -40,7 +40,6 @@
  *    Use webpinfo to inspect the contents of an animated webp file.
  */
 
-    /* Needed for HAVE_LIBWEBP, HAVE_LIBWEBP_ANIM and HAVE_LIBJPEG */
 #ifdef HAVE_CONFIG_H
 #include <config_auto.h>
 #endif /* HAVE_CONFIG_H */

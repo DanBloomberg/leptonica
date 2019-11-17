@@ -30,6 +30,10 @@
  *    Regression test for various color quantizers
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const l_int32 SPACE = 30;

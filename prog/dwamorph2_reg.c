@@ -30,6 +30,10 @@
  *     Compare the timings of various binary morphological implementations.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #ifndef  _WIN32
 #include <unistd.h>
 #else

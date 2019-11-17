@@ -54,13 +54,12 @@
  *             (note: no lossless mode; gif can't write out rgb)
  */
 
-#include <math.h>
-#include "allheaders.h"
-
-    /* Needed for HAVE_LIBGIF and or HAVE_LIBUNGIF */
 #ifdef HAVE_CONFIG_H
 #include <config_auto.h>
-#endif /* HAVE_CONFIG_H */
+#endif  /* HAVE_CONFIG_H */
+
+#include <math.h>
+#include "allheaders.h"
 
 #if HAVE_LIBGIF || HAVE_LIBUNGIF
 #include "gif_lib.h"

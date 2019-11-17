@@ -36,6 +36,10 @@
  *   before transforming and then re-applying the gamma transform.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static void MakePtas(l_int32 i, l_int32 npts, PTA **pptas, PTA **pptad);

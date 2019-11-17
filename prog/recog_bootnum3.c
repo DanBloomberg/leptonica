@@ -41,6 +41,10 @@
  *     it are auto-generated with the stringcode utility.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 l_int32 main(int    argc,

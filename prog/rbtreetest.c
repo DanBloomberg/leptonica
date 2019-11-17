@@ -31,6 +31,10 @@
  * CC0 1.0 waiver (http://creativecommons.org/publicdomain/zero/1.0/).
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define PRINT_FULL_TREE  0

@@ -45,6 +45,10 @@
  *      the lower-level code directly.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 l_int32 TestAll(L_REGPARAMS *rp, PIX *pixs, l_int32 symmetric);

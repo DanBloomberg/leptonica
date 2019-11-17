@@ -30,6 +30,10 @@
  *     Tests gray thresholding to 1, 2 and 4 bpp, with and without colormaps
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const l_int32  THRESHOLD = 130;

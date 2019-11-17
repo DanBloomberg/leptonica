@@ -36,6 +36,10 @@
  *  For a more complete set of tests, see the operations tested in maptest.c.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static L_ASET *BuildSet(PIX *pix, l_int32 factor, l_int32 print);

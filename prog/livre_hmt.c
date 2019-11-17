@@ -40,6 +40,10 @@
  *           fig 8:  livre_hmt 2 4
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* for pixDisplayHitMissSel() */

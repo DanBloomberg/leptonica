@@ -33,6 +33,10 @@
  *   Scientific Publishing, Ltd, 2010.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #ifndef  _WIN32
 #include <unistd.h>
 #else

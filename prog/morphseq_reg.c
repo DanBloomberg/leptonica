@@ -31,6 +31,10 @@
  *    showing display mode and rejection of invalid sequence components.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define  SEQUENCE1    "O1.3 + C3.1 + R22 + D2.2 + X4"

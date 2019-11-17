@@ -44,6 +44,10 @@
  *       lp -d <printer> -o ColorModel=Color <ps-file>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const l_float32  FILL_FACTOR = 0.95;   /* fill factor on 8.5 x 11 page */

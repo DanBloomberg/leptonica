@@ -57,12 +57,11 @@
  *        libwebp, libopenjp2, libgif
  */
 
-#include "allheaders.h"
-
-    /* Needed for checking libraries */
 #ifdef HAVE_CONFIG_H
 #include <config_auto.h>
 #endif /* HAVE_CONFIG_H */
+
+#include "allheaders.h"
 
 #define   BMP_FILE             "test1.bmp"
 #define   FILE_1BPP            "feyn.tif"

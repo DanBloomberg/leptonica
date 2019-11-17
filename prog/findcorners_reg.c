@@ -47,6 +47,10 @@
  *        /tmp/lept/regout/tickets.pdf  (deskewed result for the set of tickets)
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static BOXA *LocateBarcodes(PIX *pixs, PIX **ppixd, l_int32 flag);

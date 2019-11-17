@@ -33,9 +33,12 @@
  *   (2) only slightly different in content
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "string.h"
 #include "allheaders.h"
-
 
 l_int32 main(int    argc,
              char **argv)

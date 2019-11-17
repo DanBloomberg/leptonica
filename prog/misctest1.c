@@ -37,6 +37,10 @@
  *        * Extract parts of an image using a boxa
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   SHOW    0

@@ -39,7 +39,6 @@
  *    Lossless writing is extremely slow.
  */
 
-    /* Needed for HAVE_LIBWEBP and HAVE_LIBJPEG */
 #ifdef HAVE_CONFIG_H
 #include <config_auto.h>
 #endif /* HAVE_CONFIG_H */

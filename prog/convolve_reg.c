@@ -30,6 +30,10 @@
  *    Tests a number of convolution functions.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const char  *kel1str = " 20    50   80  50   20 "

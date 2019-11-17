@@ -42,6 +42,10 @@
  *     colorpage.030.jpg
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Implementation is in this file */

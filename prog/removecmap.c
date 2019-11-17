@@ -37,6 +37,10 @@
  *      Works on palette images of 2, 4 and 8 bpp
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,

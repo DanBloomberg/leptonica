@@ -48,6 +48,10 @@
  *    masking is done properly depending on the pixel size.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static void CompareResults(PIX *pixs, PIX *pix1, PIX *pix2,

@@ -42,6 +42,10 @@
  *    Use pageseg*.tif input images.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Control the display output */

@@ -40,6 +40,10 @@
  *    image of the Sel superimposed on the "c" bitmap.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* for pixGenerateSelWithRuns() */

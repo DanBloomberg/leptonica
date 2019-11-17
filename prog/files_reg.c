@@ -33,6 +33,10 @@
  *    use "/tmp" for string compares.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 #include <string.h>
 #ifndef _MSC_VER

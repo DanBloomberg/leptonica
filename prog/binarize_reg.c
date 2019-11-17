@@ -30,6 +30,10 @@
  *     Tests Sauvola local binarization and variants
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 PIX *PixTest1(PIX *pixs, l_int32 size, l_float32 factor, L_REGPARAMS  *rp);

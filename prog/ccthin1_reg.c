@@ -31,6 +31,10 @@
  *   Displays all the strong cc-preserving 3x3 Sels.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
