@@ -1261,7 +1261,7 @@ PIX     *pix;
             pixaAddPix(pixadb, pix, L_INSERT);
         }
     }
-    
+
     n = boxaGetCount(boxas);
     boxad = boxaCreate(n);
     if (select == L_ADJUST_LEFT) {
@@ -1312,7 +1312,7 @@ PIX     *pix;
         pixaAddPix(pixadb, pix, L_INSERT);
     }
     return boxad;
-} 
+}
 
 
 static void

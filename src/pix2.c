@@ -2881,9 +2881,9 @@ setLineDataVal(l_uint32  *line,
 {
     PROCNAME("setLineDataVal");
 
-    if (!line) 
+    if (!line)
         return ERROR_INT("line not defined", procName, 1);
-    if (j < 0) 
+    if (j < 0)
         return ERROR_INT("j must be >= 0", procName, 1);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
         return ERROR_INT("invalid d", procName, 1);

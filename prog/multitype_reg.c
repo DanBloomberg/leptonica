@@ -238,7 +238,7 @@ L_REGPARAMS  *rp;
     pixaDestroy(&pixa);
 #endif
 
-#if DO_ALL 
+#if DO_ALL
         /* Rotation by 3-shear; with embedding */
     pixa = pixaCreate(n);
     for (i = 0; i < n; i++) {

@@ -131,26 +131,26 @@ L_REGPARAMS  *rp;
 
         /* Test read/write of alpha with png */
     pixs = pixRead("books_logo.png");
-    if (rp->display) pixDisplay(pixs, 0, 100);
+    pixDisplayWithTitle(pixs, 0, 100, NULL, rp->display);
     pixg = pixGetRGBComponent(pixs, L_ALPHA_CHANNEL);
     regTestWritePixAndCheck(rp, pixg, IFF_PNG);  /* 11 */
-    if (rp->display) pixDisplay(pixg, 300, 100);
+    pixDisplayWithTitle(pixg, 300, 100, NULL, rp->display);
     pixDestroy(&pixg);
     pix1 = pixAlphaBlendUniform(pixs, 0xffffff00);  /* render rgb over white */
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 12 */
-    if (rp->display) pixDisplay(pix1, 0, 250);
+    pixDisplayWithTitle(pix1, 0, 250, NULL, rp->display);
     pix2 = pixSetAlphaOverWhite(pix1);  /* regenerate alpha from white */
     pixWrite("/tmp/lept/io/logo2.png", pix2, IFF_PNG);
     regTestCheckFile(rp, "/tmp/lept/io/logo2.png");  /* 13 */
-    if (rp->display) pixDisplay(pix2, 0, 400);
+    pixDisplayWithTitle(pix2, 0, 400, NULL, rp->display);
     pixg = pixGetRGBComponent(pix2, L_ALPHA_CHANNEL);
     regTestWritePixAndCheck(rp, pixg, IFF_PNG);  /* 14 */
-    if (rp->display) pixDisplay(pixg, 300, 400);
+    pixDisplayWithTitle(pixg, 300, 400, NULL, rp->display);
     pixDestroy(&pixg);
     pix3 = pixRead("/tmp/lept/io/logo2.png");
     pix4 = pixAlphaBlendUniform(pix3, 0x00ffff00);  /* render rgb over cyan */
     regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 15 */
-    if (rp->display) pixDisplay(pix3, 0, 550);
+    pixDisplayWithTitle(pix3, 0, 550, NULL, rp->display);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
@@ -207,7 +207,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pix3 = pixaDisplayTiled(pixa, 400, 0, 20);
-    if (rp->display) pixDisplay(pix3, 0, 750);
+    pixDisplayWithTitle(pix3, 0, 750, NULL, rp->display);
     pixDestroy(&pix3);
     pixaDestroy(&pixa);
 
@@ -284,6 +284,16 @@ L_REGPARAMS  *rp;
         fprintf(stderr, "jpeg: %ld\n", (unsigned long)size);
     pixDestroy(&pixs);
     pixDestroy(&pixg);
+
+        /* Test read/write of alpha with pnm */
+    pixs = pixRead("books_logo.png");
+    pixWrite("/tmp/lept/io/alpha1.pnm", pixs, IFF_PNM);
+    regTestCheckFile(rp, "/tmp/lept/io/alpha1.pnm");  /* 39 */
+    pix1 = pixRead("/tmp/lept/io/alpha1.pnm");
+    regTestComparePix(rp, pixs, pix1);  /* 40 */
+    pixDisplayWithTitle(pix1, 600, 100, NULL, rp->display);
+    pixDestroy(&pixs);
+    pixDestroy(&pix1);
 
     return regTestCleanup(rp);
 }

@@ -181,7 +181,7 @@
  *            (b) the median or mean values of the background color of
  *                a scan.
  *          The gamma TRC transformation is used to modify all colors so that
- *          these reference values become white.  
+ *          these reference values become white.
  *          These three numbers must either be all 0 or all non-zero.
  *          To skip the TRC transform, set them all to 0.
  *      (3) If the maximum component after white point correction,
@@ -380,7 +380,7 @@ PIXCMAP   *cmap;
  *            (b) the median or mean values of the background color of
  *                a scan.
  *          The gamma TRC transformation is used to modify all colors so that
- *          these reference values become white.  
+ *          these reference values become white.
  *          These three numbers must either be all 0 or all non-zero.
  *          To skip the TRC transform, set them all to 0.
  * </pre>
@@ -1463,7 +1463,7 @@ PIXCMAP   *cmap;
         *pncolors = sum;
         return 0;
     }
-    
+
         /* More than 256 colors in RGB image */
     return pixCountRGBColors(pixs, factor, pncolors);
 }
@@ -1499,7 +1499,7 @@ PIXCMAP   *cmap;
 
     if (!pixs || pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    
+
     pixNumColors(pixs, 1, &ncolors);
     if (ncolors > 256) {
         L_ERROR("too many colors found: %d\n", procName, ncolors);

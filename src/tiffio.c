@@ -1931,7 +1931,7 @@ l_uint32   w, h;
     TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLESPERPIXEL, &spp);
     if (w < 1 || h < 1)
         return ERROR_INT("tif w and h not both > 0", procName, 1);
-    if (bps != 1 && bps != 2 && bps != 4 && bps != 8 && bps > 16)
+    if (bps != 1 && bps != 2 && bps != 4 && bps != 8 && bps != 16)
         return ERROR_INT("bps not in set {1,2,4,8,16}", procName, 1);
     if (spp != 1 && spp != 2 && spp != 3 && spp != 4)
         return ERROR_INT("spp not in set {1,2,3,4}", procName, 1);

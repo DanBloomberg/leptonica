@@ -98,7 +98,7 @@
  *      (2) nalloc, the allocated size of the palette array, is related
  *          to the depth d of the pixels by:
  *                 nalloc = 2^(d)
- *       
+ *
  * </pre>
  */
 
