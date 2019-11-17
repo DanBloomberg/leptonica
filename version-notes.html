@@ -77,7 +77,7 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 
 
 <h2 align=center>Version Notes for Leptonica</h2>
-<h3 align=center>21 Mar 2019</h3>
+<h3 align=center>21 Nov 2019</h3>
 
 <hr>
 <h2 align=center>  <IMG SRC="moller52.jpg" border=1 ALIGN_MIDDLE> </h2>
@@ -94,8 +94,8 @@ They are <i>not</i> a complete listing of the modifications.
         * Some fixes for issues identified by fuzzer
         * New programs: replacebytes.c, webpanimio_reg.c, partifytest.c,
           rectangle_reg.c, lowsat_reg.c, rotate_it.c, scale_it.c, dewarp_it.c,
-          pdfio1_reg.c, pdfio2_reg.c
-        * Convert to standard reg test: heap_reg.c
+          pdfio1_reg.c, pdfio2_reg.c.
+        * Convert to standard reg test: heap_reg.c, pixa1_reg.c
         * Improved data checking when reading image file headers
           (pnm, png, jpeg, tiff)
         * Fixed some bugs in pnm reading
@@ -111,6 +111,21 @@ They are <i>not</i> a complete listing of the modifications.
           that do useful operations on arbitrary images.
         * Converted pdfiotest program to two regression tests: pdfio1_reg
           and pdfio2_reg.
+        * Removed all use of strncat; use stringCat().
+        * New functions from removing outliers in sequences of boxes.
+        * Generalize pixAverageInRect(): mask, region and range filters,
+          and subsampling.  New pixAverageInRectRGB().
+        * Fix int overflow bug in pixMedianCut(); required new heap accessor.
+        * New pixMultiplyGray() allows pix to be multiplied by an array (or
+          another pix)
+        * Better routines for counting color.
+        * Lossless conversion for RGB to cmap with not more than 256 colors.
+        * New histo based global thresholding: pixThresholdByHisto().
+        * Allow most reg tests to run even if external libraries are not
+          available.
+        * New one-line gplot functions that return a pix.
+ 
+
 
 1.78.0  21 Mar 19
         * Various improvements in handling boxa sequences and transforms.

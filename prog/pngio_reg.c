@@ -39,6 +39,10 @@
  *        libpng, libz
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Needed for checking libraries */

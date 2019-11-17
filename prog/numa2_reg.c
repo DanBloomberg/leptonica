@@ -33,6 +33,10 @@
  *     * pixel averages and variances
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #ifndef  _WIN32
 #include <unistd.h>

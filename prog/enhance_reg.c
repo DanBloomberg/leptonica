@@ -36,6 +36,10 @@
  *     * Linear color transform without mixing (diagonal)
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 

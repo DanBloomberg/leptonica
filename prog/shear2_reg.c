@@ -30,6 +30,10 @@
  *    Regression test for quadratic shear, both sampled and interpolated.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 void PixSave(PIX **ppixs, PIXA *pixa, l_int32 newrow,

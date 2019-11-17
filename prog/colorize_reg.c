@@ -34,6 +34,10 @@
  *  The input image is rgb.  Other examples are breviar.32 and amoris.2.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 PIX *TestForRedColor(L_REGPARAMS *rp, const char *fname,
