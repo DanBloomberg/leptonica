@@ -95,6 +95,7 @@
  *         Making hit-miss sels from Pix and image files
  *            SEL       *selReadFromColorImage()
  *            SEL       *selCreateFromColorPix()
+              SELA      *selaCreateFromColorPixa()
  *
  *         Printable display of sel
  *            PIX       *selDisplayInPix()
@@ -2187,6 +2188,52 @@ l_uint32  pixval;
         return (SEL *)ERROR_PTR("no hits in sel", procName, NULL);
     }
     return sel;
+}
+
+
+/*!
+ *
+ *  selaCreateFromColorPixa()
+ *
+ * \param[in]    pixa      color pixa representing the sels
+ * \param[in]    sa        sarray of sel names
+ * \return  sel if OK, NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) See notes in selCreateFromColorPix()
+ *      (2) sa is required because all sels that are put in a sela
+ *          must have a name.
+ * </pre>
+ */
+SELA *
+selaCreateFromColorPixa(PIXA    *pixa,
+                        SARRAY  *sa)
+{
+char    *str;
+l_int32  i, n;
+PIX     *pix;
+SEL     *sel;
+SELA    *sela;
+
+    PROCNAME("selaCreateFromColorPixa");
+
+    if (!pixa)
+        return (SELA *)ERROR_PTR("pixa not defined", procName, NULL);
+    if (!sa)
+        return (SELA *)ERROR_PTR("sa of sel names not defined", procName, NULL);
+
+    n = pixaGetCount(pixa);
+    if ((sela = selaCreate(n)) == NULL)
+        return (SELA *)ERROR_PTR("sela not allocated", procName, NULL);
+    for (i = 0; i < n; i++) {
+        pix = pixaGetPix(pixa, i, L_CLONE);
+        str = sarrayGetString(sa, i, L_NOCOPY);
+        sel = selCreateFromColorPix(pix, str);
+        selaAddSel(sela, sel, NULL, L_INSERT);
+        pixDestroy(&pix);
+    }
+    return sela;
 }
 
 

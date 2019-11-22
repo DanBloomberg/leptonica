@@ -1301,9 +1301,9 @@ l_int32  i, n, left, top, right, bot, w, h;
  * \brief   boxaExtractCorners()
  *
  * \param[in]    boxa
- * \param[in]    corner    L_UPPER_LEFT, L_UPPER_RIGHT, L_LOWER_LEFT,
- *                         L_LOWER_RIGHT
- * \return  pta of corner coordinates, or NULL on error
+ * \param[in]    loc       L_UPPER_LEFT, L_UPPER_RIGHT, L_LOWER_LEFT,
+ *                         L_LOWER_RIGHT, L_BOX_CENTER
+ * \return  pta of requested coordinates, or NULL on error
  *
  * <pre>
  * Notes:
@@ -1317,7 +1317,7 @@ l_int32  i, n, left, top, right, bot, w, h;
  */
 PTA *
 boxaExtractCorners(BOXA    *boxa,
-                   l_int32  corner)
+                   l_int32  loc)
 {
 l_int32  i, n, left, top, right, bot, w, h;
 PTA     *pta;
@@ -1326,9 +1326,9 @@ PTA     *pta;
 
     if (!boxa)
         return (PTA *)ERROR_PTR("boxa not defined", procName, NULL);
-    if (corner != L_UPPER_LEFT && corner != L_UPPER_RIGHT &&
-        corner != L_LOWER_LEFT && corner != L_LOWER_RIGHT)
-        return (PTA *)ERROR_PTR("invalid corner", procName, NULL);
+    if (loc != L_UPPER_LEFT && loc != L_UPPER_RIGHT && loc != L_LOWER_LEFT &&
+        loc != L_LOWER_RIGHT && loc != L_BOX_CENTER)
+        return (PTA *)ERROR_PTR("invalid location", procName, NULL);
 
     n = boxaGetCount(boxa);
     if ((pta = ptaCreate(n)) == NULL)
@@ -1344,14 +1344,16 @@ PTA     *pta;
             right = 0;
             bot = 0;
         }
-        if (corner == L_UPPER_LEFT)
+        if (loc == L_UPPER_LEFT)
             ptaAddPt(pta, left, top);
-        else if (corner == L_UPPER_RIGHT)
+        else if (loc == L_UPPER_RIGHT)
             ptaAddPt(pta, right, top);
-        else if (corner == L_LOWER_LEFT)
+        else if (loc == L_LOWER_LEFT)
             ptaAddPt(pta, left, bot);
-        else if (corner == L_LOWER_RIGHT)
+        else if (loc == L_LOWER_RIGHT)
             ptaAddPt(pta, right, bot);
+        else if (loc == L_BOX_CENTER)
+            ptaAddPt(pta, (left + right) / 2, (top + bot) / 2);
     }
 
     return pta;

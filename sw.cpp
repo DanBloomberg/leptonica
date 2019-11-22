@@ -111,6 +111,7 @@ void build(Solution &s)
             {"bytea_reg", {"bytea_reg.c"}},
             {"ccthin1_reg", {"ccthin1_reg.c"}},
             {"ccthin2_reg", {"ccthin2_reg.c"}},
+            {"checkerboard_reg", {"checkerboard_reg.c"}},
             {"cmapquant_reg", {"cmapquant_reg.c"}},
             {"colorcontent_reg", {"colorcontent_reg.c"}},
             {"coloring_reg", {"coloring_reg.c"}},

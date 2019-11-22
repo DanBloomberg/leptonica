@@ -51,6 +51,7 @@
  *           PIX        *pixSetUnderTransparency()
  *           PIX        *pixMakeAlphaFromMask()
  *           l_int32     pixGetColorNearMaskBoundary()
+ *           PIX        *pixDisplaySelectedPixels()  -- for debugging
  *
  *    One and two-image boolean operations on arbitrary depth images
  *           PIX        *pixInvert()
@@ -1422,6 +1423,58 @@ PIX       *pix1, *pix2, *pix3;
     boxDestroy(&box1);
     boxDestroy(&box2);
     return 0;
+}
+
+
+/*!
+ * \brief   pixDisplaySelectedPixels()
+ *
+ * \param[in]    pixs    [optional] any depth
+ * \param[in]    pixm    1 bpp mask, aligned UL corner with %pixs
+ * \param[in]    sel     [optional] pattern to paint at each pixel in pixm
+ * \param[in]    val     rgb rendering of pattern
+ * \return  pixd, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) For every fg pixel in %pixm, this paints the pattern in %sel
+ *          in %color on a copy of %pixs.
+ *      (2) The implementation is to dilate %pixm by %sel, and then
+ *          paint through the dilated mask onto %pixs.
+ *      (3) If %pixs == NULL, it paints on a white image.
+ *      (4) If %sel == NULL, it paints only the pixels in the input %pixm.
+ *      (5) This visualization would typically be used in debugging.
+ * </pre>
+ */
+PIX *
+pixDisplaySelectedPixels(PIX      *pixs,
+                         PIX      *pixm,
+                         SEL      *sel,
+                         l_uint32  val)
+{
+l_int32  w, h;
+PIX     *pix1, *pix2;
+
+    PROCNAME("pixDisplaySelectedPixels");
+
+    if (!pixm || pixGetDepth(pixm) != 1)
+        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", procName, NULL);
+
+    if (pixs) {
+        pix1 = pixConvertTo32(pixs);
+    } else {
+        pixGetDimensions(pixm, &w, &h, NULL);
+        pix1 = pixCreate(w, h, 32);
+        pixSetAll(pix1);
+    }
+
+    if (sel)
+       pix2 = pixDilate(NULL, pixm, sel);
+    else
+       pix2 = pixClone(pixm);
+    pixSetMasked(pix1, pix2, val);
+    pixDestroy(&pix2);
+    return pix1;
 }
 
 

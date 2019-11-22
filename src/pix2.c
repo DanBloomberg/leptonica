@@ -41,6 +41,7 @@
  *           l_int32     pixSetPixel()
  *           l_int32     pixGetRGBPixel()
  *           l_int32     pixSetRGBPixel()
+ *           l_int32     pixSetCmapPixel()
  *           l_int32     pixGetRandomPixel()
  *           l_int32     pixClearPixel()
  *           l_int32     pixFlipPixel()
@@ -365,7 +366,7 @@ l_uint32  *data, *ppixel;
  *
  * Notes:
  *      (1) If the point is outside the image, this returns an error (2),
- *          with 0 in %pval.  To avoid spamming output, it fails silently.
+ *          and to avoid spamming output, it fails silently.
  */
 l_ok
 pixSetRGBPixel(PIX     *pix,
@@ -394,6 +395,55 @@ l_uint32  *data, *line;
     line = data + y * wpl;
     composeRGBPixel(rval, gval, bval, &pixel);
     *(line + x) = pixel;
+    return 0;
+}
+
+
+/*!
+ * \brief   pixSetCmapPixel()
+ *
+ * \param[in]    pix    2, 4 or 8 bpp, colormapped
+ * \param[in]    x,y    pixel coords
+ * \param[in]    rval   red component
+ * \param[in]    gval   green component
+ * \param[in]    bval   blue component
+ * \return  0 if OK; 1 or 2 on error
+ *
+ * Notes:
+ *      (1) If the point is outside the image, this returns an error (2),
+ *          and to avoid spamming output, it fails silently.
+ *      (2) - If the color does not exist in the colormap, it is added
+ *            if possible
+ *          - If there is not room in the colormap for the new color,
+ *            return 2 with a warning.
+ *          - If the color already exists, use it.
+ */
+l_ok
+pixSetCmapPixel(PIX     *pix,
+                l_int32  x,
+                l_int32  y,
+                l_int32  rval,
+                l_int32  gval,
+                l_int32  bval)
+{
+l_int32   w, h, d, index;
+PIXCMAP  *cmap;
+
+    PROCNAME("pixSetCmapPixel");
+
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    if ((cmap = pixGetColormap(pix)) == NULL)
+        return ERROR_INT("pix is not colormapped", procName, 1);
+    pixGetDimensions(pix, &w, &h, &d);
+    if (d != 2 && d != 4 && d != 8)
+        return ERROR_INT("pix depth not 2, 4 or 8", procName, 1);
+    if (x < 0 || x >= w || y < 0 || y >= h)
+        return 2;
+
+    if (pixcmapAddNewColor(cmap, rval, gval, bval, &index) == 2)
+        return ERROR_INT("colormap is full", procName, 2);
+    pixSetPixel(pix, x, y, index);
     return 0;
 }
 

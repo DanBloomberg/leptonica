@@ -55,6 +55,9 @@
  *          SELA    *sela4ccThin()
  *          SELA    *sela8ccThin()
  *          SELA    *sela4and8ccThin()
+ *
+ *      Other structuring elements
+ *          SEL    *selMakePlusSign()
  * </pre>
  */
 
@@ -840,5 +843,44 @@ SEL  *sel;
     selaAddSel(sela, sel, NULL, 0);
 
     return sela;
+}
+
+
+/* -------------------------------------------------------------------------- *
+ *                        Other structuring elements                          *
+ * -------------------------------------------------------------------------- */
+/*!
+ * \brief   selMakePlusSign()
+ *
+ * \param[in]    size        side of containing square
+ * \param[in]    linewidth   of lines
+ * \return  sel, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Useful for debugging to show location of selected pixels.
+ *      (2) See displaySelectedPixels() for an example of use.
+ * </pre>
+ */
+SEL *
+selMakePlusSign(l_int32  size,
+                l_int32  linewidth)
+{
+PIX  *pix;
+SEL  *sel;
+
+    PROCNAME("selMakePlusSign");
+
+    if (size < 3 || linewidth > size)
+        return (SEL *)ERROR_PTR("invalid input", procName, NULL);
+
+    pix = pixCreate(size, size, 1);
+    pixRenderLine(pix, size / 2, 0, size / 2, size - 1,
+                  linewidth, L_SET_PIXELS);
+    pixRenderLine(pix, 0, size / 2, size, size / 2,
+                  linewidth, L_SET_PIXELS);
+    sel = selCreateFromPix(pix, size / 2, size / 2, "plus_sign");
+    pixDestroy(&pix);
+    return sel;
 }
 
