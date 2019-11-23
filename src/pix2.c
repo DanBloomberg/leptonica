@@ -412,11 +412,17 @@ l_uint32  *data, *line;
  * Notes:
  *      (1) If the point is outside the image, this returns an error (2),
  *          and to avoid spamming output, it fails silently.
- *      (2) - If the color does not exist in the colormap, it is added
- *            if possible
- *          - If there is not room in the colormap for the new color,
- *            return 2 with a warning.
- *          - If the color already exists, use it.
+ *      (2) - If the color already exists, use it.
+ *          - If the color does not exist in the colormap, it is added
+ *            if possible.
+ *          - If there is not room in the colormap for the new color:
+ *            * if d < 8, return 2 with a warning.
+ *            * if d == 8, find and use the nearest color.
+ *      (3) Note that this operation scales with the number of colors
+ *          in the colormap, and therefore can be very expensive if an
+ *          attempt is made to set many pixels.  (In that case, it should
+ *          be implemented with a map:rgb-->index for efficiency.)
+ *          This is best used with very small images.
  */
 l_ok
 pixSetCmapPixel(PIX     *pix,
@@ -441,8 +447,12 @@ PIXCMAP  *cmap;
     if (x < 0 || x >= w || y < 0 || y >= h)
         return 2;
 
-    if (pixcmapAddNewColor(cmap, rval, gval, bval, &index) == 2)
-        return ERROR_INT("colormap is full", procName, 2);
+    if (d == 8) {  /* always add */
+        pixcmapAddNearestColor(cmap, rval, gval, bval, &index);
+    } else {  /* d < 8 */
+        if (pixcmapAddNewColor(cmap, rval, gval, bval, &index) == 2)
+            return ERROR_INT("colormap is full", procName, 2);
+    }
     pixSetPixel(pix, x, y, index);
     return 0;
 }

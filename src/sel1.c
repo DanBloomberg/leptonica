@@ -2127,7 +2127,7 @@ selCreateFromColorPix(PIX         *pixs,
 {
 PIXCMAP  *cmap;
 SEL      *sel;
-l_int32   hascolor, hasorigin, nohits;
+l_int32   hascolor, num_origins, nohits;
 l_int32   w, h, d, i, j, red, green, blue;
 l_uint32  pixval;
 
@@ -2146,10 +2146,10 @@ l_uint32  pixval;
 
     if ((sel = selCreate (h, w, NULL)) == NULL)
         return (SEL *)ERROR_PTR ("sel not made", procName, NULL);
-    selSetOrigin (sel, h / 2, w / 2);
+    selSetOrigin (sel, h / 2, w / 2);  /* default */
     selSetName(sel, selname);
 
-    hasorigin = FALSE;
+    num_origins = 0;
     nohits = TRUE;
     for (i = 0; i < h; i++) {
         for (j = 0; j < w; j++) {
@@ -2164,10 +2164,11 @@ l_uint32  pixval;
             }
 
             if (red < 255 && green < 255 && blue < 255) {
-                if (hasorigin)
+                num_origins++;
+                if (num_origins == 1)  /* first one found */
+                    selSetOrigin (sel, i, j);
+                if (num_origins == 2)
                     L_WARNING("multiple origins in sel image\n", procName);
-                selSetOrigin (sel, i, j);
-                hasorigin = TRUE;
             }
             if (!red && green && !blue) {
                 nohits = FALSE;

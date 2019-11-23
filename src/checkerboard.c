@@ -35,13 +35,14 @@
  *      SELA           *makeCheckerboardCornerSela()
  *      static PIXA    *makeCheckerboardCornerPixa()
  *
- * The functions in this file locate the corners where 4 squares
+ * The functions in this file locate the corners where four squares
  * in a checkerboard come together.  With a perfectly aligned checkerboard,
- * the solution is trivial: take the union of two HMTs, each having a
- * simple diagonal sel.  The two sels can be generated from strings such
- * as these, using selCreateFromString():
+ * the solution is trivial: take the union of two hit-miss transforms (HMTs),
+ * each having a simple diagonal structuring element (sel).  The two
+ * sels can be generated from strings such as these, using
+ * selCreateFromString():
  *
- *  static const char *sel1 = "o     x"
+ *  static const char *str1 = "o     x"
  *                            "       "
  *                            "       "
  *                            "   C   "
@@ -98,7 +99,7 @@ static const char selnames[64] = "s_diag1 s_diag2 s_cross1 s_cross2";
  *          the square sizes.  Nominal values here are for squares of
  *          size 30 to 50.  In general, because of the viewing angle
  *          of the camera, the "squares" will appear approximately
- *          as a right-angled parallelograms.
+ *          as a rotated rectangle.
  *      (3) The outputs pix_corners and pta_corners are optional.
  * </pre>
  */
@@ -240,7 +241,10 @@ SELA    *sela;
  *
  * <pre>
  * Notes:
- *      (1) Each pix can be used to generate a hit-miss sel.
+ *      (1) Each pix can be used to generate a hit-miss sel, using the
+ *          function selCreateFromColorPix().  See that function for the
+ *          use of color and gray pixels to encode the hits, misses and
+ *          center in the structuring element.
  * </pre>
  */
 static PIXA *
@@ -248,30 +252,31 @@ makeCheckerboardCornerPixa(l_int32  size,
                            l_int32  dilation,
                            l_int32  nsels)
 {
-PIX      *pix1, *pix2, *pix3;
-PIXA     *pixa1;
-PIXCMAP  *cmap;
+PIX   *pix1, *pix2, *pix3;
+PIXA  *pixa1;
 
     pixa1 = pixaCreate(4);
 
         /* Represent diagonal neg slope hits and pos slope misses */
-    pix1 = pixCreateWithCmap(size, size, 8, L_SET_WHITE);
+    pix1 = pixCreate(size, size, 32);
+    pixSetAll(pix1);
     pix2 = pixCreate(size, size, 1);  /* slope -1 line (2 pixel) mask */
     pixSetPixel(pix2, 1, 1, 1);  /* UL corner */
     pixSetPixel(pix2, size - 2, size - 2, 1);  /* LR corner */
     if (dilation > 1)
         pixDilateBrick(pix2, pix2, dilation, dilation);  /* dilate each pixel */
-    pixSetMaskedCmap(pix1, pix2, 0, 0, 0, 255, 0);  /* green hit */
+    pixSetMasked(pix1, pix2, 0x00ff0000);  /* green hit */
     pix3 = pixRotate90(pix2, 1);  /* slope +1 line (2 pixel) mask */
-    pixSetMaskedCmap(pix1, pix3, 0, 0, 255, 0, 0);  /* red miss */
-    pixSetCmapPixel(pix1, size / 2, size / 2, 128, 128, 128);  /* gray center */
+    pixSetMasked(pix1, pix3, 0xff000000);  /* red miss */
+    pixSetRGBPixel(pix1, size / 2, size / 2, 128, 128, 128);  /* gray center */
     pixaAddPix(pixa1, pix1, L_INSERT);
 
         /* Represent diagonal pos slope hits and neg slope misses */
-    pix1 = pixCreateWithCmap(size, size, 8, L_SET_WHITE);
-    pixSetMaskedCmap(pix1, pix2, 0, 0, 255, 0, 0);  /* red hit */
-    pixSetMaskedCmap(pix1, pix3, 0, 0, 0, 255, 0);  /* green miss */
-    pixSetCmapPixel(pix1, size / 2, size / 2, 128, 128, 128);  /* gray center */
+    pix1 = pixCreate(size, size, 32);
+    pixSetAll(pix1);
+    pixSetMasked(pix1, pix2, 0xff000000);  /* red hit */
+    pixSetMasked(pix1, pix3, 0x00ff0000);  /* green miss */
+    pixSetRGBPixel(pix1, size / 2, size / 2, 128, 128, 128);  /* gray center */
     pixaAddPix(pixa1, pix1, L_INSERT);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
@@ -280,23 +285,25 @@ PIXCMAP  *cmap;
         return pixa1;
 
         /* Represent cross: vertical hits and horizontal misses */
-    pix1 = pixCreateWithCmap(size, size, 8, L_SET_WHITE);
+    pix1 = pixCreate(size, size, 32);
+    pixSetAll(pix1);
     pix2 = pixCreate(size, size, 1);  /* vertical line (2 pixel) mask */
     pixSetPixel(pix2, size / 2, 1, 1);
     pixSetPixel(pix2, size / 2, size - 2, 1);
     if (dilation > 1)
         pixDilateBrick(pix2, pix2, dilation, dilation);  /* dilate each pixel */
-    pixSetMaskedCmap(pix1, pix2, 0, 0, 0, 255, 0);  /* green hit */
+    pixSetMasked(pix1, pix2, 0x00ff0000);  /* green hit */
     pix3 = pixRotate90(pix2, 1);  /* horizontal line (2 pixel) mask */
-    pixSetMaskedCmap(pix1, pix3, 0, 0, 255, 0, 0);  /* red miss */
-    pixSetCmapPixel(pix1, size / 2, size / 2, 128, 128, 128);  /* gray center */
+    pixSetMasked(pix1, pix3, 0xff000000);  /* red miss */
+    pixSetRGBPixel(pix1, size / 2, size / 2, 128, 128, 128);  /* gray center */
     pixaAddPix(pixa1, pix1, L_INSERT);
 
         /* Represent cross: horizontal hits and vertical misses */
-    pix1 = pixCreateWithCmap(size, size, 8, L_SET_WHITE);
-    pixSetMaskedCmap(pix1, pix3, 0, 0, 0, 255, 0);  /* green hit */
-    pixSetMaskedCmap(pix1, pix2, 0, 0, 255, 0, 0);  /* red miss */
-    pixSetCmapPixel(pix1, size / 2, size / 2, 128, 128, 128);  /* gray center */
+    pix1 = pixCreate(size, size, 32);
+    pixSetAll(pix1);
+    pixSetMasked(pix1, pix3, 0x00ff0000);  /* green hit */
+    pixSetMasked(pix1, pix2, 0xff000000);  /* red miss */
+    pixSetRGBPixel(pix1, size / 2, size / 2, 128, 128, 128);  /* gray center */
     pixaAddPix(pixa1, pix1, L_INSERT);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
