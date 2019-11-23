@@ -41,6 +41,8 @@
  *           PTA        *ptaSortByIndex()
  *           PTAA       *ptaaSortByIndex()
  *           l_int32     ptaGetRankValue()
+ *           PTA        *ptaSort2d()
+ *           l_int32     ptaEqual()
  *
  *      Set operations using aset (rbtree)
  *           PTA        *ptaUnionByAset()
@@ -142,7 +144,7 @@ ptaGetSortIndex(PTA     *ptas,
 {
 l_int32    i, n;
 l_float32  x, y;
-NUMA      *na;
+NUMA      *na, *nai;
 
     PROCNAME("ptaGetSortIndex");
 
@@ -169,10 +171,11 @@ NUMA      *na;
     }
 
         /* Get the sort index for data array */
-    *pnaindex = numaGetSortIndex(na, sortorder);
+    nai = numaGetSortIndex(na, sortorder);
     numaDestroy(&na);
-    if (!*pnaindex)
+    if (!nai)
         return ERROR_INT("naindex not made", procName, 1);
+    *pnaindex = nai;
     return 0;
 }
 
@@ -297,6 +300,143 @@ PTA     *ptas;
     if (!ptasort) ptaDestroy(&ptas);
     return 0;
 }
+
+
+/*!
+ * \brief   ptaSort2d()
+ *
+ * \param[in]    ptas
+ * \return  ptad, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Sort increasing by row-major, scanning down from the UL corner,
+ *          where for each value of y, order the pts from left to right.
+ * </pre>
+ */
+PTA *
+ptaSort2d(PTA  *pta)
+{
+l_int32    index, i, j, n, nx, ny, start, end;
+l_float32  x, y, yp, val;
+NUMA      *na1, *na2, *nas, *nax;
+PTA       *pta1, *ptad;
+
+    PROCNAME("ptaSort2d");
+
+    if (!pta)
+        return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
+
+        /* Sort by row-major (y first, then x).  After sort by y,
+         * the x values at the same y are not sorted.  */
+    pta1 = ptaSort(pta, L_SORT_BY_Y, L_SORT_INCREASING, NULL);
+
+        /* Find start and ending indices with the same y value */
+    n = ptaGetCount(pta1);
+    na1 = numaCreate(0);  /* holds start index of sequence with same y */
+    na2 = numaCreate(0);  /* holds end index of sequence with same y */
+    numaAddNumber(na1, 0);
+    ptaGetPt(pta1, 0, &x, &yp);
+    for (i = 1; i < n; i++) {
+        ptaGetPt(pta1, i, &x, &y);
+        if (y != yp) {
+            numaAddNumber(na1, i);
+            numaAddNumber(na2, i - 1);
+        }
+        yp = y;
+    }
+    numaAddNumber(na2, n - 1);
+
+        /* Sort by increasing x each set with the same y value */
+    ptad = ptaCreate(n);
+    ny = numaGetCount(na1);   /* number of distinct y values */
+    for (i = 0, index = 0; i < ny; i++) {
+        numaGetIValue(na1, i, &start);
+        numaGetIValue(na2, i, &end);
+        nx = end - start + 1;  /* number of points with current y value */
+        if (nx == 1) {
+            ptaGetPt(pta1, index++, &x, &y);
+            ptaAddPt(ptad, x, y);
+        } else {
+                /* More than 1 point; extract and sort the x values */
+            nax = numaCreate(nx);
+            for (j = 0; j < nx; j++) {
+                 ptaGetPt(pta1, index + j, &x, &y);
+                 numaAddNumber(nax, x);
+            }
+            nas = numaSort(NULL, nax, L_SORT_INCREASING);
+                /* Add the points with x sorted */
+            for (j = 0; j < nx; j++) {
+                numaGetFValue(nas, j, &val);
+                ptaAddPt(ptad, val, y);
+            }
+            index += nx;
+            numaDestroy(&nax);
+            numaDestroy(&nas);
+        }
+    }
+    numaDestroy(&na1);
+    numaDestroy(&na2);
+    ptaDestroy(&pta1);
+    return ptad;
+}
+
+
+/*!
+ * \brief   ptaEqual()
+ *
+ * \param[in]    pta1
+ * \param[in]    pta2
+ * \param[out]   psame  1 if same; 0 if different
+ * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Equality is defined as having the same set of points,
+ *          independent of the order in which they are presented.
+ * </pre>
+ */
+l_ok
+ptaEqual(PTA      *pta1,
+         PTA      *pta2,
+         l_int32  *psame)
+{
+l_int32    i, n1, n2;
+l_float32  x1, y1, x2, y2;
+PTA       *ptas1, *ptas2;
+
+    PROCNAME("ptaEqual");
+
+    if (!psame)
+        return ERROR_INT("&same not defined", procName, 1);
+    *psame = 0.0;
+    if (!pta1 || !pta2)
+        return ERROR_INT("pta1 and pta2 not both defined", procName, 1);
+
+    n1 = ptaGetCount(pta1);
+    n2 = ptaGetCount(pta2);
+    if (n1 != n2) return 0;
+
+        /* 2d sort each and compare */
+    ptas1 = ptaSort2d(pta1);
+    ptas2 = ptaSort2d(pta2);
+    for (i = 0; i < n1; i++) {
+        ptaGetPt(ptas1, i, &x1, &y1);
+        ptaGetPt(ptas2, i, &x2, &y2);
+        if (x1 != x2 || y1 != y2) {
+            ptaDestroy(&ptas1);
+            ptaDestroy(&ptas2);
+            return 0;
+        }
+    }
+
+    *psame = 1;
+    ptaDestroy(&ptas1);
+    ptaDestroy(&ptas2);
+    return 0;
+}
+
+
 
 
 /*---------------------------------------------------------------------*

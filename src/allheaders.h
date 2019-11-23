@@ -2138,6 +2138,8 @@ LEPT_DLL extern l_ok ptaGetSortIndex ( PTA *ptas, l_int32 sorttype, l_int32 sort
 LEPT_DLL extern PTA * ptaSortByIndex ( PTA *ptas, NUMA *naindex );
 LEPT_DLL extern PTAA * ptaaSortByIndex ( PTAA *ptaas, NUMA *naindex );
 LEPT_DLL extern l_ok ptaGetRankValue ( PTA *pta, l_float32 fract, PTA *ptasort, l_int32 sorttype, l_float32 *pval );
+LEPT_DLL extern PTA * ptaSort2d ( PTA *pta );
+LEPT_DLL extern l_ok ptaEqual ( PTA *pta1, PTA *pta2, l_int32 *psame );
 LEPT_DLL extern PTA * ptaUnionByAset ( PTA *pta1, PTA *pta2 );
 LEPT_DLL extern PTA * ptaRemoveDupsByAset ( PTA *ptas );
 LEPT_DLL extern PTA * ptaIntersectionByAset ( PTA *pta1, PTA *pta2 );

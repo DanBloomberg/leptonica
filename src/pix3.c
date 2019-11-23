@@ -1438,7 +1438,7 @@ PIX       *pix1, *pix2, *pix3;
  * <pre>
  * Notes:
  *      (1) For every fg pixel in %pixm, this paints the pattern in %sel
- *          in %color on a copy of %pixs.
+ *          in color %val on a copy of %pixs.
  *      (2) The implementation is to dilate %pixm by %sel, and then
  *          paint through the dilated mask onto %pixs.
  *      (3) If %pixs == NULL, it paints on a white image.

@@ -35,6 +35,9 @@
  *  Also tests these pta functions:
  *     -  pixRenderPtaArb()
  *     -  ptaRotate()
+ *     -  ptaSort()
+ *     -  ptaSort2d()
+ *     -  ptaEqual()
  */
 
 #ifdef HAVE_CONFIG_H
@@ -48,12 +51,12 @@ static PIX *PtaDisplayRotate(PIX *pixs, l_float32 xc, l_float32 yc);
 int main(int    argc,
          char **argv)
 {
-l_int32       i, nbox, npta, fgcount, bgcount, count;
+l_int32       i, nbox, npta, fgcount, bgcount, count, w, h, x, y, same;
 BOXA         *boxa;
 PIX          *pixs, *pixfg, *pixbg, *pixc, *pixb, *pixd;
 PIX          *pix1, *pix2, *pix3, *pix4;
 PIXA         *pixa;
-PTA          *pta;
+PTA          *pta, *pta1, *pta2, *pta3;
 PTAA         *ptaafg, *ptaabg;
 L_REGPARAMS  *rp;
 
@@ -172,6 +175,23 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix2);
     pixDestroy(&pix4);
     pixaDestroy(&pixa);
+
+        /* Test pta sort and pta equality */
+    pix1 = pixRead("feyn-word.tif");
+    pixGetDimensions(pix1, &w, &h, NULL);
+    pta1 = ptaGetPixelsFromPix(pix1, NULL);
+    ptaGetIPt(pta1, 0, &x, &y);  /* add copy of first point */
+    ptaAddPt(pta1, x, y);
+    pta2 = ptaCyclicPerm(pta1, x, y);  /* first/last points must be the same */
+    ptaEqual(pta1, pta2, &same);
+    regTestCompareValues(rp, same, 1, 0.0);  /* 14 */
+    pta3 = ptaReverse(pta2, 1);
+    ptaEqual(pta1, pta3, &same);
+    regTestCompareValues(rp, same, 1, 0.0);  /* 15 */
+    pixDestroy(&pix1);
+    ptaDestroy(&pta1);
+    ptaDestroy(&pta2);
+    ptaDestroy(&pta3);
 
     return regTestCleanup(rp);
 }
