@@ -15,8 +15,8 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
  bootnumgen3.c bootnumgen4.c                                    \
  boxbasic.c boxfunc1.c boxfunc2.c boxfunc3.c                    \
  boxfunc4.c boxfunc5.c bytearray.c                              \
- ccbord.c ccthin.c classapp.c                                   \
- colorcontent.c coloring.c                                      \
+ ccbord.c ccthin.c checkerboard.c                               \
+ classapp.c colorcontent.c coloring.c                           \
  colormap.c colormorph.c	                                \
  colorquant1.c colorquant2.c                                    \
  colorseg.c colorspace.c                                        \
