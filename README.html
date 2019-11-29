@@ -320,16 +320,18 @@ Building leptonica
 
    (a) Building with Visual Studio
 
-       1. Download the latest CPPAN (C++ Archive Network https://cppan.org/)
-          client from https://cppan.org/client/
-       2. Run:
+       1. Download the latest SW (Software Network https://software-network.org/)
+          client from https://software-network.org/client/
+       2. Unpack it, add to PATH.
+       3. Run once to perform cmake integration:
+          sw setup
+       4. Run:
           git clone https://github.com/danbloomberg/leptonica
           cd leptonica
-          cppan
           mkdir build
           cd build
           cmake ..
-       3. Build a solution (leptonica.sin) in your Visual Studio version.
+       5. Build a solution (leptonica.sin) in your Visual Studio version.
 
    (b) Building for mingw32 with <a href="http://www.mingw.org/">MSYS</a>
        (Thanks to David Bryan)
