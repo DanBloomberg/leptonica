@@ -478,7 +478,7 @@ l_int32    d, wpl, bpl, comptype, i, j, k, ncolors, rval, gval, bval, aval;
 l_int32    xres, yres;
 l_uint32   w, h, tiffbpl, tiffword, read_oriented;
 l_uint32  *line, *ppixel, *tiffdata, *pixdata;
-PIX       *pix;
+PIX       *pix, *pix1;
 PIXCMAP   *cmap;
 
     PROCNAME("pixReadFromTiffStream");
@@ -669,6 +669,13 @@ PIXCMAP   *cmap;
             pixcmapAddColor(cmap, redmap[i] >> 8, greenmap[i] >> 8,
                             bluemap[i] >> 8);
         pixSetColormap(pix, cmap);
+
+            /* Remove the colormap for 1 bpp. */
+        if (bps == 1) {
+            pix1 = pixRemoveColormap(pix, REMOVE_CMAP_TO_BINARY);
+            pixDestroy(&pix);
+            pix = pix1;
+        }
     } else {   /* No colormap: check photometry and invert if necessary */
         if (!TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &photometry)) {
                 /* Guess default photometry setting.  Assume min_is_white
