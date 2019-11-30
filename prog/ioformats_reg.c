@@ -104,6 +104,7 @@ size_t        size, nbytes;
 PIX          *pix1, *pix2, *pix3, *pix4, *pix8, *pix16, *pix32;
 PIX          *pix, *pixt, *pixd;
 PIXA         *pixa;
+PIXCMAP      *cmap;
 L_REGPARAMS  *rp;
 
 #if  !HAVE_LIBJPEG
@@ -258,6 +259,7 @@ L_REGPARAMS  *rp;
             success = FALSE;
         pixDestroy(&pix);
     }
+
         /* Test writing and reading tiff colormaps */
     pix1 = pixRead(FILE_8BPP_2);
     pixWrite("/tmp/lept/regout/weas8.tif", pix1, IFF_TIFF);
@@ -273,6 +275,34 @@ L_REGPARAMS  *rp;
     pixEqual(pix1, pix3, &same);
     if (!same) {
         fprintf(stderr, "Tiff read/write failed for cmaps\n");
+        success = FALSE;
+    }
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+
+        /* Test writing and reading 1 bpp tiff with colormap */
+    pix1 = pixRead("feyn-fract2.tif");
+    cmap = pixcmapCreate(1);
+    pixcmapAddColor(cmap, 0, 0, 0);  /* inverted b/w */
+    pixcmapAddColor(cmap, 255, 255, 255);
+    pixSetColormap(pix1, cmap);
+    pixWrite("/tmp/lept/regout/fract1.tif", pix1, IFF_TIFF_ZIP);
+    pix2 = pixRead("/tmp/lept/regout/fract1.tif");
+    pixEqual(pix1, pix2, &same);
+    if (!same) {
+        fprintf(stderr, "Tiff read/write failed for 1 bpp cmap\n");
+        success = FALSE;
+    }
+    cmap = pixcmapCreate(1);
+    pixcmapAddColor(cmap, 255, 255, 255); 
+    pixcmapAddColor(cmap, 100, 200, 50);  /* with color */
+    pixSetColormap(pix1, cmap);  /* replace the colormap */
+    pixWrite("/tmp/lept/regout/fract2.tif", pix1, IFF_TIFF_ZIP);
+    pix3 = pixRead("/tmp/lept/regout/fract2.tif");
+    pixEqual(pix1, pix3, &same);
+    if (!same) {
+        fprintf(stderr, "Tiff read/write failed for 1 bpp color cmap\n");
         success = FALSE;
     }
     pixDestroy(&pix1);

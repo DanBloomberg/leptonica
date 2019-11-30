@@ -672,7 +672,7 @@ PIXCMAP   *cmap;
 
             /* Remove the colormap for 1 bpp. */
         if (bps == 1) {
-            pix1 = pixRemoveColormap(pix, REMOVE_CMAP_TO_BINARY);
+            pix1 = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
             pixDestroy(&pix);
             pix = pix1;
         }
@@ -1000,9 +1000,13 @@ char      *text;
     if ((text = pixGetText(pix)) != NULL)
         TIFFSetField(tif, TIFFTAG_IMAGEDESCRIPTION, text);
 
-    if (d == 1)
+    if (d == 1 && !pixGetColormap(pix)) {
+            /* If d == 1, preserve the colormap.  Note that when
+             * d == 1 pix with colormaps are read, the colormaps
+             * are removed.  The only pix in leptonica that have
+             * colormaps are made programmatically. */
         TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISWHITE);
-    else if ((d == 32 && spp == 3) || d == 24) {
+    } else if ((d == 32 && spp == 3) || d == 24) {
         TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
         TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, (l_uint16)3);
         TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE,
