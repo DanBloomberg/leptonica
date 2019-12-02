@@ -2615,6 +2615,8 @@ LEPT_DLL extern l_int32 setMsgSeverity ( l_int32 newsev );
 LEPT_DLL extern l_int32 returnErrorInt ( const char *msg, const char *procname, l_int32 ival );
 LEPT_DLL extern l_float32 returnErrorFloat ( const char *msg, const char *procname, l_float32 fval );
 LEPT_DLL extern void * returnErrorPtr ( const char *msg, const char *procname, void *pval );
+LEPT_DLL extern void leptSetStderrHandler ( void  ( *handler ) ( const char * ) );
+LEPT_DLL extern void lept_stderr ( const char *fmt, ... );
 LEPT_DLL extern l_ok filesAreIdentical ( const char *fname1, const char *fname2, l_int32 *psame );
 LEPT_DLL extern l_uint16 convertOnLittleEnd16 ( l_uint16 shortin );
 LEPT_DLL extern l_uint16 convertOnBigEnd16 ( l_uint16 shortin );

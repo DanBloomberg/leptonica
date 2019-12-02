@@ -31,6 +31,7 @@
  *       ------------------------------------------
  *       This file has these utilities:
  *         - error, warning and info messages
+ *         - redirection of stderr
  *         - low-level endian conversions
  *         - file corruption operations
  *         - random and prime number operations
@@ -46,6 +47,10 @@
  *           l_int32    returnErrorInt()
  *           l_float32  returnErrorFloat()
  *           void      *returnErrorPtr()
+ *
+ *       Runtime redirection of stderr
+ *           void leptSetStderrHandler()
+ *           void lept_stderr()
  *
  *       Test files for equivalence
  *           l_int32    filesAreIdentical()
@@ -166,6 +171,7 @@ char    *envsev;
 
 /*----------------------------------------------------------------------*
  *                Error return functions, invoked by macros             *
+ *----------------------------------------------------------------------*
  *                                                                      *
  *    (1) These error functions print messages to stderr and allow      *
  *        exit from the function that called them.                      *
@@ -187,7 +193,7 @@ returnErrorInt(const char  *msg,
                const char  *procname,
                l_int32      ival)
 {
-    fprintf(stderr, "Error in %s: %s\n", procname, msg);
+    lept_stderr("Error in %s: %s\n", procname, msg);
     return ival;
 }
 
@@ -205,7 +211,7 @@ returnErrorFloat(const char  *msg,
                  const char  *procname,
                  l_float32    fval)
 {
-    fprintf(stderr, "Error in %s: %s\n", procname, msg);
+    lept_stderr("Error in %s: %s\n", procname, msg);
     return fval;
 }
 
@@ -223,13 +229,71 @@ returnErrorPtr(const char  *msg,
                const char  *procname,
                void        *pval)
 {
-    fprintf(stderr, "Error in %s: %s\n", procname, msg);
+    lept_stderr("Error in %s: %s\n", procname, msg);
     return pval;
 }
 
 
+/*------------------------------------------------------------------------*
+ *                   Runtime redirection of stderr                        *
+ *------------------------------------------------------------------------*
+ *                                                                        *
+ *  The user can provide a callback function to redirect messages         *
+ *  that would otherwise go to stderr.  Here are two examples:            *
+ *  (1) to stop all messages:                                             *
+ *      void send_to_devnull(const char *msg) {}                          *
+ *  (2) to write to the system logger:                                    *
+ *      void send_to_syslog(const char *msg) {                            *
+ *           syslog(1, msg);                                              *
+ *      }                                                                 *
+ *  These would then be registered using
+ *      leptSetStderrHandler(send_to_devnull();
+ *  and
+ *      leptSetStderrHandler(send_to_syslog();
+ *------------------------------------------------------------------------*/
+    /* By default, all messages go to stderr */
+static void lept_default_stderr_handler(const char *formatted_msg)
+{
+    if (formatted_msg)
+        fputs(formatted_msg, stderr);
+}
+
+    /* The stderr callback handler is private to leptonica.
+     * By default it writes to stderr.  */
+void (*stderr_handler)(const char *) = lept_default_stderr_handler;
+
+    /* Allow runtime redirection of output from lept_stderr().
+     * If called with NULL, output goes to stderr. */
+void leptSetStderrHandler(void (*handler)(const char *))
+{
+    if (handler)
+        stderr_handler = handler;
+    else
+        stderr_handler = lept_default_stderr_handler;
+}
+
+    /* Replacement for fprintf(), to allow redirection of output.
+     * All calls to fprintf(stderr, ...) are replaced with calls
+     * to lept_stderr(...).  This utility was provided by jbarlow83. */
+#define MAX_DEBUG_MESSAGE   1000
+
+void lept_stderr(const char *fmt, ...)
+{
+    va_list args;
+    char msg[MAX_DEBUG_MESSAGE];
+    int n;
+
+    va_start(args, fmt);
+    n = vsnprintf(msg, sizeof(msg), fmt, args);
+    va_end(args);
+    if (n < 0)
+        return;
+    (*stderr_handler)(msg);
+}
+
+
 /*--------------------------------------------------------------------*
- *                      Test files for equivalence                    *
+ *                    Test files for equivalence                      *
  *--------------------------------------------------------------------*/
 /*!
  * \brief   filesAreIdentical()
@@ -284,6 +348,7 @@ l_uint8  *array1, *array2;
 
 /*--------------------------------------------------------------------------*
  *   16 and 32 bit byte-swapping on big endian and little  endian machines  *
+ *--------------------------------------------------------------------------*
  *                                                                          *
  *   These are typically used for I/O conversions:                          *
  *      (1) endian conversion for data that was read from a file            *

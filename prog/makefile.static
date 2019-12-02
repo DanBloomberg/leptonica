@@ -236,7 +236,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		listtest.c livre_adapt.c livre_hmt.c \
 		livre_makefigs.c livre_orient.c \
 		livre_pageseg.c livre_seedgen.c livre_tophat.c \
-		maketile.c maptest.c misctest1.c \
+		maketile.c maptest.c messagetest.c misctest1.c \
 		modifyhuesat.c morphtest1.c \
 		numaranktest.c otsutest1.c otsutest2.c \
 		pagesegtest1.c pagesegtest2.c \
@@ -996,6 +996,9 @@ maketile:	maketile.o $(LEPTLIB)
 
 maptest:	maptest.o $(LEPTLIB)
 	$(CC) -o maptest maptest.o $(ALL_LIBS) $(EXTRALIBS)
+
+messagetest:	messagetest.o $(LEPTLIB)
+	$(CC) -o messagetest messagetest.o $(ALL_LIBS) $(EXTRALIBS)
 
 misctest1:	misctest1.o $(LEPTLIB)
 	$(CC) -o misctest1 misctest1.o $(ALL_LIBS) $(EXTRALIBS)

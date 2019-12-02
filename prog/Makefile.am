@@ -98,7 +98,7 @@ OTHER_PROGS = adaptmap_dark \
 	listtest livre_adapt livre_hmt \
 	livre_makefigs livre_orient \
 	livre_pageseg livre_seedgen livre_tophat \
-	maketile maptest misctest1 \
+	maketile maptest messagetest misctest1 \
 	modifyhuesat morphtest1 \
 	numaranktest otsutest1 otsutest2 \
 	pagesegtest1 pagesegtest2 \

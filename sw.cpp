@@ -306,6 +306,7 @@ void build(Solution &s)
             {"livre_tophat", {"livre_tophat.c"}},
             {"maketile", {"maketile.c"}},
             {"maptest", {"maptest.c"}},
+            {"messagetest", {"messagetest.c"}},
             {"misctest1", {"misctest1.c"}},
             {"modifyhuesat", {"modifyhuesat.c"}},
             {"morphseq_reg", {"morphseq_reg.c"}},
