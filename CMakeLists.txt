@@ -141,11 +141,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CLANG 1)
 endif()
 
-set(LIBRARY_TYPE SHARED)
-if (STATIC)
-    set(LIBRARY_TYPE)
-endif()
-
 # Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "Setting build type to 'Release' as none was specified.")
