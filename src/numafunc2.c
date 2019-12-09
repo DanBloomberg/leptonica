@@ -2861,7 +2861,7 @@ NUMA      *nat, *nac;
                 maxend, estthresh - 80.0 + 4.0 * maxend);
     lept_stderr("The best choice: %5.1f\n", *pbestthresh);
     lept_stderr("Number of crossings at the 41 thresholds:");
-    numaWriteStream(stderr, nat);
+    numaWriteStderr(nat);
 #endif  /* DEBUG_CROSSINGS */
 
     numaDestroy(&nat);

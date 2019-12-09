@@ -210,7 +210,7 @@ PIXA      *pixa;
     }
 
     if (debugflag) {
-        boxaWriteStream(stderr, boxa);
+        boxaWriteStderr(boxa);
         pixDisplay(pixb, 100, 100);
         pixDisplay(pixm, 800, 100);
     }
@@ -362,7 +362,7 @@ NUMA      *na;
 #if  DEBUG_WIDTHS
         if (method == L_USE_WINDOWS)
             lept_stderr("Window width for barcode: %7.3f\n", winwidth);
-        numaWriteStream(stderr, na);
+        numaWriteStderr(na);
 #endif  /* DEBUG_WIDTHS */
 
     if (!na)
@@ -931,25 +931,25 @@ NUMA      *naerange, *naorange, *naelut, *naolut, *nad;
 
     if (debugflag) {
         lept_stderr(" ---- Black bar widths (pixels) ------ \n");
-        numaWriteStream(stderr, naedist);
+        numaWriteStderr(naedist);
         lept_stderr(" ---- Histogram of black bar widths ------ \n");
-        numaWriteStream(stderr, naehist);
+        numaWriteStderr(naehist);
         lept_stderr(" ---- Peak ranges in black bar histogram bins --- \n");
-        numaWriteStream(stderr, naerange);
+        numaWriteStderr(naerange);
         lept_stderr(" ---- Peak black bar centroid width values ------ \n");
-        numaWriteStream(stderr, naecent);
+        numaWriteStderr(naecent);
         lept_stderr(" ---- Black bar lookup table ------ \n");
-        numaWriteStream(stderr, naelut);
+        numaWriteStderr(naelut);
         lept_stderr(" ---- White bar widths (pixels) ------ \n");
-        numaWriteStream(stderr, naodist);
+        numaWriteStderr(naodist);
         lept_stderr(" ---- Histogram of white bar widths ------ \n");
-        numaWriteStream(stderr, naohist);
+        numaWriteStderr(naohist);
         lept_stderr(" ---- Peak ranges in white bar histogram bins --- \n");
-        numaWriteStream(stderr, naorange);
+        numaWriteStderr(naorange);
         lept_stderr(" ---- Peak white bar centroid width values ------ \n");
-        numaWriteStream(stderr, naocent);
+        numaWriteStderr(naocent);
         lept_stderr(" ---- White bar lookup table ------ \n");
-        numaWriteStream(stderr, naolut);
+        numaWriteStderr(naolut);
     }
 
     numaDestroy(&naedist);

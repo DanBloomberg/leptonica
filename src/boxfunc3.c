@@ -991,7 +991,7 @@ PIX     *pixs;
 #if  DEBUG_SPLIT
         lept_stderr("Iteration: %d\n", iter);
         boxPrintStreamInfo(stderr, boxs);
-        boxaWriteStream(stderr, boxat);
+        boxaWriteStderr(boxat);
         lept_stderr("\nmaxdir = %d, maxscore = %d\n\n", maxdir, maxscore);
 #endif  /* DEBUG_SPLIT */
         if (maxscore > 0) {  /* accept this */

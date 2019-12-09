@@ -589,7 +589,8 @@ SEL     *sel;
             }
         }
         if (nhits == 0) {
-            linestr = stringNew("    lept_stderr(\"Error in HMT: no hits in sel!\\n\");\n}\n\n");
+            linestr = stringNew("    "
+                "lept_stderr(\"Error in HMT: no hits in sel!\\n\");\n}\n\n");
             sarrayAddString(sa4, linestr, L_INSERT);
             continue;
         }

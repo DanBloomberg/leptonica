@@ -163,7 +163,7 @@ PIX        *pix1;
     pixDestroy(&pix1);
     numaGetNonzeroRange(na1, 0.1, &first, &last);
     na2 = numaClipToInterval(na1, 0, last);
-    numaWriteStream(stderr, na2);
+    numaWriteStderr(na2);
 
         /* Find the bucket with the largest distance whose contents
          * exceed the threshold. */

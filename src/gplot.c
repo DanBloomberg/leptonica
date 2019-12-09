@@ -1354,7 +1354,7 @@ FILE  *fp;
     fprintf(fp, "\nPlot titles:");
     sarrayWriteStream(fp, gplot->plotlabels);
     fprintf(fp, "\nPlot styles:");
-    numaWriteStream(fp, gplot->plotstyles);
+    numaWriteStderr(gplot->plotstyles);
 
     fprintf(fp, "Number of plots: %d\n", gplot->nplots);
     fprintf(fp, "Output file name: %s\n", gplot->outname);

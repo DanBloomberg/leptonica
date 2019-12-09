@@ -837,7 +837,7 @@ PIX      *pix1, *pixdb;
          * side.  firstmin is the index of first possible minimum. */
     array1 = numaGetIArray(na1);
     array2 = numaGetIArray(na2);
-    if (ppixdebug) numaWriteStream(stderr, na2);
+    if (ppixdebug) numaWriteStderr(na2);
     firstmin = (array1[array2[0]] > array1[array2[1]]) ? 1 : 2;
     nasplit = numaCreate(n2);  /* will hold split locations */
     for (i = firstmin; i < n2 - 1; i+= 2) {

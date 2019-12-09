@@ -281,7 +281,7 @@ L_HEAP  *lh;
         }
         npush += nsub;  /* How many boxes have we put on the queue? */
 
-/*        boxaWriteStream(stderr, boxa4); */
+/*        boxaWriteStderr(boxa4); */
 
         boxaDestroy(&boxa4);
         boxaDestroy(&boxa);

@@ -589,12 +589,12 @@ L_RDID     *did;
     }
 
     if (ppixdb) {
-        numaWriteStream(stderr, did->natempl);
-        numaWriteStream(stderr, did->naxloc);
-        numaWriteStream(stderr, did->nadely);
-        numaWriteStream(stderr, did->nawidth);
-        numaWriteStream(stderr, did->nascore);
-        boxaWriteStream(stderr, did->boxa);
+        numaWriteStderr(did->natempl);
+        numaWriteStderr(did->naxloc);
+        numaWriteStderr(did->nadely);
+        numaWriteStderr(did->nawidth);
+        numaWriteStderr(did->nascore);
+        boxaWriteStderr(did->boxa);
         *ppixdb = recogShowPath(recog, 0);
     }
 

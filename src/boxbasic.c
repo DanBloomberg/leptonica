@@ -115,6 +115,7 @@
  *           l_int32   boxaWriteDebug()
  *           l_int32   boxaWrite()
  *           l_int32   boxaWriteStream()
+ *           l_int32   boxaWriteStderr()
  *           l_int32   boxaWriteMem()
  *
  *      Box print (for debug)
@@ -130,13 +131,16 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
     /* Bounds on initial array size */
 static const l_uint32  MaxPtrArraySize = 1000000;
 static const l_int32 InitialPtrArraySize = 20;      /*!< n'importe quoi */
-
 
 /*---------------------------------------------------------------------*
  *                  Box creation, destruction and copy                 *
@@ -2233,7 +2237,7 @@ FILE    *fp;
 /*!
  * \brief   boxaWriteStream()
  *
- * \param[in]   fp  output file stream
+ * \param[in]   fp     file stream; use NULL for stderr
  * \param[in]   boxa
  * \return  0 if OK, 1 on error
  */
@@ -2246,10 +2250,10 @@ BOX     *box;
 
     PROCNAME("boxaWriteStream");
 
-    if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 1);
+    if (!fp)
+        return boxaWriteStderr(boxa);
 
     n = boxaGetCount(boxa);
     fprintf(fp, "\nBoxa Version %d\n", BOXA_VERSION_NUMBER);
@@ -2258,6 +2262,37 @@ BOX     *box;
         if ((box = boxaGetBox(boxa, i, L_CLONE)) == NULL)
             return ERROR_INT("box not found", procName, 1);
         fprintf(fp, "  Box[%d]: x = %d, y = %d, w = %d, h = %d\n",
+                i, box->x, box->y, box->w, box->h);
+        boxDestroy(&box);
+    }
+    return 0;
+}
+
+
+/*!
+ * \brief   boxaWriteStderr()
+ *
+ * \param[in]   boxa
+ * \return  0 if OK, 1 on error
+ */
+l_ok
+boxaWriteStderr(BOXA  *boxa)
+{
+l_int32  n, i;
+BOX     *box;
+
+    PROCNAME("boxaWriteStderr");
+
+    if (!boxa)
+        return ERROR_INT("boxa not defined", procName, 1);
+
+    n = boxaGetCount(boxa);
+    lept_stderr("\nBoxa Version %d\n", BOXA_VERSION_NUMBER);
+    lept_stderr("Number of boxes = %d\n", n);
+    for (i = 0; i < n; i++) {
+        if ((box = boxaGetBox(boxa, i, L_CLONE)) == NULL)
+            return ERROR_INT("box not found", procName, 1);
+        lept_stderr("  Box[%d]: x = %d, y = %d, w = %d, h = %d\n",
                 i, box->x, box->y, box->w, box->h);
         boxDestroy(&box);
     }
@@ -2325,7 +2360,7 @@ FILE    *fp;
 /*!
  * \brief   boxPrintStreamInfo()
  *
- * \param[in]    fp    output file stream
+ * \param[in]    fp    file stream; use NULL for stderr
  * \param[in]    box
  * \return  0 if OK, 1 on error
  *
@@ -2341,12 +2376,15 @@ boxPrintStreamInfo(FILE  *fp,
 {
     PROCNAME("boxPrintStreamInfo");
 
-    if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
     if (!box)
         return ERROR_INT("box not defined", procName, 1);
 
-    fprintf(fp, " Box: x = %d, y = %d, w = %d, h = %d\n",
-            box->x, box->y, box->w, box->h);
+    if (!fp) {  /* output to stderr */
+        lept_stderr(" Box: x = %d, y = %d, w = %d, h = %d\n",
+                    box->x, box->y, box->w, box->h);
+    } else {
+        fprintf(fp, " Box: x = %d, y = %d, w = %d, h = %d\n",
+                box->x, box->y, box->w, box->h);
+    }
     return 0;
 }

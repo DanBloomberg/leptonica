@@ -296,7 +296,7 @@ void leptSetStderrHandler(void (*handler)(const char *))
  * <pre>
  * Notes:
  *      (1) This is a replacement for fprintf(), to allow redirection
- *          of output.  All calls to lept_stderr( ...) are replaced
+ *          of output.  All calls to fprintf(stderr, ...) are replaced
  *          with calls to lept_stderr(...).
  *      (2) The message size is limited to 2K bytes.
         (3) This utility was provided by jbarlow83.

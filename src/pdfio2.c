@@ -449,7 +449,7 @@ NUMAA    *naa_objs;  /* object mapping numbers to new values */
     numaaWriteStream(stderr, naa_objs);
 
     lept_stderr("******** Page object numbers ***********");
-    numaWriteStream(stderr, napage);
+    numaWriteStderr(napage);
 
     lept_stderr("******** Pages object ***********\n");
     lept_stderr("%s\n", str_pages);

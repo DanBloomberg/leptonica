@@ -1447,7 +1447,7 @@ NUMA       *nah, *nan, *nac;
                      "Difference histogram");
         l_fileDisplay("/tmp/lept/comp/histo.png", 500, 0, 1.0);
         lept_stderr("\nNonzero values in normalized histogram:");
-        numaWriteStream(stderr, nac);
+        numaWriteStderr(nac);
         numaDestroy(&nac);
         lept_stderr(" Mindiff      fractdiff      avediff\n");
         lept_stderr(" -----------------------------------\n");
