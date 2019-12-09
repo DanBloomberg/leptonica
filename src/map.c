@@ -129,7 +129,7 @@ l_amapInsert(L_AMAP  *m,
              RB_TYPE  key,
              RB_TYPE  value)
 {
-    return l_rbtreeInsert(m, key, value);
+    l_rbtreeInsert(m, key, value);
 }
 
 void
@@ -213,7 +213,7 @@ l_asetInsert(L_ASET  *s,
 RB_TYPE  value;
 
     value.itype = 0;  /* meaningless */
-    return l_rbtreeInsert(s, key, value);
+    l_rbtreeInsert(s, key, value);
 }
 
 void

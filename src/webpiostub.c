@@ -39,7 +39,7 @@
 #include "allheaders.h"
 
 /* --------------------------------------------*/
-#if  !HAVE_LIBWEBP   /* defined in environ.h */
+#if  !HAVE_LIBWEBP   /* defined in environ.h   */
 /* --------------------------------------------*/
 
 PIX * pixReadStreamWebP(FILE *fp)
