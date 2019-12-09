@@ -203,6 +203,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -501,17 +505,17 @@ l_float32  absupconf, absleftconf;
         *porient = L_TEXT_ORIENT_RIGHT;
 
     if (debug) {
-        fprintf(stderr, "upconf = %7.3f, leftconf = %7.3f\n", upconf, leftconf);
+        lept_stderr("upconf = %7.3f, leftconf = %7.3f\n", upconf, leftconf);
         if (*porient == L_TEXT_ORIENT_UNKNOWN)
-            fprintf(stderr, "Confidence is low; no determination is made\n");
+            lept_stderr("Confidence is low; no determination is made\n");
         else if (*porient == L_TEXT_ORIENT_UP)
-            fprintf(stderr, "Text is rightside-up\n");
+            lept_stderr("Text is rightside-up\n");
         else if (*porient == L_TEXT_ORIENT_LEFT)
-            fprintf(stderr, "Text is rotated 90 deg ccw\n");
+            lept_stderr("Text is rotated 90 deg ccw\n");
         else if (*porient == L_TEXT_ORIENT_DOWN)
-            fprintf(stderr, "Text is upside-down\n");
+            lept_stderr("Text is upside-down\n");
         else   /* *porient == L_TEXT_ORIENT_RIGHT */
-            fprintf(stderr, "Text is rotated 90 deg cw\n");
+            lept_stderr("Text is rotated 90 deg cw\n");
     }
 
     return 0;
@@ -687,12 +691,12 @@ SEL       *sel1, *sel2, *sel3, *sel4;
 
     if (debug) {
         if (pixm) pixWriteDebug("/tmp/lept/orient/pixm1.png", pixm, IFF_PNG);
-        fprintf(stderr, "nup = %7.3f, ndown = %7.3f, conf = %7.3f\n",
+        lept_stderr("nup = %7.3f, ndown = %7.3f, conf = %7.3f\n",
                 nup, ndown, *pconf);
         if (*pconf > DefaultMinUpDownConf)
-            fprintf(stderr, "Text is rightside-up\n");
+            lept_stderr("Text is rightside-up\n");
         if (*pconf < -DefaultMinUpDownConf)
-            fprintf(stderr, "Text is upside-down\n");
+            lept_stderr("Text is upside-down\n");
     }
 
     pixDestroy(&pix0);
@@ -908,12 +912,12 @@ PIX       *pixt, *pix0, *pix1, *pix2, *pix3, *pixm;
             lept_mkdir("lept/orient");
             pixWriteDebug("/tmp/lept/orient/pixm2.png", pixm, IFF_PNG);
         }
-        fprintf(stderr, "nup = %7.3f, ndown = %7.3f, conf = %7.3f\n",
+        lept_stderr("nup = %7.3f, ndown = %7.3f, conf = %7.3f\n",
                 nup, ndown, *pconf);
         if (*pconf > DefaultMinUpDownConf)
-            fprintf(stderr, "Text is rightside-up\n");
+            lept_stderr("Text is rightside-up\n");
         if (*pconf < -DefaultMinUpDownConf)
-            fprintf(stderr, "Text is upside-down\n");
+            lept_stderr("Text is upside-down\n");
     }
 
     pixDestroy(&pix0);
@@ -1030,11 +1034,11 @@ SEL       *sel1, *sel2;
         *pconf = 2. * ((nright - nleft) / sqrt(nright + nleft));
 
     if (debug) {
-        fprintf(stderr, "nright = %f, nleft = %f\n", nright, nleft);
+        lept_stderr("nright = %f, nleft = %f\n", nright, nleft);
         if (*pconf > DefaultMinMirrorFlipConf)
-            fprintf(stderr, "Text is not mirror reversed\n");
+            lept_stderr("Text is not mirror reversed\n");
         if (*pconf < -DefaultMinMirrorFlipConf)
-            fprintf(stderr, "Text is mirror reversed\n");
+            lept_stderr("Text is mirror reversed\n");
     }
 
     return 0;
@@ -1118,11 +1122,11 @@ PIX       *pix0, *pix1, *pix2, *pix3;
         *pconf = 2. * ((nright - nleft) / sqrt(nright + nleft));
 
     if (debug) {
-        fprintf(stderr, "nright = %f, nleft = %f\n", nright, nleft);
+        lept_stderr("nright = %f, nleft = %f\n", nright, nleft);
         if (*pconf > DefaultMinMirrorFlipConf)
-            fprintf(stderr, "Text is not mirror reversed\n");
+            lept_stderr("Text is not mirror reversed\n");
         if (*pconf < -DefaultMinMirrorFlipConf)
-            fprintf(stderr, "Text is mirror reversed\n");
+            lept_stderr("Text is mirror reversed\n");
     }
 
     return 0;

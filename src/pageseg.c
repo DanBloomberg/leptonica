@@ -75,6 +75,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 #include "math.h"
 
@@ -843,7 +847,7 @@ PIX      *pix1, *pixdb;
         nleft = array1[xmin - 2];
         nright = array1[xmin + 2];
         if (ppixdebug) {
-            fprintf(stderr,
+            lept_stderr(
                 "Splitting: xmin = %d, w = %d; nl = %d, nmin = %d, nr = %d\n",
                 xmin, w, nleft, nmin, nright);
         }

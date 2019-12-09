@@ -471,8 +471,8 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
     }
 
     if (cinfo.output_components != spp)
-        fprintf(stderr, "output spp = %d, spp = %d\n",
-                cinfo.output_components, spp);
+        lept_stderr("output spp = %d, spp = %d\n",
+                    cinfo.output_components, spp);
 
     jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);

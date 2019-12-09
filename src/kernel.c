@@ -80,13 +80,16 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
 
     /* Array size must be > 0 and not larger than this */
 static const l_uint32  MaxArraySize = 100000;
-
 
 /*------------------------------------------------------------------------*
  *                           Create / Destroy                             *
@@ -715,7 +718,7 @@ NUMA      *na;
     if (n != w * h) {
         kernelDestroy(&kel);
         numaDestroy(&na);
-        fprintf(stderr, "w = %d, h = %d, num ints = %d\n", w, h, n);
+        lept_stderr("w = %d, h = %d, num ints = %d\n", w, h, n);
         return (L_KERNEL *)ERROR_PTR("invalid integer data", procName, NULL);
     }
 
@@ -841,7 +844,7 @@ L_KERNEL  *kel;
     n = numaGetCount(na);
     if (n != w * h) {
         numaDestroy(&na);
-        fprintf(stderr, "w = %d, h = %d, num ints = %d\n", w, h, n);
+        lept_stderr("w = %d, h = %d, num ints = %d\n", w, h, n);
         return (L_KERNEL *)ERROR_PTR("invalid integer data", procName, NULL);
     }
 

@@ -56,6 +56,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -397,9 +401,9 @@ PIXCMAP   *cmap;
     memcpy(data + index + 1, rdata, rdatasize);
 
 #if  DEBUG_SERIALIZE
-    fprintf(stderr, "Serialize:   "
-            "raster size = %d, ncolors in cmap = %d, total bytes = %d\n",
-            rdatasize, ncolors, nbytes);
+    lept_stderr("Serialize:   "
+                "raster size = %d, ncolors in cmap = %d, total bytes = %d\n",
+                rdatasize, ncolors, nbytes);
 #endif  /* DEBUG_SERIALIZE */
 
     LEPT_FREE(cdata);
@@ -484,9 +488,9 @@ PIXCMAP   *cmap;
     memcpy(imdata, data + 7 + ncolors, imdata_size);
 
 #if  DEBUG_SERIALIZE
-    fprintf(stderr, "Deserialize: "
-            "raster size = %d, ncolors in cmap = %d, total bytes = %zu\n",
-            imdata_size, ncolors, nbytes);
+    lept_stderr("Deserialize: "
+                "raster size = %d, ncolors in cmap = %d, total bytes = %zu\n",
+                imdata_size, ncolors, nbytes);
 #endif  /* DEBUG_SERIALIZE */
 
     return pixd;

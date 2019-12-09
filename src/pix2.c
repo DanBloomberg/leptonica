@@ -129,6 +129,9 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
 #include <string.h>
 #include "allheaders.h"
@@ -689,7 +692,7 @@ setPixelLow(l_uint32  *line,
         line[x] = val;
         break;
     default:
-        fprintf(stderr, "illegal depth in setPixelLow()\n");
+        lept_stderr("illegal depth in setPixelLow()\n");
     }
 
     return;

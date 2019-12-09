@@ -49,6 +49,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -66,7 +70,6 @@ static l_int32 countAlignedMatches(NUMA *nai1, NUMA *nai2, NUMA *nasx,
                                    l_int32 debugflag);
 static void printRowIndices(l_int32 *index1, l_int32 n1,
                             l_int32 *index2, l_int32 n2);
-
 
 /*------------------------------------------------------------------*
  *          Top-level jb2 correlation and rank-hausdorff            *
@@ -136,12 +139,12 @@ SARRAY     *safiles;
         pixa = jbDataRender(data, FALSE);
         numpages = pixaGetCount(pixa);
         if (numpages != nfiles)
-            fprintf(stderr, "numpages = %d, nfiles = %d, not equal!\n",
-                    numpages, nfiles);
+            lept_stderr("numpages = %d, nfiles = %d, not equal!\n",
+                        numpages, nfiles);
         for (i = 0; i < numpages; i++) {
             pix = pixaGetPix(pixa, i, L_CLONE);
             snprintf(filename, L_BUF_SIZE, "%s.%04d", rootname, i);
-            fprintf(stderr, "filename: %s\n", filename);
+            lept_stderr("filename: %s\n", filename);
             pixWrite(filename, pix, IFF_PNG);
             pixDestroy(&pix);
         }
@@ -218,12 +221,12 @@ SARRAY     *safiles;
         pixa = jbDataRender(data, FALSE);
         numpages = pixaGetCount(pixa);
         if (numpages != nfiles)
-            fprintf(stderr, "numpages = %d, nfiles = %d, not equal!\n",
-                    numpages, nfiles);
+            lept_stderr("numpages = %d, nfiles = %d, not equal!\n",
+                        numpages, nfiles);
         for (i = 0; i < numpages; i++) {
             pix = pixaGetPix(pixa, i, L_CLONE);
             snprintf(filename, L_BUF_SIZE, "%s.%04d", rootname, i);
-            fprintf(stderr, "filename: %s\n", filename);
+            lept_stderr("filename: %s\n", filename);
             pixWrite(filename, pix, IFF_PNG);
             pixDestroy(&pix);
         }
@@ -1028,20 +1031,20 @@ printRowIndices(l_int32  *index1,
 {
 l_int32  i;
 
-    fprintf(stderr, "Index1: ");
+    lept_stderr("Index1: ");
     for (i = 0; i < n1; i++) {
         if (i && (i % 20 == 0))
-            fprintf(stderr, "\n        ");
-        fprintf(stderr, "%3d", index1[i]);
+            lept_stderr("\n        ");
+        lept_stderr("%3d", index1[i]);
     }
-    fprintf(stderr, "\n");
+    lept_stderr("\n");
 
-    fprintf(stderr, "Index2: ");
+    lept_stderr("Index2: ");
     for (i = 0; i < n2; i++) {
         if (i && (i % 20 == 0))
-            fprintf(stderr, "\n        ");
-        fprintf(stderr, "%3d", index2[i]);
+            lept_stderr("\n        ");
+        lept_stderr("%3d", index2[i]);
     }
-    fprintf(stderr, "\n");
+    lept_stderr("\n");
     return;
 }

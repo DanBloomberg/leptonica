@@ -101,6 +101,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -2145,7 +2149,7 @@ BOX     *boxt, *boxd;
         }
 
 #if DEBUG_EDGES
-        fprintf(stderr, "iter: %d %d %d %d\n", lfound, rfound, tfound, bfound);
+        lept_stderr("iter: %d %d %d %d\n", lfound, rfound, tfound, bfound);
 #endif  /* DEBUG_EDGES */
 
         if (change == 0) break;
@@ -2257,7 +2261,7 @@ BOX       *boxt;
             }
             if (sum >= highthresh) {
 #if DEBUG_EDGES
-                fprintf(stderr, "Left: x = %d, loc = %d\n", x, loc);
+                lept_stderr("Left: x = %d, loc = %d\n", x, loc);
 #endif  /* DEBUG_EDGES */
                 if (x - loc < maxwidth) {
                     *ploc = loc;
@@ -2283,7 +2287,7 @@ BOX       *boxt;
             }
             if (sum >= highthresh) {
 #if DEBUG_EDGES
-                fprintf(stderr, "Right: x = %d, loc = %d\n", x, loc);
+                lept_stderr("Right: x = %d, loc = %d\n", x, loc);
 #endif  /* DEBUG_EDGES */
                 if (loc - x < maxwidth) {
                     *ploc = loc;
@@ -2309,7 +2313,7 @@ BOX       *boxt;
             }
             if (sum >= highthresh) {
 #if DEBUG_EDGES
-                fprintf(stderr, "Top: y = %d, loc = %d\n", y, loc);
+                lept_stderr("Top: y = %d, loc = %d\n", y, loc);
 #endif  /* DEBUG_EDGES */
                 if (y - loc < maxwidth) {
                     *ploc = loc;
@@ -2335,7 +2339,7 @@ BOX       *boxt;
             }
             if (sum >= highthresh) {
 #if DEBUG_EDGES
-                fprintf(stderr, "Bottom: y = %d, loc = %d\n", y, loc);
+                lept_stderr("Bottom: y = %d, loc = %d\n", y, loc);
 #endif  /* DEBUG_EDGES */
                 if (loc - y < maxwidth) {
                     *ploc = loc;

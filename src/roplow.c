@@ -47,6 +47,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -261,7 +265,7 @@ l_int32    i, j;
         }
         break;
     default:
-        fprintf(stderr, "Operation %d not permitted here!\n", op);
+        lept_stderr("Operation %d not permitted here!\n", op);
     }
 }
 
@@ -443,7 +447,7 @@ l_int32    i, j;
         }
         break;
     default:
-        fprintf(stderr, "Operation %d not permitted here!\n", op);
+        lept_stderr("Operation %d not permitted here!\n", op);
     }
 }
 
@@ -789,7 +793,7 @@ l_int32    i, j;
         }
         break;
     default:
-        fprintf(stderr, "Operation %d invalid\n", op);
+        lept_stderr("Operation %d invalid\n", op);
     }
 }
 
@@ -1285,7 +1289,7 @@ l_int32    i, j;
         }
         break;
     default:
-        fprintf(stderr, "Operation %x invalid\n", op);
+        lept_stderr("Operation %x invalid\n", op);
     }
 }
 
@@ -2108,7 +2112,7 @@ l_int32    i, j;
         }
         break;
     default:
-        fprintf(stderr, "Operation %x invalid\n", op);
+        lept_stderr("Operation %x invalid\n", op);
     }
 }
 

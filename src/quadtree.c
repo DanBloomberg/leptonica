@@ -61,6 +61,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -481,9 +485,9 @@ BOXAA    *baa;
             if (i > 0) ystart[i]++;
             yend[i] = (h - 1) * (i + 1) / nside;
 #if DEBUG_BOXES
-            fprintf(stderr,
-               "k = %d, xs[%d] = %d, xe[%d] = %d, ys[%d] = %d, ye[%d] = %d\n",
-                    k, i, xstart[i], i, xend[i], i, ystart[i], i, yend[i]);
+            lept_stderr(
+                "k = %d, xs[%d] = %d, xe[%d] = %d, ys[%d] = %d, ye[%d] = %d\n",
+                k, i, xstart[i], i, xend[i], i, ystart[i], i, yend[i]);
 #endif  /* DEBUG_BOXES */
         }
         nbox = 1 << (2 * k);

@@ -101,6 +101,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -2301,7 +2305,7 @@ l_float32  *lines;
 
 #if  DEBUG
     if (xf < 0 || yf < 0)
-        fprintf(stderr, "xp = %d, yp = %d, xf = %d, yf = %d\n", xp, yp, xf, yf);
+        lept_stderr("xp = %d, yp = %d, xf = %d, yf = %d\n", xp, yp, xf, yf);
 #endif  /* DEBUG */
 
         /* Interpolate by area weighting. */

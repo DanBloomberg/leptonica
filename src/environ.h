@@ -542,7 +542,7 @@ LEPT_DLL extern l_int32  LeptMsgSeverity;
   #define L_INFO(a, ...) \
     { if (L_SEVERITY_INFO >= MINIMUM_SEVERITY && \
           L_SEVERITY_INFO >= LeptMsgSeverity) \
-             lept_stderr("Info in %s: " a, __VA_ARGS__) \
+          lept_stderr("Info in %s: " a, __VA_ARGS__) \
     }
 #endif
 

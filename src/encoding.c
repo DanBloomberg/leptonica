@@ -50,6 +50,10 @@
  *         log2(85) / log2(256) = 0.801 > 4/5
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <ctype.h>
 #include "allheaders.h"
 
@@ -76,7 +80,6 @@ static const l_uint32  power85[5] = {1,
 static l_int32 convertChunkToAscii85(const l_uint8 *inarray, l_int32 insize,
                                      l_int32 *pindex, char *outbuf,
                                      l_int32 *pnbout);
-
 
 /*-------------------------------------------------------------*
  *      Utility for encoding and decoding data with base64     *
@@ -430,9 +433,9 @@ l_int32   eof, index, nread, nbout, i;
     }
 
 #if 0
-    fprintf(stderr, "index = %d, nread = %d\n", index, nread);
-    fprintf(stderr, "inword = %x\n", inword);
-    fprintf(stderr, "eof = %d\n", eof);
+    lept_stderr("index = %d, nread = %d\n", index, nread);
+    lept_stderr("inword = %x\n", inword);
+    lept_stderr("eof = %d\n", eof);
 #endif
 
         /* Special case: output 1 byte only */

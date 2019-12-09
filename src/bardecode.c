@@ -59,10 +59,13 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 #include "readbarcode.h"
-
 
 static l_int32 barcodeFindFormat(char *barstr);
 static l_int32 barcodeVerifyFormat(char *barstr, l_int32 format,
@@ -75,11 +78,9 @@ static char *barcodeDecodeCodabar(char *barstr, l_int32 debugflag);
 static char *barcodeDecodeUpca(char *barstr, l_int32 debugflag);
 static char *barcodeDecodeEan13(char *barstr, l_int32 first, l_int32 debugflag);
 
-
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_CODES       0
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /*------------------------------------------------------------------------*
  *                           Decoding dispatcher                          *
@@ -400,7 +401,7 @@ l_int32  valid, reverse, i, j, len, error, ndigits, start, found;
             code[j] = vbarstr[start + j];
 
         if (debugflag)
-            fprintf(stderr, "code: %s\n", code);
+            lept_stderr("code: %s\n", code);
 
         found = FALSE;
         for (j = 0; j < 10; j++) {
@@ -483,7 +484,7 @@ l_int32  valid, reverse, i, j, len, error, npairs, start, found;
         }
 
         if (debugflag)
-            fprintf(stderr, "code1: %s, code2: %s\n", code1, code2);
+            lept_stderr("code1: %s, code2: %s\n", code1, code2);
 
         found = FALSE;
         for (j = 0; j < 10; j++) {
@@ -581,7 +582,7 @@ l_int32     *index;
             code[j] = vbarstr[start + j];
 
         if (debugflag)
-            fprintf(stderr, "code: %s\n", code);
+            lept_stderr("code: %s\n", code);
 
         found = FALSE;
         for (j = 0; j < C93_START; j++) {
@@ -613,7 +614,7 @@ l_int32     *index;
 
     if (debugflag) {
         checkc = Code93[sum % 47];
-        fprintf(stderr, "checkc = %s\n", checkc);
+        lept_stderr("checkc = %s\n", checkc);
     }
 
     sum = 0;
@@ -624,7 +625,7 @@ l_int32     *index;
 
     if (debugflag) {
         checkk = Code93[sum % 47];
-        fprintf(stderr, "checkk = %s\n", checkk);
+        lept_stderr("checkk = %s\n", checkk);
     }
 
         /* Remove the two check codes from the output */
@@ -695,7 +696,7 @@ l_int32   valid, reverse, i, j, len, error, nsymb, start, found;
             code[j] = vbarstr[start + j];
 
         if (debugflag)
-            fprintf(stderr, "code: %s\n", code);
+            lept_stderr("code: %s\n", code);
 
         found = FALSE;
         for (j = 0; j < C39_START; j++) {
@@ -779,7 +780,7 @@ l_int32   valid, reverse, i, j, len, error, nsymb, start, found;
             code[j] = vbarstr[start + j];
 
         if (debugflag)
-            fprintf(stderr, "code: %s\n", code);
+            lept_stderr("code: %s\n", code);
 
         found = FALSE;
         for (j = 0; j < 16; j++) {
@@ -878,7 +879,7 @@ l_int32   valid, i, j, len, error, start, found, sum, checkdigit;
             code[j] = vbarstr[start + j];
 
         if (debugflag)
-            fprintf(stderr, "code: %s\n", code);
+            lept_stderr("code: %s\n", code);
 
         found = FALSE;
         for (j = 0; j < 10; j++) {
@@ -998,7 +999,7 @@ l_int32   valid, i, j, len, error, start, found, sum, checkdigit;
             code[j] = vbarstr[start + j];
 
         if (debugflag)
-            fprintf(stderr, "code: %s\n", code);
+            lept_stderr("code: %s\n", code);
 
         found = FALSE;
         for (j = 0; j < 10; j++) {

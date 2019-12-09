@@ -78,8 +78,11 @@
  * </pre>
  */
 
-#include "allheaders.h"
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
+#include "allheaders.h"
 
 /*---------------------------------------------------------------------*
  *                               Sorting                               *
@@ -880,7 +883,7 @@ L_DNAHASH  *dahash;
          * roughly optimal for speed for large sets. */
     n = ptaGetCount(pta);
     findNextLargerPrime(n / 20, &nsize);  /* buckets in hash table */
-/*    fprintf(stderr, "Prime used: %d\n", nsize); */
+/*    lept_stderr("Prime used: %d\n", nsize); */
 
         /* Add each point, using the hash as key and the index into
          * %ptas as the value.  Storing the index enables operations

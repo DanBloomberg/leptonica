@@ -38,12 +38,15 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Static helplers */
 static BOXA *pixLocateStaveSets(PIX *pixs, l_int32 pageno, PIXA *pixadb);
 static l_ok boxaRemoveVGaps(BOXA *boxa);
-
 
 /*---------------------------------------------------------------------*
  *                              Top level                              *
@@ -190,7 +193,7 @@ PIXAC    **pixaca;
              * the piano.  We would set nparts == 2, and extract both
              * of the piano staves as the piano part.  */
         nbox = boxaGetCount(boxa1);
-        fprintf(stderr, "number of boxes in page %d: %d\n", pageno, nbox);
+        lept_stderr("number of boxes in page %d: %d\n", pageno, nbox);
         for (i = 0; i < nbox; i++, line++) {
             snprintf(buf, sizeof(buf), "%d", line);
             box1 = boxaGetBox(boxa1, i, L_COPY);

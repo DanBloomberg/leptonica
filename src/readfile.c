@@ -1608,7 +1608,7 @@ PIXCMAP   *cmap;
         pixCompareRGB(pix1, pix2, L_COMPARE_ABS_DIFF, 0, NULL, &diff,
                       NULL, NULL);
     }
-    fprintf(stderr, "diff = %7.3f\n", diff);
+    lept_stderr("diff = %7.3f\n", diff);
     if (diff > 7.0) {
         L_INFO("   **** bad jp2k image: d = %d, diff = %5.2f ****\n",
                procName, depth, diff);

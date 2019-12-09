@@ -707,7 +707,7 @@ PIXA     *pixa;
         return (CCBORD *)ERROR_PTR("boxa not made", procName, NULL);
     }
     nh = boxaGetCount(boxa);
-/*    fprintf(stderr, "%d holes\n", nh); */
+/*    lept_stderr("%d holes\n", nh); */
 
         /* For each hole, find an interior pixel within the hole,
          * then march to the right and stop at the first border
@@ -746,7 +746,7 @@ PIXA     *pixa;
 #if  DEBUG_PRINT
         boxPrintStreamInfo(stderr, box);
         boxPrintStreamInfo(stderr, boxe);
-        fprintf(stderr, "xs = %d, ys = %d\n", xs, ys);
+        lept_stderr("xs = %d, ys = %d\n", xs, ys);
 #endif   /* DEBUG_PRINT */
         pixGetHoleBorder(ccb, pixs, boxe, xs, ys);
         boxDestroy(&boxt);
@@ -1595,7 +1595,7 @@ PTAA     *ptaap;  /* ptaa for all paths between borders */
 /*                boxPrintStreamInfo(stderr, boxa->box[0]); */
             }
             ptaaAddPta(ptaap, ptac, L_INSERT);
-/*            fprintf(stderr, "dir = %d, length = %d\n", dir, len); */
+/*            lept_stderr("dir = %d, length = %d\n", dir, len); */
 /*            ptaWriteStream(stderr, ptac, 1); */
 
                 /* Store the first and last points in the cut path,
@@ -2445,7 +2445,7 @@ NUMAA    *step;
         return (CCBORDA *)ERROR_PTR("file not type ccba", procName, NULL);
     }
     sscanf(strbuf, "ccba: %7d cc\n", &ncc);
-/*    fprintf(stderr, "ncc = %d\n", ncc); */
+/*    lept_stderr("ncc = %d\n", ncc); */
     if ((ccba = ccbaCreate(NULL, ncc)) == NULL) {
         LEPT_FREE(dataout);
         return (CCBORDA *)ERROR_PTR("ccba not made", procName, NULL);
@@ -2457,7 +2457,7 @@ NUMAA    *step;
     offset += 4;
     ccba->w = width;
     ccba->h = height;
-/*    fprintf(stderr, "width = %d, height = %d\n", width, height); */
+/*    lept_stderr("width = %d, height = %d\n", width, height); */
 
     for (i = 0; i < ncc; i++) {  /* should be ncc */
         ccb = ccbCreate(NULL);
@@ -2473,12 +2473,12 @@ NUMAA    *step;
         offset += 4;
         box = boxCreate(xoff, yoff, w, h);
         boxaAddBox(ccb->boxa, box, L_INSERT);
-/*        fprintf(stderr, "xoff = %d, yoff = %d, w = %d, h = %d\n",
+/*        lept_stderr("xoff = %d, yoff = %d, w = %d, h = %d\n",
                 xoff, yoff, w, h); */
 
         memcpy(&nb, dataout + offset, 4);
         offset += 4;
-/*        fprintf(stderr, "num borders = %d\n", nb); */
+/*        lept_stderr("num borders = %d\n", nb); */
         step = numaaCreate(nb);
         ccb->step = step;
 
@@ -2488,7 +2488,7 @@ NUMAA    *step;
             memcpy(&starty, dataout + offset, 4);
             offset += 4;
             ptaAddPt(ccb->start, startx, starty);
-/*            fprintf(stderr, "startx = %d, starty = %d\n", startx, starty); */
+/*            lept_stderr("startx = %d, starty = %d\n", startx, starty); */
             na = numaCreate(0);
             numaaAddNuma(step, na, L_INSERT);
 
@@ -2610,7 +2610,7 @@ SARRAY  *sa;
     sarrayAddString(sa, space, L_COPY);
 
     svgstr = sarrayToString(sa, 1);
-/*    fprintf(stderr, "%s", svgstr); */
+/*    lept_stderr("%s", svgstr); */
 
     sarrayDestroy(&sa);
     return svgstr;

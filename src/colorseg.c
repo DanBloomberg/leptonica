@@ -39,6 +39,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Maximum allowed iterations in Phase 1. */
@@ -331,7 +335,7 @@ PIXCMAP   *cmap;
             }
             if (!found) {  /* Add a new color */
                 ret = pixcmapAddNewColor(cmap, rval, gval, bval, &index);
-/*                fprintf(stderr,
+/*                lept_stderr(
                         "index = %d, (i,j) = (%d,%d), rgb = (%d, %d, %d)\n",
                         index, i, j, rval, gval, bval); */
                 if (ret == 0 && index < maxcolors) {

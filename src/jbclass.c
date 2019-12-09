@@ -202,6 +202,10 @@
  *     each cluster.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -260,7 +264,6 @@ static l_int32 finalPositioningForAlignment(PIX *pixs, l_int32 x, l_int32 y,
 #ifndef NO_CONSOLE_IO
 #define  DEBUG_CORRELATION_SCORE   0
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /*----------------------------------------------------------------------*
  *                            Initialization                            *
@@ -1222,19 +1225,19 @@ l_uint8     byte;
                 count = (l_int32)rint(sqrt(score * area1 * area2));
                 testcount = (l_int32)rint(sqrt(testscore * area1 * area2));
                 if ((score >= threshold) != (testscore >= threshold)) {
-                    fprintf(stderr, "Correlation score mismatch: "
-                            "%d(%g,%d) vs %d(%g,%d) (%g)\n",
-                            count, score, score >= threshold,
-                            testcount, testscore, testscore >= threshold,
-                            score - testscore);
+                    lept_stderr("Correlation score mismatch: "
+                                "%d(%g,%d) vs %d(%g,%d) (%g)\n",
+                                count, score, score >= threshold,
+                                testcount, testscore, testscore >= threshold,
+                                score - testscore);
                 }
 
                 if ((score >= threshold) != overthreshold) {
-                    fprintf(stderr, "Mismatch between correlation/threshold "
-                            "comparison: %g(%g,%d) >= %g(%g) vs %s\n",
-                            score, score*area1*area2, count, threshold,
-                            threshold*area1*area2,
-                            (overthreshold ? "true" : "false"));
+                    lept_stderr("Mismatch between correlation/threshold "
+                                "comparison: %g(%g,%d) >= %g(%g) vs %s\n",
+                                score, score*area1*area2, count, threshold,
+                                threshold*area1*area2,
+                                (overthreshold ? "true" : "false"));
                 }
             }
 #endif  /* DEBUG_CORRELATION_SCORE */
@@ -2056,11 +2059,11 @@ SARRAY   *sa;
     sscanf(linestr, "template lattice size: w = %d, h = %d\n", &cellw, &cellh);
 
 #if 1
-    fprintf(stderr, "num pages = %d\n", npages);
-    fprintf(stderr, "page size: w = %d, h = %d\n", w, h);
-    fprintf(stderr, "num components = %d\n", ncomp);
-    fprintf(stderr, "num classes = %d\n", nclass);
-    fprintf(stderr, "template lattice size: w = %d, h = %d\n", cellw, cellh);
+    lept_stderr("num pages = %d\n", npages);
+    lept_stderr("page size: w = %d, h = %d\n", w, h);
+    lept_stderr("num components = %d\n", ncomp);
+    lept_stderr("num classes = %d\n", nclass);
+    lept_stderr("template lattice size: w = %d, h = %d\n", cellw, cellh);
 #endif
 
     ninit = ncomp;
@@ -2270,7 +2273,7 @@ PTA       *ptac, *ptact, *ptaul;
         finalPositioningForAlignment(pixs, x, y, idelx, idely,
                                      pixt, sumtab, &dx, &dy);
 /*        if (i % 20 == 0)
-            fprintf(stderr, "dx = %d, dy = %d\n", dx, dy); */
+            lept_stderr("dx = %d, dy = %d\n", dx, dy); */
         ptaAddPt(ptaul, x - idelx + dx, y - idely + dy);
         boxDestroy(&box);
         pixDestroy(&pixt);

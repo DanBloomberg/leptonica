@@ -83,10 +83,13 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   SWAP(x, y)   {temp = (x); (x) = (y); (y) = temp;}
-
 
 /*-----------------------------------------------------------------*
  *                   Extraction of boundary pixels                 *
@@ -1079,7 +1082,7 @@ SEL     *sel_3;
         else
             SWAP(pixt, pixd);
     }
-    fprintf(stderr, " Num iters in binary reconstruction = %d\n", i);
+    lept_stderr(" Num iters in binary reconstruction = %d\n", i);
 
     pixDestroy(&pixt);
     selDestroy(&sel_3);

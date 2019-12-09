@@ -153,6 +153,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -645,8 +649,8 @@ L_RDID    *did;
         if (ppixdb) {
             rchExtract(recog->rch, &index, &score, &text,
                        &sample, NULL, NULL, NULL);
-            fprintf(stderr, "text = %s, index = %d, sample = %d,"
-                    " score = %5.3f\n", text, index, sample, score);
+            lept_stderr("text = %s, index = %d, sample = %d,"
+                        " score = %5.3f\n", text, index, sample, score);
         }
         pixDestroy(&pix1);
         boxDestroy(&box1);
@@ -1025,8 +1029,8 @@ L_RDID           *did;
     for (i = 1; i < nlevels; i++) {
         did->beta[i] = log((1.0 - da[i]) / da[0]);
         did->gamma[i] = log(da[0] * da[i] / ((1.0 - da[0]) * (1.0 - da[i])));
-/*        fprintf(stderr, "beta[%d] = %7.3f, gamma[%d] = %7.3f\n",
-                i, did->beta[i], i, did->gamma[i]);  */
+/*        lept_stderr("beta[%d] = %7.3f, gamma[%d] = %7.3f\n",
+                      i, did->beta[i], i, did->gamma[i]);  */
     }
 
     return 0;

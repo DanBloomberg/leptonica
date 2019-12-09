@@ -51,6 +51,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -764,25 +768,24 @@ l_int32  intlogbase2[5] = {1, 2, 3, 0, 4};  /* of arg/4 */
         case 'c':
         case 'C':
             if (sscanf(&op[1], "%d.%d", &w, &h) != 2) {
-                fprintf(stderr, "*** op: %s invalid\n", op);
+                lept_stderr("*** op: %s invalid\n", op);
                 valid = FALSE;
                 break;
             }
             if (w <= 0 || h <= 0) {
-                fprintf(stderr,
-                        "*** op: %s; w = %d, h = %d; must both be > 0\n",
-                        op, w, h);
+                lept_stderr("*** op: %s; w = %d, h = %d; must both be > 0\n",
+                            op, w, h);
                 valid = FALSE;
                 break;
             }
-/*            fprintf(stderr, "op = %s; w = %d, h = %d\n", op, w, h); */
+/*            lept_stderr("op = %s; w = %d, h = %d\n", op, w, h); */
             break;
         case 'r':
         case 'R':
             nred = strlen(op) - 1;
             netred += nred;
             if (nred < 1 || nred > 4) {
-                fprintf(stderr,
+                lept_stderr(
                         "*** op = %s; num reduct = %d; must be in {1,2,3,4}\n",
                         op, nred);
                 valid = FALSE;
@@ -791,66 +794,65 @@ l_int32  intlogbase2[5] = {1, 2, 3, 0, 4};  /* of arg/4 */
             for (j = 0; j < nred; j++) {
                 level[j] = op[j + 1] - '0';
                 if (level[j] < 1 || level[j] > 4) {
-                    fprintf(stderr, "*** op = %s; level[%d] = %d is invalid\n",
-                            op, j, level[j]);
+                    lept_stderr("*** op = %s; level[%d] = %d is invalid\n",
+                                op, j, level[j]);
                     valid = FALSE;
                     break;
                 }
             }
             if (!valid)
                 break;
-/*            fprintf(stderr, "op = %s", op); */
+/*            lept_stderr("op = %s", op); */
             for (j = 0; j < nred; j++) {
                 level[j] = op[j + 1] - '0';
-/*                fprintf(stderr, ", level[%d] = %d", j, level[j]); */
+/*                lept_stderr(", level[%d] = %d", j, level[j]); */
             }
-/*            fprintf(stderr, "\n"); */
+/*            lept_stderr("\n"); */
             break;
         case 'x':
         case 'X':
             if (sscanf(&op[1], "%d", &fact) != 1) {
-                fprintf(stderr, "*** op: %s; fact invalid\n", op);
+                lept_stderr("*** op: %s; fact invalid\n", op);
                 valid = FALSE;
                 break;
             }
             if (fact != 2 && fact != 4 && fact != 8 && fact != 16) {
-                fprintf(stderr, "*** op = %s; invalid fact = %d\n", op, fact);
+                lept_stderr("*** op = %s; invalid fact = %d\n", op, fact);
                 valid = FALSE;
                 break;
             }
             netred -= intlogbase2[fact / 4];
-/*            fprintf(stderr, "op = %s; fact = %d\n", op, fact); */
+/*            lept_stderr("op = %s; fact = %d\n", op, fact); */
             break;
         case 'b':
         case 'B':
             if (sscanf(&op[1], "%d", &fact) != 1) {
-                fprintf(stderr, "*** op: %s; fact invalid\n", op);
+                lept_stderr("*** op: %s; fact invalid\n", op);
                 valid = FALSE;
                 break;
             }
             if (i > 0) {
-                fprintf(stderr, "*** op = %s; must be first op\n", op);
+                lept_stderr("*** op = %s; must be first op\n", op);
                 valid = FALSE;
                 break;
             }
             if (fact < 1) {
-                fprintf(stderr, "*** op = %s; invalid fact = %d\n", op, fact);
+                lept_stderr("*** op = %s; invalid fact = %d\n", op, fact);
                 valid = FALSE;
                 break;
             }
             border = fact;
-/*            fprintf(stderr, "op = %s; fact = %d\n", op, fact); */
+/*            lept_stderr("op = %s; fact = %d\n", op, fact); */
             break;
         default:
-            fprintf(stderr, "*** nonexistent op = %s\n", op);
+            lept_stderr("*** nonexistent op = %s\n", op);
             valid = FALSE;
         }
         LEPT_FREE(op);
     }
 
     if (border != 0 && netred != 0) {
-        fprintf(stderr,
-                "*** op = %s; border added but net reduction not 0\n", op);
+        lept_stderr("*** op = %s; border added but net reduction not 0\n", op);
         valid = FALSE;
     }
     return valid;
@@ -950,40 +952,38 @@ SARRAY  *sa;
         case 'c':
         case 'C':
             if (sscanf(&op[1], "%d.%d", &w, &h) != 2) {
-                fprintf(stderr, "*** op: %s invalid\n", op);
+                lept_stderr("*** op: %s invalid\n", op);
                 valid = FALSE;
                 break;
             }
             if (w < 1 || (w & 1) == 0 || h < 1 || (h & 1) == 0 ) {
-                fprintf(stderr,
-                        "*** op: %s; w = %d, h = %d; must both be odd\n",
-                        op, w, h);
+                lept_stderr("*** op: %s; w = %d, h = %d; must both be odd\n",
+                            op, w, h);
                 valid = FALSE;
                 break;
             }
-/*            fprintf(stderr, "op = %s; w = %d, h = %d\n", op, w, h); */
+/*            lept_stderr("op = %s; w = %d, h = %d\n", op, w, h); */
             break;
         case 't':
         case 'T':
             if (op[1] != 'w' && op[1] != 'W' &&
                 op[1] != 'b' && op[1] != 'B') {
-                fprintf(stderr,
+                lept_stderr(
                         "*** op = %s; arg %c must be 'w' or 'b'\n", op, op[1]);
                 valid = FALSE;
                 break;
             }
             sscanf(&op[2], "%d.%d", &w, &h);
             if (w < 1 || (w & 1) == 0 || h < 1 || (h & 1) == 0 ) {
-                fprintf(stderr,
-                        "*** op: %s; w = %d, h = %d; must both be odd\n",
-                        op, w, h);
+                lept_stderr("*** op: %s; w = %d, h = %d; must both be odd\n",
+                            op, w, h);
                 valid = FALSE;
                 break;
             }
-/*            fprintf(stderr, "op = %s", op); */
+/*            lept_stderr("op = %s", op); */
             break;
         default:
-            fprintf(stderr, "*** nonexistent op = %s\n", op);
+            lept_stderr("*** nonexistent op = %s\n", op);
             valid = FALSE;
         }
         LEPT_FREE(op);
@@ -1155,21 +1155,20 @@ SARRAY  *sa;
         case 'c':
         case 'C':
             if (sscanf(&op[1], "%d.%d", &w, &h) != 2) {
-                fprintf(stderr, "*** op: %s invalid\n", op);
+                lept_stderr("*** op: %s invalid\n", op);
                 valid = FALSE;
                 break;
             }
             if (w < 1 || (w & 1) == 0 || h < 1 || (h & 1) == 0 ) {
-                fprintf(stderr,
-                        "*** op: %s; w = %d, h = %d; must both be odd\n",
-                        op, w, h);
+                lept_stderr("*** op: %s; w = %d, h = %d; must both be odd\n",
+                            op, w, h);
                 valid = FALSE;
                 break;
             }
-/*            fprintf(stderr, "op = %s; w = %d, h = %d\n", op, w, h); */
+/*            lept_stderr("op = %s; w = %d, h = %d\n", op, w, h); */
             break;
         default:
-            fprintf(stderr, "*** nonexistent op = %s\n", op);
+            lept_stderr("*** nonexistent op = %s\n", op);
             valid = FALSE;
         }
         LEPT_FREE(op);

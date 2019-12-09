@@ -131,6 +131,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Default input parameters for pixBackgroundNormSimple()
@@ -154,7 +158,6 @@ static l_int32 *iaaGetLinearTRC(l_int32 **iaa, l_int32 diff);
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_GLOBAL    0    /*!< set to 1 to debug pixGlobalNormNoSatRGB() */
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /*------------------------------------------------------------------*
  *      Clean background to white using background normalization    *
@@ -2332,10 +2335,10 @@ l_float32  rfract, gfract, bfract, maxfract;
     maxfract = L_MAX(rfract, gfract);
     maxfract = L_MAX(maxfract, bfract);
 #if  DEBUG_GLOBAL
-    fprintf(stderr, "rankrval = %7.2f, rankgval = %7.2f, rankbval = %7.2f\n",
-            rankrval, rankgval, rankbval);
-    fprintf(stderr, "rfract = %7.4f, gfract = %7.4f, bfract = %7.4f\n",
-            rfract, gfract, bfract);
+    lept_stderr("rankrval = %7.2f, rankgval = %7.2f, rankbval = %7.2f\n",
+                rankrval, rankgval, rankbval);
+    lept_stderr("rfract = %7.4f, gfract = %7.4f, bfract = %7.4f\n",
+                rfract, gfract, bfract);
 #endif  /* DEBUG_GLOBAL */
 
     mapval = (l_int32)(255. / maxfract);

@@ -231,6 +231,9 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
 #include <string.h>
 #include <math.h>
@@ -241,7 +244,6 @@ extern l_float32  AlphaMaskBorderVals[2];
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG     0
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /*-------------------------------------------------------------*
  *               Sampled affine image transformation           *
@@ -1217,7 +1219,7 @@ l_uint32  *lines;
 
 #if  DEBUG
     if (xf < 0 || yf < 0)
-        fprintf(stderr, "xp = %d, yp = %d, xf = %d, yf = %d\n", xp, yp, xf, yf);
+        lept_stderr("xp = %d, yp = %d, xf = %d, yf = %d\n", xp, yp, xf, yf);
 #endif  /* DEBUG */
 
         /* Do area weighting (eqiv. to linear interpolation) */
@@ -1301,7 +1303,7 @@ l_uint32  *lines;
 
 #if  DEBUG
     if (xf < 0 || yf < 0)
-        fprintf(stderr, "xp = %d, yp = %d, xf = %d, yf = %d\n", xp, yp, xf, yf);
+        lept_stderr("xp = %d, yp = %d, xf = %d, yf = %d\n", xp, yp, xf, yf);
 #endif  /* DEBUG */
 
         /* Interpolate by area weighting. */
@@ -1581,11 +1583,11 @@ PIX       *pix1, *pix2, *pixd;
 
 #if  DEBUG
     rad2deg = 180. / 3.1415926535;
-    fprintf(stderr, "th3 = %5.1f deg, ph2 = %5.1f deg\n",
-            rad2deg * th3, rad2deg * ph2);
-    fprintf(stderr, "th3' = %5.1f deg, ph2' = %5.1f deg\n",
-            rad2deg * th3p, rad2deg * ph2p);
-    fprintf(stderr, "scalex = %6.3f, scaley = %6.3f\n", scalex, scaley);
+    lept_stderr("th3 = %5.1f deg, ph2 = %5.1f deg\n",
+                rad2deg * th3, rad2deg * ph2);
+    lept_stderr("th3' = %5.1f deg, ph2' = %5.1f deg\n",
+                rad2deg * th3p, rad2deg * ph2p);
+    lept_stderr("scalex = %6.3f, scaley = %6.3f\n", scalex, scaley);
 #endif  /* DEBUG */
 
     /*-------------------------------------------------------------*

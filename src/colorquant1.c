@@ -114,9 +114,12 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
-
 
 /*
  * <pre>
@@ -173,7 +176,6 @@ static const l_int32  ExtraReservedColors = 25;  /* to avoid running out */
 static const l_int32  TreeGenWidth = 350;      /* big enough for good stats */
 static const l_int32  MinDitherSize = 250;     /* don't dither if smaller */
 
-
 /*
  * <pre>
  *   This data structure is used for pixOctreeQuantNumColors(),
@@ -195,7 +197,6 @@ struct OctcubeQuantCell
     l_int32    rval, gval, bval;   /* average values                       */
 };
 typedef struct OctcubeQuantCell    OQCELL;
-
 
 /*
  * <pre>
@@ -268,7 +269,6 @@ static PIX *pixOctcubeQuantFromCmapLUT(PIX *pixs, PIXCMAP *cmap,
 #define   DEBUG_FEW_COLORS      0
 #define   PRINT_OCTCUBE_STATS   0
 #endif   /* ~NO_CONSOLE_IO */
-
 
 /*-------------------------------------------------------------------------*
  *                Two-pass adaptive octree color quantization              *
@@ -839,13 +839,13 @@ NUMA      *nar;  /* accumulates levels for residual cells */
                     numaAddNumber(nat, level + 1);
 
 #if  DEBUG_OCTCUBE_CMAP
-    fprintf(stderr, "Exceeds threshold: colors used = %d, colors remaining = %d\n",
-                     cmap->n, ncolor + reservedcolors);
-    fprintf(stderr, "  cell with %d pixels, npix = %d, ppc = %d\n",
-                     cqcsub->n, npix, ppc);
-    fprintf(stderr, "  index = %d, level = %d, subindex = %d\n",
-                     i, level, j);
-    fprintf(stderr, "  rv = %d, gv = %d, bv = %d\n", rv, gv, bv);
+    lept_stderr("Exceeds threshold: colors used = %d, colors remaining = %d\n",
+                cmap->n, ncolor + reservedcolors);
+    lept_stderr("  cell with %d pixels, npix = %d, ppc = %d\n",
+                cqcsub->n, npix, ppc);
+    lept_stderr("  index = %d, level = %d, subindex = %d\n",
+                i, level, j);
+    lept_stderr("  rv = %d, gv = %d, bv = %d\n", rv, gv, bv);
 #endif  /* DEBUG_OCTCUBE_CMAP */
 
                 }
@@ -893,12 +893,12 @@ NUMA      *nar;  /* accumulates levels for residual cells */
                     numaAddNumber(nar, level);
 
 #if  DEBUG_OCTCUBE_CMAP
-    fprintf(stderr, "By remainder: colors used = %d, colors remaining = %d\n",
-                     cmap->n, ncolor + reservedcolors);
-    fprintf(stderr, "  cell with %d pixels, npix = %d, ppc = %d\n",
-                     cqc->n, npix, ppc);
-    fprintf(stderr, "  index = %d, level = %d\n", i, level);
-    fprintf(stderr, "  rv = %d, gv = %d, bv = %d\n", rv, gv, bv);
+    lept_stderr("By remainder: colors used = %d, colors remaining = %d\n",
+                cmap->n, ncolor + reservedcolors);
+    lept_stderr("  cell with %d pixels, npix = %d, ppc = %d\n",
+                cqc->n, npix, ppc);
+    lept_stderr("  index = %d, level = %d\n", i, level);
+    lept_stderr("  rv = %d, gv = %d, bv = %d\n", rv, gv, bv);
 #endif  /* DEBUG_OCTCUBE_CMAP */
 
                 }
@@ -928,12 +928,12 @@ l_int32    nt, nr, ival;
         numaGetIValue(nar, i, &ival);
         rc[ival]++;
     }
-    fprintf(stderr, " Threshold cells formed: %d\n", nt);
+    lept_stderr(" Threshold cells formed: %d\n", nt);
     for (i = 1; i < CqNLevels + 1; i++)
-        fprintf(stderr, "   level %d:  %d\n", i, tc[i]);
-    fprintf(stderr, "\n Residual cells formed: %d\n", nr);
+        lept_stderr("   level %d:  %d\n", i, tc[i]);
+    lept_stderr("\n Residual cells formed: %d\n", nr);
     for (i = 0; i < CqNLevels ; i++)
-        fprintf(stderr, "   level %d:  %d\n", i, rc[i]);
+        lept_stderr("   level %d:  %d\n", i, rc[i]);
 }
 #endif  /* PRINT_OCTCUBE_STATS */
 
@@ -1847,8 +1847,8 @@ PIXCMAP        *cmap;
         iarray[opop->index] = i + 1;  /* +1 to avoid storing 0 */
 
 #if DEBUG_POP
-        fprintf(stderr, "i = %d, n = %6.0f, (r,g,b) = (%d %d %d)\n",
-                i, opop->npix, opop->rval, opop->gval, opop->bval);
+        lept_stderr("i = %d, n = %6.0f, (r,g,b) = (%d %d %d)\n",
+                    i, opop->npix, opop->rval, opop->gval, opop->bval);
 #endif  /* DEBUG_POP */
 
         LEPT_FREE(opop);
@@ -1936,8 +1936,8 @@ PIXCMAP        *cmap;
     for (i = 0; i < size / 16; i++) {
         l_int32 j;
         for (j = 0; j < 16; j++)
-            fprintf(stderr, "%d ", iarray[16 * i + j]);
-        fprintf(stderr, "\n");
+            lept_stderr("%d ", iarray[16 * i + j]);
+        lept_stderr("\n");
     }
 #endif  /* DEBUG_POP */
 
@@ -2357,8 +2357,8 @@ PIXCMAP   *cmap;
                 extractRGBValues(*pspixel, &rval, &gval, &bval);
                 getOctcubeIndexFromRGB(rval, gval, bval,
                                        rtab, gtab, btab, &index);
-/*                fprintf(stderr, "rval = %d, gval = %d, bval = %d,"
-                                " index = %d\n", rval, gval, bval, index); */
+/*                lept_stderr("rval = %d, gval = %d, bval = %d,"
+                              " index = %d\n", rval, gval, bval, index); */
                 if (bpp == 4)
                     SET_DATA_QBIT(lined, j, index);
                 else  /* bpp == 8 */
@@ -2466,7 +2466,7 @@ PIXCMAP   *cmap;
     for (index = 0; index < ncubes; index++) {
         if (lut1[index] == 0)  /* not one of the extras; need to assign */
             lut1[index] = index >> 3;  /* remove the least significant bits */
-/*        fprintf(stderr, "lut1[%d] = %d\n", index, lut1[index]); */
+/*        lept_stderr("lut1[%d] = %d\n", index, lut1[index]); */
     }
 
         /* Go through the entire image, gathering statistics and
@@ -2480,8 +2480,8 @@ PIXCMAP   *cmap;
             pspixel = lines + j;
             extractRGBValues(*pspixel, &rval, &gval, &bval);
             getOctcubeIndexFromRGB(rval, gval, bval, rtab, gtab, btab, &index);
-/*            fprintf(stderr, "rval = %d, gval = %d, bval = %d, index = %d\n",
-                    rval, gval, bval, index); */
+/*            lept_stderr("rval = %d, gval = %d, bval = %d, index = %d\n",
+                          rval, gval, bval, index); */
             val = lut1[index];
             switch (bpp) {
             case 4:
@@ -2522,7 +2522,7 @@ PIXCMAP   *cmap;
     }
 /*    pixcmapWriteStream(stderr, cmap); */
     actualcolors = pixcmapGetCount(cmap);
-/*    fprintf(stderr, "Number of different colors = %d\n", actualcolors); */
+/*    lept_stderr("Number of different colors = %d\n", actualcolors); */
 
         /* Last time through the image; use the lookup table to
          * remap the pixel value to the minimal colormap */
@@ -3218,9 +3218,9 @@ PIXCMAP   *cmap;
         *pnerrors = nerrors;
 
 #if  DEBUG_FEW_COLORS
-    fprintf(stderr, "ncubes = %d, ncolors = %d\n", ncubes, ncolors);
+    lept_stderr("ncubes = %d, ncolors = %d\n", ncubes, ncolors);
     for (i = 0; i < ncolors; i++)
-        fprintf(stderr, "color[%d] = %x\n", i, colorarray[i + 1]);
+        lept_stderr("color[%d] = %x\n", i, colorarray[i + 1]);
 #endif  /* DEBUG_FEW_COLORS */
 
         /* Make the colormap. */
@@ -3781,8 +3781,8 @@ NUMA       *na;
                 (level == 4 && octindex > 4097) ||
                 (level == 5 && octindex > 32783) ||
                 (level == 6 && octindex > 262271)) {
-                fprintf(stderr, "level = %d, octindex = %d, index error!\n",
-                        level, octindex);
+                lept_stderr("level = %d, octindex = %d, index error!\n",
+                            level, octindex);
                 continue;
             }
 #endif  /* DEBUG_OCTINDEX */

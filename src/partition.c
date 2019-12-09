@@ -42,6 +42,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 /*! Partition element */
@@ -68,7 +72,6 @@ static const l_int32  DefaultMaxPops = 20000;
 #ifndef  NO_CONSOLE_IO
 #define  OUTPUT_HEAP_STATS   0
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /*------------------------------------------------------------------*
  *                    Whitespace block extraction                   *
@@ -285,10 +288,10 @@ L_HEAP  *lh;
     }
 
 #if  OUTPUT_HEAP_STATS
-    fprintf(stderr, "Heap statistics:\n");
-    fprintf(stderr, "  Number of boxes pushed: %d\n", npush);
-    fprintf(stderr, "  Number of boxes popped: %d\n", npop);
-    fprintf(stderr, "  Number of boxes on heap: %d\n", lheapGetCount(lh));
+    lept_stderr("Heap statistics:\n");
+    lept_stderr("  Number of boxes pushed: %d\n", npush);
+    lept_stderr("  Number of boxes popped: %d\n", npop);
+    lept_stderr("  Number of boxes on heap: %d\n", lheapGetCount(lh));
 #endif  /* OUTPUT_HEAP_STATS */
 
         /* Clean up the heap */

@@ -51,6 +51,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -60,7 +64,6 @@ static l_int32 boxaFillAll(BOXA *boxa);
 
 static void adjustSidePlotName(char *buf, size_t size, const char *preface,
                                l_int32 select);
-
 
 /*---------------------------------------------------------------------*
  *                        Boxa sequence fitting                        *
@@ -1043,8 +1046,8 @@ PIXA      *pixa;
     *pfdevw = devw / medw;
     *pfdevh = devh / medh;
     if (debug) {
-        fprintf(stderr, "medw = %5.1f, medh = %5.1f\n", medw, medh);
-        fprintf(stderr, "fdevw = %6.3f, fdevh = %6.3f\n", *pfdevw, *pfdevh);
+        lept_stderr("medw = %5.1f, medh = %5.1f\n", medw, medh);
+        lept_stderr("fdevw = %6.3f, fdevh = %6.3f\n", *pfdevw, *pfdevh);
         boxaPlotSizes(boxas, "input_boxa", NULL, NULL, &pix1);
         boxaPlotSizes(boxa1, "regularized_boxa", NULL, NULL, &pix2);
         pixDisplay(pix1, 500, 0);
@@ -1725,20 +1728,20 @@ NUMA           *nal, *nat, *nar, *nab;
             dataname = (plotname) ? stringNew(plotname) : stringNew("no_name");
             numaGetMedian(nal, &med);
             numaGetMeanDevFromMedian(nal, med, &dev);
-            fprintf(stderr, "%s left: med = %7.3f, meandev = %7.3f\n",
-                    dataname, med, dev);
+            lept_stderr("%s left: med = %7.3f, meandev = %7.3f\n",
+                        dataname, med, dev);
             numaGetMedian(nat, &med);
             numaGetMeanDevFromMedian(nat, med, &dev);
-            fprintf(stderr, "%s top: med = %7.3f, meandev = %7.3f\n",
-                    dataname, med, dev);
+            lept_stderr("%s top: med = %7.3f, meandev = %7.3f\n",
+                        dataname, med, dev);
             numaGetMedian(nar, &med);
             numaGetMeanDevFromMedian(nar, med, &dev);
-            fprintf(stderr, "%s right: med = %7.3f, meandev = %7.3f\n",
-                    dataname, med, dev);
+            lept_stderr("%s right: med = %7.3f, meandev = %7.3f\n",
+                        dataname, med, dev);
             numaGetMedian(nab, &med);
             numaGetMeanDevFromMedian(nab, med, &dev);
-            fprintf(stderr, "%s bot: med = %7.3f, meandev = %7.3f\n",
-                    dataname, med, dev);
+            lept_stderr("%s bot: med = %7.3f, meandev = %7.3f\n",
+                        dataname, med, dev);
             LEPT_FREE(dataname);
         }
     }

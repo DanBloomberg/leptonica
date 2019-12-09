@@ -137,9 +137,12 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
-
 
 /*----------------------------------------------------------------------*
  *                Arithmetic and logical ops on Numas                   *
@@ -212,7 +215,7 @@ l_float32  val1, val2;
             numaSetValue(nad, i, val1 / val2);
             break;
         default:
-            fprintf(stderr, " Unknown arith op: %d\n", op);
+            lept_stderr(" Unknown arith op: %d\n", op);
             return nad;
         }
     }
@@ -290,7 +293,7 @@ l_int32  i, n, val1, val2, val;
             numaSetValue(nad, i, val);
             break;
         default:
-            fprintf(stderr, " Unknown logical op: %d\n", op);
+            lept_stderr(" Unknown logical op: %d\n", op);
             return nad;
         }
     }

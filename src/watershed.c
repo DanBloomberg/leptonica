@@ -112,6 +112,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #ifndef  NO_CONSOLE_IO
@@ -406,7 +410,7 @@ PTA      *ptas, *ptao;
     L_INFO("nseeds = %d, nother = %d\n", procName, nseeds, nother);
     while (lheapGetCount(lh) > 0) {
         popWSPixel(lh, rstack, &val, &x, &y, &index);
-/*        fprintf(stderr, "x = %d, y = %d, index = %d\n", x, y, index); */
+/*        lept_stderr("x = %d, y = %d, index = %d\n", x, y, index); */
         ulabel = GET_DATA_FOUR_BYTES(linelab32[y], x);
         if (ulabel == MAX_LABEL_VALUE)
             clabel = ulabel;
@@ -446,11 +450,11 @@ PTA      *ptas, *ptao;
                     hmax = hindex;
                 }
                 if (wshed->debug) {
-                    fprintf(stderr, "clabel,hlabel = %d,%d\n", clabel, hlabel);
-                    fprintf(stderr, "hmin = %d, hmax = %d\n", hmin, hmax);
-                    fprintf(stderr, "cindex,hindex = %d,%d\n", cindex, hindex);
+                    lept_stderr("clabel,hlabel = %d,%d\n", clabel, hlabel);
+                    lept_stderr("hmin = %d, hmax = %d\n", hmin, hmax);
+                    lept_stderr("cindex,hindex = %d,%d\n", cindex, hindex);
                     if (hmin < mindepth)
-                        fprintf(stderr, "Too shallow!\n");
+                        lept_stderr("Too shallow!\n");
                 }
 
                 if (hmin >= mindepth) {
@@ -461,7 +465,7 @@ PTA      *ptas, *ptao;
                     numaSetValue(nasi, cindex, 0);
                     numaSetValue(nasi, clabel, 0);
 
-                    if (wshed->debug) fprintf(stderr, "nindex = %d\n", nindex);
+                    if (wshed->debug) lept_stderr("nindex = %d\n", nindex);
                     debugPrintLUT(lut, nindex, wshed->debug);
                     mergeLookup(wshed, clabel, nindex);
                     debugPrintLUT(lut, nindex, wshed->debug);
@@ -642,7 +646,7 @@ L_QUEUE  *lq;
     ptaGetIPt(wshed->ptas, index, &x, &y);
     pixSetPixel(pixt, x, y, 1);
     pushNewPixel(lq, x, y, &minx, &maxx, &miny, &maxy);
-    if (wshed->debug) fprintf(stderr, "prime: (x,y) = (%d, %d)\n", x, y);
+    if (wshed->debug) lept_stderr("prime: (x,y) = (%d, %d)\n", x, y);
 
         /* Each pixel in a spreading breadth-first search is inspected.
          * It is accepted as part of this watershed, and pushed on
@@ -1004,10 +1008,10 @@ debugPrintLUT(l_int32  *lut,
 l_int32  i;
 
     if (!debug) return;
-    fprintf(stderr, "lut: ");
+    lept_stderr("lut: ");
     for (i = 0; i < size; i++)
-        fprintf(stderr, "%d ", lut[i]);
-    fprintf(stderr, "\n");
+        lept_stderr( "%d ", lut[i]);
+    lept_stderr("\n");
     return;
 }
 
@@ -1022,9 +1026,9 @@ debugWshedMerge(L_WSHED *wshed,
 {
     if (!wshed || (wshed->debug == 0))
          return;
-    fprintf(stderr, "%s:\n", descr);
-    fprintf(stderr, "   (x, y) = (%d, %d)\n", x, y);
-    fprintf(stderr, "   clabel = %d, cindex = %d\n", label, index);
+    lept_stderr("%s:\n", descr);
+    lept_stderr("   (x, y) = (%d, %d)\n", x, y);
+    lept_stderr("   clabel = %d, cindex = %d\n", label, index);
     return;
 }
 

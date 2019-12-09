@@ -79,6 +79,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -405,7 +409,7 @@ PTA      *ptas, *ptad;
     ptaaAddPt(ptaa, neigh[0], x, y);
     if (nvals == 1) {
         if (debug == 1)
-            fprintf(stderr, "nvals = %d: neigh = (%d)\n", nvals, neigh[0]);
+            lept_stderr("nvals = %d: neigh = (%d)\n", nvals, neigh[0]);
         LEPT_FREE(neigh);
         return 0;
     }
@@ -419,18 +423,18 @@ PTA      *ptas, *ptad;
          *  (b) save the pixel locations in the pta for the first component. */
     if (nvals == 2) {
         if (debug >= 1 && debug <= 2) {
-            fprintf(stderr, "nvals = %d: neigh = (%d,%d)\n", nvals,
-                    neigh[0], neigh[1]);
+            lept_stderr("nvals = %d: neigh = (%d,%d)\n", nvals,
+                        neigh[0], neigh[1]);
         }
     } else if (nvals == 3) {
         if (debug >= 1 && debug <= 3) {
-            fprintf(stderr, "nvals = %d: neigh = (%d,%d,%d)\n", nvals,
-                    neigh[0], neigh[1], neigh[2]);
+            lept_stderr("nvals = %d: neigh = (%d,%d,%d)\n", nvals,
+                        neigh[0], neigh[1], neigh[2]);
         }
     } else {  /* nvals == 4 */
         if (debug >= 1 && debug <= 4) {
-            fprintf(stderr, "nvals = %d: neigh = (%d,%d,%d,%d)\n", nvals,
-                    neigh[0], neigh[1], neigh[2], neigh[3]);
+            lept_stderr("nvals = %d: neigh = (%d,%d,%d,%d)\n", nvals,
+                        neigh[0], neigh[1], neigh[2], neigh[3]);
         }
     }
     ptad = ptaaGetPta(ptaa, firstindex, L_CLONE);

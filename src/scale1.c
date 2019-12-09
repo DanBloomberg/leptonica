@@ -111,6 +111,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -2766,7 +2770,7 @@ l_uint32   words, wordsp, wordd, worddp;
 
 #if DEBUG_UNROLLING
 #define CHECK_BYTE(a, b, c) if (GET_DATA_BYTE(a, b) != c) {\
-     fprintf(stderr, "Error: mismatch at %d, %d vs %d\n", \
+     lept_stderr("Error: mismatch at %d, %d vs %d\n", \
              j, GET_DATA_BYTE(a, b), c); }
 
         sval2 = GET_DATA_BYTE(lines, 0);
@@ -3480,9 +3484,9 @@ l_float32  scx, scy;
             gval = (v00g + v01g + v10g + v11g + ving + vmidg + 128) / area;
             bval = (v00b + v01b + v10b + v11b + vinb + vmidb + 128) / area;
 #if  DEBUG_OVERFLOW
-            if (rval > 255) fprintf(stderr, "rval ovfl: %d\n", rval);
-            if (gval > 255) fprintf(stderr, "gval ovfl: %d\n", gval);
-            if (bval > 255) fprintf(stderr, "bval ovfl: %d\n", bval);
+            if (rval > 255) lept_stderr("rval ovfl: %d\n", rval);
+            if (gval > 255) lept_stderr("gval ovfl: %d\n", gval);
+            if (bval > 255) lept_stderr("bval ovfl: %d\n", bval);
 #endif  /* DEBUG_OVERFLOW */
             composeRGBPixel(rval, gval, bval, lined + j);
         }
@@ -3591,7 +3595,7 @@ l_float32  scx, scy;
                 vmid += 16 * ylf * GET_DATA_BYTE(lines + dely * wpls, xup + m);
             val = (v00 + v01 + v10 + v11 + vin + vmid + 128) / area;
 #if  DEBUG_OVERFLOW
-            if (val > 255) fprintf(stderr, "val overflow: %d\n", val);
+            if (val > 255) lept_stderr("val overflow: %d\n", val);
 #endif  /* DEBUG_OVERFLOW */
             SET_DATA_BYTE(lined, j, val);
         }

@@ -52,6 +52,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #ifdef _WIN32
 #include <stdlib.h>
@@ -91,7 +95,6 @@ static l_int32 localSearchForBackground(PIX  *pix, l_int32  *px,
 #define  DEBUG_PATH    0
 #define  DEBUG_MAZE    0
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /*---------------------------------------------------------------------*
  *             Binary maze generation as cellular automaton            *
@@ -177,9 +180,9 @@ L_QUEUE   *lq;
     wallpf = wallps * ranis;
 
 #if  DEBUG_MAZE
-    fprintf(stderr, "(w, h) = (%d, %d), (xi, yi) = (%d, %d)\n", w, h, xi, yi);
-    fprintf(stderr, "Using: prob(wall) = %7.4f, anisotropy factor = %7.4f\n",
-            wallps, ranis);
+    lept_stderr("(w, h) = (%d, %d), (xi, yi) = (%d, %d)\n", w, h, xi, yi);
+    lept_stderr("Using: prob(wall) = %7.4f, anisotropy factor = %7.4f\n",
+                wallps, ranis);
 #endif  /* DEBUG_MAZE */
 
         /* These are initialized to OFF */
@@ -375,8 +378,8 @@ PTA       *pta;
     localSearchForBackground(pixs, &xf, &yf, 5);
 
 #if  DEBUG_MAZE
-    fprintf(stderr, "(xi, yi) = (%d, %d), (xf, yf) = (%d, %d)\n",
-            xi, yi, xf, yf);
+    lept_stderr("(xi, yi) = (%d, %d), (xf, yf) = (%d, %d)\n",
+                xi, yi, xf, yf);
 #endif  /* DEBUG_MAZE */
 
     pixm = pixCreate(w, h, 1);  /* initialized to OFF */
@@ -886,7 +889,7 @@ PTA      *pta;
         pixGetPixel(pixr, x, y, &val);
 
 #if  DEBUG_PATH
-        fprintf(stderr, "(x,y) = (%d, %d); dist = %d\n", x, y, val);
+        lept_stderr("(x,y) = (%d, %d); dist = %d\n", x, y, val);
 #endif  /* DEBUG_PATH */
 
     }

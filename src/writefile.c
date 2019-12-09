@@ -1460,13 +1460,13 @@ static l_int32  index = 0;  /* caution: not .so or thread safe */
 
     PROCNAME("pixDisplayWrite");
 
-    fprintf(stderr, "\n######################################################"
-                    "\n                     Notice:\n"
-                    "  pixDisplayWrite() has been deprecated in leptonica \n"
-                    "  since version 1.74. It will become a non-functioning\n"
-                    "  stub in 1.80.\n"
-                    "######################################################"
-                    "\n\n\n");
+    lept_stderr("\n######################################################"
+                "\n                     Notice:\n"
+                "  pixDisplayWrite() has been deprecated in leptonica \n"
+                "  since version 1.74. It will become a non-functioning\n"
+                "  stub in 1.80.\n"
+                "######################################################"
+                "\n\n\n");
 
     if (reduction == 0) return 0;
     if (reduction < 0) {  /* initialize */

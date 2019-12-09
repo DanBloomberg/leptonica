@@ -53,6 +53,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 /*-----------------------------------------------------------------*
@@ -175,7 +179,7 @@ PIX        *pix1;
          * than the average width. */
     extra = (i < n - 1) ? fa[i + 1] / fa[1] : 0;
     width2 = 2.0 * (i - 1.0 + ratio + extra);
-    fprintf(stderr, "width1 = %5.2f, width2 = %5.2f\n", width1, width2);
+    lept_stderr("width1 = %5.2f, width2 = %5.2f\n", width1, width2);
 
         /* Average the two results */
     *pwidth = (width1 + width2) / 2.0;

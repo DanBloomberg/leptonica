@@ -80,6 +80,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 #include "readbarcode.h"
@@ -357,7 +361,7 @@ NUMA      *na;
                                       NULL, debugflag);
 #if  DEBUG_WIDTHS
         if (method == L_USE_WINDOWS)
-            fprintf(stderr, "Window width for barcode: %7.3f\n", winwidth);
+            lept_stderr("Window width for barcode: %7.3f\n", winwidth);
         numaWriteStream(stderr, na);
 #endif  /* DEBUG_WIDTHS */
 
@@ -911,14 +915,14 @@ NUMA      *naerange, *naorange, *naelut, *naolut, *nad;
         width = (l_int32)(factor * val);
         numaGetIValue(naelut, width, &iw);
         numaAddNumber(nad, iw);
-/*        fprintf(stderr, "even: val = %7.3f, width = %d, iw = %d\n",
-                val, width, iw); */
+/*        lept_stderr("even: val = %7.3f, width = %d, iw = %d\n",
+                      val, width, iw); */
         numaGetFValue(naodist, i, &val);
         width = (l_int32)(factor * val);
         numaGetIValue(naolut, width, &iw);
         numaAddNumber(nad, iw);
-/*        fprintf(stderr, "odd: val = %7.3f, width = %d, iw = %d\n",
-                val, width, iw); */
+/*        lept_stderr("odd: val = %7.3f, width = %d, iw = %d\n",
+                      val, width, iw); */
     }
     numaGetFValue(naedist, ned - 1, &val);
     width = (l_int32)(factor * val);
@@ -926,25 +930,25 @@ NUMA      *naerange, *naorange, *naelut, *naolut, *nad;
     numaAddNumber(nad, iw);
 
     if (debugflag) {
-        fprintf(stderr, " ---- Black bar widths (pixels) ------ \n");
+        lept_stderr(" ---- Black bar widths (pixels) ------ \n");
         numaWriteStream(stderr, naedist);
-        fprintf(stderr, " ---- Histogram of black bar widths ------ \n");
+        lept_stderr(" ---- Histogram of black bar widths ------ \n");
         numaWriteStream(stderr, naehist);
-        fprintf(stderr, " ---- Peak ranges in black bar histogram bins --- \n");
+        lept_stderr(" ---- Peak ranges in black bar histogram bins --- \n");
         numaWriteStream(stderr, naerange);
-        fprintf(stderr, " ---- Peak black bar centroid width values ------ \n");
+        lept_stderr(" ---- Peak black bar centroid width values ------ \n");
         numaWriteStream(stderr, naecent);
-        fprintf(stderr, " ---- Black bar lookup table ------ \n");
+        lept_stderr(" ---- Black bar lookup table ------ \n");
         numaWriteStream(stderr, naelut);
-        fprintf(stderr, " ---- White bar widths (pixels) ------ \n");
+        lept_stderr(" ---- White bar widths (pixels) ------ \n");
         numaWriteStream(stderr, naodist);
-        fprintf(stderr, " ---- Histogram of white bar widths ------ \n");
+        lept_stderr(" ---- Histogram of white bar widths ------ \n");
         numaWriteStream(stderr, naohist);
-        fprintf(stderr, " ---- Peak ranges in white bar histogram bins --- \n");
+        lept_stderr(" ---- Peak ranges in white bar histogram bins --- \n");
         numaWriteStream(stderr, naorange);
-        fprintf(stderr, " ---- Peak white bar centroid width values ------ \n");
+        lept_stderr(" ---- Peak white bar centroid width values ------ \n");
         numaWriteStream(stderr, naocent);
-        fprintf(stderr, " ---- White bar lookup table ------ \n");
+        lept_stderr(" ---- White bar lookup table ------ \n");
         numaWriteStream(stderr, naolut);
     }
 
@@ -1401,8 +1405,8 @@ l_float32  bestwidth, bestshift, bestscore;
                 bestwidth = width;
                 bestshift = shift;
 #if  DEBUG_FREQUENCY
-                fprintf(stderr, "width = %7.3f, shift = %7.3f, score = %7.3f\n",
-                        width, shift, score);
+                lept_stderr("width = %7.3f, shift = %7.3f, score = %7.3f\n",
+                            width, shift, score);
 #endif  /* DEBUG_FREQUENCY */
             }
         }

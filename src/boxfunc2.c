@@ -64,6 +64,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -71,7 +75,6 @@
      * semi-perimeter (w + h) about 5000 or less, the O(n) binsort
      * is faster than the O(nlogn) shellsort.  */
 static const l_int32   MinCompsForBinSort = 200;
-
 
 /*---------------------------------------------------------------------*
  *      Boxa/Box transform (shift, scale) and orthogonal rotation      *
@@ -1071,7 +1074,7 @@ NUMAA   *naa, *naa1, *naad;
     }
 
 
-/*    fprintf(stderr, "box count = %d, numaa count = %d\n", nt,
+/*    lept_stderr("box count = %d, numaa count = %d\n", nt,
             numaaGetNumberCount(naad)); */
 
     boxaaDestroy(&baa);

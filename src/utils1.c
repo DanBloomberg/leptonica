@@ -262,8 +262,20 @@ static void lept_default_stderr_handler(const char *formatted_msg)
      * By default it writes to stderr.  */
 void (*stderr_handler)(const char *) = lept_default_stderr_handler;
 
-    /* Allow runtime redirection of output from lept_stderr().
-     * If called with NULL, output goes to stderr. */
+
+/*!
+ * \brief   leptSetStderrHandler()
+ *
+ * \param[in]    handler   callback function for lept_stderr output
+ * \return  void
+ *
+ * <pre>
+ * Notes:
+ *      (1) This registers a handler for redirection of output to stderr
+ *          at runtime.
+ *      (2) If called with NULL, the output goes to stderr.
+ * </pre>
+ */
 void leptSetStderrHandler(void (*handler)(const char *))
 {
     if (handler)
@@ -272,16 +284,29 @@ void leptSetStderrHandler(void (*handler)(const char *))
         stderr_handler = lept_default_stderr_handler;
 }
 
-    /* Replacement for fprintf(), to allow redirection of output.
-     * All calls to fprintf(stderr, ...) are replaced with calls
-     * to lept_stderr(...).  This utility was provided by jbarlow83. */
-#define MAX_DEBUG_MESSAGE   1000
 
+#define MAX_DEBUG_MESSAGE   2000
+/*!
+ * \brief   lept_stderr()
+ *
+ * \param[in]    fmt      format string
+ * \param[in]    ...      varargs
+ * \return  void
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a replacement for fprintf(), to allow redirection
+ *          of output.  All calls to lept_stderr( ...) are replaced
+ *          with calls to lept_stderr(...).
+ *      (2) The message size is limited to 2K bytes.
+        (3) This utility was provided by jbarlow83.
+ * </pre>
+ */
 void lept_stderr(const char *fmt, ...)
 {
-    va_list args;
-    char msg[MAX_DEBUG_MESSAGE];
-    int n;
+va_list  args;
+char     msg[MAX_DEBUG_MESSAGE];
+l_int32  n;
 
     va_start(args, fmt);
     n = vsnprintf(msg, sizeof(msg), fmt, args);
@@ -991,7 +1016,7 @@ static struct rusage rusage_after;
  *      (1) These measure the cpu time elapsed between the two calls:
  *            startTimer();
  *            ....
- *            fprintf(stderr, "Elapsed time = %7.3f sec\n", stopTimer());
+ *            lept_stderr( "Elapsed time = %7.3f sec\n", stopTimer());
  */
 void
 startTimer(void)
@@ -1021,9 +1046,9 @@ l_int32  tsec, tusec;
  *      ....
  *      L_TIMER  t2 = startTimerNested();
  *      ....
- *      fprintf(stderr, "Elapsed time 2 = %7.3f sec\n", stopTimerNested(t2));
+ *      lept_stderr( "Elapsed time 2 = %7.3f sec\n", stopTimerNested(t2));
  *      ....
- *      fprintf(stderr, "Elapsed time 1 = %7.3f sec\n", stopTimerNested(t1));
+ *      lept_stderr( "Elapsed time 1 = %7.3f sec\n", stopTimerNested(t1));
  */
 L_TIMER
 startTimerNested(void)
@@ -1219,7 +1244,7 @@ LONGLONG        usecs;
  *      (1) These measure the wall clock time  elapsed between the two calls:
  *            L_WALLTIMER *timer = startWallTimer();
  *            ....
- *            fprintf(stderr, "Elapsed time = %f sec\n", stopWallTimer(&timer);
+ *            lept_stderr( "Elapsed time = %f sec\n", stopWallTimer(&timer);
  *      (2) Note that the timer object is destroyed by stopWallTimer().
  * </pre>
  */

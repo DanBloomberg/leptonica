@@ -95,6 +95,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -938,9 +942,9 @@ PIX       *pixsw, *pixsch, *pixt1, *pixt2;
         *pconf = 0.0;
 
 #if  DEBUG_PRINT_BINARY
-    fprintf(stderr, "Binary search: angle = %7.3f, score ratio = %6.2f\n",
+    lept_stderr("Binary search: angle = %7.3f, score ratio = %6.2f\n",
             *pangle, *pconf);
-    fprintf(stderr, "               max score = %8.0f\n", maxscore);
+    lept_stderr("               max score = %8.0f\n", maxscore);
 #endif  /* DEBUG_PRINT_BINARY */
 
 #if  DEBUG_PLOT_SCORES
@@ -1074,11 +1078,11 @@ PIX       *pixr;
     }
 
 #if  DEBUG_PRINT_ORTH
-    fprintf(stderr, " About 0:  angle1 = %7.3f, conf1 = %7.3f, score1 = %f\n",
+    lept_stderr(" About 0:  angle1 = %7.3f, conf1 = %7.3f, score1 = %f\n",
             angle1, conf1, score1);
-    fprintf(stderr, " About 90: angle2 = %7.3f, conf2 = %7.3f, score2 = %f\n",
+    lept_stderr(" About 90: angle2 = %7.3f, conf2 = %7.3f, score2 = %f\n",
             angle2, conf2, score2);
-    fprintf(stderr, " Final:    angle = %7.3f, conf = %7.3f\n", *pangle, *pconf);
+    lept_stderr(" Final:    angle = %7.3f, conf = %7.3f\n", *pangle, *pconf);
 #endif  /* DEBUG_PRINT_ORTH */
 
     return 0;

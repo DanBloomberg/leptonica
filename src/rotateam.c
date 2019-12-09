@@ -121,6 +121,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>   /* required for sin and tan */
 #include "allheaders.h"
@@ -1120,7 +1124,7 @@ l_float32  sina, cosa;
                                ((blue << 4) & 0x0000ff00);
                 break;
             default:
-                fprintf(stderr, "shouldn't get here\n");
+                lept_stderr("shouldn't get here\n");
                 break;
             }
         }

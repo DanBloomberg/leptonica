@@ -138,8 +138,11 @@
  * </pre>
  */
 
-#include "allheaders.h"
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
+#include "allheaders.h"
 
 static l_int32 sudokuValidState(l_int32  *state);
 static l_int32 sudokuNewGuess(L_SUDOKU  *sud);
@@ -389,11 +392,11 @@ sudokuSolve(L_SUDOKU  *sud)
     }
 
     if (sud->failure == TRUE) {
-        fprintf(stderr, "Failure after %d guesses\n", sud->nguess);
+        lept_stderr("Failure after %d guesses\n", sud->nguess);
         return 0;
     }
 
-    fprintf(stderr, "Solved after %d guesses\n", sud->nguess);
+    lept_stderr("Solved after %d guesses\n", sud->nguess);
     return 1;
 }
 
@@ -786,7 +789,7 @@ L_SUDOKU  *sud, *testsud;
         if (81 - nzeros <= minelems) break;
 
         if (tries == 0) {
-            fprintf(stderr, "Trying %d zeros\n", nzeros);
+            lept_stderr("Trying %d zeros\n", nzeros);
             tries = 1;
         }
 
@@ -821,11 +824,11 @@ L_SUDOKU  *sud, *testsud;
             tries++;
         } else {  /* accept this */
             tries = 0;
-            fprintf(stderr, "Have %d zeros\n", nzeros);
+            lept_stderr("Have %d zeros\n", nzeros);
             nzeros++;
         }
     }
-    fprintf(stderr, "Final: nelems = %d\n", 81 - nzeros);
+    lept_stderr("Final: nelems = %d\n", 81 - nzeros);
 
         /* Show that we can recover the solution */
     sud = sudokuCreate(array);
@@ -873,8 +876,8 @@ l_int32  *array;
 
     for (i = 0; i < 9; i++) {
         for (j = 0; j < 9; j++)
-            fprintf(stderr, "%d ", array[9 * i + j]);
-        fprintf(stderr, "\n");
+            lept_stderr("%d ", array[9 * i + j]);
+        lept_stderr("\n");
     }
 
     return 0;

@@ -152,10 +152,13 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>   /* for sqrt() */
 #include "allheaders.h"
-
 
 /*---------------------------------------------------------------------*
  *                               Pixa Display                          *
@@ -2404,7 +2407,7 @@ PIXA    *pixa1;
 
     lept_mkdir("lept/split");
     n = (nt + nsplit - 1) / nsplit;
-    fprintf(stderr, "nt = %d, n = %d, nsplit = %d\n", nt, n, nsplit);
+    lept_stderr("nt = %d, n = %d, nsplit = %d\n", nt, n, nsplit);
     for (i = 0, index = 0; i < nsplit; i++) {
         pixa1 = pixaCreate(n);
         for (j = 0; j < n && index < nt; j++, index++) {

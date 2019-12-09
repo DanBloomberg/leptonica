@@ -377,16 +377,16 @@ PIXCMAP     *cmap;
             pixSetSpp(pix, 4);
 
 #if DEBUG_READ
-            fprintf(stderr, "ncolors = %d, num_trans = %d\n",
-                    ncolors, num_trans);
+            lept_stderr("ncolors = %d, num_trans = %d\n",
+                        ncolors, num_trans);
             for (i = 0; i < ncolors; i++) {
                 pixcmapGetColor(cmap, i, &rval, &gval, &bval);
                 if (i < num_trans) {
-                    fprintf(stderr, "(r,g,b,a) = (%d,%d,%d,%d)\n",
-                            rval, gval, bval, trans[i]);
+                    lept_stderr("(r,g,b,a) = (%d,%d,%d,%d)\n",
+                                rval, gval, bval, trans[i]);
                 } else {
-                    fprintf(stderr, "(r,g,b,a) = (%d,%d,%d,<<255>>)\n",
-                            rval, gval, bval);
+                    lept_stderr("(r,g,b,a) = (%d,%d,%d,<<255>>)\n",
+                                rval, gval, bval);
                 }
             }
 #endif  /* DEBUG_READ */
@@ -442,8 +442,7 @@ PIXCMAP     *cmap;
 #if  DEBUG_READ
     if (cmap) {
         for (i = 0; i < 16; i++) {
-            fprintf(stderr, "[%d] = %d\n", i,
-                   ((l_uint8 *)(cmap->array))[i]);
+            lept_stderr("[%d] = %d\n", i, ((l_uint8 *)(cmap->array))[i]);
         }
     }
 #endif  /* DEBUG_READ */
@@ -1101,8 +1100,8 @@ char        *text;
         color_type = PNG_COLOR_TYPE_PALETTE;  /* 3 */
 
 #if  DEBUG_WRITE
-    fprintf(stderr, "cmflag = %d, bit_depth = %d, color_type = %d\n",
-            cmflag, bit_depth, color_type);
+    lept_stderr("cmflag = %d, bit_depth = %d, color_type = %d\n",
+                cmflag, bit_depth, color_type);
 #endif  /* DEBUG_WRITE */
 
     png_set_IHDR(png_ptr, info_ptr, w, h, bit_depth, color_type,
@@ -1625,7 +1624,7 @@ MEMIODATA    state;
 
         /* Remove if/when this is implemented for all bit_depths */
     if (spp == 3 && bit_depth != 8) {
-        fprintf(stderr, "Help: spp = 3 and depth = %d != 8\n!!", bit_depth);
+        lept_stderr("Help: spp = 3 and depth = %d != 8\n!!", bit_depth);
         png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
         return (PIX *)ERROR_PTR("not implemented for this depth",
             procName, NULL);
@@ -1732,16 +1731,16 @@ MEMIODATA    state;
             pixSetSpp(pix, 4);
 
 #if DEBUG_READ
-            fprintf(stderr, "ncolors = %d, num_trans = %d\n",
-                    ncolors, num_trans);
+            lept_stderr("ncolors = %d, num_trans = %d\n",
+                        ncolors, num_trans);
             for (i = 0; i < ncolors; i++) {
                 pixcmapGetColor(cmap, i, &rval, &gval, &bval);
                 if (i < num_trans) {
-                    fprintf(stderr, "(r,g,b,a) = (%d,%d,%d,%d)\n",
-                            rval, gval, bval, trans[i]);
+                    lept_stderr("(r,g,b,a) = (%d,%d,%d,%d)\n",
+                                rval, gval, bval, trans[i]);
                 } else {
-                    fprintf(stderr, "(r,g,b,a) = (%d,%d,%d,<<255>>)\n",
-                            rval, gval, bval);
+                    lept_stderr("(r,g,b,a) = (%d,%d,%d,<<255>>)\n",
+                                rval, gval, bval);
                 }
             }
 #endif  /* DEBUG_READ */
@@ -1797,8 +1796,7 @@ MEMIODATA    state;
 #if  DEBUG_READ
     if (cmap) {
         for (i = 0; i < 16; i++) {
-            fprintf(stderr, "[%d] = %d\n", i,
-                   ((l_uint8 *)(cmap->array))[i]);
+            lept_stderr("[%d] = %d\n", i, ((l_uint8 *)(cmap->array))[i]);
         }
     }
 #endif  /* DEBUG_READ */
@@ -1965,8 +1963,8 @@ MEMIODATA    state;
         color_type = PNG_COLOR_TYPE_PALETTE;  /* 3 */
 
 #if  DEBUG_WRITE
-    fprintf(stderr, "cmflag = %d, bit_depth = %d, color_type = %d\n",
-            cmflag, bit_depth, color_type);
+    lept_stderr("cmflag = %d, bit_depth = %d, color_type = %d\n",
+                cmflag, bit_depth, color_type);
 #endif  /* DEBUG_WRITE */
 
     png_set_IHDR(png_ptr, info_ptr, w, h, bit_depth, color_type,

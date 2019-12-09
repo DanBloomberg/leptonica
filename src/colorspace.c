@@ -79,6 +79,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -91,7 +95,6 @@
     /* Functions used in xyz <--> lab conversions */
 static l_float32 lab_forward(l_float32 v);
 static l_float32 lab_reverse(l_float32 v);
-
 
 /*---------------------------------------------------------------------------*
  *                  Colorspace conversion between RGB and HSB                *
@@ -1037,7 +1040,7 @@ PIX       *pixt, *pixd;
 
 #if  DEBUG_HISTO
             if (hval > 239) {
-                fprintf(stderr, "hval = %d for (%d,%d)\n", hval, i, j);
+                lept_stderr("hval = %d for (%d,%d)\n", hval, i, j);
                 continue;
             }
 #endif  /* DEBUG_HISTO */

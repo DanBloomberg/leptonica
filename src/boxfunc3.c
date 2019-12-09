@@ -60,6 +60,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static l_int32 pixSearchForRectangle(PIX *pixs, BOX *boxs, l_int32 minsum,
@@ -70,7 +74,6 @@ static l_int32 pixSearchForRectangle(PIX *pixs, BOX *boxs, l_int32 minsum,
 #ifndef NO_CONSOLE_IO
 #define  DEBUG_SPLIT     0
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /*---------------------------------------------------------------------*
  *                     Boxa/Boxaa painting into Pix                    *
@@ -986,10 +989,10 @@ PIX     *pixs;
         numaGetIValue(nas, 0, &maxdir);
         numaGetIValue(nascore, maxdir, &maxscore);
 #if  DEBUG_SPLIT
-        fprintf(stderr, "Iteration: %d\n", iter);
+        lept_stderr("Iteration: %d\n", iter);
         boxPrintStreamInfo(stderr, boxs);
         boxaWriteStream(stderr, boxat);
-        fprintf(stderr, "\nmaxdir = %d, maxscore = %d\n\n", maxdir, maxscore);
+        lept_stderr("\nmaxdir = %d, maxscore = %d\n\n", maxdir, maxscore);
 #endif  /* DEBUG_SPLIT */
         if (maxscore > 0) {  /* accept this */
             boxt1 = boxaGetBox(boxat, maxdir, L_CLONE);

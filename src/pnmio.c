@@ -689,7 +689,7 @@ l_int32  ch;
             } else if (maxval == 0xffff) {
                 d = 16;
             } else {
-                fprintf(stderr, "maxval = %d\n", maxval);
+                lept_stderr("maxval = %d\n", maxval);
                 return ERROR_INT("invalid maxval", procName, 1);
             }
             bps = d;

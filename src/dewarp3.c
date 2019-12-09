@@ -51,6 +51,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -176,7 +180,7 @@ PIX       *pixv, *pixh;
         dewarpDebug(dew1, "lept/dewapply", 0);
         convertFilesToPdf("/tmp/lept/dewapply", NULL, 250, 1.0, 0, 0,
                          "Dewarp Apply Disparity", debugfile);
-        fprintf(stderr, "pdf file: %s\n", debugfile);
+        lept_stderr("pdf file: %s\n", debugfile);
     }
 
         /* Get rid of the large full res disparity arrays */
@@ -327,7 +331,7 @@ PIX        *pixd;
         return (PIX *)ERROR_PTR("fullvdispar not defined", procName, NULL);
     fpixGetDimensions(fpix, &fw, &fh);
     if (fw < w || fh < h) {
-        fprintf(stderr, "fw = %d, w = %d, fh = %d, h = %d\n", fw, w, fh, h);
+        lept_stderr("fw = %d, w = %d, fh = %d, h = %d\n", fw, w, fh, h);
         return (PIX *)ERROR_PTR("invalid fpix size", procName, NULL);
     }
 
@@ -436,7 +440,7 @@ PIX        *pixd;
         return (PIX *)ERROR_PTR("fullhdispar not defined", procName, NULL);
     fpixGetDimensions(fpix, &fw, &fh);
     if (fw < w || fh < h) {
-        fprintf(stderr, "fw = %d, w = %d, fh = %d, h = %d\n", fw, w, fh, h);
+        lept_stderr("fw = %d, w = %d, fh = %d, h = %d\n", fw, w, fh, h);
         return (PIX *)ERROR_PTR("invalid fpix size", procName, NULL);
     }
 
@@ -616,7 +620,7 @@ PIX       *pixv, *pixh;
         dewarpDebug(dew1, "lept/dewapply", 0);
         convertFilesToPdf("/tmp/lept/dewboxa", NULL, 135, 1.0, 0, 0,
                          "Dewarp Apply Disparity Boxa", debugfile);
-        fprintf(stderr, "Dewarp Apply Disparity Boxa pdf file: %s\n",
+        lept_stderr("Dewarp Apply Disparity Boxa pdf file: %s\n",
                 debugfile);
     }
 

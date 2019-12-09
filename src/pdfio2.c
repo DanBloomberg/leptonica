@@ -445,14 +445,14 @@ NUMAA    *naa_objs;  /* object mapping numbers to new values */
     l_byteaDestroy(&bad);
 
 #if  DEBUG_MULTIPAGE
-    fprintf(stderr, "******** object mapper **********");
+    lept_stderr("******** object mapper **********");
     numaaWriteStream(stderr, naa_objs);
 
-    fprintf(stderr, "******** Page object numbers ***********");
+    lept_stderr("******** Page object numbers ***********");
     numaWriteStream(stderr, napage);
 
-    fprintf(stderr, "******** Pages object ***********\n");
-    fprintf(stderr, "%s\n", str_pages);
+    lept_stderr("******** Pages object ***********\n");
+    lept_stderr("%s\n", str_pages);
 #endif  /* DEBUG_MULTIPAGE */
 
     numaDestroy(&napage);
@@ -2305,11 +2305,11 @@ SARRAY   *sa;
     l_dnaAddNumber(da, xrefloc);
 
 #if  DEBUG_MULTIPAGE
-    fprintf(stderr, "************** Trailer string ************\n");
-    fprintf(stderr, "xrefloc = %d", xrefloc);
+    lept_stderr("************** Trailer string ************\n");
+    lept_stderr("xrefloc = %d", xrefloc);
     sarrayWriteStream(stderr, sa);
 
-    fprintf(stderr, "************** Object locations ************");
+    lept_stderr("************** Object locations ************");
     l_dnaWriteStream(stderr, da);
 #endif  /* DEBUG_MULTIPAGE */
     sarrayDestroy(&sa);

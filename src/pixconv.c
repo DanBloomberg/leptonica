@@ -153,6 +153,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -433,8 +437,8 @@ PIX       *pixd;
                     }
 #if DEBUG_UNROLLING
 #define CHECK_VALUE(a, b, c) if (GET_DATA_BYTE(a, b) != c) { \
-    fprintf(stderr, "Error: mismatch at %d, %d vs %d\n", \
-            j, GET_DATA_BYTE(a, b), c); }
+    lept_stderr("Error: mismatch at %d, %d vs %d\n", \
+                j, GET_DATA_BYTE(a, b), c); }
                     for (j = 0; j < w; j++) {
                         sval = GET_DATA_BYTE(lines, j);
                         gval = graymap[sval];
@@ -885,6 +889,8 @@ PIX       *pixd;
  *          value.
  *      (2) The default reference value for boosting the min and max
  *          is 200.  This can be changed with l_setNeutralBoostVal()
+ *      (3) The result with L_CHOOSE_MAXDIFF is surprisingly sensitive
+ *          to a jpeg compression/decompression cycle with quality = 75.
  * </pre>
  */
 PIX *
@@ -3929,7 +3935,7 @@ PIXCMAP  *cmap;
         pixd = pixConvert16To8(pixs, L_MS_BYTE);
         break;
     default:
-        fprintf(stderr, "depth not in {1, 2, 4, 8, 16, 32}");
+        lept_stderr("depth not in {1, 2, 4, 8, 16, 32}");
         return NULL;
    }
 

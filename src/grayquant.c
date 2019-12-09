@@ -97,6 +97,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -576,8 +580,8 @@ l_uint32 sword, dword;
         }
 #if DEBUG_UNROLLING
 #define CHECK_BIT(a, b, c) if (GET_DATA_BIT(a, b) != c) { \
-    fprintf(stderr, "Error: mismatch at %d/%d(%d), %d vs %d\n", \
-            j, w, d, GET_DATA_BIT(a, b), c); }
+    lept_stderr("Error: mismatch at %d/%d(%d), %d vs %d\n", \
+                j, w, d, GET_DATA_BIT(a, b), c); }
         for (j = 0; j < w; j++) {
             gval = GET_DATA_QBIT(lines, j);
             CHECK_BIT(lined, j, gval < thresh ? 1 : 0);
@@ -1851,7 +1855,7 @@ l_int32   i, j, thresh;
             thresh = 255 * (2 * j + 1) / (2 * nlevels - 2);
             if (i <= thresh) {
                 tab[i] = j;
-/*                fprintf(stderr, "tab[%d] = %d\n", i, j); */
+/*                lept_stderr("tab[%d] = %d\n", i, j); */
                 break;
             }
         }
@@ -1905,7 +1909,7 @@ l_int32   i, j, thresh, maxval, quantval;
             if (i <= thresh) {
                 quantval = maxval * j / (nlevels - 1);
                 tab[i] = quantval;
-/*                fprintf(stderr, "tab[%d] = %d\n", i, tab[i]); */
+/*                lept_stderr("tab[%d] = %d\n", i, tab[i]); */
                 break;
             }
         }
@@ -2371,7 +2375,7 @@ PIXCMAP   *cmap;
             return (PIX *)ERROR_PTR("pixs, pixd sizes differ", procName, NULL);
         nc = pixcmapGetCount(cmap);
         nestim = nc + (l_int32)(1.5 * 255 / maxsize);
-        fprintf(stderr, "nestim = %d\n", nestim);
+        lept_stderr( "nestim = %d\n", nestim);
         if (nestim > 255) {
             L_ERROR("Estimate %d colors!\n", procName, nestim);
             return (PIX *)ERROR_PTR("probably too many colors", procName, NULL);

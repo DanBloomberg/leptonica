@@ -65,6 +65,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -173,15 +177,15 @@ L_REGPARAMS  *rp;
 
         /* Print out test name and both the leptonica and
          * image libarary versions */
-    fprintf(stderr, "\n////////////////////////////////////////////////\n"
-                    "////////////////   %s_reg   ///////////////\n"
-                    "////////////////////////////////////////////////\n",
-            rp->testname);
+    lept_stderr("\n////////////////////////////////////////////////\n"
+                "////////////////   %s_reg   ///////////////\n"
+                "////////////////////////////////////////////////\n",
+                rp->testname);
     vers = getLeptonicaVersion();
-    fprintf(stderr, "%s : ", vers);
+    lept_stderr("%s : ", vers);
     LEPT_FREE(vers);
     vers = getImagelibVersions();
-    fprintf(stderr, "%s\n", vers);
+    lept_stderr("%s\n", vers);
     LEPT_FREE(vers);
 
     rp->tstart = startTimerNested();
@@ -215,7 +219,7 @@ size_t   nbytes;
     if (!rp)
         return ERROR_INT("rp not defined", procName, 1);
 
-    fprintf(stderr, "Time: %7.3f sec\n", stopTimerNested(rp->tstart));
+    lept_stderr("Time: %7.3f sec\n", stopTimerNested(rp->tstart));
 
         /* If generating golden files or running in display mode, release rp */
     if (!rp->fp) {
@@ -288,8 +292,7 @@ l_float32  diff;
                     "difference = %f but allowed delta = %f\n",
                     rp->testname, rp->index, diff, delta);
         }
-        fprintf(stderr,
-                    "Failure in %s_reg: value comparison for index %d\n"
+        lept_stderr("Failure in %s_reg: value comparison for index %d\n"
                     "difference = %f but allowed delta = %f\n",
                     rp->testname, rp->index, diff, delta);
         rp->success = FALSE;
@@ -343,8 +346,7 @@ char     buf[256];
                     "Failure in %s_reg: string comp for index %d; "
                     "written to %s\n", rp->testname, rp->index, buf);
         }
-        fprintf(stderr,
-                    "Failure in %s_reg: string comp for index %d; "
+        lept_stderr("Failure in %s_reg: string comp for index %d; "
                     "written to %s\n", rp->testname, rp->index, buf);
         rp->success = FALSE;
     }
@@ -390,8 +392,8 @@ l_int32  same;
             fprintf(rp->fp, "Failure in %s_reg: pix comparison for index %d\n",
                     rp->testname, rp->index);
         }
-        fprintf(stderr, "Failure in %s_reg: pix comparison for index %d\n",
-                rp->testname, rp->index);
+        lept_stderr("Failure in %s_reg: pix comparison for index %d\n",
+                    rp->testname, rp->index);
         rp->success = FALSE;
     }
     return 0;
@@ -458,8 +460,8 @@ l_int32  w, h, factor, similar;
                     "Failure in %s_reg: pix similarity comp for index %d\n",
                     rp->testname, rp->index);
         }
-        fprintf(stderr, "Failure in %s_reg: pix similarity comp for index %d\n",
-                rp->testname, rp->index);
+        lept_stderr("Failure in %s_reg: pix similarity comp for index %d\n",
+                    rp->testname, rp->index);
         rp->success = FALSE;
     }
     return 0;
@@ -571,8 +573,8 @@ PIX     *pix1, *pix2;
     if (!same) {
         fprintf(rp->fp, "Failure in %s_reg, index %d: comparing %s with %s\n",
                 rp->testname, rp->index, localname, namebuf);
-        fprintf(stderr, "Failure in %s_reg, index %d: comparing %s with %s\n",
-                rp->testname, rp->index, localname, namebuf);
+        lept_stderr("Failure in %s_reg, index %d: comparing %s with %s\n",
+                    rp->testname, rp->index, localname, namebuf);
         rp->success = FALSE;
     }
 
@@ -654,9 +656,8 @@ SARRAY  *sa;
         fprintf(rp->fp,
                 "Failure in %s_reg, index %d: comparing %s with %s\n",
                 rp->testname, rp->index, name1, name2);
-        fprintf(stderr,
-                "Failure in %s_reg, index %d: comparing %s with %s\n",
-                rp->testname, rp->index, name1, name2);
+        lept_stderr("Failure in %s_reg, index %d: comparing %s with %s\n",
+                    rp->testname, rp->index, name1, name2);
         rp->success = FALSE;
     }
 

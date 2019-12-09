@@ -197,6 +197,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -207,7 +211,6 @@
 
     /* Typical scan resolution in ppi (pixels/inch) */
 static const l_int32  DefaultInputRes = 300;
-
 
 /*---------------------------------------------------------------------*
  *    Convert specified image files to pdf (one image file per page)   *
@@ -391,7 +394,7 @@ L_PTRA      *pa_data;
     pa_data = ptraCreate(n);
     pdftitle = NULL;
     for (i = 0; i < n; i++) {
-        if (i && (i % 10 == 0)) fprintf(stderr, ".. %d ", i);
+        if (i && (i % 10 == 0)) lept_stderr(".. %d ", i);
         fname = sarrayGetString(sa, i, L_NOCOPY);
         if ((pixs = pixRead(fname)) == NULL) {
             L_ERROR("image not readable from file %s\n", procName, fname);
@@ -436,9 +439,9 @@ L_PTRA      *pa_data;
     }
 
         /* Concatenate them */
-    fprintf(stderr, "\nconcatenating ... ");
+    lept_stderr("\nconcatenating ... ");
     ret = ptraConcatenatePdfToData(pa_data, NULL, pdata, pnbytes);
-    fprintf(stderr, "done\n");
+    lept_stderr("done\n");
 
     ptraGetActualCount(pa_data, &npages);  /* recalculate in case it changes */
     for (i = 0; i < npages; i++) {
@@ -644,7 +647,7 @@ L_PTRA       *pa_data;
     n = sarrayGetCount(sa);
     pa_data = ptraCreate(n);
     for (i = 0; i < n; i++) {
-        if (i && (i % 10 == 0)) fprintf(stderr, ".. %d ", i);
+        if (i && (i % 10 == 0)) lept_stderr(".. %d ", i);
         fname = sarrayGetString(sa, i, L_NOCOPY);
 
             /* Generate the pdf data */
@@ -664,9 +667,9 @@ L_PTRA       *pa_data;
     }
 
         /* Concatenate to generate a multipage pdf */
-    fprintf(stderr, "\nconcatenating ... ");
+    lept_stderr("\nconcatenating ... ");
     ret = ptraConcatenatePdfToData(pa_data, NULL, pdata, pnbytes);
-    fprintf(stderr, "done\n");
+    lept_stderr("done\n");
 
         /* Clean up */
     ptraGetActualCount(pa_data, &npages);  /* maybe failed to read some files */

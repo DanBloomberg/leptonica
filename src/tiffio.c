@@ -201,9 +201,9 @@ static struct tiff_transform tiff_partial_orientation_transforms[] = {
  *                                                                       *
  *  Jürgen made the functions use 64 bit file operations where possible  *
  *  or required, namely for seek and size. On Windows there are specific *
- *  _fseeki64() and _ftelli64() functions, whereas on unix it is         *
- *  common to look for a macro _LARGEFILE_SOURCE being defined and       *
- *  use fseeko() and ftello() in this case.                              *
+ *  _fseeki64() and _ftelli64() functions.  On unix it is common to look *
+ *  for a macro _LARGEFILE64_SOURCE being defined, which makes available *
+ *  the off64_t type, and to use fseeko() and ftello() in this case.     *
  *-----------------------------------------------------------------------*/
 static tsize_t
 lept_read_proc(thandle_t  cookie,
@@ -257,7 +257,7 @@ lept_seek_proc(thandle_t  cookie,
     _fseeki64(fp, pos, SEEK_SET);
     if (pos == _ftelli64(fp))
         return (tsize_t)pos;
-#elif defined(_LARGEFILE_SOURCE)
+#elif defined(_LARGEFILE64_SOURCE)
     off64_t pos = 0;
     if (!cookie || !fp)
         return (tsize_t)-1;
@@ -324,7 +324,7 @@ lept_size_proc(thandle_t  cookie)
     _fseeki64(fp, 0, SEEK_END);
     size = _ftelli64(fp);
     _fseeki64(fp, pos, SEEK_SET);
-#elif defined(_LARGEFILE_SOURCE)
+#elif defined(_LARGEFILE64_SOURCE)
     off64_t pos;
     off64_t size;
     if (!fp)
@@ -1090,7 +1090,7 @@ char      *text;
     wpl = pixGetWpl(pix);
     bpl = 4 * wpl;
     if (tiffbpl > bpl)
-        fprintf(stderr, "Big trouble: tiffbpl = %d, bpl = %d\n", tiffbpl, bpl);
+        lept_stderr("Big trouble: tiffbpl = %d, bpl = %d\n", tiffbpl, bpl);
     if ((linebuf = (l_uint8 *)LEPT_CALLOC(1, bpl)) == NULL)
         return ERROR_INT("calloc fail for linebuf", procName, 1);
 
@@ -1221,39 +1221,39 @@ l_uint32   uval, uval2;
             if (sscanf(sval, "%u", &uval) == 1) {
                 TIFFSetField(tif, tagval, (l_uint16)uval);
             } else {
-                fprintf(stderr, "val %s not of type %s\n", sval, type);
+                lept_stderr("val %s not of type %s\n", sval, type);
                 return ERROR_INT("custom tag(s) not written", procName, 1);
             }
         } else if (!strcmp(type, "l_uint32")) {
             if (sscanf(sval, "%u", &uval) == 1) {
                 TIFFSetField(tif, tagval, uval);
             } else {
-                fprintf(stderr, "val %s not of type %s\n", sval, type);
+                lept_stderr("val %s not of type %s\n", sval, type);
                 return ERROR_INT("custom tag(s) not written", procName, 1);
             }
         } else if (!strcmp(type, "l_int32")) {
             if (sscanf(sval, "%d", &val) == 1) {
                 TIFFSetField(tif, tagval, val);
             } else {
-                fprintf(stderr, "val %s not of type %s\n", sval, type);
+                lept_stderr("val %s not of type %s\n", sval, type);
                 return ERROR_INT("custom tag(s) not written", procName, 1);
             }
         } else if (!strcmp(type, "l_float64")) {
             if (sscanf(sval, "%lf", &dval) == 1) {
                 TIFFSetField(tif, tagval, dval);
             } else {
-                fprintf(stderr, "val %s not of type %s\n", sval, type);
+                lept_stderr("val %s not of type %s\n", sval, type);
                 return ERROR_INT("custom tag(s) not written", procName, 1);
             }
         } else if (!strcmp(type, "l_uint16-l_uint16")) {
             if (sscanf(sval, "%u-%u", &uval, &uval2) == 2) {
                 TIFFSetField(tif, tagval, (l_uint16)uval, (l_uint16)uval2);
             } else {
-                fprintf(stderr, "val %s not of type %s\n", sval, type);
+                lept_stderr("val %s not of type %s\n", sval, type);
                 return ERROR_INT("custom tag(s) not written", procName, 1);
             }
         } else {
-            fprintf(stderr, "unknown type %s\n",type);
+            lept_stderr("unknown type %s\n",type);
             return ERROR_INT("unknown type; tag(s) not written", procName, 1);
         }
     }
@@ -2148,7 +2148,7 @@ TIFF     *tif;
         diroff = (inarray[7] << 24) | (inarray[6] << 16) |
                  (inarray[5] << 8) | inarray[4];
     }
-/*    fprintf(stderr, " diroff = %d, %x\n", diroff, diroff); */
+/*    lept_stderr(" diroff = %d, %x\n", diroff, diroff); */
 
         /* Extract the ccittg4 encoded data from the tiff file.
          * We skip the 8 byte header and take nbytes of data,
@@ -2357,7 +2357,7 @@ size_t        amount;
         /* Fuzzed files can create this condition! */
     if (mstream->offset + amount < amount ||  /* overflow */
         mstream->offset + amount > mstream->hw) {
-        fprintf(stderr, "Bad file: amount too big: %zu\n", amount);
+        lept_stderr("Bad file: amount too big: %zu\n", amount);
         return 0;
     }
 
@@ -2405,18 +2405,18 @@ L_MEMSTREAM  *mstream;
     mstream = (L_MEMSTREAM *)handle;
     switch (whence) {
         case SEEK_SET:
-/*            fprintf(stderr, "seek_set: offset = %d\n", offset); */
+/*            lept_stderr("seek_set: offset = %d\n", offset); */
             if((size_t)offset != offset) {  /* size_t overflow on uint32 */
                 return (toff_t)ERROR_INT("too large offset value", procName, 1);
             }
             mstream->offset = offset;
             break;
         case SEEK_CUR:
-/*            fprintf(stderr, "seek_cur: offset = %d\n", offset); */
+/*            lept_stderr("seek_cur: offset = %d\n", offset); */
             mstream->offset += offset;
             break;
         case SEEK_END:
-/*            fprintf(stderr, "seek end: hw = %d, offset = %d\n",
+/*            lept_stderr("seek end: hw = %d, offset = %d\n",
                     mstream->hw, offset); */
             mstream->offset = mstream->hw - offset;  /* offset >= 0 */
             break;

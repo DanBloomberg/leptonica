@@ -73,6 +73,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 #include "bilateral.h"
@@ -87,7 +91,6 @@ static void bilateralDestroy(L_BILATERAL **pbil);
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_BILATERAL    0
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /*--------------------------------------------------------------------------*
  *  Top level approximate separable grayscale or color bilateral filtering  *
@@ -368,10 +371,10 @@ PIXA         *pixac;
 
 #if  DEBUG_BILATERAL
     for (i = minval; i <= maxval; i++)
-      fprintf(stderr, "kindex[%d] = %d; kfract[%d] = %5.3f\n",
-              i, kindex[i], i, kfract[i]);
+      lept_stderr("kindex[%d] = %d; kfract[%d] = %5.3f\n",
+                  i, kindex[i], i, kfract[i]);
     for (i = 0; i < ncomps; i++)
-      fprintf(stderr, "nc[%d] = %d\n", i, nc[i]);
+      lept_stderr("nc[%d] = %d\n", i, nc[i]);
 #endif  /* DEBUG_BILATERAL */
 
 

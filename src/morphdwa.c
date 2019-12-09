@@ -129,12 +129,15 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_SEL_LOOKUP   0
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /*-----------------------------------------------------------------*
  *           Binary morphological (dwa) ops with brick Sels        *
@@ -643,10 +646,10 @@ PIX     *pixt1, *pixt2, *pixt3;
                                &selnamev1, &selnamev2);
 
 #if DEBUG_SEL_LOOKUP
-    fprintf(stderr, "nameh1=%s, nameh2=%s, namev1=%s, namev2=%s\n",
-            selnameh1, selnameh2, selnamev1, selnamev2);
-    fprintf(stderr, "hsize1=%d, hsize2=%d, vsize1=%d, vsize2=%d\n",
-            hsize1, hsize2, vsize1, vsize2);
+    lept_stderr("nameh1=%s, nameh2=%s, namev1=%s, namev2=%s\n",
+                selnameh1, selnameh2, selnamev1, selnamev2);
+    lept_stderr("hsize1=%d, hsize2=%d, vsize1=%d, vsize2=%d\n",
+                hsize1, hsize2, vsize1, vsize2);
 #endif  /* DEBUG_SEL_LOOKUP */
 
     pixt1 = pixAddBorder(pixs, 64, 0);

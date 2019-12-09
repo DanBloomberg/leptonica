@@ -109,6 +109,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -120,7 +124,6 @@ static BOXA *findTileRegionsForSearch(BOX *box, l_int32 w, l_int32 h,
 #ifndef  NO_CONSOLE_IO
 #define   EQUAL_SIZE_WARNING      0
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /*-------------------------------------------------------------*
  *                        Masked operations                    *
@@ -1411,7 +1414,7 @@ PIX       *pix1, *pix2, *pix3;
         pixWriteDebug("/tmp/masknear/input.png", pix1, IFF_PNG);
         pixWriteDebug("/tmp/masknear/adjusted.png", pix2, IFF_PNG);
         pixWriteDebug("/tmp/masknear/outerfive.png", pix3, IFF_PNG);
-        fprintf(stderr, "Input box; with adjusted sides; clipped\n");
+        lept_stderr("Input box; with adjusted sides; clipped\n");
         boxPrintStreamInfo(stderr, box);
         boxPrintStreamInfo(stderr, box1);
         boxPrintStreamInfo(stderr, box2);
@@ -3572,9 +3575,9 @@ PIXA      *pixa;
         if (delm < 1.01) {
             if (dels < mindels) {
                 if (debug) {
-                    fprintf(stderr, "i = %d, mean = %7.3f, delm = %7.3f,"
-                            " stdev = %7.3f, dels = %7.3f\n",
-                            i, mean_val, delm, stdev_val, dels);
+                    lept_stderr("i = %d, mean = %7.3f, delm = %7.3f,"
+                                " stdev = %7.3f, dels = %7.3f\n",
+                                i, mean_val, delm, stdev_val, dels);
                 }
                 mindels = dels;
                 bestdelm = delm;

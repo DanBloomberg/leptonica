@@ -158,6 +158,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -1222,7 +1226,7 @@ L_RECOG   *recog;
                                       recog->sumtab, &score);
             numaAddNumber(nascore, score);
             if (debug && score == 0.0)  /* typ. large size difference */
-                fprintf(stderr, "Got 0 score for i = %d, j = %d\n", i, j);
+                lept_stderr("Got 0 score for i = %d, j = %d\n", i, j);
             pixDestroy(&pix2);
         }
         pixDestroy(&pix1);
@@ -2104,7 +2108,7 @@ L_RECOG   *recog;
             rchExtract(recog->rch, &index, &score, NULL, NULL, NULL,
                        NULL, NULL);
             if (debug >= 2)
-                fprintf(stderr, "index = %d, score = %7.3f\n", index, score);
+                lept_stderr("index = %d, score = %7.3f\n", index, score);
             pix3 = pixAddBorder(pix2, 2, 1);
             pixaAddPix(pixa, pix3, L_INSERT);
             pixDestroy(&pix1);
@@ -2151,11 +2155,11 @@ PIXA      *pixat, *pixadb;
     if (!recog)
         return ERROR_INT("recog not defined", procName, 1);
 
-    fprintf(stderr, "min/max width_u = (%d,%d); min/max height_u = (%d,%d)\n",
-            recog->minwidth_u, recog->maxwidth_u,
-            recog->minheight_u, recog->maxheight_u);
-    fprintf(stderr, "min splitw = %d, max splith = %d\n",
-            recog->min_splitw, recog->max_splith);
+    lept_stderr("min/max width_u = (%d,%d); min/max height_u = (%d,%d)\n",
+                recog->minwidth_u, recog->maxwidth_u,
+                recog->minheight_u, recog->maxheight_u);
+    lept_stderr("min splitw = %d, max splith = %d\n",
+                recog->min_splitw, recog->max_splith);
 
     pixaDestroy(&recog->pixadb_ave);
 

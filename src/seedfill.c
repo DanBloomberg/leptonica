@@ -164,6 +164,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -282,7 +286,7 @@ PIX       *pixt;
         pixEqual(pixd, pixt, &boolval);
         if (boolval == 1) {
 #if DEBUG_PRINT_ITERS
-            fprintf(stderr, "Binary seed fill converged: %d iters\n", i + 1);
+            lept_stderr("Binary seed fill converged: %d iters\n", i + 1);
 #endif  /* DEBUG_PRINT_ITERS */
             break;
         }

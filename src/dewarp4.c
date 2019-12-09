@@ -54,6 +54,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -66,7 +70,6 @@ static l_int32 dewarpaTestForValidModel(L_DEWARPA *dewa, L_DEWARP *dew,
 
     /* Special parameter value */
 static const l_int32  GrayInValue = 200;
-
 
 /*----------------------------------------------------------------------*
  *                   Top-level single page dewarper                     *
@@ -684,30 +687,30 @@ L_DEWARP  *dew;
     dewarpaModelStats(dewa, &nnone, &nvsuccess, &nvvalid,
                       &nhsuccess, &nhvalid, &nref);
     n = numaGetCount(dewa->napages);
-    fprintf(stderr, "Total number of pages with a dew = %d\n", n);
-    fprintf(stderr, "Number of pages without any models = %d\n", nnone);
-    fprintf(stderr, "Number of pages with a vert model = %d\n", nvsuccess);
-    fprintf(stderr, "Number of pages with a valid vert model = %d\n", nvvalid);
-    fprintf(stderr, "Number of pages with both models = %d\n", nhsuccess);
-    fprintf(stderr, "Number of pages with both models valid = %d\n", nhvalid);
-    fprintf(stderr, "Number of pages with a ref model = %d\n", nref);
+    lept_stderr("Total number of pages with a dew = %d\n", n);
+    lept_stderr("Number of pages without any models = %d\n", nnone);
+    lept_stderr("Number of pages with a vert model = %d\n", nvsuccess);
+    lept_stderr("Number of pages with a valid vert model = %d\n", nvvalid);
+    lept_stderr("Number of pages with both models = %d\n", nhsuccess);
+    lept_stderr("Number of pages with both models valid = %d\n", nhvalid);
+    lept_stderr("Number of pages with a ref model = %d\n", nref);
 
     for (i = 0; i < n; i++) {
         numaGetIValue(dewa->napages, i, &pageno);
         if ((dew = dewarpaGetDewarp(dewa, pageno)) == NULL)
             continue;
-        fprintf(stderr, "Page: %d\n", dew->pageno);
-        fprintf(stderr, "  hasref = %d, refpage = %d\n",
-                dew->hasref, dew->refpage);
-        fprintf(stderr, "  nlines = %d\n", dew->nlines);
-        fprintf(stderr, "  w = %d, h = %d, nx = %d, ny = %d\n",
-                dew->w, dew->h, dew->nx, dew->ny);
+        lept_stderr("Page: %d\n", dew->pageno);
+        lept_stderr("  hasref = %d, refpage = %d\n",
+                    dew->hasref, dew->refpage);
+        lept_stderr("  nlines = %d\n", dew->nlines);
+        lept_stderr("  w = %d, h = %d, nx = %d, ny = %d\n",
+                    dew->w, dew->h, dew->nx, dew->ny);
         if (dew->sampvdispar)
-            fprintf(stderr, "  Vertical disparity builds:\n"
+            lept_stderr("  Vertical disparity builds:\n"
                     "    (min,max,abs-diff) line curvature = (%d,%d,%d)\n",
                     dew->mincurv, dew->maxcurv, dew->maxcurv - dew->mincurv);
         if (dew->samphdispar)
-            fprintf(stderr, "  Horizontal disparity builds:\n"
+            lept_stderr("  Horizontal disparity builds:\n"
                     "    left edge slope = %d, right edge slope = %d\n"
                     "    (left,right,abs-diff) edge curvature = (%d,%d,%d)\n",
                     dew->leftslope, dew->rightslope, dew->leftcurv,
@@ -856,10 +859,10 @@ l_int32  maxcurv, diffcurv, diffedge;
     } else {
         L_INFO("invalid vert model for page %d:\n", procName, dew->pageno);
 #if DEBUG_INVALID_MODELS
-        fprintf(stderr, "  max line curv = %d, max allowed = %d\n",
-                maxcurv, dewa->max_linecurv);
-        fprintf(stderr, "  diff line curv = %d, max allowed = %d\n",
-                diffcurv, dewa->max_diff_linecurv);
+        lept_stderr("  max line curv = %d, max allowed = %d\n",
+                    maxcurv, dewa->max_linecurv);
+        lept_stderr("  diff line curv = %d, max allowed = %d\n",
+                    diffcurv, dewa->max_diff_linecurv);
 #endif  /* DEBUG_INVALID_MODELS */
     }
 
@@ -875,16 +878,16 @@ l_int32  maxcurv, diffcurv, diffedge;
         } else {
             L_INFO("invalid horiz model for page %d:\n", procName, dew->pageno);
 #if DEBUG_INVALID_MODELS
-            fprintf(stderr, "  left edge slope = %d, max allowed = %d\n",
-                    dew->leftslope, dewa->max_edgeslope);
-            fprintf(stderr, "  right edge slope = %d, max allowed = %d\n",
-                    dew->rightslope, dewa->max_edgeslope);
-            fprintf(stderr, "  left edge curv = %d, max allowed = %d\n",
-                    dew->leftcurv, dewa->max_edgecurv);
-            fprintf(stderr, "  right edge curv = %d, max allowed = %d\n",
-                    dew->rightcurv, dewa->max_edgecurv);
-            fprintf(stderr, "  diff edge curv = %d, max allowed = %d\n",
-                    diffedge, dewa->max_diff_edgecurv);
+            lept_stderr("  left edge slope = %d, max allowed = %d\n",
+                        dew->leftslope, dewa->max_edgeslope);
+            lept_stderr("  right edge slope = %d, max allowed = %d\n",
+                        dew->rightslope, dewa->max_edgeslope);
+            lept_stderr("  left edge curv = %d, max allowed = %d\n",
+                        dew->leftcurv, dewa->max_edgecurv);
+            lept_stderr("  right edge curv = %d, max allowed = %d\n",
+                        dew->rightcurv, dewa->max_edgecurv);
+            lept_stderr("  diff edge curv = %d, max allowed = %d\n",
+                        diffedge, dewa->max_diff_edgecurv);
 #endif  /* DEBUG_INVALID_MODELS */
         }
     }
@@ -936,10 +939,10 @@ PIXA      *pixa;
     if ((bmf = bmfCreate(NULL, 8)) == NULL)
         L_ERROR("bmf not made; page info not displayed", procName);
 
-    fprintf(stderr, "Generating contour plots\n");
+    lept_stderr("Generating contour plots\n");
     for (i = first; i <= last; i++) {
         if (i && ((i % 10) == 0))
-            fprintf(stderr, " .. %d", i);
+            lept_stderr(" .. %d", i);
         dew = dewarpaGetDewarp(dewa, i);
         if (!dew) continue;
         if (dew->hasref == 1) continue;
@@ -979,12 +982,12 @@ PIXA      *pixa;
         pixDestroy(&pixd);
     }
     bmfDestroy(&bmf);
-    fprintf(stderr, "\n");
+    lept_stderr("\n");
 
-    fprintf(stderr, "Generating pdf of contour plots\n");
+    lept_stderr("Generating pdf of contour plots\n");
     convertFilesToPdf("/tmp/lept/dewarp1", "arrays_", 90, 1.0, L_FLATE_ENCODE,
                       0, "Disparity arrays", "/tmp/lept/disparity_arrays.pdf");
-    fprintf(stderr, "Output written to: /tmp/lept/disparity_arrays.pdf\n");
+    lept_stderr("Output written to: /tmp/lept/disparity_arrays.pdf\n");
     return 0;
 }
 
@@ -1021,32 +1024,32 @@ PIX     *pixv, *pixh;
     if (!subdirs)
         return ERROR_INT("subdirs not defined", procName, 1);
 
-    fprintf(stderr, "pageno = %d, hasref = %d, refpage = %d\n",
-            dew->pageno, dew->hasref, dew->refpage);
-    fprintf(stderr, "sampling = %d, redfactor = %d, minlines = %d\n",
-            dew->sampling, dew->redfactor, dew->minlines);
+    lept_stderr("pageno = %d, hasref = %d, refpage = %d\n",
+                dew->pageno, dew->hasref, dew->refpage);
+    lept_stderr("sampling = %d, redfactor = %d, minlines = %d\n",
+                dew->sampling, dew->redfactor, dew->minlines);
     svd = shd = 0;
     if (!dew->hasref) {
         if (dew->sampvdispar) svd = 1;
         if (dew->samphdispar) shd = 1;
-        fprintf(stderr, "sampv = %d, samph = %d\n", svd, shd);
-        fprintf(stderr, "w = %d, h = %d\n", dew->w, dew->h);
-        fprintf(stderr, "nx = %d, ny = %d\n", dew->nx, dew->ny);
-        fprintf(stderr, "nlines = %d\n", dew->nlines);
+        lept_stderr("sampv = %d, samph = %d\n", svd, shd);
+        lept_stderr("w = %d, h = %d\n", dew->w, dew->h);
+        lept_stderr("nx = %d, ny = %d\n", dew->nx, dew->ny);
+        lept_stderr("nlines = %d\n", dew->nlines);
         if (svd) {
-            fprintf(stderr, "(min,max,abs-diff) line curvature = (%d,%d,%d)\n",
-                    dew->mincurv, dew->maxcurv, dew->maxcurv - dew->mincurv);
+            lept_stderr("(min,max,abs-diff) line curvature = (%d,%d,%d)\n",
+                       dew->mincurv, dew->maxcurv, dew->maxcurv - dew->mincurv);
         }
         if (shd) {
-            fprintf(stderr, "(left edge slope = %d, right edge slope = %d\n",
-                    dew->leftslope, dew->rightslope);
-            fprintf(stderr, "(left,right,abs-diff) edge curvature = "
-                    "(%d,%d,%d)\n", dew->leftcurv, dew->rightcurv,
-                    L_ABS(dew->leftcurv - dew->rightcurv));
+            lept_stderr("(left edge slope = %d, right edge slope = %d\n",
+                        dew->leftslope, dew->rightslope);
+            lept_stderr("(left,right,abs-diff) edge curvature = "
+                        "(%d,%d,%d)\n", dew->leftcurv, dew->rightcurv,
+                        L_ABS(dew->leftcurv - dew->rightcurv));
         }
     }
     if (!svd && !shd) {
-        fprintf(stderr, "No disparity arrays\n");
+        lept_stderr("No disparity arrays\n");
         return 0;
     }
 
@@ -1122,9 +1125,9 @@ PIXA      *pixa;
     lept_mkdir("lept/dewarp_pdfout");
     bmf = bmfCreate(NULL, 6);
 
-    fprintf(stderr, "Dewarping and generating s/by/s view\n");
+    lept_stderr("Dewarping and generating s/by/s view\n");
     for (i = firstpage; i <= lastpage; i++) {
-        if (i && (i % 10 == 0)) fprintf(stderr, ".. %d ", i);
+        if (i && (i % 10 == 0)) lept_stderr(".. %d ", i);
         pixs = pixReadIndexed(sa, i);
         if (boxa) {
             box = boxaGetBox(boxa, i, L_CLONE);
@@ -1161,12 +1164,12 @@ PIXA      *pixa;
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
     }
-    fprintf(stderr, "\n");
+    lept_stderr("\n");
 
-    fprintf(stderr, "Generating pdf of result\n");
+    lept_stderr("Generating pdf of result\n");
     convertFilesToPdf("/tmp/lept/dewarp_pdfout", NULL, 100, 1.0, L_JPEG_ENCODE,
                       0, "Dewarp sequence", pdfout);
-    fprintf(stderr, "Output written to: %s\n", pdfout);
+    lept_stderr("Output written to: %s\n", pdfout);
     bmfDestroy(&bmf);
     return 0;
 }

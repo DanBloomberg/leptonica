@@ -93,6 +93,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -902,13 +906,13 @@ L_COMP_DATA  *cid;
         pageno = 1;
 
 #if  DEBUG_JPEG
-    fprintf(stderr, "w = %d, h = %d, bps = %d, spp = %d\n",
-            cid->w, cid->h, cid->bps, cid->spp);
-    fprintf(stderr, "comp bytes = %ld, nbytes85 = %ld, ratio = %5.3f\n",
-            (unsigned long)cid->nbytescomp, (unsigned long)cid->nbytes85,
-           (l_float32)cid->nbytes85 / (l_float32)cid->nbytescomp);
-    fprintf(stderr, "xpt = %7.2f, ypt = %7.2f, wpt = %7.2f, hpt = %7.2f\n",
-             xpt, ypt, wpt, hpt);
+    lept_stderr("w = %d, h = %d, bps = %d, spp = %d\n",
+                cid->w, cid->h, cid->bps, cid->spp);
+    lept_stderr("comp bytes = %ld, nbytes85 = %ld, ratio = %5.3f\n",
+                (unsigned long)cid->nbytescomp, (unsigned long)cid->nbytes85,
+                (l_float32)cid->nbytes85 / (l_float32)cid->nbytescomp);
+    lept_stderr("xpt = %7.2f, ypt = %7.2f, wpt = %7.2f, hpt = %7.2f\n",
+                xpt, ypt, wpt, hpt);
 #endif   /* DEBUG_JPEG */
 
         /* Generate the PS */
@@ -1291,12 +1295,12 @@ L_COMP_DATA  *cid;
         pageno = 1;
 
 #if  DEBUG_G4
-    fprintf(stderr, "w = %d, h = %d, minisblack = %d\n",
-            cid->w, cid->h, cid->minisblack);
-    fprintf(stderr, "comp bytes = %ld, nbytes85 = %ld\n",
-            (unsigned long)cid->nbytescomp, (unsigned long)cid->nbytes85);
-    fprintf(stderr, "xpt = %7.2f, ypt = %7.2f, wpt = %7.2f, hpt = %7.2f\n",
-             xpt, ypt, wpt, hpt);
+    lept_stderr("w = %d, h = %d, minisblack = %d\n",
+                cid->w, cid->h, cid->minisblack);
+    lept_stderr("comp bytes = %ld, nbytes85 = %ld\n",
+                (unsigned long)cid->nbytescomp, (unsigned long)cid->nbytes85);
+    lept_stderr("xpt = %7.2f, ypt = %7.2f, wpt = %7.2f, hpt = %7.2f\n",
+                xpt, ypt, wpt, hpt);
 #endif   /* DEBUG_G4 */
 
         /* Generate the PS */
@@ -1775,13 +1779,13 @@ L_COMP_DATA  *cid;
         pageno = 1;
 
 #if  DEBUG_FLATE
-    fprintf(stderr, "w = %d, h = %d, bps = %d, spp = %d\n",
-            cid->w, cid->h, cid->bps, cid->spp);
-    fprintf(stderr, "uncomp bytes = %ld, comp bytes = %ld, nbytes85 = %ld\n",
-            (unsigned long)cid->nbytes, (unsigned long)cid->nbytescomp,
-            (unsigned long)cid->nbytes85);
-    fprintf(stderr, "xpt = %7.2f, ypt = %7.2f, wpt = %7.2f, hpt = %7.2f\n",
-             xpt, ypt, wpt, hpt);
+    lept_stderr("w = %d, h = %d, bps = %d, spp = %d\n",
+                cid->w, cid->h, cid->bps, cid->spp);
+    lept_stderr("uncomp bytes = %ld, comp bytes = %ld, nbytes85 = %ld\n",
+                (unsigned long)cid->nbytes, (unsigned long)cid->nbytescomp,
+                (unsigned long)cid->nbytes85);
+    lept_stderr("xpt = %7.2f, ypt = %7.2f, wpt = %7.2f, hpt = %7.2f\n",
+                xpt, ypt, wpt, hpt);
 #endif   /* DEBUG_FLATE */
 
         /* Generate the PS */

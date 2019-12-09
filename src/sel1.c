@@ -491,8 +491,8 @@ SEL     *sel;
         /* Lay down the elements of the comb */
     for (i = 0; i < factor2; i++) {
         z = factor1 / 2 + i * factor1;
-/*        fprintf(stderr, "i = %d, factor1 = %d, factor2 = %d, z = %d\n",
-                        i, factor1, factor2, z); */
+/*        lept_stderr("i = %d, factor1 = %d, factor2 = %d, z = %d\n",
+                      i, factor1, factor2, z); */
         if (direction == L_HORIZ)
             selSetElement(sel, 0, z, SEL_HIT);
         else
@@ -1842,7 +1842,7 @@ SELA    *sela;
         numaGetIValue(nafirst, i, &first);
         numaGetIValue(nalast, i, &last);
         if ((sel = selCreateFromSArray(sa, first, last)) == NULL) {
-            fprintf(stderr, "Error reading sel from %d to %d\n", first, last);
+            lept_stderr("Error reading sel from %d to %d\n", first, last);
             selaDestroy(&sela);
             sarrayDestroy(&sa);
             numaDestroy(&nafirst);

@@ -52,6 +52,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -169,7 +173,7 @@ l_float32  tanangle, invangle;
             yincr = h - y;
         pixRasterop(pixd, -sign*hshift, y, w, yincr, PIX_SRC, pixs, 0, y);
 #if DEBUG
-        fprintf(stderr, "y = %d, hshift = %d, yincr = %d\n", y, hshift, yincr);
+        lept_stderr("y = %d, hshift = %d, yincr = %d\n", y, hshift, yincr);
 #endif /* DEBUG */
         y += yincr;
     }
@@ -181,7 +185,7 @@ l_float32  tanangle, invangle;
         pixRasterop(pixd, -sign*hshift, y - yincr, w, yincr, PIX_SRC,
             pixs, 0, y - yincr);
 #if DEBUG
-        fprintf(stderr, "y = %d, hshift = %d, yincr = %d\n",
+        lept_stderr("y = %d, hshift = %d, yincr = %d\n",
                 y - yincr, hshift, yincr);
 #endif /* DEBUG */
         y -= yincr;
@@ -290,7 +294,7 @@ l_float32  tanangle, invangle;
             xincr = w - x;
         pixRasterop(pixd, x, sign*vshift, xincr, h, PIX_SRC, pixs, x, 0);
 #if DEBUG
-        fprintf(stderr, "x = %d, vshift = %d, xincr = %d\n", x, vshift, xincr);
+        lept_stderr("x = %d, vshift = %d, xincr = %d\n", x, vshift, xincr);
 #endif /* DEBUG */
         x += xincr;
     }
@@ -302,7 +306,7 @@ l_float32  tanangle, invangle;
         pixRasterop(pixd, x - xincr, sign*vshift, xincr, h, PIX_SRC,
             pixs, x - xincr, 0);
 #if DEBUG
-        fprintf(stderr, "x = %d, vshift = %d, xincr = %d\n",
+        lept_stderr("x = %d, vshift = %d, xincr = %d\n",
                 x - xincr, vshift, xincr);
 #endif /* DEBUG */
         x -= xincr;

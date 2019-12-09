@@ -89,6 +89,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -472,7 +476,7 @@ l_int32    iter;
             /* This is a single component; if noise, remove it */
         recogSplittingFilter(recog, pixc, 0, MinFillFactor, &remove, debug);
         if (debug)
-            fprintf(stderr, "iter = %d, removed = %d\n", iter, remove);
+            lept_stderr("iter = %d, removed = %d\n", iter, remove);
         if (remove) {
             pixDestroy(&pixc);
             boxDestroy(&boxc);
@@ -504,7 +508,7 @@ l_int32    iter;
         w2 = bw;
         w3 = bwc - bx - bw;
         if (debug)
-            fprintf(stderr, " w1 = %d, w2 = %d, w3 = %d\n", w1, w2, w3);
+            lept_stderr(" w1 = %d, w2 = %d, w3 = %d\n", w1, w2, w3);
         if (w1 < recog->minwidth_u - 4) {
             if (debug) L_INFO("discarding width %d on left\n", procName, w1);
         } else {  /* extract and save left region */
@@ -639,7 +643,7 @@ PIX       *pix1, *pix2;
                                     recog->maxyshift, recog->sumtab, &delx,
                                     &dely, &score, 1);
             if (ppixdb) {
-                fprintf(stderr,
+                lept_stderr(
                     "Best match template %d: (x,y) = (%d,%d), score = %5.3f\n",
                     i, delx, dely, score);
             }
@@ -654,8 +658,7 @@ PIX       *pix1, *pix2;
         } else {
             box = boxCreate(0, 0, 1, 1);  /* placeholder */
             if (ppixdb)
-                fprintf(stderr, "Component too thin: w1 = %d, w2 = %d\n",
-                        w1, w2);
+                lept_stderr("Component too thin: w1 = %d, w2 = %d\n", w1, w2);
         }
         boxaAddBox(boxa, box, L_INSERT);
         pixDestroy(&pix2);
@@ -1858,25 +1861,25 @@ l_showIndicatorSplitValues(NUMA  *na1,
 l_int32  i, n;
 
     n = numaGetCount(na1);
-    fprintf(stderr, "================================================\n");
-    fprintf(stderr, "lt minw:    ");
+    lept_stderr("================================================\n");
+    lept_stderr("lt minw:    ");
     for (i = 0; i < n; i++)
-        fprintf(stderr, "%4d ", (l_int32)na1->array[i]);
-    fprintf(stderr, "\nlt minh:    ");
+        lept_stderr("%4d ", (l_int32)na1->array[i]);
+    lept_stderr("\nlt minh:    ");
     for (i = 0; i < n; i++)
-        fprintf(stderr, "%4d ", (l_int32)na2->array[i]);
-    fprintf(stderr, "\ngt maxh:    ");
+        lept_stderr("%4d ", (l_int32)na2->array[i]);
+    lept_stderr("\ngt maxh:    ");
     for (i = 0; i < n; i++)
-        fprintf(stderr, "%4d ", (l_int32)na3->array[i]);
-    fprintf(stderr, "\ngt maxasp:  ");
+        lept_stderr("%4d ", (l_int32)na3->array[i]);
+    lept_stderr("\ngt maxasp:  ");
     for (i = 0; i < n; i++)
-        fprintf(stderr, "%4d ", (l_int32)na4->array[i]);
-    fprintf(stderr, "\nlt minaf:   ");
+        lept_stderr("%4d ", (l_int32)na4->array[i]);
+    lept_stderr("\nlt minaf:   ");
     for (i = 0; i < n; i++)
-        fprintf(stderr, "%4d ", (l_int32)na5->array[i]);
-    fprintf(stderr, "\n------------------------------------------------");
-    fprintf(stderr, "\nresult:     ");
+        lept_stderr("%4d ", (l_int32)na5->array[i]);
+    lept_stderr("\n------------------------------------------------");
+    lept_stderr("\nresult:     ");
     for (i = 0; i < n; i++)
-        fprintf(stderr, "%4d ", (l_int32)na6->array[i]);
-    fprintf(stderr, "\n================================================\n");
+        lept_stderr("%4d ", (l_int32)na6->array[i]);
+    lept_stderr("\n================================================\n");
 }

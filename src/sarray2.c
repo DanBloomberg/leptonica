@@ -70,6 +70,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -618,7 +622,7 @@ L_DNAHASH  *dahash;
          * Having about 20 pts in each bucket is roughly optimal. */
     n = sarrayGetCount(sa);
     findNextLargerPrime(n / 20, &nsize);  /* buckets in hash table */
-/*    fprintf(stderr, "Prime used: %d\n", nsize); */
+/*    lept_stderr("Prime used: %d\n", nsize); */
 
         /* Add each string, using the hash as key and the index into %sa
          * as the value.  Storing the index enables operations that check

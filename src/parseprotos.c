@@ -45,6 +45,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -167,8 +171,8 @@ SARRAY  *sa, *saout, *satest;
         searchForProtoSignature(sa, next, &start, &stop, &charindex, &found);
         if (!found)
             break;
-/*        fprintf(stderr, "  start = %d, stop = %d, charindex = %d\n",
-                start, stop, charindex); */
+/*        lept_stderr("  start = %d, stop = %d, charindex = %d\n",
+                      start, stop, charindex); */
         str = captureProtoSignature(sa, start, stop, charindex);
 
             /* Make sure that the signature found by cpp does not begin with

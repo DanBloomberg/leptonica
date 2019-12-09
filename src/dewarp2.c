@@ -260,7 +260,7 @@ PTAA    *ptaa1, *ptaa2;
         }
         convertFilesToPdf("/tmp/lept/dewmod", NULL, 135, 1.0, 0, 0,
                           "Dewarp Build Model", debugfile);
-        fprintf(stderr, "pdf file: %s\n", debugfile);
+        lept_stderr("pdf file: %s\n", debugfile);
     }
 
     ptaaDestroy(&ptaa2);
@@ -515,7 +515,7 @@ FPIX       *fpix;
         convertFilesToPdf("/tmp/lept/dewmod", "004", 135, 1.0, 0, 0,
                           "Dewarp Vert Disparity",
                           "/tmp/lept/dewarp/vert_disparity.pdf");
-        fprintf(stderr, "pdf file: /tmp/lept/dewarp/vert_disparity.pdf\n");
+        lept_stderr("pdf file: /tmp/lept/dewarp/vert_disparity.pdf\n");
     }
 
         /* Save the result in a fpix at the specified subsampling  */
@@ -686,7 +686,7 @@ FPIX      *fpix;
         convertFilesToPdf("/tmp/lept/dewmod", "005", 135, 1.0, 0, 0,
                           "Dewarp Horiz Disparity",
                           "/tmp/lept/dewarp/horiz_disparity.pdf");
-        fprintf(stderr, "pdf file: /tmp/lept/dewarp/horiz_disparity.pdf\n");
+        lept_stderr("pdf file: /tmp/lept/dewarp/horiz_disparity.pdf\n");
         pixDestroy(&pix1);
         ptaDestroy(&pta1);
         ptaDestroy(&pta2);
@@ -1438,7 +1438,7 @@ FPIX      *fpix;
     boxa2 = boxaSelectBySize(boxa1, 0, 5, L_SELECT_HEIGHT, L_SELECT_IF_GT,
                              NULL);
     nb = boxaGetCount(boxa2);
-    fprintf(stderr, "number of components: %d\n", nb);
+    lept_stderr("number of components: %d\n", nb);
     boxaDestroy(&boxa1);
 
         /* Estimate the horizontal density of vertical strokes */
@@ -1792,7 +1792,7 @@ PTAA    *ptaa1, *ptaa2;
         }
         convertFilesToPdf("/tmp/lept/dewline", NULL, 135, 1.0, 0, 0,
                           "Dewarp Build Line Model", debugfile);
-        fprintf(stderr, "pdf file: %s\n", debugfile);
+        lept_stderr("pdf file: %s\n", debugfile);
     }
 
     return 0;

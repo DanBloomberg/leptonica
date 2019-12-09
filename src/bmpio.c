@@ -497,10 +497,10 @@ RGBA_QUAD  *pquad;
 #if DEBUG
     {l_uint8  *pcmptr;
         pcmptr = (l_uint8 *)pixGetColormap(pix)->array;
-        fprintf(stderr, "Pix colormap[0] = %c%c%c%d\n",
-            pcmptr[0], pcmptr[1], pcmptr[2], pcmptr[3]);
-        fprintf(stderr, "Pix colormap[1] = %c%c%c%d\n",
-            pcmptr[4], pcmptr[5], pcmptr[6], pcmptr[7]);
+        lept_stderr("Pix colormap[0] = %c%c%c%d\n",
+                    pcmptr[0], pcmptr[1], pcmptr[2], pcmptr[3]);
+        lept_stderr("Pix colormap[1] = %c%c%c%d\n",
+                    pcmptr[4], pcmptr[5], pcmptr[6], pcmptr[7]);
     }
 #endif  /* DEBUG */
 

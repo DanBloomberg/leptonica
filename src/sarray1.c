@@ -133,6 +133,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #ifndef _WIN32
 #include <dirent.h>     /* unix only */
@@ -315,7 +319,7 @@ SARRAY  *sa;
                                                 procName, NULL);
                 }
                 sarrayAddString(sa, substring, L_INSERT);
-/*                fprintf(stderr, "substring = %s\n", substring); */
+/*                lept_stderr("substring = %s\n", substring); */
                 startptr = i + 1;
             }
         }
@@ -327,7 +331,7 @@ SARRAY  *sa;
                                            procName, NULL);
             }
             sarrayAddString(sa, substring, L_INSERT);
-/*            fprintf(stderr, "substring = %s\n", substring); */
+/*            lept_stderr("substring = %s\n", substring); */
         }
         LEPT_FREE(cstring);
     } else {  /* remove blank lines; use strtok */
@@ -1257,7 +1261,7 @@ SARRAY  *saout;
  *             start = 0;
  *             while (!sarrayParseRange(sa, start, &actstart, &end, &start,
  *                    "--", 0))
- *                 fprintf(stderr, "start = %d, end = %d\n", actstart, end);
+ *                 lept_stderr("start = %d, end = %d\n", actstart, end);
  * </pre>
  */
 l_int32

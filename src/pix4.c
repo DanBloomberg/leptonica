@@ -2717,7 +2717,7 @@ PIX        *pix1;
         rarray[i] *= norm;
         garray[i] *= norm;
         barray[i] *= norm;
-/*        fprintf(stderr, "narray[%d] = %f\n", i, narray[i]);  */
+/*        lept_stderr("narray[%d] = %f\n", i, narray[i]);  */
     }
 
     if (pixadb) {

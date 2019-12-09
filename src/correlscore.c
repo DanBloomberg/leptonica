@@ -48,9 +48,12 @@
  *                        Uses small shifts between c.c. centroids.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
-
 
 /* -------------------------------------------------------------------- *
  *           Optimized 2 pix correlators (for jbig2 clustering)         *
@@ -359,8 +362,8 @@ l_uint32  *row1, *row2;
 
     *pscore = (l_float32)count * (l_float32)count /
               ((l_float32)area1 * (l_float32)area2);
-/*    fprintf(stderr, "score = %5.3f, count = %d, area1 = %d, area2 = %d\n",
-             *pscore, count, area1, area2); */
+/*    lept_stderr("score = %5.3f, count = %d, area1 = %d, area2 = %d\n",
+                  *pscore, count, area1, area2); */
     return 0;
 }
 
@@ -695,8 +698,9 @@ l_int32    threshold;
     score = (l_float32)count * (l_float32)count /
              ((l_float32)area1 * (l_float32)area2);
     if (score >= score_threshold) {
-        fprintf(stderr, "count %d < threshold %d but score %g >= score_threshold %g\n",
-                count, threshold, score, score_threshold);
+        lept_stderr(
+            "count %d < threshold %d but score %g >= score_threshold %g\n",
+            count, threshold, score, score_threshold);
     }
     return FALSE;
 }
@@ -792,8 +796,8 @@ PIX     *pixt;
 
     *pscore = (l_float32)count * (l_float32)count /
                ((l_float32)area1 * (l_float32)area2);
-/*    fprintf(stderr, "score = %5.3f, count = %d, area1 = %d, area2 = %d\n",
-             *pscore, count, area1, area2); */
+/*    lept_stderr("score = %5.3f, count = %d, area1 = %d, area2 = %d\n",
+                  *pscore, count, area1, area2); */
     return 0;
 }
 

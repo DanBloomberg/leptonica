@@ -168,6 +168,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -235,7 +239,6 @@ static const l_int32  DifCap = 100;
 #define   DEBUG_MC_COLORS       0
 #define   DEBUG_SPLIT_AXES      0
 #endif   /* ~NO_CONSOLE_IO */
-
 
 /*------------------------------------------------------------------------*
  *                                 High level                             *
@@ -1328,11 +1331,11 @@ L_BOX3D  *vbox1, *vbox2;
     maxw = L_MAX(maxw, bw);
 #if  DEBUG_SPLIT_AXES
     if (rw == maxw)
-        fprintf(stderr, "red split\n");
+        lept_stderr("red split\n");
     else if (gw == maxw)
-        fprintf(stderr, "green split\n");
+        lept_stderr("green split\n");
     else
-        fprintf(stderr, "blue split\n");
+        lept_stderr("blue split\n");
 #endif  /* DEBUG_SPLIT_AXES */
 
         /* Find the partial sum arrays along the selected axis. */
@@ -1569,10 +1572,10 @@ l_int32  i, j, k, ntot, mult, histoindex, rsum, gsum, bsum;
     }
 
 #if  DEBUG_MC_COLORS
-    fprintf(stderr, "ntot[%d] = %d: [%d, %d, %d], (%d, %d, %d)\n",
-            index, ntot, vbox->r2 - vbox->r1 + 1,
-            vbox->g2 - vbox->g1 + 1, vbox->b2 - vbox->b1 + 1,
-            *prval, *pgval, *pbval);
+    lept_stderr("ntot[%d] = %d: [%d, %d, %d], (%d, %d, %d)\n",
+                index, ntot, vbox->r2 - vbox->r1 + 1,
+                vbox->g2 - vbox->g1 + 1, vbox->b2 - vbox->b1 + 1,
+                *prval, *pgval, *pbval);
 #endif  /* DEBUG_MC_COLORS */
 
     return 0;

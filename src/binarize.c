@@ -78,6 +78,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -986,8 +990,8 @@ PIX       *pix1, *pix2, *pix3;
             diff48 = (count4 - count8) / firstcount4;
             diff4 = L_ABS(prevcount4 - count4) / firstcount4;
             if (debugflag) {
-                fprintf(stderr, "diff48 = %7.3f, diff4 = %7.3f\n",
-                        diff48, diff4);
+                lept_stderr("diff48 = %7.3f, diff4 = %7.3f\n",
+                            diff48, diff4);
             }
             if (diff48 < thresh48 && diff4 < threshdiff) {
                 found = TRUE;
@@ -1006,12 +1010,12 @@ PIX       *pix1, *pix2, *pix3;
             *ppixd = pixConvertTo1(pix2, globthresh);
             pixCopyResolution(*ppixd, pixs);
         }
-        if (debugflag) fprintf(stderr, "global threshold = %d\n", globthresh);
+        if (debugflag) lept_stderr("global threshold = %d\n", globthresh);
         pixDestroy(&pix2);
         return 0;
     }
 
-    if (debugflag) fprintf(stderr, "no global threshold found\n");
+    if (debugflag) lept_stderr("no global threshold found\n");
     pixDestroy(&pix2);
     return 1;
 }

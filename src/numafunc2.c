@@ -132,6 +132,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -148,7 +152,6 @@ static const l_int32 NBinSizes = 24;
 #define  DEBUG_CROSSINGS    0
 #define  DEBUG_FREQUENCY    0
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /*----------------------------------------------------------------------*
  *                     Morphological operations                         *
@@ -935,8 +938,8 @@ NUMA      *nai, *nahist;
         *pbinstart = iminval;
 
 #if  DEBUG_HISTO
-    fprintf(stderr, " imaxval = %d, range = %d, nbins = %d\n",
-            imaxval, range, nbins);
+    lept_stderr(" imaxval = %d, range = %d, nbins = %d\n",
+                imaxval, range, nbins);
 #endif  /* DEBUG_HISTO */
 
         /* Use integerized data for input */
@@ -1095,7 +1098,7 @@ NUMA      *nad;
     maxsize = L_MIN(maxsize, maxval);
     nbins = (l_int32)(maxsize / binsize) + 1;
 
-/*    fprintf(stderr, "maxsize = %7.3f, nbins = %d\n", maxsize, nbins); */
+/*    lept_stderr("maxsize = %7.3f, nbins = %d\n", maxsize, nbins); */
 
     if ((nad = numaCreate(nbins)) == NULL)
         return (NUMA *)ERROR_PTR("nad not made", procName, NULL);
@@ -1596,7 +1599,7 @@ l_float32  startval, binsize, binval, maxval, fractval, total, sum, val;
     numaGetSum(na, &total);
     *prank = sum / total;
 
-/*    fprintf(stderr, "binval = %7.3f, rank = %7.3f\n", binval, *prank); */
+/*    lept_stderr("binval = %7.3f, rank = %7.3f\n", binval, *prank); */
 
     return 0;
 }
@@ -1668,7 +1671,7 @@ l_float32  startval, binsize, rankcount, total, sum, fract, val;
      * for the histogram value at the given rank. */
     *prval = startval + binsize * ((l_float32)i + fract);
 
-/*    fprintf(stderr, "rank = %7.3f, val = %7.3f\n", rank, *prval); */
+/*    lept_stderr("rank = %7.3f, val = %7.3f\n", rank, *prval); */
 
     return 0;
 }
@@ -2065,8 +2068,8 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
     if (pnum2) numaGetFValue(nanum2, bestsplit, pnum2);
 
     if (pnascore) {  /* debug mode */
-        fprintf(stderr, "minrange = %d, maxrange = %d\n", minrange, maxrange);
-        fprintf(stderr, "minval = %10.0f\n", minval);
+        lept_stderr("minrange = %d, maxrange = %d\n", minrange, maxrange);
+        lept_stderr("minval = %10.0f\n", minval);
         gplotSimple1(nascore, GPLOT_PNG, "/tmp/lept/nascore",
                      "Score for split distribution");
         *pnascore = nascore;
@@ -2852,12 +2855,12 @@ NUMA      *nat, *nac;
     *pbestthresh = estthresh - 80.0 + 2.0 * (l_float32)(maxstart + maxend);
 
 #if  DEBUG_CROSSINGS
-    fprintf(stderr, "\nCrossings attain a maximum at %d thresholds, between:\n"
-                    "  thresh[%d] = %5.1f and thresh[%d] = %5.1f\n",
-                    nmax, maxstart, estthresh - 80.0 + 4.0 * maxstart,
-                    maxend, estthresh - 80.0 + 4.0 * maxend);
-    fprintf(stderr, "The best choice: %5.1f\n", *pbestthresh);
-    fprintf(stderr, "Number of crossings at the 41 thresholds:");
+    lept_stderr("\nCrossings attain a maximum at %d thresholds, between:\n"
+                "  thresh[%d] = %5.1f and thresh[%d] = %5.1f\n",
+                nmax, maxstart, estthresh - 80.0 + 4.0 * maxstart,
+                maxend, estthresh - 80.0 + 4.0 * maxend);
+    lept_stderr("The best choice: %5.1f\n", *pbestthresh);
+    lept_stderr("Number of crossings at the 41 thresholds:");
     numaWriteStream(stderr, nat);
 #endif  /* DEBUG_CROSSINGS */
 
@@ -3094,8 +3097,8 @@ l_float32  bestwidth, bestshift, bestscore;
                 bestwidth = width;
                 bestshift = shift;
 #if  DEBUG_FREQUENCY
-                fprintf(stderr, "width = %7.3f, shift = %7.3f, score = %7.3f\n",
-                        width, shift, score);
+                lept_stderr("width = %7.3f, shift = %7.3f, score = %7.3f\n",
+                            width, shift, score);
 #endif  /* DEBUG_FREQUENCY */
             }
         }
