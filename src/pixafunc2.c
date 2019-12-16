@@ -1571,6 +1571,75 @@ PIXA    *pixa;
 /*!
  * \brief   pixaaDisplayByPixa()
  *
+ * \param[in]    paa
+ * \param[in]    maxnx        maximum number of columns for rendering each pixa
+ * \param[in]    scalefactor  applied to every pix; use 1.0 for no scaling
+ * \param[in]    hspacing     between images on a row (in the pixa)
+ * \param[in]    vspacing     between tiles rows, each corresponding to a pixa
+ * \param[in]    border       width of black border added to each image;
+ *                            use 0 for no border
+ * \return  pixd of images in %paa, tiled by pixa in row-major order
+ *
+ * <pre>
+ * Notes:
+ *      (1) This renders a pixaa into a single image.  The pix from each pixa
+ *          are rendered on a row.  If the number of pix in the pixa is
+ *          larger than %maxnx, the pix will be rendered into more than 1 row.
+ *          To insure that each pixa is rendered into one row, use %maxnx
+ *          at least as large as the max number of pix in the pixa.
+ *      (2) Each row is tiled such that the top of each pix is aligned and
+ *          each pix is separated by %hspacing from the next one.
+ *          A black border can be added to each pix.
+ *      (3) The resulting pix from each row are then rendered vertically,
+ *          separated by %vspacing from each other.
+ *      (4) The output depth is determined by the largest depth of all
+ *          the pix in %paa. Colormaps are removed.
+ * </pre>
+ */
+PIX *
+pixaaDisplayByPixa(PIXAA     *paa,
+                   l_int32    maxnx,
+                   l_float32  scalefactor,
+                   l_int32    hspacing,
+                   l_int32    vspacing,
+                   l_int32    border)
+{
+l_int32  i, n, vs;
+PIX     *pix1, *pix2;
+PIXA    *pixa1, *pixa2;
+
+    PROCNAME("pixaaDisplayByPixa");
+
+    if (!paa)
+        return (PIX *)ERROR_PTR("paa not defined", procName, NULL);
+    if (border < 0)
+        border = 0;
+    if (scalefactor <= 0.0) scalefactor = 1.0;
+
+    if ((n = pixaaGetCount(paa, NULL)) == 0)
+        return (PIX *)ERROR_PTR("no components", procName, NULL);
+
+        /* Vertical spacing of amount %hspacing is also added at this step */
+    pixa2 = pixaCreate(0);
+    for (i = 0; i < n; i++) {
+        pixa1 = pixaaGetPixa(paa, i, L_CLONE);
+        pix1 = pixaDisplayTiledInColumns(pixa1, maxnx, scalefactor,
+                                         hspacing, border);
+        pixaAddPix(pixa2, pix1, L_INSERT);
+        pixaDestroy(&pixa1);
+    }
+
+    vs = L_MAX(0, vspacing - hspacing);
+    pix2 = pixaDisplayTiledInColumns(pixa2, 1, scalefactor, vs, 0);
+    pixaDestroy(&pixa2);
+    return pix2;
+}
+
+
+#if 0
+/*!
+ * \brief   pixaaDisplayByPixa()
+ *
  * \param[in]    paa     with pix that may have different depths
  * \param[in]    xspace  between pix in pixa
  * \param[in]    yspace  between pixa
@@ -1700,6 +1769,7 @@ PIXA     *pixa;
     numaDestroy(&nah);
     return pixd;
 }
+#endif
 
 
 /*!

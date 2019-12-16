@@ -117,7 +117,7 @@ OTHER_PROGS = adaptmap_dark \
 	seedfilltest settest sharptest \
 	sheartest showedges skewtest \
 	sorttest splitimage2pdf sudokutest textorient trctest \
-	warpertest wordsinorder \
+	underlinetest warpertest wordsinorder \
 	writemtiff yuvtest
 
 if ENABLE_PROGRAMS

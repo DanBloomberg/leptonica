@@ -1825,7 +1825,7 @@ LEPT_DLL extern PIX * pixaDisplayTiledAndScaled ( PIXA *pixa, l_int32 outdepth, 
 LEPT_DLL extern PIX * pixaDisplayTiledWithText ( PIXA *pixa, l_int32 maxwidth, l_float32 scalefactor, l_int32 spacing, l_int32 border, l_int32 fontsize, l_uint32 textcolor );
 LEPT_DLL extern PIX * pixaDisplayTiledByIndex ( PIXA *pixa, NUMA *na, l_int32 width, l_int32 spacing, l_int32 border, l_int32 fontsize, l_uint32 textcolor );
 LEPT_DLL extern PIX * pixaaDisplay ( PIXAA *paa, l_int32 w, l_int32 h );
-LEPT_DLL extern PIX * pixaaDisplayByPixa ( PIXAA *paa, l_int32 xspace, l_int32 yspace, l_int32 maxw );
+LEPT_DLL extern PIX * pixaaDisplayByPixa ( PIXAA *paa, l_int32 maxnx, l_float32 scalefactor, l_int32 hspacing, l_int32 vspacing, l_int32 border );
 LEPT_DLL extern PIXA * pixaaDisplayTiledAndScaled ( PIXAA *paa, l_int32 outdepth, l_int32 tilewidth, l_int32 ncols, l_int32 background, l_int32 spacing, l_int32 border );
 LEPT_DLL extern PIXA * pixaConvertTo1 ( PIXA *pixas, l_int32 thresh );
 LEPT_DLL extern PIXA * pixaConvertTo8 ( PIXA *pixas, l_int32 cmapflag );
@@ -2748,13 +2748,13 @@ LEPT_DLL extern l_ok pixWriteMem ( l_uint8 **pdata, size_t *psize, PIX *pix, l_i
 LEPT_DLL extern l_ok l_fileDisplay ( const char *fname, l_int32 x, l_int32 y, l_float32 scale );
 LEPT_DLL extern l_ok pixDisplay ( PIX *pixs, l_int32 x, l_int32 y );
 LEPT_DLL extern l_ok pixDisplayWithTitle ( PIX *pixs, l_int32 x, l_int32 y, const char *title, l_int32 dispflag );
-LEPT_DLL extern l_ok pixSaveTiled ( PIX *pixs, PIXA *pixa, l_float32 scalefactor, l_int32 newrow, l_int32 space, l_int32 dp );
-LEPT_DLL extern l_ok pixSaveTiledOutline ( PIX *pixs, PIXA *pixa, l_float32 scalefactor, l_int32 newrow, l_int32 space, l_int32 linewidth, l_int32 dp );
-LEPT_DLL extern l_ok pixSaveTiledWithText ( PIX *pixs, PIXA *pixa, l_int32 outwidth, l_int32 newrow, l_int32 space, l_int32 linewidth, L_BMF *bmf, const char *textstr, l_uint32 val, l_int32 location );
 LEPT_DLL extern PIX * pixMakeColorSquare ( l_uint32 color, l_int32 size, l_int32 addlabel, l_int32 location, l_uint32 textcolor );
 LEPT_DLL extern void l_chooseDisplayProg ( l_int32 selection );
 LEPT_DLL extern void changeFormatForMissingLib ( l_int32 *pformat );
 LEPT_DLL extern l_ok pixDisplayWrite ( PIX *pixs, l_int32 reduction );
+LEPT_DLL extern l_ok pixSaveTiled ( PIX *pixs, PIXA *pixa, l_float32 scalefactor, l_int32 newrow, l_int32 space, l_int32 dp );
+LEPT_DLL extern l_ok pixSaveTiledOutline ( PIX *pixs, PIXA *pixa, l_float32 scalefactor, l_int32 newrow, l_int32 space, l_int32 linewidth, l_int32 dp );
+LEPT_DLL extern l_ok pixSaveTiledWithText ( PIX *pixs, PIXA *pixa, l_int32 outwidth, l_int32 newrow, l_int32 space, l_int32 linewidth, L_BMF *bmf, const char *textstr, l_uint32 val, l_int32 location );
 LEPT_DLL extern l_uint8 * zlibCompress ( l_uint8 *datain, size_t nin, size_t *pnout );
 LEPT_DLL extern l_uint8 * zlibUncompress ( l_uint8 *datain, size_t nin, size_t *pnout );
 

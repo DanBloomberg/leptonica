@@ -363,6 +363,7 @@ void build(Solution &s)
             {"sudokutest", {"sudokutest.c"}},
             {"textorient", {"textorient.c"}},
             {"trctest", {"trctest.c"}},
+            {"underlinetest", {"underlinetest.c"}},
             {"warpertest", {"warpertest.c"}},
             {"wordsinorder", {"wordsinorder.c"}},
             {"writemtiff", {"writemtiff.c"}},

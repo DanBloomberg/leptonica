@@ -46,9 +46,9 @@ char         buf[16];
 l_int32      i, n, h;
 l_float32    scalefact;
 BOXA        *boxa;
-PIX         *pixs, *pixt1, *pixt2;
+PIX         *pixs, *pix1, *pix2;
 PIXA        *pixa, *pixas, *pixad;
-PIXAA       *pixaa;
+PIXAA       *paa;
 static char  mainName[] = "digitprep1";
 
     if (argc != 1) {
@@ -66,39 +66,40 @@ static char  mainName[] = "digitprep1";
     n = pixaGetCount(pixas);
 
         /* Move the last ("0") to the first position */
-    pixt1 = pixaGetPix(pixas, n - 1, L_CLONE);
-    pixaInsertPix(pixas, 0, pixt1, NULL);
+    pix1 = pixaGetPix(pixas, n - 1, L_CLONE);
+    pixaInsertPix(pixas, 0, pix1, NULL);
     pixaRemovePix(pixas, n);
 
         /* Make the output scaled pixa */
     pixad = pixaCreate(n);
     for (i = 0; i < n; i++) {
-        pixt1 = pixaGetPix(pixas, i, L_CLONE);
-        pixGetDimensions(pixt1, NULL, &h, NULL);
+        pix1 = pixaGetPix(pixas, i, L_CLONE);
+        pixGetDimensions(pix1, NULL, &h, NULL);
         scalefact = HEIGHT / (l_float32)h;
-        pixt2 = pixScale(pixt1, scalefact, scalefact);
-        if (pixGetHeight(pixt2) != 32)
+        pix2 = pixScale(pix1, scalefact, scalefact);
+        if (pixGetHeight(pix2) != 32)
             return ERROR_INT("height not 32!", mainName, 1);
         snprintf(buf, sizeof(buf), "%d", i);
-        pixSetText(pixt2, buf);
-        pixaAddPix(pixad, pixt2, L_INSERT);
-        pixDestroy(&pixt1);
+        pixSetText(pix2, buf);
+        pixaAddPix(pixad, pix2, L_INSERT);
+        pixDestroy(&pix1);
     }
 
         /* Save in a pixaa, with 1 pix in each pixa */
-    pixaa = pixaaCreateFromPixa(pixad, 1, L_CHOOSE_CONSECUTIVE, L_CLONE);
-    pixaaWrite("junkdigits.pixaa", pixaa);
+    paa = pixaaCreateFromPixa(pixad, 1, L_CHOOSE_CONSECUTIVE, L_CLONE);
+    pixaaWrite("/tmp/lept/barcode_digits.paa", paa);
 
         /* Show result */
-    pixt1 = pixaaDisplayByPixa(pixaa, 20, 20, 1000);
-    pixDisplay(pixt1, 100, 100);
-    pixDestroy(&pixt1);
+    pix1 = pixaaDisplayByPixa(paa, 50, 1.0, 20, 20, 0);
+    pixDisplay(pix1, 100, 100);
+    pixDestroy(&pix1);
 
+    pixDestroy(&pixs);
     boxaDestroy(&boxa);
     pixaDestroy(&pixa);
     pixaDestroy(&pixas);
     pixaDestroy(&pixad);
-    pixaaDestroy(&pixaa);
+    pixaaDestroy(&paa);
     return 0;
 }
 

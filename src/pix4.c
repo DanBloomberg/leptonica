@@ -2787,7 +2787,7 @@ pixDisplayColorArray(l_uint32  *carray,
 char     textstr[256];
 l_int32  i, rval, gval, bval;
 L_BMF   *bmf;
-PIX     *pixt, *pixd;
+PIX     *pix1, *pix2, *pix3, *pix4;
 PIXA    *pixa;
 
     PROCNAME("pixDisplayColorArray");
@@ -2800,24 +2800,26 @@ PIXA    *pixa;
     bmf = (fontsize == 0) ? NULL : bmfCreate(NULL, fontsize);
     pixa = pixaCreate(ncolors);
     for (i = 0; i < ncolors; i++) {
-        pixt = pixCreate(side, side, 32);
-        pixSetAllArbitrary(pixt, carray[i]);
+        pix1 = pixCreate(side, side, 32);
+        pixSetAllArbitrary(pix1, carray[i]);
+        pix2 = pixAddBorder(pix1, 2, 1);
         if (bmf) {
             extractRGBValues(carray[i], &rval, &gval, &bval);
             snprintf(textstr, sizeof(textstr),
                      "%d: (%d %d %d)", i, rval, gval, bval);
-            pixSaveTiledWithText(pixt, pixa, side, (i % ncols == 0) ? 1 : 0,
-                                 20, 2, bmf, textstr, 0xff000000, L_ADD_BELOW);
+            pix3 = pixAddSingleTextblock(pix2, bmf, textstr, 0xff000000,
+                                         L_ADD_BELOW, NULL);
         } else {
-            pixSaveTiled(pixt, pixa, 1.0, (i % ncols == 0) ? 1 : 0, 20, 32);
+            pix3 = pixClone(pix2);
         }
-        pixDestroy(&pixt);
+        pixaAddPix(pixa, pix3, L_INSERT);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
     }
-    pixd = pixaDisplay(pixa, 0, 0);
-
+    pix4 = pixaDisplayTiledInColumns(pixa, ncols, 1.0, 20, 2);
     pixaDestroy(&pixa);
     bmfDestroy(&bmf);
-    return pixd;
+    return pix4;
 }
 
 

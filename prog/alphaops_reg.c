@@ -167,13 +167,13 @@ L_REGPARAMS  *rp;
                         rp->display);
 
     pixa = pixaCreate(0);
-    pixSaveTiled(pixg2, pixa, 1.0, 1, 20, 32);
-    pixSaveTiled(pixcs1, pixa, 1.0, 1, 20, 0);
-    pixSaveTiled(pix1, pixa, 1.0, 0, 20, 0);
-    pixSaveTiled(pixd1, pixa, 1.0, 1, 20, 0);
-    pixSaveTiled(pixd2, pixa, 1.0, 0, 20, 0);
-    pixSaveTiled(pix2, pixa, 1.0, 1, 20, 0);
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixaAddPix(pixa, pixg2, L_INSERT);
+    pixaAddPix(pixa, pixcs1, L_INSERT);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pixaAddPix(pixa, pixd1, L_INSERT);
+    pixaAddPix(pixa, pixd2, L_INSERT);
+    pixaAddPix(pixa, pix2, L_INSERT);
+    pixd = pixaDisplayTiledInColumns(pixa, 1, 1.0, 20, 2);
     regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 11 */
     pixDisplayWithTitle(pixd, 200, 200, "composite", rp->display);
     pixWrite("/tmp/lept/alpha/composite.png", pixd, IFF_JFIF_JPEG);
@@ -182,15 +182,9 @@ L_REGPARAMS  *rp;
     pixDestroy(&pixs);
     pixDestroy(&pixb);
     pixDestroy(&pixg);
-    pixDestroy(&pixg2);
     pixDestroy(&pixc);
-    pixDestroy(&pixcs1);
     pixDestroy(&pixcs2);
     pixDestroy(&pixd);
-    pixDestroy(&pixd1);
-    pixDestroy(&pixd2);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
 
     /* ------------------------ (3) ----------------------------*/
     color = 0xffffa000;

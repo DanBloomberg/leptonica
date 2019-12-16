@@ -43,7 +43,7 @@ int main(int    argc,
          char **argv)
 {
 l_int32       i, j;
-PIX          *pixm, *pixmi, *pixs1, *pixs1_8;
+PIX          *pixm, *pixmi, *pixs1, *pixs1_8, *pix1;
 PIX          *pixs2, *pixs2_8, *pixs3, *pixs3_8;
 PIX          *pixb1, *pixb2, *pixb3, *pixmin, *pixd;
 PIXA         *pixa;
@@ -51,8 +51,6 @@ L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &rp))
         return 1;
-
-    pixa = pixaCreate(0);
 
         /* Mask */
     pixm = pixCreate(200, 200, 8);
@@ -76,67 +74,75 @@ L_REGPARAMS  *rp;
     pixs2_8 = pixCopy(NULL, pixs2);
 
         /* Inverse grayscale fill */
-    pixSaveTiled(pixm, pixa, 1.0, 1, 10, 8);
+    pixa = pixaCreate(0);
+    pixaAddPix(pixa, pixm, L_COPY);
     regTestWritePixAndCheck(rp, pixm, IFF_PNG);  /* 0 */
-    pixSaveTiled(pixs1, pixa, 1.0, 0, 10, 0);
+    pixaAddPix(pixa, pixs1, L_COPY);
     regTestWritePixAndCheck(rp, pixs1, IFF_PNG);  /* 1 */
     pixSeedfillGrayInv(pixs1, pixm, 4);
     pixSeedfillGrayInv(pixs1_8, pixm, 8);
-    pixSaveTiled(pixs1, pixa, 1.0, 0, 10, 0);
+    pixaAddPix(pixa, pixs1, L_COPY);
     regTestWritePixAndCheck(rp, pixs1, IFF_PNG);  /* 2 */
-    pixSaveTiled(pixs1_8, pixa, 1.0, 0, 10, 0);
+    pixaAddPix(pixa, pixs1_8, L_COPY);
     regTestWritePixAndCheck(rp, pixs1_8, IFF_PNG);  /* 3 */
     pixb1 = pixThresholdToBinary(pixs1, 20);
-    pixSaveTiled(pixb1, pixa, 1.0, 0, 10, 0);
+    pixaAddPix(pixa, pixb1, L_COPY);
     regTestWritePixAndCheck(rp, pixb1, IFF_PNG);  /* 4 */
     pixCombineMasked(pixs1, pixm, pixb1);
-    pixSaveTiled(pixs1, pixa, 1.0, 0, 10, 0);
+    pixaAddPix(pixa, pixs1, L_COPY);
     regTestWritePixAndCheck(rp, pixs1, IFF_PNG);  /* 5 */
+    pix1 = pixaDisplayTiledInColumns(pixa, 6, 1.0, 15, 2);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 6 */
+    pixDisplayWithTitle(pix1, 100, 0, "inverse gray fill", rp->display);
     pixDestroy(&pixs1);
     pixDestroy(&pixs1_8);
     pixDestroy(&pixb1);
+    pixDestroy(&pix1);
+    pixaDestroy(&pixa);
 
         /* Standard grayscale fill */
-    pixSaveTiled(pixmi, pixa, 1.0, 1, 10, 0);
-    regTestWritePixAndCheck(rp, pixmi, IFF_PNG);  /* 6 */
-    pixSaveTiled(pixs2, pixa, 1.0, 0, 10, 0);
-    regTestWritePixAndCheck(rp, pixs2, IFF_PNG);  /* 7 */
+    pixa = pixaCreate(0);
+    pixaAddPix(pixa, pixmi, L_COPY);
+    regTestWritePixAndCheck(rp, pixmi, IFF_PNG);  /* 7 */
+    pixaAddPix(pixa, pixs2, L_COPY);
+    regTestWritePixAndCheck(rp, pixs2, IFF_PNG);  /* 8 */
     pixSeedfillGray(pixs2, pixmi, 4);
     pixSeedfillGray(pixs2_8, pixmi, 8);
-    pixSaveTiled(pixs2, pixa, 1.0, 0, 10, 0);
-    regTestWritePixAndCheck(rp, pixs2, IFF_PNG);  /* 8 */
-    pixSaveTiled(pixs2_8, pixa, 1.0, 0, 10, 0);
-    regTestWritePixAndCheck(rp, pixs2_8, IFF_PNG);  /* 9 */
+    pixaAddPix(pixa, pixs2, L_COPY);
+    regTestWritePixAndCheck(rp, pixs2, IFF_PNG);  /* 9 */
+    pixaAddPix(pixa, pixs2_8, L_COPY);
+    regTestWritePixAndCheck(rp, pixs2_8, IFF_PNG);  /* 10 */
     pixb2 = pixThresholdToBinary(pixs2, 205);
-    pixSaveTiled(pixb2, pixa, 1.0, 0, 10, 0);
-    regTestWritePixAndCheck(rp, pixb2, IFF_PNG);  /* 10 */
+    regTestWritePixAndCheck(rp, pixb2, IFF_PNG);  /* 11 */
+    pixaAddPix(pixa, pixb2, L_INSERT);
+    pix1 = pixaDisplayTiledInColumns(pixa, 5, 1.0, 15, 2);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 12 */
+    pixDisplayWithTitle(pix1, 100, 200, "standard gray fill", rp->display);
     pixDestroy(&pixs2);
     pixDestroy(&pixs2_8);
-    pixDestroy(&pixb2);
+    pixDestroy(&pix1);
+    pixaDestroy(&pixa);
 
         /* Basin fill from minima as seed */
-    pixSaveTiled(pixm, pixa, 1.0, 1, 10, 8);
-    regTestWritePixAndCheck(rp, pixm, IFF_PNG);  /* 11 */
+    pixa = pixaCreate(0);
+    pixaAddPix(pixa, pixm, L_COPY);
+    regTestWritePixAndCheck(rp, pixm, IFF_PNG);  /* 13 */
     pixLocalExtrema(pixm, 0, 0, &pixmin, NULL);
-    pixSaveTiled(pixmin, pixa, 1.0, 0, 10, 0);
-    regTestWritePixAndCheck(rp, pixmin, IFF_PNG);  /* 12 */
+    pixaAddPix(pixa, pixmin, L_COPY);
+    regTestWritePixAndCheck(rp, pixmin, IFF_PNG);  /* 14 */
     pixs3 = pixSeedfillGrayBasin(pixmin, pixm, 30, 4);
     pixs3_8 = pixSeedfillGrayBasin(pixmin, pixm, 30, 8);
-    pixSaveTiled(pixs3, pixa, 1.0, 0, 10, 0);
-    regTestWritePixAndCheck(rp, pixs3, IFF_PNG);  /* 13 */
-    pixSaveTiled(pixs3_8, pixa, 1.0, 0, 10, 0);
-    regTestWritePixAndCheck(rp, pixs3_8, IFF_PNG);  /* 14 */
+    pixaAddPix(pixa, pixs3, L_INSERT);
+    regTestWritePixAndCheck(rp, pixs3, IFF_PNG);  /* 15 */
+    pixaAddPix(pixa, pixs3_8, L_INSERT);
+    regTestWritePixAndCheck(rp, pixs3_8, IFF_PNG);  /* 15 */
     pixb3 = pixThresholdToBinary(pixs3, 60);
-    pixSaveTiled(pixb3, pixa, 1.0, 0, 10, 0);
-    regTestWritePixAndCheck(rp, pixb3, IFF_PNG);  /* 15 */
-    pixDestroy(&pixs3);
-    pixDestroy(&pixs3_8);
-    pixDestroy(&pixb3);
-
-    pixd = pixaDisplay(pixa, 0, 0);
-    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 16 */
-    pixDisplayWithTitle(pixd, 100, 100, "gray fill", rp->display);
-    pixDestroy(&pixd);
+    regTestWritePixAndCheck(rp, pixb3, IFF_PNG);  /* 17 */
+    pixaAddPix(pixa, pixb3, L_INSERT);
+    pix1 = pixaDisplayTiledInColumns(pixa, 5, 1.0, 15, 2);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 18 */
+    pixDisplayWithTitle(pix1, 100, 400, "gray fill form seed", rp->display);
+    pixDestroy(&pix1);
     pixaDestroy(&pixa);
 
         /* Compare hybrid and iterative gray seedfills */
@@ -145,10 +151,10 @@ L_REGPARAMS  *rp;
     pixAddConstantGray(pixs1, -30);
     pixAddConstantGray(pixs2, 60);
 
-    PixTestEqual(rp, pixs1, pixs2, pixm, 1, 4);  /* 17 - 20 */
-    PixTestEqual(rp, pixs1, pixs2, pixm, 2, 8);  /* 21 - 24 */
-    PixTestEqual(rp, pixs2, pixs1, pixm, 3, 4);  /* 25 - 28 */
-    PixTestEqual(rp, pixs2, pixs1, pixm, 4, 8);  /* 29 - 32 */
+    PixTestEqual(rp, pixs1, pixs2, pixm, 1, 4);  /* 19 - 22 */
+    PixTestEqual(rp, pixs1, pixs2, pixm, 2, 8);  /* 23 - 26 */
+    PixTestEqual(rp, pixs2, pixs1, pixm, 3, 4);  /* 27 - 30 */
+    PixTestEqual(rp, pixs2, pixs1, pixm, 4, 8);  /* 31 - 34 */
     pixDestroy(&pixs1);
     pixDestroy(&pixs2);
 

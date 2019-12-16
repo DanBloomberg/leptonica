@@ -230,8 +230,7 @@ L_REGPARAMS  *rp;
 
             /* Remove band successively from full image */
         pixRemoveWithIndicator(pix1, pixa1, na4);
-        pixSaveTiled(pix1, pixa3, 0.25, 1 - i % 2, 25, 8);
-
+        pixaAddPix(pixa3, pix1, L_COPY);
         numaDestroy(&na2);
         numaDestroy(&na3);
         numaDestroy(&na4);
@@ -272,8 +271,7 @@ L_REGPARAMS  *rp;
     numaInvert(na2, na2);  /* get components to be removed */
     pixRemoveWithIndicator(pixs, pixa1, na2);
     regTestWritePixAndCheck(rp, pixs, IFF_PNG);  /* 86 */
-    pixSaveTiled(pixs, pixa3, 0.25, 1, 25, 8);
-    pixDestroy(&pixs);
+    pixaAddPix(pixa3, pixs, L_INSERT);
     boxaDestroy(&boxa1);
     pixaDestroy(&pixa1);
     numaDestroy(&naw);
@@ -285,7 +283,7 @@ L_REGPARAMS  *rp;
     numaDestroy(&na5);
 
     if (rp->display) {
-        pix1 = pixaDisplay(pixa3, 0, 0);
+        pix1 = pixaDisplayTiledInColumns(pixa3, 2, 0.25, 25, 2);
         pixDisplay(pix1, 100, 100);
         pixWrite("/tmp/lept/filter/result.png", pix1, IFF_PNG);
         pixDestroy(&pix1);

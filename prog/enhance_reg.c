@@ -82,10 +82,9 @@ L_REGPARAMS  *rp;
         pixaAddPix(pixa, pix0, L_INSERT);
     }
     pix1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
-    pixSaveTiled(pix1, pixaf, 1.0, 1, 20, 32);
+    pixaAddPix(pixaf, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
     pixDisplayWithTitle(pix1, 0, 100, "TRC Gamma", rp->display);
-    pixDestroy(&pix1);
     pixaDestroy(&pixa);
 
         /* TRC: vary black point */
@@ -95,10 +94,9 @@ L_REGPARAMS  *rp;
         pixaAddPix(pixa, pix0, L_INSERT);
     }
     pix1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
-    pixSaveTiled(pix1, pixaf, 1.0, 1, 20, 0);
+    pixaAddPix(pixaf, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 1 */
     pixDisplayWithTitle(pix1, 300, 100, "TRC", rp->display);
-    pixDestroy(&pix1);
     pixaDestroy(&pixa);
 
         /* Vary hue */
@@ -108,10 +106,9 @@ L_REGPARAMS  *rp;
         pixaAddPix(pixa, pix0, L_INSERT);
     }
     pix1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
-    pixSaveTiled(pix1, pixaf, 1.0, 1, 20, 0);
+    pixaAddPix(pixaf, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 2 */
     pixDisplayWithTitle(pix1, 600, 100, "Hue", rp->display);
-    pixDestroy(&pix1);
     pixaDestroy(&pixa);
 
         /* Vary saturation */
@@ -124,13 +121,12 @@ L_REGPARAMS  *rp;
         numaAddNumber(na1, sat);
     }
     pix1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
-    pixSaveTiled(pix1, pixaf, 1.0, 1, 20, 0);
+    pixaAddPix(pixaf, pix1, L_INSERT);
     gplotSimple1(na1, GPLOT_PNG, "/tmp/lept/regout/enhance.7",
                  "Average Saturation");
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 3 */
     pixDisplayWithTitle(pix1, 900, 100, "Saturation", rp->display);
     numaDestroy(&na1);
-    pixDestroy(&pix1);
     pixaDestroy(&pixa);
 
         /* Vary contrast */
@@ -140,10 +136,9 @@ L_REGPARAMS  *rp;
         pixaAddPix(pixa, pix0, L_INSERT);
     }
     pix1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
-    pixSaveTiled(pix1, pixaf, 1.0, 1, 20, 0);
+    pixaAddPix(pixaf, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 4 */
     pixDisplayWithTitle(pix1, 0, 400, "Contrast", rp->display);
-    pixDestroy(&pix1);
     pixaDestroy(&pixa);
 
         /* Vary sharpening */
@@ -153,10 +148,9 @@ L_REGPARAMS  *rp;
         pixaAddPix(pixa, pix0, L_INSERT);
     }
     pix1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
-    pixSaveTiled(pix1, pixaf, 1.0, 1, 20, 0);
+    pixaAddPix(pixaf, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 5 */
     pixDisplayWithTitle(pix1, 300, 400, "Sharp", rp->display);
-    pixDestroy(&pix1);
     pixaDestroy(&pixa);
 
         /* Hue constant mapping to lighter background */
@@ -171,13 +165,12 @@ L_REGPARAMS  *rp;
         snprintf(textstr, 50, "Fract = %5.1f", fract);
         pix2 = pixAddSingleTextblock(pix1, bmf8, textstr, 0xff000000,
                                       L_ADD_BELOW, NULL);
-        pixSaveTiledOutline(pix2, pixa, 1.0, (i % 4 == 0) ? 1 : 0, 30, 2, 32);
+        pixaAddPix(pixa, pix2, L_INSERT);
         pixDestroy(&pix1);
-        pixDestroy(&pix2);
     }
     pixDestroy(&pix0);
 
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 4, 1.0, 30, 2);
     regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 6 */
     pixDisplayWithTitle(pixd, 600, 400, "Constant hue", rp->display);
     bmfDestroy(&bmf8);
@@ -188,7 +181,7 @@ L_REGPARAMS  *rp;
     regTestCheckFile(rp, "/tmp/lept/regout/enhance.7.png");  /* 7 */
 
         /* Display results */
-    pixd = pixaDisplay(pixaf, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixaf, 1, 1.0, 20, 2);
     regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 8 */
     pixDisplayWithTitle(pixd, 100, 100, "All", rp->display);
     pixDestroy(&pixd);

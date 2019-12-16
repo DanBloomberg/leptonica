@@ -257,7 +257,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		sheartest.c showedges.c \
 		skewtest.c sorttest.c splitimage2pdf.c \
 		sudokutest.c textorient.c trctest.c \
-		warpertest.c wordsinorder.c \
+		underlinetest.c warpertest.c wordsinorder.c \
 		writemtiff.c xtractprotos.c yuvtest.c
 
 #  Remove the .o files from these on clean
@@ -1158,6 +1158,9 @@ textorient:	textorient.o $(LEPTLIB)
 
 trctest:	trctest.o $(LEPTLIB)
 	$(CC) -o trctest trctest.o $(ALL_LIBS) $(EXTRALIBS)
+
+underlinetest:	underlinetest.o $(LEPTLIB)
+	$(CC) -o underlinetest underlinetest.o $(ALL_LIBS) $(EXTRALIBS)
 
 warpertest:	warpertest.o $(LEPTLIB)
 	$(CC) -o warpertest warpertest.o $(ALL_LIBS) $(EXTRALIBS)

@@ -2029,13 +2029,13 @@ NUMA    *na;
 
     if (display) {
         lept_mkdir("lept/recog");
-        pix = pixaaDisplayByPixa(recog->pixaa_u, 20, 20, 1000);
+        pix = pixaaDisplayByPixa(recog->pixaa_u, 50, 1.0, 20, 20, 0);
         snprintf(buf, sizeof(buf), "/tmp/lept/recog/templates_u.%d.png", index);
         pixWriteDebug(buf, pix, IFF_PNG);
         pixDisplay(pix, 0, 200 * index);
         pixDestroy(&pix);
         if (recog->train_done) {
-            pix = pixaaDisplayByPixa(recog->pixaa, 20, 20, 1000);
+            pix = pixaaDisplayByPixa(recog->pixaa, 50, 1.0, 20, 20, 0);
             snprintf(buf, sizeof(buf),
                      "/tmp/lept/recog/templates.%d.png", index);
             pixWriteDebug(buf, pix, IFF_PNG);
@@ -2117,7 +2117,7 @@ L_RECOG   *recog;
         pixaaAddPixa(paa2, pixa, L_INSERT);
         pixaDestroy(&pixat);
     }
-    recog->pixdb_ave = pixaaDisplayByPixa(paa2, 20, 20, 2500);
+    recog->pixdb_ave = pixaaDisplayByPixa(paa2, 50, 1.0, 20, 20, 0);
     if (debug % 2) {
         lept_mkdir("lept/recog");
         pixWriteDebug("/tmp/lept/recog/templ_match.png", recog->pixdb_ave,

@@ -79,63 +79,52 @@ L_REGPARAMS  *rp;
 
         /* --- Blend 2 rgb images --- */
     pixa = pixaCreate(0);
-    pixSaveTiled(pixg, pixa, 1.0, 1, 40, 32);
     pix3 = pixBlendWithGrayMask(pix1, pix2, pixg, 50, 50);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 40, 32);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 40, 32);
-    pixSaveTiled(pix3, pixa, 1.0, 0, 40, 32);
+    pixaAddPix(pixa, pix1, L_COPY);
+    pixaAddPix(pixa, pix2, L_COPY);
+    pixaAddPix(pixa, pix3, L_INSERT);
     regTestWritePixAndCheck(rp, pixg, IFF_JFIF_JPEG);  /* 0 */
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 1 */
     regTestWritePixAndCheck(rp, pix2, IFF_JFIF_JPEG);  /* 2 */
     regTestWritePixAndCheck(rp, pix3, IFF_JFIF_JPEG);  /* 3 */
-    pixDestroy(&pix3);
 
         /* --- Blend 2 grayscale images --- */
     pix3 = pixConvertRGBToLuminance(pix1);
     pix4 = pixConvertRGBToLuminance(pix2);
     pix5 = pixBlendWithGrayMask(pix3, pix4, pixg, 50, 50);
-    pixSaveTiled(pix3, pixa, 1.0, 1, 40, 32);
-    pixSaveTiled(pix4, pixa, 1.0, 0, 40, 32);
-    pixSaveTiled(pix5, pixa, 1.0, 0, 40, 32);
+    pixaAddPix(pixa, pix3, L_INSERT);
+    pixaAddPix(pixa, pix4, L_INSERT);
+    pixaAddPix(pixa, pix5, L_INSERT);
     regTestWritePixAndCheck(rp, pix3, IFF_JFIF_JPEG);  /* 4 */
     regTestWritePixAndCheck(rp, pix4, IFF_JFIF_JPEG);  /* 5 */
     regTestWritePixAndCheck(rp, pix5, IFF_JFIF_JPEG);  /* 6 */
-    pixDestroy(&pix3);
-    pixDestroy(&pix4);
-    pixDestroy(&pix5);
 
         /* --- Blend a colormap image and an rgb image --- */
     pix3 = pixFixedOctcubeQuantGenRGB(pix2, 2);
     pix4 = pixBlendWithGrayMask(pix1, pix3, pixg, 50, 50);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 40, 32);
-    pixSaveTiled(pix3, pixa, 1.0, 0, 40, 32);
-    pixSaveTiled(pix4, pixa, 1.0, 0, 40, 32);
+    pixaAddPix(pixa, pix1, L_COPY);
+    pixaAddPix(pixa, pix3, L_INSERT);
+    pixaAddPix(pixa, pix4, L_INSERT);
     regTestWritePixAndCheck(rp, pix3, IFF_JFIF_JPEG);  /* 7 */
     regTestWritePixAndCheck(rp, pix4, IFF_JFIF_JPEG);  /* 8 */
-    pixDestroy(&pix3);
-    pixDestroy(&pix4);
 
         /* --- Blend a colormap image and a grayscale image --- */
     pix3 = pixConvertRGBToLuminance(pix1);
     pix4 = pixFixedOctcubeQuantGenRGB(pix2, 2);
     pix5 = pixBlendWithGrayMask(pix3, pix4, pixg, 50, 50);
-    pixSaveTiled(pix3, pixa, 1.0, 1, 40, 32);
-    pixSaveTiled(pix4, pixa, 1.0, 0, 40, 32);
-    pixSaveTiled(pix5, pixa, 1.0, 0, 40, 32);
+    pixaAddPix(pixa, pix3, L_COPY);
+    pixaAddPix(pixa, pix4, L_COPY);
+    pixaAddPix(pixa, pix5, L_INSERT);
     regTestWritePixAndCheck(rp, pix3, IFF_JFIF_JPEG);  /* 9 */
     regTestWritePixAndCheck(rp, pix4, IFF_JFIF_JPEG);  /* 10 */
     regTestWritePixAndCheck(rp, pix5, IFF_JFIF_JPEG);  /* 11 */
-    pixDestroy(&pix5);
     pix5 = pixBlendWithGrayMask(pix3, pix4, pixg, -100, -100);
-    pixSaveTiled(pix3, pixa, 1.0, 1, 40, 32);
-    pixSaveTiled(pix4, pixa, 1.0, 0, 40, 32);
-    pixSaveTiled(pix5, pixa, 1.0, 0, 40, 32);
+    pixaAddPix(pixa, pix3, L_INSERT);
+    pixaAddPix(pixa, pix4, L_INSERT);
+    pixaAddPix(pixa, pix5, L_INSERT);
     regTestWritePixAndCheck(rp, pix5, IFF_JFIF_JPEG);  /* 12 */
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    pixDestroy(&pix3);
-    pixDestroy(&pix4);
-    pixDestroy(&pix5);
 
     /* --------- Test png read/write with alpha channel --------- */
         /* First make pix2, using pixg as the alpha channel */
@@ -143,7 +132,7 @@ L_REGPARAMS  *rp;
     box1 = boxCreate(0, 300, 660, 500);
     pix2 = pixClipRectangle(pix1, box1, NULL);
     boxDestroy(&box1);
-    pixSaveTiled(pix2, pixa, 1.0, 1, 40, 32);
+    pixaAddPix(pixa, pix2, L_COPY);
     regTestWritePixAndCheck(rp, pix2, IFF_JFIF_JPEG);  /* 13 */
     pixSetRGBComponent(pix2, pixg, L_ALPHA_CHANNEL);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 14 */
@@ -151,9 +140,8 @@ L_REGPARAMS  *rp;
         /* To see the alpha channel, blend with a black image */
     pix3 = pixCreate(660, 500, 32);
     pix4 = pixBlendWithGrayMask(pix3, pix2, NULL, 0, 0);
-    pixSaveTiled(pix4, pixa, 1.0, 0, 40, 32);
+    pixaAddPix(pixa, pix4, L_INSERT);
     regTestWritePixAndCheck(rp, pix4, IFF_JFIF_JPEG);  /* 15 */
-    pixDestroy(&pix4);
 
         /* Read the RGBA image #14 back */
 #if defined(HAVE_LIBPNG)
@@ -169,24 +157,22 @@ L_REGPARAMS  *rp;
 
         /* Blend again with a black image */
     pix5 = pixBlendWithGrayMask(pix3, pix4, NULL, 0, 0);
-    pixSaveTiled(pix5, pixa, 1.0, 0, 40, 32);
+    pixaAddPix(pixa, pix5, L_INSERT);
     regTestWritePixAndCheck(rp, pix5, IFF_JFIF_JPEG);  /* 17 */
-    pixDestroy(&pix5);
 
         /* Blend with a white image */
     pixSetAll(pix3);
     pix5 = pixBlendWithGrayMask(pix3, pix4, NULL, 0, 0);
-    pixSaveTiled(pix5, pixa, 1.0, 0, 40, 32);
+    pixaAddPix(pixa, pix5, L_INSERT);
     regTestWritePixAndCheck(rp, pix5, IFF_JFIF_JPEG);  /* 18 */
     pixDestroy(&pixg);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
     pixDestroy(&pix4);
-    pixDestroy(&pix5);
 
         /* Display results */
-    pix1 = pixaDisplay(pixa, 0, 0);
+    pix1 = pixaDisplayTiledInColumns(pixa, 3, 1.0, 40, 2);
     pixDisplayWithTitle(pix1, 100, 100, NULL, rp->display);
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 19 */
     pixDestroy(&pix1);

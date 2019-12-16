@@ -169,32 +169,29 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
         BOXA  *boxat;
         GPLOT *gplot;
         NUMA  *na;
-        PIXA  *pad;
+        PIXA  *pixa1;
         PIX   *pix1, *pix2, *pix3;
-        pad = pixaCreate(0);
+        pixa1 = pixaCreate(0);
         boxat = pixConnComp(pixm, NULL, 8);
         boxaWriteDebug("/tmp/lept/ital/ital.ba", boxat);
-        pixSaveTiledOutline(pixs, pad, 0.5, 1, 20, 2, 32);  /* orig */
-        pixSaveTiledOutline(pixsd, pad, 0.5, 1, 20, 2, 0);  /* seed */
+        pixaAddPix(pixa1, pixs, L_COPY);  /* orig */
+        pixaAddPix(pixa1, pixsd, L_COPY);  /* seed */
         pix1 = pixConvertTo32(pixm);
         pixRenderBoxaArb(pix1, boxat, 3, 255, 0, 0);
-        pixSaveTiledOutline(pix1, pad, 0.5, 1, 20, 2, 0);  /* mask + outline */
-        pixDestroy(&pix1);
-        pixSaveTiledOutline(pixd, pad, 0.5, 1, 20, 2, 0);  /* ital mask */
+        pixaAddPix(pixa1, pix1, L_INSERT);  /* mask + outline */
+        pixaAddPix(pixa1, pixd, L_COPY);  /* ital mask */
         pix1 = pixConvertTo32(pixs);
         pixRenderBoxaArb(pix1, boxa, 3, 255, 0, 0);
-        pixSaveTiledOutline(pix1, pad, 0.5, 1, 20, 2, 0);  /* orig + outline */
-        pixDestroy(&pix1);
+        pixaAddPix(pixa1, pix1, L_INSERT);  /* orig + outline */
         pix1 = pixCreateTemplate(pixs);
         pix2 = pixSetBlackOrWhiteBoxa(pix1, boxa, L_SET_BLACK);
         pixCopy(pix1, pixs);
         pix3 = pixDilateBrick(NULL, pixs, 3, 3);
         pixCombineMasked(pix1, pix3, pix2);
-        pixSaveTiledOutline(pix1, pad, 0.5, 1, 20, 2, 0);  /* ital bolded */
-        pixDestroy(&pix1);
+        pixaAddPix(pixa1, pix1, L_INSERT);  /* ital bolded */
         pixDestroy(&pix2);
         pixDestroy(&pix3);
-        pix2 = pixaDisplay(pad, 0, 0);
+        pix2 = pixaDisplayTiledInColumns(pixa1, 1, 0.5, 20, 2);
         pixWriteDebug("/tmp/lept/ital/ital.png", pix2, IFF_PNG);
         pixDestroy(&pix2);
 
@@ -205,10 +202,10 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
         res = pixGetWidth(pixs) / 12;
         L_INFO("resolution = %d\n", procName, res);
         l_pdfSetDateAndVersion(0);
-        pixaConvertToPdf(pad, res, 1.0, L_FLATE_ENCODE, 75, "Italic Finder",
+        pixaConvertToPdf(pixa1, res, 1.0, L_FLATE_ENCODE, 75, "Italic Finder",
                          "/tmp/lept/ital/ital.pdf");
         l_pdfSetDateAndVersion(1);
-        pixaDestroy(&pad);
+        pixaDestroy(&pixa1);
         boxaDestroy(&boxat);
 
             /* Plot histogram of horizontal white run sizes.  A small

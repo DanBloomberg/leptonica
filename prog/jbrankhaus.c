@@ -64,11 +64,6 @@
 #define   DISPLAY_DIFFERENCE        1
 #define   DISPLAY_ALL_INSTANCES     0
 
-    /* for display output of all instances, sorted by class */
-#define   X_SPACING                10
-#define   Y_SPACING                15
-#define   MAX_OUTPUT_WIDTH         400
-
 static const char  rootname[] = "/tmp/lept/jb/result";
 
 int main(int    argc,
@@ -210,9 +205,9 @@ static char  mainName[] = "jbrankhaus";
 #endif  /* RENDER_DEBUG */
 
 #if  DISPLAY_ALL_INSTANCES
-        /* display all instances, organized by template */
-    pix = pixaaDisplayByPixa(classer->pixaa,
-                             X_SPACING, Y_SPACING, MAX_OUTPUT_WIDTH);
+        /* Display all instances, organized by template
+         * The display programs have a lot of trouble with these. */
+    pix = pixaaDisplayByPixa(classer->pixaa, 5, 1.0, 10, 0, 0);
     pixWrite("/tmp/lept/jb/output_instances", pix, IFF_PNG);
     pixDestroy(&pix);
 #endif  /* DISPLAY_ALL_INSTANCES */

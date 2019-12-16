@@ -59,7 +59,7 @@ L_REGPARAMS  *rp;
         /* Find the most populated colors */
     pix1 = pixRead("fish24.jpg");
     pixGetMostPopulatedColors(pix1, 2, 3, 10, &colors, NULL);
-    pix2 = pixDisplayColorArray(colors, 10, 190, 5, 6);
+    pix2 = pixDisplayColorArray(colors, 10, 200, 5, 6);
     pixDisplayWithTitle(pix2, 0, 0, NULL, rp->display);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 0 */
     lept_free(colors);

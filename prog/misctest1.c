@@ -35,6 +35,7 @@
  *        * Plot box side locations and dimension of a boxa
  *        * Extract and display rank sized components
  *        * Extract parts of an image using a boxa
+ *        * Display pixaa in row major order by component pixa.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -54,96 +55,108 @@ BOXA     *boxa1, *boxa2, *boxae, *boxao;
 PIX      *pixs, *pix1, *pix2, *pix3, *pixg, *pixb, *pixd, *pixc;
 PIX      *pixm, *pixm2, *pixd2, *pixs2;
 PIXA     *pixa1, *pixa2;
+PIXAA    *paa;
 PIXCMAP  *cmap, *cmapg;
 
     setLeptDebugOK(1);
     lept_mkdir("lept/misc");
-    pixa1 = pixaCreate(0);
+    paa = pixaaCreate(0);
 
         /* Combine two grayscale images using a mask */
+    lept_stderr("Combine two grayscale images using a mask\n");
+    pixa1 = pixaCreate(0);
     pixd = pixRead("feyn.tif");
     pixs = pixRead("rabi.png");
     pixm = pixRead("pageseg2-seed.png");
     pixd2 = pixScaleToGray2(pixd);
     pixs2 = pixScaleToGray2(pixs);
-    pixSaveTiled(pixd2, pixa1, 0.5, 1, 40, 32);
-    pixSaveTiled(pixs2, pixa1, 0.5, 0, 40, 0);
-    pixSaveTiled(pixm, pixa1, 0.5, 0, 40, 0);
+    pixaAddPix(pixa1, pixd2, L_COPY);
+    pixaAddPix(pixa1, pixs2, L_INSERT);
+    pixaAddPix(pixa1, pixm, L_COPY);
     pixCombineMaskedGeneral(pixd2, pixs2, pixm, 100, 100);
-    pixSaveTiled(pixd2, pixa1, 0.5, 1, 40, 0);
+    pixaAddPix(pixa1, pixd2, L_INSERT);
     pixDisplayWithTitle(pixd2, 100, 100, NULL, SHOW);
-    pixDestroy(&pixd2);
-    pixDestroy(&pixs2);
+    pixaaAddPixa(paa, pixa1, L_INSERT);
 
         /* Combine two binary images using a mask */
+    lept_stderr("Combine two binary images using a mask\n");
+    pixa1 = pixaCreate(0);
     pixm2 = pixExpandBinaryReplicate(pixm, 2, 2);
     pix1 = pixCopy(NULL, pixd);
     pixCombineMaskedGeneral(pixd, pixs, pixm2, 200, 200);
-    pixSaveTiled(pixd, pixa1, 0.25, 0, 40, 0);
+    pixaAddPix(pixa1, pixd, L_COPY);
     pixDisplayWithTitle(pixd, 700, 100, NULL, SHOW);
     pixCombineMasked(pix1, pixs, pixm2);
-    pixSaveTiled(pix1, pixa1, 0.25, 0, 40, 0);
+    pixaAddPix(pixa1, pix1, L_INSERT);
+    pixaaAddPixa(paa, pixa1, L_INSERT);
     pixDestroy(&pixd);
-    pixDestroy(&pix1);
     pixDestroy(&pixs);
     pixDestroy(&pixm);
     pixDestroy(&pixm2);
 
         /* Do a restricted seedfill */
+    lept_stderr("Do a restricted seedfill\n");
+    pixa1 = pixaCreate(0);
     pixs = pixRead("pageseg2-seed.png");
     pixm = pixRead("pageseg2-mask.png");
     pixd = pixSeedfillBinaryRestricted(NULL, pixs, pixm, 8, 50, 175);
-    pixSaveTiled(pixs, pixa1, 0.5, 1, 40, 0);
-    pixSaveTiled(pixm, pixa1, 0.5, 0, 40, 0);
-    pixSaveTiled(pixd, pixa1, 0.5, 0, 40, 0);
-    pixDestroy(&pixs);
-    pixDestroy(&pixm);
-    pixDestroy(&pixd);
+    pixaAddPix(pixa1, pixs, L_INSERT);
+    pixaAddPix(pixa1, pixm, L_INSERT);
+    pixaAddPix(pixa1, pixd, L_INSERT);
+    pixaaAddPixa(paa, pixa1, L_INSERT);
+    pix1 = pixaaDisplayByPixa(paa, 10, 0.5, 40, 40, 2);
+    pixWrite("/tmp/lept/misc/mos1.png", pix1, IFF_PNG);
+    pixDisplay(pix1, 100, 100);
+    pixaaDestroy(&paa);
+    pixDestroy(&pix1);
 
         /* Colorize a grayscale image */
+    lept_stderr("Colorize a grayscale image\n");
+    paa = pixaaCreate(0);
+    pixa1 = pixaCreate(0);
     pixs = pixRead("lucasta.150.jpg");
     pixGetDimensions(pixs, &w, &h, NULL);
     pixb = pixThresholdToBinary(pixs, 128);
     boxa1 = pixConnComp(pixb, &pixa2, 8);
-    pixSaveTiled(pixs, pixa1, 1.0, 1, 40, 0);
+    pixaAddPix(pixa1, pixs, L_COPY);
     cmap = pixcmapGrayToColor(0x6f90c0);
     pixSetColormap(pixs, cmap);
-    pixSaveTiled(pixs, pixa1, 1.0, 0, 40, 0);
+    pixaAddPix(pixa1, pixs, L_COPY);
     pixc = pixaDisplayRandomCmap(pixa2, w, h);
     pixcmapResetColor(pixGetColormap(pixc), 0, 255, 255, 255);
-    pixSaveTiled(pixc, pixa1, 1.0, 0, 40, 0);
+    pixaAddPix(pixa1, pixc, L_INSERT);
+    pixaaAddPixa(paa, pixa1, L_INSERT);
     pixDestroy(&pixs);
     pixDestroy(&pixb);
-    pixDestroy(&pixc);
     boxaDestroy(&boxa1);
     pixaDestroy(&pixa2);
 
         /* Convert color to gray */
+    lept_stderr("Convert color to gray\n");
+    pixa1 = pixaCreate(0);
     pixs = pixRead("weasel4.16c.png");
-    pixSaveTiled(pixs, pixa1, 1.0, 1, 20, 0);
+    pixaAddPix(pixa1, pixs, L_INSERT);
     pixc = pixConvertTo32(pixs);
     pix1 = pixConvertRGBToGray(pixc, 3., 7., 5.);  /* bad weights */
-    pixSaveTiled(pix1, pixa1, 1.0, 0, 20, 0);
+    pixaAddPix(pixa1, pix1, L_INSERT);
     pix2 = pixConvertRGBToGrayFast(pixc);
-    pixSaveTiled(pix2, pixa1, 1.0, 0, 20, 0);
+    pixaAddPix(pixa1, pix2, L_INSERT);
     pixg = pixCopy(NULL, pixs);
     cmap = pixGetColormap(pixs);
     cmapg = pixcmapColorToGray(cmap, 4., 6., 3.);
     pixSetColormap(pixg, cmapg);
-    pixSaveTiled(pixg, pixa1, 1.0, 0, 20, 0);
-    pixDestroy(&pixs);
+    pixaAddPix(pixa1, pixg, L_INSERT);
+    pixaaAddPixa(paa, pixa1, L_INSERT);
     pixDestroy(&pixc);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
-    pixDestroy(&pixg);
 
-    pixd = pixaDisplay(pixa1, 0, 0);
-    pixDisplayWithTitle(pixd, 100, 100, NULL, 1);
-    pixWrite("/tmp/misc1.png", pixd, IFF_PNG);
-    pixDestroy(&pixd);
-    pixaDestroy(&pixa1);
+    pix1 = pixaaDisplayByPixa(paa, 10, 1.0, 20, 20, 0);
+    pixWrite("/tmp/lept/misc/mos2.png", pix1, IFF_PNG);
+    pixDisplay(pix1, 400, 100);
+    pixaaDestroy(&paa);
+    pixDestroy(&pix1);
 
         /* Extract text lines */
+    lept_stderr("Extract text lines\n");
     pix1 = pixRead("feyn.tif");
     pixa1 = pixExtractTextlines(pix1, 150, 150, 0, 0, 5, 5, NULL);
     boxa1 = pixaGetBoxa(pixa1, L_CLONE);
@@ -178,6 +191,7 @@ PIXCMAP  *cmap, *cmapg;
     pixaDestroy(&pixa1);
 
         /* Plot box side locations and dimensions of a boxa */
+    lept_stderr("Plot box side locations and dimensions of a boxa\n");
     pixa1 = pixaCreate(0);
     boxa1 = boxaRead("boxa2.ba");
     boxaSplitEvenOdd(boxa1, 0, &boxae, &boxao);
@@ -212,6 +226,7 @@ PIXCMAP  *cmap, *cmapg;
     pixaDestroy(&pixa1);
 
         /* Extract and display rank sized components */
+    lept_stderr("Extract and display rank sized components\n");
     pixs = pixRead("rabi-tiny.png");
     pixa1 = pixaCreate(0);
     for (i = 1; i <= 5; i++) {
@@ -242,9 +257,11 @@ PIXCMAP  *cmap, *cmapg;
     pixDestroy(&pix3);
 
         /* Extract parts of an image using a boxa */
+    lept_stderr("Extract parts of an image using a boxa\n");
     pix1 = pixRead("feyn-fract.tif");
     boxa1 = pixConnCompBB(pix1, 4);
-    boxa2 = boxaSelectBySize(boxa1, 0, 28, L_SELECT_HEIGHT, L_SELECT_IF_GT, NULL),
+    boxa2 = boxaSelectBySize(boxa1, 0, 28, L_SELECT_HEIGHT, L_SELECT_IF_GT,
+                             NULL),
     pix2 = pixCopyWithBoxa(pix1, boxa2, L_SET_WHITE);
     pixWrite("/tmp/lept/misc/tallcomps.png", pix2, IFF_PNG);
     pixDisplay(pix2, 600, 600);
@@ -253,7 +270,22 @@ PIXCMAP  *cmap, *cmapg;
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);
 
+        /* Display pixaa in row major order by component pixa. */
+    lept_stderr("Display pixaa in row major order by component pixa\n");
+    pix1 = pixRead("char.tif");
+    paa = pixaaCreate(100);
+    for (i = 0; i < 50; i++) {
+        pixa1 = pixaCreate(100);
+        for (j = 0; j < 125 - 2 * i; j++)
+            pixaAddPix(pixa1, pix1, L_COPY);
+        pixaaAddPixa(paa, pixa1, L_INSERT);
+    }
+    pix2 = pixaaDisplayByPixa(paa, 50, 1.0, 10, 5, 0);
+    pixWrite("/tmp/lept/misc/display.png", pix2, IFF_PNG);
+    pixDisplay(pix2, 100, 100);
+    pixaaDestroy(&paa);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+
     return 0;
 }
-
-

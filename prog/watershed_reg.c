@@ -89,7 +89,7 @@ PTA       *pta;
     pixa = pixaCreate(0);
     pixGetDimensions(pixs, &w, &h, NULL);
     regTestWritePixAndCheck(rp, pixs, IFF_PNG);  /* 0 */
-    pixSaveTiled(pixs, pixa, 1.0, 1, 10, 32);
+    pixaAddPix(pixa, pixs, L_COPY);
     startTimer();
     pixLocalExtrema(pixs, 0, 0, &pix1, &pix2);
     fprintf(stderr, "Time for extrema: %7.3f\n", stopTimer());
@@ -100,22 +100,22 @@ PTA       *pta;
     pixPaintThroughMask(pixc, pix2, 0, 0, greenval);
     pixPaintThroughMask(pixc, pix1, 0, 0, redval);
     regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 1 */
-    pixSaveTiled(pixc, pixa, 1.0, 0, 10, 32);
+    pixaAddPix(pixa, pixc, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 2 */
-    pixSaveTiled(pix1, pixa, 1.0, 0, 10, 32);
+    pixaAddPix(pixa, pix1, L_COPY);
 
         /* Generate seeds for watershed */
     pixSelectMinInConnComp(pixs, pix1, &pta, NULL);
     pix3 = pixGenerateFromPta(pta, w, h);
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 3 */
-    pixSaveTiled(pix3, pixa, 1.0, 1, 10, 32);
+    pixaAddPix(pixa, pix3, L_COPY);
     pix4 = pixConvertTo32(pixs);
     pixPaintThroughMask(pix4, pix3, 0, 0, greenval);
     regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 4 */
-    pixSaveTiled(pix4, pixa, 1.0, 0, 10, 32);
+    pixaAddPix(pixa, pix4, L_COPY);
     pix5 = pixRemoveSeededComponents(NULL, pix3, pix1, 8, 2);
     regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 5 */
-    pixSaveTiled(pix5, pixa, 1.0, 0, 10, 32);
+    pixaAddPix(pixa, pix5, L_COPY);
     pixZero(pix5, &empty);
     regTestCompareValues(rp, 1, empty, 0.0);  /* 6 */
 
@@ -126,18 +126,18 @@ PTA       *pta;
     fprintf(stderr, "Time for wshed: %7.3f\n", stopTimer());
     pix6 = pixaDisplayRandomCmap(wshed->pixad, w, h);
     regTestWritePixAndCheck(rp, pix6, IFF_PNG);  /* 7 */
-    pixSaveTiled(pix6, pixa, 1.0, 1, 10, 32);
+    pixaAddPix(pixa, pix6, L_COPY);
     numaWriteMem(&data, &size, wshed->nalevels);
     regTestWriteDataAndCheck(rp, data, size, "na");  /* 8 */
     pix7 = wshedRenderFill(wshed);
     regTestWritePixAndCheck(rp, pix7, IFF_PNG);  /* 9 */
-    pixSaveTiled(pix7, pixa, 1.0, 0, 10, 32);
+    pixaAddPix(pixa, pix7, L_COPY);
     pix8 = wshedRenderColors(wshed);
     regTestWritePixAndCheck(rp, pix8, IFF_PNG);  /* 10 */
-    pixSaveTiled(pix8, pixa, 1.0, 0, 10, 32);
+    pixaAddPix(pixa, pix8, L_COPY);
     wshedDestroy(&wshed);
 
-    pix9 = pixaDisplay(pixa, 0, 0);
+    pix9 = pixaDisplayTiledInColumns(pixa, 3, 1.0, 20, 0);
     regTestWritePixAndCheck(rp, pix9, IFF_PNG);  /* 11 */
     pixDisplayWithTitle(pix9, 100, 100, NULL, rp->display);
 
@@ -151,7 +151,6 @@ PTA       *pta;
     pixDestroy(&pix7);
     pixDestroy(&pix8);
     pixDestroy(&pix9);
-    pixDestroy(&pixc);
     pixaDestroy(&pixa);
     ptaDestroy(&pta);
 }
