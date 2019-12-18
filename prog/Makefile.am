@@ -44,7 +44,7 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	rotate1_reg rotate2_reg rotateorth_reg \
 	scale_reg seedspread_reg selio_reg \
 	shear1_reg shear2_reg skew_reg \
-	speckle_reg splitcomp_reg \
+	smallpix_reg speckle_reg splitcomp_reg \
 	string_reg subpixel_reg \
 	texturefill_reg threshnorm_reg \
 	translate_reg warper_reg \
@@ -72,7 +72,7 @@ MANUAL_REG_PROGS = alltests_reg bilateral1_reg \
 	dwamorph2_reg \
 	files_reg flipdetect_reg fmorphauto_reg \
 	morphseq_reg pixalloc_reg pixtile_reg \
-	smallpix_reg smoothedge_reg
+	smoothedge_reg
 
 OTHER_PROGS = adaptmap_dark \
 	arabic_lines arithtest \

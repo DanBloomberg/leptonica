@@ -103,7 +103,7 @@ L_REGPARAMS  *rp;
         pix32 = pixCreate(w, h, 32);
         pixSetAll(pix32);
         pixPaintThroughMask(pix32, pixt, 0, 0, 0xc0c0c000);
-        pixSaveTiled(pix32, pixad, 1.0, 1, 30, 32);
+        pixaAddPix(pixad, pix32, L_INSERT);
         for (i = 0; i < 5; i++) {
             pixc = pixCopy(NULL, pix32);
             boxa = pixSplitComponentIntoBoxa(pixt, NULL, minsum[i], skipdist[i],
@@ -111,17 +111,15 @@ L_REGPARAMS  *rp;
 /*            boxaWriteStream(stderr, boxa); */
             pixd = pixBlendBoxaRandom(pixc, boxa, 0.4);
             pixRenderBoxaArb(pixd, boxa, 2, 255, 0, 0);
-            pixSaveTiled(pixd, pixad, 1.0, 0, 30, 32);
-            pixDestroy(&pixd);
+            pixaAddPix(pixad, pixd, L_INSERT);
             pixDestroy(&pixc);
             boxaDestroy(&boxa);
         }
         pixDestroy(&pixt);
-        pixDestroy(&pix32);
     }
 
         /* Display results */
-    pixd = pixaDisplay(pixad, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixad, 6, 1.0, 30, 0);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 0 */
     pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
@@ -134,7 +132,7 @@ L_REGPARAMS  *rp;
     pix32 = pixCreate(w, h, 32);
     pixSetAll(pix32);
     pixPaintThroughMask(pix32, pixs, 0, 0, 0xc0c0c000);
-    pixSaveTiled(pix32, pixad, 1.0, 1, 30, 32);
+    pixaAddPix(pixad, pix32, L_INSERT);
     for (i = 0; i < 5; i++) {
         pixc = pixCopy(NULL, pix32);
         boxa = pixSplitIntoBoxa(pixs, minsum[i], skipdist[i],
@@ -142,16 +140,14 @@ L_REGPARAMS  *rp;
 /*        boxaWriteStream(stderr, boxa); */
         pixd = pixBlendBoxaRandom(pixc, boxa, 0.4);
         pixRenderBoxaArb(pixd, boxa, 2, 255, 0, 0);
-        pixSaveTiled(pixd, pixad, 1.0, 0, 30, 32);
-        pixDestroy(&pixd);
+        pixaAddPix(pixad, pixd, L_INSERT);
         pixDestroy(&pixc);
         boxaDestroy(&boxa);
     }
-    pixDestroy(&pix32);
     pixDestroy(&pixs);
 
         /* Display results */
-    pixd = pixaDisplay(pixad, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixad, 6, 1.0, 30, 0);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 1 */
     pixDisplayWithTitle(pixd, 600, 100, NULL, rp->display);
     pixDestroy(&pixd);

@@ -49,30 +49,32 @@ int main(int    argc,
 l_int32       i, w, h;
 PIX          *pixm, *pixs, *pixg, *pixt, *pixd;
 PIXA         *pixa;
+PIXAA        *paa;
 PTA          *pta;
 PTAA         *ptaa;
 L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &rp))
         return 1;
-    pixa = pixaCreate(0);
+
+    paa = pixaaCreate(2);
 
     /* ---------------- Shortest path in binary maze ---------------- */
         /* Generate the maze */
+    pixa = pixaCreate(0);
     pixm = generateBinaryMaze(200, 200, 20, 20, 0.65, 0.25);
     pixd = pixExpandBinaryReplicate(pixm, 3, 3);
-    pixSaveTiledOutline(pixd, pixa, 1.0, 1, 20, 2, 32);
-    pixDestroy(&pixd);
+    pixaAddPix(pixa, pixd, L_INSERT);
 
         /* Find the shortest path between two points */
     pta = pixSearchBinaryMaze(pixm, 20, 20, 170, 170, NULL);
     pixt = pixDisplayPta(NULL, pixm, pta);
     pixd = pixScaleBySampling(pixt, 3., 3.);
-    pixSaveTiledOutline(pixd, pixa, 1.0, 0, 20, 2, 32);
+    pixaAddPix(pixa, pixd, L_INSERT);
+    pixaaAddPixa(paa, pixa, L_INSERT);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 0 */
     ptaDestroy(&pta);
     pixDestroy(&pixt);
-    pixDestroy(&pixd);
     pixDestroy(&pixm);
 
     /* ---------------- Shortest path in gray maze ---------------- */
@@ -90,19 +92,19 @@ L_REGPARAMS  *rp;
 
     pixt = pixDisplayPtaa(pixg, ptaa);
     pixd = pixScaleBySampling(pixt, 2., 2.);
-    pixSaveTiledOutline(pixd, pixa, 1.0, 1, 20, 2, 32);
+    pixa = pixaCreate(0);
+    pixaAddPix(pixa, pixd, L_INSERT);
+    pixaaAddPixa(paa, pixa, L_INSERT);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 1 */
     ptaaDestroy(&ptaa);
     pixDestroy(&pixg);
     pixDestroy(&pixt);
-    pixDestroy(&pixd);
 
         /* Bundle it all up */
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaaDisplayByPixa(paa, 3, 1.0, 20, 40, 0);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 2 */
     pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
-    pixaDestroy(&pixa);
-
+    pixaaDestroy(&paa);
     return regTestCleanup(rp);
 }

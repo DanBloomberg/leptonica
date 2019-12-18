@@ -110,42 +110,37 @@ L_REGPARAMS  *rp;
     pixa = pixaCreate(4);
     pixc = pixRenderRandomCmapPtaa(pixs, ptaafg, 0, 0, 0);
     regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 7 */
-    pixSaveTiledOutline(pixc, pixa, 1.0, 1, 30, 2, 32);
-    pixDestroy(&pixc);
+    pixaAddPix(pixa, pixc, L_INSERT);
 
         /* Render the bg boundary pixels on top of pixs. */
     pixc = pixRenderRandomCmapPtaa(pixs, ptaabg, 0, 0, 0);
     regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 8 */
-    pixSaveTiledOutline(pixc, pixa, 1.0, 0, 30, 2, 32);
-    pixDestroy(&pixc);
-
+    pixaAddPix(pixa, pixc, L_INSERT);
     pixClearAll(pixs);
 
         /* Render the fg boundary pixels alone. */
     pixc = pixRenderRandomCmapPtaa(pixs, ptaafg, 0, 0, 0);
     regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 9 */
-    pixSaveTiledOutline(pixc, pixa, 1.0, 1, 30, 2, 32);
+    pixaAddPix(pixa, pixc, L_INSERT);
 
         /* Verify that the fg pixels are the same set as we
          * originally started with. */
     pixb = pixConvertTo1(pixc, 255);
     regTestComparePix(rp, pixb, pixfg);  /* 10 */
-    pixDestroy(&pixc);
     pixDestroy(&pixb);
 
         /* Render the bg boundary pixels alone. */
     pixc = pixRenderRandomCmapPtaa(pixs, ptaabg, 0, 0, 0);
     regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 11 */
-    pixSaveTiledOutline(pixc, pixa, 1.0, 0, 30, 2, 32);
+    pixaAddPix(pixa, pixc, L_INSERT);
 
         /* Verify that the bg pixels are the same set as we
          * originally started with. */
     pixb = pixConvertTo1(pixc, 255);
     regTestComparePix(rp, pixb, pixbg);  /* 12 */
-    pixDestroy(&pixc);
     pixDestroy(&pixb);
 
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 1, 1.0, 30, 2);
     pixDisplayWithTitle(pixd, 0, 0, NULL, rp->display);
     ptaaDestroy(&ptaafg);
     ptaaDestroy(&ptaabg);

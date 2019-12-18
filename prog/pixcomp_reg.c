@@ -76,11 +76,10 @@ SARRAY       *sa;
     pixc2 = pixcompCreateFromPix(pix2, IFF_JFIF_JPEG);
     pix3 = pixCreateFromPixcomp(pixc2);
     regTestWritePixAndCheck(rp, pix3, IFF_JFIF_JPEG);  /* 0 */
-    pixSaveTiledOutline(pix3, pixa, 1.0, 1, 30, 2, 32);
+    pixaAddPix(pixa, pix3, L_INSERT);
     pixacompAddPix(pixac, pix1, IFF_DEFAULT);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    pixDestroy(&pix3);
     pixcompDestroy(&pixc1);
     pixcompDestroy(&pixc2);
 
@@ -91,11 +90,10 @@ SARRAY       *sa;
     pixc2 = pixcompCreateFromPix(pix2, IFF_JFIF_JPEG);
     pix3 = pixCreateFromPixcomp(pixc2);
     regTestWritePixAndCheck(rp, pix3, IFF_JFIF_JPEG);  /* 1 */
-    pixSaveTiledOutline(pix3, pixa, 1.0, 1, 30, 2, 32);
+    pixaAddPix(pixa, pix3, L_INSERT);
     pixacompAddPix(pixac, pix1, IFF_DEFAULT);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    pixDestroy(&pix3);
     pixcompDestroy(&pixc1);
     pixcompDestroy(&pixc2);
 
@@ -106,13 +104,12 @@ SARRAY       *sa;
     pixc2 = pixcompCreateFromPix(pix2, IFF_TIFF_G4);
     pix3 = pixCreateFromPixcomp(pixc2);
     regTestWritePixAndCheck(rp, pix3, IFF_TIFF_G4);  /* 2 */
-    pixSaveTiledOutline(pix3, pixa, 1.0, 0, 30, 2, 32);
+    pixaAddPix(pixa, pix3, L_INSERT);
     pixacompAddPix(pixac, pix1, IFF_DEFAULT);
     boxDestroy(&box);
     pixDestroy(&pix);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    pixDestroy(&pix3);
     pixcompDestroy(&pixc1);
     pixcompDestroy(&pixc2);
 
@@ -122,11 +119,10 @@ SARRAY       *sa;
     pixc2 = pixcompCreateFromPix(pix2, IFF_PNG);
     pix3 = pixCreateFromPixcomp(pixc2);
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 3 */
-    pixSaveTiledOutline(pix3, pixa, 1.0, 0, 30, 2, 32);
+    pixaAddPix(pixa, pix3, L_INSERT);
     pixacompAddPix(pixac, pix1, IFF_DEFAULT);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    pixDestroy(&pix3);
     pixcompDestroy(&pixc1);
     pixcompDestroy(&pixc2);
 

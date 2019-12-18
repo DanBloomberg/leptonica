@@ -90,7 +90,7 @@ L_REGPARAMS  *rp;
     str1 = (char *)l_binaryRead("kernel_reg.c", &size1);
     da = arrayFindEachSequence((l_uint8 *)str1, size1,
                                (l_uint8 *)"Destroy", 7);
-    regTestCompareValues(rp, 55, l_dnaGetCount(da), 0.0);  /* 7 */
+    regTestCompareValues(rp, 35, l_dnaGetCount(da), 0.0);  /* 7 */
     l_dnaDestroy(&da);
     lept_free(str1);
 
@@ -101,13 +101,13 @@ L_REGPARAMS  *rp;
                                      (l_uint8 *)"####", 4, &size2, &count);
     l_binaryWrite("/tmp/lept/string/string1.txt", "w", data1, size2);
     regTestCheckFile(rp, "/tmp/lept/string/string1.txt");  /* 8 */
-    regTestCompareValues(rp, 55, count, 0.0);  /* 9 */
+    regTestCompareValues(rp, 35, count, 0.0);  /* 9 */
     data2 = arrayReplaceEachSequence((l_uint8 *)str1, size1,
                                      (l_uint8 *)"Destroy", 7,
                                      NULL, 0, &size2, &count);
     l_binaryWrite("/tmp/lept/string/string2.txt", "w", data2, size2);
     regTestCheckFile(rp, "/tmp/lept/string/string2.txt");  /* 10 */
-    regTestCompareValues(rp, 55, count, 0.0);  /* 11 */
+    regTestCompareValues(rp, 35, count, 0.0);  /* 11 */
     lept_free(data1);
     lept_free(data2);
     lept_free(str1);

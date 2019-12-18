@@ -102,21 +102,18 @@ static char  mainName[] = "croptest";
 
             /* Output visuals */
         pixa2 = pixaCreate(3);
-        pixSaveTiled(pixr, pixa2, 1.0, 1, 25, 32);
+        pixaAddPix(pixa2, pixr, L_INSERT);
         pix1 = pixRead("/tmp/lept/crop/reversals.png");
         pix2 = pixRead("/tmp/lept/crop/intensities.png");
-        pixSaveTiled(pix1, pixa2, 1.0, 1, 25, 32);
-        pixSaveTiled(pix2, pixa2, 1.0, 0, 25, 32);
-        pixd = pixaDisplay(pixa2, 0, 0);
+        pixaAddPix(pixa2, pix1, L_INSERT);
+        pixaAddPix(pixa2, pix2, L_INSERT);
+        pixd = pixaDisplayTiledInColumns(pixa2, 2, 1.0, 25, 0);
         pixaDestroy(&pixa2);
         pixaAddPix(pixa1, pixd, L_INSERT);
         pixDisplay(pixd, 100, 100);
         pixDestroy(&pixs);
-        pixDestroy(&pixr);
         pixDestroy(&pixg);
         pixDestroy(&pixgi);
-        pixDestroy(&pix1);
-        pixDestroy(&pix2);
         numaDestroy(&narl);
         numaDestroy(&nart);
         numaDestroy(&nait);

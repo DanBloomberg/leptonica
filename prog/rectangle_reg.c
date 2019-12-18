@@ -51,20 +51,18 @@ char         *newpath;
 l_int32       i, bx, by, bw, bh, index, rval, gval, bval;
 BOX          *box1, *box2;
 BOXA         *boxa;
-PIX          *pixs, *pix1, *pixd;
-PIXA         *pixa;
+PIX          *pixs, *pix1, *pix2, *pix3;
 PIXCMAP      *cmap;
 L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &rp))
         return 1;
-    pixa = pixaCreate(0);
 
     /* ---------------- Largest rectangles in image ---------------- */
     pixs = pixRead("test1.png");
-    pixd = pixConvertTo8(pixs, FALSE);
+    pix1 = pixConvertTo8(pixs, FALSE);
     cmap = pixcmapCreateRandom(8, 1, 1);
-    pixSetColormap(pixd, cmap);
+    pixSetColormap(pix1, cmap);
 
     boxa = boxaCreate(0);
     for (i = 0; i < NBoxes; i++) {
@@ -82,21 +80,19 @@ L_REGPARAMS  *rp;
         index = 32 + (i & 254);
         pixcmapGetColor(cmap, index, &rval, &gval, &bval);
         box1 = boxaGetBox(boxa, i, L_CLONE);
-        pixRenderHashBoxArb(pixd, box1, 6, 2, L_NEG_SLOPE_LINE, 1,
+        pixRenderHashBoxArb(pix1, box1, 6, 2, L_NEG_SLOPE_LINE, 1,
                             rval, gval, bval);
         boxDestroy(&box1);
     }
-    pixSaveTiledOutline(pixd, pixa, 1.0, 1, 20, 2, 32);
-    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 0 */
+    pix2 = pixAddBorder(pix1, 2, 0x0);
+    pix3 = pixAddBorder(pix2, 20, 0xffffff00);
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 0 */
+    pixDisplayWithTitle(pix3, 0, 0, NULL, rp->display);
     pixDestroy(&pixs);
-    pixDestroy(&pixd);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
     boxaDestroy(&boxa);
-
-    pixd = pixaDisplay(pixa, 0, 0);
-    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 1 */
-    pixDisplayWithTitle(pixd, 0, 0, NULL, rp->display);
-    pixDestroy(&pixd);
-    pixaDestroy(&pixa);
 
     /* ----------- Rectangle(s) from connected component ----------- */
     pixs = pixRead("singlecc.tif");
@@ -110,7 +106,7 @@ L_REGPARAMS  *rp;
     boxDestroy(&box2);
     snprintf(buf, sizeof(buf), "rectangle.%02d.png", 2);
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
-    regTestCheckFile(rp, newpath);  /* 2 */
+    regTestCheckFile(rp, newpath);  /* 1 */
     if (rp->display) l_fileDisplay(newpath, 0, 500, 0.4);
     LEPT_FREE(newpath);
 
@@ -119,7 +115,7 @@ L_REGPARAMS  *rp;
     boxDestroy(&box2);
     snprintf(buf, sizeof(buf), "rectangle.%02d.png", 3);
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
-    regTestCheckFile(rp, newpath);  /* 3 */
+    regTestCheckFile(rp, newpath);  /* 2 */
     if (rp->display) l_fileDisplay(newpath, 200, 500, 0.4);
     LEPT_FREE(newpath);
 
@@ -128,7 +124,7 @@ L_REGPARAMS  *rp;
     boxDestroy(&box2);
     snprintf(buf, sizeof(buf), "rectangle.%02d.png", 4);
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
-    regTestCheckFile(rp, newpath);  /* 4 */
+    regTestCheckFile(rp, newpath);  /* 3 */
     if (rp->display) l_fileDisplay(newpath, 400, 500, 0.4);
     LEPT_FREE(newpath);
 
@@ -137,7 +133,7 @@ L_REGPARAMS  *rp;
     boxDestroy(&box2);
     snprintf(buf, sizeof(buf), "rectangle.%02d.png", 5);
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
-    regTestCheckFile(rp, newpath);  /* 5 */
+    regTestCheckFile(rp, newpath);  /* 4 */
     if (rp->display) l_fileDisplay(newpath, 600, 500, 0.4);
     LEPT_FREE(newpath);
 
@@ -147,7 +143,7 @@ L_REGPARAMS  *rp;
     boxDestroy(&box2);
     snprintf(buf, sizeof(buf), "rectangle.%02d.png", 6);
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
-    regTestCheckFile(rp, newpath);  /* 6 */
+    regTestCheckFile(rp, newpath);  /* 5 */
     if (rp->display) l_fileDisplay(newpath, 800, 500, 0.4);
     LEPT_FREE(newpath);
 
@@ -156,7 +152,7 @@ L_REGPARAMS  *rp;
     boxDestroy(&box2);
     snprintf(buf, sizeof(buf), "rectangle.%02d.png", 7);
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
-    regTestCheckFile(rp, newpath);  /* 7 */
+    regTestCheckFile(rp, newpath);  /* 6 */
     if (rp->display) l_fileDisplay(newpath, 1000, 500, 0.4);
     LEPT_FREE(newpath);
 
@@ -165,7 +161,7 @@ L_REGPARAMS  *rp;
     boxDestroy(&box2);
     snprintf(buf, sizeof(buf), "rectangle.%02d.png", 8);
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
-    regTestCheckFile(rp, newpath);  /* 8 */
+    regTestCheckFile(rp, newpath);  /* 7 */
     if (rp->display) l_fileDisplay(newpath, 1200, 500, 0.4);
     LEPT_FREE(newpath);
 
@@ -174,7 +170,7 @@ L_REGPARAMS  *rp;
     boxDestroy(&box2);
     snprintf(buf, sizeof(buf), "rectangle.%02d.png", 9);
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
-    regTestCheckFile(rp, newpath);  /* 9 */
+    regTestCheckFile(rp, newpath);  /* 8 */
     if (rp->display) l_fileDisplay(newpath, 1400, 500, 0.4);
     LEPT_FREE(newpath);
 

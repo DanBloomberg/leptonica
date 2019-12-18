@@ -95,8 +95,8 @@ They are <i>not</i> a complete listing of the modifications.
         * New source files: checkerboard.c
         * New programs: replacebytes.c, webpanimio_reg.c, partifytest.c,
           rectangle_reg.c, lowsat_reg.c, rotate_it.c, scale_it.c, dewarp_it.c,
-          pdfio1_reg.c, pdfio2_reg.c, checkerboard_reg.c.
-        * Convert to standard reg test: heap_reg.c, pixa1_reg.c
+          pdfio1_reg.c, pdfio2_reg.c, checkerboard_reg.c, underlinetest.c.
+        * Convert to standard reg test: heap_reg.c, pixa1_reg.c, smallpix_reg.c
         * Improved data checking when reading image file headers
           (pnm, png, jpeg, tiff)
         * Fixed some bugs in pnm reading
@@ -130,6 +130,9 @@ They are <i>not</i> a complete listing of the modifications.
           creating a hit-miss sela from a color pix, equality of two pta.
         * Proper handling of 1 bpp colormap tiffs: remove when reading,
           preserve when writing.
+        * Deprecated three pixSaveTile*() functions; removed from
+          the library and progs.
+        * Included auto_config.h explicitly in all prog files.
 
 1.78.0  21 Mar 19
         * Various improvements in handling boxa sequences and transforms.

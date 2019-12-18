@@ -333,11 +333,11 @@ L_REGPARAMS  *rp;
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);   /* 15 */
     pixDestroy(&pixd);
 
-    pixd = pixaDisplay(pixac1, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixac1, 10, 0.5, 15, 2);
     pixDisplayWithTitle(pixd, 0, 100, NULL, rp->display);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 16 */
     pixDestroy(&pixd);
-    pixd = pixaDisplay(pixac2, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixac2, 10, 0.5, 15, 2);
     pixDisplayWithTitle(pixd, 800, 100, NULL, rp->display);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 17 */
     pixDestroy(&pixd);
@@ -484,7 +484,7 @@ SaveResult(PIXA   *pixac,
 PIX   *pixd;
 
     pixd = pixaDisplay(*ppixa, w, h);
-    pixSaveTiled(pixd, pixac, 1, newline, 30, 8);
+    pixaAddPix(pixac, pixd, L_COPY);
     pixaDestroy(ppixa);
     return pixd;
 }

@@ -78,11 +78,11 @@ L_REGPARAMS  *rp;
         /* Add a border and locate and deskew a 40 degree rotation */
     pixb2 = pixAddBorder(pixb1, BORDER, 0);
     pixGetDimensions(pixb2, &w, &h, NULL);
-    pixSaveTiled(pixb2, pixa, 0.5, 1, 20, 8);
+    pixaAddPix(pixa, pixb2, L_COPY);
     pixr = pixRotateBySampling(pixb2, w / 2, h / 2,
                                     deg2rad * 40., L_BRING_IN_WHITE);
     regTestWritePixAndCheck(rp, pixr, IFF_PNG);  /* 1 */
-    pixSaveTiled(pixr, pixa, 0.5, 0, 20, 0);
+    pixaAddPix(pixa, pixr, L_INSERT);
     pixFindSkewSweepAndSearchScorePivot(pixr, &angle, &conf, NULL, 1, 1,
                                         0.0, 45.0, 2.0, 0.03,
                                         L_SHEAR_ABOUT_CENTER);
@@ -92,10 +92,8 @@ L_REGPARAMS  *rp;
                                     deg2rad * angle, L_BRING_IN_WHITE);
     pixd = pixRemoveBorder(pixf, BORDER);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 2 */
-    pixSaveTiled(pixd, pixa, 0.5, 0, 20, 0);
-    pixDestroy(&pixr);
+    pixaAddPix(pixa, pixd, L_INSERT);
     pixDestroy(&pixf);
-    pixDestroy(&pixd);
 
         /* Do a rotation larger than 90 degrees using embedding;
          * Use 2 sets of measurements at 90 degrees to scan the
@@ -104,7 +102,7 @@ L_REGPARAMS  *rp;
     pixr = pixRotate(pixb1, deg2rad * 37., L_ROTATE_SAMPLING,
                      L_BRING_IN_WHITE, w, h);
     regTestWritePixAndCheck(rp, pixr, IFF_PNG);  /* 3 */
-    pixSaveTiled(pixr, pixa, 0.5, 1, 20, 0);
+    pixaAddPix(pixa, pixr, L_INSERT);
     startTimer();
     pixFindSkewOrthogonalRange(pixr, &angle, &conf, 2, 1,
                                47.0, 1.0, 0.03, 0.0);
@@ -117,13 +115,11 @@ L_REGPARAMS  *rp;
     pixc = pixCreate(w, h, 1);
     pixRasterop(pixc, 0, 0, w, h, PIX_SRC, pixd, (wd - w) / 2, (hd - h) / 2);
     regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 5 */
-    pixSaveTiled(pixc, pixa, 0.5, 0, 20, 0);
-    pixDestroy(&pixr);
+    pixaAddPix(pixa, pixc, L_INSERT);
     pixDestroy(&pixf);
     pixDestroy(&pixd);
-    pixDestroy(&pixc);
 
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 3, 0.5, 20, 3);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 6 */
     pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);

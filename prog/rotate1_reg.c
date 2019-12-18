@@ -122,10 +122,10 @@ PIXA     *pixa;
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
             if (i == MODSIZE) {
-                pixSaveTiled(pixd, pixa, scale, 1, 20, 32);
+                pixaAddPix(pixa, pixd, L_COPY);
                 regTestWritePixAndCheck(rp, pixd, outformat);
             } else {
-                pixSaveTiled(pixd, pixa, scale, 0, 20, 32);
+                pixaAddPix(pixa, pixd, L_COPY);
                 regTestWritePixAndCheck(rp, pixd, outformat);
             }
         }
@@ -140,10 +140,10 @@ PIXA     *pixa;
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
             if (i == MODSIZE) {
-                pixSaveTiled(pixd, pixa, scale, 1, 20, 32);
+                pixaAddPix(pixa, pixd, L_COPY);
                 regTestWritePixAndCheck(rp, pixd, outformat);
             } else {
-                pixSaveTiled(pixd, pixa, scale, 0, 20, 32);
+                pixaAddPix(pixa, pixd, L_COPY);
                 regTestWritePixAndCheck(rp, pixd, outformat);
             }
         }
@@ -158,10 +158,10 @@ PIXA     *pixa;
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
             if (i == MODSIZE) {
-                pixSaveTiled(pixd, pixa, scale, 1, 20, 32);
+                pixaAddPix(pixa, pixd, L_COPY);
                 regTestWritePixAndCheck(rp, pixd, outformat);
             } else {
-                pixSaveTiled(pixd, pixa, scale, 0, 20, 32);
+                pixaAddPix(pixa, pixd, L_COPY);
                 regTestWritePixAndCheck(rp, pixd, outformat);
             }
         }
@@ -176,10 +176,10 @@ PIXA     *pixa;
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
             if (i == MODSIZE) {
-                pixSaveTiled(pixd, pixa, scale, 1, 20, 32);
+                pixaAddPix(pixa, pixd, L_COPY);
                 regTestWritePixAndCheck(rp, pixd, outformat);
             } else {
-                pixSaveTiled(pixd, pixa, scale, 0, 20, 32);
+                pixaAddPix(pixa, pixd, L_COPY);
                 regTestWritePixAndCheck(rp, pixd, outformat);
             }
         }
@@ -194,10 +194,10 @@ PIXA     *pixa;
         for (i = 1; i < NTIMES; i++) {
             if ((i % MODSIZE) == 0) {
                 if (i == MODSIZE) {
-                    pixSaveTiled(pixd, pixa, scale, 1, 20, 32);
+                    pixaAddPix(pixa, pixd, L_COPY);
                     regTestWritePixAndCheck(rp, pixd, outformat);
                 } else {
-                    pixSaveTiled(pixd, pixa, scale, 0, 20, 32);
+                    pixaAddPix(pixa, pixd, L_COPY);
                     regTestWritePixAndCheck(rp, pixd, outformat);
                 }
             }
@@ -208,7 +208,7 @@ PIXA     *pixa;
     }
     pixDestroy(&pixd);
 
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 2, scale, 20, 0);
     pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);

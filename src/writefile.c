@@ -1097,7 +1097,7 @@ PIX     *pix1, *pix2;
 
     PROCNAME("pixMakeColorSquare");
 
-    w = (size == 0) ? 100 : size;
+    w = (size <= 0) ? 100 : size;
     if (addlabel && w < 100) {
         L_WARNING("size too small for label; omitting label\n", procName);
         addlabel = 0;
@@ -1137,7 +1137,6 @@ l_chooseDisplayProg(l_int32  selection)
     } else {
         L_ERROR("invalid display program\n", "l_chooseDisplayProg");
     }
-    return;
 }
 
 
@@ -1296,14 +1295,12 @@ pixSaveTiled(PIX       *pixs,
              l_int32    space,
              l_int32    dp)
 {
-#if 0
     lept_stderr("\n######################################################"
                 "\n                     Notice:\n"
                 "  pixSaveTiled() has been deprecated in leptonica \n"
                 "  since version 1.78. It will be removed in 1.80.\n"
                 "######################################################"
                 "\n\n\n");
-#endif
 
         /* Save without an outline */
     return pixSaveTiledOutline(pixs, pixa, scalefactor, newrow, space, 0, dp);
@@ -1363,14 +1360,12 @@ PIX     *pix1, *pix2, *pix3, *pix4;
 
     PROCNAME("pixSaveTiledOutline");
 
-#if 0
     lept_stderr("\n######################################################"
                 "\n                     Notice:\n"
                 "  pixSaveTiledOutline() has been deprecated in leptonica \n"
                 "  since version 1.78. It will be removed in 1.80.\n"
                 "######################################################"
                 "\n\n\n");
-#endif
 
     if (scalefactor == 0.0) return 0;
 
@@ -1503,14 +1498,12 @@ PIX  *pix1, *pix2, *pix3, *pix4;
 
     PROCNAME("pixSaveTiledWithText");
 
-#if 0
     lept_stderr("\n######################################################"
                 "\n                     Notice:\n"
                 "  pixSaveTiledWithText() has been deprecated in leptonica \n"
                 "  since version 1.78. It will be removed in 1.80.\n"
                 "######################################################"
                 "\n\n\n");
-#endif
 
     if (outwidth == 0) return 0;
 

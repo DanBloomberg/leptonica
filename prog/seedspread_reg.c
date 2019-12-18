@@ -70,11 +70,10 @@ L_REGPARAMS  *rp;
         y = (117 * i * i * i + 241) % 299;
         pixRasterop(pixc, x - 1, y - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     }
-    pixSaveTiled(pixc, pixa, scalefact, 1, 20, 32);
+    pixaAddPix(pixa, pixc, L_INSERT);
     regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 0 */
     pixDisplayWithTitle(pixc, 100, 100, "4-cc", rp->display);
     pixDestroy(&pixd);
-    pixDestroy(&pixc);
 
     pixd = pixSeedspread(pixs, 8);  /* 8-cc */
     pixc = pixConvertTo32(pixd);
@@ -83,11 +82,10 @@ L_REGPARAMS  *rp;
         y = (117 * i * i * i + 241) % 299;
         pixRasterop(pixc, x - 1, y - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     }
-    pixSaveTiled(pixc, pixa, scalefact, 0, 20, 0);
+    pixaAddPix(pixa, pixc, L_INSERT);
     regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 1 */
     pixDisplayWithTitle(pixc, 410, 100, "8-cc", rp->display);
     pixDestroy(&pixd);
-    pixDestroy(&pixc);
     pixDestroy(&pixs);
 
         /* Regular lattice */
@@ -104,11 +102,10 @@ L_REGPARAMS  *rp;
             pixRasterop(pixc, j - 1, i - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
         }
     }
-    pixSaveTiled(pixc, pixa, scalefact, 1, 20, 0);
+    pixaAddPix(pixa, pixc, L_INSERT);
     regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 2 */
     pixDisplayWithTitle(pixc, 100, 430, "4-cc", rp->display);
     pixDestroy(&pixd);
-    pixDestroy(&pixc);
 
     pixd = pixSeedspread(pixs, 8);  /* 8-cc */
     pixc = pixConvertTo32(pixd);
@@ -117,11 +114,10 @@ L_REGPARAMS  *rp;
             pixRasterop(pixc, j - 1, i - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
         }
     }
-    pixSaveTiled(pixc, pixa, scalefact, 0, 20, 0);
+    pixaAddPix(pixa, pixc, L_INSERT);
     regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 3 */
     pixDisplayWithTitle(pixc, 310, 430, "8-cc", rp->display);
     pixDestroy(&pixd);
-    pixDestroy(&pixc);
     pixDestroy(&pixs);
 
         /* Very sparse points */
@@ -136,11 +132,10 @@ L_REGPARAMS  *rp;
     pixRasterop(pixc, 160 - 1, 40 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixRasterop(pixc, 80 - 1, 80 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixRasterop(pixc, 40 - 1, 160 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
-    pixSaveTiled(pixc, pixa, scalefact, 1, 20, 0);
+    pixaAddPix(pixa, pixc, L_INSERT);
     regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 4 */
     pixDisplayWithTitle(pixc, 100, 600, "4-cc", rp->display);
     pixDestroy(&pixd);
-    pixDestroy(&pixc);
 
     pixd = pixSeedspread(pixs, 8);  /* 8-cc */
     pixc = pixConvertTo32(pixd);
@@ -148,15 +143,14 @@ L_REGPARAMS  *rp;
     pixRasterop(pixc, 160 - 1, 40 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixRasterop(pixc, 80 - 1, 80 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
     pixRasterop(pixc, 40 - 1, 160 - 1, 3, 3, PIX_SRC, pixsq, 0, 0);
-    pixSaveTiled(pixc, pixa, scalefact, 0, 20, 0);
+    pixaAddPix(pixa, pixc, L_INSERT);
     regTestWritePixAndCheck(rp, pixc, IFF_PNG);  /* 5 */
     pixDisplayWithTitle(pixc, 310, 660, "8-cc", rp->display);
     pixDestroy(&pixd);
-    pixDestroy(&pixc);
     pixDestroy(&pixs);
     pixDestroy(&pixsq);
 
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 2, scalefact, 20, 0);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 6 */
     pixDisplayWithTitle(pixd, 720, 100, "Final", rp->display);
 
