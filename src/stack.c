@@ -24,7 +24,6 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-
 /*!
  * \file stack.c
  * <pre>
@@ -57,6 +56,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Bounds on initial array size */
@@ -65,7 +68,6 @@ static const l_int32 InitialPtrArraySize = 20;      /*!< n'importe quoi */
 
     /* Static function */
 static l_int32 lstackExtendArray(L_STACK *lstack);
-
 
 /*---------------------------------------------------------------------*
  *                          Create/Destroy                             *

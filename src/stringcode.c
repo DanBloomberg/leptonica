@@ -84,6 +84,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 #include "stringcode.h"
@@ -133,7 +137,6 @@ static l_int32 l_getIndexFromFile(const char *file, l_int32 *pindex);
 static char *l_genDataString(const char *filein, l_int32 ifunc);
 static char *l_genCaseString(l_int32 ifunc, l_int32 itype);
 static char *l_genDescrString(const char *filein, l_int32 ifunc, l_int32 itype);
-
 
 /*---------------------------------------------------------------------*/
 /*                         Stringcode functions                        */

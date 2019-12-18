@@ -57,8 +57,11 @@
  * </pre>
  */
 
-#include "allheaders.h"
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
+#include "allheaders.h"
 
 /*----------------------------------------------------------------------*
  *                 Access within an array of 32-bit words               *

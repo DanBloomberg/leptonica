@@ -118,6 +118,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Bounds on initial array size */
@@ -126,7 +130,6 @@ static const l_int32 InitialPtrArraySize = 20;      /*!< n'importe quoi */
 
     /* Static function */
 static l_int32 ptraExtendArray(L_PTRA *pa);
-
 
 /*--------------------------------------------------------------------------*
  *                       Ptra creation and destruction                      *

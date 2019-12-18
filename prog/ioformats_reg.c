@@ -295,7 +295,7 @@ L_REGPARAMS  *rp;
         success = FALSE;
     }
     cmap = pixcmapCreate(1);
-    pixcmapAddColor(cmap, 255, 255, 255); 
+    pixcmapAddColor(cmap, 255, 255, 255);
     pixcmapAddColor(cmap, 100, 200, 50);  /* with color */
     pixSetColormap(pix1, cmap);  /* replace the colormap */
     pixWrite("/tmp/lept/regout/fract2.tif", pix1, IFF_TIFF_ZIP);

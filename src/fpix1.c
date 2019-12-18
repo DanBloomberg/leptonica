@@ -123,6 +123,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -133,7 +137,6 @@ static const l_int32 InitialPtrArraySize = 20;      /*!< n'importe quoi */
     /* Static functions */
 static l_int32 fpixaExtendArray(FPIXA *fpixa);
 static l_int32 fpixaExtendArrayToSize(FPIXA *fpixa, l_int32 size);
-
 
 /*--------------------------------------------------------------------*
  *                     FPix Create/copy/destroy                       *

@@ -66,6 +66,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 #include "bmfdata.h"
@@ -87,7 +91,6 @@ static PIXA *pixaGenerateFont(PIX *pixs, l_int32 fontsize, l_int32 *pbl0,
                               l_int32 *pbl1, l_int32 *pbl2);
 static l_int32 pixGetTextBaseline(PIX *pixs, l_int32 *tab8, l_int32 *py);
 static l_int32 bmfMakeAsciiTables(L_BMF *bmf);
-
 
 /*---------------------------------------------------------------------*/
 /*                           Bmf create/destroy                        */

@@ -64,6 +64,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -73,7 +77,6 @@ static const l_int32   InitialArraySize = 200;      /*!< n'importe quoi */
 
     /* Static function */
 static l_int32 l_byteaExtendArrayToSize(L_BYTEA *ba, size_t size);
-
 
 /*---------------------------------------------------------------------*
  *                  Creation, copy, clone, destruction                 *

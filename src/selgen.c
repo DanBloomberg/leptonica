@@ -67,8 +67,11 @@
  * </pre>
  */
 
-#include "allheaders.h"
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
+#include "allheaders.h"
 
     /* Default minimum distance of a hit-miss pixel element to
      * a boundary pixel of its color. */

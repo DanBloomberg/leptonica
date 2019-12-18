@@ -24,7 +24,6 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-
 /*!
  * \file  ptabasic.c
  * <pre>
@@ -93,6 +92,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -102,7 +105,6 @@ static const l_int32 InitialPtrArraySize = 50;      /*!< n'importe quoi */
     /* Static functions */
 static l_int32 ptaExtendArrays(PTA *pta);
 static l_int32 ptaaExtendArray(PTAA *ptaa);
-
 
 /*---------------------------------------------------------------------*
  *                Pta creation, destruction, copy, clone               *

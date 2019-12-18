@@ -50,13 +50,16 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
 static l_uint8 *makeReverseByteTab1(void);
 static l_uint8 *makeReverseByteTab2(void);
 static l_uint8 *makeReverseByteTab4(void);
-
 
 /*------------------------------------------------------------------*
  *           Top-level rotation by multiples of 90 degrees          *

@@ -62,6 +62,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -70,7 +74,6 @@ static const l_int32  INITIAL_BUFFER_ARRAYSIZE = 1024;  /* n'importe quoi */
 
     /* Static function */
 static l_int32 lqueueExtendArray(L_QUEUE *lq);
-
 
 /*--------------------------------------------------------------------------*
  *                         L_Queue create/destroy                           *

@@ -114,10 +114,13 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
-
 
 /*------------------------------------------------------------------*
  *        Pta generation for arbitrary shapes built with lines      *

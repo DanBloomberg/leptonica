@@ -41,6 +41,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -50,7 +54,6 @@ static l_uint32 * makeExpandTab4x(void);
 static l_uint32 * makeExpandTab8x(void);
 static  l_uint32 expandtab16[] = {
               0x00000000, 0x0000ffff, 0xffff0000, 0xffffffff};
-
 
 /*------------------------------------------------------------------*
  *              Replicated expansion (integer scaling)              *

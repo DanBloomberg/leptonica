@@ -144,12 +144,14 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
 
 static l_int32 blendComponents(l_int32 a, l_int32 b, l_float32 fract);
 static l_int32 blendHardLightComponents(l_int32 a, l_int32 b, l_float32 fract);
-
 
 /*-------------------------------------------------------------*
  *         Blending two images that are not colormapped        *

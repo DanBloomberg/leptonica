@@ -24,7 +24,6 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-
 /*!
  * \file bilinear.c
  * <pre>
@@ -110,12 +109,15 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
 
 extern l_float32  AlphaMaskBorderVals[2];
-
 
 /*-------------------------------------------------------------*
  *             Sampled bilinear image transformation           *

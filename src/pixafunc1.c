@@ -89,6 +89,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -99,7 +103,6 @@ static const l_int32   MinCompsForBinSort = 200;
 
     /* Don't rotate any angle smaller than this */
 static const l_float32  MinAngleToRotate = 0.001;  /* radians; ~0.06 deg */
-
 
 /*---------------------------------------------------------------------*
  *                                Filters                              *

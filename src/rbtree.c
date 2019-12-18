@@ -71,6 +71,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* The node color enum is only needed in the rbtree implementation */
@@ -117,7 +121,6 @@ static void verify_properties(L_RBTREE *t);
 #ifndef  NO_CONSOLE_IO
 #define  VERIFY_RBTREE     0   /* only for debugging */
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /* ------------------------------------------------------------- *
  *                   Interface to Red-black Tree                 *

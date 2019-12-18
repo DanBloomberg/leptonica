@@ -145,6 +145,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -157,7 +161,6 @@ static const l_int32  InitialArraySize = 50;      /*!< n'importe quoi */
     /* Static functions */
 static l_int32 l_dnaExtendArray(L_DNA *da);
 static l_int32 l_dnaaExtendArray(L_DNAA *daa);
-
 
 /*--------------------------------------------------------------------------*
  *                 Dna creation, destruction, copy, clone, etc.             *

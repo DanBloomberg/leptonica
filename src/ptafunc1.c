@@ -24,7 +24,6 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-
 /*!
  * \file  ptafunc1.c
  * <pre>
@@ -99,13 +98,16 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif  /* M_PI */
-
 
 /*---------------------------------------------------------------------*
  *                        Simple rearrangements                        *

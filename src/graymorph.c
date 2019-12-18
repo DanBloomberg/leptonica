@@ -119,6 +119,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Special static operations for 3x1, 1x3 and 3x3 structuring elements */

@@ -24,7 +24,6 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-
 /*!
  * \file rotate.c
  * <pre>
@@ -53,6 +52,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -60,7 +63,6 @@ extern l_float32  AlphaMaskBorderVals[2];
 static const l_float32  MinAngleToRotate = 0.001;  /* radians; ~0.06 deg */
 static const l_float32  Max1BppShearAngle = 0.06;  /* radians; ~3 deg    */
 static const l_float32  LimitShearAngle = 0.35;    /* radians; ~20 deg   */
-
 
 /*------------------------------------------------------------------*
  *                  General rotation about the center               *
