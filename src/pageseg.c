@@ -34,6 +34,7 @@
  *      Halftone region extraction
  *          PIX      *pixGenHalftoneMask()    **Deprecated wrapper**
  *          PIX      *pixGenerateHalftoneMask()
+
  *
  *      Textline extraction
  *          PIX      *pixGenTextlineMask()
@@ -72,6 +73,9 @@
  *
  *      Generate rectangle inside connected component
  *          BOX      *pixFindRectangleInCC()
+ *
+ *      Automatic photoinvert for OCR
+ *          PIX      *pixAutoPhotoinvert()
  * </pre>
  */
 
@@ -320,9 +324,9 @@ PIX     *pix1, *pix2, *pixhs, *pixhm, *pixd;
     }
 
         /* Compute seed for halftone parts at 8x reduction */
-    pix1 = pixReduceRankBinaryCascade(pixs, 4, 4, 3, 0);
+    pix1 = pixReduceRankBinaryCascade(pixs, 4, 4, 0, 0);
     pix2 = pixOpenBrick(NULL, pix1, 5, 5);
-    pixhs = pixExpandReplicate(pix2, 8);  /* back to 2x reduction */
+    pixhs = pixExpandReplicate(pix2, 4);  /* back to 2x reduction */
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     if (pixadb) pixaAddPix(pixadb, pixhs, L_COPY);
@@ -333,10 +337,10 @@ PIX     *pix1, *pix2, *pixhs, *pixhm, *pixd;
 
         /* Fill seed into mask to get halftone mask */
     pixd = pixSeedfillBinary(NULL, pixhs, pixhm, 4);
+    if (pixadb) pixaAddPix(pixadb, pixd, L_COPY);
 
 #if 0
-        /* Moderate opening to remove thin lines, etc. */
-    pixOpenBrick(pixd, pixd, 10, 10);
+    pixOpenBrick(pixd, pixd, 9, 9);
 #endif
 
         /* Check if mask is empty */
@@ -2362,3 +2366,101 @@ PIXA    *pixadb;
     return box5;
 }
 
+/*------------------------------------------------------------------*
+ *                    Automatic photoinvert for OCR                 *
+ *------------------------------------------------------------------*/
+/*!
+ * \brief   pixAutoPhotoinvert()
+ *
+ * \param[in]    pixs       any depth, colormap ok
+ * \param[in]    thresh     binarization threshold; use 0 for default
+ * \param[out]   ppixm      [optional] image regions to be inverted
+ * \param[out]   pixadb     [optional] debug; input NULL to skip
+ * \return  pixd   1 bpp image to be sent to OCR, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) A 1 bpp image is returned, where pixels in image regions are
+ *          photo-inverted.
+ *      (2) If there is light text with a dark background, this will
+ *          identify the region and photoinvert the pixels there if
+ *          there are at least 60% fg pixels in the region.
+ *      (3) For debug output, input a (typically empty) %pixadb.
+ * </pre>
+ */
+PIX *
+pixAutoPhotoinvert(PIX       *pixs,
+                   l_int32    thresh,
+                   PIX      **ppixm,
+                   PIXA      *pixadb)
+{
+l_int32    i, n, empty, x, y, w, h;
+l_float32  fgfract;
+BOX       *box1;
+BOXA      *boxa1;
+PIX       *pix1, *pix2, *pix3, *pix4, *pix5;
+PIXA      *pixa1;
+
+    PROCNAME("pixAutoPhotoinvert");
+
+    if (ppixm) *ppixm = NULL;
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (thresh == 0) thresh = 128;
+
+    if ((pix1 = pixConvertTo1(pixs, thresh)) == NULL)
+        return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
+    if (pixadb) pixaAddPix(pixadb, pix1, L_COPY);
+
+        /* Make the halftone mask to identify region for photo-inversion */
+    pix2 = pixGenerateHalftoneMask(pix1, NULL, NULL, pixadb);
+    pix3 = pixMorphSequence(pix2, "o15.15 + c25.25", 0);  /* clean it up */
+    if (pixadb) {
+        pixaAddPix(pixadb, pix2, L_CLONE);
+        pixaAddPix(pixadb, pix3, L_COPY);
+    }
+    pixDestroy(&pix2);
+    pixZero(pix3, &empty);
+    if (empty) {
+        pixDestroy(&pix3);
+        return pix1;
+    }
+
+        /* Examine each component and validate the inversion.
+         * Require at least 60% of pixels under each component to be FG. */
+    boxa1 = pixConnCompBB(pix3, 8);
+    n = boxaGetCount(boxa1);
+    for (i = 0; i < n; i++) {
+        box1 = boxaGetBox(boxa1, i, L_COPY);
+        pix5 = pixClipRectangle(pix1, box1, NULL);
+        pixForegroundFraction(pix5, &fgfract);
+        if (pixadb) lept_stderr("fg fraction: %5.3f\n", fgfract);
+        if (fgfract < 0.6) {  /* erase from the mask */
+            boxGetGeometry(box1, &x, &y, &w, &h);
+            pixRasterop(pix3, x, y, w, h, PIX_CLR, NULL, 0, 0);
+        }
+        pixDestroy(&pix5);
+        boxDestroy(&box1);
+    }
+    boxaDestroy(&boxa1);
+    pixZero(pix3, &empty);
+    if (empty) {
+        pixDestroy(&pix3);
+        return pix1;
+    }
+
+        /* Combine pixels of the photo-inverted pix with the binarized input */
+    pix4 = pixInvert(NULL, pix1);
+    pixCombineMasked(pix1, pix4, pix3);
+
+    if (pixadb) {
+        pixaAddPix(pixadb, pix4, L_CLONE);
+        pixaAddPix(pixadb, pix1, L_COPY);
+    }
+    pixDestroy(&pix4);
+    if (ppixm)
+        *ppixm = pix3;
+    else
+        pixDestroy(&pix3);
+    return pix1;
+}

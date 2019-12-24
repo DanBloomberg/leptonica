@@ -1390,6 +1390,7 @@ LEPT_DLL extern l_ok pixEstimateBackground ( PIX *pixs, l_int32 darkthresh, l_fl
 LEPT_DLL extern l_ok pixFindLargeRectangles ( PIX *pixs, l_int32 polarity, l_int32 nrect, BOXA **pboxa, PIX **ppixdb );
 LEPT_DLL extern l_ok pixFindLargestRectangle ( PIX *pixs, l_int32 polarity, BOX **pbox, PIX **ppixdb );
 LEPT_DLL extern BOX * pixFindRectangleInCC ( PIX *pixs, BOX *boxs, l_float32 fract, l_int32 dir, l_int32 select, l_int32 debug );
+LEPT_DLL extern PIX * pixAutoPhotoinvert ( PIX *pixs, l_int32 thresh, PIX **ppixm, PIXA *pixadb );
 LEPT_DLL extern l_ok pixSetSelectCmap ( PIX *pixs, BOX *box, l_int32 sindex, l_int32 rval, l_int32 gval, l_int32 bval );
 LEPT_DLL extern l_ok pixColorGrayRegionsCmap ( PIX *pixs, BOXA *boxa, l_int32 type, l_int32 rval, l_int32 gval, l_int32 bval );
 LEPT_DLL extern l_ok pixColorGrayCmap ( PIX *pixs, BOX *box, l_int32 type, l_int32 rval, l_int32 gval, l_int32 bval );

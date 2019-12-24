@@ -30,6 +30,12 @@
  *   This is a regresssion test for some of the page segmentation
  *   algorithms.  You can run some of these algorithms on any selected page
  *   image using prog/pagesegtest1.
+ *   Tests are for:
+ *      - Generic page segmentation
+ *      - Foreground finding
+ *      - Greedy whitespace rectangle finder
+ *      - Table finder
+ *      - Text auto-inversion
  */
 
 #ifdef HAVE_CONFIG_H
@@ -43,11 +49,12 @@ int main(int    argc,
 {
 l_uint8      *data;
 char         *fname;
-l_int32       i, n, istable, score;
+l_int32       i, n, w, h, istable, score;
 size_t        size;
 BOX          *box;
 BOXA         *boxa;
-PIX          *pixs, *pix1, *pix2, *pixhm, *pixtm, *pixtb, *pixdb;
+PIX          *pixs, *pix1, *pix2, *pix3, *pix4, *pix5;
+PIX          *pixhm, *pixtm, *pixtb, *pixdb;
 PIXA         *pixadb;
 PIXAC        *pixac;
 SARRAY       *sa;
@@ -67,7 +74,7 @@ L_REGPARAMS  *rp;
     n = pixaGetCount(pixadb);
     for (i = 0; i < n; i++) {
         pix1 = pixaGetPix(pixadb, i, L_CLONE);
-        regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 - 18 */
+        regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 - 19 */
         pixDestroy(&pix1);
     }
 
@@ -76,11 +83,11 @@ L_REGPARAMS  *rp;
         pix1 = pixaDisplayTiledAndScaled(pixadb, 32, 400, 4, 0, 20, 3);
         pixDisplay(pix1, 0, 0);
         pixDestroy(&pix1);
-        pix1 = pixaGetPix(pixadb, 17, L_CLONE);
-        pixDisplay(pix1, 580, 0);
-        pixDestroy(&pix1);
         pix1 = pixaGetPix(pixadb, 18, L_CLONE);
-        pixDisplay(pix1, 1220, 0);
+        pixDisplay(pix1, 510, 0);
+        pixDestroy(&pix1);
+        pix1 = pixaGetPix(pixadb, 19, L_CLONE);
+        pixDisplay(pix1, 1140, 0);
         pixDestroy(&pix1);
     }
     pixaDestroy(&pixadb);
@@ -105,13 +112,13 @@ L_REGPARAMS  *rp;
         pixDestroy(&pix1);
     }
     boxaWriteMem(&data, &size, boxa);
-    regTestWriteDataAndCheck(rp, data, size, "ba");  /* 19 */
+    regTestWriteDataAndCheck(rp, data, size, "ba");  /* 20 */
     boxaDestroy(&boxa);
     lept_free(data);
     l_pdfSetDateAndVersion(0);
     pixacompConvertToPdfData(pixac, 0, 1.0, L_DEFAULT_ENCODE, 0,
                              "Page foreground", &data, &size);
-    regTestWriteDataAndCheck(rp, data, size, "pdf");  /* 20 */
+    regTestWriteDataAndCheck(rp, data, size, "pdf");  /* 21 */
     lept_free(data);
     sarrayDestroy(&sa);
     pixacompDestroy(&pixac);
@@ -119,7 +126,7 @@ L_REGPARAMS  *rp;
         /* Test the greedy rectangle finder for white space */
     pix1 = pixScale(pixs, 0.5, 0.5);
     pixFindLargeRectangles(pix1, 0, 20, &boxa, &pixdb);
-    regTestWritePixAndCheck(rp, pixdb, IFF_PNG);  /* 21 */
+    regTestWritePixAndCheck(rp, pixdb, IFF_PNG);  /* 22 */
     pixDisplayWithTitle(pixdb, 0, 700, NULL, rp->display);
     pixDestroy(&pixs);
     pixDestroy(&pix1);
@@ -131,10 +138,10 @@ L_REGPARAMS  *rp;
     pixadb = pixaCreate(0);
     pixDecideIfTable(pix1, NULL, L_PORTRAIT_MODE, &score, pixadb);
     istable = (score >= 2) ? 1 : 0;
-    regTestCompareValues(rp, 1.0, istable, 0.0);  /* 22 */
+    regTestCompareValues(rp, 1.0, istable, 0.0);  /* 23 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 2000, 1.0, 0, 30, 2);
-    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 23 */
-    pixDisplayWithTitle(pix2, 700, 700, NULL, rp->display);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 24 */
+    pixDisplayWithTitle(pix2, 620, 700, NULL, rp->display);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixaDestroy(&pixadb);
@@ -143,9 +150,9 @@ L_REGPARAMS  *rp;
     pixadb = pixaCreate(0);
     pixDecideIfTable(pix1, NULL, L_PORTRAIT_MODE, &score, pixadb);
     istable = (score >= 2) ? 1 : 0;
-    regTestCompareValues(rp, 1.0, istable, 0.0);  /* 24 */
+    regTestCompareValues(rp, 1.0, istable, 0.0);  /* 25 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 2000, 1.0, 0, 30, 2);
-    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 25 */
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 26 */
     pixDisplayWithTitle(pix2, 1000, 700, NULL, rp->display);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
@@ -155,9 +162,9 @@ L_REGPARAMS  *rp;
     pixadb = pixaCreate(0);
     pixDecideIfTable(pix1, NULL, L_PORTRAIT_MODE, &score, pixadb);
     istable = (score >= 2) ? 1 : 0;
-    regTestCompareValues(rp, 1.0, istable, 0.0);  /* 26 */
+    regTestCompareValues(rp, 1.0, istable, 0.0);  /* 27 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 2000, 1.0, 0, 30, 2);
-    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 27 */
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 28 */
     pixDisplayWithTitle(pix2, 1300, 700, NULL, rp->display);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
@@ -167,14 +174,36 @@ L_REGPARAMS  *rp;
     pixadb = pixaCreate(0);
     pixDecideIfTable(pix1, NULL, L_PORTRAIT_MODE, &score, pixadb);
     istable = (score >= 2) ? 1 : 0;
-    regTestCompareValues(rp, 0.0, istable, 0.0);  /* 28 */
+    regTestCompareValues(rp, 0.0, istable, 0.0);  /* 29 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 2000, 1.0, 0, 30, 2);
-    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 29 */
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 30 */
     pixDisplayWithTitle(pix2, 1600, 700, NULL, rp->display);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixaDestroy(&pixadb);
 
+        /* Test auto-inversion of text */
+    pix1 = pixRead("zanotti-78.jpg");
+    pix2 = pixConvertRGBToLuminance(pix1);
+    pixadb = pixaCreate(0);
+    pixaAddPix(pixadb, pix2, L_COPY);
+    pixGetDimensions(pix2, &w, &h, NULL);
+    pixRasterop(pix2, 0.2 * w, 0.08 * h, 0.4 * w, 0.23 * h, PIX_NOT(PIX_DST),
+                NULL, 0, 0);
+    pixRasterop(pix2, 0.6 * w, 0.5 * h, 0.2 * w, 0.15 * h, PIX_NOT(PIX_DST),
+                NULL, 0, 0);
+    pix3 = pixAutoPhotoinvert(pix2, 128, &pix4, pixadb);
+    pix5 = pixaDisplayTiledInColumns(pixadb, 3, 0.5, 20, 2);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 31 */
+    regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 32 */
+    regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 33 */
+    pixDisplayWithTitle(pix5, 1750, 0, NULL, rp->display);
+    pixaDestroy(&pixadb);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+    pixDestroy(&pix5);
+
     return regTestCleanup(rp);
 }
-

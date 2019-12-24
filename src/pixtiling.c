@@ -24,7 +24,6 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-
 /*!
  * \file  pixtiling.c
  * <pre>
@@ -85,8 +84,11 @@
  * </pre>
  */
 
-#include "allheaders.h"
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
+#include "allheaders.h"
 
 /*!
  * \brief   pixTilingCreate()
