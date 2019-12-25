@@ -115,6 +115,18 @@ PIX      *pix;
  * \param[in]    cdata    bmp data
  * \param[in]    size     number of bytes of bmp-formatted data
  * \return  pix, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The BMP file is organized as follows:
+ *          * 14 byte fileheader
+ *          * variable size infoheader, from 40 to 124 bytes.  We only use
+ *            data in he first 40 bytes.
+ *          * an optional colormap, with size 4 * ncolors (in bytes)
+ *          * the image data
+ *      (2) 2 bpp bmp files are not valid in the original spec, but they
+ *          are valid in later versions.
+ * </pre>
  */
 PIX *
 pixReadMemBmp(const l_uint8  *cdata,
@@ -123,8 +135,8 @@ pixReadMemBmp(const l_uint8  *cdata,
 l_uint8    pel[4];
 l_uint8   *cmapBuf, *fdata, *data;
 l_int16    bftype, depth, d;
-l_int32    offset, width, height, height_neg, xres, yres, compression, imagebytes;
-l_int32    cmapbytes, cmapEntries;
+l_int32    offset, ihbytes, width, height, height_neg, xres, yres;
+l_int32    compression, imagebytes, cmapbytes, cmapEntries;
 l_int32    fdatabpl, extrabytes, pixWpl, pixBpl, i, j, k;
 l_uint32  *line, *pixdata, *pword;
 l_int64    npixels;
@@ -160,11 +172,15 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("cannot read compressed BMP files",
                                 procName, NULL);
 
-        /* Read the rest of the useful header information */
+        /* Find the offset from the beginning of the file to the image data */
     offset = bmpfh->bfOffBits[0];
     offset += (l_int32)bmpfh->bfOffBits[1] << 8;
     offset += (l_int32)bmpfh->bfOffBits[2] << 16;
     offset += (l_uint32)bmpfh->bfOffBits[3] << 24;
+
+        /* Read the remaining useful data in the infoheader.
+         * Note that the first 4 bytes give the infoheader size. */
+    ihbytes = convertOnBigEnd32(*(l_uint32 *)(bmpih));
     width = convertOnBigEnd32(bmpih->biWidth);
     height = convertOnBigEnd32(bmpih->biHeight);
     depth = convertOnBigEnd16(bmpih->biBitCount);
@@ -206,7 +222,13 @@ PIXCMAP   *cmap;
     fdatabpl = 4 * ((1LL * width * depth + 31)/32);
     if (imagebytes != 0 && imagebytes != fdatabpl * height)
         return (PIX *)ERROR_PTR("invalid imagebytes", procName, NULL);
-    cmapbytes = offset - BMP_FHBYTES - BMP_IHBYTES;
+
+        /* In the original spec, BITMAPINFOHEADER is 40 bytes.
+         * There have been a number of revisions, to capture more information.
+         * For example, the fifth version, BITMAPV5HEADER, adds 84 bytes
+         * of ICC color profiles.  We use the size of the infoheader
+         * to accommodate these newer formats. */
+    cmapbytes = offset - BMP_FHBYTES - ihbytes;
     cmapEntries = cmapbytes / sizeof(RGBA_QUAD);
     if (cmapEntries < 0 || cmapEntries == 1)
         return (PIX *)ERROR_PTR("invalid: cmap size < 0 or 1", procName, NULL);
@@ -225,7 +247,7 @@ PIXCMAP   *cmap;
 
             /* Read the colormap entry data from bmp. The RGBA_QUAD colormap
              * entries are used for both bmp and leptonica colormaps. */
-        memcpy(cmapBuf, cdata + BMP_FHBYTES + BMP_IHBYTES,
+        memcpy(cmapBuf, cdata + BMP_FHBYTES + ihbytes,
                sizeof(RGBA_QUAD) * cmapEntries);
     }
 
@@ -392,7 +414,7 @@ size_t    size, nbytes;
  *
  * <pre>
  * Notes:
- *      (1) 2 bpp bmp files are not valid in the spec, and are
+ *      (1) 2 bpp bmp files are not valid in the original spec, and are
  *          written as 8 bpp.
  *      (2) pix with depth <= 8 bpp are written with a colormap.
  *          16 bpp gray and 32 bpp rgb pix are written without a colormap.

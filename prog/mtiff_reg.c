@@ -274,7 +274,7 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, TRUE, success, 0);  /* 19 */
     if (success) {
         tiffGetCount(fp, &npages);
-        regTestCompareValues(rp, 4, npages, 0);  /* 20 */
+        regTestCompareValues(rp, 5, npages, 0);  /* 20 */
         fprintf(stderr, " Tiff: %d page\n", npages);
     }
     lept_fclose(fp);
