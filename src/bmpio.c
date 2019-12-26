@@ -57,9 +57,6 @@
      * and 1 is black.  Both colormap entries are opaque (alpha = 255) */
 RGBA_QUAD   bwmap[2] = { {255,255,255,255}, {0,0,0,255} };
 
-    /* Colormap size limit */
-static const l_int32  L_MAX_ALLOWED_NUM_COLORS = 256;
-
     /* Image dimension limits */
 static const l_int32  L_MAX_ALLOWED_WIDTH = 1000000;
 static const l_int32  L_MAX_ALLOWED_HEIGHT = 1000000;
@@ -136,7 +133,7 @@ l_uint8    pel[4];
 l_uint8   *cmapBuf, *fdata, *data;
 l_int16    bftype, depth, d;
 l_int32    offset, ihbytes, width, height, height_neg, xres, yres;
-l_int32    compression, imagebytes, cmapbytes, cmapEntries;
+l_int32    compression, imagebytes, cmapbytes, ncolors, maxcolors;
 l_int32    fdatabpl, extrabytes, pixWpl, pixBpl, i, j, k;
 l_uint32  *line, *pixdata, *pword;
 l_int64    npixels;
@@ -229,26 +226,32 @@ PIXCMAP   *cmap;
          * of ICC color profiles.  We use the size of the infoheader
          * to accommodate these newer formats. */
     cmapbytes = offset - BMP_FHBYTES - ihbytes;
-    cmapEntries = cmapbytes / sizeof(RGBA_QUAD);
-    if (cmapEntries < 0 || cmapEntries == 1)
+    ncolors = cmapbytes / sizeof(RGBA_QUAD);
+    maxcolors = 1 << depth;
+    if (ncolors < 0 || ncolors == 1)
         return (PIX *)ERROR_PTR("invalid: cmap size < 0 or 1", procName, NULL);
-    if (cmapEntries > L_MAX_ALLOWED_NUM_COLORS)
-        return (PIX *)ERROR_PTR("invalid cmap: too large", procName,NULL);
+    if (ncolors > 0 && depth > 8)
+        return (PIX *)ERROR_PTR("can't have cmap for d > 8", procName, NULL);
+    if (ncolors > maxcolors) {
+        L_ERROR("cmap too large for depth: ncolors = %d > maxcolors = %d\n",
+                procName, ncolors, maxcolors);
+        return NULL;
+    }
     if (size != 1LL * offset + 1LL * fdatabpl * height)
         return (PIX *)ERROR_PTR("size incommensurate with image data",
                                 procName,NULL);
 
         /* Handle the colormap */
     cmapBuf = NULL;
-    if (cmapEntries > 0) {
-        if ((cmapBuf = (l_uint8 *)LEPT_CALLOC(cmapEntries, sizeof(RGBA_QUAD)))
+    if (ncolors > 0) {
+        if ((cmapBuf = (l_uint8 *)LEPT_CALLOC(ncolors, sizeof(RGBA_QUAD)))
                  == NULL)
             return (PIX *)ERROR_PTR("cmapBuf alloc fail", procName, NULL );
 
             /* Read the colormap entry data from bmp. The RGBA_QUAD colormap
              * entries are used for both bmp and leptonica colormaps. */
         memcpy(cmapBuf, cdata + BMP_FHBYTES + ihbytes,
-               sizeof(RGBA_QUAD) * cmapEntries);
+               sizeof(RGBA_QUAD) * ncolors);
     }
 
         /* Make a 32 bpp pix if depth is 24 bpp */
@@ -265,11 +268,11 @@ PIXCMAP   *cmap;
 
         /* Convert the bmp colormap to a pixcmap */
     cmap = NULL;
-    if (cmapEntries > 0) {  /* import the colormap to the pix cmap */
+    if (ncolors > 0) {  /* import the colormap to the pix cmap */
         cmap = pixcmapCreate(L_MIN(d, 8));
         LEPT_FREE(cmap->array);  /* remove generated cmap array */
         cmap->array  = (void *)cmapBuf;  /* and replace */
-        cmap->n = L_MIN(cmapEntries, 256);
+        cmap->n = L_MIN(ncolors, 256);
         for (i = 0; i < cmap->n; i++)   /* set all colors opaque */
             pixcmapSetAlpha (cmap, i, 255);
     }
