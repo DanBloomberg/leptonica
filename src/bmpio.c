@@ -227,11 +227,11 @@ PIXCMAP   *cmap;
          * to accommodate these newer formats. */
     cmapbytes = offset - BMP_FHBYTES - ihbytes;
     ncolors = cmapbytes / sizeof(RGBA_QUAD);
-    maxcolors = 1 << depth;
     if (ncolors < 0 || ncolors == 1)
         return (PIX *)ERROR_PTR("invalid: cmap size < 0 or 1", procName, NULL);
     if (ncolors > 0 && depth > 8)
         return (PIX *)ERROR_PTR("can't have cmap for d > 8", procName, NULL);
+    maxcolors = (depth <= 8) ? 1 << depth : 256;
     if (ncolors > maxcolors) {
         L_ERROR("cmap too large for depth: ncolors = %d > maxcolors = %d\n",
                 procName, ncolors, maxcolors);
