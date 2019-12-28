@@ -117,10 +117,10 @@ PIX      *pix;
  * Notes:
  *      (1) The BMP file is organized as follows:
  *          * 14 byte fileheader
- *          * variable size infoheader, from 40 to 124 bytes.  We only use
- *            data in he first 40 bytes.
- *          * an optional colormap, with size 4 * ncolors (in bytes)
- *          * the image data
+ *          * Variable size infoheader: 40, 108 or 124 bytes.
+ *            We only use data in he first 40 bytes.
+ *          * Optional colormap, with size 4 * ncolors (in bytes)
+ *          * Image data
  *      (2) 2 bpp bmp files are not valid in the original spec, but they
  *          are valid in later versions.
  * </pre>
@@ -133,7 +133,7 @@ l_uint8    pel[4];
 l_uint8   *cmapBuf, *fdata, *data;
 l_int16    bftype, depth, d;
 l_int32    offset, ihbytes, width, height, height_neg, xres, yres;
-l_int32    compression, imagebytes, cmapbytes, ncolors, maxcolors;
+l_int32    compression, imagebytes, fdatabytes, cmapbytes, ncolors, maxcolors;
 l_int32    fdatabpl, extrabytes, pixWpl, pixBpl, i, j, k;
 l_uint32  *line, *pixdata, *pword;
 l_int64    npixels;
@@ -209,16 +209,27 @@ PIXCMAP   *cmap;
         height_neg = 1;
         height = -height;
     }
+    if (ihbytes != 40 && ihbytes != 108 && ihbytes != 124) {
+        L_ERROR("invalid ihbytes = %d; not in {40, 108, 124}\n",
+                procName, ihbytes);
+        return NULL;
+    }
     npixels = 1LL * width * height;
     if (npixels > L_MAX_ALLOWED_PIXELS)
         return (PIX *)ERROR_PTR("npixels too large", procName, NULL);
     if (depth != 1 && depth != 2 && depth != 4 && depth != 8 &&
-        depth != 16 && depth != 24 && depth != 32)
-        return (PIX *)ERROR_PTR("depth not in {1, 2, 4, 8, 16, 24, 32}",
-                                procName,NULL);
+        depth != 16 && depth != 24 && depth != 32) {
+        L_ERROR("invalid depth = %d; not in {1, 2, 4, 8, 16, 24, 32}\n",
+                procName, depth);
+        return NULL;
+    }
     fdatabpl = 4 * ((1LL * width * depth + 31)/32);
-    if (imagebytes != 0 && imagebytes != fdatabpl * height)
-        return (PIX *)ERROR_PTR("invalid imagebytes", procName, NULL);
+    fdatabytes = fdatabpl * height;
+    if (imagebytes != 0 && imagebytes != fdatabytes) {
+        L_ERROR("invalid imagebytes = %d; not equal to fdatabytes = %d\n",
+                procName, imagebytes, fdatabytes);
+        return NULL;
+    }
 
         /* In the original spec, BITMAPINFOHEADER is 40 bytes.
          * There have been a number of revisions, to capture more information.
@@ -233,11 +244,11 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("can't have cmap for d > 8", procName, NULL);
     maxcolors = (depth <= 8) ? 1 << depth : 256;
     if (ncolors > maxcolors) {
-        L_ERROR("cmap too large for depth: ncolors = %d > maxcolors = %d\n",
-                procName, ncolors, maxcolors);
+        L_ERROR("cmap too large for depth %d: ncolors = %d > maxcolors = %d\n",
+                procName, depth, ncolors, maxcolors);
         return NULL;
     }
-    if (size != 1LL * offset + 1LL * fdatabpl * height)
+    if (size != 1LL * offset + 1LL * fdatabytes)
         return (PIX *)ERROR_PTR("size incommensurate with image data",
                                 procName,NULL);
 
@@ -251,7 +262,7 @@ PIXCMAP   *cmap;
             /* Read the colormap entry data from bmp. The RGBA_QUAD colormap
              * entries are used for both bmp and leptonica colormaps. */
         memcpy(cmapBuf, cdata + BMP_FHBYTES + ihbytes,
-               sizeof(RGBA_QUAD) * ncolors);
+               ncolors * sizeof(RGBA_QUAD));
     }
 
         /* Make a 32 bpp pix if depth is 24 bpp */
