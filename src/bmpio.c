@@ -235,14 +235,15 @@ PIXCMAP   *cmap;
          * There have been a number of revisions, to capture more information.
          * For example, the fifth version, BITMAPV5HEADER, adds 84 bytes
          * of ICC color profiles.  We use the size of the infoheader
-         * to accommodate these newer formats. */
+         * to accommodate these newer formats.  Knowing the size of the
+         * infoheader gives more opportunity to sanity check input params. */
     cmapbytes = offset - BMP_FHBYTES - ihbytes;
     ncolors = cmapbytes / sizeof(RGBA_QUAD);
     if (ncolors < 0 || ncolors == 1)
         return (PIX *)ERROR_PTR("invalid: cmap size < 0 or 1", procName, NULL);
     if (ncolors > 0 && depth > 8)
         return (PIX *)ERROR_PTR("can't have cmap for d > 8", procName, NULL);
-    maxcolors = (depth <= 8) ? 1 << depth : 256;
+    maxcolors = (depth <= 8) ? 1 << depth : 0;
     if (ncolors > maxcolors) {
         L_ERROR("cmap too large for depth %d: ncolors = %d > maxcolors = %d\n",
                 procName, depth, ncolors, maxcolors);
