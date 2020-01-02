@@ -3,7 +3,7 @@ AM_CPPFLAGS = $(ZLIB_CFLAGS) $(LIBPNG_CFLAGS) $(JPEG_CFLAGS) $(LIBTIFF_CFLAGS) $
 lib_LTLIBRARIES = liblept.la
 liblept_la_LIBADD = $(LIBPNG_LIBS) $(JPEG_LIBS) $(GIFLIB_LIBS) $(LIBTIFF_LIBS) $(LIBWEBP_LIBS) $(LIBWEBPMUX_LIBS) $(LIBJP2K_LIBS) $(GDI_LIBS) $(LIBM) $(ZLIB_LIBS)
 
-liblept_la_LDFLAGS = -no-undefined -version-info 5:3:0
+liblept_la_LDFLAGS = -no-undefined -version-info 5:4:0
 
 liblept_la_SOURCES = adaptmap.c affine.c                        \
  affinecompose.c arrayaccess.c                                  \

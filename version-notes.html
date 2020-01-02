@@ -77,7 +77,7 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 
 
 <h2 align=center>Version Notes for Leptonica</h2>
-<h3 align=center>21 Nov 2019</h3>
+<h3 align=center>1 Jan 2020</h3>
 
 <hr>
 <h2 align=center>  <IMG SRC="moller52.jpg" border=1 ALIGN_MIDDLE> </h2>
@@ -89,30 +89,30 @@ They are <i>not</i> a complete listing of the modifications.
 
 <pre>
 
-1.79.0  Not yet released
-        * Cleaned up auto-generation of files; removed 'register'
+1.79.0  1 Jan 2020
+        * Clean up auto-generation of files; removed 'register'
         * Some fixes for issues identified by fuzzer
         * New source files: checkerboard.c
         * New programs: replacebytes.c, webpanimio_reg.c, partifytest.c,
           rectangle_reg.c, lowsat_reg.c, rotate_it.c, scale_it.c, dewarp_it.c,
           pdfio1_reg.c, pdfio2_reg.c, checkerboard_reg.c, underlinetest.c.
         * Convert to standard reg test: heap_reg.c, pixa1_reg.c, smallpix_reg.c
-        * Improved data checking when reading image file headers
+        * Improve data checking when reading image file headers
           (pnm, png, jpeg, tiff)
-        * Fixed some bugs in pnm reading
-        * Fixed inconsistencies with the encoding type flags in pdf writing
+        * Fix some bugs in pnm reading
+        * Fix inconsistencies with the encoding type flags in pdf writing
         * Allow tiff to write images with colormaps
-        * Fixed errors in PS code; made some functions static
-        * Added code for animated webp (requires webp mux and demux libraries)
-        * Added "partify" application for separating parts in a musical score
+        * Fix errors in PS code; made some functions static
+        * Add code for animated webp (requires webp mux and demux libraries)
+        * Add "partify" application for separating parts in a musical score
         * Enable tif read/write of gray+alpha and rgba; filter out tiff
           pixels that are not uint and compression by tile
         * Apply consistent formatting of static const variables
-        * Add programs for scaling, rotation and deskew, named '*_it.c',
-          that do useful operations on arbitrary images.
-        * Converted pdfiotest program to two regression tests: pdfio1_reg
+        * Add programs for scaling, rotation and deskew, named dewkew_it,
+          rotate_it and scale_it, for useful operations on arbitrary images.
+        * Convert pdfiotest program to two regression tests: pdfio1_reg
           and pdfio2_reg.
-        * Removed all use of strncat; use stringCat().
+        * Remove all use of strncat; use stringCat().
         * New functions from removing outliers in sequences of boxes.
         * Generalize pixAverageInRect(): mask, region and range filters,
           and subsampling.  New pixAverageInRectRGB().
@@ -126,13 +126,14 @@ They are <i>not</i> a complete listing of the modifications.
           available.
         * New one-line gplot functions that return a pix.
         * New application to find where corners meet in a checkerboard.
-        * Added utility functions for painting through mask in cmap pix,
+        * Add utility functions for painting through mask in cmap pix,
           creating a hit-miss sela from a color pix, equality of two pta.
         * Proper handling of 1 bpp colormap tiffs: remove when reading,
           preserve when writing.
-        * Deprecated three pixSaveTile*() functions; removed from
-          the library and progs.
-        * Included auto_config.h explicitly in all prog files.
+        * Deprecate three pixSaveTile*() functions; removed all calls to
+          these from the library and progs.
+        * Include auto_config.h explicitly in all src and prog files.
+        * Improve input data checking for bmp files.
 
 1.78.0  21 Mar 19
         * Various improvements in handling boxa sequences and transforms.
