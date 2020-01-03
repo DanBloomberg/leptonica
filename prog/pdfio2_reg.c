@@ -271,9 +271,11 @@ L_REGPARAMS  *rp;
          * ignored, and the corrupted pdf file should be properly parsed,
          * so the resulting concatenated pdf files should be identical.  */
     fprintf(stderr, "\nWe attempt to build from a bad directory\n");
-    fprintf(stderr, "The next 3 error messages are intentional\n");
+    fprintf(stderr, "******************************************************\n");
+    fprintf(stderr, "* The next 3 error messages are intentional          *\n");
     lept_cp("testfile1.pdf", "lept/bad", NULL, NULL);
     concatenatePdf("/tmp/lept/bad", "file", "/tmp/lept/pdf/bad.pdf");
+    fprintf(stderr, "******************************************************\n");
     filesAreIdentical("/tmp/lept/pdf/good.pdf", "/tmp/lept/pdf/bad.pdf", &same);
     if (same)
         fprintf(stderr, "Fixed: files are the same\n"

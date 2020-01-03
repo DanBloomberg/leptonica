@@ -1644,6 +1644,8 @@ l_int64  pos, nbytes;
         return ERROR_INT("seek position must be > 0", procName, 0);
     fseek(fp, 0, SEEK_END);   /* EOF */
     nbytes = ftell(fp);
+    if (nbytes < 0)
+        return ERROR_INT("nbytes is < 0", procName, 0);
     fseek(fp, pos, SEEK_SET);        /* back to initial position */
     return nbytes;
 }

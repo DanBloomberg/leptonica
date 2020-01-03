@@ -1493,6 +1493,10 @@ NUMA       *namodels;
 
     if (fscanf(fp, "ndewarp = %d, maxpage = %d\n", &ndewarp, &maxpage) != 2)
         return (L_DEWARPA *)ERROR_PTR("read fail for maxpage+", procName, NULL);
+    if (ndewarp < 1)
+        return (L_DEWARPA *)ERROR_PTR("pages not >= 1", procName, NULL);
+    if (ndewarp > MaxPtrArraySize)
+        return (L_DEWARPA *)ERROR_PTR("too many pages", procName, NULL);
     if (fscanf(fp,
                "sampling = %d, redfactor = %d, minlines = %d, maxdist = %d\n",
                &sampling, &redfactor, &minlines, &maxdist) != 4)
@@ -1507,9 +1511,6 @@ NUMA       *namodels;
         return (L_DEWARPA *)ERROR_PTR("read fail for edgecurv", procName, NULL);
     if (fscanf(fp, "fullmodel = %d\n", &useboth) != 1)
         return (L_DEWARPA *)ERROR_PTR("read fail for useboth", procName, NULL);
-
-    if (ndewarp > MaxPtrArraySize)
-        return (L_DEWARPA *)ERROR_PTR("too many pages", procName, NULL);
 
     dewa = dewarpaCreate(maxpage + 1, sampling, redfactor, minlines, maxdist);
     dewa->maxpage = maxpage;

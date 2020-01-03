@@ -121,13 +121,8 @@ PIXA     *pixa;
     pixd = pixRotate(pixs, ANGLE1, L_ROTATE_SHEAR, L_BRING_IN_WHITE, w, h);
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
-            if (i == MODSIZE) {
-                pixaAddPix(pixa, pixd, L_COPY);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            } else {
-                pixaAddPix(pixa, pixd, L_COPY);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            }
+            pixaAddPix(pixa, pixd, L_COPY);
+            regTestWritePixAndCheck(rp, pixd, outformat);
         }
         pixt = pixRotate(pixd, ANGLE1, L_ROTATE_SHEAR,
                          L_BRING_IN_WHITE, w, h);
@@ -139,13 +134,8 @@ PIXA     *pixa;
     pixd = pixRotate(pixs, ANGLE1, L_ROTATE_SAMPLING, L_BRING_IN_WHITE, w, h);
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
-            if (i == MODSIZE) {
-                pixaAddPix(pixa, pixd, L_COPY);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            } else {
-                pixaAddPix(pixa, pixd, L_COPY);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            }
+            pixaAddPix(pixa, pixd, L_COPY);
+            regTestWritePixAndCheck(rp, pixd, outformat);
         }
         pixt = pixRotate(pixd, ANGLE1, L_ROTATE_SAMPLING,
                          L_BRING_IN_WHITE, w, h);
@@ -157,13 +147,8 @@ PIXA     *pixa;
     pixd = pixRotate(pixs, ANGLE1, L_ROTATE_AREA_MAP, L_BRING_IN_WHITE, w, h);
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
-            if (i == MODSIZE) {
-                pixaAddPix(pixa, pixd, L_COPY);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            } else {
-                pixaAddPix(pixa, pixd, L_COPY);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            }
+            pixaAddPix(pixa, pixd, L_COPY);
+            regTestWritePixAndCheck(rp, pixd, outformat);
         }
         pixt = pixRotate(pixd, ANGLE1, L_ROTATE_AREA_MAP,
                          L_BRING_IN_WHITE, w, h);
@@ -175,13 +160,8 @@ PIXA     *pixa;
     pixd = pixRotateAMCorner(pixs, ANGLE2, L_BRING_IN_WHITE);
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
-            if (i == MODSIZE) {
-                pixaAddPix(pixa, pixd, L_COPY);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            } else {
-                pixaAddPix(pixa, pixd, L_COPY);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            }
+            pixaAddPix(pixa, pixd, L_COPY);
+            regTestWritePixAndCheck(rp, pixd, outformat);
         }
         pixt = pixRotateAMCorner(pixd, ANGLE2, L_BRING_IN_WHITE);
         pixDestroy(&pixd);
@@ -193,13 +173,8 @@ PIXA     *pixa;
         pixd = pixRotateAMColorFast(pixs, ANGLE1, 0xb0ffb000);
         for (i = 1; i < NTIMES; i++) {
             if ((i % MODSIZE) == 0) {
-                if (i == MODSIZE) {
-                    pixaAddPix(pixa, pixd, L_COPY);
-                    regTestWritePixAndCheck(rp, pixd, outformat);
-                } else {
-                    pixaAddPix(pixa, pixd, L_COPY);
-                    regTestWritePixAndCheck(rp, pixd, outformat);
-                }
+                pixaAddPix(pixa, pixd, L_COPY);
+                regTestWritePixAndCheck(rp, pixd, outformat);
             }
             pixt = pixRotateAMColorFast(pixd, ANGLE1, 0xb0ffb000);
             pixDestroy(&pixd);

@@ -366,17 +366,15 @@ PIXCMAP   *cmap;
         pixFlipTB(pix, pix);
 
         /* ----------------------------------------------
-         * The bmp colormap determines the values of black
-         * and white pixels for binary in the following way:
-         * (a) white = 0 [255], black = 1 [0]
-         *      255, 255, 255, 255, 0, 0, 0, 255
-         * (b) black = 0 [0], white = 1 [255]
-         *      0, 0, 0, 255, 255, 255, 255, 255
-         * We have no need for a 1 bpp pix with a colormap!
-         * Note: the alpha component here is 255 (opaque)
+         * We do not use 1 bpp pix with colormaps in leptonica.
+         * The colormap must be removed in such a way that the pixel
+         * values are not changed.  If the values are only black and
+         * white, return a 1 bpp image; if gray, return an 8 bpp pix;
+         * otherwise, return a 32 bpp rgb pix.
          * ---------------------------------------------- */
     if (depth == 1 && cmap) {
-        pix1 = pixRemoveColormap(pix, REMOVE_CMAP_TO_BINARY);
+        L_INFO("removing opaque cmap from 1 bpp\n", procName);
+        pix1 = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
         pixDestroy(&pix);
         pix = pix1;  /* rename */
     }

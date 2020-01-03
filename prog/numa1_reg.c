@@ -293,12 +293,14 @@ L_REGPARAMS  *rp;
         /* (Note: this tests robustness of the integrator: we go from
          * i = 0, and choose to have only 1 point in the interpolation
          * there, which is too small and causes the function to bomb out.) */
-    fprintf(stderr, "We must get a 'npts < 2' error here:\n");
+    fprintf(stderr, "******************************************************\n");
+    fprintf(stderr, "* Testing error checking: ignore 'npts < 2' error    *\n");
     for (i = 0; i < n; i++) {
         numaGetFValue(nadx, i, &xval);
         numaIntegrateInterval(nadx, nady, x0, xval, 2 * i + 1, &yval);
         numaAddNumber(nay, y0 + yval);
     }
+    fprintf(stderr, "******************************************************\n");
     gplotAddPlot(gplot, nafx, nay, GPLOT_LINES, "anti-derivative");
     pix2 = gplotMakeOutputPix(gplot);
     gplotDestroy(&gplot);
