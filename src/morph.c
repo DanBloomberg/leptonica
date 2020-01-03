@@ -1016,7 +1016,7 @@ SEL     *sel, *selh, *selv;
         selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
         if (!selh || !selv) {
             selDestroy(&selh);
-            selDestroy(&selh);
+            selDestroy(&selv);
             pixDestroy(&pixsb);
             return (PIX *)ERROR_PTR("selh and selv not both made",
                                     procName, pixd);
