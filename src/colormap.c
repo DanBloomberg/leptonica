@@ -67,6 +67,7 @@
  *           l_int32     pixcmapGetRangeValues()
  *
  *      Colormap conversion
+ *           PIXCMAP    *pixcmapGrayToFalseColor()
  *           PIXCMAP    *pixcmapGrayToColor()
  *           PIXCMAP    *pixcmapColorToGray()
  *           PIXCMAP    *pixcmapConvertTo4()
@@ -106,6 +107,7 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include <math.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -1464,6 +1466,68 @@ l_int32  i, n, imin, imax, minval, maxval, rval, gval, bval, aveval;
 /*-------------------------------------------------------------*
  *                       Colormap conversion                   *
  *-------------------------------------------------------------*/
+/*!
+ * \brief   pixcmapGrayToFalseColor()
+ *
+ * \param[in]    gamma   (factor) 0.0 or 1.0 for default; > 1.0 for brighter;
+ *                       2.0 is quite nice
+ * \return  cmap, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This creates a colormap that maps from gray to false colors.
+ *          The colormap is modeled after the Matlap "jet" configuration.
+ * </pre>
+ */
+PIXCMAP *
+pixcmapGrayToFalseColor(l_float32 gamma)
+{
+l_int32    i, rval, gval, bval;
+l_int32   *curve;
+l_float32  invgamma, x;
+PIXCMAP   *cmap;
+
+    if (gamma <= 0.0) gamma = 1.0;
+
+        /* Generate curve for transition part of color map */
+    curve = (l_int32 *)LEPT_CALLOC(64, sizeof(l_int32));
+    invgamma = 1. / gamma;
+    for (i = 0; i < 64; i++) {
+        x = (l_float32)i / 64.;
+        curve[i] = (l_int32)(255. * powf(x, invgamma) + 0.5);
+    }
+
+    cmap = pixcmapCreate(8);
+    for (i = 0; i < 256; i++) {
+        if (i < 32) {
+            rval = 0;
+            gval = 0;
+            bval = curve[i + 32];
+        } else if (i < 96) {   /* 32 - 95 */
+            rval = 0;
+            gval = curve[i - 32];
+            bval = 255;
+        } else if (i < 160) {  /* 96 - 159 */
+            rval = curve[i - 96];
+            gval = 255;
+            bval = curve[159 - i];
+        } else if (i < 224) {  /* 160 - 223 */
+            rval = 255;
+            gval = curve[223 - i];
+            bval = 0;
+        } else {  /* 224 - 255 */
+            rval = curve[287 - i];
+            gval = 0;
+            bval = 0;
+        }
+        pixcmapAddColor(cmap, rval, gval, bval);
+    }
+
+    LEPT_FREE(curve);
+    return cmap;
+}
+
+
 /*!
  * \brief   pixcmapGrayToColor()
  *

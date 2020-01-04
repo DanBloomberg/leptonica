@@ -1772,7 +1772,6 @@ PIX       *pixd;
 }
 
 
-
 /*---------------------------------------------------------------------------*
  *                Conversion from grayscale to false color
  *---------------------------------------------------------------------------*/
@@ -1796,11 +1795,9 @@ PIX *
 pixConvertGrayToFalseColor(PIX       *pixs,
                            l_float32  gamma)
 {
-l_int32    d, i, rval, bval, gval;
-l_int32   *curve;
-l_float32  invgamma, x;
-PIX       *pixd;
-PIXCMAP   *cmap;
+l_int32   d;
+PIX      *pixd;
+PIXCMAP  *cmap;
 
     PROCNAME("pixConvertGrayToFalseColor");
 
@@ -1820,46 +1817,11 @@ PIXCMAP   *cmap;
     }
     if (!pixd)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
-    cmap = pixcmapCreate(8);
+
+    cmap = pixcmapGrayToFalseColor(gamma);
     pixSetColormap(pixd, cmap);
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
-
-        /* Generate curve for transition part of color map */
-    curve = (l_int32 *)LEPT_CALLOC(64, sizeof(l_int32));
-    if (gamma == 0.0) gamma = 1.0;
-    invgamma = 1. / gamma;
-    for (i = 0; i < 64; i++) {
-        x = (l_float32)i / 64.;
-        curve[i] = (l_int32)(255. * powf(x, invgamma) + 0.5);
-    }
-
-    for (i = 0; i < 256; i++) {
-        if (i < 32) {
-            rval = 0;
-            gval = 0;
-            bval = curve[i + 32];
-        } else if (i < 96) {   /* 32 - 95 */
-            rval = 0;
-            gval = curve[i - 32];
-            bval = 255;
-        } else if (i < 160) {  /* 96 - 159 */
-            rval = curve[i - 96];
-            gval = 255;
-            bval = curve[159 - i];
-        } else if (i < 224) {  /* 160 - 223 */
-            rval = 255;
-            gval = curve[223 - i];
-            bval = 0;
-        } else {  /* 224 - 255 */
-            rval = curve[287 - i];
-            gval = 0;
-            bval = 0;
-        }
-        pixcmapAddColor(cmap, rval, gval, bval);
-    }
-
-    LEPT_FREE(curve);
     return pixd;
 }
 

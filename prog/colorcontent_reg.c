@@ -42,7 +42,7 @@ l_int32 main(int    argc,
              char **argv)
 {
 l_uint32     *colors;
-l_int32       ncolors;
+l_int32       ncolors, w, h;
 l_float32     fcolor;
 PIX          *pix1, *pix2, *pix3;
 PIXA         *pixadb;
@@ -110,6 +110,21 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix2);
     pixDestroy(&pix3);
     pixaDestroy(&pixadb);
+
+        /* Show binary classification of RGB colors using a plane */
+    pix1 = pixMakeGamutRGB(8);
+    pix2 = pixMakeArbMaskFromRGB(pix1, -0.5, -0.5, 1.0, 20);
+    pixGetDimensions(pix1, &w, &h, NULL);
+    pix3 = pixCreate(w, h, 32);
+    pixSetAll(pix3);
+    pixCombineMasked(pix3, pix1, pix2);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 10 */
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 11 */
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 12 */
+    pixDisplayWithTitle(pix3, 0, 1300, NULL, rp->display);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
 
     return regTestCleanup(rp);
 }

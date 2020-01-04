@@ -30,7 +30,7 @@
 
 #define LIBLEPT_MAJOR_VERSION   1
 #define LIBLEPT_MINOR_VERSION   79
-#define LIBLEPT_PATCH_VERSION   0
+#define LIBLEPT_PATCH_VERSION   1
 
 #include "alltypes.h"
 
@@ -498,6 +498,7 @@ LEPT_DLL extern l_ok pixcmapGetNearestIndex ( PIXCMAP *cmap, l_int32 rval, l_int
 LEPT_DLL extern l_ok pixcmapGetNearestGrayIndex ( PIXCMAP *cmap, l_int32 val, l_int32 *pindex );
 LEPT_DLL extern l_ok pixcmapGetDistanceToColor ( PIXCMAP *cmap, l_int32 index, l_int32 rval, l_int32 gval, l_int32 bval, l_int32 *pdist );
 LEPT_DLL extern l_ok pixcmapGetRangeValues ( PIXCMAP *cmap, l_int32 select, l_int32 *pminval, l_int32 *pmaxval, l_int32 *pminindex, l_int32 *pmaxindex );
+LEPT_DLL extern PIXCMAP * pixcmapGrayToFalseColor ( l_float32 gamma );
 LEPT_DLL extern PIXCMAP * pixcmapGrayToColor ( l_uint32 color );
 LEPT_DLL extern PIXCMAP * pixcmapColorToGray ( PIXCMAP *cmaps, l_float32 rwt, l_float32 gwt, l_float32 bwt );
 LEPT_DLL extern PIXCMAP * pixcmapConvertTo4 ( PIXCMAP *cmaps );
@@ -581,6 +582,7 @@ LEPT_DLL extern FPIXA * pixConvertRGBToLAB ( PIX *pixs );
 LEPT_DLL extern PIX * fpixaConvertLABToRGB ( FPIXA *fpixa );
 LEPT_DLL extern l_ok convertRGBToLAB ( l_int32 rval, l_int32 gval, l_int32 bval, l_float32 *pflval, l_float32 *pfaval, l_float32 *pfbval );
 LEPT_DLL extern l_ok convertLABToRGB ( l_float32 flval, l_float32 faval, l_float32 fbval, l_int32 *prval, l_int32 *pgval, l_int32 *pbval );
+LEPT_DLL extern PIX * pixMakeGamutRGB ( l_int32 scale );
 LEPT_DLL extern l_ok pixEqual ( PIX *pix1, PIX *pix2, l_int32 *psame );
 LEPT_DLL extern l_ok pixEqualWithAlpha ( PIX *pix1, PIX *pix2, l_int32 use_alpha, l_int32 *psame );
 LEPT_DLL extern l_ok pixEqualWithCmap ( PIX *pix1, PIX *pix2, l_int32 *psame );

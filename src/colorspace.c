@@ -76,6 +76,9 @@
  *           PIX        *fpixaConvertLABToRGB()
  *           l_int32     convertRGBToLAB()
  *           l_int32     convertLABToRGB()
+ *
+ *      Gamut display of RGB color space
+ *           PIX        *pixMakeGamutRGB()
  * </pre>
  */
 
@@ -2416,4 +2419,55 @@ l_float32  fxval, fyval, fzval;
     convertLABToXYZ(flval, faval, fbval, &fxval, &fyval, &fzval);
     convertXYZToRGB(fxval, fyval, fzval, 0, prval, pgval, pbval);
     return 0;
+}
+
+
+/*---------------------------------------------------------------------------*
+ *                   Gamut display of RGB color space                        *
+ *---------------------------------------------------------------------------*/
+/*!
+ * \brief   pixMakeGamutRGB()
+ *
+ * \param[in]    scale    default = 8
+ * \return  pix2   32 bpp rgb
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is an image that has all RGB colors, divided into 2^15
+ *          cubical cells with 8x8x8 = 512 pixel values.  Each of the 32
+ *          subimages has a constant value of B, with R and G varying over
+ *          their gamut in 32 steps of size 8.
+ *      (2) The %scale parameter determines the replication in both x and y
+ *          of each of the 2^15 colors.  With a scale factor of 8, the
+ *          output image has 8 * 8 * 2^15 = 2 Mpixels.
+ *      (3) This useful for visualizing how filters, such as
+ *          pixMakeArbMaskFromRGB(), separate colors into sets.
+ * </pre>
+ */
+PIX *
+pixMakeGamutRGB(l_int32 scale)
+{
+l_int32   i, j, k;
+l_uint32  val32;
+PIX      *pix1, *pix2;
+PIXA     *pixa;
+
+    PROCNAME("pixMakeGamutRGB");
+
+    if (scale <= 0) scale = 8;  /* default */
+
+    pixa = pixaCreate(32);
+    for (k = 0; k < 32; k++) {
+        pix1 = pixCreate(32, 32, 32);
+        for (i = 0; i < 32; i++) {
+            for (j = 0; j < 32; j++) {
+                composeRGBPixel(8 * j, 8 * i, 8 * k, &val32);
+                pixSetPixel(pix1, j, i, val32);
+            }
+        }
+        pixaAddPix(pixa, pix1, L_INSERT);
+    }
+    pix2 = pixaDisplayTiledInColumns(pixa, 8, scale, 5, 0);
+    pixaDestroy(&pixa);
+    return pix2;
 }
