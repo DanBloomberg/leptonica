@@ -2428,7 +2428,7 @@ l_float32  fxval, fyval, fzval;
 /*!
  * \brief   pixMakeGamutRGB()
  *
- * \param[in]    scale    default = 8
+ * \param[in]    scale    default = 4
  * \return  pix2   32 bpp rgb
  *
  * <pre>
@@ -2438,8 +2438,8 @@ l_float32  fxval, fyval, fzval;
  *          subimages has a constant value of B, with R and G varying over
  *          their gamut in 32 steps of size 8.
  *      (2) The %scale parameter determines the replication in both x and y
- *          of each of the 2^15 colors.  With a scale factor of 8, the
- *          output image has 8 * 8 * 2^15 = 2 Mpixels.
+ *          of each of the 2^15 colors.  With a scale factor of 4, the
+ *          output image has 4 * 4 * 2^15 = 0.5M pixels.
  *      (3) This useful for visualizing how filters, such as
  *          pixMakeArbMaskFromRGB(), separate colors into sets.
  * </pre>
