@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS = parallel-tests
+AUTOMAKE_OPTIONS = serial-tests
 AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src
 LDADD = $(top_builddir)/src/liblept.la $(LIBM)
  
