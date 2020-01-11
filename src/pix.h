@@ -80,6 +80,7 @@
  *         Graphics pixel setting flags
  *         Size and location filter flags
  *         Color component selection flags
+ *         Color content flags
  *         16-bit conversion flags
  *         Rotation and shear flags
  *         Affine transform order flags
@@ -445,7 +446,6 @@ enum {
 /*-------------------------------------------------------------------------*
  *                              Array of pix                               *
  *-------------------------------------------------------------------------*/
-
     /*  Serialization for primary data structures */
 #define  PIXAA_VERSION_NUMBER      2  /*!< Version for Pixaa serialization */
 #define  PIXA_VERSION_NUMBER       2  /*!< Version for Pixa serialization  */
@@ -477,7 +477,6 @@ typedef struct Pixaa PIXAA;
 /*-------------------------------------------------------------------------*
  *                    Basic rectangle and rectangle arrays                 *
  *-------------------------------------------------------------------------*/
-
 /*! Basic rectangle */
 struct Box
 {
@@ -528,7 +527,6 @@ typedef struct Pta PTA;
 /*-------------------------------------------------------------------------*
  *                              Array of Pta                               *
  *-------------------------------------------------------------------------*/
-
 /*! Array of Pta */
 struct Ptaa
 {
@@ -542,7 +540,6 @@ typedef struct Ptaa PTAA;
 /*-------------------------------------------------------------------------*
  *                       Pix accumulator container                         *
  *-------------------------------------------------------------------------*/
-
 /*! Pix accumulator container */
 struct Pixacc
 {
@@ -558,7 +555,6 @@ typedef struct Pixacc PIXACC;
 /*-------------------------------------------------------------------------*
  *                              Pix tiling                                 *
  *-------------------------------------------------------------------------*/
-
 /*! Pix tiling */
 struct PixTiling
 {
@@ -629,7 +625,6 @@ typedef struct DPix DPIX;
 /*-------------------------------------------------------------------------*
  *                        PixComp: compressed pix                          *
  *-------------------------------------------------------------------------*/
-
 /*! Compressed Pix */
 struct PixComp
 {
@@ -711,7 +706,6 @@ typedef struct PixaComp PIXAC;
  *  of that string.
  * </pre>
  */
-
 /*! Object Access */
 enum {
     L_NOCOPY = 0,     /*!< do not copy the object; do not delete the ptr  */
@@ -721,7 +715,6 @@ enum {
     L_COPY_CLONE = 3  /*!< make a new array object (e.g., pixa) and fill  */
                       /*!< the array with clones (e.g., pix)              */
 };
-
 
 /*----------------------------------------------------------------------------*
  *                              Sort flags                                    *
@@ -753,7 +746,6 @@ enum {
     L_SORT_BY_ASPECT_RATIO = 11  /*!< sort box or c.c. by width/height ratio  */
 };
 
-
 /*---------------------------------------------------------------------------*
  *                             Blend flags                                   *
  *---------------------------------------------------------------------------*/
@@ -773,7 +765,6 @@ enum {
     L_PAINT_DARK = 2              /*!< colorize non-white pixels             */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                        Graphics pixel setting                           *
  *-------------------------------------------------------------------------*/
@@ -783,7 +774,6 @@ enum {
     L_CLEAR_PIXELS = 2,         /*!< set all bits in each pixel to 0       */
     L_FLIP_PIXELS = 3           /*!< flip all bits in each pixel           */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                     Size and location filter flags                      *
@@ -825,7 +815,6 @@ enum {
     L_CHECK_BOTH = 3            /*!< check and possibly modify both        */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                    Color component selection flags                      *
  *-------------------------------------------------------------------------*/
@@ -841,6 +830,15 @@ enum {
     L_SELECT_SATURATION = 8     /*!< use saturation value (in HSV space)   */
 };
 
+/*-------------------------------------------------------------------------*
+ *                          Color content flags                            *
+ *-------------------------------------------------------------------------*/
+/*! Color Content */
+enum {
+    L_AVE_MAX_DIFF_2 = 1,       /*!< diff average closest comps to third   */
+    L_INTERMED_DIFF = 2,        /*!< intermediate of diff component values */
+    L_MAX_DIFF = 3              /*!< maximum diff of component values      */
+};
 
 /*-------------------------------------------------------------------------*
  *                         16-bit conversion flags                         *
@@ -855,7 +853,6 @@ enum {
     L_MS_TWO_BYTES = 6,         /*!< use two MSB                           */
     L_CLIP_TO_FFFF = 7          /*!< use max(val, 65535)                   */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                        Rotate and shear flags                           *
@@ -879,7 +876,6 @@ enum {
     L_SHEAR_ABOUT_CENTER = 2   /*!< shear image about center               */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                     Affine transform order flags                        *
  *-------------------------------------------------------------------------*/
@@ -893,7 +889,6 @@ enum {
     L_SC_TR_RO = 6             /*!< scale, translate, rotate               */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                       Grayscale filling flags                           *
  *-------------------------------------------------------------------------*/
@@ -902,7 +897,6 @@ enum {
     L_FILL_WHITE = 1,         /*!< fill white pixels (e.g, in fg map)      */
     L_FILL_BLACK = 2          /*!< fill black pixels (e.g., in bg map)     */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                   Flags for setting to white or black                   *
@@ -913,7 +907,6 @@ enum {
     L_SET_BLACK = 2          /*!< set pixels to black                      */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                  Flags for getting white or black value                 *
  *-------------------------------------------------------------------------*/
@@ -923,7 +916,6 @@ enum {
     L_GET_BLACK_VAL = 2      /*!< get black pixel value                    */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                  Flags for 8 bit and 16 bit pixel sums                  *
  *-------------------------------------------------------------------------*/
@@ -932,7 +924,6 @@ enum {
     L_WHITE_IS_MAX = 1, /*!< white pixels are 0xff or 0xffff; black are 0  */
     L_BLACK_IS_MAX = 2  /*!< black pixels are 0xff or 0xffff; white are 0  */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                           Dither parameters                             *
@@ -947,7 +938,6 @@ enum {
     DEFAULT_CLIP_UPPER_2 = 5   /*!< dist to black with no prop; 2 bpp      */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                          Distance type flags                            *
  *-------------------------------------------------------------------------*/
@@ -956,7 +946,6 @@ enum {
     L_MANHATTAN_DISTANCE = 1,  /*!< L1 distance (e.g., in color space)     */
     L_EUCLIDEAN_DISTANCE = 2   /*!< L2 distance                            */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                         Distance Value flags                            *
@@ -970,7 +959,6 @@ enum {
     L_ZERO = 5,          /*!< values = 0                                   */
     L_ALL = 6            /*!< all values                                   */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                         Statistical measures                            *
@@ -986,7 +974,6 @@ enum {
     L_VARIANCE = 7             /*!< variance of values                     */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                       Set index selection flags                         *
  *-------------------------------------------------------------------------*/
@@ -995,7 +982,6 @@ enum {
     L_CHOOSE_CONSECUTIVE = 1,  /*!< select 'n' consecutive                 */
     L_CHOOSE_SKIP_BY = 2       /*!< select at intervals of 'n'             */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                         Text orientation flags                          *
@@ -1009,7 +995,6 @@ enum {
     L_TEXT_ORIENT_RIGHT = 4    /*!< landscape, text up to right            */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                         Edge orientation flags                          *
  *-------------------------------------------------------------------------*/
@@ -1019,7 +1004,6 @@ enum {
     L_VERTICAL_EDGES = 1,     /*!< filters for vertical edges              */
     L_ALL_EDGES = 2           /*!< filters for all edges                   */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                         Line orientation flags                          *
@@ -1033,7 +1017,6 @@ enum {
     L_OBLIQUE_LINE = 4       /*!< neither horizontal nor vertical */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                         Image orientation flags                         *
  *-------------------------------------------------------------------------*/
@@ -1042,7 +1025,6 @@ enum {
     L_PORTRAIT_MODE = 0,   /*!< typical: page is viewed with height > width  */
     L_LANDSCAPE_MODE = 1   /*!< page is viewed at 90 deg to portrait mode    */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                           Scan direction flags                          *
@@ -1059,7 +1041,6 @@ enum {
     L_SCAN_HORIZONTAL = 7,   /*!< horizontal scan (direction unimportant)  */
     L_SCAN_VERTICAL = 8      /*!< vertical scan (direction unimportant)    */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                Box size adjustment and location flags                   *
@@ -1085,7 +1066,6 @@ enum {
     L_GET_BOT = 16               /*!< get bottom side location             */
 };
 
-
 /*-------------------------------------------------------------------------*
  *          Flags for modifying box boundaries using a second box          *
  *-------------------------------------------------------------------------*/
@@ -1099,7 +1079,6 @@ enum {
     L_USE_CAPPED_MAX = 6         /*!< modify boundary with capped max      */
 };
 
-
 /*-------------------------------------------------------------------------*
  *              Handling overlapping bounding boxes in boxa                *
  *-------------------------------------------------------------------------*/
@@ -1108,7 +1087,6 @@ enum {
     L_COMBINE = 1,         /*!< resize to bounding region; remove smaller  */
     L_REMOVE_SMALL = 2     /*!< only remove smaller                        */
 };
-
 
 /*-------------------------------------------------------------------------*
  *        Selecting or making a box from two (intersecting) boxes          *
@@ -1121,7 +1099,6 @@ enum {
     L_SMALLEST_AREA = 4            /*!< use box with smallest area         */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                    Flags for replacing invalid boxes                    *
  *-------------------------------------------------------------------------*/
@@ -1130,7 +1107,6 @@ enum {
     L_USE_ALL_BOXES = 1,         /*!< consider all boxes in the sequence   */
     L_USE_SAME_PARITY_BOXES = 2  /*!< consider boxes with the same parity  */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                    Flags for box corners and center                     *
@@ -1143,7 +1119,6 @@ enum {
     L_LOWER_RIGHT = 4,        /*!< LR corner                               */
     L_BOX_CENTER = 5          /*!< center                                  */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                            Horizontal warp                              *
@@ -1160,7 +1135,6 @@ enum {
     L_QUADRATIC_WARP = 2   /*!< stretch or contraction grows quadratically */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                      Pixel selection for resampling                     *
  *-------------------------------------------------------------------------*/
@@ -1169,7 +1143,6 @@ enum {
     L_INTERPOLATED = 1,    /*!< linear interpolation from src pixels       */
     L_SAMPLED = 2          /*!< nearest src pixel sampling only            */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                             Thinning flags                              *
@@ -1180,7 +1153,6 @@ enum {
     L_THIN_BG = 2              /*!< thin background of 1 bpp image         */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                            Runlength flags                              *
  *-------------------------------------------------------------------------*/
@@ -1190,7 +1162,6 @@ enum {
     L_VERTICAL_RUNS = 1      /*!< determine runlengths of vertical runs    */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                          Edge filter flags                              *
  *-------------------------------------------------------------------------*/
@@ -1199,7 +1170,6 @@ enum {
     L_SOBEL_EDGE = 1,        /*!< Sobel edge filter                        */
     L_TWO_SIDED_EDGE = 2     /*!< Two-sided edge filter                    */
 };
-
 
 /*-------------------------------------------------------------------------*
  *             Subpixel color component ordering in LCD display            *
@@ -1212,7 +1182,6 @@ enum {
     L_SUBPIXEL_ORDER_VBGR = 4   /*!< sensor order top-to-bottom BGR        */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                          HSV histogram flags                            *
  *-------------------------------------------------------------------------*/
@@ -1223,7 +1192,6 @@ enum {
     L_SV_HISTO = 3             /*!< Use saturation-value histogram         */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                HSV Region flags (inclusion, exclusion)                  *
  *-------------------------------------------------------------------------*/
@@ -1232,7 +1200,6 @@ enum {
     L_INCLUDE_REGION = 1,      /*!< Use pixels with specified HSV region   */
     L_EXCLUDE_REGION = 2       /*!< Use pixels outside HSV region          */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                Location flags for adding text to a pix                  *
@@ -1249,7 +1216,6 @@ enum {
     L_ADD_AT_RIGHT = 8         /*!< Add text over right side of the image  */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                       Flags for plotting on a pix                       *
  *-------------------------------------------------------------------------*/
@@ -1263,7 +1229,6 @@ enum {
     L_PLOT_AT_RIGHT = 6        /*!< Plot vertically at right               */
 };
 
-
 /*-------------------------------------------------------------------------*
  *                    Flags for making simple masks                        *
  *-------------------------------------------------------------------------*/
@@ -1272,7 +1237,6 @@ enum {
     L_USE_INNER = 1,           /*!< Select the interior part               */
     L_USE_OUTER = 2            /*!< Select the outer part (e.g., a frame)  */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                   Flags for selecting display program                   *
@@ -1297,7 +1261,6 @@ enum {
     L_NO_CHROMA_SAMPLING_JPEG = 1   /*!< Write full resolution chroma      */
 };
 
-
 /*-------------------------------------------------------------------------*
  *          Handling negative values in conversion to unsigned int         *
  *-------------------------------------------------------------------------*/
@@ -1306,7 +1269,6 @@ enum {
     L_CLIP_TO_ZERO = 1,      /*!< Clip negative values to 0                */
     L_TAKE_ABSVAL = 2        /*!< Convert to positive using L_ABS()        */
 };
-
 
 /*-------------------------------------------------------------------------*
  *                        Relative to zero flags                           *
@@ -1318,7 +1280,6 @@ enum {
     L_GREATER_THAN_ZERO = 3  /*!< Choose values greater than zero          */
 };
 
-
 /*-------------------------------------------------------------------------*
  *         Flags for adding or removing trailing slash from string         *
  *-------------------------------------------------------------------------*/
@@ -1328,7 +1289,6 @@ enum {
     L_REMOVE_TRAIL_SLASH = 2   /*!< Remove trailing slash from string      */
 };
 
-
 /*-------------------------------------------------------------------------*
  *               Pix allocator and deallocator function types              *
  *-------------------------------------------------------------------------*/
@@ -1337,6 +1297,5 @@ typedef void *(*alloc_fn)(size_t);
 
 /*! Deallocator function type */
 typedef void (*dealloc_fn)(void *);
-
 
 #endif  /* LEPTONICA_PIX_H */

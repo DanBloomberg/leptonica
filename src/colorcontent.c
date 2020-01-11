@@ -125,7 +125,7 @@
  *          content measures given above.
  *
  *  For now, we will choose two of the methods in (c):
- *     L_MAX_DIFF_FROM_AVERAGE_2
+ *     L_AVE_MAX_DIFF_2
  *        Define the color magnitude as the maximum over components
  *        of the difference between the component value and the
  *        average of the other two.  It is easy to show that
@@ -133,13 +133,10 @@
  *        that are closest to each other, averaging them, and
  *        using the distance from that average to the third component.
  *        For (a) and (b) above, this value is in {..}.
- *    L_MAX_MIN_DIFF_FROM_2
- *        Define the color magnitude as the maximum over components
- *        of the minimum difference between the component value and the
- *        other two values.  It is easy to show that this is equivalent
- *        to selecting the intermediate value of the three differences
- *        between the three components.  For (a) and (b) above,
- *        this value is in /../.
+ *    L_INTERMED_DIFF
+ *        Define the color magnitude as the intermediate value of the
+ *        three differences between the three components.
+ *        For (a) and (b) above, this value is in /../.
  * </pre>
  */
 
@@ -336,8 +333,7 @@ PIXCMAP   *cmap;
  *                                  or mean, to compare with the pixel
  *                                  component values.
  * \param[in]    type    chooses the method for calculating the color magnitude:
- *                       L_MAX_DIFF_FROM_AVERAGE_2, L_MAX_MIN_DIFF_FROM_2,
- *                       L_MAX_DIFF
+ *                       L_AVE_MAX_DIFF_2, L_INTERMED_DIFF, L_MAX_DIFF
  * \return  pixd 8 bpp, amount of color in each source pixel,
  *                    or NULL on error
  *
@@ -370,8 +366,8 @@ PIXCMAP   *cmap;
  *                   max(|B - R|, |B - G|)
  *      (3) The three methods for choosing the color magnitude from
  *          the components are selected with these flags:
- *            (a) L_MAX_DIFF_FROM_AVERAGE_2
- *            (b) L_MAX_MIN_DIFF_FROM_2
+ *            (a) L_AVE_MAX_DIFF_2
+ *            (b) L_INTERMED_DIFF
  *            (c) L_MAX_DIFF
  *      (4) The three numbers (rref, gref and bref) can be thought
  *          of in two ways:
@@ -407,7 +403,7 @@ PIXCMAP   *cmap;
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
-    if (type != L_MAX_DIFF_FROM_AVERAGE_2 && type != L_MAX_MIN_DIFF_FROM_2 &&
+    if (type != L_AVE_MAX_DIFF_2 && type != L_INTERMED_DIFF &&
         type != L_MAX_DIFF)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
     if (rref < 0 || gref < 0 || bref < 0)
@@ -449,7 +445,7 @@ PIXCMAP   *cmap;
                 gval = gtab[gval];
                 bval = btab[bval];
             }
-            if (type == L_MAX_DIFF_FROM_AVERAGE_2) {
+            if (type == L_AVE_MAX_DIFF_2) {
                 rdist = ((gval + bval ) / 2 - rval);
                 rdist = L_ABS(rdist);
                 gdist = ((rval + bval ) / 2 - gval);
@@ -458,7 +454,7 @@ PIXCMAP   *cmap;
                 bdist = L_ABS(bdist);
                 colorval = L_MAX(rdist, gdist);
                 colorval = L_MAX(colorval, bdist);
-            } else if (type == L_MAX_MIN_DIFF_FROM_2) {  /* intermediate dist */
+            } else if (type == L_INTERMED_DIFF) {  /* intermediate dist */
                 rgdist = L_ABS(rval - gval);
                 rbdist = L_ABS(rval - bval);
                 gbdist = L_ABS(gval - bval);

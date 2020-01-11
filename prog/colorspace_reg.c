@@ -138,7 +138,7 @@ L_REGPARAMS  *rp;
         pix0 = pixGlobalNormRGB(NULL, pixs, rwhite, gwhite, bwhite, 255);
         pixaAddPix(pixat, pix0, L_INSERT);
         pix1 = pixColorMagnitude(pixs, rwhite, gwhite, bwhite,
-                                  L_MAX_DIFF_FROM_AVERAGE_2);
+                                 L_AVE_MAX_DIFF_2);
         for (j = 0; j < 6; j++) {
             pix2 = pixThresholdToBinary(pix1, 30 + 10 * j);
             pixInvert(pix2, pix2);
@@ -149,8 +149,7 @@ L_REGPARAMS  *rp;
             pixDestroy(&pix2);
         }
         pixDestroy(&pix1);
-        pix1 = pixColorMagnitude(pixs, rwhite, gwhite, bwhite,
-                                  L_MAX_MIN_DIFF_FROM_2);
+        pix1 = pixColorMagnitude(pixs, rwhite, gwhite, bwhite, L_INTERMED_DIFF);
         for (j = 0; j < 6; j++) {
             pix2 = pixThresholdToBinary(pix1, 30 + 10 * j);
             pixInvert(pix2, pix2);

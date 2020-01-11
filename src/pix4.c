@@ -1388,6 +1388,7 @@ pixGetAverageMaskedRGB(PIX        *pixs,
                        l_float32  *pgval,
                        l_float32  *pbval)
 {
+l_int32   empty;
 PIX      *pixt;
 PIXCMAP  *cmap;
 
@@ -1410,6 +1411,11 @@ PIXCMAP  *cmap;
     if (type != L_MEAN_ABSVAL && type != L_ROOT_MEAN_SQUARE &&
         type != L_STANDARD_DEVIATION && type != L_VARIANCE)
         return ERROR_INT("invalid measure type", procName, 1);
+    if (pixm) {
+        pixZero(pixm, &empty);
+        if (empty)
+            return ERROR_INT("empty mask", procName, 1);
+    }
 
     if (prval) {
         if (cmap)
@@ -1482,7 +1488,7 @@ pixGetAverageMasked(PIX        *pixs,
                     l_int32     type,
                     l_float32  *pval)
 {
-l_int32    i, j, w, h, d, wm, hm, wplg, wplm, val, count;
+l_int32    i, j, w, h, d, wm, hm, wplg, wplm, val, count, empty;
 l_uint32  *datag, *datam, *lineg, *linem;
 l_float64  sumave, summs, ave, meansq, var;
 PIX       *pixg;
@@ -1504,6 +1510,11 @@ PIX       *pixg;
     if (type != L_MEAN_ABSVAL && type != L_ROOT_MEAN_SQUARE &&
         type != L_STANDARD_DEVIATION && type != L_VARIANCE)
         return ERROR_INT("invalid measure type", procName, 1);
+    if (pixm) {
+        pixZero(pixm, &empty);
+        if (empty)
+            return ERROR_INT("empty mask", procName, 1);
+    }
 
     if (pixGetColormap(pixs))
         pixg = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
