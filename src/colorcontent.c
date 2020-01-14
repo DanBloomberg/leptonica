@@ -573,10 +573,10 @@ l_uint32  *data, *line;
  *                to compensate for an unbalanced color white point.
  *            (b) the median or mean values of the background color of
  *                an image.
- *          A linear (gamme == 1) TRC transformation is used.
- *      (3) No transformation is applied if any of the three numbers are 0.
- *          Any existing colormap is removed and a 32 bpp rgb pix is returned.
- *          If only some of the numbers are 0, a warning is given.
+ *          A linear (gamma = 1) TRC transformation is used.
+ *      (3) Any existing colormap is removed and a 32 bpp rgb pix is returned.
+ *      (4) No transformation is applied if any of the three numbers are <= 0.
+ *          If any are < 0, or if some but not all are 0, a warning is given.
  * </pre>
  */
 PIX *
@@ -607,7 +607,7 @@ PIXCMAP   *cmap;
     else
         pix1 = pixClone(pixs);
 
-    if (!rref && !gref && !bref)  /* no transform requested */
+    if (!rref && !gref && !bref)  /* all 0; no transform requested */
         return pix1;
 
         /* Some ref values are < 0, or some (but not all) are 0 */
@@ -976,10 +976,8 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
     if (edgefract < 0.0 || edgefract > 1.0) edgefract = 0.05;
 
         /* Check if pixm covers most of the image.  If so, just return. */
-    pixGetDimensions(pixs, &w, &h, NULL);
     if (pixm) {
-        pixCountPixels(pixm, &count, NULL);
-        ratio = (l_float32)count / ((l_float32)(w) * h);
+        pixForegroundFraction(pixm, &ratio);
         if (ratio > 0.7) {
             if (pixadb) L_INFO("pixm has big fg: %f5.2\n", procName, ratio);
             return 0;
@@ -1059,6 +1057,7 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
          * remove any pixels within the normalized fraction %distfract
          * of the image border. */
     pixm3 = pixRemoveBorderConnComps(pixm2, 8);
+    pixGetDimensions(pixm3, &w, &h, NULL);
     pixDestroy(&pixm2);
     if (edgefract > 0.0) {
         pix2 = pixMakeSymmetricMask(w, h, edgefract, edgefract, L_USE_INNER);
@@ -1963,7 +1962,7 @@ getRGBFromIndex(l_uint32  index,
  *
  * \param[in]    pixs      32 bpp rgb
  * \param[in]    factor    subsampling; an integer >= 1; use 1 for all pixels
- * \param[in]    fract     threshold fraction of all image pixels
+ * \param[in]    minfract  threshold fraction of all image pixels; must be > 0.0
  * \param[in]    fthresh   threshold on a function of the components; typ. ~2.5
  * \param[out]   phasred   1 if red pixels are above threshold
  * \param[out]   pratio    [optional] normalized fraction of threshold
@@ -1979,7 +1978,7 @@ getRGBFromIndex(l_uint32  index,
  *          Masks are generated for (a) and (b), and the intersection
  *          gives the pixels that are red but not either light bg or
  *          dark fg.
- *      (2) A typical value for fract = 0.0001, which gives sensitivity
+ *      (2) A typical value for minfract = 0.0001, which gives sensitivity
  *          to an image where a small fraction of the pixels are printed
  *          in red.
  *      (3) A typical value for fthresh = 2.5.  Higher values give less
@@ -1989,14 +1988,13 @@ getRGBFromIndex(l_uint32  index,
 l_ok
 pixHasHighlightRed(PIX        *pixs,
                    l_int32     factor,
-                   l_float32   fract,
+                   l_float32   minfract,
                    l_float32   fthresh,
                    l_int32    *phasred,
                    l_float32  *pratio,
                    PIX       **ppixdb)
 {
-l_int32    w, h, count;
-l_float32  ratio;
+l_float32  fract, ratio;
 PIX       *pix1, *pix2, *pix3, *pix4;
 FPIX      *fpix;
 
@@ -2011,6 +2009,8 @@ FPIX      *fpix;
         return ERROR_INT("&hasred not defined", procName, 1);
     if (!pixs || pixGetDepth(pixs) != 32)
         return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
+    if (minfract <= 0.0)
+        return ERROR_INT("minfract must be > 0.0", procName, 1);
     if (fthresh < 1.5 || fthresh > 3.5)
         L_WARNING("fthresh = %f is out of normal bounds\n", procName, fthresh);
 
@@ -2030,11 +2030,9 @@ FPIX      *fpix;
     pixInvert(pix4, pix4);
 
     pixAnd(pix4, pix4, pix2);
-    pixCountPixels(pix4, &count, NULL);
-    pixGetDimensions(pix4, &w, &h, NULL);
-    L_INFO("count = %d, thresh = %d\n", procName, count,
-           (l_int32)(fract * w * h));
-    ratio = (l_float32)count / (fract * w * h);
+    pixForegroundFraction(pix4, &fract);
+    ratio = fract / minfract;
+    L_INFO("fract = %7.5f, ratio = %7.3f\n", procName, fract, ratio);
     if (pratio) *pratio = ratio;
     if (ratio >= 1.0)
         *phasred = 1;
