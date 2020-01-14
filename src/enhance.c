@@ -356,10 +356,11 @@ PIX   *pixalpha;
  * <pre>
  * Notes:
  *      (1) The map is returned as a numa; values are clipped to [0, 255].
- *      (2) To force all intensities into a range within fraction delta
+ *      (2) For a linear mapping, set gamma = 1.0.
+ *      (3) To force all intensities into a range within fraction delta
  *          of white, use: minval = -256 * (1 - delta) / delta
  *                         maxval = 255
- *      (3) To force all intensities into a range within fraction delta
+ *      (4) To force all intensities into a range within fraction delta
  *          of black, use: minval = 0
  *                         maxval = 256 * (1 - delta) / delta
  * </pre>

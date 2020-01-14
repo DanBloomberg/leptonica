@@ -835,8 +835,8 @@ enum {
  *-------------------------------------------------------------------------*/
 /*! Color Content */
 enum {
-    L_AVE_MAX_DIFF_2 = 1,       /*!< diff average closest comps to third   */
-    L_INTERMED_DIFF = 2,        /*!< intermediate of diff component values */
+    L_INTERMED_DIFF = 1,        /*!< intermediate of diff component values */
+    L_AVE_MAX_DIFF_2 = 2,       /*!< diff average closest comps to third   */
     L_MAX_DIFF = 3              /*!< maximum diff of component values      */
 };
 
