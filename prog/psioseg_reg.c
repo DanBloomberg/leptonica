@@ -61,6 +61,19 @@ PIX          *pixs, *pixc, *pixht, *pixtxt, *pixmfull;
 PIX          *pix4c, *pix8c, *pix8g, *pix32, *pixcs, *pixcs2;
 L_REGPARAMS  *rp;
 
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "psioseg_reg");
+    exit(77);
+#endif
+#if !defined(HAVE_LIBJPEG)
+    L_ERROR("This test requires libjpeg to run.\n", "psioseg_reg");
+    exit(77);
+#endif
+#if !defined(HAVE_LIBTIFF)
+    L_ERROR("This test requires libtiff to run.\n", "psioseg_reg");
+    exit(77);
+#endif
+
     if (regTestSetup(argc, argv, &rp))
         return 1;
 

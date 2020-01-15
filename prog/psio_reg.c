@@ -65,6 +65,19 @@ PIXA         *pixa;
 SARRAY       *sa;
 L_REGPARAMS  *rp;
 
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "psio_reg");
+    exit(77);
+#endif
+#if !defined(HAVE_LIBJPEG)
+    L_ERROR("This test requires libjpeg to run.\n", "psio_reg");
+    exit(77);
+#endif
+#if !defined(HAVE_LIBTIFF)
+    L_ERROR("This test requires libtiff to run.\n", "psio_reg");
+    exit(77);
+#endif
+
     if (regTestSetup(argc, argv, &rp))
         return 1;
 

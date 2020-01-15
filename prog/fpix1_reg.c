@@ -77,9 +77,13 @@ PIXA         *pixa;
 PTA          *ptas, *ptad;
 L_REGPARAMS  *rp;
 
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "fpix1_reg");
+    exit(77);
+#endif
+
     if (regTestSetup(argc, argv, &rp))
         return 1;
-
 
         /* Gaussian kernel */
     pixa = pixaCreate(0);

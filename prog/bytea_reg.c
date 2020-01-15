@@ -50,6 +50,11 @@ SARRAY       *sa;
 L_BYTEA      *lba1, *lba2, *lba3, *lba4;
 L_REGPARAMS  *rp;
 
+#if !defined(HAVE_LIBJPEG)
+    L_ERROR("This test requires libjpeg to run.\n", "bytea_reg");
+    exit(77);
+#endif
+
     if (regTestSetup(argc, argv, &rp))
         return 1;
 

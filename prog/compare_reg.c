@@ -49,9 +49,13 @@ l_float32     cx1, cy1, cx2, cy2, score, fract;
 PIX          *pix0, *pix1, *pix2, *pix3, *pix4, *pix5;
 L_REGPARAMS  *rp;
 
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "compare_reg");
+    exit(77);
+#endif
+
     if (regTestSetup(argc, argv, &rp))
         return 1;
-
 
     /* ------------ Test of pixBestCorrelation() --------------- */
     pix0 = pixRead("harmoniam100-11.png");

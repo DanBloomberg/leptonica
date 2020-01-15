@@ -48,6 +48,11 @@ PIX          *pixs, *pixm, *pix1;
 PIXA         *pixadb;
 L_REGPARAMS  *rp;
 
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "italic_reg");
+    exit(77);
+#endif
+
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
