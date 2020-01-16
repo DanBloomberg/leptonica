@@ -29,8 +29,8 @@
 
 
 #define LIBLEPT_MAJOR_VERSION   1
-#define LIBLEPT_MINOR_VERSION   79
-#define LIBLEPT_PATCH_VERSION   1
+#define LIBLEPT_MINOR_VERSION   80
+#define LIBLEPT_PATCH_VERSION   0
 
 #include "alltypes.h"
 
@@ -454,7 +454,7 @@ LEPT_DLL extern PIX * pixSimpleColorQuantize ( PIX *pixs, l_int32 sigbits, l_int
 LEPT_DLL extern NUMA * pixGetRGBHistogram ( PIX *pixs, l_int32 sigbits, l_int32 factor );
 LEPT_DLL extern l_ok makeRGBIndexTables ( l_uint32 **prtab, l_uint32 **pgtab, l_uint32 **pbtab, l_int32 sigbits );
 LEPT_DLL extern l_ok getRGBFromIndex ( l_uint32 index, l_int32 sigbits, l_int32 *prval, l_int32 *pgval, l_int32 *pbval );
-LEPT_DLL extern l_ok pixHasHighlightRed ( PIX *pixs, l_int32 factor, l_float32 fract, l_float32 fthresh, l_int32 *phasred, l_float32 *pratio, PIX **ppixdb );
+LEPT_DLL extern l_ok pixHasHighlightRed ( PIX *pixs, l_int32 factor, l_float32 minfract, l_float32 fthresh, l_int32 *phasred, l_float32 *pratio, PIX **ppixdb );
 LEPT_DLL extern PIX * pixColorGrayRegions ( PIX *pixs, BOXA *boxa, l_int32 type, l_int32 thresh, l_int32 rval, l_int32 gval, l_int32 bval );
 LEPT_DLL extern l_ok pixColorGray ( PIX *pixs, BOX *box, l_int32 type, l_int32 thresh, l_int32 rval, l_int32 gval, l_int32 bval );
 LEPT_DLL extern PIX * pixColorGrayMasked ( PIX *pixs, PIX *pixm, l_int32 type, l_int32 thresh, l_int32 rval, l_int32 gval, l_int32 bval );
@@ -464,7 +464,8 @@ LEPT_DLL extern PIX * pixLinearMapToTargetColor ( PIX *pixd, PIX *pixs, l_uint32
 LEPT_DLL extern l_ok pixelLinearMapToTargetColor ( l_uint32 scolor, l_uint32 srcmap, l_uint32 dstmap, l_uint32 *pdcolor );
 LEPT_DLL extern PIX * pixShiftByComponent ( PIX *pixd, PIX *pixs, l_uint32 srcval, l_uint32 dstval );
 LEPT_DLL extern l_ok pixelShiftByComponent ( l_int32 rval, l_int32 gval, l_int32 bval, l_uint32 srcval, l_uint32 dstval, l_uint32 *ppixel );
-LEPT_DLL extern l_ok pixelFractionalShift ( l_int32 rval, l_int32 gval, l_int32 bval, l_float32 fraction, l_uint32 *ppixel );
+LEPT_DLL extern l_ok pixelFractionalShift ( l_int32 rval, l_int32 gval, l_int32 bval, l_float32 fract, l_uint32 *ppixel );
+LEPT_DLL extern PIX * pixMapWithInvariantHue ( PIX *pixd, PIX *pixs, l_uint32 srcval, l_float32 fract );
 LEPT_DLL extern PIXCMAP * pixcmapCreate ( l_int32 depth );
 LEPT_DLL extern PIXCMAP * pixcmapCreateRandom ( l_int32 depth, l_int32 hasblack, l_int32 haswhite );
 LEPT_DLL extern PIXCMAP * pixcmapCreateLinear ( l_int32 d, l_int32 nlevels );

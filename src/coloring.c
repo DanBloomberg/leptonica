@@ -45,8 +45,9 @@
  *           PIX             *pixShiftByComponent()
  *           l_int32          pixelShiftByComponent()
  *           l_int32          pixelFractionalShift()
+ *           PIX             *pixShiftWithInvariantHue()
  *
- *  There are several "coloring" functions in leptonica.
+ *  There are quite a few "coloring" functions in leptonica.
  *  You can find them in these files:
  *       coloring.c
  *       paintcmap.c
@@ -62,7 +63,7 @@
  *      specified color to move to that color. (pixSnapColor)
  *  (3) Doing a piecewise linear color shift specified by a source
  *      and a target color.  Each component shifts independently.
- *      (pixLinearMapToTargetColor)
+ *      (pixLinearMapToTargetColor, pixMapWithInvariantHue).
  *  (4) Shifting all colors by a given fraction of their distance
  *      from 0 (if shifting down) or from 255 (if shifting up).
  *      This is useful for colorizing either the background or
@@ -79,12 +80,13 @@
  *      (paintcmap.c: pixSetSelectCmap, pixSetSelectMaskedCmap)
  *  (9) Shifting all the pixels towards black or white depending on
  *      the gray value of a second image.  (blend.c: pixFadeWithGray)
- *  (10) Changing the hue, saturation or brightness, by changing the
- *      appropriate parameter in HSV color space by a fraction of
- *      the distance toward its end-point.  For example, you can change
- *      the brightness by moving each pixel's v-parameter a specified
- *      fraction of the distance toward 0 (darkening) or toward 255
- *      (brightening).  (enhance.c: pixModifySaturation,
+ *  (10) Changing the hue, saturation or brightness, by changing one of
+ *      these parameters in HSV color space by a fraction of the distance
+ *      toward its end-point, but leaving the other two parameters
+ *      invariant.  For example, you can change the brightness by moving
+ *      each pixel's v-parameter a specified fraction of the distance
+ *      toward 0 (darkening) or toward 255 (brightening), without altering
+ *      the hue or saturation.  (enhance.c: pixModifySaturation,
  *      pixModifyHue, pixModifyBrightness)
  * </pre>
  */
@@ -495,7 +497,7 @@ l_uint32  *line, *data;
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd not null or == pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd exists, but != pixs", procName, pixd);
 
     if (pixGetColormap(pixs))
         return pixSnapColorCmap(pixd, pixs, srcval, dstval, diff);
@@ -584,7 +586,7 @@ PIXCMAP   *cmap;
     if (!pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("cmap not found", procName, pixd);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd not null or == pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd exists, but != pixs", procName, pixd);
 
     if (!pixd)
         pixd = pixCopy(NULL, pixs);
@@ -673,11 +675,13 @@ PIXCMAP   *cmap;
  *      (2) The mapping will in general change the hue of the pixels.
  *          However, if the src and dst targets are related by
  *          a transformation given by pixelFractionalShift(), the hue
- *          is invariant.
+ *          is invariant.  A special case is where the dest in the
+ *          map is white (255, 255, 255) for an arbitrary srcval.
  *      (3) For inplace operation, call it this way:
- *            pixLinearMapToTargetColor(pixs, pixs, ... )
- *      (4) For generating a new pixd:
- *            pixd = pixLinearMapToTargetColor(NULL, pixs, ...)
+ *            pixLinearMapToTargetColor(pixs, pixs, ... );
+ *          For generating a new pixd:
+ *            pixd = pixLinearMapToTargetColor(NULL, pixs, ...);
+ *      (4) See pixShiftWithInvariantHue() for a speical case of this function.
  * </pre>
  */
 PIX *
@@ -694,12 +698,10 @@ l_uint32  *line, *data;
 
     PROCNAME("pixLinearMapToTargetColor");
 
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, pixd);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd not null or == pixs", procName, pixd);
-    if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs is not 32 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd exists, but != pixs", procName, pixd);
 
         /* Do the work on pixd */
     if (!pixd)
@@ -824,7 +826,7 @@ l_int32    srmap, sgmap, sbmap, drmap, dgmap, dbmap;
  * \brief   pixShiftByComponent()
  *
  * \param[in]    pixd     [optional]; either NULL or equal to pixs for in-place
- * \param[in]    pixs     32 bpp rgb
+ * \param[in]    pixs     32 bpp rgb, cmap OK
  * \param[in]    srcval   source color: 0xrrggbb00
  * \param[in]    dstval   target color: 0xrrggbb00
  * \return  pixd   with all pixels mapped based on the srcval/destval mapping,
@@ -880,7 +882,7 @@ PIXCMAP   *cmap;
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd not null or == pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd exists, but != pixs", procName, pixd);
     if (pixGetDepth(pixs) != 32 && !pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, pixd);
 
@@ -1006,27 +1008,31 @@ l_int32  rsval, rdval, gsval, gdval, bsval, bdval, rs, gs, bs;
 /*!
  * \brief   pixelFractionalShift()
  *
- * \param[in]    rval, gval, bval
- * \param[in]    fraction   negative toward black; positive toward white
- * \param[out]   ppixel     rgb value
+ * \param[in]    rval      red source component
+ * \param[in]    gval      green source component
+ * \param[in]    bval      blue source component
+ * \param[in]    fract     negative toward black; positive toward white
+ * \param[out]   ppixel    resulting rgb value
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This transformation leaves the hue invariant, while changing
- *          the saturation and intensity.  It can be used for that
- *          purpose in pixLinearMapToTargetColor().
- *      (2) %fraction is in the range [-1 .... +1].  If %fraction < 0,
+ *      (1) This linear transformation shifts each component a fraction
+ *          toward either black (%fract < 0) or white (%fract > 0).
+ *      (2) It changes the saturation and intensity, but leaves the hue
+ *          invariant.  See usage in pixLinearMapToTargetColor() and
+ *          pixMapWithInvariantHue().
+ *      (3) %fract is in the range [-1 .... +1].  If %fract < 0,
  *          saturation is increased and brightness is reduced.  The
- *          opposite results if %fraction > 0.  If %fraction == -1,
- *          the resulting pixel is black; %fraction == 1 results in white.
+ *          opposite results if %fract > 0.  If %fract == -1,
+ *          the resulting pixel is black; %fract == 1 results in white.
  * </pre>
  */
 l_ok
 pixelFractionalShift(l_int32    rval,
                      l_int32    gval,
                      l_int32    bval,
-                     l_float32  fraction,
+                     l_float32  fract,
                      l_uint32  *ppixel)
 {
 l_int32  nrval, ngval, nbval;
@@ -1035,15 +1041,66 @@ l_int32  nrval, ngval, nbval;
 
     if (!ppixel)
         return ERROR_INT("&pixel defined", procName, 1);
-    if (fraction < -1.0 || fraction > 1.0)
+    if (fract < -1.0 || fract > 1.0)
         return ERROR_INT("fraction not in [-1 ... +1]", procName, 1);
 
-    nrval = (fraction < 0) ? (l_int32)((1.0 + fraction) * rval + 0.5) :
-            rval + (l_int32)(fraction * (255 - rval) + 0.5);
-    ngval = (fraction < 0) ? (l_int32)((1.0 + fraction) * gval + 0.5) :
-            gval + (l_int32)(fraction * (255 - gval) + 0.5);
-    nbval = (fraction < 0) ? (l_int32)((1.0 + fraction) * bval + 0.5) :
-            bval + (l_int32)(fraction * (255 - bval) + 0.5);
+    nrval = (fract < 0) ? (l_int32)((1.0 + fract) * rval + 0.5) :
+            rval + (l_int32)(fract * (255 - rval) + 0.5);
+    ngval = (fract < 0) ? (l_int32)((1.0 + fract) * gval + 0.5) :
+            gval + (l_int32)(fract * (255 - gval) + 0.5);
+    nbval = (fract < 0) ? (l_int32)((1.0 + fract) * bval + 0.5) :
+            bval + (l_int32)(fract * (255 - bval) + 0.5);
     composeRGBPixel(nrval, ngval, nbval, ppixel);
     return 0;
+}
+
+
+/*!
+ * \brief   pixMapWithInvariantHue()
+ *
+ * \param[in]    pixd      [optional]; either NULL or equal to pixs for in-place
+ * \param[in]    pixs      32 bpp rgb
+ * \param[in]    srcval    reference source color: 0xrrggbb00
+ * \param[in]    fract     fraction toward white of dest color
+ * \return  pixd   with all pixels mapped based on the srcval/destval mapping,
+ *                 or pixd on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The combination of %srcval and %fract define the linear
+ *          hue-preserving transformation, that is applied to all pixels.
+ *      (2) %fract is in the range [-1 .... +1].  If %fract < 0,
+ *          saturation is increased and brightness is reduced.  The
+ *          opposite results if %fract > 0.  If %fract == -1,
+ *          %srcval is mapped to black; if %fract == 1, it is mapped to white.
+ *      (3) For inplace operation, call it this way:
+ *            pixMapWithInvariatHue(pixs, pixs, ... );
+ *          For generating a new pixd:
+ *            pixd = pixMapWithInvariantHue(NULL, pixs, ...);
+ * </pre>
+ */
+PIX *
+pixMapWithInvariantHue(PIX       *pixd,
+                       PIX       *pixs,
+                       l_uint32   srcval,
+                       l_float32  fract)
+{
+l_int32   rval, gval, bval;
+l_uint32  dstval;
+
+    PROCNAME("pixMapWithInvariantHue");
+
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, pixd);
+    if (pixd && (pixd != pixs))
+        return (PIX *)ERROR_PTR("pixd exists, but != pixs", procName, pixd);
+    if (fract < -1.0 || fract > 1.0)
+        return (PIX *)ERROR_PTR("fraction not in [-1 ... +1]", procName, NULL);
+
+        /* Generate the dstval that is %fract toward white from %srcval */
+    extractRGBValues(srcval, &rval, &gval, &bval);
+    pixelFractionalShift(rval, gval, bval, fract, &dstval);
+
+        /* Use the (%srcval, dstval) pair to define the linear transform */
+    return pixLinearMapToTargetColor(pixd, pixs, srcval, dstval);
 }

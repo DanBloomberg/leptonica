@@ -47,15 +47,15 @@ int main(int    argc,
          char **argv)
 {
 char          textstr[256];
-l_int32       i, w, h;
-l_uint32      srcval, dstval;
+l_int32       i, k, w, h;
+l_uint32      srcval;
 l_float32     scalefact, sat, fract;
-L_BMF        *bmf8;
+L_BMF        *bmf10;
 L_KERNEL     *kel;
 NUMA         *na1, *na2, *na3;
 PIX          *pix, *pixs, *pixs1, *pixs2, *pixd;
 PIX          *pix0, *pix1, *pix2, *pix3, *pix4;
-PIXA         *pixa, *pixaf;
+PIXA         *pixa1, *pixa2, *pixaf;
 L_REGPARAMS  *rp;
 
 #if !defined(HAVE_LIBPNG)
@@ -76,105 +76,109 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix);
 
         /* TRC: vary gamma */
-    pixa = pixaCreate(20);
+    pixa1 = pixaCreate(20);
     for (i = 0; i < 20; i++) {
         pix0 = pixGammaTRC(NULL, pixs, 0.3 + 0.15 * i, 0, 255);
-        pixaAddPix(pixa, pix0, L_INSERT);
+        pixaAddPix(pixa1, pix0, L_INSERT);
     }
-    pix1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
+    pix1 = pixaDisplayTiledAndScaled(pixa1, 32, w, 5, 0, 10, 2);
     pixaAddPix(pixaf, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
     pixDisplayWithTitle(pix1, 0, 100, "TRC Gamma", rp->display);
-    pixaDestroy(&pixa);
+    pixaDestroy(&pixa1);
 
         /* TRC: vary black point */
-    pixa = pixaCreate(20);
+    pixa1 = pixaCreate(20);
     for (i = 0; i < 20; i++) {
         pix0 = pixGammaTRC(NULL, pixs, 1.0, 5 * i, 255);
-        pixaAddPix(pixa, pix0, L_INSERT);
+        pixaAddPix(pixa1, pix0, L_INSERT);
     }
-    pix1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
+    pix1 = pixaDisplayTiledAndScaled(pixa1, 32, w, 5, 0, 10, 2);
     pixaAddPix(pixaf, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 1 */
     pixDisplayWithTitle(pix1, 300, 100, "TRC", rp->display);
-    pixaDestroy(&pixa);
+    pixaDestroy(&pixa1);
 
         /* Vary hue */
-    pixa = pixaCreate(20);
+    pixa1 = pixaCreate(20);
     for (i = 0; i < 20; i++) {
         pix0 = pixModifyHue(NULL, pixs, 0.01 + 0.05 * i);
-        pixaAddPix(pixa, pix0, L_INSERT);
+        pixaAddPix(pixa1, pix0, L_INSERT);
     }
-    pix1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
+    pix1 = pixaDisplayTiledAndScaled(pixa1, 32, w, 5, 0, 10, 2);
     pixaAddPix(pixaf, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 2 */
     pixDisplayWithTitle(pix1, 600, 100, "Hue", rp->display);
-    pixaDestroy(&pixa);
+    pixaDestroy(&pixa1);
 
         /* Vary saturation */
-    pixa = pixaCreate(20);
+    pixa1 = pixaCreate(20);
     na1 = numaCreate(20);
     for (i = 0; i < 20; i++) {
         pix0 = pixModifySaturation(NULL, pixs, -0.9 + 0.1 * i);
         pixMeasureSaturation(pix0, 1, &sat);
-        pixaAddPix(pixa, pix0, L_INSERT);
+        pixaAddPix(pixa1, pix0, L_INSERT);
         numaAddNumber(na1, sat);
     }
-    pix1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
+    pix1 = pixaDisplayTiledAndScaled(pixa1, 32, w, 5, 0, 10, 2);
     pixaAddPix(pixaf, pix1, L_INSERT);
     gplotSimple1(na1, GPLOT_PNG, "/tmp/lept/regout/enhance.7",
                  "Average Saturation");
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 3 */
     pixDisplayWithTitle(pix1, 900, 100, "Saturation", rp->display);
     numaDestroy(&na1);
-    pixaDestroy(&pixa);
+    pixaDestroy(&pixa1);
 
         /* Vary contrast */
-    pixa = pixaCreate(20);
+    pixa1 = pixaCreate(20);
     for (i = 0; i < 20; i++) {
         pix0 = pixContrastTRC(NULL, pixs, 0.1 * i);
-        pixaAddPix(pixa, pix0, L_INSERT);
+        pixaAddPix(pixa1, pix0, L_INSERT);
     }
-    pix1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
+    pix1 = pixaDisplayTiledAndScaled(pixa1, 32, w, 5, 0, 10, 2);
     pixaAddPix(pixaf, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 4 */
     pixDisplayWithTitle(pix1, 0, 400, "Contrast", rp->display);
-    pixaDestroy(&pixa);
+    pixaDestroy(&pixa1);
 
         /* Vary sharpening */
-    pixa = pixaCreate(20);
+    pixa1 = pixaCreate(20);
     for (i = 0; i < 20; i++) {
         pix0 = pixUnsharpMasking(pixs, 3, 0.01 + 0.15 * i);
-        pixaAddPix(pixa, pix0, L_INSERT);
+        pixaAddPix(pixa1, pix0, L_INSERT);
     }
-    pix1 = pixaDisplayTiledAndScaled(pixa, 32, w, 5, 0, 10, 2);
+    pix1 = pixaDisplayTiledAndScaled(pixa1, 32, w, 5, 0, 10, 2);
     pixaAddPix(pixaf, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 5 */
     pixDisplayWithTitle(pix1, 300, 400, "Sharp", rp->display);
-    pixaDestroy(&pixa);
+    pixaDestroy(&pixa1);
 
         /* Hue constant mapping to lighter background */
-    pixa = pixaCreate(11);
-    bmf8 = bmfCreate("fonts", 8);
+    pixa2 = pixaCreate(2);
+    bmf10 = bmfCreate("fonts", 10);
     pix0 = pixRead("candelabrum.011.jpg");
     composeRGBPixel(230, 185, 144, &srcval);  /* select typical bg pixel */
-    for (i = 0; i <= 10; i++) {
-        fract = 0.10 * i;
-        pixelFractionalShift(230, 185, 144, fract, &dstval);
-        pix1 = pixLinearMapToTargetColor(NULL, pix0, srcval, dstval);
-        snprintf(textstr, 50, "Fract = %5.1f", fract);
-        pix2 = pixAddSingleTextblock(pix1, bmf8, textstr, 0xff000000,
-                                      L_ADD_BELOW, NULL);
-        pixaAddPix(pixa, pix2, L_INSERT);
-        pixDestroy(&pix1);
+    for (k = 1; k > -2; k -= 2) {
+        pixa1 = pixaCreate(11);
+        for (i = 0; i <= 10; i++) {
+            fract = k * 0.10 * i;
+            pix1 = pixMapWithInvariantHue(NULL, pix0, srcval, fract);
+            snprintf(textstr, 50, "Fract = %5.1f", fract);
+            pix2 = pixAddSingleTextblock(pix1, bmf10, textstr, 0xff000000,
+                                          L_ADD_BELOW, NULL);
+            pixaAddPix(pixa1, pix2, L_INSERT);
+            pixDestroy(&pix1);
+        }
+        pix3 = pixaDisplayTiledInColumns(pixa1, 4, 1.0, 30, 2);
+        pixaAddPix(pixa2, pix3, L_INSERT);
+        pixaDestroy(&pixa1);
     }
-    pixDestroy(&pix0);
-
-    pixd = pixaDisplayTiledInColumns(pixa, 4, 1.0, 30, 2);
+    pixd = pixaDisplayTiledInColumns(pixa2, 2, 0.5, 30, 2);
     regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 6 */
     pixDisplayWithTitle(pixd, 600, 400, "Constant hue", rp->display);
-    bmfDestroy(&bmf8);
-    pixaDestroy(&pixa);
+    pixaDestroy(&pixa2);
+    bmfDestroy(&bmf10);
+    pixDestroy(&pix0);
     pixDestroy(&pixd);
 
         /* Delayed testing of saturation plot */
@@ -198,8 +202,8 @@ L_REGPARAMS  *rp;
     pix = pixRead("test24.jpg");  /* rgb */
     pixs = pixScale(pix, 0.3, 0.3);
     pixDestroy(&pix);
-    pixaf = pixaCreate(5);
-    pixaAddPix(pixaf, pixs, L_COPY);
+    pixa1 = pixaCreate(5);
+    pixaAddPix(pixa1, pixs, L_COPY);
 
     na1 = numaGammaTRC(0.6, 40, 200);
     na2 = numaGammaTRC(1.2, 40, 225);
@@ -207,9 +211,9 @@ L_REGPARAMS  *rp;
     pixGetDimensions(pixs, &w, &h, NULL);
     pix1 = pixCopy(NULL, pixs);
     pix2 = pixMakeSymmetricMask(w, h, 0.5, 0.5, L_USE_INNER);
-    pixaAddPix(pixaf, pix2, L_COPY);
+    pixaAddPix(pixa1, pix2, L_COPY);
     pixTRCMapGeneral(pix1, pix2, na1, na2, na3);
-    pixaAddPix(pixaf, pix1, L_COPY);
+    pixaAddPix(pixa1, pix1, L_COPY);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 10 */
     numaDestroy(&na1);
     numaDestroy(&na2);
@@ -233,7 +237,7 @@ L_REGPARAMS  *rp;
     na3 = numaGammaTRC(1.2, 80, 200);
     pixTRCMapGeneral(pixs, NULL, na1, na2, na3);
     regTestWritePixAndCheck(rp, pixs, IFF_PNG);  /* 12 */
-    pixaAddPix(pixaf, pixs, L_COPY);
+    pixaAddPix(pixa1, pixs, L_COPY);
     numaDestroy(&na1);
     numaDestroy(&na2);
     numaDestroy(&na3);
@@ -244,16 +248,16 @@ L_REGPARAMS  *rp;
     gplotSimple2(na1, na2, GPLOT_PNG, "/tmp/lept/enhance/junkp", NULL);
     pix1 = pixRead("/tmp/lept/enhance/junkp.png");
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 13 */
-    pixaAddPix(pixaf, pix1, L_COPY);
+    pixaAddPix(pixa1, pix1, L_COPY);
     numaDestroy(&na1);
     numaDestroy(&na2);
     pixDestroy(&pix1);
 
-    pixd = pixaDisplayTiledInColumns(pixaf, 4, 1.0, 30, 2);
+    pixd = pixaDisplayTiledInColumns(pixa1, 4, 1.0, 30, 2);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 14 */
     pixDisplayWithTitle(pixd, 100, 800, NULL, rp->display);
     pixDestroy(&pixd);
-    pixaDestroy(&pixaf);
+    pixaDestroy(&pixa1);
 
     /* -----------------------------------------------*
      *           Test global color transforms         *

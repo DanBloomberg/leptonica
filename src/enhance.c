@@ -1555,11 +1555,12 @@ FPIX       *fpix;
  *             pixEqualizeTRC(pixs, pixs, ...);
  *          To get a new image, set pixd == null:
  *             pixd = pixEqualizeTRC(NULL, pixs, ...);
- *      (1) Use fract > 0.0 to increase hue value; < 0.0 to decrease it.
+ *      (2) Use fract > 0.0 to increase hue value; < 0.0 to decrease it.
  *          1.0 (or -1.0) represents a 360 degree rotation; i.e., no change.
- *      (2) If no modification is requested (fract = -1.0 or 0 or 1.0),
+ *      (3) If no modification is requested (fract = -1.0 or 0 or 1.0),
  *          return a copy unless in-place, in which case this is a no-op.
- *      (3) See discussion of color-modification methods, in coloring.c.
+ *      (4) This leaves saturation and intensity invariant.
+ *      (5) See discussion of color-modification methods, in coloring.c.
  * </pre>
  */
 PIX  *
@@ -1632,7 +1633,8 @@ l_uint32  *data, *line;
  *          saturation to 0 (255).
  *      (2) If fract = 0, no modification is requested; return a copy
  *          unless in-place, in which case this is a no-op.
- *      (3) See discussion of color-modification methods, in coloring.c.
+ *      (3) This leaves hue and intensity invariant.
+ *      (4) See discussion of color-modification methods, in coloring.c.
  * </pre>
  */
 PIX  *
@@ -1748,7 +1750,8 @@ l_uint32  *data, *line;
  *          v-parameter to 0 (255).
  *      (2) If fract = 0, no modification is requested; return a copy
  *          unless in-place, in which case this is a no-op.
- *      (3) See discussion of color-modification methods, in coloring.c.
+ *      (3) This leaves hue and saturation invariant.
+ *      (4) See discussion of color-modification methods, in coloring.c.
  * </pre>
  */
 PIX  *
