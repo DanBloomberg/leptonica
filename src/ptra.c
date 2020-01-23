@@ -125,8 +125,8 @@
 #include "allheaders.h"
 
     /* Bounds on initial array size */
-static const l_uint32  MaxPtrArraySize = 100000;
-static const l_int32 InitialPtrArraySize = 20;      /*!< n'importe quoi */
+LEPT_DLL const l_uint32  MaxInitPtraSize = 1000001;
+static const l_int32 DefaultInitPtraSize = 20;      /*!< n'importe quoi */
 
     /* Static function */
 static l_int32 ptraExtendArray(L_PTRA *pa);
@@ -147,8 +147,11 @@ L_PTRA  *pa;
 
     PROCNAME("ptraCreate");
 
-    if (n <= 0 || n > MaxPtrArraySize)
-        n = InitialPtrArraySize;
+    if (n > MaxInitPtraSize) {
+        L_ERROR("n = %d > maxsize = %d\n", procName, n, MaxInitPtraSize);
+        return NULL;
+    }
+    if (n <= 0) n = DefaultInitPtraSize;
 
     pa = (L_PTRA *)LEPT_CALLOC(1, sizeof(L_PTRA));
     if ((pa->array = (void **)LEPT_CALLOC(n, sizeof(void *))) == NULL) {
