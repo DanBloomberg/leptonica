@@ -12,11 +12,11 @@ void build(Solution &s)
         t += "HAVE_LIBWEBP_ANIM"_d;
         t += "HAVE_LIBZ"_d;
 
-        t += "org.sw.demo.gif-5"_dep;
-        t += "org.sw.demo.jpeg-9"_dep;
-        t += "org.sw.demo.uclouvain.openjpeg.openjp2-2"_dep;
-        t += "org.sw.demo.glennrp.png-1"_dep;
-        t += "org.sw.demo.tiff-4"_dep;
+        t += "org.sw.demo.gif"_dep;
+        t += "org.sw.demo.jpeg"_dep;
+        t += "org.sw.demo.uclouvain.openjpeg.openjp2"_dep;
+        t += "org.sw.demo.glennrp.png"_dep;
+        t += "org.sw.demo.tiff"_dep;
         t += "org.sw.demo.webmproject.webp"_dep;
     };
 
@@ -25,6 +25,7 @@ void build(Solution &s)
 
     {
         leptonica.setChecks("leptonica");
+        leptonica.ApiName = "LEPT_DLL";
 
         leptonica +=
             "src/.*\\.c"_rr,
@@ -38,8 +39,6 @@ void build(Solution &s)
 
         leptonica += "LIBJP2K_HEADER=\"openjpeg.h\""_d;
         leptonica.Public += "HAVE_CONFIG_H"_d;
-        leptonica += sw::Shared, "LIBLEPT_EXPORTS"_d;
-        leptonica.Interface += sw::Shared, "LIBLEPT_IMPORTS"_d;
 
         if (leptonica.Variables["WORDS_BIGENDIAN"] == 1)
             leptonica.Variables["ENDIANNESS"] = "L_BIG_ENDIAN";

@@ -65,19 +65,24 @@ typedef unsigned int uintptr_t;
 
 #endif /* _MSC_VER */
 
-/* Windows specifics */
-#ifdef _WIN32
-  /* DLL EXPORTS and IMPORTS */
-  #if defined(LIBLEPT_EXPORTS)
-    #define LEPT_DLL __declspec(dllexport)
-  #elif defined(LIBLEPT_IMPORTS)
-    #define LEPT_DLL __declspec(dllimport)
-  #else
+#ifndef LEPT_DLL
+  /* Windows specifics */
+  #ifdef _WIN32
+    /* DLL EXPORTS and IMPORTS */
+    #if defined(LIBLEPT_EXPORTS)
+      #define LEPT_DLL __declspec(dllexport)
+    #elif defined(LIBLEPT_IMPORTS)
+      #define LEPT_DLL __declspec(dllimport)
+    #else
+      #define LEPT_DLL
+    #endif
+  #else  /* non-Windows specifics */
     #define LEPT_DLL
-  #endif
-#else  /* non-Windows specifics */
+  #endif  /* _WIN32 */
+#endif  /* LEPT_DLL */
+
+#ifndef _WIN32  /* non-Windows specifics */
   #include <stdint.h>
-  #define LEPT_DLL
 #endif  /* _WIN32 */
 
 typedef intptr_t l_intptr_t;
