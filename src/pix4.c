@@ -44,6 +44,7 @@
  *           NUMA       *pixGetCmapHistogram()
  *           NUMA       *pixGetCmapHistogramMasked()
  *           NUMA       *pixGetCmapHistogramInRect()
+ *           l_int32     pixCountRGBColorsByHash()
  *           l_int32     pixCountRGBColors()
  *           L_AMAP     *pixGetColorAmapHistogram()
  *           l_int32     amapGetCountForColor()
@@ -826,6 +827,41 @@ NUMA       *na;
 
 
 /*!
+ * \brief   pixCountRGBColorsByHash()
+ *
+ * \param[in]    pixs       rgb or rgba
+ * \param[out]   pncolors   number of colors found
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is about 3x faster than pixCountRGBColors(),
+ *          which uses an ordered map.
+ * </pre>
+ */
+l_ok
+pixCountRGBColorsByHash(PIX      *pixs,
+                        l_int32  *pncolors)
+{
+L_DNA  *da1, *da2;
+
+    PROCNAME("pixCountRGBColorsByHash");
+
+    if (!pncolors)
+        return ERROR_INT("&ncolors not defined", procName, 1);
+    *pncolors = 0;
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
+    da1 = pixConvertDataToDna(pixs);
+    l_dnaRemoveDupsByHash(da1, &da2, NULL);
+    *pncolors = l_dnaGetCount(da2);
+    l_dnaDestroy(&da1);
+    l_dnaDestroy(&da2);
+    return 0;
+}
+
+
+/*!
  * \brief   pixCountRGBColors()
  *
  * \param[in]    pixs       rgb or rgba
@@ -836,6 +872,7 @@ NUMA       *na;
  * <pre>
  * Notes:
  *      (1) If %factor == 1, this gives the exact number of colors.
+ *      (2) This is about 3x slower than pixCountRGBColorsByHash().
  * </pre>
  */
 l_ok
@@ -849,6 +886,7 @@ L_AMAP  *amap;
 
     if (!pncolors)
         return ERROR_INT("&ncolors not defined", procName, 1);
+    *pncolors = 0;
     if (!pixs || pixGetDepth(pixs) != 32)
         return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
     if (factor <= 0)
@@ -2784,9 +2822,17 @@ cleanup_arrays:
  * \param[in]   ncolors   size of array
  * \param[in]   side      size of each color square; suggest 200
  * \param[in]   ncols     number of columns in output color matrix
- * \param[in]   fontsize  to label each square with text.  Valid set is
- *                        {4,6,8,10,12,14,16,18,20}.  Use 0 to disable.
+ * \param[in]   fontsize  to label each square with text.
+ *                        Valid set is {4,6,8,10,12,14,16,18,20}.
+ *                        Suggest 6 for 200x200 square. Use 0 to disable.
  * \return  pixd color array, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This generates an array of labeled color squares from an
+ *          array of color values.
+ *      (2) To make a single color square, use pixMakeColorSquare().
+ * </pre>
  */
 PIX *
 pixDisplayColorArray(l_uint32  *carray,

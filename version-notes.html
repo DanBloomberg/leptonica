@@ -93,9 +93,11 @@ They are <i>not</i> a complete listing of the modifications.
         * Improve bmp handling of 1 bpp images and sanity checking of params.
         * Add function to display all rgb gamut colors
         * in Makefile.am, use option serial-tests to avoid races in testing
-        * make md subdirectory and add ax_split_version.md there
-        * simple function for hue-invariant mapping (pixMapWithInvariantHue)
-        * fixed bug in limit of ptra size when used for sorting by bins.
+        * Make md subdirectory and add ax_split_version.md there
+        * Simple function for hue-invariant mapping (pixMapWithInvariantHue)
+        * Fixed bug in limit of ptra size when used for sorting by bins.
+        * Use hashmap to count pixel colors in RGB(A) images.
+        * Convert hashtest program to regression test hash_reg.
 
 1.79.0  1 Jan 2020
         * Clean up auto-generation of files; removed 'register'

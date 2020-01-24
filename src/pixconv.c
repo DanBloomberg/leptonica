@@ -1410,9 +1410,7 @@ PIXCMAP   *cmap;
  *          the color in the colormap that represents all pixels in
  *          one of those octcubes is given by the first pixel that
  *          falls into that octcube.
- *      (3) If there are more than 256 colors, we use adaptive octree
- *          color quantization.
- *      (4) Dithering gives better visual results on images where
+ *      (3) Dithering gives better visual results on images where
  *          there is a color wash (a slow variation of color), but it
  *          is about twice as slow and results in significantly larger
  *          files when losslessly compressed (e.g., into png).
@@ -1442,26 +1440,25 @@ PIX     *pixd;
          * first pixel that lands there. */
     na = pixOctcubeHistogram(pixs, 4, &ncolors);
 
-        /* If there are too many occupied leaf octcubes to be
-         * represented directly in a colormap, fall back to octree
-         * quantization, optionally with dithering. */
-    if (ncolors > 256) {
+        /* If 256 or fewer occupied leaf octcubes, quantize to those octcubes */
+    if (ncolors <= 256) {
+        pixd = pixFewColorsOctcubeQuant2(pixs, 4, na, ncolors, NULL);
+        pixCopyInputFormat(pixd, pixs);
         numaDestroy(&na);
-        if (ditherflag)
-            L_INFO("More than 256 colors; using octree quant with dithering\n",
-                   procName);
-        else
-            L_INFO("More than 256 colors; using octree quant; no dithering\n",
-                   procName);
-        return pixOctreeColorQuant(pixs, 240, ditherflag);
+        return pixd;
     }
 
-        /* There are not more than 256 occupied leaf octcubes.
-         * Quantize to those octcubes. */
-    pixd = pixFewColorsOctcubeQuant2(pixs, 4, na, ncolors, NULL);
-    pixCopyInputFormat(pixd, pixs);
+        /* There are too many occupied leaf octcubes to be represented
+         * directly in a colormap.  Fall back to octree quantization,
+         * optionally with dithering. */
     numaDestroy(&na);
-    return pixd;
+    if (ditherflag)
+        L_INFO("More than 256 colors; using octree quant with dithering\n",
+               procName);
+    else
+        L_INFO("More than 256 colors; using octree quant; no dithering\n",
+               procName);
+    return pixOctreeColorQuant(pixs, 240, ditherflag);
 }
 
 

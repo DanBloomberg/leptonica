@@ -681,7 +681,7 @@ PIXCMAP   *cmap;
  *            pixLinearMapToTargetColor(pixs, pixs, ... );
  *          For generating a new pixd:
  *            pixd = pixLinearMapToTargetColor(NULL, pixs, ...);
- *      (4) See pixShiftWithInvariantHue() for a speical case of this function.
+ *      (4) See pixShiftWithInvariantHue() for a special case of this function.
  * </pre>
  */
 PIX *

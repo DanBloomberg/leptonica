@@ -207,7 +207,7 @@ l_int32  prevq, newq;
 /*----------------------------------------------------------------------*
  *    Set global variable LeptDebugOK for writing to named temp files   *
  *----------------------------------------------------------------------*/
-l_int32 LeptDebugOK = 0;  /* default value */
+LEPT_DLL l_int32 LeptDebugOK = 0;  /* default value */
 /*!
  * \brief   setLeptDebugOK()
  *
@@ -1081,6 +1081,7 @@ char            fullpath[_MAX_PATH];
  * <pre>
  * Notes:
  *      (1) If %addlabel == 0, %location and %textcolor are ignored.
+ *      (2) To make an array of color squares, use pixDisplayColorArray().
  * </pre>
  */
 PIX *

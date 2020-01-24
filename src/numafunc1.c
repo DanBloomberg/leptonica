@@ -2400,7 +2400,7 @@ NUMA      *naindex = NULL;
         isize = (l_int32)size;
         if (isize > MaxInitPtraSize - 1) {
             L_WARNING("array too large; using shell sort\n", procName);
-            sorttype == L_SHELL_SORT;
+            sorttype = L_SHELL_SORT;
         } else {
             naindex = numaGetBinSortIndex(na, sortorder);
         }

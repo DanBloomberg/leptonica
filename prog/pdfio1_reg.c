@@ -238,7 +238,7 @@ L_REGPARAMS  *rp;
     /* ----------  Generating from 1 bpp images (low-level) -------------- */
     fprintf(stderr, "\n*** Writing 1 bpp images as pdf files (low-level)\n");
     pix1 = pixRead("cat-and-mouse.png");
-    pix2 = pixConvertRGBToCmap(pix1);  /* restore the cmap */
+    pix2 = pixConvertRGBToCmapLossless(pix1);  /* restore the cmap */
 
         /* Add a black/white colormap */
     cmap = pixcmapCreate(1);

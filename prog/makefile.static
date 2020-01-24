@@ -175,7 +175,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		genfonts_reg.c gifio_reg.c \
 		grayfill_reg.c graymorph1_reg.c \
 		graymorph2_reg.c  grayquant_reg.c \
-		hardlight_reg.c heap_reg.c \
+		hardlight_reg.c hash_reg.c heap_reg.c \
 		insert_reg.c ioformats_reg.c \
 		iomisc_reg.c italic_reg.c \
 		jbclass_reg.c jp2kio_reg.c jpegio_reg.c kernel_reg.c \
@@ -230,7 +230,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		flipselgen.c fmorphautogen.c \
 		fpixcontours.c gammatest.c \
 		graphicstest.c graymorphtest.c \
-		hashtest.c histoduptest.c histotest.c \
+		histoduptest.c histotest.c \
 		htmlviewer.c imagetops.c \
 		jbcorrelation.c jbrankhaus.c jbwords.c \
 		listtest.c livre_adapt.c livre_hmt.c \
@@ -528,6 +528,9 @@ grayquant_reg:	grayquant_reg.o $(LEPTLIB)
 
 hardlight_reg:	hardlight_reg.o $(LEPTLIB)
 	$(CC) -o hardlight_reg hardlight_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+hash_reg:	hash_reg.o $(LEPTLIB)
+	$(CC) -o hash_reg hash_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 heap_reg:	heap_reg.o $(LEPTLIB)
 	$(CC) -o heap_reg heap_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -942,9 +945,6 @@ graphicstest:	graphicstest.o $(LEPTLIB)
 
 graymorphtest:	graymorphtest.o $(LEPTLIB)
 	$(CC) -o graymorphtest graymorphtest.o $(ALL_LIBS) $(EXTRALIBS)
-
-hashtest:	hashtest.o $(LEPTLIB)
-	$(CC) -o hashtest hashtest.o $(ALL_LIBS) $(EXTRALIBS)
 
 histoduptest:	histoduptest.o $(LEPTLIB)
 	$(CC) -o histoduptest histoduptest.o $(ALL_LIBS) $(EXTRALIBS)

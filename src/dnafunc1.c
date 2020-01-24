@@ -36,6 +36,9 @@
  *          NUMA        *l_dnaConvertToNuma()
  *          L_DNA       *numaConvertToDna()
  *
+ *      Conversion from pix data to dna
+ *          L_DNA       *pixConvertDataToDna()
+ *
  *      Set operations using aset (rbtree)
  *          L_DNA       *l_dnaUnionByAset()
  *          L_DNA       *l_dnaRemoveDupsByAset()
@@ -204,6 +207,47 @@ L_DNA     *da;
     for (i = 0; i < n; i++) {
         numaGetFValue(na, i, &val);
         l_dnaAddNumber(da, val);
+    }
+    return da;
+}
+
+
+/*----------------------------------------------------------------------*
+ *                    Conversion from pix data to dna                   *
+ *----------------------------------------------------------------------*/
+/*!
+ * \brief   pixConvertDataToDna()
+ *
+ * \param[in]    pix      32 bpp RGB(A)
+ * \return  da, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This writes the RGBA pixel values into the dna, in row-major order.
+ * </pre>
+ */
+L_DNA *
+pixConvertDataToDna(PIX  *pix)
+{
+l_int32    i, j, w, h, wpl;
+l_uint32  *data, *line;
+L_DNA     *da;
+
+    PROCNAME("pixConvertDataToDna");
+
+    if (!pix)
+        return (L_DNA *)ERROR_PTR("pix not defined", procName, NULL);
+    if (pixGetDepth(pix) != 32)
+        return (L_DNA *)ERROR_PTR("pix not 32 bpp", procName, NULL);
+
+    pixGetDimensions(pix, &w, &h, NULL);
+    data = pixGetData(pix);
+    wpl = pixGetWpl(pix);
+    da = l_dnaCreate(w * h);
+    for (i = 0; i < h; i++) {
+        line = data + i * wpl;
+        for (j = 0; j < w; j++)
+            l_dnaAddNumber(da, (l_float64)line[j]);
     }
     return da;
 }

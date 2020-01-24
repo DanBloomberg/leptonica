@@ -448,7 +448,7 @@ LEPT_DLL extern l_ok pixFindColorRegions ( PIX *pixs, PIX *pixm, l_int32 factor,
 LEPT_DLL extern l_ok pixNumSignificantGrayColors ( PIX *pixs, l_int32 darkthresh, l_int32 lightthresh, l_float32 minfract, l_int32 factor, l_int32 *pncolors );
 LEPT_DLL extern l_ok pixColorsForQuantization ( PIX *pixs, l_int32 thresh, l_int32 *pncolors, l_int32 *piscolor, l_int32 debug );
 LEPT_DLL extern l_ok pixNumColors ( PIX *pixs, l_int32 factor, l_int32 *pncolors );
-LEPT_DLL extern PIX * pixConvertRGBToCmap ( PIX *pixs );
+LEPT_DLL extern PIX * pixConvertRGBToCmapLossless ( PIX *pixs );
 LEPT_DLL extern l_ok pixGetMostPopulatedColors ( PIX *pixs, l_int32 sigbits, l_int32 factor, l_int32 ncolors, l_uint32 **parray, PIXCMAP **pcmap );
 LEPT_DLL extern PIX * pixSimpleColorQuantize ( PIX *pixs, l_int32 sigbits, l_int32 factor, l_int32 ncolors );
 LEPT_DLL extern NUMA * pixGetRGBHistogram ( PIX *pixs, l_int32 sigbits, l_int32 factor );
@@ -755,6 +755,7 @@ LEPT_DLL extern l_ok l_dnaJoin ( L_DNA *dad, L_DNA *das, l_int32 istart, l_int32
 LEPT_DLL extern L_DNA * l_dnaaFlattenToDna ( L_DNAA *daa );
 LEPT_DLL extern NUMA * l_dnaConvertToNuma ( L_DNA *da );
 LEPT_DLL extern L_DNA * numaConvertToDna ( NUMA *na );
+LEPT_DLL extern L_DNA * pixConvertDataToDna ( PIX *pix );
 LEPT_DLL extern L_DNA * l_dnaUnionByAset ( L_DNA *da1, L_DNA *da2 );
 LEPT_DLL extern L_DNA * l_dnaRemoveDupsByAset ( L_DNA *das );
 LEPT_DLL extern L_DNA * l_dnaIntersectionByAset ( L_DNA *da1, L_DNA *da2 );
@@ -1623,6 +1624,7 @@ LEPT_DLL extern l_ok pixGetColorHistogramMasked ( PIX *pixs, PIX *pixm, l_int32 
 LEPT_DLL extern NUMA * pixGetCmapHistogram ( PIX *pixs, l_int32 factor );
 LEPT_DLL extern NUMA * pixGetCmapHistogramMasked ( PIX *pixs, PIX *pixm, l_int32 x, l_int32 y, l_int32 factor );
 LEPT_DLL extern NUMA * pixGetCmapHistogramInRect ( PIX *pixs, BOX *box, l_int32 factor );
+LEPT_DLL extern l_ok pixCountRGBColorsByHash ( PIX *pixs, l_int32 *pncolors );
 LEPT_DLL extern l_ok pixCountRGBColors ( PIX *pixs, l_int32 factor, l_int32 *pncolors );
 LEPT_DLL extern L_AMAP * pixGetColorAmapHistogram ( PIX *pixs, l_int32 factor );
 LEPT_DLL extern l_int32 amapGetCountForColor ( L_AMAP *amap, l_uint32 val );

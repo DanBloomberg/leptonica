@@ -399,8 +399,8 @@ L_DNAHASH  *dahash;
  *
  * \param[in]    das
  * \param[out]   pdahash    hash map: val --> index
- * \param[out]   pdav       array of values: index --> val
- * \param[out]   pdac       histo array of counts: index --> count
+ * \param[out]   pdav       [optional] array of values: index --> val
+ * \param[out]   pdac       [optional] histo array of counts: index --> count
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -412,7 +412,13 @@ L_DNAHASH  *dahash;
  *      (2) The dna of values, %dav, is aligned with the histogram %dac,
  *          and is needed for fast lookup.  It is a hash set, because
  *          the values are unique.
- *      (3) Lookup is simple:
+ *      (3) If you only need to make a histogram and get the number of
+ *          non-zero entries, here are two methods:
+ *          (a) l_dnaMakeHistoByHash(da, &dahash, NULL, NULL);
+ *              count = l_dnaHashGetTotalCount(dahash);
+ *          (b) l_dnaRemoveDupsByHash(da, &da_nodups, NULL);
+                count = l_dnaGetCount(da_nodups);
+ *      (4) Lookup is simple:
  *              l_dnaFindValByHash(dav, dahash, val, &index);
  *              if (index >= 0)
  *                  l_dnaGetIValue(dac, index, &icount);
@@ -438,8 +444,8 @@ L_DNAHASH  *dahash;
     if (pdahash) *pdahash = NULL;
     if (pdac) *pdac = NULL;
     if (pdav) *pdav = NULL;
-    if (!pdahash || !pdac || !pdav)
-        return ERROR_INT("&dahash, &dac, &dav not all defined", procName, 1);
+    if (!pdahash)
+        return ERROR_INT("&dahash not defined", procName, 1);
     if (!das)
         return ERROR_INT("das not defined", procName, 1);
     if ((n = l_dnaGetCount(das)) == 0)
@@ -466,8 +472,14 @@ L_DNAHASH  *dahash;
     }
 
     *pdahash = dahash;
-    *pdac = dac;
-    *pdav = dav;
+    if (pdac)
+        *pdac = dac;
+    else
+        l_dnaDestroy(&dac);
+    if (pdav)
+        *pdav = dav;
+    else
+        l_dnaDestroy(&dav);
     return 0;
 }
 

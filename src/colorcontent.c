@@ -71,7 +71,7 @@
  *         l_int32    pixNumColors()
  *
  *      Lossless conversion of RGB image to colormapped
- *         PIX       *pixConvertRGBToCmap()
+ *         PIX       *pixConvertRGBToCmapLossless()
  *
  *      Find the most "populated" colors in the image (and quantize)
  *         l_int32    pixGetMostPopulatedColors()
@@ -1402,8 +1402,7 @@ PIXCMAP   *cmap;
  * \brief   pixNumColors()
  * \param[in]    pixs       2, 4, 8, 32 bpp
  * \param[in]    factor     subsampling factor; integer
- * \param[out]   pncolors   the number of colors found, or 0 if
- *                          there are more than 256
+ * \param[out]   pncolors   the number of colors found in the pix
  * \return  0 if OK, 1 on error.
  *
  * <pre>
@@ -1418,7 +1417,7 @@ PIXCMAP   *cmap;
  *      (3) For d = 2, 4 or 8 bpp grayscale, this returns the number
  *          of colors found in the image in 'ncolors'.
  *      (4) For d = 32 bpp (rgb), if the number of colors is greater
- *          than 256, this uses an ordered set.
+ *          than 256, this uses a hash set with %factor == 1.
  * </pre>
  */
 l_ok
@@ -1504,8 +1503,8 @@ PIXCMAP   *cmap;
         return 0;
     }
 
-        /* More than 256 colors in RGB image */
-    return pixCountRGBColors(pixs, factor, pncolors);
+        /* More than 256 colors in RGB image; count all the pixels */
+    return pixCountRGBColorsByHash(pixs, pncolors);
 }
 
 
@@ -1513,7 +1512,7 @@ PIXCMAP   *cmap;
  *             Lossless conversion of RGB image to colormapped             *
  * ----------------------------------------------------------------------- */
 /*!
- * \brief   pixConvertRGBToCmap()
+ * \brief   pixConvertRGBToCmapLossless()
  * \param[in]    pixs     32 bpp RGB
  * \return  pixd   if num colors <= 256; null otherwise or on error
  *
@@ -1525,7 +1524,7 @@ PIXCMAP   *cmap;
  * </pre>
  */
 PIX *
-pixConvertRGBToCmap(PIX  *pixs)
+pixConvertRGBToCmapLossless(PIX  *pixs)
 {
 l_int32    w, h, d, i, j, wpls, wpld, hashsize, hashval, ncolors, index;
 l_int32    rval, gval, bval, val;
@@ -1535,10 +1534,10 @@ l_uint32  *datas, *lines, *datad, *lined;
 PIX       *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixConvertRGBToCmap");
+    PROCNAME("pixConvertRGBToCmapLossless");
 
     if (!pixs || pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
 
     pixNumColors(pixs, 1, &ncolors);
     if (ncolors > 256) {
@@ -1694,8 +1693,8 @@ NUMA    *nahisto, *naindex;
  *          are generally found for %sigbits = 3 and ncolors ~ 20.
  *      (4) See also pixColorSegment() for a method of quantizing the
  *          colors to generate regions of similar color.
- *      (5) See also pixConvertRGBToCmap() to losslessly convert an
- *          RGB image with not more than 256 colors.
+ *      (5) See also pixConvertRGBToCmapLossless() to losslessly convert
+ *          an RGB image with not more than 256 colors.
  * </pre>
  */
 PIX *

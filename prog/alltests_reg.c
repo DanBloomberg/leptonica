@@ -115,6 +115,7 @@ static const char *tests[] = {
                               "graymorph2_reg",
                               "grayquant_reg",
                               "hardlight_reg",
+                              "hash_reg",
                               "heap_reg",
                               "insert_reg",
                               "ioformats_reg",

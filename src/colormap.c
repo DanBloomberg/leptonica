@@ -1923,8 +1923,10 @@ FILE    *fp;
  * \brief   pixcmapToArrays()
  *
  * \param[in]    cmap     colormap
- * \param[out]   prmap,   pgmap, pbmap colormap arrays
- * \param[out]   pamap    [optional] alpha array
+ * \param[out]   prmap    array of red values
+ * \param[out]   pgmap    array of green values
+ * \param[out]   pbmap    array of blue values
+ * \param[out]   pamap    [optional] array of alpha (transparency) values
  * \return  0 if OK; 1 on error
  */
 l_ok
