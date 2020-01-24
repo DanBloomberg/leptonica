@@ -1,4 +1,3 @@
-#pragma optimize("", off)
 void build(Solution &s)
 {
     auto add_deps = [](auto &t)
@@ -61,13 +60,11 @@ void build(Solution &s)
     }
 
     auto &progs = leptonica.addDirectory("progs");
-    if (s.DryRun)
-        progs.Scope = TargetScope::Test;
-
     {
         auto add_prog = [&s, &progs, &leptonica, &add_deps](const String &name, const Files &files) -> decltype(auto)
         {
             auto &t = progs.addExecutable(name);
+            t.Scope = TargetScope::Test;
             t.setRootDirectory("prog");
             t += files;
             t += leptonica;
