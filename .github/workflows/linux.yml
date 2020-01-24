@@ -1,4 +1,4 @@
-name: mac
+name: macos
 
 on: [push]
 
@@ -7,7 +7,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macOS-latest]
+        os: [ubuntu-latest]
 
     steps:
     - uses: actions/checkout@v1
@@ -29,5 +29,12 @@ jobs:
       run: chmod 755 sw
       shell: sh
 
+    - name: llvm
+      run:
+        - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key 2>/dev/null | sudo apt-key add -
+        - sudo add-apt-repository 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main' -y
+        - sudo apt-get update -q
+        - sudo apt-get install -y clang-9 lld-9 libc++-9-dev libc++abi-9-dev clang-tools-9
+
     - name: build
-      run: ./sw -static -shared -platform x64 -config d,r build
+      run: ./sw -static -shared -config d,r build

@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/DanBloomberg/leptonica.svg?branch=master)](https://travis-ci.org/DanBloomberg/leptonica)
 [![Build status](https://ci.appveyor.com/api/projects/status/vsk607rr6n4j2tmk?svg=true)](https://ci.appveyor.com/project/DanBloomberg/leptonica)
-![Build status](https://github.com/DanBloomberg/leptonica/workflows/CI/badge.svg)<br>
+![Build status](https://github.com/DanBloomberg/leptonica/workflows/windows/badge.svg)<br>
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/leptonica/badge.svg)](https://scan.coverity.com/projects/leptonica)
 [![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/DanBloomberg/leptonica.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/DanBloomberg/leptonica/context:cpp)
 [![Total Alerts](https://img.shields.io/lgtm/alerts/g/DanBloomberg/leptonica.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/DanBloomberg/leptonica/alerts)
