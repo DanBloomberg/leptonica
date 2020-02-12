@@ -380,9 +380,7 @@ SARRAY  *sa;
         }
         LEPT_FREE(sa);
     }
-
     *psa = NULL;
-    return;
 }
 
 

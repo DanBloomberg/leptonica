@@ -2590,8 +2590,8 @@ numaFindLocForThreshold(NUMA       *na,
                         l_int32    *pthresh,
                         l_float32  *pfract)
 {
-l_int32     i, n, start, found, index, minloc;
-l_float32   val, pval, startval, jval, minval, sum, partsum;
+l_int32     i, n, start, index, minloc;
+l_float32   val, pval, jval, minval, sum, partsum;
 l_float32  *fa;
 
     PROCNAME("numaFindLocForThreshold");
@@ -2620,7 +2620,6 @@ l_float32  *fa;
         /* Look for the low point in the valley */
     start = i;
     pval = fa[start];
-    found = FALSE;  /* signal for passing the min between peaks */
     for (i = start + 1; i < n; i++) {
         val = fa[i];
         if (val <= pval) {  /* going down */
@@ -2632,7 +2631,6 @@ l_float32  *fa;
                 pval = jval;
                 i = index;
             } else {  /* really going up; passed the min */
-                found = TRUE;
                 break;
             }
         }

@@ -224,7 +224,6 @@ L_PTRA  *pa;
     LEPT_FREE(pa->array);
     LEPT_FREE(pa);
     *ppa = NULL;
-    return;
 }
 
 
@@ -858,7 +857,6 @@ L_PTRAA  *paa;
     LEPT_FREE(paa->ptra);
     LEPT_FREE(paa);
     *ppaa = NULL;
-    return;
 }
 
 

@@ -519,7 +519,6 @@ L_RECOG  *recog;
     recogDestroyDid(recog);
     LEPT_FREE(recog);
     *precog = NULL;
-    return;
 }
 
 

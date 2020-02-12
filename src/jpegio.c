@@ -1222,7 +1222,6 @@ jpeg_error_catch_all_1(j_common_ptr cinfo)
     (*cinfo->err->output_message) (cinfo);
     jpeg_destroy(cinfo);
     longjmp(*pjmpbuf, 1);
-    return;
 }
 
 /*!
@@ -1242,7 +1241,6 @@ struct callback_data  *pcb_data;
     (*cinfo->err->output_message) (cinfo);
     jpeg_destroy(cinfo);
     longjmp(pcb_data->jmpbuf, 1);
-    return;
 }
 
 /* This function was borrowed from libjpeg */

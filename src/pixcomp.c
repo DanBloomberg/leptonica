@@ -377,7 +377,6 @@ PIXC  *pixc;
         LEPT_FREE(pixc->text);
     LEPT_FREE(pixc);
     *ppixc = NULL;
-    return;
 }
 
 
@@ -889,9 +888,7 @@ PIXAC   *pixac;
     LEPT_FREE(pixac->pixc);
     boxaDestroy(&pixac->boxa);
     LEPT_FREE(pixac);
-
     *ppixac = NULL;
-    return;
 }
 
 

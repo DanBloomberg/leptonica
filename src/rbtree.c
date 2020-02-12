@@ -293,7 +293,6 @@ node    *n;
     destroy_helper(n);
     LEPT_FREE(*pt);
     *pt = NULL;
-    return;
 }
 
     /* postorder DFS */
@@ -310,7 +309,7 @@ destroy_helper(node  *n)
  * \brief   l_rbtreeGetFirst()
  *
  * \param[in]    t    rbtree, including root node
- * \return       void
+ * \return       first node, or NULL on error or if the tree is empty
  *
  * <pre>
  * Notes:
@@ -380,7 +379,7 @@ l_rbtreeGetNext(L_RBTREE_NODE  *n)
  * \brief   l_rbtreeGetLast()
  *
  * \param[in]   t      rbtree, including root node
- * \return      void
+ * \return      last node, or NULL on error or if the tree is empty
  *
  * <pre>
  * Notes:

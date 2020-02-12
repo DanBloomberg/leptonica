@@ -30,7 +30,7 @@
  *
  *      Create/Destroy L_Heap
  *          L_HEAP         *lheapCreate()
- *          void           *lheapDestroy()
+ *          void            lheapDestroy()
  *
  *      Operations to add/remove to/from the heap
  *          l_int32         lheapAdd()
@@ -177,8 +177,6 @@ L_HEAP  *lh;
         LEPT_FREE(lh->array);
     LEPT_FREE(lh);
     *plh = NULL;
-
-    return;
 }
 
 /*--------------------------------------------------------------------------*

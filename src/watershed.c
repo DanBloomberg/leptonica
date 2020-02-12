@@ -289,7 +289,6 @@ L_WSHED  *wshed;
     }
     LEPT_FREE(wshed);
     *pwshed = NULL;
-    return;
 }
 
 
@@ -576,7 +575,6 @@ PIX  *pix;
         pixaAddBox(wshed->pixad, box, L_INSERT);
         numaAddNumber(wshed->nalevels, level - 1);
     }
-    return;
 }
 
 
@@ -854,7 +852,6 @@ L_NEWPIXEL  *np;
     np->x = x;
     np->y = y;
     lqueueAdd(lq, np);
-    return;
 }
 
 
@@ -891,7 +888,6 @@ L_NEWPIXEL  *np;
     *px = np->x;
     *py = np->y;
     lstackAdd(lq->stack, np);  /* save for re-use */
-    return;
 }
 
 
@@ -943,7 +939,6 @@ L_WSPIXEL  *wsp;
     wsp->y = y;
     wsp->index = index;
     lheapAdd(lh, wsp);
-    return;
 }
 
 
@@ -996,7 +991,6 @@ L_WSPIXEL  *wsp;
     *py = wsp->y;
     *pindex = wsp->index;
     lstackAdd(stack, wsp);  /* save for re-use */
-    return;
 }
 
 
@@ -1012,7 +1006,6 @@ l_int32  i;
     for (i = 0; i < size; i++)
         lept_stderr( "%d ", lut[i]);
     lept_stderr("\n");
-    return;
 }
 
 
@@ -1029,7 +1022,6 @@ debugWshedMerge(L_WSHED *wshed,
     lept_stderr("%s:\n", descr);
     lept_stderr("   (x, y) = (%d, %d)\n", x, y);
     lept_stderr("   clabel = %d, cindex = %d\n", label, index);
-    return;
 }
 
 

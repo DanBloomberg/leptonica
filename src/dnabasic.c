@@ -345,9 +345,7 @@ L_DNA  *da;
             LEPT_FREE(da->array);
         LEPT_FREE(da);
     }
-
     *pda = NULL;
-    return;
 }
 
 
@@ -1255,8 +1253,6 @@ L_DNAA  *daa;
     LEPT_FREE(daa->dna);
     LEPT_FREE(daa);
     *pdaa = NULL;
-
-    return;
 }
 
 

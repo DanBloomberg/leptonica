@@ -357,9 +357,7 @@ L_SUDOKU  *sud;
     LEPT_FREE(sud->init);
     LEPT_FREE(sud->state);
     LEPT_FREE(sud);
-
     *psud = NULL;
-    return;
 }
 
 
@@ -758,7 +756,7 @@ L_SUDOKU  *sud, *testsud;
     sector = 0;
     removefirst = L_MIN(30, 81 - minelems);
     while (nzeros < removefirst) {
-        genRandomIntegerInRange(9, 0, &val);
+        genRandomIntOnInterval(0, 8, 0, &val);
         index = 27 * (sector / 3) + 3 * (sector % 3) +
                 9 * (val / 3) + (val % 3);
         if (array[index] == 0) continue;
@@ -795,7 +793,7 @@ L_SUDOKU  *sud, *testsud;
 
             /* Choose an element to be zeroed.  We choose one
              * at random in succession from each of the nine sectors. */
-        genRandomIntegerInRange(9, 0, &val);
+        genRandomIntOnInterval(0, 8, 0, &val);
         index = 27 * (sector / 3) + 3 * (sector % 3) +
                 9 * (val / 3) + (val % 3);
         sector++;
@@ -848,7 +846,7 @@ L_SUDOKU  *sud, *testsud;
  *
  * \param[in]    sud          l_sudoku at any stage
  * \param[in]    arraytype    L_SUDOKU_INIT, L_SUDOKU_STATE
- * \return  void
+ * \return  0 if OK; 1 on error
  *
  * <pre>
  * Notes:
@@ -879,6 +877,5 @@ l_int32  *array;
             lept_stderr("%d ", array[9 * i + j]);
         lept_stderr("\n");
     }
-
     return 0;
 }

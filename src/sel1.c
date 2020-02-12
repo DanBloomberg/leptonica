@@ -286,7 +286,6 @@ l_int32  i;
     LEPT_FREE(sela->sel);
     LEPT_FREE(sela);
     *psela = NULL;
-    return;
 }
 
 
@@ -358,9 +357,7 @@ SEL     *sel;
     if (sel->name)
         LEPT_FREE(sel->name);
     LEPT_FREE(sel);
-
     *psel = NULL;
-    return;
 }
 
 
@@ -1086,7 +1083,6 @@ SELA    *selabasic, *selacomb;
     sarrayDestroy(&sa);
     selaDestroy(&selabasic);
     selaDestroy(&selacomb);
-    return;
 }
 #endif
 /* -------------------------------------------------------------------- */

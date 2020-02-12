@@ -71,7 +71,7 @@
  *       static void      strcodeDestroy()    (called as part of finalize)
  *       void             strcodeCreateFromFile()
  *       l_int32          strcodeGenerate()
- *       void             strcodeFinalize()
+ *       l_int32          strcodeFinalize()
  *       l_int32          l_getStructStrFromFile()   (useful externally)
  *
  *   Static helpers
@@ -201,7 +201,6 @@ L_STRCODE  *strcode;
     sarrayDestroy(&strcode->descr);
     LEPT_FREE(strcode);
     *pstrcode = NULL;
-    return;
 }
 
 
@@ -334,7 +333,7 @@ l_int32  itype;
  * \param[in,out]  pstrcode   destroys and sets to null after .c and .h files
  *                            have been generated
  * \param[in]      outdir     [optional] if NULL, make files in /tmp/lept/auto
- * \return  void
+ * \return     0 if OK; 1 on error
  */
 l_int32
 strcodeFinalize(L_STRCODE  **pstrcode,

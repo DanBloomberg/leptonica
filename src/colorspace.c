@@ -2452,8 +2452,6 @@ l_uint32  val32;
 PIX      *pix1, *pix2;
 PIXA     *pixa;
 
-    PROCNAME("pixMakeGamutRGB");
-
     if (scale <= 0) scale = 8;  /* default */
 
     pixa = pixaCreate(32);

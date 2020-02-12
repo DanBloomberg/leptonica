@@ -211,9 +211,7 @@ PTA  *pta;
         LEPT_FREE(pta->y);
         LEPT_FREE(pta);
     }
-
     *ppta = NULL;
-    return;
 }
 
 
@@ -983,10 +981,8 @@ PTAA    *ptaa;
     for (i = 0; i < ptaa->n; i++)
         ptaDestroy(&ptaa->pta[i]);
     LEPT_FREE(ptaa->pta);
-
     LEPT_FREE(ptaa);
     *pptaa = NULL;
-    return;
 }
 
 

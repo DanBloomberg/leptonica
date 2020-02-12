@@ -143,7 +143,6 @@ l_uint32    *pword;
     pword = (l_uint32 *)line + (n >> 5);
     *pword &= ~(0x80000000 >> (n & 31));  /* clear */
     *pword |= (l_uint32)val << (31 - (n & 31));   /* set */
-    return;
 }
 
 
@@ -180,7 +179,6 @@ l_uint32    *pword;
     pword = (l_uint32 *)line + (n >> 4);
     *pword &= ~(0xc0000000 >> (2 * (n & 15)));  /* clear */
     *pword |= (l_uint32)(val & 3) << (30 - 2 * (n & 15));   /* set */
-    return;
 }
 
 
@@ -234,7 +232,6 @@ l_uint32    *pword;
     pword = (l_uint32 *)line + (n >> 3);
     *pword &= ~(0xf0000000 >> (4 * (n & 7)));  /* clear */
     *pword |= (l_uint32)(val & 15) << (28 - 4 * (n & 7));   /* set */
-    return;
 }
 
 

@@ -1056,10 +1056,8 @@ pixThresholdByHisto(PIX       *pixs,
                     PIX      **ppixd,
                     PIX      **ppixhisto)
 {
-l_int32    i, n;
-l_float32  maxval, val1, val2, fract;
-NUMA      *na1, *na2, *na3, *naloc, *nav;
-PIX       *pix1;
+l_float32  maxval, fract;
+NUMA      *na1, *na2, *na3;
 
     PROCNAME("pixThresholdByHisto");
 

@@ -66,8 +66,8 @@
  *           l_int32    fileCorruptByMutation()
  *           l_int32    fileReplaceBytes()
  *
- *       Generate random integer in given range
- *           l_int32    genRandomIntegerInRange()
+ *       Generate random integer in given interval
+ *           l_int32    genRandomIntOnInterval()
  *
  *       Simple math function
  *           l_int32    lept_roundftoi()
@@ -643,37 +643,36 @@ l_uint8  *datain, *dataout;
 
 
 /*---------------------------------------------------------------------*
- *                Generate random integer in given range               *
+ *              Generate random integer in given interval              *
  *---------------------------------------------------------------------*/
 /*!
- * \brief   genRandomIntegerInRange()
+ * \brief   genRandomIntOnInterval()
  *
- * \param[in]    range     size of range; must be >= 2
+ * \param[in]    start     beginning of interval; >= 0
+ * \param[in]    end       end of interval; must be > start
  * \param[in]    seed      use 0 to skip; otherwise call srand
- * \param[out]   pval      random integer in range {0 ... range-1}
+ * \param[out]   pval      random integer in interval [start ... end]
  * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) For example, to choose a rand integer between 0 and 99,
- *          use %range = 100.
- * </pre>
  */
 l_ok
-genRandomIntegerInRange(l_int32   range,
-                        l_int32   seed,
-                        l_int32  *pval)
+genRandomIntOnInterval(l_int32   start,
+                       l_int32   end,
+                       l_int32   seed,
+                       l_int32  *pval)
 {
-    PROCNAME("genRandomIntegerInRange");
+l_float64  range;
+
+    PROCNAME("genRandomIntOnInterval");
 
     if (!pval)
         return ERROR_INT("&val not defined", procName, 1);
     *pval = 0;
-    if (range < 2)
-        return ERROR_INT("range must be >= 2", procName, 1);
+    if (start < 0 || end <= start)
+        return ERROR_INT("invalid range", procName, 1);
 
     if (seed > 0) srand(seed);
-    *pval = (l_int32)((l_float64)range *
+    range = (l_float64)(end - start + 1);
+    *pval = start + (l_int32)((l_float64)range *
                        ((l_float64)rand() / (l_float64)RAND_MAX));
     return 0;
 }
@@ -1093,7 +1092,6 @@ struct timeval tv;
     gettimeofday(&tv, NULL);
     if (sec) *sec = (l_int32)tv.tv_sec;
     if (usec) *usec = (l_int32)tv.tv_usec;
-    return;
 }
 
 #elif defined(__Fuchsia__) /* resource.h not implemented on Fuchsia. */
@@ -1102,7 +1100,6 @@ struct timeval tv;
      * are stubbed out.  If they are needed in the future, they
      * can be implemented in Fuchsia using the zircon syscall
      * zx_object_get_info() in ZX_INFOR_THREAD_STATS mode.  */
-
 void
 startTimer(void)
 {
@@ -1228,7 +1225,6 @@ LONGLONG        usecs;
 
     if (sec) *sec = (l_int32) (usecs / 1000000);
     if (usec) *usec = (l_int32) (usecs % 1000000);
-    return;
 }
 
 #endif

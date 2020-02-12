@@ -397,9 +397,7 @@ FPIX       *fpix;
             LEPT_FREE(data);
         LEPT_FREE(fpix);
     }
-
     *pfpix = NULL;
-    return;
 }
 
 
@@ -824,9 +822,7 @@ FPIXA   *fpixa;
         LEPT_FREE(fpixa->fpix);
         LEPT_FREE(fpixa);
     }
-
     *pfpixa = NULL;
-    return;
 }
 
 
@@ -1389,9 +1385,7 @@ DPIX       *dpix;
             LEPT_FREE(data);
         LEPT_FREE(dpix);
     }
-
     *pdpix = NULL;
-    return;
 }
 
 

@@ -249,12 +249,10 @@ pix_free(void  *ptr)
 {
 #ifndef _MSC_VER
     (*pix_mem_manager.deallocator)(ptr);
-    return;
 #else  /* _MSC_VER */
     /* Under MSVC++, pix_mem_manager is initialized after a call
      * to pix_malloc.  Just ignore the custom allocator feature. */
     free(ptr);
-    return;
 #endif  /* _MSC_VER */
 }
 
@@ -289,7 +287,6 @@ setPixMemoryManager(alloc_fn   allocator,
 {
     if (allocator) pix_mem_manager.allocator = allocator;
     if (deallocator) pix_mem_manager.deallocator = deallocator;
-    return;
 }
 
 
@@ -602,7 +599,6 @@ PIX  *pix;
         return;
     pixFree(pix);
     *ppix = NULL;
-    return;
 }
 
 

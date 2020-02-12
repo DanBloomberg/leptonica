@@ -1586,8 +1586,6 @@ l_uint32  *lines, *lined;
         }
 
     }
-
-    return;
 }
 
 
@@ -1748,8 +1746,6 @@ l_uint32  *lines, *lined;
             SET_DATA_BYTE(lined, j + 7, valtab[GET_DATA_BYTE(&sum, 3)]);
         }
     }
-
-    return;
 }
 
 
@@ -1876,8 +1872,6 @@ l_uint32  *lines, *lined;
             SET_DATA_BYTE(lined, j + 1, valtab[GET_DATA_BYTE(&sum, 3)]);
         }
     }
-
-    return;
 }
 
 
@@ -2058,7 +2052,6 @@ l_uint32  *lines, *lined;
             SET_DATA_BYTE(lined, j + 3, valtab[GET_DATA_BYTE(&sum, 3)]);
         }
     }
-    return;
 }
 
 
@@ -2154,8 +2147,6 @@ l_uint32  *lines, *lined;
             SET_DATA_BYTE(lined, j, valtab[sum]);
         }
     }
-
-    return;
 }
 
 
@@ -2271,8 +2262,6 @@ l_uint32  *lines, *lined;
             SET_DATA_BYTE(lined, j, 255 - sum);
         }
     }
-
-    return;
 }
 
 

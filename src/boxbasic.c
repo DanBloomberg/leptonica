@@ -295,7 +295,6 @@ BOX  *box;
     if (boxGetRefcount(box) <= 0)
         LEPT_FREE(box);
     *pbox = NULL;
-    return;
 }
 
 
@@ -605,7 +604,6 @@ BOXA    *boxa;
     }
 
     *pboxa = NULL;
-    return;
 }
 
 
@@ -1309,8 +1307,6 @@ BOXAA   *baa;
     LEPT_FREE(baa->boxa);
     LEPT_FREE(baa);
     *pbaa = NULL;
-
-    return;
 }
 
 

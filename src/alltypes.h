@@ -50,6 +50,7 @@
 #include "arrayaccess.h"
 #include "bmf.h"
 #include "ccbord.h"
+#include "colorinfo.h"
 #include "dewarp.h"
 #include "gplot.h"
 #include "imageio.h"

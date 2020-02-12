@@ -283,7 +283,6 @@ GPLOT  *gplot;
 
     LEPT_FREE(gplot);
     *pgplot = NULL;
-    return;
 }
 
 

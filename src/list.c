@@ -257,7 +257,6 @@ DLLIST  *elem, *next, *head;
         LEPT_FREE(elem);
     }
     *phead = NULL;
-    return;
 }
 
 

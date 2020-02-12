@@ -431,8 +431,6 @@ l_uint32  *linemina, *linemaxa, *line;
             SET_DATA_BYTE(line, j, val);
         }
     }
-
-    return;
 }
 
 
@@ -594,8 +592,6 @@ l_uint32  *lines, *lined, *linedp;
     } else {
         L_ERROR("depth not 1, 8 or 32 bpp\n", procName);
     }
-
-    return;
 }
 
 
@@ -1738,8 +1734,6 @@ l_uint32  *linemina, *linemaxa, *lined;
             SET_DATA_BYTE(lined, j, val);
         }
     }
-
-    return;
 }
 
 

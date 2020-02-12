@@ -1133,7 +1133,6 @@ L_STACK  *auxstack;
         fseg->dy = dy;
         lstackAdd(stack, fseg);
     }
-    return;
 }
 
 
@@ -1190,7 +1189,6 @@ L_STACK  *auxstack;
         fseg->dy = dy;
         lstackAdd(stack, fseg);
     }
-    return;
 }
 
 
@@ -1242,5 +1240,4 @@ L_STACK  *auxstack;
 
         /* Save it for re-use */
     lstackAdd(auxstack, fseg);
-    return;
 }

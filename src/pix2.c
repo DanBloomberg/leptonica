@@ -694,8 +694,6 @@ setPixelLow(l_uint32  *line,
     default:
         lept_stderr("illegal depth in setPixelLow()\n");
     }
-
-    return;
 }
 
 
@@ -2811,7 +2809,6 @@ extractRGBValues(l_uint32  pixel,
     if (prval) *prval = (pixel >> L_RED_SHIFT) & 0xff;
     if (pgval) *pgval = (pixel >> L_GREEN_SHIFT) & 0xff;
     if (pbval) *pbval = (pixel >> L_BLUE_SHIFT) & 0xff;
-    return;
 }
 
 
@@ -2836,7 +2833,6 @@ extractRGBAValues(l_uint32  pixel,
     if (pgval) *pgval = (pixel >> L_GREEN_SHIFT) & 0xff;
     if (pbval) *pbval = (pixel >> L_BLUE_SHIFT) & 0xff;
     if (paval) *paval = (pixel >> L_ALPHA_SHIFT) & 0xff;
-    return;
 }
 
 

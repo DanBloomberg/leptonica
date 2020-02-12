@@ -292,7 +292,6 @@ PIXCMAP  *cmap;
     LEPT_FREE(cmap->array);
     LEPT_FREE(cmap);
     *pcmap = NULL;
-    return;
 }
 
 /*!

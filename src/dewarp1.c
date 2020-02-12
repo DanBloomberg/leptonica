@@ -490,8 +490,6 @@ dewarpCreateRef(l_int32  pageno,
 {
 L_DEWARP  *dew;
 
-    PROCNAME("dewarpCreateRef");
-
     dew = (L_DEWARP *)LEPT_CALLOC(1, sizeof(L_DEWARP));
     dew->pageno = pageno;
     dew->hasref = 1;
@@ -531,7 +529,6 @@ L_DEWARP  *dew;
     numaDestroy(&dew->nacurves);
     LEPT_FREE(dew);
     *pdew = NULL;
-    return;
 }
 
 
@@ -748,7 +745,6 @@ L_DEWARPA  *dewa;
     LEPT_FREE(dewa->dewarpcache);
     LEPT_FREE(dewa);
     *pdewa = NULL;
-    return;
 }
 
 

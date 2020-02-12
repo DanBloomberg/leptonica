@@ -177,7 +177,7 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		boxfunc3.c boxfunc4.c boxfunc5.c \
 		bytearray.c ccbord.c ccthin.c \
 		checkerboard.c classapp.c \
-		colorcontent.c coloring.c \
+		colorcontent.c colorinfo.c coloring.c \
 		colormap.c colormorph.c \
 		colorquant1.c colorquant2.c \
 		colorseg.c colorspace.c \
@@ -231,7 +231,7 @@ LEPTLIB_C =	adaptmap.c affine.c \
 LEPTLIB_H =	allheaders.h alltypes.h \
 		array.h arrayaccess.h bbuffer.h \
 		bmf.h bmfdata.h bmp.h ccbord.h \
-		dewarp.h environ.h gplot.h \
+		colorinfo.h dewarp.h environ.h gplot.h \
 		heap.h imageio.h \
 		jbclass.h list.h morph.h \
 		pix.h ptra.h queue.h rbtree.h \

@@ -386,7 +386,6 @@ NUMA  *na;
     }
 
     *pna = NULL;
-    return;
 }
 
 
@@ -1503,8 +1502,6 @@ NUMAA   *naa;
     LEPT_FREE(naa->numa);
     LEPT_FREE(naa);
     *pnaa = NULL;
-
-    return;
 }
 
 

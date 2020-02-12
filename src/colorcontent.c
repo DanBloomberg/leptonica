@@ -585,7 +585,7 @@ pixColorShiftWhitePoint(PIX     *pixs,
                         l_int32  gref,
                         l_int32  bref)
 {
-l_int32    w, h, d, i, j, wpl1, wpl2, rval, gval, bval;
+l_int32    w, h, i, j, wpl1, wpl2, rval, gval, bval;
 l_int32   *rtab, *gtab, *btab;
 l_uint32   pixel;
 l_uint32  *data1, *data2, *line1, *line2;

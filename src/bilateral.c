@@ -552,7 +552,6 @@ L_BILATERAL  *bil;
     LEPT_FREE(bil->lineset);
     LEPT_FREE(bil);
     *pbil = NULL;
-    return;
 }
 
 

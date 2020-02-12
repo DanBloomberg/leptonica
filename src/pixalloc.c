@@ -290,7 +290,6 @@ L_PIX_MEM_STORE  *pms;
     LEPT_FREE(pms->firstptr);
     LEPT_FREE(pms);
     CustomPMS = NULL;
-    return;
 }
 
 
@@ -380,8 +379,6 @@ L_PTRA           *pa;
         if (pms->logfile)
             pms->meminuse[level]--;
     }
-
-    return;
 }
 
 
@@ -531,6 +528,4 @@ L_PIX_MEM_STORE  *pms;
     for (i = 0; i < pms->nlevels; i++)
          lept_stderr(" Level %d (%zu bytes): %d\n", i,
                      pms->sizes[i], pms->memempty[i]);
-
-    return;
 }

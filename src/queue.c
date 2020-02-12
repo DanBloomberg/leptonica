@@ -161,8 +161,6 @@ L_QUEUE  *lq;
         lstackDestroy(&lq->stack, freeflag);
     LEPT_FREE(lq);
     *plq = NULL;
-
-    return;
 }
 
 

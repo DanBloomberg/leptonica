@@ -360,7 +360,6 @@ CCBORDA  *ccba;
     LEPT_FREE(ccba->ccb);
     LEPT_FREE(ccba);
     *pccba = NULL;
-    return;
 }
 
 
@@ -446,7 +445,6 @@ CCBORD  *ccb;
         LEPT_FREE(ccb);
         *pccb = NULL;
     }
-    return;
 }
 
 

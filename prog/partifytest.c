@@ -37,14 +37,17 @@
 int main(int    argc,
          char **argv)
 {
-static char  mainName[] = "partitiontest";
+static char  mainName[] = "partifytest";
 
     if (argc != 1)
         return ERROR_INT("syntax: partifytest", mainName, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/partify");
+#if 0
     partifyFiles(".", "bois", 3, "/tmp/lept/partify/bois", "/tmp/lept/partify/debug.pdf");
-
+#else
+    partifyFiles(".", "ortiz", 5, "/tmp/lept/partify/ortiz", "/tmp/lept/partify/debug.pdf");
+#endif
     return 0;
 }

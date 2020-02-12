@@ -193,7 +193,6 @@ PIXTILING  *pt;
     pixDestroy(&pt->pix);
     LEPT_FREE(pt);
     *ppt = NULL;
-    return;
 }
 
 

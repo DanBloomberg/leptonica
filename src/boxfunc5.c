@@ -1118,9 +1118,7 @@ boxaReconcileAllByMedian(BOXA    *boxas,
                          l_int32  extra,
                          PIXA    *pixadb)
  {
-l_int32  i, n, diff, ncols;
-l_int32  left, right, top, bot, medleft, medright, medtop, medbot;
-BOX     *box;
+l_int32  ncols;
 BOXA    *boxa1e, *boxa1o, *boxa2e, *boxa2o, *boxa3e, *boxa3o, *boxad;
 PIX     *pix1;
 

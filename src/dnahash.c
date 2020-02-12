@@ -36,7 +36,7 @@
  *          l_int32      l_dnaHashGetCount()
  *          l_int32      l_dnaHashGetTotalCount()
  *          L_DNA       *l_dnaHashGetDna()
- *          void         l_dnaHashAdd()
+ *          l_int32      l_dnaHashAdd()
  *
  *      DnaHash: Operations on Dna
  *          L_DNAHASH   *l_dnaHashCreateFromDna()

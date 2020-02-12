@@ -165,9 +165,7 @@ L_KERNEL  *kel;
         LEPT_FREE(kel->data[i]);
     LEPT_FREE(kel->data);
     LEPT_FREE(kel);
-
     *pkel = NULL;
-    return;
 }
 
 

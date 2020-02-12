@@ -187,7 +187,6 @@ L_BMF  *bmf;
     LEPT_FREE(bmf->widthtab);
     LEPT_FREE(bmf);
     *pbmf = NULL;
-    return;
 }
 
 

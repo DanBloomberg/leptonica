@@ -2740,7 +2740,7 @@ numaGetBinSortIndex(NUMA    *nas,
                     l_int32  sortorder)
 {
 l_int32    i, n, isize, ival, imax;
-l_float32  size;
+l_float32  minsize, size;
 NUMA      *na, *nai, *nad;
 L_PTRA    *paindex;
 
@@ -2750,6 +2750,9 @@ L_PTRA    *paindex;
         return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
     if (sortorder != L_SORT_INCREASING && sortorder != L_SORT_DECREASING)
         return (NUMA *)ERROR_PTR("invalid sort order", procName, NULL);
+    numaGetMin(nas, &minsize, NULL);
+    if (minsize < 0)
+        return (NUMA *)ERROR_PTR("nas has negative numbers", procName, NULL);
     numaGetMax(nas, &size, NULL);
     isize = (l_int32)size;
     if (isize > MaxInitPtraSize - 1) {

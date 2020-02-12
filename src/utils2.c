@@ -95,7 +95,7 @@
  *       with Windows DLLs
  *           FILE      *lept_fopen()
  *           l_int32    lept_fclose()
- *           void       lept_calloc()
+ *           void      *lept_calloc()
  *           void       lept_free()
  *
  *       Multi-platform file system operations in temp directories
@@ -2081,7 +2081,6 @@ lept_free(void *ptr)
 {
     if (!ptr) return;
     LEPT_FREE(ptr);
-    return;
 }
 
 
@@ -2285,7 +2284,6 @@ char  *realdir;
 #endif  /* _WIN32 */
 
     LEPT_FREE(realdir);
-    return;
 }
 
 

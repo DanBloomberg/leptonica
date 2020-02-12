@@ -177,7 +177,6 @@ PIXACC  *pixacc;
     pixDestroy(&pixacc->pix);
     LEPT_FREE(pixacc);
     *ppixacc = NULL;
-    return;
 }
 
 

@@ -267,9 +267,7 @@ L_BYTEA  *ba;
         if (ba->data) LEPT_FREE(ba->data);
         LEPT_FREE(ba);
     }
-
     *pba = NULL;
-    return;
 }
 
 

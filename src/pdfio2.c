@@ -1614,7 +1614,6 @@ L_COMP_DATA  *cid;
     if (cid->cmapdatahex) LEPT_FREE(cid->cmapdatahex);
     LEPT_FREE(cid);
     *pcid = NULL;
-    return;
 }
 
 
@@ -1734,7 +1733,6 @@ SARRAY  *sa;
     lpd->poststream = stringNew("\n"
                                 "endstream\n"
                                 "endobj\n");
-    return;
 }
 
 
@@ -1812,8 +1810,6 @@ l_float32  xpt, ypt, wpt, hpt, maxx, maxy;
         ptaGetPt(lpd->wh, i, &wpt, &hpt);
         ptaSetPt(lpd->xy, i, xpt, maxy - ypt - hpt);
     }
-
-    return;
 }
 
 
@@ -2522,7 +2518,6 @@ L_PDF_DATA   *lpd;
     if (lpd->objloc) l_dnaDestroy(&lpd->objloc);
     LEPT_FREE(lpd);
     *plpd = NULL;
-    return;
 }
 
 

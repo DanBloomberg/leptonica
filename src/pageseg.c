@@ -2208,7 +2208,7 @@ pixFindRectangleInCC(PIX       *pixs,
                      l_int32    select,
                      l_int32    debug)
 {
-l_int32  x, y, i, j, w, h, w1, h1, w2, h2, found, res;
+l_int32  x, y, i, w, h, w1, h1, w2, h2, found, res;
 l_int32  xfirst, xlast, xstart, yfirst, ylast, length;
 BOX     *box1, *box2, *box3, *box4, *box5;
 PIX     *pix1, *pix2, *pixdb1, *pixdb2;
@@ -2399,7 +2399,6 @@ l_float32  fgfract;
 BOX       *box1;
 BOXA      *boxa1;
 PIX       *pix1, *pix2, *pix3, *pix4, *pix5;
-PIXA      *pixa1;
 
     PROCNAME("pixAutoPhotoinvert");
 

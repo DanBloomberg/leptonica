@@ -432,7 +432,6 @@ PIXA    *pixa;
     }
 
     *ppixa = NULL;
-    return;
 }
 
 
@@ -1946,11 +1945,8 @@ PIXAA   *paa;
         pixaDestroy(&paa->pixa[i]);
     LEPT_FREE(paa->pixa);
     boxaDestroy(&paa->boxa);
-
     LEPT_FREE(paa);
     *ppaa = NULL;
-
-    return;
 }
 
 

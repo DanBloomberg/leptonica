@@ -187,8 +187,6 @@ L_BBUFFER  *bb;
         LEPT_FREE(bb->array);
     LEPT_FREE(bb);
     *pbb = NULL;
-
-    return;
 }
 
 

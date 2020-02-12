@@ -14,7 +14,8 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	boxa1_reg boxa2_reg boxa3_reg boxa4_reg bytea_reg \
 	ccthin1_reg ccthin2_reg \
 	checkerboard_reg cmapquant_reg \
-	colorcontent_reg coloring_reg colorize_reg \
+	colorcontent_reg colorinfo_reg \
+	coloring_reg colorize_reg \
 	colormask_reg colormorph_reg colorquant_reg \
 	colorseg_reg colorspace_reg compare_reg \
 	compfilter_reg conncomp_reg conversion_reg \
