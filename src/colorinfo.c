@@ -96,6 +96,11 @@ static l_int32 evalColorinfoData(L_COLORINFO *ci, l_int32 debug);
  * \param[in]    nx     requested number of tiles in each row
  * \param[in]    ny     requested number of tiles in each column
  * \return  boxa, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Tiles must at least 10 pixels in each dimension.
+ * </pre>
  */
 L_COLORINFO *
 l_colorinfoCreate(PIX     *pixs,
@@ -117,6 +122,8 @@ L_COLORINFO  *ci;
     pixGetDimensions(pixs, &w, &h, NULL);
     tw = w / nx;
     th = h / ny;
+    if (tw < 10 || th < 10)
+        return (L_COLORINFO *)ERROR_PTR("tile size too small", procName, NULL);
     boxas = boxaCreate(nx * ny);
     for (i = 0; i < ny; i++) {
         for (j = 0; j < nx; j++) {
@@ -325,8 +332,8 @@ L_QUEUE   *lq;
 
         /* Do a low-pass filter on pixs.  This will make bad pixels
          * near the zeroed non-color pixels, but any components made
-         * from these pixels will be removed at the end by the dilated
-         * no-color mask. */
+         * from these pixels will be removed at the end by the
+         * (optionally dilated) no-color mask. */
     if (smooth > 1) {
         kel = makeFlatKernel(smooth, smooth, smooth / 2, smooth / 2);
         pixss = pixConvolveRGBSep(pixs, kel, kel);
@@ -344,7 +351,7 @@ L_QUEUE   *lq;
     pixSetBorderRingVal(pixv, 1, 1);
     pixm = pixCreate(w, h, 1);  /* color components */
     lq = lqueueCreate(0);
-    x = y = 1;
+    x = y = 1;  /* first row and column are marked as visited */
     while (findNextUnvisited(pixv, &x, &y) == 1) {
             /* Flood fill this component, starting from (x,y) */
         if (debug) lept_stderr("Start: x = %d, y = %d\n", x, y);
@@ -513,6 +520,8 @@ COLOREL *el;
  * Notes:
  *      (1) Use 8-connected filling.  It is faster because it reduces the
  *          number of single-pixel noise components near color boundaries.
+ *      (2) The seed pixel at (x,y) is unvisited, and can never be on the
+ *          exterior boundary of the tile %pixs.
  * </pre>
  */
 static void
@@ -554,7 +563,7 @@ COLOREL  *el;
         color = el->color;
         LEPT_FREE(el);
         pixGetVisitedNeighbors(pixv, x, y, visited);
-        if (x > 0 && !visited[0]) {  /* check W */
+        if (!visited[0]) {  /* check W */
             pixGetPixel(pixs, x - 1, y, &val);
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x - 1, y, color);
@@ -563,7 +572,7 @@ COLOREL  *el;
                 pixSetPixel(pixv, x - 1, y, 1);  /* visited */
             }
         }
-        if (y > 0 && !visited[1]) {  /* check N */
+        if (!visited[1]) {  /* check N */
             pixGetPixel(pixs, x, y - 1, &val);
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x, y - 1, color);
@@ -572,7 +581,7 @@ COLOREL  *el;
                 pixSetPixel(pixv, x, y - 1, 1);
             }
         }
-        if (x < w - 1 && !visited[2]) {  /* check E */
+        if (!visited[2]) {  /* check E */
             pixGetPixel(pixs, x + 1, y, &val);
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x + 1, y, color);
@@ -581,7 +590,7 @@ COLOREL  *el;
                 pixSetPixel(pixv, x + 1, y, 1);
             }
         }
-        if (y < h - 1 && !visited[3]) {  /* check S */
+        if (!visited[3]) {  /* check S */
             pixGetPixel(pixs, x, y + 1, &val);
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x, y + 1, color);
@@ -590,7 +599,7 @@ COLOREL  *el;
                 pixSetPixel(pixv, x, y + 1, 1);
             }
         }
-        if (x > 0 && y > 0 && !visited[4]) {  /* check NW */
+        if (!visited[4]) {  /* check NW */
             pixGetPixel(pixs, x - 1, y - 1, &val);
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x - 1, y - 1, color);
@@ -599,7 +608,7 @@ COLOREL  *el;
                 pixSetPixel(pixv, x - 1, y - 1, 1);
             }
         }
-        if (x < w - 1 && y > 0 && !visited[5]) {  /* check NE */
+        if (!visited[5]) {  /* check NE */
             pixGetPixel(pixs, x + 1, y - 1, &val);
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x + 1, y - 1, color);
@@ -608,7 +617,7 @@ COLOREL  *el;
                 pixSetPixel(pixv, x + 1, y - 1, 1);
             }
         }
-        if (x > 0 && y < h - 1 && !visited[6]) {  /* check SW */
+        if (!visited[6]) {  /* check SW */
             pixGetPixel(pixs, x - 1, y + 1, &val);
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x - 1, y + 1, color);
@@ -617,7 +626,7 @@ COLOREL  *el;
                 pixSetPixel(pixv, x - 1, y + 1, 1);
             }
         }
-        if (x < w - 1 && y < h - 1 && !visited[7]) {  /* check SE */
+        if (!visited[7]) {  /* check SE */
             pixGetPixel(pixs, x + 1, y + 1, &val);
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x + 1, y + 1, color);
@@ -646,6 +655,8 @@ COLOREL  *el;
  *          order {W,N,E,S,NW,NE,SW,SE}, are returned in %visited.
  *          A "1" value means that pixel has been visited.  Initialize
  *          each neighbor to 1 (visited).
+ *      (2) The input point (%x,%y) is never on the outer boundary of %pixs,
+ *          (e.g., x >= 1, y >= 1), so no checking is required.
  * </pre>
  */
 static void
@@ -654,27 +665,14 @@ pixGetVisitedNeighbors(PIX       *pixs,
                        l_int32    y,
                        l_uint32  *visited)
 {
-l_int32  w, h;
-
-    pixGetDimensions(pixs, &w, &h, NULL);
-    visited[0] = visited[1] = visited[2] = visited[3] = 1;
-    visited[4] = visited[5] = visited[6] = visited[7] = 1;
-    if (x > 0)
-        pixGetPixel(pixs, x - 1, y, visited);  /* W */
-    if (y > 0)
-        pixGetPixel(pixs, x, y - 1, visited + 1);  /* N */
-    if (x < w - 1)
-        pixGetPixel(pixs, x + 1, y, visited + 2);  /* E */
-    if (y < h - 1)
-        pixGetPixel(pixs, x, y + 1, visited + 3);  /* S */
-    if (x > 0 && y > 0)
-        pixGetPixel(pixs, x - 1, y - 1, visited + 4);  /* NW */
-    if (x < w - 1 && y > 0)
-        pixGetPixel(pixs, x + 1, y - 1, visited + 5);  /* NE */
-    if (x > 0 && y < h - 1)
-        pixGetPixel(pixs, x - 1, y + 1, visited + 6);  /* SW */
-    if (x < w - 1 && y < h - 1)
-        pixGetPixel(pixs, x + 1, y + 1, visited + 7);  /* SE */
+    pixGetPixel(pixs, x - 1, y, visited);  /* W */
+    pixGetPixel(pixs, x, y - 1, visited + 1);  /* N */
+    pixGetPixel(pixs, x + 1, y, visited + 2);  /* E */
+    pixGetPixel(pixs, x, y + 1, visited + 3);  /* S */
+    pixGetPixel(pixs, x - 1, y - 1, visited + 4);  /* NW */
+    pixGetPixel(pixs, x + 1, y - 1, visited + 5);  /* NE */
+    pixGetPixel(pixs, x - 1, y + 1, visited + 6);  /* SW */
+    pixGetPixel(pixs, x + 1, y + 1, visited + 7);  /* SE */
 }
 
 
