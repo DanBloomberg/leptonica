@@ -167,7 +167,6 @@ static l_int32 scaleBinaryLow(l_uint32 *datad, l_int32 wd, l_int32 hd,
 #define  DEBUG_UNROLLING  0
 #endif  /* ~NO_CONSOLE_IO */
 
-
 /*------------------------------------------------------------------*
  *                    Top level scaling dispatcher                  *
  *------------------------------------------------------------------*/
@@ -1874,8 +1873,8 @@ PIX       *pixd;
  * \brief   pixScaleAreaMap()
  *
  * \param[in]    pix       2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap
- * \param[in]    scalex    must be < 0.7
- * \param[in]    scaley    must be < 0.7
+ * \param[in]    scalex    must be < 0.7; should be > 0.01
+ * \param[in]    scaley    must be < 0.7; should be > 0.01
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1885,20 +1884,22 @@ PIX       *pixd;
  *          scale factor is greater than or equal to 0.7, we issue a warning
  *          and call pixScaleGeneral(), which will invoke linear
  *          interpolation without sharpening.
- *      (2) This works only on 2, 4, 8 and 32 bpp images.  If there is
+ *      (2) Use of a scale factor < 0.01 can result in bogus results due
+ *          to overflow of intermediate data.
+ *      (3) This works only on 2, 4, 8 and 32 bpp images.  If there is
  *          a colormap, it is removed by converting to RGB.  In other
  *          cases, we issue a warning and call pixScaleGeneral().
- *      (3) This is faster than pixScale() because it does not do sharpening.
- *      (4) It does a relatively expensive area mapping computation, to
+ *      (4) This is faster than pixScale() because it does not do sharpening.
+ *      (5) It does a relatively expensive area mapping computation, to
  *          avoid antialiasing.  It is about 2x slower than pixScaleSmooth(),
  *          but the results are much better on fine text.
- *      (5) pixScaleAreaMap2() is typically about 7x faster for the special
+ *      (6) pixScaleAreaMap2() is typically about 7x faster for the special
  *          case of 2x reduction for color images, and about 9x faster
  *          for grayscale images.  Surprisingly, the improvement in speed
  *          when using a cascade of 2x reductions for small scale factors is
  *          less than one might expect, and in most situations gives
  *          poorer image quality.  But see (6).
- *      (6) For reductions between 0.35 and 0.5, a 2x area map reduction
+ *      (7) For reductions between 0.35 and 0.5, a 2x area map reduction
  *          followed by using pixScaleGeneral() on a 2x larger scalefactor
  *          (which further reduces the image size using bilinear interpolation)
  *          would give a significant speed increase, with little loss of
@@ -1930,6 +1931,8 @@ PIX       *pixs, *pixd, *pix1, *pix2, *pix3;
         L_WARNING("scaling factors not < 0.7; do regular scaling\n", procName);
         return pixScaleGeneral(pix, scalex, scaley, 0.0, 0);
     }
+    if (maxscale < 0.01)
+        L_WARNING("ridiculously small scale factor\n", procName);
 
         /* Special cases: 2x, 4x, 8x, 16x reduction */
     if (scalex == 0.5 && scaley == 0.5)
@@ -3479,10 +3482,15 @@ l_float32  scx, scy;
                 vmidb += areab * ((pixel >> L_BLUE_SHIFT) & 0xff);
             }
 
-                /* Sum all the contributions */
-            rval = (v00r + v01r + v10r + v11r + vinr + vmidr + 128) / area;
-            gval = (v00g + v01g + v10g + v11g + ving + vmidg + 128) / area;
-            bval = (v00b + v01b + v10b + v11b + vinb + vmidb + 128) / area;
+                /* Sum all the contributions.  The casts are here because
+                 * using a ridiculously small scaling factor (less than 1/128)
+                 * can otherwise give an integer overflow. */
+            rval = (l_int32)(((l_float32)v00r + v01r + v10r + v11r +
+                              vinr + vmidr + 128) / (l_float32)area);
+            gval = (l_int32)(((l_float32)v00g + v01g + v10g + v11g +
+                              ving + vmidg + 128) / (l_float32)area);
+            bval = (l_int32)(((l_float32)v00b + v01b + v10b + v11b +
+                              vinb + vmidb + 128) / (l_float32)area);
 #if  DEBUG_OVERFLOW
             if (rval > 255) lept_stderr("rval ovfl: %d\n", rval);
             if (gval > 255) lept_stderr("gval ovfl: %d\n", gval);
@@ -3593,7 +3601,8 @@ l_float32  scx, scy;
                 vmid += 16 * (16 - yuf) * GET_DATA_BYTE(lines, xup + m);
             for (m = 1; m < delx; m++)  /* for bottom side */
                 vmid += 16 * ylf * GET_DATA_BYTE(lines + dely * wpls, xup + m);
-            val = (v00 + v01 + v10 + v11 + vin + vmid + 128) / area;
+            val = (l_int32)(((l_float32)v00 + v01 + v10 + v11 +
+                            vin + vmid + 128) / (l_float32)area);
 #if  DEBUG_OVERFLOW
             if (val > 255) lept_stderr("val overflow: %d\n", val);
 #endif  /* DEBUG_OVERFLOW */

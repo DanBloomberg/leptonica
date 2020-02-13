@@ -92,6 +92,7 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("hs must be at least 2", procName, NULL);
     wpls = pixGetWpl(pixs);
     datas = pixGetData(pixs);
+    pixSetPadBits(pixs, 0);
 
     if ((pixd = pixCreate(ws / 2, hs / 2, 1)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
@@ -251,6 +252,7 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("hs must be at least 2", procName, NULL);
     wpls = pixGetWpl(pixs);
     datas = pixGetData(pixs);
+    pixSetPadBits(pixs, 0);
 
     if ((pixd = pixCreate(ws / 2, hs / 2, 1)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
