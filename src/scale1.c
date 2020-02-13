@@ -1873,8 +1873,8 @@ PIX       *pixd;
  * \brief   pixScaleAreaMap()
  *
  * \param[in]    pix       2, 4, 8 or 32 bpp; and 2, 4, 8 bpp with colormap
- * \param[in]    scalex    must be < 0.7; should be > 0.01
- * \param[in]    scaley    must be < 0.7; should be > 0.01
+ * \param[in]    scalex    must be < 0.7; minimum is 0.02
+ * \param[in]    scaley    must be < 0.7; minimum is 0.02
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -1884,8 +1884,8 @@ PIX       *pixd;
  *          scale factor is greater than or equal to 0.7, we issue a warning
  *          and call pixScaleGeneral(), which will invoke linear
  *          interpolation without sharpening.
- *      (2) Use of a scale factor < 0.01 can result in bogus results due
- *          to overflow of intermediate data.
+ *      (2) The minimum scale factor allowed is 0.02.  Various overflows
+ *          will occur when scale factors are less than about 1/256.
  *      (3) This works only on 2, 4, 8 and 32 bpp images.  If there is
  *          a colormap, it is removed by converting to RGB.  In other
  *          cases, we issue a warning and call pixScaleGeneral().
@@ -1926,13 +1926,19 @@ PIX       *pixs, *pixd, *pix1, *pix2, *pix3;
     d = pixGetDepth(pix);
     if (d != 2 && d != 4 && d != 8 && d != 32)
         return (PIX *)ERROR_PTR("pix not 2, 4, 8 or 32 bpp", procName, NULL);
+    if (scalex < 0.02) {
+        L_WARNING("scalex < 0.02; too small; setting to 0.02\n", procName);
+        scalex = 0.02;
+    }
+    if (scaley < 0.02) {
+        L_WARNING("scaley < 0.02; too small; setting to 0.02\n", procName);
+        scaley = 0.02;
+    }
     maxscale = L_MAX(scalex, scaley);
     if (maxscale >= 0.7) {
         L_WARNING("scaling factors not < 0.7; do regular scaling\n", procName);
         return pixScaleGeneral(pix, scalex, scaley, 0.0, 0);
     }
-    if (maxscale < 0.01)
-        L_WARNING("ridiculously small scale factor\n", procName);
 
         /* Special cases: 2x, 4x, 8x, 16x reduction */
     if (scalex == 0.5 && scaley == 0.5)
@@ -3482,15 +3488,10 @@ l_float32  scx, scy;
                 vmidb += areab * ((pixel >> L_BLUE_SHIFT) & 0xff);
             }
 
-                /* Sum all the contributions.  The casts are here because
-                 * using a ridiculously small scaling factor (less than 1/128)
-                 * can otherwise give an integer overflow. */
-            rval = (l_int32)(((l_float32)v00r + v01r + v10r + v11r +
-                              vinr + vmidr + 128) / (l_float32)area);
-            gval = (l_int32)(((l_float32)v00g + v01g + v10g + v11g +
-                              ving + vmidg + 128) / (l_float32)area);
-            bval = (l_int32)(((l_float32)v00b + v01b + v10b + v11b +
-                              vinb + vmidb + 128) / (l_float32)area);
+                /* Sum all the contributions */
+            rval = (v00r + v01r + v10r + v11r + vinr + vmidr + 128) / area;
+            gval = (v00g + v01g + v10g + v11g + ving + vmidg + 128) / area;
+            bval = (v00b + v01b + v10b + v11b + vinb + vmidb + 128) / area;
 #if  DEBUG_OVERFLOW
             if (rval > 255) lept_stderr("rval ovfl: %d\n", rval);
             if (gval > 255) lept_stderr("gval ovfl: %d\n", gval);
@@ -3601,8 +3602,7 @@ l_float32  scx, scy;
                 vmid += 16 * (16 - yuf) * GET_DATA_BYTE(lines, xup + m);
             for (m = 1; m < delx; m++)  /* for bottom side */
                 vmid += 16 * ylf * GET_DATA_BYTE(lines + dely * wpls, xup + m);
-            val = (l_int32)(((l_float32)v00 + v01 + v10 + v11 +
-                            vin + vmid + 128) / (l_float32)area);
+            val = (v00 + v01 + v10 + v11 + vin + vmid + 128) / area;
 #if  DEBUG_OVERFLOW
             if (val > 255) lept_stderr("val overflow: %d\n", val);
 #endif  /* DEBUG_OVERFLOW */
