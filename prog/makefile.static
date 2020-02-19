@@ -163,7 +163,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		colorseg_reg.c colorspace_reg.c \
 		compare_reg.c compfilter_reg.c \
 		conncomp_reg.c conversion_reg.c convolve_reg.c \
-		dewarp_reg.c distance_reg.c \
+		crop_reg.c dewarp_reg.c distance_reg.c \
 		dither_reg.c dna_reg.c \
 		dwamorph1_reg.c dwamorph2_reg.c \
 		edge_reg.c enhance_reg.c equal_reg.c \
@@ -219,7 +219,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		convertsegfilestopdf.c convertsegfilestops.c \
 		converttogray.c converttopdf.c converttops.c \
 		cornertest.c corrupttest.c \
-		croptest.c croptext.c deskew_it.c \
+		croptext.c deskew_it.c \
 		dewarprules.c dewarptest1.c dewarptest2.c \
 		dewarptest3.c dewarptest4.c dewarptest5.c \
 		digitprep1.c displayboxa.c displayboxes_on_pixa.c \
@@ -450,6 +450,9 @@ conversion_reg: conversion_reg.o $(LEPTLIB)
 
 convolve_reg:	convolve_reg.o $(LEPTLIB)
 	$(CC) -o convolve_reg convolve_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+crop_reg:	crop_reg.o $(LEPTLIB)
+	$(CC) -o crop_reg crop_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 dewarp_reg:	dewarp_reg.o $(LEPTLIB)
 	$(CC) -o dewarp_reg dewarp_reg.o $(ALL_LIBS) $(EXTRALIBS)
@@ -861,9 +864,6 @@ cornertest:	cornertest.o $(LEPTLIB)
 
 corrupttest:	corrupttest.o $(LEPTLIB)
 	$(CC) -o corrupttest corrupttest.o $(ALL_LIBS) $(EXTRALIBS)
-
-croptest:	croptest.o $(LEPTLIB)
-	$(CC) -o croptest croptest.o $(ALL_LIBS) $(EXTRALIBS)
 
 croptext:	croptext.o $(LEPTLIB)
 	$(CC) -o croptext croptext.o $(ALL_LIBS) $(EXTRALIBS)

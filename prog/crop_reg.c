@@ -25,7 +25,11 @@
  *====================================================================*/
 
 /*
- *  croptest.c
+ *  crop_reg.c
+ *
+ *   Test:
+ *   * plotting pixel profiles
+ *   * undercropping from a box (i.e., with an added border)
  */
 
 #ifdef HAVE_CONFIG_H
@@ -36,9 +40,9 @@
 
 static const l_int32  mindif = 60;
 
-l_int32 GetLeftCut(NUMA *narl, NUMA *nart, NUMA *nait,
+static l_int32 GetLeftCut(NUMA *narl, NUMA *nart, NUMA *nait,
                    l_int32 h, l_int32 *pleft);
-l_int32 GetRightCut(NUMA *narl, NUMA *nart, NUMA *nait,
+static l_int32 GetRightCut(NUMA *narl, NUMA *nart, NUMA *nait,
                      l_int32 h, l_int32 *pright);
 
 const char *fnames[] = {"lyra.005.jpg", "lyra.036.jpg"};
@@ -46,22 +50,23 @@ const char *fnames[] = {"lyra.005.jpg", "lyra.036.jpg"};
 int main(int    argc,
          char **argv)
 {
-l_int32      i, pageno, w, h, left, right;
-NUMA        *na1, *nar, *naro, *narl, *nart, *nai, *naio, *nait;
-PIX         *pixs, *pixr, *pixg, *pixgi, *pixd, *pix1, *pix2;
-PIXA        *pixa1, *pixa2;
-static char  mainName[] = "croptest";
+l_int32       i, pageno, w, h, left, right;
+BOX          *box1, *box2;
+NUMA         *na1, *nar, *naro, *narl, *nart, *nai, *naio, *nait;
+PIX          *pixs, *pixr, *pixg, *pixgi, *pixd, *pix1, *pix2, *pix3, *pix4;
+PIXA         *pixa1, *pixa2;
+L_REGPARAMS  *rp;
 
-    if (argc != 1)
-        return ERROR_INT("syntax: croptest", mainName, 1);
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
-    setLeptDebugOK(1);
     lept_mkdir("lept/crop");
 
+        /* Calculate projection profiles through images/drawings. */
     pixa1 = pixaCreate(2);
     for (i = 0; i < 2; i++) {
         pageno = extractNumberFromFilename(fnames[i], 5, 0);
-        fprintf(stderr, "Page %d\n", pageno);
+        lept_stderr("Page %d\n", pageno);
         pixs = pixRead(fnames[i]);
         pixr = pixRotate90(pixs, (pageno % 2) ? 1 : -1);
         pixg = pixConvertTo8(pixr, 0);
@@ -71,14 +76,10 @@ static char  mainName[] = "croptest";
         nar = pixReversalProfile(pixg, 0.8, L_VERTICAL_LINE,
                                  0, h - 1, mindif, 1, 1);
         naro = numaOpen(nar, 11);
-        gplotSimple1(naro, GPLOT_PNG, "/tmp/lept/crop/reversals",
-                     "Reversals Opened");
+        pix1 = gplotSimplePix1(naro, "Reversals Opened");
+        regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0,2 */
         narl = numaLowPassIntervals(naro, 0.1, 0.0);
-        fprintf(stderr, "narl:");
-        numaWriteStream(stderr, narl);
         nart = numaThresholdEdges(naro, 0.1, 0.5, 0.0);
-        fprintf(stderr, "nart:");
-        numaWriteStream(stderr, nart);
         numaDestroy(&nar);
         numaDestroy(&naro);
 
@@ -87,30 +88,35 @@ static char  mainName[] = "croptest";
         nai = pixAverageIntensityProfile(pixgi, 0.8, L_VERTICAL_LINE,
                                          0, h - 1, 1, 1);
         naio = numaOpen(nai, 11);
-        gplotSimple1(naio, GPLOT_PNG, "/tmp/lept/crop/intensities",
-                     "Intensities Opened");
+        pix2 = gplotSimplePix1(naio, "Intensities Opened");
+        regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 1,3 */
         nait = numaThresholdEdges(naio, 0.4, 0.6, 0.0);
-        fprintf(stderr, "nait:");
-        numaWriteStream(stderr, nait);
         numaDestroy(&nai);
         numaDestroy(&naio);
 
             /* Analyze profiles for left/right edges  */
         GetLeftCut(narl, nart, nait, w, &left);
         GetRightCut(narl, nart, nait, w, &right);
-        fprintf(stderr, "left = %d, right = %d\n", left, right);
+        if (rp->display)
+            lept_stderr("left = %d, right = %d\n", left, right);
 
             /* Output visuals */
         pixa2 = pixaCreate(3);
         pixaAddPix(pixa2, pixr, L_INSERT);
-        pix1 = pixRead("/tmp/lept/crop/reversals.png");
-        pix2 = pixRead("/tmp/lept/crop/intensities.png");
         pixaAddPix(pixa2, pix1, L_INSERT);
         pixaAddPix(pixa2, pix2, L_INSERT);
         pixd = pixaDisplayTiledInColumns(pixa2, 2, 1.0, 25, 0);
         pixaDestroy(&pixa2);
         pixaAddPix(pixa1, pixd, L_INSERT);
-        pixDisplay(pixd, 100, 100);
+        pixDisplayWithTitle(pixd, 800 * i, 100, NULL, rp->display);
+        if (rp->display) {
+            lept_stderr("narl:");
+            numaWriteStderr(narl);
+            lept_stderr("nart:");
+            numaWriteStderr(nart);
+            lept_stderr("nait:");
+            numaWriteStderr(nait);
+        }
         pixDestroy(&pixs);
         pixDestroy(&pixg);
         pixDestroy(&pixgi);
@@ -119,36 +125,88 @@ static char  mainName[] = "croptest";
         numaDestroy(&nait);
     }
 
-    fprintf(stderr, "Writing profiles to /tmp/lept/crop/croptest.pdf\n");
+    lept_stderr("Writing profiles to /tmp/lept/crop/croptest.pdf\n");
     pixaConvertToPdf(pixa1, 75, 1.0, L_JPEG_ENCODE, 0, "Profiles",
                      "/tmp/lept/crop/croptest.pdf");
     pixaDestroy(&pixa1);
 
-        /* Now plot the profiles from text lines */
+        /* Calculate projection profiles from text lines */
     pixs = pixRead("1555.007.jpg");
     pixGetDimensions(pixs, &w, &h, NULL);
     na1 = pixReversalProfile(pixs, 0.98, L_HORIZONTAL_LINE,
                                   0, h - 1, 40, 3, 3);
-    gplotSimple1(na1, GPLOT_PNG, "/tmp/lept/crop/rev", "Reversals");
+    pix1 = gplotSimplePix1(na1, "Reversals");
     numaDestroy(&na1);
 
     na1 = pixAverageIntensityProfile(pixs, 0.98, L_HORIZONTAL_LINE,
                                     0, h - 1, 1, 1);
-    gplotSimple1(na1, GPLOT_PNG, "/tmp/lept/crop/inten", "Intensities");
+    pix2 = gplotSimplePix1(na1, "Intensities");
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 4 */
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 5 */
     numaDestroy(&na1);
     pixa1 = pixaCreate(3);
     pixaAddPix(pixa1, pixScale(pixs, 0.5, 0.5), L_INSERT);
-    pix1 = pixRead("/tmp/lept/crop/rev.png");
     pixaAddPix(pixa1, pix1, L_INSERT);
-    pix1 = pixRead("/tmp/lept/crop/inten.png");
-    pixaAddPix(pixa1, pix1, L_INSERT);
+    pixaAddPix(pixa1, pix2, L_INSERT);
     pixd = pixaDisplayTiledInRows(pixa1, 32, 1000, 1.0, 0, 30, 2);
     pixWrite("/tmp/lept/crop/profiles.png", pixd, IFF_PNG);
-    pixDisplay(pixd, 100, 100);
+    pixDisplayWithTitle(pixd, 0, 700, NULL, rp->display);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
     pixaDestroy(&pixa1);
-    return 0;
+
+        /* Test rectangle clipping with border */
+    pix1 = pixRead("lyra.005.jpg");
+    pix2 = pixScale(pix1, 0.5, 0.5);
+    box1 = boxCreate(125, 50, 180, 230);  /* fully contained */
+    pix3 = pixClipRectangleWithBorder(pix2, box1, 30, &box2);
+    pixRenderBoxArb(pix2, box1, 2, 255, 0, 0);
+    pixRenderBoxArb(pix3, box2, 2, 255, 0, 0);
+    pixa1 = pixaCreate(2);
+    pixaAddPix(pixa1, pix2, L_INSERT);
+    pixaAddPix(pixa1, pix3, L_INSERT);
+    pix4 = pixaDisplayTiledInColumns(pixa1, 2, 1.0, 15, 2);
+    regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 6 */
+    pixDisplayWithTitle(pix4, 325, 700, NULL, rp->display);
+    boxDestroy(&box1);
+    boxDestroy(&box2);
+    pixDestroy(&pix4);
+    pixaDestroy(&pixa1);
+
+    pix2 = pixScale(pix1, 0.5, 0.5);
+    box1 = boxCreate(125, 10, 180, 270);  /* not full border */
+    pix3 = pixClipRectangleWithBorder(pix2, box1, 30, &box2);
+    pixRenderBoxArb(pix2, box1, 2, 255, 0, 0);
+    pixRenderBoxArb(pix3, box2, 2, 255, 0, 0);
+    pixa1 = pixaCreate(2);
+    pixaAddPix(pixa1, pix2, L_INSERT);
+    pixaAddPix(pixa1, pix3, L_INSERT);
+    pix4 = pixaDisplayTiledInColumns(pixa1, 2, 1.0, 15, 2);
+    regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 7 */
+    pixDisplayWithTitle(pix4, 975, 700, NULL, rp->display);
+    boxDestroy(&box1);
+    boxDestroy(&box2);
+    pixDestroy(&pix4);
+    pixaDestroy(&pixa1);
+
+    pix2 = pixScale(pix1, 0.5, 0.5);
+    box1 = boxCreate(125, 200, 180, 270);  /* not entirely within pix2 */
+    pix3 = pixClipRectangleWithBorder(pix2, box1, 30, &box2);
+    pixRenderBoxArb(pix2, box1, 2, 255, 0, 0);
+    pixRenderBoxArb(pix3, box2, 2, 255, 0, 0);
+    pixa1 = pixaCreate(2);
+    pixaAddPix(pixa1, pix2, L_INSERT);
+    pixaAddPix(pixa1, pix3, L_INSERT);
+    pix4 = pixaDisplayTiledInColumns(pixa1, 2, 1.0, 15, 2);
+    regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 8 */
+    pixDisplayWithTitle(pix4, 1600, 700, NULL, rp->display);
+    boxDestroy(&box1);
+    boxDestroy(&box2);
+    pixDestroy(&pix4);
+    pixaDestroy(&pixa1);
+    pixDestroy(&pix1);
+
+    return regTestCleanup(rp);
 }
 
 
@@ -169,7 +227,7 @@ static char  mainName[] = "croptest";
  * Identify txt2 by (a) beginning of 1st lowpass interval from bottom
  *                  (b) last downward transition in reversals from bottom
  */
-l_int32
+static l_int32
 GetLeftCut(NUMA *narl,
            NUMA *nart,
            NUMA *nait,
@@ -207,13 +265,13 @@ l_int32  nrl, nrt, nit, start, end, sign, pap1, txt1, del;
         txt1 -= L_MIN(20, 0.5 * del);
         pap1 += L_MIN(20, 0.5 * del);
     }
-    fprintf(stderr, "txt1 = %d, pap1 = %d\n", txt1, pap1);
+    lept_stderr("txt1 = %d, pap1 = %d\n", txt1, pap1);
     *pleft = pap1;
     return 0;
 }
 
 
-l_int32
+static l_int32
 GetRightCut(NUMA *narl,
             NUMA *nart,
             NUMA *nait,
@@ -255,7 +313,7 @@ l_int32  nrt, ntrans, start, end, sign, txt2, pap2, found, trans;
         txt2 = w - 1;
         pap2 = w - 1;
     }
-    fprintf(stderr, "txt2 = %d, pap2 = %d\n", txt2, pap2);
+    lept_stderr("txt2 = %d, pap2 = %d\n", txt2, pap2);
     *pright = pap2;
     return 0;
 }

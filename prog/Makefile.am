@@ -19,7 +19,7 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	colormask_reg colormorph_reg colorquant_reg \
 	colorseg_reg colorspace_reg compare_reg \
 	compfilter_reg conncomp_reg conversion_reg \
-	convolve_reg dewarp_reg distance_reg \
+	convolve_reg crop_reg dewarp_reg distance_reg \
 	dither_reg dna_reg dwamorph1_reg edge_reg enhance_reg \
 	equal_reg expand_reg extrema_reg \
 	falsecolor_reg fhmtauto_reg \
@@ -84,8 +84,7 @@ OTHER_PROGS = adaptmap_dark \
 	colorsegtest comparepages comparepixa \
 	comparetest concatpdf \
 	contrasttest converttogray \
-	cornertest corrupttest \
-	croptest croptext deskew_it \
+	cornertest corrupttest croptext deskew_it \
 	dewarprules dewarptest1 dewarptest2 \
 	dewarptest3 dewarptest4 dewarptest5 \
 	digitprep1 displayboxa displayboxes_on_pixa \

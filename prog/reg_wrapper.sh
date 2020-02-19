@@ -31,7 +31,7 @@ TEST_NAME="${TEST##*/}"
 TEST_NAME="${TEST_NAME%_reg*}"
 
 case "${TEST_NAME}" in
-    baseline|boxa[1234]|colormask|colorspace|dna|enhance|extrema|fpix1|hash|italic|kernel|nearline|numa[12]|pixa1|projection|rank|rankbin|rankhisto|wordboxes)
+    baseline|boxa[1234]|colormask|colorspace|crop|dna|enhance|extrema|fpix1|hash|italic|kernel|nearline|numa[12]|pixa1|projection|rank|rankbin|rankhisto|wordboxes)
         GNUPLOT=$(which gnuplot || which wgnuplot)
 
         if [ -z "${GNUPLOT}" ] || ! "${GNUPLOT}" -e "set terminal png" 2>/dev/null ; then

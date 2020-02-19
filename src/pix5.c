@@ -56,6 +56,7 @@
  *    Extract rectangular region
  *           PIXA       *pixClipRectangles()
  *           PIX        *pixClipRectangle()
+ *           PIX        *pixClipRectangleWithBorder()
  *           PIX        *pixClipMasked()
  *           l_int32     pixCropToMatch()
  *           PIX        *pixCropToSize()
@@ -1062,6 +1063,69 @@ PIX     *pixd;
         boxDestroy(&boxc);
 
     return pixd;
+}
+
+
+/*!
+ * \brief   pixClipRectangleWithBorder()
+ *
+ * \param[in]    pixs
+ * \param[in]    box       requested clipping region; const
+ * \param[in]    maxbord   maximum amount of border to include
+ * \param[out]   pboxn     box in coordinates of returned pix
+ * \return  under-clipped pix, or NULL on error or if rectangle
+ *              doesn't intersect pixs
+ *
+ * <pre>
+ * Notes:
+ *      (1) This underclips by an amount determined by the minimum of
+ *          %maxbord and the amount of border that can be included
+ *          equally on all 4 sides.
+ *      (2) If part of the rectangle lies outside the pix, no border
+ *          is included on any side.
+ * </pre>
+ */
+PIX *
+pixClipRectangleWithBorder(PIX     *pixs,
+                           BOX     *box,
+                           l_int32  maxbord,
+                           BOX    **pboxn)
+{
+l_int32  w, h, bx, by, bw, bh, bord;
+BOX     *box1;
+PIX     *pix1;
+
+    PROCNAME("pixClipRectangleWithBorder");
+
+    if (!pboxn)
+        return (PIX *)ERROR_PTR("&boxn not defined", procName, NULL);
+    *pboxn = NULL;
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+    if (!box)
+        return (PIX *)ERROR_PTR("box not defined", procName, NULL);
+
+        /* Determine the border width */
+    pixGetDimensions(pixs, &w, &h, NULL);
+    boxGetGeometry(box, &bx, &by, &bw, &bh);
+    bord = L_MIN(bx, by);
+    bord = L_MIN(bord, w - bx - bw);
+    bord = L_MIN(bord, h - by - bh);
+    bord = L_MIN(bord, maxbord);
+
+    if (bord <= 0) {  /* standard clipping */
+        pix1 = pixClipRectangle(pixs, box, NULL);
+        pixGetDimensions(pix1, &w, &h, NULL);
+        *pboxn = boxCreate(0, 0, w, h);
+        return pix1;
+    }
+
+        /* There is a positive border */
+    box1 = boxAdjustSides(NULL, box, -bord, bord, -bord, bord);
+    pix1 = pixClipRectangle(pixs, box1, NULL);
+    boxDestroy(&box1);
+    *pboxn = boxCreate(bord, bord, bw, bh);
+    return pix1;
 }
 
 

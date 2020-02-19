@@ -90,6 +90,7 @@ static const char *tests[] = {
                               "conncomp_reg",
                               "conversion_reg",
                               "convolve_reg",
+                              "crop_reg",
                               "dewarp_reg",
                               "distance_reg",
                               "dither_reg",
