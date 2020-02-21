@@ -189,15 +189,18 @@ static l_int32 scaleBinaryLow(l_uint32 *datad, l_int32 wd, l_int32 hd,
  *  number of scaling functions, including the use of unsharp masking,
  *  the type of scaling and the sharpening parameters are chosen
  *  by default.  Grayscale and color images are scaled using one
- *  of four methods, depending on the scale factors:
- *   1 antialiased subsampling (lowpass filtering followed by
- *       subsampling, implemented here by area mapping), for scale factors
- *       less than 0.2
- *   2 antialiased subsampling with sharpening, for scale factors
- *       between 0.2 and 0.7
- *   3 linear interpolation with sharpening, for scale factors between
- *       0.7 and 1.4
- *   4 linear interpolation without sharpening, for scale factors >= 1.4.
+ *  of five methods, depending on the scale factors:
+ *   1. antialiased subsampling (lowpass filtering followed by
+ *      subsampling, implemented by convolution, for tiny scale factors:
+ *        min(scalex, scaley) < 0.02.
+ *   2. antialiased subsampling (implemented by area mapping, for
+ *      small scale factors:
+ *        max(scalex, scaley) < 0.2 and min(scalex, scaley) >= 0.02.
+ *   3. antialiased subsampling with sharpening, for scale factors
+ *      between 0.2 and 0.7
+ *   4. linear interpolation with sharpening, for scale factors between
+ *      0.7 and 1.4
+ *   5. linear interpolation without sharpening, for scale factors >= 1.4.
  *
  *  One could use subsampling for scale factors very close to 1.0,
  *  because it preserves sharp edges.  Linear interpolation blurs
@@ -401,15 +404,17 @@ l_float32  factor;
  *      (1) See pixScale() for usage.
  *      (2) This interface may change in the future, as other special
  *          cases are added.
- *      (3) The actual sharpening factors used depend on the maximum
+ *      (3) For tiny scaling factors
+ *            minscale < 0.02:        use a simple lowpass filter
+ *      (4) The actual sharpening factors used depend on the maximum
  *          of the two scale factors (maxscale):
  *            maxscale <= 0.2:        no sharpening
  *            0.2 < maxscale < 1.4:   uses the input parameters
  *            maxscale >= 1.4:        no sharpening
- *      (4) To avoid sharpening for grayscale and color images with
+ *      (5) To avoid sharpening for grayscale and color images with
  *          scaling factors between 0.2 and 1.4, call this function
  *          with %sharpfract == 0.0.
- *      (5) To use arbitrary sharpening in conjunction with scaling,
+ *      (6) To use arbitrary sharpening in conjunction with scaling,
  *          call this function with %sharpfract = 0.0, and follow this
  *          with a call to pixUnsharpMasking() with your chosen parameters.
  * </pre>
@@ -422,7 +427,7 @@ pixScaleGeneral(PIX       *pixs,
                 l_int32    sharpwidth)
 {
 l_int32    d;
-l_float32  maxscale;
+l_float32  maxscale, minscale;
 PIX       *pix1, *pix2, *pixd;
 
     PROCNAME("pixScaleGeneral");
@@ -447,8 +452,12 @@ PIX       *pix1, *pix2, *pixd;
         /* Scale (up or down) */
     d = pixGetDepth(pix1);
     maxscale = L_MAX(scalex, scaley);
-    if (maxscale < 0.7) {  /* area mapping for anti-aliasing */
-        pix2 = pixScaleAreaMap(pix1, scalex, scaley);
+    minscale = L_MIN(scalex, scaley);
+    if (maxscale < 0.7) {  /* area map or low-pass filter for anti-aliasing */
+        if (minscale < 0.02)  /* low-pass filter */
+            pix2 = pixScaleSmooth(pix1, scalex, scaley);
+        else
+            pix2 = pixScaleAreaMap(pix1, scalex, scaley);
         if (maxscale > 0.2 && sharpfract > 0.0 && sharpwidth > 0)
             pixd = pixUnsharpMasking(pix2, sharpwidth, sharpfract);
         else
@@ -1681,8 +1690,7 @@ PIX       *pixd;
  *          and call pixScaleGeneral(), which will invoke linear
  *          interpolation without sharpening.
  *      (2) This works only on 2, 4, 8 and 32 bpp images, and if there is
- *          a colormap, it is removed by converting to RGB.  In other
- *          cases, we issue a warning and call pixScaleGeneral().
+ *          a colormap, it is removed by converting to RGB.
  *      (3) It does simple (flat filter) convolution, with a filter size
  *          commensurate with the amount of reduction, to avoid antialiasing.
  *      (4) It does simple subsampling after smoothing, which is appropriate
@@ -1715,26 +1723,13 @@ PIX       *pixs, *pixd;
         L_WARNING("scaling factor not < 0.7; do regular scaling\n", procName);
         return pixScaleGeneral(pix, scalex, scaley, 0.0, 0);
     }
-
-        /* Remove colormap if necessary.
-         * If 2 bpp or 4 bpp gray, convert to 8 bpp */
     d = pixGetDepth(pix);
-    if ((d == 2 || d == 4 || d == 8) && pixGetColormap(pix)) {
-        L_WARNING("pix has colormap; removing\n", procName);
-        pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
-        d = pixGetDepth(pixs);
-    } else if (d == 2 || d == 4) {
-        pixs = pixConvertTo8(pix, FALSE);
-        d = 8;
-    } else {
-        pixs = pixClone(pix);
-    }
+    if (d != 2 && d != 4 && d !=8 && d != 32)
+        return (PIX *)ERROR_PTR("pix not 2, 4, 8 or 32 bpp", procName, NULL);
 
-    if (d != 8 && d != 32) {   /* d == 1 or d == 16 */
-        L_WARNING("depth not 8 or 32 bpp; do regular scaling\n", procName);
-        pixDestroy(&pixs);
-        return pixScaleGeneral(pix, scalex, scaley, 0.0, 0);
-    }
+        /* Remove colormap; clone if possible; result is either 8 or 32 bpp */
+    if ((pixs = pixConvertTo8Or32(pix, L_CLONE, 0)) == NULL)
+        return (PIX *)ERROR_PTR("pixs not made", procName, NULL);
 
         /* If 1.42 < 1/minscale < 2.5, use isize = 2
          * If 2.5 =< 1/minscale < 3.5, use isize = 3, etc.
@@ -1884,8 +1879,11 @@ PIX       *pixd;
  *          scale factor is greater than or equal to 0.7, we issue a warning
  *          and call pixScaleGeneral(), which will invoke linear
  *          interpolation without sharpening.
- *      (2) The minimum scale factor allowed is 0.02.  Various overflows
- *          will occur when scale factors are less than about 1/256.
+ *      (2) The minimum scale factor allowed for area mapping reduction
+ *          is 0.02.  Various overflows will occur when scale factors are
+ *          less than about 1/256.  If a scale factor smaller than 0.02
+ *          is given, we use pixScaleSmooth() to filter by averaging over
+ *          entire pixels.
  *      (3) This works only on 2, 4, 8 and 32 bpp images.  If there is
  *          a colormap, it is removed by converting to RGB.  In other
  *          cases, we issue a warning and call pixScaleGeneral().
@@ -1916,7 +1914,7 @@ pixScaleAreaMap(PIX       *pix,
 {
 l_int32    ws, hs, d, wd, hd, wpls, wpld;
 l_uint32  *datas, *datad;
-l_float32  maxscale;
+l_float32  maxscale, minscale;
 PIX       *pixs, *pixd, *pix1, *pix2, *pix3;
 
     PROCNAME("pixScaleAreaMap");
@@ -1926,18 +1924,17 @@ PIX       *pixs, *pixd, *pix1, *pix2, *pix3;
     d = pixGetDepth(pix);
     if (d != 2 && d != 4 && d != 8 && d != 32)
         return (PIX *)ERROR_PTR("pix not 2, 4, 8 or 32 bpp", procName, NULL);
-    if (scalex < 0.02) {
-        L_WARNING("scalex < 0.02; too small; setting to 0.02\n", procName);
-        scalex = 0.02;
-    }
-    if (scaley < 0.02) {
-        L_WARNING("scaley < 0.02; too small; setting to 0.02\n", procName);
-        scaley = 0.02;
-    }
+
     maxscale = L_MAX(scalex, scaley);
     if (maxscale >= 0.7) {
-        L_WARNING("scaling factors not < 0.7; do regular scaling\n", procName);
+        L_WARNING("scaling factor >= 0.7; do regular scaling\n", procName);
         return pixScaleGeneral(pix, scalex, scaley, 0.0, 0);
+    }
+
+    minscale = L_MIN(scalex, scaley);
+    if (minscale < 0.02) {  /* too small for area mapping */
+        L_WARNING("tiny scaling factor; using low-pass filter\n", procName);
+        return pixScaleSmooth(pix, scalex, scaley);
     }
 
         /* Special cases: 2x, 4x, 8x, 16x reduction */
