@@ -453,24 +453,28 @@ PIX       *pix1, *pix2, *pixd;
     d = pixGetDepth(pix1);
     maxscale = L_MAX(scalex, scaley);
     minscale = L_MIN(scalex, scaley);
-    if (maxscale < 0.7) {  /* area map or low-pass filter for anti-aliasing */
-        if (minscale < 0.02)  /* low-pass filter */
+    if (maxscale < 0.7) {  /* use low-pass filter for anti-aliasing */
+        if (minscale < 0.02) {  /* whole-pixel low-pass filter */
             pix2 = pixScaleSmooth(pix1, scalex, scaley);
-        else
+        } else {  /* fractional pixel low-pass filter */
             pix2 = pixScaleAreaMap(pix1, scalex, scaley);
-        if (maxscale > 0.2 && sharpfract > 0.0 && sharpwidth > 0)
+        }
+        if (maxscale > 0.2 && sharpfract > 0.0 && sharpwidth > 0) {
             pixd = pixUnsharpMasking(pix2, sharpwidth, sharpfract);
-        else
+        } else {
             pixd = pixClone(pix2);
+        }
     } else {  /* use linear interpolation */
-        if (d == 8)
+        if (d == 8) {
             pix2 = pixScaleGrayLI(pix1, scalex, scaley);
-        else  /* d == 32 */
+        } else {  /* d == 32 */
             pix2 = pixScaleColorLI(pix1, scalex, scaley);
-        if (maxscale < 1.4 && sharpfract > 0.0 && sharpwidth > 0)
+        }
+        if (maxscale < 1.4 && sharpfract > 0.0 && sharpwidth > 0) {
             pixd = pixUnsharpMasking(pix2, sharpwidth, sharpfract);
-        else
+        } else {
             pixd = pixClone(pix2);
+        }
     }
 
     pixDestroy(&pix1);
@@ -727,11 +731,8 @@ PIX  *pixd;
  * Notes:
  *      (1) This function is appropriate for upscaling magnification, where the
  *          scale factor is > 1, as well as for a small amount of downscaling
- *          reduction, with scale factor > 0.7.  If the scale factor is < 0.7,
- *          the best result is obtained by area mapping, but this is relatiely
- *          expensive.  A less expensive alternative with scale factor < 0.7
- *          is low-pass filtering followed by subsampling (pixScaleSmooth()),
- *          which is effectively a cheap form of area mapping.
+ *          reduction, with scale factor >= 0.7.  If the scale factor is < 0.7,
+ *          the best result is obtained by area mapping.
  *      (2) Here are some details:
  *          - For each pixel in the dest, this does a linear
  *            interpolation of 4 neighboring pixels in the src.
@@ -1685,10 +1686,9 @@ PIX       *pixd;
  * <pre>
  * Notes:
  *      (1) This function should only be used when the scale factors are less
- *          than 0.7 (i.e., more than about 1.42x reduction).  If either
- *          scale factor is greater than or equal to 0.7, we issue a warning
- *          and call pixScaleGeneral(), which will invoke linear
- *          interpolation without sharpening.
+ *          than 0.7.  If either scale factor is >= 0.7, issue a warning
+ *          and call pixScaleGeneral(), which will invoke linear interpolation
+ *          without sharpening.
  *      (2) This works only on 2, 4, 8 and 32 bpp images, and if there is
  *          a colormap, it is removed by converting to RGB.
  *      (3) It does simple (flat filter) convolution, with a filter size
@@ -1874,16 +1874,16 @@ PIX       *pixd;
  *
  * <pre>
  * Notes:
- *      (1) This function should only be used when the scale factors are less
- *          than 0.7 (i.e., more than about 1.42x reduction).  If either
- *          scale factor is greater than or equal to 0.7, we issue a warning
- *          and call pixScaleGeneral(), which will invoke linear
- *          interpolation without sharpening.
+ *      (1) This is a low-pass filter that averages over fractional pixels.
+ *          It should only be used when the scale factors are less than 0.7.
+ *          If either scale factor is greater than or equal to 0.7, we
+ *          issue a warning and call pixScaleGeneral(), which will invoke
+ *          linear interpolation without sharpening.
  *      (2) The minimum scale factor allowed for area mapping reduction
  *          is 0.02.  Various overflows will occur when scale factors are
  *          less than about 1/256.  If a scale factor smaller than 0.02
- *          is given, we use pixScaleSmooth() to filter by averaging over
- *          entire pixels.
+ *          is given, we use pixScaleSmooth(), which is a low-pass filter
+ *          that averages over entire pixels.
  *      (3) This works only on 2, 4, 8 and 32 bpp images.  If there is
  *          a colormap, it is removed by converting to RGB.  In other
  *          cases, we issue a warning and call pixScaleGeneral().
@@ -1925,16 +1925,16 @@ PIX       *pixs, *pixd, *pix1, *pix2, *pix3;
     if (d != 2 && d != 4 && d != 8 && d != 32)
         return (PIX *)ERROR_PTR("pix not 2, 4, 8 or 32 bpp", procName, NULL);
 
-    maxscale = L_MAX(scalex, scaley);
-    if (maxscale >= 0.7) {
-        L_WARNING("scaling factor >= 0.7; do regular scaling\n", procName);
-        return pixScaleGeneral(pix, scalex, scaley, 0.0, 0);
-    }
-
     minscale = L_MIN(scalex, scaley);
     if (minscale < 0.02) {  /* too small for area mapping */
-        L_WARNING("tiny scaling factor; using low-pass filter\n", procName);
+        L_WARNING("tiny scaling factor; using pixScaleSmooth()\n", procName);
         return pixScaleSmooth(pix, scalex, scaley);
+    }
+
+    maxscale = L_MAX(scalex, scaley);
+    if (maxscale >= 0.7) {  /* too large for area mapping */
+        L_WARNING("scaling factor >= 0.7; do regular scaling\n", procName);
+        return pixScaleGeneral(pix, scalex, scaley, 0.0, 0);
     }
 
         /* Special cases: 2x, 4x, 8x, 16x reduction */
