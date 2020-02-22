@@ -1711,6 +1711,7 @@ pixScaleSmooth(PIX       *pix,
                l_float32  scaley)
 {
 l_int32    ws, hs, d, wd, hd, wpls, wpld, isize;
+l_uint32   val;
 l_uint32  *datas, *datad;
 l_float32  minscale, size;
 PIX       *pixs, *pixd;
@@ -1730,27 +1731,29 @@ PIX       *pixs, *pixd;
         /* Remove colormap; clone if possible; result is either 8 or 32 bpp */
     if ((pixs = pixConvertTo8Or32(pix, L_CLONE, 0)) == NULL)
         return (PIX *)ERROR_PTR("pixs not made", procName, NULL);
+    d = pixGetDepth(pixs);
 
         /* If 1.42 < 1/minscale < 2.5, use isize = 2
          * If 2.5 =< 1/minscale < 3.5, use isize = 3, etc.
          * Under no conditions use isize < 2  */
     minscale = L_MIN(scalex, scaley);
     size = 1.0 / minscale;   /* ideal filter full width */
-    isize = L_MAX(2, (l_int32)(size + 0.5));
+    isize = L_MIN(10000, L_MAX(2, (l_int32)(size + 0.5)));
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     if ((ws < isize) || (hs < isize)) {
+        pixd = pixCreate(1, 1, d);
+        pixGetPixel(pixs, ws / 2, hs / 2, &val);
+        pixSetPixel(pixd, 0, 0, val);
+        L_WARNING("ridiculously small scaling factor %f\n", procName, minscale);
         pixDestroy(&pixs);
-        return (PIX *)ERROR_PTR("pixs too small", procName, NULL);
+        return pixd;
     }
+
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
-    wd = (l_int32)(scalex * (l_float32)ws + 0.5);
-    hd = (l_int32)(scaley * (l_float32)hs + 0.5);
-    if (wd < 1 || hd < 1) {
-        pixDestroy(&pixs);
-        return (PIX *)ERROR_PTR("pixd too small", procName, NULL);
-    }
+    wd = L_MAX(1, (l_int32)(scalex * (l_float32)ws + 0.5));
+    hd = L_MAX(1, (l_int32)(scaley * (l_float32)hs + 0.5));
     if ((pixd = pixCreate(wd, hd, d)) == NULL) {
         pixDestroy(&pixs);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
