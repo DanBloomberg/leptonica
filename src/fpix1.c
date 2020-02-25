@@ -130,9 +130,9 @@
 #include <string.h>
 #include "allheaders.h"
 
-    /* Bounds on initial array size */
-static const l_uint32  MaxPtrArraySize = 100000;
-static const l_int32 InitialPtrArraySize = 20;      /*!< n'importe quoi */
+    /* Bounds on array sizes */
+static const size_t  MaxPtrArraySize = 100000;
+static const size_t  InitialPtrArraySize = 20;      /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 fpixaExtendArray(FPIXA *fpixa);
@@ -882,6 +882,7 @@ FPIX    *fpixc;
  * <pre>
  * Notes:
  *      (1) Doubles the size of the fpixa ptr array.
+ *      (2) The max number of fpix ptrs is 100000.
  * </pre>
  */
 static l_int32
@@ -905,25 +906,33 @@ fpixaExtendArray(FPIXA  *fpixa)
  *
  * <pre>
  * Notes:
- *      (1) If necessary, reallocs new fpixa ptrs array to %size.
+ *      (1) If necessary, reallocs new fpix ptr array to %size.
+ *      (2) The max number of fpix ptrs is 100000.
  * </pre>
  */
 static l_int32
 fpixaExtendArrayToSize(FPIXA   *fpixa,
                        l_int32  size)
 {
+size_t  oldsize, newsize;
+
     PROCNAME("fpixaExtendArrayToSize");
 
     if (!fpixa)
         return ERROR_INT("fpixa not defined", procName, 1);
-
-    if (size > fpixa->nalloc) {
-        if ((fpixa->fpix = (FPIX **)reallocNew((void **)&fpixa->fpix,
-                                 sizeof(FPIX *) * fpixa->nalloc,
-                                 size * sizeof(FPIX *))) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
-        fpixa->nalloc = size;
+    if (size <= fpixa->nalloc) {
+        L_INFO("size too small; no extension\n", procName);
+        return 0;
     }
+    if (size > MaxPtrArraySize)  /* ptrs for 100000 fpix */
+        return ERROR_INT("size > 100000; too large", procName, 1);
+
+    oldsize = fpixa->nalloc * sizeof(FPIX *);
+    newsize = size * sizeof(FPIX *);
+    if ((fpixa->fpix = (FPIX **)reallocNew((void **)&fpixa->fpix,
+                                           oldsize, newsize)) == NULL)
+        return ERROR_INT("new ptr array not returned", procName, 1);
+    fpixa->nalloc = size;
     return 0;
 }
 

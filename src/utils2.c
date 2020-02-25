@@ -1286,8 +1286,8 @@ l_int32  i, j, found, lastpos;
  *
  * <pre>
  * Notes:
- *      (1) If newsize <=0, just frees input data and nulls ptr
- *      (2) If input data is null, just callocs new memory
+ *      (1) If newsize == 0, frees input data and nulls ptr
+ *      (2) If input data is null, only callocs new memory
  *      (3) This differs from realloc in that it always allocates
  *          new memory (if newsize > 0) and initializes it to 0,
  *          it requires the amount of old data to be copied,
@@ -1296,11 +1296,11 @@ l_int32  i, j, found, lastpos;
  * </pre>
  */
 void *
-reallocNew(void   **pindata,
-           l_int32  oldsize,
-           l_int32  newsize)
+reallocNew(void  **pindata,
+           size_t  oldsize,
+           size_t  newsize)
 {
-l_int32  minsize;
+size_t   minsize;
 void    *indata;
 void    *newdata;
 
@@ -1310,7 +1310,7 @@ void    *newdata;
         return ERROR_PTR("input data not defined", procName, NULL);
     indata = *pindata;
 
-    if (newsize <= 0) {   /* nonstandard usage */
+    if (newsize == 0) {   /* nonstandard usage */
         if (indata) {
             LEPT_FREE(indata);
             *pindata = NULL;
@@ -1331,7 +1331,6 @@ void    *newdata;
     memcpy(newdata, indata, minsize);
     LEPT_FREE(indata);
     *pindata = NULL;
-
     return newdata;
 }
 

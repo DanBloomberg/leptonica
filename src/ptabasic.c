@@ -99,8 +99,9 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_uint32  MaxPtrArraySize = 10000000;
-static const l_int32 InitialPtrArraySize = 50;      /*!< n'importe quoi */
+static const l_uint32  MaxArraySize = 100000000;  /* 100 million */
+static const l_uint32  MaxPtrArraySize = 10000000;  /* 10 million */
+static const l_int32 InitialArraySize = 50;      /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 ptaExtendArrays(PTA *pta);
@@ -122,8 +123,8 @@ PTA  *pta;
 
     PROCNAME("ptaCreate");
 
-    if (n <= 0 || n > MaxPtrArraySize)
-        n = InitialPtrArraySize;
+    if (n <= 0 || n > MaxArraySize)
+        n = InitialArraySize;
 
     pta = (PTA *)LEPT_CALLOC(1, sizeof(PTA));
     pta->n = 0;
@@ -366,25 +367,34 @@ l_int32  n;
  *
  * \param[in]    pta
  * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The max number of points is 100 million.
+ * </pre>
  */
 static l_int32
 ptaExtendArrays(PTA  *pta)
 {
+size_t  oldsize, newsize;
+
     PROCNAME("ptaExtendArrays");
 
     if (!pta)
         return ERROR_INT("pta not defined", procName, 1);
+    oldsize = pta->nalloc * sizeof(l_float32);
+    newsize = 2 * oldsize;
+    if (newsize > 4 * MaxArraySize)  /* array of 100 million floats */
+        return ERROR_INT("newsize > 400 million; too large", procName, 1);
 
     if ((pta->x = (l_float32 *)reallocNew((void **)&pta->x,
-                               sizeof(l_float32) * pta->nalloc,
-                               2 * sizeof(l_float32) * pta->nalloc)) == NULL)
+                                          oldsize, newsize)) == NULL)
         return ERROR_INT("new x array not returned", procName, 1);
     if ((pta->y = (l_float32 *)reallocNew((void **)&pta->y,
-                               sizeof(l_float32) * pta->nalloc,
-                               2 * sizeof(l_float32) * pta->nalloc)) == NULL)
+                                          oldsize, newsize)) == NULL)
         return ERROR_INT("new y array not returned", procName, 1);
 
-    pta->nalloc = 2 * pta->nalloc;
+    pta->nalloc *= 2;
     return 0;
 }
 
@@ -943,7 +953,7 @@ PTAA  *ptaa;
     PROCNAME("ptaaCreate");
 
     if (n <= 0 || n > MaxPtrArraySize)
-        n = InitialPtrArraySize;
+        n = InitialArraySize;
 
     ptaa = (PTAA *)LEPT_CALLOC(1, sizeof(PTAA));
     ptaa->n = 0;
@@ -1039,21 +1049,33 @@ PTA     *ptac;
  *
  * \param[in]    ptaa
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This doubles the pta ptr array size.
+ *      (2) The max number of pta ptrs is 10 million.
+ * </pre>
+ *
  */
 static l_int32
 ptaaExtendArray(PTAA  *ptaa)
 {
+size_t  oldsize, newsize;
+
     PROCNAME("ptaaExtendArray");
 
     if (!ptaa)
         return ERROR_INT("ptaa not defined", procName, 1);
+    oldsize = ptaa->nalloc * sizeof(PTA *);
+    newsize = 2 * oldsize;
+    if (newsize > 8 * MaxPtrArraySize)  /* 8 byte ptrs */
+        return ERROR_INT("newsize > 80 million; too large", procName, 1);
 
     if ((ptaa->pta = (PTA **)reallocNew((void **)&ptaa->pta,
-                             sizeof(PTA *) * ptaa->nalloc,
-                             2 * sizeof(PTA *) * ptaa->nalloc)) == NULL)
+                                        oldsize, newsize)) == NULL)
         return ERROR_INT("new ptr array not returned", procName, 1);
 
-    ptaa->nalloc = 2 * ptaa->nalloc;
+    ptaa->nalloc *= 2;
     return 0;
 }
 

@@ -146,7 +146,7 @@
 #endif  /* ! _WIN32 */
 #include "allheaders.h"
 
-static const l_uint32  MaxPtrArraySize = 100000;
+static const l_uint32  MaxPtrArraySize = 25000000;  /* 25 million */
 static const l_int32   InitialPtrArraySize = 50;      /*!< n'importe quoi */
 
     /* Static functions */
@@ -477,19 +477,30 @@ l_int32  n;
  *
  * \param[in]    sa    string array
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Doubles the size of the string ptr array.
+ *      (2) The max number of strings is 25 million.
+ * </pre>
  */
 static l_int32
 sarrayExtendArray(SARRAY  *sa)
 {
+size_t  oldsize, newsize;
+
     PROCNAME("sarrayExtendArray");
 
     if (!sa)
         return ERROR_INT("sa not defined", procName, 1);
+    oldsize = sa->nalloc * sizeof(char *);
+    newsize = 2 * oldsize;
+    if (newsize > 8 * MaxPtrArraySize)  /* ptrs for 25 million strings */
+        return ERROR_INT("newsize > 200 million; too large", procName, 1);
 
     if ((sa->array = (char **)reallocNew((void **)&sa->array,
-                              sizeof(char *) * sa->nalloc,
-                              2 * sizeof(char *) * sa->nalloc)) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
+                                         oldsize, newsize)) == NULL)
+        return ERROR_INT("new ptr array not returned", procName, 1);
 
     sa->nalloc *= 2;
     return 0;

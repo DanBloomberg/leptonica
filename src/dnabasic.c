@@ -154,8 +154,8 @@
 #include "allheaders.h"
 
     /* Bounds on initial array size */
-static const l_uint32  MaxArraySize = 100000000;  /* dna */
-static const l_uint32  MaxPtrArraySize = 10000;   /* dnaa */
+static const l_uint32  MaxDoubleArraySize = 100000000;   /* for dna */
+static const l_uint32  MaxPtrArraySize = 1000000;   /* for dnaa */
 static const l_int32  InitialArraySize = 50;      /*!< n'importe quoi */
 
     /* Static functions */
@@ -178,7 +178,7 @@ L_DNA  *da;
 
     PROCNAME("l_dnaCreate");
 
-    if (n <= 0 || n > MaxArraySize)
+    if (n <= 0 || n > MaxDoubleArraySize)
         n = InitialArraySize;
 
     da = (L_DNA *)LEPT_CALLOC(1, sizeof(L_DNA));
@@ -464,19 +464,29 @@ l_int32  n;
  *
  * \param[in]    da
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The max number of doubles is 100 million.
+ * </pre>
  */
 static l_int32
 l_dnaExtendArray(L_DNA  *da)
 {
+size_t  oldsize, newsize;
+
     PROCNAME("l_dnaExtendArray");
 
     if (!da)
         return ERROR_INT("da not defined", procName, 1);
+    oldsize = da->nalloc * sizeof(l_float64);
+    newsize = 2 * oldsize;
+    if (newsize > 8 * MaxDoubleArraySize)  /* 100 million doubles */
+        return ERROR_INT("newsize > 800 million; too large", procName, 1);
 
     if ((da->array = (l_float64 *)reallocNew((void **)&da->array,
-                                sizeof(l_float64) * da->nalloc,
-                                2 * sizeof(l_float64) * da->nalloc)) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
+                                             oldsize, newsize)) == NULL)
+        return ERROR_INT("new ptr array not returned", procName, 1);
 
     da->nalloc *= 2;
     return 0;
@@ -1032,8 +1042,8 @@ L_DNA     *da;
     if (fscanf(fp, "Number of numbers = %d\n", &n) != 1)
         return (L_DNA *)ERROR_PTR("invalid number of numbers", procName, NULL);
 
-    if (n > MaxArraySize) {
-        L_ERROR("n = %d > %d\n", procName, n, MaxArraySize);
+    if (n > MaxDoubleArraySize) {
+        L_ERROR("n = %d > %d\n", procName, n, MaxDoubleArraySize);
         return NULL;
     }
     if ((da = l_dnaCreate(n)) == NULL)
@@ -1307,19 +1317,30 @@ L_DNA   *dac;
  *
  * \param[in]    daa
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Doubles the number of dna ptrs.
+ *      (2) The max size of the dna array is 1 million.
+ * </pre>
  */
 static l_int32
 l_dnaaExtendArray(L_DNAA  *daa)
 {
+size_t  oldsize, newsize;
+
     PROCNAME("l_dnaaExtendArray");
 
     if (!daa)
         return ERROR_INT("daa not defined", procName, 1);
+    oldsize = daa->nalloc * sizeof(L_DNA *);
+    newsize = 2 * oldsize;
+    if (newsize > 8 * MaxPtrArraySize)  /* more than 1 million ptrs */
+        return ERROR_INT("newsize > 8 million; too large", procName, 1);
 
     if ((daa->dna = (L_DNA **)reallocNew((void **)&daa->dna,
-                              sizeof(L_DNA *) * daa->nalloc,
-                              2 * sizeof(L_DNA *) * daa->nalloc)) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
+                                         oldsize, newsize)) == NULL)
+        return ERROR_INT("new ptr array not returned", procName, 1);
 
     daa->nalloc *= 2;
     return 0;

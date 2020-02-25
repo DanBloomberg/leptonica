@@ -139,9 +139,11 @@
 #include <string.h>
 #include "allheaders.h"
 
-    /* Bounds on initial array size */
-static const l_uint32  MaxPtrArraySize = 100000;
-static const l_int32 InitialPtrArraySize = 20;      /*!< n'importe quoi */
+    /* Bounds on array sizes */
+static const size_t  MaxInitPtrArraySize = 100000;
+static const size_t  MaxPixaPtrArraySize = 5000000;
+static const size_t  MaxPixaaPtrArraySize = 1000000;
+static const size_t  InitialPtrArraySize = 20;      /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 pixaExtendArray(PIXA  *pixa);
@@ -167,7 +169,7 @@ PIXA  *pixa;
 
     PROCNAME("pixaCreate");
 
-    if (n <= 0 || n > MaxPtrArraySize)
+    if (n <= 0 || n > MaxInitPtrArraySize)
         n = InitialPtrArraySize;
 
     pixa = (PIXA *)LEPT_CALLOC(1, sizeof(PIXA));
@@ -571,6 +573,7 @@ pixaAddBox(PIXA    *pixa,
  * <pre>
  * Notes:
  *      (1) Doubles the size of the pixa and boxa ptr arrays.
+ *      (2) The max number of pix in the array is 5 million.
  * </pre>
  */
 static l_int32
@@ -589,31 +592,39 @@ pixaExtendArray(PIXA  *pixa)
  * \brief   pixaExtendArrayToSize()
  *
  * \param[in]    pixa
- * \param[in]    size
+ * \param[in]    size     number of pix ptrs in new array
  * \return  0 if OK; 1 on error
  *
  * <pre>
  * Notes:
  *      (1) If necessary, reallocs new pixa and boxa ptrs arrays to %size.
  *          The pixa and boxa ptr arrays must always be equal in size.
+ *      (2) The max number of pix ptrs is 5 million.
  * </pre>
  */
 l_ok
-pixaExtendArrayToSize(PIXA    *pixa,
-                      l_int32  size)
+pixaExtendArrayToSize(PIXA   *pixa,
+                      size_t  size)
 {
+size_t  oldsize, newsize;
+
     PROCNAME("pixaExtendArrayToSize");
 
     if (!pixa)
         return ERROR_INT("pixa not defined", procName, 1);
-
-    if (size > pixa->nalloc) {
-        if ((pixa->pix = (PIX **)reallocNew((void **)&pixa->pix,
-                                 sizeof(PIX *) * pixa->nalloc,
-                                 size * sizeof(PIX *))) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
-        pixa->nalloc = size;
+    if (size <= pixa->nalloc) {
+        L_INFO("size too small; no extension\n", procName);
+        return 0;
     }
+    if (size > MaxPixaPtrArraySize)  /* ptrs for 5 million pix */
+        return ERROR_INT("size > 5 million; too large", procName, 1);
+
+    oldsize = pixa->nalloc * sizeof(PIX *);
+    newsize = size * sizeof(PIX *);
+    if ((pixa->pix = (PIX **)reallocNew((void **)&pixa->pix,
+                                         oldsize, newsize)) == NULL)
+        return ERROR_INT("new ptr array not returned", procName, 1);
+    pixa->nalloc = size;
     return boxaExtendArrayToSize(pixa->boxa, size);
 }
 
@@ -1827,7 +1838,7 @@ PIXAA  *paa;
 
     PROCNAME("pixaaCreate");
 
-    if (n <= 0 || n > MaxPtrArraySize)
+    if (n <= 0 || n > MaxInitPtrArraySize)
         n = InitialPtrArraySize;
 
     paa = (PIXAA *)LEPT_CALLOC(1, sizeof(PIXAA));
@@ -2006,21 +2017,31 @@ PIXA    *pixac;
  *
  * \param[in]    paa
  * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The max number of pixa ptrs is 1 million
+ * </pre>
  */
 l_ok
 pixaaExtendArray(PIXAA  *paa)
 {
+size_t  oldsize, newsize;
+
     PROCNAME("pixaaExtendArray");
 
     if (!paa)
         return ERROR_INT("paa not defined", procName, 1);
+    oldsize = paa->nalloc * sizeof(PIXA *);
+    newsize = 2 * oldsize;
+    if (newsize > 8 * MaxPixaaPtrArraySize)  /* ptrs for 1 million pixa */
+        return ERROR_INT("newsize > 8 million; too large", procName, 1);
 
     if ((paa->pixa = (PIXA **)reallocNew((void **)&paa->pixa,
-                             sizeof(PIXA *) * paa->nalloc,
-                             2 * sizeof(PIXA *) * paa->nalloc)) == NULL)
+                                         oldsize, newsize)) == NULL)
         return ERROR_INT("new ptr array not returned", procName, 1);
 
-    paa->nalloc = 2 * paa->nalloc;
+    paa->nalloc *= 2;
     return 0;
 }
 

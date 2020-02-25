@@ -138,9 +138,10 @@
 #include <string.h>
 #include "allheaders.h"
 
-    /* Bounds on initial array size */
-static const l_uint32  MaxPtrArraySize = 1000000;
-static const l_int32 InitialPtrArraySize = 20;      /*!< n'importe quoi */
+    /* Bounds on array sizes */
+static const size_t  MaxBoxaPtrArraySize = 10000000;
+static const size_t  MaxBoxaaPtrArraySize = 1000000;
+static const size_t  InitialPtrArraySize = 20;      /*!< n'importe quoi */
 
 /*---------------------------------------------------------------------*
  *                  Box creation, destruction and copy                 *
@@ -504,7 +505,7 @@ BOXA  *boxa;
 
     PROCNAME("boxaCreate");
 
-    if (n <= 0 || n > MaxPtrArraySize)
+    if (n <= 0 || n > MaxBoxaPtrArraySize)
         n = InitialPtrArraySize;
 
     boxa = (BOXA *)LEPT_CALLOC(1, sizeof(BOXA));
@@ -678,30 +679,38 @@ boxaExtendArray(BOXA  *boxa)
  * \brief   boxaExtendArrayToSize()
  *
  * \param[in]    boxa
- * \param[in]    size     new size of boxa array
+ * \param[in]    size     new size of boxa ptr array
  * \return  0 if OK; 1 on error
  *
  * <pre>
  * Notes:
  *      (1) If necessary, reallocs new boxa ptr array to %size.
+ *      (2) The max number of box ptrs is 10 million.
  * </pre>
  */
 l_ok
-boxaExtendArrayToSize(BOXA    *boxa,
-                      l_int32  size)
+boxaExtendArrayToSize(BOXA   *boxa,
+                      size_t  size)
 {
+size_t  oldsize, newsize;
+
     PROCNAME("boxaExtendArrayToSize");
 
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 1);
-
-    if (size > boxa->nalloc) {
-        if ((boxa->box = (BOX **)reallocNew((void **)&boxa->box,
-                                            sizeof(BOX *) * boxa->nalloc,
-                                            size * sizeof(BOX *))) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
-        boxa->nalloc = size;
+    if (size <= boxa->nalloc) {
+        L_INFO("size too small; no extension\n", procName);
+        return 0;
     }
+    if (size > MaxBoxaPtrArraySize)  /* ptrs for 10 million boxes */
+        return ERROR_INT("size > 10 million; too large", procName, 1);
+
+    oldsize = boxa->nalloc * sizeof(BOX *);
+    newsize = size * sizeof(BOX *);
+    if ((boxa->box = (BOX **)reallocNew((void **)&boxa->box,
+                                        oldsize, newsize)) == NULL)
+        return ERROR_INT("new ptr array not returned", procName, 1);
+    boxa->nalloc = size;
     return 0;
 }
 
@@ -1227,7 +1236,7 @@ BOXAA  *baa;
 
     PROCNAME("boxaaCreate");
 
-    if (n <= 0 || n > MaxPtrArraySize)
+    if (n <= 0 || n > MaxBoxaaPtrArraySize)
         n = InitialPtrArraySize;
 
     baa = (BOXAA *)LEPT_CALLOC(1, sizeof(BOXAA));
@@ -1358,23 +1367,22 @@ BOXA    *bac;
  *
  * \param[in]    baa
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Doubles the size of the boxa ptr array.
+ *      (2) The max number of boxa ptrs is 1 million.
+ * </pre>
  */
 l_ok
 boxaaExtendArray(BOXAA  *baa)
 {
-
     PROCNAME("boxaaExtendArray");
 
     if (!baa)
         return ERROR_INT("baa not defined", procName, 1);
 
-    if ((baa->boxa = (BOXA **)reallocNew((void **)&baa->boxa,
-                              sizeof(BOXA *) * baa->nalloc,
-                              2 * sizeof(BOXA *) * baa->nalloc)) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
-
-    baa->nalloc *= 2;
-    return 0;
+    return boxaaExtendArrayToSize(baa, 2 * baa->nalloc);
 }
 
 
@@ -1394,18 +1402,25 @@ l_ok
 boxaaExtendArrayToSize(BOXAA   *baa,
                        l_int32  size)
 {
+size_t  oldsize, newsize;
+
     PROCNAME("boxaaExtendArrayToSize");
 
     if (!baa)
         return ERROR_INT("baa not defined", procName, 1);
-
-    if (size > baa->nalloc) {
-        if ((baa->boxa = (BOXA **)reallocNew((void **)&baa->boxa,
-                                             sizeof(BOXA *) * baa->nalloc,
-                                             size * sizeof(BOXA *))) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
-        baa->nalloc = size;
+    if (size <= baa->nalloc) {
+        L_INFO("size too small; no extension\n", procName);
+        return 0;
     }
+    if (size > MaxBoxaaPtrArraySize)  /* ptrs for 1 million boxa */
+        return ERROR_INT("size > 1 million; too large", procName, 1);
+
+    oldsize = baa->nalloc * sizeof(BOXA *);
+    newsize = size * sizeof(BOXA *);
+    if ((baa->boxa = (BOXA **)reallocNew((void **)&baa->boxa,
+                                         oldsize, newsize)) == NULL)
+        return ERROR_INT("new ptr array not returned", procName, 1);
+    baa->nalloc = size;
     return 0;
 }
 

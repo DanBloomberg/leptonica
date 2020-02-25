@@ -155,12 +155,12 @@
 #include <string.h>
 #include "allheaders.h"
 
-    /* Bounds on initial array size */
-static const l_uint32  MaxPtrArraySize = 1000000;
+    /* Bounds on pixacomp array size */
+static const l_uint32  MaxPtrArraySize = 5000000;
 static const l_int32  InitialPtrArraySize = 20;      /*!< n'importe quoi */
 
     /* Bound on data size */
-static const size_t  MaxDataSize = 1000000000;
+static const size_t  MaxDataSize = 1000000000;   /* 1 billion bytes */
 
     /* These two globals are defined in writefile.c */
 extern l_int32  NumImageFileFormatExtensions;
@@ -385,6 +385,11 @@ PIXC  *pixc;
  *
  * \param[in]    pixcs
  * \return  pixcd, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Limit the size of the compressed pix to 500 million bytes.
+ * </pre>
  */
 PIXC *
 pixcompCopy(PIXC  *pixcs)
@@ -397,6 +402,9 @@ PIXC     *pixcd;
 
     if (!pixcs)
         return (PIXC *)ERROR_PTR("pixcs not defined", procName, NULL);
+    size = pixcs->size;
+    if (size > 500000000)
+        return (PIXC *)ERROR_PTR("size > 500 million; too big", procName, NULL);
 
     pixcd = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC));
     pixcd->w = pixcs->w;
@@ -410,7 +418,6 @@ PIXC     *pixcd;
     pixcd->cmapflag = pixcs->cmapflag;
 
         /* Copy image data */
-    size = pixcs->size;
     datas = pixcs->data;
     if ((datad = (l_uint8 *)LEPT_CALLOC(size, sizeof(l_int8))) == NULL) {
         pixcompDestroy(&pixcd);
@@ -995,21 +1002,27 @@ l_int32  n;
  *          necessary in case we are NOT adding boxes simultaneously
  *          with adding pixc.  We always want the sizes of the
  *          pixac and boxa ptr arrays to be equal.
+ *      (2) The max number of pixcomp ptrs is 5 million.
  * </pre>
  */
 static l_int32
 pixacompExtendArray(PIXAC  *pixac)
 {
+size_t  oldsize, newsize;
+
     PROCNAME("pixacompExtendArray");
 
     if (!pixac)
         return ERROR_INT("pixac not defined", procName, 1);
+    oldsize = pixac->nalloc * sizeof(PIXC *);
+    newsize = 2 * oldsize;
+    if (newsize > 8 * MaxPtrArraySize)  /* ptrs for 5 million pixcomp */
+        return ERROR_INT("newsize > 40 million; too large", procName, 1);
 
     if ((pixac->pixc = (PIXC **)reallocNew((void **)&pixac->pixc,
-                            sizeof(PIXC *) * pixac->nalloc,
-                            2 * sizeof(PIXC *) * pixac->nalloc)) == NULL)
+                                           oldsize, newsize)) == NULL)
         return ERROR_INT("new ptr array not returned", procName, 1);
-    pixac->nalloc = 2 * pixac->nalloc;
+    pixac->nalloc *= 2;
     boxaExtendArray(pixac->boxa);
     return 0;
 }

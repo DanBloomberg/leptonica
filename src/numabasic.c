@@ -173,8 +173,8 @@
 #include "allheaders.h"
 
     /* Bounds on initial array size */
-static const l_uint32  MaxArraySize = 100000000;  /* for numa */
-static const l_uint32  MaxPtrArraySize = 10000;  /* for numaa */
+static const l_uint32  MaxFloatArraySize = 100000000;  /* for numa */
+static const l_uint32  MaxPtrArraySize = 1000000;  /* for numaa */
 static const l_int32 InitialArraySize = 50;      /*!< n'importe quoi */
 
     /* Static functions */
@@ -197,7 +197,7 @@ NUMA  *na;
 
     PROCNAME("numaCreate");
 
-    if (n <= 0 || n > MaxArraySize)
+    if (n <= 0 || n > MaxFloatArraySize)
         n = InitialArraySize;
 
     na = (NUMA *)LEPT_CALLOC(1, sizeof(NUMA));
@@ -499,19 +499,29 @@ l_int32  n;
  *
  * \param[in]    na
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The max number of floats is 100 million.
+ * </pre>
  */
 static l_int32
 numaExtendArray(NUMA  *na)
 {
+size_t  oldsize, newsize;
+
     PROCNAME("numaExtendArray");
 
     if (!na)
         return ERROR_INT("na not defined", procName, 1);
+    oldsize = na->nalloc * sizeof(l_float32);
+    newsize = 2 * oldsize;
+    if (newsize > 4 * MaxFloatArraySize)  /* 100 million floats */
+        return ERROR_INT("newsize > 400 million; too large", procName, 1);
 
     if ((na->array = (l_float32 *)reallocNew((void **)&na->array,
-                                sizeof(l_float32) * na->nalloc,
-                                2 * sizeof(l_float32) * na->nalloc)) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
+                                             oldsize, newsize)) == NULL)
+        return ERROR_INT("new ptr array not returned", procName, 1);
 
     na->nalloc *= 2;
     return 0;
@@ -1131,8 +1141,8 @@ NUMA      *na;
     if (fscanf(fp, "Number of numbers = %d\n", &n) != 1)
         return (NUMA *)ERROR_PTR("invalid number of numbers", procName, NULL);
 
-    if (n > MaxArraySize) {
-        L_ERROR("n = %d > %d\n", procName, n, MaxArraySize);
+    if (n > MaxFloatArraySize) {
+        L_ERROR("n = %d > %d\n", procName, n, MaxFloatArraySize);
         return NULL;
     }
     if ((na = numaCreate(n)) == NULL)
@@ -1557,19 +1567,29 @@ NUMA    *nac;
  *
  * \param[in]    naa
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The max number of numa ptrs is 1 million
+ * </pre>
  */
 static l_int32
 numaaExtendArray(NUMAA  *naa)
 {
+size_t  oldsize, newsize;
+
     PROCNAME("numaaExtendArray");
 
     if (!naa)
         return ERROR_INT("naa not defined", procName, 1);
+    oldsize = naa->nalloc * sizeof(NUMA *);
+    newsize = 2 * oldsize;
+    if (newsize > 8 * MaxPtrArraySize)  /* more than 1 million numa ptrs */
+        return ERROR_INT("newsize > 8 million; too large", procName, 1);
 
     if ((naa->numa = (NUMA **)reallocNew((void **)&naa->numa,
-                              sizeof(NUMA *) * naa->nalloc,
-                              2 * sizeof(NUMA *) * naa->nalloc)) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
+                                         oldsize, newsize)) == NULL)
+        return ERROR_INT("new ptr array not returned", procName, 1);
 
     naa->nalloc *= 2;
     return 0;

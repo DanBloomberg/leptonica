@@ -101,6 +101,10 @@ They are <i>not</i> a complete listing of the modifications.
         * Convert croptest program to regression test crop_reg.
         * New color segmentation by region filling (colorinfo.c)
         * New regression tests: colorinfo_reg.
+        * Set maxima for all allocations for common leptonica data structures.
+        * Don't fail when downscaling 2, 4, 8, and 32 bpp images, even
+          to one pixel, invoking pixScaleSmooth().
+        * New functions that select 1 bpp components based on their area.
 
 1.79.0  1 Jan 2020
         * Clean up auto-generation of files; removed 'register'
