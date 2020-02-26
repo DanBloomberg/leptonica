@@ -502,7 +502,7 @@ l_int32  n;
  *
  * <pre>
  * Notes:
- *      (1) The max number of floats is 100 million.
+ *      (1) The max number of floats is 100M.
  * </pre>
  */
 static l_int32
@@ -516,8 +516,8 @@ size_t  oldsize, newsize;
         return ERROR_INT("na not defined", procName, 1);
     oldsize = na->nalloc * sizeof(l_float32);
     newsize = 2 * oldsize;
-    if (newsize > 4 * MaxFloatArraySize)  /* 100 million floats */
-        return ERROR_INT("newsize > 400 million; too large", procName, 1);
+    if (newsize > 4 * MaxFloatArraySize)
+        return ERROR_INT("newsize > 400 MB; too large", procName, 1);
 
     if ((na->array = (l_float32 *)reallocNew((void **)&na->array,
                                              oldsize, newsize)) == NULL)
@@ -1570,7 +1570,7 @@ NUMA    *nac;
  *
  * <pre>
  * Notes:
- *      (1) The max number of numa ptrs is 1 million
+ *      (1) The max number of numa ptrs is 1M.
  * </pre>
  */
 static l_int32
@@ -1584,8 +1584,8 @@ size_t  oldsize, newsize;
         return ERROR_INT("naa not defined", procName, 1);
     oldsize = naa->nalloc * sizeof(NUMA *);
     newsize = 2 * oldsize;
-    if (newsize > 8 * MaxPtrArraySize)  /* more than 1 million numa ptrs */
-        return ERROR_INT("newsize > 8 million; too large", procName, 1);
+    if (newsize > 8 * MaxPtrArraySize)
+        return ERROR_INT("newsize > 8 MB; too large", procName, 1);
 
     if ((naa->numa = (NUMA **)reallocNew((void **)&naa->numa,
                                          oldsize, newsize)) == NULL)

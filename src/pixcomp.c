@@ -388,7 +388,7 @@ PIXC  *pixc;
  *
  * <pre>
  * Notes:
- *      (1) Limit the size of the compressed pix to 500 million bytes.
+ *      (1) Limit the size of the compressed pix to 500 MB.
  * </pre>
  */
 PIXC *
@@ -404,7 +404,7 @@ PIXC     *pixcd;
         return (PIXC *)ERROR_PTR("pixcs not defined", procName, NULL);
     size = pixcs->size;
     if (size > 500000000)
-        return (PIXC *)ERROR_PTR("size > 500 million; too big", procName, NULL);
+        return (PIXC *)ERROR_PTR("size > 500 MB; too big", procName, NULL);
 
     pixcd = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC));
     pixcd->w = pixcs->w;
@@ -1002,7 +1002,7 @@ l_int32  n;
  *          necessary in case we are NOT adding boxes simultaneously
  *          with adding pixc.  We always want the sizes of the
  *          pixac and boxa ptr arrays to be equal.
- *      (2) The max number of pixcomp ptrs is 5 million.
+ *      (2) The max number of pixcomp ptrs is 5M.
  * </pre>
  */
 static l_int32
@@ -1016,8 +1016,8 @@ size_t  oldsize, newsize;
         return ERROR_INT("pixac not defined", procName, 1);
     oldsize = pixac->nalloc * sizeof(PIXC *);
     newsize = 2 * oldsize;
-    if (newsize > 8 * MaxPtrArraySize)  /* ptrs for 5 million pixcomp */
-        return ERROR_INT("newsize > 40 million; too large", procName, 1);
+    if (newsize > 8 * MaxPtrArraySize)  /* ptrs for 5M pixcomp */
+        return ERROR_INT("newsize > 40 MB; too large", procName, 1);
 
     if ((pixac->pixc = (PIXC **)reallocNew((void **)&pixac->pixc,
                                            oldsize, newsize)) == NULL)

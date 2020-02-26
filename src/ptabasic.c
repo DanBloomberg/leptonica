@@ -370,7 +370,7 @@ l_int32  n;
  *
  * <pre>
  * Notes:
- *      (1) The max number of points is 100 million.
+ *      (1) The max number of points is 100M.
  * </pre>
  */
 static l_int32
@@ -384,8 +384,8 @@ size_t  oldsize, newsize;
         return ERROR_INT("pta not defined", procName, 1);
     oldsize = pta->nalloc * sizeof(l_float32);
     newsize = 2 * oldsize;
-    if (newsize > 4 * MaxArraySize)  /* array of 100 million floats */
-        return ERROR_INT("newsize > 400 million; too large", procName, 1);
+    if (newsize > 4 * MaxArraySize)  /* array of 100M floats */
+        return ERROR_INT("newsize > 400 MB; too large", procName, 1);
 
     if ((pta->x = (l_float32 *)reallocNew((void **)&pta->x,
                                           oldsize, newsize)) == NULL)
@@ -1053,7 +1053,7 @@ PTA     *ptac;
  * <pre>
  * Notes:
  *      (1) This doubles the pta ptr array size.
- *      (2) The max number of pta ptrs is 10 million.
+ *      (2) The max number of pta ptrs is 10M.
  * </pre>
  *
  */
@@ -1068,8 +1068,8 @@ size_t  oldsize, newsize;
         return ERROR_INT("ptaa not defined", procName, 1);
     oldsize = ptaa->nalloc * sizeof(PTA *);
     newsize = 2 * oldsize;
-    if (newsize > 8 * MaxPtrArraySize)  /* 8 byte ptrs */
-        return ERROR_INT("newsize > 80 million; too large", procName, 1);
+    if (newsize > 8 * MaxPtrArraySize)
+        return ERROR_INT("newsize > 80 MB; too large", procName, 1);
 
     if ((ptaa->pta = (PTA **)reallocNew((void **)&ptaa->pta,
                                         oldsize, newsize)) == NULL)

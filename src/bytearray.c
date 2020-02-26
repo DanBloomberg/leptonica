@@ -431,7 +431,7 @@ size_t  size, len, nalloc, reqsize;
  * <pre>
  * Notes:
  *      (1) If necessary, reallocs the byte array to %size.
- *      (2) The max buffer size is 10^9 bytes.
+ *      (2) The max buffer size is 1 GB.
  * </pre>
  */
 static l_int32
@@ -446,8 +446,8 @@ l_byteaExtendArrayToSize(L_BYTEA  *ba,
         L_INFO("size too small; no extension\n", procName);
         return 0;
     }
-    if (size > MaxArraySize)  /* larger than 10^9 bytes */
-        return ERROR_INT("size > 1 billion bytes; too large", procName, 1);
+    if (size > MaxArraySize)
+        return ERROR_INT("size > 1 GB; too large", procName, 1);
 
     if ((ba->data =
         (l_uint8 *)reallocNew((void **)&ba->data, ba->nalloc, size)) == NULL)

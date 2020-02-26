@@ -481,7 +481,7 @@ l_int32  n;
  * <pre>
  * Notes:
  *      (1) Doubles the size of the string ptr array.
- *      (2) The max number of strings is 25 million.
+ *      (2) The max number of strings is 25M.
  * </pre>
  */
 static l_int32
@@ -496,7 +496,7 @@ size_t  oldsize, newsize;
     oldsize = sa->nalloc * sizeof(char *);
     newsize = 2 * oldsize;
     if (newsize > 8 * MaxPtrArraySize)  /* ptrs for 25 million strings */
-        return ERROR_INT("newsize > 200 million; too large", procName, 1);
+        return ERROR_INT("newsize > 200 MB; too large", procName, 1);
 
     if ((sa->array = (char **)reallocNew((void **)&sa->array,
                                          oldsize, newsize)) == NULL)

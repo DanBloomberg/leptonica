@@ -467,7 +467,7 @@ l_int32  n;
  *
  * <pre>
  * Notes:
- *      (1) The max number of doubles is 100 million.
+ *      (1) The max number of doubles is 100M.
  * </pre>
  */
 static l_int32
@@ -481,8 +481,8 @@ size_t  oldsize, newsize;
         return ERROR_INT("da not defined", procName, 1);
     oldsize = da->nalloc * sizeof(l_float64);
     newsize = 2 * oldsize;
-    if (newsize > 8 * MaxDoubleArraySize)  /* 100 million doubles */
-        return ERROR_INT("newsize > 800 million; too large", procName, 1);
+    if (newsize > 8 * MaxDoubleArraySize)
+        return ERROR_INT("newsize > 800 MB; too large", procName, 1);
 
     if ((da->array = (l_float64 *)reallocNew((void **)&da->array,
                                              oldsize, newsize)) == NULL)
@@ -1321,7 +1321,7 @@ L_DNA   *dac;
  * <pre>
  * Notes:
  *      (1) Doubles the number of dna ptrs.
- *      (2) The max size of the dna array is 1 million.
+ *      (2) The max size of the dna array is 1M ptrs.
  * </pre>
  */
 static l_int32
@@ -1335,8 +1335,8 @@ size_t  oldsize, newsize;
         return ERROR_INT("daa not defined", procName, 1);
     oldsize = daa->nalloc * sizeof(L_DNA *);
     newsize = 2 * oldsize;
-    if (newsize > 8 * MaxPtrArraySize)  /* more than 1 million ptrs */
-        return ERROR_INT("newsize > 8 million; too large", procName, 1);
+    if (newsize > 8 * MaxPtrArraySize)
+        return ERROR_INT("newsize > 8 MB; too large", procName, 1);
 
     if ((daa->dna = (L_DNA **)reallocNew((void **)&daa->dna,
                                          oldsize, newsize)) == NULL)

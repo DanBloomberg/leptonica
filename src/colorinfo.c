@@ -880,7 +880,7 @@ PIXA      *pixa1;
 
     if (debug) {  /* first tile */
         na = numaaGetNuma(ci->naa, 0, L_CLONE);
-        fprintf(stderr, "Size of components in tile 0:");
+        lept_stderr("Size of components in tile 0:");
         numaWriteStderr(na);
         numaDestroy(&na);
     }

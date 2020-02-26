@@ -907,7 +907,7 @@ fpixaExtendArray(FPIXA  *fpixa)
  * <pre>
  * Notes:
  *      (1) If necessary, reallocs new fpix ptr array to %size.
- *      (2) The max number of fpix ptrs is 100000.
+ *      (2) The max number of fpix ptrs is 100K.
  * </pre>
  */
 static l_int32
@@ -924,8 +924,8 @@ size_t  oldsize, newsize;
         L_INFO("size too small; no extension\n", procName);
         return 0;
     }
-    if (size > MaxPtrArraySize)  /* ptrs for 100000 fpix */
-        return ERROR_INT("size > 100000; too large", procName, 1);
+    if (size > MaxPtrArraySize)
+        return ERROR_INT("size > 100K ptrs; too large", procName, 1);
 
     oldsize = fpixa->nalloc * sizeof(FPIX *);
     newsize = size * sizeof(FPIX *);
