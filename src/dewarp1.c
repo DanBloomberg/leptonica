@@ -1051,13 +1051,13 @@ dewarpaUseBothArrays(L_DEWARPA  *dewa,
  *          'useboth' is set, this will count the number of text
  *          columns.  If the number is larger than 1, this will
  *          prevent the application of horizontal disparity arrays
- *          if they exist.  Note that the default value of check_columns
- *          if 0 (FALSE).
- *      (2) This field is set to 0 by default.  For horizontal disparity
- *          correction to take place on a single column of text, you must have:
+ *          if they exist.
+ *      (2) The check_columns field is set to TRUE by default.
+ *          For horizontal disparity correction to take place on a
+ *          single column of text, you must have:
  *           - a valid horizontal disparity array
  *           - useboth = 1 (TRUE)
- *          If there are multiple columns, additionally
+ *          If there are multiple columns, in addition you need
  *           - check_columns = 0 (FALSE)
  *
  * </pre>

@@ -685,7 +685,7 @@ boxaExtendArray(BOXA  *boxa)
  * <pre>
  * Notes:
  *      (1) If necessary, reallocs new boxa ptr array to %size.
- *      (2) The max number of box ptrs is 10 million.
+ *      (2) The max number of box ptrs is 10M.
  * </pre>
  */
 l_ok
@@ -702,8 +702,8 @@ size_t  oldsize, newsize;
         L_INFO("size too small; no extension\n", procName);
         return 0;
     }
-    if (size > MaxBoxaPtrArraySize)  /* ptrs for 10 million boxes */
-        return ERROR_INT("size > 10 million; too large", procName, 1);
+    if (size > MaxBoxaPtrArraySize)
+        return ERROR_INT("size > 10M box ptrs; too large", procName, 1);
 
     oldsize = boxa->nalloc * sizeof(BOX *);
     newsize = size * sizeof(BOX *);
@@ -1396,6 +1396,7 @@ boxaaExtendArray(BOXAA  *baa)
  * <pre>
  * Notes:
  *      (1) If necessary, reallocs the boxa ptr array to %size.
+ *      (2) %size limited to 1M boxa ptrs.
  * </pre>
  */
 l_ok
@@ -1412,8 +1413,8 @@ size_t  oldsize, newsize;
         L_INFO("size too small; no extension\n", procName);
         return 0;
     }
-    if (size > MaxBoxaaPtrArraySize)  /* ptrs for 1 million boxa */
-        return ERROR_INT("size > 1 million; too large", procName, 1);
+    if (size > MaxBoxaaPtrArraySize)
+        return ERROR_INT("size > 1M boxa ptrs; too large", procName, 1);
 
     oldsize = baa->nalloc * sizeof(BOXA *);
     newsize = size * sizeof(BOXA *);
@@ -1889,6 +1890,11 @@ BOXAA  *baa;
  *
  * \param[in]    fp    input file stream
  * \return  boxaa, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) It is OK for the boxaa to be empty (n == 0).
+ * </pre>
  */
 BOXAA *
 boxaaReadStream(FILE  *fp)
@@ -1909,6 +1915,11 @@ BOXAA   *baa;
         return (BOXAA *)ERROR_PTR("invalid boxa version", procName, NULL);
     if (fscanf(fp, "Number of boxa = %d\n", &n) != 1)
         return (BOXAA *)ERROR_PTR("not a boxaa file", procName, NULL);
+    if (n < 0)
+        return (BOXAA *)ERROR_PTR("num boxa ptrs < 0", procName, NULL);
+    if (n > MaxBoxaaPtrArraySize)
+        return (BOXAA *)ERROR_PTR("too many boxa ptrs", procName, NULL);
+    if (n == 0) L_INFO("the boxaa is empty\n", procName);
 
     if ((baa = boxaaCreate(n)) == NULL)
         return (BOXAA *)ERROR_PTR("boxaa not made", procName, NULL);
@@ -2117,6 +2128,11 @@ BOXA  *boxa;
  *
  * \param[in]    fp   input file stream
  * \return  boxa, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) It is OK for the boxa to be empty (n == 0).
+ * </pre>
  */
 BOXA *
 boxaReadStream(FILE  *fp)
@@ -2137,6 +2153,11 @@ BOXA    *boxa;
         return (BOXA *)ERROR_PTR("invalid boxa version", procName, NULL);
     if (fscanf(fp, "Number of boxes = %d\n", &n) != 1)
         return (BOXA *)ERROR_PTR("not a boxa file", procName, NULL);
+    if (n < 0)
+        return (BOXA *)ERROR_PTR("num box ptrs < 0", procName, NULL);
+    if (n > MaxBoxaPtrArraySize)
+        return (BOXA *)ERROR_PTR("too many box ptrs", procName, NULL);
+    if (n == 0) L_INFO("the boxa is empty\n", procName);
 
     if ((boxa = boxaCreate(n)) == NULL)
         return (BOXA *)ERROR_PTR("boxa not made", procName, NULL);
@@ -2149,7 +2170,6 @@ BOXA    *boxa;
         box = boxCreate(x, y, w, h);
         boxaAddBox(boxa, box, L_INSERT);
     }
-
     return boxa;
 }
 

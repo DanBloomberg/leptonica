@@ -156,11 +156,11 @@
 #include "allheaders.h"
 
     /* Bounds on pixacomp array size */
-static const l_uint32  MaxPtrArraySize = 5000000;
+static const l_uint32  MaxPtrArraySize = 1000000;
 static const l_int32  InitialPtrArraySize = 20;      /*!< n'importe quoi */
 
-    /* Bound on data size */
-static const size_t  MaxDataSize = 1000000000;   /* 1 billion bytes */
+    /* Bound on size for a compressed data string */
+static const size_t  MaxDataSize = 1000000000;   /* 1 GB */
 
     /* These two globals are defined in writefile.c */
 extern l_int32  NumImageFileFormatExtensions;
@@ -403,8 +403,8 @@ PIXC     *pixcd;
     if (!pixcs)
         return (PIXC *)ERROR_PTR("pixcs not defined", procName, NULL);
     size = pixcs->size;
-    if (size > 500000000)
-        return (PIXC *)ERROR_PTR("size > 500 MB; too big", procName, NULL);
+    if (size > MaxDataSize)
+        return (PIXC *)ERROR_PTR("size > 1 GB; too big", procName, NULL);
 
     pixcd = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC));
     pixcd->w = pixcs->w;
@@ -1002,7 +1002,7 @@ l_int32  n;
  *          necessary in case we are NOT adding boxes simultaneously
  *          with adding pixc.  We always want the sizes of the
  *          pixac and boxa ptr arrays to be equal.
- *      (2) The max number of pixcomp ptrs is 5M.
+ *      (2) The max number of pixcomp ptrs is 1M.
  * </pre>
  */
 static l_int32
@@ -1016,8 +1016,8 @@ size_t  oldsize, newsize;
         return ERROR_INT("pixac not defined", procName, 1);
     oldsize = pixac->nalloc * sizeof(PIXC *);
     newsize = 2 * oldsize;
-    if (newsize > 8 * MaxPtrArraySize)  /* ptrs for 5M pixcomp */
-        return ERROR_INT("newsize > 40 MB; too large", procName, 1);
+    if (newsize > 8 * MaxPtrArraySize)  /* ptrs for 1M pixcomp */
+        return ERROR_INT("newsize > 8 MB; too large", procName, 1);
 
     if ((pixac->pixc = (PIXC **)reallocNew((void **)&pixac->pixc,
                                            oldsize, newsize)) == NULL)
@@ -1685,6 +1685,11 @@ PIXAC  *pixac;
  *
  * \param[in]    fp   file stream
  * \return  pixac, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) It is OK for the pixacomp to be empty.
+ * </pre>
  */
 PIXAC *
 pixacompReadStream(FILE  *fp)
@@ -1711,6 +1716,11 @@ PIXAC    *pixac;
         return (PIXAC *)ERROR_PTR("not a pixacomp file", procName, NULL);
     if (fscanf(fp, "Offset of index into array = %d", &offset) != 1)
         return (PIXAC *)ERROR_PTR("offset not read", procName, NULL);
+    if (n < 0)
+        return (PIXAC *)ERROR_PTR("num pixcomp ptrs < 0", procName, NULL);
+    if (n > MaxPtrArraySize)
+        return (PIXAC *)ERROR_PTR("too many pixcomp ptrs", procName, NULL);
+    if (n == 0) L_INFO("the pixacomp is empty\n", procName);
 
     if ((pixac = pixacompCreate(n)) == NULL)
         return (PIXAC *)ERROR_PTR("pixac not made", procName, NULL);

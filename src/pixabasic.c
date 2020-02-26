@@ -2618,6 +2618,7 @@ PIXA  *pixa;
  * Notes:
  *      (1) The pix are stored in the file as png.
  *          If the png library is not linked, this will fail.
+ *      (2) It is OK for the pixa to be empty.
  * </pre>
  */
 PIXA *
@@ -2644,6 +2645,11 @@ PIXA    *pixa;
         return (PIXA *)ERROR_PTR("invalid pixa version", procName, NULL);
     if (fscanf(fp, "Number of pix = %d\n", &n) != 1)
         return (PIXA *)ERROR_PTR("not a pixa file", procName, NULL);
+    if (n < 0)
+        return (PIXA *)ERROR_PTR("num pix ptrs < 0", procName, NULL);
+    if (n > MaxPixaPtrArraySize)
+        return (PIXA *)ERROR_PTR("too many pix ptrs", procName, NULL);
+    if (n == 0) L_INFO("the pixa is empty\n", procName);
 
     if ((boxa = boxaReadStream(fp)) == NULL)
         return (PIXA *)ERROR_PTR("boxa not made", procName, NULL);
@@ -3027,6 +3033,7 @@ PIXAA  *paa;
  * Notes:
  *      (1) The pix are stored in the file as png.
  *          If the png library is not linked, this will fail.
+ *      (2) It is OK for the pixaa to be empty.
  * </pre>
  */
 PIXAA *
@@ -3053,6 +3060,11 @@ PIXAA   *paa;
         return (PIXAA *)ERROR_PTR("invalid pixaa version", procName, NULL);
     if (fscanf(fp, "Number of pixa = %d\n", &n) != 1)
         return (PIXAA *)ERROR_PTR("not a pixaa file", procName, NULL);
+    if (n < 0)
+        return (PIXAA *)ERROR_PTR("num pixa ptrs < 0", procName, NULL);
+    if (n > MaxPixaaPtrArraySize)
+        return (PIXAA *)ERROR_PTR("too many pixa ptrs", procName, NULL);
+    if (n == 0) L_INFO("the pixaa is empty\n", procName);
 
     if ((paa = pixaaCreate(n)) == NULL)
         return (PIXAA *)ERROR_PTR("paa not made", procName, NULL);

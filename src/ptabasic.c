@@ -716,11 +716,15 @@ PTA       *pta;
         return (PTA *)ERROR_PTR("invalid pta version", procName, NULL);
     if (fscanf(fp, " Number of pts = %d; format = %127s\n", &n, typestr) != 2)
         return (PTA *)ERROR_PTR("not a pta file", procName, NULL);
+    if (n <= 0)
+        return (PTA *)ERROR_PTR("num pts <= 0", procName, NULL);
+    if (n > MaxArraySize)
+        return (PTA *)ERROR_PTR("too many pts", procName, NULL);
+
     if (!strcmp(typestr, "float"))
         type = 0;
     else  /* typestr is "integer" */
         type = 1;
-
     if ((pta = ptaCreate(n)) == NULL)
         return (PTA *)ERROR_PTR("pta not made", procName, NULL);
     for (i = 0; i < n; i++) {
@@ -1370,6 +1374,10 @@ PTAA    *ptaa;
         return (PTAA *)ERROR_PTR("invalid ptaa version", procName, NULL);
     if (fscanf(fp, "Number of Pta = %d\n", &n) != 1)
         return (PTAA *)ERROR_PTR("not a ptaa file", procName, NULL);
+    if (n <= 0)
+        return (PTAA *)ERROR_PTR("num pta ptrs <= 0", procName, NULL);
+    if (n > MaxPtrArraySize)
+        return (PTAA *)ERROR_PTR("too many pta ptrs", procName, NULL);
 
     if ((ptaa = ptaaCreate(n)) == NULL)
         return (PTAA *)ERROR_PTR("ptaa not made", procName, NULL);

@@ -1388,11 +1388,12 @@ SARRAY  *sa;
  * <pre>
  * Notes:
  *      (1) We store the size of each string along with the string.
- *          The limit on the number of strings is 2^24.
+ *          The limit on the number of strings is 25M.
  *          The limit on the size of any string is 2^30 bytes.
  *      (2) This allows a string to have embedded newlines.  By reading
  *          the entire string, as determined by its size, we are
  *          not affected by any number of embedded newlines.
+ *      (3) It is OK for the sarray to be empty.
  * </pre>
  */
 SARRAY *
@@ -1413,8 +1414,11 @@ SARRAY  *sa;
         return (SARRAY *)ERROR_PTR("invalid sarray version", procName, NULL);
     if (fscanf(fp, "Number of strings = %d\n", &n) != 1)
         return (SARRAY *)ERROR_PTR("error on # strings", procName, NULL);
-    if (n > (1 << 24))
-        return (SARRAY *)ERROR_PTR("more than 2^24 strings!", procName, NULL);
+    if (n <= 0)
+        return (SARRAY *)ERROR_PTR("num string ptrs <= 0", procName, NULL);
+    if (n > MaxPtrArraySize)
+        return (SARRAY *)ERROR_PTR("too many string ptrs", procName, NULL);
+    if (n == 0) L_INFO("the sarray is empty\n", procName);
 
     success = TRUE;
     if ((sa = sarrayCreate(n)) == NULL)
