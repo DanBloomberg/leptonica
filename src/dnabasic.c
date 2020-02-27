@@ -1020,6 +1020,7 @@ L_DNA  *da;
  * <pre>
  * Notes:
  *      (1) fscanf takes %lf to read a double; fprintf takes %f to write it.
+ *      (2) It is OK for the dna to be empty.
  * </pre>
  */
 L_DNA *
@@ -1041,10 +1042,12 @@ L_DNA     *da;
         return (L_DNA *)ERROR_PTR("invalid l_dna version", procName, NULL);
     if (fscanf(fp, "Number of numbers = %d\n", &n) != 1)
         return (L_DNA *)ERROR_PTR("invalid number of numbers", procName, NULL);
-    if (n <= 0)
-        return (L_DNA *)ERROR_PTR("num doubles <= 0", procName, NULL);
+    if (n < 0)
+        return (L_DNA *)ERROR_PTR("num doubles < 0", procName, NULL);
     if (n > MaxDoubleArraySize)
         return (L_DNA *)ERROR_PTR("too many doubles", procName, NULL);
+    if (n == 0) L_INFO("the dna is empty\n", procName);
+
     if ((da = l_dnaCreate(n)) == NULL)
         return (L_DNA *)ERROR_PTR("da not made", procName, NULL);
     for (i = 0; i < n; i++) {
@@ -1590,6 +1593,11 @@ L_DNAA  *daa;
  *
  * \param[in]    fp   file stream
  * \return  daa, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) It is OK for the dnaa to be empty.
+ * </pre>
  */
 L_DNAA *
 l_dnaaReadStream(FILE  *fp)
@@ -1610,10 +1618,11 @@ L_DNAA    *daa;
         return (L_DNAA *)ERROR_PTR("invalid l_dnaa version", procName, NULL);
     if (fscanf(fp, "Number of L_Dna = %d\n\n", &n) != 1)
         return (L_DNAA *)ERROR_PTR("invalid number of l_dna", procName, NULL);
-    if (n <= 0)
+    if (n < 0)
         return (L_DNAA *)ERROR_PTR("num l_dna <= 0", procName, NULL);
     if (n > MaxPtrArraySize)
         return (L_DNAA *)ERROR_PTR("too many l_dna", procName, NULL);
+    if (n == 0) L_INFO("the dnaa is empty\n", procName);
 
     if ((daa = l_dnaaCreate(n)) == NULL)
         return (L_DNAA *)ERROR_PTR("daa not made", procName, NULL);

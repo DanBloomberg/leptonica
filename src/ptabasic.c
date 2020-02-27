@@ -696,6 +696,12 @@ PTA   *pta;
  *
  * \param[in]    fp    file stream
  * \return  pta, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) It is OK for the pta to be empty (n == 0).
+ * </pre>
+
  */
 PTA *
 ptaReadStream(FILE  *fp)
@@ -716,10 +722,11 @@ PTA       *pta;
         return (PTA *)ERROR_PTR("invalid pta version", procName, NULL);
     if (fscanf(fp, " Number of pts = %d; format = %127s\n", &n, typestr) != 2)
         return (PTA *)ERROR_PTR("not a pta file", procName, NULL);
-    if (n <= 0)
+    if (n < 0)
         return (PTA *)ERROR_PTR("num pts <= 0", procName, NULL);
     if (n > MaxArraySize)
         return (PTA *)ERROR_PTR("too many pts", procName, NULL);
+    if (n == 0) L_INFO("the pta is empty\n", procName);
 
     if (!strcmp(typestr, "float"))
         type = 0;
@@ -1355,6 +1362,11 @@ PTAA  *ptaa;
  *
  * \param[in]    fp    file stream
  * \return  ptaa, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) It is OK for the ptaa to be empty (n == 0).
+ * </pre>
  */
 PTAA *
 ptaaReadStream(FILE  *fp)
@@ -1374,10 +1386,11 @@ PTAA    *ptaa;
         return (PTAA *)ERROR_PTR("invalid ptaa version", procName, NULL);
     if (fscanf(fp, "Number of Pta = %d\n", &n) != 1)
         return (PTAA *)ERROR_PTR("not a ptaa file", procName, NULL);
-    if (n <= 0)
+    if (n < 0)
         return (PTAA *)ERROR_PTR("num pta ptrs <= 0", procName, NULL);
     if (n > MaxPtrArraySize)
         return (PTAA *)ERROR_PTR("too many pta ptrs", procName, NULL);
+    if (n == 0) L_INFO("the ptaa is empty\n", procName);
 
     if ((ptaa = ptaaCreate(n)) == NULL)
         return (PTAA *)ERROR_PTR("ptaa not made", procName, NULL);
