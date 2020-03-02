@@ -1414,7 +1414,7 @@ SARRAY  *sa;
         return (SARRAY *)ERROR_PTR("invalid sarray version", procName, NULL);
     if (fscanf(fp, "Number of strings = %d\n", &n) != 1)
         return (SARRAY *)ERROR_PTR("error on # strings", procName, NULL);
-    if (n <= 0)
+    if (n < 0)
         return (SARRAY *)ERROR_PTR("num string ptrs <= 0", procName, NULL);
     if (n > MaxPtrArraySize)
         return (SARRAY *)ERROR_PTR("too many string ptrs", procName, NULL);

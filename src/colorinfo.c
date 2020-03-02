@@ -73,9 +73,10 @@ static l_int32 DefaultMinMax = 70;
 
     /* Static helpers */
 static COLOREL *colorelCreate(l_int32 x, l_int32 y, l_uint32 color);
-static void pixColorFillFromSeed(PIX *pixs, PIX *pixv, PIX *pixm,
+static void pixColorFillFromSeed(PIX *pixs, PIX *pixv, PTA **ppta,
                                  l_int32 x, l_int32 y, L_QUEUE *lq,
-                                 l_int32 maxdiff, l_int32 debug);
+                                 l_int32 maxdiff, l_int32 minarea,
+                                 l_int32 debug);
 static void pixGetVisitedNeighbors(PIX *pixs, l_int32 x, l_int32 y,
                                    l_uint32 *visited);
 static l_int32 findNextUnvisited(PIX *pixv, l_int32 *px, l_int32 *py);
@@ -306,6 +307,7 @@ l_int32    x, y, w, h, empty;
 l_uint32   val;
 L_KERNEL  *kel;
 PIX       *pixm, *pixm1, *pixv, *pixnc, *pixncd, *pixss, *pixf;
+PTA       *pta1;
 L_QUEUE   *lq;
 
     PROCNAME("pixColorFill");
@@ -351,22 +353,26 @@ L_QUEUE   *lq;
     pixSetBorderRingVal(pixv, 1, 1);
     pixm = pixCreate(w, h, 1);  /* color components */
     lq = lqueueCreate(0);
-    x = y = 1;  /* first row and column are marked as visited */
+    x = y = 1;  /* first row and column have been marked as visited */
     while (findNextUnvisited(pixv, &x, &y) == 1) {
             /* Flood fill this component, starting from (x,y) */
         if (debug) lept_stderr("Start: x = %d, y = %d\n", x, y);
-        pixm1 = pixCreate(w, h, 1);
-        pixColorFillFromSeed(pixss, pixv, pixm1, x, y, lq, maxdiff, debug);
-        pixErodeBrick(pixm1, pixm1, 3, 3);
-        pixOr(pixm, pixm, pixm1);
-        pixDestroy(&pixm1);
+        pixColorFillFromSeed(pixss, pixv, &pta1, x, y, lq, maxdiff,
+                             minarea, debug);
+        if (pta1) {  /* erode and add the pixels to pixm */
+            pixm1 = pixGenerateFromPta(pta1, w, h);
+            pixErodeBrick(pixm1, pixm1, 3, 3);
+            pixOr(pixm, pixm, pixm1);
+            pixDestroy(&pixm1);
+            ptaDestroy(&pta1);
+        }
     }
     pixDestroy(&pixv);
 
         /* Remove everything under pixncd */
     pixSubtract(pixm, pixm, pixncd);
 
-        /* Remove any remaining small components */
+        /* Remove remaining small stuff */
     pixf = pixSelectByArea(pixm, minarea, 4, L_SELECT_IF_GTE, NULL);
 
     lqueueDestroy(&lq, 1);
@@ -508,11 +514,12 @@ COLOREL *el;
  *
  * \param[in]       pixs         32 bpp rgb
  * \param[in]       pixv         1 bpp labeling visited pixels
- * \param[in]       pixm         1 bpp similar-color component mask
+ * \param[out]      ppta         points visited with similar colors during fill
  * \param[in]       x            starting x coord for fill (seed)
  * \param[in]       y            starting y coord for fill (seed)
  * \param[in]       lq           head of queue holding pixels
  * \param[in]       maxdiff      max component diff allowed for similar pixels
+ * \param[in]       minarea      min size of component to keep
  * \param[in]       debug        output some text data
  * \return  void
  *
@@ -522,41 +529,46 @@ COLOREL *el;
  *          number of single-pixel noise components near color boundaries.
  *      (2) The seed pixel at (x,y) is unvisited, and can never be on the
  *          exterior boundary of the tile %pixs.
+ *      (3) If the size of the connected component >= %minarea, we return
+ *          the array of pixel locations; otherwise, return NULL for the pta.
  * </pre>
  */
 static void
 pixColorFillFromSeed(PIX      *pixs,
                      PIX      *pixv,
-                     PIX      *pixm,
+                     PTA     **ppta,
                      l_int32   x,
                      l_int32   y,
                      L_QUEUE  *lq,
                      l_int32   maxdiff,
+                     l_int32   minarea,
                      l_int32   debug)
 {
-l_int32   w, h;
-l_int32   np = 0;
+l_int32   w, h, np;
 l_uint32  visited[8];  /* W, N, E, S, NW, NE, SW, SE */
 l_uint32  color, val;
 COLOREL  *el;
+PTA      *pta;
 
         /* Prime the queue with this pixel */
     pixGetPixel(pixs, x, y, &val);
     el = colorelCreate(x, y, val);
     lqueueAdd(lq, el);
     pixSetPixel(pixv, x, y, 1);  /* visited */
+    pta = ptaCreate(0);
+    *ppta = pta;
+    ptaAddPt(pta, x, y);
 
         /* Trace out the color component.  Each pixel on the queue has
          * a color.  Pop from the queue and for each of its 8 neighbors,
          * for those that have color:
-         * - If the pixel has a similar color, add to the component, using
-         *   the color of its parent.
+         * - If the pixel has a similar color, add to the pta array for
+         *   the component, using the color of its parent.
          * - Mark visited so that it will not be included in another
          *   component -- this effectively separates the growing component
          *   from all others. */
     pixGetDimensions(pixs, &w, &h, NULL);
     while (lqueueGetCount(lq) > 0) {
-        np++;
         el = (COLOREL *)lqueueRemove(lq);
         x = el->x;
         y = el->y;
@@ -568,7 +580,7 @@ COLOREL  *el;
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x - 1, y, color);
                 lqueueAdd(lq, el);
-                pixSetPixel(pixm, x - 1, y, 1);  /* added to comp */
+                ptaAddPt(pta, x - 1, y);  /* added to component */
                 pixSetPixel(pixv, x - 1, y, 1);  /* visited */
             }
         }
@@ -577,7 +589,7 @@ COLOREL  *el;
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x, y - 1, color);
                 lqueueAdd(lq, el);
-                pixSetPixel(pixm, x, y - 1, 1);
+                ptaAddPt(pta, x, y - 1);
                 pixSetPixel(pixv, x, y - 1, 1);
             }
         }
@@ -586,7 +598,7 @@ COLOREL  *el;
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x + 1, y, color);
                 lqueueAdd(lq, el);
-                pixSetPixel(pixm, x + 1, y, 1);
+                ptaAddPt(pta, x + 1, y);
                 pixSetPixel(pixv, x + 1, y, 1);
             }
         }
@@ -595,7 +607,7 @@ COLOREL  *el;
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x, y + 1, color);
                 lqueueAdd(lq, el);
-                pixSetPixel(pixm, x, y + 1, 1);
+                ptaAddPt(pta, x, y + 1);
                 pixSetPixel(pixv, x, y + 1, 1);
             }
         }
@@ -604,7 +616,7 @@ COLOREL  *el;
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x - 1, y - 1, color);
                 lqueueAdd(lq, el);
-                pixSetPixel(pixm, x - 1, y - 1, 1);
+                ptaAddPt(pta, x - 1, y - 1);
                 pixSetPixel(pixv, x - 1, y - 1, 1);
             }
         }
@@ -613,7 +625,7 @@ COLOREL  *el;
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x + 1, y - 1, color);
                 lqueueAdd(lq, el);
-                pixSetPixel(pixm, x + 1, y - 1, 1);
+                ptaAddPt(pta, x + 1, y - 1);
                 pixSetPixel(pixv, x + 1, y - 1, 1);
             }
         }
@@ -622,7 +634,7 @@ COLOREL  *el;
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x - 1, y + 1, color);
                 lqueueAdd(lq, el);
-                pixSetPixel(pixm, x - 1, y + 1, 1);
+                ptaAddPt(pta, x - 1, y + 1);
                 pixSetPixel(pixv, x - 1, y + 1, 1);
             }
         }
@@ -631,12 +643,24 @@ COLOREL  *el;
             if (colorsAreSimilarForFill(color, val, maxdiff)) {
                 el = colorelCreate(x + 1, y + 1, color);
                 lqueueAdd(lq, el);
-                pixSetPixel(pixm, x + 1, y + 1, 1);
+                ptaAddPt(pta, x + 1, y + 1);
                 pixSetPixel(pixv, x + 1, y + 1, 1);
             }
         }
     }
-    if (debug) lept_stderr("  End: x = %d, y = %d, np = %d\n", x, y, np);
+
+        /* If there are not enough pixels, do not return the pta.
+         * Otherwise, if a pta is returned, the caller will generate
+         * a component and put it in the mask. */
+    np = ptaGetCount(pta);
+    if (np < minarea) {
+        if (debug) lept_stderr("  Too small. End: x = %d, y = %d, np = %d\n",
+                               x, y, np);
+        ptaDestroy(ppta);
+    } else {
+        if (debug) lept_stderr("  Keep. End: x = %d, y = %d, np = %d\n",
+                               x, y, np);
+    }
 }
 
 
