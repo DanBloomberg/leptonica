@@ -493,6 +493,8 @@ size_t  oldsize, newsize;
 
     if (!sa)
         return ERROR_INT("sa not defined", procName, 1);
+    if (sa->nalloc > MaxPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("sa has too many ptrs", procName, 1);
     oldsize = sa->nalloc * sizeof(char *);
     newsize = 2 * oldsize;
     if (newsize > 8 * MaxPtrArraySize)  /* ptrs for 25 million strings */

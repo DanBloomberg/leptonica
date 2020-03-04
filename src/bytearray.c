@@ -442,12 +442,14 @@ l_byteaExtendArrayToSize(L_BYTEA  *ba,
 
     if (!ba)
         return ERROR_INT("ba not defined", procName, 1);
+    if (ba->nalloc > MaxArraySize)  /* belt & suspenders */
+        return ERROR_INT("ba has too many ptrs", procName, 1);
+    if (size > MaxArraySize)
+        return ERROR_INT("size > 1 GB; too large", procName, 1);
     if (size <= ba->nalloc) {
         L_INFO("size too small; no extension\n", procName);
         return 0;
     }
-    if (size > MaxArraySize)
-        return ERROR_INT("size > 1 GB; too large", procName, 1);
 
     if ((ba->data =
         (l_uint8 *)reallocNew((void **)&ba->data, ba->nalloc, size)) == NULL)

@@ -514,6 +514,8 @@ size_t  oldsize, newsize;
 
     if (!na)
         return ERROR_INT("na not defined", procName, 1);
+    if (na->nalloc > MaxFloatArraySize)  /* belt & suspenders */
+        return ERROR_INT("na has too many ptrs", procName, 1);
     oldsize = na->nalloc * sizeof(l_float32);
     newsize = 2 * oldsize;
     if (newsize > 4 * MaxFloatArraySize)
@@ -1582,6 +1584,8 @@ size_t  oldsize, newsize;
 
     if (!naa)
         return ERROR_INT("naa not defined", procName, 1);
+    if (naa->nalloc > MaxPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("naa has too many ptrs", procName, 1);
     oldsize = naa->nalloc * sizeof(NUMA *);
     newsize = 2 * oldsize;
     if (newsize > 8 * MaxPtrArraySize)

@@ -479,6 +479,8 @@ size_t  oldsize, newsize;
 
     if (!da)
         return ERROR_INT("da not defined", procName, 1);
+    if (da->nalloc > MaxDoubleArraySize)  /* belt & suspenders */
+        return ERROR_INT("da has too many ptrs", procName, 1);
     oldsize = da->nalloc * sizeof(l_float64);
     newsize = 2 * oldsize;
     if (newsize > 8 * MaxDoubleArraySize)
@@ -1335,6 +1337,8 @@ size_t  oldsize, newsize;
 
     if (!daa)
         return ERROR_INT("daa not defined", procName, 1);
+    if (daa->nalloc > MaxPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("daa has too many ptrs", procName, 1);
     oldsize = daa->nalloc * sizeof(L_DNA *);
     newsize = 2 * oldsize;
     if (newsize > 8 * MaxPtrArraySize)

@@ -1014,6 +1014,8 @@ size_t  oldsize, newsize;
 
     if (!pixac)
         return ERROR_INT("pixac not defined", procName, 1);
+    if (pixac->nalloc > MaxPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("pixac has too many ptrs", procName, 1);
     oldsize = pixac->nalloc * sizeof(PIXC *);
     newsize = 2 * oldsize;
     if (newsize > 8 * MaxPtrArraySize)  /* ptrs for 1M pixcomp */

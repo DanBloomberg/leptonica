@@ -84,7 +84,7 @@
  *
  *      Pixaa addition
  *           l_int32   pixaaAddPixa()
- *           l_int32   pixaaExtendArray()
+ *           static l_int32   pixaaExtendArray()
  *           l_int32   pixaaAddPix()
  *           l_int32   pixaaAddBox()
  *
@@ -147,6 +147,7 @@ static const size_t  InitialPtrArraySize = 20;      /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 pixaExtendArray(PIXA  *pixa);
+static l_int32 pixaaExtendArray(PIXAA *paa);
 
 /*---------------------------------------------------------------------*
  *                    Pixa creation, destruction, copy                 *
@@ -612,12 +613,14 @@ size_t  oldsize, newsize;
 
     if (!pixa)
         return ERROR_INT("pixa not defined", procName, 1);
+    if (pixa->nalloc > MaxPixaPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("pixa has too many ptrs", procName, 1);
+    if (size > MaxPixaPtrArraySize)
+        return ERROR_INT("size > 5M ptrs; too large", procName, 1);
     if (size <= pixa->nalloc) {
         L_INFO("size too small; no extension\n", procName);
         return 0;
     }
-    if (size > MaxPixaPtrArraySize)
-        return ERROR_INT("size > 5M ptrs; too large", procName, 1);
 
     oldsize = pixa->nalloc * sizeof(PIX *);
     newsize = size * sizeof(PIX *);
@@ -2023,7 +2026,7 @@ PIXA    *pixac;
  *      (1) The max number of pixa ptrs is 1M.
  * </pre>
  */
-l_ok
+static l_int32
 pixaaExtendArray(PIXAA  *paa)
 {
 size_t  oldsize, newsize;
@@ -2032,6 +2035,8 @@ size_t  oldsize, newsize;
 
     if (!paa)
         return ERROR_INT("paa not defined", procName, 1);
+    if (paa->nalloc > MaxPixaaPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("paa has too many ptrs", procName, 1);
     oldsize = paa->nalloc * sizeof(PIXA *);
     newsize = 2 * oldsize;
     if (newsize > 8 * MaxPixaaPtrArraySize)

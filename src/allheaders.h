@@ -1741,7 +1741,6 @@ LEPT_DLL extern PIXAA * pixaaCreate ( l_int32 n );
 LEPT_DLL extern PIXAA * pixaaCreateFromPixa ( PIXA *pixa, l_int32 n, l_int32 type, l_int32 copyflag );
 LEPT_DLL extern void pixaaDestroy ( PIXAA **ppaa );
 LEPT_DLL extern l_ok pixaaAddPixa ( PIXAA *paa, PIXA *pixa, l_int32 copyflag );
-LEPT_DLL extern l_ok pixaaExtendArray ( PIXAA *paa );
 LEPT_DLL extern l_ok pixaaAddPix ( PIXAA *paa, l_int32 index, PIX *pix, BOX *box, l_int32 copyflag );
 LEPT_DLL extern l_ok pixaaAddBox ( PIXAA *paa, BOX *box, l_int32 copyflag );
 LEPT_DLL extern l_int32 pixaaGetCount ( PIXAA *paa, NUMA **pna );

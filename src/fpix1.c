@@ -920,12 +920,14 @@ size_t  oldsize, newsize;
 
     if (!fpixa)
         return ERROR_INT("fpixa not defined", procName, 1);
+    if (fpixa->nalloc > MaxPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("fpixa has too many ptrs", procName, 1);
+    if (size > MaxPtrArraySize)
+        return ERROR_INT("size > 100K ptrs; too large", procName, 1);
     if (size <= fpixa->nalloc) {
         L_INFO("size too small; no extension\n", procName);
         return 0;
     }
-    if (size > MaxPtrArraySize)
-        return ERROR_INT("size > 100K ptrs; too large", procName, 1);
 
     oldsize = fpixa->nalloc * sizeof(FPIX *);
     newsize = size * sizeof(FPIX *);

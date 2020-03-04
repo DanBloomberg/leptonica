@@ -698,12 +698,14 @@ size_t  oldsize, newsize;
 
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 1);
+    if (boxa->nalloc > MaxBoxaPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("boxa has too many ptrs", procName, 1);
+    if (size > MaxBoxaPtrArraySize)
+        return ERROR_INT("size > 10M box ptrs; too large", procName, 1);
     if (size <= boxa->nalloc) {
         L_INFO("size too small; no extension\n", procName);
         return 0;
     }
-    if (size > MaxBoxaPtrArraySize)
-        return ERROR_INT("size > 10M box ptrs; too large", procName, 1);
 
     oldsize = boxa->nalloc * sizeof(BOX *);
     newsize = size * sizeof(BOX *);
@@ -1409,12 +1411,14 @@ size_t  oldsize, newsize;
 
     if (!baa)
         return ERROR_INT("baa not defined", procName, 1);
+    if (baa->nalloc > MaxBoxaaPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("baa has too many ptrs", procName, 1);
+    if (size > MaxBoxaaPtrArraySize)
+        return ERROR_INT("size > 1M boxa ptrs; too large", procName, 1);
     if (size <= baa->nalloc) {
         L_INFO("size too small; no extension\n", procName);
         return 0;
     }
-    if (size > MaxBoxaaPtrArraySize)
-        return ERROR_INT("size > 1M boxa ptrs; too large", procName, 1);
 
     oldsize = baa->nalloc * sizeof(BOXA *);
     newsize = size * sizeof(BOXA *);

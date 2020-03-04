@@ -382,6 +382,8 @@ size_t  oldsize, newsize;
 
     if (!pta)
         return ERROR_INT("pta not defined", procName, 1);
+    if (pta->nalloc > MaxArraySize)  /* belt & suspenders */
+        return ERROR_INT("pta has too many ptrs", procName, 1);
     oldsize = pta->nalloc * sizeof(l_float32);
     newsize = 2 * oldsize;
     if (newsize > 4 * MaxArraySize)  /* array of 100M floats */
