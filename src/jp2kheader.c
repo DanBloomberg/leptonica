@@ -293,6 +293,7 @@ l_float64  xres, yres, maxres;
     if (ydenom == 0 || xdenom == 0) {
         L_WARNING("bad data: ydenom or xdenom is 0\n", procName);
         LEPT_FREE(data);
+        return 1;
     }
     yexp = data[loc + 12];
     xexp = data[loc + 13];
