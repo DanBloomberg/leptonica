@@ -290,6 +290,10 @@ l_float64  xres, yres, maxres;
     xnum = convertOnLittleEnd16(xnum);
     xdenom = data[loc + 11] << 8 | data[loc + 10];
     xdenom = convertOnLittleEnd16(xdenom);
+    if (ydenom == 0 || xdenom == 0) {
+        L_WARNING("bad data: ydenom or xdenom is 0\n", procName);
+        LEPT_FREE(data);
+    }
     yexp = data[loc + 12];
     xexp = data[loc + 13];
     yres = ((l_float64)ynum / (l_float64)ydenom) * pow(10.0, (l_float64)yexp);
