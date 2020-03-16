@@ -516,6 +516,13 @@ PIX      *pixd;
         return (PIX *)ERROR_PTR("requested bytes >= 2^31", procName, NULL);
     }
 
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+    if (bignum > (1LL << 29)) {
+        L_ERROR("fuzzer requested > 500MB; refused\n");
+        return NULL;
+    }
+#endif   /* FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION */
+
     pixd = (PIX *)LEPT_CALLOC(1, sizeof(PIX));
     pixSetWidth(pixd, width);
     pixSetHeight(pixd, height);
