@@ -518,7 +518,7 @@ PIX      *pixd;
 
 #ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
     if (bignum > (1LL << 29)) {
-        L_ERROR("fuzzer requested > 500MB; refused\n");
+        L_ERROR("fuzzer requested > 500MB; refused\n", procName);
         return NULL;
     }
 #endif   /* FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION */
