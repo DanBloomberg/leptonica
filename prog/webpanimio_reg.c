@@ -75,8 +75,8 @@ L_REGPARAMS  *rp;
     return 0;
 #endif  /* abort */
 
-    lept_rmdir("lept/webp");
-    lept_mkdir("lept/webp");
+    lept_rmdir("lept/webpanim");
+    lept_mkdir("lept/webpanim");
 
     niters = 5;
     duration = 250;   /* ms */
@@ -85,9 +85,9 @@ L_REGPARAMS  *rp;
     pixa = pixaCreate(6);
     pixaAddPix(pixa, pix1, L_COPY);
     pixaAddPix(pixa, pix2, L_COPY);
-    pixaWriteWebPAnim("/tmp/lept/webp/margeanim.webp", pixa, niters,
+    pixaWriteWebPAnim("/tmp/lept/webpanim/margeanim.webp", pixa, niters,
                       duration, 80, 0);
-    regTestCheckFile(rp, "/tmp/lept/webp/margeanim.webp");
+    regTestCheckFile(rp, "/tmp/lept/webpanim/margeanim.webp");
     pixaDestroy(&pixa);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
