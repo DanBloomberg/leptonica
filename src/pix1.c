@@ -503,10 +503,10 @@ PIX      *pixd;
 
         /* Avoid overflow in malloc, malicious or otherwise */
     wpl64 = ((l_uint64)width * (l_uint64)depth + 31) / 32;
-    if (wpl64 > ((1LL << 29) - 1)) {
+    if (wpl64 > ((1LL << 24) - 1)) {
         L_ERROR("requested w = %d, h = %d, d = %d\n",
                 procName, width, height, depth);
-        return (PIX *)ERROR_PTR("wpl >= 2^29", procName, NULL);
+        return (PIX *)ERROR_PTR("wpl >= 2^24", procName, NULL);
     }
     wpl = (l_int32)wpl64;
     bignum = 4LL * wpl * height;   /* number of bytes to be requested */
@@ -517,8 +517,8 @@ PIX      *pixd;
     }
 
 #ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-    if (bignum > (1LL << 29)) {
-        L_ERROR("fuzzer requested > 500MB; refused\n", procName);
+    if (bignum > (1LL << 28)) {
+        L_ERROR("fuzzer requested > 250 MB; refused\n", procName);
         return NULL;
     }
 #endif   /* FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION */

@@ -120,8 +120,10 @@
 
 static const l_int32  DefaultResolution = 300;   /* ppi */
 static const l_int32  ManyPagesInTiffFile = 3000;  /* warn if big */
-static const l_uint32  MaxTiffBufferSize = 1 << 24;  /* 16MiB */
 
+    /* Verified that tiflib makes valid g4 files of this size */
+static const l_int32  MaxTiffWidth = 1 << 20;  /* 1M pixels */
+static const l_int32  MaxTiffHeight = 1 << 20;  /* 1M pixels */
 
     /* All functions with TIFF interfaces are static. */
 static PIX      *pixReadFromTiffStream(TIFF *tif);
@@ -531,13 +533,20 @@ PIXCMAP   *cmap;
 
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
+    if (w > MaxTiffWidth) {
+        L_ERROR("width = %d pixels; too large\n", procName, w);
+        return NULL;
+    }
+    if (h > MaxTiffHeight) {
+        L_ERROR("height = %d pixels; too large\n", procName, h);
+        return NULL;
+    }
     tiffbpl = TIFFScanlineSize(tif);
-    if (tiffbpl < (bps * spp * w + 7) / 8)
-        return (PIX *)ERROR_PTR("bad tiff file: tiffbpl is too small",
-                                procName, NULL);
-    if (tiffbpl > MaxTiffBufferSize)
-        return (PIX *)ERROR_PTR("bad tiff file: tiffbpl is too large",
-                                procName, NULL);
+    if (tiffbpl != (bps * spp * w + 7) / 8) {
+        L_ERROR("invalid tiffbpl: tiffbpl = %d, bps = %d, spp = %d, w = %d\n",
+                procName, tiffbpl, bps, spp, w);
+        return NULL;
+    }
 
     if ((pix = pixCreate(w, h, d)) == NULL)
         return (PIX *)ERROR_PTR("pix not made", procName, NULL);
