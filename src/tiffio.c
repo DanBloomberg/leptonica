@@ -548,14 +548,17 @@ PIXCMAP   *cmap;
         return NULL;
     }
 
+    TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &tiffcomp);
+    if (tiffcomp == COMPRESSION_OJPEG && d != 8) {
+        return (PIX *)ERROR_PTR("invalid ojpeg file", procName, NULL);
+    }
+
     if ((pix = pixCreate(w, h, d)) == NULL)
         return (PIX *)ERROR_PTR("pix not made", procName, NULL);
     pixSetInputFormat(pix, IFF_TIFF);
     data = (l_uint8 *)pixGetData(pix);
     wpl = pixGetWpl(pix);
     bpl = 4 * wpl;
-
-    TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &tiffcomp);
 
         /* Thanks to Jeff Breidenbach, we now support reading 8 bpp
          * images encoded in the long-deprecated old jpeg format,
@@ -618,11 +621,6 @@ PIXCMAP   *cmap;
         }
 
         if (spp == 1) {  /* 8 bpp, old jpeg format */
-            if (pixGetDepth(pix) != 8) {
-                LEPT_FREE(tiffdata);
-                pixDestroy(&pix);
-                return (PIX *)ERROR_PTR("invalid ojpeg file", procName, NULL);
-            }
             pixdata = pixGetData(pix);
             for (i = 0; i < h; i++) {
                 line = pixdata + i * wpl;
