@@ -618,6 +618,11 @@ PIXCMAP   *cmap;
         }
 
         if (spp == 1) {  /* 8 bpp, old jpeg format */
+            if (pixGetDepth(pix) != 8) {
+                LEPT_FREE(tiffdata);
+                pixDestroy(&pix);
+                return (PIX *)ERROR_PTR("invalid ojpeg file", procName, NULL);
+            }
             pixdata = pixGetData(pix);
             for (i = 0; i < h; i++) {
                 line = pixdata + i * wpl;
