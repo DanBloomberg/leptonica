@@ -51,7 +51,7 @@ void build(Solution &s)
 
         if (leptonica.getCompilerType() == CompilerType::MSVC)
         {
-            for (auto *f : leptonica.gatherSourceFiles())
+            for (auto *f : ::sw::gatherSourceFiles<NativeSourceFile>(leptonica))
                 f->BuildAs = NativeSourceFile::CPP;
         }
 
@@ -71,7 +71,7 @@ void build(Solution &s)
             t += leptonica;
             if (leptonica.getCompilerType() == CompilerType::MSVC)
             {
-                for (auto *f : t.gatherSourceFiles())
+                for (auto *f : ::sw::gatherSourceFiles<NativeSourceFile>(t))
                     f->BuildAs = NativeSourceFile::CPP;
             }
             add_deps(t);
