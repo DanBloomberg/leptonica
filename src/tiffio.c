@@ -511,6 +511,19 @@ PIXCMAP   *cmap;
         return NULL;
     }
 
+        /* Old style jpeg is not supported.  We tried supporting 8 bpp.
+         * TIFFReadScanline() fails on this format, so we used RGBA
+         * reading, which generates a 4 spp image, and pulled out the
+         * red component.  However, there were problems with double-frees
+         * in cleanup.  For RGB, tiffbpl is exactly half the size that
+         * you would expect for the raster data in a scanline, which
+         * is 3 * w.  */
+    TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &tiffcomp);
+    if (tiffcomp == COMPRESSION_OJPEG) {
+        L_ERROR("old style jpeg format is not supported\n", procName);
+        return NULL;
+    }
+
         /* Use default fields for bps and spp */
     TIFFGetFieldDefaulted(tif, TIFFTAG_BITSPERSAMPLE, &bps);
     TIFFGetFieldDefaulted(tif, TIFFTAG_SAMPLESPERPIXEL, &spp);
@@ -548,11 +561,6 @@ PIXCMAP   *cmap;
         return NULL;
     }
 
-    TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &tiffcomp);
-    if (tiffcomp == COMPRESSION_OJPEG && d != 8) {
-        return (PIX *)ERROR_PTR("invalid ojpeg file", procName, NULL);
-    }
-
     if ((pix = pixCreate(w, h, d)) == NULL)
         return (PIX *)ERROR_PTR("pix not made", procName, NULL);
     pixSetInputFormat(pix, IFF_TIFF);
@@ -560,12 +568,7 @@ PIXCMAP   *cmap;
     wpl = pixGetWpl(pix);
     bpl = 4 * wpl;
 
-        /* Thanks to Jeff Breidenbach, we now support reading 8 bpp
-         * images encoded in the long-deprecated old jpeg format,
-         * COMPRESSION_OJPEG.  TIFFReadScanline() fails on this format,
-         * so we use RGBA reading, which generates a 4 spp image, and
-         * pull out the red component. */
-    if (spp == 1 && tiffcomp != COMPRESSION_OJPEG) {
+    if (spp == 1) {
         linebuf = (l_uint8 *)LEPT_CALLOC(tiffbpl + 1, sizeof(l_uint8));
         for (i = 0; i < h; i++) {
             if (TIFFReadScanline(tif, linebuf, i, 0) < 0) {
@@ -604,7 +607,7 @@ PIXCMAP   *cmap;
             }
         }
         LEPT_FREE(linebuf);
-    } else {  /* rgb, rgba, or old jpeg */
+    } else {  /* rgb and rgba */
         if ((tiffdata = (l_uint32 *)LEPT_CALLOC((size_t)w * h,
                                                  sizeof(l_uint32))) == NULL) {
             pixDestroy(&pix);
@@ -620,34 +623,22 @@ PIXCMAP   *cmap;
             read_oriented = 1;
         }
 
-        if (spp == 1) {  /* 8 bpp, old jpeg format */
-            pixdata = pixGetData(pix);
-            for (i = 0; i < h; i++) {
-                line = pixdata + i * wpl;
-                for (j = 0; j < w; j++) {
-                    tiffword = tiffdata[i * w + j];
-                    rval = TIFFGetR(tiffword);
-                    SET_DATA_BYTE(line, j, rval);
+        if (spp == 4) pixSetSpp(pix, 4);
+        line = pixGetData(pix);
+        for (i = 0; i < h; i++, line += wpl) {
+            for (j = 0, ppixel = line; j < w; j++) {
+                    /* TIFFGet* are macros */
+                tiffword = tiffdata[i * w + j];
+                rval = TIFFGetR(tiffword);
+                gval = TIFFGetG(tiffword);
+                bval = TIFFGetB(tiffword);
+                if (spp == 3) {
+                    composeRGBPixel(rval, gval, bval, ppixel);
+                } else {  /* spp == 4 */
+                    aval = TIFFGetA(tiffword);
+                    composeRGBAPixel(rval, gval, bval, aval, ppixel);
                 }
-            }
-        } else {  /* rgb or rgba */
-            if (spp == 4) pixSetSpp(pix, 4);
-            line = pixGetData(pix);
-            for (i = 0; i < h; i++, line += wpl) {
-                for (j = 0, ppixel = line; j < w; j++) {
-                        /* TIFFGet* are macros */
-                    tiffword = tiffdata[i * w + j];
-                    rval = TIFFGetR(tiffword);
-                    gval = TIFFGetG(tiffword);
-                    bval = TIFFGetB(tiffword);
-                    if (spp == 3) {
-                        composeRGBPixel(rval, gval, bval, ppixel);
-                    } else {  /* spp == 4 */
-                        aval = TIFFGetA(tiffword);
-                        composeRGBAPixel(rval, gval, bval, aval, ppixel);
-                    }
-                    ppixel++;
-                }
+                ppixel++;
             }
         }
         LEPT_FREE(tiffdata);
@@ -659,7 +650,6 @@ PIXCMAP   *cmap;
     }
 
         /* Find and save the compression type */
-    TIFFGetFieldDefaulted(tif, TIFFTAG_COMPRESSION, &tiffcomp);
     comptype = getTiffCompressedFormat(tiffcomp);
     pixSetInputFormat(pix, comptype);
 
@@ -726,7 +716,6 @@ PIXCMAP   *cmap;
     if (text) pixSetText(pix, text);
     return pix;
 }
-
 
 
 /*--------------------------------------------------------------*
