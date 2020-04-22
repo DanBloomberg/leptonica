@@ -210,7 +210,7 @@
 #include <math.h>
 #include "allheaders.h"
 
-static const l_int32  L_BUF_SIZE = 512;
+enum { L_BUF_SIZE = 512 };
 
     /* For jbClassifyRankHaus(): size of border added around
      * pix of each c.c., to allow further processing.  This

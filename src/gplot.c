@@ -147,7 +147,7 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  Bufsize = 512;  /* hardcoded below in fscanf */
+enum { Bufsize = 512 };  /* hardcoded below in fscanf */
 
 const char  *gplotstylenames[] = {"with lines",
                                   "with points",
