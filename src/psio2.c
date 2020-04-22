@@ -107,7 +107,7 @@
     /* Set default for writing bounding box hint */
 static l_int32  var_PS_WRITE_BOUNDING_BOX = 1;
 
-static const l_int32  Bufsize         = 512;
+#define Bufsize 512
 static const l_int32  DefaultInputRes = 300;  /* typical scan res, ppi */
 static const l_int32  MinRes          = 5;
 static const l_int32  MaxRes          = 3000;
