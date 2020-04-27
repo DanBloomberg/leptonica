@@ -183,7 +183,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		logicops_reg.c lowaccess_reg.c lowsat_reg.c \
 		maze_reg.c morphseq_reg.c mtiff_reg.c \
 		multitype_reg.c nearline_reg.c newspaper_reg.c \
-		numa1_reg.c numa2_reg.c \
+		numa1_reg.c numa2_reg.c numa3_reg.c \
 		overlap_reg.c pageseg_reg.c paint_reg.c paintmask_reg.c \
 		pdfio1_reg.c pdfio2_reg.c pdfseg_reg.c \
 		pixa1_reg.c pixa2_reg.c \
@@ -606,6 +606,9 @@ numa1_reg:	numa1_reg.o $(LEPTLIB)
 
 numa2_reg:	numa2_reg.o $(LEPTLIB)
 	$(CC) -o numa2_reg numa2_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+numa3_reg:	numa3_reg.o $(LEPTLIB)
+	$(CC) -o numa3_reg numa3_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 overlap_reg:	overlap_reg.o $(LEPTLIB)
 	$(CC) -o overlap_reg overlap_reg.o $(ALL_LIBS) $(EXTRALIBS)

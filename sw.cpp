@@ -164,6 +164,7 @@ void build(Solution &s)
             {"newspaper_reg", {"newspaper_reg.c"}},
             {"numa1_reg", {"numa1_reg.c"}},
             {"numa2_reg", {"numa2_reg.c"}},
+            {"numa3_reg", {"numa3_reg.c"}},
             {"overlap_reg", {"overlap_reg.c"}},
             {"pageseg_reg", {"pageseg_reg.c"}},
             {"paintmask_reg", {"paintmask_reg.c"}},

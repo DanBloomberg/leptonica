@@ -1331,6 +1331,8 @@ LEPT_DLL extern NUMA * numaSortByIndex ( NUMA *nas, NUMA *naindex );
 LEPT_DLL extern l_int32 numaIsSorted ( NUMA *nas, l_int32 sortorder, l_int32 *psorted );
 LEPT_DLL extern l_ok numaSortPair ( NUMA *nax, NUMA *nay, l_int32 sortorder, NUMA **pnasx, NUMA **pnasy );
 LEPT_DLL extern NUMA * numaInvertMap ( NUMA *nas );
+LEPT_DLL extern l_ok numaAddSorted ( NUMA *na, l_float32 val );
+LEPT_DLL extern l_ok numaFindSortedLoc ( NUMA *na, l_float32 val, l_int32 *pindex );
 LEPT_DLL extern NUMA * numaPseudorandomSequence ( l_int32 size, l_int32 seed );
 LEPT_DLL extern NUMA * numaRandomPermutation ( NUMA *nas, l_int32 seed );
 LEPT_DLL extern l_ok numaGetRankValue ( NUMA *na, l_float32 fract, NUMA *nasort, l_int32 usebins, l_float32 *pval );

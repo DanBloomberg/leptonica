@@ -38,11 +38,6 @@
 #endif  /* HAVE_CONFIG_H */
 
 #include <math.h>
-#ifndef  _WIN32
-#include <unistd.h>
-#else
-#include <windows.h>   /* for Sleep() */
-#endif  /* _WIN32 */
 #include "allheaders.h"
 
 #define   DO_ALL     0
