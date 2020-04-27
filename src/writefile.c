@@ -104,7 +104,7 @@ static l_int32  var_DISPLAY_PROG = L_DISPLAY_WITH_OPEN;  /* default */
 static l_int32  var_DISPLAY_PROG = L_DISPLAY_WITH_XZGV;  /* default */
 #endif  /* _WIN32 */
 
-static const l_int32  Bufsize = 512;
+#define Bufsize 512
 static const l_int32  MaxDisplayWidth = 1000;
 static const l_int32  MaxDisplayHeight = 800;
 static const l_int32  MaxSizeForPng = 200;
@@ -1530,5 +1530,3 @@ PIX  *pix1, *pix2, *pix3, *pix4;
     pixDestroy(&pix4);
     return 0;
 }
-
-
