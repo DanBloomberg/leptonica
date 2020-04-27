@@ -56,7 +56,7 @@
 
 #include "allheaders.h"
 
-static const l_int32  BUF_SIZE = 512;
+#define BUF_SIZE 512
 
 LEPT_DLL extern const char *ImageFileFormatExtensions[];
 

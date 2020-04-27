@@ -91,7 +91,7 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  L_BUFSIZE = 512;  /* hardcoded below in sscanf() */
+#define L_BUFSIZE 512  /* hardcoded below in sscanf() */
 static const char *version = "1.5";
 
 
