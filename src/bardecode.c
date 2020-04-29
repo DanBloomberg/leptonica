@@ -198,7 +198,10 @@ l_int32  i;
  *          forward order; if valid == 2, it is backwards.
  *      (2) If the barcode needs to be reversed to read it, and &reverse
  *          is provided, a 1 is put into %reverse.
- *      (3) Add to this as more formats are supported.
+ *      (3) Require at least 12 data bits, in addition to format identifiers.
+ *          (TODO) If the barcode has a fixed length, this should be used
+ *          explicitly, as is done for L_BF_UPCA and L_BF_EAN13.
+ *      (4) (TODO) Add to this as more formats are supported.
  * </pre>
  */
 static l_int32
@@ -224,6 +227,8 @@ l_int32  i, start, len, stop, mid;
     case L_BF_CODE2OF5:
         start = !strncmp(barstr, Code2of5[C25_START], 3);
         len = strlen(barstr);
+        if (len < 20)
+            return ERROR_INT("barstr too short for CODE2OF5", procName, 1);
         stop = !strncmp(&barstr[len - 5], Code2of5[C25_STOP], 5);
         if (start && stop) {
             *pvalid = 1;
@@ -241,6 +246,8 @@ l_int32  i, start, len, stop, mid;
     case L_BF_CODEI2OF5:
         start = !strncmp(barstr, CodeI2of5[CI25_START], 4);
         len = strlen(barstr);
+        if (len < 20)
+            return ERROR_INT("barstr too short for CODEI2OF5", procName, 1);
         stop = !strncmp(&barstr[len - 3], CodeI2of5[CI25_STOP], 3);
         if (start && stop) {
             *pvalid = 1;
@@ -258,6 +265,8 @@ l_int32  i, start, len, stop, mid;
     case L_BF_CODE93:
         start = !strncmp(barstr, Code93[C93_START], 6);
         len = strlen(barstr);
+        if (len < 28)
+            return ERROR_INT("barstr too short for CODE93", procName, 1);
         stop = !strncmp(&barstr[len - 7], Code93[C93_STOP], 6);
         if (start && stop) {
             *pvalid = 1;
@@ -275,6 +284,8 @@ l_int32  i, start, len, stop, mid;
     case L_BF_CODE39:
         start = !strncmp(barstr, Code39[C39_START], 9);
         len = strlen(barstr);
+        if (len < 30)
+            return ERROR_INT("barstr too short for CODE39", procName, 1);
         stop = !strncmp(&barstr[len - 9], Code39[C39_STOP], 9);
         if (start && stop) {
             *pvalid = 1;
@@ -292,6 +303,8 @@ l_int32  i, start, len, stop, mid;
     case L_BF_CODABAR:
         start = stop = 0;
         len = strlen(barstr);
+        if (len < 26)
+            return ERROR_INT("barstr too short for CODABAR", procName, 1);
         for (i = 16; i <= 19; i++)  /* any of these will do */
             start += !strncmp(barstr, Codabar[i], 7);
         for (i = 16; i <= 19; i++)  /* ditto */
@@ -315,13 +328,13 @@ l_int32  i, start, len, stop, mid;
     case L_BF_UPCA:
     case L_BF_EAN13:
         len = strlen(barstr);
-        if (len == 59) {
-            start = !strncmp(barstr, Upca[UPCA_START], 3);
-            mid = !strncmp(&barstr[27], Upca[UPCA_MID], 5);
-            stop = !strncmp(&barstr[len - 3], Upca[UPCA_STOP], 3);
-            if (start && mid && stop)
-                *pvalid = 1;
-        }
+        if (len != 59)
+            return ERROR_INT("invalid length for UPCA or EAN13", procName, 1);
+        start = !strncmp(barstr, Upca[UPCA_START], 3);
+        mid = !strncmp(&barstr[27], Upca[UPCA_MID], 5);
+        stop = !strncmp(&barstr[len - 3], Upca[UPCA_STOP], 3);
+        if (start && mid && stop)
+            *pvalid = 1;
         break;
     default:
         return ERROR_INT("format not supported", procName, 1);

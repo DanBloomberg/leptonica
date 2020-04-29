@@ -833,8 +833,8 @@ PIX        *pixt, *pixt1, *pixt2;
     }
 
     if (debugflag > 0) {
-        lept_mkdir("lept/recog");
         char  buf[128];
+        lept_mkdir("lept/recog");
         pixt1 = fpixDisplayMaxDynamicRange(fpix);
         pixt2 = pixExpandReplicate(pixt1, 5);
         snprintf(buf, sizeof(buf), "/tmp/lept/recog/junkbs_%d.png", debugflag);

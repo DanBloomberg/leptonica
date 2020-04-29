@@ -3587,8 +3587,8 @@ PIX       *pix3, *pix4;
     }
 
     if (debugflag > 0) {
-        lept_mkdir("lept/comp");
         char  buf[128];
+        lept_mkdir("lept/comp");
         pix3 = fpixDisplayMaxDynamicRange(fpix);
         pix4 = pixExpandReplicate(pix3, 20);
         snprintf(buf, sizeof(buf), "/tmp/lept/comp/correl_%d.png",

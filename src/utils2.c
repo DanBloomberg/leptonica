@@ -2274,10 +2274,11 @@ char  *realdir;
         *pexists = 1;
     }
 #else  /* _WIN32 */
+    {
     l_uint32  attributes;
     attributes = GetFileAttributes(realdir);
     if (attributes != INVALID_FILE_ATTRIBUTES &&
-        (attributes & FILE_ATTRIBUTE_DIRECTORY)) {
+        (attributes & FILE_ATTRIBUTE_DIRECTORY))
         *pexists = 1;
     }
 #endif  /* _WIN32 */

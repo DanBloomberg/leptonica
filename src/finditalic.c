@@ -168,8 +168,8 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
 
     if (debugflag) {
             /* Save results at at 2x reduction */
-        lept_mkdir("lept/ital");
         l_int32  res, upper;
+        lept_mkdir("lept/ital");
         BOXA  *boxat;
         GPLOT *gplot;
         NUMA  *na;

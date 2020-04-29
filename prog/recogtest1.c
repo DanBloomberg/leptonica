@@ -43,6 +43,10 @@
 static const l_int32 scaledw = 0;
 static const l_int32 scaledh = 40;
 
+static const l_float32  MinScore[] = {0.6f, 0.7f, 0.9f};
+static const l_int32  MinTarget[] = {4, 5, 4};
+static const l_int32  MinSize[] = {3, 2, 3};
+
 l_int32 main(int    argc,
              char **argv)
 {
@@ -124,9 +128,6 @@ L_RECOG  *recog1, *recog2;
          *             requiring retention of 20% of templates in each class
          *  0.9, 0.01 : remove most based on matching; saved 1 in each class */
     fprintf(stderr, "Remove outliers\n");
-    static const l_float32  MinScore[] = {0.6f, 0.7f, 0.9f};
-    static const l_int32  MinTarget[] = {4, 5, 4};
-    static const l_int32  MinSize[] = {3, 2, 3};
     pixa2 = recogExtractPixa(recog1);
     for (i = 0; i < 3; i++) {
         pixa3 = pixaRemoveOutliers1(pixa2, MinScore[i], MinTarget[i],

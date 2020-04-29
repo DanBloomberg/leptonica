@@ -720,6 +720,7 @@ pixExtractBarcodeCrossings(PIX       *pixs,
 {
 l_int32    w;
 l_float32  bestthresh;
+GPLOT     *gplot;
 NUMA      *nas, *nax, *nay, *nad;
 
     PROCNAME("pixExtractBarcodeCrossings");
@@ -737,8 +738,8 @@ NUMA      *nas, *nax, *nay, *nad;
 
     if (debugflag) {
         lept_mkdir("lept/barcode");
-        GPLOT *gplot = gplotCreate("/tmp/lept/barcode/signal", GPLOT_PNG,
-                                   "Pixel values", "dist in pixels", "value");
+        gplot = gplotCreate("/tmp/lept/barcode/signal", GPLOT_PNG,
+                            "Pixel values", "dist in pixels", "value");
         gplotAddPlot(gplot, nax, nay, GPLOT_LINES, "plot 1");
         gplotMakeOutput(gplot);
         gplotDestroy(&gplot);

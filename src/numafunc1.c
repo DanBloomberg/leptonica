@@ -3039,7 +3039,7 @@ l_int32  index;
  * Notes:
  *      (1) The input %na is sorted.  This determines the sort order of @na,
  *          either increasing or decreasing, and does a binary search for the
- *          location to insert @val into the array.  The search is O(log n).
+ *          location to insert %val into the array.  The search is O(log n).
  *      (2) The index returned is the location to insert into the array.
  *          The value at the index, and all values to the right, are
  *          moved to the right (increasing their index location by 1).
@@ -3067,15 +3067,14 @@ l_float32  val0, valn, valmid;
 
     n = numaGetCount(na);
     if (n == 0) return 0;
+    numaGetFValue(na, 0, &val0);
     if (n == 1) {  /* use increasing sort order */
-        numaGetFValue(na, 0, &val0);
         if (val >= val0)
             *pindex = 1;
         return 0;
     }
 
         /* -----------------  n >= 2 ----------------- */
-    numaGetFValue(na, 0, &val0);
     numaGetFValue(na, n - 1, &valn);
     increasing = (valn >= val0) ? 1 : 0;  /* sort order */
 
