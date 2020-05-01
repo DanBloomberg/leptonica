@@ -8,7 +8,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     PIX *pixs;
     SARRAY *saw1, *sad1;
 
-    pixs = pixReadMem(data, size);
+    pixs = pixReadMemSpix(data, size);
     if(pixs == NULL) return 0;
 
     sad1 = pixProcessBarcodes(pixs, L_BF_ANY, L_USE_WIDTHS, &saw1, 1);
