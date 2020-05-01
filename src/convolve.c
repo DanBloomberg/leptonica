@@ -229,14 +229,13 @@ PIX       *pixd, *pixt;
         return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (wc < 0) wc = 0;
     if (hc < 0) hc = 0;
-    if (w < 2 * wc + 1 || h < 2 * hc + 1) {
-        wc = L_MIN(wc, (w - 1) / 2);
-        hc = L_MIN(hc, (h - 1) / 2);
-        L_WARNING("kernel too large; reducing!\n", procName);
-        L_INFO("wc = %d, hc = %d\n", procName, wc, hc);
-    }
     if (wc == 0 && hc == 0)   /* no-op */
         return pixCopy(NULL, pixs);
+    if (w < 2 * wc + 1 || h < 2 * hc + 1) {
+        L_WARNING("kernel too large; returning a copy\n", procName);
+        L_INFO("w = %d, wc = %d, h = %d, hc = %d\n", procName, w, wc, h, hc);
+        return pixCopy(NULL, pixs);
+    }
 
     if (pixacc) {
         if (pixGetDepth(pixacc) == 32) {
@@ -365,12 +364,12 @@ l_uint32  *linemina, *linemaxa, *line;
          *             Fix normalization for boundary pixels          *
          *------------------------------------------------------------*/
     for (i = 0; i <= hc; i++) {    /* first hc + 1 lines */
-        hn = hc + i;
-        normh = (l_float32)fhc / (l_float32)hn;   /* > 1 */
+        hn = L_MAX(1, hc + i);
+        normh = (l_float32)fhc / (l_float32)hn;   /* >= 1 */
         line = data + wpl * i;
         for (j = 0; j <= wc; j++) {
-            wn = wc + j;
-            normw = (l_float32)fwc / (l_float32)wn;   /* > 1 */
+            wn = L_MAX(1, wc + j);
+            normw = (l_float32)fwc / (l_float32)wn;   /* >= 1 */
             val = GET_DATA_BYTE(line, j);
             val = (l_uint8)L_MIN(val * normh * normw, 255);
             SET_DATA_BYTE(line, j, val);
