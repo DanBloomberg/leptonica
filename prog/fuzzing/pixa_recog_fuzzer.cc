@@ -30,6 +30,8 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
         recog2 = recogCreateFromPixa(pixa1, 4, 40, 1, 128, 1);
         recogIdentifyMultiple(recog2, pix2, 0, 0, NULL, &pixa4, NULL, 1);
 
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
         recogDestroy(&recog1);
         recogDestroy(&recog2);
         pixaDestroy(&pixa1);
