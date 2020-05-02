@@ -246,10 +246,10 @@ returnErrorPtr(const char  *msg,
  *      void send_to_syslog(const char *msg) {                            *
  *           syslog(1, msg);                                              *
  *      }                                                                 *
- *  These would then be registered using
- *      leptSetStderrHandler(send_to_devnull();
- *  and
- *      leptSetStderrHandler(send_to_syslog();
+ *  These would then be registered using                                  *
+ *      leptSetStderrHandler(send_to_devnull);                            *
+ *  and                                                                   *
+ *      leptSetStderrHandler(send_to_syslog);                             *
  *------------------------------------------------------------------------*/
     /* By default, all messages go to stderr */
 static void lept_default_stderr_handler(const char *formatted_msg)

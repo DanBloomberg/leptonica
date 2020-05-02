@@ -1,4 +1,4 @@
-#include "allheaders.h"
+#include "leptfuzz.h"
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -7,6 +7,8 @@ extern "C" int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
         if(size<10) return 0;
+
+        leptSetStdNullHandler();
 
         char filename[256];
         sprintf(filename, "/tmp/libfuzzer.pa");
