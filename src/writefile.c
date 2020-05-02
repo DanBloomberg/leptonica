@@ -745,6 +745,7 @@ l_int32  ret;
     case IFF_TIFF_G4:        /* compressed, binary only */
     case IFF_TIFF_LZW:       /* compressed, all depths */
     case IFF_TIFF_ZIP:       /* compressed, all depths */
+    case IFF_TIFF_JPEG:      /* compressed, 8 bpp gray or 32 bpp rgb */
         ret = pixWriteMemTiff(pdata, psize, pix, format);
         break;
 
