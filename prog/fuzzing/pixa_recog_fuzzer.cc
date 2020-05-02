@@ -37,6 +37,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
         pixaDestroy(&pixa1);
         pixaDestroy(&pixa2);
         pixaDestroy(&pixa3);
+        pixaDestroy(&pixa4);
         unlink(filename);
 
         return 0;
