@@ -1,4 +1,4 @@
-#include "allheaders.h"
+#include "leptfuzz.h"
 
 extern "C" int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
@@ -9,6 +9,8 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     L_DEWARPA *dewa1;
     PIXAC *pixac;
     SARRAY *sa;
+
+    leptSetStdNullHandler();
 
     pixs = pixReadMemSpix(data, size);
     if(pixs==NULL) return 0;

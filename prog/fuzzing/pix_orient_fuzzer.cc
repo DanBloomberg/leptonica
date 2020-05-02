@@ -1,4 +1,4 @@
-#include "allheaders.h"
+#include "leptfuzz.h"
 
 extern "C" int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
@@ -7,6 +7,8 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     l_int32  rotation;
     l_float32 upconf1, leftconf1;
     PIX *pix1, *pix2;
+
+    leptSetStdNullHandler();
 
     pix1 = pixReadMemSpix(data,size);
     if(pix1==NULL) return 0;

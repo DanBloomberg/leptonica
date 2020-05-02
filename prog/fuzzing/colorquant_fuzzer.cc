@@ -1,9 +1,11 @@
-#include "allheaders.h"
+#include "leptfuzz.h"
 
 extern "C" int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     PIX *pixs, *pix1;
+
+    leptSetStdNullHandler();
 
     pixs = pixReadMemSpix(data, size);
     if(pixs==NULL) return 0;

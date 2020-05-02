@@ -1,4 +1,4 @@
-#include "allheaders.h"
+#include "leptfuzz.h"
 #include "readbarcode.h"
 
 extern "C" int
@@ -7,6 +7,8 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     if(size<3) return 0;
     PIX *pixs;
     SARRAY *saw1, *sad1;
+
+    leptSetStdNullHandler();
 
     pixs = pixReadMemSpix(data, size);
     if(pixs == NULL) return 0;

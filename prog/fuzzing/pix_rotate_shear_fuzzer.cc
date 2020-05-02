@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include "leptonica/allheaders.h"
+#include "leptfuzz.h"
 
 // Set to true only for debugging; always false for production
 static const bool DebugOutput = false;
@@ -33,6 +33,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   const int16_t angle = ReadInt16(&data, &size);
   const int16_t x_center = ReadInt16(&data, &size);
   const int16_t y_center = ReadInt16(&data, &size);
+
+  leptSetStdNullHandler();
 
   // Check for pnm format; this can cause timeouts.
   // The format checker requires at least 12 bytes.
