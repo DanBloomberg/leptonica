@@ -10,6 +10,14 @@ pushd $SRC/zstd
 make -j$(nproc) install PREFIX="$WORK"
 popd
 
+# libjbig
+pushd "$SRC/jbigkit"
+make clean
+make -j$(nproc) lib
+cp "$SRC"/jbigkit/libjbig/*.a "$WORK/lib/"
+cp "$SRC"/jbigkit/libjbig/*.h "$WORK/include/"
+popd
+
 # libjpeg-turbo
 pushd $SRC/libjpeg-turbo
 cmake . -DCMAKE_INSTALL_PREFIX="$WORK" -DENABLE_STATIC:bool=on
