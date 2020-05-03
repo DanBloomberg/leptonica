@@ -2431,7 +2431,7 @@ pixConvert2To8(PIX     *pixs,
                l_int32  cmapflag)
 {
 l_int32    w, h, i, j, nbytes, wpls, wpld, dibit, byte;
-l_uint8    val[4];
+l_uint32   val[4];
 l_uint32   index;
 l_uint32  *tab, *datas, *datad, *lines, *lined;
 PIX       *pixd;
