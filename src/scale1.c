@@ -2228,8 +2228,8 @@ scaleColorLILow(l_uint32  *datad,
 l_int32    i, j, wm2, hm2;
 l_int32    xpm, ypm;  /* location in src image, to 1/16 of a pixel */
 l_int32    xp, yp, xf, yf;  /* src pixel and pixel fraction coordinates */
-l_int32    v00r, v01r, v10r, v11r, v00g, v01g, v10g, v11g;
-l_int32    v00b, v01b, v10b, v11b, area00, area01, area10, area11;
+l_uint32   v00r, v01r, v10r, v11r, v00g, v01g, v10g, v11g;
+l_uint32   v00b, v01b, v10b, v11b, area00, area01, area10, area11;
 l_uint32   pixels1, pixels2, pixels3, pixels4, pixel;
 l_uint32  *lines, *lined;
 l_float32  scx, scy;
