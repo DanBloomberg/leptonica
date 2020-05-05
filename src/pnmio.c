@@ -1346,10 +1346,10 @@ l_int32   c, ignore;
     *pval = 0;
     if (!fp)
         return ERROR_INT("stream not open", procName, 1);
-    do {  /* skip whitespace */
+    do {  /* skip whitespace and non-numeric characters */
         if ((c = fgetc(fp)) == EOF)
             return 1;
-    } while (c == ' ' || c == '\t' || c == '\n' || c == '\r');
+    } while (!isdigit(c));
 
     fseek(fp, -1L, SEEK_CUR);        /* back up one byte */
     ignore = fscanf(fp, "%d", pval);
