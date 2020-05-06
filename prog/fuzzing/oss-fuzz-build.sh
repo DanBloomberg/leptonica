@@ -106,6 +106,11 @@ done
 
 cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/pix_rotate_shear_fuzzer_seed_corpus.zip
 cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/enhance_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/colorquant_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/dewarp_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/pix_orient_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/pixconv_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/blend_fuzzer_seed_corpus.zip
 
 cp $SRC/leptonica/prog/fuzzing/pixa_recog_fuzzer_seed_corpus.zip $OUT/
 cp $SRC/leptonica/prog/fuzzing/barcode_fuzzer_seed_corpus.zip $OUT/
