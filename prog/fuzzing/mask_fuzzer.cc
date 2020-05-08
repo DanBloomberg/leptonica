@@ -31,7 +31,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     if(pixs==NULL) return 0;
 
     pix1 = MakeReplacementMask(pixs);
-    pix2 = pixCopy(NULL, pixs);
+    pix2 = pixConvertTo8(pix1, FALSE);
 
     pixPaintSelfThroughMask(pix2, pix1, 0, 0, L_HORIZ, 30, 50, 5, 10);
 
