@@ -1748,7 +1748,8 @@ PIXCMAP  *cmap;
     ignore = fscanf(fp, "Color    R-val    G-val    B-val   Alpha\n");
     ignore = fscanf(fp, "----------------------------------------\n");
 
-    cmap = pixcmapCreate(depth);
+    if ((cmap = pixcmapCreate(depth)) == NULL)
+        return (PIXCMAP *)ERROR_PTR("cmap not made", procName, NULL);
     for (i = 0; i < ncolors; i++) {
         if (fscanf(fp, "%3d       %3d      %3d      %3d      %3d\n",
                         &index, &rval, &gval, &bval, &aval) != 5) {

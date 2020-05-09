@@ -1434,13 +1434,11 @@ SEL     *sel;
     sscanf(linebuf, "  ------  %200s  ------", selname);
 
     if (fscanf(fp, "  sy = %d, sx = %d, cy = %d, cx = %d\n",
-            &sy, &sx, &cy, &cx) != 4) {
+               &sy, &sx, &cy, &cx) != 4)
         return (SEL *)ERROR_PTR("dimensions not read", procName, NULL);
-    }
 
-    if ((sel = selCreate(sy, sx, selname)) == NULL) {
+    if ((sel = selCreate(sy, sx, selname)) == NULL)
         return (SEL *)ERROR_PTR("sel not made", procName, NULL);
-    }
     selSetOrigin(sel, cy, cx);
 
     for (i = 0; i < sy; i++) {
