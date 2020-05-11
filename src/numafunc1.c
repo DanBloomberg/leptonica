@@ -724,8 +724,9 @@ NUMA      *nad;
 NUMA *
 numaMakeDelta(NUMA  *nas)
 {
-l_int32  i, n, prev, cur;
-NUMA    *nad;
+l_int32    i, n;
+l_float32  prev, cur;
+NUMA      *nad;
 
     PROCNAME("numaMakeDelta");
 
@@ -733,9 +734,9 @@ NUMA    *nad;
         return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
     n = numaGetCount(nas);
     nad = numaCreate(n - 1);
-    prev = 0;
+    numaGetFValue(nas, 0, &prev);
     for (i = 1; i < n; i++) {
-        numaGetIValue(nas, i, &cur);
+        numaGetFValue(nas, i, &cur);
         numaAddNumber(nad, cur - prev);
         prev = cur;
     }
