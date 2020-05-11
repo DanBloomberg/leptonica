@@ -708,6 +708,10 @@ PIXCMAP   *cmap;
         pixc = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
     else
         pixc = pixClone(pixs);
+    if (!pixc || pixGetDepth(pixc) != 32) {
+        pixDestroy(&pixc);
+        return (PIX *)ERROR_PTR("rgb pix not made", procName, NULL);
+    }
 
     pixd = pixCreate(w, h, 1);
     datad = pixGetData(pixd);
