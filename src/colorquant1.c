@@ -3315,7 +3315,7 @@ l_int32    i, j, w, h, wplc, wplm, wpld, ncolors, index;
 l_int32    rval, gval, bval, val, minval, maxval;
 l_int32   *lut;
 l_uint32  *datac, *datam, *datad, *linec, *linem, *lined;
-PIX       *pixc, *pixm, *pixg, *pixd;
+PIX       *pix1, *pixc, *pixm, *pixg, *pixd;
 PIXCMAP   *cmap, *cmapd;
 
     PROCNAME("pixFewColorsOctcubeQuantMixed");
@@ -3332,8 +3332,10 @@ PIXCMAP   *cmap, *cmapd;
     if (maxspan <= 2) maxspan = 15;
 
         /* Start with a simple fixed octcube quantizer. */
-    if ((pixc = pixFewColorsOctcubeQuant1(pixs, level)) == NULL)
+    if ((pix1 = pixFewColorsOctcubeQuant1(pixs, level)) == NULL)
         return (PIX *)ERROR_PTR("too many colors", procName, NULL);
+    pixc = pixConvertTo8(pix1, 1);  /* must be 8 bpp */
+    pixDestroy(&pix1);
 
         /* Identify and save color entries in the colormap.  Set up a LUT
          * that returns -1 for any gray pixel. */
