@@ -14,8 +14,11 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     pixs1 = pixReadMemSpix(data, size);
     if(pixs1==NULL) return 0;
 
-    pixs2 = pixReadMemSpix(data, size);
-    if(pixs2==NULL) return 0;
+    pixs2 = pixCopy(NULL, pixs1);
+    if(pixs2==NULL) {
+	    pixDestroy(&pixs1);
+	    return 0;
+    }
 
     pixs3 = pixConvertTo8(pixs1, 0);
     pixs4 = pixConvertTo8(pixs2, 0);
