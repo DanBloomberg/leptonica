@@ -244,6 +244,27 @@ pix_malloc(size_t  size)
 #endif  /* _MSC_VER */
 }
 
+static void *
+pix_calloc(size_t count, size_t size)
+{
+    char *block;
+    size_t total = count * size;
+
+    /* Check for overflow */
+    if (count == 0 || size == 0 || total / count != size)
+        return NULL;
+#ifndef _MSC_VER
+    block = (*pix_mem_manager.allocator)(total);
+#else  /* _MSC_VER */
+    /* Under MSVC++, pix_mem_manager is initialized after a call
+     * to pix_malloc.  Just ignore the custom allocator feature. */
+    block = malloc(total);
+#endif  /* _MSC_VER */
+    if (block != NULL)
+        memset(block, 0, total);
+    return block;
+}
+
 static void
 pix_free(void  *ptr)
 {
@@ -531,7 +552,7 @@ PIX      *pixd;
     }
 #endif   /* FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION */
 
-    pixd = (PIX *)LEPT_CALLOC(1, sizeof(PIX));
+    pixd = (PIX *)pix_calloc(1, sizeof(PIX));
     pixSetWidth(pixd, width);
     pixSetHeight(pixd, height);
     pixSetDepth(pixd, depth);
@@ -643,7 +664,7 @@ char      *text;
         if ((text = pixGetText(pix)) != NULL)
             LEPT_FREE(text);
         pixDestroyColormap(pix);
-        LEPT_FREE(pix);
+        pix_free(pix);
     }
     return;
 }
