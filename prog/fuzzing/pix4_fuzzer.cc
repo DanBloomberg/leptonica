@@ -20,7 +20,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     boxDestroy(&box);
     pixDestroy(&pix1);
 
-
     pixGetGrayHistogramTiled(pixs, 1, 1, 1);
 
     pix1 = pixConvertTo8(pixs, FALSE);
@@ -49,7 +48,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     pix1 = pixConvertTo8(pixs, FALSE);
     if(pix1!=NULL){
         pix2 = pixConvert8To32(pix1);
-        pixGetAverageTiledRGB(pix3, 2, 2, L_MEAN_ABSVAL, &pix4, &pix5, &pix6);
+        pixGetAverageTiledRGB(pix2, 2, 2, L_MEAN_ABSVAL, &pix4, &pix5, &pix6);
         pixDestroy(&pix1);
         pixDestroy(&pix2);
         pixDestroy(&pix3);
@@ -66,7 +65,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     numaDestroy(&na5);
     numaDestroy(&na6);
 
-    //NUMA *na1, *na2, *na3, *na4, *na5, *na6;
     pixColumnStats(pixs, NULL, &na1, &na2, &na3, &na4, &na5, &na6);
     numaDestroy(&na1);
     numaDestroy(&na2);
@@ -82,22 +80,20 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     pixGetBinnedComponentRange(pix1, nbins, 2, L_SELECT_GREEN,
                                    &minval, &maxval, &gau32, 0);
     pixDestroy(&pix1);
-
+    lept_free(gau32);
 
     PIX *pixd = pixSeedspread(pixs, 4);
     PIX *pixc = pixConvertTo32(pixd);
-    pixRankBinByStrip(pixc, L_SCAN_HORIZONTAL, 1, 10, L_SELECT_MAX);
+    PIX *pixr = pixRankBinByStrip(pixc, L_SCAN_HORIZONTAL, 1,
+		    		  10, L_SELECT_MAX);
     pixDestroy(&pixd);
     pixDestroy(&pixc);
+    pixDestroy(&pixr);
 
     PIXA *pixa = pixaReadMem(data, size);
-    pixaGetAlignedStats(pixa, L_MEAN_ABSVAL, 2, 2);
+    PIX *pixal = pixaGetAlignedStats(pixa, L_MEAN_ABSVAL, 2, 2);
     pixaDestroy(&pixa);
-
-    /*PIX *pix = pixConvertTo8(pixs, FALSE);
-    l_float32  *rowvect = Generate3PtTransformVector();
-    pixGetColumnStats(pix, L_MODE_VAL, 1, 1, rowvect);
-    pixDestroy(&pix);*/
+    pixDestroy(&pixal);
 
     l_int32 thresh, fgval, bgval;
     pix1 = pixConvertTo8(pixs, 0);
