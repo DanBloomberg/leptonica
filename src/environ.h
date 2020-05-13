@@ -329,12 +329,31 @@ typedef struct L_WallTimer  L_WALLTIMER;
  *  These specify the memory management functions that are used           *
  *  on all heap data except for Pix.  Memory management for Pix           *
  *  also defaults to malloc and free.  See pix1.c for details.            *
+ *                                                                        *
+ *  For builds where total interception of malloc/free are required,      *
+ *  define LEPTONICA_INTERCEPT_MALLOC, and provide your own               *
+ *  leptonica_{malloc,calloc,realloc,free} functions.                     *
  *------------------------------------------------------------------------*/
+#ifdef LEPTONICA_INTERCEPT_MALLOC
+
+#define LEPT_MALLOC(blocksize)           leptonica_malloc(blocksize)
+#define LEPT_CALLOC(numelem, elemsize)   leptonica_calloc(numelem, elemsize)
+#define LEPT_REALLOC(ptr, blocksize)     leptonica_realloc(ptr, blocksize)
+#define LEPT_FREE(ptr)                   leptonica_free(ptr)
+
+void *leptonica_malloc(size_t blocksize);
+void *leptonica_calloc(size_t numelm, size_t elemsize);
+void *leptonica_realloc(void *ptr, size_t blocksize);
+void leptonica_free(void *ptr);
+
+#else
+
 #define LEPT_MALLOC(blocksize)           malloc(blocksize)
 #define LEPT_CALLOC(numelem, elemsize)   calloc(numelem, elemsize)
 #define LEPT_REALLOC(ptr, blocksize)     realloc(ptr, blocksize)
 #define LEPT_FREE(ptr)                   free(ptr)
 
+#endif
 
 /*------------------------------------------------------------------------*
  *         Control printing of error, warning, and info messages          *
