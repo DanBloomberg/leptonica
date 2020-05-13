@@ -19,6 +19,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     recog = recogRead(filename);
 
+    recogDestroy(&recog);
     unlink(filename);
 
     return 0;
