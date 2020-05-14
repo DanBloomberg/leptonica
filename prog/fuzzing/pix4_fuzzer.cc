@@ -28,7 +28,8 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     pix1 = pixConvertTo8(pixs, FALSE);
     box = boxCreate(120, 30, 200, 200);
-    pixGetCmapHistogramInRect(pix2, box, 1);
+    numa1 = pixGetCmapHistogramInRect(pix2, box, 1);
+    numaDestroy(&numa1);
     boxDestroy(&box);
     pixDestroy(&pix1);
 
@@ -48,13 +49,12 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     pix1 = pixConvertTo8(pixs, FALSE);
     if(pix1!=NULL){
         pix2 = pixConvert8To32(pix1);
-        pixGetAverageTiledRGB(pix2, 2, 2, L_MEAN_ABSVAL, &pix4, &pix5, &pix6);
+        pixGetAverageTiledRGB(pix2, 2, 2, L_MEAN_ABSVAL, &pix3, &pix4, &pix5);
         pixDestroy(&pix1);
         pixDestroy(&pix2);
         pixDestroy(&pix3);
         pixDestroy(&pix4);
         pixDestroy(&pix5);
-        pixDestroy(&pix6);
     }
 
     pixRowStats(pixs, NULL, &na1, &na2, &na3, &na4, &na5, &na6);
@@ -91,9 +91,9 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     pixDestroy(&pixr);
 
     PIXA *pixa = pixaReadMem(data, size);
-    PIX *pixal = pixaGetAlignedStats(pixa, L_MEAN_ABSVAL, 2, 2);
+    pix1 = pixaGetAlignedStats(pixa, L_MEAN_ABSVAL, 2, 2);
     pixaDestroy(&pixa);
-    pixDestroy(&pixal);
+    pixDestroy(&pix1);
 
     l_int32 thresh, fgval, bgval;
     pix1 = pixConvertTo8(pixs, 0);
