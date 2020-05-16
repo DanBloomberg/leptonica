@@ -41,8 +41,8 @@
  *    This file has the basic constructors, destructors and field accessors
  *
  *    Pix memory management (allows custom allocator and deallocator)
- *          static void  *pix_malloc()
- *          static void   pix_free()
+ *          static void  *pixdata_malloc()
+ *          static void   pixdata_free()
  *          void          setPixMemoryManager()
  *
  *    Pix creation
@@ -199,19 +199,20 @@
 
 static void pixFree(PIX *pix);
 
-
 /*-------------------------------------------------------------------------*
  *                        Pix Memory Management                            *
  *                                                                         *
  *  These functions give you the freedom to specify at compile or run      *
- *  time the allocator and deallocator to be used for pix.  It has no      *
- *  effect on memory management for other data structs, which are          *
- *  controlled by the #defines in environ.h.  Likewise, the #defines       *
- *  in environ.h have no effect on the pix memory management.              *
- *  The default functions are malloc and free.  Use setPixMemoryManager()  *
- *  to specify other functions to use.                                     *
+ *  time the allocator and deallocator to be used for the pix raster       *
+ *  image data.  They have no effect on any other heap allocation,         *
+ *  including the pix struct itself, which is controlled by the            *
+ *  #defines in environ.h.                                                 *
+ *                                                                         *
+ *  The default functions for allocating pix raster data are malloc and    *
+ *  free (or leptonica_* custom allocators if LEPTONICA_INTERCEPT_ALLOC    *
+ *  is defined).  Use setPixMemoryManager() to specify other functions     *
+ *  to use specifically for pix raster image data.                         *
  *-------------------------------------------------------------------------*/
-
 /*! Pix memory manager */
     /*
      * <pre>
@@ -228,35 +229,35 @@ struct PixMemoryManager
 
 /*! Default Pix memory manager */
 static struct PixMemoryManager  pix_mem_manager = {
-#ifdef LEPTONICA_INTERCEPT_MALLOC
+#ifdef LEPTONICA_INTERCEPT_ALLOC
     &leptonica_malloc,
     &leptonica_free
 #else
     &malloc,
     &free
-#endif
+#endif  /* LEPTONICA_INTERCEPT_ALLOC */
 };
 
 static void *
-pix_malloc(size_t  size)
+pixdata_malloc(size_t  size)
 {
 #ifndef _MSC_VER
     return (*pix_mem_manager.allocator)(size);
 #else  /* _MSC_VER */
-    /* Under MSVC++, pix_mem_manager is initialized after a call
-     * to pix_malloc.  Just ignore the custom allocator feature. */
+    /* Under MSVC++, pix_mem_manager is initialized after a call to
+     * pixdata_malloc.  Just ignore the custom allocator feature. */
     return LEPT_MALLOC(size);
 #endif  /* _MSC_VER */
 }
 
 static void
-pix_free(void  *ptr)
+pixdata_free(void  *ptr)
 {
 #ifndef _MSC_VER
     (*pix_mem_manager.deallocator)(ptr);
 #else  /* _MSC_VER */
-    /* Under MSVC++, pix_mem_manager is initialized after a call
-     * to pix_malloc.  Just ignore the custom allocator feature. */
+    /* Under MSVC++, pix_mem_manager is initialized after a call to
+     * pixdata_malloc.  Just ignore the custom allocator feature. */
     LEPT_FREE(ptr);
 #endif  /* _MSC_VER */
 }
@@ -347,9 +348,10 @@ l_uint32  *data;
     if ((pixd = pixCreateHeader(width, height, depth)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     wpl = pixGetWpl(pixd);
-    if ((data = (l_uint32 *)pix_malloc(4LL * wpl * height)) == NULL) {
+    if ((data = (l_uint32 *)pixdata_malloc(4LL * wpl * height)) == NULL) {
         pixDestroy(&pixd);
-        return (PIX *)ERROR_PTR("pix_malloc fail for data", procName, NULL);
+        return (PIX *)ERROR_PTR("pixdata_malloc fail for data",
+                                procName, NULL);
     }
     pixSetData(pixd, data);
     pixSetPadBits(pixd, 0);
@@ -644,7 +646,7 @@ char      *text;
     pixChangeRefcount(pix, -1);
     if (pixGetRefcount(pix) <= 0) {
         if ((data = pixGetData(pix)) != NULL)
-            pix_free(data);
+            pixdata_free(data);
         if ((text = pixGetText(pix)) != NULL)
             LEPT_FREE(text);
         pixDestroyColormap(pix);
@@ -771,8 +773,8 @@ l_uint32  *data;
     pixGetDimensions(pixs, &w, &h, &d);
     wpl = pixGetWpl(pixs);
     bytes = 4 * wpl * h;
-    if ((data = (l_uint32 *)pix_malloc(bytes)) == NULL)
-        return ERROR_INT("pix_malloc fail for data", procName, 1);
+    if ((data = (l_uint32 *)pixdata_malloc(bytes)) == NULL)
+        return ERROR_INT("pixdata_malloc fail for data", procName, 1);
 
         /* OK, do it */
     pixSetWidth(pixd, w);
@@ -1755,7 +1757,7 @@ l_uint32  *data, *datas;
     } else {  /* refcount > 1; copy */
         bytes = 4 * pixGetWpl(pixs) * pixGetHeight(pixs);
         datas = pixGetData(pixs);
-        if ((data = (l_uint32 *)pix_malloc(bytes)) == NULL)
+        if ((data = (l_uint32 *)pixdata_malloc(bytes)) == NULL)
             return (l_uint32 *)ERROR_PTR("data not made", procName, NULL);
         memcpy(data, datas, bytes);
     }
@@ -1789,7 +1791,7 @@ l_uint32  *data;
         return ERROR_INT("pix not defined", procName, 1);
 
     if ((data = pixGetData(pix)) != NULL) {
-        pix_free(data);
+        pixdata_free(data);
         pix->data = NULL;
     }
     return 0;
