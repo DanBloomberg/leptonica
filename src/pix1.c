@@ -228,8 +228,13 @@ struct PixMemoryManager
 
 /*! Default Pix memory manager */
 static struct PixMemoryManager  pix_mem_manager = {
+#ifdef LEPTONICA_INTERCEPT_MALLOC
+    &leptonica_malloc,
+    &leptonica_free
+#else
     &malloc,
     &free
+#endif
 };
 
 static void *
@@ -240,7 +245,7 @@ pix_malloc(size_t  size)
 #else  /* _MSC_VER */
     /* Under MSVC++, pix_mem_manager is initialized after a call
      * to pix_malloc.  Just ignore the custom allocator feature. */
-    return malloc(size);
+    return LEPT_MALLOC(size);
 #endif  /* _MSC_VER */
 }
 
@@ -252,7 +257,7 @@ pix_free(void  *ptr)
 #else  /* _MSC_VER */
     /* Under MSVC++, pix_mem_manager is initialized after a call
      * to pix_malloc.  Just ignore the custom allocator feature. */
-    free(ptr);
+    LEPT_FREE(ptr);
 #endif  /* _MSC_VER */
 }
 
