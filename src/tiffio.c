@@ -670,7 +670,10 @@ PIXCMAP   *cmap;
         for (i = 0; i < ncolors; i++)
             pixcmapAddColor(cmap, redmap[i] >> 8, greenmap[i] >> 8,
                             bluemap[i] >> 8);
-        pixSetColormap(pix, cmap);
+        if (pixSetColormap(pix, cmap)) {
+            pixDestroy(&pix);
+            return (PIX *)ERROR_PTR("invalid colormap", procName, NULL);
+        }
 
             /* Remove the colormap for 1 bpp. */
         if (bps == 1) {

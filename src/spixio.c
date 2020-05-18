@@ -481,7 +481,10 @@ PIXCMAP   *cmap;
             pixDestroy(&pixd);
             return (PIX *)ERROR_PTR("cmap not made", procName, NULL);
         }
-        pixSetColormap(pixd, cmap);
+        if (pixSetColormap(pixd, cmap)) {
+            pixDestroy(&pixd);
+            return (PIX *)ERROR_PTR("cmap is not valid", procName, NULL);
+        }
     }
 
     imdata = pixGetData(pixd);

@@ -296,8 +296,11 @@ PIXCMAP     *cmap;
     pixSetInputFormat(pix, IFF_PNG);
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
-    pixSetColormap(pix, cmap);
     pixSetSpp(pix, spp);
+    if (pixSetColormap(pix, cmap)) {
+        pixDestroy(&pix);
+        return (PIX *)ERROR_PTR("invalid colormap", procName, NULL);
+    }
 
     if (spp == 1 && !tRNS) {  /* copy straight from buffer to pix */
         for (i = 0; i < h; i++) {
@@ -1652,8 +1655,11 @@ MEMIODATA    state;
     pixSetInputFormat(pix, IFF_PNG);
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
-    pixSetColormap(pix, cmap);
     pixSetSpp(pix, spp);
+    if (pixSetColormap(pix, cmap)) {
+        pixDestroy(&pix);
+        return (PIX *)ERROR_PTR("invalid colormap", procName, NULL);
+    }
 
     if (spp == 1 && !tRNS) {  /* copy straight from buffer to pix */
         for (i = 0; i < h; i++) {

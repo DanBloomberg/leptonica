@@ -288,7 +288,10 @@ PIXCMAP   *cmap;
         for (i = 0; i < cmap->n; i++)   /* set all colors opaque */
             pixcmapSetAlpha (cmap, i, 255);
     }
-    pixSetColormap(pix, cmap);
+    if (pixSetColormap(pix, cmap)) {
+        pixDestroy(&pix);
+        return (PIX *)ERROR_PTR("invalid colormap", procName, NULL);
+    }
 
         /* Acquire the image data.  Image origin for bmp is at lower right. */
     fdata = (l_uint8 *)cdata + offset;  /* start of the bmp image data */

@@ -1631,10 +1631,13 @@ pixGetColormap(PIX  *pix)
  *
  * <pre>
  * Notes:
- *      (1) If %colormap is not defined, or on error, this is a no-op.
- *      (2) pixSetColormap() destroys any existing colormap before
- *          assigning the new %colormap to %pix.
- *      (3) Because colormaps are not ref counted, the new colormap
+ *      (1) If %colormap is not defined, this is a no-op.
+ *      (2) This destroys any existing colormap before assigning the
+ *          new %colormap to %pix.
+ *      (3) If the colormap is not valid, this returns 1.  The caller
+ *          should check if there is a possibility that the pix and
+ *          colormap depths differ.
+ *      (4) Because colormaps are not ref counted, the new colormap
  *          must not belong to any other pix.
  * </pre>
  */
@@ -1650,12 +1653,13 @@ l_int32  valid;
         return ERROR_INT("pix not defined", procName, 1);
     if (!colormap) return 0;
 
+        /* Make sure the colormap doesn't get lost */
+    pixDestroyColormap(pix);
+    pix->colormap = colormap;
+
     pixcmapIsValid(colormap, pix, &valid);
     if (!valid)
         return ERROR_INT("colormap is not valid", procName, 1);
-
-    pixDestroyColormap(pix);
-    pix->colormap = colormap;
     return 0;
 }
 
