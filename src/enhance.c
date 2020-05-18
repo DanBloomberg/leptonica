@@ -1040,7 +1040,7 @@ PIX     *pix1, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
         pixDestroy(&pixgs);
         pixDestroy(&pixbs);
         if (pixGetSpp(pixs) == 4)
-            pixScaleAndTransferAlpha(pixd, pixs, 1.0, 1.0);
+            pixCopyRGBComponent(pixd, pixs, L_ALPHA_CHANNEL);
     }
 
     pixDestroy(&pix1);
@@ -1206,7 +1206,7 @@ PIX     *pixt, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
         pixDestroy(&pixb);
         pixd = pixCreateRGBImage(pixrs, pixgs, pixbs);
         if (pixGetSpp(pixs) == 4)
-            pixScaleAndTransferAlpha(pixd, pixs, 1.0, 1.0);
+            pixCopyRGBComponent(pixd, pixs, L_ALPHA_CHANNEL);
         pixDestroy(&pixrs);
         pixDestroy(&pixgs);
         pixDestroy(&pixbs);
@@ -1609,7 +1609,7 @@ l_uint32  *data, *line;
         }
     }
     if (pixGetSpp(pixs) == 4)
-        pixScaleAndTransferAlpha(pixd, pixs, 1.0, 1.0);
+        pixCopyRGBComponent(pixd, pixs, L_ALPHA_CHANNEL);
 
     return pixd;
 }
@@ -1678,7 +1678,7 @@ l_uint32  *data, *line;
         }
     }
     if (pixGetSpp(pixs) == 4)
-        pixScaleAndTransferAlpha(pixd, pixs, 1.0, 1.0);
+        pixCopyRGBComponent(pixd, pixs, L_ALPHA_CHANNEL);
 
     return pixd;
 }
@@ -1795,7 +1795,7 @@ l_uint32  *data, *line;
         }
     }
     if (pixGetSpp(pixs) == 4)
-        pixScaleAndTransferAlpha(pixd, pixs, 1.0, 1.0);
+        pixCopyRGBComponent(pixd, pixs, L_ALPHA_CHANNEL);
 
     return pixd;
 }
