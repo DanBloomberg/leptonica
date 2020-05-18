@@ -816,11 +816,13 @@ PIXCMAP        *cmapd;
         return ERROR_INT("pixd not defined", procName, 1);
     if (pixs == pixd)
         return 0;   /* no-op */
+    if (pixGetDepth(pixs) != pixGetDepth(pixd))
+        return ERROR_INT("depths of pixs and pixd differ", procName, 1);
 
     pixDestroyColormap(pixd);
     if ((cmaps = pixs->colormap) == NULL)  /* not an error */
         return 0;
-    pixcmapIsValid(cmaps, &valid);
+    pixcmapIsValid(cmaps, pixs, &valid);
     if (!valid)
         return ERROR_INT("cmap not valid", procName, 1);
 
@@ -935,7 +937,8 @@ PIX     *pixs;
         pixFreeData(pixd);  /* dealloc any existing data */
         pixSetData(pixd, pixGetData(pixs));  /* transfer new data from pixs */
         pixs->data = NULL;  /* pixs no longer owns data */
-        pixSetColormap(pixd, pixGetColormap(pixs));  /* frees old; sets new */
+        pixDestroyColormap(pixd);  /* free the old one, if it exists */
+        pixd->colormap = pixGetColormap(pixs);  /* transfer to pixd */
         pixs->colormap = NULL;  /* pixs no longer owns colormap */
         if (copytext) {
             pixSetText(pixd, pixGetText(pixs));
@@ -1623,25 +1626,33 @@ pixGetColormap(PIX  *pix)
  * \brief   pixSetColormap()
  *
  * \param[in]   pix
- * \param[in]   colormap   to be assigned
+ * \param[in]   colormap   optional; can be null.
  * \return  0 if OK, 1 on error.
  *
  * <pre>
  * Notes:
- *      (1) Unlike with the pix data field, pixSetColormap() destroys
- *          any existing colormap before assigning the new one.
- *          Because colormaps are not ref counted, it is important that
- *          the new colormap does not belong to any other pix.
+ *      (1) If %colormap is not defined, or on error, this is a no-op.
+ *      (2) pixSetColormap() destroys any existing colormap before
+ *          assigning the new %colormap to %pix.
+ *      (3) Because colormaps are not ref counted, the new colormap
+ *          must not belong to any other pix.
  * </pre>
  */
 l_ok
 pixSetColormap(PIX      *pix,
                PIXCMAP  *colormap)
 {
+l_int32  valid;
+
     PROCNAME("pixSetColormap");
 
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
+    if (!colormap) return 0;
+
+    pixcmapIsValid(colormap, pix, &valid);
+    if (!valid)
+        return ERROR_INT("colormap is not valid", procName, 1);
 
     pixDestroyColormap(pix);
     pix->colormap = colormap;

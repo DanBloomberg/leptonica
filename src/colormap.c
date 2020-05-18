@@ -253,7 +253,7 @@ PIXCMAP  *cmapd;
 
     if (!cmaps)
         return (PIXCMAP *)ERROR_PTR("cmaps not defined", procName, NULL);
-    pixcmapIsValid(cmaps, &valid);
+    pixcmapIsValid(cmaps, NULL, &valid);
     if (!valid)
         return (PIXCMAP *)ERROR_PTR("invalid cmap", procName, NULL);
 
@@ -298,14 +298,21 @@ PIXCMAP  *cmap;
  * \brief   pixcmapIsValid()
  *
  * \param[in]    cmap
+ * \param[in]    pix        optional; can be NULL
  * \param[out]   pvalid     return 1 if valid; 0 if not
  * \return  0 if OK, 1 on error or if cmap is not valid
+ *
+ * <pre>
+ * Notes:
+ *      (1) If %pix is input, verify that pix values cannot overflow the cmap.
+ * </pre>
  */
 l_ok
 pixcmapIsValid(const PIXCMAP  *cmap,
+               const PIX      *pix,
                l_int32        *pvalid)
 {
-l_int32  d;
+l_int32  d, nalloc;
 
     PROCNAME("pixcmapIsValid");
 
@@ -317,19 +324,29 @@ l_int32  d;
     if (!cmap->array)
         return ERROR_INT("cmap array not defined", procName, 1);
     d = cmap->depth;
-    if (d !=1 && d != 2 && d != 4 && d != 8) {
+    if (d != 1 && d != 2 && d != 4 && d != 8) {
         L_ERROR("invalid cmap depth: %d\n", procName, d);
         return 1;
     }
-    if (cmap->nalloc < 2 || cmap->nalloc > 256) {
-        L_ERROR("invalid cmap nalloc: %d\n", procName, cmap->nalloc);
+    nalloc = cmap->nalloc;
+    if (nalloc != (1 << d)) {
+        L_ERROR("invalid cmap nalloc: %d; d = %d\n", procName, nalloc, d);
         return 1;
     }
-    if (cmap->n < 0 || cmap->n > 256 || cmap->n > cmap->nalloc) {
-        L_ERROR("invalid cmap n: %d (nalloc = %d)\n", procName,
-                cmap->n, cmap->nalloc);
+    if (cmap->n < 0 || cmap->n > nalloc) {
+        L_ERROR("invalid cmap n: %d; nalloc = %d\n", procName, cmap->n, nalloc);
         return 1;
     }
+
+        /* To prevent indexing overflow into the cmap, the pix depth
+         * must not exceed the cmap depth.  Do not require depth equality,
+         * because some functions such as median cut quantizers do not. */
+    if (pix && (pixGetDepth(pix) > d)) {
+        L_ERROR("pix depth = %d > cmap depth = %d\n", procName,
+                pixGetDepth(pix), d);
+        return 1;
+    }
+
     *pvalid = 1;
     return 0;
 }

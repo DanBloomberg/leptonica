@@ -406,7 +406,7 @@ PIXCMAP  *cmap;
     if (pix) {
         pixSetInputFormat(pix, format);
         if ((cmap = pixGetColormap(pix))) {
-            pixcmapIsValid(cmap, &valid);
+            pixcmapIsValid(cmap, pix, &valid);
             if (!valid) {
                 pixDestroy(&pix);
                 return (PIX *)ERROR_PTR("invalid colormap", procName, NULL);
@@ -929,7 +929,7 @@ PIXCMAP  *cmap;
             format = IFF_TIFF_G4;
         pixSetInputFormat(pix, format);
         if ((cmap = pixGetColormap(pix))) {
-            pixcmapIsValid(cmap, &valid);
+            pixcmapIsValid(cmap, pix, &valid);
             if (!valid) {
                 pixDestroy(&pix);
                 return (PIX *)ERROR_PTR("invalid colormap", procName, NULL);
