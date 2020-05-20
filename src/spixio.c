@@ -352,7 +352,7 @@ pixSerializeToMemory(PIX        *pixs,
                      size_t     *pnbytes)
 {
 char      *id;
-l_int32    w, h, d, wpl, rdatasize, ncolors, nbytes, index;
+l_int32    w, h, d, wpl, rdatasize, ncolors, nbytes, index, valid;
 l_uint8   *cdata;  /* data in colormap array (4 bytes/color table entry) */
 l_uint32  *data;
 l_uint32  *rdata;  /* data in pix raster */
@@ -373,8 +373,12 @@ PIXCMAP   *cmap;
     rdatasize = 4 * wpl * h;
     ncolors = 0;
     cdata = NULL;
-    if ((cmap = pixGetColormap(pixs)) != NULL)
+    if ((cmap = pixGetColormap(pixs)) != NULL) {
+        pixcmapIsValid(cmap, pixs, &valid);
+        if (!valid)
+            return ERROR_INT("colormap not valid", procName, 1);
         pixcmapSerializeToMemory(cmap, 4, &ncolors, &cdata);
+    }
 
     nbytes = 24 + 4 * ncolors + 4 + rdatasize;
     if ((data = (l_uint32 *)LEPT_CALLOC(nbytes / 4, sizeof(l_uint32)))

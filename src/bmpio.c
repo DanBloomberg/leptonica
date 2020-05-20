@@ -450,8 +450,7 @@ l_uint8     pel[4];
 l_uint8    *cta = NULL;     /* address of the bmp color table array */
 l_uint8    *fdata, *data, *fmdata;
 l_int32     cmaplen;      /* number of bytes in the bmp colormap */
-l_int32     ncolors, val, stepsize;
-l_int32     w, h, d, fdepth, xres, yres;
+l_int32     ncolors, val, stepsize, w, h, d, fdepth, xres, yres, valid;
 l_int32     pixWpl, pixBpl, extrabytes, fBpl, fWpl, i, j, k;
 l_int32     heapcm;  /* extra copy of cta on the heap ? 1 : 0 */
 l_uint32    offbytes, fimagebytes;
@@ -478,6 +477,13 @@ RGBA_QUAD  *pquad;
         return ERROR_INT("&fsize not defined", procName, 1 );
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
+
+        /* Verify validity of colormap */
+    if ((cmap = pixGetColormap(pixs)) != NULL) {
+        pixcmapIsValid(cmap, pixs, &valid);
+        if (!valid)
+            return ERROR_INT("colormap is not valid", procName, 1);
+    }
 
     pixGetDimensions(pixs, &w, &h, &d);
     if (d == 2) {

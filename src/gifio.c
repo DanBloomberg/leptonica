@@ -273,19 +273,19 @@ int              giferr;
     }
 
     ncolors = gif_cmap->ColorCount;
+    if (ncolors <= 0 || ncolors > 256) {
+        DGifCloseFile(gif, &giferr);
+        return (PIX *)ERROR_PTR("ncolors is invalid", procName, NULL);
+    }
     if (ncolors <= 2)
         d = 1;
     else if (ncolors <= 4)
         d = 2;
     else if (ncolors <= 16)
         d = 4;
-    else
+    else  /* [17 ... 256] */
         d = 8;
-    if ((cmap = pixcmapCreate(d)) == NULL) {
-        DGifCloseFile(gif, &giferr);
-        return (PIX *)ERROR_PTR("cmap creation failed", procName, NULL);
-    }
-
+    cmap = pixcmapCreate(d);
     for (cindex = 0; cindex < ncolors; cindex++) {
         rval = gif_cmap->Colors[cindex].Red;
         gval = gif_cmap->Colors[cindex].Green;
@@ -483,7 +483,7 @@ pixToGif(PIX          *pix,
          GifFileType  *gif)
 {
 char            *text;
-l_int32          wpl, i, j, w, h, d, ncolor, rval, gval, bval;
+l_int32          wpl, i, j, w, h, d, ncolor, rval, gval, bval, valid;
 l_int32          gif_ncolor = 0;
 l_uint32        *data, *line;
 PIX             *pixd;
@@ -514,12 +514,17 @@ GifByteType     *gif_line;
     }
 
     if (!pixd)
-        return ERROR_INT("failed to convert image to indexed", procName, 1);
+        return ERROR_INT("failed to convert to colormapped pix", procName, 1);
     d = pixGetDepth(pixd);
-
-    if ((cmap = pixGetColormap(pixd)) == NULL) {
+    cmap = pixGetColormap(pixd);
+    if (!cmap) {
         pixDestroy(&pixd);
         return ERROR_INT("cmap is missing", procName, 1);
+    }
+    pixcmapIsValid(cmap, pixd, &valid);
+    if (!valid) {
+        pixDestroy(&pixd);
+        return ERROR_INT("colormap is not valid", procName, 1);
     }
 
         /* 'Round' the number of gif colors up to a power of 2 */
