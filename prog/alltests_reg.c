@@ -77,7 +77,7 @@ static const char *tests[] = {
                               "checkerboard_reg",
                               "cmapquant_reg",
                               "colorcontent_reg",
-                              "colorinfo_reg",
+                              "colorfill_reg",
                               "coloring_reg",
                               "colorize_reg",
                               "colormask_reg",

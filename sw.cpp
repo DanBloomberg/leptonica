@@ -100,7 +100,7 @@ void build(Solution &s)
             {"checkerboard_reg", {"checkerboard_reg.c"}},
             {"cmapquant_reg", {"cmapquant_reg.c"}},
             {"colorcontent_reg", {"colorcontent_reg.c"}},
-            {"colorinfo_reg", {"colorinfo_reg.c"}},
+            {"colorfill_reg", {"colorfill_reg.c"}},
             {"coloring_reg", {"coloring_reg.c"}},
             {"colorize_reg", {"colorize_reg.c"}},
             {"colormask_reg", {"colormask_reg.c"}},

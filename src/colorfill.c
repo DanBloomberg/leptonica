@@ -25,20 +25,20 @@
  *====================================================================*/
 
 /*!
- * \file colorinfo.c
+ * \file colorfill.c
  * <pre>
  *
  *      Determine color content using proximity.  What can we say about the
  *      color in an image from growing regions with nearly the same color?
  *
- *         L_COLORINFO  *l_colorinfoCreate()
- *         void          l_colorinfoDestroy()
+ *         L_COLORFILL  *l_colorfillCreate()
+ *         void          l_colorfillDestroy()
  *
- *         L_COLORINFO  *pixColorContentByLocation()
+ *         L_COLORFILL  *pixColorContentByLocation()
  *         PIX          *pixColorFill()
  *
  *      Generate data for testing
- *         PIXA         *makeColorinfoTestData()
+ *         PIXA         *makeColorfillTestData()
  *
  *      Static helpers
  *         static COLOREL      *colorelCreate()
@@ -48,7 +48,7 @@
  *         static l_int32       colorsAreSimilarForFill()
  *         static void          pixelColorIsValid()
  *         static l_int32       pixelIsOnColorBoundary()
- *         static l_int32       evalColorinfoData()
+ *         static l_int32       evalColorfillData()
  *
  *  See colorcontent.c for location-independent measures of the amount
  *  of color in an image.
@@ -84,14 +84,14 @@ static l_int32 colorsAreSimilarForFill(l_uint32 val1, l_uint32 val2,
                                        l_int32 maxdiff);
 static l_int32 pixelColorIsValid(l_uint32 val, l_int32 minmax);
 static l_int32 pixelIsOnColorBoundary(PIX *pixs, l_int32 x, l_int32 y);
-static l_int32 evalColorinfoData(L_COLORINFO *ci, l_int32 debug);
+static l_int32 evalColorfillData(L_COLORFILL *cf, l_int32 debug);
 
 
 /*---------------------------------------------------------------------*
- *                   Colorinfo creation and destruction                *
+ *                   Colorfill creation and destruction                *
  *---------------------------------------------------------------------*/
 /*!
- * \brief   l_colorinfoCreate()
+ * \brief   l_colorfillCreate()
  *
  * \param[in]    pixs   input RGB image
  * \param[in]    nx     requested number of tiles in each row
@@ -103,28 +103,28 @@ static l_int32 evalColorinfoData(L_COLORINFO *ci, l_int32 debug);
  *      (1) Tiles must at least 10 pixels in each dimension.
  * </pre>
  */
-L_COLORINFO *
-l_colorinfoCreate(PIX     *pixs,
+L_COLORFILL *
+l_colorfillCreate(PIX     *pixs,
                   l_int32  nx,
                   l_int32  ny)
 {
 l_int32       i, j, w, h, tw, th, ntiles;
 BOX          *box;
 BOXA         *boxas;
-L_COLORINFO  *ci;
+L_COLORFILL  *cf;
 
-    PROCNAME("l_colorinfoCreate");
+    PROCNAME("l_colorfillCreate");
 
     if (!pixs)
-        return (L_COLORINFO *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (L_COLORFILL *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (L_COLORINFO *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (L_COLORFILL *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     tw = w / nx;
     th = h / ny;
     if (tw < 10 || th < 10)
-        return (L_COLORINFO *)ERROR_PTR("tile size too small", procName, NULL);
+        return (L_COLORFILL *)ERROR_PTR("tile size too small", procName, NULL);
     boxas = boxaCreate(nx * ny);
     for (i = 0; i < ny; i++) {
         for (j = 0; j < nx; j++) {
@@ -134,51 +134,51 @@ L_COLORINFO  *ci;
     }
     ntiles = nx * ny;
 
-    ci = (L_COLORINFO *)LEPT_CALLOC(1, sizeof(L_COLORINFO));
-    ci->pixs = pixClone(pixs);
-    ci->nx = nx;
-    ci->ny = ny;
-    ci->tw = tw;
-    ci->th = th;
-    ci->boxas = boxas;
-    ci->naa = numaaCreate(ntiles);
-    ci->dnaa = l_dnaaCreate(ntiles);
-    ci->pixadb = pixaCreate(0);
-    return ci;
+    cf = (L_COLORFILL *)LEPT_CALLOC(1, sizeof(L_COLORFILL));
+    cf->pixs = pixClone(pixs);
+    cf->nx = nx;
+    cf->ny = ny;
+    cf->tw = tw;
+    cf->th = th;
+    cf->boxas = boxas;
+    cf->naa = numaaCreate(ntiles);
+    cf->dnaa = l_dnaaCreate(ntiles);
+    cf->pixadb = pixaCreate(0);
+    return cf;
 }
 
 
 /*!
- * \brief   l_colorinfoDestroy()
+ * \brief   l_colorfillDestroy()
  *
- * \param[in,out]   pci    will be set to null before returning
+ * \param[in,out]   pcf    will be set to null before returning
  * \return  void
  */
 void
-l_colorinfoDestroy(L_COLORINFO  **pci)
+l_colorfillDestroy(L_COLORFILL  **pcf)
 {
-L_COLORINFO  *ci;
+L_COLORFILL  *cf;
 
-    PROCNAME("l_colorinfoDestroy");
+    PROCNAME("l_colorfillDestroy");
 
-    if (pci == NULL) {
+    if (pcf == NULL) {
         L_WARNING("ptr address is null!\n", procName);
         return;
     }
 
-    if ((ci = *pci) == NULL)
+    if ((cf = *pcf) == NULL)
         return;
 
-    pixDestroy(&ci->pixs);
-    pixDestroy(&ci->pixst);
-    boxaDestroy(&ci->boxas);
-    pixaDestroy(&ci->pixas);
-    pixaDestroy(&ci->pixam);
-    numaaDestroy(&ci->naa);
-    l_dnaaDestroy(&ci->dnaa);
-    pixaDestroy(&ci->pixadb);
-    LEPT_FREE(ci);
-    *pci = NULL;
+    pixDestroy(&cf->pixs);
+    pixDestroy(&cf->pixst);
+    boxaDestroy(&cf->boxas);
+    pixaDestroy(&cf->pixas);
+    pixaDestroy(&cf->pixam);
+    numaaDestroy(&cf->naa);
+    l_dnaaDestroy(&cf->dnaa);
+    pixaDestroy(&cf->pixadb);
+    LEPT_FREE(cf);
+    *pcf = NULL;
 }
 
 
@@ -189,7 +189,7 @@ L_COLORINFO  *ci;
 /*!
  * \brief   pixColorContentByLocation()
  *
- * \param[in]    ci        colorinfo
+ * \param[in]    cf        colorfill
  * \param[in]    rref      reference value for red component
  * \param[in]    gref      reference value for green component
  * \param[in]    bref      reference value for blue component
@@ -197,12 +197,12 @@ L_COLORINFO  *ci;
  * \param[in]    maxdiff   max component diff to be in same color region
  * \param[in]    minarea   min number of pixels for a color region
  * \param[in]    smooth    low-pass kernel size (1,3,5); use 1 to skip
- * \param[in]    debug     generates debug images and info
+ * \param[in]    debug     generates debug images and fill info
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This computes color information in each tile, identifying
+ *      (1) This computes color fill information in each tile, identifying
  *          regions of approximately constant color.  It does this
  *          independently for each tile, using flood fills.  Regions
  *          of low intensity are considered 'not colorful'.
@@ -223,7 +223,7 @@ L_COLORINFO  *ci;
  * </pre>
  */
 l_ok
-pixColorContentByLocation(L_COLORINFO  *ci,
+pixColorContentByLocation(L_COLORFILL  *cf,
                           l_int32       rref,
                           l_int32       gref,
                           l_int32       bref,
@@ -239,26 +239,26 @@ PIXA      *pixas, *pixam;
 
     PROCNAME("pixColorContentByLocation");
 
-    if (!ci)
-        return ERROR_INT("ci not defined", procName, 1);
+    if (!cf)
+        return ERROR_INT("cf not defined", procName, 1);
     if (minmax <= 0) minmax = DefaultMinMax;
     if (minmax > 200)
         return ERROR_INT("minmax > 200; unreasonably large", procName, 1);
 
         /* Do the optional linear color map; this checks the ref vals
          * and uses them if valid.  Use {0,0,0} to skip this operation. */
-    if ((pix1 = pixColorShiftWhitePoint(ci->pixs, rref, gref, bref)) == NULL)
+    if ((pix1 = pixColorShiftWhitePoint(cf->pixs, rref, gref, bref)) == NULL)
         return ERROR_INT("pix1 not returned", procName, 1);
-    ci->pixst = pix1;
+    cf->pixst = pix1;
 
         /* Break the image up into small tiles */
-    pixas = pixaCreateFromBoxa(pix1, ci->boxas, 0, 0, NULL);
-    ci->pixas = pixas;
+    pixas = pixaCreateFromBoxa(pix1, cf->boxas, 0, 0, NULL);
+    cf->pixas = pixas;
 
         /* Find regions of similar color in each tile */
     n = pixaGetCount(pixas);
     pixam = pixaCreate(n);
-    ci->pixam = pixam;
+    cf->pixam = pixam;
     for (i = 0; i < n; i++) {
         pix2 = pixaGetPix(pixas, i, L_COPY);
         pix3 = pixColorFill(pix2, minmax, maxdiff, smooth, minarea, 0);
@@ -269,7 +269,7 @@ PIXA      *pixas, *pixam;
         /* Evaluate color components.  Find the average color in each
          * component and determine if there is more than one color in
          * each of the tiles. */
-    evalColorinfoData(ci, debug);
+    evalColorfillData(cf, debug);
 
     return 0;
 }
@@ -283,7 +283,7 @@ PIXA      *pixas, *pixam;
  * \param[in]    maxdiff   max component diff to be in same color region
  * \param[in]    smooth    low-pass kernel size (1,3,5); use 1 to skip
  * \param[in]    minarea   min number of pixels for a color region
- * \param[in]    debug     generates debug images and info
+ * \param[in]    debug     generates debug images and fill info
  * \return  pixm   mask showing connected regions of similar color,
  *                 or null on error
  *
@@ -387,7 +387,7 @@ L_QUEUE   *lq;
  *                         Generate data for testing                       *
  * ----------------------------------------------------------------------- */
 /*!
- * \brief   makeColorinfoTestData()
+ * \brief   makeColorfillTestData()
  *
  * \param[in]       w         width of generated pix
  * \param[in]       h         height of generated pix
@@ -409,7 +409,7 @@ L_QUEUE   *lq;
  * </pre>
  */
 PIXA *
-makeColorinfoTestData(l_int32  w,
+makeColorfillTestData(l_int32  w,
                       l_int32  h,
                       l_int32  nseeds,
                       l_int32  range)
@@ -840,14 +840,14 @@ l_uint32  val, neigh;
 
 
 /*!
- * \brief   evalColorinfoData()
+ * \brief   evalColorfillData()
  *
- * \param[in]       ci       colorinfo with masks generated for all tiles
+ * \param[in]       cf       colorfill with masks generated for all tiles
  * \param[in]       debug    show segmented regions with their median color
  * \return  0 if OK, 1 on error
  */
 static l_int32
-evalColorinfoData(L_COLORINFO  *ci,
+evalColorfillData(L_COLORFILL  *cf,
                   l_int32       debug)
 {
 l_int32    i, j, n, nc, w, h, x, y, count;
@@ -861,16 +861,16 @@ NUMA      *na;
 PIX       *pixm, *pix1, *pix2, *pixdb;
 PIXA      *pixa1;
 
-    PROCNAME("evalColorinfoData");
+    PROCNAME("evalColorfillData");
 
-    if (!ci)
-        return ERROR_INT("ci not defind", procName, 1);
+    if (!cf)
+        return ERROR_INT("cf not defind", procName, 1);
 
     tab = makePixelSumTab8();
-    n = ci->nx * ci->ny;
+    n = cf->nx * cf->ny;
     for (i = 0; i < n; i++) {
-        pix1 = pixaGetPix(ci->pixas, i, L_CLONE);
-        pixm = pixaGetPix(ci->pixam, i, L_CLONE);
+        pix1 = pixaGetPix(cf->pixas, i, L_CLONE);
+        pixm = pixaGetPix(cf->pixam, i, L_CLONE);
         pixGetDimensions(pix1, &w, &h, NULL);
         boxa1 = pixConnComp(pixm, &pixa1, 4);
         boxaDestroy(&boxa1);
@@ -894,16 +894,16 @@ PIXA      *pixa1;
             boxDestroy(&box1);
             pixDestroy(&pix2);
         }
-        pixaAddPix(ci->pixadb, pixdb, L_INSERT);
-        numaaAddNuma(ci->naa, na, L_INSERT);
-        l_dnaaAddDna(ci->dnaa, da, L_INSERT);
+        pixaAddPix(cf->pixadb, pixdb, L_INSERT);
+        numaaAddNuma(cf->naa, na, L_INSERT);
+        l_dnaaAddDna(cf->dnaa, da, L_INSERT);
         pixDestroy(&pix1);
         pixDestroy(&pixm);
         pixaDestroy(&pixa1);
     }
 
     if (debug) {  /* first tile */
-        na = numaaGetNuma(ci->naa, 0, L_CLONE);
+        na = numaaGetNuma(cf->naa, 0, L_CLONE);
         lept_stderr("Size of components in tile 0:");
         numaWriteStderr(na);
         numaDestroy(&na);

@@ -158,7 +158,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		boxa1_reg.c boxa2_reg.c boxa3_reg.c boxa4_reg.c \
 		bytea_reg.c ccthin1_reg.c ccthin2_reg.c \
 		checkerboard_reg.c cmapquant_reg.c colorcontent_reg.c \
-		colorinfo_reg.c coloring_reg.c colorize_reg.c \
+		colorfill_reg.c coloring_reg.c colorize_reg.c \
 		colormask_reg.c colormorph_reg.c colorquant_reg.c \
 		colorseg_reg.c colorspace_reg.c \
 		compare_reg.c compfilter_reg.c \
@@ -412,8 +412,8 @@ cmapquant_reg:	cmapquant_reg.o $(LEPTLIB)
 colorcontent_reg:	colorcontent_reg.o $(LEPTLIB)
 	$(CC) -o colorcontent_reg colorcontent_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
-colorinfo_reg:	colorinfo_reg.o $(LEPTLIB)
-	$(CC) -o colorinfo_reg colorinfo_reg.o $(ALL_LIBS) $(EXTRALIBS)
+colorfill_reg:	colorfill_reg.o $(LEPTLIB)
+	$(CC) -o colorfill_reg colorfill_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 coloring_reg:	coloring_reg.o $(LEPTLIB)
 	$(CC) -o coloring_reg coloring_reg.o $(ALL_LIBS) $(EXTRALIBS)

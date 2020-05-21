@@ -99,13 +99,16 @@ They are <i>not</i> a complete listing of the modifications.
         * Use hashmap to count pixel colors in RGB(A) images.
         * Convert hashtest program to regression test hash_reg.
         * Convert croptest program to regression test crop_reg.
-        * New color segmentation by region growing (colorinfo.c)
-        * New regression tests: colorinfo_reg.
+        * New color segmentation by region growing (colorfill.c)
+        * New regression tests: colorfill_reg.
         * Set maxima for all allocations for common leptonica data structures.
         * Don't fail when downscaling 2, 4, 8, and 32 bpp images, even
           to one pixel, invoking pixScaleSmooth().
         * New functions that select 1 bpp components based on their area.
         * Incremental addition to sorted array of numbers.
+        * new prog/fuzzing directory for oss-fuzz based fuzzing programs
+        * use of pixcmapIsValid() with extra argument to determine validity
+          with the pix it is attached to.
 
 1.79.0  1 Jan 2020
         * Clean up auto-generation of files; removed 'register'

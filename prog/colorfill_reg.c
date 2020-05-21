@@ -25,9 +25,9 @@
  *====================================================================*/
 
 /*
- *   colorinfo_reg.c
+ *   colorfill_reg.c
  *
- *   This tests the color segmentation utility by region growing.
+ *   This tests the utility that does color segmentation by region growing.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -42,7 +42,7 @@ static PIX *makeSmallTestPix(l_uint32 c1, l_uint32 c2);
 int main(int    argc,
          char **argv)
 {
-L_COLORINFO  *ci;
+L_COLORFILL  *cf;
 PIX          *pix1, *pix2, *pix3, *pix4;
 PIXA         *pixa1, *pixa2;
 L_REGPARAMS  *rp;
@@ -56,39 +56,39 @@ L_REGPARAMS  *rp;
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 0 */
     pixDisplayWithTitle(pix2, 0, 0, NULL, rp->display);
     pixDestroy(&pix2);
-    ci = l_colorinfoCreate(pix1, 1, 1);
-    pixColorContentByLocation(ci, 0, 0, 0, 70, 15, 3, 1, 1);
-    pix2 = pixaDisplayTiledInColumns(ci->pixadb, ci->nx, 1.0, 10, 1);
+    cf = l_colorfillCreate(pix1, 1, 1);
+    pixColorContentByLocation(cf, 0, 0, 0, 70, 15, 3, 1, 1);
+    pix2 = pixaDisplayTiledInColumns(cf->pixadb, cf->nx, 1.0, 10, 1);
     pix3 = pixExpandReplicate(pix2, 10);
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 1 */
     pixDisplayWithTitle(pix3, 300, 0, NULL, rp->display);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
-    l_colorinfoDestroy(&ci);
+    l_colorfillDestroy(&cf);
 
         /* Test on simple random image with many colors (1 tile and 4 tiles */
-    pixa1 = makeColorinfoTestData(350, 350, 35, 100);
+    pixa1 = makeColorfillTestData(350, 350, 35, 100);
     pixa2 = pixaCreate(5);
     pix1 = pixaGetPix(pixa1, 0, L_COPY);
     pix2 = pixConvertTo32(pix1);
     pixDestroy(&pix1);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 2 */
     pixaAddPix(pixa2, pix2, L_INSERT);
-    ci = l_colorinfoCreate(pix2, 1, 1);  /* 1 tile */
-    pixColorContentByLocation(ci, 0, 0, 0, 70, 30, 500, 1, 1);
-    pix3 = pixaDisplayTiledInColumns(ci->pixam, ci->nx, 1.0, 10, 1);
-    pix4 = pixaDisplayTiledInColumns(ci->pixadb, ci->nx, 1.0, 10, 1);
+    cf = l_colorfillCreate(pix2, 1, 1);  /* 1 tile */
+    pixColorContentByLocation(cf, 0, 0, 0, 70, 30, 500, 1, 1);
+    pix3 = pixaDisplayTiledInColumns(cf->pixam, cf->nx, 1.0, 10, 1);
+    pix4 = pixaDisplayTiledInColumns(cf->pixadb, cf->nx, 1.0, 10, 1);
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 3 */
     regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 4 */
     pixaAddPix(pixa2, pix3, L_INSERT);
     pixaAddPix(pixa2, pix4, L_INSERT);
-    l_colorinfoDestroy(&ci);
+    l_colorfillDestroy(&cf);
 
-    ci = l_colorinfoCreate(pix2, 2, 2);  /* 4 tiles */
-    pixColorContentByLocation(ci, 0, 0, 0, 70, 30, 500, 1, 1);
-    pix3 = pixaDisplayTiledInColumns(ci->pixam, ci->nx, 1.0, 10, 1);
-    pix4 = pixaDisplayTiledInColumns(ci->pixadb, ci->nx, 1.0, 10, 1);
+    cf = l_colorfillCreate(pix2, 2, 2);  /* 4 tiles */
+    pixColorContentByLocation(cf, 0, 0, 0, 70, 30, 500, 1, 1);
+    pix3 = pixaDisplayTiledInColumns(cf->pixam, cf->nx, 1.0, 10, 1);
+    pix4 = pixaDisplayTiledInColumns(cf->pixadb, cf->nx, 1.0, 10, 1);
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 5 */
     regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 6 */
     pixaAddPix(pixa2, pix3, L_INSERT);
@@ -100,16 +100,16 @@ L_REGPARAMS  *rp;
     }
     pixaDestroy(&pixa1);
     pixaDestroy(&pixa2);
-    l_colorinfoDestroy(&ci);
+    l_colorfillDestroy(&cf);
 
         /* Test on an image with lots of color (with 1 tile and 9 tiles) */
     pix1 = pixRead("lyra.005.jpg");
     pix2 = pixScale(pix1, 0.5, 0.5);
     pixDestroy(&pix1);
-    ci = l_colorinfoCreate(pix2, 1, 1);  /* 1 tile */
-    pixColorContentByLocation(ci, 0, 0, 0, 70, 30, 100, 1, 1);
-    pix3 = pixaDisplayTiledInColumns(ci->pixam, ci->nx, 1.0, 10, 1);
-    pix4 = pixaDisplayTiledInColumns(ci->pixadb, ci->nx, 1.0, 10, 1);
+    cf = l_colorfillCreate(pix2, 1, 1);  /* 1 tile */
+    pixColorContentByLocation(cf, 0, 0, 0, 70, 30, 100, 1, 1);
+    pix3 = pixaDisplayTiledInColumns(cf->pixam, cf->nx, 1.0, 10, 1);
+    pix4 = pixaDisplayTiledInColumns(cf->pixadb, cf->nx, 1.0, 10, 1);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 7 */
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 8 */
     regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 9 */
@@ -122,13 +122,13 @@ L_REGPARAMS  *rp;
         pixDisplay(pix1, 0, 650);
         pixDestroy(&pix1);
     }
-    l_colorinfoDestroy(&ci);
+    l_colorfillDestroy(&cf);
     pixaDestroy(&pixa2);
 
-    ci = l_colorinfoCreate(pix2, 3, 3);  /* 9 tiles */
-    pixColorContentByLocation(ci, 0, 0, 0, 70, 30, 100, 1, 1);
-    pix3 = pixaDisplayTiledInColumns(ci->pixam, ci->nx, 1.0, 10, 1);
-    pix4 = pixaDisplayTiledInColumns(ci->pixadb, ci->nx, 1.0, 10, 1);
+    cf = l_colorfillCreate(pix2, 3, 3);  /* 9 tiles */
+    pixColorContentByLocation(cf, 0, 0, 0, 70, 30, 100, 1, 1);
+    pix3 = pixaDisplayTiledInColumns(cf->pixam, cf->nx, 1.0, 10, 1);
+    pix4 = pixaDisplayTiledInColumns(cf->pixadb, cf->nx, 1.0, 10, 1);
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 10 */
     regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 11 */
     pixa2 = pixaCreate(2);
@@ -139,7 +139,7 @@ L_REGPARAMS  *rp;
         pixDisplay(pix1, 0, 1000);
         pixDestroy(&pix1);
     }
-    l_colorinfoDestroy(&ci);
+    l_colorfillDestroy(&cf);
     pixDestroy(&pix2);
     pixaDestroy(&pixa2);
 

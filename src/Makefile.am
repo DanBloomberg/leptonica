@@ -16,7 +16,7 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
  boxbasic.c boxfunc1.c boxfunc2.c boxfunc3.c                    \
  boxfunc4.c boxfunc5.c bytearray.c                              \
  ccbord.c ccthin.c checkerboard.c                               \
- classapp.c colorcontent.c colorinfo.c coloring.c               \
+ classapp.c colorcontent.c colorfill.c coloring.c               \
  colormap.c colormorph.c	                                \
  colorquant1.c colorquant2.c                                    \
  colorseg.c colorspace.c                                        \
@@ -66,7 +66,7 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
 
 pkginclude_HEADERS = allheaders.h alltypes.h                    \
  array.h arrayaccess.h bbuffer.h bilateral.h                    \
- bmf.h bmfdata.h bmp.h ccbord.h colorinfo.h                     \
+ bmf.h bmfdata.h bmp.h ccbord.h colorfill.h                     \
  dewarp.h endianness.h environ.h		                \
  gplot.h heap.h imageio.h jbclass.h                             \
  leptwin.h list.h	                                        \

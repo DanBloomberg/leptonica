@@ -24,15 +24,15 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-#ifndef  LEPTONICA_COLORINFO_H
-#define  LEPTONICA_COLORINFO_H
+#ifndef  LEPTONICA_COLORFILL_H
+#define  LEPTONICA_COLORFILL_H
 
 /*!
- * \file colorinfo.h
+ * \file colorfill.h
  *
  * <pre>
  *  Contains the following struct
- *      struct L_Colorinfo
+ *      struct L_Colorfill
  *
  *  This accumulates color information, linked to location, within a
  *  set of tiles that (mostly) covers an input RGB image.
@@ -41,10 +41,10 @@
 
 
 /*------------------------------------------------------------------------*
- *                            Colorinfo data                              *
+ *                            Colorfill data                              *
  *------------------------------------------------------------------------*/
-/*! Colorinfo data */
-struct L_Colorinfo
+/*! Colorfill data */
+struct L_Colorfill
 {
     struct Pix     *pixs;        /*!< clone of source pix                    */
     struct Pix     *pixst;       /*!< source pix, after optional transform   */
@@ -61,7 +61,7 @@ struct L_Colorinfo
     struct L_Dnaa  *dnaa;        /*!< average color in each region           */
     struct Pixa    *pixadb;      /*!< debug reconstruction from segmentation */
 };
-typedef struct L_Colorinfo  L_COLORINFO;
+typedef struct L_Colorfill  L_COLORFILL;
 
 
-#endif  /* LEPTONICA_COLORINFO_H */
+#endif  /* LEPTONICA_COLORFILL_H */

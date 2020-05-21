@@ -455,11 +455,11 @@ LEPT_DLL extern NUMA * pixGetRGBHistogram ( PIX *pixs, l_int32 sigbits, l_int32 
 LEPT_DLL extern l_ok makeRGBIndexTables ( l_uint32 **prtab, l_uint32 **pgtab, l_uint32 **pbtab, l_int32 sigbits );
 LEPT_DLL extern l_ok getRGBFromIndex ( l_uint32 index, l_int32 sigbits, l_int32 *prval, l_int32 *pgval, l_int32 *pbval );
 LEPT_DLL extern l_ok pixHasHighlightRed ( PIX *pixs, l_int32 factor, l_float32 minfract, l_float32 fthresh, l_int32 *phasred, l_float32 *pratio, PIX **ppixdb );
-LEPT_DLL extern L_COLORINFO * l_colorinfoCreate ( PIX *pixs, l_int32 nx, l_int32 ny );
-LEPT_DLL extern void l_colorinfoDestroy ( L_COLORINFO **pci );
-LEPT_DLL extern l_ok pixColorContentByLocation ( L_COLORINFO *ci, l_int32 rref, l_int32 gref, l_int32 bref, l_int32 minmax, l_int32 maxdiff, l_int32 minarea, l_int32 smooth, l_int32 debug );
+LEPT_DLL extern L_COLORFILL * l_colorfillCreate ( PIX *pixs, l_int32 nx, l_int32 ny );
+LEPT_DLL extern void l_colorfillDestroy ( L_COLORFILL **pcf );
+LEPT_DLL extern l_ok pixColorContentByLocation ( L_COLORFILL *cf, l_int32 rref, l_int32 gref, l_int32 bref, l_int32 minmax, l_int32 maxdiff, l_int32 minarea, l_int32 smooth, l_int32 debug );
 LEPT_DLL extern PIX * pixColorFill ( PIX *pixs, l_int32 minmax, l_int32 maxdiff, l_int32 smooth, l_int32 minarea, l_int32 debug );
-LEPT_DLL extern PIXA * makeColorinfoTestData ( l_int32 w, l_int32 h, l_int32 nseeds, l_int32 range );
+LEPT_DLL extern PIXA * makeColorfillTestData ( l_int32 w, l_int32 h, l_int32 nseeds, l_int32 range );
 LEPT_DLL extern PIX * pixColorGrayRegions ( PIX *pixs, BOXA *boxa, l_int32 type, l_int32 thresh, l_int32 rval, l_int32 gval, l_int32 bval );
 LEPT_DLL extern l_ok pixColorGray ( PIX *pixs, BOX *box, l_int32 type, l_int32 thresh, l_int32 rval, l_int32 gval, l_int32 bval );
 LEPT_DLL extern PIX * pixColorGrayMasked ( PIX *pixs, PIX *pixm, l_int32 type, l_int32 thresh, l_int32 rval, l_int32 gval, l_int32 bval );
