@@ -1888,7 +1888,6 @@ png_byte     bit_depth, color_type;
 png_byte     alpha[256];
 png_uint_32  w, h;
 png_uint_32  xres, yres;
-png_bytep   *row_pointers;
 png_bytep    rowbuffer;
 png_structp  png_ptr;
 png_infop    info_ptr;
@@ -2053,20 +2052,14 @@ MEMIODATA    state;
             return ERROR_INT("pix1 not made", procName, 1);
         }
 
-            /* Make and assign array of image row pointers */
-        row_pointers = (png_bytep *)LEPT_CALLOC(h, sizeof(png_bytep));
+            /* Transfer the data */
         wpl = pixGetWpl(pix1);
         data = pixGetData(pix1);
         for (i = 0; i < h; i++)
-            row_pointers[i] = (png_bytep)(data + i * wpl);
-        png_set_rows(png_ptr, info_ptr, row_pointers);
-
-            /* Transfer the data */
-        png_write_image(png_ptr, row_pointers);
+            png_write_row(png_ptr, (png_bytep)(data + i * wpl));
         png_write_end(png_ptr, info_ptr);
 
         if (cmflag) LEPT_FREE(palette);
-        LEPT_FREE(row_pointers);
         pixDestroy(&pix1);
         png_destroy_write_struct(&png_ptr, &info_ptr);
 
