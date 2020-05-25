@@ -822,7 +822,7 @@ PIXCMAP        *cmapd;
     pixDestroyColormap(pixd);
     if ((cmaps = pixs->colormap) == NULL)  /* not an error */
         return 0;
-    pixcmapIsValid(cmaps, pixs, &valid);
+    pixcmapIsValid(cmaps, NULL, &valid);
     if (!valid)
         return ERROR_INT("cmap not valid", procName, 1);
 
@@ -1637,7 +1637,11 @@ pixGetColormap(PIX  *pix)
  *      (3) If the colormap is not valid, this returns 1.  The caller
  *          should check if there is a possibility that the pix and
  *          colormap depths differ.
- *      (4) Because colormaps are not ref counted, the new colormap
+ *      (4) This does not do the work of checking pixs for a pixel value
+ *          that is out of bounds for the colormap -- that only needs to
+ *          be done when reading and writing with an I/O library like
+ *          png and gif.
+ *      (5) Because colormaps are not ref counted, the new colormap
  *          must not belong to any other pix.
  * </pre>
  */
@@ -1657,7 +1661,7 @@ l_int32  valid;
     pixDestroyColormap(pix);
     pix->colormap = colormap;
 
-    pixcmapIsValid(colormap, pix, &valid);
+    pixcmapIsValid(colormap, NULL, &valid);
     if (!valid)
         return ERROR_INT("colormap is not valid", procName, 1);
     return 0;
@@ -1698,6 +1702,11 @@ PIXCMAP  *cmap;
  * Notes:
  *      (1) This gives a new handle for the data.  The data is still
  *          owned by the pix, so do not call LEPT_FREE() on it.
+ *      (2) This cannot guarantee that the pix data returned will not
+ *          be changed, so %pix cannot be declared const.  And because
+ *          most imaging operations call this for access to the data,
+ *          this prevents them from declaring %pix to be const, even if
+ *          they only use the data for inspection.
  * </pre>
  */
 l_uint32 *

@@ -304,15 +304,20 @@ PIXCMAP  *cmap;
  *
  * <pre>
  * Notes:
- *      (1) If %pix is input, verify that pix values cannot overflow the cmap.
+ *      (1) If %pix is input, this will veify that pixel values cannot
+ *          overflow the colormap.  This is a relatively expensive operation
+ *          that may need to check all the pixel values.
+ *      (2) If %pix is input, there must be at least one color in the
+ *          colormap if it is to be valid with any pix, even if the
+ *          pixels are all 0.
  * </pre>
  */
 l_ok
 pixcmapIsValid(const PIXCMAP  *cmap,
-               const PIX      *pix,
+               PIX            *pix,
                l_int32        *pvalid)
 {
-l_int32  d, nalloc;
+l_int32  d, nalloc, maxindex;
 
     PROCNAME("pixcmapIsValid");
 
@@ -330,7 +335,7 @@ l_int32  d, nalloc;
     }
     nalloc = cmap->nalloc;
     if (nalloc != (1 << d)) {
-        L_ERROR("invalid cmap nalloc: %d; d = %d\n", procName, nalloc, d);
+        L_ERROR("invalid cmap nalloc = %d; d = %d\n", procName, nalloc, d);
         return 1;
     }
     if (cmap->n < 0 || cmap->n > nalloc) {
@@ -342,9 +347,26 @@ l_int32  d, nalloc;
          * must not exceed the cmap depth.  Do not require depth equality,
          * because some functions such as median cut quantizers do not. */
     if (pix && (pixGetDepth(pix) > d)) {
-        L_ERROR("pix depth = %d > cmap depth = %d\n", procName,
+        L_ERROR("(pix depth = %d) > (cmap depth = %d)\n", procName,
                 pixGetDepth(pix), d);
         return 1;
+    }
+    if (pix && cmap->n < 1) {
+        L_ERROR("cmap array is empty; invalid with any pix\n", procName);
+        return 1;
+    }
+
+        /* Where the colormap or the pix may have been corrupted, and
+         * in particular when reading or writing image files, it should
+         * be verified that the image pixel values do not exceed the
+         * max indexing into the colormap array. */
+    if (pix) {
+        pixGetMaxColorIndex(pix, &maxindex);
+        if (maxindex >= cmap->n) {
+            L_ERROR("(max index = %d) >= (num colors = %d)\n", procName,
+                    maxindex, cmap->n);
+            return 1;
+        }
     }
 
     *pvalid = 1;

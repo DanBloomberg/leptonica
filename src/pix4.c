@@ -62,6 +62,7 @@
  *           l_int32     pixGetRangeValues()
  *           l_int32     pixGetExtremeValue()
  *           l_int32     pixGetMaxValueInRect()
+ *           l_int32     pixGetMaxColorIndex()
  *           l_int32     pixGetBinnedComponentRange()
  *           l_int32     pixGetRankColorArray()
  *           l_int32     pixGetBinnedColor()
@@ -2407,6 +2408,66 @@ l_uint32  *data, *line;
     if (pmaxval) *pmaxval = maxval;
     if (pxmax) *pxmax = xmax;
     if (pymax) *pymax = ymax;
+    return 0;
+}
+
+
+/*!
+ * \brief   pixGetMaxColorIndex()
+ *
+ * \param[in]    pixs          1, 2, 4 or 8 bpp colormapped
+ * \param[out]   pmaxindex     max colormap index value
+ * \return  0 if OK, 1 on error
+ */
+l_ok
+pixGetMaxColorIndex(PIX      *pixs,
+                    l_int32  *pmaxindex)
+{
+l_int32    i, j, w, h, d, wpl, val, max, maxval, empty;
+l_uint32  *data, *line;
+
+    PROCNAME("pixGetMaxColorIndex");
+
+    if (!pmaxindex)
+        return ERROR_INT("&maxindex not defined", procName, 1);
+    *pmaxindex = 0;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    pixGetDimensions(pixs, &w, &h, &d);
+    if (d != 1 && d != 2 && d != 4 && d != 8)
+        return ERROR_INT("invalid pixs depth; not in (1,2,4,8}", procName, 1);
+
+    wpl = pixGetWpl(pixs);
+    data = pixGetData(pixs);
+    max = 0;
+    maxval = (1 << d) - 1;
+    if (d == 1) {
+        pixZero(pixs, &empty);
+        if (!empty) max = 1;
+        *pmaxindex = max;
+        return 0;
+    }
+    for (i = 0; i < h; i++) {
+        line = data + i * wpl;
+        if (d == 2) {
+            for (j = 0; j < w; j++) {
+                val = GET_DATA_DIBIT(line, j);
+                if (val > max) max = val;
+            }
+        } else if (d == 4) {
+            for (j = 0; j < w; j++) {
+                val = GET_DATA_QBIT(line, j);
+                if (val > max) max = val;
+            }
+        } else if (d == 8) {
+            for (j = 0; j < w; j++) {
+                val = GET_DATA_BYTE(line, j);
+                if (val > max) max = val;
+            }
+        }
+        if (max == maxval) break;
+    }
+    *pmaxindex = max;
     return 0;
 }
 

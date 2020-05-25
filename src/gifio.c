@@ -225,7 +225,7 @@ l_int32         bytesRead;
 static PIX *
 gifToPix(GifFileType  *gif)
 {
-l_int32          wpl, i, j, w, h, d, cindex, ncolors;
+l_int32          wpl, i, j, w, h, d, cindex, ncolors, valid;
 l_int32          rval, gval, bval;
 l_uint32        *data, *line;
 PIX             *pixd;
@@ -300,6 +300,13 @@ int              giferr;
     }
     pixSetInputFormat(pixd, IFF_GIF);
     pixSetColormap(pixd, cmap);
+    pixcmapIsValid(cmap, pixd, &valid);
+    if (!valid) {
+        DGifCloseFile(gif, &giferr);
+        pixDestroy(&pixd);
+        pixcmapDestroy(&cmap);
+        return (PIX *)ERROR_PTR("colormap is invalid", procName, NULL);
+    }
 
     wpl = pixGetWpl(pixd);
     data = pixGetData(pixd);

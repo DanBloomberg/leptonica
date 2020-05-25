@@ -1034,7 +1034,7 @@ png_bytep   *row_pointers;
 png_bytep    rowbuffer;
 png_structp  png_ptr;
 png_infop    info_ptr;
-png_colorp   palette;
+png_colorp   palette = NULL;
 PIX         *pix1;
 PIXCMAP     *cmap;
 char        *text;
@@ -1050,6 +1050,8 @@ char        *text;
     h = pixGetHeight(pix);
     d = pixGetDepth(pix);
     spp = pixGetSpp(pix);
+
+        /* A cmap validity check should prevent low-level colormap errors. */
     if ((cmap = pixGetColormap(pix))) {
         cmflag = 1;
         pixcmapIsValid(cmap, pix, &valid);
@@ -1091,8 +1093,13 @@ char        *text;
     }
 
         /* Set up png setjmp error handling */
+    pix1 = NULL;
+    row_pointers = NULL;
     if (setjmp(png_jmpbuf(png_ptr))) {
         png_destroy_write_struct(&png_ptr, &info_ptr);
+        LEPT_FREE(palette);
+        LEPT_FREE(row_pointers);
+        pixDestroy(&pix1);
         return ERROR_INT("internal png error", procName, 1);
     }
 
