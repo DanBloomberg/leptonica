@@ -57,7 +57,7 @@ int main(int    argc,
 l_int32       w, h;
 PIX          *pixs, *pixg, *pixim, *pixgm, *pixmi, *pix1, *pix2;
 PIX          *pixmr, *pixmg, *pixmb, *pixmri, *pixmgi, *pixmbi;
-PIXA         *pixa;
+PIXA         *pixa, *pixa2;
 L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &rp))
@@ -159,10 +159,31 @@ L_REGPARAMS  *rp;
     pixaAddPix(pixa, pix2, L_INSERT);
     pixDestroy(&pixim);
 
+        /* Check pixFillMapHoles() */
+    pixa2 = pixaCreate(3);
+    pix1 = pixRead("weasel8.png");  /* use this as the map */
+    pixGammaTRC(pix1, pix1, 1.0, 0, 270);  /* darken white pixels */
+    pixaAddPix(pixa2, pix1, L_COPY);
+    pixGetDimensions(pix1, &w, &h, NULL);
+    pixRasterop(pix1, 0, 0, 5, h, PIX_SET, NULL, 0, 0);  /* add white holes */
+    pixRasterop(pix1, 20, 0, 2, h, PIX_SET, NULL, 0, 0);
+    pixRasterop(pix1, 40, 0, 3, h, PIX_SET, NULL, 0, 0);
+    pixRasterop(pix1, 0, 0, w, 3, PIX_SET, NULL, 0, 0);
+    pixRasterop(pix1, 0, 15, w, 3, PIX_SET, NULL, 0, 0);
+    pixRasterop(pix1, 0, 35, w, 2, PIX_SET, NULL, 0, 0);
+    pixaAddPix(pixa2, pix1, L_COPY);
+    pixFillMapHoles(pix1, w, h, L_FILL_WHITE);
+    pixaAddPix(pixa2, pix1, L_INSERT);
+    pix2 = pixaDisplayTiledInColumns(pixa2, 3, 1.0, 20, 1);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 14 */
+    pixDisplayWithTitle(pix2, 50, 850, NULL, rp->display);
+    pixaDestroy(&pixa2);
+    pixDestroy(&pix2);
+    
         /* Display results */
     pix1 = pixaDisplayTiledAndScaled(pixa, 32, 400, 4, 0, 20, 2);
     pixWrite("/tmp/lept/adapt/results.jpg", pix1, IFF_JFIF_JPEG);
-    pixDisplayWithTitle(pix1, 100, 0, NULL, rp->display);
+    pixDisplayWithTitle(pix1, 50, 0, NULL, rp->display);
     pixDestroy(&pix1);
     pixaDestroy(&pixa);
 
