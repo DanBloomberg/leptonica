@@ -65,8 +65,8 @@ L_REGPARAMS  *rp;
     boxaDestroy(&boxa);
 
     if (rp->display) {
-        fprintf(stderr, "\n Select Large if Both\n");
-        fprintf(stderr, "Iter 0: n = %d\n", n0);
+        lept_stderr("\n Select Large if Both\n");
+        lept_stderr("Iter 0: n = %d\n", n0);
     }
     numaAddNumber(nay1, n0);
     for (i = 1; i <= 50; i++) {
@@ -76,14 +76,14 @@ L_REGPARAMS  *rp;
         boxa = pixConnComp(pixd, NULL, 8);
         n = boxaGetCount(boxa);
         numaAddNumber(nay1, n);
-        if (rp->display) fprintf(stderr, "Iter %d: n = %d\n", i, n);
+        if (rp->display) lept_stderr("Iter %d: n = %d\n", i, n);
         boxaDestroy(&boxa);
         pixDestroy(&pixd);
     }
 
     if (rp->display) {
-        fprintf(stderr, "\n Select Large if Either\n");
-        fprintf(stderr, "Iter 0: n = %d\n", n0);
+        lept_stderr("\n Select Large if Either\n");
+        lept_stderr("Iter 0: n = %d\n", n0);
     }
     numaAddNumber(nay2, n0);
     for (i = 1; i <= 50; i++) {
@@ -93,7 +93,7 @@ L_REGPARAMS  *rp;
         boxa = pixConnComp(pixd, NULL, 8);
         n = boxaGetCount(boxa);
         numaAddNumber(nay2, n);
-        if (rp->display) fprintf(stderr, "Iter %d: n = %d\n", i, n);
+        if (rp->display) lept_stderr("Iter %d: n = %d\n", i, n);
         boxaDestroy(&boxa);
         pixDestroy(&pixd);
     }
@@ -113,8 +113,8 @@ L_REGPARAMS  *rp;
     numaEmpty(nay2);
 
     if (rp->display) {
-        fprintf(stderr, "\n Select Small if Both\n");
-        fprintf(stderr, "Iter 0: n = %d\n", 0);
+        lept_stderr("\n Select Small if Both\n");
+        lept_stderr("Iter 0: n = %d\n", 0);
     }
     numaAddNumber(nay1, 0);
     for (i = 1; i <= 50; i++) {
@@ -124,14 +124,14 @@ L_REGPARAMS  *rp;
         boxa = pixConnComp(pixd, NULL, 8);
         n = boxaGetCount(boxa);
         numaAddNumber(nay1, n);
-        if (rp->display) fprintf(stderr, "Iter %d: n = %d\n", i, n);
+        if (rp->display) lept_stderr("Iter %d: n = %d\n", i, n);
         boxaDestroy(&boxa);
         pixDestroy(&pixd);
     }
 
     if (rp->display) {
-        fprintf(stderr, "\n Select Small if Either\n");
-        fprintf(stderr, "Iter 0: n = %d\n", 0);
+        lept_stderr("\n Select Small if Either\n");
+        lept_stderr("Iter 0: n = %d\n", 0);
     }
     numaAddNumber(nay2, 0);
     for (i = 1; i <= 50; i++) {
@@ -141,7 +141,7 @@ L_REGPARAMS  *rp;
         boxa = pixConnComp(pixd, NULL, 8);
         n = boxaGetCount(boxa);
         numaAddNumber(nay2, n);
-        if (rp->display) fprintf(stderr, "Iter %d: n = %d\n", i, n);
+        if (rp->display) lept_stderr("Iter %d: n = %d\n", i, n);
         boxaDestroy(&boxa);
         pixDestroy(&pixd);
     }

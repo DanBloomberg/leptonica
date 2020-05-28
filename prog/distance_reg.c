@@ -71,10 +71,10 @@ L_REGPARAMS  *rp;
             for (k = 0; k < 2; k++) {
                 bc = k + 1;
                 index = 4 * i + 2 * j + k;
-                fprintf(stderr, "Set %d\n", index);
+                lept_stderr("Set %d\n", index);
                 if (DEBUG) {
-                    fprintf(stderr, "%d: conn = %d, depth = %d, bc = %d\n",
-                            rp->index + 1, conn, depth, bc);
+                    lept_stderr("%d: conn = %d, depth = %d, bc = %d\n",
+                                rp->index + 1, conn, depth, bc);
                 }
                 pixa = pixaCreate(0);
                 pixaAddPix(pixa, pixs, L_COPY);

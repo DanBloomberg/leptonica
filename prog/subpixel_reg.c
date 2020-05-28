@@ -159,14 +159,14 @@ L_REGPARAMS  *rp;
     makeGaussianKernelSep(2, 2, 1.0, 1.0, &kelx, &kely);
     startTimer();
     pix6 = pixConvolveSep(pix1, kelx, kely, 8, 1);  /* normalized */
-    fprintf(stderr, "Time sep: %7.3f\n", stopTimer());
+    lept_stderr("Time sep: %7.3f\n", stopTimer());
     regTestWritePixAndCheck(rp, pix6, IFF_PNG);  /* 6 */
 
         /* Get same lowpass result with non-separated convolution */
     kel = makeGaussianKernel(2, 2, 1.0, 1.0);
     startTimer();
     pix7 = pixConvolve(pix1, kel, 8, 1);  /* normalized */
-    fprintf(stderr, "Time non-sep: %7.3f\n", stopTimer());
+    lept_stderr("Time non-sep: %7.3f\n", stopTimer());
     regTestComparePix(rp, pix6, pix7);  /* 7 */
 
         /* Now do the subpixel scaling on this slightly blurred image */
@@ -205,6 +205,6 @@ PIX     *pixt;
     pixt = pixAddSingleTextblock(pixs, bmf, textstr, val, location, &ovf);
     n = pixaGetCount(pixa);
     pixaAddPix(pixa, pixt, L_INSERT);
-    if (ovf) fprintf(stderr, "Overflow writing text in image %d\n", n + 1);
+    if (ovf) lept_stderr("Overflow writing text in image %d\n", n + 1);
     return;
 }

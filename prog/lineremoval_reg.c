@@ -107,7 +107,7 @@ L_REGPARAMS  *rp;
     if (rp->display) {
         lept_rmdir("lept/lines");
         lept_mkdir("lept/lines");
-        fprintf(stderr, "Writing to: /tmp/lept/lines/lineremoval.pdf\n");
+        lept_stderr("Writing to: /tmp/lept/lines/lineremoval.pdf\n");
         pixaConvertToPdf(pixa, 0, 1.0, L_FLATE_ENCODE, 0, "lineremoval example",
                          "/tmp/lept/lines/lineremoval.pdf");
         pix1 = pixaDisplayTiledInColumns(pixa, 5, 0.5, 30, 2);

@@ -70,8 +70,7 @@ L_REGPARAMS  *rp;
     boxa2= pixConnComp(pixs, NULL, 4);
     n2 = boxaGetCount(boxa2);
     pixCountConnComp(pixs, 4, &n3);
-    fprintf(stderr, "Number of 4 c.c.:  n1 = %d; n2 = %d, n3 = %d\n",
-            n1, n2, n3);
+    lept_stderr("Number of 4 c.c.:  n1 = %d; n2 = %d, n3 = %d\n", n1, n2, n3);
     regTestCompareValues(rp, n1, n2, 0);  /* 0 */
     regTestCompareValues(rp, n1, n3, 0);  /* 1 */
     regTestCompareValues(rp, n1, 4452, 0);  /* 2 */
@@ -89,8 +88,7 @@ L_REGPARAMS  *rp;
     boxa2= pixConnComp(pixs, NULL, 8);
     n2 = boxaGetCount(boxa2);
     pixCountConnComp(pixs, 8, &n3);
-    fprintf(stderr, "Number of 8 c.c.:  n1 = %d; n2 = %d, n3 = %d\n",
-            n1, n2, n3);
+    lept_stderr("Number of 8 c.c.:  n1 = %d; n2 = %d, n3 = %d\n", n1, n2, n3);
     regTestCompareValues(rp, n1, n2, 0);  /* 5 */
     regTestCompareValues(rp, n1, n3, 0);  /* 6 */
     regTestCompareValues(rp, n1, 4305, 0);  /* 7 */

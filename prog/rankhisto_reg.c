@@ -73,7 +73,7 @@ L_REGPARAMS  *rp;
     pixaDestroy(&pixa);
     pixDestroy(&pix1);
     for (i = 0; i < nbins; i++)
-        fprintf(stderr, "%d: %x\n", i, array[i]);
+        lept_stderr("%d: %x\n", i, array[i]);
     pix1 = pixDisplayColorArray(array, nbins, 200, 5, 6);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 1 */
     pixDisplayWithTitle(pix1, 0, 100, NULL, rp->display);

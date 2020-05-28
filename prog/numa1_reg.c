@@ -85,7 +85,7 @@ L_REGPARAMS  *rp;
     nahisto = numaMakeHistogram(na, 1000, &binsize, &binstart);
     nbins = numaGetCount(nahisto);
     nax = numaMakeSequence(binstart, binsize, nbins);
-    fprintf(stderr, " binsize = %d, binstart = %d\n", binsize, binstart);
+    lept_stderr(" binsize = %d, binstart = %d\n", binsize, binstart);
     pix2 = gplotGeneralPix2(nax, nahisto, GPLOT_LINES, "/tmp/lept/numa1/histo2",
                             "example histo 2", "i", "histo[i]");
     numaDestroy(&nax);
@@ -94,7 +94,7 @@ L_REGPARAMS  *rp;
     nahisto = numaMakeHistogram(na, 1000, &binsize, NULL);
     nbins = numaGetCount(nahisto);
     nax = numaMakeSequence(0, binsize, nbins);
-    fprintf(stderr, " binsize = %d, binstart = %d\n", binsize, 0);
+    lept_stderr(" binsize = %d, binstart = %d\n", binsize, 0);
     pix3 = gplotGeneralPix2(nax, nahisto, GPLOT_LINES, "/tmp/lept/numa1/histo3",
                             "example histo 3", "i", "histo[i]");
     numaDestroy(&nax);
@@ -104,8 +104,7 @@ L_REGPARAMS  *rp;
     nbins = numaGetCount(nahisto);
     numaGetParameters(nahisto, &startval, &fbinsize);
     nax = numaMakeSequence(startval, fbinsize, nbins);
-    fprintf(stderr, " binsize = %7.4f, binstart = %8.3f\n",
-            fbinsize, startval);
+    lept_stderr(" binsize = %7.4f, binstart = %8.3f\n", fbinsize, startval);
     pix4 = gplotGeneralPix2(nax, nahisto, GPLOT_LINES, "/tmp/lept/numa1/histo4",
                             "example histo 4", "i", "histo[i]");
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
@@ -138,15 +137,15 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp,  808.15, rankval, 0.1);    /* 9 */
     regTestCompareValues(rp,  0.800,  rank,    0.01);   /* 10 */
     if (rp->display) {
-        fprintf(stderr, "Sin histogram: \n"
-                  "  min val  = %7.3f    -- should be -999.00\n"
-                  "  max val  = %7.3f    -- should be  999.00\n"
-                  "  mean val = %7.3f    -- should be    0.055\n"
-                  "  median   = %7.3f    -- should be    0.30\n"
-                  "  rmsdev   = %7.3f    -- should be  706.41\n"
-                  "  rank val = %7.3f    -- should be  808.152\n"
-                  "  rank     = %7.3f    -- should be    0.800\n",
-                minval, maxval, meanval, median, rmsdev, rankval, rank);
+        lept_stderr("Sin histogram: \n"
+                    "  min val  = %7.3f    -- should be -999.00\n"
+                    "  max val  = %7.3f    -- should be  999.00\n"
+                    "  mean val = %7.3f    -- should be    0.055\n"
+                    "  median   = %7.3f    -- should be    0.30\n"
+                    "  rmsdev   = %7.3f    -- should be  706.41\n"
+                    "  rank val = %7.3f    -- should be  808.152\n"
+                    "  rank     = %7.3f    -- should be    0.800\n",
+                    minval, maxval, meanval, median, rmsdev, rankval, rank);
     }
     numaDestroy(&nahisto);
     numaDestroy(&na);
@@ -237,7 +236,7 @@ L_REGPARAMS  *rp;
     pix7 = gplotMakeOutputPix(gplot);
     gplotDestroy(&gplot);
     numaFitMax(nay, &yval, nax, &xval);
-    if (rp->display) fprintf(stderr, "max = %f at loc = %f\n", yval, xval);
+    if (rp->display) lept_stderr("max = %f at loc = %f\n", yval, xval);
     pixa = pixaCreate(7);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 11 */
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 12 */
@@ -289,14 +288,14 @@ L_REGPARAMS  *rp;
         /* (Note: this tests robustness of the integrator: we go from
          * i = 0, and choose to have only 1 point in the interpolation
          * there, which is too small and causes the function to bomb out.) */
-    fprintf(stderr, "******************************************************\n");
-    fprintf(stderr, "* Testing error checking: ignore 'npts < 2' error    *\n");
+    lept_stderr("******************************************************\n");
+    lept_stderr("* Testing error checking: ignore 'npts < 2' error    *\n");
     for (i = 0; i < n; i++) {
         numaGetFValue(nadx, i, &xval);
         numaIntegrateInterval(nadx, nady, x0, xval, 2 * i + 1, &yval);
         numaAddNumber(nay, y0 + yval);
     }
-    fprintf(stderr, "******************************************************\n");
+    lept_stderr("******************************************************\n");
     gplotAddPlot(gplot, nafx, nay, GPLOT_LINES, "anti-derivative");
     pix2 = gplotMakeOutputPix(gplot);
     gplotDestroy(&gplot);

@@ -224,14 +224,13 @@ l_int32  ret, format, w, h, d, bps, spp, iscmap;
     d = bps * spp;
     if (d == 24) d = 32;
     if (ret)
-        fprintf(stderr, "Error: couldn't read data: size = %d\n",
-                (l_int32)size);
+        lept_stderr("Error: couldn't read data: size = %d\n", (l_int32)size);
     else
-        fprintf(stderr, "Format data for image %d:\n"
-                "  format: %s, size (w, h, d) = (%d, %d, %d)\n"
-                "  bps = %d, spp = %d, iscmap = %d\n",
-                i, ImageFileFormatExtensions[format], w, h, d,
-                bps, spp, iscmap);
+        lept_stderr("Format data for image %d:\n"
+                    "  format: %s, size (w, h, d) = (%d, %d, %d)\n"
+                    "  bps = %d, spp = %d, iscmap = %d\n",
+                    i, ImageFileFormatExtensions[format], w, h, d,
+                    bps, spp, iscmap);
     return;
 }
 

@@ -159,7 +159,7 @@ L_REGPARAMS  *rp;
     pix2 = pixRead("/tmp/lept/alpha/cs2.png");  /* cleaned under transparent */
     n1 = nbytesInFile("/tmp/lept/alpha/cs1.png");
     n2 = nbytesInFile("/tmp/lept/alpha/cs2.png");
-    fprintf(stderr, " Original: %d bytes\n Cleaned: %d bytes\n", n1, n2);
+    lept_stderr(" Original: %d bytes\n Cleaned: %d bytes\n", n1, n2);
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 9 */
     regTestWritePixAndCheck(rp, pix2, IFF_JFIF_JPEG);  /* 10 */
     pixDisplayWithTitle(pix1, 300, 400, "without alpha", rp->display);

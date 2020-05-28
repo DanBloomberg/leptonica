@@ -91,7 +91,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
         /* Test invertability of sequential. */
-    fprintf(stderr, "Test invertability of sequential\n");
+    lept_stderr("Test invertability of sequential\n");
     pixa = pixaCreate(0);
     for (i = 0; i < 3; i++) {
         pixb = pixAddBorder(pixs, ADDED_BORDER_PIXELS, 0);
@@ -122,7 +122,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
         /* Test invertability of sampling */
-    fprintf(stderr, "Test invertability of sampling\n");
+    lept_stderr("Test invertability of sampling\n");
     pixa = pixaCreate(0);
     for (i = 0; i < 3; i++) {
         pixb = pixAddBorder(pixs, ADDED_BORDER_PIXELS, 0);
@@ -154,7 +154,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
         /* Test invertability of interpolation on grayscale */
-    fprintf(stderr, "Test invertability of grayscale interpolation\n");
+    lept_stderr("Test invertability of grayscale interpolation\n");
     pix = pixRead("feyn.tif");
     pixg = pixScaleToGray3(pix);
     pixDestroy(&pix);
@@ -190,7 +190,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
         /* Test invertability of interpolation on color */
-    fprintf(stderr, "Test invertability of color interpolation\n");
+    lept_stderr("Test invertability of color interpolation\n");
     pixa = pixaCreate(0);
     pixc = pixRead("test24.jpg");
     pixcs = pixScale(pixc, 0.3, 0.3);
@@ -225,7 +225,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
        /* Comparison between sequential and sampling */
-    fprintf(stderr, "Compare sequential with sampling\n");
+    lept_stderr("Compare sequential with sampling\n");
     pix = pixRead("feyn.tif");
     pixs = pixScale(pix, 0.22, 0.22);
     pixDestroy(&pix);
@@ -264,7 +264,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
        /* Test with large distortion */
-    fprintf(stderr, "Test with large distortion\n");
+    lept_stderr("Test with large distortion\n");
     MakePtas(4, &ptas, &ptad);
     pixa = pixaCreate(0);
     pix = pixRead("feyn.tif");
@@ -306,7 +306,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
         /* Set up pix and boxa */
-    fprintf(stderr, "Test affine transforms and inverses on pix and boxa\n");
+    lept_stderr("Test affine transforms and inverses on pix and boxa\n");
     pixa = pixaCreate(0);
     pix = pixRead("lucasta.1.300.tif");
     pixTranslate(pix, pix, 70, 0, L_BRING_IN_WHITE);
@@ -338,22 +338,22 @@ L_REGPARAMS  *rp;
         /* Invert the original affine transform --> matdinv */
     affineInvertXform(matd, &matdinv);
     if (rp->display) {
-        fprintf(stderr, "  Affine transform, applied to boxa\n");
+        lept_stderr("  Affine transform, applied to boxa\n");
         for (i = 0; i < 9; i++) {
-            if (i && (i % 3 == 0))  fprintf(stderr, "\n");
-            fprintf(stderr, "   %7.3f ", matd[i]);
+            if (i && (i % 3 == 0))  lept_stderr("\n");
+            lept_stderr("   %7.3f ", matd[i]);
         }
-        fprintf(stderr, "\n  Inverse transform, by composing inverse parts");
+        lept_stderr("\n  Inverse transform, by composing inverse parts");
         for (i = 0; i < 9; i++) {
-            if (i % 3 == 0)  fprintf(stderr, "\n");
-            fprintf(stderr, "   %7.3f ", matdi[i]);
+            if (i % 3 == 0)  lept_stderr("\n");
+            lept_stderr("   %7.3f ", matdi[i]);
         }
-        fprintf(stderr, "\n  Inverse transform, by inverting affine xform");
+        lept_stderr("\n  Inverse transform, by inverting affine xform");
         for (i = 0; i < 6; i++) {
-            if (i % 3 == 0)  fprintf(stderr, "\n");
-            fprintf(stderr, "   %7.3f ", matdinv[i]);
+            if (i % 3 == 0)  lept_stderr("\n");
+            lept_stderr("   %7.3f ", matdinv[i]);
         }
-        fprintf(stderr, "\n");
+        lept_stderr("\n");
     }
 
         /* Apply the inverted affine transform --> pixs */

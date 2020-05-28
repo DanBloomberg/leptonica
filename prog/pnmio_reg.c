@@ -50,8 +50,8 @@ L_REGPARAMS  *rp;
         return 1;
 
 #if !USE_PNMIO
-    fprintf(stderr, "pnm/pam writing is not enabled\n"
-            "See environ.h: #define USE_PNMIO 1\n\n");
+    lept_stderr("pnm/pam writing is not enabled\n"
+                "See environ.h: #define USE_PNMIO 1\n\n");
 
     regTestCleanup(rp);
     return 0;

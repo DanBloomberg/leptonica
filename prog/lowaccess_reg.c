@@ -89,8 +89,8 @@ L_REGPARAMS  *rp;
             }
         }
     }
-    fprintf(stderr, "Time with line ptrs     = %5.3f sec, count1 = %d\n",
-            stopTimer(), count1);
+    lept_stderr("Time with line ptrs     = %5.3f sec, count1 = %d\n",
+                stopTimer(), count1);
 
     startTimer();
     for (k = 0; k < 10; k++) {
@@ -103,8 +103,8 @@ L_REGPARAMS  *rp;
             }
         }
     }
-    fprintf(stderr, "Time with l_get*        = %5.3f sec, count2 = %d\n",
-            stopTimer(), count2);
+    lept_stderr("Time with l_get*        = %5.3f sec, count2 = %d\n",
+                stopTimer(), count2);
 
     startTimer();
     for (k = 0; k < 10; k++) {
@@ -116,8 +116,8 @@ L_REGPARAMS  *rp;
             }
         }
     }
-    fprintf(stderr, "Time with pixGetPixel() = %5.3f sec, count3 = %d\n",
-            stopTimer(), count3);
+    lept_stderr("Time with pixGetPixel() = %5.3f sec, count3 = %d\n",
+                stopTimer(), count3);
 
     pix1 = pixCreateTemplate(pixs);
     linet1 = pixGetLinePtrs(pix1, NULL);
@@ -294,8 +294,7 @@ CompareResults(PIX          *pixs,
                const char   *descr,
                L_REGPARAMS  *rp)
 {
-    fprintf(stderr, "Compare set: %s; index starts at %d\n",
-            descr, rp->index + 1);
+    lept_stderr("Compare set: %s; index starts at %d\n", descr, rp->index + 1);
     regTestComparePix(rp, pixs, pix1);
     regTestComparePix(rp, pixs, pix2);
     regTestCompareValues(rp, count1, count2, 1);

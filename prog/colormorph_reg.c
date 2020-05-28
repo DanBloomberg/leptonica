@@ -86,10 +86,10 @@ L_REGPARAMS  *rp;
 
     if (rp->display) {
         lept_mkdir("lept/cmorph");
-        fprintf(stderr, "Writing to: /tmp/lept/cmorph/colormorph.pdf\n");
+        lept_stderr("Writing to: /tmp/lept/cmorph/colormorph.pdf\n");
         pixaConvertToPdf(pixa, 0, 1.0, L_FLATE_ENCODE, 0, "colormorph-test",
                          "/tmp/lept/cmorph/colormorph.pdf");
-        fprintf(stderr, "Writing to: /tmp/lept/cmorph/colormorph.jpg\n");
+        lept_stderr("Writing to: /tmp/lept/cmorph/colormorph.jpg\n");
         pix1 = pixaDisplayTiledInColumns(pixa, 2, 1.0, 30, 2);
         pixWrite("/tmp/lept/cmorph/colormorph.jpg", pix1, IFF_JFIF_JPEG);
         pixDisplay(pix1, 100, 100);

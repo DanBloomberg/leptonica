@@ -63,7 +63,7 @@ L_REGPARAMS  *rp;
         spp = pixGetSpp(pixs);
         pixGetBlackOrWhiteVal(pixs, L_GET_WHITE_VAL, &wval);
         pixGetBlackOrWhiteVal(pixs, L_GET_BLACK_VAL, &bval);
-        fprintf(stderr, "d = %d, spp = %d, bval = %x, wval = %x\n",
+        lept_stderr("d = %d, spp = %d, bval = %x, wval = %x\n",
                 pixGetDepth(pixs), spp, bval, wval);
         if (spp == 4)  /* remove alpha, using white background */
             pix1 = pixAlphaBlendUniform(pixs, wval);
@@ -90,7 +90,7 @@ L_REGPARAMS  *rp;
         spp = pixGetSpp(pixs);
         pixGetBlackOrWhiteVal(pixs, L_GET_WHITE_VAL, &wval);
         pixGetBlackOrWhiteVal(pixs, L_GET_BLACK_VAL, &bval);
-        fprintf(stderr, "d = %d, spp = %d, bval = %x, wval = %x\n",
+        lept_stderr("d = %d, spp = %d, bval = %x, wval = %x\n",
                 pixGetDepth(pixs), spp, bval, wval);
         if (spp == 4)  /* remove alpha, using white background */
             pix1 = pixAlphaBlendUniform(pixs, wval);

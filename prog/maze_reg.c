@@ -83,7 +83,7 @@ L_REGPARAMS  *rp;
     ptaa = ptaaCreate(NPATHS);
     for (i = 0; i < NPATHS; i++) {
         if (x0[i] >= w || x1[i] >= w || y0[i] >= h || y1[i] >= h) {
-            fprintf(stderr, "path %d extends beyond image; skipping\n", i);
+            lept_stderr("path %d extends beyond image; skipping\n", i);
             continue;
         }
         pta = pixSearchGrayMaze(pixg, x0[i], y0[i], x1[i], y1[i], NULL);

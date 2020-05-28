@@ -92,7 +92,7 @@ PTA       *pta;
     pixaAddPix(pixa, pixs, L_COPY);
     startTimer();
     pixLocalExtrema(pixs, 0, 0, &pix1, &pix2);
-    fprintf(stderr, "Time for extrema: %7.3f\n", stopTimer());
+    lept_stderr("Time for extrema: %7.3f\n", stopTimer());
     pixSetOrClearBorder(pix1, 2, 2, 2, 2, PIX_CLR);
     composeRGBPixel(255, 0, 0, &redval);
     composeRGBPixel(0, 255, 0, &greenval);
@@ -123,7 +123,7 @@ PTA       *pta;
     wshed = wshedCreate(pixs, pix3, 10, 0);
     startTimer();
     wshedApply(wshed);
-    fprintf(stderr, "Time for wshed: %7.3f\n", stopTimer());
+    lept_stderr("Time for wshed: %7.3f\n", stopTimer());
     pix6 = pixaDisplayRandomCmap(wshed->pixad, w, h);
     regTestWritePixAndCheck(rp, pix6, IFF_PNG);  /* 7 */
     pixaAddPix(pixa, pix6, L_COPY);

@@ -138,14 +138,14 @@ L_REGPARAMS  *rp;
     total = nbytesInFile("breviar.38.150.jpg");
     lba1 = l_byteaCreate(100);
     n = 2 + total / slice;  /* using 1 is correct; using 2 gives two errors */
-    fprintf(stderr, "******************************************************\n");
-    fprintf(stderr, "* Testing error checking: ignore two reported errors *\n");
+    lept_stderr("******************************************************\n");
+    lept_stderr("* Testing error checking: ignore two reported errors *\n");
     for (i = 0, start = 0; i < n; i++, start += slice) {
          data2 = l_binaryReadSelect("breviar.38.150.jpg", start, slice, &size2);
          l_byteaAppendData(lba1, data2, size2);
          lept_free(data2);
     }
-    fprintf(stderr, "******************************************************\n");
+    lept_stderr("******************************************************\n");
     data1 = l_byteaGetData(lba1, &size1);
     data2 = l_binaryRead("breviar.38.150.jpg", &size2);
     regTestCompareStrings(rp, data1, size1, data2, size2);  /* 5 */

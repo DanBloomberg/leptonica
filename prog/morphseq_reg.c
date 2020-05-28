@@ -72,9 +72,9 @@ static char  mainName[] = "morphseq_reg";
     pixWrite("/tmp/lept/morphseq2.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
 
-    fprintf(stderr, "\n ------------------ Error messages -----------------\n");
-    fprintf(stderr, " ------------  DWA v23 Sel doesn't exist -----------\n");
-    fprintf(stderr, " ---------------------------------------------------\n");
+    lept_stderr("\n ------------------ Error messages -----------------\n");
+    lept_stderr(" ------------  DWA v23 Sel doesn't exist -----------\n");
+    lept_stderr(" ---------------------------------------------------\n");
     pixd = pixMorphSequenceDwa(pixs, SEQUENCE2, -3);
     pixDestroy(&pixd);
     pixd = pixMorphSequenceDwa(pixs, SEQUENCE2, DISPLAY_SEPARATION);
@@ -109,9 +109,9 @@ static char  mainName[] = "morphseq_reg";
     pixDestroy(&pixd);
 
         /* Syntax error handling */
-    fprintf(stderr, "\n ----------------- Error messages ------------------\n");
-    fprintf(stderr, " ---------------- Invalid sequence -----------------\n");
-    fprintf(stderr, " ---------------------------------------------------\n");
+    lept_stderr("\n ----------------- Error messages ------------------\n");
+    lept_stderr(" ---------------- Invalid sequence -----------------\n");
+    lept_stderr(" ---------------------------------------------------\n");
     pixd = pixMorphSequence(pixs, BAD_SEQUENCE, 50);  /* fails; returns null */
     pixd = pixGrayMorphSequence(pixg, BAD_SEQUENCE, 50, 0);  /* this fails */
 

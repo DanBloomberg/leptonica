@@ -91,8 +91,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 210, median_w_diff, 0.0);  /* 0 */
     regTestCompareValues(rp, 15, median_h_diff, 0.0);  /* 1 */
     if (rp->display) {
-        fprintf(stderr, "diff of e/o median widths = %d\n", median_w_diff);
-        fprintf(stderr, "diff of e/o median heights = %d\n", median_h_diff);
+        lept_stderr("diff of e/o median widths = %d\n", median_w_diff);
+        lept_stderr("diff of e/o median heights = %d\n", median_h_diff);
     }
 
         /* Find the differences of box width and height from the median */
@@ -133,8 +133,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 24, noutw, 0.0);  /* 2 */
     regTestCompareValues(rp, 0, nouth, 0.0);  /* 3 */
     if (rp->display)
-        fprintf(stderr, "num width outliers = %d, num height outliers = %d\n",
-                noutw, nouth);
+        lept_stderr("num width outliers = %d, num height outliers = %d\n",
+                    noutw, nouth);
     numaDestroy(&nadiffw);
     numaDestroy(&nadiffh);
     numaDestroy(&naiw);
@@ -173,8 +173,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 409, w_diff, 0.0);  /* 4 */
     regTestCompareValues(rp, 49, h_diff, 0.0);  /* 5 */
     if (rp->display)
-        fprintf(stderr, "Binned rank results: w_diff = %d, h_diff = %d\n",
-                w_diff, h_diff);
+        lept_stderr("Binned rank results: w_diff = %d, h_diff = %d\n",
+                    w_diff, h_diff);
 
         /* Plot the results */
     if (noutw > 0 || nouth > 0) {

@@ -82,8 +82,8 @@ L_REGPARAMS  *rp;
         return 1;
 
 #if !USE_PSIO
-    fprintf(stderr, "psio writing is not enabled\n"
-            "See environ.h: #define USE_PSIO 1\n\n");
+    lept_stderr("psio writing is not enabled\n"
+                "See environ.h: #define USE_PSIO 1\n\n");
     regTestCleanup(rp);
     return 0;
 #endif  /* abort */

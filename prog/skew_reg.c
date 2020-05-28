@@ -86,8 +86,8 @@ L_REGPARAMS  *rp;
     pixFindSkewSweepAndSearchScorePivot(pixr, &angle, &conf, NULL, 1, 1,
                                         0.0, 45.0, 2.0, 0.03,
                                         L_SHEAR_ABOUT_CENTER);
-    fprintf(stderr, "Should be 40 degrees: angle = %7.3f, conf = %7.3f\n",
-            angle, conf);
+    lept_stderr("Should be 40 degrees: angle = %7.3f, conf = %7.3f\n",
+                angle, conf);
     pixf = pixRotateBySampling(pixr, w / 2, h / 2,
                                     deg2rad * angle, L_BRING_IN_WHITE);
     pixd = pixRemoveBorder(pixf, BORDER);
@@ -106,8 +106,8 @@ L_REGPARAMS  *rp;
     startTimer();
     pixFindSkewOrthogonalRange(pixr, &angle, &conf, 2, 1,
                                47.0, 1.0, 0.03, 0.0);
-    fprintf(stderr, "Orth search time: %7.3f sec\n", stopTimer());
-    fprintf(stderr, "Should be about -128 degrees: angle = %7.3f\n", angle);
+    lept_stderr("Orth search time: %7.3f sec\n", stopTimer());
+    lept_stderr("Should be about -128 degrees: angle = %7.3f\n", angle);
     pixd = pixRotate(pixr, deg2rad * angle, L_ROTATE_SAMPLING,
                      L_BRING_IN_WHITE, w, h);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 4 */

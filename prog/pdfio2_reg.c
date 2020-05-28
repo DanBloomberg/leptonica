@@ -71,7 +71,7 @@ L_REGPARAMS  *rp;
     lept_mkdir("lept/pdf2");
 
     /* ---------- pdf convert segmented with image regions ---------- */
-    fprintf(stderr, "\n*** Writing segmented images with image regions\n");
+    lept_stderr("\n*** Writing segmented images with image regions\n");
     startTimer();
 
         /* Get the image region(s) for rabi.png.  There are two
@@ -132,14 +132,14 @@ L_REGPARAMS  *rp;
                               128, boxa2, 0, 0.5, NULL, &data, &nbytes);
     l_binaryWrite("/tmp/lept/pdf2/file11.pdf", "w", data, nbytes);
     lept_free(data);
-    fprintf(stderr, "Segmented images time: %7.3f\n", stopTimer());
+    lept_stderr("Segmented images time: %7.3f\n", stopTimer());
 
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);
 
 #if 1
     /* -------- pdf convert segmented from color image -------- */
-    fprintf(stderr, "\n*** Writing color segmented images\n");
+    lept_stderr("\n*** Writing color segmented images\n");
     startTimer();
 
     pix1 = pixRead("candelabrum.011.jpg");
@@ -181,7 +181,7 @@ L_REGPARAMS  *rp;
     pixWrite("/tmp/lept/pdf2/lion16-quant.png", pix5, IFF_PNG);
     convertToPdfSegmented("/tmp/lept/pdf2/lion16-quant.png", 200, L_FLATE_ENCODE,
                           190, boxa2, 0, 0.5, NULL, "/tmp/lept/pdf2/file18.pdf");
-    fprintf(stderr, "Color segmented images time: %7.3f\n", stopTimer());
+    lept_stderr("Color segmented images time: %7.3f\n", stopTimer());
 
     pixDestroy(&pix1);
     pixDestroy(&pix2);
@@ -194,7 +194,7 @@ L_REGPARAMS  *rp;
 
 #if 1
     /* -- Test simple interface for generating multi-page pdf from images -- */
-    fprintf(stderr, "\n*** Writing multipage pdfs from images");
+    lept_stderr("\n*** Writing multipage pdfs from images");
     startTimer();
 
         /* Put four image files in a directory.  They will be encoded thus:
@@ -217,8 +217,8 @@ L_REGPARAMS  *rp;
     startTimer();
     convertFilesToPdf("/tmp/lept/image", "file", 100, 0.8, 0, 75, "4 file test",
                       "/tmp/lept/pdf2/file19.pdf");
-    fprintf(stderr, "4-page pdf generated: /tmp/lept/pdf2/file19.pdf\n"
-                    "Multi-page gen time: %7.3f\n", stopTimer());
+    lept_stderr("4-page pdf generated: /tmp/lept/pdf2/file19.pdf\n"
+                "Multi-page gen time: %7.3f\n", stopTimer());
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
@@ -250,14 +250,13 @@ L_REGPARAMS  *rp;
 
 #if 1
     /* ------------------ Test multipage pdf generation ----------------- */
-    fprintf(stderr, "\n*** Writing multipage pdfs from single page pdfs\n");
+    lept_stderr("\n*** Writing multipage pdfs from single page pdfs\n");
 
         /* Generate a multi-page pdf from all these files */
     startTimer();
     concatenatePdf("/tmp/lept/pdf2", "file", "/tmp/lept/pdf2/cat_lept.pdf");
-    fprintf(stderr,
-            "All files have been concatenated: /tmp/lept/pdf2/cat_lept.pdf\n"
-                    "Concatenation time: %7.3f\n", stopTimer());
+    lept_stderr("All files are concatenated: /tmp/lept/pdf2/cat_lept.pdf\n"
+                "Concatenation time: %7.3f\n", stopTimer());
 #endif
 
 #if 1
@@ -289,19 +288,19 @@ L_REGPARAMS  *rp;
          * run concat on the bad files.  The "not pdf" file should be
          * ignored, and the corrupted pdf file should be properly parsed,
          * so the resulting concatenated pdf files should be identical.  */
-    fprintf(stderr, "\nWe attempt to build from a bad directory\n");
-    fprintf(stderr, "******************************************************\n");
-    fprintf(stderr, "* The next 3 error messages are intentional          *\n");
+    lept_stderr("\nWe attempt to build from a bad directory\n");
+    lept_stderr("******************************************************\n");
+    lept_stderr("* The next 3 error messages are intentional          *\n");
     lept_cp("testfile1.pdf", "lept/bad", NULL, NULL);
     concatenatePdf("/tmp/lept/bad", "file", "/tmp/lept/pdf2/bad.pdf");
-    fprintf(stderr, "******************************************************\n");
-    filesAreIdentical("/tmp/lept/pdf2/good.pdf", "/tmp/lept/pdf2/bad.pdf", &same);
+    lept_stderr("******************************************************\n");
+    filesAreIdentical("/tmp/lept/pdf2/good.pdf", "/tmp/lept/pdf2/bad.pdf",
+                      &same);
     if (same)
-        fprintf(stderr, "Fixed: files are the same\n"
-                        "Attempt succeeded\n");
+        lept_stderr("Fixed: files are the same\nAttempt succeeded\n");
     else
-        fprintf(stderr, "Busted: files are different\n");
-    fprintf(stderr, "Corruption recovery time: %7.3f\n", stopTimer());
+        lept_stderr("Busted: files are different\n");
+    lept_stderr("Corruption recovery time: %7.3f\n", stopTimer());
 #endif
 
 #if 0
@@ -310,7 +309,7 @@ L_REGPARAMS  *rp;
     char    *tempfile1, *tempfile2;
     l_int32  ret;
 
-    fprintf(stderr, "\n*** pdftk writes multipage pdfs from images\n");
+    lept_stderr("\n*** pdftk writes multipage pdfs from images\n");
     tempfile1 = genPathname("/tmp/lept/pdf2", "file*.pdf");
     tempfile2 = genPathname("/tmp/lept/pdf2", "cat_pdftk.pdf");
     snprintf(buffer, sizeof(buffer), "pdftk %s output %s",

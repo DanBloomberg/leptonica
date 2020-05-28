@@ -108,27 +108,27 @@ PIXCMAP      *cmap;
 L_REGPARAMS  *rp;
 
 #if  !HAVE_LIBJPEG
-    fprintf(stderr, "Omitting libjpeg tests in ioformats_reg\n");
+    lept_stderr("Omitting libjpeg tests in ioformats_reg\n");
 #endif  /* !HAVE_LIBJPEG */
 
 #if  !HAVE_LIBTIFF
-    fprintf(stderr, "Omitting libtiff tests in ioformats_reg\n");
+    lept_stderr("Omitting libtiff tests in ioformats_reg\n");
 #endif  /* !HAVE_LIBTIFF */
 
 #if  !HAVE_LIBPNG || !HAVE_LIBZ
-    fprintf(stderr, "Omitting libpng tests in ioformats_reg\n");
+    lept_stderr("Omitting libpng tests in ioformats_reg\n");
 #endif  /* !HAVE_LIBPNG || !HAVE_LIBZ */
 
 #if  !HAVE_LIBWEBP
-    fprintf(stderr, "Omitting libwebp tests in ioformats_reg\n");
+    lept_stderr("Omitting libwebp tests in ioformats_reg\n");
 #endif  /* !HAVE_LIBWEBP */
 
 #if  !HAVE_LIBJP2K
-    fprintf(stderr, "Omitting libopenjp2 tests in ioformats_reg\n");
+    lept_stderr("Omitting libopenjp2 tests in ioformats_reg\n");
 #endif  /* !HAVE_LIBJP2K */
 
 #if  !HAVE_LIBGIF
-    fprintf(stderr, "Omitting libgif tests in ioformats_reg\n");
+    lept_stderr("Omitting libgif tests in ioformats_reg\n");
 #endif  /* !HAVE_LIBGIF */
 
     if (regTestSetup(argc, argv, &rp))
@@ -138,68 +138,68 @@ L_REGPARAMS  *rp;
 
     failure = FALSE;
     success = TRUE;
-    fprintf(stderr, "Test bmp 1 bpp file:\n");
+    lept_stderr("Test bmp 1 bpp file:\n");
     if (ioFormatTest(BMP_FILE)) success = FALSE;
 
 #if  HAVE_LIBTIFF
-    fprintf(stderr, "\nTest other 1 bpp file:\n");
+    lept_stderr("\nTest other 1 bpp file:\n");
     if (ioFormatTest(FILE_1BPP)) success = FALSE;
 #endif  /* HAVE_LIBTIFF */
 
 #if  HAVE_LIBPNG
-    fprintf(stderr, "\nTest 2 bpp file:\n");
+    lept_stderr("\nTest 2 bpp file:\n");
     if (ioFormatTest(FILE_2BPP)) success = FALSE;
-    fprintf(stderr, "\nTest 2 bpp file with cmap:\n");
+    lept_stderr("\nTest 2 bpp file with cmap:\n");
     if (ioFormatTest(FILE_2BPP_C)) success = FALSE;
-    fprintf(stderr, "\nTest 4 bpp file:\n");
+    lept_stderr("\nTest 4 bpp file:\n");
     if (ioFormatTest(FILE_4BPP)) success = FALSE;
-    fprintf(stderr, "\nTest 4 bpp file with cmap:\n");
+    lept_stderr("\nTest 4 bpp file with cmap:\n");
     if (ioFormatTest(FILE_4BPP_C)) success = FALSE;
-    fprintf(stderr, "\nTest 8 bpp grayscale file with cmap:\n");
+    lept_stderr("\nTest 8 bpp grayscale file with cmap:\n");
     if (ioFormatTest(FILE_8BPP_1)) success = FALSE;
-    fprintf(stderr, "\nTest 8 bpp color file with cmap:\n");
+    lept_stderr("\nTest 8 bpp color file with cmap:\n");
     if (ioFormatTest(FILE_8BPP_2)) success = FALSE;
 #endif  /* HAVE_LIBPNG */
 
 #if  HAVE_LIBJPEG
-    fprintf(stderr, "\nTest 8 bpp file without cmap:\n");
+    lept_stderr("\nTest 8 bpp file without cmap:\n");
     if (ioFormatTest(FILE_8BPP_3)) success = FALSE;
 #endif  /* HAVE_LIBJPEG */
 
 #if  HAVE_LIBTIFF
-    fprintf(stderr, "\nTest 16 bpp file:\n");
+    lept_stderr("\nTest 16 bpp file:\n");
     if (ioFormatTest(FILE_16BPP)) success = FALSE;
 #endif  /* HAVE_LIBTIFF */
 
 #if  HAVE_LIBJPEG
-    fprintf(stderr, "\nTest 32 bpp files:\n");
+    lept_stderr("\nTest 32 bpp files:\n");
     if (ioFormatTest(FILE_32BPP)) success = FALSE;
     if (ioFormatTest(FILE_32BPP_ALPHA)) success = FALSE;
 #endif  /* HAVE_LIBJPEG */
 
 #if  HAVE_LIBPNG && HAVE_LIBJPEG
-    fprintf(stderr, "\nTest spp = 1, bpp = 1, cmap with alpha file:\n");
+    lept_stderr("\nTest spp = 1, bpp = 1, cmap with alpha file:\n");
     if (ioFormatTest(FILE_1BIT_ALPHA)) success = FALSE;
-    fprintf(stderr, "\nTest spp = 1, bpp = 8, cmap with alpha file:\n");
+    lept_stderr("\nTest spp = 1, bpp = 8, cmap with alpha file:\n");
     if (ioFormatTest(FILE_CMAP_ALPHA)) success = FALSE;
-    fprintf(stderr, "\nTest spp = 1, fully transparent with alpha file:\n");
+    lept_stderr("\nTest spp = 1, fully transparent with alpha file:\n");
     if (ioFormatTest(FILE_TRANS_ALPHA)) success = FALSE;
-    fprintf(stderr, "\nTest spp = 2, gray with alpha file:\n");
+    lept_stderr("\nTest spp = 2, gray with alpha file:\n");
     if (ioFormatTest(FILE_GRAY_ALPHA)) success = FALSE;
 #endif  /* HAVE_LIBJPEG */
 
     if (success)
-        fprintf(stderr,
+        lept_stderr(
             "\n  ********** Success on all i/o format tests *********\n");
     else
-        fprintf(stderr,
+        lept_stderr(
             "\n  ******* Failure on at least one i/o format test ******\n");
     if (!success) failure = TRUE;
 
 
     /* ------------------ Part 2: Test tiff r/w to file ------------------- */
 #if  !HAVE_LIBTIFF
-    fprintf(stderr, "\nNo libtiff.  Skipping:\n"
+    lept_stderr("\nNo libtiff.  Skipping:\n"
                     "  part 2 (tiff r/w)\n"
                     "  part 3 (tiff r/w to memory)\n"
                     "  part 4 (non-tiff r/w to memory)\n"
@@ -207,13 +207,13 @@ L_REGPARAMS  *rp;
     goto part6;
 #endif  /* !HAVE_LIBTIFF */
 
-    fprintf(stderr, "\nTest tiff r/w and format extraction\n");
+    lept_stderr("\nTest tiff r/w and format extraction\n");
     pixa = pixaCreate(6);
     pix1 = pixRead(BMP_FILE);
     pix2 = pixConvert1To2(NULL, pix1, 3, 0);
     pix4 = pixConvert1To4(NULL, pix1, 15, 0);
     pix16 = pixRead(FILE_16BPP);
-    fprintf(stderr, "Input format: %d\n", pixGetInputFormat(pix16));
+    lept_stderr("Input format: %d\n", pixGetInputFormat(pix16));
     pix8 = pixConvert16To8(pix16, 1);
     pix32 = pixRead(FILE_32BPP);
     pixaAddPix(pixa, pix1, L_INSERT);
@@ -226,14 +226,14 @@ L_REGPARAMS  *rp;
 
     success = (n < 6) ? FALSE : TRUE;
     if (!success)
-        fprintf(stderr, "Error: only %d / 6 images loaded\n", n);
+        lept_stderr("Error: only %d / 6 images loaded\n", n);
     for (i = 0; i < n; i++) {
         if ((pix = pixaGetPix(pixa, i, L_CLONE)) == NULL) {
             success = FALSE;
             continue;
         }
         d = pixGetDepth(pix);
-        fprintf(stderr, "%d bpp\n", d);
+        lept_stderr("%d bpp\n", d);
         if (i == 0) {   /* 1 bpp */
             pixWrite("/tmp/lept/regout/junkg3.tif", pix, IFF_TIFF_G3);
             pixWrite("/tmp/lept/regout/junkg4.tif", pix, IFF_TIFF_G4);
@@ -266,7 +266,7 @@ L_REGPARAMS  *rp;
     readHeaderTiff("/tmp/lept/regout/weas8.tif", 0, &w, &h, &bps, &spp,
                    NULL, &iscmap, NULL);
     if (w != 82 || h != 73 || bps != 8 || spp != 1 || iscmap != 1) {
-        fprintf(stderr, "Header error testing tiff cmaps\n");
+        lept_stderr("Header error testing tiff cmaps\n");
         success = FALSE;
     }
     pix2 = pixRead("/tmp/lept/regout/weas8.tif");
@@ -274,7 +274,7 @@ L_REGPARAMS  *rp;
     pix3 = pixRead("/tmp/lept/regout/weas8a.tif");
     pixEqual(pix1, pix3, &same);
     if (!same) {
-        fprintf(stderr, "Tiff read/write failed for cmaps\n");
+        lept_stderr("Tiff read/write failed for cmaps\n");
         success = FALSE;
     }
     pixDestroy(&pix1);
@@ -291,7 +291,7 @@ L_REGPARAMS  *rp;
     pix2 = pixRead("/tmp/lept/regout/fract1.tif");
     pixEqual(pix1, pix2, &same);
     if (!same) {
-        fprintf(stderr, "Tiff read/write failed for 1 bpp cmap\n");
+        lept_stderr("Tiff read/write failed for 1 bpp cmap\n");
         success = FALSE;
     }
     cmap = pixcmapCreate(1);
@@ -302,7 +302,7 @@ L_REGPARAMS  *rp;
     pix3 = pixRead("/tmp/lept/regout/fract2.tif");
     pixEqual(pix1, pix3, &same);
     if (!same) {
-        fprintf(stderr, "Tiff read/write failed for 1 bpp color cmap\n");
+        lept_stderr("Tiff read/write failed for 1 bpp color cmap\n");
         success = FALSE;
     }
     pixDestroy(&pix1);
@@ -315,13 +315,13 @@ L_REGPARAMS  *rp;
     readHeaderTiff("/tmp/lept/regout/graya.tif", 0, &w, &h, &bps, &spp,
                    NULL, &iscmap, NULL);
     if (w != 100 || h != 100 || bps != 8 || spp != 4 || iscmap != 0) {
-        fprintf(stderr, "Header error testing tiff with alpha\n");
+        lept_stderr("Header error testing tiff with alpha\n");
         success = FALSE;
     }
     pix2 = pixRead("/tmp/lept/regout/graya.tif");
     pixEqual(pix1, pix2, &same);
     if (!same) {
-        fprintf(stderr, "Tiff read/write failed for graya.tif\n");
+        lept_stderr("Tiff read/write failed for graya.tif\n");
         success = FALSE;
     }
     pixDestroy(&pix1);
@@ -331,7 +331,7 @@ L_REGPARAMS  *rp;
     pix2 = pixRead("/tmp/lept/regout/graya2.tif");
     pixEqual(pix1, pix2, &same);
     if (!same) {
-        fprintf(stderr, "Tiff read/write failed for graya2.tif\n");
+        lept_stderr("Tiff read/write failed for graya2.tif\n");
         success = FALSE;
     }
     pixDestroy(&pix1);
@@ -343,23 +343,23 @@ L_REGPARAMS  *rp;
     readHeaderTiff("/tmp/lept/regout/rgb16.tif", 0, &w, &h, &bps, &spp,
                    NULL, &iscmap, NULL);
     if (w != 129 || h != 90 || bps != 8 || spp != 3 || iscmap != 0) {
-        fprintf(stderr, "Header error testing tiff with alpha\n");
+        lept_stderr("Header error testing tiff with alpha\n");
         success = FALSE;
     }
     pix2 = pixRead("/tmp/lept/regout/rgb16.tif");
     pixEqual(pix1, pix2, &same);
     if (!same) {
-        fprintf(stderr, "Tiff read/write failed for rgb16.tif\n");
+        lept_stderr("Tiff read/write failed for rgb16.tif\n");
         success = FALSE;
     }
     pixDestroy(&pix1);
     pixDestroy(&pix2);
 
     if (success)
-        fprintf(stderr,
+        lept_stderr(
             "\n  ********** Success on tiff r/w to file *********\n\n");
     else
-        fprintf(stderr,
+        lept_stderr(
             "\n  ******* Failure on at least one tiff r/w to file ******\n\n");
     if (!success) failure = TRUE;
 
@@ -372,36 +372,36 @@ L_REGPARAMS  *rp;
             continue;
         }
         d = pixGetDepth(pix);
-        fprintf(stderr, "%d bpp\n", d);
+        lept_stderr("%d bpp\n", d);
         if (i == 0) {   /* 1 bpp */
             pixWriteMemTiff(&data, &size, pix, IFF_TIFF_G3);
             nbytes = nbytesInFile("/tmp/lept/regout/junkg3.tif");
-            fprintf(stderr, "nbytes = %lu, size = %lu\n",
-                    (unsigned long)nbytes, (unsigned long)size);
+            lept_stderr("nbytes = %lu, size = %lu\n",
+                        (unsigned long)nbytes, (unsigned long)size);
             pixt = pixReadMemTiff(data, size, 0);
             if (testcomp_mem(pix, &pixt, i, IFF_TIFF_G3)) success = FALSE;
             lept_free(data);
             pixWriteMemTiff(&data, &size, pix, IFF_TIFF_G4);
             nbytes = nbytesInFile("/tmp/lept/regout/junkg4.tif");
-            fprintf(stderr, "nbytes = %lu, size = %lu\n",
-                    (unsigned long)nbytes, (unsigned long)size);
+            lept_stderr("nbytes = %lu, size = %lu\n",
+                        (unsigned long)nbytes, (unsigned long)size);
             pixt = pixReadMemTiff(data, size, 0);
             if (testcomp_mem(pix, &pixt, i, IFF_TIFF_G4)) success = FALSE;
             readHeaderMemTiff(data, size, 0, &w, &h, &bps, &spp,
                               NULL, NULL, NULL);
-            fprintf(stderr, "(w,h,bps,spp) = (%d,%d,%d,%d)\n", w, h, bps, spp);
+            lept_stderr("(w,h,bps,spp) = (%d,%d,%d,%d)\n", w, h, bps, spp);
             lept_free(data);
             pixWriteMemTiff(&data, &size, pix, IFF_TIFF_RLE);
             nbytes = nbytesInFile("/tmp/lept/regout/junkrle.tif");
-            fprintf(stderr, "nbytes = %lu, size = %lu\n",
-                    (unsigned long)nbytes, (unsigned long)size);
+            lept_stderr("nbytes = %lu, size = %lu\n",
+                        (unsigned long)nbytes, (unsigned long)size);
             pixt = pixReadMemTiff(data, size, 0);
             if (testcomp_mem(pix, &pixt, i, IFF_TIFF_RLE)) success = FALSE;
             lept_free(data);
             pixWriteMemTiff(&data, &size, pix, IFF_TIFF_PACKBITS);
             nbytes = nbytesInFile("/tmp/lept/regout/junkpb.tif");
-            fprintf(stderr, "nbytes = %lu, size = %lu\n",
-                    (unsigned long)nbytes, (unsigned long)size);
+            lept_stderr("nbytes = %lu, size = %lu\n",
+                        (unsigned long)nbytes, (unsigned long)size);
             pixt = pixReadMemTiff(data, size, 0);
             if (testcomp_mem(pix, &pixt, i, IFF_TIFF_PACKBITS)) success = FALSE;
             lept_free(data);
@@ -414,7 +414,7 @@ L_REGPARAMS  *rp;
         pixt = pixReadMemTiff(data, size, 0);
         if (testcomp_mem(pix, &pixt, i, IFF_TIFF_ZIP)) success = FALSE;
         readHeaderMemTiff(data, size, 0, &w, &h, &bps, &spp, NULL, NULL, NULL);
-        fprintf(stderr, "(w,h,bps,spp) = (%d,%d,%d,%d)\n", w, h, bps, spp);
+        lept_stderr("(w,h,bps,spp) = (%d,%d,%d,%d)\n", w, h, bps, spp);
         lept_free(data);
         pixWriteMemTiff(&data, &size, pix, IFF_TIFF);
         pixt = pixReadMemTiff(data, size, 0);
@@ -423,10 +423,10 @@ L_REGPARAMS  *rp;
         pixDestroy(&pix);
     }
     if (success)
-        fprintf(stderr,
+        lept_stderr(
             "\n  ********** Success on tiff r/w to memory *********\n\n");
     else
-        fprintf(stderr,
+        lept_stderr(
             "\n  ******* Failure on at least one tiff r/w to memory ******\n\n");
     if (!success) failure = TRUE;
 
@@ -440,7 +440,7 @@ L_REGPARAMS  *rp;
         }
         d = pixGetDepth(pix);
         snprintf(psname, sizeof(psname), "/tmp/lept/regout/junkps.%d", d);
-        fprintf(stderr, "%d bpp\n", d);
+        lept_stderr("%d bpp\n", d);
         if (test_writemem(pix, IFF_PNM, NULL)) success = FALSE;
         if (test_writemem(pix, IFF_PS, psname)) success = FALSE;
         if (d == 16) {
@@ -459,10 +459,10 @@ L_REGPARAMS  *rp;
         pixDestroy(&pix);
     }
     if (success)
-        fprintf(stderr,
+        lept_stderr(
             "\n  ********** Success on non-tiff r/w to memory *********\n\n");
     else
-        fprintf(stderr,
+        lept_stderr(
            "\n  **** Failure on at least one non-tiff r/w to memory *****\n\n");
     if (!success) failure = TRUE;
     pixaDestroy(&pixa);
@@ -503,11 +503,11 @@ L_REGPARAMS  *rp;
     pixClipToForeground(pixt, &pix2, NULL);
     pixEqual(pix1, pix2, &same);
     if (same)
-        fprintf(stderr,
-            "\n  ******* Success on tiff multipage read from memory ******\n\n");
+        lept_stderr(
+           "\n  ******* Success on tiff multipage read from memory ******\n\n");
     else
-        fprintf(stderr,
-            "\n  ******* Failure on tiff multipage read from memory ******\n\n");
+        lept_stderr(
+           "\n  ******* Failure on tiff multipage read from memory ******\n\n");
     if (!same) failure = TRUE;
 
     pixDestroy(&pix);
@@ -521,9 +521,9 @@ part6:
 #endif  /* !HAVE_LIBTIFF */
 
 #if  !HAVE_LIBPNG || !HAVE_LIBJPEG || !HAVE_LIBTIFF
-    fprintf(stderr, "Missing libpng, libjpeg or libtiff.  Skipping:\n"
-                    "  part 6 (24 bpp r/w)\n"
-                    "  part 7 (header read)\n\n");
+    lept_stderr("Missing libpng, libjpeg or libtiff.  Skipping:\n"
+                "  part 6 (24 bpp r/w)\n"
+                "  part 7 (header read)\n\n");
     goto finish;
 #endif  /* !HAVE_LIBPNG || !HAVE_LIBJPEG || !HAVE_LIBTIFF */
 
@@ -538,9 +538,9 @@ part6:
     pixd = pixRead("/tmp/lept/regout/junk24.png");
     pixEqual(pix, pixd, &same);
     if (same) {
-        fprintf(stderr, "    **** success writing 24 bpp png ****\n");
+        lept_stderr("    **** success writing 24 bpp png ****\n");
     } else {
-        fprintf(stderr, "    **** failure writing 24 bpp png ****\n");
+        lept_stderr("    **** failure writing 24 bpp png ****\n");
         success = FALSE;
     }
     pixDestroy(&pixd);
@@ -550,18 +550,16 @@ part6:
     pixd = pixRead("/tmp/lept/regout/junk24.tif");
     pixEqual(pix, pixd, &same);
     if (same) {
-        fprintf(stderr, "    **** success writing 24 bpp tif ****\n");
+        lept_stderr("    **** success writing 24 bpp tif ****\n");
     } else {
-        fprintf(stderr, "    **** failure writing 24 bpp tif ****\n");
+        lept_stderr("    **** failure writing 24 bpp tif ****\n");
         success = FALSE;
     }
     pixDestroy(&pixd);
     if (success)
-        fprintf(stderr,
-            "\n  ******* Success on 24 bpp rgb writing *******\n\n");
+        lept_stderr("\n  ******* Success on 24 bpp rgb writing *******\n\n");
     else
-        fprintf(stderr,
-            "\n  ******* Failure on 24 bpp rgb writing *******\n\n");
+        lept_stderr("\n  ******* Failure on 24 bpp rgb writing *******\n\n");
     if (!success) failure = TRUE;
     pixDestroy(&pix);
     pixDestroy(&pixt);
@@ -608,11 +606,9 @@ part6:
     lept_free(tempname);
 
     if (success)
-        fprintf(stderr,
-            "\n  ******* Success on reading headers *******\n\n");
+        lept_stderr( "\n  ******* Success on reading headers *******\n\n");
     else
-        fprintf(stderr,
-            "\n  ******* Failure on reading headers *******\n\n");
+        lept_stderr( "\n  ******* Failure on reading headers *******\n\n");
     if (!success) failure = TRUE;
 
 #if  !HAVE_LIBPNG || !HAVE_LIBJPEG || !HAVE_LIBTIFF
@@ -620,11 +616,9 @@ finish:
 #endif  /* !HAVE_LIBPNG || !HAVE_LIBJPEG || !HAVE_LIBTIFF */
 
     if (!failure)
-        fprintf(stderr,
-            "  ******* Success on all tests *******\n\n");
+        lept_stderr("  ******* Success on all tests *******\n\n");
     else
-        fprintf(stderr,
-            "  ******* Failure on at least one test *******\n\n");
+        lept_stderr("  ******* Failure on at least one test *******\n\n");
 
     return regTestCleanup(rp);
 }
@@ -644,8 +638,8 @@ PIX     *pixt;
     findFileFormatStream(fp, &format);
     sameformat = TRUE;
     if (format != comptype) {
-        fprintf(stderr, "File %s has format %d, not comptype %d\n",
-                filename, format, comptype);
+        lept_stderr("File %s has format %d, not comptype %d\n",
+                    filename, format, comptype);
         sameformat = FALSE;
     }
     lept_fclose(fp);
@@ -653,8 +647,8 @@ PIX     *pixt;
     pixEqual(pix, pixt, &sameimage);
     pixDestroy(&pixt);
     if (!sameimage)
-        fprintf(stderr, "Write/read fail for file %s with format %d\n",
-                filename, format);
+        lept_stderr("Write/read fail for file %s with format %d\n",
+                    filename, format);
     return (!sameformat || !sameimage);
 }
 
@@ -672,8 +666,8 @@ PIX     *pixt;
     pixt = *ppixt;
     pixEqual(pixs, pixt, &sameimage);
     if (!sameimage)
-        fprintf(stderr, "Mem Write/read fail for file %d with format %d\n",
-                index, format);
+        lept_stderr("Mem Write/read fail for file %d with format %d\n",
+                    index, format);
     pixDestroy(&pixt);
     *ppixt = NULL;
     return (!sameimage);
@@ -727,11 +721,11 @@ PIX       *pixd = NULL;
 #endif  /* !HAVE_LIBGIF */
 
     if (pixWriteMem(&data, &size, pixs, format)) {
-        fprintf(stderr, "Mem write fail for format %d\n", format);
+        lept_stderr("Mem write fail for format %d\n", format);
         return 1;
     }
     if ((pixd = pixReadMem(data, size)) == NULL) {
-        fprintf(stderr, "Mem read fail for format %d\n", format);
+        lept_stderr("Mem read fail for format %d\n", format);
         lept_free(data);
         return 1;
     }
@@ -747,24 +741,24 @@ PIX       *pixd = NULL;
             pixCompareRGB(pixs, pixd, L_COMPARE_ABS_DIFF, 0, NULL, &diff,
                           NULL, NULL);
         } else {
-            fprintf(stderr, "skipping: ds = %d, dd = %d, format = %d\n",
-                    ds, dd, format);
+            lept_stderr("skipping: ds = %d, dd = %d, format = %d\n",
+                        ds, dd, format);
             lept_free(data);
             pixDestroy(&pixd);
             return 0;
         }
 
-/*        fprintf(stderr, "  size = %lu bytes; diff = %5.2f, format = %d\n",
-                (unsigned long)size, diff, format); */
+/*        lept_stderr("  size = %lu bytes; diff = %5.2f, format = %d\n",
+                      (unsigned long)size, diff, format); */
         if (diff > 8.0) {
             same = FALSE;
-            fprintf(stderr, "Mem write/read fail for format %d, diff = %5.2f\n",
-                    format, diff);
+            lept_stderr("Mem write/read fail for format %d, diff = %5.2f\n",
+                        format, diff);
         }
     } else {
         pixEqual(pixs, pixd, &same);
         if (!same)
-            fprintf(stderr, "Mem write/read fail for format %d\n", format);
+            lept_stderr("Mem write/read fail for format %d\n", format);
     }
     pixDestroy(&pixd);
     lept_free(data);
@@ -832,26 +826,26 @@ size_t      size1, size2;
     d1 = bps1 * spp1;
     if (d1 == 24) d1 = 32;
     if (ret1)
-        fprintf(stderr, "Error: couldn't read header data: %s\n", filename);
+        lept_stderr("Error: couldn't read header data: %s\n", filename);
     else {
         if (L_FORMAT_IS_TIFF(format1)) {
             tiff_compression_name = get_tiff_compression_name(format1);
-            fprintf(stderr, "Format data for image %s with format %s:\n"
-                "  nbytes = %lu, size (w, h, d) = (%d, %d, %d)\n"
-                "  bps = %d, spp = %d, iscmap = %d\n",
-                filename, tiff_compression_name,
-                (unsigned long)size1, w1, h1, d1,
-                bps1, spp1, iscmap1);
+            lept_stderr("Format data for image %s with format %s:\n"
+                        "  nbytes = %lu, size (w, h, d) = (%d, %d, %d)\n"
+                        "  bps = %d, spp = %d, iscmap = %d\n",
+                        filename, tiff_compression_name,
+                        (unsigned long)size1, w1, h1, d1,
+                        bps1, spp1, iscmap1);
         } else {
-            fprintf(stderr, "Format data for image %s with format %s:\n"
-                "  nbytes = %lu, size (w, h, d) = (%d, %d, %d)\n"
-                "  bps = %d, spp = %d, iscmap = %d\n",
-                filename, ImageFileFormatExtensions[format1],
-                (unsigned long)size1, w1, h1, d1, bps1, spp1, iscmap1);
+            lept_stderr("Format data for image %s with format %s:\n"
+                        "  nbytes = %lu, size (w, h, d) = (%d, %d, %d)\n"
+                        "  bps = %d, spp = %d, iscmap = %d\n",
+                        filename, ImageFileFormatExtensions[format1],
+                        (unsigned long)size1, w1, h1, d1, bps1, spp1, iscmap1);
         }
         if (format1 != true_format) {
-            fprintf(stderr, "Error: format is %d; should be %d\n",
-                    format1, true_format);
+            lept_stderr("Error: format is %d; should be %d\n",
+                        format1, true_format);
             ret1 = 1;
         }
     }
@@ -863,14 +857,14 @@ size_t      size1, size2;
     lept_free(data);
     d2 = bps2 * spp2;
     if (d2 == 24) d2 = 32;
-    if (ret2)
-        fprintf(stderr, "Error: couldn't mem-read header data: %s\n", filename);
-    else {
+    if (ret2) {
+        lept_stderr("Error: couldn't mem-read header data: %s\n", filename);
+    } else {
         if (size1 != size2 || format1 != format2 || w1 != w2 ||
             h1 != h2 || d1 != d2 || bps1 != bps2 || spp1 != spp2 ||
             iscmap1 != iscmap2) {
-            fprintf(stderr, "Inconsistency reading image %s with format %s\n",
-                    filename, tiff_compression_name);
+            lept_stderr("Inconsistency reading image %s with format %s\n",
+                        filename, tiff_compression_name);
             ret2 = 1;
         }
     }
@@ -899,6 +893,6 @@ get_tiff_compression_name(l_int32  format)
     else if (format == IFF_TIFF)
         tiff_compression_name = "tiff_uncompressed";
     else
-        fprintf(stderr, "format %d: not tiff\n", format);
+        lept_stderr("format %d: not tiff\n", format);
     return tiff_compression_name;
 }

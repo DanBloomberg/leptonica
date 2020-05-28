@@ -89,8 +89,8 @@ PIX       *pixt1, *pixt2;
 
     pixMeasureEdgeSmoothness(pixs, side, minjump, minreversal, &jpl,
                              &jspl, &rpl, "/tmp/junkedge.png");
-    fprintf(stderr, "side = %d: jpl = %6.3f, jspl = %6.3f, rpl = %6.3f\n",
-            side, jpl, jspl, rpl);
+    lept_stderr("side = %d: jpl = %6.3f, jspl = %6.3f, rpl = %6.3f\n",
+                side, jpl, jspl, rpl);
     pixt1 = pixRead("/tmp/junkedge.png");
     pixt2 = pixAddBorder(pixt1, 10, 0);  /* 10 pixel white border */
     pixaAddPix(pixa, pixt2, L_INSERT);

@@ -173,6 +173,5 @@ PIX     *pix1;
     n = pixaGetCount(pixa);
     newrow = (n % 4) ? 0 : 1;
     pixaAddPix(pixa, pix1, L_INSERT);
-    if (ovf) fprintf(stderr, "Overflow writing text in image %d\n", n + 1);
-    return;
+    if (ovf) lept_stderr("Overflow writing text in image %d\n", n + 1);
 }

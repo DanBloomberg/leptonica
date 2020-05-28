@@ -214,7 +214,7 @@ L_REGPARAMS  *rp;
 
             /* Compare the two methods */
         if (sum != sumi)
-            fprintf(stderr, "WRONG: sum = %d, sumi = %d\n", sum, sumi);
+            lept_stderr("WRONG: sum = %d, sumi = %d\n", sum, sumi);
 
             /* Reconstruct the image, band by band. */
         numaLogicalOp(nat, nat, na4, L_UNION);
@@ -243,7 +243,7 @@ L_REGPARAMS  *rp;
     pixZero(pix1, &empty);
     regTestCompareValues(rp, 1, empty, 0.0);
     if (!empty)
-        fprintf(stderr, "\nWRONG: not all pixels removed from pix1\n");
+        lept_stderr("\nWRONG: not all pixels removed from pix1\n");
 
     pixDestroy(&pixs);
     pixDestroy(&pix1);
@@ -308,7 +308,7 @@ BOXA    *boxa;
     n = boxaGetCount(boxa);
     regTestCompareValues(rp, nexp, n, 0.0);
     if (n != nexp)
-        fprintf(stderr, "WRONG!: Num. comps = %d; expected = %d\n", n, nexp);
+        lept_stderr("WRONG!: Num. comps = %d; expected = %d\n", n, nexp);
     boxaDestroy(&boxa);
     pixDestroy(&pix);
 }
@@ -321,7 +321,7 @@ l_int32  n;
     n = boxaGetCount(boxa);
     regTestCompareValues(rp, nexp, n, 0.0);
     if (n != nexp)
-        fprintf(stderr, "WRONG!: Num. boxes = %d; expected = %d\n", n, nexp);
+        lept_stderr("WRONG!: Num. boxes = %d; expected = %d\n", n, nexp);
     boxaDestroy(&boxa);
 }
 
@@ -340,7 +340,7 @@ l_int32  i, n, val, sum;
     if (!name) return sum;
     regTestCompareValues(rp, nexp, sum, 0.0);
     if (nexp != sum)
-        fprintf(stderr, "WRONG! %s[%d]: num. ones = %d; expected = %d\n",
+        lept_stderr("WRONG! %s[%d]: num. ones = %d; expected = %d\n",
                 name, index, sum, nexp);
     return 0;
 }

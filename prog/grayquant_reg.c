@@ -378,7 +378,7 @@ L_REGPARAMS  *rp;
         pixs = pixRead("test8.jpg");
         startTimer();
         pix1 = pixScaleGray2xLIThresh(pixs, THRESHOLD);
-        fprintf(stderr, " time for scale/dither = %7.3f sec\n", stopTimer());
+        lept_stderr(" time for scale/dither = %7.3f sec\n", stopTimer());
         pixWrite("/tmp/lept/gquant/upscale1.png", pix1, IFF_PNG);
         pixDisplay(pix1, 0, 500);
         pixDestroy(&pix1);
@@ -386,7 +386,7 @@ L_REGPARAMS  *rp;
             /* Upscale 4x and threshold to 1 bpp */
         startTimer();
         pix1 = pixScaleGray4xLIThresh(pixs, THRESHOLD);
-        fprintf(stderr, " time for scale/dither = %7.3f sec\n", stopTimer());
+        lept_stderr(" time for scale/dither = %7.3f sec\n", stopTimer());
         pixWrite("/tmp/lept/gquant/upscale2.png", pix1, IFF_PNG);
         pixDisplay(pix1, 700, 500);
         pixDestroy(&pix1);

@@ -69,7 +69,7 @@ L_REGPARAMS  *rp;
         return 1;
 
         /* Test 1 bpp */
-    fprintf(stderr, "\n-------------- Testing 1 bpp ----------\n");
+    lept_stderr("\n-------------- Testing 1 bpp ----------\n");
     pixa = pixaCreate(0);
     pixs = pixRead(image[0]);
     pixc = pixScale(pixs, 0.32, 0.32);
@@ -105,7 +105,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pixs);
 
         /* Test 2 bpp without colormap */
-    fprintf(stderr, "\n-------------- Testing 2 bpp without cmap ----------\n");
+    lept_stderr("\n-------------- Testing 2 bpp without cmap ----------\n");
     pixa = pixaCreate(0);
     pixs = pixRead(image[1]);
     pixaAddPix(pixa, pixs, L_INSERT);
@@ -121,7 +121,7 @@ L_REGPARAMS  *rp;
     PixaSaveDisplay(pixa, rp);  /* 19 */
 
         /* Test 2 bpp with colormap */
-    fprintf(stderr, "\n-------------- Testing 2 bpp with cmap ----------\n");
+    lept_stderr("\n-------------- Testing 2 bpp with cmap ----------\n");
     pixa = pixaCreate(0);
     pixs = pixRead(image[2]);
     pixaAddPix(pixa, pixs, L_INSERT);
@@ -137,7 +137,7 @@ L_REGPARAMS  *rp;
     PixaSaveDisplay(pixa, rp);  /* 23 */
 
         /* Test 4 bpp without colormap */
-    fprintf(stderr, "\n-------------- Testing 4 bpp without cmap ----------\n");
+    lept_stderr("\n-------------- Testing 4 bpp without cmap ----------\n");
     pixa = pixaCreate(0);
     pixs = pixRead(image[3]);
     pixaAddPix(pixa, pixs, L_INSERT);
@@ -153,7 +153,7 @@ L_REGPARAMS  *rp;
     PixaSaveDisplay(pixa, rp);  /* 27 */
 
         /* Test 4 bpp with colormap */
-    fprintf(stderr, "\n-------------- Testing 4 bpp with cmap ----------\n");
+    lept_stderr("\n-------------- Testing 4 bpp with cmap ----------\n");
     pixa = pixaCreate(0);
     pixs = pixRead(image[4]);
     pixaAddPix(pixa, pixs, L_INSERT);
@@ -169,7 +169,7 @@ L_REGPARAMS  *rp;
     PixaSaveDisplay(pixa, rp);  /* 31 */
 
         /* Test 8 bpp without colormap */
-    fprintf(stderr, "\n-------------- Testing 8 bpp without cmap ----------\n");
+    lept_stderr("\n-------------- Testing 8 bpp without cmap ----------\n");
     pixa = pixaCreate(0);
     pixs = pixRead(image[5]);
     pixaAddPix(pixa, pixs, L_INSERT);
@@ -190,7 +190,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pixs);
 
         /* Test 8 bpp with colormap */
-    fprintf(stderr, "\n-------------- Testing 8 bpp with cmap ----------\n");
+    lept_stderr("\n-------------- Testing 8 bpp with cmap ----------\n");
     pixa = pixaCreate(0);
     pixs = pixRead(image[6]);
     pixaAddPix(pixa, pixs, L_INSERT);
@@ -206,7 +206,7 @@ L_REGPARAMS  *rp;
     PixaSaveDisplay(pixa, rp);  /* 40 */
 
         /* Test 16 bpp */
-    fprintf(stderr, "\n-------------- Testing 16 bpp ------------\n");
+    lept_stderr("\n-------------- Testing 16 bpp ------------\n");
     pixa = pixaCreate(0);
     pixs = pixRead(image[7]);
     pixaAddPix(pixa, pixs, L_INSERT);
@@ -222,7 +222,7 @@ L_REGPARAMS  *rp;
     PixaSaveDisplay(pixa, rp);  /* 44 */
 
         /* Test 32 bpp */
-    fprintf(stderr, "\n-------------- Testing 32 bpp ------------\n");
+    lept_stderr("\n-------------- Testing 32 bpp ------------\n");
     pixa = pixaCreate(0);
     pixs = pixRead(image[8]);
     pixaAddPix(pixa, pixs, L_INSERT);

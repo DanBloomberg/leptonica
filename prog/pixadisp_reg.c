@@ -87,8 +87,8 @@ L_REGPARAMS  *rp;
     pix2 = pixaDisplayOnLattice(pixa3, 50, 50, &ncols, &boxa);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 4 */
     pixaAddPix(pixa, pix2, L_INSERT);
-    fprintf(stderr, "Number of columns = %d; number of boxes: %d\n",
-            ncols, boxaGetCount(boxa));
+    lept_stderr("Number of columns = %d; number of boxes: %d\n",
+                ncols, boxaGetCount(boxa));
     boxaDestroy(&boxa);
 
         /* pixaDisplayUnsplit() */
@@ -151,10 +151,10 @@ L_REGPARAMS  *rp;
 
     if (rp->display) {
         lept_mkdir("lept/padisp");
-        fprintf(stderr, "Writing to: /tmp/lept/padisp/pixadisp.pdf\n");
+        lept_stderr("Writing to: /tmp/lept/padisp/pixadisp.pdf\n");
         pixaConvertToPdf(pixa, 0, 1.0, L_FLATE_ENCODE, 0, "pixadisp-test",
                          "/tmp/lept/padisp/pixadisp.pdf");
-        fprintf(stderr, "Writing to: /tmp/lept/padisp/pixadisp.jpg\n");
+        lept_stderr("Writing to: /tmp/lept/padisp/pixadisp.jpg\n");
         pix1 = pixaDisplayTiledInColumns(pixa, 2, 0.5, 30, 2);
         pixWrite("/tmp/lept/padisp/pixadisp.jpg", pix1, IFF_JFIF_JPEG);
         pixDisplay(pix1, 100, 100);

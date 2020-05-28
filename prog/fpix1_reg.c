@@ -89,7 +89,7 @@ L_REGPARAMS  *rp;
     pixa = pixaCreate(0);
     kel = makeGaussianKernel(5, 5, 3.0, 4.0);
     kernelGetSum(kel, &sum);
-    if (rp->display) fprintf(stderr, "Sum for 2d gaussian kernel = %f\n", sum);
+    if (rp->display) lept_stderr("Sum for 2d gaussian kernel = %f\n", sum);
     pix0 = kernelDisplayInPix(kel, 41, 2);
     regTestWritePixAndCheck(rp, pix0, IFF_PNG);  /* 0 */
     pixaAddPix(pixa, pix0, L_INSERT);
@@ -97,10 +97,10 @@ L_REGPARAMS  *rp;
         /* Separable gaussian kernel */
     makeGaussianKernelSep(5, 5, 3.0, 4.0, &kelx, &kely);
     kernelGetSum(kelx, &sumx);
-    if (rp->display) fprintf(stderr, "Sum for x gaussian kernel = %f\n", sumx);
+    if (rp->display) lept_stderr("Sum for x gaussian kernel = %f\n", sumx);
     kernelGetSum(kely, &sumy);
-    if (rp->display) fprintf(stderr, "Sum for y gaussian kernel = %f\n", sumy);
-    if (rp->display) fprintf(stderr, "Sum for x * y gaussian kernel = %f\n",
+    if (rp->display) lept_stderr("Sum for y gaussian kernel = %f\n", sumy);
+    if (rp->display) lept_stderr("Sum for x * y gaussian kernel = %f\n",
                          sumx * sumy);
     pix0 = kernelDisplayInPix(kelx, 41, 2);
     regTestWritePixAndCheck(rp, pix0, IFF_PNG);  /* 1 */
@@ -150,20 +150,17 @@ L_REGPARAMS  *rp;
     if (rp->display) {
         pixCompareGray(pix1, pix2, L_COMPARE_ABS_DIFF, 0, NULL,
                        &diff, NULL, NULL);
-        fprintf(stderr, "Ave diff of pixConvolve and pixConvolveSep: %f\n",
-                diff);
+        lept_stderr("Ave diff of pixConvolve and pixConvolveSep: %f\n", diff);
         pixCompareGray(pix3, pix4, L_COMPARE_ABS_DIFF, 0, NULL,
                        &diff, NULL, NULL);
-        fprintf(stderr, "Ave diff of fpixConvolve and fpixConvolveSep: %f\n",
-                diff);
+        lept_stderr("Ave diff of fpixConvolve and fpixConvolveSep: %f\n", diff);
         pixCompareGray(pix1, pix3, L_COMPARE_ABS_DIFF, 0, NULL,
                        &diff, NULL, NULL);
-        fprintf(stderr, "Ave diff of pixConvolve and fpixConvolve: %f\n", diff);
+        lept_stderr("Ave diff of pixConvolve and fpixConvolve: %f\n", diff);
     }
     pixCompareGray(pix2, pix4, L_COMPARE_ABS_DIFF, GPLOT_PNG, NULL,
                    &diff, NULL, NULL);
-    fprintf(stderr, "Ave diff of pixConvolveSep and fpixConvolveSep: %f\n",
-            diff);
+    lept_stderr("Ave diff of pixConvolveSep and fpixConvolveSep: %f\n", diff);
     pix5 = pixRead("/tmp/lept/comp/compare_gray0.png");
     regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 9 */
     pixaAddPix(pixa, pix5, L_INSERT);

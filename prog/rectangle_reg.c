@@ -70,9 +70,8 @@ L_REGPARAMS  *rp;
         boxGetGeometry(box1, &bx, &by, &bw, &bh);
         pixSetInRect(pixs, box1);
         if (rp->display)
-            fprintf(stderr,
-                    "bx = %5d, by = %5d, bw = %5d, bh = %5d, area = %d\n",
-                    bx, by, bw, bh, bw * bh);
+            lept_stderr("bx = %5d, by = %5d, bw = %5d, bh = %5d, area = %d\n",
+                        bx, by, bw, bh, bw * bh);
         boxaAddBox(boxa, box1, L_INSERT);
     }
 

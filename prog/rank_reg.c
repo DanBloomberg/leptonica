@@ -69,8 +69,7 @@ L_REGPARAMS  *rp;
     startTimer();
     pix1 = pixRankFilterGray(pixs, 15, 15, 0.4);
     t1 = stopTimer();
-    fprintf(stderr, "pixRankFilterGray: %7.3f MPix/sec\n",
-            0.000001 * w * h / t1);
+    lept_stderr("pixRankFilterGray: %7.3f MPix/sec\n", 0.000001 * w * h / t1);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
     pixDisplayWithTitle(pixs, 0, 0, NULL, rp->display);
     pixDisplayWithTitle(pix1, 600, 0, NULL, rp->display);
@@ -82,8 +81,8 @@ L_REGPARAMS  *rp;
     pix1 = pixDilateGray(pixs, 15, 15);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 1 */
     t2 = stopTimer();
-    fprintf(stderr, "Rank filter time = %7.3f, Dilation time =  %7.3f sec\n",
-            t1, t2);
+    lept_stderr("Rank filter time = %7.3f, Dilation time =  %7.3f sec\n",
+                t1, t2);
 
         /* Get results for erosion */
     pix2 = pixErodeGray(pixs, 15, 15);

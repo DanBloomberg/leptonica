@@ -58,19 +58,19 @@ L_REGPARAMS  *rp;
         return 1;
 
 #if !HAVE_LIBJPEG
-    fprintf(stderr, "libjpeg is required for webpanimio_reg\n\n");
+    lept_stderr("libjpeg is required for webpanimio_reg\n\n");
     regTestCleanup(rp);
     return 0;
 #endif  /* abort */
 
 #if !HAVE_LIBWEBP || !HAVE_LIBWEBP_ANIM
-    fprintf(stderr, "webp and webpanim are not enabled\n"
-            "See environ.h:\n"
-            "    #define HAVE_LIBWEBP\n"
-            "    #define HAVE_LIBWEBP_ANIM\n"
-            "See prog/Makefile:\n"
-            "    link in -lwebp\n"
-            "    link in -lwebpmux\n\n");
+    lept_stderr("webp and webpanim are not enabled\n"
+                "See environ.h:\n"
+                "    #define HAVE_LIBWEBP\n"
+                "    #define HAVE_LIBWEBP_ANIM\n"
+                "See prog/Makefile:\n"
+                "    link in -lwebp\n"
+                "    link in -lwebpmux\n\n");
     regTestCleanup(rp);
     return 0;
 #endif  /* abort */

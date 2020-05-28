@@ -78,19 +78,19 @@ L_REGPARAMS  *rp;
     pixRasterop(pixim, XS, YS, WS, HS, PIX_SET, NULL, 0, 0);
     pixGetBackgroundGrayMap(pixg, pixim, SIZE_X, SIZE_Y,
                             BINTHRESH, MINCOUNT, &pixgm);
-    fprintf(stderr, "Time for gray adaptmap gen: %7.3f\n", stopTimer());
+    lept_stderr("Time for gray adaptmap gen: %7.3f\n", stopTimer());
     regTestWritePixAndCheck(rp, pixgm, IFF_PNG);  /* 0 */
     pixaAddPix(pixa, pixgm, L_INSERT);
 
     startTimer();
     pixmi = pixGetInvBackgroundMap(pixgm, BGVAL, SMOOTH_X, SMOOTH_Y);
-    fprintf(stderr, "Time for gray inv map generation: %7.3f\n", stopTimer());
+    lept_stderr("Time for gray inv map generation: %7.3f\n", stopTimer());
     regTestWritePixAndCheck(rp, pixmi, IFF_PNG);  /* 1 */
     pixaAddPix(pixa, pixmi, L_INSERT);
 
     startTimer();
     pix1 = pixApplyInvBackgroundGrayMap(pixg, pixmi, SIZE_X, SIZE_Y);
-    fprintf(stderr, "Time to apply gray inv map: %7.3f\n", stopTimer());
+    lept_stderr("Time to apply gray inv map: %7.3f\n", stopTimer());
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 2 */
     pixaAddPix(pixa, pix1, L_INSERT);
 
@@ -108,7 +108,7 @@ L_REGPARAMS  *rp;
     pixGetBackgroundRGBMap(pixs, pixim, NULL, SIZE_X, SIZE_Y,
                            BINTHRESH, MINCOUNT,
                            &pixmr, &pixmg, &pixmb);
-    fprintf(stderr, "Time for color adaptmap gen: %7.3f\n", stopTimer());
+    lept_stderr("Time for color adaptmap gen: %7.3f\n", stopTimer());
     regTestWritePixAndCheck(rp, pixmr, IFF_PNG);  /* 4 */
     regTestWritePixAndCheck(rp, pixmg, IFF_PNG);  /* 5 */
     regTestWritePixAndCheck(rp, pixmb, IFF_PNG);  /* 6 */
@@ -120,7 +120,7 @@ L_REGPARAMS  *rp;
     pixmri = pixGetInvBackgroundMap(pixmr, BGVAL, SMOOTH_X, SMOOTH_Y);
     pixmgi = pixGetInvBackgroundMap(pixmg, BGVAL, SMOOTH_X, SMOOTH_Y);
     pixmbi = pixGetInvBackgroundMap(pixmb, BGVAL, SMOOTH_X, SMOOTH_Y);
-    fprintf(stderr, "Time for color inv map generation: %7.3f\n", stopTimer());
+    lept_stderr("Time for color inv map generation: %7.3f\n", stopTimer());
     regTestWritePixAndCheck(rp, pixmri, IFF_PNG);  /* 7 */
     regTestWritePixAndCheck(rp, pixmgi, IFF_PNG);  /* 8 */
     regTestWritePixAndCheck(rp, pixmbi, IFF_PNG);  /* 9 */
@@ -131,7 +131,7 @@ L_REGPARAMS  *rp;
     startTimer();
     pix1 = pixApplyInvBackgroundRGBMap(pixs, pixmri, pixmgi, pixmbi,
                                        SIZE_X, SIZE_Y);
-    fprintf(stderr, "Time to apply color inv maps: %7.3f\n", stopTimer());
+    lept_stderr("Time to apply color inv maps: %7.3f\n", stopTimer());
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 10 */
     pixaAddPix(pixa, pix1, L_INSERT);
 
@@ -148,7 +148,7 @@ L_REGPARAMS  *rp;
     pixRasterop(pixim, XS, YS, WS, HS, PIX_SET, NULL, 0, 0);
     pix1 = pixBackgroundNorm(pixs, pixim, NULL, 5, 10, BINTHRESH, 20,
                              BGVAL, SMOOTH_X, SMOOTH_Y);
-    fprintf(stderr, "Time for bg normalization: %7.3f\n", stopTimer());
+    lept_stderr("Time for bg normalization: %7.3f\n", stopTimer());
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 12 */
     pixaAddPix(pixa, pix1, L_INSERT);
 

@@ -86,12 +86,12 @@ SELA        *sela;
 
     if (symmetric) {
         resetMorphBoundaryCondition(SYMMETRIC_MORPH_BC);
-        fprintf(stderr, "Testing with symmetric boundary conditions\n"
-                        "==========================================\n");
+        lept_stderr("Testing with symmetric boundary conditions\n"
+                    "==========================================\n");
     } else {
         resetMorphBoundaryCondition(ASYMMETRIC_MORPH_BC);
-        fprintf(stderr, "Testing with asymmetric boundary conditions\n"
-                        "==========================================\n");
+        lept_stderr("Testing with asymmetric boundary conditions\n"
+                    "==========================================\n");
     }
 
     for (i = 0; i < 3; i++) {
@@ -118,18 +118,18 @@ SELA        *sela;
                 return ERROR_INT("dwa vert sel not defined", rp->testname, 1);
             }
         }
-        fprintf(stderr, "w = %d, h = %d, selh = %s, selv = %s\n",
+        lept_stderr("w = %d, h = %d, selh = %s, selv = %s\n",
                 w, h, selnameh, selnamev);
         ok = TRUE;
         selaDestroy(&sela);
 
             /* ----------------- Dilation ----------------- */
-        fprintf(stderr, "Testing dilation\n");
+        lept_stderr("Testing dilation\n");
         pixref = pixDilate(NULL, pixs, sel);
         pix1 = pixDilateBrickDwa(NULL, pixs, w, h);
         pixEqual(pixref, pix1, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pix1 !\n"); ok = FALSE;
+            lept_stderr("pixref != pix1 !\n"); ok = FALSE;
         }
         pixDestroy(&pix1);
 
@@ -143,7 +143,7 @@ SELA        *sela;
             pix2 = pixClone(pix1);
         pixEqual(pixref, pix2, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
+            lept_stderr("pixref != pix2 !\n"); ok = FALSE;
         }
         pixDestroy(&pix1);
         pixDestroy(&pix2);
@@ -160,7 +160,7 @@ SELA        *sela;
         pix4 = pixRemoveBorder(pix3, 32);
         pixEqual(pixref, pix4, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
+            lept_stderr("pixref != pix4 !\n"); ok = FALSE;
         }
         pixDestroy(&pixref);
         pixDestroy(&pix1);
@@ -169,12 +169,12 @@ SELA        *sela;
         pixDestroy(&pix4);
 
             /* ----------------- Erosion ----------------- */
-        fprintf(stderr, "Testing erosion\n");
+        lept_stderr("Testing erosion\n");
         pixref = pixErode(NULL, pixs, sel);
         pix1 = pixErodeBrickDwa(NULL, pixs, w, h);
         pixEqual(pixref, pix1, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pix1 !\n"); ok = FALSE;
+            lept_stderr("pixref != pix1 !\n"); ok = FALSE;
         }
         pixDestroy(&pix1);
 
@@ -188,7 +188,7 @@ SELA        *sela;
             pix2 = pixClone(pix1);
         pixEqual(pixref, pix2, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
+            lept_stderr("pixref != pix2 !\n"); ok = FALSE;
         }
         pixDestroy(&pix1);
         pixDestroy(&pix2);
@@ -205,7 +205,7 @@ SELA        *sela;
         pix4 = pixRemoveBorder(pix3, 32);
         pixEqual(pixref, pix4, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
+            lept_stderr("pixref != pix4 !\n"); ok = FALSE;
         }
         pixDestroy(&pixref);
         pixDestroy(&pix1);
@@ -214,12 +214,12 @@ SELA        *sela;
         pixDestroy(&pix4);
 
             /* ----------------- Opening ----------------- */
-        fprintf(stderr, "Testing opening\n");
+        lept_stderr("Testing opening\n");
         pixref = pixOpen(NULL, pixs, sel);
         pix1 = pixOpenBrickDwa(NULL, pixs, w, h);
         pixEqual(pixref, pix1, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pix1 !\n"); ok = FALSE;
+            lept_stderr("pixref != pix1 !\n"); ok = FALSE;
         }
         pixDestroy(&pix1);
 
@@ -236,7 +236,7 @@ SELA        *sela;
         }
         pixEqual(pixref, pix2, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
+            lept_stderr("pixref != pix2 !\n"); ok = FALSE;
         }
         pixDestroy(&pix2);
 
@@ -255,7 +255,7 @@ SELA        *sela;
         pix4 = pixRemoveBorder(pix3, 32);
         pixEqual(pixref, pix4, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
+            lept_stderr("pixref != pix4 !\n"); ok = FALSE;
         }
         pixDestroy(&pixref);
         pixDestroy(&pix1);
@@ -263,7 +263,7 @@ SELA        *sela;
         pixDestroy(&pix4);
 
             /* ----------------- Closing ----------------- */
-        fprintf(stderr, "Testing closing\n");
+        lept_stderr("Testing closing\n");
         pixref = pixClose(NULL, pixs, sel);
 
             /* Note: L_MORPH_CLOSE for h==1 or w==1 gives safe closing,
@@ -285,7 +285,7 @@ SELA        *sela;
         pixDestroy(&pix1);
         pixEqual(pixref, pix2, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pix2 !\n"); ok = FALSE;
+            lept_stderr("pixref != pix2 !\n"); ok = FALSE;
         }
         pixDestroy(&pix2);
 
@@ -308,7 +308,7 @@ SELA        *sela;
         pix4 = pixRemoveBorder(pix3, 32);
         pixEqual(pixref, pix4, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
+            lept_stderr("pixref != pix4 !\n"); ok = FALSE;
         }
         pixDestroy(&pixref);
         pixDestroy(&pix1);
@@ -316,19 +316,19 @@ SELA        *sela;
         pixDestroy(&pix4);
 
             /* ------------- Safe Closing ----------------- */
-        fprintf(stderr, "Testing safe closing\n");
+        lept_stderr("Testing safe closing\n");
         pixref = pixCloseSafe(NULL, pixs, sel);
         pix0 = pixCloseSafeBrick(NULL, pixs, w, h);
         pixEqual(pixref, pix0, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pix0 !\n"); ok = FALSE;
+            lept_stderr("pixref != pix0 !\n"); ok = FALSE;
         }
         pixDestroy(&pix0);
 
         pix1 = pixCloseBrickDwa(NULL, pixs, w, h);
         pixEqual(pixref, pix1, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pix1 !\n"); ok = FALSE;
+            lept_stderr("pixref != pix1 !\n"); ok = FALSE;
         }
         pixDestroy(&pix1);
 
@@ -365,7 +365,7 @@ SELA        *sela;
         }
         pixEqual(pixref, pix3, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pix3 !\n"); ok = FALSE;
+            lept_stderr("pixref != pix3 !\n"); ok = FALSE;
         }
         pixDestroy(&pix3);
 
@@ -384,7 +384,7 @@ SELA        *sela;
         pix4 = pixRemoveBorder(pix3, 32 + extraborder);
         pixEqual(pixref, pix4, &same);
         if (!same) {
-            fprintf(stderr, "pixref != pix4 !\n"); ok = FALSE;
+            lept_stderr("pixref != pix4 !\n"); ok = FALSE;
         }
         pixDestroy(&pixref);
         pixDestroy(&pix1);
@@ -393,7 +393,7 @@ SELA        *sela;
 
         regTestCompareValues(rp, TRUE, ok, 0);
         if (ok)
-            fprintf(stderr, "All morph tests OK!\n\n");
+            lept_stderr("All morph tests OK!\n\n");
         selDestroy(&sel);
         lept_free(selnameh);
         lept_free(selnamev);

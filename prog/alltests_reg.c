@@ -221,7 +221,7 @@ static char  mainName[] = "alltests_reg";
     setLeptDebugOK(1);  /* required for testing */
     l_getCurrentTime(&start, NULL);
     ntests = sizeof(tests) / sizeof(char *);
-    fprintf(stderr, "Running alltests_reg:\n"
+    lept_stderr("Running alltests_reg:\n"
             "This currently tests %d regression test\n"
             "programs in the /prog directory.\n", ntests);
 
@@ -255,7 +255,7 @@ static char  mainName[] = "alltests_reg";
                 nfail++;
             }
             else
-                fprintf(stderr, "%s", buf);
+                lept_stderr("%s", buf);
         }
     }
 
@@ -267,11 +267,11 @@ static char  mainName[] = "alltests_reg";
 #endif  /* !_WIN32 */
         lept_free(results_file);
         ret = system(command);
-        fprintf(stderr, "Success in %d of %d *_reg programs (output matches"
+        lept_stderr("Success in %d of %d *_reg programs (output matches"
                 " the \"golden\" files)\n", ntests - nfail, ntests);
     }
 
     l_getCurrentTime(&stop, NULL);
-    fprintf(stderr, "Time for all regression tests: %d sec\n", stop - start);
+    lept_stderr("Time for all regression tests: %d sec\n", stop - start);
     return 0;
 }

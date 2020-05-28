@@ -80,8 +80,8 @@ L_REGPARAMS  *rp;
     for (i = 0; i < n; i++) {
         name = sarrayGetString(sa3, i, L_NOCOPY);
         if ((pix0 = pixRead(name)) == NULL) {
-            fprintf(stderr, "Error in %s_reg: failed to read %s\n",
-                    rp->testname, name);
+            lept_stderr("Error in %s_reg: failed to read %s\n",
+                        rp->testname, name);
             rp->success = FALSE;
             continue;
         }
@@ -101,8 +101,8 @@ L_REGPARAMS  *rp;
     for (i = 0; i < n; i++) {
         name = sarrayGetString(sa3, i, L_NOCOPY);
         if ((pix0 = pixRead(name)) == NULL) {
-            fprintf(stderr, "Error in %s_reg: failed to read %s\n",
-                    rp->testname, name);
+            lept_stderr("Error in %s_reg: failed to read %s\n",
+                        rp->testname, name);
             rp->success = FALSE;
             continue;
         }

@@ -226,8 +226,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 207.89, ave2, 0.01);  /* 14 */
 
     if (rp->display) {
-        fprintf(stderr, "ave1 = %8.4f\n", sum1 / h);
-        fprintf(stderr, "ave2 = %8.4f\n", 2.0 * sum2 / w);
+        lept_stderr("ave1 = %8.4f\n", sum1 / h);
+        lept_stderr("ave2 = %8.4f\n", 2.0 * sum2 / w);
     }
     pixAverageInRect(pixs, NULL, NULL, 0, 255, 1, &ave4);  /* entire image */
     diff1 = ave4 - ave3;
@@ -371,56 +371,56 @@ L_REGPARAMS  *rp;
         /* No mask, no box, different subsampling */
     pixAverageInRect(pix3, NULL, NULL, 0, 255, 1, &ave1);  /* no mask */
     regTestCompareValues(rp, 176.97, ave1, 0.1);  /* 25 */
-    if (rp->display) fprintf(stderr, "ave1 = %6.2f\n", ave1);
+    if (rp->display) lept_stderr("ave1 = %6.2f\n", ave1);
     pixAverageInRect(pix3, NULL, NULL, 0, 255, 2, &ave2);  /* no mask */
     regTestCompareValues(rp, ave1, ave2, 0.1);  /* 26 */
-    if (rp->display) fprintf(stderr, "ave2 = %6.2f\n", ave2);
+    if (rp->display) lept_stderr("ave2 = %6.2f\n", ave2);
         /* Mask allows bg, no box */
     pix4 = pixThresholdToBinary(pix3, 80);  /* use light pixels */
     pixAverageInRect(pix3, pix4, NULL, 0, 255, 1, &ave1);  /* mask bg */
     regTestCompareValues(rp, 187.58, ave1, 0.1);  /* 27 */
-    if (rp->display) fprintf(stderr, "ave = %6.2f\n", ave1);
+    if (rp->display) lept_stderr("ave = %6.2f\n", ave1);
         /* Mask allows fg, no box */
     pixInvert(pix4, pix4);  /* use dark pixels */
     pixAverageInRect(pix3, pix4, NULL, 0, 255, 1, &ave1);  /* mask fg */
     regTestCompareValues(rp, 46.37, ave1, 0.1);  /* 28 */
-    if (rp->display) fprintf(stderr, "ave = %6.2f\n", ave1);
+    if (rp->display) lept_stderr("ave = %6.2f\n", ave1);
         /* Mask allows fg, no box, restricted range with samples */
     pixAverageInRect(pix3, pix4, NULL, 50, 60, 1, &ave1);  /* mask fg */
     regTestCompareValues(rp, 55.18, ave1, 0.1);  /* 29 */
-    if (rp->display) fprintf(stderr, "ave = %6.2f\n", ave1);
+    if (rp->display) lept_stderr("ave = %6.2f\n", ave1);
         /* Mask allows fg, no box, restricted range without samples */
     pixAverageInRect(pix3, pix4, NULL, 100, 255, 1, &ave1);
     regTestCompareValues(rp, 0.0, ave1, 0.0);  /* 30 */  /* mask fg */
-    if (rp->display) fprintf(stderr, "ave = %6.2f\n", ave1);
+    if (rp->display) lept_stderr("ave = %6.2f\n", ave1);
         /* No mask, use box */
     box2 = boxCreate(100, 100, 200, 150);
     pixAverageInRect(pix3, NULL, box2, 0, 255, 1, &ave1);  /* no mask */
     regTestCompareValues(rp, 165.63, ave1, 0.1);  /* 31 */
-    if (rp->display) fprintf(stderr, "ave1 = %6.2f\n", ave1);
+    if (rp->display) lept_stderr("ave1 = %6.2f\n", ave1);
         /* No mask, pix cropped to box */
     pixInvert(pix4, pix4);  /* use light pixels */
     pix5 = pixClipRectangle(pix3, box2, NULL);
     pixAverageInRect(pix5, NULL, NULL, 0, 255, 1, &ave2);  /* no mask */
     regTestCompareValues(rp, ave1, ave2, 0.1);  /* 32 */
-    if (rp->display) fprintf(stderr, "ave2 = %6.2f\n", ave2);
+    if (rp->display) lept_stderr("ave2 = %6.2f\n", ave2);
         /* Mask allows bg, use box */
     pixAverageInRect(pix3, pix4, box2, 0, 255, 1, &ave1);  /* mask bg */
     regTestCompareValues(rp, 175.65, ave1, 0.1);  /* 33 */
-    if (rp->display) fprintf(stderr, "ave1 = %6.2f\n", ave1);
+    if (rp->display) lept_stderr("ave1 = %6.2f\n", ave1);
         /* Cropped mask allows bg, pix cropped to box */
     pix6 = pixThresholdToBinary(pix5, 80);  /* use light pixels */
     pixAverageInRect(pix5, pix6, NULL, 0, 255, 1, &ave2);
     regTestCompareValues(rp, ave1, ave2, 0.1);  /* 34 */
-    if (rp->display) fprintf(stderr, "ave2 = %6.2f\n", ave2);
+    if (rp->display) lept_stderr("ave2 = %6.2f\n", ave2);
         /* Mask allows bg, use box, restricted range */
     pixAverageInRect(pix3, pix4, box2, 100, 125, 1, &ave1);
     regTestCompareValues(rp, 112.20, ave1, 0.1);  /* 35 */
-    if (rp->display) fprintf(stderr, "ave = %6.2f\n", ave1);
+    if (rp->display) lept_stderr("ave = %6.2f\n", ave1);
         /* Cropped mask allows bg, pix cropped to box, restricted range */
     pixAverageInRect(pix5, pix6, NULL, 100, 125, 1, &ave2);
     regTestCompareValues(rp, ave1, ave2, 0.1);  /* 36 */
-    if (rp->display) fprintf(stderr, "ave = %6.2f\n", ave2);
+    if (rp->display) lept_stderr("ave = %6.2f\n", ave2);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);

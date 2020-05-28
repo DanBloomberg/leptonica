@@ -92,17 +92,17 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 18278, c1, 0);  /* 0 */
     regTestCompareValues(rp, 20982, c2, 0);  /* 1 */
     if (rp->display) {
-        fprintf(stderr, "Set results with string hashing:\n");
-        fprintf(stderr, "  size with unique strings: %d\n", c1);
-        fprintf(stderr, "  size with dups: %d\n", c2);
+        lept_stderr("Set results with string hashing:\n");
+        lept_stderr("  size with unique strings: %d\n", c1);
+        lept_stderr("  size with dups: %d\n", c2);
     }
     startTimer();
     set = l_asetCreateFromSarray(sa2);
     s1 = l_asetSize(set);
     regTestCompareValues(rp, 18278, s1, 0);  /* 2 */
     if (rp->display) {
-        fprintf(stderr, "  time to make set: %5.3f sec\n", stopTimer());
-        fprintf(stderr, "  size of set without dups: %d\n", s1);
+        lept_stderr("  time to make set: %5.3f sec\n", stopTimer());
+        lept_stderr("  size of set without dups: %d\n", s1);
     }
     l_asetDestroy(&set);
     startTimer();
@@ -110,16 +110,16 @@ L_REGPARAMS  *rp;
     c1 = sarrayGetCount(sa3);
     regTestCompareValues(rp, 18278, c1, 0);  /* 3 */
     if (rp->display) {
-        fprintf(stderr, "  time to remove dups: %5.3f sec\n", stopTimer());
-        fprintf(stderr, "  size without dups = %d\n", c1);
+        lept_stderr("  time to remove dups: %5.3f sec\n", stopTimer());
+        lept_stderr("  size without dups = %d\n", c1);
     }
     startTimer();
     sa4 = sarrayIntersectionByAset(sa1, sa2);
     c1 = sarrayGetCount(sa4);
     regTestCompareValues(rp, 18278, c1, 0);  /* 4 */
     if (rp->display) {
-        fprintf(stderr, "  time to intersect: %5.3f sec\n", stopTimer());
-        fprintf(stderr, "  intersection size = %d\n", c1);
+        lept_stderr("  time to intersect: %5.3f sec\n", stopTimer());
+        lept_stderr("  intersection size = %d\n", c1);
     }
     sarrayDestroy(&sa3);
     sarrayDestroy(&sa4);
@@ -127,17 +127,17 @@ L_REGPARAMS  *rp;
         /* Test sarray set operations with dna hash.
          * We use the same hash function as is used with aset. */
     if (rp->display) {
-        fprintf(stderr, "\nDna hash results for sarray:\n");
-        fprintf(stderr, "  size with unique strings: %d\n", sarrayGetCount(sa1));
-        fprintf(stderr, "  size with dups: %d\n", sarrayGetCount(sa2));
+        lept_stderr("\nDna hash results for sarray:\n");
+        lept_stderr("  size with unique strings: %d\n", sarrayGetCount(sa1));
+        lept_stderr("  size with dups: %d\n", sarrayGetCount(sa2));
     }
     startTimer();
     dahash = l_dnaHashCreateFromSarray(sa2);
     s1 = l_dnaHashGetTotalCount(dahash);
     regTestCompareValues(rp, 20982, s1, 0);  /* 5 */
     if (rp->display) {
-        fprintf(stderr, "  time to make hashmap: %5.3f sec\n", stopTimer());
-        fprintf(stderr, "  entries in hashmap with dups: %d\n", s1);
+        lept_stderr("  time to make hashmap: %5.3f sec\n", stopTimer());
+        lept_stderr("  entries in hashmap with dups: %d\n", s1);
     }
     l_dnaHashDestroy(&dahash);
     startTimer();
@@ -145,16 +145,16 @@ L_REGPARAMS  *rp;
     c1 = sarrayGetCount(sa3);
     regTestCompareValues(rp, 18278, c1, 0);  /* 6 */
     if (rp->display) {
-        fprintf(stderr, "  time to remove dups: %5.3f sec\n", stopTimer());
-        fprintf(stderr, "  size without dups = %d\n", c1);
+        lept_stderr("  time to remove dups: %5.3f sec\n", stopTimer());
+        lept_stderr("  size without dups = %d\n", c1);
     }
     startTimer();
     sa4 = sarrayIntersectionByHash(sa1, sa2);
     c1 = sarrayGetCount(sa4);
     regTestCompareValues(rp, 18278, c1, 0);  /* 7 */
     if (rp->display) {
-        fprintf(stderr, "  time to intersect: %5.3f sec\n", stopTimer());
-        fprintf(stderr, "  intersection size = %d\n", c1);
+        lept_stderr("  time to intersect: %5.3f sec\n", stopTimer());
+        lept_stderr("  intersection size = %d\n", c1);
     }
     sarrayDestroy(&sa3);
     sarrayDestroy(&sa4);
@@ -173,17 +173,17 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 90000, c1, 0);  /* 8 */
     regTestCompareValues(rp, 108000, c2, 0);  /* 9 */
     if (rp->display) {
-        fprintf(stderr, "\nSet results for pta:\n");
-        fprintf(stderr, "  pta1 size with unique points: %d\n", c1);
-        fprintf(stderr, "  pta2 size with dups: %d\n", c2);
+        lept_stderr("\nSet results for pta:\n");
+        lept_stderr("  pta1 size with unique points: %d\n", c1);
+        lept_stderr("  pta2 size with dups: %d\n", c2);
     }
     startTimer();
     pta3 = ptaRemoveDupsByAset(pta2);
     c1 = ptaGetCount(pta3);
     regTestCompareValues(rp, 90000, c1, 0);  /* 10 */
     if (rp->display) {
-        fprintf(stderr, "  Time to remove dups: %5.3f sec\n", stopTimer());
-        fprintf(stderr, "  size without dups = %d\n", ptaGetCount(pta3));
+        lept_stderr("  Time to remove dups: %5.3f sec\n", stopTimer());
+        lept_stderr("  size without dups = %d\n", ptaGetCount(pta3));
     }
     ptaDestroy(&pta3);
 
@@ -192,8 +192,8 @@ L_REGPARAMS  *rp;
     c1 = ptaGetCount(pta3);
     regTestCompareValues(rp, 90000, c1, 0);  /* 11 */
     if (rp->display) {
-        fprintf(stderr, "  Time to intersect: %5.3f sec\n", stopTimer());
-        fprintf(stderr, "  intersection size = %d\n", c1);
+        lept_stderr("  Time to intersect: %5.3f sec\n", stopTimer());
+        lept_stderr("  intersection size = %d\n", c1);
     }
     ptaDestroy(&pta1);
     ptaDestroy(&pta2);
@@ -209,17 +209,17 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 160000, c1, 0);  /* 12 */
     regTestCompareValues(rp, 192000, c2, 0);  /* 13 */
     if (rp->display) {
-        fprintf(stderr, "\nDna hash results for pta:\n");
-        fprintf(stderr, "  pta1 size with unique points: %d\n", c1);
-        fprintf(stderr, "  pta2 size with dups: %d\n", c2);
+        lept_stderr("\nDna hash results for pta:\n");
+        lept_stderr("  pta1 size with unique points: %d\n", c1);
+        lept_stderr("  pta2 size with dups: %d\n", c2);
     }
     startTimer();
     ptaRemoveDupsByHash(pta2, &pta3, NULL);
     c1 = ptaGetCount(pta3);
     regTestCompareValues(rp, 160000, c1, 0);  /* 14 */
     if (rp->display) {
-        fprintf(stderr, "  Time to remove dups: %5.3f sec\n", stopTimer());
-        fprintf(stderr, "  size without dups = %d\n", c1);
+        lept_stderr("  Time to remove dups: %5.3f sec\n", stopTimer());
+        lept_stderr("  size without dups = %d\n", c1);
     }
     ptaDestroy(&pta3);
 
@@ -228,8 +228,8 @@ L_REGPARAMS  *rp;
     c1 = ptaGetCount(pta3);
     regTestCompareValues(rp, 160000, c1, 0);  /* 15 */
     if (rp->display) {
-        fprintf(stderr, "  Time to intersect: %5.3f sec\n", stopTimer());
-        fprintf(stderr, "  intersection size = %d\n", c1);
+        lept_stderr("  Time to intersect: %5.3f sec\n", stopTimer());
+        lept_stderr("  intersection size = %d\n", c1);
     }
     ptaDestroy(&pta1);
     ptaDestroy(&pta2);
@@ -252,9 +252,9 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 40000, c1, 0);  /* 16 */
     regTestCompareValues(rp, 17600, c2, 0);  /* 17 */
     if (rp->display) {
-        fprintf(stderr, "\nDna hash results for dna:\n");
-        fprintf(stderr, "  dna size with dups = %d\n", c1);
-        fprintf(stderr, "  dna size of unique numbers = %d\n", c2);
+        lept_stderr("\nDna hash results for dna:\n");
+        lept_stderr("  dna size with dups = %d\n", c1);
+        lept_stderr("  dna size of unique numbers = %d\n", c2);
     }
     l_dnaMakeHistoByHash(da1, &dahash, &dav, &dac);
     nav = l_dnaConvertToNuma(dav);
@@ -262,7 +262,7 @@ L_REGPARAMS  *rp;
     c1 = l_dnaGetCount(dac);
     regTestCompareValues(rp, 17600, c1, 0);  /* 18 */
     if (rp->display)
-        fprintf(stderr, "  dna number of histo points = %d\n", c1);
+        lept_stderr("  dna number of histo points = %d\n", c1);
 
         /* Plot it twice */
     pix1 = gplotGeneralPix2(nav, nac, GPLOT_IMPULSES, "/tmp/lept/hash/histo",
@@ -284,8 +284,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 8000, c2, 0);  /* 20 */
     regTestCompareValues(rp, 5600, c3, 0);  /* 21 */
     if (rp->display) {
-        fprintf(stderr, "  dna num points: da2 = %d, da3 = %d\n", c1, c2);
-        fprintf(stderr, "  dna num da2/da3 intersection points = %d\n", c3);
+        lept_stderr("  dna num points: da2 = %d, da3 = %d\n", c1, c2);
+        lept_stderr("  dna num da2/da3 intersection points = %d\n", c3);
     }
     l_dnaDestroy(&da1);
     l_dnaDestroy(&da2);
@@ -307,8 +307,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 42427, c1, 0);  /* 22 */
     regTestCompareValues(rp, 42427, c2, 0);  /* 23 */
     if (rp->display) {
-        fprintf(stderr, "\nColor count using dna hash: %d\n", c1);
-        fprintf(stderr, "Color count using amap: %d\n", c2);
+        lept_stderr("\nColor count using dna hash: %d\n", c1);
+        lept_stderr("Color count using amap: %d\n", c2);
     }
     pixDestroy(&pix1);
 
@@ -324,9 +324,9 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 30000, c1, 0);  /* 24 */
     regTestCompareValues(rp, 25428, c2, 0);  /* 25 */
     if (rp->display) {
-        fprintf(stderr, "\nDna results using set:\n");
-        fprintf(stderr, "  da1 count: %d\n", c1);
-        fprintf(stderr, "  da1 set size: %d\n\n", c2);
+        lept_stderr("\nDna results using set:\n");
+        lept_stderr("  da1 count: %d\n", c1);
+        lept_stderr("  da1 set size: %d\n\n", c2);
     }
     l_asetDestroy(&set);
 
@@ -337,8 +337,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 18571, c1, 0);  /* 26 */
     regTestCompareValues(rp, 18571, c2, 0);  /* 27 */
     if (rp->display) {
-        fprintf(stderr, "  da4 count: %d\n", c1);
-        fprintf(stderr, "  da4 set size: %d\n\n", c2);
+        lept_stderr("  da4 count: %d\n", c1);
+        lept_stderr("  da4 set size: %d\n\n", c2);
     }
     l_asetDestroy(&set);
 
@@ -349,8 +349,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 10000, c1, 0);  /* 28 */
     regTestCompareValues(rp, 10000, c2, 0);  /* 29 */
     if (rp->display) {
-        fprintf(stderr, "  da5 count: %d\n", c1);
-        fprintf(stderr, "  da5 set size: %d\n\n", c2);
+        lept_stderr("  da5 count: %d\n", c1);
+        lept_stderr("  da5 set size: %d\n\n", c2);
     }
     l_asetDestroy(&set);
 
@@ -362,8 +362,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 35000, c1, 0);  /* 30 */
     regTestCompareValues(rp, 30428, c2, 0);  /* 31 */
     if (rp->display) {
-        fprintf(stderr, "  da6 count: %d\n", c1);
-        fprintf(stderr, "  da6 set size: %d\n\n", c2);
+        lept_stderr("  da6 count: %d\n", c1);
+        lept_stderr("  da6 set size: %d\n\n", c2);
     }
     l_asetDestroy(&set);
 
@@ -374,8 +374,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 10000, c1, 0);  /* 32 */
     regTestCompareValues(rp, 10000, c2, 0);  /* 33 */
     if (rp->display) {
-        fprintf(stderr, "  da7 count: %d\n", c1);
-        fprintf(stderr, "  da7 set size: %d\n\n", c2);
+        lept_stderr("  da7 count: %d\n", c1);
+        lept_stderr("  da7 set size: %d\n\n", c2);
     }
     l_asetDestroy(&set);
 
@@ -383,7 +383,7 @@ L_REGPARAMS  *rp;
     c1 = l_dnaGetCount(da8);
     regTestCompareValues(rp, 25428, c1, 0);  /* 34 */
     if (rp->display)
-        fprintf(stderr, "  da8 count: %d\n\n", c1);
+        lept_stderr("  da8 count: %d\n\n", c1);
     l_dnaDestroy(&da1);
     l_dnaDestroy(&da2);
     l_dnaDestroy(&da3);
@@ -436,7 +436,7 @@ SARRAY   *sa;
                                 if (!add_dups && i == 17 && j == 12 &&
                                     k == 4 && l == 21) {
                                     l_hashStringToUint64(buf, &hash);
-                                    fprintf(stderr, "  %llx\n", hash);
+                                    lept_stderr("  %llx\n", hash);
                                 }
                                 if (add_dups && m < 4)  /* add redundant */
                                     sarrayAddString(sa, buf, L_COPY);

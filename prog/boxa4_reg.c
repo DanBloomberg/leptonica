@@ -211,7 +211,7 @@ L_REGPARAMS  *rp;
     pix1 = pixaDisplayTiledInRows(pixa2, 32, 1400, 1.0, 0, 10, 0);
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 12 */
     pixDisplayWithTitle(pix1, 0, 600, NULL, rp->display);
-    fprintf(stderr, "Writing to: /tmp/lept/boxa/show.pdf\n");
+    lept_stderr("Writing to: /tmp/lept/boxa/show.pdf\n");
     l_pdfSetDateAndVersion(FALSE);
     pixaConvertToPdf(pixa2, 75, 0.6, 0, 0, NULL, "/tmp/lept/boxa/show.pdf");
     regTestCheckFile(rp, "/tmp/lept/boxa/show.pdf");  /* 13 */

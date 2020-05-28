@@ -62,9 +62,9 @@ L_REGPARAMS  *rp;
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
-    fprintf(stderr, " ===================================================\n");
-    fprintf(stderr, " =================== Test pathJoin() ===============\n");
-    fprintf(stderr, " ===================================================\n");
+    lept_stderr(" ===================================================\n");
+    lept_stderr(" =================== Test pathJoin() ===============\n");
+    lept_stderr(" ===================================================\n");
     TestPathJoin(rp, "/a/b//c///d//", "//e//f//g//", "/a/b/c/d/e/f/g");  /* 0 */
     TestPathJoin(rp, "/tmp/", "junk//", "/tmp/junk");  /* 1 */
     TestPathJoin(rp, "//tmp/", "junk//", "/tmp/junk");  /* 2 */
@@ -83,38 +83,38 @@ L_REGPARAMS  *rp;
     TestPathJoin(rp, "", "//", "/");  /* 15 */
     TestPathJoin(rp, "", "a", "a");  /* 16 */
 
-    fprintf(stderr, "The next 3 joins properly give error messages:\n");
-    fprintf(stderr, "join: .. + a --> NULL\n");
+    lept_stderr("The next 3 joins properly give error messages:\n");
+    lept_stderr("join: .. + a --> NULL\n");
     pathJoin("..", "a");  /* returns NULL */
-    fprintf(stderr, "join: %s + .. --> NULL\n", "/tmp");
+    lept_stderr("join: %s + .. --> NULL\n", "/tmp");
     pathJoin("/tmp", "..");  /* returns NULL */
-    fprintf(stderr, "join: ./ + .. --> NULL\n");
+    lept_stderr("join: ./ + .. --> NULL\n");
     pathJoin("./", "..");  /* returns NULL */
 
-    fprintf(stderr, "\n ===================================================\n");
-    fprintf(stderr, " ======= Test lept_rmdir() and lept_mkdir()) =======\n");
-    fprintf(stderr, " ===================================================\n");
+    lept_stderr("\n ===================================================\n");
+    lept_stderr(" ======= Test lept_rmdir() and lept_mkdir()) =======\n");
+    lept_stderr(" ===================================================\n");
     lept_rmdir("junkfiles");
     lept_direxists("/tmp/junkfiles", &exists);
-    if (rp->display) fprintf(stderr, "directory removed?: %d\n", !exists);
+    if (rp->display) lept_stderr("directory removed?: %d\n", !exists);
     regTestCompareValues(rp, 0, exists, 0.0);  /* 17 */
 
     lept_mkdir("junkfiles");
     lept_direxists("/tmp/junkfiles", &exists);
-    if (rp->display) fprintf(stderr, "directory made?: %d\n", exists);
+    if (rp->display) lept_stderr("directory made?: %d\n", exists);
     regTestCompareValues(rp, 1, exists, 0.0);  /* 18 */
 
-    fprintf(stderr, "\n ===================================================\n");
-    fprintf(stderr, " ======= Test lept_mv(), lept_cp(), lept_rm() ======\n");
-    fprintf(stderr, " ===================================================\n");
+    lept_stderr("\n ===================================================\n");
+    lept_stderr(" ======= Test lept_mv(), lept_cp(), lept_rm() ======\n");
+    lept_stderr(" ===================================================\n");
     TestLeptCpRm(rp, "weasel2.png", NULL, NULL);  /* 19 - 22 */
     TestLeptCpRm(rp, "weasel2.png", "junkfiles", NULL);  /* 23 - 26 */
     TestLeptCpRm(rp, "weasel2.png", NULL, "new_weasel2.png");  /* 27 - 30 */
     TestLeptCpRm(rp, "weasel2.png", "junkfiles", "new_weasel2.png"); /* 31-34 */
 
-    fprintf(stderr, "\n ===================================================\n");
-    fprintf(stderr, " =============== Test genPathname() ================\n");
-    fprintf(stderr, " ===================================================\n");
+    lept_stderr("\n ===================================================\n");
+    lept_stderr(" =============== Test genPathname() ================\n");
+    lept_stderr(" ===================================================\n");
     TestGenPathname(rp, "what/", NULL, "what");  /* 35 */
     TestGenPathname(rp, "what", "abc", "what/abc");  /* 36 */
     TestGenPathname(rp, NULL, "abc/def", "abc/def");  /* 37 */
@@ -161,7 +161,7 @@ char  *path = NULL;
     else if (path)
         newpath = stringNew(path);
     if (rp->display)
-        fprintf(stderr, "join: %s + %s --> %s\n", newfirst, newsecond, newpath);
+        lept_stderr("join: %s + %s --> %s\n", newfirst, newsecond, newpath);
     lept_free(path);
     lept_free(newfirst);
     lept_free(newsecond);
@@ -184,10 +184,9 @@ SARRAY  *sa;
     lept_rm(newdir, realtail);
     makeTempDirname(realnewdir, 256, newdir);
     if (rp->display) {
-        fprintf(stderr, "\nInput: srctail = %s, newdir = %s, newtail = %s\n",
-                srctail, newdir, newtail);
-        fprintf(stderr, "  realnewdir = %s, realtail = %s\n",
-                realnewdir, realtail);
+        lept_stderr("\nInput: srctail = %s, newdir = %s, newtail = %s\n",
+                    srctail, newdir, newtail);
+        lept_stderr("  realnewdir = %s, realtail = %s\n", realnewdir, realtail);
     }
     sa = getFilenamesInDirectory(realnewdir);
     nfiles1 = sarrayGetCount(sa);
@@ -198,9 +197,9 @@ SARRAY  *sa;
     sa = getFilenamesInDirectory(realnewdir);
     nfiles2 = sarrayGetCount(sa);
     if (rp->display) {
-        fprintf(stderr, "  File copied to directory: %s\n", realnewdir);
-        fprintf(stderr, "  ... with this filename: %s\n", fname);
-        fprintf(stderr, "  delta files should be 1: %d\n", nfiles2 - nfiles1);
+        lept_stderr("  File copied to directory: %s\n", realnewdir);
+        lept_stderr("  ... with this filename: %s\n", fname);
+        lept_stderr("  delta files should be 1: %d\n", nfiles2 - nfiles1);
     }
     regTestCompareValues(rp, 1, nfiles2 - nfiles1, 0.0);  /* '1' */
     sarrayDestroy(&sa);
@@ -211,8 +210,8 @@ SARRAY  *sa;
     sa = getFilenamesInDirectory(realnewdir);
     nfiles2 = sarrayGetCount(sa);
     if (rp->display) {
-        fprintf(stderr, "  File removed from directory: %s\n", realnewdir);
-        fprintf(stderr, "  delta files should be 0: %d\n", nfiles2 - nfiles1);
+        lept_stderr("  File removed from directory: %s\n", realnewdir);
+        lept_stderr("  delta files should be 0: %d\n", nfiles2 - nfiles1);
     }
     regTestCompareValues(rp, 0, nfiles2 - nfiles1, 0.0);  /* '2' */
     sarrayDestroy(&sa);
@@ -220,7 +219,7 @@ SARRAY  *sa;
         /* Copy it again ... */
     lept_cp(srctail, newdir, newtail, &fname);
     if (rp->display)
-        fprintf(stderr, "  File copied to: %s\n", fname);
+        lept_stderr("  File copied to: %s\n", fname);
     lept_free(fname);
 
         /* move it elsewhere ... */
@@ -229,16 +228,16 @@ SARRAY  *sa;
     newsrc = pathJoin(realnewdir, realtail);
     lept_mv(newsrc, "junko", NULL, &fname);
     if (rp->display) {
-        fprintf(stderr, "  Move file at: %s\n", newsrc);
-        fprintf(stderr, "  ... to: %s\n", fname);
+        lept_stderr("  Move file at: %s\n", newsrc);
+        lept_stderr("  ... to: %s\n", fname);
     }
     lept_free(fname);
     lept_free(newsrc);
     makeTempDirname(newnewdir, 256, "junko");
-    if (rp->display) fprintf(stderr, "  In this directory: %s\n", newnewdir);
+    if (rp->display) lept_stderr("  In this directory: %s\n", newnewdir);
     sa = getFilenamesInDirectory(newnewdir);  /* check if it landed ok */
     nfiles3 = sarrayGetCount(sa);
-    if (rp->display) fprintf(stderr, "  num files should be 1: %d\n", nfiles3);
+    if (rp->display) lept_stderr("  num files should be 1: %d\n", nfiles3);
     regTestCompareValues(rp, 1, nfiles3, 0.0);  /* '3' */
     sarrayDestroy(&sa);
 
@@ -246,8 +245,8 @@ SARRAY  *sa;
     sa = getFilenamesInDirectory(realnewdir);  /* check if it was removed */
     nfiles2 = sarrayGetCount(sa);
     if (rp->display) {
-        fprintf(stderr, "  In this directory: %s\n", realnewdir);
-        fprintf(stderr, "  delta files should be 0: %d\n", nfiles2 - nfiles1);
+        lept_stderr("  In this directory: %s\n", realnewdir);
+        lept_stderr("  delta files should be 0: %d\n", nfiles2 - nfiles1);
     }
     regTestCompareValues(rp, 0, nfiles2 - nfiles1, 0.0);  /* '4' */
     sarrayDestroy(&sa);
@@ -264,7 +263,7 @@ char  expect[256], localdir[256];
     char *path = genPathname(dir, fname);
     if (!dir || dir[0] == '\0') {
         if (!getcwd(localdir, sizeof(localdir)))
-            fprintf(stderr, "bad bad bad -- no local directory!\n");
+            lept_stderr("bad bad bad -- no local directory!\n");
         snprintf(expect, sizeof(expect), "%s/%s", localdir, result);
 #ifdef _WIN32
         convertSepCharsInPath(expect, UNIX_PATH_SEPCHAR);
@@ -281,7 +280,7 @@ char  expect[256], localdir[256];
             newdir = stringNew("\"\"");
         else if (dir)
             newdir = stringNew(dir);
-        fprintf(stderr, "genPathname(%s, %s) --> %s\n", newdir, fname, path);
+        lept_stderr("genPathname(%s, %s) --> %s\n", newdir, fname, path);
         lept_free(newdir);
     }
     lept_free(path);

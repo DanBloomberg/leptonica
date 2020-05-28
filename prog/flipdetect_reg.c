@@ -64,45 +64,44 @@ static char  mainName[] = "flipdetect_reg";
     pixDestroy(&pix1);
 
         /* Test high-level interface */
-    fprintf(stderr, "\nTest high-level detection/rotation\n");
+    lept_stderr("\nTest high-level detection/rotation\n");
     pix1 = pixRotateOrth(pixs, 3);
     pix2 = pixOrientCorrect(pix1, 0.0, 0.0, &upconf1, &leftconf1,
                             &rotation, 0);
-    fprintf(stderr, "upconf = %7.3f, leftconf = %7.3f, rotation = %d\n",
-            upconf1, leftconf1, rotation);
+    lept_stderr("upconf = %7.3f, leftconf = %7.3f, rotation = %d\n",
+                upconf1, leftconf1, rotation);
     pixEqual(pixs, pix2, &same);
     if (!same)
-        fprintf(stderr, "Error: image not rotated back correctly!\n");
+        lept_stderr("Error: image not rotated back correctly!\n");
     pixDestroy(&pix1);
     pixDestroy(&pix2);
 
         /* Compare rasterop and dwa orientation detection */
-    fprintf(stderr, "\nTest orientation detection\n");
+    lept_stderr("\nTest orientation detection\n");
     startTimer();
     pixOrientDetect(pixs, &upconf1, &leftconf1, 0, 0);
-    fprintf(stderr, "Time for rop orient test: %7.3f sec\n", stopTimer());
+    lept_stderr("Time for rop orient test: %7.3f sec\n", stopTimer());
 
     startTimer();
     pixOrientDetectDwa(pixs, &upconf2, &leftconf2, 0, 0);
-    fprintf(stderr, "Time for dwa orient test: %7.3f sec\n", stopTimer());
+    lept_stderr("Time for dwa orient test: %7.3f sec\n", stopTimer());
 
     if (upconf1 == upconf2 && leftconf1 == leftconf2) {
         printStarredMessage("Orient results identical");
-        fprintf(stderr, "upconf = %7.3f, leftconf = %7.3f\n",
-                upconf1, leftconf1);
-    }
-    else {
+        lept_stderr("upconf = %7.3f, leftconf = %7.3f\n",
+                    upconf1, leftconf1);
+    } else {
         printStarredMessage("Orient results differ");
-        fprintf(stderr, "upconf1 = %7.3f, upconf2 = %7.3f\n", upconf1, upconf2);
-        fprintf(stderr, "leftconf1 = %7.3f, leftconf2 = %7.3f\n",
-                leftconf1, leftconf2);
+        lept_stderr("upconf1 = %7.3f, upconf2 = %7.3f\n", upconf1, upconf2);
+        lept_stderr("leftconf1 = %7.3f, leftconf2 = %7.3f\n",
+                    leftconf1, leftconf2);
     }
 
     makeOrientDecision(upconf1, leftconf1, 0, 0, &orient, 1);
-    fprintf(stderr, "Orientation (enum) found: %d\n", orient);
+    lept_stderr("Orientation (enum) found: %d\n", orient);
 
     pix1 = pixCopy(NULL, pixs);
-    fprintf(stderr, "\nTest orient detection for 4 orientations\n");
+    lept_stderr("\nTest orient detection for 4 orientations\n");
     for (i = 0; i < 4; i++) {
         pixOrientDetectDwa(pix1, &upconf2, &leftconf2, 0, 0);
         makeOrientDecision(upconf2, leftconf2, 0, 0, &orient, 1);
@@ -114,32 +113,31 @@ static char  mainName[] = "flipdetect_reg";
     pixDestroy(&pix1);
 
         /* Compare rasterop and dwa mirror flip detection */
-    fprintf(stderr, "\nTest mirror reverse detection\n");
+    lept_stderr("\nTest mirror reverse detection\n");
     startTimer();
     pixMirrorDetect(pixs, &conf1, 0, 1);
-    fprintf(stderr, "Time for rop mirror flip test: %7.3f sec\n", stopTimer());
+    lept_stderr("Time for rop mirror flip test: %7.3f sec\n", stopTimer());
 
     startTimer();
     pixMirrorDetectDwa(pixs, &conf2, 0, 0);
-    fprintf(stderr, "Time for dwa mirror flip test: %7.3f sec\n", stopTimer());
+    lept_stderr("Time for dwa mirror flip test: %7.3f sec\n", stopTimer());
 
     if (conf1 == conf2) {
         printStarredMessage("Mirror results identical");
-        fprintf(stderr, "conf = %7.3f\n", conf1);
-    }
-    else {
+        lept_stderr("conf = %7.3f\n", conf1);
+    } else {
         printStarredMessage("Mirror results differ");
-        fprintf(stderr, "conf1 = %7.3f, conf2 = %7.3f\n", conf1, conf2);
+        lept_stderr("conf1 = %7.3f, conf2 = %7.3f\n", conf1, conf2);
     }
 
         /* Compare safer rasterop and dwa orientation detection */
-    fprintf(stderr, "\nTest safer version of up-down tests\n");
+    lept_stderr("\nTest safer version of up-down tests\n");
     pixUpDownDetectGeneral(pixs, &conf1, 0, 10, 1);
     pixUpDownDetectGeneralDwa(pixs, &conf2, 0, 10, 1);
     if (conf1 == conf2)
-        fprintf(stderr, "Confidence results are identical\n");
+        lept_stderr("Confidence results are identical\n");
     else
-        fprintf(stderr, "Confidence results differ\n");
+        lept_stderr("Confidence results differ\n");
 
     pixDestroy(&pixs);
     return 0;
@@ -149,9 +147,9 @@ static char  mainName[] = "flipdetect_reg";
 void
 printStarredMessage(const char *msg)
 {
-    fprintf(stderr, "****************************************************\n");
-    fprintf(stderr, "***********   %s   ***********\n", msg);
-    fprintf(stderr, "****************************************************\n");
+    lept_stderr("****************************************************\n");
+    lept_stderr("***********   %s   ***********\n", msg);
+    lept_stderr("****************************************************\n");
     return;
 }
 

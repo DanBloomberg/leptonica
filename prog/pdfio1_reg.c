@@ -79,9 +79,9 @@ L_REGPARAMS  *rp;
 
 #if 1
     /* ---------------  Single image tests  ------------------- */
-    fprintf(stderr, "\n*** Writing single images as pdf files\n");
-
-    convertToPdf("weasel2.4c.png", L_FLATE_ENCODE, 0, "/tmp/lept/pdf1/file00.pdf",
+    lept_stderr("\n*** Writing single images as pdf files\n");
+    convertToPdf("weasel2.4c.png", L_FLATE_ENCODE, 0,
+                 "/tmp/lept/pdf1/file00.pdf",
                  0, 0, 72, "weasel2.4c.png", NULL, 0);
     convertToPdf("test24.jpg", L_JPEG_ENCODE, 0, "/tmp/lept/pdf1/file01.pdf",
                  0, 0, 72, "test24.jpg", NULL, 0);
@@ -131,8 +131,7 @@ L_REGPARAMS  *rp;
 
 #if 1
     /* ---------------  Multiple image tests  ------------------- */
-    fprintf(stderr, "\n*** Writing multiple images as single page pdf files\n");
-
+    lept_stderr("\n*** Writing multiple images as single page pdf files\n");
     pix1 = pixRead("feyn-fract.tif");
     pix2 = pixRead("weasel8.240c.png");
 
@@ -167,8 +166,7 @@ L_REGPARAMS  *rp;
 
 #if 1
     /* -------- pdf convert segmented with no image regions -------- */
-    fprintf(stderr, "\n*** Writing segmented images without image regions\n");
-
+    lept_stderr("\n*** Writing segmented images without image regions\n");
     pix1 = pixRead("rabi.png");
     pix2 = pixScaleToGray2(pix1);
     pixWrite("/tmp/lept/pdf1/rabi8.jpg", pix2, IFF_JFIF_JPEG);
@@ -206,7 +204,7 @@ L_REGPARAMS  *rp;
 
 #if 1
     /* ----------  Generating from 1 bpp images (high-level) -------------- */
-    fprintf(stderr, "\n*** Writing 1 bpp images as pdf files (high-level)\n");
+    lept_stderr("\n*** Writing 1 bpp images as pdf files (high-level)\n");
     pix1 = pixRead("feyn-fract.tif");
     pixWrite("/tmp/lept/pdf1/feyn-nocmap.png", pix1, IFF_PNG);
     pix2 = pixCopy(NULL, pix1);
@@ -236,7 +234,7 @@ L_REGPARAMS  *rp;
 
 #if 1
     /* ----------  Generating from 1 bpp images (low-level) -------------- */
-    fprintf(stderr, "\n*** Writing 1 bpp images as pdf files (low-level)\n");
+    lept_stderr("\n*** Writing 1 bpp images as pdf files (low-level)\n");
     pix1 = pixRead("cat-and-mouse.png");
     pix2 = pixConvertRGBToCmapLossless(pix1);  /* restore the cmap */
 
@@ -249,7 +247,7 @@ L_REGPARAMS  *rp;
 
         /* Generate a pdf from this pix. The pdf has the colormap */
     pixGenerateCIData(pix2, L_FLATE_ENCODE, 0, 0, &cid);
-    fprintf(stderr, "  Should have 2 colors: %d\n", cid->ncolors);
+    lept_stderr("  Should have 2 colors: %d\n", cid->ncolors);
     cidConvertToPdfData(cid, "with colormap", &data8, &nbytes);
     l_binaryWrite("/tmp/lept/pdf1/file23.pdf", "w", data8, nbytes);
     lept_free(data8);
@@ -259,7 +257,7 @@ L_REGPARAMS  *rp;
          *   which calls pixRead(), removing the cmap  */
     l_generateCIDataForPdf("/tmp/lept/pdf1/cat-and-mouse-cmap1.png",
                            NULL, 75, &cid);
-    fprintf(stderr, "  Should have 0 colors: %d\n", cid->ncolors);
+    lept_stderr("  Should have 0 colors: %d\n", cid->ncolors);
     cidConvertToPdfData(cid, "no colormap", &data8, &nbytes);
     l_binaryWrite("/tmp/lept/pdf1/file24.pdf", "w", data8, nbytes);
     lept_free(data8);
@@ -273,7 +271,7 @@ L_REGPARAMS  *rp;
 
        /* Generate a pdf from this pix. The pdf has the colormap. */
     pixGenerateCIData(pix2, L_FLATE_ENCODE, 0, 0, &cid);
-    fprintf(stderr, "  Should have 2 colors: %d\n", cid->ncolors);
+    lept_stderr("  Should have 2 colors: %d\n", cid->ncolors);
     cidConvertToPdfData(cid, "with colormap", &data8, &nbytes);
     l_binaryWrite("/tmp/lept/pdf1/file25.pdf", "w", data8, nbytes);
     lept_free(data8);
@@ -281,7 +279,7 @@ L_REGPARAMS  *rp;
         /* Generate a pdf from the cmap file.  No cmap in the pdf. */
     l_generateCIDataForPdf("/tmp/lept/pdf1/cat-and-mouse-cmap2.png",
                            NULL, 75, &cid);
-    fprintf(stderr, "  Should have 0 colors: %d\n", cid->ncolors);
+    lept_stderr("  Should have 0 colors: %d\n", cid->ncolors);
     cidConvertToPdfData(cid, "no colormap", &data8, &nbytes);
     l_binaryWrite("/tmp/lept/pdf1/file26.pdf", "w", data8, nbytes);
     lept_free(data8);

@@ -90,10 +90,10 @@ L_REGPARAMS  *rp;
         return 1;
 
 #if !HAVE_LIBGIF && !HAVE_LIBUNGIF
-    fprintf(stderr, "gifio is not enabled\n"
-            "libgif or libungif are required for gifio_reg\n"
-            "See environ.h: #define HAVE_LIBGIF or HAVE_LIBUNGIF 1\n"
-            "See prog/Makefile: link in -lgif or -lungif\n\n");
+    lept_stderr("gifio is not enabled\n"
+                "libgif or libungif are required for gifio_reg\n"
+                "See environ.h: #define HAVE_LIBGIF or HAVE_LIBUNGIF 1\n"
+                "See prog/Makefile: link in -lgif or -lungif\n\n");
     regTestCleanup(rp);
     return 0;
 #endif  /* abort */
@@ -124,13 +124,10 @@ L_REGPARAMS  *rp;
     test_gif(FILE_8BPP_3, pixa, rp);
     test_gif(FILE_16BPP, pixa, rp);
     test_gif(FILE_32BPP, pixa, rp);
-    if (rp->success) {
-        fprintf(stderr,
-            "\n  ****** Success on lossless r/w to file *****\n\n");
-    } else {
-        fprintf(stderr,
-            "\n  ******* Failure on at least one r/w to file ******\n\n");
-    }
+    if (rp->success)
+        lept_stderr("\n  ****** Success on lossless r/w to file *****\n\n");
+    else
+        lept_stderr("\n  ***** Failure on at least one r/w to file ****\n\n");
 
     if (rp->display) {
         pix = pixaDisplayTiledAndScaled(pixa, 32, 450, 3, 0, 20, 2);
@@ -150,13 +147,10 @@ L_REGPARAMS  *rp;
     if (test_mem_gif(FILE_8BPP_3, 5)) success = FALSE;
     if (test_mem_gif(FILE_16BPP, 6)) success = FALSE;
     if (test_mem_gif(FILE_32BPP, 7)) success = FALSE;
-    if (success) {
-        fprintf(stderr,
-            "\n  ****** Success on lossless r/w to memory *****\n\n");
-    } else {
-        fprintf(stderr,
-            "\n  ******* Failure on at least one r/w to memory ******\n\n");
-    }
+    if (success)
+        lept_stderr("\n  ****** Success on lossless r/w to memory *****\n\n");
+    else
+        lept_stderr("\n  **** Failure on at least one r/w to memory ****\n\n");
 
         /* Success only if all tests are passed */
     if (rp->success == TRUE) rp->success = success;
@@ -185,13 +179,12 @@ PIX     *pixs, *pix1, *pix2;
     pixEqual(pixs, pix2, &same);
 
     if (!same && rp->index < 6) {
-        fprintf(stderr, "Error for %s\n", fname);
+        lept_stderr("Error for %s\n", fname);
         rp->success = FALSE;
     }
     if (rp->display) {
-        fprintf(stderr,
-                " depth: pixs = %d, pix1 = %d\n", pixGetDepth(pixs),
-                pixGetDepth(pix1));
+        lept_stderr(" depth: pixs = %d, pix1 = %d\n", pixGetDepth(pixs),
+                    pixGetDepth(pix1));
         pixaAddPix(pixa, pix2, L_CLONE);
     }
     pixDestroy(&pixs);
@@ -213,15 +206,15 @@ PIX      *pixs;
 PIX      *pixd = NULL;
 
     if ((pixs = pixRead(fname)) == NULL) {
-        fprintf(stderr, "Failure to read gif file: %s\n", fname);
+        lept_stderr("Failure to read gif file: %s\n", fname);
         return 1;
     }
     if (pixWriteMem(&data, &size, pixs, IFF_GIF)) {
-        fprintf(stderr, "Mem gif write fail on image %d\n", index);
+        lept_stderr("Mem gif write fail on image %d\n", index);
         return 1;
     }
     if ((pixd = pixReadMem(data, size)) == NULL) {
-        fprintf(stderr, "Mem gif read fail on image %d\n", index);
+        lept_stderr("Mem gif read fail on image %d\n", index);
         lept_free(data);
         return 1;
     }
@@ -231,7 +224,7 @@ PIX      *pixd = NULL;
     pixDestroy(&pixd);
     lept_free(data);
     if (!same && index < 6) {
-        fprintf(stderr, "Mem gif write/read fail for file %s\n", fname);
+        lept_stderr("Mem gif write/read fail for file %s\n", fname);
         return 1;
     }
     else

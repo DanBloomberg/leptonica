@@ -81,7 +81,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
         /* Test invertability of sampling */
-    fprintf(stderr, "Test invertability of sampling\n");
+    lept_stderr("Test invertability of sampling\n");
     pixa = pixaCreate(0);
     for (i = 0; i < 3; i++) {
         pixb = pixAddBorder(pixsc, ADDED_BORDER_PIXELS, 0);
@@ -111,7 +111,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
         /* Test invertability of interpolation on grayscale */
-    fprintf(stderr, "Test invertability of grayscale interpolation\n");
+    lept_stderr("Test invertability of grayscale interpolation\n");
     pixa = pixaCreate(0);
     pixg = pixScaleToGray(pixs, 0.2);
     for (i = 0; i < 2; i++) {
@@ -143,7 +143,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
         /* Test invertability of interpolation on color */
-    fprintf(stderr, "Test invertability of color interpolation\n");
+    lept_stderr("Test invertability of color interpolation\n");
     pixa = pixaCreate(0);
     pixc = pixRead("test24.jpg");
     pixcs = pixScale(pixc, 0.3, 0.3);
@@ -178,7 +178,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
        /* Comparison between sampling and interpolated */
-    fprintf(stderr, "Compare sampling with interpolated\n");
+    lept_stderr("Compare sampling with interpolated\n");
     MakePtas(3, &ptas, &ptad);
     pixa = pixaCreate(0);
     pixg = pixScaleToGray(pixs, 0.2);

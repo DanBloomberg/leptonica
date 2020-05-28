@@ -57,44 +57,44 @@ L_REGPARAMS  *rp;
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
-    fprintf(stderr, "Test binary image:\n");
+    lept_stderr("Test binary image:\n");
     pixs = pixRead(BINARY_IMAGE);
     RotateTest(pixs, 1.0, rp);
     pixDestroy(&pixs);
 
-    fprintf(stderr, "Test 2 bpp cmapped image with filled cmap:\n");
+    lept_stderr("Test 2 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(TWO_BPP_IMAGE);
     RotateTest(pixs, 1.0, rp);
     pixDestroy(&pixs);
 
-    fprintf(stderr, "Test 4 bpp cmapped image with unfilled cmap:\n");
+    lept_stderr("Test 4 bpp cmapped image with unfilled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE1);
     RotateTest(pixs, 1.0, rp);
     pixDestroy(&pixs);
 
-    fprintf(stderr, "Test 4 bpp cmapped image with filled cmap:\n");
+    lept_stderr("Test 4 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE2);
     RotateTest(pixs, 1.0, rp);
     pixDestroy(&pixs);
 
-    fprintf(stderr, "Test 8 bpp grayscale image:\n");
+    lept_stderr("Test 8 bpp grayscale image:\n");
     pixs = pixRead(EIGHT_BPP_IMAGE);
     RotateTest(pixs, 1.0, rp);
     pixDestroy(&pixs);
 
-    fprintf(stderr, "Test 8 bpp grayscale cmap image:\n");
+    lept_stderr("Test 8 bpp grayscale cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE1);
     RotateTest(pixs, 1.0, rp);
     pixDestroy(&pixs);
 
-    fprintf(stderr, "Test 8 bpp color cmap image:\n");
+    lept_stderr("Test 8 bpp color cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE2);
     pixd = pixOctreeColorQuant(pixs, 200, 0);
     RotateTest(pixd, 0.5, rp);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
-    fprintf(stderr, "Test rgb image:\n");
+    lept_stderr("Test rgb image:\n");
     pixs = pixRead(RGB_IMAGE);
     RotateTest(pixs, 0.25, rp);
     pixDestroy(&pixs);

@@ -93,9 +93,9 @@ L_REGPARAMS  *rp;
         pix3 = pixaDisplayTiledInRows(pixa1, 1, 1500, 1.0, 0, 50, 2);
         pixDisplayWithTitle(pix3, 100, 100 + 100 * k, NULL, rp->display);
         regTestWritePixAndCheck(rp, pix3, IFF_PNG);   /* 0 - 6 */
-        fprintf(stderr, "Test %d, maxsize = %d: n_init = %d, n_final = %d\n",
-                k + 1, (l_int32)maxsize[k] + 1,
-                boxaGetCount(boxa1), boxaGetCount(boxa2));
+        lept_stderr("Test %d, maxsize = %d: n_init = %d, n_final = %d\n",
+                    k + 1, (l_int32)maxsize[k] + 1,
+                    boxaGetCount(boxa1), boxaGetCount(boxa2));
         pixDestroy(&pix3);
         boxaDestroy(&boxa1);
         boxaDestroy(&boxa2);

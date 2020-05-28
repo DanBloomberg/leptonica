@@ -58,8 +58,7 @@ L_REGPARAMS  *rp;
         pixDestroy(&pix2);
     }
     pixGetDimensions(pixs, &w, &h, NULL);
-    fprintf(stderr, "Sobel edge MPix/sec: %7.3f\n",
-            0.0001 * w * h / stopTimer());
+    lept_stderr("Sobel edge MPix/sec: %7.3f\n", 0.0001 * w * h / stopTimer());
 
         /* Horiz and vert sobel edges (1 bpp) */
     pix1 = pixSobelEdgeFilter(pixs, L_HORIZONTAL_EDGES);

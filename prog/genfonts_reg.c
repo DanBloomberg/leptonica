@@ -84,8 +84,8 @@ L_REGPARAMS  *rp;
         pathname = pathJoin("/tmp/lept/filefonts", outputfonts[i]);
         pixa = pixaRead(pathname);
         if (rp->display) {
-            fprintf(stderr, "Found %d chars in font size %d\n",
-                    pixaGetCount(pixa), sizes[i]);
+            lept_stderr("Found %d chars in font size %d\n",
+                        pixaGetCount(pixa), sizes[i]);
         }
         pixd = pixaDisplayTiled(pixa, 1500, 0, 15);
         regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 0 - 8 */
@@ -104,8 +104,8 @@ L_REGPARAMS  *rp;
         pathname = pathJoin("/tmp/lept/strfonts", outputfonts[i]);
         pixa = pixaRead(pathname);
         if (rp->display) {
-            fprintf(stderr, "Found %d chars in font size %d\n",
-                    pixaGetCount(pixa), sizes[i]);
+            lept_stderr("Found %d chars in font size %d\n",
+                        pixaGetCount(pixa), sizes[i]);
         }
         pixd = pixaDisplayTiled(pixa, 1500, 0, 15);
         regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 9 - 17 */
@@ -120,7 +120,7 @@ L_REGPARAMS  *rp;
     lept_mkdir("lept/pafonts");
     for (i = 0; i < 9; i++) {
         pixa = pixaGetFont("/tmp/lept/strfonts", sizes[i], &bl1, &bl2, &bl3);
-        fprintf(stderr, "Baselines are at: %d, %d, %d\n", bl1, bl2, bl3);
+        lept_stderr("Baselines are at: %d, %d, %d\n", bl1, bl2, bl3);
         snprintf(buf, sizeof(buf), "/tmp/lept/pafonts/chars-%d.pa", sizes[i]);
         pixaWrite(buf, pixa);
         if (i == 2) {
@@ -141,8 +141,8 @@ L_REGPARAMS  *rp;
         data1 = l_binaryRead(pathname, &nbytes);
         datastr = encodeBase64(data1, nbytes, &sbytes);
         if (rp->display)
-            fprintf(stderr, "nbytes = %lu, sbytes = %d\n",
-                    (unsigned long)nbytes, sbytes);
+            lept_stderr("nbytes = %lu, sbytes = %d\n",
+                        (unsigned long)nbytes, sbytes);
         formstr = reformatPacked64(datastr, sbytes, 4, 72, 1, &formbytes);
         snprintf(buf, sizeof(buf), "/tmp/lept/encfonts/formstr_%d.txt",
                  fontsize);

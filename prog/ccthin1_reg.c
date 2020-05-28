@@ -155,7 +155,7 @@ L_REGPARAMS  *rp;
         /* Optional display */
     if (rp->display) {
         lept_mkdir("/lept/thin");
-        fprintf(stderr, "Writing to: /tmp/lept/thin/ccthin1-1.pdf");
+        lept_stderr("Writing to: /tmp/lept/thin/ccthin1-1.pdf");
         pixaConvertToPdf(pixa, 0, 1.0, 0, 0, "Thin 1 Sels",
                          "/tmp/lept/thin/ccthin1-1.pdf");
     }
@@ -192,7 +192,7 @@ L_REGPARAMS  *rp;
     pixDisplayWithTitle(pix1, 0, 0, NULL, rp->display);
     pixDestroy(&pix1);
     if (rp->display) {
-        fprintf(stderr, "Writing to: /tmp/lept/thin/ccthin1-2.pdf");
+        lept_stderr("Writing to: /tmp/lept/thin/ccthin1-2.pdf");
         pixaConvertToPdf(pixa, 0, 1.0, 0, 0, "Thin 1 Results",
                          "/tmp/lept/thin/ccthin1-2.pdf");
     }

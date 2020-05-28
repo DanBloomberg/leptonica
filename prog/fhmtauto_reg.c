@@ -74,9 +74,9 @@ L_REGPARAMS  *rp;
         pixEqual(pixref, pix3, &same1);
         pixEqual(pixref, pix4, &same2);
         if (!same1 || !same2)
-            fprintf(stderr, "hmt differ for sel %d (%s)\n", i, selname);
+            lept_stderr("hmt differ for sel %d (%s)\n", i, selname);
         if (rp->display && same1 && same2)
-            fprintf(stderr, "hmt are identical for sel %d (%s)\n", i, selname);
+            lept_stderr("hmt are identical for sel %d (%s)\n", i, selname);
         pixDestroy(&pixref);
         pixDestroy(&pix1);
         pixDestroy(&pix2);

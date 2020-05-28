@@ -179,16 +179,16 @@ L_REGPARAMS  *rp;
             pixt2 = pixBlockconvTiled(pixg, 5, 5, j, i);
             pixEqual(pixt2, pixd, &same);
             if (!same) {
-                fprintf(stderr," Error for nx = %d, ny = %d\n", j, i);
+                lept_stderr("Error for nx = %d, ny = %d\n", j, i);
                 ok = FALSE;
             }
             pixDestroy(&pixt2);
         }
     }
     if (ok)
-        fprintf(stderr, "OK: Tiled results identical to pixConvolve()\n");
+        lept_stderr("OK: Tiled results identical to pixConvolve()\n");
     else
-        fprintf(stderr, "ERROR: Tiled results not identical to pixConvolve()\n");
+        lept_stderr("ERROR: Tiled results not identical to pixConvolve()\n");
 
     pixDestroy(&pixs);
     pixDestroy(&pixg);
@@ -210,14 +210,14 @@ L_REGPARAMS  *rp;
     kel3 = makeFlatKernel(7, 7, 3, 3);
     startTimer();
     pixt = pixConvolve(pixs, kel3, 8, 1);
-    fprintf(stderr, "Generic convolution time: %5.3f sec\n", stopTimer());
+    lept_stderr("Generic convolution time: %5.3f sec\n", stopTimer());
     pixaAddPix(pixa, pixt, L_INSERT);
     pixWrite("/tmp/lept/regout/conv1.png", pixt, IFF_PNG);
     regTestCheckFile(rp, "/tmp/lept/regout/conv1.png");  /* 10 */
 
     startTimer();
     pixt2 = pixBlockconv(pixs, 3, 3);
-    fprintf(stderr, "Flat block convolution time: %5.3f sec\n", stopTimer());
+    lept_stderr("Flat block convolution time: %5.3f sec\n", stopTimer());
     pixaAddPix(pixa, pixt2, L_INSERT);
     pixWrite("/tmp/lept/regout/conv2.png", pixt2, IFF_PNG);  /* ditto */
     regTestCheckFile(rp, "/tmp/lept/regout/conv2.png");  /* 11 */
@@ -230,11 +230,11 @@ L_REGPARAMS  *rp;
     pixaaAddPixa(paa, pixa, L_INSERT);
     pixWrite("/tmp/lept/regout/conv3.png", pixp, IFF_PNG);
     regTestCheckFile(rp, "/tmp/lept/regout/conv3.png");  /* 12 */
-    fprintf(stderr, "Ave diff = %6.4f, RMS diff = %6.4f\n", avediff, rmsdiff);
+    lept_stderr("Ave diff = %6.4f, RMS diff = %6.4f\n", avediff, rmsdiff);
     if (avediff <= 0.01)
-        fprintf(stderr, "OK: avediff = %6.4f <= 0.01\n", avediff);
+        lept_stderr("OK: avediff = %6.4f <= 0.01\n", avediff);
     else
-        fprintf(stderr, "Bad?: avediff = %6.4f > 0.01\n", avediff);
+        lept_stderr("Bad?: avediff = %6.4f > 0.01\n", avediff);
 
     pixDestroy(&pixs);
     pixDestroy(&pix);
@@ -248,7 +248,7 @@ L_REGPARAMS  *rp;
     kel4 = makeFlatKernel(7, 7, 3, 3);
     startTimer();
     pixt1 = pixConvolveRGB(pixs, kel4);
-    fprintf(stderr, "Time 7x7 non-separable: %7.3f sec\n", stopTimer());
+    lept_stderr("Time 7x7 non-separable: %7.3f sec\n", stopTimer());
     pixWrite("/tmp/lept/regout/conv4.jpg", pixt1, IFF_JFIF_JPEG);
     regTestCheckFile(rp, "/tmp/lept/regout/conv4.jpg");  /* 13 */
 
@@ -256,13 +256,13 @@ L_REGPARAMS  *rp;
     kely = makeFlatKernel(7, 1, 3, 0);
     startTimer();
     pixt2 = pixConvolveRGBSep(pixs, kelx, kely);
-    fprintf(stderr, "Time 7x1,1x7 separable: %7.3f sec\n", stopTimer());
+    lept_stderr("Time 7x1,1x7 separable: %7.3f sec\n", stopTimer());
     pixWrite("/tmp/lept/regout/conv5.jpg", pixt2, IFF_JFIF_JPEG);
     regTestCheckFile(rp, "/tmp/lept/regout/conv5.jpg");  /* 14 */
 
     startTimer();
     pixt3 = pixBlockconv(pixs, 3, 3);
-    fprintf(stderr, "Time 7x7 blockconv: %7.3f sec\n", stopTimer());
+    lept_stderr("Time 7x7 blockconv: %7.3f sec\n", stopTimer());
     pixWrite("/tmp/lept/regout/conv6.jpg", pixt3, IFF_JFIF_JPEG);
     regTestCheckFile(rp, "/tmp/lept/regout/conv6.jpg");  /* 15 */
     regTestComparePix(rp, pixt1, pixt2);  /* 16 */
@@ -282,7 +282,7 @@ L_REGPARAMS  *rp;
     pixaAddPix(pixa, pixs, L_COPY);
     kel1 = makeGaussianKernel(5, 5, 3.0, 5.0);
     kernelGetSum(kel1, &sum);
-    fprintf(stderr, "Sum for gaussian kernel = %f\n", sum);
+    lept_stderr("Sum for gaussian kernel = %f\n", sum);
     kernelWrite("/tmp/lept/regout/gauss.kel", kel1);
     pixt = pixConvolve(pixs, kel1, 8, 1);
     pixt2 = pixConvolve(pixs, kel1, 16, 0);
@@ -303,9 +303,9 @@ L_REGPARAMS  *rp;
     pixaAddPix(pixa, pixs, L_INSERT);
     makeGaussianKernelSep(5, 5, 3.0, 5.0, &kelx, &kely);
     kernelGetSum(kelx, &sum);
-    fprintf(stderr, "Sum for x gaussian kernel = %f\n", sum);
+    lept_stderr("Sum for x gaussian kernel = %f\n", sum);
     kernelGetSum(kely, &sum);
-    fprintf(stderr, "Sum for y gaussian kernel = %f\n", sum);
+    lept_stderr("Sum for y gaussian kernel = %f\n", sum);
     kernelWrite("/tmp/lept/regout/gauss.kelx", kelx);
     kernelWrite("/tmp/lept/regout/gauss.kely", kely);
 
@@ -333,7 +333,7 @@ L_REGPARAMS  *rp;
     pixaAddPix(pixa, pixs, L_INSERT);
     kel1 = makeDoGKernel(7, 7, 1.5, 2.7);
     kernelGetSum(kel1, &sum);
-    fprintf(stderr, "Sum for DoG kernel = %f\n", sum);
+    lept_stderr("Sum for DoG kernel = %f\n", sum);
     kernelWrite("/tmp/lept/regout/dog.kel", kel1);
     pixt = pixConvolve(pixs, kel1, 8, 0);
 /*    pixInvert(pixt, pixt); */

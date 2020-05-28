@@ -60,8 +60,8 @@ L_REGPARAMS  *rp;
     pixDisplayWithTitle(pix1, 100, 600, NULL, rp->display);
 
         /* Find averages of min and max along about 120 horizontal lines */
-    fprintf(stderr, "******************************************************\n");
-    fprintf(stderr, "* Testing error checking: ignore 12 error messages   *\n");
+    lept_stderr("******************************************************\n");
+    lept_stderr("* Testing error checking: ignore 12 error messages   *\n");
     na1 = numaCreate(0);
     na3 = numaCreate(0);
     for (y1 = 40; y1 < 575; y1 += 5) {
@@ -71,8 +71,8 @@ L_REGPARAMS  *rp;
             numaAddNumber(na1, (l_int32)minave);
             numaAddNumber(na3, (l_int32)maxave);
             if (rp->display)
-                fprintf(stderr, "y = %d: minave = %d, maxave = %d\n",
-                        y1, (l_int32)minave, (l_int32)maxave);
+                lept_stderr("y = %d: minave = %d, maxave = %d\n",
+                            y1, (l_int32)minave, (l_int32)maxave);
         }
     }
 
@@ -95,12 +95,11 @@ L_REGPARAMS  *rp;
             numaAddNumber(na4, (l_int32)maxave);
             numaAddNumber(na5, (l_int32)minave2);
             if (rp->display)
-                fprintf(stderr,
-                        "x = %d: minave = %d, minave2 = %d, maxave = %d\n",
+                lept_stderr("x = %d: minave = %d, minave2 = %d, maxave = %d\n",
                         x1, (l_int32)minave, (l_int32)minave2, (l_int32)maxave);
         }
     }
-    fprintf(stderr, "******************************************************\n");
+    lept_stderr("******************************************************\n");
 
     numaSimilar(na1, na2, 3.0, &similar);  /* should be TRUE */
     regTestCompareValues(rp, similar, 1, 0);  /* 0 */
@@ -135,10 +134,10 @@ L_REGPARAMS  *rp;
             numaGetIValue(na2, i, &val2);
             numaGetIValue(na3, i, &val3);
             numaGetIValue(na4, i, &val4);
-            fprintf(stderr, "val1 = %d, val2 = %d, diff = %d; "
-                            "val3 = %d, val4 = %d, diff = %d\n",
-                            val1, val2, L_ABS(val1 - val2),
-                            val3, val4, L_ABS(val3 - val4));
+            lept_stderr("val1 = %d, val2 = %d, diff = %d; "
+                        "val3 = %d, val4 = %d, diff = %d\n",
+                        val1, val2, L_ABS(val1 - val2),
+                        val3, val4, L_ABS(val3 - val4));
         }
     }
 

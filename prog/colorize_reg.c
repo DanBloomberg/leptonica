@@ -163,7 +163,7 @@ L_REGPARAMS  *rp;
     irval = lept_roundftoi(fract * rval);
     igval = lept_roundftoi(fract * gval / 2.0);
     ibval = lept_roundftoi(fract * bval / 2.0);
-    fprintf(stderr, "(r,g,b) = (%d,%d,%d)\n", irval, igval, ibval);
+    lept_stderr("(r,g,b) = (%d,%d,%d)\n", irval, igval, ibval);
 
         /* Test mask-based colorization on gray and cmapped gray */
     pix10 = pixColorGrayMasked(pix2, pix9, L_PAINT_DARK, 225,

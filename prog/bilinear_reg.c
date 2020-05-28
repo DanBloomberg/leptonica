@@ -80,7 +80,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
         /* Test non-invertability of sampling */
-    fprintf(stderr, "Test invertability of sampling\n");
+    lept_stderr("Test invertability of sampling\n");
     pixa = pixaCreate(0);
     for (i = 1; i < 3; i++) {
         pixb = pixAddBorder(pixg, ADDED_BORDER_PIXELS, 255);
@@ -110,7 +110,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
         /* Test invertability of grayscale interpolation */
-    fprintf(stderr, "Test invertability of grayscale interpolation\n");
+    lept_stderr("Test invertability of grayscale interpolation\n");
     pixa = pixaCreate(0);
     for (i = 1; i < 3; i++) {
         pixb = pixAddBorder(pixg, ADDED_BORDER_PIXELS, 255);
@@ -140,7 +140,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
         /* Test invertability of color interpolation */
-    fprintf(stderr, "Test invertability of color interpolation\n");
+    lept_stderr("Test invertability of color interpolation\n");
     pixa = pixaCreate(0);
     pixc = pixRead("test24.jpg");
     pixcs = pixScale(pixc, 0.3, 0.3);
@@ -174,7 +174,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
         /* Comparison between sampling and interpolated */
-    fprintf(stderr, "Compare sampling with interpolated\n");
+    lept_stderr("Compare sampling with interpolated\n");
     MakePtas(2, &ptas, &ptad);
     pixa = pixaCreate(0);
 
@@ -206,7 +206,7 @@ L_REGPARAMS  *rp;
 
 #if ALL
         /* Large distortion with inversion */
-    fprintf(stderr, "Large bilinear distortion with inversion\n");
+    lept_stderr("Large bilinear distortion with inversion\n");
     MakePtas(0, &ptas, &ptad);
     pixa = pixaCreate(0);
     pixs = pixRead("marge.jpg");

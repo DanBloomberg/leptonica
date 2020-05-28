@@ -142,7 +142,7 @@ SELA         *sela;
     if (rp->display) {
         lept_mkdir("lept/thin");
         pixDisplayWithTitle(pix1, 0, 0, NULL, rp->display);
-        fprintf(stderr, "Writing to: /tmp/lept/thin/ccthin2-1.pdf");
+        lept_stderr("Writing to: /tmp/lept/thin/ccthin2-1.pdf");
         pixaConvertToPdf(pixa1, 0, 1.0, 0, 0, "Thin 2 Results",
                          "/tmp/lept/thin/ccthin2-1.pdf");
     }
@@ -177,7 +177,7 @@ SELA         *sela;
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 18 */
     if (rp->display) {
         pixDisplayWithTitle(pix1, 0, 0, NULL, rp->display);
-        fprintf(stderr, "Writing to: /tmp/lept/thin/ccthin2-2.pdf");
+        lept_stderr("Writing to: /tmp/lept/thin/ccthin2-2.pdf");
         pixaConvertToPdf(pixa5, 0, 1.0, 0, 0, "Thin strokes",
                          "/tmp/lept/thin/ccthin2-2.pdf");
     }

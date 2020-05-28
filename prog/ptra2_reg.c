@@ -86,7 +86,7 @@ L_PTRA   *pa, *pad, *paindex;
 L_PTRAA  *paa;
 char      buf[256];
 
-    fprintf(stderr, "Test %d: %s\n", index, text);
+    lept_stderr("Test %d: %s\n", index, text);
     pixs = pixRead(fname);
     boxa = pixConnComp(pixs, NULL, 8);
 
@@ -110,11 +110,11 @@ char      buf[256];
     boxaEqual(boxa1, boxa2, 0, NULL, &same);
     regTestCompareValues(rp, 1, same, 0.0);  /* 4 */
     if (rp->display && same)
-        fprintf(stderr, "boxa1 and boxa2 are identical\n");
+        lept_stderr("boxa1 and boxa2 are identical\n");
     boxaEqual(boxa1, boxa2, 2, &naindex, &same);
     regTestCompareValues(rp, 1, same, 0.0);  /* 5 */
     if (rp->display && same)
-        fprintf(stderr, "boxa1 and boxa2 are same at maxdiff = 2\n");
+        lept_stderr("boxa1 and boxa2 are same at maxdiff = 2\n");
     snprintf(buf, sizeof(buf), "/tmp/lept/ptra/naindex.%d.na", index);
     numaWrite(buf, naindex);
     regTestCheckFile(rp, buf);  /* 6 */
@@ -130,7 +130,7 @@ char      buf[256];
     paa = ptraaCreate(w);
     paindex = ptraCreate(w);
     n = boxaGetCount(boxa);
-    if (rp->display) fprintf(stderr, "n = %d\n", n);
+    if (rp->display) lept_stderr("n = %d\n", n);
     for (i = 0; i < n; i++) {
         box = boxaGetBox(boxa, i, L_CLONE);
         boxGetGeometry(box, &x, NULL, NULL, NULL);
@@ -146,7 +146,7 @@ char      buf[256];
         numaAddNumber(na, i);
     }
     ptraGetActualCount(paindex, &count);
-    if (rp->display) fprintf(stderr, "count = %d\n", count);
+    if (rp->display) lept_stderr("count = %d\n", count);
 
         /* Flatten the ptraa to a ptra containing all the boxes
          * in sorted order, and put them in a boxa */
@@ -154,7 +154,7 @@ char      buf[256];
     ptraaDestroy(&paa, FALSE, FALSE);
     ptraGetActualCount(pad, &m);
     if (m != n)
-        fprintf(stderr, "n(orig) = %d, m(new) = %d\n", n, m);
+        lept_stderr("n(orig) = %d, m(new) = %d\n", n, m);
     boxa3 = boxaCreate(m);
     for (i = 0; i < m; i++) {
         box = (BOX *)ptraRemove(pad, i, L_NO_COMPACTION);
@@ -166,7 +166,7 @@ char      buf[256];
          * a single Numa */
     ptraGetMaxIndex(paindex, &imax);
     nad3 = numaCreate(0);
-    if (rp->display) fprintf(stderr, "imax = %d\n\n", imax);
+    if (rp->display) lept_stderr("imax = %d\n\n", imax);
     for (i = 0; i <= imax; i++) {
         na = (NUMA *)ptraRemove(paindex, i, L_NO_COMPACTION);
         numaJoin(nad3, na, 0, -1);
@@ -203,7 +203,7 @@ PIX     *pixs;
 PIXA    *pixa, *pixa1, *pixa2;
 char     buf[256];
 
-    fprintf(stderr, "Test %d: %s\n", index, text);
+    lept_stderr("Test %d: %s\n", index, text);
     pixs = pixRead(fname);
     boxa = pixConnComp(pixs, &pixa, 8);
 
@@ -234,23 +234,23 @@ char     buf[256];
     boxaEqual(boxa1, boxa2, 0, &naindex, &same);
     regTestCompareValues(rp, 1, same, 0.0);  /* 6 */
     if (rp->display && same)
-        fprintf(stderr, "boxa1 and boxa2 are identical\n");
+        lept_stderr("boxa1 and boxa2 are identical\n");
     numaDestroy(&naindex);
     boxaEqual(boxa1, boxa2, 3, &naindex, &same);
     regTestCompareValues(rp, 1, same, 0.0);  /* 7 */
     if (rp->display && same)
-        fprintf(stderr, "boxa1 and boxa2 are same at maxdiff = 2\n");
+        lept_stderr("boxa1 and boxa2 are same at maxdiff = 2\n");
     numaDestroy(&naindex);
 
     pixaEqual(pixa1, pixa2, 0, &naindex, &same);
     regTestCompareValues(rp, 1, same, 0.0);  /* 8 */
     if (rp->display && same)
-        fprintf(stderr, "pixa1 and pixa2 are identical\n");
+        lept_stderr("pixa1 and pixa2 are identical\n");
     numaDestroy(&naindex);
     pixaEqual(pixa1, pixa2, 3, &naindex, &same);
     regTestCompareValues(rp, 1, same, 0.0);  /* 9 */
     if (rp->display && same)
-        fprintf(stderr, "pixa1 and pixa2 are same at maxdiff = 2\n\n");
+        lept_stderr("pixa1 and pixa2 are same at maxdiff = 2\n\n");
     numaDestroy(&naindex);
 
     boxaDestroy(&boxa);
