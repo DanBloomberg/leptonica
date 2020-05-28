@@ -96,8 +96,8 @@ PIXA    *pixa;
         /* Get speed */
     startTimer();
     pixSauvolaBinarize(pixs, size, factor, 1, NULL, NULL, NULL, &pixd);
-    fprintf(stderr, "\nSpeed: 1 tile,  %7.3f Mpix/sec\n",
-            (w * h / 1000000.) / stopTimer());
+    lept_stderr("\nSpeed: 1 tile,  %7.3f Mpix/sec\n",
+                (w * h / 1000000.) / stopTimer());
     pixDestroy(&pixd);
 
         /* Get results */
@@ -137,8 +137,8 @@ PIXA    *pixa;
         /* Get speed */
     startTimer();
     pixSauvolaBinarizeTiled(pixs, size, factor, nx, ny, NULL, &pixd);
-    fprintf(stderr, "Speed: %d x %d tiles,  %7.3f Mpix/sec\n",
-            nx, ny, (w * h / 1000000.) / stopTimer());
+    lept_stderr("Speed: %d x %d tiles,  %7.3f Mpix/sec\n",
+                nx, ny, (w * h / 1000000.) / stopTimer());
     pixDestroy(&pixd);
 
         /* Get results */

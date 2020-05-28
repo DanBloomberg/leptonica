@@ -313,6 +313,7 @@ void build(Solution &s)
             {"printimage", {"printimage.c"}},
             {"printsplitimage", {"printsplitimage.c"}},
             {"printtiff", {"printtiff.c"}},
+            {"rasteroptest", {"rasteroptest.c"}},
             {"rbtreetest", {"rbtreetest.c"}},
             {"recog_bootnum1", {"recog_bootnum1.c"}},
             {"recog_bootnum2", {"recog_bootnum2.c"}},

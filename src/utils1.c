@@ -648,8 +648,8 @@ l_uint8  *datain, *dataout;
 /*!
  * \brief   genRandomIntOnInterval()
  *
- * \param[in]    start     beginning of interval; >= 0
- * \param[in]    end       end of interval; must be > start
+ * \param[in]    start     beginning of interval; can be < 0
+ * \param[in]    end       end of interval; must be >= start
  * \param[in]    seed      use 0 to skip; otherwise call srand
  * \param[out]   pval      random integer in interval [start ... end]
  * \return  0 if OK, 1 on error
@@ -667,7 +667,7 @@ l_float64  range;
     if (!pval)
         return ERROR_INT("&val not defined", procName, 1);
     *pval = 0;
-    if (start < 0 || end <= start)
+    if (end < start)
         return ERROR_INT("invalid range", procName, 1);
 
     if (seed > 0) srand(seed);

@@ -243,7 +243,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		partifytest.c partitiontest.c percolatetest.c \
 		pixaatest.c pixafileinfo.c plottest.c \
 		printimage.c printsplitimage.c printtiff.c \
-		rbtreetest.c \
+		rasteroptest.c rbtreetest.c \
 		recog_bootnum1.c recog_bootnum2.c recog_bootnum3.c \
 		recogsort.c recogtest1.c recogtest2.c recogtest3.c \
 		recogtest4.c recogtest5.c recogtest6.c recogtest7.c \
@@ -1056,6 +1056,9 @@ printsplitimage:	printsplitimage.o $(LEPTLIB)
 
 printtiff:	printtiff.o $(LEPTLIB)
 	$(CC) -o printtiff printtiff.o $(ALL_LIBS) $(EXTRALIBS)
+
+rasteroptest:	rasteroptest.o $(LEPTLIB)
+	$(CC) -o rasteroptest rasteroptest.o $(ALL_LIBS) $(EXTRALIBS)
 
 rbtreetest:	rbtreetest.o $(LEPTLIB)
 	$(CC) -o rbtreetest rbtreetest.o $(ALL_LIBS) $(EXTRALIBS)
