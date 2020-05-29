@@ -433,7 +433,7 @@ pixDeserializeFromMemory(const l_uint32  *data,
                          size_t           nbytes)
 {
 char      *id;
-l_int32    w, h, d, pixdata_size, memdata_size, imdata_size, ncolors;
+l_int32    w, h, d, pixdata_size, memdata_size, imdata_size, ncolors, valid;
 l_uint32  *imdata;  /* data in pix raster */
 PIX       *pix1, *pixd;
 PIXCMAP   *cmap;
@@ -462,7 +462,7 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("invalid height", procName, NULL);
     if (1LL * w * h > MaxAllowedArea)
         return (PIX *)ERROR_PTR("area too large", procName, NULL);
-    if (ncolors < 0 || ncolors > 256 || ncolors + 6 >= nbytes/sizeof(l_int32))
+    if (ncolors < 0 || ncolors > 256 || ncolors + 7 >= nbytes/sizeof(l_int32))
         return (PIX *)ERROR_PTR("invalid ncolors", procName, NULL);
     if ((pix1 = pixCreateHeader(w, h, d)) == NULL)  /* just make the header */
         return (PIX *)ERROR_PTR("failed to make header", procName, NULL);
@@ -491,8 +491,18 @@ PIXCMAP   *cmap;
         }
     }
 
+        /* Read the raster data */
     imdata = pixGetData(pixd);
     memcpy(imdata, data + 7 + ncolors, imdata_size);
+
+        /* Verify that the colormap is valid with the pix */
+    if (ncolors > 0) {
+        pixcmapIsValid(cmap, pixd, &valid);
+        if (!valid) {
+            pixDestroy(&pixd);
+            return (PIX *)ERROR_PTR("cmap is invalid with pix", procName, NULL);
+        }
+    }
 
 #if  DEBUG_SERIALIZE
     lept_stderr("Deserialize: "

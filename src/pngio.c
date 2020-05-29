@@ -185,15 +185,13 @@ PIX *
 pixReadStreamPng(FILE  *fp)
 {
 l_uint8      byte;
-l_int32      rval, gval, bval;
-l_int32      i, j, k, index, ncolors, bitval;
+l_int32      i, j, k, index, ncolors, bitval, rval, gval, bval, valid;
 l_int32      wpl, d, spp, cindex, tRNS;
 l_uint32     png_transforms;
 l_uint32    *data, *line, *ppixel;
 int          num_palette, num_text, num_trans;
 png_byte     bit_depth, color_type, channels;
-png_uint_32  w, h, rowbytes;
-png_uint_32  xres, yres;
+png_uint_32  w, h, rowbytes, xres, yres;
 png_bytep    rowptr, trans;
 png_bytep   *row_pointers;
 png_structp  png_ptr;
@@ -494,6 +492,17 @@ PIXCMAP     *cmap;
         pixSetText(pix, text_ptr->text);
 
     png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+
+        /* Final validity check on the colormap */
+    if ((cmap = pixGetColormap(pix)) != NULL) {
+        pixcmapIsValid(cmap, pix, &valid);
+        if (!valid) {
+            pixDestroy(&pix);
+            return (PIX *)ERROR_PTR("colormap is not valid", procName, NULL);
+        }
+    }
+
+    pixSetPadBits(pix, 0);
     return pix;
 }
 
@@ -1544,24 +1553,22 @@ pixReadMemPng(const l_uint8  *filedata,
               size_t          filesize)
 {
 l_uint8      byte;
-l_int32      rval, gval, bval;
-l_int32      i, j, k, index, ncolors, bitval;
+l_int32      i, j, k, index, ncolors, bitval, rval, gval, bval, valid;
 l_int32      wpl, d, spp, cindex, tRNS;
 l_uint32     png_transforms;
 l_uint32    *data, *line, *ppixel;
 int          num_palette, num_text, num_trans;
 png_byte     bit_depth, color_type, channels;
-png_uint_32  w, h, rowbytes;
-png_uint_32  xres, yres;
+png_uint_32  w, h, rowbytes, xres, yres;
 png_bytep    rowptr, trans;
 png_bytep   *row_pointers;
 png_structp  png_ptr;
 png_infop    info_ptr, end_info;
 png_colorp   palette;
 png_textp    text_ptr;  /* ptr to text_chunk */
+MEMIODATA    state;
 PIX         *pix, *pix1;
 PIXCMAP     *cmap;
-MEMIODATA    state;
 
     PROCNAME("pixReadMemPng");
 
@@ -1858,6 +1865,17 @@ MEMIODATA    state;
         pixSetText(pix, text_ptr->text);
 
     png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+
+       /* Final validity check on the colormap */
+    if ((cmap = pixGetColormap(pix)) != NULL) {
+        pixcmapIsValid(cmap, pix, &valid);
+        if (!valid) {
+            pixDestroy(&pix);
+            return (PIX *)ERROR_PTR("colormap is not valid", procName, NULL);
+        }
+    }
+
+    pixSetPadBits(pix, 0);
     return pix;
 }
 
@@ -1886,19 +1904,16 @@ pixWriteMemPng(l_uint8  **pfiledata,
                l_float32  gamma)
 {
 char         commentstring[] = "Comment";
-l_int32      i, j, k;
-l_int32      wpl, d, spp, cmflag, opaque;
-l_int32      ncolors, compval;
+l_int32      i, j, k, wpl, d, spp, cmflag, opaque, ncolors, compval, valid;
 l_int32     *rmap, *gmap, *bmap, *amap;
 l_uint32    *data, *ppixel;
 png_byte     bit_depth, color_type;
 png_byte     alpha[256];
-png_uint_32  w, h;
-png_uint_32  xres, yres;
+png_uint_32  w, h, xres, yres;
 png_bytep    rowbuffer;
 png_structp  png_ptr;
 png_infop    info_ptr;
-png_colorp   palette;
+png_colorp   palette = NULL;
 PIX         *pix1;
 PIXCMAP     *cmap;
 char        *text;
@@ -1921,43 +1936,21 @@ MEMIODATA    state;
     state.m_Count = 0;
     state.m_Last = &state;
 
-        /* Allocate the 2 data structures */
-    if ((png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
-                   (png_voidp)NULL, NULL, NULL)) == NULL)
-        return ERROR_INT("png_ptr not made", procName, 1);
-
-    if ((info_ptr = png_create_info_struct(png_ptr)) == NULL) {
-        png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-        return ERROR_INT("info_ptr not made", procName, 1);
-    }
-
-        /* Set up png setjmp error handling */
-    if (setjmp(png_jmpbuf(png_ptr))) {
-        png_destroy_write_struct(&png_ptr, &info_ptr);
-        return ERROR_INT("internal png error", procName, 1);
-    }
-
-    png_set_write_fn(png_ptr, &state, memio_png_write_data,
-                     (png_flush_ptr)NULL);
-
-        /* With best zlib compression (9), get between 1 and 10% improvement
-         * over default (6), but the compression is 3 to 10 times slower.
-         * Use the zlib default (6) as our default compression unless
-         * pix->special falls in the range [10 ... 19]; then subtract 10
-         * to get the compression value.  */
-    compval = Z_DEFAULT_COMPRESSION;
-    if (pix->special >= 10 && pix->special < 20)
-        compval = pix->special - 10;
-    png_set_compression_level(png_ptr, compval);
-
     w = pixGetWidth(pix);
     h = pixGetHeight(pix);
     d = pixGetDepth(pix);
     spp = pixGetSpp(pix);
-    if ((cmap = pixGetColormap(pix)))
+
+        /* A cmap validity check should prevent low-level colormap errors. */
+    if ((cmap = pixGetColormap(pix))) {
         cmflag = 1;
-    else
+        pixcmapIsValid(cmap, pix, &valid);
+        if (!valid)
+            return ERROR_INT("colormap is not valid", procName, 1);
+    } else {
         cmflag = 0;
+    }
+    pixSetPadBits(pix, 0);
 
         /* Set the color type and bit depth. */
     if (d == 32 && spp == 4) {
@@ -1979,6 +1972,38 @@ MEMIODATA    state;
     lept_stderr("cmflag = %d, bit_depth = %d, color_type = %d\n",
                 cmflag, bit_depth, color_type);
 #endif  /* DEBUG_WRITE */
+
+        /* Allocate the 2 data structures */
+    if ((png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
+                   (png_voidp)NULL, NULL, NULL)) == NULL)
+        return ERROR_INT("png_ptr not made", procName, 1);
+
+    if ((info_ptr = png_create_info_struct(png_ptr)) == NULL) {
+        png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+        return ERROR_INT("info_ptr not made", procName, 1);
+    }
+
+        /* Set up png setjmp error handling */
+    pix1 = NULL;
+    if (setjmp(png_jmpbuf(png_ptr))) {
+        png_destroy_write_struct(&png_ptr, &info_ptr);
+        LEPT_FREE(palette);
+        pixDestroy(&pix1);
+        return ERROR_INT("internal png error", procName, 1);
+    }
+
+    png_set_write_fn(png_ptr, &state, memio_png_write_data,
+                     (png_flush_ptr)NULL);
+
+        /* With best zlib compression (9), get between 1 and 10% improvement
+         * over default (6), but the compression is 3 to 10 times slower.
+         * Use the zlib default (6) as our default compression unless
+         * pix->special falls in the range [10 ... 19]; then subtract 10
+         * to get the compression value.  */
+    compval = Z_DEFAULT_COMPRESSION;
+    if (pix->special >= 10 && pix->special < 20)
+        compval = pix->special - 10;
+    png_set_compression_level(png_ptr, compval);
 
     png_set_IHDR(png_ptr, info_ptr, w, h, bit_depth, color_type,
                  PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,

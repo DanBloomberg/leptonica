@@ -2108,7 +2108,7 @@ l_uint8  *data;
  *
  * \param[in]    data      binary string, 3 or 4 bytes per color
  * \param[in]    cpc       components/color: 3 for rgb, 4 for rgba
- * \param[in]    ncolors
+ * \param[in]    ncolors   > 0
  * \return  cmap, or NULL on error
  */
 PIXCMAP *
@@ -2125,7 +2125,7 @@ PIXCMAP  *cmap;
         return (PIXCMAP *)ERROR_PTR("data not defined", procName, NULL);
     if (cpc != 3 && cpc != 4)
         return (PIXCMAP *)ERROR_PTR("cpc not 3 or 4", procName, NULL);
-    if (ncolors == 0)
+    if (ncolors <= 0)
         return (PIXCMAP *)ERROR_PTR("no entries", procName, NULL);
     if (ncolors > 256)
         return (PIXCMAP *)ERROR_PTR("ncolors > 256", procName, NULL);
