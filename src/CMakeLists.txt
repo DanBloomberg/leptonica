@@ -14,7 +14,7 @@ if (MSVC)
     set_source_files_properties(${src} PROPERTIES LANGUAGE CXX)
 endif()
 
-string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
+string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 
 add_library                     (leptonica ${src} ${hdr})
 set_target_properties           (leptonica PROPERTIES VERSION   ${VERSION_PLAIN})
