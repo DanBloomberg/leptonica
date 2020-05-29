@@ -93,6 +93,10 @@ static const l_int32  MAX_SPACE_WIDTH = 19;  /* was 15 */
 static const l_int32  MAX_NOISE_WIDTH = 50;  /* smaller than barcode width */
 static const l_int32  MAX_NOISE_HEIGHT = 30;  /* smaller than barcode height */
 
+    /* Minimum barcode image size */
+static const l_int32  MIN_BC_WIDTH = 100;
+static const l_int32  MIN_BC_HEIGHT = 50;
+
     /* Static functions */
 static PIX *pixGenerateBarcodeMask(PIX *pixs, l_int32 maxspace,
                                    l_int32 nwidth, l_int32 nheight);
@@ -263,7 +267,7 @@ pixReadBarcodes(PIXA     *pixa,
 {
 char      *barstr, *data;
 char       emptystring[] = "";
-l_int32    i, j, n, nbars, ival;
+l_int32    w, h, i, j, n, nbars, ival;
 NUMA      *na;
 PIX       *pixt;
 SARRAY    *saw, *sad;
@@ -284,6 +288,11 @@ SARRAY    *saw, *sad;
     for (i = 0; i < n; i++) {
             /* Extract the widths of the lines in each barcode */
         pixt = pixaGetPix(pixa, i, L_CLONE);
+        pixGetDimensions(pixt, &w, &h, NULL);
+        if (w < MIN_BC_WIDTH || h < MIN_BC_HEIGHT) {
+            L_ERROR("pix is too small: w = %d, h = %d\n", procName, w, h);
+            continue;
+        }
         na = pixReadBarcodeWidths(pixt, method, debugflag);
         pixDestroy(&pixt);
         if (!na) {
@@ -729,7 +738,8 @@ NUMA      *nas, *nax, *nay, *nad;
         return (NUMA *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
 
         /* Scan pixels horizontally and average results */
-    nas = pixAverageRasterScans(pixs, 51);
+    if ((nas = pixAverageRasterScans(pixs, 50)) == NULL)
+        return (NUMA *)ERROR_PTR("nas not made", procName, NULL);
 
         /* Interpolate to get 4x the number of values */
     w = pixGetWidth(pixs);
@@ -785,7 +795,7 @@ NUMA       *nad;
         return (NUMA *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
-    if (nscans <= h) {
+    if (nscans > h) {
         first = 0;
         last = h - 1;
         nscans = h;

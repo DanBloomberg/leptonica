@@ -198,8 +198,6 @@ PIX       *pixd;
             lined = datad + 8 * i * wpld;
             for (j = 0; j < sqbits; j++) {
                 sval = GET_DATA_QBIT(lines, j);
-                if (sval > 15)
-                    L_WARNING("sval = %d; should be < 16\n", procName, sval);
                 lined[j] = tab8[sval];
             }
             for (k = 1; k < 8; k++)
