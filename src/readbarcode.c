@@ -94,7 +94,7 @@ static const l_int32  MAX_NOISE_WIDTH = 50;  /* smaller than barcode width */
 static const l_int32  MAX_NOISE_HEIGHT = 30;  /* smaller than barcode height */
 
     /* Minimum barcode image size */
-static const l_int32  MIN_BC_WIDTH = 100;
+static const l_int32  MIN_BC_WIDTH = 50;
 static const l_int32  MIN_BC_HEIGHT = 50;
 
     /* Static functions */
@@ -165,14 +165,12 @@ SARRAY  *sad;
     else
         pixg = pixConvertTo8(pixs, 0);
 
-    if ((pixa = pixExtractBarcodes(pixg, debugflag)) == NULL) {
-        pixDestroy(&pixg);
+    pixa = pixExtractBarcodes(pixg, debugflag);
+    pixDestroy(&pixg);
+    if (!pixa)
         return (SARRAY *)ERROR_PTR("no barcode(s) found", procName, NULL);
-    }
 
     sad = pixReadBarcodes(pixa, format, method, psaw, debugflag);
-
-    pixDestroy(&pixg);
     pixaDestroy(&pixa);
     return sad;
 }
@@ -194,7 +192,7 @@ l_int32    i, n;
 l_float32  angle, conf;
 BOX       *box;
 BOXA      *boxa;
-PIX       *pixb, *pixm, *pixt;
+PIX       *pix1, *pix2, *pix3;
 PIXA      *pixa;
 
     PROCNAME("pixExtractBarcodes");
@@ -203,46 +201,47 @@ PIXA      *pixa;
         return (PIXA *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
 
         /* Locate them; use small threshold for edges. */
-    boxa = pixLocateBarcodes(pixs, 20, &pixb, &pixm);
+    boxa = pixLocateBarcodes(pixs, 20, &pix2, &pix1);
     n = boxaGetCount(boxa);
     L_INFO("%d possible barcode(s) found\n", procName, n);
     if (n == 0) {
         boxaDestroy(&boxa);
-        pixDestroy(&pixb);
-        pixDestroy(&pixm);
+        pixDestroy(&pix2);
+        pixDestroy(&pix1);
         return NULL;
     }
 
     if (debugflag) {
         boxaWriteStderr(boxa);
-        pixDisplay(pixb, 100, 100);
-        pixDisplay(pixm, 800, 100);
+        pixDisplay(pix2, 100, 100);
+        pixDisplay(pix1, 800, 100);
     }
+    pixDestroy(&pix1);
 
         /* Deskew each barcode individually */
     pixa = pixaCreate(n);
     for (i = 0; i < n; i++) {
         box = boxaGetBox(boxa, i, L_CLONE);
-        pixt = pixDeskewBarcode(pixs, pixb, box, 15, 20, &angle, &conf);
+        pix3 = pixDeskewBarcode(pixs, pix2, box, 15, 20, &angle, &conf);
+        if (!pix3) conf = 0.0;  /* don't use */
         L_INFO("angle = %6.2f, conf = %6.2f\n", procName, angle, conf);
         if (conf > 5.0) {
-            pixaAddPix(pixa, pixt, L_INSERT);
+            pixaAddPix(pixa, pix3, L_INSERT);
             pixaAddBox(pixa, box, L_INSERT);
         } else {
-            pixDestroy(&pixt);
+            pixDestroy(&pix3);
             boxDestroy(&box);
         }
     }
+    pixDestroy(&pix2);
+    boxaDestroy(&boxa);
 
 #if  DEBUG_DESKEW
-    pixt = pixaDisplayTiledInRows(pixa, 8, 1000, 1.0, 0, 30, 2);
-    pixWrite("junkpixt", pixt, IFF_PNG);
-    pixDestroy(&pixt);
+    pix3 = pixaDisplayTiledInRows(pixa, 8, 1000, 1.0, 0, 30, 2);
+    pixWrite("lept/pix3.png", pix3, IFF_PNG);
+    pixDestroy(&pix3);
 #endif  /* DEBUG_DESKEW */
 
-    pixDestroy(&pixb);
-    pixDestroy(&pixm);
-    boxaDestroy(&boxa);
     return pixa;
 }
 
@@ -269,7 +268,7 @@ char      *barstr, *data;
 char       emptystring[] = "";
 l_int32    w, h, i, j, n, nbars, ival;
 NUMA      *na;
-PIX       *pixt;
+PIX       *pix1;
 SARRAY    *saw, *sad;
 
     PROCNAME("pixReadBarcodes");
@@ -287,14 +286,15 @@ SARRAY    *saw, *sad;
     sad = sarrayCreate(n);
     for (i = 0; i < n; i++) {
             /* Extract the widths of the lines in each barcode */
-        pixt = pixaGetPix(pixa, i, L_CLONE);
-        pixGetDimensions(pixt, &w, &h, NULL);
+        pix1 = pixaGetPix(pixa, i, L_CLONE);
+        pixGetDimensions(pix1, &w, &h, NULL);
         if (w < MIN_BC_WIDTH || h < MIN_BC_HEIGHT) {
             L_ERROR("pix is too small: w = %d, h = %d\n", procName, w, h);
+            pixDestroy(&pix1);
             continue;
         }
-        na = pixReadBarcodeWidths(pixt, method, debugflag);
-        pixDestroy(&pixt);
+        na = pixReadBarcodeWidths(pix1, method, debugflag);
+        pixDestroy(&pix1);
         if (!na) {
             ERROR_INT("valid barcode widths not returned", procName, 1);
             continue;
@@ -331,7 +331,6 @@ SARRAY    *saw, *sad;
         *psaw = saw;
     else
         sarrayDestroy(&saw);
-
     return sad;
 }
 
@@ -520,12 +519,14 @@ pixDeskewBarcode(PIX        *pixs,
 {
 l_int32    x, y, w, h, n;
 l_float32  angle, angle1, angle2, conf, conf1, conf2, score1, score2, deg2rad;
-BOX       *boxe, *boxt;
-BOXA      *boxa, *boxat;
-PIX       *pixt1, *pixt2, *pixt3, *pixt4, *pixt5, *pixt6, *pixd;
+BOX       *box1, *box2;
+BOXA      *boxa1, *boxa2;
+PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pixd;
 
     PROCNAME("pixDeskewBarcode");
 
+    if (pangle) *pangle = 0.0;
+    if (pconf) *pconf = 0.0;
     if (!pixs || pixGetDepth(pixs) != 8)
         return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
     if (!pixb || pixGetDepth(pixb) != 1)
@@ -536,18 +537,21 @@ PIX       *pixt1, *pixt2, *pixt3, *pixt4, *pixt5, *pixt6, *pixd;
         /* Clip out */
     deg2rad = 3.1415926535 / 180.;
     boxGetGeometry(box, &x, &y, &w, &h);
-    boxe = boxCreate(x - 25, y - 25, w + 51, h + 51);
-    pixt1 = pixClipRectangle(pixb, boxe, NULL);
-    pixt2 = pixClipRectangle(pixs, boxe, NULL);
-    boxDestroy(&boxe);
+    box2 = boxCreate(x - 25, y - 25, w + 51, h + 51);
+    pix1 = pixClipRectangle(pixb, box2, NULL);
+    pix2 = pixClipRectangle(pixs, box2, NULL);
+    boxDestroy(&box2);
 
         /* Deskew, looking at all possible orientations over 180 degrees */
-    pixt3 = pixRotateOrth(pixt1, 1);  /* look for vertical bar lines */
-    pixt4 = pixClone(pixt1);   /* look for horizontal bar lines */
-    pixFindSkewSweepAndSearchScore(pixt3, &angle1, &conf1, &score1,
+    pix3 = pixRotateOrth(pix1, 1);  /* look for vertical bar lines */
+    pix4 = pixClone(pix1);   /* look for horizontal bar lines */
+    pixFindSkewSweepAndSearchScore(pix3, &angle1, &conf1, &score1,
                                    1, 1, 0.0, 45.0, 2.5, 0.01);
-    pixFindSkewSweepAndSearchScore(pixt4, &angle2, &conf2, &score2,
+    pixFindSkewSweepAndSearchScore(pix4, &angle2, &conf2, &score2,
                                    1, 1, 0.0, 45.0, 2.5, 0.01);
+    pixDestroy(&pix1);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
 
         /* Because we're using the boundary pixels of the barcodes,
          * the peak can be sharper (and the confidence ratio higher)
@@ -559,52 +563,51 @@ PIX       *pixt1, *pixt2, *pixt3, *pixt4, *pixt5, *pixt6, *pixd;
         conf = conf1;
         if (conf1 > 6.0 && L_ABS(angle1) > 0.1) {
             angle = angle1;
-            pixt5 = pixRotate(pixt2, deg2rad * angle1, L_ROTATE_AREA_MAP,
+            pix5 = pixRotate(pix2, deg2rad * angle1, L_ROTATE_AREA_MAP,
                               L_BRING_IN_WHITE, 0, 0);
         } else {
             angle = 0.0;
-            pixt5 = pixClone(pixt2);
+            pix5 = pixClone(pix2);
         }
     } else {  /* score2 > score1 */
         conf = conf2;
-        pixt6 = pixRotateOrth(pixt2, 1);
+        pix6 = pixRotateOrth(pix2, 1);
         if (conf2 > 6.0 && L_ABS(angle2) > 0.1) {
             angle = 90.0 + angle2;
-            pixt5 = pixRotate(pixt6, deg2rad * angle2, L_ROTATE_AREA_MAP,
+            pix5 = pixRotate(pix6, deg2rad * angle2, L_ROTATE_AREA_MAP,
                               L_BRING_IN_WHITE, 0, 0);
         } else {
             angle = 90.0;
-            pixt5 = pixClone(pixt6);
+            pix5 = pixClone(pix6);
         }
-        pixDestroy(&pixt6);
+        pixDestroy(&pix6);
     }
-    pixDestroy(&pixt3);
-    pixDestroy(&pixt4);
+    pixDestroy(&pix2);
 
         /* Extract barcode plus a margin around it */
-    boxa = pixLocateBarcodes(pixt5, threshold, 0, 0);
-    if ((n = boxaGetCount(boxa)) != 1) {
+    boxa1 = pixLocateBarcodes(pix5, threshold, 0, 0);
+    if ((n = boxaGetCount(boxa1)) != 1) {
         L_WARNING("barcode mask in %d components\n", procName, n);
-        boxat = boxaSort(boxa, L_SORT_BY_AREA, L_SORT_DECREASING, NULL);
+        boxa2 = boxaSort(boxa1, L_SORT_BY_AREA, L_SORT_DECREASING, NULL);
     } else {
-        boxat = boxaCopy(boxa, L_CLONE);
+        boxa2 = boxaCopy(boxa1, L_CLONE);
     }
-    boxt = boxaGetBox(boxat, 0, L_CLONE);
-    boxGetGeometry(boxt, &x, &y, &w, &h);
-    boxe = boxCreate(x - margin, y - margin, w + 2 * margin,
+    box1 = boxaGetBox(boxa2, 0, L_CLONE);
+    boxGetGeometry(box1, &x, &y, &w, &h);
+    box2 = boxCreate(x - margin, y - margin, w + 2 * margin,
                      h + 2 * margin);
-    pixd = pixClipRectangle(pixt5, boxe, NULL);
-    boxDestroy(&boxt);
-    boxDestroy(&boxe);
-    boxaDestroy(&boxa);
-    boxaDestroy(&boxat);
+    pixd = pixClipRectangle(pix5, box2, NULL);
+    boxDestroy(&box1);
+    boxDestroy(&box2);
+    boxaDestroy(&boxa1);
+    boxaDestroy(&boxa2);
+    pixDestroy(&pix5);
 
     if (pangle) *pangle = angle;
     if (pconf) *pconf = conf;
 
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixt5);
+    if (!pixd)
+        L_ERROR("pixd not made\n", procName);
     return pixd;
 }
 
