@@ -255,7 +255,8 @@ PIX       *pixd, *pixt;
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }
 
-    wpl = pixGetWpl(pixs);
+    pixSetPadBits(pixt, 0);
+    wpl = pixGetWpl(pixd);
     wpla = pixGetWpl(pixt);
     datad = pixGetData(pixd);
     dataa = pixGetData(pixt);
