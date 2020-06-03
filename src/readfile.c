@@ -616,7 +616,7 @@ l_ok
 findFileFormatStream(FILE     *fp,
                      l_int32  *pformat)
 {
-l_uint8  firstbytes[12];
+l_uint8  firstbytes[13];
 l_int32  format;
 
     PROCNAME("findFileFormatStream");
@@ -633,6 +633,7 @@ l_int32  format;
 
     if (fread(&firstbytes, 1, 12, fp) != 12)
         return ERROR_INT("failed to read first 12 bytes of file", procName, 1);
+    firstbytes[12] = '\0';
     rewind(fp);
 
     findFileFormatBuffer(firstbytes, &format);

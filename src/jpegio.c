@@ -339,6 +339,7 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
     pixSetInputFormat(pix, IFF_JFIF_JPEG);
     if (!rowbuffer || !pix) {
         LEPT_FREE(rowbuffer);
+        rowbuffer = NULL;
         pixDestroy(&pix);
         jpeg_destroy_decompress(&cinfo);
         return (PIX *)ERROR_PTR("rowbuffer or pix not made", procName, NULL);
@@ -386,6 +387,7 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
             pixDestroy(&pix);
             jpeg_destroy_decompress(&cinfo);
             LEPT_FREE(rowbuffer);
+            rowbuffer = NULL;
             return (PIX *)ERROR_PTR("bad data", procName, NULL);
         }
 
@@ -469,6 +471,7 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
     jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
     LEPT_FREE(rowbuffer);
+    rowbuffer = NULL;
 
     if (nwarn > 0) {
         if (hint & L_JPEG_FAIL_ON_BAD_DATA) {
@@ -958,6 +961,7 @@ jmp_buf                      jmpbuf;  /* must be local to the function */
 
     pixDestroy(&pix);
     LEPT_FREE(rowbuffer);
+    rowbuffer = NULL;
     jpeg_destroy_compress(&cinfo);
     return 0;
 }
