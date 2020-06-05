@@ -858,7 +858,7 @@ numaQuantizeCrossingsByWidth(NUMA       *nas,
                              NUMA      **pnaohist,
                              l_int32     debugflag)
 {
-l_int32    i, n, ned, nod, iw, width;
+l_int32    i, n, ret, ned, nod, iw, width;
 l_float32  val, minsize, maxsize, factor;
 GPLOT     *gplot;
 NUMA      *naedist, *naodist, *naehist, *naohist, *naecent, *naocent;
@@ -875,7 +875,9 @@ NUMA      *naerange, *naorange, *naelut, *naolut, *nad;
         return (NUMA *)ERROR_PTR("binfract <= 0.0", procName, NULL);
 
         /* Get even and odd crossing distances */
-    numaGetCrossingDistances(nas, &naedist, &naodist, &minsize, &maxsize);
+    ret = numaGetCrossingDistances(nas, &naedist, &naodist, &minsize, &maxsize);
+    if (ret)
+        return (NUMA *)ERROR_PTR("crossing data not found", procName, NULL);
 
         /* Bin the spans in units of binfract * minsize.  These
          * units are convenient because they scale to make at least

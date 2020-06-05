@@ -633,7 +633,7 @@ l_int32  format;
 
     if (fread(&firstbytes, 1, 12, fp) != 12)
         return ERROR_INT("failed to read first 12 bytes of file", procName, 1);
-    firstbytes[12] = '\0';
+    firstbytes[12] = 0;
     rewind(fp);
 
     findFileFormatBuffer(firstbytes, &format);

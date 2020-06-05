@@ -14,8 +14,8 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
         leptSetStdNullHandler();
 
-        pix = pixReadMem(data, size);
-        if(pix==NULL) return 0;
+        pix = pixReadMemSpix(data, size);
+        if (pix == NULL) return 0;
         
         pix0 = pixModifyHue(NULL, pix, 0.01 + 0.05 * 1);
         pix1 = pixModifySaturation(NULL, pix, -0.9 + 0.1 * 1);
