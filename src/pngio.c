@@ -1951,11 +1951,7 @@ MEMIODATA    state;
         cmflag = 0;
     }
 
-#if 0
-        /* This causes problems with pdf-extract-content-handler_unittest.
-         * TODO: investigate */
     pixSetPadBits(pix, 0);
-#endif
 
         /* Set the color type and bit depth. */
     if (d == 32 && spp == 4) {
