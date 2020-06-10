@@ -478,7 +478,7 @@ l_uint16   spp, bps, photometry, tiffcomp, orientation, sample_fmt;
 l_uint16  *redmap, *greenmap, *bluemap;
 l_int32    d, wpl, bpl, comptype, i, j, k, ncolors, rval, gval, bval, aval;
 l_int32    xres, yres;
-l_uint32   w, h, tiffbpl, tiffword, read_oriented;
+l_uint32   w, h, tiffbpl, packedbpl, tiffword, read_oriented;
 l_uint32  *line, *ppixel, *tiffdata, *pixdata;
 PIX       *pix, *pix1;
 PIXCMAP   *cmap;
@@ -555,7 +555,11 @@ PIXCMAP   *cmap;
         return NULL;
     }
     tiffbpl = TIFFScanlineSize(tif);
-    if (tiffbpl != (bps * spp * w + 7) / 8) {
+    packedbpl = (bps * spp * w + 7) / 8;
+    if (packedbpl == 2 * tiffbpl)
+        L_INFO("packedbpl = %d is twice tiffbpl = %d\n", procName,
+               packedbpl, tiffbpl);
+    if (tiffbpl != packedbpl && 2 * tiffbpl != packedbpl) {
         L_ERROR("invalid tiffbpl: tiffbpl = %d, bps = %d, spp = %d, w = %d\n",
                 procName, tiffbpl, bps, spp, w);
         return NULL;
