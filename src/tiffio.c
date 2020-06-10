@@ -477,7 +477,7 @@ l_uint8   *linebuf, *data, *rowptr;
 l_uint16   spp, bps, photometry, tiffcomp, orientation, sample_fmt;
 l_uint16  *redmap, *greenmap, *bluemap;
 l_int32    d, wpl, bpl, comptype, i, j, k, ncolors, rval, gval, bval, aval;
-l_int32    xres, yres;
+l_int32    xres, yres, halfsize;
 l_uint32   w, h, tiffbpl, packedbpl, tiffword, read_oriented;
 l_uint32  *line, *ppixel, *tiffdata, *pixdata;
 PIX       *pix, *pix1;
@@ -554,12 +554,21 @@ PIXCMAP   *cmap;
         L_ERROR("height = %d pixels; too large\n", procName, h);
         return NULL;
     }
+
+        /* The relation between the size of a byte buffer required to hold
+           a raster of image pixels (packedbpl) and the size of the tiff
+           buffer (tiffbuf) is either 1:1 or approximately 2:1, depending
+           on how the data is stored and subsampled.  Allow some slop
+           when validating the relation between buffer size and the image
+           parameters w, spp and bps. */
     tiffbpl = TIFFScanlineSize(tif);
     packedbpl = (bps * spp * w + 7) / 8;
-    if (packedbpl == 2 * tiffbpl)
-        L_INFO("packedbpl = %d is twice tiffbpl = %d\n", procName,
+    halfsize = (packedbpl >= 2 * (tiffbpl - 4) &&
+                packedbpl <= 2 * (tiffbpl + 4));
+    if (halfsize)
+        L_INFO("packedbpl = %d is approx. twice tiffbpl = %d\n", procName,
                packedbpl, tiffbpl);
-    if (tiffbpl != packedbpl && 2 * tiffbpl != packedbpl) {
+    if (tiffbpl != packedbpl && !halfsize) {
         L_ERROR("invalid tiffbpl: tiffbpl = %d, bps = %d, spp = %d, w = %d\n",
                 procName, tiffbpl, bps, spp, w);
         return NULL;

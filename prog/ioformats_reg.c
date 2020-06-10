@@ -99,7 +99,7 @@ char          psname[256];
 char         *tempname;
 l_uint8      *data;
 l_int32       i, d, n, success, failure, same;
-l_int32       w, h, bps, spp, iscmap;
+l_int32       w, h, bps, spp, iscmap, res;
 size_t        size, nbytes;
 PIX          *pix1, *pix2, *pix3, *pix4, *pix8, *pix16, *pix32;
 PIX          *pix, *pixt, *pixd;
@@ -261,6 +261,7 @@ L_REGPARAMS  *rp;
     }
 
         /* Test writing and reading tiff colormaps */
+    lept_stderr("Tiff read/write 8 bpp with cmap\n");
     pix1 = pixRead(FILE_8BPP_2);
     pixWrite("/tmp/lept/regout/weas8.tif", pix1, IFF_TIFF);
     readHeaderTiff("/tmp/lept/regout/weas8.tif", 0, &w, &h, &bps, &spp,
@@ -282,6 +283,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix3);
 
         /* Test writing and reading 1 bpp tiff with colormap */
+    lept_stderr("Tiff read/write 1 bpp with cmap\n");
     pix1 = pixRead("feyn-fract2.tif");
     cmap = pixcmapCreate(1);
     pixcmapAddColor(cmap, 0, 0, 0);  /* inverted b/w */
@@ -310,6 +312,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix3);
 
         /* Test writing and reading tiff with alpha */
+    lept_stderr("Tiff read/write gray plus alpha\n");
     pix1 = pixRead(FILE_GRAY_ALPHA_TIF);  /* converts to RGBA */
     pixWrite("/tmp/lept/regout/graya.tif", pix1, IFF_TIFF);
     readHeaderTiff("/tmp/lept/regout/graya.tif", 0, &w, &h, &bps, &spp,
@@ -338,6 +341,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix2);
 
         /* Test reading 16 bit sampled rgb tiff */
+    lept_stderr("Tiff read/write 16 bit sampled rgb\n");
     pix1 = pixRead(FILE_RGB16_TIF);  /* converts 16 to 8 bits RGB */
     pixWrite("/tmp/lept/regout/rgb16.tif", pix1, IFF_TIFF_ZIP);
     readHeaderTiff("/tmp/lept/regout/rgb16.tif", 0, &w, &h, &bps, &spp,
@@ -350,6 +354,25 @@ L_REGPARAMS  *rp;
     pixEqual(pix1, pix2, &same);
     if (!same) {
         lept_stderr("Tiff read/write failed for rgb16.tif\n");
+        success = FALSE;
+    }
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+
+        /* Test reading 32 bit rgb with approx half-sized tiff buffer */
+    lept_stderr("Tiff read/write rgb with half-sized tiff buffer\n");
+    pix1 = pixRead("testbuffer.tif");
+    pixWrite("/tmp/lept/regout/testbuffer.tif", pix1, IFF_TIFF_ZIP);
+    readHeaderTiff("/tmp/lept/regout/testbuffer.tif", 0, &w, &h, &bps, &spp,
+                   &res, &iscmap, NULL);
+    if (w != 659 || h != 799 || bps != 8 || spp != 3 || res != 96) {
+        lept_stderr("Header error testing rgb tiff with xmall tif buffer\n");
+        success = FALSE;
+    }
+    pix2 = pixRead("/tmp/lept/regout/testbuffer.tif");
+    pixEqual(pix1, pix2, &same);
+    if (!same) {
+        lept_stderr("Tiff read/write failed for testbuffer.tif\n");
         success = FALSE;
     }
     pixDestroy(&pix1);
