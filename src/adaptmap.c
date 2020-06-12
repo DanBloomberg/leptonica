@@ -1511,7 +1511,6 @@ NUMA     *na;  /* indicates if there is any data in the column */
             }
         }
     }
-    numaAddNumber(na, 0);  /* last column */
 
     if (nmiss == nx) {  /* no data in any column! */
         numaDestroy(&na);

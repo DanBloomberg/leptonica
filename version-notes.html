@@ -100,7 +100,7 @@ They are <i>not</i> a complete listing of the modifications.
         * Convert hashtest program to regression test hash_reg.
         * Convert croptest program to regression test crop_reg.
         * New color segmentation by region growing (colorfill.c)
-        * New regression tests: colorfill_reg.
+        * New regression tests: colorfill_reg, circle_reg.
         * Set maxima for all allocations for common leptonica data structures.
         * Don't fail when downscaling 2, 4, 8, and 32 bpp images, even
           to one pixel, invoking pixScaleSmooth().
@@ -111,6 +111,8 @@ They are <i>not</i> a complete listing of the modifications.
           with the pix it is attached to.
         * Use lept_stderr() in all regression tests (prog/*_reg.c)
         * New program rasteroptest() for thorough testing of rasterop functions.
+        * Removed the pixSaveTiled*() functions
+        * Stubbed pixDisplayWrite().  Last used in tesseract 3.04.01 (2/2016).
 
 1.79.0  1 Jan 2020
         * Clean up auto-generation of files; removed 'register'

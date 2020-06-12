@@ -650,11 +650,14 @@ NUMA  *nac, *nad;
 
     PROCNAME("pixExtractBarcodeWidths1");
 
+    if (pnaehist) *pnaehist = NULL;
+    if (pnaohist) *pnaehist = NULL;
     if (!pixs || pixGetDepth(pixs) != 8)
         return (NUMA *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
 
         /* Get the best estimate of the crossings, in pixel units */
-    nac = pixExtractBarcodeCrossings(pixs, thresh, debugflag);
+    if ((nac = pixExtractBarcodeCrossings(pixs, thresh, debugflag)) == NULL)
+        return (NUMA *)ERROR_PTR("nac not made", procName, NULL);
 
         /* Get the array of bar widths, starting with a black bar  */
     nad = numaQuantizeCrossingsByWidth(nac, binfract, pnaehist,
@@ -698,19 +701,23 @@ pixExtractBarcodeWidths2(PIX        *pixs,
                          NUMA      **pnac,
                          l_int32     debugflag)
 {
-NUMA  *nacp, *nad;
+l_int32  width;
+NUMA    *nac, *nacp, *nad;
 
     PROCNAME("pixExtractBarcodeWidths2");
 
+    if (pwidth) *pwidth = 0;
+    if (pnac) *pnac = NULL;
     if (!pixs || pixGetDepth(pixs) != 8)
         return (NUMA *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
 
         /* Get the best estimate of the crossings, in pixel units */
-    nacp = pixExtractBarcodeCrossings(pixs, thresh, debugflag);
+    if ((nacp = pixExtractBarcodeCrossings(pixs, thresh, debugflag)) == NULL)
+        return (NUMA *)ERROR_PTR("nacp not made", procName, NULL);
 
         /* Quantize the crossings to get actual windowed data */
-    nad = numaQuantizeCrossingsByWindow(nacp, 2.0, pwidth, NULL, pnac, debugflag);
-
+    nad = numaQuantizeCrossingsByWindow(nacp, 2.0, pwidth, NULL,
+                                        pnac, debugflag);
     numaDestroy(&nacp);
     return nad;
 }
@@ -724,6 +731,11 @@ NUMA  *nacp, *nad;
  *                           white <--> black; typ. ~120
  * \param[in]    debugflag   use 1 to generate debug output
  * \return  numa   of crossings, in pixel units, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Require at least 10 crossings.
+ * </pre>
  */
 NUMA *
 pixExtractBarcodeCrossings(PIX       *pixs,
@@ -765,10 +777,14 @@ NUMA      *nas, *nax, *nay, *nad;
 
         /* Get the crossings with the best threshold. */
     nad = numaCrossingsByThreshold(nax, nay, bestthresh);
-
     numaDestroy(&nas);
     numaDestroy(&nax);
     numaDestroy(&nay);
+
+    if (numaGetCount(nad) < 10) {
+        L_ERROR("Only %d crossings; failure\n", procName, numaGetCount(nad));
+        numaDestroy(&nad);
+    }
     return nad;
 }
 
@@ -866,6 +882,8 @@ NUMA      *naerange, *naorange, *naelut, *naolut, *nad;
 
     PROCNAME("numaQuantizeCrossingsByWidth");
 
+    if (pnaehist) *pnaehist = NULL;
+    if (pnaohist) *pnaehist = NULL;
     if (!nas)
         return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
     n = numaGetCount(nas);

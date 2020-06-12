@@ -60,8 +60,8 @@
  *     Change format for missing library
  *        void        changeFormatForMissingLib()
  *
- *     Deprecated pix output for debugging
- *        l_int32     pixDisplayWrite()  -- still used in tesseract 3.05
+ *     Nonfunctional stub of pix output for debugging
+ *        l_int32     pixDisplayWrite()
  *        l_int32     pixSaveTiled()
  *        l_int32     pixSaveTiledOutline()
  *        l_int32     pixSaveTiledWithText()
@@ -1190,94 +1190,28 @@ changeFormatForMissingLib(l_int32  *pformat)
 /*!
  * \brief   pixDisplayWrite()
  *
- * \param[in]    pix 1, 2, 4, 8, 16, 32 bpp
- * \param[in]    reduction -1 to reset/erase; 0 to disable;
- *                         otherwise this is a reduction factor
- * \return  0 if OK; 1 on error
+ * \param[in]    pix
+ * \param[in]    reduction
+ * \return  1 (error)
  *
  * <pre>
  * Notes:
- *      (0) Deprecated.
- *      (1) This is a simple interface for writing a set of files.
- *      (2) This uses jpeg output for pix that are 32 bpp or 8 bpp
- *          without a colormap; otherwise, it uses png.
- *      (3) To erase any previously written files in the output directory:
- *             pixDisplayWrite(NULL, -1);
- *      (4) If reduction > 1 and depth == 1, this does a scale-to-gray
- *          reduction.
- *      (5) This function uses a static internal variable to number
- *          output files written by a single process.  Behavior
- *          with a shared library may be unpredictable.
- *      (6) For 16 bpp, this displays the full dynamic range with log scale.
- *          Alternative image transforms to generate 8 bpp pix are:
- *             pix8 = pixMaxDynamicRange(pixt, L_LINEAR_SCALE);
- *             pix8 = pixConvert16To8(pixt, L_LS_BYTE);  // low order byte
- *             pix8 = pixConvert16To8(pixt, L_MS_BYTE);  // high order byte
+ *      As of 1.80, this is a non-functional stub.
  * </pre>
  */
 l_ok
 pixDisplayWrite(PIX     *pixs,
                 l_int32  reduction)
 {
-char            buf[Bufsize];
-char           *fname;
-l_float32       scale;
-PIX            *pix1, *pix2;
-static l_int32  index = 0;  /* caution: not .so or thread safe */
-
-    PROCNAME("pixDisplayWrite");
-
-    lept_stderr("\n######################################################"
-                "\n                     Notice:\n"
-                "  pixDisplayWrite() has been deprecated in leptonica \n"
-                "  since version 1.74. It will become a non-functioning\n"
-                "  stub in 1.80.\n"
-                "######################################################"
+    lept_stderr("\n########################################################\n"
+                "  pixDisplayWrite() was last used in tesseract 3.04,"
+                "  in Feb 2016.  As of 1.80, it is a non-functional stub\n"
+                "########################################################"
                 "\n\n\n");
-
-    if (reduction == 0) return 0;
-    if (reduction < 0) {  /* initialize */
-        lept_rmdir("lept/display");
-        index = 0;
-        return 0;
-    }
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
-    if (index == 0)
-        lept_mkdir("lept/display");
-    index++;
-
-    if (reduction == 1) {
-        pix1 = pixClone(pixs);
-    } else {
-        scale = 1. / (l_float32)reduction;
-        if (pixGetDepth(pixs) == 1)
-            pix1 = pixScaleToGray(pixs, scale);
-        else
-            pix1 = pixScale(pixs, scale, scale);
-    }
-
-    if (pixGetDepth(pix1) == 16) {
-        pix2 = pixMaxDynamicRange(pix1, L_LOG_SCALE);
-        snprintf(buf, Bufsize, "file.%03d.png", index);
-        fname = pathJoin("/tmp/lept/display", buf);
-        pixWrite(fname, pix2, IFF_PNG);
-        pixDestroy(&pix2);
-    } else if (pixGetDepth(pix1) < 8 || pixGetColormap(pix1)) {
-        snprintf(buf, Bufsize, "file.%03d.png", index);
-        fname = pathJoin("/tmp/lept/display", buf);
-        pixWrite(fname, pix1, IFF_PNG);
-    } else {
-        snprintf(buf, Bufsize, "file.%03d.jpg", index);
-        fname = pathJoin("/tmp/lept/display", buf);
-        pixWrite(fname, pix1, IFF_JFIF_JPEG);
-    }
-    LEPT_FREE(fname);
-    pixDestroy(&pix1);
-    return 0;
+    return 1;
 }
 
-
+#if 0
 /*!
  * \brief   pixSaveTiled()
  *
@@ -1531,3 +1465,4 @@ PIX  *pix1, *pix2, *pix3, *pix4;
     pixDestroy(&pix4);
     return 0;
 }
+#endif

@@ -75,6 +75,7 @@ static const char *tests[] = {
                               "ccthin1_reg",
                               "ccthin2_reg",
                               "checkerboard_reg",
+                              "circle_reg",
                               "cmapquant_reg",
                               "colorcontent_reg",
                               "colorfill_reg",

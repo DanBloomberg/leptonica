@@ -366,7 +366,7 @@ L_REGPARAMS  *rp;
     readHeaderTiff("/tmp/lept/regout/testbuffer.tif", 0, &w, &h, &bps, &spp,
                    &res, &iscmap, NULL);
     if (w != 659 || h != 799 || bps != 8 || spp != 3 || res != 96) {
-        lept_stderr("Header error testing rgb tiff with xmall tif buffer\n");
+        lept_stderr("Header error testing rgb tiff with small tif buffer\n");
         success = FALSE;
     }
     pix2 = pixRead("/tmp/lept/regout/testbuffer.tif");

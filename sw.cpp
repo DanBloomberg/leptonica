@@ -98,6 +98,7 @@ void build(Solution &s)
             {"ccthin1_reg", {"ccthin1_reg.c"}},
             {"ccthin2_reg", {"ccthin2_reg.c"}},
             {"checkerboard_reg", {"checkerboard_reg.c"}},
+            {"circle_reg", {"circle_reg.c"}},
             {"cmapquant_reg", {"cmapquant_reg.c"}},
             {"colorcontent_reg", {"colorcontent_reg.c"}},
             {"colorfill_reg", {"colorfill_reg.c"}},

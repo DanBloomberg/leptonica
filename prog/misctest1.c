@@ -287,5 +287,45 @@ PIXCMAP  *cmap, *cmapg;
     pixDestroy(&pix1);
     pixDestroy(&pix2);
 
+        /* Test the set and clear block functions in cmapped pix */
+    lept_stderr("Test the set and clear block functions in cmapped pix\n");
+    lept_stderr("******************************************************\n");
+    lept_stderr("* Testing error checking: ignore two reported errors *\n");
+    pix1 = pixRead("weasel4.11c.png");
+    pixa1 = pixaCreate(0);
+    pix2 = pixCopy(NULL, pix1);
+    pixClearAll(pix2);
+    pixaAddPix(pixa1, pix2, L_INSERT);
+    pix2 = pixCopy(NULL, pix1);
+    pixSetAll(pix2);  /* error */
+    pixaAddPix(pixa1, pix2, L_INSERT);
+    pix2 = pixCopy(NULL, pix1);
+    pixSetAllArbitrary(pix2, 4);
+    pixaAddPix(pixa1, pix2, L_INSERT);
+    pix2 = pixCopy(NULL, pix1);
+    pixSetAllArbitrary(pix2, 11);  /* warning */
+    pixaAddPix(pixa1, pix2, L_INSERT);
+
+    box1 = boxCreate(20, 20, 30, 30);
+    pix2 = pixCopy(NULL, pix1);
+    pixClearInRect(pix2, box1);
+    pixaAddPix(pixa1, pix2, L_INSERT);
+    pix2 = pixCopy(NULL, pix1);
+    pixSetInRect(pix2, box1);  /* error */
+    pixaAddPix(pixa1, pix2, L_INSERT);
+    pix2 = pixCopy(NULL, pix1);
+    pixSetInRectArbitrary(pix2, box1, 4);
+    pixaAddPix(pixa1, pix2, L_INSERT);
+    pix2 = pixCopy(NULL, pix1);
+    pixSetInRectArbitrary(pix2, box1, 12);  /* warning */
+    pixaAddPix(pixa1, pix2, L_INSERT);
+    lept_stderr("******************************************************\n");
+
+    pix3 = pixaDisplayTiledInColumns(pixa1, 10, 1.0, 15, 2);
+    pixWrite("/tmp/lept/misc/setting.png", pix3, IFF_PNG);
+    pixDisplay(pix3, 500, 100);
+    pixDestroy(&pix1);
+    pixDestroy(&pix3);
+    pixaDestroy(&pixa1);
     return 0;
 }

@@ -565,9 +565,11 @@ PIXCMAP   *cmap;
     packedbpl = (bps * spp * w + 7) / 8;
     halfsize = (packedbpl >= 2 * (tiffbpl - 4) &&
                 packedbpl <= 2 * (tiffbpl + 4));
+#if 0
     if (halfsize)
         L_INFO("packedbpl = %d is approx. twice tiffbpl = %d\n", procName,
                packedbpl, tiffbpl);
+#endif
     if (tiffbpl != packedbpl && !halfsize) {
         L_ERROR("invalid tiffbpl: tiffbpl = %d, bps = %d, spp = %d, w = %d\n",
                 procName, tiffbpl, bps, spp, w);
