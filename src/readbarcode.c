@@ -887,8 +887,8 @@ NUMA      *naerange, *naorange, *naelut, *naolut, *nad;
     if (!nas)
         return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
     n = numaGetCount(nas);
-    if (n < 2)
-        return (NUMA *)ERROR_PTR("n < 2", procName, NULL);
+    if (n < 10)
+        return (NUMA *)ERROR_PTR("n < 10", procName, NULL);
     if (binfract <= 0.0)
         return (NUMA *)ERROR_PTR("binfract <= 0.0", procName, NULL);
 
