@@ -1080,6 +1080,8 @@ l_uint32  *line;
         pos = (qpos + i) % 8;
         npx = px + xpostab[pos];
         npy = py + ypostab[pos];
+        if (npx < 0 || npx >= w || npy < 0 || npy >= h)
+            continue;
         line = data + npy * wpl;
         val = GET_DATA_BIT(line, npx);
         if (val) {
