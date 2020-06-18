@@ -477,8 +477,8 @@ l_uint8   *linebuf, *data, *rowptr;
 l_uint16   spp, bps, photometry, tiffcomp, orientation, sample_fmt;
 l_uint16  *redmap, *greenmap, *bluemap;
 l_int32    d, wpl, bpl, comptype, i, j, k, ncolors, rval, gval, bval, aval;
-l_int32    xres, yres, halfsize;
-l_uint32   w, h, tiffbpl, packedbpl, tiffword, read_oriented;
+l_int32    xres, yres, tiffbpl, packedbpl, halfsize;
+l_uint32   w, h, tiffword, read_oriented;
 l_uint32  *line, *ppixel, *tiffdata, *pixdata;
 PIX       *pix, *pix1;
 PIXCMAP   *cmap;
@@ -563,16 +563,16 @@ PIXCMAP   *cmap;
            parameters w, spp and bps. */
     tiffbpl = TIFFScanlineSize(tif);
     packedbpl = (bps * spp * w + 7) / 8;
-    halfsize = (packedbpl >= 2 * (tiffbpl - 4) &&
-                packedbpl <= 2 * (tiffbpl + 4));
+    halfsize = L_ABS(2 * tiffbpl - packedbpl) <= 8;
 #if 0
     if (halfsize)
         L_INFO("packedbpl = %d is approx. twice tiffbpl = %d\n", procName,
                packedbpl, tiffbpl);
 #endif
     if (tiffbpl != packedbpl && !halfsize) {
-        L_ERROR("invalid tiffbpl: tiffbpl = %d, bps = %d, spp = %d, w = %d\n",
-                procName, tiffbpl, bps, spp, w);
+        L_ERROR("invalid tiffbpl: tiffbpl = %d, packedbpl = %d, "
+                "bps = %d, spp = %d, w = %d\n",
+                procName, tiffbpl, packedbpl, bps, spp, w);
         return NULL;
     }
 
