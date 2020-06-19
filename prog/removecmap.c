@@ -63,13 +63,13 @@ static char  mainName[] = "removecmap";
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", mainName, 1);
 
-    fprintf(stderr, " depth = %d\n", pixGetDepth(pixs));
+    lept_stderr(" depth = %d\n", pixGetDepth(pixs));
     if ((cmap = pixGetColormap(pixs)) != NULL) {
         numcolors = pixcmapGetCount(cmap);
         pixcmapWriteStream(stderr, cmap);
-        fprintf(stderr, " colormap found; num colors = %d\n", numcolors);
+        lept_stderr(" colormap found; num colors = %d\n", numcolors);
     } else {
-        fprintf(stderr, " no colormap\n");
+        lept_stderr(" no colormap\n");
     }
 
     pixd = pixRemoveColormap(pixs, type);

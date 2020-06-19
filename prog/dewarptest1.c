@@ -158,7 +158,7 @@ PIX        *pixs2, *pixn2, *pixg2, *pixb2, *pixd2;
         /* Generate the big pdf file */
     convertFilesToPdf("/tmp/lept/dewtest", NULL, 135, 1.0, 0, 0, "Dewarp Test",
                       "/tmp/lept/dewarptest1.pdf");
-    fprintf(stderr, "pdf file made: /tmp/lept/model/dewarptest1.pdf\n");
+    lept_stderr("pdf file made: /tmp/lept/model/dewarptest1.pdf\n");
 
     lept_rmdir("lept/dewmod");
     lept_rmdir("lept/dewtest");

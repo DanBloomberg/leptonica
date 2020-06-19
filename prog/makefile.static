@@ -234,8 +234,8 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		histoduptest.c histotest.c \
 		htmlviewer.c imagetops.c \
 		jbcorrelation.c jbrankhaus.c jbwords.c \
-		listtest.c livre_adapt.c livre_hmt.c \
-		livre_makefigs.c livre_orient.c \
+		lightcolortest.c listtest.c \
+		livre_adapt.c livre_hmt.c livre_makefigs.c livre_orient.c \
 		livre_pageseg.c livre_seedgen.c livre_tophat.c \
 		maketile.c maptest.c messagetest.c misctest1.c \
 		modifyhuesat.c morphtest1.c \
@@ -976,6 +976,9 @@ jbrankhaus:	jbrankhaus.o $(LEPTLIB)
 
 jbwords:	jbwords.o $(LEPTLIB)
 	$(CC) -o jbwords jbwords.o $(ALL_LIBS) $(EXTRALIBS)
+
+lightcolortest:	lightcolortest.o $(LEPTLIB)
+	$(CC) -o lightcolortest lightcolortest.o $(ALL_LIBS) $(EXTRALIBS)
 
 listtest:	listtest.o $(LEPTLIB)
 	$(CC) -o listtest listtest.o $(ALL_LIBS) $(EXTRALIBS)

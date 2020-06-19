@@ -72,7 +72,7 @@ PIXA         *pixa1, *pixa2, *pixa3;
 L_STRCODE    *strc;
 
     if (argc != 1) {
-        fprintf(stderr, " Syntax: recog_bootnum\n");
+        lept_stderr(" Syntax: recog_bootnum\n");
         return 1;
     }
 
@@ -175,7 +175,7 @@ L_STRCODE    *strc;
     n = pixaGetCount(pixa3);
     for (i = 0; i < n; i++) {
         pix = pixaGetPix(pixa3, i, L_CLONE);
-        fprintf(stderr, "i = %d, text = %s\n", i, pixGetText(pix));
+        lept_stderr("i = %d, text = %s\n", i, pixGetText(pix));
         pixDestroy(&pix);
     }
     pixaDestroy(&pixa1);
@@ -296,7 +296,7 @@ SARRAY   *sa;
             /* Read each pix: grayscale, multi-character, labelled */
         fname = sarrayGetString(sa, i, L_NOCOPY);
         if ((pix = pixRead(fname)) == NULL) {
-            fprintf(stderr, "Can't read %s\n", fname);
+            lept_stderr("Can't read %s\n", fname);
             continue;
         }
 

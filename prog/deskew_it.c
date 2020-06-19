@@ -99,7 +99,7 @@ static char  mainName[] = "deskew_it";
         pixDestroy(&pixs);
         return 1;
     }
-    fprintf(stderr, "skew angle = %.3f, conf = %.1f\n", angle, conf);
+    lept_stderr("skew angle = %.3f, conf = %.1f\n", angle, conf);
 
         /* Two situations were we're finished:
          * (1) conf >= 3.0 and it's good enough, so write out pixd
@@ -125,7 +125,7 @@ static char  mainName[] = "deskew_it";
         pixDestroy(&pixs);
         return 1;
     }
-    fprintf(stderr, "90 rot: skew angle = %.3f, conf = %.1f\n", angle, conf);
+    lept_stderr("90 rot: skew angle = %.3f, conf = %.1f\n", angle, conf);
 
     if (conf < 3.0) {
         pixWrite(fileout, pixs, format);

@@ -92,7 +92,7 @@ static char  mainName[] = "arabic_lines";
         /* Deskew */
     pixb = pixFindSkewAndDeskew(pix, 1, &angle, &conf);
     pixDestroy(&pix);
-    fprintf(stderr, "Skew angle: %7.2f degrees; %6.2f conf\n", angle, conf);
+    lept_stderr("Skew angle: %7.2f degrees; %6.2f conf\n", angle, conf);
     pixaAddPix(pixa, pixb, L_INSERT);
 
         /* Use full image morphology to find columns, at 2x reduction.
@@ -102,7 +102,7 @@ static char  mainName[] = "arabic_lines";
     pix1 = pixMorphCompSequence(pixb2, "c5.500 + o20.20", 0);
     boxa1 = pixConnComp(pix1, &pixam, 8);
     ncols = boxaGetCount(boxa1);
-    fprintf(stderr, "Num columns: %d\n", ncols);
+    lept_stderr("Num columns: %d\n", ncols);
     pixaAddPix(pixa, pix1, L_INSERT);
     boxaDestroy(&boxa1);
 
@@ -128,8 +128,7 @@ static char  mainName[] = "arabic_lines";
         pixaaAddBox(pixaa, box, L_INSERT);
         pix4 = pixaDisplayRandomCmap(pixa1, 0, 0);
         pixaAddPix(pixa, pix4, L_INSERT);
-        fprintf(stderr, "Num textlines in col %d: %d\n", i,
-                boxaGetCount(boxa2));
+        lept_stderr("Num textlines in col %d: %d\n", i, boxaGetCount(boxa2));
         pixDestroy(&pix2);
         pixDestroy(&pix3);
         boxaDestroy(&boxa2);

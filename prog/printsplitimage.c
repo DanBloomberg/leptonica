@@ -89,7 +89,7 @@ static char  mainName[] = "printsplitimage";
     ny = atoi(argv[3]);
     printer = (argc == 5) ? argv[4] : NULL;
 
-    fprintf(stderr,
+    lept_stderr(
          "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
          "   Warning: this program should only be used for testing,\n"
          "     and not in a production environment, because of a\n"
@@ -120,7 +120,7 @@ static char  mainName[] = "printsplitimage";
         scale = L_MIN(FILL_FACTOR * 2550 / w, FILL_FACTOR * 3300 / h);
         snprintf(buf, sizeof(buf), "image%d.ps", i);
         fname = genPathname("/tmp/lept/split", buf);
-        fprintf(stderr, "fname: %s\n", fname);
+        lept_stderr("fname: %s\n", fname);
         sarrayAddString(sa, fname, L_INSERT);
 #if USE_COMPRESSED
         index = 0;

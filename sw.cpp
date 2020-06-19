@@ -285,6 +285,7 @@ void build(Solution &s)
             {"jbcorrelation", {"jbcorrelation.c"}},
             {"jbrankhaus", {"jbrankhaus.c"}},
             {"jbwords", {"jbwords.c"}},
+            {"lightcolortest", {"lightcolortest.c"}},
             {"listtest", {"listtest.c"}},
             {"livre_adapt", {"livre_adapt.c"}},
             {"livre_hmt", {"livre_hmt.c"}},

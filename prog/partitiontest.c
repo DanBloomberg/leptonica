@@ -73,26 +73,26 @@ static char  mainName[] = "partitiontest";
     filename = argv[1];
     type = atoi(argv[2]);
 
-    if (type == L_SORT_BY_WIDTH)
-        fprintf(stderr, "Sorting by width:\n");
-    else if (type == L_SORT_BY_HEIGHT)
-        fprintf(stderr, "Sorting by height:\n");
-    else if (type == L_SORT_BY_MAX_DIMENSION)
-        fprintf(stderr, "Sorting by maximum dimension:\n");
-    else if (type == L_SORT_BY_MIN_DIMENSION)
-        fprintf(stderr, "Sorting by minimum dimension:\n");
-    else if (type == L_SORT_BY_PERIMETER)
-        fprintf(stderr, "Sorting by perimeter:\n");
-    else if (type == L_SORT_BY_AREA)
-        fprintf(stderr, "Sorting by area:\n");
-    else {
-        fprintf(stderr, "Use one of the following for 'type':\n"
-               "     5:   L_SORT_BY_WIDTH\n"
-               "     6:   L_SORT_BY_HEIGHT\n"
-               "     7:   L_SORT_BY_MIN_DIMENSION\n"
-               "     8:   L_SORT_BY_MAX_DIMENSION\n"
-               "     9:   L_SORT_BY_PERIMETER\n"
-               "    10:   L_SORT_BY_AREA\n");
+    if (type == L_SORT_BY_WIDTH) {
+        lept_stderr("Sorting by width:\n");
+    } else if (type == L_SORT_BY_HEIGHT) {
+        lept_stderr("Sorting by height:\n");
+    } else if (type == L_SORT_BY_MAX_DIMENSION) {
+        lept_stderr("Sorting by maximum dimension:\n");
+    } else if (type == L_SORT_BY_MIN_DIMENSION) {
+        lept_stderr("Sorting by minimum dimension:\n");
+    } else if (type == L_SORT_BY_PERIMETER) {
+        lept_stderr("Sorting by perimeter:\n");
+    } else if (type == L_SORT_BY_AREA) {
+        lept_stderr("Sorting by area:\n");
+    } else {
+        lept_stderr("Use one of the following for 'type':\n"
+                    "     5:   L_SORT_BY_WIDTH\n"
+                    "     6:   L_SORT_BY_HEIGHT\n"
+                    "     7:   L_SORT_BY_MIN_DIMENSION\n"
+                    "     8:   L_SORT_BY_MAX_DIMENSION\n"
+                    "     9:   L_SORT_BY_PERIMETER\n"
+                    "    10:   L_SORT_BY_AREA\n");
         return ERROR_INT("invalid type: see source", mainName, 1);
     }
     if (argc == 5) {
@@ -118,7 +118,7 @@ static char  mainName[] = "partitiontest";
                              L_SELECT_IF_LT, NULL);
     boxad = boxaGetWhiteblocks(boxat, box, type, maxboxes, ovlap,
                                200, 0.15, 20000);
-    fprintf(stderr, "Time: %7.3f sec\n", stopTimer());
+    lept_stderr("Time: %7.3f sec\n", stopTimer());
 /*    boxaWriteStream(stderr, boxad); */
 
         /* Display box outlines in a single color in a cmapped image */
@@ -161,7 +161,7 @@ static char  mainName[] = "partitiontest";
     pixaAddPix(pixa, pix2, L_INSERT);
     pixDestroy(&pix1);
 
-    fprintf(stderr, "Writing to: /tmp/lept/part/partition.pdf\n");
+    lept_stderr("Writing to: /tmp/lept/part/partition.pdf\n");
     lept_mkdir("lept/part");
     pixaConvertToPdf(pixa, 300, 1.0, L_FLATE_ENCODE, 0, "Partition test",
                      "/tmp/lept/part/partition.pdf");

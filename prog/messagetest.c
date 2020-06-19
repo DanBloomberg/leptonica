@@ -121,13 +121,13 @@ int main ()
 
         /* Part 3: test of naked fprintf and output with callback handler.
          * All lines should print except for line 4.  */
-    fprintf(stderr, "1. text\n");
+    lept_stderr("1. text\n");
     lept_stderr("2. text\n");
     leptSetStderrHandler(send_to_devnull);
-    fprintf(stderr, "3. text\n");
+    lept_stderr("3. text\n");
     lept_stderr("4. text\n");
     leptSetStderrHandler(NULL);
-    fprintf(stderr, "5. text\n");
+    lept_stderr("5. text\n");
     lept_stderr("6. text\n");
 
     return 0;

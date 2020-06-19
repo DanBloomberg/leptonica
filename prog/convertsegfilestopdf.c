@@ -87,7 +87,7 @@ BOXAA       *baa;
 static char  mainName[] = "convertsegfilestopdf";
 
     if (argc != 12) {
-        fprintf(stderr,
+        lept_stderr(
 	    " Syntax: convertsegfilestopdf dirin substr res type thresh \\ \n"
             "                       boxaafile scalefactor title fileout\n"
             "     where\n"

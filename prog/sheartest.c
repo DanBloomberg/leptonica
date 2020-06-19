@@ -62,9 +62,9 @@ static char  mainName[] = "sheartest";
     pixHShearIP(pixt1, (l_int32)(0.3 * h), 0.17, L_BRING_IN_WHITE);
     pixEqual(pixt1, pixt2, &same);
     if (same)
-        fprintf(stderr, "Correct for H shear\n");
+        lept_stderr("Correct for H shear\n");
     else
-        fprintf(stderr, "Error for H shear\n");
+        lept_stderr("Error for H shear\n");
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
 
@@ -75,9 +75,9 @@ static char  mainName[] = "sheartest";
     pixVShearIP(pixt1, (l_int32)(0.3 * w), 0.17, L_BRING_IN_WHITE);
     pixEqual(pixt1, pixt2, &same);
     if (same)
-        fprintf(stderr, "Correct for V shear\n");
+        lept_stderr("Correct for V shear\n");
     else
-        fprintf(stderr, "Error for V shear\n");
+        lept_stderr("Error for V shear\n");
     pixDestroy(&pixt1);
     pixDestroy(&pixt2);
 

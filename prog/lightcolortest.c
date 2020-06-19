@@ -56,30 +56,30 @@ static char  mainName[] = "lightcolortest";
     sa = getSortedPathnamesInDirectory( ".", "comap.", 0, 0);
     sarrayWriteStream(stderr, sa);
     n = sarrayGetCount(sa);
-    fprintf(stderr, "n = %d\n", n);
+    lept_stderr("n = %d\n", n);
     pixa = pixaCreate(n);
     for (i = 0; i < n; i++) {
         pixa1 = pixaCreate(2);
         name = sarrayGetString(sa, i, L_NOCOPY);
         splitPathAtDirectory(name, NULL, &tail);
         pixs = pixRead(name);
-        fprintf(stderr, "%s:\n", tail);
+        lept_stderr("%s:\n", tail);
         pix1 = pixScaleBySampling(pixs, 0.2, 0.2);
 
         pixGetBinnedComponentRange(pix1, nbins, 2, L_SELECT_RED,
                                    &minval, &maxval, &rau32, 0);
-        fprintf(stderr, "  Red: max = %d, min = %d\n", maxval, minval);
+        lept_stderr("  Red: max = %d, min = %d\n", maxval, minval);
         rdiff = maxval - minval;
         pixGetBinnedComponentRange(pix1, nbins, 2, L_SELECT_GREEN,
                                    &minval, &maxval, &gau32, 0);
-        fprintf(stderr, "  Green: max = %d, min = %d\n", maxval, minval);
+        lept_stderr("  Green: max = %d, min = %d\n", maxval, minval);
         gdiff = maxval - minval;
         pixGetBinnedComponentRange(pix1, nbins, 2, L_SELECT_BLUE,
                                    &minval, &maxval, &bau32, 0);
-        fprintf(stderr, "  Blue: max = %d, min = %d\n", maxval, minval);
+        lept_stderr("  Blue: max = %d, min = %d\n", maxval, minval);
         bdiff = maxval - minval;
-        fprintf(stderr, "rdiff = %d, gdiff = %d, bdiff = %d\n\n",
-                rdiff, gdiff, bdiff);
+        lept_stderr("rdiff = %d, gdiff = %d, bdiff = %d\n\n",
+                    rdiff, gdiff, bdiff);
         maxdiff = L_MAX(rdiff, gdiff);
         maxdiff = L_MAX(maxdiff, bdiff);
         if (maxdiff == rdiff) {
@@ -124,4 +124,3 @@ static char  mainName[] = "lightcolortest";
     sarrayDestroy(&sa);
     return 0;
 }
-

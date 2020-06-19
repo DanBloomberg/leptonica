@@ -148,7 +148,7 @@ static char  mainName[] = "scaletest2";
 
         startTimer();
         pixt1 = pixScaleSmooth(pixs, 0.154, 0.154);
-        fprintf(stderr, "fast scale: %5.3f sec\n", stopTimer());
+        lept_stderr("fast scale: %5.3f sec\n", stopTimer());
         pixDisplayWithTitle(pixt1, 0, 0, "smooth scaling", DISPLAY);
         pixWrite("/tmp/lept/scale/smooth1.png", pixt1, IFF_PNG);
         pixt2 = pixUnsharpMasking(pixt1, 1, 0.3);
@@ -171,7 +171,7 @@ static char  mainName[] = "scaletest2";
             scale = 1. / (l_float32)i;
             startTimer();
             pixd = pixScaleToGray(pixs, scale);
-            fprintf(stderr, "Time for scale %7.3f: %7.3f sec\n",
+            lept_stderr("Time for scale %7.3f: %7.3f sec\n",
             scale, stopTimer());
             pixDisplayWithTitle(pixd, 75 * i, 100, "scaletogray", DISPLAY);
             pixDestroy(&pixd);
@@ -180,7 +180,7 @@ static char  mainName[] = "scaletest2";
             scale = 1. / (l_float32)(2 * i);
             startTimer();
             pixd = pixScaleToGray(pixs, scale);
-            fprintf(stderr, "Time for scale %7.3f: %7.3f sec\n",
+            lept_stderr("Time for scale %7.3f: %7.3f sec\n",
             scale, stopTimer());
             pixDisplayWithTitle(pixd, 100 * i, 600, "scaletogray", DISPLAY);
             pixDestroy(&pixd);
@@ -200,7 +200,7 @@ static char  mainName[] = "scaletest2";
             scale = 1. / (l_float32)i;
             startTimer();
             pixd = pixScaleToGrayMipmap(pixs, scale);
-            fprintf(stderr, "Time for scale %7.3f: %7.3f sec\n",
+            lept_stderr("Time for scale %7.3f: %7.3f sec\n",
             scale, stopTimer());
             pixDisplayWithTitle(pixd, 75 * i, 100, "scale mipmap", DISPLAY);
             pixDestroy(&pixd);
@@ -209,7 +209,7 @@ static char  mainName[] = "scaletest2";
             scale = 1. / (l_float32)(2 * i);
             startTimer();
             pixd = pixScaleToGrayMipmap(pixs, scale);
-            fprintf(stderr, "Time for scale %7.3f: %7.3f sec\n",
+            lept_stderr("Time for scale %7.3f: %7.3f sec\n",
             scale, stopTimer());
             pixDisplayWithTitle(pixd, 100 * i, 600, "scale mipmap", DISPLAY);
             pixDestroy(&pixd);
@@ -231,7 +231,7 @@ static char  mainName[] = "scaletest2";
 
         startTimer();
         pixt1 = pixScaleSmooth(pixs, SCALING, SCALING);
-        fprintf(stderr, "fast scale: %5.3f sec\n", stopTimer());
+        lept_stderr("fast scale: %5.3f sec\n", stopTimer());
         pixDisplayWithTitle(pixt1, 0, 0, "smooth scaling", DISPLAY);
         pixWrite("/tmp/lept/scale/sm_1.png", pixt1, IFF_PNG);
         pixt2 = pixUnsharpMasking(pixt1, 1, 0.3);
@@ -240,7 +240,7 @@ static char  mainName[] = "scaletest2";
         startTimer();
         pixt3 = pixBlockconv(pixs, smooth, smooth);
         pixt4 = pixScaleBySampling(pixt3, SCALING, SCALING);
-        fprintf(stderr, "slow scale: %5.3f sec\n", stopTimer());
+        lept_stderr("slow scale: %5.3f sec\n", stopTimer());
         pixDisplayWithTitle(pixt4, 200, 200, "sampled scaling", DISPLAY);
         pixWrite("/tmp/lept/scale/sm_2.png", pixt4, IFF_PNG);
 
@@ -248,7 +248,7 @@ static char  mainName[] = "scaletest2";
         pixt5 = pixUnsharpMasking(pixs, smooth, FRACT);
         pixt6 = pixBlockconv(pixt5, smooth, smooth);
         pixt7 = pixScaleBySampling(pixt6, SCALING, SCALING);
-        fprintf(stderr, "very slow scale + sharp: %5.3f sec\n", stopTimer());
+        lept_stderr("very slow scale + sharp: %5.3f sec\n", stopTimer());
         pixDisplayWithTitle(pixt7, 500, 200, "sampled scaling", DISPLAY);
         pixWrite("/tmp/lept/scale/sm_3.jpg", pixt7, IFF_JFIF_JPEG);
 
@@ -274,11 +274,11 @@ static char  mainName[] = "scaletest2";
 
         startTimer();
         pix1 = pixScaleColorLI(pixs, 2.00001, 2.0);
-        fprintf(stderr, " Time with regular LI: %7.3f\n", stopTimer());
+        lept_stderr(" Time with regular LI: %7.3f\n", stopTimer());
         pixWrite("/tmp/lept/scale/color1.jpg", pix1, IFF_JFIF_JPEG);
         startTimer();
         pix2 = pixScaleColorLI(pixs, 2.0, 2.0);
-        fprintf(stderr, " Time with 2x LI: %7.3f\n", stopTimer());
+        lept_stderr(" Time with 2x LI: %7.3f\n", stopTimer());
         pixWrite("/tmp/lept/scale/color2.jpg", pix2, IFF_JFIF_JPEG);
 
         pixd = pixAbsDifference(pix1, pix2);
@@ -322,17 +322,17 @@ static char  mainName[] = "scaletest2";
 #if 1
         startTimer();
         pix1 = pixScaleGrayLI(pix0, 2.00001, 2.0);
-        fprintf(stderr, " Time with regular LI 2x: %7.3f\n", stopTimer());
+        lept_stderr(" Time with regular LI 2x: %7.3f\n", stopTimer());
         startTimer();
         pix2 = pixScaleGrayLI(pix0, 2.0, 2.0);
-        fprintf(stderr, " Time with 2x LI: %7.3f\n", stopTimer());
+        lept_stderr(" Time with 2x LI: %7.3f\n", stopTimer());
 #else
         startTimer();
         pix1 = pixScaleGrayLI(pix0, 4.00001, 4.0);
-        fprintf(stderr, " Time with regular LI 4x: %7.3f\n", stopTimer());
+        lept_stderr(" Time with regular LI 4x: %7.3f\n", stopTimer());
         startTimer();
         pix2 = pixScaleGrayLI(pix0, 4.0, 4.0);
-        fprintf(stderr, " Time with 2x LI: %7.3f\n", stopTimer());
+        lept_stderr(" Time with 2x LI: %7.3f\n", stopTimer());
 #endif
         pixWrite("/tmp/lept/scale/gray1", pix1, IFF_JFIF_JPEG);
         pixWrite("/tmp/lept/scale/gray2", pix2, IFF_JFIF_JPEG);

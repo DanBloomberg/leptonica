@@ -128,8 +128,8 @@ static char  mainName[] = "seedfilltest";
     pixd = pixClone(pixs);
     startTimer();
     pixSeedfillBinary(pixs, pixs, pixmi, CONNECTIVITY);
-    fprintf(stderr, "Filling rate: %7.4f Mpix/sec\n",
-        (size/1000000.) / stopTimer());
+    lept_stderr("Filling rate: %7.4f Mpix/sec\n",
+                (size/1000000.) / stopTimer());
 
     pixWrite(fileout, pixd, IFF_PNG);
     pixOr(pixd, pixd, pixm);
@@ -143,8 +143,8 @@ static char  mainName[] = "seedfilltest";
     for (i = 0; i < NTIMES; i++) {
         pixSeedfillBinary(pixd, pixs, pixmi, CONNECTIVITY);
     }
-    fprintf(stderr, "Filling rate: %7.4f Mpix/sec\n",
-        (size/1000000.) * NTIMES / stopTimer());
+    lept_stderr("Filling rate: %7.4f Mpix/sec\n",
+                (size/1000000.) * NTIMES / stopTimer());
 
     pixWrite(fileout, pixd, IFF_PNG);
     pixOr(pixd, pixd, pixm);

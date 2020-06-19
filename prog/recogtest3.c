@@ -75,7 +75,7 @@ PIXA      *pixa1, *pixa2, *pixa3, *pixa4;
 L_RECOG   *recog1, *recog2, *recog3;
 
     if (argc != 1) {
-        fprintf(stderr, " Syntax: recogtest3\n");
+        lept_stderr(" Syntax: recogtest3\n");
         return 1;
     }
 
@@ -137,7 +137,7 @@ L_RECOG   *recog1, *recog2, *recog3;
     filesAreIdentical("/tmp/lept/recog/recog2.rec",
                       "/tmp/lept/recog/recog3.rec", &same);
     if (!same)
-        fprintf(stderr, "Error in serialization!\n");
+        lept_stderr("Error in serialization!\n");
     recogDestroy(&recog3);
 
         /* Remove outliers: method 1 */

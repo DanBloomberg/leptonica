@@ -128,7 +128,7 @@ static char  mainName[] = "wordsinorder";
         }
 
         snprintf(filename, BUF_SIZE, "%s.%05d", rootname, i);
-        fprintf(stderr, "filename: %s\n", filename);
+        lept_stderr("filename: %s\n", filename);
         pixWrite(filename, pixd, IFF_PNG);
         pixDestroy(&pix1);
         pixDestroy(&pix2);

@@ -63,7 +63,7 @@ PIX        *pix8, *pix9, *pix10;
 PIXA       *pixa1, *pixa2;
 
     if (argc != 3) {
-        fprintf(stderr, " Syntax: dewarprules select ndew\n");
+        lept_stderr(" Syntax: dewarprules select ndew\n");
         return 1;
     }
     select = atoi(argv[1]);

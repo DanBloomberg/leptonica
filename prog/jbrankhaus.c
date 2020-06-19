@@ -120,7 +120,7 @@ static char  mainName[] = "jbrankhaus";
     startTimer();
     classer = jbRankHausInit(COMPONENTS, 0, 0, size, rank);
     jbAddPages(classer, safiles);
-    fprintf(stderr, "Time to classify components: %6.3f sec\n", stopTimer());
+    lept_stderr("Time to classify components: %6.3f sec\n", stopTimer());
 
         /* Save and write out the result */
     data = jbDataSave(classer);
@@ -133,12 +133,11 @@ static char  mainName[] = "jbrankhaus";
         /* Write the pages out */
     npages = pixaGetCount(pixa);
     if (npages != nfiles)
-        fprintf(stderr, "npages = %d, nfiles = %d, not equal!\n",
-                npages, nfiles);
+        lept_stderr("npages = %d, nfiles = %d, not equal!\n", npages, nfiles);
     for (i = 0; i < npages; i++) {
         pix = pixaGetPix(pixa, i, L_CLONE);
         snprintf(filename, BUF_SIZE, "%s.%03d", rootname, i);
-        fprintf(stderr, "filename: %s\n", filename);
+        lept_stderr("filename: %s\n", filename);
         pixWrite(filename, pix, IFF_PNG);
         pixDestroy(&pix);
     }
@@ -174,16 +173,16 @@ static char  mainName[] = "jbrankhaus";
         pixEqual(pix, newpix, &same);
         if (!same) {
             iofail = TRUE;
-            fprintf(stderr, "pix on page %d are unequal!\n", i);
+            lept_stderr("pix on page %d are unequal!\n", i);
         }
         pixDestroy(&pix);
         pixDestroy(&newpix);
 
     }
     if (iofail)
-        fprintf(stderr, "read/write for jbdata fails\n");
+        lept_stderr("read/write for jbdata fails\n");
     else
-        fprintf(stderr, "read/write for jbdata succeeds\n");
+        lept_stderr("read/write for jbdata succeeds\n");
     jbDataDestroy(&newdata);
     pixaDestroy(&newpixa);
     }
@@ -197,7 +196,7 @@ static char  mainName[] = "jbrankhaus";
     for (i = 0; i < npages; i++) {
         pix = pixaGetPix(pixadb, i, L_CLONE);
         snprintf(filename, BUF_SIZE, "%s.db.%04d", rootname, i);
-        fprintf(stderr, "filename: %s\n", filename);
+        lept_stderr("filename: %s\n", filename);
         pixWrite(filename, pix, IFF_PNG);
         pixDestroy(&pix);
     }

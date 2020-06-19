@@ -101,7 +101,7 @@ static char  mainName[] = "concatpdf";
         splitPathAtExtension(tail, &filename, NULL);
         snprintf(buf, sizeof(buf), "acroread -toPostScript -annotsOff %s %s",
                  fname, psdir);
-        fprintf(stderr, "%s\n", buf);
+        lept_stderr("%s\n", buf);
         ret = system(buf);  /* acroread -toPostScript -annotsOff */
         snprintf(buf, sizeof(buf), "%s/%s.ps", psdir, filename);
         sarrayAddString(saps, buf, L_COPY);
@@ -122,7 +122,7 @@ static char  mainName[] = "concatpdf";
         fname = sarrayGetString(saps, i, L_NOCOPY);
         snprintf(rootname, sizeof(rootname), "%s/r%d", imagedir, i);
         snprintf(buf, sizeof(buf), "ps2png-gray %s %s", fname, rootname);
-        fprintf(stderr, "%s\n", buf);
+        lept_stderr("%s\n", buf);
         ret = system(buf);  /* ps2png-gray */
     }
 

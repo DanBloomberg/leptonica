@@ -55,7 +55,7 @@ L_RECOG  *recog1, *recog2;
     PROCNAME("recogtest7");
 
     if (argc != 1) {
-        fprintf(stderr, " Syntax: recogtest7\n");
+        lept_stderr(" Syntax: recogtest7\n");
         return 1;
     }
 
@@ -86,14 +86,14 @@ L_RECOG  *recog1, *recog2;
 #endif
 
 #if 1
-    fprintf(stderr, "Show recog content\n");
+    lept_stderr("Show recog content\n");
     recog1 = recogCreateFromPixa(pixa3, scaledw, scaledh, 0, 120, 1);
     recogShowContent(stderr, recog1, 1, 1);
     pixaDestroy(&pixa3);
 #endif
 
 #if 1
-    fprintf(stderr, "\nShow averaged samples\n");
+    lept_stderr("\nShow averaged samples\n");
     recogAverageSamples(&recog1, 1);
     recogShowAverageTemplates(recog1);
     pix1 = pixaGetPix(recog1->pixadb_ave, 0, L_CLONE);
@@ -112,30 +112,30 @@ L_RECOG  *recog1, *recog2;
     pixDisplay(pix1, 1000, 100);
     pixDestroy(&pix1);
     recog1 = recogCreateFromPixa(pixa1, scaledw, scaledh, 0, 120, 1);
-    fprintf(stderr, "\nShow matches against all inputs for given range\n");
+    lept_stderr("\nShow matches against all inputs for given range\n");
     recogDebugAverages(&recog1, 0);
     recogShowMatchesInRange(recog1, recog1->pixa_tr, 0.85, 1.00, 1);
     pixWrite("/tmp/lept/digits/match_input.png", recog1->pixdb_range, IFF_PNG);
-    fprintf(stderr, "\nShow best match against average template\n");
+    lept_stderr("\nShow best match against average template\n");
     recogShowMatchesInRange(recog1, recog1->pixa_u, 0.65, 1.00, 1);
     pixWrite("/tmp/lept/digits/match_ave.png", recog1->pixdb_range, IFF_PNG);
     pixaDestroy(&pixa1);
 #endif
 
 #if 1
-    fprintf(stderr, "\nContents of recog before write/read:\n");
+    lept_stderr("\nContents of recog before write/read:\n");
     recogShowContent(stderr, recog1, 2, 1);
 
-    fprintf(stderr, "\nTest serialization\n");
+    lept_stderr("\nTest serialization\n");
     recogWrite("/tmp/lept/digits/rec1.rec", recog1);
     recog2 = recogRead("/tmp/lept/digits/rec1.rec");
-    fprintf(stderr, "Contents of recog after write/read:\n");
+    lept_stderr("Contents of recog after write/read:\n");
     recogShowContent(stderr, recog2, 3, 1);
     recogWrite("/tmp/lept/digits/rec2.rec", recog2);
     filesAreIdentical("/tmp/lept/digits/rec1.rec",
                       "/tmp/lept/digits/rec2.rec", &same);
     if (!same)
-        fprintf(stderr, "Error in serialization!\n");
+        lept_stderr("Error in serialization!\n");
     recogDestroy(&recog1);
     recogDestroy(&recog2);
 #endif

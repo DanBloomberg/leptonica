@@ -72,7 +72,7 @@ PIXA        *pixa1, *pixa2;
 static char  mainName[] = "comparepixa";
 
     if (argc != 10) {
-        fprintf(stderr, "Syntax error in comparepixa:\n"
+        lept_stderr("Syntax error in comparepixa:\n"
            "   comparepixa file1 file2 nx ny tw spacing border"
            " fontsize fileout\n");
         return 1;

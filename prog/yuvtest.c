@@ -91,11 +91,11 @@ PIXA       *pixa;
      * ------- the transform matrices we are using are inverses ---------*/
 
         /* First, use our functions for the transform */
-    fprintf(stderr, "Start with: yval = 143, uval = 79, vval = 103\n");
+    lept_stderr("Start with: yval = 143, uval = 79, vval = 103\n");
     convertYUVToRGB(143, 79, 103, &rval, &gval, &bval);
-    fprintf(stderr, " ==> rval = %d, gval = %d, bval = %d\n", rval, gval, bval);
+    lept_stderr(" ==> rval = %d, gval = %d, bval = %d\n", rval, gval, bval);
     convertRGBToYUV(rval, gval, bval, &yval, &uval, &vval);
-    fprintf(stderr, " ==> yval = %d, uval = %d, vval = %d\n", yval, uval, vval);
+    lept_stderr(" ==> yval = %d, uval = %d, vval = %d\n", yval, uval, vval);
 
         /* Next, convert yuv --> rbg by solving for rgb --> yuv transform.
          *      [ a00   a01   a02 ]    r   =   b0           (y - 16)
@@ -116,31 +116,30 @@ PIXA       *pixa;
     a[2][0] = 112.439 / 256.0;
     a[2][1] = -94.154 / 256.0;
     a[2][2] = -18.285 / 256.0;
-    fprintf(stderr, "Here's the original matrix: yuv --> rgb:\n");
+    lept_stderr("Here's the original matrix: yuv --> rgb:\n");
     for (i = 0; i < 3; i++)
-        fprintf(stderr, "    %7.3f  %7.3f  %7.3f\n", 256.0 * a[i][0],
-                256.0 * a[i][1], 256.0 * a[i][2]);
+        lept_stderr("    %7.3f  %7.3f  %7.3f\n", 256.0 * a[i][0],
+                    256.0 * a[i][1], 256.0 * a[i][2]);
     gaussjordan(a, b, 3);
-    fprintf(stderr, "\nInput (yuv) = (143,79,103); solve for rgb:\n"
-            "rval = %7.3f, gval = %7.3f, bval = %7.3f\n",
-            b[0], b[1], b[2]);
-    fprintf(stderr, "Here's the inverse matrix: rgb --> yuv:\n");
+    lept_stderr("\nInput (yuv) = (143,79,103); solve for rgb:\n"
+                "rval = %7.3f, gval = %7.3f, bval = %7.3f\n", b[0], b[1], b[2]);
+    lept_stderr("Here's the inverse matrix: rgb --> yuv:\n");
     for (i = 0; i < 3; i++)
-        fprintf(stderr, "    %7.3f  %7.3f  %7.3f\n", 256.0 * a[i][0],
-                256.0 * a[i][1], 256.0 * a[i][2]);
+        lept_stderr("    %7.3f  %7.3f  %7.3f\n", 256.0 * a[i][0],
+                    256.0 * a[i][1], 256.0 * a[i][2]);
 
         /* Now, convert back: rgb --> yuv;
          * Do this by solving for yuv --> rgb transform.
          * Use the b[] found previously (the rgb values), and
          * the a[][] which now holds the rgb --> yuv transform.  */
     gaussjordan(a, b, 3);
-    fprintf(stderr, "\nInput rgb; solve for yuv:\n"
-            "yval = %7.3f, uval = %7.3f, vval = %7.3f\n",
-            b[0] + 16.0, b[1] + 128.0, b[2] + 128.0);
-    fprintf(stderr, "Inverting the matrix again: yuv --> rgb:\n");
+    lept_stderr("\nInput rgb; solve for yuv:\n"
+                "yval = %7.3f, uval = %7.3f, vval = %7.3f\n",
+                b[0] + 16.0, b[1] + 128.0, b[2] + 128.0);
+    lept_stderr("Inverting the matrix again: yuv --> rgb:\n");
     for (i = 0; i < 3; i++)
-        fprintf(stderr, "    %7.3f  %7.3f  %7.3f\n", 256.0 * a[i][0],
-                256.0 * a[i][1], 256.0 * a[i][2]);
+        lept_stderr("    %7.3f  %7.3f  %7.3f\n", 256.0 * a[i][0],
+                    256.0 * a[i][1], 256.0 * a[i][2]);
 
     for (i = 0; i < 3; i++) lept_free(a[i]);
     return 0;

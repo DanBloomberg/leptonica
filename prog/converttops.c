@@ -47,8 +47,8 @@ l_int32      level;
 static char  mainName[] = "converttops";
 
     if (argc != 3 && argc != 4) {
-        fprintf(stderr, "Syntax: converttops filein fileout [level]\n");
-        fprintf(stderr, "%s\n", error_msg);
+        lept_stderr("Syntax: converttops filein fileout [level]\n");
+        lept_stderr("%s\n", error_msg);
         return 1;
     }
     filein = argv[1];

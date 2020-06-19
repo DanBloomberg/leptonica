@@ -132,7 +132,7 @@ static char  mainName[] = "cleanpdf";
                  fname, imagedir, basename);
         lept_free(tail);
         lept_free(basename);
-        fprintf(stderr, "%s\n", buf);
+        lept_stderr("%s\n", buf);
         ret = system(buf);   /* pdfimages -j */
     }
     sarrayDestroy(&sa);
@@ -158,7 +158,7 @@ static char  mainName[] = "cleanpdf";
         splitPathAtDirectory(fname, NULL, &tail);
         splitPathAtExtension(tail, &basename, NULL);
         snprintf(buf, sizeof(buf), "%s/%s.tif", imagedir, basename);
-        fprintf(stderr, "%s\n", buf);
+        lept_stderr("%s\n", buf);
         pixWrite(buf, pix5, IFF_TIFF_G4);
         pixDestroy(&pixs);
         pixDestroy(&pix1);
@@ -174,7 +174,7 @@ static char  mainName[] = "cleanpdf";
 
 #if 1
         /* Generate the pdf */
-    fprintf(stderr, "Write output to /tmp/output.pdf\n");
+    lept_stderr("Write output to /tmp/output.pdf\n");
     convertFilesToPdf(imagedir, "tif", res, 1.0, L_G4_ENCODE, 0, NULL,
                       "/tmp/output.pdf");
 #endif

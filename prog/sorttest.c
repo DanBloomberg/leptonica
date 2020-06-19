@@ -60,7 +60,7 @@ static char  mainName[] = "sorttest";
 
     boxas = boxaSort(boxa, L_SORT_BY_PERIMETER, L_SORT_DECREASING, NULL);
     ns = boxaGetCount(boxas);
-    fprintf(stderr, "Number of cc: n = %d, ns = %d\n", n, ns);
+    lept_stderr("Number of cc: n = %d, ns = %d\n", n, ns);
     boxaWrite("/tmp/junkboxa.ba", boxas);
 
     for (i = 0; i < n; i++) {
@@ -80,7 +80,7 @@ static char  mainName[] = "sorttest";
 
     pixas = pixaSort(pixa, L_SORT_BY_Y, L_SORT_INCREASING, NULL, L_CLONE);
     ns = pixaGetCount(pixas);
-    fprintf(stderr, "Number of cc: n = %d, ns = %d\n", n, ns);
+    lept_stderr("Number of cc: n = %d, ns = %d\n", n, ns);
     pixaWrite("/tmp/pixa.pa", pixas);
     pixas2 = pixaRead("/tmp/pixa.pa");
     pixaWrite("/tmp/pixa2.pa", pixas2);

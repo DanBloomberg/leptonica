@@ -65,7 +65,7 @@ l_float32    scalefactor;
 static char  mainName[] = "convertfilestopdf";
 
     if (argc != 9) {
-        fprintf(stderr,
+        lept_stderr(
             " Syntax: convertfilestopdf dirin substr res"
             " scalefactor encoding_type quality title fileout\n"
             "         dirin:  input directory for image files\n"

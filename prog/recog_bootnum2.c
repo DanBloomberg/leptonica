@@ -134,16 +134,16 @@ PIXA      *pixa1, *pixa2, *pixa3;
         /* The number of templates is in the pix text string; check it. */
     pix2 = pixRead(buf);
     if (sscanf(pixGetText(pix2), "n = %d", &ns) != 1)
-        fprintf(stderr, "Failed to read the number of templates!\n");
+        lept_stderr("Failed to read the number of templates!\n");
     if (ns != nc)
-        fprintf(stderr, "(stored = %d) != (actual number = %d)\n", ns, nc);
+        lept_stderr("(stored = %d) != (actual number = %d)\n", ns, nc);
 
         /* Reconstruct the pixa of templates from the tiled compressed
          * image, and verify that the resulting pixa is the same.  */
     pixa3 = pixaMakeFromTiledPix(pix1, 20, 30, 0, 0, NULL);
     pixaEqual(pixa2, pixa3, 0, NULL, &same);
     if (!same)
-        fprintf(stderr, "Pixa are not the same!\n");
+        lept_stderr("Pixa are not the same!\n");
 
     pixDestroy(&pix1);
     pixDestroy(&pix2);

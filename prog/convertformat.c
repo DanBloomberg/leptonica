@@ -77,11 +77,11 @@ PIX         *pixs;
 static char  mainName[] = "convertformat";
 
     if (argc != 3 && argc != 4) {
-        fprintf(stderr, "Syntax: convertformat filein fileout [format]\n"
-                        "Either specify a format from one of these:\n"
-                        "  BMP, JPEG, PNG, TIFF, TIFFG4, PNM, GIF, WEBP, JP2\n"
-                        "Or specify the extensions to the output file:\n"
-                        "  bmp, jpg, png, tif, pnm, gif, webp, jp2\n");
+        lept_stderr("Syntax: convertformat filein fileout [format]\n"
+                    "Either specify a format from one of these:\n"
+                    "  BMP, JPEG, PNG, TIFF, TIFFG4, PNM, GIF, WEBP, JP2\n"
+                    "Or specify the extensions to the output file:\n"
+                    "  bmp, jpg, png, tif, pnm, gif, webp, jp2\n");
         return 1;
     }
     filein = argv[1];

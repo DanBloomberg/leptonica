@@ -95,7 +95,7 @@ OTHER_PROGS = adaptmap_dark \
 	fpixcontours gammatest graphicstest graymorphtest \
 	histotest histoduptest htmlviewer \
 	jbcorrelation jbrankhaus jbwords \
-	listtest livre_adapt livre_hmt \
+	listtest lightcolortest livre_adapt livre_hmt \
 	livre_makefigs livre_orient \
 	livre_pageseg livre_seedgen livre_tophat \
 	maketile maptest messagetest misctest1 \

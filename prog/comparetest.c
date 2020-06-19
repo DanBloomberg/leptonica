@@ -93,7 +93,7 @@ static char  mainName[] = "comparetest";
     if (d1 == 1 && d2 == 1) {
         pixEqual(pixs1, pixs2, &same);
         if (same) {
-            fprintf(stderr, "Images are identical\n");
+            lept_stderr("Images are identical\n");
             pixd = pixCreateTemplate(pixs1);  /* write empty pix for diff */
         } else {
             if (type == 0)
@@ -101,7 +101,7 @@ static char  mainName[] = "comparetest";
             else
                 comptype = L_COMPARE_SUBTRACT;
             pixCompareBinary(pixs1, pixs2, comptype, &fract, &pixd);
-            fprintf(stderr, "Fraction of different pixels: %10.6f\n", fract);
+            lept_stderr("Fraction of different pixels: %10.6f\n", fract);
         }
         pixWrite(fileout, pixd, IFF_PNG);
     } else {
@@ -112,19 +112,19 @@ static char  mainName[] = "comparetest";
         pixCompareGrayOrRGB(pixs1, pixs2, comptype, GPLOT_PNG, &same, &diff,
                             &rmsdiff, &pixd);
         if (type == 0) {
-            if (same)
-                fprintf(stderr, "Images are identical\n");
-            else {
-                fprintf(stderr, "Images differ: <diff> = %10.6f\n", diff);
-                fprintf(stderr, "               <rmsdiff> = %10.6f\n", rmsdiff);
+            if (same) {
+                lept_stderr("Images are identical\n");
+            } else {
+                lept_stderr("Images differ: <diff> = %10.6f\n", diff);
+                lept_stderr("               <rmsdiff> = %10.6f\n", rmsdiff);
             }
         }
         else {  /* subtraction */
-            if (same)
-                fprintf(stderr, "pixs2 strictly greater than pixs1\n");
-            else {
-                fprintf(stderr, "Images differ: <diff> = %10.6f\n", diff);
-                fprintf(stderr, "               <rmsdiff> = %10.6f\n", rmsdiff);
+            if (same) {
+                lept_stderr("pixs2 strictly greater than pixs1\n");
+            } else {
+                lept_stderr("Images differ: <diff> = %10.6f\n", diff);
+                lept_stderr("               <rmsdiff> = %10.6f\n", rmsdiff);
             }
         }
         if (d1 != 16)
@@ -136,8 +136,8 @@ static char  mainName[] = "comparetest";
             na1 = pixCompareRankDifference(pixs1, pixs2, 1);
             if (na1) {
                 numaGetNonzeroRange(na1, 0.00005, &first, &last);
-                fprintf(stderr, "Nonzero diff range: first = %d, last = %d\n",
-                        first, last);
+                lept_stderr("Nonzero diff range: first = %d, last = %d\n",
+                             first, last);
                 na2 = numaClipToInterval(na1, first, last);
                 gplot = gplotCreate("/tmp/lept/comp/rank", GPLOT_PNG,
                                     "Pixel Rank Difference",

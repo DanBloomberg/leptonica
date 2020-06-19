@@ -52,7 +52,7 @@ PIX         *pix;
 static char  mainName[] = "fpixcontours";
 
     if (argc != 2 && argc != 3) {
-        fprintf(stderr, "Syntax: fpixcontours filein [ncontours]\n");
+        lept_stderr("Syntax: fpixcontours filein [ncontours]\n");
         return 1;
     }
     filein = argv[1];

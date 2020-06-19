@@ -84,7 +84,7 @@ static char  mainName[] = "scaleandtile";
         /* Read the specified images from file */
     if ((pixa = pixaReadFiles(dirin, substr)) == NULL)
 	return ERROR_INT("safiles not made", mainName, 1);
-    fprintf(stderr, "Number of pix: %d\n", pixaGetCount(pixa));
+    lept_stderr("Number of pix: %d\n", pixaGetCount(pixa));
 
     	/* Tile them */
     pixd = pixaDisplayTiledAndScaled(pixa, depth, width, ncols,

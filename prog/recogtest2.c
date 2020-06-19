@@ -67,7 +67,7 @@ L_RECOG  *recogboot, *recog1;
 SARRAY   *sa;
 
     if (argc != 1) {
-        fprintf(stderr, " Syntax: recogtest2\n");
+        lept_stderr(" Syntax: recogtest2\n");
         return 1;
     }
 
@@ -152,14 +152,14 @@ SARRAY   *sa;
 
         /* Now use minscore = 0.75 to remove the outliers in the BAR,
          * and show what is left. */
-    fprintf(stderr, "initial size: %d\n", recog->num_samples);
+    lept_stderr("initial size: %d\n", recog->num_samples);
     pix1 = pix2 = NULL;
     recogRemoveOutliers1(&recog, 0.75, 5, 3, &pix1, &pix2);
     pixDisplay(pix1, 500, 0);
     pixDisplay(pix2, 500, 500);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    fprintf(stderr, "final size: %d\n", recog->num_samples);
+    lept_stderr("final size: %d\n", recog->num_samples);
     recogDebugAverages(&recog, 1);
     recogShowContent(stderr, recog, 1);
     recogShowMatchesInRange(recog, recog->pixa_tr, 0.75, 1.0, 1);

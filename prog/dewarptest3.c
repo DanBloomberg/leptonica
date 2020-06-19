@@ -78,7 +78,7 @@ PTAA       *ptaa1, *ptaa2;
     pixDestroy(&pixt1);
 
         /* Remove short lines */
-    fprintf(stderr, "Num all lines = %d\n", ptaaGetCount(ptaa1));
+    lept_stderr("Num all lines = %d\n", ptaaGetCount(ptaa1));
     ptaa2 = dewarpRemoveShortLines(pixb, ptaa1, 0.8, 0);
     pixt1 = pixCreateTemplate(pixs);
     pixSetAll(pixt1);
@@ -88,7 +88,7 @@ PTAA       *ptaa1, *ptaa2;
     pixaAddPix(pixa, pixt2, L_INSERT);
     pixDestroy(&pixt1);
     n = ptaaGetCount(ptaa2);
-    fprintf(stderr, "Num long lines = %d\n", n);
+    lept_stderr("Num long lines = %d\n", n);
     ptaaDestroy(&ptaa1);
     pixDestroy(&pixb);
 
@@ -106,8 +106,7 @@ PTAA       *ptaa1, *ptaa2;
         pta = ptaaGetPta(ptaa2, i, L_CLONE);
         ptaGetArrays(pta, &nax, NULL);
         ptaGetQuadraticLSF(pta, &a, &b, &c, &nafit);
-        fprintf(stderr, "Quadratic: a = %10.6f, b = %7.3f, c = %7.3f\n",
-                a, b, c);
+        lept_stderr("Quadratic: a = %10.6f, b = %7.3f, c = %7.3f\n", a, b, c);
         ptad = ptaCreateFromNuma(nax, nafit);
         pixDisplayPta(pixt1, pixt1, ptad);
         ptaDestroy(&pta);
@@ -125,8 +124,8 @@ PTAA       *ptaa1, *ptaa2;
         pta = ptaaGetPta(ptaa2, i, L_CLONE);
         ptaGetArrays(pta, &nax, NULL);
         ptaGetCubicLSF(pta, &a, &b, &c, &d, &nafit);
-        fprintf(stderr, "Cubic: a = %10.6f, b = %10.6f, c = %7.3f, d = %7.3f\n",
-                a, b, c, d);
+        lept_stderr("Cubic: a = %10.6f, b = %10.6f, c = %7.3f, d = %7.3f\n",
+                    a, b, c, d);
         ptad = ptaCreateFromNuma(nax, nafit);
         pixDisplayPta(pixt1, pixt1, ptad);
         ptaDestroy(&pta);
@@ -144,7 +143,7 @@ PTAA       *ptaa1, *ptaa2;
         pta = ptaaGetPta(ptaa2, i, L_CLONE);
         ptaGetArrays(pta, &nax, NULL);
         ptaGetQuarticLSF(pta, &a, &b, &c, &d, &e, &nafit);
-        fprintf(stderr,
+        lept_stderr(
             "Quartic: a = %7.3f, b = %7.3f, c = %9.5f, d = %7.3f, e = %7.3f\n",
             a, b, c, d, e);
         ptad = ptaCreateFromNuma(nax, nafit);

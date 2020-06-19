@@ -61,10 +61,10 @@ PIXA        *pixa, *pixad;
 static char  mainName[] = "displaypixa";
 
     if (argc != 4 && argc != 8) {
-        fprintf(stderr, "Syntax error in displaypixa:\n"
-           "   displaypixa filein fileout showtext\n"
-           "   displaypixa filein scalefact border"
-                 " lossless disp fileout showtext\n");
+        lept_stderr("Syntax error in displaypixa:\n"
+                    "   displaypixa filein fileout showtext\n"
+                    "   displaypixa filein scalefact border"
+                    " lossless disp fileout showtext\n");
          return 1;
     }
     setLeptDebugOK(1);

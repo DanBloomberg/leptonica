@@ -69,7 +69,7 @@ PIX     *pix;
     pix = pixRead("marge.jpg");
     startTimer();
     s = BuildSet(pix, 1, FALSE);
-    fprintf(stderr, "Time (250K pixels): %7.3f sec\n", stopTimer());
+    lept_stderr("Time (250K pixels): %7.3f sec\n", stopTimer());
     TestSetIterator(s, FALSE);
     l_asetDestroy(&s);
     pixDestroy(&pix);
@@ -89,7 +89,7 @@ PIXCMAP   *cmap;
 RB_TYPE    key;
 RB_TYPE   *pval;
 
-    fprintf(stderr, "\n --------------- Begin building set --------------\n");
+    lept_stderr("\n --------------- Begin building set --------------\n");
     s = l_asetCreate(L_UINT_TYPE);
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
@@ -107,14 +107,14 @@ RB_TYPE   *pval;
             }
             pval = l_asetFind(s, key);
             if (pval && print)
-                fprintf(stderr, "key = %llx\n", key.utype);
+                lept_stderr("key = %llx\n", key.utype);
             l_asetInsert(s, key);
         }
     }
-    fprintf(stderr, "Size: %d\n", l_asetSize(s));
+    lept_stderr("Size: %d\n", l_asetSize(s));
     if (print)
         l_rbtreePrint(stderr, s);
-    fprintf(stderr, " ----------- End Building set -----------------\n");
+    lept_stderr(" ----------- End Building set -----------------\n");
 
     return s;
 }
@@ -128,19 +128,19 @@ L_ASET_NODE  *n;
 
     n = l_asetGetFirst(s);
     count = 0;
-    fprintf(stderr, "\n --------------- Begin iter listing --------------\n");
+    lept_stderr("\n --------------- Begin iter listing --------------\n");
     while (n) {
         count++;
         if (print)
 #if 0
-            fprintf(stderr, "key = %x\n", n->key.utype);
+            lept_stderr("key = %x\n", n->key.utype);
 #else
-            fprintf(stderr, "key = %llx\n", n->key.utype);
+            lept_stderr("key = %llx\n", n->key.utype);
 #endif
         n = l_asetGetNext(n);
     }
-    fprintf(stderr, "Count from iterator: %d\n", count);
-    fprintf(stderr, " --------------- End iter listing --------------\n");
+    lept_stderr("Count from iterator: %d\n", count);
+    lept_stderr(" --------------- End iter listing --------------\n");
     return;
 }
 

@@ -85,7 +85,7 @@ l_int32    threshold, page_numpre, mask_numpre, numpost, maxnum;
 l_float32  textscale, imagescale;
 
     if (argc != 13) {
-	fprintf(stderr,
+	lept_stderr(
             " Syntax: convertsegfilestops pagedir pagestr page_numpre \\ \n"
             "                             maskdir maskstr mask_numpre \\ \n"
             "                             numpost maxnum textscale \\ \n"

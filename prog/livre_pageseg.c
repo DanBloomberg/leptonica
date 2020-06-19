@@ -164,9 +164,9 @@ l_int32   block_flag = 0;
     if (which == 1) pixWrite("/tmp/lept/livre/text.150.png", pixnht, IFF_PNG);
     pixZero(pixht, &zero);
     if (zero)
-        fprintf(stderr, "No halftone parts found\n");
+        lept_stderr("No halftone parts found\n");
     else
-        fprintf(stderr, "Halftone parts found\n");
+        lept_stderr("Halftone parts found\n");
 
         /* Get bit-inverted image */
     pixi = pixInvert(NULL, pixnht);

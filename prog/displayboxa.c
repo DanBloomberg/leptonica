@@ -58,8 +58,8 @@ PIX         *pixd;
 static char  mainName[] = "displayboxa";
 
     if (argc != 6) {
-        fprintf(stderr, "Syntax error in displayboxa:\n"
-           "   displayboxa filein first last width fileout\n");
+        lept_stderr("Syntax error in displayboxa:\n"
+                    "   displayboxa filein first last width fileout\n");
          return 1;
     }
     filein = argv[1];

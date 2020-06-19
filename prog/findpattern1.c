@@ -97,7 +97,7 @@ static char  mainName[] = "findpattern1";
         /* Use the Sel to find all instances in the page */
     startTimer();
     pixhmt = pixHMT(NULL, pixs, sel);
-    fprintf(stderr, "Time to find patterns = %7.3f\n", stopTimer());
+    lept_stderr("Time to find patterns = %7.3f\n", stopTimer());
 
         /* Small erosion to remove noise; typically not necessary if
          * there are enough elements in the Sel */

@@ -49,7 +49,7 @@ PIXA    *pixa;
         pix1 = pixReduceRankBinaryCascade(pixs, 1, 4, 4, 3);
         pixDestroy(&pix1);
     }
-    fprintf(stderr, "Time: %8.4f sec\n", stopTimer() / 100.);
+    lept_stderr("Time: %8.4f sec\n", stopTimer() / 100.);
 
         /* 4 2x rank reductions (levels 1, 4, 4, 3), followed by 5x5 opening */
     pixa = pixaCreate(0);
@@ -64,7 +64,7 @@ PIXA    *pixa;
 
         /* Generate the output image */
     lept_mkdir("lept/livre");
-    fprintf(stderr, "Writing to: /tmp/lept/livre/seedgen.png\n");
+    lept_stderr("Writing to: /tmp/lept/livre/seedgen.png\n");
     pix1 = pixaDisplayTiledAndScaled(pixa, 8, 350, 4, 0, 25, 2);
     pixWrite("/tmp/lept/livre/seedgen.png", pix1, IFF_PNG);
     pixDisplay(pix1, 1100, 0);

@@ -97,9 +97,8 @@ NUMA      *na1, *na2, *nascore, *nax, *nay;
         /* Otsu splitting */
     numaSplitDistribution(na1, 0.08, &split, &ave1, &ave2, &num1, &num2,
                           &nascore);
-    fprintf(stderr, "split = %d, ave1 = %6.1f, ave2 = %6.1f\n",
-            split, ave1, ave2);
-    fprintf(stderr, "num1 = %8.0f, num2 = %8.0f\n", num1, num2);
+    lept_stderr("split = %d, ave1 = %6.1f, ave2 = %6.1f\n", split, ave1, ave2);
+    lept_stderr("num1 = %8.0f, num2 = %8.0f\n", num1, num2);
 
         /* Prepare for plotting a vertical line at the split point */
     nax = numaMakeConstant(split, 2);
@@ -155,7 +154,7 @@ NUMA      *na;
         total += (l_int32)val;
         numaSetValue(na, i, val);
     }
-    fprintf(stderr, "Total = %d\n", total);
+    lept_stderr("Total = %d\n", total);
 
     return na;
 }

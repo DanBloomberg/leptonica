@@ -58,9 +58,9 @@ PIXA    *pixa;
        pixaWrite("/tmp/lept/auto/junkpa.pa", pixa);
        filesAreIdentical("/tmp/lept/auto/junkpa.pa", files[i], &same);
        if (same)
-           fprintf(stderr, "Files are the same for %s\n", files[i]);
+           lept_stderr("Files are the same for %s\n", files[i]);
        else
-           fprintf(stderr, "Error: files are different for %s\n", files[i]);
+           lept_stderr("Error: files are different for %s\n", files[i]);
        pixaDestroy(&pixa);
     }
 

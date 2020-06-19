@@ -77,7 +77,7 @@ static char  mainName[] = "rotatefastalt";
 
     startTimer();
     pixd = pixRotateAMColorFast2(pixs, deg2rad * angle, 255);
-    fprintf(stderr, "Time for rotation: %7.3f sec\n", stopTimer());
+    lept_stderr("Time for rotation: %7.3f sec\n", stopTimer());
     pixWrite(fileout, pixd, IFF_JFIF_JPEG);
 
     pixDestroy(&pixs);
@@ -340,7 +340,7 @@ l_float32  sina, cosa;
                                ((word & 0x000003fc) << 6);
                 break;
             default:  /* for testing only; no interpolation, no shift */
-                fprintf(stderr, "shouldn't get here\n");
+                lept_stderr("shouldn't get here\n");
                 *(lined + j) = *pword;
                 break;
             }

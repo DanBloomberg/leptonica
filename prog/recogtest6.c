@@ -59,7 +59,7 @@ PIXA     *pixa1, *pixa2;
 L_RECOG  *recog;
 
     if (argc != 1) {
-        fprintf(stderr, " Syntax: recogtest6\n");
+        lept_stderr(" Syntax: recogtest6\n");
         return 1;
     }
 
@@ -98,7 +98,7 @@ L_RECOG  *recog;
         } else {  /* just get the timing */
             startTimer();
             recogIdentifyMultiple(recog, pix2, 0, 0, &boxa, NULL, NULL, 0);
-            fprintf(stderr, "Time: %5.3f\n", stopTimer());
+            lept_stderr("Time: %5.3f\n", stopTimer());
         }
         pixDestroy(&pix1);
         pixDestroy(&pix2);

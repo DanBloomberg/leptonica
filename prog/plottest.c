@@ -114,14 +114,14 @@ static char  mainName[] = "plottest";
     str1 = (char *)l_binaryRead("/tmp/lept/plot/plot1.gp", &size1);
     str2 = (char *)l_binaryRead("/tmp/lept/plot/plot2.gp", &size2);
     if (size1 != size2)
-        fprintf(stderr, "Error: size1 = %lu, size2 = %lu\n",
-                (unsigned long)size1, (unsigned long)size2);
+        lept_stderr("Error: size1 = %lu, size2 = %lu\n",
+                    (unsigned long)size1, (unsigned long)size2);
     else
-        fprintf(stderr, "Correct: size1 = size2 = %lu\n", (unsigned long)size1);
+        lept_stderr("Correct: size1 = size2 = %lu\n", (unsigned long)size1);
     if (strcmp(str1, str2) != 0)
-        fprintf(stderr, "Error: str1 != str2\n");
+        lept_stderr("Error: str1 != str2\n");
     else
-        fprintf(stderr, "Correct: str1 == str2\n");
+        lept_stderr("Correct: str1 == str2\n");
     lept_free(str1);
     lept_free(str2);
 

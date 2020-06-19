@@ -110,7 +110,7 @@ static char  mainName[] = "livre_hmt";
 
     startTimer();
     pixhmt = pixHMT(NULL, pixr, selhm);
-    fprintf(stderr, "Time to find patterns = %7.3f\n", stopTimer());
+    lept_stderr("Time to find patterns = %7.3f\n", stopTimer());
 
         /* Color each instance at full res */
     selGetParameters(selhm, NULL, NULL, &cy, &cx);

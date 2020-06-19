@@ -72,7 +72,7 @@ static char  mainName[] = "histotest";
         startTimer();
         if ((na = pixOctcubeHistogram(pixs, sigbits, NULL)) == NULL)
             return ERROR_INT("na not made", mainName, 1);
-        fprintf(stderr, "histo time = %7.3f sec\n", stopTimer());
+        lept_stderr("histo time = %7.3f sec\n", stopTimer());
         gplot = gplotCreate("/tmp/lept/histo/color", GPLOT_PNG,
                             "color histogram with octcube indexing",
                             "octcube index", "number of pixels in cube");

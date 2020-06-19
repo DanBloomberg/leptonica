@@ -71,7 +71,7 @@ PIXA      *pixadb;
     pixadb = pixaCreate(0);
     pixFindColorRegions(pix1, NULL, 4, 200, 60, 10, 90, 0.05,
                         &fcolor, &pix3, &pix4, pixadb);
-    fprintf(stderr, "ncolor = %f\n", fcolor);
+    lept_stderr("ncolor = %f\n", fcolor);
     if (pix3) pixDisplay(pix3, 0, 800);
     if (pix4) pixDisplay(pix4, 600, 800);
 
@@ -87,7 +87,7 @@ PIXA      *pixadb;
     pixadb = pixaCreate(0);
     pixFindColorRegionsLight(pix1, NULL, 4, 60, 230, 40, 20,
                              &fcolor, &pix3, &pix4, pixadb);
-    fprintf(stderr, "ncolor = %f\n", fcolor);
+    lept_stderr("ncolor = %f\n", fcolor);
     if (pix3) pixDisplay(pix3, 1100, 800);
     if (pix4) pixDisplay(pix4, 1700, 800);
 

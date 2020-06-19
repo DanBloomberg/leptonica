@@ -66,7 +66,7 @@ SARRAY   *sa1;
         /* Read the data from all samples */
     pix1 = pixRead("recog/sets/samples06.png");
     boxatxt = pixGetText(pix1);
-    fprintf(stderr, "%s\n", boxatxt);
+    lept_stderr("%s\n", boxatxt);
     boxa1 = boxaReadMem((l_uint8 *)boxatxt, strlen(boxatxt));
     pixa1 = pixaCreateFromBoxa(pix1, boxa1, 0, 0, NULL);
     pixDestroy(&pix1);  /* destroys boxa1 */

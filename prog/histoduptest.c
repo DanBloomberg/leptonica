@@ -64,7 +64,7 @@ PIXA        *pixa1, *pixa2, *pixa3;
 PIXAC       *pac;
 
     if (argc != 1) {
-        fprintf(stderr, "Syntax: histoduptest\n");
+        lept_stderr("Syntax: histoduptest\n");
         return 1;
     }
 
@@ -100,7 +100,7 @@ PIXAC       *pac;
         /* Show the similarity classes. */
     numaWriteStream(stderr, nai);
     pixWrite("/tmp/lept/comp/photoclass1.jpg", pix1, IFF_JFIF_JPEG);
-    fprintf(stderr, "Writing photo classes: /tmp/lept/comp/photoclass1.jpg\n");
+    lept_stderr("Writing photo classes: /tmp/lept/comp/photoclass1.jpg\n");
     numaDestroy(&nai);
     pixDestroy(&pix1);
 
@@ -130,7 +130,7 @@ PIXAC       *pac;
         /* Show the similarity classes. */
     numaWriteStream(stderr, nai);
     pixWrite("/tmp/lept/comp/photoclass2.jpg", pix1, IFF_JFIF_JPEG);
-    fprintf(stderr, "Writing photo classes: /tmp/lept/comp/photoclass2.jpg\n");
+    lept_stderr("Writing photo classes: /tmp/lept/comp/photoclass2.jpg\n");
     numaDestroy(&nai);
     pixDestroy(&pix1);
 
@@ -160,19 +160,19 @@ PIXAC       *pac;
     pixaDestroy(&pixa1);
     pixaDestroy(&pixa2);
     if (!naa1 || !naa2) {
-        fprintf(stderr, "Not both image; exiting\n");
+        lept_stderr("Not both image; exiting\n");
         return 0;
     }
     bytea1 = l_compressGrayHistograms(naa1, w1, h1, &size1);
     bytea2 = l_compressGrayHistograms(naa2, w2, h2, &size2);
     naa3 = l_uncompressGrayHistograms(bytea1, size1, &w1, &h1);
     naa4 = l_uncompressGrayHistograms(bytea2, size2, &w2, &h2);
-    fprintf(stderr, "*******  (%d, %d), (%d, %d)  *******\n", w1, h1, w2, h2);
+    lept_stderr("*******  (%d, %d), (%d, %d)  *******\n", w1, h1, w2, h2);
     pixa1 = pixaCreate(0);
         /* Set @minratio very small to allow comparison for all pairs */
     compareTilesByHisto(naa3, naa4, 0.1, w1, h1, w2, h2, &score, pixa1);
     pixaDestroy(&pixa1);
-    fprintf(stderr, "score = %5.3f\n", score);
+    lept_stderr("score = %5.3f\n", score);
     pixaDestroy(&pixa1);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
@@ -196,7 +196,7 @@ PIXAC       *pac;
     maxi = 0;
     maxj = 0;
     for (i = 0; i < n; i++) {
-        fprintf(stderr, "i = %d\n", i);
+        lept_stderr("i = %d\n", i);
         pix1 = pixaGetPix(pixa1, i, L_CLONE);
         box1 = pixaGetBox(pixa1, i, L_COPY);
         for (j = 0; j <= i; j++) {
@@ -204,7 +204,7 @@ PIXAC       *pac;
             box2 = pixaGetBox(pixa1, j, L_COPY);
             pixCompareGrayByHisto(pix1, pix2, box1, box2, 0.85, 230, 1, 3,
                                   &score, 0);
-            fprintf(stderr, "Score[%d,%d] = %5.3f\n", i, j, score);
+            lept_stderr("Score[%d,%d] = %5.3f\n", i, j, score);
             if (i != j && score > maxscore) {
                 maxscore = score;
                 maxi = i;
@@ -217,7 +217,7 @@ PIXAC       *pac;
         boxDestroy(&box1);
     }
     pixaDestroy(&pixa1);
-    fprintf(stderr, "max score [%d,%d] = %5.3f\n", maxi, maxj, maxscore);
+    lept_stderr("max score [%d,%d] = %5.3f\n", maxi, maxj, maxscore);
 #endif
 
 #if TEST5
@@ -232,18 +232,18 @@ PIXAC       *pac;
     pixa2 = pixaCreate(n);
     for (i = 0; i < n; i++) {
         pixa3 = pixaCreate(0);
-        fprintf(stderr, "i = %d\n", i);
+        lept_stderr("i = %d\n", i);
         pix1 = pixaGetPix(pixa1, i, L_CLONE);
         box1 = pixaGetBox(pixa1, i, L_COPY);
-        fprintf(stderr, "w = %d, h = %d\n", pixGetWidth(pix1),
+        lept_stderr("w = %d, h = %d\n", pixGetWidth(pix1),
                 pixGetHeight(pix1));
         pixDecideIfText(pix1, box1, &istext, pixa3);
         if (istext == 1) {
-            fprintf(stderr, "This is text\n\n");
+            lept_stderr("This is text\n\n");
         } else if (istext == 0) {
-            fprintf(stderr, "This is a photo\n\n");
+            lept_stderr("This is a photo\n\n");
         } else {  /*  istext == -1 */
-            fprintf(stderr, "Not determined if text or photo\n\n");
+            lept_stderr("Not determined if text or photo\n\n");
         }
         if (istext == 0) {
             pix2 = pixaDisplayTiledInRows(pixa3, 32, 1000, 1.0, 0, 50, 2);
@@ -254,7 +254,7 @@ PIXAC       *pac;
         pixDestroy(&pix1);
         boxDestroy(&box1);
     }
-    fprintf(stderr, "Writing to: /tmp/lept/comp/isphoto1.pdf\n");
+    lept_stderr("Writing to: /tmp/lept/comp/isphoto1.pdf\n");
     pixaConvertToPdf(pixa2, 300, 1.0, L_FLATE_ENCODE, 0, NULL,
                          "/tmp/lept/comp/isphoto1.pdf");
     pixaDestroy(&pixa1);

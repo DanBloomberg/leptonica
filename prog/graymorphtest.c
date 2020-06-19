@@ -91,7 +91,7 @@ static char     mainName[] = "graymorphtest";
 #if 0
     startTimer();
     pixd = pixCloseGray(pixs, wsize, hsize);
-    fprintf(stderr, " Speed is %6.2f MPix/sec\n",
+    lept_stderr(" Speed is %6.2f MPix/sec\n",
           (l_float32)(4 * w * h) / (1000000. * stopTimer()));
     pixWrite(fileout, pixd, IFF_PNG);
 #endif

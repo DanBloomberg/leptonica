@@ -98,7 +98,7 @@ static char  mainName[] = "printimage";
     filein = argv[1];
     printer = (argc > 2) ? argv[2] : NULL;
 
-    fprintf(stderr,
+    lept_stderr(
          "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
          "   Warning: this program should only be used for testing,\n"
          "     and not in a production environment, because of a\n"

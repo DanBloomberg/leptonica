@@ -67,7 +67,7 @@ PIX     *pix1;
 PIXA    *pixa1, *pixa2;
 
     if (argc != 7) {
-        fprintf(stderr, "Syntax error:"
+        lept_stderr("Syntax error:"
            " displaybaa_on_pixa pixain boxaain type width pixaout display\n");
         return 1;
     }

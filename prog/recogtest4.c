@@ -61,7 +61,7 @@ PIXA     *pixa1, *pixa2;
 L_RECOG  *recog;
 
     if (argc != 1) {
-        fprintf(stderr, " Syntax: recogtest4\n");
+        lept_stderr(" Syntax: recogtest4\n");
         return 1;
     }
 
@@ -81,7 +81,7 @@ L_RECOG  *recog;
         /* Show the templates */
     recogDebugAverages(&recog, 1);
     if (!recog) {
-        fprintf(stderr, "Averaging failed!!\n");
+        lept_stderr("Averaging failed!!\n");
         return 1;
     }
     recogShowMatchesInRange(recog, recog->pixa_tr, 0.0, 1.0, 1);

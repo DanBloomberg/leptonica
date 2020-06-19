@@ -57,7 +57,7 @@ PIXA       *pixa1, *pixa2;
 L_STRCODE  *strc;
 
     if (argc != 1) {
-        fprintf(stderr, " Syntax: recog_bootnum3\n");
+        lept_stderr(" Syntax: recog_bootnum3\n");
         return 1;
     }
 

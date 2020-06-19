@@ -81,8 +81,8 @@ PIXA      *pixa1, *pixad;
             /* Show the histogram of gray values and the split location */
         pixSplitDistributionFgBg(pixg, scorefract, 1,
                                  &thresh, &fgval, &bgval, &pixp);
-        fprintf(stderr, "thresh = %d, fgval = %d, bgval = %d\n", thresh, fgval,
-                 bgval);
+        lept_stderr("thresh = %d, fgval = %d, bgval = %d\n",
+                    thresh, fgval, bgval);
         pixaAddPix(pixa1, pixp, L_INSERT);
 
             /* Join these together and add some text */
@@ -118,7 +118,7 @@ PIXA      *pixa1, *pixad;
         pixDestroy(&pix2);
     }
 
-    fprintf(stderr, "Writing to: /tmp/lept/otsu/result1.pdf\n");
+    lept_stderr("Writing to: /tmp/lept/otsu/result1.pdf\n");
     pixaConvertToPdf(pixad, 75, 1.0, 0, 0, "Otsu thresholding",
                      "/tmp/lept/otsu/result1.pdf");
     bmfDestroy(&bmf);

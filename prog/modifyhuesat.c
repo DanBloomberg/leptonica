@@ -65,11 +65,11 @@ static char  mainName[] = "modifyhuesat";
     fileout = argv[6];
     if (nhue % 2 == 0) {
         nhue++;
-        fprintf(stderr, "nhue must be odd; raised to %d\n", nhue);
+        lept_stderr("nhue must be odd; raised to %d\n", nhue);
     }
     if (nsat % 2 == 0) {
         nsat++;
-        fprintf(stderr, "nsat must be odd; raised to %d\n", nsat);
+        lept_stderr("nsat must be odd; raised to %d\n", nsat);
     }
 
     setLeptDebugOK(1);

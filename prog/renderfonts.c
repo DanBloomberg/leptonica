@@ -56,7 +56,7 @@ static char  mainName[] = "renderfonts";
         /* Render a character of text */
     bmf = bmfCreate(DIRECTORY, 20);
     pixs = pixRead("dreyfus8.png");
-    fprintf(stderr, "n = %d\n", pixaGetCount(bmf->pixa));
+    lept_stderr("n = %d\n", pixaGetCount(bmf->pixa));
     pix = pixaGetPix(bmf->pixa, 6, L_CLONE);
     pixSetMaskedGeneral(pixs, pix, 0x45, 140, 165);
     pixWrite("/tmp/lept/render/char.png", pixs, IFF_PNG);
@@ -69,15 +69,15 @@ static char  mainName[] = "renderfonts";
     bmf = bmfCreate(DIRECTORY, 8);
     pixs = pixRead("marge.jpg");
     bmfGetStringWidth(bmf, "This is a funny cat!", &width);
-    fprintf(stderr, "String width: %d pixels\n", width);
+    lept_stderr("String width: %d pixels\n", width);
 
     pixSetTextline(pixs, bmf, "This is a funny cat!", 0x4080ff00, 50, 250,
                    &width, &overflow);
     pixWrite("/tmp/lept/render/line.png", pixs, IFF_JFIF_JPEG);
     pixDisplay(pixs, 450, 0);
-    fprintf(stderr, "Text width = %d\n", width);
+    lept_stderr("Text width = %d\n", width);
     if (overflow)
-        fprintf(stderr, "Text overflow beyond image boundary\n");
+        lept_stderr("Text overflow beyond image boundary\n");
     pixDestroy(&pixs);
     bmfDestroy(&bmf);
 
@@ -94,7 +94,7 @@ static char  mainName[] = "renderfonts";
     pixWrite("/tmp/lept/render/block.png", pixs, IFF_JFIF_JPEG);
     pixDisplay(pixs, 0, 500);
     if (overflow)
-        fprintf(stderr, "Text overflow beyond image boundary\n");
+        lept_stderr("Text overflow beyond image boundary\n");
     lept_free(textstr);
     pixDestroy(&pixs);
     bmfDestroy(&bmf);

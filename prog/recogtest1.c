@@ -57,7 +57,7 @@ PIXA     *pixa1, *pixa2, *pixa3;
 L_RECOG  *recog1, *recog2;
 
     if (argc != 1) {
-        fprintf(stderr, " Syntax: recogtest1\n");
+        lept_stderr(" Syntax: recogtest1\n");
         return 1;
     }
 
@@ -83,12 +83,12 @@ L_RECOG  *recog1, *recog2;
 #endif
 
 #if 1
-    fprintf(stderr, "Print Stats 1\n");
+    lept_stderr("Print Stats 1\n");
     recogShowContent(stderr, recog1, 1, 1);
 #endif
 
 #if 1
-    fprintf(stderr, "AverageSamples\n");
+    lept_stderr("AverageSamples\n");
     recogAverageSamples(&recog1, 1);
     recogShowAverageTemplates(recog1);
     pix1 = pixaGetPix(recog1->pixadb_ave, 0, L_CLONE);
@@ -108,7 +108,7 @@ L_RECOG  *recog1, *recog2;
 #endif
 
 #if 1
-    fprintf(stderr, "Print stats 2\n");
+    lept_stderr("Print stats 2\n");
     recogShowContent(stderr, recog1, 2, 1);
     recogWrite("/tmp/lept/digits/rec1.rec", recog1);
     recog2 = recogRead("/tmp/lept/digits/rec1.rec");
@@ -117,7 +117,7 @@ L_RECOG  *recog1, *recog2;
     filesAreIdentical("/tmp/lept/digits/rec1.rec",
                       "/tmp/lept/digits/rec2.rec", &same);
     if (!same)
-        fprintf(stderr, "Error in serialization!\n");
+        lept_stderr("Error in serialization!\n");
     recogDestroy(&recog2);
 #endif
 
@@ -127,7 +127,7 @@ L_RECOG  *recog1, *recog2;
          *  0.8, 0.2 : remove many based on matching; remove some based on
          *             requiring retention of 20% of templates in each class
          *  0.9, 0.01 : remove most based on matching; saved 1 in each class */
-    fprintf(stderr, "Remove outliers\n");
+    lept_stderr("Remove outliers\n");
     pixa2 = recogExtractPixa(recog1);
     for (i = 0; i < 3; i++) {
         pixa3 = pixaRemoveOutliers1(pixa2, MinScore[i], MinTarget[i],
@@ -143,7 +143,7 @@ L_RECOG  *recog1, *recog2;
 
 #if 1
         /* Split touching characters */
-    fprintf(stderr, "Split touching\n");
+    lept_stderr("Split touching\n");
     pixd = pixRead("recog/digits/page.590.png");  /* 590 or 306 */
     recogIdentifyMultiple(recog1, pixd, 0, 0, &boxat, &pixa2, &pixdb, 1);
     pixDisplay(pixdb, 800, 800);
@@ -158,8 +158,8 @@ L_RECOG  *recog1, *recog2;
 #endif
 
 #if 1
-    fprintf(stderr, "Reading new training set and computing averages\n");
-    fprintf(stderr, "Print stats 3\n");
+    lept_stderr("Reading new training set and computing averages\n");
+    lept_stderr("Print stats 3\n");
     pixa1 = pixaRead("recog/sets/train03.pa");
     recog2 = recogCreateFromPixa(pixa1, 0, 40, 0, 128, 1);
     recogShowContent(stderr, recog2, 3, 1);

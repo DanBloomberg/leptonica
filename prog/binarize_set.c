@@ -105,7 +105,7 @@ static char  mainName[] = "binarize_set";
     pixg = pixConvertTo8(pixs, 0);
     pix1 = pixOtsuThreshOnBackgroundNorm(pixg, NULL, 10, 15, 100,
                                     50, 255, 2, 2, 0.10, &threshval);
-    fprintf(stderr, "thresh val = %d\n", threshval);
+    lept_stderr("thresh val = %d\n", threshval);
     pixaAddPix(pixa, pix1, L_INSERT);
     pixWrite("/tmp/lept/binar/binar2.png", pix1, IFF_PNG);
     pixDisplay(pix1, 100, 200);
@@ -118,7 +118,7 @@ static char  mainName[] = "binarize_set";
     pixg = pixConvertTo8(pixs, 0);
     pix1 = pixMaskedThreshOnBackgroundNorm(pixg, NULL, 10, 15, 100,
                                            50, 2, 2, 0.10, &threshval);
-    fprintf(stderr, "thresh val = %d\n", threshval);
+    lept_stderr("thresh val = %d\n", threshval);
     pixaAddPix(pixa, pix1, L_INSERT);
     pixWrite("/tmp/lept/binar/binar3.png", pix1, IFF_PNG);
     pixDisplay(pix1, 100, 400);
@@ -152,7 +152,7 @@ static char  mainName[] = "binarize_set";
     pixGetPixel(pix1, 0, 0, &val);
     ival = (l_int32)val;
     newval = ival + (l_int32)(0.6 * (110 - ival));
-    fprintf(stderr, "th1 = %d, th2 = %d\n", ival, newval);
+    lept_stderr("th1 = %d, th2 = %d\n", ival, newval);
     pixDestroy(&pix1);
 
     pixContrastNorm(pixg, pixg, 50, 50, 130, 2, 2);

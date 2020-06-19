@@ -105,7 +105,7 @@ static char  mainName[] = "jbwords";
     for (i = 0; i < npages; i++) {
         pix = pixaGetPix(pixa, i, L_CLONE);
         snprintf(filename, BUF_SIZE, "%s.%05d", rootname, i);
-        fprintf(stderr, "filename: %s\n", filename);
+        lept_stderr("filename: %s\n", filename);
         pixWrite(filename, pix, IFF_PNG);
         pixDestroy(&pix);
     }
@@ -120,7 +120,7 @@ static char  mainName[] = "jbwords";
     for (i = 0; i < npages; i++) {
         pix = pixaGetPix(pixadb, i, L_CLONE);
         snprintf(filename, BUF_SIZE, "%s.db.%05d", rootname, i);
-        fprintf(stderr, "filename: %s\n", filename);
+        lept_stderr("filename: %s\n", filename);
         pixWrite(filename, pix, IFF_PNG);
         pixDestroy(&pix);
     }

@@ -54,7 +54,7 @@ PIXA     *pixa1, *pixa2, *pixa3;
 L_RECOG  *recog;
 
     if (argc != 1) {
-        fprintf(stderr, " Syntax: recogtest5\n");
+        lept_stderr(" Syntax: recogtest5\n");
         return 1;
     }
 

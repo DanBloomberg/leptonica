@@ -63,7 +63,7 @@ static char  mainName[] = "livre_tophat";
 
         /* Generate the output image */
     lept_mkdir("lept/livre");
-    fprintf(stderr, "Writing to: /tmp/lept/livre/tophat.jpg\n");
+    lept_stderr("Writing to: /tmp/lept/livre/tophat.jpg\n");
     pix1 = pixaDisplayTiledAndScaled(pixa, 8, 350, 3, 0, 25, 2);
     pixWrite("/tmp/lept/livre/tophat.jpg", pix1, IFF_JFIF_JPEG);
     pixDisplay(pix1, 1200, 800);

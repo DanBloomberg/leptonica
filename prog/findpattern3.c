@@ -81,7 +81,7 @@ static char  mainName[] = "findpattern3";
         /* Use the Sel to find all instances in the page */
     startTimer();
     pixhmt = pixHMT(NULL, pixs, selhm);
-    fprintf(stderr, "Time to find patterns = %7.3f\n", stopTimer());
+    lept_stderr("Time to find patterns = %7.3f\n", stopTimer());
 
         /* Color each instance at full res */
     pixd1 = pixDisplayMatchedPattern(pixs, pixp, pixhmt, selhm->cx,
@@ -127,7 +127,7 @@ static char  mainName[] = "findpattern3";
         /* Use the Sel to find all instances in the page */
     startTimer();
     pixhmt = pixHMT(NULL, pixs, selhm);
-    fprintf(stderr, "Time to find word patterns = %7.3f\n", stopTimer());
+    lept_stderr("Time to find word patterns = %7.3f\n", stopTimer());
 
         /* Color each instance at full res */
     pixd1 = pixDisplayMatchedPattern(pixs, pixp, pixhmt, selhm->cx,
