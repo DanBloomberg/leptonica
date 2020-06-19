@@ -84,7 +84,7 @@ export LEPTONICA_LIBS="$WORK/lib/libjbig.a $WORK/lib/libzstd.a $WORK/lib/libwebp
   --prefix="$WORK" \
   LIBS="$LEPTONICA_LIBS" \
   LDFLAGS="-L$WORK/lib" \
-  CPPFLAGS="-I$WORK/include"
+  CPPFLAGS="-I$WORK/include -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION"
 make -j$(nproc)
 make install
 
