@@ -37,7 +37,9 @@
  *              optimizing:    0.18 sec  (two calls)
  *              valgrind:      13 sec  (two calls)
  *
- *      This has been tested with valgrind and niters = 10,000.
+ *      This has been tested with valgrind on:
+ *      * all ops with niters = 10,000
+ *      * op = PIX_SRC with niters = 100,000
  */
 
 #ifdef HAVE_CONFIG_H

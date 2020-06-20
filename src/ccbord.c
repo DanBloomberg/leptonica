@@ -1532,7 +1532,7 @@ PTA     *ptal, *ptag;
  *          generate the full single path for all borders in the
  *          c.c.  Starting at the start point on the outer
  *          border, when we hit a line on a cut, we take
- *          the cut, do the hold border, and return on the cut
+ *          the cut, do the hole border, and return on the cut
  *          to the outer border.  We compose a pta of the
  *          outer border pts that are on cut paths, and for
  *          every point on the outer border (as we go around),
@@ -1599,7 +1599,7 @@ PTAA     *ptaap;  /* ptaa for all paths between borders */
 
                 /* Find a short path and store it */
             ptac = getCutPathForHole(ccb->pix, pta, boxinner, &dir, &len);
-            if (len == 0) {  /* bad: we lose the hole! */
+            if (len == 0) {  /* lost the hole */
                 lostholes++;
 /*                boxPrintStreamInfo(stderr, boxa->box[0]); */
             }
@@ -1668,8 +1668,7 @@ PTAA     *ptaap;  /* ptaa for all paths between borders */
     }
 
     if (lostholes > 0)
-        L_WARNING("***** %d lost holes *****\n", procName, lostholes);
-
+        L_INFO("***** %d lost holes *****\n", procName, lostholes);
     return 0;
 }
 
@@ -1695,8 +1694,9 @@ PTAA     *ptaap;  /* ptaa for all paths between borders */
  *          the pix.  This function is cheap-and-dirty, may fail for some
  *          holes in complex topologies such as those you might find in a
  *          moderately dark scanned halftone.  If it fails to find a
- *          path to any particular hole, it gives a warning, and because
- *          that hole path is not included, the hole will not be rendered.
+ *          path to any particular hole, the hole will not be rendered.
+ *          Nevertheless, the image can be perfectly reconstructed
+ *          from the boundary representation.
  * </pre>
  */
 PTA *
@@ -1819,9 +1819,8 @@ PTA      *ptac;
         return ptac;
     }
 
-        /* If we get here, we've failed! */
+        /* Sometimes, there is nothing. */
     ptaEmpty(ptac);
-    L_WARNING("no path found\n", procName);
     *plen = 0;
     return ptac;
 }
@@ -2551,7 +2550,7 @@ char  *svgstr;
     if (!ccba)
         return ERROR_INT("ccba not defined", procName, 1);
 
-    if ((svgstr = ccbaWriteSVGString(filename, ccba)) == NULL)
+    if ((svgstr = ccbaWriteSVGString(ccba)) == NULL)
         return ERROR_INT("svgstr not made", procName, 1);
 
     l_binaryWrite(filename, "w", svgstr, strlen(svgstr));
@@ -2564,14 +2563,12 @@ char  *svgstr;
 /*!
  * \brief   ccbaWriteSVGString()
  *
- * \param[in]    filename
  * \param[in]    ccba
  * \return  string in svg-formatted, that can be written to file,
  *              or NULL on error.
  */
 char  *
-ccbaWriteSVGString(const char  *filename,
-                   CCBORDA     *ccba)
+ccbaWriteSVGString(CCBORDA *ccba)
 {
 char    *svgstr;
 char     smallbuf[256];
@@ -2589,8 +2586,6 @@ SARRAY  *sa;
 
     PROCNAME("ccbaWriteSVGString");
 
-    if (!filename)
-        return (char *)ERROR_PTR("filename not defined", procName, NULL);
     if (!ccba)
         return (char *)ERROR_PTR("ccba not defined", procName, NULL);
 

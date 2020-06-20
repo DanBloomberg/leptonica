@@ -422,7 +422,7 @@ LEPT_DLL extern l_ok ccbaWriteStream ( FILE *fp, CCBORDA *ccba );
 LEPT_DLL extern CCBORDA * ccbaRead ( const char *filename );
 LEPT_DLL extern CCBORDA * ccbaReadStream ( FILE *fp );
 LEPT_DLL extern l_ok ccbaWriteSVG ( const char *filename, CCBORDA *ccba );
-LEPT_DLL extern char * ccbaWriteSVGString ( const char *filename, CCBORDA *ccba );
+LEPT_DLL extern char * ccbaWriteSVGString ( CCBORDA *ccba );
 LEPT_DLL extern PIXA * pixaThinConnected ( PIXA *pixas, l_int32 type, l_int32 connectivity, l_int32 maxiters );
 LEPT_DLL extern PIX * pixThinConnected ( PIX *pixs, l_int32 type, l_int32 connectivity, l_int32 maxiters );
 LEPT_DLL extern PIX * pixThinConnectedBySet ( PIX *pixs, l_int32 type, SELA *sela, l_int32 maxiters );

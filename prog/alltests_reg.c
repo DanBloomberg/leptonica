@@ -72,6 +72,7 @@ static const char *tests[] = {
                               "boxa3_reg",
                               "boxa4_reg",
                               "bytea_reg",
+                              "ccbord_reg",
                               "ccthin1_reg",
                               "ccthin2_reg",
                               "checkerboard_reg",
