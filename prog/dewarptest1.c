@@ -52,6 +52,8 @@ PIX        *pixs2, *pixn2, *pixg2, *pixb2, *pixd2;
 
     setLeptDebugOK(1);
     lept_mkdir("lept/model");
+    lept_rmdir("lept/dewmod");
+    lept_mkdir("lept/dewmod");
 
 /*    pixs = pixRead("1555.007.jpg"); */
     pixs = pixRead("cat.035.jpg");
@@ -160,8 +162,6 @@ PIX        *pixs2, *pixn2, *pixg2, *pixb2, *pixd2;
                       "/tmp/lept/dewarptest1.pdf");
     lept_stderr("pdf file made: /tmp/lept/model/dewarptest1.pdf\n");
 
-    lept_rmdir("lept/dewmod");
-    lept_rmdir("lept/dewtest");
     pixDestroy(&pixs);
     pixDestroy(&pixn);
     pixDestroy(&pixg);

@@ -602,7 +602,7 @@ PIXCMAP   *cmap;
     } else if (spp == 2 && bps == 8) {  /* gray plus alpha */
         L_INFO("gray+alpha is not supported; converting to RGBA\n", procName);
         pixSetSpp(pix, 4);
-        linebuf = (l_uint8 *)LEPT_CALLOC(tiffbpl + 1, sizeof(l_uint8));
+        linebuf = (l_uint8 *)LEPT_CALLOC(2 * tiffbpl + 1, sizeof(l_uint8));
         pixdata = pixGetData(pix);
         for (i = 0; i < h; i++) {
             if (TIFFReadScanline(tif, linebuf, i, 0) < 0) {
