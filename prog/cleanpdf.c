@@ -38,27 +38,35 @@
  *
  *     Syntax:  cleanpdf basedir threshold resolution outfile [rotation]
  *
- *    The basedir is a directory where the input pdf files are located.
+ *    The %basedir is a directory where the input pdf files are located.
  *    The program will operate on every file in this directory with
  *    the ".pdf" extension.
  *
- *    The input threshold should be somewhere in the range [130 - 190].
- *    The result is typically not very sensitive to the value, because
- *    internally we use a pixel mapping that is adapted to the local
- *    background before thresholding to binarize the image.
+ *    The input binarization %threshold should be somewhere in the
+ *    range [130 - 190].   The result is typically not very sensitive to
+ *    the value, because internally we use a pixel mapping that is adapted
+ *    to the local background before thresholding to binarize the image.
  *
- *    The resolution should be the scanned resolution.  This is typically
- *    300 ppi, which for an 8.5 x 11 page would be 2550 x 3300 pixels.
+ *    The output %resolution parameter can take on two values:
+ *       300  (binarize at the same resolution as the gray or color input,
+ *             which is typically 300 ppi)
+ *       600  (binarize at twice the resolution of the gray or color input,
+ *             by doing an interpolated 2x expansion on the grayscale
+ *             image, followed by thresholding to 1 bpp)
+ *    That number will also be used as the resolution of the output pdf.
+ *    At 300 ppi, an 8.5 x 11 page would have 2550 x 3300 pixels.
+ *    You can also input 0 for the default resolution of 300 ppi.
  *
- *    The pdf output is written to outfile; suggest it has a '.pdf' extension.
+ *    The pdf output is written to %outfile.  It is advisable (but not
+ *    required) to have a '.pdf' extension.
  *
- *    The optional rotation is an integer:
+ *    The optional %rotation is an integer:
  *       0      no rotation
  *       1      90 degrees cw
  *       1      180 degrees cw
  *       1      270 degrees cw
  *
- *    Whenever possible, the images have been deskewed.
+ *    Whenever possible, the images will be deskewed.
  *
  *    The file-handling functions in leptonica do not support filenames
  *    that have spaces.  To use cleanpdf in linux with such filenames,
@@ -117,6 +125,13 @@ static char  mainName[] = "cleanpdf";
         L_ERROR("rotation not in valid set {0,1,2,3}; setting to 0", mainName);
         rotation = 0;
     }
+    if (res == 0)
+        res = 300;
+    if (res != 300 && res != 600) {
+        L_ERROR("invalid res = %d; res must be in {0, 300, 600}\n",
+                mainName, res);
+        return 1;
+    }
     setLeptDebugOK(1);
 
 #if 1
@@ -165,7 +180,10 @@ static char  mainName[] = "cleanpdf";
         pix3 = pixFindSkewAndDeskew(pix2, 2, NULL, NULL);
         pix4 = pixBackgroundNormSimple(pix3, NULL, NULL);
         pixGammaTRC(pix4, pix4, 2.0, 50, 250);
-        pix5 = pixThresholdToBinary(pix4, thresh);
+        if (res == 300)
+            pix5 = pixThresholdToBinary(pix4, thresh);
+        else  /* res == 600 */
+            pix5 = pixScaleGray2xLIThresh(pix4, thresh);
         splitPathAtDirectory(fname, NULL, &tail);
         splitPathAtExtension(tail, &basename, NULL);
         snprintf(buf, sizeof(buf), "%s/%s.tif", imagedir, basename);
