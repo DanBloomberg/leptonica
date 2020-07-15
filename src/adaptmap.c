@@ -906,6 +906,8 @@ PIX       *pixd, *piximi, *pixb, *pixf, *pixims;
     pixb = pixThresholdToBinary(pixs, thresh);
     pixf = pixMorphSequence(pixb, "d7.1 + d1.7", 0);
     pixDestroy(&pixb);
+    if (!pixf)
+        return ERROR_INT("pixf not made", procName, 1);
 
 
     /* ------------- Set up the output map pixd --------------- */
@@ -1542,10 +1544,7 @@ NUMA     *na;  /* indicates if there is any data in the column */
         }
     }
     if (w > nx) {  /* replicate the last column */
-        for (i = 0; i < h; i++) {
-            pixGetPixel(pix, w - 2, i, &val);
-            pixSetPixel(pix, w - 1, i, val);
-        }
+        pixRasterop(pix, w - 1, 0, 1, h, PIX_SRC, pix, w - 2, 0);
     }
 
     numaDestroy(&na);

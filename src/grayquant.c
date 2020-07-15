@@ -781,7 +781,8 @@ PIX  *pix1, *pixd;
     if (!pixs || pixGetDepth(pixs) != 8)
         return (PIX *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
 
-    pix1 = pixBackgroundNormSimple(pixs, pixm, NULL);
+    if ((pix1 = pixBackgroundNormSimple(pixs, pixm, NULL)) == NULL)
+        return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
     pixGammaTRC(pix1, pix1, gamma, blackval, whiteval);
     pixd = pixThresholdToBinary(pix1, thresh);
     pixDestroy(&pix1);

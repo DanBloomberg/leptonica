@@ -173,7 +173,7 @@ dewarpSinglePageInit(PIX         *pixs,
                      PIX        **ppixb,
                      L_DEWARPA  **pdewa)
 {
-PIX  *pix1;
+PIX  *pix1, *pix2;
 
     PROCNAME("dewarpSinglePageInit");
 
@@ -184,21 +184,25 @@ PIX  *pix1;
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
 
-    *pdewa = dewarpaCreate(1, 0, 1, 0, -1);
-    dewarpaUseBothArrays(*pdewa, useboth);
-    dewarpaSetCheckColumns(*pdewa, check_columns);
-
          /* Generate a binary image, if necessary */
     if (pixGetDepth(pixs) > 1) {
-        pix1 = pixConvertTo8(pixs, 0);
+        if ((pix1 = pixConvertTo8(pixs, 0)) == NULL)
+            return ERROR_INT("pix1 not made", procName, 1);
         if (adaptive)
-            *ppixb = pixAdaptThresholdToBinary(pix1, NULL, 1.0);
+            pix2 = pixAdaptThresholdToBinary(pix1, NULL, 1.0);
         else
-            *ppixb = pixThresholdToBinary(pix1, thresh);
+            pix2 = pixThresholdToBinary(pix1, thresh);
         pixDestroy(&pix1);
+        if (!pix2)
+            return ERROR_INT("pix2 not made", procName, 1);
+        *ppixb = pix2;
     } else {
         *ppixb = pixClone(pixs);
     }
+
+    *pdewa = dewarpaCreate(1, 0, 1, 0, -1);
+    dewarpaUseBothArrays(*pdewa, useboth);
+    dewarpaSetCheckColumns(*pdewa, check_columns);
     return 0;
 }
 
