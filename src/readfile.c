@@ -1070,7 +1070,7 @@ PIX     *pix;
         return ERROR_INT("Pdf reading is not supported\n", procName, 1);
 
     case IFF_SPIX:
-        ret = sreadHeaderSpix((l_uint32 *)data, &w, &h, &bps,
+        ret = sreadHeaderSpix((l_uint32 *)data, size, &w, &h, &bps,
                                &spp, &iscmap);
         if (ret)
             return ERROR_INT( "pnm: no header info returned", procName, 1);

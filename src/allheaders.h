@@ -2561,7 +2561,7 @@ LEPT_DLL extern l_ok pixFindNormalizedSquareSum ( PIX *pixs, l_float32 *phratio,
 LEPT_DLL extern PIX * pixReadStreamSpix ( FILE *fp );
 LEPT_DLL extern l_ok readHeaderSpix ( const char *filename, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *piscmap );
 LEPT_DLL extern l_ok freadHeaderSpix ( FILE *fp, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *piscmap );
-LEPT_DLL extern l_ok sreadHeaderSpix ( const l_uint32 *data, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *piscmap );
+LEPT_DLL extern l_ok sreadHeaderSpix ( const l_uint32 *data, size_t size, l_int32 *pwidth, l_int32 *pheight, l_int32 *pbps, l_int32 *pspp, l_int32 *piscmap );
 LEPT_DLL extern l_ok pixWriteStreamSpix ( FILE *fp, PIX *pix );
 LEPT_DLL extern PIX * pixReadMemSpix ( const l_uint8 *data, size_t size );
 LEPT_DLL extern l_ok pixWriteMemSpix ( l_uint8 **pdata, size_t *psize, PIX *pix );

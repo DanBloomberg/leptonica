@@ -190,7 +190,7 @@ l_uint32  data[6];
         return ERROR_INT("file too small to be spix", procName, 1);
     if (fread(data, 4, 6, fp) != 6)
         return ERROR_INT("error reading data", procName, 1);
-    ret = sreadHeaderSpix(data, pwidth, pheight, pbps, pspp, piscmap);
+    ret = sreadHeaderSpix(data, nbytes, pwidth, pheight, pbps, pspp, piscmap);
     return ret;
 }
 
@@ -199,6 +199,7 @@ l_uint32  data[6];
  * \brief   sreadHeaderSpix()
  *
  * \param[in]    data
+ * \param[in]    size      of data
  * \param[out]   pwidth    width
  * \param[out]   pheight   height
  * \param[out]   pbps      bits/sample
@@ -213,6 +214,7 @@ l_uint32  data[6];
  */
 l_ok
 sreadHeaderSpix(const l_uint32  *data,
+                size_t           size,
                 l_int32         *pwidth,
                 l_int32         *pheight,
                 l_int32         *pbps,
@@ -231,6 +233,8 @@ l_int32  d, ncolors;
     *pwidth = *pheight = *pbps = *pspp = 0;
     if (piscmap)
       *piscmap = 0;
+    if (size < 28)
+        return ERROR_INT("size too small", procName, 1);
 
         /* Check file id */
     id = (char *)data;
