@@ -8,8 +8,14 @@
 #      alltests_reg generate
 #      alltests_reg compare
 #
-#  A few of the tests require gnuplot.  These tests, listed below,
-#  are skipped if gnuplot is not available.
+#  Some of the tests require gnuplot.  These tests, listed below,
+#  are skipped if gnuplot is not available.  You can determine if a
+#  test requires gnuplot, if any of these situations is true:
+#   * a function starting with "gplot" is called
+#   * a function starting with "boxaPlot" is called
+#   * a function starting with "pixCompare" is called
+#   * the function pixItalicWords() is called
+#   * the function pixWordMaskByDilation() is called
 #
 #  The wrapper receives several parameters in this form:
 #      path/to/source/config/test-driver <TEST DRIVER ARGS> -- ./foo_reg
