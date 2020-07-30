@@ -142,7 +142,9 @@ static char  mainName[] = "cleanpdf";
     n = sarrayGetCount(sa);
 #endif
 
-        /* Rasterize: pdfimages -f fname root */
+        /* Rasterize: pdftoppm fname root.
+         * We used to use pdfimages -j, but in some situations
+         * it scrambles the output and makes extra images.  */
     imagedir = stringJoin(basedir, "/image");
 #if 1
 #ifndef _WIN32
@@ -154,12 +156,12 @@ static char  mainName[] = "cleanpdf";
         fname = sarrayGetString(sa, i, L_NOCOPY);
         splitPathAtDirectory(fname, NULL, &tail);
         splitPathAtExtension(tail, &basename, NULL);
-        snprintf(buf, sizeof(buf), "pdfimages -j %s %s/%s",
+        snprintf(buf, sizeof(buf), "pdftoppm %s %s/%s",
                  fname, imagedir, basename);
         lept_free(tail);
         lept_free(basename);
         fprintf(stderr, "%s\n", buf);
-        ret = system(buf);   /* pdfimages -j */
+        ret = system(buf);   /* pdftoppm */
     }
     sarrayDestroy(&sa);
 #endif
@@ -202,9 +204,9 @@ static char  mainName[] = "cleanpdf";
 #endif
 
 #if 1
-        /* Generate the pdf */
+        /* Generate the pdf.  Always specify resolution as 300 */
     fprintf(stderr, "Write output to %s\n", outfile);
-    convertFilesToPdf(imagedir, "tif", res, 1.0, L_G4_ENCODE, 0, NULL, outfile);
+    convertFilesToPdf(imagedir, "tif", 300, 1.0, L_G4_ENCODE, 0, NULL, outfile);
 #endif
 
     return 0;

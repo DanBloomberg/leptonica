@@ -26,7 +26,7 @@
 
                         style-guide.txt
 
-                         27 Jan 2017
+                         10 May 2019
 
 This is not a complete guide to the coding style in leptonica.
 It covers most of the typographic issues and the most frequent
@@ -159,17 +159,22 @@ The C code in leptonica follows these conventions:
    (f) Preprocessor variables and enums are named all caps,
        with '_' between parts.
 
-   (g) There are very few globals in the library.  Of these, there
+   (g) Static constants defined in a file should have the first letter of
+       each word capitalized.  (There are also some that are formatted
+       like enums, with all caps and '_' between parts.)
+ 
+   (h) There are very few globals in the library.  Of these, there
        are just a handful of static globals that can be changed.
-       Globals are named with each word beginning with a capital; e.g.,
+       Const globals are named with each word beginning with a capital; e.g.,
             ImageFileFormatExtensions[]
-       Static globals are named like preprocessor variables, except
-       they are prepended by 'var_'; e.g.,
+       Static globals that can be changed are named like preprocessor
+       variables, except they are prepended by 'var_'; e.g.,
             var_PNG_WRITE_ALPHA
-       Functions that set globals are named with a pre-pended 'l_'; e.g.,
+       Functions that set these static globals are named with a
+       pre-pended 'l_'; e.g.,
             l_pngSetWriteAlpha()
 
-   (h) Where there may be issues with namespace collisions with other
+   (i) Where there may be issues with namespace collisions with other
        libraries, function names can be prepended with 'l_'; e.g.,
             l_amapInsert()
 
