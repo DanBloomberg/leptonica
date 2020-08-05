@@ -203,8 +203,10 @@ lqueueAdd(L_QUEUE  *lq,
     }
 
         /* If necessary, expand the allocated array by a factor of 2 */
-    if (lq->nelem > 0.75 * lq->nalloc)
-        lqueueExtendArray(lq);
+    if (lq->nelem > 0.75 * lq->nalloc) {
+        if (lqueueExtendArray(lq))
+            return ERROR_INT("extension failed", procName, 1);
+    }
 
         /* Now add the item */
     lq->array[lq->nhead + lq->nelem] = (void *)item;

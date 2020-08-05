@@ -827,8 +827,10 @@ L_DEWARP  *prevdew;
         newsize = 2 * pageno;
     else if (pageno >= n)
         newsize = 2 * n;
-    if (newsize > n)
-        dewarpaExtendArraysToSize(dewa, newsize);
+    if (newsize > n) {
+        if (dewarpaExtendArraysToSize(dewa, newsize))
+            return ERROR_INT("extension failed", procName, 1);
+    }
 
     if ((prevdew = dewarpaGetDewarp(dewa, pageno)) != NULL)
         dewarpDestroy(&prevdew);

@@ -864,11 +864,12 @@ FPIX    *fpixc;
         return ERROR_INT("fpixc not made", procName, 1);
 
     n = fpixaGetCount(fpixa);
-    if (n >= fpixa->nalloc)
-        fpixaExtendArray(fpixa);
+    if (n >= fpixa->nalloc) {
+        if (fpixaExtendArray(fpixa))
+            return ERROR_INT("extension failed", procName, 1);
+    }
     fpixa->fpix[n] = fpixc;
     fpixa->n++;
-
     return 0;
 }
 

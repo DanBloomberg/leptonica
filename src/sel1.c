@@ -599,11 +599,13 @@ SEL     *csel;
         csel->name = stringNew(selname);
 
     n = selaGetCount(sela);
-    if (n >= sela->nalloc)
-        selaExtendArray(sela);
+    if (n >= sela->nalloc) {
+        if (selaExtendArray(sela))
+            return ERROR_INT("extension failed", procName, 1);
+    }
+
     sela->sel[n] = csel;
     sela->n++;
-
     return 0;
 }
 

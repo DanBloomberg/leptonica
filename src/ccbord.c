@@ -465,8 +465,10 @@ l_int32  n;
         return ERROR_INT("ccb not defined", procName, 1);
 
     n = ccbaGetCount(ccba);
-    if (n >= ccba->nalloc)
-        ccbaExtendArray(ccba);
+    if (n >= ccba->nalloc) {
+        if (ccbaExtendArray(ccba))
+            return ERROR_INT("extension failed", procName, 1);
+    }
     ccba->ccb[n] = ccb;
     ccba->n++;
     return 0;

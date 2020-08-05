@@ -978,8 +978,11 @@ l_int32  n;
         return ERROR_INT("invalid copyflag", procName, 1);
 
     n = pixac->n;
-    if (n >= pixac->nalloc)
-        pixacompExtendArray(pixac);
+    if (n >= pixac->nalloc) {
+        if (pixacompExtendArray(pixac))
+            return ERROR_INT("extension failed", procName, 1);
+    }
+
     if (copyflag == L_INSERT)
         pixac->pixc[n] = pixc;
     else  /* L_COPY */

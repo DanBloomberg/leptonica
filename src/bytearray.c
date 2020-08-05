@@ -379,8 +379,10 @@ size_t  size, nalloc, reqsize;
     size = l_byteaGetSize(ba);
     reqsize = size + newbytes + 1;
     nalloc = ba->nalloc;
-    if (nalloc < reqsize)
-        l_byteaExtendArrayToSize(ba, 2 * reqsize);
+    if (nalloc < reqsize) {
+        if (l_byteaExtendArrayToSize(ba, 2 * reqsize))
+            return ERROR_INT("extension failed", procName, 1);
+    }
 
     memcpy(ba->data + size, newdata, newbytes);
     ba->size += newbytes;
@@ -412,8 +414,10 @@ size_t  size, len, nalloc, reqsize;
     len = strlen(str);
     reqsize = size + len + 1;
     nalloc = ba->nalloc;
-    if (nalloc < reqsize)
-        l_byteaExtendArrayToSize(ba, 2 * reqsize);
+    if (nalloc < reqsize) {
+        if (l_byteaExtendArrayToSize(ba, 2 * reqsize))
+            return ERROR_INT("extension failed", procName, 1);
+    }
 
     memcpy(ba->data + size, str, len);
     ba->size += len;

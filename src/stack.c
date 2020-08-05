@@ -178,8 +178,10 @@ lstackAdd(L_STACK  *lstack,
         return ERROR_INT("item not defined", procName, 1);
 
         /* Do we need to extend the array? */
-    if (lstack->n >= lstack->nalloc)
-        lstackExtendArray(lstack);
+    if (lstack->n >= lstack->nalloc) {
+        if (lstackExtendArray(lstack))
+            return ERROR_INT("extension failed", procName, 1);
+    }
 
         /* Store the new pointer */
     lstack->array[lstack->n] = (void *)item;

@@ -201,8 +201,10 @@ lheapAdd(L_HEAP  *lh,
         return ERROR_INT("item not defined", procName, 1);
 
         /* If necessary, expand the allocated array by a factor of 2 */
-    if (lh->n >= lh->nalloc)
-        lheapExtendArray(lh);
+    if (lh->n >= lh->nalloc) {
+        if (lheapExtendArray(lh))
+            return ERROR_INT("extension failed", procName, 1);
+    }
 
         /* Add the item */
     lh->array[lh->n] = item;

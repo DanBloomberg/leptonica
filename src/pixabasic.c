@@ -529,11 +529,13 @@ PIX     *pixc;
         return ERROR_INT("pixc not made", procName, 1);
 
     n = pixaGetCount(pixa);
-    if (n >= pixa->nalloc)
-        pixaExtendArray(pixa);
+    if (n >= pixa->nalloc) {
+        if (pixaExtendArray(pixa))
+            return ERROR_INT("extension failed", procName, 1);
+    }
+
     pixa->pix[n] = pixc;
     pixa->n++;
-
     return 0;
 }
 
@@ -1378,8 +1380,10 @@ l_int32  i, n;
         return ERROR_INT("pixs not defined", procName, 1);
 
     if (n >= pixa->nalloc) {  /* extend both ptr arrays */
-        pixaExtendArray(pixa);
-        boxaExtendArray(pixa->boxa);
+        if (pixaExtendArray(pixa))
+            return ERROR_INT("extension failed", procName, 1);
+        if (boxaExtendArray(pixa->boxa))
+            return ERROR_INT("extension failed", procName, 1);
     }
     pixa->n++;
     for (i = n; i > index; i--)
@@ -1389,7 +1393,6 @@ l_int32  i, n;
         /* Optionally, insert the box */
     if (box)
         boxaInsertBox(pixa->boxa, index, box);
-
     return 0;
 }
 
@@ -2006,11 +2009,12 @@ PIXA    *pixac;
     }
 
     n = pixaaGetCount(paa, NULL);
-    if (n >= paa->nalloc)
-        pixaaExtendArray(paa);
+    if (n >= paa->nalloc) {
+        if (pixaaExtendArray(paa))
+            return ERROR_INT("extension failed", procName, 1);
+    }
     paa->pixa[n] = pixac;
     paa->n++;
-
     return 0;
 }
 

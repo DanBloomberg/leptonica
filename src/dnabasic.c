@@ -451,8 +451,10 @@ l_int32  n;
         return ERROR_INT("da not defined", procName, 1);
 
     n = l_dnaGetCount(da);
-    if (n >= da->nalloc)
-        l_dnaExtendArray(da);
+    if (n >= da->nalloc) {
+        if (l_dnaExtendArray(da))
+            return ERROR_INT("extension failed", procName, 1);
+    }
     da->array[n] = val;
     da->n++;
     return 0;
@@ -527,8 +529,10 @@ l_int32  i, n;
     if (index < 0 || index > n)
         return ERROR_INT("index not in {0...n}", procName, 1);
 
-    if (n >= da->nalloc)
-        l_dnaExtendArray(da);
+    if (n >= da->nalloc) {
+        if (l_dnaExtendArray(da))
+            return ERROR_INT("extension failed", procName, 1);
+    }
     for (i = n; i > index; i--)
         da->array[i] = da->array[i - 1];
     da->array[index] = val;
@@ -1308,8 +1312,10 @@ L_DNA   *dac;
     }
 
     n = l_dnaaGetCount(daa);
-    if (n >= daa->nalloc)
-        l_dnaaExtendArray(daa);
+    if (n >= daa->nalloc) {
+        if (l_dnaaExtendArray(daa))
+            return ERROR_INT("extension failed", procName, 1);
+    }
     daa->dna[n] = dac;
     daa->n++;
     return 0;

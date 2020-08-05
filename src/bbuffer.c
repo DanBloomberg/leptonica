@@ -288,13 +288,13 @@ l_int32  navail, nadd, nwritten;
     navail = bb->nalloc - bb->n;
     if (nbytes > navail) {
         nadd = L_MAX(bb->nalloc, nbytes);
-        bbufferExtendArray(bb, nadd);
+        if (bbufferExtendArray(bb, nadd))
+            return ERROR_INT("extension failed", procName, 1);
     }
 
         /* Read in the new bytes */
     memcpy(bb->array + bb->n, src, nbytes);
     bb->n += nbytes;
-
     return 0;
 }
 
@@ -334,7 +334,8 @@ l_int32  navail, nadd, nread, nwritten;
     navail = bb->nalloc - bb->n;
     if (nbytes > navail) {
         nadd = L_MAX(bb->nalloc, nbytes);
-        bbufferExtendArray(bb, nadd);
+        if (bbufferExtendArray(bb, nadd))
+            return ERROR_INT("extension failed", procName, 1);
     }
 
         /* Read in the new bytes */

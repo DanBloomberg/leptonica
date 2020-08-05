@@ -460,8 +460,10 @@ l_int32  n;
         return ERROR_INT("invalid copyflag", procName, 1);
 
     n = sarrayGetCount(sa);
-    if (n >= sa->nalloc)
-        sarrayExtendArray(sa);
+    if (n >= sa->nalloc) {
+        if (sarrayExtendArray(sa))
+            return ERROR_INT("extension failed", procName, 1);
+    }
 
     if (copyflag == L_COPY)
         sa->array[n] = stringNew(string);
