@@ -1149,15 +1149,15 @@ char        *text;
             palette[i].blue = (png_byte)bmap[i];
             alpha[i] = (png_byte)amap[i];
         }
+        LEPT_FREE(rmap);
+        LEPT_FREE(gmap);
+        LEPT_FREE(bmap);
+        LEPT_FREE(amap);
 
         png_set_PLTE(png_ptr, info_ptr, palette, (int)ncolors);
         if (!opaque)  /* alpha channel has some transparency; assume valid */
             png_set_tRNS(png_ptr, info_ptr, (png_bytep)alpha,
                          (int)ncolors, NULL);
-        LEPT_FREE(rmap);
-        LEPT_FREE(gmap);
-        LEPT_FREE(bmap);
-        LEPT_FREE(amap);
     }
 
         /* 0.4545 is treated as the default by some image
