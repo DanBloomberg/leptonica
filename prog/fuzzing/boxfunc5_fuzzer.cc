@@ -11,7 +11,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	if(boxa_payload == NULL) return 0;
 
 	l_float32  fvarp, fvarm, devw, devh;
-	l_float32  pdel_evenodd, prms_even, prms_odd, prms_all;
+	l_float32  del_evenodd, rms_even, rms_odd, rms_all;
 	l_int32    isame;
 
 	boxa1 = boxaConstrainSize(boxa_payload, 0,
@@ -19,7 +19,6 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 				  0, L_ADJUST_TOP_AND_BOT);
 	boxaDestroy(&boxa1);
 	
-
 	boxa1 = boxaReconcileAllByMedian(boxa_payload,
 					 L_ADJUST_LEFT_AND_RIGHT,
 					 L_ADJUST_TOP_AND_BOT, 50,
@@ -40,8 +39,8 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
 	boxaSizeConsistency2(boxa_payload, &devw, &devh, 0);
 
-	boxaSizeVariation(boxa_payload, L_SELECT_WIDTH, &pdel_evenodd,
-                  	  &prms_even, &prms_odd, &prms_all);
+	boxaSizeVariation(boxa_payload, L_SELECT_WIDTH, &del_evenodd,
+                  	  &rms_even, &rms_odd, &rms_all);
 
 	boxa1 = boxaSmoothSequenceMedian(boxa_payload, 10,
 					 L_SUB_ON_LOC_DIFF,
