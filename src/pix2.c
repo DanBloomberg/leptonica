@@ -3374,11 +3374,11 @@ l_uint32  *rline, *rdata;  /* data in pix raster */
  * </pre>
  */
 l_ok
-pixInferResolution(PIX        *pix,
-                   l_float32   longside,
-                   l_int32    *pres)
+pixInferResolution(PIX       *pix,
+                   l_float32  longside,
+                   l_int32   *pres)
 {
-l_int32  w, h, maxdim;
+l_int32  w, h, maxdim, res;
 
     PROCNAME("pixInferResolution");
 
@@ -3392,7 +3392,13 @@ l_int32  w, h, maxdim;
 
     pixGetDimensions(pix, &w, &h, NULL);
     maxdim = L_MAX(w, h);
-    *pres = (l_int32)(maxdim / longside + 0.5);
+    res = (l_int32)(maxdim / longside + 0.5);
+    res = L_MAX(res, 1);  /* don't let it be 0 */
+    if (res < 10)
+        L_WARNING("low inferred resolution: %d ppi\n", procName, res);
+    if (res > 10000)
+        L_WARNING("high inferred resolution: %d ppi\n", procName, res);
+    *pres = res;
     return 0;
 }
 
