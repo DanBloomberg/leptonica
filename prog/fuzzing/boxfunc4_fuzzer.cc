@@ -27,10 +27,10 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	boxaPermuteRandom(boxa_payload, boxa_payload);
 
 	boxa1 = boxaSelectByWHRatio(boxa_payload, 1, 
-				    L_SELECT_IF_LT, &changed)
+				    L_SELECT_IF_LT, &changed);
 	boxaDestroy(&boxa1);
 
-	boxa1 = boxaSelectRange(boxa_payload, 0, -1, L_COPY)
+	boxa1 = boxaSelectRange(boxa_payload, 0, -1, L_COPY);
 	boxaDestroy(&boxa1);
 
 	boxaDestroy(&boxa_payload);
