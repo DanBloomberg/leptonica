@@ -354,6 +354,7 @@ void build(Solution &s)
             {"splitimage2pdf", {"splitimage2pdf.c"}},
             {"sudokutest", {"sudokutest.c"}},
             {"textorient", {"textorient.c"}},
+            {"tiffpdftest", {"tiffpdftest.c"}},
             {"trctest", {"trctest.c"}},
             {"underlinetest", {"underlinetest.c"}},
             {"warpertest", {"warpertest.c"}},

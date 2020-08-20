@@ -257,7 +257,8 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		seedfilltest.c settest.c sharptest.c \
 		sheartest.c showedges.c \
 		skewtest.c sorttest.c splitimage2pdf.c \
-		sudokutest.c textorient.c trctest.c \
+		sudokutest.c textorient.c \
+		tiffpdftest.c trctest.c \
 		underlinetest.c warpertest.c wordsinorder.c \
 		writemtiff.c xtractprotos.c yuvtest.c
 
@@ -1174,6 +1175,9 @@ sudokutest:	sudokutest.o $(LEPTLIB)
 
 textorient:	textorient.o $(LEPTLIB)
 	$(CC) -o textorient textorient.o $(ALL_LIBS) $(EXTRALIBS)
+
+tiffpdftest:	tiffpdftest.o $(LEPTLIB)
+	$(CC) -o tiffpdftest tiffpdftest.o $(ALL_LIBS) $(EXTRALIBS)
 
 trctest:	trctest.o $(LEPTLIB)
 	$(CC) -o trctest trctest.o $(ALL_LIBS) $(EXTRALIBS)

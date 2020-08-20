@@ -1920,7 +1920,7 @@ generatePreXStringsPdf(L_PDF_DATA  *lpd)
 {
 char          buff[256];
 char          buf[L_BIGBUF];
-char         *cstr, *bstr, *fstr, *pstr, *xstr;
+char         *cstr, *bstr, *fstr, *pstr, *xstr, *photometry;
 l_int32       i, cmindex;
 L_COMP_DATA  *cid;
 SARRAY       *sa;
@@ -1943,14 +1943,19 @@ SARRAY       *sa;
             }
             bstr = stringNew("/BitsPerComponent 1\n"
                              "/Interpolate true");
+                /* Note: the reversal is deliberate */
+            photometry = (cid->minisblack) ? stringNew("true")
+                                           : stringNew("false");
             snprintf(buff, sizeof(buff),
                      "/Filter /CCITTFaxDecode\n"
                      "/DecodeParms\n"
                      "<<\n"
+                     "/BlackIs1 %s\n"
                      "/K -1\n"
                      "/Columns %d\n"
-                     ">>", cid->w);
+                     ">>", photometry, cid->w);
             fstr = stringNew(buff);
+            LEPT_FREE(photometry);
         } else if (cid->type == L_JPEG_ENCODE) {
             if (cid->spp == 1)
                 cstr = stringNew("/ColorSpace /DeviceGray");

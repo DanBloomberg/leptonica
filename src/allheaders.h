@@ -1571,6 +1571,7 @@ LEPT_DLL extern l_int32 lineEndianByteSwap ( l_uint32 *datad, l_uint32 *datas, l
 LEPT_DLL extern PIX * pixEndianTwoByteSwapNew ( PIX *pixs );
 LEPT_DLL extern l_ok pixEndianTwoByteSwap ( PIX *pixs );
 LEPT_DLL extern l_ok pixGetRasterData ( PIX *pixs, l_uint8 **pdata, size_t *pnbytes );
+LEPT_DLL extern l_ok pixInferResolution ( PIX *pix, l_float32 longside, l_int32 *pres );
 LEPT_DLL extern l_ok pixAlphaIsOpaque ( PIX *pix, l_int32 *popaque );
 LEPT_DLL extern l_uint8 ** pixSetupByteProcessing ( PIX *pix, l_int32 *pw, l_int32 *ph );
 LEPT_DLL extern l_ok pixCleanupByteProcessing ( PIX *pix, l_uint8 **lineptrs );

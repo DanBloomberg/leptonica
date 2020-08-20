@@ -29,8 +29,8 @@
  * <pre>
  *
  *    Higher-level operations for generating pdf from images.
- *    Use poppler's pdfimages to invert the process, extracting
- *    raster images from pdf.
+ *    Use poppler's pdftoppm or pdfimages to invert the process,
+ *    extracting raster images from pdf.
  *
  *    |=============================================================|
  *    |                        Important notes                      |

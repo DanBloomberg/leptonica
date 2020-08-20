@@ -118,7 +118,10 @@
  *           l_int32     pixGetRasterData()
  *
  *      Test alpha component opaqueness
- *           l_int32     pixAlphaIsOpaque
+ *           l_int32     pixAlphaIsOpaque()
+ *
+ *      Infer resolution from image size
+ *           l_int32     pixInferResolution()
  *
  *      Setup helpers for 8 bpp byte processing
  *           l_uint8   **pixSetupByteProcessing()
@@ -317,9 +320,11 @@ l_uint32  *line, *data;
  * \param[out]   pbval  [optional] blue component
  * \return  0 if OK; 1 or 2 on error
  *
+ * <pre>
  * Notes:
  *      (1) If the point is outside the image, this returns an error (2),
  *          with 0 in %pval.  To avoid spamming output, it fails silently.
+ * </pre>
  */
 l_ok
 pixGetRGBPixel(PIX      *pix,
@@ -367,9 +372,11 @@ l_uint32  *data, *ppixel;
  * \param[in]    bval   blue component
  * \return  0 if OK; 1 or 2 on error
  *
+ * <pre>
  * Notes:
  *      (1) If the point is outside the image, this returns an error (2),
  *          and to avoid spamming output, it fails silently.
+ * </pre>
  */
 l_ok
 pixSetRGBPixel(PIX     *pix,
@@ -412,6 +419,7 @@ l_uint32  *data, *line;
  * \param[in]    bval   blue component
  * \return  0 if OK; 1 or 2 on error
  *
+ * <pre>
  * Notes:
  *      (1) If the point is outside the image, this returns an error (2),
  *          and to avoid spamming output, it fails silently.
@@ -426,6 +434,7 @@ l_uint32  *data, *line;
  *          attempt is made to set many pixels.  (In that case, it should
  *          be implemented with a map:rgb-->index for efficiency.)
  *          This is best used with very small images.
+ * </pre>
  */
 l_ok
 pixSetCmapPixel(PIX     *pix,
@@ -521,9 +530,11 @@ PIXCMAP  *cmap;
  * \param[in]    x,y   pixel coords
  * \return  0 if OK; 1 or 2 on error.
  *
+ * <pre>
  * Notes:
  *      (1) If the point is outside the image, this returns an error (2),
  *          with 0 in %pval.  To avoid spamming output, it fails silently.
+ * </pre>
  */
 l_ok
 pixClearPixel(PIX     *pix,
@@ -581,9 +592,11 @@ l_uint32  *line, *data;
  * \param[in]    x,y   pixel coords
  * \return  0 if OK; 1 or 2 on error
  *
+ * <pre>
  * Notes:
  *      (1) If the point is outside the image, this returns an error (2),
  *          with 0 in %pval.  To avoid spamming output, it fails silently.
+ * </pre>
  */
 l_ok
 pixFlipPixel(PIX     *pix,
@@ -3341,6 +3354,50 @@ l_uint32  *rline, *rdata;  /* data in pix raster */
 
 
 /*-------------------------------------------------------------*
+ *                Infer resolution from image size             *
+ *-------------------------------------------------------------*/
+/*!
+ * \brief   pixInferResolution()
+ *
+ * \param[in]    pix
+ * \param[in]    longside    assumed max dimension, in inches
+ * \param[out]   pres        resolution (ppi)
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This finds the resolution, assuming that the longest side
+ *          of the image is %longside.  On error, returns 300 ppi.
+ *      (2) This is useful for computing resolution for generating pdfs,
+ *          when the images are scanned from pages of known size.
+ *          There, %longside is typically about 11.0.
+ * </pre>
+ */
+l_ok
+pixInferResolution(PIX        *pix,
+                   l_float32   longside,
+                   l_int32    *pres)
+{
+l_int32  w, h, maxdim;
+
+    PROCNAME("pixInferResolution");
+
+    if (!pres)
+        return ERROR_INT("&res not defined", procName, 1);
+    *pres = 300;
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+    if (longside <= 0.0)
+        return ERROR_INT("longside not > 0", procName, 1);
+
+    pixGetDimensions(pix, &w, &h, NULL);
+    maxdim = L_MAX(w, h);
+    *pres = (l_int32)(maxdim / longside + 0.5);
+    return 0;
+}
+
+
+/*-------------------------------------------------------------*
  *                 Test alpha component opaqueness             *
  *-------------------------------------------------------------*/
 /*!
@@ -3350,8 +3407,11 @@ l_uint32  *rline, *rdata;  /* data in pix raster */
  * \param[out]   popaque   1 if spp == 4 and all alpha component
  *                         values are 255 (opaque); 0 otherwise
  * \return  0 if OK, 1 on error
- *      Notes:
- *          1) On error, opaque is returned as 0 (FALSE).
+ *
+ * <pre>
+ * Notes:
+ *      1) On error, opaque is returned as 0 (FALSE).
+ * </pre>
  */
 l_ok
 pixAlphaIsOpaque(PIX      *pix,
