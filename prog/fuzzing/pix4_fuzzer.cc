@@ -28,8 +28,8 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     pix1 = pixConvertTo8(pixs, FALSE);
     box = boxCreate(120, 30, 200, 200);
-    numa1 = pixGetCmapHistogramInRect(pix2, box, 1);
-    numaDestroy(&numa1);
+    na1 = pixGetCmapHistogramInRect(pix2, box, 1);
+    numaDestroy(&na1);
     boxDestroy(&box);
     pixDestroy(&pix1);
 
