@@ -3383,7 +3383,7 @@ PIX       *pixd;
         /* Replication table gray --> rgb */
     tab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     for (i = 0; i < 256; i++)
-      tab[i] = (i << 24) | (i << 16) | (i << 8);
+      tab[i] = ((l_uint32)i << 24) | (i << 16) | (i << 8);
 
         /* Replicate 1 --> 4 bytes (alpha byte not set) */
     for (i = 0; i < h; i++) {
