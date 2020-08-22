@@ -100,6 +100,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     pixSplitDistributionFgBg(pix1, 1.5, 1, &thresh, &fgval, &bgval, &pix2);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-
+    pixDestroy(&pixs);
     return 0;
 }
