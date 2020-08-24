@@ -2733,7 +2733,7 @@ PIXCMAP   *cmap;
  * \param[in]    pixs       32 bpp
  * \param[in]    pixg       8 bpp grayscale version of pixs
  * \param[in]    factor     sampling factor along pixel counting direction
- * \param[in]    nbins      number of intensity bins
+ * \param[in]    nbins      number of intensity bins, in {1,...,100}
  * \param[in]    nalut      LUT for mapping from intensity to bin number
  * \param[out]   pcarray    array of average color values in each bin
  * \param[in]    pixadb     [optional] debug: caller passes this in.
@@ -2787,16 +2787,23 @@ PIX        *pix1;
         L_WARNING("sampling factor less than 1; setting to 1\n", procName);
         factor = 1;
     }
+    if (nbins < 1 || nbins > 100)
+        return ERROR_INT("nbins not in {1,...,100}", procName, 1);
 
         /* Find the color for each rank bin.  Note that we can have
          * multiple bins filled with pixels having the same gray value.
          * Therefore, because in general the mapping from gray value
          * to bin number is not unique, if a bin fills up (actually,
          * we allow it to slightly overfill), we roll the excess
-         * over to the next bin, etc. */
+         * over to the next bin, etc.  We require that on average each
+         * bin holds at least 5 points.  */
     pixGetDimensions(pixs, &w, &h, NULL);
     npts = (w + factor - 1) * (h + factor - 1) / (factor * factor);
     avepts = (npts + nbins - 1) / nbins;  /* average number of pts in a bin */
+    if (avepts < 5) {
+        L_ERROR("avepts = %d; must be >= 5\n", procName, avepts);
+        return 1;
+    }
     maxpts = (l_int32)((1.0 + 0.5 / (l_float32)nbins) * avepts);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
@@ -2823,11 +2830,15 @@ PIX        *pix1;
     }
 
     for (i = 0; i < nbins; i++) {
-        norm = 1. / narray[i];
-        rarray[i] *= norm;
-        garray[i] *= norm;
-        barray[i] *= norm;
-/*        lept_stderr("narray[%d] = %f\n", i, narray[i]);  */
+        if (narray[i] == 0) {
+            L_WARNING("no colors in bin %d\n", procName, i);
+        } else {
+            norm = 1. / narray[i];
+            rarray[i] *= norm;
+            garray[i] *= norm;
+            barray[i] *= norm;
+/*            lept_stderr("narray[%d] = %f\n", i, narray[i]);  */
+        }
     }
 
     if (pixadb) {
