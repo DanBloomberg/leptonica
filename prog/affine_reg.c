@@ -212,6 +212,7 @@ L_REGPARAMS  *rp;
         ptaDestroy(&ptas);
         ptaDestroy(&ptad);
     }
+    pixDestroy(&pixcs);
 
     pix1 = pixaDisplayTiledInColumns(pixa, 3, 1.0, 20, 3);
     pix2 = pixScale(pix1, 0.25, 0.25);
