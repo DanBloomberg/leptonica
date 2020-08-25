@@ -2964,10 +2964,11 @@ PIXA    *pixa;
  *
  * <pre>
  * Notes:
- *      (1) This generates a pix where each column represents a strip of
- *          the input image.  If %direction == L_SCAN_HORIZONTAL, the
- *          input impage is tiled into vertical strips of width %size,
- *          where %size is a compromise between getting better spatial
+ *      (1) This generates a pix of height %nbins, where each column
+ *          represents a horizontal or vertical strip of the input image.
+ *          If %direction == L_SCAN_HORIZONTAL, the input image is
+ *          tiled into vertical strips of width %size, where %size is
+ *          chosen as a compromise between getting better spatial
  *          columnwise resolution (small %size) and getting better
  *          columnwise statistical information (larger %size).  Likewise
  *          with rows of the image if %direction == L_SCAN_VERTICAL.
@@ -2975,7 +2976,8 @@ PIXA    *pixa;
  *          median colors in each column that correspond to a vertical
  *          strip of width %size in the input image.
  *      (3) The color selection flag is one of: L_SELECT_RED, L_SELECT_GREEN,
- *          L_SELECT_BLUE, L_SELECT_MIN, L_SELECT_MAX, L_SELECT_AVERAGE.
+ *          L_SELECT_BLUE, L_SELECT_MIN, L_SELECT_MAX, L_SELECT_AVERAGE,
+ *          L_SELECT_HUE, L_SELECT_SATURATION.
  *          It determines how the rank ordering is done.
  *      (4) Typical input values might be %size = 5, %nbins = 10.
  * </pre>
@@ -2987,7 +2989,7 @@ pixRankBinByStrip(PIX     *pixs,
                   l_int32  nbins,
                   l_int32  type)
 {
-l_int32    i, j, w, h, nstrips;
+l_int32    i, j, w, h, mindim, nstrips;
 l_uint32  *array;
 BOXA      *boxa;
 PIX       *pix1, *pix2, *pixd;
@@ -3010,8 +3012,14 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("nbins must be at least 2", procName, NULL);
     if (type != L_SELECT_RED && type != L_SELECT_GREEN &&
         type != L_SELECT_BLUE && type != L_SELECT_MIN &&
-        type != L_SELECT_MAX && type != L_SELECT_AVERAGE)
+        type != L_SELECT_MAX && type != L_SELECT_AVERAGE &&
+        type != L_SELECT_HUE && type != L_SELECT_SATURATION)
         return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    mindim = L_MIN(w, h);
+    if (mindim < 20 || nbins > mindim)
+        return (PIX *)ERROR_PTR("pix too small and/or too many bins",
+                                procName, NULL);
 
         /* Downscale by factor and remove colormap if it exists */
     if (cmap)
@@ -3029,9 +3037,11 @@ PIXCMAP   *cmap;
         for (i = 0; i < nstrips; i++) {
             pix2 = pixaGetPix(pixa, i, L_CLONE);
             pixGetRankColorArray(pix2, nbins, type, 1, &array, NULL, 0);
-            for (j = 0; j < nbins; j++)
-                pixSetPixel(pixd, i, j, array[j]);
-            LEPT_FREE(array);
+            if (array) {
+                for (j = 0; j < nbins; j++)
+                    pixSetPixel(pixd, i, j, array[j]);
+                LEPT_FREE(array);
+            }
             pixDestroy(&pix2);
         }
     } else {  /* L_SCAN_VERTICAL */
@@ -3039,9 +3049,11 @@ PIXCMAP   *cmap;
         for (i = 0; i < nstrips; i++) {
             pix2 = pixaGetPix(pixa, i, L_CLONE);
             pixGetRankColorArray(pix2, nbins, type, 1, &array, NULL, 0);
-            for (j = 0; j < nbins; j++)
-                pixSetPixel(pixd, j, i, array[j]);
-            LEPT_FREE(array);
+            if (array) {
+                for (j = 0; j < nbins; j++)
+                    pixSetPixel(pixd, j, i, array[j]);
+                LEPT_FREE(array);
+            }
             pixDestroy(&pix2);
         }
     }

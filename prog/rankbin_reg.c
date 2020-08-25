@@ -30,6 +30,7 @@
  *   Tests rank bin functions:
  *      (1) numaDiscretizeRankAndIntensity()
  *      (2) numaGetRankBinValues()
+ *      (3) pixRankBinByStrip()
  */
 
 #ifdef HAVE_CONFIG_H
@@ -104,9 +105,31 @@ L_REGPARAMS  *rp;
         pixDestroy(&pix3);
     }
     pixaDestroy(&pixa);
-
     pixDestroy(&pixs);
     numaDestroy(&naw);
     numaDestroy(&nah);
+
+        /* Test pixRankBinByStrip */
+    pix1 = pixRead("pancrazi.15.jpg");
+    pixa = pixaCreate(3);
+    pix2 = pixRankBinByStrip(pix1, L_SCAN_HORIZONTAL, 16, 10, L_SELECT_HUE);
+    pix3 = pixExpandReplicate(pix2, 20);
+    pixaAddPix(pixa, pix3, L_INSERT);
+    pixDestroy(&pix2);
+    pix2 = pixRankBinByStrip(pix1, L_SCAN_HORIZONTAL, 16, 10, L_SELECT_SATURATION);
+    pix3 = pixExpandReplicate(pix2, 20);
+    pixaAddPix(pixa, pix3, L_INSERT);
+    pixDestroy(&pix2);
+    pix2 = pixRankBinByStrip(pix1, L_SCAN_HORIZONTAL, 16, 10, L_SELECT_RED);
+    pix3 = pixExpandReplicate(pix2, 20);
+    pixaAddPix(pixa, pix3, L_INSERT);
+    pixDestroy(&pix2);
+    pix2 = pixaDisplayTiledInRows(pixa, 32, 800, 1.0, 0, 30, 2);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 5 */
+    pixDisplayWithTitle(pix2, 100, 100, NULL, rp->display);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixaDestroy(&pixa);
+    
     return regTestCleanup(rp);
 }
