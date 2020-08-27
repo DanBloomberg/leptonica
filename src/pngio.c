@@ -1043,7 +1043,7 @@ png_bytep   *row_pointers;
 png_bytep    rowbuffer;
 png_structp  png_ptr;
 png_infop    info_ptr;
-png_colorp   palette = NULL;
+png_colorp   palette;
 PIX         *pix1;
 PIXCMAP     *cmap;
 char        *text;
@@ -1106,7 +1106,6 @@ char        *text;
     row_pointers = NULL;
     if (setjmp(png_jmpbuf(png_ptr))) {
         png_destroy_write_struct(&png_ptr, &info_ptr);
-        LEPT_FREE(palette);
         LEPT_FREE(row_pointers);
         pixDestroy(&pix1);
         return ERROR_INT("internal png error", procName, 1);
@@ -1137,12 +1136,10 @@ char        *text;
         png_set_pHYs(png_ptr, info_ptr, xres, yres, PNG_RESOLUTION_METER);
 
     if (cmflag) {
-        pixcmapToArrays(cmap, &rmap, &gmap, &bmap, &amap);
-        ncolors = pixcmapGetCount(cmap);
-        pixcmapIsOpaque(cmap, &opaque);
-
             /* Make and save the palette */
+        ncolors = pixcmapGetCount(cmap);
         palette = (png_colorp)LEPT_CALLOC(ncolors, sizeof(png_color));
+        pixcmapToArrays(cmap, &rmap, &gmap, &bmap, &amap);
         for (i = 0; i < ncolors; i++) {
             palette[i].red = (png_byte)rmap[i];
             palette[i].green = (png_byte)gmap[i];
@@ -1153,8 +1150,10 @@ char        *text;
         LEPT_FREE(gmap);
         LEPT_FREE(bmap);
         LEPT_FREE(amap);
-
         png_set_PLTE(png_ptr, info_ptr, palette, (int)ncolors);
+        LEPT_FREE(palette);
+
+        pixcmapIsOpaque(cmap, &opaque);
         if (!opaque)  /* alpha channel has some transparency; assume valid */
             png_set_tRNS(png_ptr, info_ptr, (png_bytep)alpha,
                          (int)ncolors, NULL);
@@ -1198,7 +1197,6 @@ char        *text;
         }
         if (!pix1) {
             png_destroy_write_struct(&png_ptr, &info_ptr);
-            if (cmflag) LEPT_FREE(palette);
             return ERROR_INT("pix1 not made", procName, 1);
         }
 
@@ -1213,8 +1211,6 @@ char        *text;
             /* Transfer the data */
         png_write_image(png_ptr, row_pointers);
         png_write_end(png_ptr, info_ptr);
-
-        if (cmflag) LEPT_FREE(palette);
         LEPT_FREE(row_pointers);
         pixDestroy(&pix1);
         png_destroy_write_struct(&png_ptr, &info_ptr);
@@ -1249,9 +1245,6 @@ char        *text;
     }
 
     png_write_end(png_ptr, info_ptr);
-
-    if (cmflag)
-        LEPT_FREE(palette);
     png_destroy_write_struct(&png_ptr, &info_ptr);
     return 0;
 }
@@ -1913,7 +1906,7 @@ png_uint_32  w, h, xres, yres;
 png_bytep    rowbuffer;
 png_structp  png_ptr;
 png_infop    info_ptr;
-png_colorp   palette = NULL;
+png_colorp   palette;
 PIX         *pix1;
 PIXCMAP     *cmap;
 char        *text;
@@ -1988,7 +1981,6 @@ MEMIODATA    state;
     pix1 = NULL;
     if (setjmp(png_jmpbuf(png_ptr))) {
         png_destroy_write_struct(&png_ptr, &info_ptr);
-        LEPT_FREE(palette);
         pixDestroy(&pix1);
         return ERROR_INT("internal png error", procName, 1);
     }
@@ -2019,27 +2011,27 @@ MEMIODATA    state;
         png_set_pHYs(png_ptr, info_ptr, xres, yres, PNG_RESOLUTION_METER);
 
     if (cmflag) {
-        pixcmapToArrays(cmap, &rmap, &gmap, &bmap, &amap);
-        ncolors = pixcmapGetCount(cmap);
-        pixcmapIsOpaque(cmap, &opaque);
-
             /* Make and save the palette */
+        ncolors = pixcmapGetCount(cmap);
         palette = (png_colorp)LEPT_CALLOC(ncolors, sizeof(png_color));
+        pixcmapToArrays(cmap, &rmap, &gmap, &bmap, &amap);
         for (i = 0; i < ncolors; i++) {
             palette[i].red = (png_byte)rmap[i];
             palette[i].green = (png_byte)gmap[i];
             palette[i].blue = (png_byte)bmap[i];
             alpha[i] = (png_byte)amap[i];
         }
-
-        png_set_PLTE(png_ptr, info_ptr, palette, (int)ncolors);
-        if (!opaque)  /* alpha channel has some transparency; assume valid */
-            png_set_tRNS(png_ptr, info_ptr, (png_bytep)alpha,
-                         (int)ncolors, NULL);
         LEPT_FREE(rmap);
         LEPT_FREE(gmap);
         LEPT_FREE(bmap);
         LEPT_FREE(amap);
+        png_set_PLTE(png_ptr, info_ptr, palette, (int)ncolors);
+        LEPT_FREE(palette);
+
+        pixcmapIsOpaque(cmap, &opaque);
+        if (!opaque)  /* alpha channel has some transparency; assume valid */
+            png_set_tRNS(png_ptr, info_ptr, (png_bytep)alpha,
+                         (int)ncolors, NULL);
     }
 
         /* 0.4545 is treated as the default by some image
@@ -2080,7 +2072,6 @@ MEMIODATA    state;
         }
         if (!pix1) {
             png_destroy_write_struct(&png_ptr, &info_ptr);
-            if (cmflag) LEPT_FREE(palette);
             memio_free(&state);
             return ERROR_INT("pix1 not made", procName, 1);
         }
@@ -2092,10 +2083,8 @@ MEMIODATA    state;
             png_write_row(png_ptr, (png_bytep)(data + i * wpl));
         png_write_end(png_ptr, info_ptr);
 
-        if (cmflag) LEPT_FREE(palette);
         pixDestroy(&pix1);
         png_destroy_write_struct(&png_ptr, &info_ptr);
-
         memio_png_flush(&state);
         *pfiledata = (l_uint8 *)state.m_Buffer;
         state.m_Buffer = 0;
@@ -2130,13 +2119,9 @@ MEMIODATA    state;
         }
         LEPT_FREE(rowbuffer);
     }
-
     png_write_end(png_ptr, info_ptr);
 
-    if (cmflag)
-        LEPT_FREE(palette);
     png_destroy_write_struct(&png_ptr, &info_ptr);
-
     memio_png_flush(&state);
     *pfiledata = (l_uint8 *)state.m_Buffer;
     state.m_Buffer = 0;
