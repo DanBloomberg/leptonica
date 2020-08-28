@@ -346,11 +346,11 @@ l_int32  d, depth, nalloc, maxindex, maxcolors;
         /* If a pix is given, it must have a depth no larger than 8 */
     if (pix) {
         depth = pixGetDepth(pix);
-        maxcolors = 1 << depth;
         if (depth > 8) {
             L_ERROR("pix depth %d > 8\n", procName, depth);
             return 1;
         }
+        maxcolors = 1 << depth;
     }
 
         /* To prevent indexing overflow into the cmap, the pix depth
