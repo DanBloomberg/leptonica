@@ -2525,6 +2525,9 @@ PIX       *pixt;
         return ERROR_INT("invalid fontsize", procName, 1);
 
     pixGetRankColorArray(pixs, nbins, color, factor, &carray, NULL, 0);
+    if (!carray)
+        return ERROR_INT("carray not made", procName, 1);
+
     if (fontsize > 0) {
         for (i = 0; i < nbins; i++)
             L_INFO("c[%d] = %x\n", procName, i, carray[i]);
@@ -2584,7 +2587,7 @@ PIX       *pixt;
  *          has %nbins colors.
  *      (3) Set the subsampling factor > 1 to reduce the amount of
  *          computation.  Typically you want at least 10,000 pixels
- *          for reasonable statistics.
+ *          for reasonable statistics.  Must be at least 10 samples/bin.
  *      (4) The rank color as a function of rank can then be found from
  *             rankint = (l_int32)(rank * (nbins - 1) + 0.5);
  *             extractRGBValues(array[rankint], &rval, &gval, &bval);
@@ -2603,7 +2606,7 @@ pixGetRankColorArray(PIX        *pixs,
                      PIXA       *pixadb,
                      l_int32     fontsize)
 {
-l_int32    ret;
+l_int32    ret, w, h, samplesperbin;
 l_uint32  *array;
 NUMA      *na, *nan, *narbin;
 PIX       *pix1, *pixc, *pixg, *pixd;
@@ -2634,6 +2637,12 @@ PIXCMAP   *cmap;
                       fontsize);
             fontsize = 6;
         }
+    }
+    pixGetDimensions(pixs, &w, &h, NULL);
+    samplesperbin = (w * h) / (factor * factor * nbins);
+    if (samplesperbin < 10) {
+        L_ERROR("samplesperbin = %d < 10\n", procName, samplesperbin);
+        return 1;
     }
 
         /* Downscale by factor and remove colormap if it exists */
@@ -2747,7 +2756,8 @@ PIXCMAP   *cmap;
  *          a LUT from intensity to bin number, and the number of bins.
  *          It computes the average color for pixels whose intensity
  *          is in each bin.  This is returned as an array of l_uint32
- *          colors in our standard RGBA ordering.
+ *          colors in our standard RGBA ordering.  It requires at
+ *          least 10 pixels in each bin.
  *      (2) This function generates equal width intensity bins and
  *          finds the average color in each bin.  Compare this with
  *          pixGetRankColorArray(), which rank orders the pixels
@@ -2765,8 +2775,8 @@ pixGetBinnedColor(PIX        *pixs,
                   l_uint32  **pcarray,
                   PIXA       *pixadb)
 {
-l_int32     i, j, w, h, wpls, wplg, grayval, bin, rval, gval, bval, success;
-l_int32     npts, avepts, maxpts;
+l_int32     i, j, w, h, wpls, wplg, grayval, bin, success;
+l_int32     rval, gval, bval, npts, avepts, maxpts;
 l_uint32   *datas, *datag, *lines, *lineg, *carray;
 l_float64   norm;
 l_float64  *rarray, *garray, *barray, *narray;
@@ -2796,12 +2806,12 @@ PIX        *pix1;
          * to bin number is not unique, if a bin fills up (actually,
          * we allow it to slightly overfill), we roll the excess
          * over to the next bin, etc.  We require that on average each
-         * bin holds at least 5 points.  */
+         * bin holds at least 10 points.  */
     pixGetDimensions(pixs, &w, &h, NULL);
     npts = (w + factor - 1) * (h + factor - 1) / (factor * factor);
     avepts = (npts + nbins - 1) / nbins;  /* average number of pts in a bin */
-    if (avepts < 5) {
-        L_ERROR("avepts = %d; must be >= 5\n", procName, avepts);
+    if (avepts < 10) {
+        L_ERROR("avepts = %d; must be >= 10\n", procName, avepts);
         return 1;
     }
     maxpts = (l_int32)((1.0 + 0.5 / (l_float32)nbins) * avepts);
