@@ -2798,7 +2798,7 @@ PIX        *pix1;
         factor = 1;
     }
     if (nbins < 1 || nbins > 100)
-        return ERROR_INT("nbins not in {1,...,100}", procName, 1);
+        return ERROR_INT("nbins not in [1,100]", procName, 1);
 
         /* Find the color for each rank bin.  Note that we can have
          * multiple bins filled with pixels having the same gray value.
@@ -3031,7 +3031,7 @@ PIXCMAP   *cmap;
         return (PIX *)ERROR_PTR("pix too small and/or too many bins",
                                 procName, NULL);
 
-        /* Downscale by factor and remove colormap if it exists */
+        /* Remove colormap if it exists */
     if (cmap)
         pix1 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
     else

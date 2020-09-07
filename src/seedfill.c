@@ -266,6 +266,7 @@ PIX       *pixt;
         /* Prepare pixd as a copy of pixs if not identical */
     if ((pixd = pixCopy(pixd, pixs)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+    pixSetPadBits(pixd, 0);  /* to avoid using uninitialized memory */
 
         /* pixt is used to test for completion */
     if ((pixt = pixCreateTemplate(pixs)) == NULL)
