@@ -288,33 +288,35 @@ Building leptonica
             mkdir build
             cd build
 
-       Then, there are two useful flags you can use on the cmake line to
-       determine what is built.
-
-       * By default, cmake builds a shared library.  To make a static
-         library:
+       The default build (shared libraries, no debug, only the library)
+       is made with
+            cmake ..
+       For other options, you can use these flags on the cmake line:
+       * To make a static library:
             cmake .. -DBUILD_SHARED_LIBS=OFF
             make
-
-       * By default, cmake only builds the library, not the programs.
-         To make both the library and the programs:
+       * To build with debug:
+            cmake .. -DCMAKE_BUILD_TYPE=Debug
+            make
+       * To make both the library and the programs:
             cmake .. -DBUILD_PROG=1
             make
-         The programs are put in build/bin/
-         To run these (e.g., for testing), move them to the prog
-         directory and run them from there:
-            cd bin
-            mv * ../../prog/
-            cd ../../prog
-            alltests_reg generate
-            alltests_reg compare
+
+       The programs are put in build/bin/
+       To run these (e.g., for testing), move them to the prog
+       directory and run them from there:
+          cd bin
+          mv * ../../prog/
+          cd ../../prog
+          alltests_reg generate
+          alltests_reg compare
 
        To build the library directly from the root directory instead of
        the build subdirectory:
-            mkdir build
-            cmake -H . -Bbuild   (-H means the source directory,
-                                  -B means the directory for the build
-            make
+          mkdir build
+          cmake -H . -Bbuild   (-H means the source directory,
+                                -B means the directory for the build
+          make
 
 3. Building on Windows
 

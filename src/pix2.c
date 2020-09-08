@@ -793,8 +793,7 @@ pixClearAll(PIX  *pix)
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1);
 
-    pixRasterop(pix, 0, 0, pixGetWidth(pix), pixGetHeight(pix),
-                PIX_CLR, NULL, 0, 0);
+    memset(pix->data, 0, 4LL * pix->wpl * pix->h);
     return 0;
 }
 
@@ -830,8 +829,7 @@ PIXCMAP  *cmap;
             return ERROR_INT("cmap entry does not exist", procName, 1);
     }
 
-    pixRasterop(pix, 0, 0, pixGetWidth(pix), pixGetHeight(pix),
-                PIX_SET, NULL, 0, 0);
+    memset(pix->data, 0xffffffff, 4LL * pix->wpl * pix->h);
     return 0;
 }
 
@@ -1936,7 +1934,7 @@ PIX     *pixd;
     pixGetDimensions(pixs, &ws, &hs, &d);
     wd = ws + left + right;
     hd = hs + top + bot;
-    if ((pixd = pixCreateNoInit(wd, hd, d)) == NULL)
+    if ((pixd = pixCreate(wd, hd, d)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     pixCopyColormap(pixd, pixs);
@@ -2015,7 +2013,7 @@ PIX     *pixd;
         return (PIX *)ERROR_PTR("width must be > 0", procName, NULL);
     if (hd <= 0)
         return (PIX *)ERROR_PTR("height must be > 0", procName, NULL);
-    if ((pixd = pixCreateNoInit(wd, hd, d)) == NULL)
+    if ((pixd = pixCreate(wd, hd, d)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixCopyResolution(pixd, pixs);
     pixCopySpp(pixd, pixs);
