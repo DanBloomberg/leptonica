@@ -562,7 +562,7 @@ l_int32  i, n;
         return ERROR_INT("na not defined", procName, 1);
     n = numaGetCount(na);
     if (index < 0 || index > n)
-        return ERROR_INT("index not in {0...n}", procName, 1);
+        return ERROR_INT("index not in [0,...,n]", procName, 1);
 
     if (n >= na->nalloc) {
         if (numaExtendArray(na))
@@ -602,7 +602,7 @@ l_int32  i, n;
         return ERROR_INT("na not defined", procName, 1);
     n = numaGetCount(na);
     if (index < 0 || index >= n)
-        return ERROR_INT("index not in {0...n - 1}", procName, 1);
+        return ERROR_INT("index not in [0,...,n - 1]", procName, 1);
 
     for (i = index + 1; i < n; i++)
         na->array[i - 1] = na->array[i];
@@ -632,7 +632,7 @@ l_int32  n;
         return ERROR_INT("na not defined", procName, 1);
     n = numaGetCount(na);
     if (index < 0 || index >= n)
-        return ERROR_INT("index not in {0...n - 1}", procName, 1);
+        return ERROR_INT("index not in [0,...,n - 1]", procName, 1);
 
     na->array[index] = val;
     return 0;

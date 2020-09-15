@@ -1007,7 +1007,7 @@ BOX    **array;
         return ERROR_INT("boxa not defined", procName, 1);
     n = boxaGetCount(boxa);
     if (index < 0 || index > n)
-        return ERROR_INT("index not in {0...n}", procName, 1);
+        return ERROR_INT("index not in [0,...,n]", procName, 1);
     if (!box)
         return ERROR_INT("box not defined", procName, 1);
 
@@ -1078,7 +1078,7 @@ BOX    **array;
         return ERROR_INT("boxa not defined", procName, 1);
     n = boxaGetCount(boxa);
     if (index < 0 || index >= n)
-        return ERROR_INT("index not in {0...n - 1}", procName, 1);
+        return ERROR_INT("index not in [0,...,n - 1]", procName, 1);
 
     if (pbox)
         *pbox = boxaGetBox(boxa, index, L_CLONE);
@@ -1709,7 +1709,7 @@ BOXA   **array;
         return ERROR_INT("baa not defined", procName, 1);
     n = boxaaGetCount(baa);
     if (index < 0 || index > n)
-        return ERROR_INT("index not in {0...n}", procName, 1);
+        return ERROR_INT("index not in [0,...,n]", procName, 1);
     if (!boxa)
         return ERROR_INT("boxa not defined", procName, 1);
 

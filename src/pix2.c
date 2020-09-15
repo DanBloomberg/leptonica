@@ -829,7 +829,7 @@ PIXCMAP  *cmap;
             return ERROR_INT("cmap entry does not exist", procName, 1);
     }
 
-    memset(pix->data, 0xffffffff, 4LL * pix->wpl * pix->h);
+    memset(pix->data, 0xff, 4LL * pix->wpl * pix->h);
     return 0;
 }
 

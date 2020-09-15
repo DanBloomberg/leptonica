@@ -1292,7 +1292,7 @@ LEPT_DLL extern l_ok numaGetMax ( NUMA *na, l_float32 *pmaxval, l_int32 *pimaxlo
 LEPT_DLL extern l_ok numaGetSum ( NUMA *na, l_float32 *psum );
 LEPT_DLL extern NUMA * numaGetPartialSums ( NUMA *na );
 LEPT_DLL extern l_ok numaGetSumOnInterval ( NUMA *na, l_int32 first, l_int32 last, l_float32 *psum );
-LEPT_DLL extern l_ok numaHasOnlyIntegers ( NUMA *na, l_int32 maxsamples, l_int32 *pallints );
+LEPT_DLL extern l_ok numaHasOnlyIntegers ( NUMA *na, l_int32 *pallints );
 LEPT_DLL extern NUMA * numaSubsample ( NUMA *nas, l_int32 subfactor );
 LEPT_DLL extern NUMA * numaMakeDelta ( NUMA *nas );
 LEPT_DLL extern NUMA * numaMakeSequence ( l_float32 startval, l_float32 increment, l_int32 size );

@@ -1011,7 +1011,7 @@ NUMA      *nah;
 
         /* Determine if values are all integers */
     n = numaGetCount(na);
-    numaHasOnlyIntegers(na, maxbins, &allints);
+    numaHasOnlyIntegers(na, &allints);
 
         /* Do simple integer binning if possible */
     if (allints && (maxval - minval < maxbins)) {

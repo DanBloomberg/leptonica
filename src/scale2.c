@@ -1791,7 +1791,7 @@ l_uint32  *tab;
  *      (1) Returns an 8 bit value for the sum of ON pixels
  *          in a 3x3 square, according to
  *               val = 255 - (255 * sum)/9
- *          where sum is in set {0, ... ,9}
+ *          where sum is in [0,...,9]
  * </pre>
  */
 static l_uint8 *
@@ -1915,7 +1915,7 @@ l_uint32  *tab;
  *      (1) Returns an 8 bit value for the sum of ON pixels
  *          in a 4x4 square, according to
  *              val = 255 - (255 * sum)/16
- *          where sum is in set {0, ... ,16}
+ *          where sum is in [0,...,16]
  * </pre>
  */
 static l_uint8 *
@@ -2063,7 +2063,7 @@ l_uint32  *lines, *lined;
  *      (1) Returns an 8 bit value for the sum of ON pixels
  *          in a 6x6 square, according to
  *              val = 255 - (255 * sum)/36
- *          where sum is in set {0, ... ,36}
+ *          where sum is in [0,...,36]
  * </pre>
  */
 static l_uint8 *
@@ -2158,7 +2158,7 @@ l_uint32  *lines, *lined;
  *      (1) Returns an 8 bit value for the sum of ON pixels
  *          in an 8x8 square, according to
  *              val = 255 - (255 * sum)/64
- *          where sum is in set {0, ... ,64}
+ *          where sum is in [0,...,64]
  * </pre>
  */
 static l_uint8 *

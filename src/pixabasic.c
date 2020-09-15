@@ -1375,7 +1375,7 @@ l_int32  i, n;
         return ERROR_INT("pixa not defined", procName, 1);
     n = pixaGetCount(pixa);
     if (index < 0 || index > n)
-        return ERROR_INT("index not in {0...n}", procName, 1);
+        return ERROR_INT("index not in [0,...,n]", procName, 1);
     if (!pixs)
         return ERROR_INT("pixs not defined", procName, 1);
 
@@ -1426,7 +1426,7 @@ PIX    **array;
         return ERROR_INT("pixa not defined", procName, 1);
     n = pixaGetCount(pixa);
     if (index < 0 || index >= n)
-        return ERROR_INT("index not in {0...n - 1}", procName, 1);
+        return ERROR_INT("index not in [0,...,n - 1]", procName, 1);
 
         /* Remove the pix */
     array = pixa->pix;
@@ -1482,7 +1482,7 @@ PIX    **array;
         return ERROR_INT("pixa not defined", procName, 1);
     n = pixaGetCount(pixa);
     if (index < 0 || index >= n)
-        return ERROR_INT("index not in {0...n - 1}", procName, 1);
+        return ERROR_INT("index not in [0,...,n - 1]", procName, 1);
 
         /* Remove the pix */
     array = pixa->pix;
