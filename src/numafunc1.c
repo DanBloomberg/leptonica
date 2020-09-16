@@ -426,8 +426,10 @@ l_int32  n;
         return ERROR_INT("na not defined", procName, 1);
     if ((n = numaGetCount(na)) == 0)
         return ERROR_INT("na is empty", procName, 1);
-    if (index < 0 || index >= n)
-        return ERROR_INT("index not in [0,...,n - 1]", procName, 1);
+    if (index < 0 || index >= n) {
+        L_ERROR("index %d not in [0,...,%d]\n", procName, index, n - 1);
+        return 1;
+    }
 
     na->array[index] += val;
     return 0;

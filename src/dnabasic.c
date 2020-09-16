@@ -526,8 +526,10 @@ l_int32  i, n;
     if (!da)
         return ERROR_INT("da not defined", procName, 1);
     n = l_dnaGetCount(da);
-    if (index < 0 || index > n)
-        return ERROR_INT("index not in [0,...,n]", procName, 1);
+    if (index < 0 || index > n) {
+        L_ERROR("index %d not in [0,...,%d]\n", procName, index, n);
+        return 1;
+    }
 
     if (n >= da->nalloc) {
         if (l_dnaExtendArray(da))
@@ -566,8 +568,10 @@ l_int32  i, n;
     if (!da)
         return ERROR_INT("da not defined", procName, 1);
     n = l_dnaGetCount(da);
-    if (index < 0 || index >= n)
-        return ERROR_INT("index not in [0,...,n - 1}", procName, 1);
+    if (index < 0 || index >= n) {
+        L_ERROR("index %d not in [0,...,%d]\n", procName, index, n - 1);
+        return 1;
+    }
 
     for (i = index + 1; i < n; i++)
         da->array[i - 1] = da->array[i];
@@ -596,8 +600,10 @@ l_int32  n;
     if (!da)
         return ERROR_INT("da not defined", procName, 1);
     n = l_dnaGetCount(da);
-    if (index < 0 || index >= n)
-        return ERROR_INT("index not in [0,...,n - 1]", procName, 1);
+    if (index < 0 || index >= n) {
+        L_ERROR("index %d not in [0,...,%d]\n", procName, index, n - 1);
+        return 1;
+    }
 
     da->array[index] = val;
     return 0;

@@ -427,8 +427,10 @@ l_int32  i, n;
     if (!pta)
         return ERROR_INT("pta not defined", procName, 1);
     n = ptaGetCount(pta);
-    if (index < 0 || index > n)
-        return ERROR_INT("index not in [0,...,n]", procName, 1);
+    if (index < 0 || index > n) {
+        L_ERROR("index %d not in [0,...,%d]\n", procName, index, n);
+        return 1;
+    }
 
     if (n > pta->nalloc) {
         if (ptaExtendArrays(pta))
@@ -470,8 +472,10 @@ l_int32  i, n;
     if (!pta)
         return ERROR_INT("pta not defined", procName, 1);
     n = ptaGetCount(pta);
-    if (index < 0 || index >= n)
-        return ERROR_INT("index not in [0,...,n - 1]", procName, 1);
+    if (index < 0 || index >= n) {
+        L_ERROR("index %d not in [0,...,%d]\n", procName, index, n - 1);
+        return 1;
+    }
 
         /* Remove the point */
     for (i = index + 1; i < n; i++) {
