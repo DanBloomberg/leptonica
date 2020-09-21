@@ -36,7 +36,7 @@
 
 #include "allheaders.h"
 
-void AddTextAndSave(PIXA *pixa, PIX *pixs, l_int32 newrow,
+void AddTextAndSave(PIXA *pixa, PIX *pixs,
                     L_BMF *bmf, const char *textstr,
                     l_int32 location, l_uint32 val);
 
@@ -73,15 +73,15 @@ L_REGPARAMS  *rp;
     pixs = pixRead("lucasta.047.jpg");
     pixg = pixScale(pixs, 0.4, 0.4);  /* 8 bpp grayscale */
     pix1 = pixConvertTo32(pixg);  /* 32 bpp rgb */
-    AddTextAndSave(pixa, pix1, 1, bmf, textstr[0], L_ADD_BELOW, 0xff000000);
+    AddTextAndSave(pixa, pix1, bmf, textstr[0], L_ADD_BELOW, 0xff000000);
     pix2 = pixConvertGrayToSubpixelRGB(pixs, 0.4, 0.4, L_SUBPIXEL_ORDER_RGB);
-    AddTextAndSave(pixa, pix2, 0, bmf, textstr[1], L_ADD_BELOW, 0x00ff0000);
+    AddTextAndSave(pixa, pix2, bmf, textstr[1], L_ADD_BELOW, 0x00ff0000);
     pix3 = pixConvertGrayToSubpixelRGB(pixs, 0.4, 0.4, L_SUBPIXEL_ORDER_BGR);
-    AddTextAndSave(pixa, pix3, 0, bmf, textstr[2], L_ADD_BELOW, 0x0000ff00);
+    AddTextAndSave(pixa, pix3, bmf, textstr[2], L_ADD_BELOW, 0x0000ff00);
     pix4 = pixConvertGrayToSubpixelRGB(pixs, 0.4, 0.4, L_SUBPIXEL_ORDER_VRGB);
-    AddTextAndSave(pixa, pix4, 0, bmf, textstr[3], L_ADD_BELOW, 0x00ff0000);
+    AddTextAndSave(pixa, pix4, bmf, textstr[3], L_ADD_BELOW, 0x00ff0000);
     pix5 = pixConvertGrayToSubpixelRGB(pixs, 0.4, 0.4, L_SUBPIXEL_ORDER_VBGR);
-    AddTextAndSave(pixa, pix5, 0, bmf, textstr[4], L_ADD_BELOW, 0x0000ff00);
+    AddTextAndSave(pixa, pix5, bmf, textstr[4], L_ADD_BELOW, 0x0000ff00);
 
     pixt = pixaDisplayTiledInColumns(pixa, 5, 1.0, 30, 2);
     pixd = pixAddSingleTextblock(pixt, bmftop,
@@ -105,15 +105,15 @@ L_REGPARAMS  *rp;
     pixa = pixaCreate(5);
     pixs = pixRead("fish24.jpg");
     pix1 = pixScale(pixs, 0.4, 0.4);
-    AddTextAndSave(pixa, pix1, 1, bmf, textstr[0], L_ADD_BELOW, 0xff000000);
+    AddTextAndSave(pixa, pix1, bmf, textstr[0], L_ADD_BELOW, 0xff000000);
     pix2 = pixConvertToSubpixelRGB(pixs, 0.4, 0.4, L_SUBPIXEL_ORDER_RGB);
-    AddTextAndSave(pixa, pix2, 0, bmf, textstr[1], L_ADD_BELOW, 0x00ff0000);
+    AddTextAndSave(pixa, pix2, bmf, textstr[1], L_ADD_BELOW, 0x00ff0000);
     pix3 = pixConvertToSubpixelRGB(pixs, 0.4, 0.35, L_SUBPIXEL_ORDER_BGR);
-    AddTextAndSave(pixa, pix3, 0, bmf, textstr[2], L_ADD_BELOW, 0x0000ff00);
+    AddTextAndSave(pixa, pix3, bmf, textstr[2], L_ADD_BELOW, 0x0000ff00);
     pix4 = pixConvertToSubpixelRGB(pixs, 0.4, 0.45, L_SUBPIXEL_ORDER_VRGB);
-    AddTextAndSave(pixa, pix4, 0, bmf, textstr[3], L_ADD_BELOW, 0x00ff0000);
+    AddTextAndSave(pixa, pix4, bmf, textstr[3], L_ADD_BELOW, 0x00ff0000);
     pix5 = pixConvertToSubpixelRGB(pixs, 0.4, 0.4, L_SUBPIXEL_ORDER_VBGR);
-    AddTextAndSave(pixa, pix5, 0, bmf, textstr[4], L_ADD_BELOW, 0x0000ff00);
+    AddTextAndSave(pixa, pix5, bmf, textstr[4], L_ADD_BELOW, 0x0000ff00);
 
     pixt = pixaDisplayTiledInColumns(pixa, 5, 1.0, 30, 2);
     pixd = pixAddSingleTextblock(pixt, bmftop,
@@ -193,7 +193,6 @@ L_REGPARAMS  *rp;
 void
 AddTextAndSave(PIXA        *pixa,
                PIX         *pixs,
-               l_int32      newrow,
                L_BMF       *bmf,
                const char  *textstr,
                l_int32      location,

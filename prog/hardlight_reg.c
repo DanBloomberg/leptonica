@@ -60,8 +60,6 @@ PIX    *pixs1, *pixs2, *pix1, *pix2, *pixd;
 PIXA   *pixa;
 PIXAA  *paa;
 
-    PROCNAME("TestHardlight");
-
         /* Read in images */
     pixs1 = pixRead(file1);
     pixs2 = pixRead(file2);

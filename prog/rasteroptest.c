@@ -54,10 +54,9 @@ void InplaceTest(PIX *pix1, BOX *box1, BOX *box2, l_int32 op, l_int32 niters);
 int main(int    argc,
          char **argv)
 {
-BOX         *box1, *box2;
-PIX         *pix1;
-l_int32      niters, op, selectop;
-static char  mainName[] = "rasteroptest";
+BOX     *box1, *box2;
+PIX     *pix1;
+l_int32  niters, op, selectop;
 
     setLeptDebugOK(1);
 

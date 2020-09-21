@@ -13,7 +13,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     PIX *pix1, *pix2, *pix3, *pix4, *pix5, *pix6;
     NUMA *na1, *na2, *na3, *na4, *na5, *na6;
-    NUMa *naa1;
+    NUMAA *naa1;
 
     pix1 = pixConvertTo8(pixs, FALSE);
     box = boxCreate(120, 30, 200, 200);
