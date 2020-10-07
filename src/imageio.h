@@ -135,9 +135,10 @@ enum {
  * --------------------------------------------------------------- */
 
 /*! Jpeg Hints */
+/* The default behavior is now to fail on data corruption. */
 enum {
-    L_JPEG_READ_LUMINANCE = 1,   /*!< only want luminance data; no chroma */
-    L_JPEG_FAIL_ON_BAD_DATA = 2  /*!< don't return possibly damaged pix */
+    L_JPEG_READ_LUMINANCE = 1,    /*!< only want luminance data; no chroma */
+    L_JPEG_CONTINUE_WITH_BAD_DATA = 2  /*!< return possibly damaged pix */
 };
 
 

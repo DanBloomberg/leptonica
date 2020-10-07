@@ -185,21 +185,21 @@ struct callback_data {
  *          an 8 bpp colormapped image.
  *      (3) Images reduced by factors of 2, 4 or 8 can be returned
  *          significantly faster than full resolution images.
- *      (4) If the jpeg data is bad, the jpeg library will continue
- *          silently, or return warnings, or attempt to exit.  Depending
- *          on the severity of the data corruption, there are two possible
- *          outcomes:
- *          (a) a possibly damaged pix can be generated, along with zero
- *              or more warnings, or
- *          (b) the library will attempt to exit (caught by our error
- *              handler) and no pix will be returned.
- *          If a pix is generated with at least one warning of data
- *          corruption, and if L_JPEG_FAIL_ON_BAD_DATA is included in %hint,
- *          no pix will be returned.
+ *      (4) If the jpeg data is bad, depending on the severity of the
+ *          data corruption one of two things will happen:
+ *          (a) 0 or more warnings are generated, or
+ *          (b) the library will immediately attempt to exit. This is
+ *              caught by our error handler and no pix will be returned.
+ *          If data corruption causes a warning, the default action
+ *          is to abort the read. The reason is that malformed jpeg
+ *          data sequences exist that prevent termination of the read.
+ *          To allow the decoding to continue after corrupted data is
+ *          encountered, include L_JPEG_CONTINUE_WITH_BAD_DATA in %hint.
  *      (5) The possible hint values are given in the enum in imageio.h:
  *            * L_JPEG_READ_LUMINANCE
- *            * L_JPEG_FAIL_ON_BAD_DATA
- *          Default (0) is to do neither.
+ *            * L_JPEG_CONTINUE_WITH_BAD_DATA
+ *          Default (0) is to do neither, and to fail on warning of data
+ *          corruption.
  * </pre>
  */
 PIX *
@@ -252,10 +252,10 @@ PIX      *pix;
  * \param[in]    hint       a bitwise OR of L_JPEG_* values; 0 for default
  * \return  pix, or NULL on error
  *
- *  Usage: see pixReadJpeg
  * <pre>
  * Notes:
- *      (1) The jpeg comment, if it exists, is not stored in the pix.
+ *      (1) For usage, see pixReadJpeg().
+ *      (2) The jpeg comment, if it exists, is not stored in the pix.
  * </pre>
  */
 PIX *
@@ -267,6 +267,7 @@ pixReadStreamJpeg(FILE     *fp,
 {
 l_int32                        cyan, yellow, magenta, black, nwarn;
 l_int32                        i, j, k, rval, gval, bval;
+l_int32                        nlinesread, abort_on_warning;
 l_int32                        w, h, wpl, spp, ncolors, cindex, ycck, cmyk;
 l_uint32                      *data;
 l_uint32                      *line, *ppixel;
@@ -299,6 +300,7 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
     jerr.error_exit = jpeg_error_catch_all_1;
     cinfo.client_data = (void *)&jmpbuf;
     if (setjmp(jmpbuf)) {
+        jpeg_destroy_decompress(&cinfo);
         pixDestroy(&pix);
         LEPT_FREE(rowbuffer);
         return (PIX *)ERROR_PTR("internal jpeg error", procName, NULL);
@@ -345,8 +347,13 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
         return (PIX *)ERROR_PTR("rowbuffer or pix not made", procName, NULL);
     }
 
-        /* Initialize decompression.  Set up a colormap for color
-         * quantization if requested. */
+        /* Initialize decompression.
+         * Set up a colormap for color quantization if requested.
+         * Arithmetic coding is rarely used on the jpeg data, but if it
+         * is, jpeg_start_decompress() handles the decoding.
+         * With corrupted encoded data, this can take an arbitrarily
+         * long time, and fuzzers are finding examples.  Unfortunately,
+         * there is no way to get a callback from an error in this phase. */
     if (spp == 1) {  /* Grayscale or colormapped */
         jpeg_start_decompress(&cinfo);
     } else {        /* Color; spp == 3 or YCCK or CMYK */
@@ -373,21 +380,27 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
     wpl  = pixGetWpl(pix);
     data = pixGetData(pix);
 
-        /* Decompress.  Unfortunately, we cannot use the return value
-         * from jpeg_read_scanlines() to determine if there was a problem
-         * with the data; it always appears to return 1.  We can only
-         * tell from the warnings during decoding, such as "premature
-         * end of data segment".  The default behavior is to return an
-         * image even if there are warnings.  However, by setting the
-         * hint to have the same bit flag as L_JPEG_FAIL_ON_BAD_DATA,
-         * no image will be returned if there are any warnings. */
+        /* Decompress.  It appears that jpeg_read_scanlines() always
+         * returns 1 when you ask for one scanline, but we test anyway.
+         * During decoding of scanlines, warnings are issued if corrupted
+         * data is found.  The default behavior is to abort reading
+         * when a warning is encountered.  By setting the hint to have
+         * the same bit set as in L_JPEG_CONTINUE_WITH_BAD_DATA, e.g.,
+         *       hint = hint | L_JPEG_CONTINUE_WITH_BAD_DATA
+         * reading will continue after warnings, in an attempt to return
+         * the (possibly corrupted) image. */
+    abort_on_warning = (hint & L_JPEG_CONTINUE_WITH_BAD_DATA) ? 0 : 1;
     for (i = 0; i < h; i++) {
-        if (jpeg_read_scanlines(&cinfo, &rowbuffer, (JDIMENSION)1) == 0) {
-            L_ERROR("read error at scanline %d\n", procName, i);
+        nlinesread = jpeg_read_scanlines(&cinfo, &rowbuffer, (JDIMENSION)1);
+        nwarn = cinfo.err->num_warnings;
+        if (nlinesread == 0 || (abort_on_warning && nwarn > 0)) {
+            L_ERROR("read error at scanline %d; nwarn = %d\n",
+                    procName, i, nwarn);
             pixDestroy(&pix);
             jpeg_destroy_decompress(&cinfo);
             LEPT_FREE(rowbuffer);
             rowbuffer = NULL;
+            if (pnwarn) *pnwarn = nwarn;
             return (PIX *)ERROR_PTR("bad data", procName, NULL);
         }
 
@@ -451,9 +464,6 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
         }
     }
 
-    nwarn = cinfo.err->num_warnings;
-    if (pnwarn) *pnwarn = nwarn;
-
         /* If the pixel density is neither 1 nor 2, it may not be defined.
          * In that case, don't set the resolution.  */
     if (cinfo.density_unit == 1) {  /* pixels per inch */
@@ -472,16 +482,9 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
     jpeg_destroy_decompress(&cinfo);
     LEPT_FREE(rowbuffer);
     rowbuffer = NULL;
-
-    if (nwarn > 0) {
-        if (hint & L_JPEG_FAIL_ON_BAD_DATA) {
-            L_ERROR("fail with %d warning(s) of bad data\n", procName, nwarn);
-            pixDestroy(&pix);
-        } else {
-            L_WARNING("%d warning(s) of bad data\n", procName, nwarn);
-        }
-    }
-
+    if (pnwarn) *pnwarn = nwarn;
+    if (nwarn > 0)
+        L_WARNING("%d warning(s) of bad data\n", procName, nwarn);
     return pix;
 }
 
