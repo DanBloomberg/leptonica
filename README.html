@@ -76,7 +76,7 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  *====================================================================*/
 
 README (version 1.80.0)
-File update: 28 July 2020
+File update: 6 Oct 2020
 ---------------------------
 
 gunzip leptonica-1.80.0.tar.gz
@@ -128,9 +128,9 @@ Building leptonica
 
     (1) By customization:  Use the existing static makefile,
         src/makefile.static and customize the build by setting flags
-        in src/environ.h.  See src/environ.h and src/makefile for details.
-        Note: if you are going to develop with leptonica, I encourage
-        you to use the static makefiles.
+        in src/environ.h.  See details below.
+        Note: if you are going to develop with leptonica, the static
+        makefiles are useful.
 
     (2) Using autoconf (supported by James Le Cuirot).
         Run ./configure in this directory to
@@ -159,7 +159,7 @@ Building leptonica
         To clean out the current build, just remove everything in
         the build subdirectory.
 
-  In more detail:
+  In more detail for these three methods:
 
     (1) Customization using the static makefiles:
 
@@ -173,11 +173,16 @@ Building leptonica
           back to makefile.static.]
 
        * You can customize for:
-         (a) Including Leptonica I/O functions that depend on external
-             libraries [use flags in src/environ.h]
-         (b) Adding functions for redirecting formatted image stream
-             I/O to memory [use flag in src/environ.h]
-         (c) Specifying the location of the object code.  By default it
+         (a) Including Leptonica image I/O functions that depend on external
+             libraries, such as libpng.  Use environment variables in
+             src/environ.h, such as HAVE_LIBPNG.
+         (b) Disabling the GNU functions for redirecting formatted stream I/O
+             to memory.  By default, HAVE_FMEMOPEN is enabled in src/environ.h.
+         (c) Using special memory allocators (see src/environ.h).
+         (d) Changing compile and runtime defaults for messages to stderr.
+             The default in src/environ.h is to output info, warning and
+             error messages.
+         (e) Specifying the location of the object code.  By default it
              goes into a tree whose root is also the parent of the src
              and prog directories.  This can be changed using the
              ROOT_DIR variable in makefile.
@@ -194,33 +199,24 @@ Building leptonica
                make xtractprotos
 
        * To use shared libraries, you need to include the location of
-         the shared libraries in your LD_LIBRARY_PATH.
+         the shared libraries in your LD_LIBRARY_PATH.  For example,
+         after you have built programs with 'make SHARED=yes' in the
+         prog directory, you need to tell the programs where the shared
+         libraries are:
+             export LD_LIBRARY_PATH=../lib/shared:$LD_LIBRARY_PATH
 
-       * To make the programs in the prog directory, first make liblept
-         in src.  Then in prog you can customize the makefile for linking
-         the external libraries:
-         Finally, do 'make' in the prog directory.
-
-       VERY IMPORTANT: the 270+ programs in the prog directory are
-       an integral part of this package.  These can be divided into
-       four groups:
-         (1) Programs that are useful applications for running on the
-             command line.  They can be installed from autoconf builds
-             using 'make install'.  Examples of these are the PostScript
-             and pdf conversion programs: converttopdf, converttops,
-             convertfilestopdf, convertfilestops, convertsegfilestopdf,
-             convertsegfilestops, imagetops, printimage and printsplitimage.
-         (2) Programs that are used as regression tests in alltests_reg.
-             These are named *_reg, and 100 of them are invoked together
-             (alltests_reg).  The regression test framework has been
-             standardized, and regresstion tests are relatively easy
-             to write.  See regutils.h for details.
-         (3) Other regression tests, some of which have not (yet) been
-             put into the framework.  They are also named *_reg.
-         (4) Programs that were used to test library functions or
-             auto-generate library code.  These are useful for testing
-             the behavior of small sets of functions, and for
-             providing example code.
+       * Make the programs in prog/ (after you have make liblept):
+         - Customize the makefile by setting ALL_LIBS to link the
+           external image I/O libraries.  By default, ALL_LIBS assumes that
+           libtiff, libjpeg and libpng are available.
+         - To make an optimized version of all programs (in prog):
+               make
+         - To make a debug version of all programs (in prog):
+               make DEBUG=yes
+         - To make a shared library version of all programs (in prog):
+               make SHARED=yes
+         - To run the programs, be sure to set
+             export LD_LIBRARY_PATH=../lib/shared:$LD_LIBRARY_PATH
 
     (2) Building using autoconf  (Thanks to James Le Cuirot)
 
@@ -401,8 +397,31 @@ Building leptonica
    Testcase file (e.g, name it "/tmp/payload").  To run one of the
    fuzzing executables from bin/fuzzer, e.g., pix4_fuzzer:
        bin/fuzzer/pix4_fuzzer /tmp/payload
-</pre>
 
+5. The 270+ programs in the prog directory are an integral part of this
+   package.  They can be divided into four groups:
+
+   (1) Programs that are useful applications for running on the
+       command line.  They can be installed from autoconf builds
+       using 'make install'.  Examples of these are the PostScript
+       and pdf conversion programs: converttopdf, converttops,
+       convertfilestopdf, convertfilestops, convertsegfilestopdf,
+       convertsegfilestops, imagetops, printimage and printsplitimage.
+
+   (2) Programs that are used as regression tests in alltests_reg.
+       These are named *_reg, and 100 of them are invoked together
+       (alltests_reg).  The regression test framework has been
+       standardized, and regresstion tests are relatively easy
+       to write.  See regutils.h for details.
+
+   (3) Other regression tests, some of which have not (yet) been
+       put into the framework.  They are also named *_reg.
+
+   (4) Programs that were used to test library functions or
+       auto-generate library code.  These are useful for testing
+       the behavior of small sets of functions, and for
+       providing example code.
+</pre>
 
 <h2> <A NAME="DEPENDENCIES">
 I/O libraries leptonica is dependent on
@@ -1179,7 +1198,8 @@ What's in leptonica?
         1.77 : 5.3.0
         1.78 : 5.3.0
         1.79 : 5.4.0
-        1.80 : 5.4.0   (not released as of 7/28/2020)
+        1.80 : 5.4.0
+        1.81 : 5.4.0   (not released as of 10/06/2020)
 
    A brief version chronology is maintained in version-notes.html.
    Starting with gcc 4.3.3, error warnings (-Werror) are given for
