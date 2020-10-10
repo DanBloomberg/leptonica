@@ -19,8 +19,8 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     SEL *sel;
     sel = selCreateFromPix(pix1, 6, 6, "plus_sign");
     PIX *pix_copy1 = pixCopy(NULL, pixs_payload);
-    PIX  *pix_return1 = pixCloseGeneralized(pix_copy1, pix, sel);
-    pixDestroy(&pix_return1);
+    pixCloseGeneralized(pix_copy1, pix, sel);
+    pixDestroy(&pix_copy1);
     pixDestroy(&pix);
     pixDestroy(&pix1);
     selDestroy(&sel);
@@ -28,16 +28,16 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     pix1 = pixCreate(size, size, 1);
     sel = selCreateFromPix(pix1, 6, 6, "plus_sign");
     PIX *pix_copy2 = pixCopy(NULL, pixs_payload);
-    PIX *pix_return2 = pixCloseSafe(pix_copy2, pix1, sel);
-    pixDestroy(&pix_return2);
+    pixCloseSafe(pix_copy2, pix1, sel);
+    pixDestroy(&pix_copy2);
     pixDestroy(&pix1);
     selDestroy(&sel);
 
     pix = pixRead("../test8.jpg");
     sel = selCreateFromPix(pix, 6, 6, "plus_sign");
     PIX *pix_copy3 = pixCopy(NULL, pixs_payload);
-    PIX *pix_return3 = pixOpenGeneralized(pix_copy3, pix, sel);
-    pixDestroy(&pix_return3);
+    pixOpenGeneralized(pix_copy3, pix, sel);
+    pixDestroy(&pix_copy3);
     pixDestroy(&pix);
     selDestroy(&sel);
 
