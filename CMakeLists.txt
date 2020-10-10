@@ -265,7 +265,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lept.pc DESTINATION lib/pkgconfig)
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig-version.cmake
-    DESTINATION cmake)
+    DESTINATION lib/cmake)
 
 ########################################
 # uninstall target
