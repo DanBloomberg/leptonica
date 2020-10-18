@@ -17,8 +17,8 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	pix1 = pixRead("../test8.jpg");
 	pix_copy1 = pixCopy(NULL, pixs_payload);
 	return_pix = pixMaskedThreshOnBackgroundNorm(pix_copy1, pix1, 
-												 100, 100, 10, 10, 
-												 10, 10, 0.1, &l_i);
+						     100, 100, 10, 10, 
+						     10, 10, 0.1, &l_i);
 	pixDestroy(&pix1);
 	pixDestroy(&pix_copy1);
 	if(return_pix!=NULL) {
@@ -29,9 +29,9 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	pix1 = pixRead("../test8.jpg");
 	pix_copy1 = pixCopy(NULL, pixs_payload);
 	return_pix = pixOtsuThreshOnBackgroundNorm(pix_copy1, pix1, 
-											   100, 100, 10, 10, 
-											   130, 30, 30, 0.1, 
-											   &l_i);
+						   100, 100, 10, 10, 
+						   130, 30, 30, 0.1, 
+						   &l_i);
 	pixDestroy(&pix1);
 	pixDestroy(&pix_copy1);
 	if(return_pix!=NULL) {
