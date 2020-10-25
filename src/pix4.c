@@ -992,10 +992,14 @@ RB_TYPE  *pval;
  *
  * <pre>
  * Notes:
- *      (1) Simple function to get rank values of an image.
+ *      (1) Simple function to get a rank value (color) of an image.
  *          For a color image, the median value (rank = 0.5) can be
  *          used to linearly remap the colors based on the median
  *          of a target image, using pixLinearMapToTargetColor().
+ *      (2) For RGB, this treats each color component independently.
+ *          It calls pixGetGrayHistogramMasked() on each component, and
+ *          uses the returned gray histogram to get the rank value.
+ *          It then combines the 3 rank values into a color pixel.
  * </pre>
  */
 l_ok
@@ -2580,21 +2584,16 @@ PIX       *pixt;
  *      (1) The color selection flag is one of: L_SELECT_RED, L_SELECT_GREEN,
  *          L_SELECT_BLUE, L_SELECT_MIN, L_SELECT_MAX, L_SELECT_AVERAGE,
  *          L_SELECT_HUE, L_SELECT_SATURATION.
- *      (2) Then it finds the histogram of the selected color type in each
- *          RGB pixel.  For each of the %nbins sets of pixels,
- *          ordered by this color type value, find the average RGB color,
- *          and return this as a "rank color" array.  The output array
- *          has %nbins colors.
+ *      (2) The pixels are ordered by the value of the selected color
+            value, and an equal number are placed in %nbins.  The average
+ *          color in each bin is returned in a color array with %nbins colors.
  *      (3) Set the subsampling factor > 1 to reduce the amount of
  *          computation.  Typically you want at least 10,000 pixels
  *          for reasonable statistics.  Must be at least 10 samples/bin.
- *      (4) The rank color as a function of rank can then be found from
+ *      (4) A crude "rank color" as a function of rank can be found from
  *             rankint = (l_int32)(rank * (nbins - 1) + 0.5);
  *             extractRGBValues(array[rankint], &rval, &gval, &bval);
  *          where the rank is in [0.0 ... 1.0].
- *          This function is meant to be simple and approximate.
- *      (5) Compare this with pixGetBinnedColor(), which generates equal
- *          width intensity bins and finds the average color in each bin.
  * </pre>
  */
 l_ok
@@ -2608,7 +2607,6 @@ pixGetRankColorArray(PIX        *pixs,
 {
 l_int32    ret, w, h, samplesperbin;
 l_uint32  *array;
-NUMA      *na, *nan, *narbin;
 PIX       *pix1, *pixc, *pixg, *pixd;
 PIXCMAP   *cmap;
 
@@ -2653,69 +2651,12 @@ PIXCMAP   *cmap;
         pixc = pixClone(pix1);
     pixDestroy(&pix1);
 
-        /* Get normalized histogram of the selected component */
-    if (type == L_SELECT_RED)
-        pixg = pixGetRGBComponent(pixc, COLOR_RED);
-    else if (type == L_SELECT_GREEN)
-        pixg = pixGetRGBComponent(pixc, COLOR_GREEN);
-    else if (type == L_SELECT_BLUE)
-        pixg = pixGetRGBComponent(pixc, COLOR_BLUE);
-    else if (type == L_SELECT_MIN)
-        pixg = pixConvertRGBToGrayMinMax(pixc, L_CHOOSE_MIN);
-    else if (type == L_SELECT_MAX)
-        pixg = pixConvertRGBToGrayMinMax(pixc, L_CHOOSE_MAX);
-    else if (type == L_SELECT_AVERAGE)
-        pixg = pixConvertRGBToGray(pixc, 0.34, 0.33, 0.33);
-    else if (type == L_SELECT_HUE)
-        pixg = pixConvertRGBToHue(pixc);
-    else  /* L_SELECT_SATURATION */
-        pixg = pixConvertRGBToSaturation(pixc);
-    if ((na = pixGetGrayHistogram(pixg, 1)) == NULL) {
-        pixDestroy(&pixc);
-        pixDestroy(&pixg);
-        return ERROR_INT("na not made", procName, 1);
-    }
-    nan = numaNormalizeHistogram(na, 1.0);
-
-        /* Get the following arrays:
-         * (1) nar: cumulative normalized histogram (rank vs intensity value).
-         *     With 256 intensity values, we have 257 rank values.
-         * (2) nai: "average" intensity as function of rank bin, for
-         *     %nbins equally spaced in rank between 0.0 and 1.0.
-         * (3) narbin: bin number of discretized rank as a function of
-         *     intensity.  This is the 'inverse' of nai.
-         * (4) nabb: intensity value of the right bin boundary, for each
-         *     of the %nbins discretized rank bins. */
-    if (!pixadb) {
-        numaDiscretizeRankAndIntensity(nan, nbins, &narbin, NULL, NULL, NULL);
-    } else {
-        NUMA  *nai, *nar, *nabb;
-        numaDiscretizeRankAndIntensity(nan, nbins, &narbin, &nai, &nar, &nabb);
-        lept_mkdir("lept/regout");
-        pix1 = gplotSimplePix1(nan, "Normalized Histogram");
-        pixaAddPix(pixadb, pix1, L_INSERT);
-        pix1 = gplotSimplePix1(nar, "Cumulative Histogram");
-        pixaAddPix(pixadb, pix1, L_INSERT);
-        pix1 = gplotSimplePix1(nai, "Intensity vs. rank bin");
-        pixaAddPix(pixadb, pix1, L_INSERT);
-        pix1 = gplotSimplePix1(narbin, "LUT: rank bin vs. Intensity");
-        pixaAddPix(pixadb, pix1, L_INSERT);
-        pix1 = gplotSimplePix1(nabb, "Intensity of right edge vs. rank bin");
-        pixaAddPix(pixadb, pix1, L_INSERT);
-        numaDestroy(&nai);
-        numaDestroy(&nar);
-        numaDestroy(&nabb);
-    }
+        /* Convert to an 8 bit version for ordering the pixels */
+    pixg = pixConvertRGBToGrayGeneral(pixc, type, 0.0, 0.0, 0.0);
 
         /* Get the average color in each bin for pixels whose grayscale
-         * values fall in the bin range.  %narbin is the LUT that
-         * determines the bin number from the grayscale version of
-         * the image.  Because this mapping may not be unique,
-         * some bins may not be represented in the LUT. In use, to get fair
-         * allocation into all the bins, bin population is monitored
-         * as pixels are accumulated, and when bins fill up,
-         * pixels are required to overflow into succeeding bins. */
-    pixGetBinnedColor(pixc, pixg, 1, nbins, narbin, pcarray, pixadb);
+         * values are in the range for that bin. */
+    pixGetBinnedColor(pixc, pixg, 1, nbins, pcarray, pixadb);
     ret = 0;
     if ((array = *pcarray) == NULL) {
         L_ERROR("color array not returned\n", procName);
@@ -2729,9 +2670,6 @@ PIXCMAP   *cmap;
 
     pixDestroy(&pixc);
     pixDestroy(&pixg);
-    numaDestroy(&na);
-    numaDestroy(&nan);
-    numaDestroy(&narbin);
     return ret;
 }
 
@@ -2742,28 +2680,25 @@ PIXCMAP   *cmap;
  * \param[in]    pixs       32 bpp
  * \param[in]    pixg       8 bpp grayscale version of pixs
  * \param[in]    factor     sampling factor along pixel counting direction
- * \param[in]    nbins      number of intensity bins, in {1,...,100}
- * \param[in]    nalut      LUT for mapping from intensity to bin number
+ * \param[in]    nbins      number of bins based on grayscale value {1,...,100}
  * \param[out]   pcarray    array of average color values in each bin
  * \param[in]    pixadb     [optional] debug: caller passes this in.
- *                          Use to display color squares and to
- *                          capture plots of color components
+ *                          Use to display output color squares and plots of
+ *                          color components.
  * \return  0 if OK; 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This takes a color image, a grayscale (intensity) version,
- *          a LUT from intensity to bin number, and the number of bins.
- *          It computes the average color for pixels whose intensity
- *          is in each bin.  This is returned as an array of l_uint32
- *          colors in our standard RGBA ordering.  It requires at
- *          least 10 pixels in each bin.
- *      (2) This function generates equal width intensity bins and
- *          finds the average color in each bin.  Compare this with
- *          pixGetRankColorArray(), which rank orders the pixels
- *          by the value of the selected component in each pixel,
- *          sets up bins with equal population (not intensity width!),
- *          and gets the average color in each bin.
+ *      (1) This takes a color image, a grayscale version, and the number
+ *          of requested bins.  The pixels are ordered by the corresponding
+ *          gray value and an equal number of pixels are put in each bin.
+ *          The average color for each bin is returned as an array
+ *          of l_uint32 colors in our standard RGBA ordering.  We require
+ *          at least 5 pixels in each bin.
+ *      (2) This is used by pixGetRankColorArray(), which generates the
+ *          grayscale image %pixg from the color image %pixs.
+ *      (3) Arrays of float64 are used for intermediate storage, without
+ *          loss of precision, of the sampled uint32 pixel values.
  * </pre>
  */
 l_ok
@@ -2771,15 +2706,16 @@ pixGetBinnedColor(PIX        *pixs,
                   PIX        *pixg,
                   l_int32     factor,
                   l_int32     nbins,
-                  NUMA       *nalut,
                   l_uint32  **pcarray,
                   PIXA       *pixadb)
 {
-l_int32     i, j, w, h, wpls, wplg, grayval, bin, success;
-l_int32     rval, gval, bval, npts, avepts, maxpts;
+l_int32     i, j, k, w, h, wpls, wplg;
+l_int32     count, bincount, binindex, binsize, rave, gave, bave;
+l_int32     rval, gval, bval, grayval, npts, avepts, ntot, start, end;
 l_uint32   *datas, *datag, *lines, *lineg, *carray;
-l_float64   norm;
-l_float64  *rarray, *garray, *barray, *narray;
+l_float64   val64, rsum , gsum, bsum;
+L_DNAA     *daa;
+NUMA       *naeach;
 PIX        *pix1;
 
     PROCNAME("pixGetBinnedColor");
@@ -2787,12 +2723,10 @@ PIX        *pix1;
     if (!pcarray)
         return ERROR_INT("&carray not defined", procName, 1);
     *pcarray = NULL;
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
-    if (!pixg)
-        return ERROR_INT("pixg not defined", procName, 1);
-    if (!nalut)
-        return ERROR_INT("nalut not defined", procName, 1);
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return ERROR_INT("pixs undefined or not 32 bpp", procName, 1);
+    if (!pixg || pixGetDepth(pixg) != 8)
+        return ERROR_INT("pixg undefined or not 8 bpp", procName, 1);
     if (factor < 1) {
         L_WARNING("sampling factor less than 1; setting to 1\n", procName);
         factor = 1;
@@ -2800,66 +2734,109 @@ PIX        *pix1;
     if (nbins < 1 || nbins > 100)
         return ERROR_INT("nbins not in [1,100]", procName, 1);
 
-        /* Find the color for each rank bin.  Note that we can have
-         * multiple bins filled with pixels having the same gray value.
-         * Therefore, because in general the mapping from gray value
-         * to bin number is not unique, if a bin fills up (actually,
-         * we allow it to slightly overfill), we roll the excess
-         * over to the next bin, etc.  We require that on average each
-         * bin holds at least 10 points.  */
+        /* Require that each bin has at least 10 pixels. */
     pixGetDimensions(pixs, &w, &h, NULL);
     npts = (w + factor - 1) * (h + factor - 1) / (factor * factor);
     avepts = (npts + nbins - 1) / nbins;  /* average number of pts in a bin */
-    if (avepts < 10) {
-        L_ERROR("avepts = %d; must be >= 10\n", procName, avepts);
+    if (avepts < 5) {
+        L_ERROR("avepts = %d; must be >= 5\n", procName, avepts);
         return 1;
     }
-    maxpts = (l_int32)((1.0 + 0.5 / (l_float32)nbins) * avepts);
+
+    /* ------------------------------------------------------------ *
+     * Find the average color for each bin.  The colors are ordered *
+     * by the gray value in the corresponding pixel in %pixg.       *
+     * The bins have equal numbers of pixels (within 1).            *
+     * ------------------------------------------------------------ */
+
+        /* Generate a dnaa, where each dna has the colors corresponding
+         * to the grayscale value given by the index of the dna in the dnaa */
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     datag = pixGetData(pixg);
     wplg = pixGetWpl(pixg);
-    rarray = (l_float64 *)LEPT_CALLOC(nbins, sizeof(l_float64));
-    garray = (l_float64 *)LEPT_CALLOC(nbins, sizeof(l_float64));
-    barray = (l_float64 *)LEPT_CALLOC(nbins, sizeof(l_float64));
-    narray = (l_float64 *)LEPT_CALLOC(nbins, sizeof(l_float64));
+    daa = l_dnaaCreateFull(256, 0);
     for (i = 0; i < h; i += factor) {
         lines = datas + i * wpls;
         lineg = datag + i * wplg;
         for (j = 0; j < w; j += factor) {
             grayval = GET_DATA_BYTE(lineg, j);
-            numaGetIValue(nalut, grayval, &bin);
-            extractRGBValues(lines[j], &rval, &gval, &bval);
-            while (narray[bin] >= maxpts && bin < nbins - 1)
-                bin++;
-            rarray[bin] += rval;
-            garray[bin] += gval;
-            barray[bin] += bval;
-            narray[bin] += 1.0;  /* count samples in each bin */
-        }
-    }
-
-    for (i = 0; i < nbins; i++) {
-        if (narray[i] == 0) {
-            L_WARNING("no colors in bin %d\n", procName, i);
-        } else {
-            norm = 1. / narray[i];
-            rarray[i] *= norm;
-            garray[i] *= norm;
-            barray[i] *= norm;
-/*            lept_stderr("narray[%d] = %f\n", i, narray[i]);  */
+            l_dnaaAddNumber(daa, grayval, lines[j]);
         }
     }
 
     if (pixadb) {
-        NUMA *nared, *nagreen, *nablue;
+        NUMA  *na, *nabinval, *narank;
+        na = numaCreate(256);  /* grayscale histogram */
+        for (i = 0; i < 256; i++)
+            numaAddNumber(na, l_dnaaGetDnaCount(daa, i));
+
+            /* Plot the gray bin value and the rank(gray) values */
+        numaDiscretizeHistoInBins(na, nbins, &nabinval, &narank);
+        pix1 = gplotSimplePix1(nabinval, "Gray value in each bin");
+        pixaAddPix(pixadb, pix1, L_INSERT);
+        pix1 = gplotSimplePix1(narank, "rank as function of gray value");
+        pixaAddPix(pixadb, pix1, L_INSERT);
+        numaDestroy(&na);
+        numaDestroy(&nabinval);
+        numaDestroy(&narank);
+    }
+
+        /* Find the number of items in each bin.  They can differ by 1. */
+    ntot = l_dnaaGetNumberCount(daa);
+    naeach = numaCreate(nbins);
+    start = 0;
+    for (i = 0; i < nbins; i++) {
+        end = ntot * (i + 1) / nbins;
+        numaAddNumber(naeach, end - start);
+        start = end;
+    }
+
+        /* Get the average color in each bin.  This algorithm is
+         * esssentially the same as in numaDiscretizeHistoInBins() */
+    carray = (l_uint32 *)LEPT_CALLOC(nbins, sizeof(l_uint32));
+    rsum = gsum = bsum = 0.0;
+    bincount = 0;
+    binindex = 0;
+    numaGetIValue(naeach, 0, &binsize);
+    k = 0;  /* count up to ntot */
+    for (i = 0; i < 256; i++) {
+        count = l_dnaaGetDnaCount(daa, i);
+        for (j = 0; j < count; j++) {
+            k++;
+            bincount++;
+            l_dnaaGetValue(daa, i, j, &val64);
+            extractRGBValues((l_uint32)val64, &rval, &gval, &bval);
+            rsum += rval;
+            gsum += gval;
+            bsum += bval;
+            if (bincount == binsize) {  /* add bin entry */
+                rave = (l_int32)(rsum / binsize + 0.5);
+                gave = (l_int32)(gsum / binsize + 0.5);
+                bave = (l_int32)(bsum / binsize + 0.5);
+                composeRGBPixel(rave, gave, bave, carray + binindex);
+                rsum = gsum = bsum = 0.0;
+                bincount = 0;
+                binindex++;
+                if (binindex == nbins) break;
+                numaGetIValue(naeach, binindex, &binsize);
+            }
+        }
+        if (binindex == nbins) break;
+    }
+    if (binindex != nbins)
+        L_ERROR("binindex = %d != nbins = %d\n", procName, binindex, nbins);
+
+    if (pixadb) {
+        NUMA  *nared, *nagreen, *nablue;
         nared = numaCreate(nbins);
         nagreen = numaCreate(nbins);
         nablue = numaCreate(nbins);
         for (i = 0; i < nbins; i++) {
-            numaAddNumber(nared, rarray[i]);
-            numaAddNumber(nagreen, garray[i]);
-            numaAddNumber(nablue, barray[i]);
+            extractRGBValues(carray[i], &rval, &gval, &bval);
+            numaAddNumber(nared, rval);
+            numaAddNumber(nagreen, gval);
+            numaAddNumber(nablue, bval);
         }
         lept_mkdir("lept/regout");
         pix1 = gplotSimplePix1(nared, "Average red val vs. rank bin");
@@ -2873,27 +2850,10 @@ PIX        *pix1;
         numaDestroy(&nablue);
     }
 
-        /* Save colors for all bins  in a single array */
-    success = TRUE;
-    if ((carray = (l_uint32 *)LEPT_CALLOC(nbins, sizeof(l_uint32))) == NULL) {
-        success = FALSE;
-        L_ERROR("carray not made\n", procName);
-        goto cleanup_arrays;
-    }
     *pcarray = carray;
-    for (i = 0; i < nbins; i++) {
-        rval = (l_int32)(rarray[i] + 0.5);
-        gval = (l_int32)(garray[i] + 0.5);
-        bval = (l_int32)(barray[i] + 0.5);
-        composeRGBPixel(rval, gval, bval, carray + i);
-    }
-
-cleanup_arrays:
-    LEPT_FREE(rarray);
-    LEPT_FREE(garray);
-    LEPT_FREE(barray);
-    LEPT_FREE(narray);
-    return (success) ? 0 : 1;
+    numaDestroy(&naeach);
+    l_dnaaDestroy(&daa);
+    return 0;
 }
 
 

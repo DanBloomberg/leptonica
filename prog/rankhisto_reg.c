@@ -29,7 +29,7 @@
  *
  *   Tests grayscale rank functions:
  *      (1) pixGetRankColorArray()
- *      (2) numaDiscretizeRankAndIntensity()
+ *      (2) numaDiscretizeHistoInBins()
  */
 
 #ifdef HAVE_CONFIG_H
@@ -45,7 +45,7 @@ int main(int    argc,
 l_int32       i, w, h, nbins, factor;
 l_int32       spike;
 l_uint32     *array, *marray;
-NUMA         *na, *nan, *nai, *narbin;
+NUMA         *na, *nabinval, *narank;
 PIX          *pixs, *pix1, *pix2;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
@@ -99,31 +99,28 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix1);
     pixDestroy(&pix2);
 
-        /* Now test the edge cases for the histogram and rank LUT,
-         * where all the histo data is piled up at one place.
-         * We only require that the result be sensible. */
+        /* Now test the edge case where all the histo data is piled up
+         * at one place.  We only require that the result be sensible. */
     pixa = pixaCreate(0);
     for (i = 0; i < 3; i++) {
         if (i == 0)
-            spike = 0;
+            spike = 1;
         else if (i == 1)
             spike = 50;
         else
             spike = 99;
         na = numaMakeConstant(0, 100);
         numaReplaceNumber(na, spike, 200.0);
-        nan = numaNormalizeHistogram(na, 1.0);
-        numaDiscretizeRankAndIntensity(nan, 10, &narbin, &nai, NULL, NULL);
-        pix1 = gplotSimplePix1(nan, "Normalized Histogram");
+        numaDiscretizeHistoInBins(na, 10, &nabinval, &narank);
+        pix1 = gplotSimplePix1(na, "Histogram");
         pixaAddPix(pixa, pix1, L_INSERT);
-        pix1 = gplotSimplePix1(nai, "Intensity vs. rank bin");
+        pix1 = gplotSimplePix1(nabinval, "Gray value vs rank bin");
         pixaAddPix(pixa, pix1, L_INSERT);
-        pix1 = gplotSimplePix1(narbin, "LUT: rank bin vs. Intensity");
+        pix1 = gplotSimplePix1(narank, "rank value vs. gray value");
         pixaAddPix(pixa, pix1, L_INSERT);
         numaDestroy(&na);
-        numaDestroy(&nan);
-        numaDestroy(&narbin);
-        numaDestroy(&nai);
+        numaDestroy(&nabinval);
+        numaDestroy(&narank);
     }
     pix1 = pixaDisplayTiledInColumns(pixa, 3, 1.0, 20, 0);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 4 */

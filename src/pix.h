@@ -827,7 +827,8 @@ enum {
     L_SELECT_MAX = 5,           /*!< use max color component               */
     L_SELECT_AVERAGE = 6,       /*!< use average of color components       */
     L_SELECT_HUE = 7,           /*!< use hue value (in HSV color space)    */
-    L_SELECT_SATURATION = 8     /*!< use saturation value (in HSV space)   */
+    L_SELECT_SATURATION = 8,    /*!< use saturation value (in HSV space)   */
+    L_SELECT_WEIGHTED = 9       /*!< use weighted average of color comps   */
 };
 
 /*-------------------------------------------------------------------------*

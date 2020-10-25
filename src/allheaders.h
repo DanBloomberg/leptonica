@@ -1367,8 +1367,9 @@ LEPT_DLL extern l_ok numaGetHistogramStatsOnInterval ( NUMA *nahisto, l_float32 
 LEPT_DLL extern l_ok numaMakeRankFromHistogram ( l_float32 startx, l_float32 deltax, NUMA *nasy, l_int32 npts, NUMA **pnax, NUMA **pnay );
 LEPT_DLL extern l_ok numaHistogramGetRankFromVal ( NUMA *na, l_float32 rval, l_float32 *prank );
 LEPT_DLL extern l_ok numaHistogramGetValFromRank ( NUMA *na, l_float32 rank, l_float32 *prval );
-LEPT_DLL extern l_ok numaDiscretizeRankAndIntensity ( NUMA *na, l_int32 nbins, NUMA **pnarbin, NUMA **pnam, NUMA **pnar, NUMA **pnabb );
-LEPT_DLL extern l_ok numaGetRankBinValues ( NUMA *na, l_int32 nbins, NUMA **pnarbin, NUMA **pnam );
+LEPT_DLL extern l_ok numaDiscretizeSortedInBins ( NUMA *na, l_int32 nbins, NUMA **pnabinval );
+LEPT_DLL extern l_ok numaDiscretizeHistoInBins ( NUMA *na, l_int32 nbins, NUMA **pnabinval, NUMA **pnarank );
+LEPT_DLL extern l_ok numaGetRankBinValues ( NUMA *na, l_int32 nbins, NUMA **pnam );
 LEPT_DLL extern l_ok numaSplitDistribution ( NUMA *na, l_float32 scorefract, l_int32 *psplitindex, l_float32 *pave1, l_float32 *pave2, l_float32 *pnum1, l_float32 *pnum2, NUMA **pnascore );
 LEPT_DLL extern l_ok grayHistogramsToEMD ( NUMAA *naa1, NUMAA *naa2, NUMA **pnad );
 LEPT_DLL extern l_ok numaEarthMoverDistance ( NUMA *na1, NUMA *na2, l_float32 *pdist );
@@ -1653,7 +1654,7 @@ LEPT_DLL extern l_ok pixGetMaxValueInRect ( PIX *pixs, BOX *box, l_uint32 *pmaxv
 LEPT_DLL extern l_ok pixGetMaxColorIndex ( PIX *pixs, l_int32 *pmaxindex );
 LEPT_DLL extern l_ok pixGetBinnedComponentRange ( PIX *pixs, l_int32 nbins, l_int32 factor, l_int32 color, l_int32 *pminval, l_int32 *pmaxval, l_uint32 **pcarray, l_int32 fontsize );
 LEPT_DLL extern l_ok pixGetRankColorArray ( PIX *pixs, l_int32 nbins, l_int32 type, l_int32 factor, l_uint32 **pcarray, PIXA *pixadb, l_int32 fontsize );
-LEPT_DLL extern l_ok pixGetBinnedColor ( PIX *pixs, PIX *pixg, l_int32 factor, l_int32 nbins, NUMA *nalut, l_uint32 **pcarray, PIXA *pixadb );
+LEPT_DLL extern l_ok pixGetBinnedColor ( PIX *pixs, PIX *pixg, l_int32 factor, l_int32 nbins, l_uint32 **pcarray, PIXA *pixadb );
 LEPT_DLL extern PIX * pixDisplayColorArray ( l_uint32 *carray, l_int32 ncolors, l_int32 side, l_int32 ncols, l_int32 fontsize );
 LEPT_DLL extern PIX * pixRankBinByStrip ( PIX *pixs, l_int32 direction, l_int32 size, l_int32 nbins, l_int32 type );
 LEPT_DLL extern PIX * pixaGetAlignedStats ( PIXA *pixa, l_int32 type, l_int32 nbins, l_int32 thresh );
@@ -1940,6 +1941,7 @@ LEPT_DLL extern PIX * pixRemoveColormap ( PIX *pixs, l_int32 type );
 LEPT_DLL extern l_ok pixAddGrayColormap8 ( PIX *pixs );
 LEPT_DLL extern PIX * pixAddMinimalGrayColormap8 ( PIX *pixs );
 LEPT_DLL extern PIX * pixConvertRGBToLuminance ( PIX *pixs );
+LEPT_DLL extern PIX * pixConvertRGBToGrayGeneral ( PIX *pixs, l_int32 type, l_float32 rwt, l_float32 gwt, l_float32 bwt );
 LEPT_DLL extern PIX * pixConvertRGBToGray ( PIX *pixs, l_float32 rwt, l_float32 gwt, l_float32 bwt );
 LEPT_DLL extern PIX * pixConvertRGBToGrayFast ( PIX *pixs );
 LEPT_DLL extern PIX * pixConvertRGBToGrayMinMax ( PIX *pixs, l_int32 type );

@@ -142,10 +142,10 @@ L_REGPARAMS  *rp;
 
         /* Find the rank bins for width and height */
     nbins = L_MAX(5, ne / 50);  // up to 50 pages/bin
-    numaGetRankBinValues(nawe, nbins, NULL, &narbwe);
-    numaGetRankBinValues(nawo, nbins, NULL, &narbwo);
-    numaGetRankBinValues(nahe, nbins, NULL, &narbhe);
-    numaGetRankBinValues(naho, nbins, NULL, &narbho);
+    numaGetRankBinValues(nawe, nbins, &narbwe);
+    numaGetRankBinValues(nawo, nbins, &narbwo);
+    numaGetRankBinValues(nahe, nbins, &narbhe);
+    numaGetRankBinValues(naho, nbins, &narbho);
     numaDestroy(&nawe);
     numaDestroy(&nawo);
     numaDestroy(&nahe);
@@ -171,7 +171,7 @@ L_REGPARAMS  *rp;
     numaDestroy(&narbwo);
     numaDestroy(&narbho);
     regTestCompareValues(rp, 409, w_diff, 0.0);  /* 4 */
-    regTestCompareValues(rp, 49, h_diff, 0.0);  /* 5 */
+    regTestCompareValues(rp, 54, h_diff, 0.0);  /* 5 */
     if (rp->display)
         lept_stderr("Binned rank results: w_diff = %d, h_diff = %d\n",
                     w_diff, h_diff);

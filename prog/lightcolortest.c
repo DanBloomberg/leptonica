@@ -106,9 +106,10 @@ static char  mainName[] = "lightcolortest";
         }
         pix3 = pixDisplayColorArray(darray, nbins, 200, 5, 6);
         pixaAddPix(pixa1, pix3, L_INSERT);
-        pix4 = pixaDisplayLinearly(pixa1, L_VERT, 1.0, 0, 30, 10, NULL);
+        pix4 = pixaDisplayLinearly(pixa1, L_VERT, 1.0, 0, 30, 3, NULL);
         pixaAddPix(pixa, pix4, L_INSERT);
 
+        pixaDestroy(&pixa1);
         pixDestroy(&pixs);
         pixDestroy(&pix1);
         lept_free(tail);
@@ -116,6 +117,7 @@ static char  mainName[] = "lightcolortest";
         lept_free(darray);
     }
 
+    lept_mkdir("lept/color");
     pixaConvertToPdf(pixa, 100, 1.0, L_FLATE_ENCODE, 0, "lightcolortest",
                      "/tmp/lept/color/lightcolortest.pdf");
     L_INFO("Generated pdf file: /tmp/lept/color/lightcolortest.pdf",

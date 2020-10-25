@@ -95,6 +95,10 @@ They are <i>not</i> a complete listing of the modifications.
         * New progs: tiffpdftest
         * Fixed uninitialized data error in pixAddBorderGeneral() and
           pixRemoveBorderGeneral()
+        * Rewrote Numa functions that discretize into bins.  Have
+          binning by both sorting and histogram. 
+        * Rewrote and simplified pixGetRankColorArray() and pixGetBinnedColor().
+        * Added tests to prog/rankbin_reg.c.
 
 1.80.0  28 July 2020
         * Improve bmp handling of 1 bpp images and sanity checking of params.

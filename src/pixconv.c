@@ -42,8 +42,9 @@
  *           l_int32     pixAddGrayColormap8()
  *           PIX        *pixAddMinimalGrayColormap8()
  *
- *      Conversion from RGB color to grayscale
+ *      Conversion from RGB color to 8 bit gray
  *           PIX        *pixConvertRGBToLuminance()
+ *           PIX        *pixConvertRGBToGrayGeneral()
  *           PIX        *pixConvertRGBToGray()
  *           PIX        *pixConvertRGBToGrayFast()
  *           PIX        *pixConvertRGBToGrayMinMax()
@@ -741,6 +742,71 @@ PIX *
 pixConvertRGBToLuminance(PIX *pixs)
 {
   return pixConvertRGBToGray(pixs, 0.0, 0.0, 0.0);
+}
+
+
+/*!
+ * \brief   pixConvertRGBToGrayGeneral()
+ *
+ * \param[in]    pixs           32 bpp RGB
+ * \param[in]    type           color selection flag
+ * \param[in]    rwt, gwt, bwt  ignored if type != L_SELECT_WEIGHTED;
+ *                              if used, must sum to 1.0.
+ * \return  8 bpp pix, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The color selection flag is one of: L_SELECT_RED, L_SELECT_GREEN,
+ *          L_SELECT_BLUE, L_SELECT_MIN, L_SELECT_MAX, L_SELECT_AVERAGE,
+ *          L_SELECT_HUE, L_SELECT_SATURATION, L_SELECT_WEIGHTED.
+ *      (2) The weights, if used, must all be non-negative and must sum to 1.0.
+ * </pre>
+ */
+PIX *
+pixConvertRGBToGrayGeneral(PIX       *pixs,
+                           l_int32    type,
+                           l_float32  rwt,
+                           l_float32  gwt,
+                           l_float32  bwt)
+{
+PIX  *pix1;
+
+    PROCNAME("pixConvertRGBToGrayGeneral");
+
+    if (!pixs || pixGetDepth(pixs) != 32)
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+    if (type != L_SELECT_RED && type != L_SELECT_GREEN &&
+        type != L_SELECT_BLUE && type != L_SELECT_MIN &&
+        type != L_SELECT_MAX && type != L_SELECT_AVERAGE &&
+        type != L_SELECT_HUE && type != L_SELECT_SATURATION &&
+        type != L_SELECT_WEIGHTED)
+        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+
+    if (type == L_SELECT_RED) {
+        pix1 = pixGetRGBComponent(pixs, COLOR_RED);
+    } else if (type == L_SELECT_GREEN) {
+        pix1 = pixGetRGBComponent(pixs, COLOR_GREEN);
+    } else if (type == L_SELECT_BLUE) {
+        pix1 = pixGetRGBComponent(pixs, COLOR_BLUE);
+    } else if (type == L_SELECT_MIN) {
+        pix1 = pixConvertRGBToGrayMinMax(pixs, L_CHOOSE_MIN);
+    } else if (type == L_SELECT_MAX) {
+        pix1 = pixConvertRGBToGrayMinMax(pixs, L_CHOOSE_MAX);
+    } else if (type == L_SELECT_AVERAGE) {
+        pix1 = pixConvertRGBToGray(pixs, 0.34, 0.33, 0.33);
+    } else if (type == L_SELECT_HUE) {
+        pix1 = pixConvertRGBToHue(pixs);
+    } else if (type == L_SELECT_SATURATION) {
+        pix1 = pixConvertRGBToSaturation(pixs);
+    } else { /* L_SELECT_WEIGHTED */
+        if (rwt < 0.0 || gwt < 0.0 || bwt < 0.0)
+            return (PIX *)ERROR_PTR("weights not all >= 0.0", procName, NULL);
+        if (rwt + gwt + bwt != 1.0)
+            return (PIX *)ERROR_PTR("weights don't sum to 1.0", procName, NULL);
+        pix1 = pixConvertRGBToGray(pixs, rwt, gwt, bwt);
+    }
+
+    return pix1;
 }
 
 

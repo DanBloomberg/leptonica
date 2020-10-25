@@ -67,7 +67,8 @@
  *          l_int32      numaMakeRankFromHistogram()
  *          l_int32      numaHistogramGetRankFromVal()
  *          l_int32      numaHistogramGetValFromRank()
- *          l_int32      numaDiscretizeRankAndIntensity()
+ *          l_int32      numaDiscretizeSortedInBins()
+ *          l_int32      numaDiscretizeHistoInBins()
  *          l_int32      numaGetRankBinValues()
  *
  *      Splitting a distribution
@@ -858,7 +859,7 @@ NUMA    *nad;
  *
  * \param[in]    na
  * \param[in]    maxbins    max number of histogram bins
- * \param[out]   pbinsize   size of histogram bins
+ * \param[out]   pbinsize   [optional] size of histogram bins
  * \param[out]   pbinstart  [optional] start val of minimum bin;
  *                          input NULL to force start at 0
  * \return  na consisiting of histogram of integerized values,
@@ -871,7 +872,7 @@ NUMA    *nad;
  *          so the results on float data will not have high precision.
  *      (2) Specify the max number of input bins.   Then %binsize,
  *          the size of bins necessary to accommodate the input data,
- *          is returned.  It is one of the sequence:
+ *          is returned.  It is optionally returned and one of the sequence:
  *                {1, 2, 5, 10, 20, 50, ...}.
  *      (3) If &binstart is given, all values are accommodated,
  *          and the min value of the starting bin is returned.
@@ -892,10 +893,12 @@ NUMA      *nai, *nahist;
 
     PROCNAME("numaMakeHistogram");
 
+    if (pbinsize) *pbinsize = 0;
+    if (pbinstart) *pbinstart = 0;
     if (!na)
         return (NUMA *)ERROR_PTR("na not defined", procName, NULL);
-    if (!pbinsize)
-        return (NUMA *)ERROR_PTR("&binsize not defined", procName, NULL);
+    if (maxbins < 1)
+        return (NUMA *)ERROR_PTR("maxbins < 1", procName, NULL);
 
         /* Determine input range */
     numaGetMin(na, &val, NULL);
@@ -924,7 +927,7 @@ NUMA      *nai, *nahist;
     } else {
         binsize = 1;
     }
-    *pbinsize = binsize;
+    if (pbinsize) *pbinsize = binsize;
     nbins = 1 + range / binsize;  /* +1 seems to be sufficient */
 
         /* Redetermine iminval */
@@ -934,8 +937,7 @@ NUMA      *nai, *nahist;
         else
             iminval = binsize * ((iminval - binsize + 1) / binsize);
     }
-    if (pbinstart)
-        *pbinstart = iminval;
+    if (pbinstart) *pbinstart = iminval;
 
 #if  DEBUG_HISTO
     lept_stderr(" imaxval = %d, range = %d, nbins = %d\n",
@@ -1678,161 +1680,186 @@ l_float32  startval, binsize, rankcount, total, sum, fract, val;
 
 
 /*!
- * \brief   numaDiscretizeRankAndIntensity()
+ * \brief   numaDiscretizeSortedInBins()
  *
- * \param[in]    na       normalized histo of probability density vs intensity
- * \param[in]    nbins    number of bins at which the rank is divided
- * \param[out]   pnarbin  [optional] rank bin value vs intensity
- * \param[out]   pnam     [optional] median intensity in a bin vs rank bin
- *                        value, with %nbins of discretized rank values
- * \param[out]   pnar     [optional] rank vs intensity; this is
- *                        a cumulative norm histogram
- * \param[out]   pnabb    [optional] intensity at the right bin boundary
- *                        vs rank bin
+ * \param[in]    na          sorted
+ * \param[in]    nbins       number of equal population bins (> 1)
+ * \param[out]   pnabinval   average "gray" values in each bin
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) We are inverting the rank(intensity) function to get
- *          the intensity(rank) function at %nbins equally spaced
- *          values of rank between 0.0 and 1.0.  We save integer values
- *          for the intensity.
- *      (2) We are using the word "intensity" to describe the type of
- *          array values, but any array of non-negative numbers will work.
- *      (3) The output arrays give the following mappings, where the
- *          input is a normalized histogram of array values:
- *             array values     -->  rank bin number  (narbin)
- *             rank bin number  -->  median array value in bin (nam)
- *             array values     -->  cumulative norm = rank  (nar)
- *             rank bin number  -->  array value at right bin edge (nabb)
+ *      (1) The input %na is sorted in increasing value.
+ *      (2) The output array has the following mapping:
+ *             bin number  -->  average array value in bin (nabinval)
+ *      (3) With %nbins == 100, nabinval is the average gray value in
+ *          each of the 100 equally populated bins.  It is the function
+ *                gray[100 * rank].
+ *          Thus it is the inverse of
+ *                rank[gray]
+ *      (4) Contast with numaDiscretizeHistoInBins(), where the input %na
+ *          is a histogram.
  * </pre>
  */
 l_ok
-numaDiscretizeRankAndIntensity(NUMA    *na,
-                               l_int32  nbins,
-                               NUMA   **pnarbin,
-                               NUMA   **pnam,
-                               NUMA   **pnar,
-                               NUMA   **pnabb)
+numaDiscretizeSortedInBins(NUMA    *na,
+                           l_int32  nbins,
+                           NUMA   **pnabinval)
 {
-NUMA      *nar;  /* rank value as function of intensity */
-NUMA      *nam;  /* median intensity in the rank bins */
-NUMA      *nabb;  /* rank bin right boundaries (in intensity) */
-NUMA      *narbin;  /* binned rank value as a function of intensity */
-l_int32    i, j, npts, start, midfound, mcount, rightedge;
-l_float32  sum, midrank, endrank, val;
+NUMA      *nabinval;  /* average gray value in the bins */
+NUMA      *naeach;
+l_int32    i, start, end, ntot;
+l_int32    count, bincount, binindex, binsize;
+l_float32  sum, val, ave;
 
-    PROCNAME("numaDiscretizeRankAndIntensity");
+    PROCNAME("numaDiscretizeSortedInBins");
 
-    if (pnarbin) *pnarbin = NULL;
-    if (pnam) *pnam = NULL;
-    if (pnar) *pnar = NULL;
-    if (pnabb) *pnabb = NULL;
-    if (!pnarbin && !pnam && !pnar && !pnabb)
-        return ERROR_INT("no output requested", procName, 1);
+    if (!pnabinval)
+        return ERROR_INT("&nabinval not defined", procName, 1);
+    *pnabinval = NULL;
     if (!na)
         return ERROR_INT("na not defined", procName, 1);
     if (nbins < 2)
         return ERROR_INT("nbins must be > 1", procName, 1);
 
-        /* Get cumulative normalized histogram (rank vs intensity value).
-         * For a normalized histogram from an 8 bpp grayscale image
-         * as input, we have 256 bins and 257 points in the
-         * cumulative (rank) histogram. */
-    npts = numaGetCount(na);
-    if ((nar = numaCreate(npts + 1)) == NULL)
-        return ERROR_INT("nar not made", procName, 1);
-    sum = 0.0;
-    numaAddNumber(nar, sum);  /* left side of first bin */
-    for (i = 0; i < npts; i++) {
-        numaGetFValue(na, i, &val);
-        sum += val;
-        numaAddNumber(nar, sum);
-    }
+    ntot = numaGetCount(na);
+    nabinval = numaCreate(nbins);
 
-    nam = numaCreate(nbins);
-    narbin = numaCreate(npts);
-    nabb = numaCreate(nbins);
-    if (!nam || !narbin || !nabb) {
-        numaDestroy(&nar);
-        numaDestroy(&nam);
-        numaDestroy(&narbin);
-        numaDestroy(&nabb);
-        return ERROR_INT("numa not made", procName, 1);
-    }
-
-        /* We find the intensity value at the right edge of each of
-         * the rank bins.  We also find the median intensity in the bin,
-         * where approximately half the samples are lower and half are
-         * higher.  This can be considered as a simple approximation
-         * for the average intensity in the bin. */
-    start = 0;  /* index in nar */
-    mcount = 0;  /* count of median values in rank bins; not to exceed nbins */
-    for (i = 0; i < nbins; i++) {
-        midrank = (l_float32)(i + 0.5) / (l_float32)(nbins);
-        endrank = (l_float32)(i + 1.0) / (l_float32)(nbins);
-        endrank = L_MAX(0.0, L_MIN(endrank - 0.001, 1.0));
-        midfound = FALSE;
-        for (j = start; j < npts; j++) {  /* scan up for each bin value */
-            numaGetFValue(nar, j, &val);
-                /* Use (j == npts - 1) tests in case all weight is at top end */
-            if ((!midfound && val >= midrank) ||
-                (mcount < nbins && j == npts - 1)) {
-                midfound = TRUE;
-                numaAddNumber(nam, j);
-                mcount++;
-            }
-            if ((val >= endrank) || (j == npts - 1)) {
-                numaAddNumber(nabb, j);
-                if (val == endrank)
-                    start = j;
-                else
-                    start = j - 1;
-                break;
-            }
-        }
-    }
-    numaSetValue(nabb, nbins - 1, npts - 1);  /* extend to max */
-
-        /* Error checking: did we get data in all bins? */
-    if (mcount != nbins)
-        L_WARNING("found data for %d bins; should be %d\n",
-                  procName, mcount, nbins);
-
-        /* Generate LUT that maps from intensity to bin number */
+        /* Get the number of items in each bin */
+    naeach = numaCreate(nbins);
     start = 0;
     for (i = 0; i < nbins; i++) {
-        numaGetIValue(nabb, i, &rightedge);
-        for (j = start; j < npts; j++) {
-            if (j <= rightedge)
-                numaAddNumber(narbin, i);
-            if (j > rightedge) {
-                start = j;
-                break;
-            }
-            if (j == npts - 1) {  /* we're done */
-                start = j + 1;
-                break;
-            }
-        }
+        end = ntot * (i + 1) / nbins;
+        numaAddNumber(naeach, end - start);
+        start = end;
     }
 
-    if (pnarbin)
-        *pnarbin = narbin;
-    else
-        numaDestroy(&narbin);
-    if (pnam)
-        *pnam = nam;
-    else
-        numaDestroy(&nam);
-    if (pnar)
-        *pnar = nar;
-    else
-        numaDestroy(&nar);
-    if (pnabb)
-        *pnabb = nabb;
-    else
-        numaDestroy(&nabb);
+        /* Get the average value in each bin */
+    sum = 0.0;
+    bincount = 0;
+    binindex = 0;
+    numaGetIValue(naeach, 0, &binsize);
+    for (i = 0; i < ntot; i++) {
+        numaGetFValue(na, i, &val);
+        bincount++;
+        sum += val;
+        if (bincount == binsize) {  /* add bin entry */
+            ave = sum / binsize;
+            numaAddNumber(nabinval, ave);
+            sum = 0.0;
+            bincount = 0;
+            binindex++;
+            if (binindex == nbins) break;
+            numaGetIValue(naeach, binindex, &binsize);
+        }
+    }
+    *pnabinval = nabinval;
+
+    numaDestroy(&naeach);
+    return 0;
+}
+
+
+/*!
+ * \brief   numaDiscretizeHistoInBins()
+ *
+ * \param[in]    na          histogram
+ * \param[in]    nbins       number of equal population bins (> 1)
+ * \param[out]   pnabinval   average "gray" values in each bin
+ * \param[out]   pnarank     [optional] rank value of input histogram;
+ *                           this is a cumulative norm histogram.
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) With %nbins == 100, nabinval is the average gray value in
+ *          each of the 100 equally populated bins.  It is the function
+ *                gray[100 * rank].
+ *          Thus it is the inverse of
+ *                rank[gray]
+ *          which is optionally returned in narank.
+ *      (2) The "gray value" is the index into the input histogram.
+ *      (3) The two output arrays give the following mappings, where the
+ *          input is an un-normalized histogram of array values:
+ *             bin number  -->  average array value in bin (nabinval)
+ *             array values     -->  cumulative normalized histogram (narank)
+ * </pre>
+ */
+l_ok
+numaDiscretizeHistoInBins(NUMA    *na,
+                          l_int32  nbins,
+                          NUMA   **pnabinval,
+                          NUMA   **pnarank)
+{
+NUMA      *nabinval;  /* average gray value in the bins */
+NUMA      *narank;  /* rank value as function of input value */
+NUMA      *naeach, *nan;
+l_int32    i, j, k, start, end, nxvals, occup;
+l_int32    count, bincount, binindex, binsize;
+l_float32  sum, ave, ntot;
+
+    PROCNAME("numaDiscretizeHistoInBins");
+
+    if (pnarank) *pnarank = NULL;
+    if (!pnabinval)
+        return ERROR_INT("&nabinval not defined", procName, 1);
+    *pnabinval = NULL;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    if (nbins < 2)
+        return ERROR_INT("nbins must be > 1", procName, 1);
+
+    nxvals = numaGetCount(na);
+    numaGetSum(na, &ntot);
+    occup = ntot / nxvals;
+    if (occup < 1) L_INFO("average occupancy %d < 1\n", procName, occup);
+    nabinval = numaCreate(nbins);
+
+        /* Get the number of items in each bin */
+    naeach = numaCreate(nbins);
+    start = 0;
+    for (i = 0; i < nbins; i++) {
+        end = ntot * (i + 1) / nbins;
+        numaAddNumber(naeach, end - start);
+        start = end;
+    }
+
+        /* Get the average value in each bin */
+    sum = 0.0;
+    bincount = 0;
+    binindex = 0;
+    numaGetIValue(naeach, 0, &binsize);
+    k = 0;  /* count up to ntot */
+    for (i = 0; i < nxvals; i++) {
+        numaGetIValue(na, i, &count);
+        for (j = 0; j < count; j++) {
+            k++;
+            bincount++;
+            sum += i;
+            if (bincount == binsize) {  /* add bin entry */
+                ave = sum / binsize;
+                numaAddNumber(nabinval, ave);
+                sum = 0.0;
+                bincount = 0;
+                binindex++;
+                if (binindex == nbins) break;
+                numaGetIValue(naeach, binindex, &binsize);
+            }
+        }
+        if (binindex == nbins) break;
+    }
+    *pnabinval = nabinval;
+    if (binindex != nbins)
+        L_ERROR("binindex = %d != nbins = %d\n", procName, binindex, nbins);
+
+        /* Get cumulative normalized histogram (rank[gray value]).
+         * This is the partial sum operating on the normalized histogram. */
+    if (pnarank) {
+        nan = numaNormalizeHistogram(na, 1.0);
+        *pnarank = numaGetPartialSums(nan);
+        numaDestroy(&nan);
+    }
+    numaDestroy(&naeach);
     return 0;
 }
 
@@ -1842,35 +1869,33 @@ l_float32  sum, midrank, endrank, val;
  *
  * \param[in]    na       an array of values
  * \param[in]    nbins    number of bins at which the rank is divided
- * \param[out]   pnarbin  [optional] rank bin value vs array value
- * \param[out]   pnam     [optional] median intensity in a bin vs rank bin
- *                        value, with %nbins of discretized rank values
+ * \param[out]   pnam     mean intensity in a bin vs rank bin value,
+ *                        with %nbins of discretized rank values
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
  *      (1) Simple interface for getting a binned rank representation
- *          of an input array of values.  This returns two mappings:
- *             array value     -->  rank bin number  (narbin)
- *             rank bin number -->  median array value in each rank bin (nam)
+ *          of an input array of values.  This returns:
+ *             rank bin number -->  average array value in each rank bin (nam)
+ *      (2) Uses bins either a sorted array or a histogram, depending on
+ *          the values in the array and the size of the array.
  * </pre>
  */
 l_ok
 numaGetRankBinValues(NUMA    *na,
                      l_int32  nbins,
-                     NUMA   **pnarbin,
                      NUMA   **pnam)
 {
-NUMA      *nah, *nan;  /* histo and normalized histo */
-l_int32    maxbins, discardval;
+NUMA      *na1;
+l_int32    maxbins, type;
 l_float32  maxval, delx;
 
     PROCNAME("numaGetRankBinValues");
 
-    if (pnarbin) *pnarbin = NULL;
-    if (pnam) *pnam = NULL;
-    if (!pnarbin && !pnam)
-        return ERROR_INT("no output requested", procName, 1);
+    if (!pnam)
+        return ERROR_INT("&pnam not defined", procName, 1);
+    *pnam = NULL;
     if (!na)
         return ERROR_INT("na not defined", procName, 1);
     if (numaGetCount(na) == 0)
@@ -1878,22 +1903,39 @@ l_float32  maxval, delx;
     if (nbins < 2)
         return ERROR_INT("nbins must be > 1", procName, 1);
 
-        /* Get normalized histogram  */
+        /* Choose between sorted array and a histogram.
+         * If the input array is has a small number of numbers with
+         * a large maximum, we will sort it.  At the other extreme, if
+         * the array has many numbers with a small maximum, such as the
+         * values of pixels in an 8 bpp grayscale image, generate a histogram.
+         * If type comes back as L_BIN_SORT, use a histogram. */
+    type = numaChooseSortType(na);
+    if (type == L_SHELL_SORT) {  /* sort the array */
+        L_INFO("sort the array: input size = %d\n", procName, numaGetCount(na));
+        na1 = numaSort(NULL, na, L_SORT_INCREASING);
+        numaDiscretizeSortedInBins(na1, nbins, pnam);
+        numaDestroy(&na1);
+        return 0;
+    }
+
+        /* Make the histogram.  Assuming there are no negative values
+         * in the array, if the max value in the array does not exceed
+         * about 100000, the bin size for generating the histogram will
+         * be 1; maxbins refers to the number of entries in the histogram. */
+    L_INFO("use a histogram: input size = %d\n", procName, numaGetCount(na));
     numaGetMax(na, &maxval, NULL);
     maxbins = L_MIN(100002, (l_int32)maxval + 2);
-    nah = numaMakeHistogram(na, maxbins, &discardval, NULL);
-    nan = numaNormalizeHistogram(nah, 1.0);
+    na1 = numaMakeHistogram(na, maxbins, NULL, NULL);
 
         /* Warn if there is a scale change.  This shouldn't happen
          * unless the max value is above 100000.  */
-    numaGetParameters(nan, NULL, &delx);
+    numaGetParameters(na1, NULL, &delx);
     if (delx > 1.0)
         L_WARNING("scale change: delx = %6.2f\n", procName, delx);
 
         /* Rank bin the results */
-    numaDiscretizeRankAndIntensity(nan, nbins, pnarbin, pnam, NULL, NULL);
-    numaDestroy(&nah);
-    numaDestroy(&nan);
+    numaDiscretizeHistoInBins(na1, nbins, pnam, NULL);
+    numaDestroy(&na1);
     return 0;
 }
 

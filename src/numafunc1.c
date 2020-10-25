@@ -2539,7 +2539,7 @@ l_int32  type;
 l_int32
 numaChooseSortType(NUMA  *nas)
 {
-l_int32    n, type;
+l_int32    n;
 l_float32  minval, maxval;
 
     PROCNAME("numaChooseSortType");
@@ -2550,30 +2550,22 @@ l_float32  minval, maxval;
         /* If small histogram or negative values; use shell sort */
     numaGetMin(nas, &minval, NULL);
     n = numaGetCount(nas);
-    if (minval < 0.0 || n < 200) {
-        L_INFO("Shell sort chosen\n", procName);
+    if (minval < 0.0 || n < 200)
         return L_SHELL_SORT;
-    }
 
         /* If large maxval, use shell sort */
     numaGetMax(nas, &maxval, NULL);
-    if (maxval > MaxInitPtraSize - 1) {
-        L_INFO("Shell sort chosen\n", procName);
+    if (maxval > MaxInitPtraSize - 1)
         return L_SHELL_SORT;
-    }
 
         /* Otherwise, need to compare nlog(n) with maxval.
          * The factor of 0.003 was determined by comparing times for
          * different histogram sizes and maxval.  It is very small
          * because binsort is fast and shell sort gets slow for large n. */
-    if (n * log((l_float32)n) < 0.003 * maxval) {
-        type = L_SHELL_SORT;
-        L_INFO("Shell sort chosen\n", procName);
-    } else {
-        type = L_BIN_SORT;
-        L_INFO("Bin sort chosen\n", procName);
-    }
-    return type;
+    if (n * log((l_float32)n) < 0.003 * maxval)
+        return L_SHELL_SORT;
+    else
+        return L_BIN_SORT;
 }
 
 
