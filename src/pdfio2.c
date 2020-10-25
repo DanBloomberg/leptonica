@@ -652,12 +652,13 @@ PIXCMAP      *cmap = NULL;
            of them. We need to transcode anything with interlacing, an
            alpha channel, or 1 bpp (which would otherwise be photo-inverted).
 
-           Be careful with spp. Any PNG image file with an alpha
-           channel is converted on reading to RGBA (spp == 4). This
-           includes the (gray + alpha) format with spp == 2. You
-           will get different results if you look at spp via
-           readHeaderPng() versus pixGetSpp() */
-    if (format != IFF_PNG || interlaced || bps == 1 || spp == 4 || spp == 2) {
+           Note: any PNG image file with an alpha channel is converted on
+           reading to RGBA (spp == 4). This includes the (gray + alpha) format
+           with spp == 2.  Because of the conversion, readHeaderPng() gives
+           spp = 2, whereas pixGetSpp() gives spp = 4 on the converted pix. */
+    if (format != IFF_PNG ||
+       (format == IFF_PNG && (interlaced || bps == 1 || spp == 4 || spp == 2)))
+    {  /* lgtm+ analyzer needed the logic expanded */
         if (!pixs)
             pix = pixRead(fname);
         else
