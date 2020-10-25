@@ -105,8 +105,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     FPIX *fpix5 = fpixCreate(300, 300);
     FPIX *fpix6 = fpixCreate(300, 300);
     FPIX *fpix_copy3 = fpixCopy(NULL, fpix_payload);
-    FPIX *fpix_return1 = fpixLinearCombination(fpix_copy3, fpix5, fpix6, 1.1, 1.1);
-    fpixDestroy(&fpix_return1);
+    fpixLinearCombination(fpix_copy3, fpix5, fpix6, 1.1, 1.1);
     fpixDestroy(&fpix_copy3);
     fpixDestroy(&fpix5);
     fpixDestroy(&fpix6);
