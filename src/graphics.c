@@ -2573,10 +2573,14 @@ PIX      *pixi, *pixd;
         return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
     if (!pta)
         return (PIX *)ERROR_PTR("pta not defined", procName, NULL);
+    if (ptaGetCount(pta) < 2)
+        return (PIX *)ERROR_PTR("pta has < 2 pts", procName, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
-    xstart = (l_int32 *)LEPT_CALLOC(w / 2, sizeof(l_int32));
-    xend = (l_int32 *)LEPT_CALLOC(w / 2, sizeof(l_int32));
+    xstart = (l_int32 *)LEPT_CALLOC(L_MAX(1, w / 2), sizeof(l_int32));
+    xend = (l_int32 *)LEPT_CALLOC(L_MAX(1, w / 2), sizeof(l_int32));
+    if (!xstart)
+        return (PIX *)ERROR_PTR("xstart and xend not made", procName, NULL);
 
         /* Find a raster with 2 or more black runs.  The first background
          * pixel after the end of the first run is likely to be inside
