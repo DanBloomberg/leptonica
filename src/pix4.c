@@ -2710,10 +2710,10 @@ pixGetBinnedColor(PIX        *pixs,
                   PIXA       *pixadb)
 {
 l_int32     i, j, k, w, h, wpls, wplg;
-l_int32     count, bincount, binindex, binsize, rave, gave, bave;
-l_int32     rval, gval, bval, grayval, npts, avepts, ntot, start, end;
+l_int32     count, bincount, binindex, binsize, npts, avepts, ntot;
+l_int32     rval, gval, bval, grayval, rave, gave, bave;
 l_uint32   *datas, *datag, *lines, *lineg, *carray;
-l_float64   val64, rsum , gsum, bsum;
+l_float64   val64, rsum, gsum, bsum;
 L_DNAA     *daa;
 NUMA       *naeach;
 PIX        *pix1;
@@ -2734,7 +2734,7 @@ PIX        *pix1;
     if (nbins < 1 || nbins > 100)
         return ERROR_INT("nbins not in [1,100]", procName, 1);
 
-        /* Require that each bin has at least 10 pixels. */
+        /* Require that each bin has at least 5 pixels. */
     pixGetDimensions(pixs, &w, &h, NULL);
     npts = (w + factor - 1) * (h + factor - 1) / (factor * factor);
     avepts = (npts + nbins - 1) / nbins;  /* average number of pts in a bin */
@@ -2782,14 +2782,11 @@ PIX        *pix1;
         numaDestroy(&narank);
     }
 
-        /* Find the number of items in each bin.  They can differ by 1. */
+        /* Get the number of items in each bin */
     ntot = l_dnaaGetNumberCount(daa);
-    naeach = numaCreate(nbins);
-    start = 0;
-    for (i = 0; i < nbins; i++) {
-        end = ntot * (i + 1) / nbins;
-        numaAddNumber(naeach, end - start);
-        start = end;
+    if ((naeach = numaGetUniformBinSizes(ntot, nbins)) == NULL) {
+        l_dnaaDestroy(&daa);
+        return ERROR_INT("naeach not made", procName, 1);
     }
 
         /* Get the average color in each bin.  This algorithm is

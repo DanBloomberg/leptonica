@@ -70,6 +70,7 @@
  *          l_int32      numaDiscretizeSortedInBins()
  *          l_int32      numaDiscretizeHistoInBins()
  *          l_int32      numaGetRankBinValues()
+ *          NUMA        *numaGetUniformBinSizes()
  *
  *      Splitting a distribution
  *          l_int32      numaSplitDistribution()
@@ -1708,8 +1709,7 @@ numaDiscretizeSortedInBins(NUMA    *na,
 {
 NUMA      *nabinval;  /* average gray value in the bins */
 NUMA      *naeach;
-l_int32    i, start, end, ntot;
-l_int32    count, bincount, binindex, binsize;
+l_int32    i, ntot, count, bincount, binindex, binsize;
 l_float32  sum, val, ave;
 
     PROCNAME("numaDiscretizeSortedInBins");
@@ -1722,23 +1722,17 @@ l_float32  sum, val, ave;
     if (nbins < 2)
         return ERROR_INT("nbins must be > 1", procName, 1);
 
-    ntot = numaGetCount(na);
-    nabinval = numaCreate(nbins);
-
         /* Get the number of items in each bin */
-    naeach = numaCreate(nbins);
-    start = 0;
-    for (i = 0; i < nbins; i++) {
-        end = ntot * (i + 1) / nbins;
-        numaAddNumber(naeach, end - start);
-        start = end;
-    }
+    ntot = numaGetCount(na);
+    if ((naeach = numaGetUniformBinSizes(ntot, nbins)) == NULL)
+        return ERROR_INT("naeach not made", procName, 1);
 
         /* Get the average value in each bin */
     sum = 0.0;
     bincount = 0;
     binindex = 0;
     numaGetIValue(naeach, 0, &binsize);
+    nabinval = numaCreate(nbins);
     for (i = 0; i < ntot; i++) {
         numaGetFValue(na, i, &val);
         bincount++;
@@ -1794,8 +1788,7 @@ numaDiscretizeHistoInBins(NUMA    *na,
 NUMA      *nabinval;  /* average gray value in the bins */
 NUMA      *narank;  /* rank value as function of input value */
 NUMA      *naeach, *nan;
-l_int32    i, j, k, start, end, nxvals, occup;
-l_int32    count, bincount, binindex, binsize;
+l_int32    i, j, k, nxvals, occup, count, bincount, binindex, binsize;
 l_float32  sum, ave, ntot;
 
     PROCNAME("numaDiscretizeHistoInBins");
@@ -1813,22 +1806,17 @@ l_float32  sum, ave, ntot;
     numaGetSum(na, &ntot);
     occup = ntot / nxvals;
     if (occup < 1) L_INFO("average occupancy %d < 1\n", procName, occup);
-    nabinval = numaCreate(nbins);
 
         /* Get the number of items in each bin */
-    naeach = numaCreate(nbins);
-    start = 0;
-    for (i = 0; i < nbins; i++) {
-        end = ntot * (i + 1) / nbins;
-        numaAddNumber(naeach, end - start);
-        start = end;
-    }
+    if ((naeach = numaGetUniformBinSizes(ntot, nbins)) == NULL)
+        return ERROR_INT("naeach not made", procName, 1);
 
         /* Get the average value in each bin */
     sum = 0.0;
     bincount = 0;
     binindex = 0;
     numaGetIValue(naeach, 0, &binsize);
+    nabinval = numaCreate(nbins);
     k = 0;  /* count up to ntot */
     for (i = 0; i < nxvals; i++) {
         numaGetIValue(na, i, &count);
@@ -1937,6 +1925,45 @@ l_float32  maxval, delx;
     numaDiscretizeHistoInBins(na1, nbins, pnam, NULL);
     numaDestroy(&na1);
     return 0;
+}
+
+
+/*!
+ * \brief   numaGetUniformBinSizes()
+ *
+ * \param[in]    ntotal   number of values to be split up
+ * \param[in]    nbins    number of bins
+ * \return  naeach   number of values to go in each bin, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The numbers in the bins can differ by 1.  The sum of
+ *          bin numbers in @naeach is @ntotal.
+ * </pre>
+ */
+NUMA *
+numaGetUniformBinSizes(l_int32  ntotal,
+                       l_int32  nbins)
+{
+l_int32  i, start, end;
+NUMA    *naeach;
+
+    PROCNAME("numaGetUniformBinSizes");
+
+    if (ntotal <= 0)
+        return (NUMA *)ERROR_PTR("ntotal <= 0", procName, NULL);
+    if (nbins <= 0)
+        return (NUMA *)ERROR_PTR("nbins <= 0", procName, NULL);
+
+    if ((naeach = numaCreate(nbins)) == NULL)
+        return (NUMA *)ERROR_PTR("naeach not made", procName, NULL);
+    start = 0;
+    for (i = 0; i < nbins; i++) {
+        end = ntotal * (i + 1) / nbins;
+        numaAddNumber(naeach, end - start);
+        start = end;
+    }
+    return naeach;
 }
 
 
