@@ -845,8 +845,7 @@ LEPT_DLL extern l_int32 fmorphopgen_low_1 ( l_uint32 *datad, l_int32 w, l_int32 
 LEPT_DLL extern FPIX * fpixCreate ( l_int32 width, l_int32 height );
 LEPT_DLL extern FPIX * fpixCreateTemplate ( FPIX *fpixs );
 LEPT_DLL extern FPIX * fpixClone ( FPIX *fpix );
-LEPT_DLL extern FPIX * fpixCopy ( FPIX *fpixd, FPIX *fpixs );
-LEPT_DLL extern l_ok fpixResizeImageData ( FPIX *fpixd, FPIX *fpixs );
+LEPT_DLL extern FPIX * fpixCopy ( FPIX *fpixs );
 LEPT_DLL extern void fpixDestroy ( FPIX **pfpix );
 LEPT_DLL extern l_ok fpixGetDimensions ( FPIX *fpix, l_int32 *pw, l_int32 *ph );
 LEPT_DLL extern l_ok fpixSetDimensions ( FPIX *fpix, l_int32 w, l_int32 h );
@@ -875,8 +874,7 @@ LEPT_DLL extern l_ok fpixaSetPixel ( FPIXA *fpixa, l_int32 index, l_int32 x, l_i
 LEPT_DLL extern DPIX * dpixCreate ( l_int32 width, l_int32 height );
 LEPT_DLL extern DPIX * dpixCreateTemplate ( DPIX *dpixs );
 LEPT_DLL extern DPIX * dpixClone ( DPIX *dpix );
-LEPT_DLL extern DPIX * dpixCopy ( DPIX *dpixd, DPIX *dpixs );
-LEPT_DLL extern l_ok dpixResizeImageData ( DPIX *dpixd, DPIX *dpixs );
+LEPT_DLL extern DPIX * dpixCopy ( DPIX *dpixs );
 LEPT_DLL extern void dpixDestroy ( DPIX **pdpix );
 LEPT_DLL extern l_ok dpixGetDimensions ( DPIX *dpix, l_int32 *pw, l_int32 *ph );
 LEPT_DLL extern l_ok dpixSetDimensions ( DPIX *dpix, l_int32 w, l_int32 h );

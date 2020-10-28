@@ -832,7 +832,7 @@ FPIX       *fpixt1, *fpixt2;
          * extending it as required to make it big enough.  Use x,y
          * to determine the amounts on each side. */
     if (!dew->fullvdispar) {
-        fpixt1 = fpixCopy(NULL, dew->sampvdispar);
+        fpixt1 = fpixCopy(dew->sampvdispar);
         if (redfactor == 2)
             fpixAddMultConstant(fpixt1, 0.0, (l_float32)redfactor);
         fpixt2 = fpixScaleByInteger(fpixt1, dew->sampling * redfactor);
@@ -851,7 +851,7 @@ FPIX       *fpixt1, *fpixt2;
          * doesn't exist.  Do this even if useboth == 1, but
          * not if required to skip running horizontal disparity. */
     if (!dew->fullhdispar && dew->samphdispar && !dew->skip_horiz) {
-        fpixt1 = fpixCopy(NULL, dew->samphdispar);
+        fpixt1 = fpixCopy(dew->samphdispar);
         if (redfactor == 2)
             fpixAddMultConstant(fpixt1, 0.0, (l_float32)redfactor);
         fpixt2 = fpixScaleByInteger(fpixt1, dew->sampling * redfactor);

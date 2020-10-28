@@ -40,7 +40,6 @@
  *          FPIX          *fpixCreateTemplate()
  *          FPIX          *fpixClone()
  *          FPIX          *fpixCopy()
- *          l_int32        fpixResizeImageData()
  *          void           fpixDestroy()
  *
  *    FPix accessors
@@ -82,7 +81,6 @@
  *          DPIX          *dpixCreateTemplate()
  *          DPIX          *dpixClone()
  *          DPIX          *dpixCopy()
- *          l_int32        dpixResizeImageData()
  *          void           dpixDestroy()
  *
  *    DPix accessors
@@ -250,115 +248,31 @@ fpixClone(FPIX  *fpix)
 /*!
  * \brief   fpixCopy()
  *
- * \param[in]    fpixd    [optional] can be null, or equal to fpixs,
- *                        or different from fpixs
  * \param[in]    fpixs
  * \return  fpixd, or NULL on error
- *
- * <pre>
- * Notes:
- *      (1) There are three cases:
- *            (a) fpixd == null  (makes a new fpix; refcount = 1)
- *            (b) fpixd == fpixs  (no-op)
- *            (c) fpixd != fpixs  (data copy; no change in refcount)
- *          If the refcount of fpixd > 1, case (c) will side-effect
- *          these handles.
- *      (2) The general pattern of use is:
- *             fpixd = fpixCopy(fpixd, fpixs);
- *          This will work for all three cases.
- *          For clarity when the case is known, you can use:
- *            (a) fpixd = fpixCopy(NULL, fpixs);
- *            (c) fpixCopy(fpixd, fpixs);
- *      (3) For case (c), we check if fpixs and fpixd are the same size.
- *          If so, the data is copied directly.
- *          Otherwise, the data is reallocated to the correct size
- *          and the copy proceeds.  The refcount of fpixd is unchanged.
- *      (4) This operation, like all others that may involve a pre-existing
- *          fpixd, will side-effect any existing clones of fpixd.
- * </pre>
  */
 FPIX *
-fpixCopy(FPIX  *fpixd,   /* can be null */
-         FPIX  *fpixs)
+fpixCopy(FPIX  *fpixs)
 {
 l_int32     w, h, bytes;
 l_float32  *datas, *datad;
+FPIX       *fpixd;
 
     PROCNAME("fpixCopy");
 
     if (!fpixs)
         return (FPIX *)ERROR_PTR("fpixs not defined", procName, NULL);
-    if (fpixs == fpixd)
-        return fpixd;
 
         /* Total bytes in image data */
     fpixGetDimensions(fpixs, &w, &h);
     bytes = 4 * w * h;
 
-        /* If we're making a new fpix ... */
-    if (!fpixd) {
-        if ((fpixd = fpixCreateTemplate(fpixs)) == NULL)
-            return (FPIX *)ERROR_PTR("fpixd not made", procName, NULL);
-        datas = fpixGetData(fpixs);
-        datad = fpixGetData(fpixd);
-        memcpy(datad, datas, bytes);
-        return fpixd;
-    }
-
-        /* Reallocate image data if sizes are different */
-    fpixResizeImageData(fpixd, fpixs);
-
-        /* Copy data */
-    fpixCopyResolution(fpixd, fpixs);
+    if ((fpixd = fpixCreateTemplate(fpixs)) == NULL)
+        return (FPIX *)ERROR_PTR("fpixd not made", procName, NULL);
     datas = fpixGetData(fpixs);
     datad = fpixGetData(fpixd);
     memcpy(datad, datas, bytes);
     return fpixd;
-}
-
-
-/*!
- * \brief   fpixResizeImageData()
- *
- * \param[in]    fpixd, fpixs
- * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) If the data sizes differ, this destroys the existing
- *          data in fpixd and allocates a new, uninitialized, data array
- *          of the same size as the data in fpixs.  Otherwise, this
- *          doesn't do anything.
- * </pre>
- */
-l_ok
-fpixResizeImageData(FPIX  *fpixd,
-                    FPIX  *fpixs)
-{
-l_int32     ws, hs, wd, hd, bytes;
-l_float32  *data;
-
-    PROCNAME("fpixResizeImageData");
-
-    if (!fpixs)
-        return ERROR_INT("fpixs not defined", procName, 1);
-    if (!fpixd)
-        return ERROR_INT("fpixd not defined", procName, 1);
-
-    fpixGetDimensions(fpixs, &ws, &hs);
-    fpixGetDimensions(fpixd, &wd, &hd);
-    if (ws == wd && hs == hd)  /* nothing to do */
-        return 0;
-
-    fpixSetDimensions(fpixd, ws, hs);
-    fpixSetWpl(fpixd, ws);
-    bytes = 4 * ws * hs;
-    data = fpixGetData(fpixd);
-    if (data) LEPT_FREE(data);
-    if ((data = (l_float32 *)LEPT_MALLOC(bytes)) == NULL)
-        return ERROR_INT("LEPT_MALLOC fail for data", procName, 1);
-    fpixSetData(fpixd, data);
-    return 0;
 }
 
 
@@ -855,7 +769,7 @@ FPIX    *fpixc;
     if (copyflag == L_INSERT)
         fpixc = fpix;
     else if (copyflag == L_COPY)
-        fpixc = fpixCopy(NULL, fpix);
+        fpixc = fpixCopy(fpix);
     else if (copyflag == L_CLONE)
         fpixc = fpixClone(fpix);
     else
@@ -1003,7 +917,7 @@ fpixaGetFPix(FPIXA   *fpixa,
         return (FPIX *)ERROR_PTR("index not valid", procName, NULL);
 
     if (accesstype == L_COPY)
-        return fpixCopy(NULL, fpixa->fpix[index]);
+        return fpixCopy(fpixa->fpix[index]);
     else if (accesstype == L_CLONE)
         return fpixClone(fpixa->fpix[index]);
     else
@@ -1250,7 +1164,6 @@ dpixClone(DPIX  *dpix)
     if (!dpix)
         return (DPIX *)ERROR_PTR("dpix not defined", procName, NULL);
     dpixChangeRefcount(dpix, 1);
-
     return dpix;
 }
 
@@ -1258,107 +1171,31 @@ dpixClone(DPIX  *dpix)
 /*!
  * \brief   dpixCopy()
  *
- * \param[in]    dpixd    [optional] can be null, or equal to dpixs,
- *                        or different from dpixs
  * \param[in]    dpixs
  * \return  dpixd, or NULL on error
- *
- * <pre>
- * Notes:
- *      (1) There are three cases:
- *            (a) dpixd == null  (makes a new dpix; refcount = 1)
- *            (b) dpixd == dpixs  (no-op)
- *            (c) dpixd != dpixs  (data copy; no change in refcount)
- *          If the refcount of dpixd > 1, case (c) will side-effect
- *          these handles.
- *      (2) The general pattern of use is:
- *             dpixd = dpixCopy(dpixd, dpixs);
- *          This will work for all three cases.
- *          For clarity when the case is known, you can use:
- *            (a) dpixd = dpixCopy(NULL, dpixs);
- *            (c) dpixCopy(dpixd, dpixs);
- *      (3) For case (c), we check if dpixs and dpixd are the same size.
- *          If so, the data is copied directly.
- *          Otherwise, the data is reallocated to the correct size
- *          and the copy proceeds.  The refcount of dpixd is unchanged.
- *      (4) This operation, like all others that may involve a pre-existing
- *          dpixd, will side-effect any existing clones of dpixd.
- * </pre>
  */
 DPIX *
-dpixCopy(DPIX  *dpixd,   /* can be null */
-         DPIX  *dpixs)
+dpixCopy(DPIX  *dpixs)
 {
 l_int32     w, h, bytes;
 l_float64  *datas, *datad;
+DPIX       *dpixd;
 
     PROCNAME("dpixCopy");
 
     if (!dpixs)
         return (DPIX *)ERROR_PTR("dpixs not defined", procName, NULL);
-    if (dpixs == dpixd)
-        return dpixd;
 
         /* Total bytes in image data */
     dpixGetDimensions(dpixs, &w, &h);
     bytes = 8 * w * h;
 
-        /* If we're making a new dpix ... */
-    if (!dpixd) {
-        if ((dpixd = dpixCreateTemplate(dpixs)) == NULL)
-            return (DPIX *)ERROR_PTR("dpixd not made", procName, NULL);
-        datas = dpixGetData(dpixs);
-        datad = dpixGetData(dpixd);
-        memcpy(datad, datas, bytes);
-        return dpixd;
-    }
-
-        /* Reallocate image data if sizes are different */
-    dpixResizeImageData(dpixd, dpixs);
-
-        /* Copy data */
-    dpixCopyResolution(dpixd, dpixs);
+    if ((dpixd = dpixCreateTemplate(dpixs)) == NULL)
+        return (DPIX *)ERROR_PTR("dpixd not made", procName, NULL);
     datas = dpixGetData(dpixs);
     datad = dpixGetData(dpixd);
     memcpy(datad, datas, bytes);
     return dpixd;
-}
-
-
-/*!
- * \brief   dpixResizeImageData()
- *
- * \param[in]    dpixd, dpixs
- * \return  0 if OK, 1 on error
- */
-l_ok
-dpixResizeImageData(DPIX  *dpixd,
-                    DPIX  *dpixs)
-{
-l_int32     ws, hs, wd, hd, bytes;
-l_float64  *data;
-
-    PROCNAME("dpixResizeImageData");
-
-    if (!dpixs)
-        return ERROR_INT("dpixs not defined", procName, 1);
-    if (!dpixd)
-        return ERROR_INT("dpixd not defined", procName, 1);
-
-    dpixGetDimensions(dpixs, &ws, &hs);
-    dpixGetDimensions(dpixd, &wd, &hd);
-    if (ws == wd && hs == hd)  /* nothing to do */
-        return 0;
-
-    dpixSetDimensions(dpixd, ws, hs);
-    dpixSetWpl(dpixd, ws);  /* 8 byte words */
-    bytes = 8 * ws * hs;
-    data = dpixGetData(dpixd);
-    if (data) LEPT_FREE(data);
-    if ((data = (l_float64 *)LEPT_MALLOC(bytes)) == NULL)
-        return ERROR_INT("LEPT_MALLOC fail for data", procName, 1);
-    dpixSetData(dpixd, data);
-    return 0;
 }
 
 
@@ -1943,7 +1780,7 @@ FILE    *fp;
 /*!
  * \brief   fpixEndianByteSwap()
  *
- * \param[in]    fpixd     can be equal to fpixs or NULL
+ * \param[in]    fpixd     [optional] can be either NULL, or equal to fpixs
  * \param[in]    fpixs
  * \return  fpixd always
  *
@@ -1977,7 +1814,8 @@ fpixEndianByteSwap(FPIX  *fpixd,
     l_uint32   word;
 
         fpixGetDimensions(fpixs, &w, &h);
-        fpixd = fpixCopy(fpixd, fpixs);  /* no copy if fpixd == fpixs */
+        if (!fpixd)
+            fpixd = fpixCopy(fpixs);
 
         data = (l_uint32 *)fpixGetData(fpixd);
         for (i = 0; i < h; i++) {
@@ -2241,7 +2079,7 @@ FILE    *fp;
 /*!
  * \brief   dpixEndianByteSwap()
  *
- * \param[in]    dpixd     can be equal to dpixs or NULL
+ * \param[in]    dpixd     [optional] can be either NULL, or equal to dpixs
  * \param[in]    dpixs
  * \return  dpixd always
  *
@@ -2275,7 +2113,8 @@ dpixEndianByteSwap(DPIX  *dpixd,
     l_uint32   word;
 
         dpixGetDimensions(dpixs, &w, &h);
-        dpixd = dpixCopy(dpixd, dpixs);  /* no copy if dpixd == dpixs */
+        if (!dpixd)
+            dpixd = dpixCopy(dpixs);
 
         data = (l_uint32 *)dpixGetData(dpixd);
         for (i = 0; i < h; i++) {

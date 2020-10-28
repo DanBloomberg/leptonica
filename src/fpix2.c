@@ -1087,8 +1087,7 @@ DPIX       *dpixd;
 /*!
  * \brief   fpixLinearCombination()
  *
- * \param[in]    fpixd    [optional] this can be null, equal to fpixs1, or
- *                        different from fpixs1
+ * \param[in]    fpixd    [optional] this can be null, or equal to fpixs1
  * \param[in]    fpixs1   can be equal to fpixd
  * \param[in]    fpixs2
  * \param[in]    a, b     multiplication factors on fpixs1 and fpixs2, rsp.
@@ -1097,13 +1096,12 @@ DPIX       *dpixd;
  * <pre>
  * Notes:
  *      (1) Computes pixelwise linear combination: a * src1 + b * src2
- *      (2) Alignment is to UL corner.
- *      (3) There are 3 cases.  The result can go to a new dest,
- *          in-place to fpixs1, or to an existing input dest:
+ *      (2) Alignment is to UL corner; src1 and src2 do not have to be
+ *          the same size.
+ *      (3) There are 2 cases.  The result can go to a new dest, or
+ *          in-place to fpixs1:
  *          * fpixd == null:   (src1 + src2) --> new fpixd
  *          * fpixd == fpixs1:  (src1 + src2) --> src1  (in-place)
- *          * fpixd != fpixs1: (src1 + src2) --> input fpixd
- *      (4) fpixs2 must be different from both fpixd and fpixs1.
  * </pre>
  */
 FPIX *
@@ -1122,14 +1120,11 @@ l_float32  *datas, *datad, *lines, *lined;
         return (FPIX *)ERROR_PTR("fpixs1 not defined", procName, fpixd);
     if (!fpixs2)
         return (FPIX *)ERROR_PTR("fpixs2 not defined", procName, fpixd);
-    if (fpixs1 == fpixs2)
-        return (FPIX *)ERROR_PTR("fpixs1 == fpixs2", procName, fpixd);
-    if (fpixs2 == fpixd)
-        return (FPIX *)ERROR_PTR("fpixs2 == fpixd", procName, fpixd);
+    if (fpixd && (fpixd != fpixs1))
+        return (FPIX *)ERROR_PTR("invalid inplace operation", procName, fpixd);
 
-    if (fpixs1 != fpixd)
-        fpixd = fpixCopy(fpixd, fpixs1);
-
+    if (!fpixd)
+        fpixd = fpixCopy(fpixs1);
     datas = fpixGetData(fpixs2);
     datad = fpixGetData(fpixd);
     wpls = fpixGetWpl(fpixs2);
@@ -1206,8 +1201,7 @@ l_float32  *line, *data;
 /*!
  * \brief   dpixLinearCombination()
  *
- * \param[in]    dpixd    [optional] this can be null, equal to dpixs1, or
- *                        different from dpixs1
+ * \param[in]    dpixd    [optional] this can be null, or equal to dpixs1
  * \param[in]    dpixs1   can be equal to dpixd
  * \param[in]    dpixs2
  * \param[in]    a, b     multiplication factors on dpixs1 and dpixs2, rsp.
@@ -1216,13 +1210,12 @@ l_float32  *line, *data;
  * <pre>
  * Notes:
  *      (1) Computes pixelwise linear combination: a * src1 + b * src2
- *      (2) Alignment is to UL corner.
- *      (3) There are 3 cases.  The result can go to a new dest,
- *          in-place to dpixs1, or to an existing input dest:
+ *      (2) Alignment is to UL corner; src1 and src2 do not have to be
+ *          the same size.
+ *      (3) There are 2 cases.  The result can go to a new dest, or
+ *          in-place to dpixs1:
  *          * dpixd == null:   (src1 + src2) --> new dpixd
  *          * dpixd == dpixs1:  (src1 + src2) --> src1  (in-place)
- *          * dpixd != dpixs1: (src1 + src2) --> input dpixd
- *      (4) dpixs2 must be different from both dpixd and dpixs1.
  * </pre>
  */
 DPIX *
@@ -1241,14 +1234,11 @@ l_float64  *datas, *datad, *lines, *lined;
         return (DPIX *)ERROR_PTR("dpixs1 not defined", procName, dpixd);
     if (!dpixs2)
         return (DPIX *)ERROR_PTR("dpixs2 not defined", procName, dpixd);
-    if (dpixs1 == dpixs2)
-        return (DPIX *)ERROR_PTR("dpixs1 == dpixs2", procName, dpixd);
-    if (dpixs2 == dpixd)
-        return (DPIX *)ERROR_PTR("dpixs2 == dpixd", procName, dpixd);
+    if (dpixd && (dpixd != dpixs1))
+        return (DPIX *)ERROR_PTR("invalid inplace operation", procName, dpixd);
 
-    if (dpixs1 != dpixd)
-        dpixd = dpixCopy(dpixd, dpixs1);
-
+    if (!dpixd)
+        dpixd = dpixCopy(dpixs1);
     datas = dpixGetData(dpixs2);
     datad = dpixGetData(dpixd);
     wpls = dpixGetWpl(dpixs2);
@@ -1417,7 +1407,7 @@ FPIX    *fpixd;
         return (FPIX *)ERROR_PTR("fpixs not defined", procName, NULL);
 
     if (left <= 0 && right <= 0 && top <= 0 && bot <= 0)
-        return fpixCopy(NULL, fpixs);
+        return fpixCopy(fpixs);
     fpixGetDimensions(fpixs, &ws, &hs);
     wd = ws + left + right;
     hd = hs + top + bot;
@@ -1453,7 +1443,7 @@ FPIX    *fpixd;
         return (FPIX *)ERROR_PTR("fpixs not defined", procName, NULL);
 
     if (left <= 0 && right <= 0 && top <= 0 && bot <= 0)
-        return fpixCopy(NULL, fpixs);
+        return fpixCopy(fpixs);
     fpixGetDimensions(fpixs, &ws, &hs);
     wd = ws - left - right;
     hd = hs - top - bot;
@@ -1774,7 +1764,7 @@ fpixRotateOrth(FPIX     *fpixs,
         return (FPIX *)ERROR_PTR("quads not in {0,1,2,3}", procName, NULL);
 
     if (quads == 0)
-        return fpixCopy(NULL, fpixs);
+        return fpixCopy(fpixs);
     else if (quads == 1)
         return fpixRotate90(fpixs, 1);
     else if (quads == 2)
@@ -1787,8 +1777,7 @@ fpixRotateOrth(FPIX     *fpixs,
 /*!
  * \brief   fpixRotate180()
  *
- * \param[in]    fpixd    [optional] can be null, equal to fpixs,
- *                        or different from fpixs
+ * \param[in]    fpixd    [optional] can be null, or equal to fpixs
  * \param[in]    fpixs
  * \return  fpixd, or NULL on error
  *
@@ -1798,14 +1787,12 @@ fpixRotateOrth(FPIX     *fpixs,
  *          which is equivalent to a left-right flip about a vertical
  *          line through the image center, followed by a top-bottom
  *          flip about a horizontal line through the image center.
- *      (2) There are 3 cases for input:
+ *      (2) There are 2 cases for input:
  *          (a) fpixd == null (creates a new fpixd)
  *          (b) fpixd == fpixs (in-place operation)
- *          (c) fpixd != fpixs (existing fpixd)
- *      (3) For clarity, use these three patterns, respectively:
+ *      (3) For clarity, use these two patterns:
  *          (a) fpixd = fpixRotate180(NULL, fpixs);
  *          (b) fpixRotate180(fpixs, fpixs);
- *          (c) fpixRotate180(fpixd, fpixs);
  * </pre>
  */
 FPIX *
@@ -1818,8 +1805,8 @@ fpixRotate180(FPIX  *fpixd,
         return (FPIX *)ERROR_PTR("fpixs not defined", procName, NULL);
 
         /* Prepare pixd for in-place operation */
-    if ((fpixd = fpixCopy(fpixd, fpixs)) == NULL)
-        return (FPIX *)ERROR_PTR("fpixd not made", procName, NULL);
+    if (!fpixd)
+        fpixd = fpixCopy(fpixs);
 
     fpixFlipLR(fpixd, fpixd);
     fpixFlipTB(fpixd, fpixd);
@@ -1892,8 +1879,7 @@ FPIX       *fpixd;
 /*!
  * \brief   pixFlipLR()
  *
- * \param[in]    fpixd    [optional] can be null, equal to fpixs,
- *                        or different from fpixs
+ * \param[in]    fpixd    [optional] can be null, or equal to fpixs
  * \param[in]    fpixs
  * \return  fpixd, or NULL on error
  *
@@ -1902,16 +1888,12 @@ FPIX       *fpixd;
  *      (1) This does a left-right flip of the image, which is
  *          equivalent to a rotation out of the plane about a
  *          vertical line through the image center.
- *      (2) There are 3 cases for input:
+ *      (2) There are 2 cases for input:
  *          (a) fpixd == null (creates a new fpixd)
  *          (b) fpixd == fpixs (in-place operation)
- *          (c) fpixd != fpixs (existing fpixd)
- *      (3) For clarity, use these three patterns, respectively:
+ *      (3) For clarity, use these two patterns:
  *          (a) fpixd = fpixFlipLR(NULL, fpixs);
  *          (b) fpixFlipLR(fpixs, fpixs);
- *          (c) fpixFlipLR(fpixd, fpixs);
- *      (4) If an existing fpixd is not the same size as fpixs, the
- *          image data will be reallocated.
  * </pre>
  */
 FPIX *
@@ -1926,12 +1908,11 @@ l_float32  *line, *data, *buffer;
     if (!fpixs)
         return (FPIX *)ERROR_PTR("fpixs not defined", procName, NULL);
 
-    fpixGetDimensions(fpixs, &w, &h);
-
         /* Prepare fpixd for in-place operation */
-    if ((fpixd = fpixCopy(fpixd, fpixs)) == NULL)
-        return (FPIX *)ERROR_PTR("fpixd not made", procName, NULL);
+    if (!fpixd)
+        fpixd = fpixCopy(fpixs);
 
+    fpixGetDimensions(fpixd, &w, &h);
     data = fpixGetData(fpixd);
     wpl = fpixGetWpl(fpixd);  /* 4-byte words */
     bpl = 4 * wpl;
@@ -1953,8 +1934,7 @@ l_float32  *line, *data, *buffer;
 /*!
  * \brief   fpixFlipTB()
  *
- * \param[in]    fpixd    [optional] can be null, equal to fpixs,
- *                        or different from fpixs
+ * \param[in]    fpixd    [optional] can be null, or equal to fpixs
  * \param[in]    fpixs
  * \return  fpixd, or NULL on error
  *
@@ -1963,16 +1943,12 @@ l_float32  *line, *data, *buffer;
  *      (1) This does a top-bottom flip of the image, which is
  *          equivalent to a rotation out of the plane about a
  *          horizontal line through the image center.
- *      (2) There are 3 cases for input:
+ *      (2) There are 2 cases for input:
  *          (a) fpixd == null (creates a new fpixd)
  *          (b) fpixd == fpixs (in-place operation)
- *          (c) fpixd != fpixs (existing fpixd)
- *      (3) For clarity, use these three patterns, respectively:
+ *      (3) For clarity, use these two patterns:
  *          (a) fpixd = fpixFlipTB(NULL, fpixs);
  *          (b) fpixFlipTB(fpixs, fpixs);
- *          (c) fpixFlipTB(fpixd, fpixs);
- *      (4) If an existing fpixd is not the same size as fpixs, the
- *          image data will be reallocated.
  * </pre>
  */
 FPIX *
@@ -1988,8 +1964,8 @@ l_float32  *linet, *lineb, *data, *buffer;
         return (FPIX *)ERROR_PTR("fpixs not defined", procName, NULL);
 
         /* Prepare fpixd for in-place operation */
-    if ((fpixd = fpixCopy(fpixd, fpixs)) == NULL)
-        return (FPIX *)ERROR_PTR("fpixd not made", procName, NULL);
+    if (!fpixd)
+        fpixd = fpixCopy(fpixs);
 
     data = fpixGetData(fpixd);
     wpl = fpixGetWpl(fpixd);
