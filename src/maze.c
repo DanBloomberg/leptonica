@@ -572,16 +572,16 @@ l_uint32  val;
 /*!
  * \brief   pixSearchGrayMaze()
  *
- * \param[in]    pixs 1 bpp, maze
- * \param[in]    xi, yi  beginning point; use same initial point
- *                       that was used to generate the maze
- * \param[in]    xf, yf  end point, or close to it
- * \param[out]   ppixd [optional] maze with path illustrated, or
- *                     if no path possible, the part of the maze
- *                     that was searched
- * \return  pta shortest path, or NULL if either no path
- *              exists or on error
+ * \param[in]    pixs     1 bpp maze; w and h must be >= 50
+ * \param[in]    xi, yi   beginning point; use same initial point
+ *                        that was used to generate the maze
+ * \param[in]    xf, yf   end point, or close to it
+ * \param[out]   ppixd    [optional] maze with path illustrated, or
+ *                        if no path possible, the part of the maze
+ *                        that was searched
+ * \return  pta   shortest path, or NULL if either no path exists or on error
  *
+ * <pre>
  *  Commentary:
  *      Consider first a slight generalization of the binary maze
  *      search problem.  Suppose that you can go through walls,
@@ -721,6 +721,7 @@ l_uint32  val;
  *      after all the pixels of the path have been visited and placed
  *      on the queue, multiple times for many of them.  So that's the
  *      price for not ordering the queue!
+ * </pre>
  */
 PTA *
 pixSearchGrayMaze(PIX     *pixs,
@@ -748,6 +749,8 @@ PTA      *pta;
     if (!pixs)
         return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
+    if (w < 50 || h < 50)
+        return (PTA *)ERROR_PTR("too small: w and h not >= 50", procName, NULL);
     if (d != 8)
         return (PTA *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
     if (xi <= 0 || xi >= w)
