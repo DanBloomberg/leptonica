@@ -86,9 +86,9 @@
  *
  *      Adaptive contrast normalization
  *          PIX             *pixContrastNorm()          8 bpp
- *          l_int32          pixMinMaxTiles()
- *          l_int32          pixSetLowContrast()
- *          PIX             *pixLinearTRCTiled()
+ *          static l_int32   pixMinMaxTiles()
+ *          static l_int32   pixSetLowContrast()
+ *          static PIX      *pixLinearTRCTiled()
  *          static l_int32  *iaaGetLinearTRC()
  *
  *  Background normalization is done by generating a reduced map (or set
@@ -153,6 +153,12 @@ static const l_int32  DefaultBgVal = 200;       /*!< default bg value      */
 static const l_int32  DefaultXSmoothSize = 2;  /*!< default x smooth size */
 static const l_int32  DefaultYSmoothSize = 1;  /*!< default y smooth size */
 
+static l_int32 pixMinMaxTiles(PIX *pixs, l_int32 sx, l_int32 sy,
+                              l_int32 mindiff, l_int32 smoothx, l_int32 smoothy,
+                              PIX **ppixmin, PIX **ppixmax);
+static l_int32 pixSetLowContrast(PIX *pixs1, PIX *pixs2, l_int32 mindiff);
+static PIX *pixLinearTRCTiled(PIX *pixd, PIX *pixs, l_int32 sx, l_int32 sy,
+                              PIX *pixmin, PIX *pixmax);
 static l_int32 *iaaGetLinearTRC(l_int32 **iaa, l_int32 diff);
 
 #ifndef  NO_CONSOLE_IO
@@ -2646,7 +2652,7 @@ PIX  *pixmin, *pixmax;
  *      (2) See pixContrastNorm() for usage.
  * </pre>
  */
-l_ok
+static l_ok
 pixMinMaxTiles(PIX     *pixs,
                l_int32  sx,
                l_int32  sy,
@@ -2737,7 +2743,7 @@ PIX     *pixmin1, *pixmax1, *pixmin2, *pixmax2;
  *          caller should check return value.
  * </pre>
  */
-l_ok
+static l_ok
 pixSetLowContrast(PIX     *pixs1,
                   PIX     *pixs2,
                   l_int32  mindiff)
@@ -2820,7 +2826,7 @@ l_uint32  *data1, *data2, *line1, *line2;
  *          and stored for reuse in an integer array within the ptr array iaa[].
  * </pre>
  */
-PIX *
+static PIX *
 pixLinearTRCTiled(PIX       *pixd,
                   PIX       *pixs,
                   l_int32    sx,

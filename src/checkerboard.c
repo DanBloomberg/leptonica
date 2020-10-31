@@ -32,7 +32,7 @@
  *      PIX            *pixFindCheckerboardCorners()
  *
  *    Generate the hit-miss sels
- *      SELA           *makeCheckerboardCornerSela()
+ *      static SELA    *makeCheckerboardCornerSela()
  *      static PIXA    *makeCheckerboardCornerPixa()
  *
  * The functions in this file locate the corners where four squares
@@ -74,6 +74,9 @@
 
 #include "allheaders.h"
 
+    /* Static helpers */
+static SELA *makeCheckerboardCornerSela(l_int32 size, l_int32 dilation,
+                                        l_int32 nsels, PIXA *pixadb);
 static PIXA *makeCheckerboardCornerPixa(l_int32 size, l_int32 dilation,
                                         l_int32 nsels);
 
@@ -194,7 +197,7 @@ SELA    *sela;
  *      (1) Use 4 sels if the checkerboard may be rotated by more than 20 deg.
  * </pre>
  */
-SELA *
+static SELA *
 makeCheckerboardCornerSela(l_int32  size,
                            l_int32  dilation,
                            l_int32  nsels,
