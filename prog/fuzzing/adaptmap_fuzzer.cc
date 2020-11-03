@@ -63,9 +63,12 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
 	pix1 = pixRead("../test8.jpg");
 	payload_copy = pixCopy(NULL, pixs_payload);
-	pixContrastNorm(payload_copy, pix1, 10, 10, 3, 0, 0);
+	return_pix1 = pixContrastNorm(payload_copy, pix1, 10, 10, 3, 0, 0);
 	pixDestroy(&pix1);
 	pixDestroy(&payload_copy);
+	if(return_pix1!=NULL){
+		pixDestroy(&return_pix1);
+	}
 
 
 	pix1 = pixRead("../test8.jpg");

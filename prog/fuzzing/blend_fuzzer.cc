@@ -45,41 +45,33 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
 
 	pix1 = pixRead("../test8.jpg");
-	pix2 = pixRead("../test8.jpg");
 	pix_copy = pixCopy(NULL, pixs_payload);
-	pixBlendColorByChannel(pix_copy, pix1, pix2, 200, 200, 0.7, 0.8, 0.9, 1, 5);
+	pixBlendColorByChannel(pix_copy, pix_copy, pix1, 200, 200, 0.7, 0.8, 0.9, 1, 5);
 	pixDestroy(&pix1);
-	pixDestroy(&pix2);
 	pixDestroy(&pix_copy);
 
 
 
 	pix1 = pixRead("../test8.jpg");
-	pix2 = pixRead("../test8.jpg");
 	pix_copy = pixCopy(NULL, pixs_payload);
-	pixBlendGrayAdapt(pix_copy, pix1, pix2, 2, 3, 0.8, 1);
+	pixBlendGrayAdapt(pix_copy, pix_copy, pix1, 2, 3, 0.8, 1);
 	pixDestroy(&pix1);
-	pixDestroy(&pix2);
 	pixDestroy(&pix_copy);
 
 
 
 	pix1 = pixRead("../test8.jpg");
-	pix2 = pixRead("../test8.jpg");
 	pix_copy = pixCopy(NULL, pixs_payload);
-	pixBlendGrayInverse(pix_copy, pix1, pix2, 1, 2, 0.7);
+	pixBlendGrayInverse(pix_copy, pix_copy, pix1, 1, 2, 0.7);
 	pixDestroy(&pix1);
-	pixDestroy(&pix2);
 	pixDestroy(&pix_copy);
 
 
 
 	pix1 = pixRead("../test8.jpg");
-	pix2 = pixRead("../test8.jpg");
 	pix_copy = pixCopy(NULL, pixs_payload);
-	pixBlendHardLight(pix_copy, pix1, pix2, 1, 2, 0.8);
+	pixBlendHardLight(pix_copy, pix_copy, pix1, 1, 2, 0.8);
 	pixDestroy(&pix1);
-	pixDestroy(&pix2);
 	pixDestroy(&pix_copy);
 
 
@@ -99,10 +91,8 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	pixDestroy(&pix_copy);
 
 
-	pix1 = pixRead("../test8.jpg");
 	pix_copy = pixCopy(NULL, pixs_payload);
-	pixMultiplyByColor(pix_copy, pix1, NULL, 2);
-	pixDestroy(&pix1);
+	pixMultiplyByColor(pix_copy, pix_copy, NULL, 2);
 	pixDestroy(&pix_copy);
 
 
