@@ -22,14 +22,20 @@ SUBDIRS = src prog
 LIB_FUZZING_ENGINE ?= -fsanitize=fuzzer
 
 FUZZERS :=
+FUZZERS += adaptmap_fuzzer
+FUZZERS += affine_fuzzer
 FUZZERS += barcode_fuzzer
 FUZZERS += baseline_fuzzer
+FUZZERS += bilateral_fuzzer
+FUZZERS += binarize_fuzzer
 FUZZERS += blend_fuzzer
 FUZZERS += boxfunc_fuzzer
 FUZZERS += boxfunc3_fuzzer
 FUZZERS += boxfunc4_fuzzer
 FUZZERS += boxfunc5_fuzzer
 FUZZERS += ccbord_fuzzer
+FUZZERS += checkerboard_fuzzer
+FUZZERS += classapp_fuzzer
 FUZZERS += colorfill_fuzzer
 FUZZERS += colorquant_fuzzer
 FUZZERS += compare_fuzzer

@@ -104,6 +104,17 @@ for f in $SRC/leptonica/prog/fuzzing/*_fuzzer.cc; do
     $LIB_FUZZING_ENGINE
 done
 
+
+cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/adaptmap_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/affine_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/baseline_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/bilateral_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/bilinear_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/binarize_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/blend_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/checkerboard_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/classapp_fuzzer_seed_corpus.zip
+
 cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/pix_rotate_shear_fuzzer_seed_corpus.zip
 cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/enhance_fuzzer_seed_corpus.zip
 cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/colorquant_fuzzer_seed_corpus.zip

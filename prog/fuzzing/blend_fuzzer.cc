@@ -1,27 +1,110 @@
 #include "leptfuzz.h"
 
 extern "C" int
-LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
-{
-    if(size<3) return 0;
+LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) { 
+	if(size<3) return 0;
 
-    leptSetStdNullHandler();
+	leptSetStdNullHandler();
 
-    PIX *pixs1, *pixs2, *pix1;
 
-    pixs1 = pixReadMemSpix(data, size);
-    if(pixs1==NULL) return 0;
-    pixs2 = pixReadMemSpix(&data[1], size);
-    if(pixs2==NULL){
-        pixDestroy(&pixs1);
-        return 0;
-    }
-    
-    pix1 = pixBlend(pixs1, pixs2, 140, 40, 2);
+	PIX *pixs_payload = pixReadMemSpix(data, size);
+	if(pixs_payload == NULL) return 0;
 
-    pixDestroy(&pix1);
-    pixDestroy(&pixs1);
-    pixDestroy(&pixs2);
+	PIX *pix1, *pix2, *return_pix, *pix_copy;
 
-    return 0;
+	pix1 = pixRead("../test8.jpg");
+	pix_copy = pixCopy(NULL, pixs_payload);
+	return_pix = pixBlend(pix_copy, pix1, 140, 40, 2);
+	pixDestroy(&pix_copy);
+	pixDestroy(&pix1);
+	if(return_pix!=NULL) {
+		pixDestroy(&return_pix);
+	}
+
+	pix_copy = pixCopy(NULL, pixs_payload);
+	return_pix = pixAddAlphaToBlend(pix_copy, 1.2, 1);
+	pixDestroy(&pix_copy);
+	if(return_pix!=NULL) {
+		pixDestroy(&return_pix);
+	}
+
+
+	pix1 = pixRead("../test8.jpg");
+	BOX *box1 = boxCreate(150, 130, 1500, 355);
+	pix_copy = pixCopy(NULL, pixs_payload);
+	pixBlendBackgroundToColor(pix_copy, pix1, box1, 123, 1.0, 5, 12);
+	pixDestroy(&pix1);
+	boxDestroy(&box1);
+	pixDestroy(&pix_copy);
+
+	pix1 = pixRead("../test8.jpg");
+	pix_copy = pixCopy(NULL, pixs_payload);
+	pixBlendCmap(pix_copy, pix1, 2, 3, 4);
+	pixDestroy(&pix1);
+	pixDestroy(&pix_copy);
+
+
+	pix1 = pixRead("../test8.jpg");
+	pix_copy = pixCopy(NULL, pixs_payload);
+	pixBlendColorByChannel(pix_copy, pix_copy, pix1, 200, 200, 0.7, 0.8, 0.9, 1, 5);
+	pixDestroy(&pix1);
+	pixDestroy(&pix_copy);
+
+
+
+	pix1 = pixRead("../test8.jpg");
+	pix_copy = pixCopy(NULL, pixs_payload);
+	pixBlendGrayAdapt(pix_copy, pix_copy, pix1, 2, 3, 0.8, 1);
+	pixDestroy(&pix1);
+	pixDestroy(&pix_copy);
+
+
+
+	pix1 = pixRead("../test8.jpg");
+	pix_copy = pixCopy(NULL, pixs_payload);
+	pixBlendGrayInverse(pix_copy, pix_copy, pix1, 1, 2, 0.7);
+	pixDestroy(&pix1);
+	pixDestroy(&pix_copy);
+
+
+
+	pix1 = pixRead("../test8.jpg");
+	pix_copy = pixCopy(NULL, pixs_payload);
+	pixBlendHardLight(pix_copy, pix_copy, pix1, 1, 2, 0.8);
+	pixDestroy(&pix1);
+	pixDestroy(&pix_copy);
+
+
+
+	pix1 = pixRead("../test8.jpg");
+	pix_copy = pixCopy(NULL, pixs_payload);
+	return_pix = pixFadeWithGray(pix_copy, pix1, 1.0, L_BLEND_TO_WHITE);
+	pixDestroy(&pix1);
+	pixDestroy(&pix_copy);
+	if(return_pix!=NULL) {
+		pixDestroy(&return_pix);
+	}
+
+
+	pix_copy = pixCopy(NULL, pixs_payload);
+	pixLinearEdgeFade(pix_copy, L_FROM_LEFT, L_BLEND_TO_WHITE, 1.0, 0.8);
+	pixDestroy(&pix_copy);
+
+
+	pix_copy = pixCopy(NULL, pixs_payload);
+	pixMultiplyByColor(pix_copy, pix_copy, NULL, 2);
+	pixDestroy(&pix_copy);
+
+
+	pix_copy = pixCopy(NULL, pixs_payload);
+	return_pix = pixSetAlphaOverWhite(pix_copy);
+	pixDestroy(&pix_copy);
+	if(return_pix!=NULL) {
+		pixDestroy(&return_pix);
+	}
+
+	pixDestroy(&pixs_payload);
+
+
+	return 0;
 }
