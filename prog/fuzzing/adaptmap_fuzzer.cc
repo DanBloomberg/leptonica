@@ -19,15 +19,12 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	pixDestroy(&pix2);
 	pixDestroy(&payload_copy);
 
-
-
 	pix1 = pixRead("../test8.jpg");
 	payload_copy = pixCopy(NULL, pixs_payload);
 	pixBackgroundNormGrayArrayMorph(payload_copy, pix1, 6, 5, 256, &pix2);
 	pixDestroy(&pix1);
 	pixDestroy(&pix2);
 	pixDestroy(&payload_copy);
-
 
 	pix1 = pixRead("../test8.jpg");
 	payload_copy = pixCopy(NULL, pixs_payload);
@@ -37,7 +34,6 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	if(return_pix1!=NULL){
 		pixDestroy(&return_pix1);
 	}
-
 
 	pix1 = pixRead("../test8.jpg");
 	pix2 = pixRead("../test8.jpg");
@@ -50,7 +46,6 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	pixDestroy(&pix5);
 	pixDestroy(&payload_copy);
 
-
 	pix1 = pixRead("../test8.jpg");
 	payload_copy = pixCopy(NULL, pixs_payload);
 	pixBackgroundNormRGBArraysMorph(payload_copy, pix1, 6, 33, 130, &pix2, &pix3, &pix4);
@@ -60,13 +55,9 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	pixDestroy(&pix4);
 	pixDestroy(&payload_copy);
 
-
-	pix1 = pixRead("../test8.jpg");
 	payload_copy = pixCopy(NULL, pixs_payload);
 	pixContrastNorm(payload_copy, payload_copy, 10, 10, 3, 0, 0);
-	pixDestroy(&pix1);
 	pixDestroy(&payload_copy);
-
 
 	pix1 = pixRead("../test8.jpg");
 	payload_copy = pixCopy(NULL, pixs_payload);
@@ -77,7 +68,6 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 		pixDestroy(&return_pix1);
 	}
 
-
 	payload_copy = pixCopy(NULL, pixs_payload);
 	pixThresholdSpreadNorm(payload_copy, L_SOBEL_EDGE, 10, 0, 0, 0.7, -25, 255, 10, &pix1, &pix2, &pix3);
 	pixDestroy(&pix1);
@@ -86,7 +76,5 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	pixDestroy(&payload_copy);
 
 	pixDestroy(&pixs_payload);
-
-
 	return 0;
 }

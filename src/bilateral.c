@@ -319,6 +319,10 @@ PIXA         *pixac;
         pixt = pixScaleAreaMap2(pixt2);
         pixDestroy(&pixt2);
     }
+    if (!pixt) {
+        bilateralDestroy(&bil);
+        return (L_BILATERAL *)ERROR_PTR("pixt not made", procName, NULL);
+    }
 
     pixGetExtremeValue(pixt, 1, L_SELECT_MIN, NULL, NULL, NULL, &minval);
     pixGetExtremeValue(pixt, 1, L_SELECT_MAX, NULL, NULL, NULL, &maxval);
@@ -327,8 +331,12 @@ PIXA         *pixac;
 
     border = (l_int32)(2 * sstdev + 1);
     pixsc = pixAddMirroredBorder(pixt, border, border, border, border);
-    bil->pixsc = pixsc;
     pixDestroy(&pixt);
+    if (!pixsc) {
+        bilateralDestroy(&bil);
+        return (L_BILATERAL *)ERROR_PTR("pixsc not made", procName, NULL);
+    }
+    bil->pixsc = pixsc;
     bil->pixs = pixClone(pixs);
 
 
