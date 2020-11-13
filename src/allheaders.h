@@ -2693,6 +2693,7 @@ LEPT_DLL extern l_ok l_binaryCompare ( const l_uint8 *data1, size_t size1, const
 LEPT_DLL extern l_ok fileCopy ( const char *srcfile, const char *newfile );
 LEPT_DLL extern l_ok fileConcatenate ( const char *srcfile, const char *destfile );
 LEPT_DLL extern l_ok fileAppendString ( const char *filename, const char *str );
+LEPT_DLL extern l_ok fileSplitLinesUniform ( const char *filename, l_int32 n, l_int32 save_empty, const char *rootpath, const char *ext );
 LEPT_DLL extern FILE * fopenReadStream ( const char *filename );
 LEPT_DLL extern FILE * fopenWriteStream ( const char *filename, const char *modestring );
 LEPT_DLL extern FILE * fopenReadFromMemory ( const l_uint8 *data, size_t size );

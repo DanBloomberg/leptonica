@@ -148,6 +148,9 @@ static void bilateralDestroy(L_BILATERAL **pbil);
  *          range_stdev = 60, ncomps = 6, and spatial_dev = {10, 30, 50}.
  *          As spatial_dev gets larger, we get the counter-intuitive
  *          result that the body of the red fish becomes less blurry.
+ *      (8) The image must be sufficiently big to get reasonable results.
+ *          This requires the dimensions to be at least twice the filter size.
+ *          Otherwise, return a copy of the input with warning.
  * </pre>
  */
 PIX *
@@ -157,7 +160,7 @@ pixBilateral(PIX       *pixs,
              l_int32    ncomps,
              l_int32    reduction)
 {
-l_int32       d;
+l_int32       w, h, d, filtersize;
 l_float32     sstdev;  /* scaled spatial stdev */
 PIX          *pixt, *pixr, *pixg, *pixb, *pixd;
 
@@ -165,11 +168,17 @@ PIX          *pixt, *pixr, *pixg, *pixb, *pixd;
 
     if (!pixs || pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("pixs not defined or cmapped", procName, NULL);
-    d = pixGetDepth(pixs);
+    pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 && d != 32)
         return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
     if (reduction != 1 && reduction != 2 && reduction != 4)
         return (PIX *)ERROR_PTR("reduction invalid", procName, NULL);
+    filtersize = (l_int32)(2.0 * spatial_stdev + 1.0 + 0.5);
+    if (w < 2 * filtersize || h < 2 * filtersize) {
+        L_WARNING("w = %d or h = %d < 2 * filtersize = %d; "
+                  "returning copy\n", procName, w, h, 2 * filtersize);
+        return pixCopy(NULL, pixs);
+    }
     sstdev = spatial_stdev / (l_float32)reduction;  /* reduced spat. stdev */
     if (sstdev < 0.5)
         return (PIX *)ERROR_PTR("sstdev < 0.5", procName, NULL);
@@ -381,7 +390,7 @@ PIXA         *pixac;
     /* -------------------------------------------------------------------- *
      *             Generate 1-D kernel arrays (spatial and range)           *
      * -------------------------------------------------------------------- */
-    spatial_size = 2 * sstdev + 1;
+    spatial_size = 2 * sstdev + 1;  /* same as the added border */
     spatial = (l_float32 *)LEPT_CALLOC(spatial_size, sizeof(l_float32));
     denom = 2. * sstdev * sstdev;
     for (i = 0; i < spatial_size; i++)
@@ -638,7 +647,7 @@ pixBilateralGrayExact(PIX       *pixs,
                       L_KERNEL  *spatial_kel,
                       L_KERNEL  *range_kel)
 {
-l_int32    i, j, id, jd, k, m, w, h, d, sx, sy, cx, cy, wplt, wpld;
+l_int32    i, j, id, jd, k, m, w, h, d, sx, sy, smax, cx, cy, wplt, wpld;
 l_int32    val, center_val;
 l_uint32  *datat, *datad, *linet, *lined;
 l_float32  sum, weight_sum, weight;
@@ -654,9 +663,15 @@ PIX       *pixt, *pixd;
     pixGetDimensions(pixs, &w, &h, &d);
     if (!spatial_kel)
         return (PIX *)ERROR_PTR("spatial kel not defined", procName, NULL);
-
+    kernelGetParameters(spatial_kel, &sy, &sx, NULL, NULL);
+    smax = L_MAX(sx, sy);
+    if (w < 2 * smax + 1 || h < 2 * smax + 1) {
+        L_WARNING("w = %d or h = %d < 2 * smax + 1 = %d; returning copy\n",
+                  procName, w, h, 2 * smax + 1);
+        return pixCopy(NULL, pixs);
+    }
     if (!range_kel)
-      return pixConvolve(pixs, spatial_kel, 8, 1);
+        return pixConvolve(pixs, spatial_kel, 8, 1);
     if (range_kel->sx != 256 || range_kel->sy != 1)
         return (PIX *)ERROR_PTR("range kel not {256 x 1", procName, NULL);
 
