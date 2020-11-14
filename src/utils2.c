@@ -1827,6 +1827,10 @@ FILE  *fp;
  *               <rootpath>_N.<ext>, N = 1, ... n
  *      (4) This handles the temp directory pathname conversion on windows:
  *              /tmp  ==>  [Windows Temp directory]
+ *      (5) Files can also be sharded into sets of lines by the program 'split':
+ *              split -n l/<n> <filename>
+ *          Using 'split', the resulting files have approximately equal
+ *          numbers of bytes, rather than equal numbers of lines.
  * </pre>
  */
 l_ok

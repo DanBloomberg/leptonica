@@ -878,8 +878,8 @@ PIXA     *pixan;
         }
         y += maxh + spacing;
     }
-    boxaWriteMem(&data, &size, boxa);
-    pixSetText(pixd, (char *)data);  /* data is ascii */
+    if (boxaWriteMem(&data, &size, boxa) == 0)
+        pixSetText(pixd, (char *)data);  /* data is ascii */
     LEPT_FREE(data);
     boxaDestroy(&boxa);
 
@@ -1007,8 +1007,8 @@ PIXA     *pixa1, *pixa2;
     pixSetResolution(pixd, res, res);
 
         /* Save the boxa in the text field of the output pix */
-    boxaWriteMem(&data, &size, boxa);
-    pixSetText(pixd, (char *)data);  /* data is ascii */
+    if (boxaWriteMem(&data, &size, boxa) == 0)
+        pixSetText(pixd, (char *)data);  /* data is ascii */
     LEPT_FREE(data);
 
     pixaDestroy(&pixa2);

@@ -175,7 +175,7 @@ PIX          *pixt, *pixr, *pixg, *pixb, *pixd;
         return (PIX *)ERROR_PTR("reduction invalid", procName, NULL);
     filtersize = (l_int32)(2.0 * spatial_stdev + 1.0 + 0.5);
     if (w < 2 * filtersize || h < 2 * filtersize) {
-        L_WARNING("w = %d or h = %d < 2 * filtersize = %d; "
+        L_WARNING("w = %d, h = %d; w or h < 2 * filtersize = %d; "
                   "returning copy\n", procName, w, h, 2 * filtersize);
         return pixCopy(NULL, pixs);
     }
@@ -647,7 +647,7 @@ pixBilateralGrayExact(PIX       *pixs,
                       L_KERNEL  *spatial_kel,
                       L_KERNEL  *range_kel)
 {
-l_int32    i, j, id, jd, k, m, w, h, d, sx, sy, smax, cx, cy, wplt, wpld;
+l_int32    i, j, id, jd, k, m, w, h, d, sx, sy, cx, cy, wplt, wpld;
 l_int32    val, center_val;
 l_uint32  *datat, *datad, *linet, *lined;
 l_float32  sum, weight_sum, weight;
@@ -664,10 +664,9 @@ PIX       *pixt, *pixd;
     if (!spatial_kel)
         return (PIX *)ERROR_PTR("spatial kel not defined", procName, NULL);
     kernelGetParameters(spatial_kel, &sy, &sx, NULL, NULL);
-    smax = L_MAX(sx, sy);
-    if (w < 2 * smax + 1 || h < 2 * smax + 1) {
-        L_WARNING("w = %d or h = %d < 2 * smax + 1 = %d; returning copy\n",
-                  procName, w, h, 2 * smax + 1);
+    if (w < 2 * sx + 1 || h < 2 * sy + 1) {
+        L_WARNING("w = %d < 2 * sx + 1 = %d, or h = %d < 2 * sy + 1 = %d; "
+                  "returning copy\n", procName, w, 2 * sx + 1, h, 2 * sy + 1);
         return pixCopy(NULL, pixs);
     }
     if (!range_kel)
