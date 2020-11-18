@@ -432,7 +432,10 @@ PIXA         *pixac;
                     sum += kern * nval;
                     norm += kern;
                 }
-                dval = (l_int32)((sum / norm) + 0.5);
+                if (norm > 0.0)
+                    dval = (l_int32)((sum / norm) + 0.5);
+                else
+                    dval = GET_DATA_BYTE(lines, border + j);
                 SET_DATA_BYTE(linet, border + j, dval);
             }
         }
@@ -452,7 +455,10 @@ PIXA         *pixac;
                     sum += kern * nval;
                     norm += kern;
                 }
-                dval = (l_int32)((sum / norm) + 0.5);
+                if (norm > 0.0)
+                    dval = (l_int32)((sum / norm) + 0.5);
+                else
+                    dval = GET_DATA_BYTE(linet, border + j);
                 SET_DATA_BYTE(lined, j, dval);
             }
         }
