@@ -878,13 +878,16 @@ projectiveXformSampledPt(l_float32  *vc,
                          l_int32    *pyp)
 {
 l_float32  factor;
+l_float64  denom;
 
     PROCNAME("projectiveXformSampledPt");
 
     if (!vc)
         return ERROR_INT("vc not defined", procName, 1);
 
-    factor = 1. / (vc[6] * x + vc[7] * y + 1.);
+    if ((denom = vc[6] * x + vc[7] * y + 1.0) == 0.0)
+        return ERROR_INT("denom = 0.0", procName, 1);
+    factor = 1.0 / denom;
     *pxp = (l_int32)(factor * (vc[0] * x + vc[1] * y + vc[2]) + 0.5);
     *pyp = (l_int32)(factor * (vc[3] * x + vc[4] * y + vc[5]) + 0.5);
     return 0;
@@ -913,13 +916,16 @@ projectiveXformPt(l_float32  *vc,
                   l_float32  *pyp)
 {
 l_float32  factor;
+l_float64  denom;
 
     PROCNAME("projectiveXformPt");
 
     if (!vc)
         return ERROR_INT("vc not defined", procName, 1);
 
-    factor = 1. / (vc[6] * x + vc[7] * y + 1.);
+    if ((denom = vc[6] * x + vc[7] * y + 1.0) == 0.0)
+        return ERROR_INT("denom = 0.0", procName, 1);
+    factor = 1.0 / denom;
     *pxp = factor * (vc[0] * x + vc[1] * y + vc[2]);
     *pyp = factor * (vc[3] * x + vc[4] * y + vc[5]);
     return 0;
