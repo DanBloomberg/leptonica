@@ -103,12 +103,14 @@
  *    can extract just the 8 bpp luminance channel, using pixReadJpeg(),
  *    where you use L_JPEG_READ_LUMINANCE for the %hint arg.
  *
- *    How to fail to read if the data is corrupted
- *    ---------------------------------------------
- *    By default, if the low-level jpeg library functions do not abort,
- *    a pix will be returned, even if the data is corrupted and warnings
- *    are issued.  In order to be most likely to fail to read when there
- *    is data corruption, use L_JPEG_FAIL_ON_BAD_DATA in the %hint arg.
+ *    How to continue to read if the data is corrupted
+ *    ------------------------------------------------
+ *    By default, if data is corrupted we make every effort to fail
+ *    to return a pix.  (Failure is not always possible with bad
+ *    data, because in some situations, such as during arithmetic
+ *    decoding, the low-level jpeg library will not abort or raise
+ *    a warning.)  To attempt to ignore warnings and get a pix when data
+ *    is corrupted, use L_JPEG_CONTINUE_WITH_BAD_DATA in the %hint arg.
  *
  *    Compressing to memory and decompressing from memory
  *    ---------------------------------------------------
