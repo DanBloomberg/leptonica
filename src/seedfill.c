@@ -861,10 +861,8 @@ PIXA      *pixa;
 
     if (!pixs || pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
-    if (maxhfract < 0.0) maxhfract = 0.0;
-    if (maxhfract > 1.0) maxhfract = 1.0;
-    if (minfgfract < 0.0) minfgfract = 0.0;
-    if (minfgfract > 1.0) minfgfract = 1.0;
+    maxhfract = L_MIN(L_MAX(maxhfract, 0.0), 1.0);
+    minfgfract = L_MIN(L_MAX(minfgfract, 0.0), 1.0);
 
     pixd = pixCopy(NULL, pixs);
     boxa = pixConnComp(pixd, &pixa, 8);
