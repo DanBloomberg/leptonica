@@ -824,21 +824,23 @@ PIX  *pixd;
  * <pre>
  * Notes:
  *      (1) This does not fill holes that are smaller in area than 'minsize'.
+ *          Use %minsize = 0 and %maxhfract = 1.0 to fill all holes.
  *      (2) This does not fill holes with an area larger than
- *          'maxhfract' times the fg area of the c.c.
+ *          %maxhfract times the fg area of the c.c.
+ *          Use 1.0 to fill all holes.
  *      (3) This does not expand the fg of the c.c. to bounding rect if
- *          the fg area is less than 'minfgfract' times the area of the
- *          bounding rect.
+ *          the fg area is less than %minfgfract times the area of the
+ *          bounding rect.  Use 1.0 to skip expanding to the bounding rect.
  *      (4) The decisions are made as follows:
  *           ~ Decide if we are filling the holes; if so, when using
  *             the fg area, include the filled holes.
  *           ~ Decide based on the fg area if we are filling to a bounding rect.
  *             If so, do it.
  *             If not, fill the holes if the condition is satisfied.
- *      (5) The choice of minsize depends on the resolution.
+ *      (5) The choice of %minsize depends on the resolution.
  *      (6) For solidifying image mask regions on printed materials,
- *          which tend to be rectangular, values for maxhfract
- *          and minfgfract around 0.5 are reasonable.
+ *          which tend to be rectangular, values for %maxhfract
+ *          and %minfgfract around 0.5 are reasonable.
  * </pre>
  */
 PIX *
@@ -859,6 +861,10 @@ PIXA      *pixa;
 
     if (!pixs || pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+    if (maxhfract < 0.0) maxhfract = 0.0;
+    if (maxhfract > 1.0) maxhfract = 1.0;
+    if (minfgfract < 0.0) minfgfract = 0.0;
+    if (minfgfract > 1.0) minfgfract = 1.0;
 
     pixd = pixCopy(NULL, pixs);
     boxa = pixConnComp(pixd, &pixa, 8);
@@ -890,7 +896,6 @@ PIXA      *pixa;
     boxaDestroy(&boxa);
     pixaDestroy(&pixa);
     LEPT_FREE(tab);
-
     return pixd;
 }
 

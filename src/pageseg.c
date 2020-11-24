@@ -2411,55 +2411,62 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5;
         return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
     if (pixadb) pixaAddPix(pixadb, pix1, L_COPY);
 
-        /* Make the halftone mask to identify region for photo-inversion */
+        /* Identify regions for photo-inversion:
+         * (1) Start with the halftone mask.
+         * (2) Eliminate ordinary text and halftones in the mask.
+         * (3) Some regions of inverted text may have been removed in
+         *     steps (1) and (2).  Conditionally fill holes in the mask,
+         *     but do not fill out to the bounding rect. */
     pix2 = pixGenerateHalftoneMask(pix1, NULL, NULL, pixadb);
-    pix3 = pixMorphSequence(pix2, "o15.15 + c25.25", 0);  /* clean it up */
+    pix3 = pixMorphSequence(pix2, "o15.15 + c25.25", 0);  /* remove noise */
+    pix4 = pixFillHolesToBoundingRect(pix3, 1, 0.5, 1.0);
     if (pixadb) {
         pixaAddPix(pixadb, pix2, L_CLONE);
-        pixaAddPix(pixadb, pix3, L_COPY);
+        pixaAddPix(pixadb, pix3, L_CLONE);
+        pixaAddPix(pixadb, pix4, L_COPY);
     }
     pixDestroy(&pix2);
-    pixZero(pix3, &empty);
+    pixDestroy(&pix3);
+    pixZero(pix4, &empty);
     if (empty) {
-        pixDestroy(&pix3);
+        pixDestroy(&pix4);
         return pix1;
     }
 
         /* Examine each component and validate the inversion.
          * Require at least 60% of pixels under each component to be FG. */
-    boxa1 = pixConnCompBB(pix3, 8);
+    boxa1 = pixConnCompBB(pix4, 8);
     n = boxaGetCount(boxa1);
     for (i = 0; i < n; i++) {
         box1 = boxaGetBox(boxa1, i, L_COPY);
         pix5 = pixClipRectangle(pix1, box1, NULL);
         pixForegroundFraction(pix5, &fgfract);
         if (pixadb) lept_stderr("fg fraction: %5.3f\n", fgfract);
-        if (fgfract < 0.6) {  /* erase from the mask */
-            boxGetGeometry(box1, &x, &y, &w, &h);
-            pixRasterop(pix3, x, y, w, h, PIX_CLR, NULL, 0, 0);
-        }
+        boxGetGeometry(box1, &x, &y, &w, &h);
+        if (fgfract < 0.6)  /* erase from the mask */
+            pixRasterop(pix4, x, y, w, h, PIX_CLR, NULL, 0, 0);
         pixDestroy(&pix5);
         boxDestroy(&box1);
     }
     boxaDestroy(&boxa1);
-    pixZero(pix3, &empty);
+    pixZero(pix4, &empty);
     if (empty) {
-        pixDestroy(&pix3);
+        pixDestroy(&pix4);
         return pix1;
     }
 
         /* Combine pixels of the photo-inverted pix with the binarized input */
-    pix4 = pixInvert(NULL, pix1);
-    pixCombineMasked(pix1, pix4, pix3);
+    pix5 = pixInvert(NULL, pix1);
+    pixCombineMasked(pix1, pix5, pix4);
 
     if (pixadb) {
-        pixaAddPix(pixadb, pix4, L_CLONE);
+        pixaAddPix(pixadb, pix5, L_CLONE);
         pixaAddPix(pixadb, pix1, L_COPY);
     }
-    pixDestroy(&pix4);
+    pixDestroy(&pix5);
     if (ppixm)
-        *ppixm = pix3;
+        *ppixm = pix4;
     else
-        pixDestroy(&pix3);
+        pixDestroy(&pix4);
     return pix1;
 }

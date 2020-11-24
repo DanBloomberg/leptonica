@@ -76,6 +76,7 @@ L_REGPARAMS  *rp;
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
+#if 1
         /* Test the generic page segmentation */
     pixs = pixRead("pageseg1.tif");
     pixadb = pixaCreate(0);
@@ -194,8 +195,9 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixaDestroy(&pixadb);
+#endif
 
-        /* Test auto-inversion of text */
+        /* Tests of auto-inversion of text */
     pix1 = pixRead("zanotti-78.jpg");
     pix2 = pixConvertRGBToLuminance(pix1);
     pixadb = pixaCreate(0);
@@ -206,11 +208,11 @@ L_REGPARAMS  *rp;
     pixRasterop(pix2, 0.6 * w, 0.5 * h, 0.2 * w, 0.15 * h, PIX_NOT(PIX_DST),
                 NULL, 0, 0);
     pix3 = pixAutoPhotoinvert(pix2, 128, &pix4, pixadb);
-    pix5 = pixaDisplayTiledInColumns(pixadb, 3, 0.5, 20, 2);
+    pix5 = pixaDisplayTiledInColumns(pixadb, 5, 0.3, 20, 2);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 31 */
     regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 32 */
     regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 33 */
-    pixDisplayWithTitle(pix5, 1750, 0, NULL, rp->display);
+    pixDisplayWithTitle(pix5, 1750, 200, NULL, rp->display);
     pixaDestroy(&pixadb);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
@@ -218,5 +220,18 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix4);
     pixDestroy(&pix5);
 
+    pix1 = pixRead("invertedtext.tif");
+    pixadb = pixaCreate(0);
+    pixaAddPix(pixadb, pix1, L_COPY);
+    pix2 = pixAutoPhotoinvert(pix1, 128, &pix3, pixadb);
+    pix4 = pixaDisplayTiledInColumns(pixadb, 5, 1.0, 20, 2);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 34 */
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 35 */
+    regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 36 */
+    pixDisplayWithTitle(pix4, 1750, 0, NULL, rp->display);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
     return regTestCleanup(rp);
 }
