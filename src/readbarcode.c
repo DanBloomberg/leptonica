@@ -883,7 +883,7 @@ NUMA      *naerange, *naorange, *naelut, *naolut, *nad;
     PROCNAME("numaQuantizeCrossingsByWidth");
 
     if (pnaehist) *pnaehist = NULL;
-    if (pnaohist) *pnaehist = NULL;
+    if (pnaohist) *pnaohist = NULL;
     if (!nas)
         return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
     n = numaGetCount(nas);
