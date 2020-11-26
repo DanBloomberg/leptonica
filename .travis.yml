@@ -5,6 +5,7 @@ notifications:
   
 sudo: required
 dist: trusty
+osx_image: xcode12.2
 
 os:
   - linux
