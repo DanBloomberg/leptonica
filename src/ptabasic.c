@@ -1057,8 +1057,10 @@ PTA     *ptac;
 
     n = ptaaGetCount(ptaa);
     if (n >= ptaa->nalloc) {
-        if (ptaaExtendArray(ptaa))
+        if (ptaaExtendArray(ptaa)) {
+            ptaDestroy(&ptac);
             return ERROR_INT("extension failed", procName, 1);
+        }
     }
 
     ptaa->pta[n] = ptac;

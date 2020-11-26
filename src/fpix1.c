@@ -779,8 +779,10 @@ FPIX    *fpixc;
 
     n = fpixaGetCount(fpixa);
     if (n >= fpixa->nalloc) {
-        if (fpixaExtendArray(fpixa))
+        if (fpixaExtendArray(fpixa)) {
+            fpixDestroy(&fpixc);
             return ERROR_INT("extension failed", procName, 1);
+        }
     }
     fpixa->fpix[n] = fpixc;
     fpixa->n++;

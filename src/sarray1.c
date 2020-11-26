@@ -1884,7 +1884,7 @@ SARRAY *
 getFilenamesInDirectory(const char  *dirname)
 {
 char            dir[PATH_MAX + 1];
-char           *realdir, *stat_path;
+char           *realdir, *stat_path, *ignore;
 size_t          size;
 SARRAY         *safiles;
 DIR            *pdir;
@@ -1913,7 +1913,7 @@ struct stat     st;
            directory path was made.  The existence of the directory is checked
            later, after its actual path is returned by genPathname().  */
     dir[0] = '\0';  /* init empty in case realpath() fails to write it */
-    realpath(dirname, dir);
+    ignore = realpath(dirname, dir);
     if (dir[0] == '\0')
         return (SARRAY *)ERROR_PTR("dir not made", procName, NULL);
     realdir = genPathname(dir, NULL);

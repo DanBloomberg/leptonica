@@ -1567,8 +1567,10 @@ NUMA    *nac;
 
     n = numaaGetCount(naa);
     if (n >= naa->nalloc) {
-        if (numaaExtendArray(naa))
+        if (numaaExtendArray(naa)) {
+            numaDestroy(&nac);
             return ERROR_INT("extension failed", procName, 1);
+        }
     }
     naa->numa[n] = nac;
     naa->n++;

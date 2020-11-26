@@ -1473,6 +1473,10 @@ PIX        *pixd;
             max = L_MAX(max, (word >> 8) & 0xff);
         }
     }
+    if (max == 0) {
+        L_WARNING("max = 0; setting to 1\n", procName);
+        max = 1;
+    }
 
         /* Map to the full dynamic range */
     if (type == L_LINEAR_SCALE) {
