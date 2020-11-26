@@ -2579,8 +2579,11 @@ PIX      *pixi, *pixd;
     pixGetDimensions(pixs, &w, &h, NULL);
     xstart = (l_int32 *)LEPT_CALLOC(L_MAX(1, w / 2), sizeof(l_int32));
     xend = (l_int32 *)LEPT_CALLOC(L_MAX(1, w / 2), sizeof(l_int32));
-    if (!xstart)
+    if (!xstart || !xend) {
+        LEPT_FREE(xstart);
+        LEPT_FREE(xend);
         return (PIX *)ERROR_PTR("xstart and xend not made", procName, NULL);
+    }
 
         /* Find a raster with 2 or more black runs.  The first background
          * pixel after the end of the first run is likely to be inside
