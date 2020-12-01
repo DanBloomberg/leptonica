@@ -71,7 +71,7 @@ static const l_int32  RESOLUTION = 300;
 l_int32 main(int    argc,
              char **argv)
 {
-char         buf[256], rootname[256];
+char         buf[512], rootname[256];
 char        *dir, *pattern, *psdir, *imagedir;
 char        *fname, *tail, *filename;
 l_int32      i, n, ret;

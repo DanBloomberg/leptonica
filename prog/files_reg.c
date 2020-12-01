@@ -258,7 +258,7 @@ void TestGenPathname(L_REGPARAMS  *rp,
                      const char   *fname,
                      const char   *result)
 {
-char  expect[256], localdir[256];
+char  expect[512], localdir[256];
 
     char *path = genPathname(dir, fname);
     if (!dir || dir[0] == '\0') {
