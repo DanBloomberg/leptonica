@@ -530,8 +530,10 @@ PIX     *pixc;
 
     n = pixaGetCount(pixa);
     if (n >= pixa->nalloc) {
-        if (pixaExtendArray(pixa))
+        if (pixaExtendArray(pixa)) {
+            pixDestroy(&pixc);
             return ERROR_INT("extension failed", procName, 1);
+        }
     }
 
     pixa->pix[n] = pixc;
@@ -2016,8 +2018,10 @@ PIXA    *pixac;
 
     n = pixaaGetCount(paa, NULL);
     if (n >= paa->nalloc) {
-        if (pixaaExtendArray(paa))
+        if (pixaaExtendArray(paa)) {
+            pixaDestroy(&pixac);
             return ERROR_INT("extension failed", procName, 1);
+        }
     }
     paa->pixa[n] = pixac;
     paa->n++;
