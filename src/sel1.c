@@ -601,7 +601,8 @@ SEL     *csel;
     n = selaGetCount(sela);
     if (n >= sela->nalloc) {
         if (selaExtendArray(sela)) {
-            selDestroy(&csel);
+            if (copyflag != L_INSERT)
+                selDestroy(&csel);
             return ERROR_INT("extension failed", procName, 1);
         }
     }
