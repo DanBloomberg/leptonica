@@ -645,7 +645,8 @@ BOX     *boxc;
     n = boxaGetCount(boxa);
     if (n >= boxa->nalloc) {
         if (boxaExtendArray(boxa)) {
-            boxDestroy(&boxc);
+            if (copyflag != L_INSERT)
+                boxDestroy(&boxc);
             return ERROR_INT("extension failed", procName, 1);
         }
     }

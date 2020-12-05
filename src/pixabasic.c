@@ -531,7 +531,8 @@ PIX     *pixc;
     n = pixaGetCount(pixa);
     if (n >= pixa->nalloc) {
         if (pixaExtendArray(pixa)) {
-            pixDestroy(&pixc);
+            if (copyflag != L_INSERT)
+                pixDestroy(&pixc);
             return ERROR_INT("extension failed", procName, 1);
         }
     }
@@ -2019,7 +2020,8 @@ PIXA    *pixac;
     n = pixaaGetCount(paa, NULL);
     if (n >= paa->nalloc) {
         if (pixaaExtendArray(paa)) {
-            pixaDestroy(&pixac);
+            if (copyflag != L_INSERT)
+                pixaDestroy(&pixac);
             return ERROR_INT("extension failed", procName, 1);
         }
     }

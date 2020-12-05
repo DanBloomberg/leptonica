@@ -1320,7 +1320,8 @@ L_DNA   *dac;
     n = l_dnaaGetCount(daa);
     if (n >= daa->nalloc) {
         if (l_dnaaExtendArray(daa)) {
-            l_dnaDestroy(&dac);
+            if (copyflag != L_INSERT)
+                l_dnaDestroy(&dac);
             return ERROR_INT("extension failed", procName, 1);
         }
     }

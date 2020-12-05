@@ -1568,7 +1568,8 @@ NUMA    *nac;
     n = numaaGetCount(naa);
     if (n >= naa->nalloc) {
         if (numaaExtendArray(naa)) {
-            numaDestroy(&nac);
+            if (copyflag != L_INSERT)
+                numaDestroy(&nac);
             return ERROR_INT("extension failed", procName, 1);
         }
     }
