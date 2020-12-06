@@ -125,6 +125,9 @@ static const l_int32  ManyPagesInTiffFile = 3000;  /* warn if big */
 static const l_int32  MaxTiffWidth = 1 << 20;  /* 1M pixels */
 static const l_int32  MaxTiffHeight = 1 << 20;  /* 1M pixels */
 
+    /* Check g4 data size */
+static const size_t  MaxNumTiffBytes = (1 << 28) - 1;  /* 256 MB */
+
     /* All functions with TIFF interfaces are static. */
 static PIX      *pixReadFromTiffStream(TIFF *tif);
 static l_int32   getTiffStreamResolution(TIFF *tif, l_int32 *pxres,
@@ -2173,6 +2176,12 @@ TIFF     *tif;
          * We skip the 8 byte header and take nbytes of data,
          * up to the beginning of the directory (at diroff)  */
     nbytes = diroff - 8;
+    if (nbytes > MaxNumTiffBytes) {
+        LEPT_FREE(inarray);
+        L_ERROR("requesting %zu bytes > %zu\n", procName,
+                nbytes, MaxNumTiffBytes);
+        return 1;
+    }
     *pnbytes = nbytes;
     if ((data = (l_uint8 *)LEPT_CALLOC(nbytes, sizeof(l_uint8))) == NULL) {
         LEPT_FREE(inarray);

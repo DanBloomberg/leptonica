@@ -370,7 +370,7 @@ fpixSetDimensions(FPIX     *fpix,
  * \brief   fpixGetWpl()
  *
  * \param[in]    fpix
- * \return  wpl, or UNDEF on error
+ * \return  wpl, or 0 on error
  */
 l_int32
 fpixGetWpl(FPIX  *fpix)
@@ -378,7 +378,7 @@ fpixGetWpl(FPIX  *fpix)
     PROCNAME("fpixGetWpl");
 
     if (!fpix)
-        return ERROR_INT("fpix not defined", procName, UNDEF);
+        return ERROR_INT("fpix not defined", procName, 0);
     return fpix->wpl;
 }
 
@@ -1296,7 +1296,7 @@ dpixSetDimensions(DPIX     *dpix,
  * \brief   dpixGetWpl()
  *
  * \param[in]    dpix
- * \return  wpl, or UNDEF on error
+ * \return  wpl, or 0 on error
  */
 l_int32
 dpixGetWpl(DPIX  *dpix)
@@ -1304,7 +1304,7 @@ dpixGetWpl(DPIX  *dpix)
     PROCNAME("dpixGetWpl");
 
     if (!dpix)
-        return ERROR_INT("dpix not defined", procName, 1);
+        return ERROR_INT("dpix not defined", procName, 0);
     return dpix->wpl;
 }
 

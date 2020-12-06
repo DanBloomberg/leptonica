@@ -97,7 +97,8 @@ static char  mainName[] = "corrupttest";
         } else {  /* mutation */
             fileCorruptByMutation(filein, loc, size, corruptfile);
         }
-        fp = fopenReadStream(corruptfile);
+        if ((fp = fopenReadStream(corruptfile)) == NULL)
+            return ERROR_INT("stream not opened", mainName, 1);
         if (format == IFF_JFIF_JPEG) {
             if ((pix = pixReadJpeg(corruptfile, 0, 1, &nwarn, hint)) != NULL) {
                 pixDisplay(pix, 100, 100);

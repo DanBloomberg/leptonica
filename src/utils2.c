@@ -1689,12 +1689,30 @@ l_uint8  *datad;
 }
 
 
+/*!
+ * \brief   l_binaryCompare()
+ *
+ * \param[in]    data1
+ * \param[in]    size1   of data1
+ * \param[in]    data2
+ * \param[in]    size2   of data1
+ * \param[out]   psame  (1 if the same, 0 if different)
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This can also be used to compare C strings str1 and str2.
+ *          If the string lengths are not known, use strlen():
+ *            l_binaryCompare((l_uint8 *)str1, strlen(str1),
+                              (l_uint8 *)str2, strlen(str2));
+ * </pre>
+ */
 l_ok
 l_binaryCompare(const l_uint8  *data1,
                 size_t          size1,
                 const l_uint8  *data2,
                 size_t          size2,
-                l_int32  *psame)
+                l_int32        *psame)
 {
 l_int32  i;
 

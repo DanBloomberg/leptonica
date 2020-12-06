@@ -415,11 +415,13 @@ L_PIX_MEM_STORE  *pms;
     if ((data = (void *)LEPT_CALLOC(nbytes, sizeof(char))) == NULL)
         return (void *)ERROR_PTR("data not made", procName, NULL);
     if (pms->logfile && nbytes >= pms->smallest) {
-        fp = fopenWriteStream(pms->logfile, "a");
-        fprintf(fp, "Alloc %zu bytes at %p\n", nbytes, data);
-        fclose(fp);
+        if (fp = fopenWriteStream(pms->logfile, "a")) {
+            fprintf(fp, "Alloc %zu bytes at %p\n", nbytes, data);
+            fclose(fp);
+        } else {
+            L_ERROR("failed to open stream for %s\n", procName, pms->logfile); 
+        }
     }
-
     return data;
 }
 

@@ -385,11 +385,19 @@ SEL     *selh, *selv;
         if (size == prevsize)
             continue;
         selectComposableSels(i, L_HORIZ, NULL, &selh);
+        if (selh) {
+            snprintf(name, L_BUF_SIZE, "sel_comb_%dh", size);
+            selaAddSel(sela, selh, name, 0);
+        } else {
+            L_ERROR("selh not made for i = %d\n", procName, i);
+        }
         selectComposableSels(i, L_VERT, NULL, &selv);
-        snprintf(name, L_BUF_SIZE, "sel_comb_%dh", size);
-        selaAddSel(sela, selh, name, 0);
-        snprintf(name, L_BUF_SIZE, "sel_comb_%dv", size);
-        selaAddSel(sela, selv, name, 0);
+        if (selv) {
+            snprintf(name, L_BUF_SIZE, "sel_comb_%dv", size);
+            selaAddSel(sela, selv, name, 0);
+        } else {
+            L_ERROR("selv not made for i = %d\n", procName, i);
+        }
         prevsize = size;
     }
 
