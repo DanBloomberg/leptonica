@@ -2191,9 +2191,9 @@ PIX       *pixw, *pixh;  /* keeps the width and height for the largest */
  *      (1) Computation is similar to pixFindLargestRectangle(), but allows
  *          a different set of results to choose from.
  *      (2) Select the fast scan direction.  Then, scanning in the slow
- *          direction, finds the longest run of ON pixels in the fast
- *          scan direction and look for the first first run that is longer
- *          than %fract of the dimension.  Continues until a shorter run
+ *          direction, find the longest run of ON pixels in the fast
+ *          scan direction and look for the first run that is longer
+ *          than %fract of the dimension.  Continue until a shorter run
  *          is found.  This generates a box of ON pixels fitting into the c.c.
  *      (3) Do this from both slow scan directions and use %select to get
  *          a resulting box from these two.
@@ -2274,7 +2274,8 @@ PIXA    *pixadb;
 
          /* Continue down until the condition fails */
     w1 = xlast - xfirst + 1;
-    h1 = h - yfirst;  /* initialize */
+    h1 = h - yfirst;  /* init */
+    ylast = h - 1;  /* init */
     for (i = yfirst + 1; i < h; i++) {
         pixFindMaxHorizontalRunOnLine(pix2, i, &xstart, &length);
         if (xstart > xfirst || (xstart + length - 1 < xlast) ||

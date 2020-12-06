@@ -395,8 +395,7 @@ L_PTRA           *pa;
  *          is freed like normal memory.
  *      (2) If logging is on, only write out allocs that are as large as
  *          the minimum size handled by the memory store.
- *      (3) size_t is %lu on 64 bit platforms and %u on 32 bit platforms.
- *          The C99 platform-independent format specifier for size_t is %zu.
+ *      (3) The C99 platform-independent format specifier for size_t is %zu.
  *          Windows since at least VC-2015 is conforming; we can now use %zu.
  * </pre>
  */
@@ -415,7 +414,7 @@ L_PIX_MEM_STORE  *pms;
     if ((data = (void *)LEPT_CALLOC(nbytes, sizeof(char))) == NULL)
         return (void *)ERROR_PTR("data not made", procName, NULL);
     if (pms->logfile && nbytes >= pms->smallest) {
-        if (fp = fopenWriteStream(pms->logfile, "a")) {
+        if ((fp = fopenWriteStream(pms->logfile, "a")) != NULL) {
             fprintf(fp, "Alloc %zu bytes at %p\n", nbytes, data);
             fclose(fp);
         } else {
