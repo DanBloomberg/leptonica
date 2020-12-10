@@ -3098,6 +3098,10 @@ size_t  len1, len2, len3, len4;
  *            * UNIX_PATH_SEPCHAR:  '\\' ==> '/'
  *            * WIN_PATH_SEPCHAR:   '/' ==> '\\'
  *      (3) Virtually all path operations in leptonica use unix separators.
+ *      (4) The backslash is a valid character in unix pathnames and should
+ *          not be converted.  Each backslash needs to be escaped with a
+ *          preceding backslash for the shell, but the actual filename
+ *          does not include these escape characters.
  * </pre>
  */
 l_ok
@@ -3115,10 +3119,12 @@ size_t   len;
 
     len = strlen(path);
     if (type == UNIX_PATH_SEPCHAR) {
+#ifdef _WIN32  /* only convert on windows */
         for (i = 0; i < len; i++) {
             if (path[i] == '\\')
                 path[i] = '/';
         }
+#endif  /* _WIN32 */
     } else {  /* WIN_PATH_SEPCHAR */
         for (i = 0; i < len; i++) {
             if (path[i] == '/')
