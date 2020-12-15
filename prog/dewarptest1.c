@@ -42,6 +42,10 @@
 #define   DO_CUBIC    0
 #define   DO_QUARTIC  0
 
+    /* Default LSF is quadratic on left and right edges.
+     * Set to 1 for linear LSF. */
+#define   LINEAR_FIT_ON_EDGES    0
+
 l_int32 main(int    argc,
              char **argv)
 {
@@ -66,6 +70,8 @@ PIX        *pixs2, *pixn2, *pixg2, *pixb2, *pixd2;
 
         /* Run the basic functions */
     dewa = dewarpaCreate(2, 30, 1, 10, 30);
+    if (LINEAR_FIT_ON_EDGES)
+        dewarpaSetCurvatures(dewa, -1, -1, -1, 0, -1, -1);
     dewarpaUseBothArrays(dewa, 1);
     dew1 = dewarpCreate(pixb, 35);
     dewarpaInsertDewarp(dewa, dew1);

@@ -79,7 +79,7 @@
  * \code
  *     // Make the Dewarpa for the pages
  *     L_Dewarpa *dewa = dewarpaCreate(1, 30, 1, 15, 50);
- *     dewarpaSetCurvatures(dewa, -1, 5, -1, -1, -1, -1);
+ *     dewarpaSetCurvatures(dewa, -1, 50, -1, -1, -1, -1);
  *     dewarpaUseBothArrays(dewa, 1);  // try to use both disparity
  *                                     // arrays for this example
  *
@@ -103,7 +103,7 @@
  *     // Make the Dewarpa for the set of pages; use fullres 1 bpp
  *     L_Dewarpa *dewa = dewarpaCreate(10, 30, 1, 15, 50);
  *     // Optionally set rendering parameters
- *     dewarpaSetCurvatures(dewa, -1, 10, -1, -1, -1, -1);
+ *     dewarpaSetCurvatures(dewa, -1, 30, -1, -1, -1, -1);
  *     dewarpaUseBothArrays(dewa, 0);  // just use the vertical disparity
  *                                     // array for this example
  *
@@ -396,6 +396,16 @@
  *  is formed by interpolation.  All the least square fits do a
  *  great job of smoothing everything out, as can be observed by
  *  the contour maps that are generated for the vertical disparity field.
+ *
+ *  Steps (4) through (6) again use the line data in step (1).
+ *  By default, we do separate quadratic fits to the left and right
+ *  line edges.  There is also the option to do linear fits to the
+ *  line edges, which typically does not give as good a fit, but is
+ *  safer for some pages that have text in the margins, or have multiple
+ *  columns of text with a large space between the columns.  There is
+ *  an option, which is the default, to check for multiple columns and
+ *  if found to skip dewarping based on the line edges -- we compute but
+ *  do not use the horizontal disparity array.
  * </pre>
  */
 
@@ -925,7 +935,7 @@ dewarpaGetDewarp(L_DEWARPA  *dewa,
  * \param[in]    max_linecurv        -1 for default
  * \param[in]    min_diff_linecurv   -1 for default; 0 to accept all models
  * \param[in]    max_diff_linecurv   -1 for default
- * \param[in]    max_edgecurv        -1 for default
+ * \param[in]    max_edgecurv        -1 for default; 0 to fit a line
  * \param[in]    max_diff_edgecurv   -1 for default
  * \param[in]    max_edgeslope       -1 for default
  * \return  0 if OK, 1 on error
@@ -934,23 +944,27 @@ dewarpaGetDewarp(L_DEWARPA  *dewa,
  * Notes:
  *      (1) Approximating the line by a quadratic, the coefficient
  *          of the quadratic term is the curvature, and distance
- *          units are in pixels (of course).  The curvature is very
+ *          units are in pixels (of course).  Curvatures are very
  *          small, so we multiply by 10^6 and express the constraints
- *          on the model curvatures in micro-units.
- *      (2) This sets five curvature thresholds and a slope threshold:
- *          * the maximum absolute value of the vertical disparity
- *            line curvatures
- *          * the minimum absolute value of the largest difference in
- *            vertical disparity line curvatures (Use a value of 0
- *            to accept all models.)
- *          * the maximum absolute value of the largest difference in
- *            vertical disparity line curvatures
- *          * the maximum absolute value of the left and right edge
- *            curvature for the horizontal disparity
- *          * the maximum absolute value of the difference between
- *            left and right edge curvature for the horizontal disparity
- *          all in micro-units, for dewarping to take place.
- *          Use -1 for default values.
+ *          on the model curvatures in micro-units.  The slope parameter
+ *          is multiplied by 10^3 and expressed in milli-units.
+ *      (2) This sets five curvature thresholds and a slope threshold
+ *          for dewarping to take place.  Use -1 for default values.
+ *          * max_linecurv: the maximum absolute value of the vertical
+ *            disparity line curvatures.
+ *          * min_diff_linecurv: the minimum absolute value of the
+ *            largest difference in vertical disparity line curvatures.
+ *            Use a value of 0 to accept all models.
+ *          * max_diff_linecurv: the maximum absolute value of the largest
+ *            difference in vertical disparity line curvatures.
+ *          * max_edgecurv: the maximum absolute value of the left and right
+ *            edge curvature for the horizontal disparity.  Use a value of
+ *            zero to fit a straight line (zero curvature).
+ *          * max_diff_edgecurv: the maximum absolute value of the difference
+ *            between left and right edge curvature for the horizontal
+ *            disparity. This value is ignored if max_edgecurve = 0.
+ *          * max_edgeslope: the maximum slope coefficient for left and
+ *            right line edges.
  *      (3) An image with a line curvature less than about 0.00001
  *          has fairly straight textlines.  This is 10 micro-units.
  *      (4) For example, if %max_linecurv == 100, this would prevent dewarping
@@ -958,7 +972,8 @@ dewarpaGetDewarp(L_DEWARPA  *dewa,
  *          A model having maximum line curvature larger than about 150
  *          micro-units should probably not be used.
  *      (5) A model having a left or right edge curvature larger than
- *          about 50 micro-units should probably not be used.
+ *          about 50 micro-units should probably not be used.  Set the
+ *          parameter max_edgecurv = 0 for a linear LSF.
  * </pre>
  */
 l_ok

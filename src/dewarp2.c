@@ -41,6 +41,7 @@
  *          static l_int32     dewarpFilterLineEndPoints()
  *          static PTA        *dewarpRemoveBadEndPoints()
  *          static l_int32     dewarpIsLineCoverageValid()
+ *          static l_int32     dewarpLinearLSF()
  *          static l_int32     dewarpQuadraticLSF()
  *
  *      Build disparity model for slope near binding
@@ -74,6 +75,8 @@ static PTA *dewarpRemoveBadEndPoints(l_int32 w, PTA *ptas);
 static l_int32 dewarpIsLineCoverageValid(PTAA *ptaa2, l_int32 h,
                                          l_int32 *pntop, l_int32 *pnbot,
                                          l_int32 *pytop, l_int32 *pybot);
+static l_int32 dewarpLinearLSF(PTA *ptad, l_float32 *pa, l_float32 *pb,
+                               l_float32 *pmederr);
 static l_int32 dewarpQuadraticLSF(PTA *ptad, l_float32 *pa, l_float32 *pb,
                                   l_float32 *pc, l_float32 *pmederr);
 static l_int32 pixRenderMidYs(PIX *pixs, NUMA *namidys, l_int32 linew);
@@ -564,7 +567,7 @@ l_ok
 dewarpFindHorizDisparity(L_DEWARP  *dew,
                          PTAA      *ptaa)
 {
-l_int32    i, j, h, nx, ny, sampling, ret;
+l_int32    i, j, h, nx, ny, sampling, ret, linear_edgefit;
 l_float32  c0, c1, cl0, cl1, cl2, cr0, cr1, cr2;
 l_float32  x, y, refl, refr;
 l_float32  val, mederr;
@@ -617,45 +620,75 @@ FPIX      *fpix;
         return 1;
     }
 
-        /* Do a quadratic fit to the left and right endpoints of the
-         * longest lines.  Each line is represented by 3 coefficients:
+        /* Do either a linear or a quadratic fit to the left and right
+         * endpoints of the longest lines.  It is not necessary to use
+         * the noisy LSF fit function, because we've removed outlier
+         * end points by selecting the long lines.
+         * For the linear fit, each line is represented by 2 coefficients:
+         *     x(y) = c1 * y + c0.
+         * For the quadratic fit, each line is represented by 3 coefficients:
          *     x(y) = c2 * y^2 + c1 * y + c0.
-         * Using the coefficients, sample each fitted curve uniformly
+         * Then using the coefficients, sample each fitted curve uniformly
          * along the full height of the image. */
     sampling = dew->sampling;
     nx = dew->nx;
     ny = dew->ny;
+    linear_edgefit = (dew->dewa->max_edgecurv == 0) ? TRUE : FALSE;
 
-        /* Fit the left side, using quadratic LSF on the set of long
-         * lines.  It is not necessary to use the noisy LSF fit
-         * function, because we've removed outlier end points by
-         * selecting the long lines.  Then uniformly sample along
-         * this fitted curve. */
-    dewarpQuadraticLSF(ptal2, &cl2, &cl1, &cl0, &mederr);
-    dew->leftslope = lept_roundftoi(1000. * cl1);  /* milli-units */
-    dew->leftcurv = lept_roundftoi(1000000. * cl2);  /* micro-units */
-    L_INFO("Left quad LSF median error = %5.2f\n", procName,  mederr);
-    L_INFO("Left edge slope = %d\n", procName, dew->leftslope);
-    L_INFO("Left edge curvature = %d\n", procName, dew->leftcurv);
-    ptal3 = ptaCreate(ny);
-    for (i = 0; i < ny; i++) {  /* uniformly sampled in y */
-        y = i * sampling;
-        applyQuadraticFit(cl2, cl1, cl0, y, &x);
-        ptaAddPt(ptal3, x, y);
-    }
+    if (linear_edgefit) {
+            /* Fit the left side, using linear LSF on the set of long lines. */
+        dewarpLinearLSF(ptal2, &cl1, &cl0, &mederr);
+        dew->leftslope = lept_roundftoi(1000. * cl1);  /* milli-units */
+        dew->leftcurv = 0;  /* micro-units */
+        L_INFO("Left linear LSF median error = %5.2f\n", procName,  mederr);
+        L_INFO("Left edge slope = %d\n", procName, dew->leftslope);
+        ptal3 = ptaCreate(ny);
+        for (i = 0; i < ny; i++) {  /* uniformly sample in y */
+            y = i * sampling;
+            applyLinearFit(cl1, cl0, y, &x);
+            ptaAddPt(ptal3, x, y);
+        }
 
-        /* Fit the right side in the same way. */
-    dewarpQuadraticLSF(ptar2, &cr2, &cr1, &cr0, &mederr);
-    dew->rightslope = lept_roundftoi(1000.0 * cr1);  /* milli-units */
-    dew->rightcurv = lept_roundftoi(1000000. * cr2);  /* micro-units */
-    L_INFO("Right quad LSF median error = %5.2f\n", procName,  mederr);
-    L_INFO("Right edge slope = %d\n", procName, dew->rightslope);
-    L_INFO("Right edge curvature = %d\n", procName, dew->rightcurv);
-    ptar3 = ptaCreate(ny);
-    for (i = 0; i < ny; i++) {  /* uniformly sampled in y */
-        y = i * sampling;
-        applyQuadraticFit(cr2, cr1, cr0, y, &x);
-        ptaAddPt(ptar3, x, y);
+            /* Do a linear LSF on the right side. */
+        dewarpLinearLSF(ptar2, &cr1, &cr0, &mederr);
+        dew->rightslope = lept_roundftoi(1000.0 * cr1);  /* milli-units */
+        dew->rightcurv = 0;  /* micro-units */
+        L_INFO("Right linear LSF median error = %5.2f\n", procName,  mederr);
+        L_INFO("Right edge slope = %d\n", procName, dew->rightslope);
+        ptar3 = ptaCreate(ny);
+        for (i = 0; i < ny; i++) {  /* uniformly sample in y */
+            y = i * sampling;
+            applyLinearFit(cr1, cr0, y, &x);
+            ptaAddPt(ptar3, x, y);
+        }
+    } else {  /* quadratic edge fit */
+            /* Fit the left side, using quadratic LSF on the long lines. */
+        dewarpQuadraticLSF(ptal2, &cl2, &cl1, &cl0, &mederr);
+        dew->leftslope = lept_roundftoi(1000. * cl1);  /* milli-units */
+        dew->leftcurv = lept_roundftoi(1000000. * cl2);  /* micro-units */
+        L_INFO("Left quad LSF median error = %5.2f\n", procName,  mederr);
+        L_INFO("Left edge slope = %d\n", procName, dew->leftslope);
+        L_INFO("Left edge curvature = %d\n", procName, dew->leftcurv);
+        ptal3 = ptaCreate(ny);
+        for (i = 0; i < ny; i++) {  /* uniformly sample in y */
+            y = i * sampling;
+            applyQuadraticFit(cl2, cl1, cl0, y, &x);
+            ptaAddPt(ptal3, x, y);
+        }
+
+            /* Do a quadratic LSF on the right side. */
+        dewarpQuadraticLSF(ptar2, &cr2, &cr1, &cr0, &mederr);
+        dew->rightslope = lept_roundftoi(1000.0 * cr1);  /* milli-units */
+        dew->rightcurv = lept_roundftoi(1000000. * cr2);  /* micro-units */
+        L_INFO("Right quad LSF median error = %5.2f\n", procName,  mederr);
+        L_INFO("Right edge slope = %d\n", procName, dew->rightslope);
+        L_INFO("Right edge curvature = %d\n", procName, dew->rightcurv);
+        ptar3 = ptaCreate(ny);
+        for (i = 0; i < ny; i++) {  /* uniformly sample in y */
+            y = i * sampling;
+            applyQuadraticFit(cr2, cr1, cr0, y, &x);
+            ptaAddPt(ptar3, x, y);
+        }
     }
 
     if (dew->debug) {
@@ -663,11 +696,20 @@ FPIX      *fpix;
         h = pixGetHeight(dew->pixs);
         pta1 = ptaCreate(h);
         pta2 = ptaCreate(h);
-        for (i = 0; i < h; i++) {
-            applyQuadraticFit(cl2, cl1, cl0, i, &x);
-            ptaAddPt(pta1, x, i);
-            applyQuadraticFit(cr2, cr1, cr0, i, &x);
-            ptaAddPt(pta2, x, i);
+        if (linear_edgefit) {
+            for (i = 0; i < h; i++) {
+                applyLinearFit(cl1, cl0, i, &x);
+                ptaAddPt(pta1, x, i);
+                applyLinearFit(cr1, cr0, i, &x);
+                ptaAddPt(pta2, x, i);
+            }
+        } else {  /* quadratic edge fit */
+            for (i = 0; i < h; i++) {
+                applyQuadraticFit(cl2, cl1, cl0, i, &x);
+                ptaAddPt(pta1, x, i);
+                applyQuadraticFit(cr2, cr1, cr0, i, &x);
+                ptaAddPt(pta2, x, i);
+            }
         }
         pix1 = pixDisplayPta(NULL, dew->pixs, pta1);
         pixDisplayPta(pix1, pix1, pta2);
@@ -1302,6 +1344,64 @@ NUMA      *na;
 
 
 /*!
+ * \brief   dewarpLinearLSF()
+ *
+ * \param[in]    ptad      left or right end points of longest lines
+ * \param[out]   pa        coeff a of LSF: y = ax + b
+ * \param[out]   pb        coeff b of LSF: y = ax + b
+ * \param[out]   pmederr   [optional] median error
+ * \return  0 if OK, 1 on error.
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is used for finding the left or right sides of
+ *          the text block, computed as a linear curve.
+ *          Only the longest lines are input, so there are
+ *          no outliers.
+ *      (2) The ptas for the end points all have x and y swapped.
+ * </pre>
+ */
+static l_int32
+dewarpLinearLSF(PTA        *ptad,
+                l_float32  *pa,
+                l_float32  *pb,
+                l_float32  *pmederr)
+{
+l_int32    i, n;
+l_float32  x, y, xp, c0, c1;
+NUMA      *naerr;
+
+    PROCNAME("dewarpLinearLSF");
+
+    if (pmederr) *pmederr = 0.0;
+    if (!pa || !pb)
+        return ERROR_INT("not all ptrs are defined", procName, 1);
+    *pa = *pb = 0.0;
+    if (!ptad)
+        return ERROR_INT("ptad not defined", procName, 1);
+
+        /* Fit to the longest lines */
+    ptaGetLinearLSF(ptad, &c1, &c0, NULL);
+    *pa = c1;
+    *pb = c0;
+
+        /* Optionally, find the median error */
+    if (pmederr) {
+        n = ptaGetCount(ptad);
+        naerr = numaCreate(n);
+        for (i = 0; i < n; i++) {
+            ptaGetPt(ptad, i, &y, &xp);
+            applyLinearFit(c1, c0, y, &x);
+            numaAddNumber(naerr, L_ABS(x - xp));
+        }
+        numaGetMedian(naerr, pmederr);
+        numaDestroy(&naerr);
+    }
+    return 0;
+}
+
+
+/*!
  * \brief   dewarpQuadraticLSF()
  *
  * \param[in]    ptad      left or right end points of longest lines
@@ -1360,6 +1460,7 @@ NUMA      *naerr;
     }
     return 0;
 }
+
 
 /*----------------------------------------------------------------------*
  *              Build disparity model for slope near binding            *
