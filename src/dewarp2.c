@@ -1354,10 +1354,9 @@ NUMA      *na;
  *
  * <pre>
  * Notes:
- *      (1) This is used for finding the left or right sides of
- *          the text block, computed as a linear curve.
- *          Only the longest lines are input, so there are
- *          no outliers.
+ *      (1) This is used for finding the left or right sides of the text
+ *          block, computed as a best-fit line.  Only the longest lines
+ *          are input, so there are no outlier line ends.
  *      (2) The ptas for the end points all have x and y swapped.
  * </pre>
  */
@@ -1413,10 +1412,9 @@ NUMA      *naerr;
  *
  * <pre>
  * Notes:
- *      (1) This is used for finding the left or right sides of
- *          the text block, computed as a quadratic curve.
- *          Only the longest lines are input, so there are
- *          no outliers.
+ *      (1) This is used for finding the left or right sides of the text
+ *          block, computed as a best-fit quadratic curve.  Only the
+ *          longest lines are input, so there are no outlier line ends.
  *      (2) The ptas for the end points all have x and y swapped.
  * </pre>
  */
