@@ -65,12 +65,12 @@ L_REGPARAMS  *rp;
     regTestWriteDataAndCheck(rp, data, size, "baa");  /* 0 */
     if (rp->display) boxaaWriteStream(stderr, baa);
     boxaaDestroy(&baa);
-    LEPT_FREE(data);
+    lept_free(data);
     baa = boxaaQuadtreeRegions(1001, 501, 3);
     boxaaWriteMem(&data, &size, baa);
     regTestWriteDataAndCheck(rp, data, size, "baa");  /* 1 */
     boxaaDestroy(&baa);
-    LEPT_FREE(data);
+    lept_free(data);
 
         /* Test quadtree stats generation */
     pixs = pixRead("rabi.png");

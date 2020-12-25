@@ -73,7 +73,7 @@ L_REGPARAMS  *rp;
     }
     numaWriteMem(&data, &size, na1);
     regTestWriteDataAndCheck(rp, data, size, "na");  /* 0 */
-    LEPT_FREE(data);
+    lept_free(data);
 
         /* Make an array of HEAPELs with the same numbers */
     lh = lheapCreate(5, L_SORT_INCREASING);
@@ -89,7 +89,7 @@ L_REGPARAMS  *rp;
     na2 = ExtractNumaFromHeap(lh);
     numaWriteMem(&data, &size, na2);
     regTestWriteDataAndCheck(rp, data, size, "na");  /* 1 */
-    LEPT_FREE(data);
+    lept_free(data);
 
         /* Switch the direction and re-sort strict order */
     lh->direction = L_SORT_DECREASING;
@@ -97,7 +97,7 @@ L_REGPARAMS  *rp;
     na3 = ExtractNumaFromHeap(lh);
     numaWriteMem(&data, &size, na3);
     regTestWriteDataAndCheck(rp, data, size, "na");  /* 2 */
-    LEPT_FREE(data);
+    lept_free(data);
 
         /* Switch direction again and re-sort strict sort */
     lh->direction = L_SORT_INCREASING;
@@ -105,7 +105,7 @@ L_REGPARAMS  *rp;
     na4 = ExtractNumaFromHeap(lh);
     numaWriteMem(&data, &size, na4);
     regTestWriteDataAndCheck(rp, data, size, "na");  /* 3 */
-    LEPT_FREE(data);
+    lept_free(data);
 
         /* Switch direction again and re-sort strict sort */
     lh->direction = L_SORT_DECREASING;
@@ -113,7 +113,7 @@ L_REGPARAMS  *rp;
     na5 = ExtractNumaFromHeap(lh);
     numaWriteMem(&data, &size, na5);
     regTestWriteDataAndCheck(rp, data, size, "na");  /* 4 */
-    LEPT_FREE(data);
+    lept_free(data);
 
     regTestCompareFiles(rp, 1, 3);  /* 5 */
     regTestCompareFiles(rp, 2, 4);  /* 6 */

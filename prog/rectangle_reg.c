@@ -107,7 +107,7 @@ L_REGPARAMS  *rp;
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
     regTestCheckFile(rp, newpath);  /* 1 */
     if (rp->display) l_fileDisplay(newpath, 0, 500, 0.4);
-    LEPT_FREE(newpath);
+    lept_free(newpath);
 
     box2 = pixFindRectangleInCC(pix1, box1, 0.75, L_SCAN_VERTICAL,
                                 L_GEOMETRIC_INTERSECTION, TRUE);
@@ -116,7 +116,7 @@ L_REGPARAMS  *rp;
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
     regTestCheckFile(rp, newpath);  /* 2 */
     if (rp->display) l_fileDisplay(newpath, 200, 500, 0.4);
-    LEPT_FREE(newpath);
+    lept_free(newpath);
 
     box2 = pixFindRectangleInCC(pix1, box1, 0.75, L_SCAN_VERTICAL,
                                 L_LARGEST_AREA, TRUE);
@@ -125,7 +125,7 @@ L_REGPARAMS  *rp;
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
     regTestCheckFile(rp, newpath);  /* 3 */
     if (rp->display) l_fileDisplay(newpath, 400, 500, 0.4);
-    LEPT_FREE(newpath);
+    lept_free(newpath);
 
     box2 = pixFindRectangleInCC(pix1, box1, 0.75, L_SCAN_VERTICAL,
                                 L_SMALLEST_AREA, TRUE);
@@ -134,7 +134,7 @@ L_REGPARAMS  *rp;
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
     regTestCheckFile(rp, newpath);  /* 4 */
     if (rp->display) l_fileDisplay(newpath, 600, 500, 0.4);
-    LEPT_FREE(newpath);
+    lept_free(newpath);
 
         /* Do 4 cases with horizontal scan */
     box2 = pixFindRectangleInCC(pix1, box1, 0.75, L_SCAN_HORIZONTAL,
@@ -144,7 +144,7 @@ L_REGPARAMS  *rp;
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
     regTestCheckFile(rp, newpath);  /* 5 */
     if (rp->display) l_fileDisplay(newpath, 800, 500, 0.4);
-    LEPT_FREE(newpath);
+    lept_free(newpath);
 
     box2 = pixFindRectangleInCC(pix1, box1, 0.75, L_SCAN_HORIZONTAL,
                                 L_GEOMETRIC_INTERSECTION, TRUE);
@@ -153,7 +153,7 @@ L_REGPARAMS  *rp;
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
     regTestCheckFile(rp, newpath);  /* 6 */
     if (rp->display) l_fileDisplay(newpath, 1000, 500, 0.4);
-    LEPT_FREE(newpath);
+    lept_free(newpath);
 
     box2 = pixFindRectangleInCC(pix1, box1, 0.75, L_SCAN_HORIZONTAL,
                                 L_LARGEST_AREA, TRUE);
@@ -162,7 +162,7 @@ L_REGPARAMS  *rp;
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
     regTestCheckFile(rp, newpath);  /* 7 */
     if (rp->display) l_fileDisplay(newpath, 1200, 500, 0.4);
-    LEPT_FREE(newpath);
+    lept_free(newpath);
 
     box2 = pixFindRectangleInCC(pix1, box1, 0.75, L_SCAN_HORIZONTAL,
                                 L_SMALLEST_AREA, TRUE);
@@ -171,7 +171,7 @@ L_REGPARAMS  *rp;
     lept_cp("/tmp/lept/rect/fitrect.png", "lept/regout", buf, &newpath);
     regTestCheckFile(rp, newpath);  /* 8 */
     if (rp->display) l_fileDisplay(newpath, 1400, 500, 0.4);
-    LEPT_FREE(newpath);
+    lept_free(newpath);
 
     boxDestroy(&box1);
     pixDestroy(&pixs);
