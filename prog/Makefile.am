@@ -20,8 +20,8 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	colorseg_reg colorspace_reg compare_reg \
 	compfilter_reg conncomp_reg conversion_reg \
 	convolve_reg crop_reg dewarp_reg distance_reg \
-	dither_reg dna_reg dwamorph1_reg edge_reg enhance_reg \
-	equal_reg expand_reg extrema_reg \
+	dither_reg dna_reg dwamorph1_reg edge_reg encoding_reg \
+	enhance_reg equal_reg expand_reg extrema_reg \
 	falsecolor_reg fhmtauto_reg \
 	findcorners_reg findpattern_reg \
 	fpix1_reg fpix2_reg genfonts_reg \

@@ -854,7 +854,7 @@ l_generateJpegDataMem(l_uint8  *data,
 {
 char         *data85 = NULL;  /* ascii85 encoded jpeg compressed file */
 l_int32       w, h, xres, yres, bps, spp;
-l_int32       nbytes85;
+size_t        nbytes85;
 L_COMP_DATA  *cid;
 
     PROCNAME("l_generateJpegDataMem");
@@ -1220,8 +1220,8 @@ l_int32       ncolors;  /* in colormap; not used if cmapdata85 is null */
 l_int32       bps;  /* bits/sample: usually 8 */
 l_int32       spp;  /* samples/pixel: 1-grayscale/cmap); 3-rgb */
 l_int32       w, h, d, cmapflag;
-l_int32       ncmapbytes85 = 0;
-l_int32       nbytes85 = 0;
+size_t        ncmapbytes85 = 0;
+size_t        nbytes85 = 0;
 size_t        nbytes, nbytescomp;
 L_COMP_DATA  *cid;
 PIX          *pixt;
@@ -1477,8 +1477,7 @@ l_uint8      *datacomp = NULL;  /* g4 compressed raster data */
 char         *data85 = NULL;  /* ascii85 encoded g4 compressed data */
 l_int32       w, h, xres, yres;
 l_int32       minisblack;  /* TRUE or FALSE */
-l_int32       nbytes85;
-size_t        nbytescomp;
+size_t        nbytes85, nbytescomp;
 L_COMP_DATA  *cid;
 FILE         *fp;
 

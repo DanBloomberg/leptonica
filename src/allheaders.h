@@ -784,8 +784,10 @@ LEPT_DLL extern l_ok pixGetLastOffPixelInRun ( PIX *pixs, l_int32 x, l_int32 y, 
 LEPT_DLL extern l_int32 pixGetLastOnPixelInRun ( PIX *pixs, l_int32 x, l_int32 y, l_int32 direction, l_int32 *ploc );
 LEPT_DLL extern char * encodeBase64 ( const l_uint8 *inarray, l_int32 insize, l_int32 *poutsize );
 LEPT_DLL extern l_uint8 * decodeBase64 ( const char *inarray, l_int32 insize, l_int32 *poutsize );
-LEPT_DLL extern char * encodeAscii85 ( const l_uint8 *inarray, l_int32 insize, l_int32 *poutsize );
-LEPT_DLL extern l_uint8 * decodeAscii85 ( const char *inarray, l_int32 insize, l_int32 *poutsize );
+LEPT_DLL extern char * encodeAscii85 ( const l_uint8 *inarray, size_t insize, size_t *poutsize );
+LEPT_DLL extern l_uint8 * decodeAscii85 ( const char *inarray, size_t insize, size_t *poutsize );
+LEPT_DLL extern char * encodeAscii85WithComp ( l_uint8 *indata, size_t insize, size_t *poutsize );
+LEPT_DLL extern l_uint8 * decodeAscii85WithComp ( const char *instr, size_t insize, size_t *poutsize );
 LEPT_DLL extern char * reformatPacked64 ( const char *inarray, l_int32 insize, l_int32 leadspace, l_int32 linechars, l_int32 addquotes, l_int32 *poutsize );
 LEPT_DLL extern PIX * pixGammaTRC ( PIX *pixd, PIX *pixs, l_float32 gamma, l_int32 minval, l_int32 maxval );
 LEPT_DLL extern PIX * pixGammaTRCMasked ( PIX *pixd, PIX *pixs, PIX *pixm, l_float32 gamma, l_int32 minval, l_int32 maxval );

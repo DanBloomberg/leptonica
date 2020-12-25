@@ -99,6 +99,7 @@ static const char *tests[] = {
                               "dna_reg",
                               "dwamorph1_reg",
                               "edge_reg",
+                              "encoding_reg",
                               "enhance_reg",
                               "equal_reg",
                               "expand_reg",

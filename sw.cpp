@@ -123,6 +123,7 @@ void build(Solution &s)
             {"dwamorph1_reg", {"dwamorph1_reg.c", "dwalinear.3.c", "dwalinearlow.3.c"}},
             {"dwamorph2_reg", {"dwamorph2_reg.c", "dwalinear.3.c", "dwalinearlow.3.c"}},
             {"edge_reg", {"edge_reg.c"}},
+            {"encoding_reg", {"encoding_reg.c"}},
             {"enhance_reg", {"enhance_reg.c"}},
             {"equal_reg", {"equal_reg.c"}},
             {"expand_reg", {"expand_reg.c"}},

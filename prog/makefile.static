@@ -167,7 +167,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		crop_reg.c dewarp_reg.c distance_reg.c \
 		dither_reg.c dna_reg.c \
 		dwamorph1_reg.c dwamorph2_reg.c \
-		edge_reg.c enhance_reg.c equal_reg.c \
+		edge_reg.c encoding_reg.c enhance_reg.c equal_reg.c \
 		expand_reg.c extrema_reg.c falsecolor_reg.c \
 		fhmtauto_reg.c files_reg.c \
 		findcorners_reg.c findpattern_reg.c \
@@ -482,6 +482,9 @@ dwamorph2_reg:  dwamorph2_reg.o dwalinear.3.o dwalinearlow.3.o $(LEPTLIB)
 
 edge_reg:	edge_reg.o $(LEPTLIB)
 	$(CC) -o edge_reg edge_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+encoding_reg:	encoding_reg.o $(LEPTLIB)
+	$(CC) -o encoding_reg encoding_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 enhance_reg:	enhance_reg.o $(LEPTLIB)
 	$(CC) -o enhance_reg enhance_reg.o $(ALL_LIBS) $(EXTRALIBS)
