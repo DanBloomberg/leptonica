@@ -536,10 +536,12 @@ PIXCMAP   *cmap;
     }
 
         /* webp in tiff is in 4.1.0 and not yet supported in Adobe registry */
+#if defined(COMPRESSION_WEBP)
     if (tiffcomp == COMPRESSION_WEBP) {
         L_ERROR("webp in tiff not generally supported yet\n", procName);
         return NULL;
     }
+#endif  /* COMPRESSION_WEBP */
 
         /* Use default fields for bps and spp */
     TIFFGetFieldDefaulted(tif, TIFFTAG_BITSPERSAMPLE, &bps);
