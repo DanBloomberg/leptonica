@@ -89,9 +89,9 @@ static const l_int32  ZLIB_COMPRESSION_LEVEL = 6;
  * </pre>
  */
 l_uint8 *
-zlibCompress(l_uint8  *datain,
-             size_t    nin,
-             size_t   *pnout)
+zlibCompress(const l_uint8  *datain,
+             size_t          nin,
+             size_t         *pnout)
 {
 l_uint8    *dataout;
 l_int32     status, success;
@@ -193,9 +193,9 @@ cleanup_arrays:
  * </pre>
  */
 l_uint8 *
-zlibUncompress(l_uint8  *datain,
-               size_t    nin,
-               size_t   *pnout)
+zlibUncompress(const l_uint8  *datain,
+               size_t          nin,
+               size_t         *pnout)
 {
 l_uint8    *dataout;
 l_uint8    *bufferin, *bufferout;

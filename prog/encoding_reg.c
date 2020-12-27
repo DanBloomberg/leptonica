@@ -83,7 +83,6 @@ L_REGPARAMS  *rp;
     bin85c2 = decodeAscii85WithComp(a85c2, nbytes5, &nbytes6);
     regTestCompareStrings(rp, bin85c, nbytes4,
                           bin85c2, nbytes6);  /* 3 */
-
     lept_free(bina);
     lept_free(bina2);
     lept_free(a85a);
@@ -91,5 +90,18 @@ L_REGPARAMS  *rp;
     lept_free(bin85c);
     lept_free(a85c2);
     lept_free(bin85c2);
+
+        /* Test storing and retrieving compressed text from pix */
+    bina = l_binaryRead("weasel32.png", &nbytes1);
+    pix1 = pixRead("rabi.png");
+    pixSetTextCompNew(pix1, bina, nbytes1);
+    bina2 = pixGetTextCompNew(pix1, &nbytes2);
+    if (rp->display)
+        lept_stderr("nbytes1 = %zu, nbytes2 = %zu\n", nbytes1, nbytes2);
+    regTestCompareStrings(rp, bina, nbytes1, bina2, nbytes2);  /* 4 */
+    pixDestroy(&pix1);
+    lept_free(bina);
+    lept_free(bina2);
+
     return regTestCleanup(rp);
 }

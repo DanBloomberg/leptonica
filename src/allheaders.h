@@ -786,7 +786,7 @@ LEPT_DLL extern char * encodeBase64 ( const l_uint8 *inarray, l_int32 insize, l_
 LEPT_DLL extern l_uint8 * decodeBase64 ( const char *inarray, l_int32 insize, l_int32 *poutsize );
 LEPT_DLL extern char * encodeAscii85 ( const l_uint8 *inarray, size_t insize, size_t *poutsize );
 LEPT_DLL extern l_uint8 * decodeAscii85 ( const char *inarray, size_t insize, size_t *poutsize );
-LEPT_DLL extern char * encodeAscii85WithComp ( l_uint8 *indata, size_t insize, size_t *poutsize );
+LEPT_DLL extern char * encodeAscii85WithComp ( const l_uint8 *indata, size_t insize, size_t *poutsize );
 LEPT_DLL extern l_uint8 * decodeAscii85WithComp ( const char *instr, size_t insize, size_t *poutsize );
 LEPT_DLL extern char * reformatPacked64 ( const char *inarray, l_int32 insize, l_int32 leadspace, l_int32 linechars, l_int32 addquotes, l_int32 *poutsize );
 LEPT_DLL extern PIX * pixGammaTRC ( PIX *pixd, PIX *pixs, l_float32 gamma, l_int32 minval, l_int32 maxval );
@@ -1503,6 +1503,8 @@ LEPT_DLL extern char * pixGetText ( PIX *pix );
 LEPT_DLL extern l_ok pixSetText ( PIX *pix, const char *textstring );
 LEPT_DLL extern l_ok pixAddText ( PIX *pix, const char *textstring );
 LEPT_DLL extern l_int32 pixCopyText ( PIX *pixd, const PIX *pixs );
+LEPT_DLL extern l_uint8 * pixGetTextCompNew ( PIX *pix, size_t *psize );
+LEPT_DLL extern l_ok pixSetTextCompNew ( PIX *pix, const l_uint8 *data, size_t size );
 LEPT_DLL extern PIXCMAP * pixGetColormap ( PIX *pix );
 LEPT_DLL extern l_ok pixSetColormap ( PIX *pix, PIXCMAP *colormap );
 LEPT_DLL extern l_ok pixDestroyColormap ( PIX *pix );
@@ -2769,8 +2771,8 @@ LEPT_DLL extern PIX * pixMakeColorSquare ( l_uint32 color, l_int32 size, l_int32
 LEPT_DLL extern void l_chooseDisplayProg ( l_int32 selection );
 LEPT_DLL extern void changeFormatForMissingLib ( l_int32 *pformat );
 LEPT_DLL extern l_ok pixDisplayWrite ( PIX *pixs, l_int32 reduction );
-LEPT_DLL extern l_uint8 * zlibCompress ( l_uint8 *datain, size_t nin, size_t *pnout );
-LEPT_DLL extern l_uint8 * zlibUncompress ( l_uint8 *datain, size_t nin, size_t *pnout );
+LEPT_DLL extern l_uint8 * zlibCompress ( const l_uint8 *datain, size_t nin, size_t *pnout );
+LEPT_DLL extern l_uint8 * zlibUncompress ( const l_uint8 *datain, size_t nin, size_t *pnout );
 
 #ifdef __cplusplus
 }

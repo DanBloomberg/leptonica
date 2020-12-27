@@ -99,6 +99,8 @@
  *          l_int32       pixSetText()
  *          l_int32       pixAddText()
  *          l_int32       pixCopyText()
+ *          l_uint8      *pixGetTextCompNew()
+ *          l_int32      *pixSetTextCompNew()
  *          PIXCMAP      *pixGetColormap()
  *          l_int32       pixSetColormap()
  *          l_int32       pixDestroyColormap()
@@ -1607,6 +1609,70 @@ pixCopyText(PIX        *pixd,
         return 0;   /* no-op */
 
     pixSetText(pixd, pixs->text);
+    return 0;
+}
+
+
+/*!
+ * \brief   pixGetTextCompNew()
+ *
+ * \param[in]   pix
+ * \param[out]  psize    this number of bytes of returned binary data
+ * \return  ptr to binary data derived from the text string in the pix,
+ *          after decoding and uncompressing
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a new heap allocation of binary data that:
+ *          * was stored as an ascii string in the pix using pixSetTextCompNew()
+ *          * is retrieved by undoing the ascii85 encoding and compression
+ *          * is owned by the caller and must be freed
+ * </pre>
+ */
+l_uint8 *
+pixGetTextCompNew(PIX     *pix,
+                  size_t  *psize)
+{
+char  *str;
+
+    PROCNAME("pixGetTextCompNew");
+
+    if (!pix)
+        return (l_uint8 *)ERROR_PTR("pix not defined", procName, NULL);
+    str = pixGetText(pix);
+    return decodeAscii85WithComp(str, strlen(str), psize);
+}
+
+
+/*!
+ * \brief   pixSetTextCompNew()
+ *
+ * \param[in]   pix
+ * \param[in]   data    binary data
+ * \param[in]   size    number of bytes of binary data
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This removes any existing textstring in the pix, replacing with
+ *          with a new string that is derived from %data by first compressing
+ *          and then ascii85 encoding.
+ *      (2) The input %data can be reconstructed using pixGetTextCompNew().
+ * </pre>
+ */
+l_ok
+pixSetTextCompNew(PIX            *pix,
+                  const l_uint8  *data,
+                  size_t          size)
+{
+size_t  encodesize;  /* ignored */
+
+    PROCNAME("pixSetTextCompNew");
+
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+
+    stringReplace(&pix->text, encodeAscii85WithComp(data, size, &encodesize));
     return 0;
 }
 

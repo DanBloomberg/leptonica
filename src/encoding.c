@@ -583,9 +583,9 @@ l_uint32    oword;
  * </pre>
  */
 char *
-encodeAscii85WithComp(l_uint8  *indata,
-                      size_t    insize,
-                      size_t   *poutsize)
+encodeAscii85WithComp(const l_uint8  *indata,
+                      size_t          insize,
+                      size_t         *poutsize)
 {
 char     *outstr;
 size_t    size1;
