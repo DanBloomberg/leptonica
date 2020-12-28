@@ -1623,10 +1623,11 @@ pixCopyText(PIX        *pixd,
  *
  * <pre>
  * Notes:
- *      (1) This is a new heap allocation of binary data that:
- *          * was stored as an ascii string in the pix using pixSetTextCompNew()
- *          * is retrieved by undoing the ascii85 encoding and compression
- *          * is owned by the caller and must be freed
+ *      (1) The ascii string in the text field of the input pix was
+ *          previously stored there using pixSetTextCompNew().
+ *      (2) This retrieves the string and performs ascii85 decoding
+ *          followed by decompression on it.  The returned binary data
+ *          is owned by the caller and must be freed.
  * </pre>
  */
 l_uint8 *
@@ -1654,9 +1655,9 @@ char  *str;
  *
  * <pre>
  * Notes:
- *      (1) This removes any existing textstring in the pix, replacing with
- *          with a new string that is derived from %data by first compressing
- *          and then ascii85 encoding.
+ *      (1) This receives binary data and performs compression and ascii85
+ *          encoding on it.  The ascii result is stored in the input pix,
+ *          replacing any string that may be there.
  *      (2) The input %data can be reconstructed using pixGetTextCompNew().
  * </pre>
  */
