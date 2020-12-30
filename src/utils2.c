@@ -3308,7 +3308,11 @@ size_t   pathlen;
         dir = pathJoin(result, subdir);
     }
 #else
-    dir = pathJoin("/tmp", subdir);
+    char *tmpDir = getenv("TMPDIR");
+    if (tmpDir == NULL) {
+        tmpDir = "/tmp";
+    }
+    dir = pathJoin(tmpDir, subdir);
 #endif /*  ~ OS_IOS */
 
 #ifndef _WIN32
