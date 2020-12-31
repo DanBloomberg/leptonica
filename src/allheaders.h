@@ -2379,6 +2379,7 @@ LEPT_DLL extern l_int32 sarrayGetRefcount ( SARRAY *sa );
 LEPT_DLL extern l_ok sarrayChangeRefcount ( SARRAY *sa, l_int32 delta );
 LEPT_DLL extern char * sarrayToString ( SARRAY *sa, l_int32 addnlflag );
 LEPT_DLL extern char * sarrayToStringRange ( SARRAY *sa, l_int32 first, l_int32 nstrings, l_int32 addnlflag );
+LEPT_DLL extern SARRAY * sarrayConcatUniformly ( SARRAY *sa, l_int32 n, l_int32 addnlflag );
 LEPT_DLL extern l_ok sarrayJoin ( SARRAY *sa1, SARRAY *sa2 );
 LEPT_DLL extern l_ok sarrayAppendRange ( SARRAY *sa1, SARRAY *sa2, l_int32 start, l_int32 end );
 LEPT_DLL extern l_ok sarrayPadToSameSize ( SARRAY *sa1, SARRAY *sa2, const char *padstring );

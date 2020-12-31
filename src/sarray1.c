@@ -55,6 +55,9 @@
  *          char      *sarrayToString()
  *          char      *sarrayToStringRange()
  *
+ *      Concatenate strings uniformly within the sarray
+ *          SARRAY    *sarrayConcatUniformly()
+ *
  *      Join 2 sarrays
  *          l_int32    sarrayJoin()
  *          l_int32    sarrayAppendRange()
@@ -802,7 +805,7 @@ sarrayToString(SARRAY  *sa,
  *
  * <pre>
  * Notes:
- *      (1) Concatenates the specified strings inthe sarray, preserving
+ *      (1) Concatenates the specified strings in the sarray, preserving
  *          all white space.
  *      (2) If addnlflag != 0, adds either a '\n' or a ' ' after
  *          each substring.
@@ -874,6 +877,65 @@ l_int32  n, i, last, size, index, len;
     }
 
     return dest;
+}
+
+
+/*----------------------------------------------------------------------*
+ *           Concatenate strings uniformly within the sarray            *
+ *----------------------------------------------------------------------*/
+/*!
+ * \brief   sarrayConcatUniformly()
+ *
+ * \param[in]    sa          string array
+ * \param[in]    n           number of strings in output sarray
+ * \param[in]    addnlflag   flag: 0 adds nothing to each substring
+ *                                 1 adds '\n' to each substring
+ *                                 2 adds ' ' to each substring
+ * \return  dest sarray, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Divides the sarray into %n essentially equal sets of strings,
+ *          concatenates each set individually, and makes an output
+ *          sarray with the %n concatenations.
+ *      (2) If addnlflag != 0, adds either a '\n' or a ' ' after
+ *          each substring.
+ * </pre>
+ */
+SARRAY *
+sarrayConcatUniformly(SARRAY  *sa,
+                      l_int32  n,
+                      l_int32  addnlflag)
+{
+l_int32  i, first, ntot, nstr;
+char    *str;
+NUMA    *na;
+SARRAY  *saout;
+
+    PROCNAME("sarrayConcatUniformly");
+
+    if (!sa)
+        return (SARRAY *)ERROR_PTR("sa not defined", procName, NULL);
+    ntot = sarrayGetCount(sa);
+    if (n < 1)
+        return (SARRAY *)ERROR_PTR("n must be >= 1", procName, NULL);
+    if (n > ntot) {
+        L_ERROR("n = %d > ntot = %d\n", procName, n, ntot);
+        return NULL;
+    }
+    if (addnlflag != 0 && addnlflag != 1 && addnlflag != 2)
+        return (SARRAY *)ERROR_PTR("invalid addnlflag", procName, NULL);
+
+    saout = sarrayCreate(0);
+    na = numaGetUniformBinSizes(ntot, n);
+    for (i = 0, first = 0; i < n; i++) {
+        numaGetIValue(na, i, &nstr);
+        str = sarrayToStringRange(sa, first, nstr, addnlflag);
+        sarrayAddString(saout, str, L_INSERT);
+        first += nstr;
+    }
+    numaDestroy(&na);
+    return saout;
 }
 
 
