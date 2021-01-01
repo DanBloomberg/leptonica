@@ -764,17 +764,17 @@ sarrayChangeRefcount(SARRAY  *sa,
  * \param[in]    addnlflag   flag: 0 adds nothing to each substring
  *                                 1 adds '\n' to each substring
  *                                 2 adds ' ' to each substring
+ *                                 3 adds ',' to each substring
  * \return  dest string, or NULL on error
  *
  * <pre>
  * Notes:
  *      (1) Concatenates all the strings in the sarray, preserving
  *          all white space.
- *      (2) If addnlflag != 0, adds either a '\n' or a ' ' after
- *          each substring.
+ *      (2) If addnlflag != 0, adds '\n', ' ' or ',' after each substring.
  *      (3) This function was NOT implemented as:
  *            for (i = 0; i < n; i++)
- *                     strcat(dest, sarrayGetString(sa, i, L_NOCOPY));
+ *                strcat(dest, sarrayGetString(sa, i, L_NOCOPY));
  *          Do you see why?
  * </pre>
  */
@@ -801,14 +801,14 @@ sarrayToString(SARRAY  *sa,
  * \param[in]   addnlflag   flag: 0 adds nothing to each substring
  *                                1 adds '\n' to each substring
  *                                2 adds ' ' to each substring
+ *                                3 adds ',' to each substring
  * \return  dest string, or NULL on error
  *
  * <pre>
  * Notes:
  *      (1) Concatenates the specified strings in the sarray, preserving
  *          all white space.
- *      (2) If addnlflag != 0, adds either a '\n' or a ' ' after
- *          each substring.
+ *      (2) If addnlflag != 0, adds '\n', ' ' or ',' after each substring.
  *      (3) If the sarray is empty, this returns a string with just
  *          the character corresponding to %addnlflag.
  * </pre>
@@ -826,7 +826,7 @@ l_int32  n, i, last, size, index, len;
 
     if (!sa)
         return (char *)ERROR_PTR("sa not defined", procName, NULL);
-    if (addnlflag != 0 && addnlflag != 1 && addnlflag != 2)
+    if (addnlflag != 0 && addnlflag != 1 && addnlflag != 2 && addnlflag != 3)
         return (char *)ERROR_PTR("invalid addnlflag", procName, NULL);
 
     n = sarrayGetCount(sa);
@@ -838,29 +838,33 @@ l_int32  n, i, last, size, index, len;
                 return stringNew("");
             if (addnlflag == 1)
                 return stringNew("\n");
-            else  /* addnlflag == 2) */
+            if (addnlflag == 2)
                 return stringNew(" ");
+            else  /* addnlflag == 3) */
+                return stringNew(",");
         } else {
             return (char *)ERROR_PTR("first not valid", procName, NULL);
         }
     }
 
+        /* Determine the range of string indices to be used */
     if (first < 0 || first >= n)
         return (char *)ERROR_PTR("first not valid", procName, NULL);
     if (nstrings == 0 || (nstrings > n - first))
         nstrings = n - first;  /* no overflow */
     last = first + nstrings - 1;
 
+        /* Determine the size of the output string */
     size = 0;
     for (i = first; i <= last; i++) {
         if ((str = sarrayGetString(sa, i, L_NOCOPY)) == NULL)
             return (char *)ERROR_PTR("str not found", procName, NULL);
         size += strlen(str) + 2;
     }
-
     if ((dest = (char *)LEPT_CALLOC(size + 1, sizeof(char))) == NULL)
         return (char *)ERROR_PTR("dest not made", procName, NULL);
 
+        /* Construct the output */
     index = 0;
     for (i = first; i <= last; i++) {
         src = sarrayGetString(sa, i, L_NOCOPY);
@@ -872,6 +876,9 @@ l_int32  n, i, last, size, index, len;
             index++;
         } else if (addnlflag == 2) {
             dest[index] = ' ';
+            index++;
+        } else if (addnlflag == 3) {
+            dest[index] = ',';
             index++;
         }
     }
@@ -891,15 +898,16 @@ l_int32  n, i, last, size, index, len;
  * \param[in]    addnlflag   flag: 0 adds nothing to each substring
  *                                 1 adds '\n' to each substring
  *                                 2 adds ' ' to each substring
+ *                                 3 adds ',' to each substring
  * \return  dest sarray, or NULL on error
  *
  * <pre>
  * Notes:
- *      (1) Divides the sarray into %n essentially equal sets of strings,
+ *      (1) Divides %sa into %n essentially equal sets of strings,
  *          concatenates each set individually, and makes an output
- *          sarray with the %n concatenations.
- *      (2) If addnlflag != 0, adds either a '\n' or a ' ' after
- *          each substring.
+ *          sarray with the %n concatenations.  %n must not exceed the
+ *          number of strings in %sa.
+ *      (2) If addnlflag != 0, adds '\n', ' ' or ',' after each substring.
  * </pre>
  */
 SARRAY *
@@ -923,7 +931,7 @@ SARRAY  *saout;
         L_ERROR("n = %d > ntot = %d\n", procName, n, ntot);
         return NULL;
     }
-    if (addnlflag != 0 && addnlflag != 1 && addnlflag != 2)
+    if (addnlflag != 0 && addnlflag != 1 && addnlflag != 2 && addnlflag != 3)
         return (SARRAY *)ERROR_PTR("invalid addnlflag", procName, NULL);
 
     saout = sarrayCreate(0);
