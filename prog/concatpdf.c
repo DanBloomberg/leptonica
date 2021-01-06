@@ -27,111 +27,151 @@
 /*
  * concatpdf.c
  *
- *  N.B. This works on Unix.
- *       It relies on the following resources:
- *          * acroread
- *          * ghostscript
- *       Adobe is no longer making acroread binaries for linux.
+ *    This program concatenates all pdfs in a directory by rendering them
+ *    as images, optionally scaling the images, and generating an output pdf.
+ *    The pdfs are taken in lexical order.
  *
- *    Program to concatenate a set of pdf files into a single one.
- *    This works well when the input pdf files are not scanned, but
- *    instead are generated orthographically.
+ *    It makes no other changes to the images, which are rendered
+ *    by Poppler's pdftoppm.  Compare with cleanpdf.c, which carries
+ *    out several operations to make high resolution, 1 bpp g4-tiff
+ *    encoded images in the pdf.
  *
- *    Syntax: concatpdf dir [pattern]
- *        where pattern is an optional string to be matched
+ *     Syntax:  cconcatpdf basedir scalefactor outfile
  *
- *    The output goes to:  /tmp/lept/image/output.pdf
+ *    The %basedir is a directory where the input pdf files are located.
+ *    The program will operate on every file in this directory with
+ *    the ".pdf" extension.
  *
- *    This works by converting to PostScript (without annotations),
- *    then rasterizing the images, and finally generating a pdf from
- *    the set of images.  A good reference to command-line usage of
- *    acroread is:
- *        http://www.physics.ohio-state.edu/~wilkins/html/acroread.html
+ *    The %scalefactor is typically used to downscale the image to
+ *    reduce the size of the generated pdf.  It should not affect the
+ *    pdf display otherwise.  For normal text on images scanned at 300 ppi,
+ *    a 2x reduction (%scalefactor = 0.5) may be satisfactory.
+ *    We compute an output resolution for that pdf that will cause it
+ *    to print 11 inches high, based on the height in pixels of the
+ *    first image in the set.
  *
- *    The steps are as follows:
+ *    The pdf encoding for each page is chosen by the default mechanism.
+ *    See selectDefaultPdfEncoding() for details.
+ *    If DCT encoding (jpeg) is used, the quality factor is set to 50.
+ *    This makes smaller files with (usually) decent image quality.
  *
- *    (1) Use acroread to generate ps files without annotations, which
- *        can cause difficulties in later stages.  The ps files are
- *        made in /tmp/lept/ps/.
- *    (2) Use ps2pdf-gray from Ghostscript to rasterize the images.
- *        The images are written to /tmp/lept/image/
- *    (3) Use convertFilesToPdf to generate a pdf file,
- *        /tmp/lept/image/output.pdf, from the images.
+ *    The pdf output is written to %outfile.  It is advisable (but not
+ *    required) to have a '.pdf' extension.
+ *
+ *    N.B.  This requires the Poppler package of pdf utilities, such as
+ *          pdfimages and pdftoppm.  For non-unix systems, this requires
+ *          installation of the cygwin Poppler package:
+ *       https://cygwin.com/cgi-bin2/package-cat.cgi?file=x86/poppler/
+ *              poppler-0.26.5-1
  */
 
 #ifdef HAVE_CONFIG_H
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
-#include <sys/stat.h>
-#include "allheaders.h"
+#ifdef _WIN32
+# if defined(_MSC_VER) || defined(__MINGW32__)
+#  include <direct.h>
+# else
+#  include <io.h>
+# endif  /* _MSC_VER || __MINGW32__ */
+#endif  /* _WIN32 */
 
-static const l_int32  RESOLUTION = 300;
+#include "string.h"
+#include <sys/stat.h>
+#include <sys/types.h>
+#include "allheaders.h"
 
 l_int32 main(int    argc,
              char **argv)
 {
-char         buf[512], rootname[256];
-char        *dir, *pattern, *psdir, *imagedir;
-char        *fname, *tail, *filename;
-l_int32      i, n, ret;
-SARRAY      *sa, *saps;
+char         buf[256];
+char        *basedir, *fname, *tail, *basename, *imagedir, *outfile;
+l_int32      res, i, n, ret;
+l_float32    scalefactor;
+PIX         *pixs, *pix1;
+PIXA        *pixa1;
+SARRAY      *sa;
 static char  mainName[] = "concatpdf";
 
-    if (argc != 2 && argc != 3)
-        return ERROR_INT("Syntax: concatpdf dir [pattern]", mainName, 1);
-    dir = argv[1];
-    pattern = (argc == 3) ? argv[2] : NULL;
+    if (argc != 4)
+        return ERROR_INT(
+            "Syntax: concatpdf basedir scalefactor outfile",
+            mainName, 1);
+    basedir = argv[1];
+    scalefactor = atof(argv[2]);
+    outfile = argv[3];
     setLeptDebugOK(1);
 
+#if 1
         /* Get the names of the pdf files */
-    sa = getSortedPathnamesInDirectory(dir, pattern, 0, 0);
+    if ((sa = getSortedPathnamesInDirectory(basedir, "pdf", 0, 0)) == NULL)
+        return ERROR_INT("files not found", mainName, 1);
     sarrayWriteStream(stderr, sa);
     n = sarrayGetCount(sa);
+#endif
 
+        /* Rasterize:
+         *     pdftoppm -r 150 fname outroot
+         * Use of pdftoppm:
+         *    This works on all pdf pages, both wrapped images and pages that
+         *    were made orthographically.  We use the default output resolution
+         *    of 150 ppi for pdftoppm, which makes uncompressed 6 MB files
+         *    and is very fast.  If you want higher resolution 1 bpp output,
+         *    use cleanpdf.c. */
+    imagedir = stringJoin(basedir, "/image");
 #if 1
-        /* Convert to ps */
-    psdir = genPathname("/tmp/lept/ps", NULL);
-    lept_rmdir("lept/ps");
-    lept_mkdir("lept/ps");
-    saps = sarrayCreate(n);
+#ifndef _WIN32
+    mkdir(imagedir, 0777);
+#else
+    _mkdir(imagedir);
+#endif  /* _WIN32 */
     for (i = 0; i < n; i++) {
         fname = sarrayGetString(sa, i, L_NOCOPY);
         splitPathAtDirectory(fname, NULL, &tail);
-        splitPathAtExtension(tail, &filename, NULL);
-        snprintf(buf, sizeof(buf), "acroread -toPostScript -annotsOff %s %s",
-                 fname, psdir);
-        lept_stderr("%s\n", buf);
-        ret = system(buf);  /* acroread -toPostScript -annotsOff */
-        snprintf(buf, sizeof(buf), "%s/%s.ps", psdir, filename);
-        sarrayAddString(saps, buf, L_COPY);
+        splitPathAtExtension(tail, &basename, NULL);
+        snprintf(buf, sizeof(buf), "pdftoppm -r 150 %s %s/%s",
+                 fname, imagedir, basename);
         lept_free(tail);
-        lept_free(filename);
+        lept_free(basename);
+        lept_stderr("%s\n", buf);
+        ret = system(buf);
     }
     sarrayDestroy(&sa);
 #endif
 
 #if 1
-        /* Rasterize */
-    imagedir = genPathname("/tmp/lept/image", NULL);
-    lept_rmdir("lept/image");
-    lept_mkdir("lept/image");
-    sarrayWriteStream(stderr, saps);
-    n = sarrayGetCount(saps);
+        /* Scale and collect */
+    sa = getSortedPathnamesInDirectory(imagedir, NULL, 0, 0);
+    sarrayWriteStream(stderr, sa);
+    n = sarrayGetCount(sa);
+    pixa1 = pixaCreate(n);
     for (i = 0; i < n; i++) {
-        fname = sarrayGetString(saps, i, L_NOCOPY);
-        snprintf(rootname, sizeof(rootname), "%s/r%d", imagedir, i);
-        snprintf(buf, sizeof(buf), "ps2png-gray %s %s", fname, rootname);
-        lept_stderr("%s\n", buf);
-        ret = system(buf);  /* ps2png-gray */
+        fname = sarrayGetString(sa, i, L_NOCOPY);
+        pixs = pixRead(fname);
+        if (scalefactor == 1.0)
+            pix1 = pixClone(pixs);
+        else
+            pix1 = pixScale(pixs, scalefactor, scalefactor);
+        pixaAddPix(pixa1, pix1, L_INSERT);
+        pixDestroy(&pixs);
     }
+    sarrayDestroy(&sa);
+#endif
 
-        /* Generate the pdf */
-    convertFilesToPdf(imagedir, "png", RESOLUTION, 1.0, L_FLATE_ENCODE,
-                      0, "", "/tmp/lept/image/output.pdf");
-    lept_free(imagedir);
+#if 1
+        /* Generate the pdf.  Compute the actual input resolution from
+         * the pixel dimensions of the first image.  This will cause each
+         * page to be printed to cover an 8.5 x 11 inch sheet of paper. */
+    lept_stderr("Write output to %s\n", outfile);
+    pix1 = pixaGetPix(pixa1, 0, L_CLONE);
+    pixInferResolution(pix1, 11.0, &res);
+    pixDestroy(&pix1);
+    pixaConvertToPdf(pixa1, res, 1.0, L_DEFAULT_ENCODE, 50, NULL, outfile);
+    pixaDestroy(&pixa1);
 #endif
 
     return 0;
 }
+
 
