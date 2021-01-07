@@ -79,8 +79,9 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
 	kel = kernelCreate(3, 3);
 	pix_pointer_payload = pixCopy(NULL, pixs_payload);
-	pixMultMatrixColor( pix_pointer_payload, kel);
+	return_pix = pixMultMatrixColor( pix_pointer_payload, kel);
 	pixDestroy(&pix_pointer_payload);
+	pixDestroy(&return_pix);
 	kernelDestroy(&kel);
 
 	na1 = numaGammaTRC(1.0, 0, 255);
