@@ -44,8 +44,8 @@
  *           NUMA    *numaEqualizeTRC()
  *
  *      Generic TRC mapper
- *           PIX     *pixTRCMap()
- *           PIX     *pixTRCMapGeneral()
+ *           l_int32  pixTRCMap()
+ *           l_int32  pixTRCMapGeneral()
  *
  *      Unsharp-masking
  *           PIX     *pixUnsharpMasking()
@@ -765,7 +765,7 @@ NUMA      *nah, *nasum, *nad;
  * \param[in]    pixs    8 grayscale or 32 bpp rgb; not colormapped
  * \param[in]    pixm    [optional] 1 bpp mask
  * \param[in]    na      mapping array
- * \return  pixd, or NULL on error
+ * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
@@ -886,7 +886,7 @@ l_uint32  *data, *datam, *line, *linem, *tab;
  * \param[in]    pixs             32 bpp rgb; not colormapped
  * \param[in]    pixm             [optional] 1 bpp mask
  * \param[in]    nar, nag, nab    mapping arrays
- * \return  pixd, or NULL on error
+ * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:

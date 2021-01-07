@@ -81,7 +81,6 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	pix_pointer_payload = pixCopy(NULL, pixs_payload);
 	pixMultMatrixColor( pix_pointer_payload, kel);
 	pixDestroy(&pix_pointer_payload);
-	pixDestroy(&return_pix);
 	kernelDestroy(&kel);
 
 	na1 = numaGammaTRC(1.0, 0, 255);
@@ -89,8 +88,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	na3 = numaGammaTRC(1.0, 0, 255);
 	pix_pointer_payload = pixCopy(NULL, pixs_payload);
 	pix2 = pixMakeSymmetricMask(10, 10, 0.5, 0.5, L_USE_INNER);
-	return_pix = pixTRCMapGeneral(pix_pointer_payload, pix2, na1, na2, na3);
-	pixDestroy(&return_pix);
+	pixTRCMapGeneral(pix_pointer_payload, pix2, na1, na2, na3);
 	numaDestroy(&na1);
 	numaDestroy(&na2);
 	numaDestroy(&na3);

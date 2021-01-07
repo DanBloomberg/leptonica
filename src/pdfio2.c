@@ -2412,18 +2412,30 @@ substituteObjectNumbers(L_BYTEA  *bas,
 l_uint8   space = ' ';
 l_uint8  *datas;
 l_uint8   buf[32];  /* only needs to hold one integer in ascii format */
-l_int32   start, nrepl, i, j, objin, objout, found;
+l_int32   start, nrepl, i, j, nobjs, objin, objout, found;
 l_int32  *objs, *matches;
 size_t    size;
 L_BYTEA  *bad;
 L_DNA    *da_match;
 
+    PROCNAME("substituteObjectNumbers");
+    if (!bas)
+        return (L_BYTEA *)ERROR_PTR("bas not defined", procName, NULL);
+    if (!na_objs)
+        return (L_BYTEA *)ERROR_PTR("na_objs not defined", procName, NULL);
+
     datas = l_byteaGetData(bas, &size);
     bad = l_byteaCreate(100);
     objs = numaGetIArray(na_objs);  /* object number mapper */
+    nobjs = numaGetCount(na_objs);  /* use for sanity checking */
 
         /* Substitute the object number on the first line */
     sscanf((char *)datas, "%d", &objin);
+    if (objin < 0 || objin >= nobjs) {
+        L_ERROR("index %d into array of size %d\n", procName, objin, nobjs);
+        LEPT_FREE(objs);
+        return bad;
+    }
     objout = objs[objin];
     snprintf((char *)buf, 32, "%d", objout);
     l_byteaAppendString(bad, (char *)buf);
@@ -2449,6 +2461,13 @@ L_DNA    *da_match;
             /* Copy bytes from 'start' up to the object number */
         l_byteaAppendData(bad, datas + start, j - start + 1);
         sscanf((char *)(datas + j + 1), "%d", &objin);
+        if (objin < 0 || objin >= nobjs) {
+            L_ERROR("index %d into array of size %d\n", procName, objin, nobjs);
+            LEPT_FREE(objs);
+            LEPT_FREE(matches);
+            l_dnaDestroy(&da_match);
+            return bad;
+        }
         objout = objs[objin];
         snprintf((char *)buf, 32, "%d", objout);
         l_byteaAppendString(bad, (char *)buf);

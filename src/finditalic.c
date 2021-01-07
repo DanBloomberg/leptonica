@@ -127,10 +127,11 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
 
     PROCNAME("pixItalicWords");
 
-    if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
     if (!pboxa)
         return ERROR_INT("&boxa not defined", procName, 1);
+    *pboxa = NULL;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
     if (boxaw && pixw)
         return ERROR_INT("both boxaw and pixw are defined", procName, 1);
 
