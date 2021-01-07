@@ -434,7 +434,7 @@ l_int32   eof, index, nread, nbout, i;
     inword = 0;
     for (i = 0; i < nread; i++) {
         inbyte = inarray[index + i];
-        inword += inbyte << (8 * (3 - i));
+        inword += (l_uint32)inbyte << (8 * (3 - i));
     }
 
 #if 0
