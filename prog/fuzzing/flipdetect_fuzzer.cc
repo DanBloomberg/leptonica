@@ -1,0 +1,47 @@
+#include "leptfuzz.h"
+
+extern "C" int
+LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) { 
+	if(size<3) return 0;
+ 
+	leptSetStdNullHandler();
+
+
+	PIX *pixs_payload = pixReadMemSpix(data, size);
+	if(pixs_payload == NULL) return 0;
+	
+	l_float32 minupconf, minratio, conf1, conf2, upconf1, leftconf1, &upconf2, &leftconf2;
+	PIX *pix_pointer_payload, *return_pix;
+
+	
+	pix_pointer_payload = pixCopy(NULL, pixs_payload);
+	pixMirrorDetect(pix_pointer_payload, &conf1, 0, 1);
+	pixDestroy(&pix_pointer_payload);
+
+
+	pix_pointer_payload = pixCopy(NULL, pixs_payload);
+	pixMirrorDetectDwa(pix_pointer_payload, &conf2, 0, 0);
+	pixDestroy(&pix_pointer_payload);
+
+
+	pix_pointer_payload = pixCopy(NULL, pixs_payload);
+	return_pix = pixOrientCorrect(pixs, minupconf, minratio, NULL, NULL, NULL, 1);
+	pixDestroy(&pix_pointer_payload);	
+	if(return_pix!=NULL){
+		pixDestroy(&return_pix);
+	}
+
+
+	pix_pointer_payload = pixCopy(NULL, pixs_payload);
+	pixOrientDetect(pix_pointer_payload, &upconf1, &leftconf1, 0, 0);
+	pixDestroy(&pix_pointer_payload);
+
+
+	pix_pointer_payload = pixCopy(NULL, pixs_payload);
+	pixOrientDetectDwa(pix1, &upconf2, &leftconf2, 0, 0);
+	pixDestroy(&pix_pointer_payload);
+
+	pixDestroy(&pixs_payload);
+	
+	return 0;
+}
