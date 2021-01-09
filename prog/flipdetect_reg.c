@@ -132,8 +132,8 @@ static char  mainName[] = "flipdetect_reg";
 
         /* Compare safer rasterop and dwa orientation detection */
     lept_stderr("\nTest safer version of up-down tests\n");
-    pixUpDownDetectGeneral(pixs, &conf1, 0, 10, 1);
-    pixUpDownDetectGeneralDwa(pixs, &conf2, 0, 10, 1);
+    pixUpDownDetect(pixs, &conf1, 0, 10, 1);
+    pixUpDownDetectDwa(pixs, &conf2, 0, 10, 1);
     if (conf1 == conf2)
         lept_stderr("Confidence results are identical\n");
     else

@@ -29,23 +29,21 @@
  * <pre>
  *
  *      High-level interface for detection and correction
- *          l_int32      pixOrientCorrect()
+ *          PIX         *pixOrientCorrect()
  *
  *      Page orientation detection (pure rotation by 90 degree increments):
  *          l_int32      pixOrientDetect()
  *          l_int32      makeOrientDecision()
  *          l_int32      pixUpDownDetect()
- *          l_int32      pixUpDownDetectGeneral()
  *          l_int32      pixOrientDetectDwa()
  *          l_int32      pixUpDownDetectDwa()
- *          l_int32      pixUpDownDetectGeneralDwa()
  *
  *      Page mirror detection (flip 180 degrees about line in plane of image):
  *          l_int32      pixMirrorDetect()
  *          l_int32      pixMirrorDetectDwa()
  *
  *      Static debug helper
- *          void         pixDebugFlipDetect()
+ *          static void  pixDebugFlipDetect()
  *
  *  ===================================================================
  *
@@ -151,7 +149,7 @@
  *      pixMirrorDetect*().
  *
  *  (4) If you have a relatively large amount of numbers on the page,
- *      us the slower pixUpDownDetectGeneral().
+ *      use the slower pixUpDownDetect().
  *
  *  We summarize the full orientation and mirror flip detection process:
  *
@@ -294,9 +292,9 @@ PIX       *pix1;
         return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
 
         /* Get confidences for orientation */
-    pixUpDownDetectDwa(pixs, &upconf, 0, debug);
+    pixUpDownDetectDwa(pixs, &upconf, 0, 0, debug);
     pix1 = pixRotate90(pixs, 1);
-    pixUpDownDetectDwa(pix1, &leftconf, 0, debug);
+    pixUpDownDetectDwa(pix1, &leftconf, 0, 0, debug);
     pixDestroy(&pix1);
     if (pupconf) *pupconf = upconf;
     if (pleftconf) *pleftconf = leftconf;
@@ -426,10 +424,10 @@ PIX  *pix1;
         mincount = DefaultMinUpDownCount;
 
     if (pupconf)
-        pixUpDownDetect(pixs, pupconf, mincount, debug);
+        pixUpDownDetect(pixs, pupconf, mincount, 0, debug);
     if (pleftconf) {
         pix1 = pixRotate90(pixs, 1);
-        pixUpDownDetect(pix1, pleftconf, mincount, debug);
+        pixUpDownDetect(pix1, pleftconf, mincount, 0, debug);
         pixDestroy(&pix1);
     }
 
@@ -528,37 +526,6 @@ l_float32  absupconf, absleftconf;
  * \param[in]    pixs       1 bpp, deskewed, English text, 150 - 300 ppi
  * \param[out]   pconf      confidence that text is rightside-up
  * \param[in]    mincount   min number of up + down; use 0 for default
- * \param[in]    debug      1 for debug output; 0 otherwise
- * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) Special (typical, slightly faster) case, where the pixels
- *          identified through the HMT (hit-miss transform) are not
- *          clipped by a truncated word mask pixm.  See pixOrientDetect()
- *          and pixUpDownDetectGeneral() for details.
- *      (2) The returned confidence is the normalized difference
- *          between the number of detected up and down ascenders,
- *          assuming that the text is either rightside-up or upside-down
- *          and not rotated at a 90 degree angle.
- * </pre>
- */
-l_ok
-pixUpDownDetect(PIX        *pixs,
-                l_float32  *pconf,
-                l_int32     mincount,
-                l_int32     debug)
-{
-    return pixUpDownDetectGeneral(pixs, pconf, mincount, 0, debug);
-}
-
-
-/*!
- * \brief   pixUpDownDetectGeneral()
- *
- * \param[in]    pixs       1 bpp, deskewed, English text, 150 - 300 ppi
- * \param[out]   pconf      confidence that text is rightside-up
- * \param[in]    mincount   min number of up + down; use 0 for default
  * \param[in]    npixels    number of pixels removed from each side of word box
  * \param[in]    debug      1 for debug output; 0 otherwise
  * \return  0 if OK, 1 on error
@@ -566,10 +533,10 @@ pixUpDownDetect(PIX        *pixs,
  * <pre>
  * Notes:
  *      (1) See pixOrientDetect() for other details.
- *      (2) %conf is the normalized difference between the number of
- *          detected up and down ascenders, assuming that the text
- *          is either rightside-up or upside-down and not rotated
- *          at a 90 degree angle.
+ *      (2) The detected confidence %conf is the normalized difference
+ *          between the number of detected up and down ascenders,
+ *          assuming that the text is either rightside-up or upside-down
+ *          and not rotated at a 90 degree angle.
  *      (3) The typical mode of operation is %npixels == 0.
  *          If %npixels > 0, this removes HMT matches at the
  *          beginning and ending of "words."  This is useful for
@@ -592,18 +559,18 @@ pixUpDownDetect(PIX        *pixs,
  * </pre>
  */
 l_ok
-pixUpDownDetectGeneral(PIX        *pixs,
-                       l_float32  *pconf,
-                       l_int32     mincount,
-                       l_int32     npixels,
-                       l_int32     debug)
+pixUpDownDetect(PIX        *pixs,
+                l_float32  *pconf,
+                l_int32     mincount,
+                l_int32     npixels,
+                l_int32     debug)
 {
 l_int32    countup, countdown, nmax;
 l_float32  nup, ndown;
 PIX       *pix0, *pix1, *pix2, *pix3, *pixm;
 SEL       *sel1, *sel2, *sel3, *sel4;
 
-    PROCNAME("pixUpDownDetectGeneral");
+    PROCNAME("pixUpDownDetect");
 
     if (!pconf)
         return ERROR_INT("&conf not defined", procName, 1);
@@ -753,10 +720,10 @@ PIX  *pix1;
         mincount = DefaultMinUpDownCount;
 
     if (pupconf)
-        pixUpDownDetectDwa(pixs, pupconf, mincount, debug);
+        pixUpDownDetectDwa(pixs, pupconf, mincount, 0, debug);
     if (pleftconf) {
         pix1 = pixRotate90(pixs, 1);
-        pixUpDownDetectDwa(pix1, pleftconf, mincount, debug);
+        pixUpDownDetectDwa(pix1, pleftconf, mincount, 0, debug);
         pixDestroy(&pix1);
     }
 
@@ -770,17 +737,16 @@ PIX  *pix1;
  * \param[in]    pixs       1 bpp, deskewed, English text, 150 - 300 ppi
  * \param[out]   pconf      confidence that text is rightside-up
  * \param[in]    mincount   min number of up + down; use 0 for default
+ * \param[in]    npixels    number of pixels removed from each side of word box
  * \param[in]    debug      1 for debug output; 0 otherwise
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
  *      (1) Faster (DWA) version of pixUpDownDetect().
- *      (2) This is a special case (but typical and slightly faster) of
- *          pixUpDownDetectGeneralDwa(), where the pixels identified
- *          through the HMT (hit-miss transform) are not clipped by
- *          a truncated word mask pixm.  See pixUpDownDetectGeneral()
- *          for usage and other details.
+ *      (2) If npixels == 0, the pixels identified through the HMT
+ *          (hit-miss transform) are not clipped by a truncated word
+ *          mask pixm.  See pixUpDownDetect() for usage and other details.
  *      (3) The returned confidence is the normalized difference
  *          between the number of detected up and down ascenders,
  *          assuming that the text is either rightside-up or upside-down
@@ -788,36 +754,11 @@ PIX  *pix1;
  * </pre>
  */
 l_ok
-pixUpDownDetectDwa(PIX       *pixs,
-                  l_float32  *pconf,
-                  l_int32     mincount,
-                  l_int32     debug)
-{
-    return pixUpDownDetectGeneralDwa(pixs, pconf, mincount, 0, debug);
-}
-
-
-/*!
- * \brief   pixUpDownDetectGeneralDwa()
- *
- * \param[in]    pixs       1 bpp, deskewed, English text
- * \param[out]   pconf      confidence that text is rightside-up
- * \param[in]    mincount   min number of up + down; use 0 for default
- * \param[in]    npixels    number of pixels removed from each side of word box
- * \param[in]    debug      1 for debug output; 0 otherwise
- * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) See the notes in pixUpDownDetectGeneral() for usage.
- * </pre>
- */
-l_ok
-pixUpDownDetectGeneralDwa(PIX        *pixs,
-                          l_float32  *pconf,
-                          l_int32     mincount,
-                          l_int32     npixels,
-                          l_int32     debug)
+pixUpDownDetectDwa(PIX        *pixs,
+                   l_float32  *pconf,
+                   l_int32     mincount,
+                   l_int32     npixels,
+                   l_int32     debug)
 {
 char       flipsel1[] = "flipsel1";
 char       flipsel2[] = "flipsel2";
@@ -827,7 +768,7 @@ l_int32    countup, countdown, nmax;
 l_float32  nup, ndown;
 PIX       *pixt, *pix0, *pix1, *pix2, *pix3, *pixm;
 
-    PROCNAME("pixUpDownDetectGeneralDwa");
+    PROCNAME("pixUpDownDetectDwa");
 
     if (!pconf)
         return ERROR_INT("&conf not defined", procName, 1);
@@ -875,7 +816,7 @@ PIX       *pixt, *pix0, *pix1, *pix2, *pix3, *pixm;
 
         /* Find the ascenders and optionally filter with pixm.
          * For an explanation of the procedure used for counting the result
-         * of the HMT, see comments in pixUpDownDetectGeneral().  */
+         * of the HMT, see comments in pixUpDownDetect().  */
     pix1 = pixFlipFHMTGen(NULL, pix0, flipsel1);
     pix2 = pixFlipFHMTGen(NULL, pix0, flipsel2);
     pixOr(pix1, pix1, pix2);

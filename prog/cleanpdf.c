@@ -103,6 +103,9 @@
 #include <sys/types.h>
 #include "allheaders.h"
 
+    /* Special version */
+PIX *pixConvertTo8Special(PIX *pix);
+
 l_int32 main(int    argc,
              char **argv)
 {
@@ -196,7 +199,7 @@ static char  mainName[] = "cleanpdf";
     for (i = 0; i < n; i++) {
         fname = sarrayGetString(sa, i, L_NOCOPY);
         pixs = pixRead(fname);
-        pix1 = pixConvertTo8(pixs, FALSE);
+        pix1 = pixConvertTo8Special(pixs);
         if (rotation > 0)
             pix2 = pixRotateOrth(pix1, rotation);
         else
@@ -246,3 +249,30 @@ static char  mainName[] = "cleanpdf";
 }
 
 
+    /* A special version of pixConvertTo8() that returns an image without
+     * a colormap and uses pixConvertRGBToGrayMinMax() to strongly
+     * render color into black. */
+PIX *
+pixConvertTo8Special(PIX  *pixs)
+{
+    l_int32 d = pixGetDepth(pixs);
+    if (d == 1) {
+        return pixConvert1To8(NULL, pixs, 255, 0);
+    } else if (d == 2) {
+        return pixConvert2To8(pixs, 0, 85, 170, 255, FALSE);
+    } else if (d == 4) {
+        return pixConvert4To8(pixs, FALSE);
+    } else if (d == 8) {
+        if (pixGetColormap(pixs) != NULL)
+            return pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+        else
+            return pixCopy(NULL, pixs);
+    } else if (d == 16) {
+        return pixConvert16To8(pixs, L_MS_BYTE);
+    } else if (d == 32) {
+        return pixConvertRGBToGrayMinMax(pixs, L_CHOOSE_MIN);
+    }
+
+    L_ERROR("Invalid depth d = %d\n", "pixConvertSpecialTo8", d);
+    return NULL;
+}
