@@ -6,7 +6,6 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
     leptSetStdNullHandler();
 
-
     PIX *pixs_payload = pixReadMemSpix(data, size);
     if(pixs_payload == NULL) return 0;
 
@@ -21,6 +20,5 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     ptaDestroy(&pta2);
 
     pixDestroy(&pixs_payload);
-
     return 0;
 }

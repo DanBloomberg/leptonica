@@ -6,7 +6,6 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
 	leptSetStdNullHandler();
 
-
 	PIX *pixs_payload = pixReadMemSpix(data, size);
 	if(pixs_payload == NULL) return 0;
 
@@ -31,9 +30,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	return_pix1 = pixBackgroundNormMorph(payload_copy, pix1, 6, 5, 256);
 	pixDestroy(&pix1);
 	pixDestroy(&payload_copy);
-	if(return_pix1!=NULL){
-		pixDestroy(&return_pix1);
-	}
+	pixDestroy(&return_pix1);
 
 	pix1 = pixRead("../test8.jpg");
 	pix2 = pixRead("../test8.jpg");
@@ -64,9 +61,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	return_pix1 = pixGlobalNormNoSatRGB(payload_copy, pix1, 3, 3, 3, 2, 0.9);
 	pixDestroy(&pix1);
 	pixDestroy(&payload_copy);
-	if(return_pix1!=NULL){
-		pixDestroy(&return_pix1);
-	}
+	pixDestroy(&return_pix1);
 
 	payload_copy = pixCopy(NULL, pixs_payload);
 	pixThresholdSpreadNorm(payload_copy, L_SOBEL_EDGE, 10, 0, 0, 0.7, -25, 255, 10, &pix1, &pix2, &pix3);

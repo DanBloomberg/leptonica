@@ -6,7 +6,6 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
 	leptSetStdNullHandler();
 
-
 	PIX *pixs_payload = pixReadMemSpix(data, size);
 	if(pixs_payload == NULL) return 0;
 
@@ -18,10 +17,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	return_pix1 = pixAffinePta(pixs_payload, ptad, ptas, L_BRING_IN_WHITE);
 	ptaDestroy(&ptas);
 	ptaDestroy(&ptad);
-	if(return_pix1!=NULL) {
-		pixDestroy(&return_pix1);
-	}
-
+	pixDestroy(&return_pix1);
 
 	pix1 = pixRead("../test8.jpg");
 	ptas = ptaCreate(0);
@@ -30,22 +26,15 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	pixDestroy(&pix1);
 	ptaDestroy(&ptas);
 	ptaDestroy(&ptad);
-	if(return_pix1!=NULL) {
-		pixDestroy(&return_pix1);
-	}
-
+	pixDestroy(&return_pix1);
 
 	ptas = ptaCreate(0);
 	ptad = ptaCreate(0);
 	return_pix1 = pixAffineSequential(pixs_payload, ptad, ptas, 3, 3);
 	ptaDestroy(&ptas);
 	ptaDestroy(&ptad);
-	if(return_pix1!=NULL) {
-		pixDestroy(&return_pix1);
-	}
+	pixDestroy(&return_pix1);
 
 	pixDestroy(&pixs_payload);
-
-
 	return 0;
 }

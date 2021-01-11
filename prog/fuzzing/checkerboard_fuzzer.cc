@@ -6,13 +6,11 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
 	leptSetStdNullHandler();
 
-
 	PIX *pixs_payload = pixReadMemSpix(data, size);
 	if(pixs_payload == NULL) return 0;
 	PIX     *pix1, *pix_copy;
 	PIXA    *pixa1;
 	PTA     *pta1;
-
 
 	pixa1 = pixaCreate(0);
 	pix_copy = pixCopy(NULL, pixs_payload);

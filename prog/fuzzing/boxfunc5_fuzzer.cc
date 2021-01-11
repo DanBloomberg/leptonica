@@ -47,6 +47,5 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 					 80, 20, 1);
 	boxaDestroy(&boxa1);
 	boxaDestroy(&boxa_payload);
-
 	return 0;
 }

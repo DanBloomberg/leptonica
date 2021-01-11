@@ -6,13 +6,11 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
 	leptSetStdNullHandler();
 
-
 	PIX *pixs_payload = pixReadMemSpix(data, size);
 	if(pixs_payload == NULL) return 0;
 
 	PIX *pix1, *pix2, *return_pix, *pix_copy1;	
 	l_int32 l_i;
-
 
 	pix1 = pixRead("../test8.jpg");
 	pix_copy1 = pixCopy(NULL, pixs_payload);
@@ -21,10 +19,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 						     10, 10, 0.1, &l_i);
 	pixDestroy(&pix1);
 	pixDestroy(&pix_copy1);
-	if(return_pix!=NULL) {
-		pixDestroy(&return_pix);
-	}
-
+	pixDestroy(&return_pix);
 
 	pix1 = pixRead("../test8.jpg");
 	pix_copy1 = pixCopy(NULL, pixs_payload);
@@ -34,16 +29,12 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 						   &l_i);
 	pixDestroy(&pix1);
 	pixDestroy(&pix_copy1);
-	if(return_pix!=NULL) {
-		pixDestroy(&return_pix);
-	}
-
+	pixDestroy(&return_pix);
 
 	pix_copy1 = pixCopy(NULL, pixs_payload);
 	pixSauvolaBinarizeTiled(pix_copy1, 8, 0.34, 1, 1, NULL, &pix1);
 	pixDestroy(&pix1);
 	pixDestroy(&pix_copy1);
-
 
 	pix1 = pixRead("../test8.jpg");
 	pix_copy1 = pixCopy(NULL, pixs_payload);
@@ -52,7 +43,6 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	pixDestroy(&pix1);
 	pixDestroy(&pix2);
 	pixDestroy(&pix_copy1);
-
 
 	pix_copy1 = pixCopy(NULL, pixs_payload);
 	pixThresholdByHisto(pix_copy1, 2, 0, 0, &l_i, &pix1, &pix2);

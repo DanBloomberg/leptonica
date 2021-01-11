@@ -21,6 +21,5 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     recogDestroy(&recog);
     unlink(filename);
-
     return 0;
 }

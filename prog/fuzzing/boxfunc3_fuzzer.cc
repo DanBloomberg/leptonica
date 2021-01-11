@@ -10,7 +10,6 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	boxa_payload = boxaReadMem(data, size);
 	if(boxa_payload == NULL) return 0;
 
-
 	PIX          *pixc, *pixd, *pix, *pixs;
 	PIX          *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
 	BOXAA        *baa;
@@ -21,13 +20,12 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	if(pix1!=NULL) {
 		baa = boxaSort2d(boxa_payload, NULL, 6, 6, 5);
 		pix2 = boxaaDisplay(pix1, baa, 3, 1, 0xff000000,
-							0x00ff0000, 0, 0);
-		boxaaDestroy(&baa);
+	                            0x00ff0000, 0, 0);
+	  	boxaaDestroy(&baa);
 		pixDestroy(&pix1);
 		pixDestroy(&pix2);
 	}
 	
-
 	//pixBlendBoxaRandom();
 	pixc = pixRead("../test8.jpg");
 	if(pixc!=NULL) {
