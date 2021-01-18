@@ -68,6 +68,7 @@ set(include_files_list
     openjpeg-2.1/openjpeg.h
     openjpeg-2.2/openjpeg.h
     openjpeg-2.3/openjpeg.h
+    openjpeg-2.4/openjpeg.h
 )
 check_includes(include_files_list)
 
@@ -145,7 +146,9 @@ file(APPEND ${AUTOCONFIG_SRC} "
 /* Define to 1 if you have zlib. */
 #cmakedefine HAVE_LIBZ 1
 
-#if defined(HAVE_OPENJPEG_2_3_OPENJPEG_H)
+#if defined(HAVE_OPENJPEG_2_4_OPENJPEG_H)
+#define LIBJP2K_HEADER <openjpeg-2.4/openjpeg.h>
+#elif defined(HAVE_OPENJPEG_2_3_OPENJPEG_H)
 #define LIBJP2K_HEADER <openjpeg-2.3/openjpeg.h>
 #elif defined(HAVE_OPENJPEG_2_2_OPENJPEG_H)
 #define LIBJP2K_HEADER <openjpeg-2.2/openjpeg.h>
