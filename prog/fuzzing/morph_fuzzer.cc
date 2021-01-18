@@ -10,11 +10,11 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     if(pixs_payload == NULL) return 0;
 
     PIX *pix;
-    PIX *pix1;
+    PIX *pix1, *pix_copy4;
+    SEL *sel;
 
     pix = pixRead("../test8.jpg");
     pix1 = pixCreate(size, size, 1);
-    SEL *sel;
     sel = selCreateFromPix(pix1, 6, 6, "plus_sign");
     PIX *pix_copy1 = pixCopy(NULL, pixs_payload);
     pixCloseGeneralized(pix_copy1, pix, sel);
@@ -38,6 +38,19 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     pixDestroy(&pix_copy3);
     pixDestroy(&pix);
     selDestroy(&sel);
+
+    for(l_int32 i=0; i<5; i++){
+        if ((sel = selCreate (i, i, "sel_5dp")) == NULL)
+            continue;
+        char *selname = selGetName(sel);
+        pix_copy4 = pixCopy(NULL, pixs_payload);
+        pixFMorphopGen_1(pix_copy4, pix_copy4,
+                     i, selname);
+        pixDestroy(&pix_copy4);
+        if(sel!=NULL) {
+            selDestroy(&sel);
+        }
+    }
 
     pixDestroy(&pixs_payload);
     return 0;
