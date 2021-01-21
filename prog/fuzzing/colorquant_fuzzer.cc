@@ -22,7 +22,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     boxDestroy(&box);
 
     pix2 = pixScale(pix1, 1.5, 1.5);
-
     cmap = pixGetColormap(pix1);
     pix3 = pixOctcubeQuantFromCmap(pix2, cmap, 4,
                                    3, L_EUCLIDEAN_DISTANCE);
@@ -32,7 +31,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     pix52 = pixMedianCutQuant(pix4, 1);
     pix53 = pixMedianCutQuant(pixs, 0);
     pix54 = pixMedianCutQuant(pixs, 1);
-
 
     pix6 = pixFewColorsMedianCutQuantMixed(pix4, 30, 30, 100, 0, 0, 0);
 
@@ -59,16 +57,11 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
         for(int i2=0; i2<10; i2++){
             return_pix = pixQuantFromCmap(pixs, pixGetColormap(pixs),
                                           i1, i2, L_MANHATTAN_DISTANCE);
-            if(return_pix != NULL) {
-                pixDestroy(&return_pix);
-            }
-
+            pixDestroy(&return_pix);
 
             return_pix = pixQuantFromCmap(pixs, pixGetColormap(pixs),
                                           i1, i2, L_EUCLIDEAN_DISTANCE);
-            if(return_pix != NULL) {
-                pixDestroy(&return_pix);
-            }
+            pixDestroy(&return_pix);
         }
     }
     
@@ -85,7 +78,6 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     pixDestroy(&pix8);
     pixDestroy(&pix9);
     pixDestroy(&pix10);
-
     pixDestroy(&pixs);
     return 0;
 }

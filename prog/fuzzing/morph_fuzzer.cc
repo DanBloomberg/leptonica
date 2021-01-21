@@ -9,14 +9,13 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     PIX *pixs_payload = pixReadMemSpix(data, size);
     if(pixs_payload == NULL) return 0;
 
-    PIX *pix;
-    PIX *pix1, *pix_copy4;
+    PIX *pix, *pix1, *pix_copy1, *pix_copy2, *pix_copy3, *pix_copy4;
     SEL *sel;
 
     pix = pixRead("../test8.jpg");
     pix1 = pixCreate(size, size, 1);
     sel = selCreateFromPix(pix1, 6, 6, "plus_sign");
-    PIX *pix_copy1 = pixCopy(NULL, pixs_payload);
+    pix_copy1 = pixCopy(NULL, pixs_payload);
     pixCloseGeneralized(pix_copy1, pix, sel);
     pixDestroy(&pix_copy1);
     pixDestroy(&pix);
@@ -25,7 +24,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
     pix1 = pixCreate(size, size, 1);
     sel = selCreateFromPix(pix1, 6, 6, "plus_sign");
-    PIX *pix_copy2 = pixCopy(NULL, pixs_payload);
+    pix_copy2 = pixCopy(NULL, pixs_payload);
     pixCloseSafe(pix_copy2, pix1, sel);
     pixDestroy(&pix_copy2);
     pixDestroy(&pix1);
@@ -33,7 +32,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
     pix = pixRead("../test8.jpg");
     sel = selCreateFromPix(pix, 6, 6, "plus_sign");
-    PIX *pix_copy3 = pixCopy(NULL, pixs_payload);
+    pix_copy3 = pixCopy(NULL, pixs_payload);
     pixOpenGeneralized(pix_copy3, pix, sel);
     pixDestroy(&pix_copy3);
     pixDestroy(&pix);
@@ -47,9 +46,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
         pixFMorphopGen_1(pix_copy4, pix_copy4,
                      i, selname);
         pixDestroy(&pix_copy4);
-        if(sel!=NULL) {
-            selDestroy(&sel);
-        }
+        selDestroy(&sel);
     }
 
     pixDestroy(&pixs_payload);

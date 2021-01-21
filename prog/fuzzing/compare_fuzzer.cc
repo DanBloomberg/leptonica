@@ -9,8 +9,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     l_float32 fract;
     l_int32 psame, comptype;
-    PIX *pixs1, *pixs2, *pixs3, *pixs4;
-    PIX *pixs5, *pixs6, *pixs7, *pixs8;
+    PIX *pixs1, *pixs2, *pixs3, *pixs4, *pixs5, *pixs6, *pixs7, *pixs8;
     PIX *pixd1, *pixd2;
 
     pixs1 = pixReadMemSpix(data, size);
@@ -33,15 +32,10 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     pixd1 = NULL;
     pixCompareBinary(pixs1, pixs2, L_COMPARE_XOR, &fract, &pixd1);
-    if(pixd1!=NULL) {
-        pixDestroy(&pixd1);
-    }
+    pixDestroy(&pixd1);
     pixd2 = NULL;
     pixCompareBinary(pixs1, pixs2, L_COMPARE_SUBTRACT, &fract, &pixd2);
-    if(pixd2!=NULL) {
-        pixDestroy(&pixd2);
-    }
-
+    pixDestroy(&pixd2);
 
     pixDestroy(&pixs1);
     pixDestroy(&pixs2);
