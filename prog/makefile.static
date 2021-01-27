@@ -151,8 +151,8 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		alltests_reg.c alphaops_reg.c alphaxform_reg.c \
 		baseline_reg.c bilateral1_reg.c bilateral2_reg.c \
 		bilinear_reg.c binarize_reg.c \
-		binmorph1_reg.c binmorph2_reg.c \
-		binmorph3_reg.c binmorph4_reg.c binmorph5_reg.c \
+		binmorph1_reg.c binmorph2_reg.c binmorph3_reg.c \
+		binmorph4_reg.c binmorph5_reg.c binmorph6_reg.c \
 		blackwhite_reg.c blend1_reg.c blend2_reg.c \
 		blend3_reg.c blend4_reg.c blend5_reg.c \
 		boxa1_reg.c boxa2_reg.c boxa3_reg.c boxa4_reg.c \
@@ -365,6 +365,9 @@ binmorph4_reg:	binmorph4_reg.o $(LEPTLIB)
 
 binmorph5_reg:	binmorph5_reg.o $(LEPTLIB)
 	$(CC) -o binmorph5_reg binmorph5_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+binmorph6_reg:	binmorph6_reg.o $(LEPTLIB)
+	$(CC) -o binmorph6_reg binmorph6_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 blackwhite_reg:	blackwhite_reg.o $(LEPTLIB)
 	$(CC) -o blackwhite_reg blackwhite_reg.o $(ALL_LIBS) $(EXTRALIBS)

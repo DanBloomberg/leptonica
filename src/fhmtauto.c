@@ -68,22 +68,24 @@
  *        Makefile, regnerate the prototypes, and recompile
  *        the libraries.  Look at the Makefile to see how I've
  *        included fhmtgen.1.c and fhmtgenlow.1.c.  These files
- *        provide the high-level interfaces for the hmt, and
- *        the low-level interfaces to do the actual work.
+ *        provide the single high-level interface for the hmt, and
+ *        the lower-level functions to do the actual work.
  *
  *    (4) In an application, you now use this interface.  Again
  *        for the example files generated, using integer "1":
  *
  *           PIX   *pixHMTDwa_1(PIX *pixd, PIX *pixs, const char *selname);
  *
- *              or
- *
- *           PIX   *pixFHMTGen_1(PIX *pixd, PIX *pixs, const char *selname);
- *
  *        where the selname is one of the set that were defined
  *        as the name field of sels.  This set is listed at the
  *        beginning of the file fhmtgen.1.c.
- *        As an example, see the file prog/fmtauto_reg.c, which
+ *
+ *        N.B. Although pixFHMTGen_1() is global, you must NOT
+ *        use it, because it assumes that 32 or 64 border pixels
+ *        have been added to each side, and it will crash without those
+ *        added pixels.
+ 
+ *        As an example, see the file prog/fhmtauto_reg.c, which
  *        verifies the correctness of the implementation by
  *        comparing the dwa result with that of full-image
  *        rasterops.

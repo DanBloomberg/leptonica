@@ -33,7 +33,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
 	box1 = boxCreate(150, 130, 1500, 355);
 	pix_pointer_payload = pixCopy(NULL, pixs_payload);
-	pixAbsDiffInRect(pix_pointer_payload, box1, 0.5, &l_f);
+	pixAbsDiffInRect(pix_pointer_payload, box1, L_HORIZONTAL_LINE, &l_f);
 	pixDestroy(&pix_pointer_payload);
 	boxDestroy(&box1);
 
@@ -69,8 +69,8 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	boxaDestroy(&boxa1);
 	pixDestroy(&return_pix);
 	
-	for(int i=0;i<size;i++){
-	box1 = boxCreate(150, 130, 1500, 355);
+	for (int i = 0; i < 5; i++) {
+            box1 = boxCreate(150, 130, 1500, 355);
 	    pix_pointer_payload = pixCopy(NULL, pixs_payload);
 	    pixCountArbInRect(pix_pointer_payload, box1, L_SET_WHITE, 2, &l_i);
 	    pixDestroy(&pix_pointer_payload);
@@ -96,7 +96,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	pixDestroy(&return_pix);
 
 	pix_pointer_payload = pixCopy(NULL, pixs_payload);
-	for (int i = 0; i < size; i++) {
+	for (int i = 0; i < 5; i++) {
             return_pix = pixMakeMaskFromVal(pix_pointer_payload, i);
 	    pixDestroy(&pix_pointer_payload);
 	    pixDestroy(&return_pix);

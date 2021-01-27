@@ -61,6 +61,7 @@ static const char *tests[] = {
                               "binarize_reg",
                               "binmorph1_reg",
                               "binmorph3_reg",
+                              "binmorph6_reg",
                               "blackwhite_reg",
                               "blend1_reg",
                               "blend2_reg",

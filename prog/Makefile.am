@@ -9,7 +9,7 @@ INSTALL_PROGS = convertfilestopdf convertfilestops \
 AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	alphaxform_reg baseline_reg bilateral2_reg \
 	bilinear_reg binarize_reg \
-	binmorph1_reg binmorph3_reg blackwhite_reg \
+	binmorph1_reg binmorph3_reg binmorph6_reg blackwhite_reg \
 	blend1_reg blend2_reg blend3_reg blend4_reg blend5_reg \
 	boxa1_reg boxa2_reg boxa3_reg boxa4_reg bytea_reg \
 	ccbord_reg ccthin1_reg ccthin2_reg \

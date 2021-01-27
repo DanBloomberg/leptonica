@@ -51,9 +51,10 @@
  *           (c) reading in a SELA from file, using selaRead() or
  *               various other formats.
  *
- *    (2) You call fmorphautogen1() and fmorphautogen2() on this SELA.
- *        These use the text files morphtemplate1.txt and
- *        morphtemplate2.txt for building up the source code.  See the file
+ *    (2) You call fmorphautogen() on this SELA.  This in turn calls
+ *        fmorphautogen1() and fmorphautogen2(), which use the text
+ *        files morphtemplate1.txt and morphtemplate2.txt, respectively,
+ *        for building up the source code.  See the file
  *        prog/fmorphautogen.c for an example of how this is done.
  *        The output is written to files named fmorphgen.*.c
  *        and fmorphgenlow.*.c, where "*" is an integer that you
@@ -66,11 +67,11 @@
  *
  *    (3) You copy the generated source files back to your src
  *        directory for compilation.  Put their names in the
- *        Makefile, regenerate the prototypes, and recompile
- *        the library.  Look at the Makefile to see how I've
- *        included morphgen.1.c and fmorphgenlow.1.c.  These files
- *        provide the high-level interfaces for erosion, dilation,
- *        opening and closing, and the low-level interfaces to
+ *        Makefile, regenerate the allheaders.h prototype file,
+ *        and recompile the library.  Look at the Makefile to see how
+ *        morphgen.1.c and fmorphgenlow.1.c are included.  These files
+ *        provide the single high-level interface for erosion, dilation,
+ *        opening and closing, and the lower-level functions to
  *        do the actual work, for all 58 SELs in the SEL array.
  *
  *    (4) In an application, you now use this interface.  Again
@@ -79,15 +80,16 @@
  *            PIX   *pixMorphDwa_1(PIX *pixd, PIX, *pixs,
  *                                 l_int32 operation, char *selname);
  *
- *                 or
- *
- *            PIX   *pixFMorphopGen_1(PIX *pixd, PIX *pixs,
- *                                    l_int32 operation, char *selname);
- *
  *        where the operation is one of {L_MORPH_DILATE, L_MORPH_ERODE.
  *        L_MORPH_OPEN, L_MORPH_CLOSE}, and the selname is one
  *        of the set that were defined as the name field of sels.
  *        This set is listed at the beginning of the file fmorphgen.1.c.
+ *
+ *        N.B. Although pixFMorphopGen_1() is global, you must NOT
+ *        use it, because it assumes that 32 or 64 border pixels
+ *        have been added to each side, and it will crash without those
+ *        added pixels.
+ *
  *        For examples of use, see the file prog/binmorph_reg1.c, which
  *        verifies the consistency of the various implementations by
  *        comparing the dwa result with that of full-image rasterops.

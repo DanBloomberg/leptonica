@@ -395,8 +395,9 @@ Building leptonica
 
    When an oss-fuzz issue has been created, download the Reproducer
    Testcase file (e.g, name it "/tmp/payload").  To run one of the
-   fuzzing executables from bin/fuzzer, e.g., pix4_fuzzer:
-       bin/fuzzer/pix4_fuzzer /tmp/payload
+   fuzzing executables in bin/fuzzer, e.g., pix4_fuzzer:
+       cd ../../prog/fuzzing
+       ../../bin/fuzzer/pix4_fuzzer /tmp/payload
 
 5. The 270+ programs in the prog directory are an integral part of this
    package.  They can be divided into four groups:

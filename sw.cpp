@@ -84,6 +84,7 @@ void build(Solution &s)
             {"binmorph3_reg", {"binmorph3_reg.c"}},
             {"binmorph4_reg", {"binmorph4_reg.c"}},
             {"binmorph5_reg", {"binmorph5_reg.c"}},
+            {"binmorph6_reg", {"binmorph6_reg.c"}},
             {"blackwhite_reg", {"blackwhite_reg.c"}},
             {"blend1_reg", {"blend1_reg.c"}},
             {"blend2_reg", {"blend2_reg.c"}},

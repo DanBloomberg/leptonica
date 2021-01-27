@@ -153,6 +153,10 @@ static const l_int32 InitialPtrArraySize = 50;      /*!< n'importe quoi */
     /* Bounds on kernel size */
 static const l_uint32  MaxKernelSize = 10000;
 
+    /* Bounds on pix template size */
+static const l_uint32  MaxPixTemplateSize = 100;
+static const l_uint32  MaxPixTemplateHits = 1000;
+
     /* Static functions */
 static l_int32 selaExtendArray(SELA *sela);
 static SEL *selCreateFromSArray(SARRAY *sa, l_int32 first, l_int32 last);
@@ -2014,6 +2018,8 @@ SEL     *sel;
  * <pre>
  * Notes:
  *      (1) The origin must be positive.
+ *      (2) The pix must not exceed MaxPixTemplateSize in either dimension.
+ *          and the total number of hits must not exceed MaxPixTemplateHits.
  * </pre>
  */
 SEL *
@@ -2023,7 +2029,7 @@ selCreateFromPix(PIX         *pix,
                  const char  *name)
 {
 SEL      *sel;
-l_int32   i, j, w, h, d;
+l_int32   i, j, w, h, d, nhits;
 l_uint32  val;
 
     PROCNAME("selCreateFromPix");
@@ -2035,6 +2041,15 @@ l_uint32  val;
     pixGetDimensions(pix, &w, &h, &d);
     if (d != 1)
         return (SEL *)ERROR_PTR("pix not 1 bpp", procName, NULL);
+    if (w > MaxPixTemplateSize || h > MaxPixTemplateSize) {
+        L_ERROR("pix template too large (w = %d, h = %d)\n", procName, w, h);
+        return NULL;
+    }
+    pixCountPixels(pix, &nhits, NULL);
+    if (nhits > MaxPixTemplateHits) {
+        L_ERROR("too many hits (%d) in pix template\n", procName, nhits);
+        return NULL;
+    }
 
     sel = selCreate(h, w, name);
     selSetOrigin(sel, cy, cx);
