@@ -275,7 +275,6 @@ void build(Solution &s)
             {"findpattern1", {"findpattern1.c"}},
             {"findpattern2", {"findpattern2.c"}},
             {"findpattern3", {"findpattern3.c"}},
-            {"flipselgen", {"flipselgen.c"}},
             {"fmorphautogen", {"fmorphautogen.c"}},
             {"fpixcontours", {"fpixcontours.c"}},
             {"gammatest", {"gammatest.c"}},

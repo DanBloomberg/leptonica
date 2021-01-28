@@ -27,7 +27,7 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
  dwacomb.2.c dwacomblow.2.c                                     \
  edge.c encoding.c enhance.c                                    \
  fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c			        \
- finditalic.c flipdetect.c fliphmtgen.c                         \
+ finditalic.c flipdetect.c                                      \
  fmorphauto.c fmorphgen.1.c fmorphgenlow.1.c                    \
  fpix1.c fpix2.c gifio.c gifiostub.c                            \
  gplot.c graphics.c graymorph.c                                 \

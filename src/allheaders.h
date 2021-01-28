@@ -827,11 +827,7 @@ LEPT_DLL extern PIX * pixOrientCorrect ( PIX *pixs, l_float32 minupconf, l_float
 LEPT_DLL extern l_ok pixOrientDetect ( PIX *pixs, l_float32 *pupconf, l_float32 *pleftconf, l_int32 mincount, l_int32 debug );
 LEPT_DLL extern l_ok makeOrientDecision ( l_float32 upconf, l_float32 leftconf, l_float32 minupconf, l_float32 minratio, l_int32 *porient, l_int32 debug );
 LEPT_DLL extern l_ok pixUpDownDetect ( PIX *pixs, l_float32 *pconf, l_int32 mincount, l_int32 npixels, l_int32 debug );
-LEPT_DLL extern l_ok pixOrientDetectDwa ( PIX *pixs, l_float32 *pupconf, l_float32 *pleftconf, l_int32 mincount, l_int32 debug );
-LEPT_DLL extern l_ok pixUpDownDetectDwa ( PIX *pixs, l_float32 *pconf, l_int32 mincount, l_int32 npixels, l_int32 debug );
 LEPT_DLL extern l_ok pixMirrorDetect ( PIX *pixs, l_float32 *pconf, l_int32 mincount, l_int32 debug );
-LEPT_DLL extern l_ok pixMirrorDetectDwa ( PIX *pixs, l_float32 *pconf, l_int32 mincount, l_int32 debug );
-LEPT_DLL extern PIX * pixFlipFHMTGen ( PIX *pixd, PIX *pixs, const char *selname );
 LEPT_DLL extern l_ok fmorphautogen ( SELA *sela, l_int32 fileindex, const char *filename );
 LEPT_DLL extern l_ok fmorphautogen1 ( SELA *sela, l_int32 fileindex, const char *filename );
 LEPT_DLL extern l_int32 fmorphautogen2 ( SELA *sela, l_int32 fileindex, const char *filename );

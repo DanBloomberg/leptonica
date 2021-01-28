@@ -27,12 +27,11 @@
 /*
  * flipdetect_reg.c
  *
- *   flipdetect_reg [filein]
+ *   flipdetect_reg
  *
- *   - Tests the high-level interface
+ *   - Tests the high-level text orientation interface
  *   - Tests 90 degree orientation of text and whether the text is
  *     mirror reversed.
- *   - Compares the rasterop with dwa implementations for speed.
  *   - Shows the typical 'confidence' outputs from functions in flipdetect.c.
  */
 
@@ -42,114 +41,79 @@
 
 #include "allheaders.h"
 
-static void printStarredMessage(const char *msg);
-
 int main(int    argc,
          char **argv)
 {
-const char  *filein;
-l_int32      i, orient, rotation, same;
-l_float32    upconf1, upconf2, leftconf1, leftconf2, conf1, conf2;
-PIX         *pixs, *pix1, *pix2;
-static char  mainName[] = "flipdetect_reg";
+l_int32       i, orient, rotation;
+l_float32     upconf, leftconf, conf;
+PIX          *pix, *pixs, *pix1, *pix2;
+PIXA         *pixa;
+L_REGPARAMS  *rp;
 
-    if (argc != 1 && argc != 2)
-        return ERROR_INT(" Syntax: flipdetect_reg [filein]", mainName, 1);
-    filein = (argc == 1) ? "feyn.tif" : argv[1];
-    setLeptDebugOK(1);
+    if (regTestSetup(argc, argv, &rp))
+        return 1;
 
-    if ((pix1 = pixRead(filein)) == NULL)
-        return ERROR_INT("pix1 not made", mainName, 1);
-    pixs = pixConvertTo1(pix1, 130);
-    pixDestroy(&pix1);
+    pix = pixRead("feyn.tif");
+    pixs = pixScale(pix, 0.5, 0.5);
+    pixDestroy(&pix);
 
         /* Test high-level interface */
     lept_stderr("\nTest high-level detection/rotation\n");
     pix1 = pixRotateOrth(pixs, 3);
-    pix2 = pixOrientCorrect(pix1, 0.0, 0.0, &upconf1, &leftconf1,
+    pix2 = pixOrientCorrect(pix1, 0.0, 0.0, &upconf, &leftconf,
                             &rotation, 0);
-    lept_stderr("upconf = %7.3f, leftconf = %7.3f, rotation = %d\n",
-                upconf1, leftconf1, rotation);
-    pixEqual(pixs, pix2, &same);
-    if (!same)
-        lept_stderr("Error: image not rotated back correctly!\n");
+    if (rp->display)
+        lept_stderr("upconf = %7.3f, leftconf = %7.3f, rotation = %d\n",
+                    upconf, leftconf, rotation);
+    regTestCompareValues(rp, upconf, 2.543, 0.1);  /* 0 */
+    regTestCompareValues(rp, leftconf, 15.431, 0.1);  /* 1 */
+    regTestCompareValues(rp, rotation, 90, 0.0);  /* 2 */
+    regTestComparePix(rp, pixs, pix2);  /* 3 */
     pixDestroy(&pix1);
     pixDestroy(&pix2);
 
-        /* Compare rasterop and dwa orientation detection */
-    lept_stderr("\nTest orientation detection\n");
-    startTimer();
-    pixOrientDetect(pixs, &upconf1, &leftconf1, 0, 0);
-    lept_stderr("Time for rop orient test: %7.3f sec\n", stopTimer());
-
-    startTimer();
-    pixOrientDetectDwa(pixs, &upconf2, &leftconf2, 0, 0);
-    lept_stderr("Time for dwa orient test: %7.3f sec\n", stopTimer());
-
-    if (upconf1 == upconf2 && leftconf1 == leftconf2) {
-        printStarredMessage("Orient results identical");
-        lept_stderr("upconf = %7.3f, leftconf = %7.3f\n",
-                    upconf1, leftconf1);
-    } else {
-        printStarredMessage("Orient results differ");
-        lept_stderr("upconf1 = %7.3f, upconf2 = %7.3f\n", upconf1, upconf2);
-        lept_stderr("leftconf1 = %7.3f, leftconf2 = %7.3f\n",
-                    leftconf1, leftconf2);
-    }
-
-    makeOrientDecision(upconf1, leftconf1, 0, 0, &orient, 1);
-    lept_stderr("Orientation (enum) found: %d\n", orient);
-
+        /* Test orientation detection */
+    pixa = pixaCreate(4);
     pix1 = pixCopy(NULL, pixs);
     lept_stderr("\nTest orient detection for 4 orientations\n");
-    for (i = 0; i < 4; i++) {
-        pixOrientDetectDwa(pix1, &upconf2, &leftconf2, 0, 0);
-        makeOrientDecision(upconf2, leftconf2, 0, 0, &orient, 1);
-        if (i == 3) break;
-        pix2 = pixRotate90(pix1, 1);
-        pixDestroy(&pix1);
-        pix1 = pix2;
-    }
-    pixDestroy(&pix1);
+    pixOrientDetect(pix1, &upconf, &leftconf, 0, 0);
+    makeOrientDecision(upconf, leftconf, 0, 0, &orient, 1);
+    regTestCompareValues(rp, upconf, 15.431, 0.1);  /* 4 */
+    regTestCompareValues(rp, orient, 1, 0.0);  /* 5 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix2 = pixRotate90(pix1, 1);
+    pix1 = pix2;
+    pixOrientDetect(pix1, &upconf, &leftconf, 0, 0);
+    makeOrientDecision(upconf, leftconf, 0, 0, &orient, 1);
+    regTestCompareValues(rp, leftconf, -15.702, 0.1);  /* 6 */
+    regTestCompareValues(rp, orient, 4, 0.0);  /* 7 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix2 = pixRotate90(pix1, 1);
+    pix1 = pix2;
+    pixOrientDetect(pix1, &upconf, &leftconf, 0, 0);
+    makeOrientDecision(upconf, leftconf, 0, 0, &orient, 1);
+    regTestCompareValues(rp, upconf, -15.702, 0.1);  /* 8 */
+    regTestCompareValues(rp, orient, 3, 0.0);  /* 9 */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix2 = pixRotate90(pix1, 1);
+    pix1 = pix2;
+    pixOrientDetect(pix1, &upconf, &leftconf, 0, 0);
+    makeOrientDecision(upconf, leftconf, 0, 0, &orient, 1);
+    regTestCompareValues(rp, leftconf, 15.431, 0.1);  /* 10 */
+    regTestCompareValues(rp, orient, 2, 0.0);  /* 11 */
+    pixaAddPix(pixa, pix1, L_INSERT);
 
-        /* Compare rasterop and dwa mirror flip detection */
+    pix2 = pixaDisplayTiledInColumns(pixa, 2, 0.25, 20, 2);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 12 */
+    pixDisplayWithTitle(pix2, 100, 100, NULL, rp->display);
+    pixDestroy(&pix2);
+    pixaDestroy(&pixa);
+
     lept_stderr("\nTest mirror reverse detection\n");
-    startTimer();
-    pixMirrorDetect(pixs, &conf1, 0, 1);
-    lept_stderr("Time for rop mirror flip test: %7.3f sec\n", stopTimer());
-
-    startTimer();
-    pixMirrorDetectDwa(pixs, &conf2, 0, 0);
-    lept_stderr("Time for dwa mirror flip test: %7.3f sec\n", stopTimer());
-
-    if (conf1 == conf2) {
-        printStarredMessage("Mirror results identical");
-        lept_stderr("conf = %7.3f\n", conf1);
-    } else {
-        printStarredMessage("Mirror results differ");
-        lept_stderr("conf1 = %7.3f, conf2 = %7.3f\n", conf1, conf2);
-    }
-
-        /* Compare safer rasterop and dwa orientation detection */
-    lept_stderr("\nTest safer version of up-down tests\n");
-    pixUpDownDetect(pixs, &conf1, 0, 10, 1);
-    pixUpDownDetectDwa(pixs, &conf2, 0, 10, 1);
-    if (conf1 == conf2)
-        lept_stderr("Confidence results are identical\n");
-    else
-        lept_stderr("Confidence results differ\n");
+    pixMirrorDetect(pixs, &conf, 0, rp->display);
+    lept_stderr("conf = %5.3f; not mirror reversed\n", conf);
+    regTestCompareValues(rp, conf, 4.128, 0.1);  /* 13 */
 
     pixDestroy(&pixs);
-    return 0;
+    return regTestCleanup(rp);
 }
-
-
-void
-printStarredMessage(const char *msg)
-{
-    lept_stderr("****************************************************\n");
-    lept_stderr("***********   %s   ***********\n", msg);
-    lept_stderr("****************************************************\n");
-    return;
-}
-

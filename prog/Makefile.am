@@ -23,7 +23,7 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	dither_reg dna_reg dwamorph1_reg edge_reg encoding_reg \
 	enhance_reg equal_reg expand_reg extrema_reg \
 	falsecolor_reg fhmtauto_reg \
-	findcorners_reg findpattern_reg \
+	findcorners_reg findpattern_reg flipdetect_reg \
 	fpix1_reg fpix2_reg genfonts_reg \
 	grayfill_reg graymorph1_reg graymorph2_reg \
 	grayquant_reg hardlight_reg hash_reg heap_reg \
@@ -71,7 +71,7 @@ endif
 MANUAL_REG_PROGS = alltests_reg bilateral1_reg \
 	binmorph2_reg binmorph4_reg binmorph5_reg \
 	dwamorph2_reg \
-	files_reg flipdetect_reg fmorphauto_reg \
+	files_reg fmorphauto_reg \
 	morphseq_reg pixalloc_reg pixtile_reg \
 	smoothedge_reg
 
@@ -91,8 +91,8 @@ OTHER_PROGS = adaptmap_dark \
 	displaypix displaypixa dwalineargen \
 	fcombautogen fhmtautogen findbinding find_colorregions \
 	findpattern1 findpattern2 findpattern3 \
-	flipselgen fmorphautogen \
-	fpixcontours gammatest graphicstest graymorphtest \
+	fmorphautogen fixcontours \
+	gammatest graphicstest graymorphtest \
 	histotest histoduptest htmlviewer \
 	jbcorrelation jbrankhaus jbwords \
 	listtest lightcolortest livre_adapt livre_hmt \

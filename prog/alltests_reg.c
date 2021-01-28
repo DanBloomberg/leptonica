@@ -110,6 +110,7 @@ static const char *tests[] = {
                          /*   "files_reg",  */
                               "findcorners_reg",
                               "findpattern_reg",
+                              "flipdetect_reg",
                               "fpix1_reg",
                               "fpix2_reg",
                               "genfonts_reg",

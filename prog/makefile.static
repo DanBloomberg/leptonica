@@ -228,7 +228,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		fcombautogen.c fhmtautogen.c \
 		fileinfo.c findbinding.c find_colorregions.c \
 		findpattern1.c findpattern2.c findpattern3.c \
-		flipselgen.c fmorphautogen.c \
+		fmorphautogen.c \
 		fpixcontours.c gammatest.c \
 		graphicstest.c graymorphtest.c \
 		histoduptest.c histotest.c \
@@ -944,9 +944,6 @@ findpattern2:	findpattern2.o $(LEPTLIB)
 
 findpattern3:	findpattern3.o $(LEPTLIB)
 	$(CC) -o findpattern3 findpattern3.o $(ALL_LIBS) $(EXTRALIBS)
-
-flipselgen:	flipselgen.o $(LEPTLIB)
-	$(CC) -o flipselgen flipselgen.o $(ALL_LIBS) $(EXTRALIBS)
 
 fcombautogen:	fcombautogen.o $(LEPTLIB)
 	$(CC) -o fcombautogen fcombautogen.o $(ALL_LIBS) $(EXTRALIBS)

@@ -105,8 +105,13 @@ They are <i>not</i> a complete listing of the modifications.
         * Check input for getFilenamesInDirectory()
         * Many new fuzzers.
         * Use size_t for all size inputs to ascii85 encoding/decoding
-        * New regression tests: encoding_reg.c, binmorph6_reg.c
+        * New regression tests: encoding_reg.c, binmorph6_reg.c,
+          flipdetect_reg.c
         * Reworked concatpdf for generality, using the Poppler package.
+        * Removed dwa flipdetection from the library.  All the dwa code
+          is now in flipdetectdwa.c.notused.  Likewise prog/flipselgen.c
+          is retained for completeness, renamed flipselgen.c.notused,
+          and is not compiled.
 
 1.80.0  28 July 2020
         * Improve bmp handling of 1 bpp images and sanity checking of params.

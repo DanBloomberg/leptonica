@@ -27,8 +27,11 @@
 /*
  * flipselgen.c
  *
- *    Generates dwa code for hit-miss transform (hmt) that is
- *    used in pixPageFlipDetectDWA().
+ *                                  NOTE
+ *    ================================================================
+ *    This code has been retired from the library, along with the code
+ *    in flipdetectdwa.c that it generates.  It is no longer compiled.
+ *    ================================================================
  *
  *    Results are two files:
  *        fmorphgen.3.c
