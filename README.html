@@ -124,6 +124,12 @@ Building leptonica
 
 2. Building on Linux/Unix/MacOS
 
+  The software can be downloaded from either a release tar file or
+  from the current head of the source.  For the latter, go to a directory
+  and clone the tree into it (note the '.' at the end):
+     cd [some directory]
+     git clone https://github.com/DanBloomberg/leptonica.git .
+
   There are three ways to build the library:
 
     (1) By customization:  Use the existing static makefile,
@@ -219,6 +225,11 @@ Building leptonica
              export LD_LIBRARY_PATH=../lib/shared:$LD_LIBRARY_PATH
 
     (2) Building using autoconf  (Thanks to James Le Cuirot)
+
+       * If you downloaded from a release tar, it will be "configure ready".
+       * If you cloned from the git master tree, you need to make the
+         configure executable.  To do this, run
+            autogen.sh.
 
        Use the standard incantation, in the root directory (the
        directory with configure):
