@@ -17,7 +17,7 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
  boxfunc4.c boxfunc5.c bytearray.c                              \
  ccbord.c ccthin.c checkerboard.c                               \
  classapp.c colorcontent.c colorfill.c coloring.c               \
- colormap.c colormorph.c	                                \
+ colormap.c colormorph.c                                        \
  colorquant1.c colorquant2.c                                    \
  colorseg.c colorspace.c                                        \
  compare.c conncomp.c convertfiles.c                            \
@@ -26,7 +26,7 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
  dnabasic.c dnafunc1.c dnahash.c                                \
  dwacomb.2.c dwacomblow.2.c                                     \
  edge.c encoding.c enhance.c                                    \
- fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c			        \
+ fhmtauto.c fhmtgen.1.c fhmtgenlow.1.c                          \
  finditalic.c flipdetect.c                                      \
  fmorphauto.c fmorphgen.1.c fmorphgenlow.1.c                    \
  fpix1.c fpix2.c gifio.c gifiostub.c                            \
@@ -42,11 +42,11 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
  pdfio1.c pdfio1stub.c pdfio2.c pdfio2stub.c                    \
  pix1.c pix2.c pix3.c pix4.c pix5.c                             \
  pixabasic.c pixacc.c pixafunc1.c pixafunc2.c                   \
- pixalloc.c pixarith.c pixcomp.c pixconv.c	                \
+ pixalloc.c pixarith.c pixcomp.c pixconv.c                      \
  pixlabel.c pixtiling.c pngio.c pngiostub.c                     \
- pnmio.c pnmiostub.c projective.c	                        \
+ pnmio.c pnmiostub.c projective.c                               \
  psio1.c psio1stub.c psio2.c psio2stub.c                        \
- ptabasic.c ptafunc1.c ptafunc2.c ptra.c	                \
+ ptabasic.c ptafunc1.c ptafunc2.c ptra.c                        \
  quadtree.c queue.c rank.c rbtree.c                             \
  readbarcode.c readfile.c                                       \
  recogbasic.c recogdid.c recogident.c                           \
@@ -56,10 +56,10 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
  runlength.c sarray1.c sarray2.c                                \
  scale1.c scale2.c seedfill.c                                   \
  sel1.c sel2.c selgen.c                                         \
- shear.c skew.c	spixio.c                                        \
+ shear.c skew.c spixio.c                                        \
  stack.c stringcode.c                                           \
  strokes.c sudoku.c textops.c                                   \
- tiffio.c tiffiostub.c 		                                \
+ tiffio.c tiffiostub.c                                          \
  utils1.c utils2.c warper.c watershed.c                         \
  webpio.c webpiostub.c webpanimio.c webpanimiostub.c            \
  writefile.c zlibmem.c zlibmemstub.c
@@ -67,9 +67,9 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
 pkginclude_HEADERS = allheaders.h alltypes.h                    \
  array.h arrayaccess.h bbuffer.h bilateral.h                    \
  bmf.h bmfdata.h bmp.h ccbord.h colorfill.h                     \
- dewarp.h endianness.h environ.h		                \
+ dewarp.h endianness.h environ.h                                \
  gplot.h heap.h imageio.h jbclass.h                             \
- leptwin.h list.h	                                        \
+ leptwin.h list.h                                               \
  morph.h pix.h ptra.h queue.h rbtree.h                          \
  readbarcode.h recog.h regutils.h stack.h                       \
  stringcode.h sudoku.h watershed.h
@@ -77,7 +77,7 @@ pkginclude_HEADERS = allheaders.h alltypes.h                    \
 LDADD = liblept.la
 
 EXTRA_DIST = hmttemplate1.txt hmttemplate2.txt                  \
- leptonica-license.txt		                                \
+ leptonica-license.txt                                          \
  morphtemplate1.txt morphtemplate2.txt                          \
  stringtemplate1.txt stringtemplate2.txt
 

@@ -91,7 +91,7 @@ OTHER_PROGS = adaptmap_dark \
 	displaypix displaypixa dwalineargen \
 	fcombautogen fhmtautogen findbinding find_colorregions \
 	findpattern1 findpattern2 findpattern3 \
-	fmorphautogen fixcontours \
+	fmorphautogen fpixcontours \
 	gammatest graphicstest graymorphtest \
 	histotest histoduptest htmlviewer \
 	jbcorrelation jbrankhaus jbwords \
