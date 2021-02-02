@@ -1664,9 +1664,9 @@ PIX     *pix10, *pix11;
     d1 = pixGetDepth(pixs1);
     d2 = pixGetDepth(pixs2);
     if (!pixGetColormap(pixs1) && d1 < 8)
-        return ERROR_INT("pixs1 not cmapped or >=8 bpp", procName, 1);
+        return ERROR_INT("pixs1 not cmapped and < 8 bpp", procName, 1);
     if (!pixGetColormap(pixs2) && d2 < 8)
-        return ERROR_INT("pixs2 not cmapped or >=8 bpp", procName, 1);
+        return ERROR_INT("pixs2 not cmapped and < 8 bpp", procName, 1);
 
         /* Integer downsample if requested */
     if (sampling > 1) {
@@ -1692,10 +1692,12 @@ PIX     *pix10, *pix11;
     }
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    if (d1 != d2) {
+    if (d1 != d2 || (d1 != 8 && d1 != 32)) {
         pixDestroy(&pix3);
         pixDestroy(&pix4);
-        return ERROR_INT("pix3 and pix4 depths not equal", procName, 1);
+        L_INFO("depths unequal or not in {8,32}: d1 = %d, d2 = %d\n",
+               procName, d1, d2);
+        return 1;
     }
 
         /* In each direction, do a small dilation and subtract the dilated
@@ -1718,7 +1720,8 @@ PIX     *pix10, *pix11;
         pixInvert(pix10, pix10);
         pixCountPixels(pix10, &count, NULL);
         pixGetDimensions(pix10, &w, &h, NULL);
-        *pfract = (l_float32)count / (l_float32)(w * h);
+        *pfract = (w <= 0 || h <= 0) ? 0.0 :
+                                       (l_float32)count / (l_float32)(w * h);
         pixDestroy(&pix5);
         pixDestroy(&pix6);
         pixDestroy(&pix7);
@@ -1744,7 +1747,8 @@ PIX     *pix10, *pix11;
         pixInvert(pix11, pix11);
         pixCountPixels(pix11, &count, NULL);
         pixGetDimensions(pix11, &w, &h, NULL);
-        *pfract = (l_float32)count / (l_float32)(w * h);
+        *pfract = (w <= 0 || h <= 0) ? 0.0 :
+                                       (l_float32)count / (l_float32)(w * h);
         pixDestroy(&pix5);
         pixDestroy(&pix6);
         pixDestroy(&pix7);
