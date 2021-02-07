@@ -1359,12 +1359,12 @@ TIFF    *tif;
     retval = (offset == 0) ? TIFFSetDirectory(tif, 0)
                             : TIFFSetSubDirectory(tif, offset);
     if (retval == 0) {
-        TIFFCleanup(tif);
+        TIFFClose(tif);
         return NULL;
     }
 
     if ((pix = pixReadFromTiffStream(tif)) == NULL) {
-        TIFFCleanup(tif);
+        TIFFClose(tif);
         return NULL;
     }
 
