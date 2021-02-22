@@ -54,11 +54,13 @@
  *          NUMA        *numaGetPartialSums()
  *          l_int32      numaGetSumOnInterval()
  *          l_int32      numaHasOnlyIntegers()
+ *          l_int32      numaGetMean()
+ *          l_int32      numaGetMeanAbsval()
  *          NUMA        *numaSubsample()
  *          NUMA        *numaMakeDelta()
  *          NUMA        *numaMakeSequence()
  *          NUMA        *numaMakeConstant()
- *          NUMA        *numaMakeAbsValue()
+ *          NUMA        *numaMakeAbsval()
  *          NUMA        *numaAddBorder()
  *          NUMA        *numaAddSpecifiedBorder()
  *          NUMA        *numaRemoveBorder()
@@ -679,6 +681,66 @@ l_float32  val;
 
 
 /*!
+ * \brief   numaGetMean()
+ *
+ * \param[in]    na     source numa
+ * \param[out]   pave   average of values
+ * \return  0 if OK, 1 on error
+ */
+l_ok
+numaGetMean(NUMA       *na,
+            l_float32  *pave)
+{
+l_int32    n;
+l_float32  sum;
+
+    PROCNAME("numaGetMean");
+
+    if (!pave)
+        return ERROR_INT("&ave not defined", procName, 1);
+    *pave = 0;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    if ((n = numaGetCount(na)) == 0)
+        return ERROR_INT("na is empty", procName, 1);
+
+    numaGetSum(na, &sum);
+    *pave = sum / n;
+    return 0;
+}
+
+/*!
+ * \brief   numaGetMeanAbsval()
+ *
+ * \param[in]    na         source numa
+ * \param[out]   paveabs    average of absolute values
+ * \return  0 if OK, 1 on error
+ */
+l_ok
+numaGetMeanAbsval(NUMA       *na,
+                  l_float32  *paveabs)
+{
+l_int32  n;
+NUMA    *na1;
+
+    PROCNAME("numaGetMeanAbsval");
+
+    if (!paveabs)
+        return ERROR_INT("&aveabs not defined", procName, 1);
+    *paveabs = 0;
+    if (!na)
+        return ERROR_INT("na not defined", procName, 1);
+    if ((n = numaGetCount(na)) == 0)
+        return ERROR_INT("na is empty", procName, 1);
+
+    na1 = numaMakeAbsval(NULL, na);
+    numaGetMean(na1, paveabs);
+    numaDestroy(&na1);
+    return 0;
+}
+
+
+/*!
  * \brief   numaSubsample()
  *
  * \param[in]    nas
@@ -794,7 +856,7 @@ numaMakeConstant(l_float32  val,
 
 
 /*!
- * \brief   numaMakeAbsValue()
+ * \brief   numaMakeAbsval()
  *
  * \param[in]    nad   can be null for new array, or the same as nas for inplace
  * \param[in]    nas   input numa
@@ -802,13 +864,13 @@ numaMakeConstant(l_float32  val,
  *              or NULL on error
  */
 NUMA *
-numaMakeAbsValue(NUMA  *nad,
-                 NUMA  *nas)
+numaMakeAbsval(NUMA  *nad,
+               NUMA  *nas)
 {
 l_int32    i, n;
 l_float32  val;
 
-    PROCNAME("numaMakeAbsValue");
+    PROCNAME("numaMakeAbsval");
 
     if (!nas)
         return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
@@ -833,7 +895,7 @@ l_float32  val;
  * \param[in]    nas
  * \param[in]    left    number of elements to add before the start
  * \param[in]    right   number of elements to add after the end
- * \param[in]    val initialize border elements
+ * \param[in]    val     initialize border elements
  * \return  nad with added elements at left and right, or NULL on error
  */
 NUMA *
