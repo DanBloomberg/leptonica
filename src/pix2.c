@@ -3310,6 +3310,8 @@ l_uint32  *rline, *rdata;  /* data in pix raster */
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
         return ERROR_INT("depth not in {1,2,4,8,16,32}", procName, 1);
+
+    pixSetPadBits(pixs, 0);
     rdata = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
     if (d == 1)
