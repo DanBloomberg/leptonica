@@ -17,6 +17,8 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	pixDestroy(&pix_pointer_payload);
 
 	pix_pointer_payload = pixCopy(NULL, pixs_payload);
+        minupconf = 0.0;
+        minratio = 0.0;
 	return_pix = pixOrientCorrect(pix_pointer_payload, minupconf,
                                       minratio, NULL, NULL, NULL, 1);
 	pixDestroy(&pix_pointer_payload);	
