@@ -556,7 +556,7 @@ l_int32  dhangw, shangw, dhangh, shangh;
         return;
 
 #if 0
-    lept_stderr("dx = %d, dy = %d, dw = %d, dh = %d, sx = %d, sy = %d\n", 
+    lept_stderr("dx = %d, dy = %d, dw = %d, dh = %d, sx = %d, sy = %d\n",
                 dx, dy, dw, dh, sx, sy);
 #endif
 

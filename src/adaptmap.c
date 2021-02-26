@@ -188,6 +188,8 @@ static l_int32 *iaaGetLinearTRC(l_int32 **iaa, l_int32 diff);
  *                          for light text)
  *          blackval   70  (a bit more than 60)
  *          whiteval  190  (a bit less than 200)
+ *    (3) Note: the whiteval must not exceed 200, which is the value
+ *        that the background is set to in pixBackgroundNormSimple().
  * </pre>
  */
 PIX *
@@ -208,6 +210,11 @@ PIX     *pixd;
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
         return (PIX *)ERROR_PTR("depth not 8 or 32", procName, NULL);
+    if (whiteval > 200) {
+        L_WARNING("white value %d must not exceed 200; reset to 190",
+                  procName, whiteval);
+        whiteval = 190;
+    }
 
     pixd = pixBackgroundNormSimple(pixs, pixim, pixg);
     if (!pixd)
