@@ -808,43 +808,82 @@ PIXCMAP      *cmap = NULL;
  *           ~ 0 for binary data (not permitted in PostScript)
  *           ~ 1 for ascii85 (5 for 4) encoded binary data
  *               (not permitted in pdf)
- *      (2) Do not free the data.  l_generateJpegDataMem() will free
- *          the data if the data is invalid, or if it does not use
- *          ascii encoding.
+ *      (2) Most of this function is repeated in l_generateJpegMemData(),
+ *          which is required in pixacompFastConvertToPdfData().
  * </pre>
  */
 L_COMP_DATA *
 l_generateJpegData(const char  *fname,
                    l_int32      ascii85flag)
 {
+char         *data85 = NULL;  /* ascii85 encoded jpeg compressed file */
 l_uint8      *data = NULL;
-size_t        nbytes;
+l_int32       w, h, xres, yres, bps, spp;
+size_t        nbytes, nbytes85;
+L_COMP_DATA  *cid;
+FILE         *fp;
 
     PROCNAME("l_generateJpegData");
 
     if (!fname)
         return (L_COMP_DATA *)ERROR_PTR("fname not defined", procName, NULL);
 
-        /* The returned jpeg data in memory is the entire jpeg file,
-         * which starts with ffd8 and ends with ffd9 */
+        /* Read the metadata */
+    if (readHeaderJpeg(fname, &w, &h, &spp, NULL, NULL))
+        return (L_COMP_DATA *)ERROR_PTR("bad jpeg metadata", procName, NULL);
+    bps = 8;
+    if ((fp = fopenReadStream(fname)) == NULL)
+        return (L_COMP_DATA *)ERROR_PTR("stream not opened", procName, NULL);
+    fgetJpegResolution(fp, &xres, &yres);
+    fclose(fp);
+
+        /* Read the entire jpeg file.  The returned jpeg data in memory
+         * starts with ffd8 and ends with ffd9 */
     if ((data = l_binaryRead(fname, &nbytes)) == NULL)
         return (L_COMP_DATA *)ERROR_PTR("data not extracted", procName, NULL);
 
-    return l_generateJpegDataMem(data, nbytes, ascii85flag);
+        /* Optionally, encode the compressed data */
+    if (ascii85flag == 1) {
+        data85 = encodeAscii85(data, nbytes, &nbytes85);
+        LEPT_FREE(data);
+        if (!data85)
+            return (L_COMP_DATA *)ERROR_PTR("data85 not made", procName, NULL);
+        else
+            data85[nbytes85 - 1] = '\0';  /* remove the newline */
+    }
+
+    cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA));
+    if (ascii85flag == 0) {
+        cid->datacomp = data;
+    } else {  /* ascii85 */
+        cid->data85 = data85;
+        cid->nbytes85 = nbytes85;
+    }
+    cid->type = L_JPEG_ENCODE;
+    cid->nbytescomp = nbytes;
+    cid->w = w;
+    cid->h = h;
+    cid->bps = bps;
+    cid->spp = spp;
+    cid->res = xres;
+    return cid;
 }
 
 
 /*!
  * \brief   l_generateJpegDataMem()
  *
- * \param[in]    data           of jpeg file
- * \param[in]    nbytes         of jpeg file
+ * \param[in]    data           of jpeg-encoded file
+ * \param[in]    nbytes         size of jpeg-encoded file
  * \param[in]    ascii85flag    0 for jpeg; 1 for ascii85-encoded jpeg
  * \return  cid containing jpeg data, or NULL on error
  *
  * <pre>
  * Notes:
- *      (1) See l_generateJpegData().
+ *      (1) Set ascii85flag:
+ *           ~ 0 for binary data (not permitted in PostScript)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data
+ *               (not permitted in pdf)
  * </pre>
  */
 L_COMP_DATA *

@@ -423,8 +423,7 @@ enum {
  *
  *       (6) The version numbers (below) are used in the serialization
  *           of these data structures.  They are placed in the files,
- *           and rarely (if ever) change.  Provision is currently made for
- *           backward compatibility in reading from boxaa version 2.
+ *           and rarely (if ever) change.
  *
  *       (7) The serialization dependencies are as follows:
  *               pixaa  :  pixa  :  boxa
