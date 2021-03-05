@@ -1916,10 +1916,7 @@ l_float32  *line, *data, *buffer;
     data = fpixGetData(fpixd);
     wpl = fpixGetWpl(fpixd);  /* 4-byte words */
     bpl = 4 * wpl;
-    if ((buffer = (l_float32 *)LEPT_CALLOC(wpl, sizeof(l_float32))) == NULL) {
-        fpixDestroy(&fpixd);
-        return (FPIX *)ERROR_PTR("buffer not made", procName, NULL);
-    }
+    buffer = (l_float32 *)LEPT_CALLOC(wpl, sizeof(l_float32));
     for (i = 0; i < h; i++) {
         line = data + i * wpl;
         memcpy(buffer, line, bpl);
@@ -1970,10 +1967,7 @@ l_float32  *linet, *lineb, *data, *buffer;
     data = fpixGetData(fpixd);
     wpl = fpixGetWpl(fpixd);
     fpixGetDimensions(fpixd, NULL, &h);
-    if ((buffer = (l_float32 *)LEPT_CALLOC(wpl, sizeof(l_float32))) == NULL) {
-        fpixDestroy(&fpixd);
-        return (FPIX *)ERROR_PTR("buffer not made", procName, NULL);
-    }
+    buffer = (l_float32 *)LEPT_CALLOC(wpl, sizeof(l_float32));
     h2 = h / 2;
     bpl = 4 * wpl;
     for (i = 0, k = h - 1; i < h2; i++, k--) {

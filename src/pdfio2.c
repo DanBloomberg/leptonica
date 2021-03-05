@@ -964,10 +964,8 @@ FILE         *fp;
     if (readHeaderJp2k(fname, &w, &h, &bps, &spp))
         return (L_COMP_DATA *)ERROR_PTR("bad jp2k metadata", procName, NULL);
 
-    if ((cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA))) == NULL)
-        return (L_COMP_DATA *)ERROR_PTR("cid not made", procName, NULL);
-
         /* The returned jp2k data in memory is the entire jp2k file */
+    cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA));
     if ((cid->datacomp = l_binaryRead(fname, &nbytes)) == NULL) {
         l_CIDataDestroy(&cid);
         return (L_COMP_DATA *)ERROR_PTR("data not extracted", procName, NULL);

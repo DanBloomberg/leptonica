@@ -626,8 +626,7 @@ PIXCMAP   *cmap;
          * set the tab value to 1.  Then generate a 1 bpp mask with
          * fg pixels for every pixel in pixd that is close enough
          * to srcval (i.e., has value 1 in tab). */
-    if ((tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL)
-        return (PIX *)ERROR_PTR("tab not made", procName, pixd);
+    tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     for (i = 0; i < ncolors; i++) {
         pixcmapGetColor(cmap, i, &rval, &gval, &bval);
         if ((L_ABS(rval - rsval) <= diff) &&

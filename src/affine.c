@@ -948,8 +948,7 @@ l_float32  *a[6];  /* 6x6 matrix A  */
     if (!pvc)
         return ERROR_INT("&vc not defined", procName, 1);
 
-    if ((b = (l_float32 *)LEPT_CALLOC(6, sizeof(l_float32))) == NULL)
-        return ERROR_INT("b not made", procName, 1);
+    b = (l_float32 *)LEPT_CALLOC(6, sizeof(l_float32));
     *pvc = b;
 
     ptaGetPt(ptas, 0, &x1, &y1);
@@ -960,9 +959,7 @@ l_float32  *a[6];  /* 6x6 matrix A  */
     ptaGetPt(ptad, 2, &b[4], &b[5]);
 
     for (i = 0; i < 6; i++)
-        if ((a[i] = (l_float32 *)LEPT_CALLOC(6, sizeof(l_float32))) == NULL)
-            return ERROR_INT("a[i] not made", procName, 1);
-
+        a[i] = (l_float32 *)LEPT_CALLOC(6, sizeof(l_float32));
     a[0][0] = x1;
     a[0][1] = y1;
     a[0][2] = 1.;

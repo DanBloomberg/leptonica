@@ -641,11 +641,7 @@ FPIXA  *fpixa;
     fpixa->n = 0;
     fpixa->nalloc = n;
     fpixa->refcount = 1;
-    if ((fpixa->fpix = (FPIX **)LEPT_CALLOC(n, sizeof(FPIX *))) == NULL) {
-        fpixaDestroy(&fpixa);
-        return (FPIXA *)ERROR_PTR("fpixa ptrs not made", procName, NULL);
-    }
-
+    fpixa->fpix = (FPIX **)LEPT_CALLOC(n, sizeof(FPIX *));
     return fpixa;
 }
 

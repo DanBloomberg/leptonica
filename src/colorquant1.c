@@ -1266,21 +1266,13 @@ CQCELL   **cqca;   /* one array for each octree level */
     PROCNAME("cqcellTreeCreate");
 
         /* Make array of accumulation cell arrays from levels 1 to 5 */
-    if ((cqcaa = (CQCELL ***)LEPT_CALLOC(CqNLevels + 1, sizeof(CQCELL **)))
-        == NULL)
-        return (CQCELL ***)ERROR_PTR("cqcaa not made", procName, NULL);
+    cqcaa = (CQCELL ***)LEPT_CALLOC(CqNLevels + 1, sizeof(CQCELL **));
     for (level = 0; level <= CqNLevels; level++) {
         ncells = 1 << (3 * level);
-        if ((cqca = (CQCELL **)LEPT_CALLOC(ncells, sizeof(CQCELL *))) == NULL) {
-            cqcellTreeDestroy(&cqcaa);
-            return (CQCELL ***)ERROR_PTR("cqca not made", procName, NULL);
-        }
+        cqca = (CQCELL **)LEPT_CALLOC(ncells, sizeof(CQCELL *));
         cqcaa[level] = cqca;
         for (i = 0; i < ncells; i++) {
-            if ((cqca[i] = (CQCELL *)LEPT_CALLOC(1, sizeof(CQCELL))) == NULL) {
-                cqcellTreeDestroy(&cqcaa);
-                return (CQCELL ***)ERROR_PTR("cqc not made", procName, NULL);
-            }
+            cqca[i] = (CQCELL *)LEPT_CALLOC(1, sizeof(CQCELL));
         }
     }
 
@@ -2402,10 +2394,7 @@ PIXCMAP   *cmap;
          * the colormap.                                              *
          *------------------------------------------------------------*/
         /* Prepare the OctcubeQuantCell array */
-    if ((oqca = (OQCELL **)LEPT_CALLOC(ncubes, sizeof(OQCELL *))) == NULL) {
-        pixDestroy(&pixd);
-        return (PIX *)ERROR_PTR("oqca not made", procName, NULL);
-    }
+    oqca = (OQCELL **)LEPT_CALLOC(ncubes, sizeof(OQCELL *));
     for (i = 0; i < ncubes; i++) {
         oqca[i] = (OQCELL *)LEPT_CALLOC(1, sizeof(OQCELL));
         oqca[i]->n = 0.0;

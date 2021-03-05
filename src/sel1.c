@@ -261,10 +261,7 @@ SELA  *sela;
     sela = (SELA *)LEPT_CALLOC(1, sizeof(SELA));
     sela->nalloc = n;
     sela->n = 0;
-    if ((sela->sel = (SEL **)LEPT_CALLOC(n, sizeof(SEL *))) == NULL) {
-        LEPT_FREE(sela);
-        return (SELA *)ERROR_PTR("sel ptrs not made", procName, NULL);
-    }
+    sela->sel = (SEL **)LEPT_CALLOC(n, sizeof(SEL *));
     return sela;
 }
 
@@ -318,8 +315,7 @@ SEL  *sel;
 
     PROCNAME("selCreate");
 
-    if ((sel = (SEL *)LEPT_CALLOC(1, sizeof(SEL))) == NULL)
-        return (SEL *)ERROR_PTR("sel not made", procName, NULL);
+    sel = (SEL *)LEPT_CALLOC(1, sizeof(SEL));
     if (name)
         sel->name = stringNew(name);
     sel->sy = height;
@@ -382,8 +378,7 @@ SEL     *csel;
     if (!sel)
         return (SEL *)ERROR_PTR("sel not defined", procName, NULL);
 
-    if ((csel = (SEL *)LEPT_CALLOC(1, sizeof(SEL))) == NULL)
-        return (SEL *)ERROR_PTR("csel not made", procName, NULL);
+    csel = (SEL *)LEPT_CALLOC(1, sizeof(SEL));
     selGetParameters(sel, &sy, &sx, &cy, &cx);
     csel->sy = sy;
     csel->sx = sx;
@@ -532,15 +527,10 @@ l_int32  **array;
     if (sy <= 0 || sy > MaxKernelSize)
         return (l_int32 **)ERROR_PTR("sy out of bounds", procName, NULL);
 
-    if ((array = (l_int32 **)LEPT_CALLOC(sy, sizeof(l_int32 *))) == NULL)
-        return (l_int32 **)ERROR_PTR("ptr array not made", procName, NULL);
+    array = (l_int32 **)LEPT_CALLOC(sy, sizeof(l_int32 *));
     success = TRUE;
-    for (i = 0; i < sy; i++) {
-        if ((array[i] = (l_int32 *)LEPT_CALLOC(sx, sizeof(l_int32))) == NULL) {
-            success = FALSE;
-            break;
-        }
-    }
+    for (i = 0; i < sy; i++)
+        array[i] = (l_int32 *)LEPT_CALLOC(sx, sizeof(l_int32));
     if (success) return array;
 
         /* Cleanup after error */

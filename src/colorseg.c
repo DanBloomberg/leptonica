@@ -157,10 +157,7 @@ PIX       *pixd;
     }
 
         /* Phase 2; refinement in pixel assignment */
-    if ((countarray = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL) {
-        pixDestroy(&pixd);
-        return (PIX *)ERROR_PTR("countarray not made", procName, NULL);
-    }
+    countarray = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     pixAssignToNearestColor(pixd, pixs, NULL, LEVEL_IN_OCTCUBE, countarray);
     if (debugflag)
         pixWriteDebug("/tmp/lept/segment/colorseg2.png", pixd, IFF_PNG);

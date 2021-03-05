@@ -1610,10 +1610,8 @@ l_uint32  *tab;
 
     PROCNAME("makeSumTabSG2");
 
-    if ((tab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32))) == NULL)
-        return (l_uint32 *)ERROR_PTR("tab not made", procName, NULL);
-
         /* Pack the four sums separately in four bytes */
+    tab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     for (i = 0; i < 256; i++) {
         tab[i] = (sum[i & 0x3] | sum[(i >> 2) & 0x3] << 8 |
                   sum[(i >> 4) & 0x3] << 16 | sum[(i >> 6) & 0x3] << 24);
@@ -1641,8 +1639,7 @@ l_uint8  *tab;
 
     PROCNAME("makeValTabSG2");
 
-    if ((tab = (l_uint8 *)LEPT_CALLOC(5, sizeof(l_uint8))) == NULL)
-        return (l_uint8 *)ERROR_PTR("tab not made", procName, NULL);
+    tab = (l_uint8 *)LEPT_CALLOC(5, sizeof(l_uint8));
     for (i = 0; i < 5; i++)
         tab[i] = 255 - (i * 255) / 4;
     return tab;
@@ -1772,10 +1769,8 @@ l_uint32  *tab;
 
     PROCNAME("makeSumTabSG3");
 
-    if ((tab = (l_uint32 *)LEPT_CALLOC(64, sizeof(l_uint32))) == NULL)
-        return (l_uint32 *)ERROR_PTR("tab not made", procName, NULL);
-
         /* Pack the two sums separately in two bytes */
+    tab = (l_uint32 *)LEPT_CALLOC(64, sizeof(l_uint32));
     for (i = 0; i < 64; i++) {
         tab[i] = (sum[i & 0x07]) | (sum[(i >> 3) & 0x07] << 8);
     }
@@ -1802,8 +1797,7 @@ l_uint8  *tab;
 
     PROCNAME("makeValTabSG3");
 
-    if ((tab = (l_uint8 *)LEPT_CALLOC(10, sizeof(l_uint8))) == NULL)
-        return (l_uint8 *)ERROR_PTR("tab not made", procName, NULL);
+    tab = (l_uint8 *)LEPT_CALLOC(10, sizeof(l_uint8));
     for (i = 0; i < 10; i++)
         tab[i] = 0xff - (i * 255) / 9;
     return tab;
@@ -1896,10 +1890,8 @@ l_uint32  *tab;
 
     PROCNAME("makeSumTabSG4");
 
-    if ((tab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32))) == NULL)
-        return (l_uint32 *)ERROR_PTR("tab not made", procName, NULL);
-
         /* Pack the two sums separately in two bytes */
+    tab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     for (i = 0; i < 256; i++) {
         tab[i] = (sum[i & 0xf]) | (sum[(i >> 4) & 0xf] << 8);
     }
@@ -1926,8 +1918,7 @@ l_uint8  *tab;
 
     PROCNAME("makeValTabSG4");
 
-    if ((tab = (l_uint8 *)LEPT_CALLOC(17, sizeof(l_uint8))) == NULL)
-        return (l_uint8 *)ERROR_PTR("tab not made", procName, NULL);
+    tab = (l_uint8 *)LEPT_CALLOC(17, sizeof(l_uint8));
     for (i = 0; i < 17; i++)
         tab[i] = 0xff - (i * 255) / 16;
     return tab;
@@ -2074,8 +2065,7 @@ l_uint8  *tab;
 
     PROCNAME("makeValTabSG6");
 
-    if ((tab = (l_uint8 *)LEPT_CALLOC(37, sizeof(l_uint8))) == NULL)
-        return (l_uint8 *)ERROR_PTR("tab not made", procName, NULL);
+    tab = (l_uint8 *)LEPT_CALLOC(37, sizeof(l_uint8));
     for (i = 0; i < 37; i++)
         tab[i] = 0xff - (i * 255) / 36;
     return tab;
@@ -2169,8 +2159,7 @@ l_uint8  *tab;
 
     PROCNAME("makeValTabSG8");
 
-    if ((tab = (l_uint8 *)LEPT_CALLOC(65, sizeof(l_uint8))) == NULL)
-        return (l_uint8 *)ERROR_PTR("tab not made", procName, NULL);
+    tab = (l_uint8 *)LEPT_CALLOC(65, sizeof(l_uint8));
     for (i = 0; i < 65; i++)
         tab[i] = 0xff - (i * 255) / 64;
     return tab;

@@ -513,8 +513,7 @@ l_float32  **array;
     if (sy <= 0 || sy > MaxArraySize)
         return (l_float32 **)ERROR_PTR("sy out of bounds", procName, NULL);
 
-    if ((array = (l_float32 **)LEPT_CALLOC(sy, sizeof(l_float32 *))) == NULL)
-        return (l_float32 **)ERROR_PTR("ptr array not made", procName, NULL);
+    array = (l_float32 **)LEPT_CALLOC(sy, sizeof(l_float32 *));
     for (i = 0; i < sy; i++)
         array[i] = (l_float32 *)LEPT_CALLOC(sx, sizeof(l_float32));
     return array;

@@ -2105,8 +2105,7 @@ PIX       *pixd;
          * 4x faster when using the LUT.  C'est la vie.  */
     lut = NULL;
     if (w * h > 100000) {  /* more pixels than 2^16 */
-        if ((lut = (l_uint8 *)LEPT_CALLOC(0x10000, sizeof(l_uint8))) == NULL)
-            return (PIX *)ERROR_PTR("lut not made", procName, NULL);
+        lut = (l_uint8 *)LEPT_CALLOC(0x10000, sizeof(l_uint8));
         for (i = 0; i < 256; i++) {
             for (j = 0; j < 256; j++) {
                 fval = (l_float32)(i * target) / (j + 0.5);
@@ -2864,8 +2863,7 @@ l_uint32  *data, *datamin, *datamax, *line, *tline, *linemin, *linemax;
     if (sx < 5 || sy < 5)
         return (PIX *)ERROR_PTR("sx and/or sy less than 5", procName, pixd);
 
-    if ((iaa = (l_int32 **)LEPT_CALLOC(256, sizeof(l_int32 *))) == NULL)
-        return (PIX *)ERROR_PTR("iaa not made", procName, NULL);
+    iaa = (l_int32 **)LEPT_CALLOC(256, sizeof(l_int32 *));
     if ((pixd = pixCopy(pixd, pixs)) == NULL) {
         LEPT_FREE(iaa);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
@@ -2940,8 +2938,7 @@ l_float32  factor;
     if (iaa[diff] != NULL)  /* already have it */
        return iaa[diff];
 
-    if ((ia = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32))) == NULL)
-        return (l_int32 *)ERROR_PTR("ia not made", procName, NULL);
+    ia = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     iaa[diff] = ia;
     if (diff == 0) {  /* shouldn't happen */
         for (i = 0; i < 256; i++)
