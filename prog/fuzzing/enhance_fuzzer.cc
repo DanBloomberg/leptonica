@@ -24,7 +24,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	pixDestroy(&return_pix);
 
 	pix_pointer_payload = pixCopy(NULL, pixs_payload);
-	return_pix = pixEqualizeTRC(NULL, pix_pointer_payload, 220, 10);
+	return_pix = pixEqualizeTRC(NULL, pix_pointer_payload, 0.5, 10);
 	pixDestroy(&pix_pointer_payload);
 	pixDestroy(&return_pix);
 
