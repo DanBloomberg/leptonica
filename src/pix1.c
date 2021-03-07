@@ -62,7 +62,6 @@
  *          PIX          *pixCopy()
  *          l_int32       pixResizeImageData()
  *          l_int32       pixCopyColormap()
- *          l_int32       pixSizesEqual()
  *          l_int32       pixTransferAllData()
  *          l_int32       pixSwapAndDestroy()
  *
@@ -111,6 +110,10 @@
  *
  *    Pix line ptrs
  *          void        **pixGetLinePtrs()
+ *
+ *    Pix size comparisons
+ *          l_int32       pixSizesEqual()
+ *          l_int32       pixMaxAspectRatio()
  *
  *    Pix debug
  *          l_int32       pixPrintStreamInfo()
@@ -299,7 +302,7 @@ setPixMemoryManager(alloc_fn   allocator,
 
 
 /*--------------------------------------------------------------------*
- *                              Pix Creation                          *
+ *                             Pix Creation                           *
  *--------------------------------------------------------------------*/
 /*!
  * \brief   pixCreate()
@@ -836,33 +839,6 @@ PIXCMAP        *cmapd;
 
 
 /*!
- * \brief   pixSizesEqual()
- *
- * \param[in]    pix1, pix2
- * \return  1 if the two pix have same {h, w, d}; 0 otherwise.
- */
-l_int32
-pixSizesEqual(const PIX  *pix1,
-              const PIX  *pix2)
-{
-    PROCNAME("pixSizesEqual");
-
-    if (!pix1 || !pix2)
-        return ERROR_INT("pix1 and pix2 not both defined", procName, 0);
-
-    if (pix1 == pix2)
-        return 1;
-
-    if ((pixGetWidth(pix1) != pixGetWidth(pix2)) ||
-        (pixGetHeight(pix1) != pixGetHeight(pix2)) ||
-        (pixGetDepth(pix1) != pixGetDepth(pix2)))
-        return 0;
-    else
-        return 1;
-}
-
-
-/*!
  * \brief   pixTransferAllData()
  *
  * \param[in]      pixd        must be different from pixs
@@ -1029,7 +1005,7 @@ pixSwapAndDestroy(PIX  **ppixd,
 
 
 /*--------------------------------------------------------------------*
- *                                Accessors                           *
+ *                              Pix Accessors                         *
  *--------------------------------------------------------------------*/
 l_int32
 pixGetWidth(const PIX  *pix)
@@ -1986,6 +1962,67 @@ void     **lines;
         lines[i] = (void *)(data + i * wpl);
 
     return lines;
+}
+
+
+/*--------------------------------------------------------------------*
+ *                         Pix Size Comparisons                       *
+ *--------------------------------------------------------------------*/
+/*!
+ * \brief   pixSizesEqual()
+ *
+ * \param[in]    pix1, pix2
+ * \return  1 if the two pix have same {h, w, d}; 0 otherwise.
+ */
+l_int32
+pixSizesEqual(const PIX  *pix1,
+              const PIX  *pix2)
+{
+    PROCNAME("pixSizesEqual");
+
+    if (!pix1 || !pix2)
+        return ERROR_INT("pix1 and pix2 not both defined", procName, 0);
+
+    if (pix1 == pix2)
+        return 1;
+
+    if ((pixGetWidth(pix1) != pixGetWidth(pix2)) ||
+        (pixGetHeight(pix1) != pixGetHeight(pix2)) ||
+        (pixGetDepth(pix1) != pixGetDepth(pix2)))
+        return 0;
+    else
+        return 1;
+}
+
+
+/*!
+ * \brief   pixMaxAspectRatio()
+ *
+ * \param[in]    pixs      32 bpp rgb
+ * \param[out]   pratio    max aspect ratio, >= 1.0; -1.0 on error
+ * \return  0 if OK, 1 on error
+ */
+l_ok
+pixMaxAspectRatio(PIX        *pixs,
+                  l_float32  *pratio)
+{
+l_int32  w, h;
+
+    PROCNAME("pixMaxAspectRatio");
+
+    if (!pratio)
+        return ERROR_INT("&ratio not defined", procName, 1);
+    *pratio = -1.0;
+    if (!pixs)
+        return ERROR_INT("pixs not defined", procName, 1);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    if (w == 0 || h == 0) {
+        L_ERROR("invalid size: w = %d, h = %d\n", procName, w, h);
+        return 1;
+    }
+
+    *pratio = L_MAX((l_float32)h / (l_float32)w, (l_float32)w / (l_float32)h);
+    return 0;
 }
 
 
