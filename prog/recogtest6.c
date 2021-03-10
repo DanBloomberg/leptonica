@@ -91,7 +91,7 @@ L_RECOG  *recog;
             rchaExtract(recog->rcha, NULL, &nascore, NULL, NULL,
                         NULL, NULL, NULL);
             pixDisplay(pixdb, 300, 500);
-            boxaWriteStream(stderr, boxa);
+            boxaWriteStderr(boxa);
             numaWriteStderr(nascore);
             numaDestroy(&nascore);
             pixDestroy(&pixdb);

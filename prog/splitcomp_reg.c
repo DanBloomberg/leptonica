@@ -108,7 +108,7 @@ L_REGPARAMS  *rp;
             pixc = pixCopy(NULL, pix32);
             boxa = pixSplitComponentIntoBoxa(pixt, NULL, minsum[i], skipdist[i],
                                              delta[i], maxbg[i], 0, 1);
-/*            boxaWriteStream(stderr, boxa); */
+/*            boxaWriteStderr(boxa); */
             pixd = pixBlendBoxaRandom(pixc, boxa, 0.4);
             pixRenderBoxaArb(pixd, boxa, 2, 255, 0, 0);
             pixaAddPix(pixad, pixd, L_INSERT);
@@ -137,7 +137,7 @@ L_REGPARAMS  *rp;
         pixc = pixCopy(NULL, pix32);
         boxa = pixSplitIntoBoxa(pixs, minsum[i], skipdist[i],
                                 delta[i], maxbg[i], 0, 1);
-/*        boxaWriteStream(stderr, boxa); */
+/*        boxaWriteStderr(boxa); */
         pixd = pixBlendBoxaRandom(pixc, boxa, 0.4);
         pixRenderBoxaArb(pixd, boxa, 2, 255, 0, 0);
         pixaAddPix(pixad, pixd, L_INSERT);

@@ -147,7 +147,7 @@ L_RECOG  *recog1, *recog2;
     pixd = pixRead("recog/digits/page.590.png");  /* 590 or 306 */
     recogIdentifyMultiple(recog1, pixd, 0, 0, &boxat, &pixa2, &pixdb, 1);
     pixDisplay(pixdb, 800, 800);
-    boxaWriteStream(stderr, boxat);
+    boxaWriteStderr(boxat);
     pix1 = pixaDisplay(pixa2, 0, 0);
     pixDisplay(pix1, 1200, 800);
     pixDestroy(&pixdb);

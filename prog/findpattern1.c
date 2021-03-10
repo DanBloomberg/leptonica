@@ -126,7 +126,7 @@ static char  mainName[] = "findpattern1";
         boxDestroy(&box);
     }
     pixWrite("/tmp/lept/hmt/outline.png", pix4, IFF_PNG);
-    boxaWriteStream(stderr, boxa2);
+    boxaWriteStderr(boxa2);
 
     pixDestroy(&pixs);
     pixDestroy(&pixp);

@@ -119,7 +119,7 @@ static char  mainName[] = "partitiontest";
     boxad = boxaGetWhiteblocks(boxat, box, type, maxboxes, ovlap,
                                200, 0.15, 20000);
     lept_stderr("Time: %7.3f sec\n", stopTimer());
-/*    boxaWriteStream(stderr, boxad); */
+/*    boxaWriteStderr(boxad); */
 
         /* Display box outlines in a single color in a cmapped image */
     pix1 = pixDrawBoxa(pixs, boxad, 7, 0xe0708000);
