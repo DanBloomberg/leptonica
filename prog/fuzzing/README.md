@@ -9,14 +9,18 @@ but can also be run locally.
 ## Local build instructions
 
 Local builds require the clang compiler.
-The example was tested with clang-6.0 on Debian GNU Linux.
+Use clang-10 on Debian GNU Linux, which can be installed using
 
-    ./configure CC=clang-6.0 CXX=clang++-6.0
-    make fuzzers CXX=clang++-6.0
+    sudo apt-get install clang-10
+
+To build:
+
+    ./configure CC=clang-10 CXX=clang++-10
+    make fuzzers CXX=clang++-10
 
 ## Running local fuzzers
 
-Each local fuzzer can be run like in the following example.
+Each local fuzzer can be run as in the following example.
 
     # Show command line syntax.
     ./barcode_fuzzer -help=1

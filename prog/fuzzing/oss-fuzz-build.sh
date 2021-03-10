@@ -122,7 +122,6 @@ cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/dewarp_fuzzer_seed_corpus
 cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/pix_orient_fuzzer_seed_corpus.zip
 cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/pixconv_fuzzer_seed_corpus.zip
 cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/blend_fuzzer_seed_corpus.zip
-cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/pixMirrorDetectDwa_fuzzer_seed_corpus.zip
 
 cp $SRC/leptonica/prog/fuzzing/pixa_recog_fuzzer_seed_corpus.zip $OUT/
 cp $SRC/leptonica/prog/fuzzing/barcode_fuzzer_seed_corpus.zip $OUT/
