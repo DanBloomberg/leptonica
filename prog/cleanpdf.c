@@ -145,7 +145,7 @@ static char  mainName[] = "cleanpdf";
         /* Get the names of the pdf files */
     if ((sa = getSortedPathnamesInDirectory(basedir, "pdf", 0, 0)) == NULL)
         return ERROR_INT("files not found", mainName, 1);
-    sarrayWriteStream(stderr, sa);
+    sarrayWriteStderr(sa);
     n = sarrayGetCount(sa);
 #endif
 
@@ -193,7 +193,7 @@ static char  mainName[] = "cleanpdf";
 #if 1
         /* Clean, deskew and compress */
     sa = getSortedPathnamesInDirectory(imagedir, NULL, 0, 0);
-    sarrayWriteStream(stderr, sa);
+    sarrayWriteStderr(sa);
     n = sarrayGetCount(sa);
     firstpath = NULL;
     for (i = 0; i < n; i++) {

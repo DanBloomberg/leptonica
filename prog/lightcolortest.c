@@ -54,7 +54,7 @@ static char  mainName[] = "lightcolortest";
 
     setLeptDebugOK(1);
     sa = getSortedPathnamesInDirectory( ".", "comap.", 0, 0);
-    sarrayWriteStream(stderr, sa);
+    sarrayWriteStderr(sa);
     n = sarrayGetCount(sa);
     lept_stderr("n = %d\n", n);
     pixa = pixaCreate(n);

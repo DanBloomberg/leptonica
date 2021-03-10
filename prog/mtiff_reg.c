@@ -231,9 +231,9 @@ L_REGPARAMS  *rp;
         /* Read the files and generate a multipage tiff file of G4 images.
          * Then convert that to a G4 compressed and ascii85 encoded PS file. */
     sa = getSortedPathnamesInDirectory(".", "weasel4.", 0, 4);
-    if (rp->display) sarrayWriteStream(stderr, sa);
+    if (rp->display) sarrayWriteStderr(sa);
     sarraySort(sa, sa, L_SORT_INCREASING);
-    if (rp->display) sarrayWriteStream(stderr, sa);
+    if (rp->display) sarrayWriteStderr(sa);
     npages = sarrayGetCount(sa);
     for (i = 0; i < npages; i++) {
         fname = sarrayGetString(sa, i, L_NOCOPY);

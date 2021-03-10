@@ -107,7 +107,7 @@ static char  mainName[] = "concatpdf";
         /* Get the names of the pdf files */
     if ((sa = getSortedPathnamesInDirectory(basedir, "pdf", 0, 0)) == NULL)
         return ERROR_INT("files not found", mainName, 1);
-    sarrayWriteStream(stderr, sa);
+    sarrayWriteStderr(sa);
     n = sarrayGetCount(sa);
 #endif
 
@@ -143,7 +143,7 @@ static char  mainName[] = "concatpdf";
 #if 1
         /* Scale and collect */
     sa = getSortedPathnamesInDirectory(imagedir, NULL, 0, 0);
-    sarrayWriteStream(stderr, sa);
+    sarrayWriteStderr(sa);
     n = sarrayGetCount(sa);
     pixa1 = pixaCreate(n);
     for (i = 0; i < n; i++) {

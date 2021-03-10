@@ -91,13 +91,13 @@ SARRAY   *sa1;
             /* Get the numbers in the sample */
         recogIdentifyMultiple(recog, pix1, 0, 0, &boxa3, NULL, &pixdb, 0);
         sa1 = recogExtractNumbers(recog, boxa3, 0.7, -1, &baa1, &naa1);
-        sarrayWriteStream(stderr, sa1);
+        sarrayWriteStderr(sa1);
         boxaaWriteStream(stderr, baa1);
         numaaWriteStream(stderr, naa1);
         pixaAddPix(pixa2, pixdb, L_INSERT);
 /*        pixaWrite("/tmp/pixa.pa", pixa2); */
         pixDestroy(&pix1);
-        boxaWriteStream(stderr, boxa3);
+        boxaWriteStderr(boxa3);
         boxaDestroy(&boxa3);
         boxaaDestroy(&baa1);
         numaaDestroy(&naa1);

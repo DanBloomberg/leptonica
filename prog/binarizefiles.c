@@ -79,7 +79,7 @@ static char  mainName[] = "binarizefiles.c";
 
         /* Get the input filenames */
     sa = getSortedPathnamesInDirectory(dirin, pattern, 0, 0);
-    sarrayWriteStream(stderr, sa);
+    sarrayWriteStderr(sa);
     n = sarrayGetCount(sa);
 
         /* Write the output files */

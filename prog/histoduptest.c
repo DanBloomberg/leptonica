@@ -98,7 +98,7 @@ PIXAC       *pac;
     lept_free(scores);
 
         /* Show the similarity classes. */
-    numaWriteStream(stderr, nai);
+    numaWriteStderr(nai);
     pixWrite("/tmp/lept/comp/photoclass1.jpg", pix1, IFF_JFIF_JPEG);
     lept_stderr("Writing photo classes: /tmp/lept/comp/photoclass1.jpg\n");
     numaDestroy(&nai);
@@ -128,7 +128,7 @@ PIXAC       *pac;
     lept_free(scores);
 
         /* Show the similarity classes. */
-    numaWriteStream(stderr, nai);
+    numaWriteStderr(nai);
     pixWrite("/tmp/lept/comp/photoclass2.jpg", pix1, IFF_JFIF_JPEG);
     lept_stderr("Writing photo classes: /tmp/lept/comp/photoclass2.jpg\n");
     numaDestroy(&nai);

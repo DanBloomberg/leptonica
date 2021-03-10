@@ -82,6 +82,7 @@
  *          SARRAY    *sarrayReadMem()
  *          l_int32    sarrayWrite()
  *          l_int32    sarrayWriteStream()
+ *          l_int32    sarrayWriteStderr()
  *          l_int32    sarrayWriteMem()
  *          l_int32    sarrayAppend()
  *
@@ -1595,7 +1596,7 @@ FILE    *fp;
 /*!
  * \brief   sarrayWriteStream()
  *
- * \param[in]    fp    file stream
+ * \param[in]    fp    file stream; use NULL to write to stderr
  * \param[in]    sa    string array
  * \return  0 if OK; 1 on error
  *
@@ -1616,7 +1617,7 @@ l_int32  i, n, len;
     if (!fp)
         return ERROR_INT("stream not defined", procName, 1);
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return sarrayWriteStderr(sa);
 
     n = sarrayGetCount(sa);
     fprintf(fp, "\nSarray Version %d\n", SARRAY_VERSION_NUMBER);
@@ -1627,6 +1628,34 @@ l_int32  i, n, len;
     }
     fprintf(fp, "\n");
 
+    return 0;
+}
+
+
+/*!
+ * \brief   sarrayWriteStderr()
+ *
+ * \param[in]    sa    string array
+ * \return  0 if OK; 1 on error
+ */
+l_ok
+sarrayWriteStderr(SARRAY  *sa)
+{
+l_int32  i, n, len;
+
+    PROCNAME("sarrayWriteStderr");
+
+    if (!sa)
+        return ERROR_INT("sa not defined", procName, 1);
+
+    n = sarrayGetCount(sa);
+    lept_stderr("\nSarray Version %d\n", SARRAY_VERSION_NUMBER);
+    lept_stderr("Number of strings = %d\n", n);
+    for (i = 0; i < n; i++) {
+        len = strlen(sa->array[i]);
+        lept_stderr("  %d[%d]:  %s\n", i, len, sa->array[i]);
+    }
+    lept_stderr("\n");
     return 0;
 }
 

@@ -92,7 +92,7 @@ L_RECOG  *recog;
                         NULL, NULL, NULL);
             pixDisplay(pixdb, 300, 500);
             boxaWriteStream(stderr, boxa);
-            numaWriteStream(stderr, nascore);
+            numaWriteStderr(nascore);
             numaDestroy(&nascore);
             pixDestroy(&pixdb);
         } else {  /* just get the timing */

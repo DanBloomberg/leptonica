@@ -2390,6 +2390,7 @@ LEPT_DLL extern SARRAY * sarrayReadStream ( FILE *fp );
 LEPT_DLL extern SARRAY * sarrayReadMem ( const l_uint8 *data, size_t size );
 LEPT_DLL extern l_ok sarrayWrite ( const char *filename, SARRAY *sa );
 LEPT_DLL extern l_ok sarrayWriteStream ( FILE *fp, SARRAY *sa );
+LEPT_DLL extern l_ok sarrayWriteStderr ( SARRAY *sa );
 LEPT_DLL extern l_ok sarrayWriteMem ( l_uint8 **pdata, size_t *psize, SARRAY *sa );
 LEPT_DLL extern l_ok sarrayAppend ( const char *filename, SARRAY *sa );
 LEPT_DLL extern SARRAY * getNumberedPathnamesInDirectory ( const char *dirname, const char *substr, l_int32 numpre, l_int32 numpost, l_int32 maxnum );

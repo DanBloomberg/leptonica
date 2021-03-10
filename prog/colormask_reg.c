@@ -114,7 +114,7 @@ L_REGPARAMS  *rp;
         /* Find all the peaks */
     pixFindHistoPeaksHSV(pixh, L_HS_HISTO, 20, 20, 6, 2.0,
                          &ptapk, &napk, &pixapk);
-    numaWriteStream(stderr, napk);
+    numaWriteStderr(napk);
     ptaWriteStream(stderr, ptapk, 1);
     pixd = pixaDisplayTiledInRows(pixapk, 32, 1400, 1.0, 0, 30, 2);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 4 */
