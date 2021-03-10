@@ -65,6 +65,7 @@
  *          L_DNA       *l_dnaReadStream()
  *          l_int32      l_dnaWrite()
  *          l_int32      l_dnaWriteStream()
+ *          l_int32      l_dnaWriteStrderr()
  *
  *      Dnaa creation, destruction
  *          L_DNAA      *l_dnaaCreate()
@@ -1111,7 +1112,7 @@ FILE    *fp;
 /*!
  * \brief   l_dnaWriteStream()
  *
- * \param[in]    fp    file stream
+ * \param[in]    fp    file stream; use NULL to write to stderr
  * \param[in]    da
  * \return  0 if OK, 1 on error
  */
@@ -1124,10 +1125,10 @@ l_float64  startx, delx;
 
     PROCNAME("l_dnaWriteStream");
 
-    if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
     if (!da)
         return ERROR_INT("da not defined", procName, 1);
+    if (!fp)
+        return l_dnaWriteStderr(da);
 
     n = l_dnaGetCount(da);
     fprintf(fp, "\nL_Dna Version %d\n", DNA_VERSION_NUMBER);
@@ -1140,6 +1141,39 @@ l_float64  startx, delx;
     l_dnaGetParameters(da, &startx, &delx);
     if (startx != 0.0 || delx != 1.0)
         fprintf(fp, "startx = %f, delx = %f\n", startx, delx);
+
+    return 0;
+}
+
+
+/*!
+ * \brief   l_dnaWriteStrderr()
+ *
+ * \param[in]    da
+ * \return  0 if OK, 1 on error
+ */
+l_ok
+l_dnaWriteStderr(L_DNA  *da)
+{
+l_int32    i, n;
+l_float64  startx, delx;
+
+    PROCNAME("l_dnaWriteStderr");
+
+    if (!da)
+        return ERROR_INT("da not defined", procName, 1);
+
+    n = l_dnaGetCount(da);
+    lept_stderr("\nL_Dna Version %d\n", DNA_VERSION_NUMBER);
+    lept_stderr("Number of numbers = %d\n", n);
+    for (i = 0; i < n; i++)
+        lept_stderr("  [%d] = %f\n", i, da->array[i]);
+    lept_stderr("\n");
+
+        /* Optional data */
+    l_dnaGetParameters(da, &startx, &delx);
+    if (startx != 0.0 || delx != 1.0)
+        lept_stderr("startx = %f, delx = %f\n", startx, delx);
 
     return 0;
 }

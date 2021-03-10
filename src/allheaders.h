@@ -736,6 +736,7 @@ LEPT_DLL extern L_DNA * l_dnaRead ( const char *filename );
 LEPT_DLL extern L_DNA * l_dnaReadStream ( FILE *fp );
 LEPT_DLL extern l_ok l_dnaWrite ( const char *filename, L_DNA *da );
 LEPT_DLL extern l_ok l_dnaWriteStream ( FILE *fp, L_DNA *da );
+LEPT_DLL extern l_ok l_dnaWriteStderr ( L_DNA *da );
 LEPT_DLL extern L_DNAA * l_dnaaCreate ( l_int32 n );
 LEPT_DLL extern L_DNAA * l_dnaaCreateFull ( l_int32 nptr, l_int32 n );
 LEPT_DLL extern l_ok l_dnaaTruncate ( L_DNAA *daa );

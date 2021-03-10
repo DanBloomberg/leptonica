@@ -184,7 +184,7 @@ static char  mainName[] = "cleanpdf";
   #endif  /* USE_PDFTOPPM */
         lept_free(tail);
         lept_free(basename);
-        fprintf(stderr, "%s\n", buf);
+        lept_stderr("%s\n", buf);
         ret = system(buf);   /* pdfimages or pdftoppm */
     }
     sarrayDestroy(&sa);
@@ -214,7 +214,7 @@ static char  mainName[] = "cleanpdf";
         splitPathAtDirectory(fname, NULL, &tail);
         splitPathAtExtension(tail, &basename, NULL);
         snprintf(buf, sizeof(buf), "%s/%s.tif", imagedir, basename);
-        fprintf(stderr, "%s\n", buf);
+        lept_stderr("%s\n", buf);
         pixWrite(buf, pix5, IFF_TIFF_G4);
         if (i == 0)  /* save full path to first image */
             firstpath = stringNew(buf);
@@ -236,7 +236,7 @@ static char  mainName[] = "cleanpdf";
          * page to be printed to cover an 8.5 x 11 inch sheet of paper.
          * We use flate encoding to avoid photometric reversal which
          * happens when encoded with G4 tiff.  */
-    fprintf(stderr, "Write output to %s\n", outfile);
+    lept_stderr("Write output to %s\n", outfile);
     pix1 = pixRead(firstpath);
     pixInferResolution(pix1, 11.0, &res);
     pixDestroy(&pix1);

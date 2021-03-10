@@ -2345,10 +2345,10 @@ SARRAY   *sa;
 #if  DEBUG_MULTIPAGE
     lept_stderr("************** Trailer string ************\n");
     lept_stderr("xrefloc = %d", xrefloc);
-    sarrayWriteStream(stderr, sa);
+    sarrayWriteStderr(sa);
 
     lept_stderr("************** Object locations ************");
-    l_dnaWriteStream(stderr, da);
+    l_dnaWriteStderr(da);
 #endif  /* DEBUG_MULTIPAGE */
     sarrayDestroy(&sa);
 
