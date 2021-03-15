@@ -172,7 +172,7 @@ char    *versionStrP = NULL;
     if (!first) stringJoinIP(&versionStrP, " : ");
     first = FALSE;
     stringJoinIP(&versionStrP, "zlib ");
-    stringJoinIP(&versionStrP, zlibVersion());
+    stringJoinIP(&versionStrP, ZLIB_VERSION);
 #endif  /* HAVE_LIBZ */
 
 #if HAVE_LIBWEBP
