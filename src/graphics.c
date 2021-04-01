@@ -378,7 +378,7 @@ PTA     *ptad, *ptat, *pta;
     }
 
     if (removedups)
-        ptad = ptaRemoveDupsByAset(ptat);
+        ptaRemoveDupsByAset(ptat, &ptad);
     else
         ptad = ptaClone(ptat);
 
@@ -546,7 +546,7 @@ PTA     *ptad, *ptat, *pta;
     }
 
     if (removedups)
-        ptad = ptaRemoveDupsByAset(ptat);
+        ptaRemoveDupsByAset(ptat, &ptad);
     else
         ptad = ptaClone(ptat);
 
@@ -711,7 +711,7 @@ PTA     *ptad, *ptat, *pta;
     }
 
     if (removedups)
-        ptad = ptaRemoveDupsByAset(ptat);
+        ptaRemoveDupsByAset(ptat, &ptad);
     else
         ptad = ptaClone(ptat);
 

@@ -74,8 +74,8 @@
  *
  *       64-bit hash functions
  *           l_int32    l_hashStringToUint64()
+ *           l_int32    l_hashStringToUint64Fast()
  *           l_int32    l_hashPtToUint64()
- *           l_int32    l_hashFloat64ToUint64()
  *
  *       Prime finders
  *           l_int32    findNextLargerPrime()
@@ -752,6 +752,44 @@ l_uint64  hash, mulp;
 
 
 /*!
+ * \brief   l_hashStringToUint64Fast()
+ *
+ * \param[in]    str
+ * \param[out]   phash    hash value
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *     (1) This very simple hash algorithm is described in "The Practice
+ *         of Programming" by Kernighan and Pike, p. 57 (1999).
+ *     (2) The returned hash value would then be hashed into an index into
+ *         the hashtable, using the mod operator with the hashtable size.
+ * </pre>
+ */
+l_ok
+l_hashStringToUint64Fast(const char  *str,
+                         l_uint64    *phash)
+{
+l_uint64  h;
+l_uint8  *p;
+
+    PROCNAME("l_hashStringToUint64Fast");
+
+    if (phash) *phash = 0;
+    if (!str || (str[0] == '\0'))
+        return ERROR_INT("str not defined or empty", procName, 1);
+    if (!phash)
+        return ERROR_INT("&hash not defined", procName, 1);
+
+    h = 0;
+    for (p = (l_uint8 *)str; *p != '\0'; p++)
+        h = 37 * h + *p;  /* 37 is good prime number for this */
+    *phash = h;
+    return 0;
+}
+
+
+/*!
  * \brief   l_hashPtToUint64()
  *
  * \param[in]    x, y
@@ -762,15 +800,6 @@ l_uint64  hash, mulp;
  * Notes:
  *      (1) This simple hash function has no collisions for
  *          any of 400 million points with x and y up to 20000.
- *      (2) Previously used a much more complicated and slower function:
- *            mulp = 26544357894361;
- *            hash = 104395301;
- *            hash += (x * mulp) ^ (hash >> 5);
- *            hash ^= (hash << 7);
- *            hash += (y * mulp) ^ (hash >> 7);
- *            hash = hash ^ (hash << 11);
- *          Such logical gymnastics to get coverage over the 2^64
- *          values are not required.
  * </pre>
  */
 l_ok
@@ -784,45 +813,6 @@ l_hashPtToUint64(l_int32    x,
         return ERROR_INT("&hash not defined", procName, 1);
 
     *phash = (l_uint64)(2173249142.3849 * x + 3763193258.6227 * y);
-    return 0;
-}
-
-
-/*!
- * \brief   l_hashFloat64ToUint64()
- *
- * \param[in]    nbuckets
- * \param[in]    val
- * \param[out]   phash      hash value
- * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) Simple, fast hash for using dnaHash with 64-bit data
- *          (e.g., sets and histograms).
- *      (2) The resulting hash is called a "key" in a lookup
- *          operation.  The bucket for %val in a dnaHash is simply
- *          found by taking the mod of the hash with the number of
- *          buckets (which is prime).  What gets stored in the
- *          dna in that bucket could depend on use, but for the most
- *          flexibility, we store an index into the associated dna.
- *          This is all that is required for generating either a hash set
- *          or a histogram (an example of a hash map).
- *      (3) For example, to generate a histogram, the histogram dna,
- *          a histogram of unique values aligned with the histogram dna,
- *          and a dnahash hashmap are built.  See l_dnaMakeHistoByHash().
- * </pre>
- */
-l_ok
-l_hashFloat64ToUint64(l_int32    nbuckets,
-                      l_float64  val,
-                      l_uint64  *phash)
-{
-    PROCNAME("l_hashFloatToUint64");
-
-    if (!phash)
-        return ERROR_INT("&hash not defined", procName, 1);
-    *phash = (l_uint64)((21.732491 * nbuckets) * val);
     return 0;
 }
 

@@ -63,9 +63,11 @@
  *      Serialize Dna for I/O
  *          L_DNA       *l_dnaRead()
  *          L_DNA       *l_dnaReadStream()
+ *          L_DNA       *l_dnaReadMem()
  *          l_int32      l_dnaWrite()
  *          l_int32      l_dnaWriteStream()
- *          l_int32      l_dnaWriteStrderr()
+ *          l_int32      l_dnaWriteStderr()
+ *          l_int32      l_dnaWriteMem()
  *
  *      Dnaa creation, destruction
  *          L_DNAA      *l_dnaaCreate()
@@ -89,8 +91,10 @@
  *      Serialize Dnaa for I/O
  *          L_DNAA      *l_dnaaRead()
  *          L_DNAA      *l_dnaaReadStream()
+ *          L_DNAA      *l_dnaaReadMem()
  *          l_int32      l_dnaaWrite()
  *          l_int32      l_dnaaWriteStream()
+ *          l_int32      l_dnaaWriteMem()
  *
  *    (1) The Dna is a struct holding an array of doubles.  It can also
  *        be used to store l_int32 values, up to the full precision
@@ -470,7 +474,8 @@ l_int32  n;
  *
  * <pre>
  * Notes:
- *      (1) The max number of doubles is 100M.
+ *      (1) Doubles the size of the array.
+ *      (2) The max number of doubles is 100M.
  * </pre>
  */
 static l_int32
@@ -482,18 +487,20 @@ size_t  oldsize, newsize;
 
     if (!da)
         return ERROR_INT("da not defined", procName, 1);
-    if (da->nalloc > MaxDoubleArraySize)  /* belt & suspenders */
-        return ERROR_INT("da has too many ptrs", procName, 1);
+    if (da->nalloc > MaxDoubleArraySize)
+        return ERROR_INT("da at maximum size; can't extend", procName, 1);
     oldsize = da->nalloc * sizeof(l_float64);
-    newsize = 2 * oldsize;
-    if (newsize > 8 * MaxDoubleArraySize)
-        return ERROR_INT("newsize > 800 MB; too large", procName, 1);
-
+    if (da->nalloc > MaxDoubleArraySize / 2) {
+        newsize = MaxDoubleArraySize * sizeof(l_float64);
+        da->nalloc = MaxDoubleArraySize;
+    } else {
+        newsize = 2 * oldsize;
+        da->nalloc *= 2;
+    }
     if ((da->array = (l_float64 *)reallocNew((void **)&da->array,
                                              oldsize, newsize)) == NULL)
         return ERROR_INT("new ptr array not returned", procName, 1);
 
-    da->nalloc *= 2;
     return 0;
 }
 
@@ -1079,6 +1086,34 @@ L_DNA     *da;
 
 
 /*!
+ * \brief   l_dnaReadMem()
+ *
+ * \param[in]    data    dna serialization; in ascii
+ * \param[in]    size    of data; can use strlen to get it
+ * \return  da, or NULL on error
+ */
+L_DNA *
+l_dnaReadMem(const l_uint8  *data,
+             size_t          size)
+{
+FILE   *fp;
+L_DNA  *da;
+
+    PROCNAME("l_dnaReadMem");
+
+    if (!data)
+        return (L_DNA *)ERROR_PTR("data not defined", procName, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (L_DNA *)ERROR_PTR("stream not opened", procName, NULL);
+
+    da = l_dnaReadStream(fp);
+    fclose(fp);
+    if (!da) L_ERROR("dna not read\n", procName);
+    return da;
+}
+
+
+/*!
  * \brief   l_dnaWrite()
  *
  * \param[in]    filename
@@ -1176,6 +1211,60 @@ l_float64  startx, delx;
         lept_stderr("startx = %f, delx = %f\n", startx, delx);
 
     return 0;
+}
+
+
+/*!
+ * \brief   l_dnaWriteMem()
+ *
+ * \param[out]   pdata    data of serialized dna; ascii
+ * \param[out]   psize    size of returned data
+ * \param[in]    da
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Serializes a dna in memory and puts the result in a buffer.
+ * </pre>
+ */
+l_ok
+l_dnaWriteMem(l_uint8  **pdata,
+              size_t    *psize,
+              L_DNA     *da)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("l_dnaWriteMem");
+
+    if (pdata) *pdata = NULL;
+    if (psize) *psize = 0;
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1);
+    if (!da)
+        return ERROR_INT("da not defined", procName, 1);
+
+#if HAVE_FMEMOPEN
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = l_dnaWriteStream(fp, da);
+#else
+    L_INFO("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
+    if ((fp = tmpfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
+    ret = l_dnaWriteStream(fp, da);
+    rewind(fp);
+    *pdata = l_binaryReadStream(fp, psize);
+#endif  /* HAVE_FMEMOPEN */
+    fclose(fp);
+    return ret;
 }
 
 
@@ -1696,6 +1785,34 @@ L_DNAA    *daa;
 
 
 /*!
+ * \brief   l_dnaaReadMem()
+ *
+ * \param[in]    data     dnaa serialization; in ascii
+ * \param[in]    size     of data; can use strlen to get it
+ * \return  daa, or NULL on error
+ */
+L_DNAA *
+l_dnaaReadMem(const l_uint8  *data,
+              size_t          size)
+{
+FILE    *fp;
+L_DNAA  *daa;
+
+    PROCNAME("l_dnaaReadMem");
+
+    if (!data)
+        return (L_DNAA *)ERROR_PTR("data not defined", procName, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (L_DNAA *)ERROR_PTR("stream not opened", procName, NULL);
+
+    daa = l_dnaaReadStream(fp);
+    fclose(fp);
+    if (!daa) L_ERROR("daa not read\n", procName);
+    return daa;
+}
+
+
+/*!
  * \brief   l_dnaaWrite()
  *
  * \param[in]    filename
@@ -1760,3 +1877,58 @@ L_DNA   *da;
 
     return 0;
 }
+
+
+/*!
+ * \brief   l_dnaaWriteMem()
+ *
+ * \param[out]   pdata    data of serialized dnaa; ascii
+ * \param[out]   psize    size of returned data
+ * \param[in]    daa
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Serializes a dnaa in memory and puts the result in a buffer.
+ * </pre>
+ */
+l_ok
+l_dnaaWriteMem(l_uint8  **pdata,
+               size_t    *psize,
+               L_DNAA    *daa)
+{
+l_int32  ret;
+FILE    *fp;
+
+    PROCNAME("l_dnaaWriteMem");
+
+    if (pdata) *pdata = NULL;
+    if (psize) *psize = 0;
+    if (!pdata)
+        return ERROR_INT("&data not defined", procName, 1);
+    if (!psize)
+        return ERROR_INT("&size not defined", procName, 1);
+    if (!daa)
+        return ERROR_INT("daa not defined", procName, 1);
+
+#if HAVE_FMEMOPEN
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
+        return ERROR_INT("stream not opened", procName, 1);
+    ret = l_dnaaWriteStream(fp, daa);
+#else
+    L_INFO("work-around: writing to a temp file\n", procName);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #else
+    if ((fp = tmpfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", procName, 1);
+  #endif  /* _WIN32 */
+    ret = l_dnaaWriteStream(fp, daa);
+    rewind(fp);
+    *pdata = l_binaryReadStream(fp, psize);
+#endif  /* HAVE_FMEMOPEN */
+    fclose(fp);
+    return ret;
+}
+

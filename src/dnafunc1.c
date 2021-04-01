@@ -31,6 +31,7 @@
  *      Rearrangements
  *          l_int32     *l_dnaJoin()
  *          l_int32     *l_dnaaFlattenToDna()
+ *          L_DNA       *l_dnaSelectRange()
  *
  *      Conversion between numa and dna
  *          NUMA        *l_dnaConvertToNuma()
@@ -40,20 +41,36 @@
  *          L_DNA       *pixConvertDataToDna()
  *
  *      Set operations using aset (rbtree)
- *          L_DNA       *l_dnaUnionByAset()
- *          L_DNA       *l_dnaRemoveDupsByAset()
- *          L_DNA       *l_dnaIntersectionByAset()
  *          L_ASET      *l_asetCreateFromDna()
+ *          L_DNA       *l_dnaRemoveDupsByAset()
+ *          L_DNA       *l_dnaUnionByAset()
+ *          L_DNA       *l_dnaIntersectionByAset()
+ *
+ *      Hashmap operations
+ *          L_HASHMAP   *l_hmapCreateFromDna()
+ *          l_int32      l_dnaRemoveDupsByHmap()
+ *          l_int32      l_dnaUnionByHmap()
+ *          l_int32      l_dnaIntersectionByHmap()
+ *          l_int32      l_dnaMakeHistoByHmap()
  *
  *      Miscellaneous operations
  *          L_DNA       *l_dnaDiffAdjValues()
  *
  *
- * This file contains an implementation on sets of doubles (or integers)
- * that uses an underlying tree (rbtree).  The keys stored in the tree
- * are simply the double array values in the dna.  Use of a DnaHash
- * is typically more efficient, with O(1) in lookup and insertion.
+ * We have two implementations of set operations on an array of doubles:
  *
+ *   (1) Using an underlying tree (rbtree)
+ *       The key for each float64 value is the value itself.
+ *       No collisions can occur.  The tree is sorted by the keys.
+ *       Lookup is done in O(log n) by traversing from the root,
+ *       looking for the key.
+ *
+ *   (2) Building a hashmap from the keys (hashmap)
+ *       The keys are made from each float64 by casting into a uint64.
+ *       The key is then hashed into a hashtable.  Collisions of hashkeys are
+ *       very rare, and the hashtable is designed to allow more than one
+ *       hashitem in a table entry.  The hashitems are put in a list at
+ *       each hashtable entry, which is traversed looking for the key.
  * </pre>
  */
 
@@ -108,9 +125,12 @@ l_float64  val;
 
     for (i = istart; i <= iend; i++) {
         l_dnaGetDValue(das, i, &val);
-        l_dnaAddNumber(dad, val);
-    }
+        if (l_dnaAddNumber(dad, val) == 1) {
+            L_ERROR("failed to add double at i = %d\n", procName, i);
+            return 1;
+        }
 
+    }
     return 0;
 }
 
@@ -149,6 +169,52 @@ L_DNA  **array;
         l_dnaJoin(dad, da, 0, -1);
     }
 
+    return dad;
+}
+
+
+/*!
+ * \brief   l_dnaSelectRange()
+ *
+ * \param[in]    das
+ * \param[in]    first    use 0 to select from the beginning
+ * \param[in]    last     use -1 to select to the end
+ * \return  dad, or NULL on error
+ */
+L_DNA *
+l_dnaSelectRange(L_DNA   *das,
+                 l_int32  first,
+                 l_int32  last)
+{
+l_int32    n, i;
+l_float64  dval;
+L_DNA     *dad;
+
+    PROCNAME("l_dnaSelectRange");
+
+    if (!das)
+        return (L_DNA *)ERROR_PTR("das not defined", procName, NULL);
+    if ((n = l_dnaGetCount(das)) == 0) {
+        L_WARNING("das is empty\n", procName);
+        return l_dnaCopy(das);
+    }
+    first = L_MAX(0, first);
+    if (last < 0) last = n - 1;
+    if (first >= n)
+        return (L_DNA *)ERROR_PTR("invalid first", procName, NULL);
+    if (last >= n) {
+        L_WARNING("last = %d is beyond max index = %d; adjusting\n",
+                  procName, last, n - 1);
+        last = n - 1;
+    }
+    if (first > last)
+        return (L_DNA *)ERROR_PTR("first > last", procName, NULL);
+
+    dad = l_dnaCreate(last - first + 1);
+    for (i = first; i <= last; i++) {
+        l_dnaGetDValue(das, i, &dval);
+        l_dnaAddNumber(dad, dval);
+    }
     return dad;
 }
 
@@ -257,138 +323,6 @@ L_DNA     *da;
  *                   Set operations using aset (rbtree)                 *
  *----------------------------------------------------------------------*/
 /*!
- * \brief   l_dnaUnionByAset()
- *
- * \param[in]    da1, da2
- * \return  dad with the union of the set of numbers, or NULL on error
- *
- * <pre>
- * Notes:
- *      (1) See sarrayUnionByAset() for the approach.
- *      (2) Here, the key in building the sorted tree is the number itself.
- *      (3) Operations using an underlying tree are O(nlogn), which is
- *          typically less efficient than hashing, which is O(n).
- * </pre>
- */
-L_DNA *
-l_dnaUnionByAset(L_DNA  *da1,
-                 L_DNA  *da2)
-{
-L_DNA  *da3, *dad;
-
-    PROCNAME("l_dnaUnionByAset");
-
-    if (!da1)
-        return (L_DNA *)ERROR_PTR("da1 not defined", procName, NULL);
-    if (!da2)
-        return (L_DNA *)ERROR_PTR("da2 not defined", procName, NULL);
-
-        /* Join */
-    da3 = l_dnaCopy(da1);
-    l_dnaJoin(da3, da2, 0, -1);
-
-        /* Eliminate duplicates */
-    dad = l_dnaRemoveDupsByAset(da3);
-    l_dnaDestroy(&da3);
-    return dad;
-}
-
-
-/*!
- * \brief   l_dnaRemoveDupsByAset()
- *
- * \param[in]    das
- * \return  dad with duplicates removed, or NULL on error
- */
-L_DNA *
-l_dnaRemoveDupsByAset(L_DNA  *das)
-{
-l_int32    i, n;
-l_float64  val;
-L_DNA     *dad;
-L_ASET    *set;
-RB_TYPE    key;
-
-    PROCNAME("l_dnaRemoveDupsByAset");
-
-    if (!das)
-        return (L_DNA *)ERROR_PTR("das not defined", procName, NULL);
-
-    set = l_asetCreate(L_FLOAT_TYPE);
-    dad = l_dnaCreate(0);
-    n = l_dnaGetCount(das);
-    for (i = 0; i < n; i++) {
-        l_dnaGetDValue(das, i, &val);
-        key.ftype = val;
-        if (!l_asetFind(set, key)) {
-            l_dnaAddNumber(dad, val);
-            l_asetInsert(set, key);
-        }
-    }
-
-    l_asetDestroy(&set);
-    return dad;
-}
-
-
-/*!
- * \brief   l_dnaIntersectionByAset()
- *
- * \param[in]    da1, da2
- * \return  dad with the intersection of the two arrays, or NULL on error
- *
- * <pre>
- * Notes:
- *      (1) See sarrayIntersection() for the approach.
- *      (2) Here, the key in building the sorted tree is the number itself.
- *      (3) Operations using an underlying tree are O(nlogn), which is
- *          typically less efficient than hashing, which is O(n).
- * </pre>
- */
-L_DNA *
-l_dnaIntersectionByAset(L_DNA  *da1,
-                        L_DNA  *da2)
-{
-l_int32    n1, n2, i, n;
-l_float64  val;
-L_ASET    *set1, *set2;
-RB_TYPE    key;
-L_DNA     *da_small, *da_big, *dad;
-
-    PROCNAME("l_dnaIntersectionByAset");
-
-    if (!da1)
-        return (L_DNA *)ERROR_PTR("da1 not defined", procName, NULL);
-    if (!da2)
-        return (L_DNA *)ERROR_PTR("da2 not defined", procName, NULL);
-
-        /* Put the elements of the largest array into a set */
-    n1 = l_dnaGetCount(da1);
-    n2 = l_dnaGetCount(da2);
-    da_small = (n1 < n2) ? da1 : da2;   /* do not destroy da_small */
-    da_big = (n1 < n2) ? da2 : da1;   /* do not destroy da_big */
-    set1 = l_asetCreateFromDna(da_big);
-
-        /* Build up the intersection of floats */
-    dad = l_dnaCreate(0);
-    n = l_dnaGetCount(da_small);
-    set2 = l_asetCreate(L_FLOAT_TYPE);
-    for (i = 0; i < n; i++) {
-        l_dnaGetDValue(da_small, i, &val);
-        key.ftype = val;
-        if (l_asetFind(set1, key) && !l_asetFind(set2, key)) {
-            l_dnaAddNumber(dad, val);
-            l_asetInsert(set2, key);
-        }
-    }
-
-    l_asetDestroy(&set1);
-    l_asetDestroy(&set2);
-    return dad;
-}
-
-
-/*!
  * \brief   l_asetCreateFromDna()
  *
  * \param[in]    da    source dna
@@ -416,6 +350,422 @@ RB_TYPE    key;
     }
 
     return set;
+}
+
+
+/*!
+ * \brief   l_dnaRemoveDupsByAset()
+ *
+ * \param[in]    das
+ * \param[out]   pdad     with duplicated removed
+ * \return  0 if OK; 1 on error
+ */
+l_ok
+l_dnaRemoveDupsByAset(L_DNA   *das,
+                      L_DNA  **pdad)
+{
+l_int32    i, n;
+l_float64  val;
+L_DNA     *dad;
+L_ASET    *set;
+RB_TYPE    key;
+
+    PROCNAME("l_dnaRemoveDupsByAset");
+
+    if (!pdad)
+        return ERROR_INT("&dad not defined", procName, 1);
+    *pdad = NULL;
+    if (!das)
+        return ERROR_INT("das not defined", procName, 1);
+
+    set = l_asetCreate(L_FLOAT_TYPE);
+    dad = l_dnaCreate(0);
+    *pdad = dad;
+    n = l_dnaGetCount(das);
+    for (i = 0; i < n; i++) {
+        l_dnaGetDValue(das, i, &val);
+        key.ftype = val;
+        if (!l_asetFind(set, key)) {
+            l_dnaAddNumber(dad, val);
+            l_asetInsert(set, key);
+        }
+    }
+
+    l_asetDestroy(&set);
+    return 0;
+}
+
+
+/*!
+ * \brief   l_dnaUnionByAset()
+ *
+ * \param[in]    da1
+ * \param[in]    da2
+ * \param[out]   pdad       union of the two arrays
+ * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) See sarrayUnionByAset() for the approach.
+ *      (2) Here, the key in building the sorted tree is the number itself.
+ *      (3) Operations using an underlying tree are O(nlogn), which is
+ *          typically less efficient than hashing, which is O(n).
+ * </pre>
+ */
+l_ok
+l_dnaUnionByAset(L_DNA   *da1,
+                 L_DNA   *da2,
+                 L_DNA  **pdad)
+{
+L_DNA  *da3;
+
+    PROCNAME("l_dnaUnionByAset");
+
+    if (!pdad)
+        return ERROR_INT("&dad not defined", procName, 1);
+    if (!da1)
+        return ERROR_INT("da1 not defined", procName, 1);
+    if (!da2)
+        return ERROR_INT("da2 not defined", procName, 1);
+
+        /* Join */
+    da3 = l_dnaCopy(da1);
+    if (l_dnaJoin(da3, da2, 0, -1) == 1) {
+        l_dnaDestroy(&da3);
+        return ERROR_INT("join failed for da3", procName, 1);
+    }
+
+        /* Eliminate duplicates */
+    l_dnaRemoveDupsByAset(da3, pdad);
+    l_dnaDestroy(&da3);
+    return 0;
+}
+
+
+/*!
+ * \brief   l_dnaIntersectionByAset()
+ *
+ * \param[in]    da1
+ * \param[in]    da2
+ * \param[out]   pdad      intersection of the two arrays
+ * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) See sarrayIntersection() for the approach.
+ *      (2) Here, the key in building the sorted tree is the number itself.
+ *      (3) Operations using an underlying tree are O(nlogn), which is
+ *          typically less efficient than hashing, which is O(n).
+ * </pre>
+ */
+l_ok
+l_dnaIntersectionByAset(L_DNA   *da1,
+                        L_DNA   *da2,
+                        L_DNA  **pdad)
+{
+l_int32    n1, n2, i, n;
+l_float64  val;
+L_ASET    *set1, *set2;
+RB_TYPE    key;
+L_DNA     *da_small, *da_big, *dad;
+
+    PROCNAME("l_dnaIntersectionByAset");
+
+    if (!pdad)
+        return ERROR_INT("&dad not defined", procName, 1);
+    *pdad = NULL;
+    if (!da1)
+        return ERROR_INT("&da1 not defined", procName, 1);
+    if (!da2)
+        return ERROR_INT("&da2 not defined", procName, 1);
+
+        /* Put the elements of the largest array into a set */
+    n1 = l_dnaGetCount(da1);
+    n2 = l_dnaGetCount(da2);
+    da_small = (n1 < n2) ? da1 : da2;   /* do not destroy da_small */
+    da_big = (n1 < n2) ? da2 : da1;   /* do not destroy da_big */
+    set1 = l_asetCreateFromDna(da_big);
+
+        /* Build up the intersection of doubles */
+    dad = l_dnaCreate(0);
+    *pdad = dad;
+    n = l_dnaGetCount(da_small);
+    set2 = l_asetCreate(L_FLOAT_TYPE);
+    for (i = 0; i < n; i++) {
+        l_dnaGetDValue(da_small, i, &val);
+        key.ftype = val;
+        if (l_asetFind(set1, key) && !l_asetFind(set2, key)) {
+            l_dnaAddNumber(dad, val);
+            l_asetInsert(set2, key);
+        }
+    }
+
+    l_asetDestroy(&set1);
+    l_asetDestroy(&set2);
+    return 0;
+}
+
+
+/*--------------------------------------------------------------------------*
+ *                           Hashmap operations                             *
+ *--------------------------------------------------------------------------*/
+/*!
+ * \brief  l_hmapCreateFromDna()
+ *
+ * \param[in]   da     input dna
+ * \return      hmap   hashmap, or NULL on error
+ *
+ * <pre>
+ *  Notes:
+ *       (1) Use the values in %da as the hash keys.
+ *       (2) The indices into %da are stored in the val field of the hashitems.
+ *           This is necessary so that %hmap and %da can be used together.
+ * </pre>
+ */
+L_HASHMAP *
+l_hmapCreateFromDna(L_DNA  *da)
+{
+l_int32      i, n;
+l_uint64     key;
+l_float64    dval;
+L_HASHITEM  *hitem;
+L_HASHMAP   *hmap;
+
+    PROCNAME("l_hmapCreateFromDna");
+
+    if (!da)
+        return (L_HASHMAP *)ERROR_PTR("da not defined", procName, NULL);
+
+    n = l_dnaGetCount(da);
+    hmap = l_hmapCreate(0, 0);
+    for (i = 0; i < n; i++) {
+        l_dnaGetDValue(da, i, &dval);
+        hitem = l_hmapLookup(hmap, (l_uint64)dval, i, L_HMAP_CREATE);
+    }
+    return hmap;
+}
+
+
+/*!
+ * \brief  l_dnaRemoveDupsByHmap()
+ *
+ * \param[in]   das
+ * \param[out]  pdad    hash set of unique values
+ * \param[out]  phmap   [optional] hashmap used for lookup
+ * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ *  Notes:
+ *       (1) Generates the set of (unique) values from %das.
+ *       (2) The values in the hashitems are indices into %das.
+ * </pre>
+ */
+l_ok
+l_dnaRemoveDupsByHmap(L_DNA       *das,
+                      L_DNA      **pdad,
+                      L_HASHMAP  **phmap)
+{
+l_int32      i, tabsize;
+l_uint64     key;
+l_float64    dval;
+L_DNA       *dad;
+L_HASHITEM  *hitem;
+L_HASHMAP   *hmap;
+
+    PROCNAME("l_dnaRemoveDupsByHmap");
+
+    if (phmap) *phmap = NULL;
+    if (!pdad)
+        return ERROR_INT("&dad not defined", procName, 1);
+    *pdad = NULL;
+    if (!das)
+        return ERROR_INT("das not defined", procName, 1);
+
+        /* Traverse the hashtable lists */
+    if ((hmap = l_hmapCreateFromDna(das)) == NULL)
+        return ERROR_INT("hmap not made", procName, 1);
+    dad = l_dnaCreate(0);
+    *pdad = dad;
+    tabsize = hmap->tabsize;
+    for (i = 0; i < tabsize; i++) {
+        hitem = hmap->hashtab[i];
+        while (hitem) {
+            l_dnaGetDValue(das, hitem->val, &dval);
+            l_dnaAddNumber(dad, dval);
+            hitem = hitem->next;
+        }
+    }
+
+    if (phmap)
+        *phmap = hmap;
+    else
+        l_hmapDestroy(&hmap);
+    return 0;
+}
+
+
+/*!
+ * \brief  l_dnaUnionByHmap()
+ *
+ * \param[in]   da1
+ * \param[in]   da2
+ * \param[out]  pdad     union of the array values
+ * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ *  Notes:
+ *       (1) Make dna with numbers found in either of the input arrays.
+ * </pre>
+ */
+l_ok
+l_dnaUnionByHmap(L_DNA   *da1,
+                 L_DNA   *da2,
+                 L_DNA  **pdad)
+{
+L_DNA  *da3;
+
+    PROCNAME("l_dnaUnionByHmap");
+
+    if (!pdad)
+        return ERROR_INT("&dad not defined", procName, 1);
+    *pdad = NULL;
+    if (!da1)
+        return ERROR_INT("da1 not defined", procName, 1);
+    if (!da2)
+        return ERROR_INT("da2 not defined", procName, 1);
+
+    da3 = l_dnaCopy(da1);
+    if (l_dnaJoin(da3, da2, 0, -1) == 1) {
+        l_dnaDestroy(&da3);
+        return ERROR_INT("da3 join failed", procName, 1);
+    }
+    l_dnaRemoveDupsByHmap(da3, pdad, NULL);
+    l_dnaDestroy(&da3);
+    return 0;
+}
+
+
+/*!
+ * \brief  l_dnaIntersectionByHmap()
+ *
+ * \param[in]    da1
+ * \param[in]    da2
+ * \param[out]   pdad     intersection of the array values
+ * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ *  Notes:
+ *       (1) Make dna with numbers common to both input arrays.
+ *       (2) Use the values in the dna as the hash keys.
+ * </pre>
+ */
+l_ok
+l_dnaIntersectionByHmap(L_DNA   *da1,
+                        L_DNA   *da2,
+                        L_DNA  **pdad)
+{
+l_int32      i, n1, n2, n;
+l_uint64     key;
+l_float64    dval;
+L_DNA       *da_small, *da_big, *dad;
+L_HASHITEM  *hitem;
+L_HASHMAP   *hmap;
+
+    PROCNAME("l_dnaIntersectionByHmap");
+
+    if (!pdad)
+        return ERROR_INT("&dad not defined", procName, 1);
+    *pdad = NULL;
+    if (!da1)
+        return ERROR_INT("da1 not defined", procName, 1);
+    if (!da2)
+        return ERROR_INT("da2 not defined", procName, 1);
+
+        /* Make a hashmap for the elements of the biggest array */
+    n1 = l_dnaGetCount(da1);
+    n2 = l_dnaGetCount(da2);
+    da_small = (n1 < n2) ? da1 : da2;   /* do not destroy da_small */
+    da_big = (n1 < n2) ? da2 : da1;   /* do not destroy da_big */
+    if ((hmap = l_hmapCreateFromDna(da_big)) == NULL)
+        return ERROR_INT("hmap not made", procName, 1);
+
+        /* Go through the smallest array, doing a lookup of its dval into
+         * the big array hashmap.  If an hitem is returned, check the count.
+         * If the count is 0, ignore; otherwise, add the dval to the
+         * output dad and set the count in the hitem to 0, indicating
+         * that the dval has already been added. */
+    dad = l_dnaCreate(0);
+    *pdad = dad;
+    n = l_dnaGetCount(da_small);
+    for (i = 0; i < n; i++) {
+        l_dnaGetDValue(da_small, i, &dval);
+        hitem = l_hmapLookup(hmap, (l_uint64)dval, i, L_HMAP_CHECK);
+        if (!hitem || hitem->count == 0)
+            continue;
+        l_dnaAddNumber(dad, dval);
+        hitem->count = 0;
+    }
+    l_hmapDestroy(&hmap);
+    return 0;
+}
+
+
+/*!
+ * \brief  l_dnaMakeHistoByHmap()
+ *
+ * \param[in]   das
+ * \param[out]  pdav    array (set) of unique values
+ * \param[out]  pdac    array of counts, aligned with the array of values
+ * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ *  Notes:
+ *       (1) Generates a histogram represented by two aligned arrays:
+ *           value and count.
+ * </pre>
+ */
+l_ok
+l_dnaMakeHistoByHmap(L_DNA   *das,
+                     L_DNA  **pdav,
+                     L_DNA  **pdac)
+{
+l_int32      i, tabsize;
+l_float64    dval;
+L_DNA       *dac, *dav;
+L_HASHITEM  *hitem;
+L_HASHMAP   *hmap;
+
+    PROCNAME("l_dnaMakeHistoByHmap");
+
+    if (pdav) *pdav = NULL;
+    if (pdac) *pdac = NULL;
+    if (!das)
+        return ERROR_INT("das not defined", procName, 1);
+    if (!pdav)
+        return ERROR_INT("&dav not defined", procName, 1);
+    if (!pdac)
+        return ERROR_INT("&dac not defined", procName, 1);
+
+        /* Traverse the hashtable lists */
+    if ((hmap = l_hmapCreateFromDna(das)) == NULL)
+        return ERROR_INT("hmap not made", procName, 1);
+    dav = l_dnaCreate(0);
+    *pdav = dav;
+    dac = l_dnaCreate(0);
+    *pdac = dac;
+    tabsize = hmap->tabsize;
+    for (i = 0; i < tabsize; i++) {
+        hitem = hmap->hashtab[i];
+        while (hitem) {
+            l_dnaGetDValue(das, hitem->val, &dval);
+            l_dnaAddNumber(dav, dval);
+            l_dnaAddNumber(dac, hitem->count);
+            hitem = hitem->next;
+        }
+    }
+
+    l_hmapDestroy(&hmap);
+    return 0;
 }
 
 

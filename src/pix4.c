@@ -836,7 +836,7 @@ NUMA       *na;
  *
  * <pre>
  * Notes:
- *      (1) This is about 3x faster than pixCountRGBColors(),
+ *      (1) This is about 4x faster than pixCountRGBColors(),
  *          which uses an ordered map.
  * </pre>
  */
@@ -854,7 +854,7 @@ L_DNA  *da1, *da2;
     if (!pixs || pixGetDepth(pixs) != 32)
         return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
     da1 = pixConvertDataToDna(pixs);
-    l_dnaRemoveDupsByHash(da1, &da2, NULL);
+    l_dnaRemoveDupsByHmap(da1, &da2, NULL);
     *pncolors = l_dnaGetCount(da2);
     l_dnaDestroy(&da1);
     l_dnaDestroy(&da2);
@@ -873,7 +873,7 @@ L_DNA  *da1, *da2;
  * <pre>
  * Notes:
  *      (1) If %factor == 1, this gives the exact number of colors.
- *      (2) This is about 3x slower than pixCountRGBColorsByHash().
+ *      (2) This is about 4x slower than pixCountRGBColorsByHash().
  * </pre>
  */
 l_ok

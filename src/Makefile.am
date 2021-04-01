@@ -31,7 +31,7 @@ liblept_la_SOURCES = adaptmap.c affine.c                        \
  fmorphauto.c fmorphgen.1.c fmorphgenlow.1.c                    \
  fpix1.c fpix2.c gifio.c gifiostub.c                            \
  gplot.c graphics.c graymorph.c                                 \
- grayquant.c heap.c jbclass.c                                   \
+ grayquant.c hashmap.c heap.c jbclass.c                         \
  jp2kheader.c jp2kheaderstub.c                                  \
  jp2kio.c jp2kiostub.c jpegio.c jpegiostub.c                    \
  kernel.c leptwin.c libversions.c list.c map.c maze.c           \
@@ -68,7 +68,7 @@ pkginclude_HEADERS = allheaders.h alltypes.h                    \
  array.h arrayaccess.h bbuffer.h bilateral.h                    \
  bmf.h bmfdata.h bmp.h ccbord.h colorfill.h                     \
  dewarp.h endianness.h environ.h                                \
- gplot.h heap.h imageio.h jbclass.h                             \
+ gplot.h hashmap.h heap.h imageio.h jbclass.h                   \
  leptwin.h list.h                                               \
  morph.h pix.h ptra.h queue.h rbtree.h                          \
  readbarcode.h recog.h regutils.h stack.h                       \

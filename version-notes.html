@@ -77,7 +77,7 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
 
 
 <h2 align=center>Version Notes for Leptonica</h2>
-<h3 align=center>8 Sept 2020</h3>
+<h3 align=center>1 Apr 2021</h3>
 
 <hr>
 <h2 align=center>  <IMG SRC="moller52.jpg" border=1 ALIGN_MIDDLE> </h2>
@@ -112,6 +112,9 @@ They are <i>not</i> a complete listing of the modifications.
           is now in flipdetectdwa.c.notused.  Likewise prog/flipselgen.c
           is retained for completeness, renamed flipselgen.c.notused,
           and is not compiled.
+        * Added hashmap utility (hashmap.c, hashmap.h).
+        * Removed functions using dnahash on strings, pts and doubles.
+        * Improved the speed of hashing for strings and doubles.
 
 1.80.0  28 July 2020
         * Improve bmp handling of 1 bpp images and sanity checking of params.

@@ -53,8 +53,8 @@ L_REGPARAMS  *rp;
     /* ----------------  Find all the jpg and tif images --------------- */
     sa1 = getSortedPathnamesInDirectory(".", ".jpg", 0, 0);
     sa2 = getSortedPathnamesInDirectory(".", ".tif", 0, 0);
-    sa3 = sarraySelectByRange(sa1, 10, 19);
-    sa4 = sarraySelectByRange(sa2, 10, 19);
+    sa3 = sarraySelectRange(sa1, 10, 19);
+    sa4 = sarraySelectRange(sa2, 10, 19);
     sarrayJoin(sa3, sa4);
     n =sarrayGetCount(sa3);
     sarrayDestroy(&sa1);

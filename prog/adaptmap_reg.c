@@ -186,7 +186,7 @@ L_REGPARAMS  *rp;
     pixDisplayWithTitle(pix2, 50, 850, NULL, rp->display);
     pixaDestroy(&pixa);
     pixDestroy(&pix2);
-    
+
         /* An even simpler check of pixFillMapHoles() */
     pixa = pixaCreate(2);
     pix1 = pixCreate(3, 3, 8);

@@ -90,10 +90,10 @@
  *  rotation R, the set of 8 transformations decomposes into
  *  two subgroups linking {0, 3, 4, 7} and {1, 2, 5, 6} independently.
  *
- *  pixOrientDetect*() tests for a pure rotation (0, 90, 180, 270 degrees).
+ *  pixOrientDetect() tests for a pure rotation (0, 90, 180, 270 degrees).
  *  It doesn't change parity.
  *
- *  pixMirrorDetect*() tests for a horizontal flip about the vertical axis.
+ *  pixMirrorDetect() tests for a horizontal flip about the vertical axis.
  *  It changes parity.
  *
  *  The landscape/portrait rotation can be detected in two ways:
@@ -128,17 +128,13 @@
  *  of the signal comes from open regions of common lower-case
  *  letters such as 'e', 'c' and 'f'.
  *
- *  All operations are given in two implementations whose results are
- *  identical: rasterop morphology and dwa morphology.  The dwa
- *  implementations are between 2x and 3x faster.
- *
  *  The set of operations you actually use depends on your prior knowledge:
  *
  *  (1) If the page is known to be either rightside-up or upside-down, use
  *      either pixOrientDetect() with pleftconf = NULL, or
  *      pixUpDownDetect().
  *
- *  (2) If any of the four orientations are possible, use pixOrientDetect*().
+ *  (2) If any of the four orientations are possible, use pixOrientDetect().
  *
  *  (3) If the text is horizontal and rightside-up, the only remaining
  *      degree of freedom is a left-right mirror flip: use pixMirrorDetect().
@@ -160,6 +156,12 @@
  *
  *  A high-level interface, pixOrientCorrect() combines the detection
  *  of the orientation with the rotation decision and the rotation itself.
+ *
+ *  For pedagogical reasons, we have included a dwa implementation of
+ *  this functionality, in flipdetectdwa.c.notused.  It shows by example
+ *  how to make a dwa implementation of an application that uses binary
+ *  morphological operations.  It is faster than the rasterop implementation,
+ *  but not by a large amount.
  *
  *  Finally, use can be made of programs such as exiftool and convert to
  *  read exif camera orientation data in jpeg files and conditionally rotate.

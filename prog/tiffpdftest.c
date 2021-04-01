@@ -28,7 +28,7 @@
  * tiffpdftest.c
  *
  *   Generates pdf wrappers for tiff images, with both min_is_black
- *   and min_is_white.  Demonstrates that multiple cycles using 
+ *   and min_is_white.  Demonstrates that multiple cycles using
  *   pdftoppm preserve photometry.
  *
  *   Note: this test requires poppler pdf utilities, so it cannot

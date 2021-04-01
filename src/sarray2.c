@@ -34,16 +34,16 @@
  *          l_int32     stringCompareLexical()
  *
  *      Set operations using aset (rbtree)
- *          SARRAY     *sarrayUnionByAset()
- *          SARRAY     *sarrayRemoveDupsByAset()
- *          SARRAY     *sarrayIntersectionByAset()
  *          L_ASET     *l_asetCreateFromSarray()
+ *          l_int32     sarrayRemoveDupsByAset()
+ *          l_int32     sarrayUnionByAset()
+ *          l_int32     sarrayIntersectionByAset()
  *
- *      Set operations using hashing (dnahash)
- *          l_int32     sarrayRemoveDupsByHash()
- *          SARRAY     *sarrayIntersectionByHash()
- *          l_int32     sarrayFindStringByHash()
- *          L_DNAHASH  *l_dnaHashCreateFromSarray()
+ *      Hashmap operations
+ *          L_HASHMAP  *l_hmapCreateFromSarray()
+ *          l_int32     sarrayRemoveDupsByHmap()
+ *          l_int32     sarrayUnionByHmap()
+ *          l_int32     sarrayIntersectionByHmap()
  *
  *      Miscellaneous operations
  *          SARRAY     *sarrayGenerateIntegers()
@@ -52,21 +52,19 @@
  *
  * We have two implementations of set operations on an array of strings:
  *
- *   (1) Using an underlying tree (rbtree)
+ *   (1) Using an underlying tree (rbtree).
  *       This uses a good 64 bit hashing function for the key,
  *       that is not expected to have hash collisions (and we do
  *       not test for them).  The tree is built up of the hash
  *       values, and if the hash is found in the tree, it is
  *       assumed that the string has already been found.
  *
- *   (2) Using an underlying hashing of the keys (dnahash)
- *       This uses a fast 64 bit hashing function for the key,
- *       which is then hashed into a bucket (a dna in a dnaHash).
- *       Because hash collisions can occur, the index into the
- *       sarray for the string that gave rise to that key is stored,
- *       and the dna (bucket) is traversed, using the stored indices
- *       to determine if that string had already been seen.
- *
+ *   (2) Building a hashmap from the keys (hashmap).
+ *       This uses a fast 64 bit hashing function for the key, which
+ *       is then hashed into a hashtable.  Collisions of hashkeys are
+ *       very rare, but the hashtable is designed to allow more than one
+ *       hashitem in a table entry.  The hashitems are put in a list at
+ *       each hashtable entry, which is traversed looking for the key.
  * </pre>
  */
 
@@ -222,158 +220,6 @@ l_int32  i, len1, len2, len;
  *                   Set operations using aset (rbtree)                 *
  *----------------------------------------------------------------------*/
 /*!
- * \brief   sarrayUnionByAset()
- *
- * \param[in]    sa1, sa2
- * \return  sad   with the union of the string set, or NULL on error
- *
- * <pre>
- * Notes:
- *      (1) Duplicates are removed from the concatenation of the two arrays.
- *      (2) The key for each string is a 64-bit hash.
- *      (2) Algorithm: Concatenate the two sarrays.  Then build a set,
- *          using hashed strings as keys.  As the set is built, first do
- *          a find; if not found, add the key to the set and add the string
- *          to the output sarray.  This is O(nlogn).
- * </pre>
- */
-SARRAY *
-sarrayUnionByAset(SARRAY  *sa1,
-                  SARRAY  *sa2)
-{
-SARRAY  *sa3, *sad;
-
-    PROCNAME("sarrayUnionByAset");
-
-    if (!sa1)
-        return (SARRAY *)ERROR_PTR("sa1 not defined", procName, NULL);
-    if (!sa2)
-        return (SARRAY *)ERROR_PTR("sa2 not defined", procName, NULL);
-
-        /* Join */
-    sa3 = sarrayCopy(sa1);
-    sarrayJoin(sa3, sa2);
-
-        /* Eliminate duplicates */
-    sad = sarrayRemoveDupsByAset(sa3);
-    sarrayDestroy(&sa3);
-    return sad;
-}
-
-
-/*!
- * \brief   sarrayRemoveDupsByAset()
- *
- * \param[in]    sas
- * \return  sad  with duplicates removed, or NULL on error
- *
- * <pre>
- * Notes:
- *      (1) This is O(nlogn), considerably slower than
- *          sarrayRemoveDupsByHash() for large string arrays.
- *      (2) The key for each string is a 64-bit hash.
- *      (3) Build a set, using hashed strings as keys.  As the set is
- *          built, first do a find; if not found, add the key to the
- *          set and add the string to the output sarray.
- * </pre>
- */
-SARRAY *
-sarrayRemoveDupsByAset(SARRAY  *sas)
-{
-char     *str;
-l_int32   i, n;
-l_uint64  hash;
-L_ASET   *set;
-RB_TYPE   key;
-SARRAY   *sad;
-
-    PROCNAME("sarrayRemoveDupsByAset");
-
-    if (!sas)
-        return (SARRAY *)ERROR_PTR("sas not defined", procName, NULL);
-
-    set = l_asetCreate(L_UINT_TYPE);
-    sad = sarrayCreate(0);
-    n = sarrayGetCount(sas);
-    for (i = 0; i < n; i++) {
-        str = sarrayGetString(sas, i, L_NOCOPY);
-        l_hashStringToUint64(str, &hash);
-        key.utype = hash;
-        if (!l_asetFind(set, key)) {
-            sarrayAddString(sad, str, L_COPY);
-            l_asetInsert(set, key);
-        }
-    }
-
-    l_asetDestroy(&set);
-    return sad;
-}
-
-
-/*!
- * \brief   sarrayIntersectionByAset()
- *
- * \param[in]    sa1, sa2
- * \return  sad  with the intersection of the string set, or NULL on error
- *
- * <pre>
- * Notes:
- *      (1) Algorithm: put the larger sarray into a set, using the string
- *          hashes as the key values.  Then run through the smaller sarray,
- *          building an output sarray and a second set from the strings
- *          in the larger array: if a string is in the first set but
- *          not in the second, add the string to the output sarray and hash
- *          it into the second set.  The second set is required to make
- *          sure only one instance of each string is put into the output sarray.
- *          This is O(mlogn), {m,n} = sizes of {smaller,larger} input arrays.
- * </pre>
- */
-SARRAY *
-sarrayIntersectionByAset(SARRAY  *sa1,
-                         SARRAY  *sa2)
-{
-char     *str;
-l_int32   n1, n2, i, n;
-l_uint64  hash;
-L_ASET   *set1, *set2;
-RB_TYPE   key;
-SARRAY   *sa_small, *sa_big, *sad;
-
-    PROCNAME("sarrayIntersectionByAset");
-
-    if (!sa1)
-        return (SARRAY *)ERROR_PTR("sa1 not defined", procName, NULL);
-    if (!sa2)
-        return (SARRAY *)ERROR_PTR("sa2 not defined", procName, NULL);
-
-        /* Put the elements of the biggest array into a set */
-    n1 = sarrayGetCount(sa1);
-    n2 = sarrayGetCount(sa2);
-    sa_small = (n1 < n2) ? sa1 : sa2;   /* do not destroy sa_small */
-    sa_big = (n1 < n2) ? sa2 : sa1;   /* do not destroy sa_big */
-    set1 = l_asetCreateFromSarray(sa_big);
-
-        /* Build up the intersection of strings */
-    sad = sarrayCreate(0);
-    n = sarrayGetCount(sa_small);
-    set2 = l_asetCreate(L_UINT_TYPE);
-    for (i = 0; i < n; i++) {
-        str = sarrayGetString(sa_small, i, L_NOCOPY);
-        l_hashStringToUint64(str, &hash);
-        key.utype = hash;
-        if (l_asetFind(set1, key) && !l_asetFind(set2, key)) {
-            sarrayAddString(sad, str, L_COPY);
-            l_asetInsert(set2, key);
-        }
-    }
-
-    l_asetDestroy(&set1);
-    l_asetDestroy(&set2);
-    return sad;
-}
-
-
-/*!
  * \brief   l_asetCreateFromSarray()
  *
  * \param[in]    sa
@@ -397,7 +243,7 @@ RB_TYPE   key;
     n = sarrayGetCount(sa);
     for (i = 0; i < n; i++) {
         str = sarrayGetString(sa, i, L_NOCOPY);
-        l_hashStringToUint64(str, &hash);
+        l_hashStringToUint64Fast(str, &hash);
         key.utype = hash;
         l_asetInsert(set, key);
     }
@@ -406,235 +252,363 @@ RB_TYPE   key;
 }
 
 
-/*----------------------------------------------------------------------*
- *               Set operations using hashing (dnahash)                 *
- *----------------------------------------------------------------------*/
 /*!
- * \brief   sarrayRemoveDupsByHash()
+ * \brief   sarrayRemoveDupsByAset()
  *
  * \param[in]    sas
- * \param[out]   psad      unique set of strings; duplicates removed
- * \param[out]   pdahash   [optional] dnahash used for lookup
- * \return  0 if OK, 1 on error
+ * \param[out]   psad      with duplicates removed
+ * \return  0 if OK; 1 on error
  *
  * <pre>
  * Notes:
- *      (1) Generates a sarray with unique values.
- *      (2) The dnahash is built up with sad to assure uniqueness.
- *          It can be used to find if a string is in the set:
- *              sarrayFindValByHash(sad, dahash, str, &index)
- *      (3) The hash of the string location is simple and fast.  It scales
- *          up with the number of buckets to insure a fairly random
- *          bucket selection input strings.
- *      (4) This is faster than sarrayRemoveDupsByAset(), because the
- *          bucket lookup is O(n), although there is a double-loop
- *          lookup within the dna in each bucket.
+ *      (1) This is O(nlogn), considerably slower than
+ *          sarrayRemoveDupsByHmap() for large string arrays.
+ *      (2) The key for each string is a 64-bit hash.
+ *      (3) Build a set, using hashed strings as keys.  As the set is
+ *          built, first do a find; if not found, add the key to the
+ *          set and add the string to the output sarray.
  * </pre>
  */
 l_ok
-sarrayRemoveDupsByHash(SARRAY      *sas,
-                       SARRAY     **psad,
-                       L_DNAHASH  **pdahash)
+sarrayRemoveDupsByAset(SARRAY   *sas,
+                       SARRAY  **psad)
 {
-char       *str;
-l_int32     i, n, index, items;
-l_uint32    nsize;
-l_uint64    key;
-SARRAY     *sad;
-L_DNAHASH  *dahash;
+char     *str;
+l_int32   i, n;
+l_uint64  hash;
+L_ASET   *set;
+RB_TYPE   key;
+SARRAY   *sad;
 
-    PROCNAME("sarrayRemoveDupsByHash");
+    PROCNAME("sarrayRemoveDupsByAset");
 
-    if (pdahash) *pdahash = NULL;
     if (!psad)
         return ERROR_INT("&sad not defined", procName, 1);
     *psad = NULL;
     if (!sas)
         return ERROR_INT("sas not defined", procName, 1);
 
-    n = sarrayGetCount(sas);
-    findNextLargerPrime(n / 20, &nsize);  /* buckets in hash table */
-    dahash = l_dnaHashCreate(nsize, 8);
-    sad = sarrayCreate(n);
+    set = l_asetCreate(L_UINT_TYPE);
+    sad = sarrayCreate(0);
     *psad = sad;
-    for (i = 0, items = 0; i < n; i++) {
+    n = sarrayGetCount(sas);
+    for (i = 0; i < n; i++) {
         str = sarrayGetString(sas, i, L_NOCOPY);
-        sarrayFindStringByHash(sad, dahash, str, &index);
-        if (index < 0) {  /* not found */
-            l_hashStringToUint64(str, &key);
-            l_dnaHashAdd(dahash, key, (l_float64)items);
+        l_hashStringToUint64Fast(str, &hash);
+        key.utype = hash;
+        if (!l_asetFind(set, key)) {
             sarrayAddString(sad, str, L_COPY);
-            items++;
+            l_asetInsert(set, key);
         }
     }
 
-    if (pdahash)
-        *pdahash = dahash;
-    else
-        l_dnaHashDestroy(&dahash);
+    l_asetDestroy(&set);
     return 0;
 }
 
 
 /*!
- * \brief   sarrayIntersectionByHash()
+ * \brief   sarrayUnionByAset()
  *
- * \param[in]    sa1, sa2
- * \return  sad  intersection of the strings, or NULL on error
+ * \param[in]    sa1
+ * \param[in]    sa2
+ * \param[out]   psad      union of the two string arrays
+ * \return  0 if OK; 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This is faster than sarrayIntersectionByAset(), because the
- *          bucket lookup is O(n).
+ *      (1) Duplicates are removed from the concatenation of the two arrays.
+ *      (2) The key for each string is a 64-bit hash.
+ *      (2) Algorithm: Concatenate the two sarrays.  Then build a set,
+ *          using hashed strings as keys.  As the set is built, first do
+ *          a find; if not found, add the key to the set and add the string
+ *          to the output sarray.  This is O(nlogn).
  * </pre>
  */
-SARRAY *
-sarrayIntersectionByHash(SARRAY  *sa1,
-                         SARRAY  *sa2)
+l_ok
+sarrayUnionByAset(SARRAY   *sa1,
+                  SARRAY   *sa2,
+                  SARRAY  **psad)
 {
-char       *str;
-l_int32     n1, n2, nsmall, i, index1, index2;
-l_uint32    nsize2;
-l_uint64    key;
-L_DNAHASH  *dahash1, *dahash2;
-SARRAY     *sa_small, *sa_big, *sad;
+SARRAY  *sa3;
 
-    PROCNAME("sarrayIntersectionByHash");
+    PROCNAME("sarrayUnionByAset");
 
+    if (!psad)
+        return ERROR_INT("&sad not defined", procName, 1);
+    *psad = NULL;
     if (!sa1)
-        return (SARRAY *)ERROR_PTR("sa1 not defined", procName, NULL);
+        return ERROR_INT("sa1 not defined", procName, 1);
     if (!sa2)
-        return (SARRAY *)ERROR_PTR("sa2 not defined", procName, NULL);
+        return ERROR_INT("sa2 not defined", procName, 1);
 
-        /* Put the elements of the biggest sarray into a dnahash */
+        /* Join */
+    sa3 = sarrayCopy(sa1);
+    if (sarrayJoin(sa3, sa2) == 1) {
+        sarrayDestroy(&sa3);
+        return ERROR_INT("join failed for sa3", procName, 1);
+    }
+
+        /* Eliminate duplicates */
+    sarrayRemoveDupsByAset(sa3, psad);
+    sarrayDestroy(&sa3);
+    return 0;
+}
+
+
+/*!
+ * \brief   sarrayIntersectionByAset()
+ *
+ * \param[in]    sa1
+ * \param[in]    sa2
+ * \param[out]   psad      intersection of the two string arrays
+ * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Algorithm: put the larger sarray into a set, using the string
+ *          hashes as the key values.  Then run through the smaller sarray,
+ *          building an output sarray and a second set from the strings
+ *          in the larger array: if a string is in the first set but
+ *          not in the second, add the string to the output sarray and hash
+ *          it into the second set.  The second set is required to make
+ *          sure only one instance of each string is put into the output sarray.
+ *          This is O(mlogn), {m,n} = sizes of {smaller,larger} input arrays.
+ * </pre>
+ */
+l_ok
+sarrayIntersectionByAset(SARRAY   *sa1,
+                         SARRAY   *sa2,
+                         SARRAY  **psad)
+{
+char     *str;
+l_int32   n1, n2, i, n;
+l_uint64  hash;
+L_ASET   *set1, *set2;
+RB_TYPE   key;
+SARRAY   *sa_small, *sa_big, *sad;
+
+    PROCNAME("sarrayIntersectionByAset");
+
+    if (!psad)
+        return ERROR_INT("&sad not defined", procName, 1);
+    *psad = NULL;
+    if (!sa1)
+        return ERROR_INT("sa1 not defined", procName, 1);
+    if (!sa2)
+        return ERROR_INT("sa2 not defined", procName, 1);
+
+        /* Put the elements of the biggest array into a set */
     n1 = sarrayGetCount(sa1);
     n2 = sarrayGetCount(sa2);
     sa_small = (n1 < n2) ? sa1 : sa2;   /* do not destroy sa_small */
     sa_big = (n1 < n2) ? sa2 : sa1;   /* do not destroy sa_big */
-    dahash1 = l_dnaHashCreateFromSarray(sa_big);
+    set1 = l_asetCreateFromSarray(sa_big);
 
-        /* Build up the intersection of strings.  Add to %sad
-         * if the string is in sa_big (using dahash1) but hasn't
-         * yet been seen in the traversal of sa_small (using dahash2). */
+        /* Build up the intersection of strings */
     sad = sarrayCreate(0);
-    nsmall = sarrayGetCount(sa_small);
-    findNextLargerPrime(nsmall / 20, &nsize2);  /* buckets in hash table */
-    dahash2 = l_dnaHashCreate(nsize2, 0);
-    for (i = 0; i < nsmall; i++) {
+    *psad = sad;
+    n = sarrayGetCount(sa_small);
+    set2 = l_asetCreate(L_UINT_TYPE);
+    for (i = 0; i < n; i++) {
         str = sarrayGetString(sa_small, i, L_NOCOPY);
-        sarrayFindStringByHash(sa_big, dahash1, str, &index1);
-        if (index1 >= 0) {
-            sarrayFindStringByHash(sa_small, dahash2, str, &index2);
-            if (index2 == -1) {
-                sarrayAddString(sad, str, L_COPY);
-                l_hashStringToUint64(str, &key);
-                l_dnaHashAdd(dahash2, key, (l_float64)i);
-            }
+        l_hashStringToUint64Fast(str, &hash);
+        key.utype = hash;
+        if (l_asetFind(set1, key) && !l_asetFind(set2, key)) {
+            sarrayAddString(sad, str, L_COPY);
+            l_asetInsert(set2, key);
         }
     }
 
-    l_dnaHashDestroy(&dahash1);
-    l_dnaHashDestroy(&dahash2);
-    return sad;
+    l_asetDestroy(&set1);
+    l_asetDestroy(&set2);
+    return 0;
+}
+
+
+/*----------------------------------------------------------------------*
+ *                          Hashmap operations                          *
+ *----------------------------------------------------------------------*/
+/*!
+ * \brief  l_hmapCreateFromSarray()
+ *
+ * \param[in]   sa     input sarray
+ * \return      hmap   hashmap, or NULL on error
+ */
+L_HASHMAP *
+l_hmapCreateFromSarray(SARRAY  *sa)
+{
+l_int32      i, n;
+l_uint64     key;
+char        *str;
+L_HASHITEM  *hitem;
+L_HASHMAP   *hmap;
+
+    PROCNAME("l_hmapCreateFromSarray");
+
+    if (!sa)
+        return (L_HASHMAP *)ERROR_PTR("sa not defined", procName, NULL);
+
+    n = sarrayGetCount(sa);
+    if ((hmap = l_hmapCreate(0.51 * n, 2)) == NULL)
+        return (L_HASHMAP *)ERROR_PTR("hmap not made", procName, NULL);
+    for (i = 0; i < n; i++) {
+        str = sarrayGetString(sa, i, L_NOCOPY);
+        l_hashStringToUint64Fast(str, &key);
+        hitem = l_hmapLookup(hmap, key, i, L_HMAP_CREATE);
+    }
+    return hmap;
 }
 
 
 /*!
- * \brief   sarrayFindStringByHash()
+ * \brief  sarrayRemoveDupsByHmap()
  *
- * \param[in]    sa
- * \param[in]    dahash   built from sa
- * \param[in]    str      arbitrary string
- * \param[out]   pindex   index into %sa if %str is in %sa; -1 otherwise
- * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) Fast lookup in dnaHash associated with a sarray, to see if a
- *          random string %str is already stored in the hash table.
- *      (2) We use a strong hash function to minimize the chance that
- *          two different strings hash to the same key value.
- *      (3) We select the number of buckets to be about 5% of the size
- *          of the input sarray, so that when fully populated, each
- *          bucket (dna) will have about 20 entries, each being an index
- *          into sa.  In lookup, after hashing to the key, and then
- *          again to the bucket, we traverse the bucket (dna), using the
- *          index into sa to check if %str has been found before.
- * </pre>
+ * \param[in]   sas
+ * \param[out]  psad    hash set of unique values
+ * \param[out]  phmap   [optional] hashmap used for lookup
+ * \return  0 if OK; 1 on error
  */
 l_ok
-sarrayFindStringByHash(SARRAY      *sa,
-                       L_DNAHASH   *dahash,
-                       const char  *str,
-                       l_int32     *pindex)
+sarrayRemoveDupsByHmap(SARRAY      *sas,
+                       SARRAY     **psad,
+                       L_HASHMAP  **phmap)
 {
-char     *stri;
-l_int32   i, nvals, index;
-l_uint64  key;
-L_DNA    *da;
+l_int32      i, tabsize;
+l_uint64     key;
+char        *str;
+SARRAY      *sad;
+L_HASHITEM  *hitem;
+L_HASHMAP   *hmap;
 
-    PROCNAME("sarrayFindStringByHash");
+    PROCNAME("sarrayRemoveDupsByHmap");
 
-    if (!pindex)
-        return ERROR_INT("&index not defined", procName, 1);
-    *pindex = -1;
-    if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
-    if (!dahash)
-        return ERROR_INT("dahash not defined", procName, 1);
+    if (phmap) *phmap = NULL;
+    if (!psad)
+        return ERROR_INT("&sad not defined", procName, 1);
+    *psad = NULL;
+    if (!sas)
+        return ERROR_INT("sas not defined", procName, 1);
 
-    l_hashStringToUint64(str, &key);
-    da = l_dnaHashGetDna(dahash, key, L_NOCOPY);
-    if (!da) return 0;
-
-        /* Run through the da, looking for this string */
-    nvals = l_dnaGetCount(da);
-    for (i = 0; i < nvals; i++) {
-        l_dnaGetIValue(da, i, &index);
-        stri = sarrayGetString(sa, index, L_NOCOPY);
-        if (!strcmp(str, stri)) {  /* duplicate */
-            *pindex = index;
-            return 0;
+        /* Traverse the hashtable lists */
+    if ((hmap = l_hmapCreateFromSarray(sas)) == NULL)
+        return ERROR_INT("hmap not made", procName, 1);
+    sad = sarrayCreate(0);
+    *psad = sad;
+    tabsize = hmap->tabsize;
+    for (i = 0; i < tabsize; i++) {
+        hitem = hmap->hashtab[i];
+        while (hitem) {
+            str = sarrayGetString(sas, hitem->val, L_COPY);
+            sarrayAddString(sad, str, L_INSERT);
+            hitem = hitem->next;
         }
     }
 
+    if (phmap)
+        *phmap = hmap;
+    else
+        l_hmapDestroy(&hmap);
     return 0;
 }
 
 
 /*!
- * \brief   l_dnaHashCreateFromSarray()
+ * \brief  sarrayUnionByHmap()
  *
- * \param[in]    sa
- * \return  dahash, or NULL on error
+ * \param[in]   sa1
+ * \param[in]   sa2
+ * \param[out]  *psad     union of the array values
+ * \return  0 if OK; 1 on error
  */
-L_DNAHASH *
-l_dnaHashCreateFromSarray(SARRAY  *sa)
+l_ok
+sarrayUnionByHmap(SARRAY   *sa1,
+                  SARRAY   *sa2,
+                  SARRAY  **psad)
 {
-char       *str;
-l_int32     i, n;
-l_uint32    nsize;
-l_uint64    key;
-L_DNAHASH  *dahash;
+SARRAY  *sa3;
 
-        /* Build up dnaHash of indices, hashed by a 64-bit key that
-         * should randomize the lower bits used in bucket selection.
-         * Having about 20 pts in each bucket is roughly optimal. */
-    n = sarrayGetCount(sa);
-    findNextLargerPrime(n / 20, &nsize);  /* buckets in hash table */
-/*    lept_stderr("Prime used: %d\n", nsize); */
+    PROCNAME("l_hmapUnionSarray");
 
-        /* Add each string, using the hash as key and the index into %sa
-         * as the value.  Storing the index enables operations that check
-         * for duplicates.  */
-    dahash = l_dnaHashCreate(nsize, 8);
-    for (i = 0; i < n; i++) {
-        str = sarrayGetString(sa, i, L_NOCOPY);
-        l_hashStringToUint64(str, &key);
-        l_dnaHashAdd(dahash, key, (l_float64)i);
+    if (!psad)
+        return ERROR_INT("&sad not defined", procName, 1);
+    *psad = NULL;
+    if (!sa1)
+        return ERROR_INT("sa1 not defined", procName, 1);
+    if (!sa2)
+        return ERROR_INT("sa2 not defined", procName, 1);
+
+    sa3 = sarrayCopy(sa1);
+    if (sarrayJoin(sa3, sa2) == 1) {
+        sarrayDestroy(&sa3);
+        return ERROR_INT("sa3 join failed", procName, 1);
     }
+    sarrayRemoveDupsByHmap(sa3, psad, NULL);
+    sarrayDestroy(&sa3);
+    return 0;
+}
 
-    return dahash;
+
+/*!
+ * \brief  sarrayIntersectionByHmap()
+ *
+ * \param[in]   sa1
+ * \param[in]   sa2
+ * \param[out]  *psad     intersection of the array values
+ * \return  0 if OK; 1 on error
+ */
+l_ok
+sarrayIntersectionByHmap(SARRAY   *sa1,
+                         SARRAY   *sa2,
+                         SARRAY  **psad)
+{
+l_int32      i, n1, n2, n;
+l_uint64     key;
+char        *str;
+SARRAY      *sa_small, *sa_big, *sa3, *sad;
+L_HASHITEM  *hitem;
+L_HASHMAP   *hmap;
+
+    PROCNAME("sarrayIntersectionByHmap");
+
+    if (!psad)
+        return ERROR_INT("&sad not defined", procName, 1);
+    *psad = NULL;
+    if (!sa1)
+        return ERROR_INT("sa1 not defined", procName, 1);
+    if (!sa2)
+        return ERROR_INT("sa2 not defined", procName, 1);
+
+        /* Make a hashmap for the elements of the biggest array */
+    n1 = sarrayGetCount(sa1);
+    n2 = sarrayGetCount(sa2);
+    sa_small = (n1 < n2) ? sa1 : sa2;   /* do not destroy sa_small */
+    sa_big = (n1 < n2) ? sa2 : sa1;   /* do not destroy sa_big */
+    if ((hmap = l_hmapCreateFromSarray(sa_big)) == NULL)
+        return ERROR_INT("hmap not made", procName, 1);
+
+        /* Remove duplicates from the smallest array.  Alternatively,
+         * we can skip this step and avoid counting duplicates in
+         * sa_small by modifying the count fields in the sa_big hashitems;
+         * e.g., see l_hmapIntersectionDna(). */
+    sarrayRemoveDupsByHmap(sa_small, &sa3, NULL);
+
+        /* Go through sa3, the set of strings derived from the smallest array,
+         * hashing into the big array table.  Any string found belongs to both,
+         * so add it to the output array. */
+    sad = sarrayCreate(0);
+    *psad = sad;
+    n = sarrayGetCount(sa3);
+    for (i = 0; i < n; i++) {
+        str = sarrayGetString(sa3, i, L_NOCOPY);
+        l_hashStringToUint64Fast(str, &key);
+        hitem = l_hmapLookup(hmap, key, i, L_HMAP_CHECK);
+        if (hitem)
+            sarrayAddString(sad, str, L_COPY);
+    }
+    l_hmapDestroy(&hmap);
+    sarrayDestroy(&sa3);
+    return 0;
 }
 
 

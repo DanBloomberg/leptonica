@@ -418,7 +418,7 @@ L_PIX_MEM_STORE  *pms;
             fprintf(fp, "Alloc %zu bytes at %p\n", nbytes, data);
             fclose(fp);
         } else {
-            L_ERROR("failed to open stream for %s\n", procName, pms->logfile); 
+            L_ERROR("failed to open stream for %s\n", procName, pms->logfile);
         }
     }
     return data;

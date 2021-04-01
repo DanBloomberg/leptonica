@@ -187,9 +187,11 @@ l_int32  n, i, x, y;
 
     for (i = istart; i <= iend; i++) {
         ptaGetIPt(ptas, i, &x, &y);
-        ptaAddPt(ptad, x, y);
+        if (ptaAddPt(ptad, x, y) == 1) {
+            L_ERROR("failed to add pt at i = %d\n", procName, i);
+            return 1;
+        }
     }
-
     return 0;
 }
 

@@ -32,18 +32,29 @@
  *
  * <pre>
  *  Contains the following structs:
- *      struct Numa
+ *      struct Numa          array of floats
  *      struct Numaa
- *      struct L_Dna
+ *      struct L_Dna         array of doubles
  *      struct L_Dnaa
- *      struct L_DnaHash
- *      struct Sarray
- *      struct L_Bytea
+ *      struct L_Dnahash
+ *      struct Sarray        array of C-strings
+ *      struct L_Bytea       array of bytes
  *
  *  Contains definitions for:
  *      Numa interpolation flags
- *      Numa and FPix border flags
+ *      Numa border flags
  *      Numa data type conversion to string
+ *
+ *  Here are the non-image-related arrays in leptonica:
+ *  * Numa, L_Dna, L_Ptra, Sarray:
+ *    These have most of the typical operations of vectors, such as add,
+ *    insert, remove and replace.
+ *  * Numaa, L_Dnaa, L_Ptraa:
+ *    These are arrays of float, double and generic pointer arrays.
+ *  * L_Bytea:
+ *    This is an array of bytes, analogous to a C++ string.
+ *  * L_Dnahash:
+ *    This is a simple hashing for integers, used in the jbig2 classifier.
  * </pre>
  */
 
@@ -100,7 +111,6 @@ struct L_Dnaa
 };
 typedef struct L_Dnaa  L_DNAA;
 
-    /*! A hash table of Dnas */
 struct L_DnaHash
 {
     l_int32          nbuckets;
@@ -142,7 +152,7 @@ enum {
     L_QUADRATIC_INTERP = 2      /*!< quadratic  */
 };
 
-/*! Border Adding */
+/*! Numa Border Adding */
 enum {
     L_CONTINUED_BORDER = 1,    /*!< extended with same value                  */
     L_SLOPE_BORDER = 2,        /*!< extended with constant normal derivative  */

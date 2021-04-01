@@ -458,11 +458,12 @@ TIFF  *tif;
  *          2 spp (gray+alpha): 8 bps
  *          3 spp (rgb) and 4 spp (rgba): 8 or 16 bps
  *      (2) We do not handle 16 bps for spp == 2.
- *      (3) 2 bpp gray+alpha are rasterized as 32 bit/pixel rgba, with
+ *      (3) We do not support tiled format or webp encoded tiff.
+ *      (4) 2 bpp gray+alpha are rasterized as 32 bit/pixel rgba, with
  *          the gray value replicated in r, g and b.
- *      (4) For colormapped images, we support 8 bits/color in the palette.
+ *      (5) For colormapped images, we support 8 bits/color in the palette.
  *          Tiff colormaps have 16 bits/color, and we reduce them to 8.
- *      (5) Quoting the libtiff documentation at
+ *      (6) Quoting the libtiff documentation at
  *               http://libtiff.maptools.org/libtiff.html
  *          "libtiff provides a high-level interface for reading image data
  *          from a TIFF file. This interface handles the details of data
@@ -577,12 +578,11 @@ PIXCMAP   *cmap;
         /* The relation between the size of a byte buffer required to hold
            a raster of image pixels (packedbpl) and the size of the tiff
            buffer (tiffbuf) is either 1:1 or approximately 2:1, depending
-           on how the data is stored and subsampled.  Allow some slop
-           when validating the relation between buffer size and the image
-           parameters w, spp and bps. */
+           on how the data is stored and subsampled.  Test this relation
+           between tiffbuf and the image parameters w, spp and bps. */
     tiffbpl = TIFFScanlineSize(tif);
     packedbpl = (bps * spp * w + 7) / 8;
-    halfsize = L_ABS(2 * tiffbpl - packedbpl) <= 8;
+    halfsize = (L_ABS(2 * tiffbpl - packedbpl) <= 8);
 #if 0
     if (halfsize)
         L_INFO("packedbpl = %d is approx. twice tiffbpl = %d\n", procName,
@@ -595,15 +595,16 @@ PIXCMAP   *cmap;
         return NULL;
     }
 
+        /* Use a linebuf that will hold all the pixels generated
+           by tiff when reading (decompressing) a scanline. */
     if ((pix = pixCreate(w, h, d)) == NULL)
         return (PIX *)ERROR_PTR("pix not made", procName, NULL);
     pixSetInputFormat(pix, IFF_TIFF);
     data = (l_uint8 *)pixGetData(pix);
     wpl = pixGetWpl(pix);
     bpl = 4 * wpl;
-
     if (spp == 1) {
-        linebuf = (l_uint8 *)LEPT_CALLOC(tiffbpl + 1, sizeof(l_uint8));
+        linebuf = (l_uint8 *)LEPT_CALLOC(4 * wpl, sizeof(l_uint8));
         for (i = 0; i < h; i++) {
             if (TIFFReadScanline(tif, linebuf, i, 0) < 0) {
                 LEPT_FREE(linebuf);
@@ -621,7 +622,7 @@ PIXCMAP   *cmap;
     } else if (spp == 2 && bps == 8) {  /* gray plus alpha */
         L_INFO("gray+alpha is not supported; converting to RGBA\n", procName);
         pixSetSpp(pix, 4);
-        linebuf = (l_uint8 *)LEPT_CALLOC(2 * tiffbpl + 1, sizeof(l_uint8));
+        linebuf = (l_uint8 *)LEPT_CALLOC(4 * wpl, sizeof(l_uint8));
         pixdata = pixGetData(pix);
         for (i = 0; i < h; i++) {
             if (TIFFReadScanline(tif, linebuf, i, 0) < 0) {

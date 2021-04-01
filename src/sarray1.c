@@ -73,7 +73,7 @@
  *
  *      Filter sarray
  *          SARRAY    *sarraySelectBySubstring()
- *          SARRAY    *sarraySelectByRange()
+ *          SARRAY    *sarraySelectRange()
  *          l_int32    sarrayParseRange()
  *
  *      Serialize for I/O
@@ -150,7 +150,7 @@
 #endif  /* ! _WIN32 */
 #include "allheaders.h"
 
-static const l_uint32  MaxPtrArraySize = 25000000;  /* 25 million */
+static const l_uint32  MaxPtrArraySize = 50000000;    /* 50 million */
 static const l_int32   InitialPtrArraySize = 50;      /*!< n'importe quoi */
 
     /* Static functions */
@@ -487,7 +487,7 @@ l_int32  n;
  * <pre>
  * Notes:
  *      (1) Doubles the size of the string ptr array.
- *      (2) The max number of strings is 25M.
+ *      (2) The max number of strings is 50M.
  * </pre>
  */
 static l_int32
@@ -499,18 +499,20 @@ size_t  oldsize, newsize;
 
     if (!sa)
         return ERROR_INT("sa not defined", procName, 1);
-    if (sa->nalloc > MaxPtrArraySize)  /* belt & suspenders */
-        return ERROR_INT("sa has too many ptrs", procName, 1);
+    if (sa->nalloc >= MaxPtrArraySize)
+        return ERROR_INT("sa at maximum ptr size; can't extend", procName, 1);
     oldsize = sa->nalloc * sizeof(char *);
-    newsize = 2 * oldsize;
-    if (newsize > 8 * MaxPtrArraySize)  /* ptrs for 25 million strings */
-        return ERROR_INT("newsize > 200 MB; too large", procName, 1);
-
+    if (sa->nalloc > MaxPtrArraySize / 2) {
+        newsize = MaxPtrArraySize * sizeof(char *);
+        sa->nalloc = MaxPtrArraySize;
+    } else {
+        newsize = 2 * oldsize;
+        sa->nalloc *= 2;
+    }
     if ((sa->array = (char **)reallocNew((void **)&sa->array,
                                          oldsize, newsize)) == NULL)
         return ERROR_INT("new ptr array not returned", procName, 1);
 
-    sa->nalloc *= 2;
     return 0;
 }
 
@@ -980,9 +982,11 @@ l_int32  n, i;
     n = sarrayGetCount(sa2);
     for (i = 0; i < n; i++) {
         str = sarrayGetString(sa2, i, L_NOCOPY);
-        sarrayAddString(sa1, str, L_COPY);
+        if (sarrayAddString(sa1, str, L_COPY) == 1) {
+            L_ERROR("failed to add string at i = %d\n", procName, i);
+            return 1;
+        }
     }
-
     return 0;
 }
 
@@ -1264,7 +1268,7 @@ SARRAY  *saout;
 
 
 /*!
- * \brief   sarraySelectByRange()
+ * \brief   sarraySelectRange()
  *
  * \param[in]    sain    input sarray
  * \param[in]    first   index of first string to be selected
@@ -1280,15 +1284,15 @@ SARRAY  *saout;
  * </pre>
  */
 SARRAY *
-sarraySelectByRange(SARRAY  *sain,
-                    l_int32  first,
-                    l_int32  last)
+sarraySelectRange(SARRAY  *sain,
+                  l_int32  first,
+                  l_int32  last)
 {
 char    *str;
 l_int32  n, i;
 SARRAY  *saout;
 
-    PROCNAME("sarraySelectByRange");
+    PROCNAME("sarraySelectRange");
 
     if (!sain)
         return (SARRAY *)ERROR_PTR("sain not defined", procName, NULL);
@@ -1463,7 +1467,7 @@ SARRAY  *sa;
  * <pre>
  * Notes:
  *      (1) We store the size of each string along with the string.
- *          The limit on the number of strings is 25M.
+ *          The limit on the number of strings is 50M.
  *          The limit on the size of any string is 2^30 bytes.
  *      (2) This allows a string to have embedded newlines.  By reading
  *          the entire string, as determined by its size, we are

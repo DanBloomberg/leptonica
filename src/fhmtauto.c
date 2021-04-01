@@ -84,7 +84,7 @@
  *        use it, because it assumes that 32 or 64 border pixels
  *        have been added to each side, and it will crash without those
  *        added pixels.
- 
+ *
  *        As an example, see the file prog/fhmtauto_reg.c, which
  *        verifies the correctness of the implementation by
  *        comparing the dwa result with that of full-image

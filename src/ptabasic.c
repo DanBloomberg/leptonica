@@ -372,7 +372,8 @@ l_int32  n;
  *
  * <pre>
  * Notes:
- *      (1) The max number of points is 100M.
+ *      (1) Doubles the size of the array.
+ *      (2) The max number of points is 100M.
  * </pre>
  */
 static l_int32
@@ -384,13 +385,16 @@ size_t  oldsize, newsize;
 
     if (!pta)
         return ERROR_INT("pta not defined", procName, 1);
-    if (pta->nalloc > MaxArraySize)  /* belt & suspenders */
-        return ERROR_INT("pta has too many ptrs", procName, 1);
-    oldsize = pta->nalloc * sizeof(l_float32);
-    newsize = 2 * oldsize;
-    if (newsize > 4 * MaxArraySize)  /* array of 100M floats */
-        return ERROR_INT("newsize > 400 MB; too large", procName, 1);
-
+    if (pta->nalloc > MaxArraySize)
+        return ERROR_INT("pta at maximum size; can't extend", procName, 1);
+    oldsize = 4 * pta->nalloc;
+    if (pta->nalloc > MaxArraySize / 2) {
+        newsize = 4 * MaxArraySize;
+        pta->nalloc = MaxArraySize;
+    } else {
+        newsize = 2 * oldsize;
+        pta->nalloc *= 2;
+    }
     if ((pta->x = (l_float32 *)reallocNew((void **)&pta->x,
                                           oldsize, newsize)) == NULL)
         return ERROR_INT("new x array not returned", procName, 1);
@@ -398,7 +402,6 @@ size_t  oldsize, newsize;
                                           oldsize, newsize)) == NULL)
         return ERROR_INT("new y array not returned", procName, 1);
 
-    pta->nalloc *= 2;
     return 0;
 }
 
