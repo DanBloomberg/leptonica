@@ -109,7 +109,7 @@ L_HASHMAP  *hmap;
 
     ninit = L_MAX(ninit, DefaultInitNItems);
     if (maxocc <= 0) maxocc = DefaultMaxOcc;
-    if (maxocc < 1 || maxocc > 5) {
+    if (maxocc > 5) {
         L_WARNING("maxocc = %d; non-optimal value. Set to default = %d\n",
                   procName, maxocc, DefaultMaxOcc);
         maxocc = DefaultMaxOcc;
