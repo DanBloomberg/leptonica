@@ -61,15 +61,15 @@ static char  mainName[] = "barcodetest";
         return ERROR_INT("pixs not made", mainName, 1);
 
     sad1 = pixProcessBarcodes(pixs, L_BF_ANY, L_USE_WIDTHS, &saw1, 0);
-    sarrayWrite("/tmp/lept/barc/saw1", saw1);
-    sarrayWrite("/tmp/lept/barc/sad1", sad1);
+    sarrayWrite("/tmp/lept/barc/saw1.sa", saw1);
+    sarrayWrite("/tmp/lept/barc/sad1.sa", sad1);
     sarrayDestroy(&saw1);
     sarrayDestroy(&sad1);
 
     pixRotate180(pixs, pixs);
     sad2 = pixProcessBarcodes(pixs, L_BF_ANY, L_USE_WIDTHS, &saw2, 0);
-    sarrayWrite("/tmp/lept/barc/saw2", saw2);
-    sarrayWrite("/tmp/lept/barc/sad2", sad2);
+    sarrayWrite("/tmp/lept/barc/saw2.sa", saw2);
+    sarrayWrite("/tmp/lept/barc/sad2.sa", sad2);
     sarrayDestroy(&saw2);
     sarrayDestroy(&sad2);
 
@@ -77,8 +77,8 @@ static char  mainName[] = "barcodetest";
 {
     SARRAY  *saw3, *sad3;
     sad3 = pixProcessBarcodes(pixs, L_BF_ANY, L_USE_WINDOW, &saw3, 1);
-    sarrayWrite("/tmp/lept/barc/saw3", saw3);
-    sarrayWrite("/tmp/lept/barc/sad3", sad3);
+    sarrayWrite("/tmp/lept/barc/saw3.sa", saw3);
+    sarrayWrite("/tmp/lept/barc/sad3.sa", sad3);
     sarrayDestroy(&saw3);
     sarrayDestroy(&sad3);
 }

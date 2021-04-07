@@ -120,7 +120,7 @@ static l_int32 numaEvalSyncError(NUMA *nas, l_int32 ifirst, l_int32 ilast,
 
 
 #ifndef  NO_CONSOLE_IO
-#define  DEBUG_DESKEW     1
+#define  DEBUG_DESKEW     0
 #define  DEBUG_WIDTHS     0
 #endif  /* ~NO_CONSOLE_IO */
 
@@ -238,7 +238,7 @@ PIXA      *pixa;
 
 #if  DEBUG_DESKEW
     pix3 = pixaDisplayTiledInRows(pixa, 8, 1000, 1.0, 0, 30, 2);
-    pixWrite("lept/pix3.png", pix3, IFF_PNG);
+    pixWrite("/tmp/lept/pix3.png", pix3, IFF_PNG);
     pixDestroy(&pix3);
 #endif  /* DEBUG_DESKEW */
 
@@ -892,10 +892,16 @@ NUMA      *naerange, *naorange, *naelut, *naolut, *nad;
     if (binfract <= 0.0)
         return (NUMA *)ERROR_PTR("binfract <= 0.0", procName, NULL);
 
-        /* Get even and odd crossing distances */
+        /* Get even and odd crossing distances, and determine the rank
+         * widths for rank 0.1 (minsize) and 0.9 (maxsize). */
     ret = numaGetCrossingDistances(nas, &naedist, &naodist, &minsize, &maxsize);
-    if (ret)
-        return (NUMA *)ERROR_PTR("crossing data not found", procName, NULL);
+    if (ret || minsize < 1.0 || maxsize / minsize > 8.0) {
+        L_ERROR("bad data, or minsize = %5.2f < 1.0 or max/min = %f > 4.0\n",
+                procName, minsize, maxsize / minsize);
+        numaDestroy(&naedist);
+        numaDestroy(&naodist);
+        return NULL;
+    }
 
         /* Bin the spans in units of binfract * minsize.  These
          * units are convenient because they scale to make at least
@@ -1023,9 +1029,9 @@ numaGetCrossingDistances(NUMA       *nas,
                          l_float32  *pmindist,
                          l_float32  *pmaxdist)
 {
-l_int32    i, n;
+l_int32    i, n, nspan;
 l_float32  val, newval, mindist, maxdist, dist;
-NUMA      *naedist, *naodist;
+NUMA      *na1, *na2, *naedist, *naodist;
 
     PROCNAME("numaGetCrossingDistances");
 
@@ -1054,13 +1060,15 @@ NUMA      *naedist, *naodist;
         val = newval;
     }
 
-        /* The mindist and maxdist of the spans are in pixel units. */
-    numaGetMin(naedist, &mindist, NULL);
-    numaGetMin(naodist, &dist, NULL);
-    mindist = L_MIN(dist, mindist);
-    numaGetMax(naedist, &maxdist, NULL);
-    numaGetMax(naodist, &dist, NULL);
-    maxdist = L_MAX(dist, maxdist);
+        /* The min and max rank distances of the spans are in pixel units. */
+    na1 = numaCopy(naedist);
+    numaJoin(na1, naodist, 0, -1);  /* use both bars and spaces */
+    nspan = numaGetCount(na1);
+    na2 = numaMakeHistogram(na1, 100, NULL, NULL);
+    numaHistogramGetValFromRank(na2, 0.1, &mindist);
+    numaHistogramGetValFromRank(na2, 0.9, &maxdist);
+    numaDestroy(&na1);
+    numaDestroy(&na2);
     L_INFO("mindist = %7.3f, maxdist = %7.3f\n", procName, mindist, maxdist);
 
     if (pnaedist)
