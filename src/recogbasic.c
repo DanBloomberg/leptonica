@@ -1084,6 +1084,9 @@ FILE    *fp;
     if ((fp = open_memstream((char **)pdata, psize)) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     ret = recogWriteStream(fp, recog);
+    fputc('\0', fp);
+    fclose(fp);
+    *psize = *psize - 1;
 #else
     L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
@@ -1096,8 +1099,8 @@ FILE    *fp;
     ret = recogWriteStream(fp, recog);
     rewind(fp);
     *pdata = l_binaryReadStream(fp, psize);
-#endif  /* HAVE_FMEMOPEN */
     fclose(fp);
+#endif  /* HAVE_FMEMOPEN */
     return ret;
 }
 

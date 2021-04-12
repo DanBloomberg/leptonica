@@ -1372,6 +1372,9 @@ FILE    *fp;
     if ((fp = open_memstream((char **)pdata, psize)) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     ret = numaWriteStream(fp, na);
+    fputc('\0', fp);
+    fclose(fp);
+    *psize = *psize - 1;
 #else
     L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
@@ -1384,8 +1387,8 @@ FILE    *fp;
     ret = numaWriteStream(fp, na);
     rewind(fp);
     *pdata = l_binaryReadStream(fp, psize);
-#endif  /* HAVE_FMEMOPEN */
     fclose(fp);
+#endif  /* HAVE_FMEMOPEN */
     return ret;
 }
 
@@ -2078,6 +2081,9 @@ FILE    *fp;
     if ((fp = open_memstream((char **)pdata, psize)) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     ret = numaaWriteStream(fp, naa);
+    fputc('\0', fp);
+    fclose(fp);
+    *psize = *psize - 1;
 #else
     L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
@@ -2090,8 +2096,8 @@ FILE    *fp;
     ret = numaaWriteStream(fp, naa);
     rewind(fp);
     *pdata = l_binaryReadStream(fp, psize);
-#endif  /* HAVE_FMEMOPEN */
     fclose(fp);
+#endif  /* HAVE_FMEMOPEN */
     return ret;
 }
 

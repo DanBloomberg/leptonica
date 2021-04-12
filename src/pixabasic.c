@@ -2882,6 +2882,9 @@ FILE    *fp;
     if ((fp = open_memstream((char **)pdata, psize)) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     ret = pixaWriteStream(fp, pixa);
+    fputc('\0', fp);
+    fclose(fp);
+    *psize = *psize - 1;
 #else
     L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
@@ -2894,8 +2897,8 @@ FILE    *fp;
     ret = pixaWriteStream(fp, pixa);
     rewind(fp);
     *pdata = l_binaryReadStream(fp, psize);
-#endif  /* HAVE_FMEMOPEN */
     fclose(fp);
+#endif  /* HAVE_FMEMOPEN */
     return ret;
 }
 
@@ -3264,6 +3267,9 @@ FILE    *fp;
     if ((fp = open_memstream((char **)pdata, psize)) == NULL)
         return ERROR_INT("stream not opened", procName, 1);
     ret = pixaaWriteStream(fp, paa);
+    fputc('\0', fp);
+    fclose(fp);
+    *psize = *psize - 1;
 #else
     L_INFO("work-around: writing to a temp file\n", procName);
   #ifdef _WIN32
@@ -3276,8 +3282,8 @@ FILE    *fp;
     ret = pixaaWriteStream(fp, paa);
     rewind(fp);
     *pdata = l_binaryReadStream(fp, psize);
-#endif  /* HAVE_FMEMOPEN */
     fclose(fp);
+#endif  /* HAVE_FMEMOPEN */
     return ret;
 }
 
