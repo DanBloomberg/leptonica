@@ -2384,7 +2384,7 @@ PIXCMAP   *cmap;
         pixGetDimensions(pixm, &wm, &hm, NULL);
         if (w != wm || h != hm) {  /* resize the mask */
             L_WARNING("mask and dest sizes not equal\n", procName);
-            pixmr = pixCreateNoInit(w, h, 1);
+            pixmr = pixCreate(w, h, 1);
             pixRasterop(pixmr, 0, 0, wm, hm, PIX_SRC, pixm, 0, 0);
             pixRasterop(pixmr, wm, 0, w - wm, h, PIX_SET, NULL, 0, 0);
             pixRasterop(pixmr, 0, hm, wm, h - hm, PIX_SET, NULL, 0, 0);

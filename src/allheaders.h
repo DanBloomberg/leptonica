@@ -1452,10 +1452,10 @@ LEPT_DLL extern l_ok l_generateCIDataForPdf ( const char *fname, PIX *pix, l_int
 LEPT_DLL extern L_COMP_DATA * l_generateFlateDataPdf ( const char *fname, PIX *pixs );
 LEPT_DLL extern L_COMP_DATA * l_generateJpegData ( const char *fname, l_int32 ascii85flag );
 LEPT_DLL extern L_COMP_DATA * l_generateJpegDataMem ( l_uint8 *data, size_t nbytes, l_int32 ascii85flag );
+LEPT_DLL extern L_COMP_DATA * l_generateG4Data ( const char *fname, l_int32 ascii85flag );
 LEPT_DLL extern l_ok l_generateCIData ( const char *fname, l_int32 type, l_int32 quality, l_int32 ascii85, L_COMP_DATA **pcid );
 LEPT_DLL extern l_ok pixGenerateCIData ( PIX *pixs, l_int32 type, l_int32 quality, l_int32 ascii85, L_COMP_DATA **pcid );
 LEPT_DLL extern L_COMP_DATA * l_generateFlateData ( const char *fname, l_int32 ascii85flag );
-LEPT_DLL extern L_COMP_DATA * l_generateG4Data ( const char *fname, l_int32 ascii85flag );
 LEPT_DLL extern l_ok cidConvertToPdfData ( L_COMP_DATA *cid, const char *title, l_uint8 **pdata, size_t *pnbytes );
 LEPT_DLL extern void l_CIDataDestroy ( L_COMP_DATA **pcid );
 LEPT_DLL extern void l_pdfSetG4ImageMask ( l_int32 flag );

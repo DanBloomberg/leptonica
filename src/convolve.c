@@ -2507,7 +2507,7 @@ PIX       *pixd;
     if (d != 8 && d != 32)
         return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
 
-    pixd = pixCreateTemplateNoInit(pixs);
+    pixd = pixCreateTemplate(pixs);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
     wpls = pixGetWpl(pixs);

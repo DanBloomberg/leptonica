@@ -2631,7 +2631,7 @@ RGBA_QUAD  *cta;
     }
 
     pixGetDimensions(pixs, &w, &h, NULL);
-    if ((pixd = pixCreateNoInit(w, h, 8)) == NULL) {
+    if ((pixd = pixCreate(w, h, 8)) == NULL) {
         pixDestroy(&pixc);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }

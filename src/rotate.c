@@ -347,7 +347,7 @@ PIX       *pixd;
     if (L_ABS(angle) < MinAngleToRotate)
         return pixClone(pixs);
 
-    if ((pixd = pixCreateTemplateNoInit(pixs)) == NULL)
+    if ((pixd = pixCreateTemplate(pixs)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     pixSetBlackOrWhite(pixd, incolor);
 

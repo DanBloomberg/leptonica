@@ -2114,7 +2114,7 @@ PIX       *pixd;
         }
     }
 
-    if ((pixd = pixCreateNoInit(w, h, 8)) == NULL) {
+    if ((pixd = pixCreate(w, h, 8)) == NULL) {
         LEPT_FREE(lut);
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     }

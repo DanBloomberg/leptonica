@@ -529,11 +529,11 @@ PIXTILING  *pt;
 
         /* We can use pixtiling for painting both outputs, if requested */
     if (ppixth) {
-        pixth = pixCreateNoInit(w, h, 8);
+        pixth = pixCreate(w, h, 8);
         *ppixth = pixth;
     }
     if (ppixd) {
-        pixd = pixCreateNoInit(w, h, 1);
+        pixd = pixCreate(w, h, 1);
         *ppixd = pixd;
     }
     pt = pixTilingCreate(pixs, nx, ny, 0, 0, whsize + 1, whsize + 1);

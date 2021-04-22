@@ -336,8 +336,10 @@ PIX  *pixd;
  *
  * <pre>
  * Notes:
- *      (1) Must set pad bits to avoid reading uninitialized data, because
- *          some optimized routines (e.g., pixConnComp()) read from pad bits.
+ *      (1) Pad bits are set to avoid reading uninitialized data, because
+ *          some optimized routines read from pad bits.
+ *      (2) Initializing memory is very fast, so this optimization is
+ *          not used in the library.
  * </pre>
  */
 PIX *
@@ -405,6 +407,10 @@ PIX  *pixd;
  *      (1) Makes a Pix of the same size as the input Pix, with
  *          the data array allocated but not initialized to 0.
  *      (2) Copies the other fields, including colormap if it exists.
+ *      (3) Pad bits are set to avoid reading uninitialized data, because
+ *          some optimized routines read from pad bits.
+ *      (4) Initializing memory is very fast, so this optimization is
+ *          not used in the library.
  * </pre>
  */
 PIX *
@@ -426,6 +432,7 @@ PIX     *pixd;
     pixCopyColormap(pixd, pixs);
     pixCopyText(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
+    pixSetPadBits(pixd, 0);
     return pixd;
 }
 

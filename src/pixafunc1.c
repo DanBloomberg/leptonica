@@ -3043,7 +3043,7 @@ PIXA    *pixad;
         pixaAddPix(pixad, pix2, L_INSERT);
         pixDestroy(&pix1);
     }
-    
+
     boxa = pixaGetBoxa(pixas, L_COPY);
     pixaSetBoxa(pixad, boxa, L_INSERT);
     return pixad;

@@ -750,7 +750,7 @@ PIX       *pixt, *pixd;
         /* Generate the mask */
     pixt = pixConvertRGBToHSV(NULL, pixs);
     pixGetDimensions(pixs, &w, &h, NULL);
-    pixd = pixCreateNoInit(w, h, 1);
+    pixd = pixCreate(w, h, 1);
     if (regionflag == L_INCLUDE_REGION)
         pixClearAll(pixd);
     else  /* L_EXCLUDE_REGION */
@@ -849,7 +849,7 @@ PIX       *pixt, *pixd;
         /* Generate the mask */
     pixt = pixConvertRGBToHSV(NULL, pixs);
     pixGetDimensions(pixs, &w, &h, NULL);
-    pixd = pixCreateNoInit(w, h, 1);
+    pixd = pixCreate(w, h, 1);
     if (regionflag == L_INCLUDE_REGION)
         pixClearAll(pixd);
     else  /* L_EXCLUDE_REGION */
@@ -941,7 +941,7 @@ PIX       *pixt, *pixd;
         /* Generate the mask */
     pixt = pixConvertRGBToHSV(NULL, pixs);
     pixGetDimensions(pixs, &w, &h, NULL);
-    pixd = pixCreateNoInit(w, h, 1);
+    pixd = pixCreate(w, h, 1);
     if (regionflag == L_INCLUDE_REGION)
         pixClearAll(pixd);
     else  /* L_EXCLUDE_REGION */

@@ -1405,11 +1405,13 @@ PIXA      *pixad;
  *          is tiled such that the top of each pix is aligned.
  *          The pix are displayed in pairs, taken from the input pixas.
  *          Input %pixas1 and %pixas2 must have the same count of pix.
- *      (2) If %fontsize != 0, either a number or (if %sa is defined, some
- *          text) is displayed below each pair, and the output depth is 32 bpp.
- *          Otherwise, the output depth is determined by the largest depth
- *          required by the pix in the pixa.  Colormaps are removed.
- *      (3) Start with these values and tune for aesthetics:
+ *      (2) If %fontsize != 0, text is displayed below each pair, and the
+ *          output depth is 32 bpp.  If %sa is defined, the text is taken
+ *          sequentially from %sa; otherwise, an integer is displayed with
+ *          numbers chosen consecutively starting with %startindex.
+ *      (3) If %fontsize == 0, the output depth is determined by the largest
+ *          depth required by the pix in the pixa.  Colormaps are removed.
+ *      (4) Start with these values and tune for aesthetics:
  *            %nx = 5, %spacing1 = %spacing2 = 15, %border1 = %border2 = 2,
  *            %fontsize = 8.
  * </pre>

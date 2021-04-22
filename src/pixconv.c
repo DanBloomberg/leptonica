@@ -3568,7 +3568,7 @@ PIX       *pixd;
     if (d != 24)
         return (PIX *)ERROR_PTR("pixs not 24 bpp", procName, NULL);
 
-    pixd = pixCreateNoInit(w, h, 32);
+    pixd = pixCreate(w, h, 32);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
     wpls = pixGetWpl(pixs);
@@ -3619,7 +3619,7 @@ PIX       *pixd;
 
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
-    pixd = pixCreateNoInit(w, h, 24);
+    pixd = pixCreate(w, h, 24);
     rgbdata = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
     for (i = 0; i < h; i++) {

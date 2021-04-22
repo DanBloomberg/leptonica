@@ -2155,7 +2155,7 @@ PIXCMAP   *cmap;
         return pixd;
     }
 
-    if ((pixd = pixCreateTemplateNoInit(pixs)) == NULL)
+    if ((pixd = pixCreateTemplate(pixs)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
@@ -2262,7 +2262,7 @@ PIXCMAP   *cmap;
         return pixd;
     }
 
-    if ((pixd = pixCreateTemplateNoInit(pixs)) == NULL)
+    if ((pixd = pixCreateTemplate(pixs)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
