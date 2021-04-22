@@ -1833,6 +1833,7 @@ LEPT_DLL extern l_ok pixaHasColor ( PIXA *pixa, l_int32 *phascolor );
 LEPT_DLL extern l_ok pixaAnyColormaps ( PIXA *pixa, l_int32 *phascmap );
 LEPT_DLL extern l_ok pixaGetDepthInfo ( PIXA *pixa, l_int32 *pmaxdepth, l_int32 *psame );
 LEPT_DLL extern PIXA * pixaConvertToSameDepth ( PIXA *pixas );
+LEPT_DLL extern PIXA * pixaConvertToGivenDepth ( PIXA *pixas, l_int32 depth );
 LEPT_DLL extern l_ok pixaEqual ( PIXA *pixa1, PIXA *pixa2, l_int32 maxdist, NUMA **pnaindex, l_int32 *psame );
 LEPT_DLL extern l_ok pixaSetFullSizeBoxa ( PIXA *pixa );
 LEPT_DLL extern PIX * pixaDisplay ( PIXA *pixa, l_int32 w, l_int32 h );
@@ -1846,6 +1847,7 @@ LEPT_DLL extern PIX * pixaDisplayTiledInColumns ( PIXA *pixas, l_int32 nx, l_flo
 LEPT_DLL extern PIX * pixaDisplayTiledAndScaled ( PIXA *pixa, l_int32 outdepth, l_int32 tilewidth, l_int32 ncols, l_int32 background, l_int32 spacing, l_int32 border );
 LEPT_DLL extern PIX * pixaDisplayTiledWithText ( PIXA *pixa, l_int32 maxwidth, l_float32 scalefactor, l_int32 spacing, l_int32 border, l_int32 fontsize, l_uint32 textcolor );
 LEPT_DLL extern PIX * pixaDisplayTiledByIndex ( PIXA *pixa, NUMA *na, l_int32 width, l_int32 spacing, l_int32 border, l_int32 fontsize, l_uint32 textcolor );
+LEPT_DLL extern PIX * pixaDisplayPairTiledInColumns ( PIXA *pixas1, PIXA *pixas2, l_int32 nx, l_float32 scalefactor, l_int32 spacing1, l_int32 spacing2, l_int32 border1, l_int32 border2, l_int32 fontsize, l_int32 startindex, SARRAY *sa );
 LEPT_DLL extern PIX * pixaaDisplay ( PIXAA *paa, l_int32 w, l_int32 h );
 LEPT_DLL extern PIX * pixaaDisplayByPixa ( PIXAA *paa, l_int32 maxnx, l_float32 scalefactor, l_int32 hspacing, l_int32 vspacing, l_int32 border );
 LEPT_DLL extern PIXA * pixaaDisplayTiledAndScaled ( PIXAA *paa, l_int32 outdepth, l_int32 tilewidth, l_int32 ncols, l_int32 background, l_int32 spacing, l_int32 border );

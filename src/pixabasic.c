@@ -1144,9 +1144,11 @@ PIX     *pix;
  * <pre>
  * Notes:
  *      (1) To clear all the text fields, use %sa == NULL and %text == NULL.
- *      (2) To set all the text fields to the same value %text, use %sa = NULL.
- *      (3) If %sa is defined, we ignore %text and use it; %sa must have
- *          the same count as %pixa.
+ *      (2) Otherwise, this replaces all text fields with a copy of a string,
+ *          either the same string or a string from %sa.
+ *      (3) To set all the text fields to the same value %text, use %sa = NULL.
+ *      (4) If %sa is defined, ignore %text and use the strings in %sa.
+ *          %sa must have the same count as %pixa.
  * </pre>
  */
 l_ok

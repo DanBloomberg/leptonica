@@ -41,6 +41,9 @@
  *           PIX      *pixaDisplayTiledWithText()
  *           PIX      *pixaDisplayTiledByIndex()
  *
+ *      Pixa pair display (render into a pix)
+ *           PIX      *pixaDisplayPairTiledInColumns()
+ *
  *      Pixaa display (render into a pix)
  *           PIX      *pixaaDisplay()
  *           PIX      *pixaaDisplayByPixa()
@@ -641,10 +644,11 @@ PIXA    *pixa1;
 
     if (!pixa)
         return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
-
-        /* If any pix have colormaps, generate rgb */
+    spacing = L_MAX(spacing, 0);
     if ((n = pixaGetCount(pixa)) == 0)
         return (PIX *)ERROR_PTR("no components", procName, NULL);
+
+        /* If any pix have colormaps, generate rgb */
     pixaAnyColormaps(pixa, &hascmap);
     if (hascmap) {
         pixa1 = pixaCreate(n);
@@ -667,7 +671,6 @@ PIXA    *pixa1;
     pixaSizeRange(pixa1, NULL, NULL, &wmax, &hmax);
 
         /* Get the number of rows and columns and the output image size */
-    spacing = L_MAX(spacing, 0);
     ncols = (l_int32)((l_float32)(maxwidth - spacing) /
                       (l_float32)(wmax + spacing));
     ncols = L_MAX(ncols, 1);
@@ -769,8 +772,8 @@ PIXA     *pixan;
         return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
     if (outdepth != 1 && outdepth != 8 && outdepth != 32)
         return (PIX *)ERROR_PTR("outdepth not in {1, 8, 32}", procName, NULL);
-    if (border < 0)
-        border = 0;
+    spacing = L_MAX(spacing, 0);
+    border = L_MAX(border, 0);
     if (scalefactor <= 0.0) scalefactor = 1.0;
 
     if ((n = pixaGetCount(pixa)) == 0)
@@ -896,7 +899,7 @@ PIXA     *pixan;
  * \param[in]    pixas
  * \param[in]    nx           number of columns in output image
  * \param[in]    scalefactor  applied to every pix; use 1.0 for no scaling
- * \param[in]    spacing      between images, and on outside
+ * \param[in]    spacing      between images, and on outside; can be < 0
  * \param[in]    border       width of black border added to each image;
  *                            use 0 for no border
  * \return  pixd of tiled images, or NULL on error
@@ -942,10 +945,8 @@ PIXA     *pixa1, *pixa2;
 
     if (!pixas)
         return (PIX *)ERROR_PTR("pixas not defined", procName, NULL);
-    if (border < 0)
-        border = 0;
+    border = L_MAX(border, 0);
     if (scalefactor <= 0.0) scalefactor = 1.0;
-
     if ((n = pixaGetCount(pixas)) == 0)
         return (PIX *)ERROR_PTR("no components", procName, NULL);
 
@@ -1064,9 +1065,9 @@ PIXA      *pixan;
         return (PIX *)ERROR_PTR("outdepth not in {1, 8, 32}", procName, NULL);
     if (ncols <= 0)
         return (PIX *)ERROR_PTR("ncols must be > 0", procName, NULL);
+    spacing = L_MAX(spacing, 0);
     if (border < 0 || border > tilewidth / 5)
         border = 0;
-
     if ((n = pixaGetCount(pixa)) == 0)
         return (PIX *)ERROR_PTR("no components", procName, NULL);
 
@@ -1219,12 +1220,9 @@ PIXA     *pixad;
         return (PIX *)ERROR_PTR("no components", procName, NULL);
     if (maxwidth <= 0)
         return (PIX *)ERROR_PTR("invalid maxwidth", procName, NULL);
-    if (border < 0)
-        border = 0;
-    if (scalefactor <= 0.0) {
-        L_WARNING("invalid scalefactor; setting to 1.0\n", procName);
-        scalefactor = 1.0;
-    }
+    spacing = L_MAX(spacing, 0);
+    border = L_MAX(border, 0);
+    if (scalefactor <= 0.0) scalefactor = 1.0;
     if (fontsize < 4 || fontsize > 20 || (fontsize & 1)) {
         l_int32 fsize = L_MAX(L_MIN(fontsize, 20), 4);
         if (fsize & 1) fsize--;
@@ -1242,8 +1240,8 @@ PIXA     *pixad;
     for (i = 0; i < n; i++) {
         pix1 = pixaGetPix(pixa, i, L_CLONE);
         pix2 = pixConvertTo32(pix1);
-        pix3 = pixAddBorderGeneral(pix2, spacing, spacing, spacing,
-                                   spacing, 0xffffff00);
+        pix3 = pixAddBorderGeneral(pix2, spacing / 2, spacing / 2, spacing / 2,
+                                   spacing / 2, 0xffffff00);
         textstr = pixGetText(pix1);
         if (textstr && strlen(textstr) > 0) {
             snprintf(buf, sizeof(buf), "%s", textstr);
@@ -1260,7 +1258,7 @@ PIXA     *pixad;
     bmfDestroy(&bmf);
 
     pixd = pixaDisplayTiledInRows(pixad, 32, maxwidth, scalefactor,
-                                  0, 10, border);
+                                  0, spacing, border);
     pixaDestroy(&pixad);
     return pixd;
 }
@@ -1327,8 +1325,8 @@ PIXA      *pixad;
         return (PIX *)ERROR_PTR("invalid width", procName, NULL);
     if (width < 20)
         L_WARNING("very small width: %d\n", procName, width);
-    if (border < 0)
-        border = 0;
+    spacing = L_MAX(spacing, 0);
+    border = L_MAX(border, 0);
     if (fontsize < 4 || fontsize > 20 || (fontsize & 1)) {
         l_int32 fsize = L_MAX(L_MIN(fontsize, 20), 4);
         if (fsize & 1) fsize--;
@@ -1377,6 +1375,177 @@ PIXA      *pixad;
     return pixd;
 }
 
+
+/*---------------------------------------------------------------------*
+ *                         Pixa pair display                           *
+ *---------------------------------------------------------------------*/
+/*!
+ * \brief   pixaDisplayPairTiledInColumns()
+ *
+ * \param[in]    pixas1
+ * \param[in]    pixas2
+ * \param[in]    nx           number of columns in output image
+ * \param[in]    scalefactor  applied to every pix; use 1.0 for no scaling
+ * \param[in]    spacing1     between images within a pair
+ * \param[in]    spacing2     between image pairs, and on outside
+ * \param[in]    border1      width of black border added to each image;
+ *                            use 0 for no border
+ * \param[in]    border2      width of black border added to each image pair.
+ *                            use 0 for no border
+ * \param[in]    fontsize     to print index below each pair. Valid set is
+ *                            {4,6,8,10,12,14,16,18,20}.  Use 0 to disable.
+ * \param[in]    startindex   index for the first pair; ignore if %fontsize= 0
+ * \param[in]    sa           [optional] array of text strings to display
+ * \return  pixd of tiled images, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This renders a pair of pixa in a single image with &nx columns of
+ *          tiled pairs.  The background color is white, and each row
+ *          is tiled such that the top of each pix is aligned.
+ *          The pix are displayed in pairs, taken from the input pixas.
+ *          Input %pixas1 and %pixas2 must have the same count of pix.
+ *      (2) If %fontsize != 0, either a number or (if %sa is defined, some
+ *          text) is displayed below each pair, and the output depth is 32 bpp.
+ *          Otherwise, the output depth is determined by the largest depth
+ *          required by the pix in the pixa.  Colormaps are removed.
+ *      (3) Start with these values and tune for aesthetics:
+ *            %nx = 5, %spacing1 = %spacing2 = 15, %border1 = %border2 = 2,
+ *            %fontsize = 8.
+ * </pre>
+ */
+PIX *
+pixaDisplayPairTiledInColumns(PIXA      *pixas1,
+                              PIXA      *pixas2,
+                              l_int32    nx,
+                              l_float32  scalefactor,
+                              l_int32    spacing1,
+                              l_int32    spacing2,
+                              l_int32    border1,
+                              l_int32    border2,
+                              l_int32    fontsize,
+                              l_int32    startindex,
+                              SARRAY    *sa)
+{
+l_int32  i, n, w, maxd, maxd1, maxd2, res, text;
+NUMA    *na;
+PIX     *pixs1, *pixs2, *pix1, *pix2, *pix3, *pix4;
+PIX     *pix5, *pix6, *pix7, *pix8, *pix9;
+PIXA    *pixa1, *pixa2;
+SARRAY  *sa1;
+
+    PROCNAME("pixaDisplayPairTiledInColumns");
+
+    if (!pixas1)
+        return (PIX *)ERROR_PTR("pixas1 not defined", procName, NULL);
+    if (!pixas2)
+        return (PIX *)ERROR_PTR("pixas2 not defined", procName, NULL);
+    spacing1 = L_MAX(spacing1, 0);
+    spacing2 = L_MAX(spacing2, 0);
+    border1 = L_MAX(border1, 0);
+    border2 = L_MAX(border2, 0);
+    if (scalefactor <= 0.0) scalefactor = 1.0;
+    if ((n = pixaGetCount(pixas1)) == 0)
+        return (PIX *)ERROR_PTR("no components", procName, NULL);
+    if (n != pixaGetCount(pixas2))
+        return (PIX *)ERROR_PTR("pixa sizes differ", procName, NULL);
+    text = (fontsize <= 0) ? 0 : 1;
+    if (text && (fontsize < 4 || fontsize > 20 || (fontsize & 1))) {
+        l_int32 fsize = L_MAX(L_MIN(fontsize, 20), 4);
+        if (fsize & 1) fsize--;
+        L_WARNING("changed fontsize from %d to %d\n", procName,
+                  fontsize, fsize);
+        fontsize = fsize;
+    }
+
+        /* Convert to same depth, if necessary */
+    if (text) {  /* adding color text; convert to 32 bpp */
+        maxd = 32;
+    } else {
+        pixaGetRenderingDepth(pixas1, &maxd1);
+        pixaGetRenderingDepth(pixas2, &maxd2);
+        maxd = L_MAX(maxd1, maxd2);
+    }
+
+        /* Optionally scale and add borders to each pair;
+           then combine the pairs and add outer border.  */
+    pixa1 = pixaCreate(n);
+    for (i = 0; i < n; i++) {
+        pixs1 = pixaGetPix(pixas1, i, L_CLONE);
+        pixs2 = pixaGetPix(pixas2, i, L_CLONE);
+        if (!pixs1 || !pixs2) continue;
+        if (maxd == 1) {
+            pix1 = pixClone(pixs1);
+            pix2 = pixClone(pixs2);
+        } else if (maxd == 8) {
+            pix1 = pixConvertTo8(pixs1, 0);
+            pix2 = pixConvertTo8(pixs2, 0);
+        } else {  /* maxd == 32 */
+            pix1 = pixConvertTo32(pixs1);
+            pix2 = pixConvertTo32(pixs2);
+        }
+        pixDestroy(&pixs1);
+        pixDestroy(&pixs2);
+        if (scalefactor != 1.0) {
+            pix3 = pixScale(pix1, scalefactor, scalefactor);
+            pix4 = pixScale(pix2, scalefactor, scalefactor);
+        } else {
+            pix3 = pixClone(pix1);
+            pix4 = pixClone(pix2);
+        }
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
+        if (border1) {
+            pix5 = pixAddBlackOrWhiteBorder(pix3, border1, border1, border1,
+                                            border1, L_GET_BLACK_VAL);
+            pix6 = pixAddBlackOrWhiteBorder(pix4, border1, border1, border1,
+                                            border1, L_GET_BLACK_VAL);
+        } else {
+            pix5 = pixClone(pix3);
+            pix6 = pixClone(pix4);
+        }
+        if (i == 0) res = pixGetXRes(pix3);
+        pixDestroy(&pix3);
+        pixDestroy(&pix4);
+        if (spacing1) {  /* white border */
+            pix7 = pixAddBlackOrWhiteBorder(pix5, spacing1 / 2, spacing1 / 2,
+                                spacing1 / 2, spacing1 / 2, L_GET_WHITE_VAL);
+            pix8 = pixAddBlackOrWhiteBorder(pix6, spacing1 / 2, spacing1 / 2,
+                                spacing1 / 2, spacing1 / 2, L_GET_WHITE_VAL);
+        } else {
+            pix7 = pixClone(pix5);
+            pix8 = pixClone(pix6);
+        }
+        pixDestroy(&pix5);
+        pixDestroy(&pix6);
+        pixa2 = pixaCreate(2);
+        pixaAddPix(pixa2, pix7, L_INSERT);
+        pixaAddPix(pixa2, pix8, L_INSERT);
+        pix9 = pixaDisplayTiledInColumns(pixa2, 2, 1.0, 0, 0);
+        pixaAddPix(pixa1, pix9, L_INSERT);
+        pixaDestroy(&pixa2);
+    }
+
+    if (!text) {
+        pix1 = pixaDisplayTiledInColumns(pixa1, nx, 1.0, spacing2, border2);
+    } else {
+        if (sa) {
+            pixaSetText(pixa1, NULL, sa);
+        } else {
+            n = pixaGetCount(pixa1);
+            na = numaMakeSequence(startindex, 1, n);
+            sa1 = numaConvertToSarray(na, 4, 0, 0, L_INTEGER_VALUE);
+            pixaSetText(pixa1, NULL, sa1);
+            numaDestroy(&na);
+            sarrayDestroy(&sa1);
+        }
+        pixaSizeRange(pixa1, NULL, NULL, &w, NULL);
+        pix1 = pixaDisplayTiledWithText(pixa1, w * (nx + 1), 1.0, spacing2,
+                                        border2, fontsize, 0xff000000);
+    }
+    pixaDestroy(&pixa1);
+    return pix1;
+}
 
 
 /*---------------------------------------------------------------------*

@@ -86,6 +86,7 @@
  *           l_int32   pixaAnyColormaps()
  *           l_int32   pixaGetDepthInfo()
  *           PIXA     *pixaConvertToSameDepth()
+ *           PIXA     *pixaConvertToGivenDepth()
  *           l_int32   pixaEqual()
  *           l_int32   pixaSetFullSizeBoxa()
  * </pre>
@@ -2750,6 +2751,17 @@ PIX     *pix1, *pix2;
  * \param[in]    pixa
  * \param[out]   pdepth   depth required to render if all colormaps are removed
  * \return  0 if OK; 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Any pix with 16 bpp will be considered as having 8 bpp.
+ *          If all pix have bpp = 1, this returns 1.
+ *          If any pix has color (either rgb or a colormap with color),
+ *          this return 32.
+ *          Otherwise, this returns the maximum of 8 and the max depth
+ *          of all the pix.
+ *      (2) This can be used to allow lossless rendering onto a single pix.
+ * </pre>
  */
 l_ok
 pixaGetRenderingDepth(PIXA     *pixa,
@@ -2911,16 +2923,20 @@ l_int32  maxd, same;  /* depth info */
  *
  * <pre>
  * Notes:
- *      (1) If any pix has a colormap, they are all converted to rgb.
- *          Otherwise, they are all converted to the maximum depth of
- *          all the pix.
- *      (2) This can be used to allow lossless rendering onto a single pix.
+ *      (1) Any pix with 16 bpp will be converted to 8 bpp.
+ *          If all pix have bpp = 1, the output depth will be 1.
+ *          If any pix has color (either rgb or a colormap with color),
+ *          the output depth will be 32.
+ *          Otherwise, the output depth is the maximum of 8 and the
+ *          the max depth of all the pix.
+ *      (2) This can be used to allow lossless rendering onto
+ *          a single pix. (Except: 16 bpp gets converted to 8.)
  * </pre>
  */
 PIXA *
 pixaConvertToSameDepth(PIXA  *pixas)
 {
-l_int32  i, n, same, hascmap, maxdepth;
+l_int32  i, n, depth, same, hascmap, maxdepth;
 BOXA    *boxa;
 PIX     *pix1, *pix2;
 PIXA    *pixa1, *pixad;
@@ -2929,16 +2945,21 @@ PIXA    *pixa1, *pixad;
 
     if (!pixas)
         return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
-
-        /* Remove colormaps to rgb */
     if ((n = pixaGetCount(pixas)) == 0)
         return (PIXA *)ERROR_PTR("no components", procName, NULL);
+
+
+        /* Remove colormaps if necessary */
+    pixaGetRenderingDepth(pixas, &depth);
     pixaAnyColormaps(pixas, &hascmap);
     if (hascmap) {
         pixa1 = pixaCreate(n);
         for (i = 0; i < n; i++) {
             pix1 = pixaGetPix(pixas, i, L_CLONE);
-            pix2 = pixConvertTo32(pix1);
+            if (depth == 32)
+                pix2 = pixConvertTo32(pix1);
+            else  /* depth = 8 */
+                pix2 = pixConvertTo8(pix1, 0);
             pixaAddPix(pixa1, pix2, L_INSERT);
             pixDestroy(&pix1);
         }
@@ -2951,7 +2972,7 @@ PIXA    *pixa1, *pixad;
         pixad = pixaCreate(n);
         for (i = 0; i < n; i++) {
             pix1 = pixaGetPix(pixa1, i, L_CLONE);
-            if (maxdepth <= 8)
+            if (maxdepth <= 16)
                 pix2 = pixConvertTo8(pix1, 0);
             else
                 pix2 = pixConvertTo32(pix1);
@@ -2965,6 +2986,66 @@ PIXA    *pixa1, *pixad;
     boxa = pixaGetBoxa(pixas, L_COPY);
     pixaSetBoxa(pixad, boxa, L_INSERT);
     pixaDestroy(&pixa1);
+    return pixad;
+}
+
+
+/*!
+ * \brief   pixaConvertToGivenDepth()
+ *
+ * \param[in]    pixas
+ * \param[in]    depth    specify either 8 or 32 bpp
+ * \return  pixad, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Use this to remove any colormaps and convert all pix to either
+ *          8 or 32 bpp.
+ *      (2) To convert losslessly, get %depth from pixaGetRenderingDepth().
+ *      (3) Clone pix may be in the returned pixa if conversion is to 32 bpp.
+ * </pre>
+ */
+PIXA *
+pixaConvertToGivenDepth(PIXA    *pixas,
+                        l_int32  depth)
+{
+l_int32  i, n, maxd;
+BOXA    *boxa;
+PIX     *pix1, *pix2;
+PIXA    *pixad;
+
+    PROCNAME("pixaConvertToGivenDepth");
+
+    if (!pixas)
+        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+    if ((n = pixaGetCount(pixas)) == 0)
+        return (PIXA *)ERROR_PTR("no components", procName, NULL);
+    if (depth != 8 && depth != 32)
+        return (PIXA *)ERROR_PTR("depth not 8 or 32", procName, NULL);
+
+        /* Warn with 1 --> {8,32} or lossy conversions */
+    pixaGetRenderingDepth(pixas, &maxd);
+    if (maxd == 1)
+        L_WARNING("All pix are 1 bpp; converting to %d bpp\n", procName, depth);
+    if (maxd > depth)
+        L_WARNING("Lossy conversion: max rendering depth %d > input %d\n",
+                  procName, maxd, depth);
+
+    pixad = pixaCreate(n);
+    for (i = 0; i < n; i++) {
+        pix1 = pixaGetPix(pixas, i, L_CLONE);
+        if (depth == 32) {
+            pix2 = (pixGetDepth(pix1) == 32) ? pixClone(pix1) :
+                   pixConvertTo32(pix1);
+        } else {  /* depth = 8 */
+            pix2 = pixConvertTo8(pix1, 0);
+        }
+        pixaAddPix(pixad, pix2, L_INSERT);
+        pixDestroy(&pix1);
+    }
+    
+    boxa = pixaGetBoxa(pixas, L_COPY);
+    pixaSetBoxa(pixad, boxa, L_INSERT);
     return pixad;
 }
 
