@@ -58,14 +58,14 @@
  *     or an array of bytes in memory.
  *
  *     Set 2. These functions are a special case of set 1, where
- *     no scaling or change in quality is required.  For jpeg and jp2k
- *     images, the bytes in each file can be directly incorporated
+ *     no scaling or change in quality is required.  For jpeg, jp2k and
+ *     tiffg4 images, the bytes in each file can be directly incorporated
  *     into the output pdf, and the wrapping up of multiple image
  *     files is very fast.  For non-interlaced png, the data bytes
  *     including the predictors can also be written directly into the
- *     flate pdf data.  For other image formats (e.g., tiff-g4),
- *     transcoding is required, where the image data is first decompressed
- *     and then the G4 or Flate (gzip) encodings are generated.
+ *     flate pdf data.  For other image formats transcoding is required,
+ *     where the image data is first decompressed and then flate (gzip),
+ *     DCT (jpeg) or tiffg4 (1 bpp) encodings are generated.
  *
  *     Set 3. These functions convert a set of images in memory
  *     to a multi-page pdf, with one image on each page.  The pdf
@@ -531,9 +531,9 @@ PIXCMAP  *cmap;
  *      (2) The files in the directory, after optional filtering by
  *          the substring, are lexically sorted in increasing order
  *          before concatenation.
- *      (3) This is very fast for jpeg, jp2k and some png files, because
- *          the compressed data is wrapped up and concatenated.  For tiffg4
- *          and other types of png, the images must be read and recompressed.
+ *      (3) This is very fast for jpeg, jp2k, tiffg4 and some png files,
+ *          because the compressed data is wrapped up and concatenated.
+ *          For other types of png, the images must be read and recompressed.
  * </pre>
  */
 l_ok
@@ -614,9 +614,9 @@ size_t    nbytes;
  *
  * <pre>
  * Notes:
- *      (1) This is very fast for jpeg, jp2k and some png files, because
- *          the compressed data is wrapped up and concatenated.  For tiffg4
- *          and other types of png, the images must be read and recompressed.
+ *      (1) This is very fast for jpeg, jp2k, tiffg4 and some png files,
+ *          because the compressed data is wrapped up and concatenated.
+ *          For other types of png, the images must be read and recompressed.
  * </pre>
  */
 l_ok
@@ -693,9 +693,9 @@ L_PTRA       *pa_data;
  *
  * <pre>
  * Notes:
- *      (1) This is very fast for jpeg, jp2k and some png files, because
- *          the compressed data is wrapped up and concatenated.  For tiffg4
- *          and other types of png, the images must be read and recompressed.
+ *      (1) This is very fast for jpeg, jp2k, tiffg4 and some png files,
+ *          because the compressed data is wrapped up and concatenated.
+ *          For other types of png, the images must be read and recompressed.
  * </pre>
  */
 l_ok
@@ -731,8 +731,8 @@ L_COMP_DATA  *cid;
     }
 
         /* Generate the image data required for pdf generation, always
-         * in binary (not ascii85) coding.  Note that jpeg, jp2k and
-         * some png files are not transcoded.  */
+         * in binary (not ascii85) coding.  Note that jpeg, jp2k, tiffg4
+         * and some png files are not transcoded.  */
     l_generateCIDataForPdf(fname, NULL, 0, &cid);
     if (!cid) {
         L_ERROR("file %s format is %d; unreadable\n", procName, fname, format);

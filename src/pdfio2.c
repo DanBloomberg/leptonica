@@ -47,6 +47,7 @@
  *          L_COMP_DATA         *l_generateJpegData()
  *          L_COMP_DATA         *l_generateJpegDataMem()
  *          static L_COMP_DATA  *l_generateJp2kData()
+ *          L_COMP_DATA         *l_generateG4Data()
  *
  *       With transcoding
  *          l_int32              l_generateCIData()
@@ -56,7 +57,6 @@
  *          static L_COMP_DATA  *pixGenerateJpegData()
  *          static L_COMP_DATA  *pixGenerateJp2kData()
  *          static L_COMP_DATA  *pixGenerateG4Data()
- *          L_COMP_DATA         *l_generateG4Data()
  *
  *       Other
  *          l_int32              cidConvertToPdfData()
@@ -564,6 +564,8 @@ PIX          *pixt;
             cid = l_generateJpegData(fname, 0);
         } else if (format == IFF_JP2) {
             cid = l_generateJp2kData(fname);
+        } else if (format == IFF_TIFF_G4) {
+            cid = l_generateG4Data(fname, 0);
         } else if (format == IFF_PNG) {
             cid = l_generateFlateDataPdf(fname, pix);
         }
@@ -805,9 +807,8 @@ PIXCMAP      *cmap = NULL;
  * <pre>
  * Notes:
  *      (1) Set ascii85flag:
- *           ~ 0 for binary data (not permitted in PostScript)
- *           ~ 1 for ascii85 (5 for 4) encoded binary data
- *               (not permitted in pdf)
+ *           ~ 0 for binary data (PDF only)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
  *      (2) Most of this function is repeated in l_generateJpegMemData(),
  *          which is required in pixacompFastConvertToPdfData().
  * </pre>
@@ -881,9 +882,8 @@ FILE         *fp;
  * <pre>
  * Notes:
  *      (1) Set ascii85flag:
- *           ~ 0 for binary data (not permitted in PostScript)
- *           ~ 1 for ascii85 (5 for 4) encoded binary data
- *               (not permitted in pdf)
+ *           ~ 0 for binary data (PDF only)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
  * </pre>
  */
 L_COMP_DATA *
@@ -988,6 +988,81 @@ FILE         *fp;
 
 
 /*!
+ * \brief   l_generateG4Data()
+ *
+ * \param[in]    fname          of g4 compressed file
+ * \param[in]    ascii85flag    0 for g4 compressed; 1 for ascii85-encoded g4
+ * \return  cid g4 compressed image data, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Set ascii85flag:
+ *           ~ 0 for binary data (PDF only)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
+ * </pre>
+ */
+L_COMP_DATA *
+l_generateG4Data(const char  *fname,
+                 l_int32      ascii85flag)
+{
+l_uint8      *datacomp = NULL;  /* g4 compressed raster data */
+char         *data85 = NULL;  /* ascii85 encoded g4 compressed data */
+l_int32       w, h, xres, yres;
+l_int32       minisblack;  /* TRUE or FALSE */
+size_t        nbytes85, nbytescomp;
+L_COMP_DATA  *cid;
+FILE         *fp;
+
+    PROCNAME("l_generateG4Data");
+
+    if (!fname)
+        return (L_COMP_DATA *)ERROR_PTR("fname not defined", procName, NULL);
+
+        /* Read the resolution */
+    if ((fp = fopenReadStream(fname)) == NULL)
+        return (L_COMP_DATA *)ERROR_PTR("stream not opened", procName, NULL);
+    getTiffResolution(fp, &xres, &yres);
+    fclose(fp);
+
+        /* The returned ccitt g4 data in memory is the block of
+         * bytes in the tiff file, starting after 8 bytes and
+         * ending before the directory. */
+    if (extractG4DataFromFile(fname, &datacomp, &nbytescomp,
+                              &w, &h, &minisblack)) {
+        return (L_COMP_DATA *)ERROR_PTR("datacomp not extracted",
+                                        procName, NULL);
+    }
+
+        /* Optionally, encode the compressed data */
+    if (ascii85flag == 1) {
+        data85 = encodeAscii85(datacomp, nbytescomp, &nbytes85);
+        LEPT_FREE(datacomp);
+        if (!data85)
+            return (L_COMP_DATA *)ERROR_PTR("data85 not made", procName, NULL);
+        else
+            data85[nbytes85 - 1] = '\0';  /* remove the newline */
+    }
+
+    cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA));
+    if (ascii85flag == 0) {
+        cid->datacomp = datacomp;
+    } else {  /* ascii85 */
+        cid->data85 = data85;
+        cid->nbytes85 = nbytes85;
+    }
+    cid->type = L_G4_ENCODE;
+    cid->nbytescomp = nbytescomp;
+    cid->w = w;
+    cid->h = h;
+    cid->bps = 1;
+    cid->spp = 1;
+    cid->minisblack = minisblack;
+    cid->res = xres;
+    return cid;
+}
+
+
+/*!
  * \brief   l_generateCIData()
  *
  * \param[in]    fname
@@ -1003,8 +1078,8 @@ FILE         *fp;
  * Notes:
  *      (1) This can be used for both PostScript and pdf.
  *      (1) Set ascii85:
- *           ~ 0 for binary data (not permitted in PostScript)
- *           ~ 1 for ascii85 (5 for 4) encoded binary data
+ *           ~ 0 for binary data (PDF only)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
  *      (2) This attempts to compress according to the requested type.
  *          If this can't be done, it falls back to ordinary flate encoding.
  *      (3) This differs from l_generateCIDataPdf(), which determines
@@ -1105,8 +1180,8 @@ PIX          *pix;
  * <pre>
  * Notes:
  *      (1) Set ascii85:
- *           ~ 0 for binary data (not permitted in PostScript)
- *           ~ 1 for ascii85 (5 for 4) encoded binary data
+ *           ~ 0 for binary data (PDF only)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
  * </pre>
  */
 l_ok
@@ -1202,8 +1277,8 @@ PIXCMAP  *cmap;
  *           ~ 8 bpp, colormap
  *           ~ 32 bpp rgb
  *      (2) Set ascii85flag:
- *           ~ 0 for binary data (not permitted in PostScript)
- *           ~ 1 for ascii85 (5 for 4) encoded binary data
+ *           ~ 0 for binary data (PDF only)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
  * </pre>
  */
 L_COMP_DATA *
@@ -1361,8 +1436,8 @@ PIXCMAP      *cmap;
  * <pre>
  * Notes:
  *      (1) Set ascii85flag:
- *           ~ 0 for binary data (not permitted in PostScript)
- *           ~ 1 for ascii85 (5 for 4) encoded binary data
+ *           ~ 0 for binary data (PDF only)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
  * </pre>
  */
 static L_COMP_DATA *
@@ -1458,8 +1533,8 @@ L_COMP_DATA  *cid;
  * <pre>
  * Notes:
  *      (1) Set ascii85flag:
- *           ~ 0 for binary data (not permitted in PostScript)
- *           ~ 1 for ascii85 (5 for 4) encoded binary data
+ *           ~ 0 for binary data (PDF only)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
  * </pre>
  */
 static L_COMP_DATA *
@@ -1487,82 +1562,6 @@ L_COMP_DATA  *cid;
     if (lept_rmfile(fname) != 0)
         L_ERROR("temp file %s was not deleted\n", procName, fname);
     LEPT_FREE(fname);
-    return cid;
-}
-
-
-/*!
- * \brief   l_generateG4Data()
- *
- * \param[in]    fname          of g4 compressed file
- * \param[in]    ascii85flag    0 for g4 compressed; 1 for ascii85-encoded g4
- * \return  cid g4 compressed image data, or NULL on error
- *
- * <pre>
- * Notes:
- *      (1) Set ascii85flag:
- *           ~ 0 for binary data (not permitted in PostScript)
- *           ~ 1 for ascii85 (5 for 4) encoded binary data
- *             (not permitted in pdf)
- * </pre>
- */
-L_COMP_DATA *
-l_generateG4Data(const char  *fname,
-                 l_int32      ascii85flag)
-{
-l_uint8      *datacomp = NULL;  /* g4 compressed raster data */
-char         *data85 = NULL;  /* ascii85 encoded g4 compressed data */
-l_int32       w, h, xres, yres;
-l_int32       minisblack;  /* TRUE or FALSE */
-size_t        nbytes85, nbytescomp;
-L_COMP_DATA  *cid;
-FILE         *fp;
-
-    PROCNAME("l_generateG4Data");
-
-    if (!fname)
-        return (L_COMP_DATA *)ERROR_PTR("fname not defined", procName, NULL);
-
-        /* Read the resolution */
-    if ((fp = fopenReadStream(fname)) == NULL)
-        return (L_COMP_DATA *)ERROR_PTR("stream not opened", procName, NULL);
-    getTiffResolution(fp, &xres, &yres);
-    fclose(fp);
-
-        /* The returned ccitt g4 data in memory is the block of
-         * bytes in the tiff file, starting after 8 bytes and
-         * ending before the directory. */
-    if (extractG4DataFromFile(fname, &datacomp, &nbytescomp,
-                              &w, &h, &minisblack)) {
-        return (L_COMP_DATA *)ERROR_PTR("datacomp not extracted",
-                                        procName, NULL);
-    }
-
-        /* Optionally, encode the compressed data */
-    if (ascii85flag == 1) {
-        data85 = encodeAscii85(datacomp, nbytescomp, &nbytes85);
-        LEPT_FREE(datacomp);
-        if (!data85)
-            return (L_COMP_DATA *)ERROR_PTR("data85 not made", procName, NULL);
-        else
-            data85[nbytes85 - 1] = '\0';  /* remove the newline */
-    }
-
-    cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA));
-    if (ascii85flag == 0) {
-        cid->datacomp = datacomp;
-    } else {  /* ascii85 */
-        cid->data85 = data85;
-        cid->nbytes85 = nbytes85;
-    }
-    cid->type = L_G4_ENCODE;
-    cid->nbytescomp = nbytescomp;
-    cid->w = w;
-    cid->h = h;
-    cid->bps = 1;
-    cid->spp = 1;
-    cid->minisblack = minisblack;
-    cid->res = xres;
     return cid;
 }
 
