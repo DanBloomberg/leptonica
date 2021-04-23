@@ -92,7 +92,7 @@ They are <i>not</i> a complete listing of the modifications.
 1.81.0  not yet set
         * Fixed problems with tiff pdf wrapping photometry.
         * Fixed scaling issues in prog/cleanpdf for printing.
-        * New progs: tiffpdftest
+        * New progs: tiffpdftest, hashtest
         * Fixed uninitialized data error in pixAddBorderGeneral() and
           pixRemoveBorderGeneral()
         * Rewrote Numa functions that discretize into bins.  Have
@@ -115,6 +115,12 @@ They are <i>not</i> a complete listing of the modifications.
         * Added hashmap utility (hashmap.c, hashmap.h).
         * Removed functions using dnahash on strings, pts and doubles.
         * Improved the speed of hashing for strings and doubles.
+        * Added function for tiling images in pairs for comparison.
+        * Added null terminations to serialized strings written to memory,
+          preventing buffer overrun by strlen() [fixed by Stefan Weil].
+        * No longer use "NoInit" versions of pix creation in leptonica.
+          because they risk reading uninitialized data.  These functions
+          remain in the library because they are in use in applications.
 
 1.80.0  28 July 2020
         * Improve bmp handling of 1 bpp images and sanity checking of params.
