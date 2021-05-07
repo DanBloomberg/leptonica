@@ -388,21 +388,31 @@ Building leptonica
    The oss-fuzz programs are in prog/fuzzing/.  They are run by oss-fuzz
    on a continual basis with random inputs.  clang-10, which is required
    to build these programs, can be installed using the command
-         sudo apt-get install clang-10
+       sudo apt-get install clang-10
 
    Stefan Weil has provided this method for building the fuzzing programs.
    From your github root:
        ./autogen.sh    (to make configure)
        mkdir -p bin/fuzzer
        cd bin/fuzzer
-   Then run configure to generate the Makefiles:
+   Run configure to generate the Makefiles:
+     address sanitizer issue:
        ../../configure CC=clang-10 CXX=clang++-10 CFLAGS="-g -O2 \
        -D_GLIBCXX_DEBUG -fsanitize=fuzzer-no-link,address,undefined" \
        CXXFLAGS="-g -O2 -D_GLIBCXX_DEBUG \
        -fsanitize=fuzzer-no-link,address,undefined"
-   And build:
+     memory sanitizer issue:
+       ../../configure CC=clang-10 CXX=clang++-10 CFLAGS="-g -O2 \
+       -D_GLIBCXX_DEBUG -fsanitize=fuzzer-no-link,memory,undefined" \
+       CXXFLAGS="-g -O2 -D_GLIBCXX_DEBUG \
+       -fsanitize=fuzzer-no-link,memory,undefined"
+   Build:
+     address sanitizer issue:
        make fuzzers CXX=clang++-10 CXXFLAGS="-g -O2 -D_GLIBCXX_DEBUG \
        -fsanitize=fuzzer,address,undefined"
+     memory sanitizer issue:
+       make fuzzers CXX=clang++-10 CXXFLAGS="-g -O2 -D_GLIBCXX_DEBUG \
+       -fsanitize=fuzzer,memory,undefined"
 
    When an oss-fuzz issue has been created, download the Reproducer
    Testcase file (e.g, name it "/tmp/payload").  To run one of the
@@ -429,10 +439,9 @@ Building leptonica
    (3) Other regression tests, some of which have not (yet) been
        put into the framework.  They are also named *_reg.
 
-   (4) Programs that were used to test library functions or
-       auto-generate library code.  These are useful for testing
-       the behavior of small sets of functions, and for
-       providing example code.
+   (4) Programs that were used to test library functions or auto-generate
+       library code.  These are useful for testing the behavior of small
+       sets of functions and for providing example code.
 </pre>
 
 <h2> <A NAME="DEPENDENCIES">
