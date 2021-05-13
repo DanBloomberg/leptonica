@@ -266,7 +266,8 @@ size_t   nbytes;
  * \param[in]    val1    typ. the golden value
  * \param[in]    val2    typ. the value computed
  * \param[in]    delta   allowed max absolute difference
- * \return  0 if OK, 1 on error a failure in comparison is not an error
+ * \return  0 if OK, 1 on error
+ *               Note: a failure in comparison is not an error
  */
 l_ok
 regTestCompareValues(L_REGPARAMS  *rp,
@@ -309,7 +310,8 @@ l_float32  diff;
  * \param[in]    bytes1    size of string1
  * \param[in]    string2   typ. the computed string
  * \param[in]    bytes2    size of string2
- * \return  0 if OK, 1 on error a failure in comparison is not an error
+ * \return  0 if OK, 1 on error
+ *               Note: a failure in comparison is not an error
  */
 l_ok
 regTestCompareStrings(L_REGPARAMS  *rp,
@@ -359,7 +361,8 @@ char     buf[256];
  *
  * \param[in]    rp            regtest parameters
  * \param[in]    pix1, pix2    to be tested for equality
- * \return  0 if OK, 1 on error a failure in comparison is not an error
+ * \return  0 if OK, 1 on error
+ *               Note: a failure in comparison is not an error
  *
  * <pre>
  * Notes:
@@ -409,8 +412,8 @@ l_int32  same;
  * \param[in]    maxfract     maximum fraction of pixels allowed to have
  *                            diff greater than or equal to mindiff
  * \param[in]    printstats   use 1 to print normalized histogram to stderr
- * \return  0 if OK, 1 on error a failure in similarity comparison
- *              is not an error
+ * \return  0 if OK, 1 on error
+ *               Note: a failure in similarity comparison is not an error
  *
  * <pre>
  * Notes:
@@ -473,7 +476,8 @@ l_int32  w, h, factor, similar;
  *
  * \param[in]    rp         regtest parameters
  * \param[in]    localname  name of output file from reg test
- * \return  0 if OK, 1 on error a failure in comparison is not an error
+ * \return  0 if OK, 1 on error
+ *               Note: a failure in comparison is not an error
  *
  * <pre>
  * Notes:
@@ -588,7 +592,8 @@ PIX     *pix1, *pix2;
  * \param[in]    rp        regtest parameters
  * \param[in]    index1    of one output file from reg test
  * \param[in]    index2    of another output file from reg test
- * \return  0 if OK, 1 on error a failure in comparison is not an error
+ * \return  0 if OK, 1 on error
+ *               Note: a failure in comparison is not an error
  *
  * <pre>
  * Notes:
@@ -673,7 +678,8 @@ SARRAY  *sa;
  * \param[in]    rp       regtest parameters
  * \param[in]    pix      to be written
  * \param[in]    format   of output pix
- * \return  0 if OK, 1 on error a failure in comparison is not an error
+ * \return  0 if OK, 1 on error
+ *               Note: a failure in comparison is not an error
  *
  * <pre>
  * Notes:
@@ -740,7 +746,8 @@ char  namebuf[256];
  * \param[in]    data    to be written
  * \param[in]    nbytes  of data to be written
  * \param[in]    ext     filename extension (e.g.: "ba", "pta")
- * \return  0 if OK, 1 on error a failure in comparison is not an error
+ * \return  0 if OK, 1 on error
+ *               Note: a failure in comparison is not an error
  *
  * <pre>
  * Notes:

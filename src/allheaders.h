@@ -2132,6 +2132,7 @@ LEPT_DLL extern l_int32 ptaTestIntersection ( PTA *pta1, PTA *pta2 );
 LEPT_DLL extern PTA * ptaTransform ( PTA *ptas, l_int32 shiftx, l_int32 shifty, l_float32 scalex, l_float32 scaley );
 LEPT_DLL extern l_int32 ptaPtInsidePolygon ( PTA *pta, l_float32 x, l_float32 y, l_int32 *pinside );
 LEPT_DLL extern l_float32 l_angleBetweenVectors ( l_float32 x1, l_float32 y1, l_float32 x2, l_float32 y2 );
+LEPT_DLL extern l_int32 ptaPolygonIsConvex ( PTA *pta, l_int32 *pisconvex );
 LEPT_DLL extern l_ok ptaGetMinMax ( PTA *pta, l_float32 *pxmin, l_float32 *pymin, l_float32 *pxmax, l_float32 *pymax );
 LEPT_DLL extern PTA * ptaSelectByValue ( PTA *ptas, l_float32 xth, l_float32 yth, l_int32 type, l_int32 relation );
 LEPT_DLL extern PTA * ptaCropToMask ( PTA *ptas, PIX *pixm );

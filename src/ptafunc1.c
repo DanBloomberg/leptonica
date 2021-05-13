@@ -57,6 +57,7 @@
  *           PTA      *ptaTransform()
  *           l_int32   ptaPtInsidePolygon()
  *           l_float32 l_angleBetweenVectors()
+ *           l_int32   ptaPolygonIsConvex()
  *
  *      Min/max and filtering
  *           l_int32   ptaGetMinMax()
@@ -839,6 +840,63 @@ l_float64  ang;
     if (ang > M_PI) ang -= 2.0 * M_PI;
     if (ang < -M_PI) ang += 2.0 * M_PI;
     return ang;
+}
+
+
+/*!
+ * \brief   ptaPolygonIsConvex()
+ *
+ * \param[in]     pta      corners of polygon
+ * \param[out]    pisconvex   1 if convex; 0 otherwise
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) A Pta of size n describes a polygon with n sides, where
+ *          the n-th side goes from point[n - 1] to point[0].
+ *      (2) The pta must describe a CLOCKWISE traversal of the boundary
+ *          of the polygon.
+ *      (3) Algorithm: traversing the boundary in a cw direction, the
+ *          polygon interior is always on the right.  If the polygon is
+ *          convex, for each set of 3 points, the third point is to the
+ *          right of the ray extending from the first point and going
+ *          through the second point.
+ * </pre>
+ */
+l_int32
+ptaPolygonIsConvex(PTA      *pta,
+                   l_int32  *pisconvex)
+{
+l_int32    i, n;
+l_float32  x0, y0, x1, y1, x2, y2;
+l_float64  cprod;
+
+    PROCNAME("ptaPolygonIsConvex");
+
+    if (!pisconvex)
+        return ERROR_INT("&isconvex not defined", procName, 1);
+    *pisconvex = 0;
+    if (!pta)
+        return ERROR_INT("pta not defined", procName, 1);
+    if ((n = ptaGetCount(pta)) < 3)
+        return ERROR_INT("pta has < 3 pts", procName, 1);
+
+    for (i = 0; i < n; i++) {
+        ptaGetPt(pta, i, &x0, &y0);
+        ptaGetPt(pta, (i + 1) % n, &x1, &y1);
+        ptaGetPt(pta, (i + 2) % n, &x2, &y2);
+            /* The vector v02 from p0 to p2 must be to the right of the
+               vector v01 from p0 to p1.  This is true if the cross
+               product v02 x v01 > 0.  In coordinates:
+                   v02x * v01y - v01x * v02y, where
+                   v01x = x1 - x0, v01y = y1 - y0,
+                   v02x = x2 - x0, v02y = y2 - y0   */
+        cprod = (x2 - x0) * (y1 - y0) - (x1 - x0) * (y2 - y0);
+        if (cprod < -0.0001)  /* small delta for float accuracy; test fails */
+            return 0;
+    }
+    *pisconvex = 1;
+    return 0;
 }
 
 

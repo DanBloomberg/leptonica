@@ -38,12 +38,14 @@
  *     -  ptaSort()
  *     -  ptaSort2d()
  *     -  ptaEqual()
+ *     -  ptaPolygonIsConvex()
  */
 
 #ifdef HAVE_CONFIG_H
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include <math.h>
 #include "allheaders.h"
 
 static PIX *PtaDisplayRotate(PIX *pixs, l_float32 xc, l_float32 yc);
@@ -51,7 +53,9 @@ static PIX *PtaDisplayRotate(PIX *pixs, l_float32 xc, l_float32 yc);
 int main(int    argc,
          char **argv)
 {
-l_int32       i, nbox, npta, fgcount, bgcount, count, w, h, x, y, same;
+l_int32       i, nbox, npta, fgcount, bgcount, count, w, h, x, y, same, n;
+l_int32       convex1, convex2, convex3;
+l_float32     fx, fy, ang;
 BOXA         *boxa;
 PIX          *pixs, *pixfg, *pixbg, *pixc, *pixb, *pixd;
 PIX          *pix1, *pix2, *pix3, *pix4;
@@ -165,7 +169,7 @@ L_REGPARAMS  *rp;
     pixaAddPix(pixa, pix3, L_INSERT);
     pix4 = pixaDisplayTiledInRows(pixa, 32, 1500, 1.0, 0, 30, 2);
     regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 13 */
-    pixDisplayWithTitle(pix4, 800, 0, NULL, rp->display);
+    pixDisplayWithTitle(pix4, 450, 0, NULL, rp->display);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix4);
@@ -184,6 +188,52 @@ L_REGPARAMS  *rp;
     ptaEqual(pta1, pta3, &same);
     regTestCompareValues(rp, same, 1, 0.0);  /* 15 */
     pixDestroy(&pix1);
+    ptaDestroy(&pta1);
+    ptaDestroy(&pta2);
+    ptaDestroy(&pta3);
+
+        /* Test if polygon is a convex hull.  Make sure the
+         * pta gives a clockwise traversal of the boundary. */
+    pta1 = ptaCreate(0);
+    pta2 = ptaCreate(0);
+    pta3 = ptaCreate(0);
+    n = 30;
+    for (i = 0; i < n; i++) {
+        ang = -2.0 * 3.14159265 * i / (l_float32)n;
+        fx = 50.0 + 27.3 * cos(ang);
+        fy = 50.0 + 27.3 * sin(ang);
+        ptaAddPt(pta1, fx, fy);
+        if (i == n / 2) fx -= 5.0;  /* pull out */
+        ptaAddPt(pta2, fx, fy);
+        if (i == n / 2) fx += 10.0;  /* push in */
+        ptaAddPt(pta3, fx, fy);
+    }
+    ptaPolygonIsConvex(pta1, &convex1);
+    ptaPolygonIsConvex(pta2, &convex2);
+    ptaPolygonIsConvex(pta3, &convex3);
+    regTestCompareValues(rp, 1, convex1, 0.0);  /* 16 */
+    regTestCompareValues(rp, 0, convex2, 0.0);  /* 17 */
+    regTestCompareValues(rp, 0, convex3, 0.0);  /* 18 */
+    if (rp->display)
+        lept_stderr("convex1 = %s, convex2 = %s, convex3 = %s\n",
+                    (convex1 == 0) ? "no" : "yes",
+                    (convex2 == 0) ? "no" : "yes",
+                    (convex3 == 0) ? "no" : "yes");
+    pixa = pixaCreate(3);
+    pix1 = pixCreate(100, 100, 1);
+    pixRenderPta(pix1, pta1, L_SET_PIXELS);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixCreate(100, 100, 1);
+    pixRenderPta(pix1, pta2, L_SET_PIXELS);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = pixCreate(100, 100, 1);
+    pixRenderPta(pix1, pta3, L_SET_PIXELS);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix2 = pixaDisplayTiledInColumns(pixa, 3, 5.0, 30, 3);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 19 */
+    pixDisplayWithTitle(pix2, 450, 800, NULL, rp->display);
+    pixDestroy(&pix2);
+    pixaDestroy(&pixa);
     ptaDestroy(&pta1);
     ptaDestroy(&pta2);
     ptaDestroy(&pta3);
