@@ -380,7 +380,7 @@ PIXAA   *paa;
     }
 
         /* Determine the class array index.  Check if the class
-         * alreadly exists, and if not, add it. */
+         * already exists, and if not, add it. */
     if (recogGetClassIndex(recog, charint, text, &index) == 1) {
             /* New class must be added */
         npa = pixaaGetCount(paa, NULL);

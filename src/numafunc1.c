@@ -165,7 +165,7 @@
  * Notes:
  *      (1) The sizes of na1 and na2 must be equal.
  *      (2) nad can only null or equal to na1.
- *      (3) To add a constant to a numa, or to multipy a numa by
+ *      (3) To add a constant to a numa, or to multiply a numa by
  *          a constant, use numaTransform().
  * </pre>
  */

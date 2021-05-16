@@ -176,7 +176,7 @@ L_REGPARAMS  *rp;
     }
 
         /* Print out test name and both the leptonica and
-         * image libarary versions */
+         * image library versions */
     lept_stderr("\n////////////////////////////////////////////////\n"
                 "////////////////   %s_reg   ///////////////\n"
                 "////////////////////////////////////////////////\n",

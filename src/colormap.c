@@ -304,7 +304,7 @@ PIXCMAP  *cmap;
  *
  * <pre>
  * Notes:
- *      (1) If %pix is input, this will veify that pixel values cannot
+ *      (1) If %pix is input, this will verify that pixel values cannot
  *          overflow the colormap.  This is a relatively expensive operation
  *          that may need to check all the pixel values.
  *      (2) If %pix is input, there must be at least one color in the

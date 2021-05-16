@@ -743,7 +743,7 @@ l_uint32  *data, *datam, *line, *linem;
  *      (2) Pixels not copied are preset to either white or black.
  *      (3) This fast and simple implementation can use rasterop because
  *          each region to be copied is rectangular.
- *      (4) A much slower implemention that doesn't use rasterop would make
+ *      (4) A much slower implementation that doesn't use rasterop would make
  *          a 1 bpp mask from the boxa and then copy, pixel by pixel,
  *          through the mask:
  *             pixGetDimensions(pixs, &w, &h, NULL);

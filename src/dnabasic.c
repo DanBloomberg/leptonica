@@ -957,7 +957,7 @@ l_dnaGetParameters(L_DNA     *da,
  * \param[in]    da
  * \param[in]    startx   x value corresponding to da[0]
  * \param[in]    delx     difference in x values for the situation where the
- *                        elements of da correspond to the evaulation of a
+ *                        elements of da correspond to the evaluation of a
  *                        function at equal intervals of size %delx
  * \return  0 if OK, 1 on error
  */

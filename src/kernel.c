@@ -1197,7 +1197,7 @@ L_KERNEL  *kel;
  *          normalized and un-normalized convolution will be the same
  *          as when convolving with pixConvolve() using the full kernel.
  *      (3) The trick for the un-normalized convolution is to have the
- *          product of the two kernel elemets at (cx,cy) be equal to %max,
+ *          product of the two kernel elements at (cx,cy) be equal to %max,
  *          not max**2.  That's why %max for kely is 1.0.  If instead
  *          we use sqrt(%max) for both, the results are slightly less
  *          accurate, when compared to using the full kernel in

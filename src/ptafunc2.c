@@ -528,7 +528,7 @@ RB_TYPE   key;
  * \param[in]    pta1
  * \param[in]    pta2
  * \param[out]   pptad     union of the two point arrays
- * \return  0 if OK; 1 on erro
+ * \return  0 if OK; 1 on error
  *
  * <pre>
  * Notes:

@@ -985,7 +985,7 @@ numaGetParameters(NUMA       *na,
  * \param[in]    na
  * \param[in]    startx  x value corresponding to na[0]
  * \param[in]    delx    difference in x values for the situation where the
- *                       elements of na correspond to the evaulation of a
+ *                       elements of na correspond to the evaluation of a
  *                       function at equal intervals of size %delx
  * \return  0 if OK, 1 on error
  */

@@ -229,7 +229,7 @@ PTA       *pta;
     if (boxaGetCount(boxa1) == 0) {
         numaDestroy(&naloc);
         boxaDestroy(&boxa1);
-        L_INFO("no compnents after filtering\n", procName);
+        L_INFO("no components after filtering\n", procName);
         return NULL;
     }
     boxa2 = boxaTransform(boxa1, 0, 0, 4., 4.);
