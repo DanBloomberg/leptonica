@@ -107,7 +107,7 @@
  *         -- Simple plots returning a pix --
  *         Specify only the title (optional).  The plotstyle defaults
  *         GPLOT_LINES and the output format is GPLOT_PNG..
- *         You can't specify the x and y coordinate lables or the plot label.
+ *         You can't specify the x and y coordinate labels or the plot label.
  *         The rootname of the generated files is determined internally.
  *            Pix *pix = gplotSimplePix2(na1, na2, "gray histogram");
  *         Multiple plots can be generated using gplotSimplePixN().

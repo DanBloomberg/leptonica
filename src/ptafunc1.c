@@ -2186,7 +2186,7 @@ PTAA    *ptaa;
  *          the generating 1 bpp pix are represented in %pixs by 0.
  *          We do not check that the pixel values are correctly labelled.
  *      (2) Each pta in the returned ptaa gives the pixel locations
- *          correspnding to a connected component, with the label of each
+ *          corresponding to a connected component, with the label of each
  *          given by the index of the pta into the ptaa.
  *      (3) Initialize with the first pta in ptaa being empty and
  *          representing the background value (index 0) in the pix.

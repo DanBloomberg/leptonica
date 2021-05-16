@@ -47,7 +47,7 @@
  *
  *
  *  The 'set select' functions condition the setting on a specific
- *  pixel value (i.e., index into the colormap) of the underyling
+ *  pixel value (i.e., index into the colormap) of the underlying
  *  Pix that is being modified.  The same conditioning is used in
  *  pixBlendCmap().
  *

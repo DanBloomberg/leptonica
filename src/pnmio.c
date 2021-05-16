@@ -1422,7 +1422,7 @@ l_int32   i, c, foundws;
  *
  * \param[in]    fp    file stream
  * \param[out]   buff  pointer to the string buffer
- * \param[in]    size  max. number of charactes in buffer
+ * \param[in]    size  max. number of characters in buffer
  * \return  0 if OK, 1 on error or EOF.
  *
  * <pre>

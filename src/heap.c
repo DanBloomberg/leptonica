@@ -304,7 +304,7 @@ lheapGetCount(L_HEAP  *lh)
  *          heap array without disturbing the heap.  It allows all the
  *          elements on the heap to be queried in linear time; for
  *          example, to find the min or max of some value.
- *      (2) Tbe retrieved element is owned by the heap.  Do not destroy it.
+ *      (2) The retrieved element is owned by the heap.  Do not destroy it.
  * </pre>
  */
 void *
