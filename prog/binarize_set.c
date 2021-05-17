@@ -40,7 +40,7 @@
  *              fully in black.  For the rest of the image,
  *              much of which is background, use a threshold based on
  *              the Otsu global value of the original image.
- *   Method 4.  Background normalization followed by Sauvola binarization.
+ *   Method 4.  Contrast normalization followed by Sauvola binarization.
  *   Method 5.  Contrast normalization followed by background normalization
  *              and thresholding.
  *
@@ -126,45 +126,20 @@ static char  mainName[] = "binarize_set";
 #endif
 
 #if ALL
-    /* 4. Background normalization followed by Sauvola binarization */
-    if (d == 32)
-        pixg = pixConvertRGBToGray(pixs, 0.2, 0.7, 0.1);
-    else
-        pixg = pixConvertTo8(pixs, 0);
-    pixg2 = pixContrastNorm(NULL, pixg, 20, 20, 130, 2, 2);
-    pixSauvolaBinarizeTiled(pixg2, 25, 0.40, 1, 1, NULL, &pix1);
+    /* 4. Contrast normalization followed by Sauvola binarization */
+    pix1 = pixSauvolaOnContrastNorm(pixs, 130);
     pixaAddPix(pixa, pix1, L_INSERT);
     pixWrite("/tmp/lept/binar/binar4.png", pix1, IFF_PNG);
     pixDisplay(pix1, 100, 600);
-    pixDestroy(&pixg);
-    pixDestroy(&pixg2);
 #endif
 
 #if ALL
     /* 5. Contrast normalization followed by background normalization, and
      * thresholding. */
-    if (d == 32)
-        pixg = pixConvertRGBToGray(pixs, 0.2, 0.7, 0.1);
-    else
-        pixg = pixConvertTo8(pixs, 0);
-
-    pixOtsuAdaptiveThreshold(pixg, 5000, 5000, 0, 0, 0.1, &pix1, NULL);
-    pixGetPixel(pix1, 0, 0, &val);
-    ival = (l_int32)val;
-    newval = ival + (l_int32)(0.6 * (110 - ival));
-    lept_stderr("th1 = %d, th2 = %d\n", ival, newval);
-    pixDestroy(&pix1);
-
-    pixContrastNorm(pixg, pixg, 50, 50, 130, 2, 2);
-    pixg2 = pixBackgroundNorm(pixg, NULL, NULL, 20, 20, 70, 40, 200, 2, 2);
-
-    ival = L_MIN(ival, 110);
-    pix1 = pixThresholdToBinary(pixg2, ival);
+    pix1 = pixThreshOnDoubleNorm(pixs, 130);
     pixaAddPix(pixa, pix1, L_INSERT);
     pixWrite("/tmp/lept/binar/binar5.png", pix1, IFF_PNG);
     pixDisplay(pix1, 100, 800);
-    pixDestroy(&pixg);
-    pixDestroy(&pixg2);
 #endif
 
     pix1 = pixaDisplayTiledInColumns(pixa, 2, 1.0, 30, 2);

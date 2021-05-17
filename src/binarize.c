@@ -52,6 +52,12 @@
  *          static PIX   *pixSauvolaGetThreshold()
  *          static PIX   *pixApplyLocalThreshold();
  *
+ *      Sauvola binarization on adaptive background normalization
+ *          PIX          *pixSauvolaOnBackgroundNorm()  8 bpp
+ *
+ *      Contrast normalization followed by bg normalization and thresholding
+ *          PIX          *pixThreshOnDoubleNorm()
+ *
  *      Global thresholding using connected components
  *          PIX          *pixThresholdByConnComp()
  *
@@ -830,6 +836,103 @@ PIX       *pixd;
         }
     }
 
+    return pixd;
+}
+
+
+/*----------------------------------------------------------------------*
+ *      Contrast normalization followed by Sauvola binarization         *
+ *----------------------------------------------------------------------*/
+/*!
+ * \brief   pixSauvolaOnContrastNorm()
+ *
+ * \param[in]    pixs          8 or 32 bpp
+ * \param[in]    mindiff       minimum diff to accept as valid in contrast
+ *                             normalization.  Use ~130 for noisy images.
+ * \return  pixd    1 bpp thresholded image, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This composite operation is good for adaptively removing
+ *          dark background.
+ * </pre>
+ */
+PIX  *
+pixSauvolaOnContrastNorm(PIX     *pixs,
+                         l_int32  mindiff)
+{
+l_int32  d;
+PIX     *pixg, *pix1, *pixd;
+
+    PROCNAME("pixSauvolaOnContrastNorm");
+
+    if (!pixs || (d = pixGetDepth(pixs)) < 8)
+        return (PIX *)ERROR_PTR("pixs undefined or d < 8 bpp", procName, NULL);
+    if (d == 32)
+        pixg = pixConvertRGBToGray(pixs, 0.3, 0.4, 0.3);
+    else
+        pixg = pixConvertTo8(pixs, 0);
+
+    pix1 = pixContrastNorm(NULL, pixg, 50, 50, mindiff, 2, 2);
+    pixSauvolaBinarizeTiled(pix1, 25, 0.40, 1, 1, NULL, &pixd);
+    pixDestroy(&pixg);
+    pixDestroy(&pix1);
+    return pixd;
+}
+
+
+/*----------------------------------------------------------------------*
+ *      Contrast normalization followed by background normalization     *
+ *                            and thresholding                          *
+ *----------------------------------------------------------------------*/
+/*!
+ * \brief   pixTheshOnDoubleNorm()
+ *
+ * \param[in]    pixs          8 or 32 bpp
+ * \param[in]    mindiff       minimum diff to accept as valid in contrast
+ *                             normalization.  Use ~130 for noisy images.
+ * \return  pixd    1 bpp thresholded image, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This composite operation is good for adaptively removing
+ *          dark background.
+ *      (2) The threshold for the binarization uses an estimate based
+ *          on Otsu adaptive thresholding.
+ * </pre>
+ */
+PIX  *
+pixThreshOnDoubleNorm(PIX     *pixs,
+                      l_int32  mindiff)
+{
+l_int32    d, ival;
+l_uint32   val;
+PIX       *pixg, *pix1, *pixd;
+
+    PROCNAME("pixThreshOnDoubleNorm");
+
+    if (!pixs || (d = pixGetDepth(pixs)) < 8)
+        return (PIX *)ERROR_PTR("pixs undefined or d < 8 bpp", procName, NULL);
+    if (d == 32)
+        pixg = pixConvertRGBToGray(pixs, 0.3, 0.4, 0.3);
+    else
+        pixg = pixConvertTo8(pixs, 0);
+
+        /* Use the entire image for the estimate; pix1 is 1x1 */
+    pixOtsuAdaptiveThreshold(pixg, 5000, 5000, 0, 0, 0.1, &pix1, NULL);
+    pixGetPixel(pix1, 0, 0, &val);
+    ival = (l_int32)val;
+    ival = L_MIN(ival, 110);
+    pixDestroy(&pix1);
+
+        /* Double normalization */
+    pixContrastNorm(pixg, pixg, 50, 50, mindiff, 2, 2);
+    pix1 = pixBackgroundNormSimple(pixg, NULL, NULL);
+    pixDestroy(&pixg);
+
+    lept_stderr("ival = %d\n", ival);
+    pixd = pixThresholdToBinary(pix1, ival);
+    pixDestroy(&pix1);
     return pixd;
 }
 

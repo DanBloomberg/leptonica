@@ -858,9 +858,9 @@ l_float64  ang;
  *          of the polygon.
  *      (3) Algorithm: traversing the boundary in a cw direction, the
  *          polygon interior is always on the right.  If the polygon is
- *          convex, for each set of 3 points, the third point is to the
- *          right of the ray extending from the first point and going
- *          through the second point.
+ *          convex, for each set of 3 points, the third point is either
+ *          on the ray extending from the first point and going through
+ *          the second point, or to the right of it.
  * </pre>
  */
 l_int32
