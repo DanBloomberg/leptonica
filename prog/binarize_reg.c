@@ -41,11 +41,12 @@
 
 #include "allheaders.h"
 
-PIX *PixTest1(PIX *pixs, l_int32 size, l_float32 factor, L_REGPARAMS  *rp);
+PIX *PixTest1(PIX *pixs, l_int32 size, l_float32 factor, L_REGPARAMS *rp);
 PIX *PixTest2(PIX *pixs, l_int32 size, l_float32 factor, l_int32 nx,
               l_int32 ny, L_REGPARAMS *rp);
 void PixTest3(PIX *pixs, l_int32 size, l_float32 factor,
               l_int32 nx, l_int32 ny, l_int32 paircount, L_REGPARAMS *rp);
+void PixTest4(PIX *pixs, PIX *pix2, PIX *pix1, L_REGPARAMS *rp);
 
 int main(int    argc,
          char **argv)
@@ -59,49 +60,54 @@ L_REGPARAMS  *rp;
 
     pixs = pixRead("w91frag.jpg");
 
+        /* Compare Sauvola binarization with and without tiles */
+    pix1 = PixTest1(pixs, 7, 0.34, rp);  /* 0, 1 */
+    pix2 = PixTest2(pixs, 7, 0.34, 4, 4, rp);  /* 2, 3 */
+    regTestComparePix(rp, pix1, pix2);  /* 4 */
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+
+        /* More comparisons of Sauvola with and without tiles. */
+    PixTest3(pixs, 3, 0.20, 2, 3, 0, rp);  /* 5 - 9 */
+    PixTest3(pixs, 6, 0.20, 100, 100, 1, rp);  /* 10 - 14 */
+    PixTest3(pixs, 10, 0.40, 10, 10, 2, rp);  /* 15 - 19 */
+    PixTest3(pixs, 10, 0.40, 20, 20, 3, rp);  /* 20 - 24 */
+    PixTest3(pixs, 20, 0.34, 30, 30, 4, rp);  /* 25 - 29 */
+
         /* Contrast normalization followed by Sauvola */
     pixa = pixaCreate(0);
     pix1 = pixSauvolaOnContrastNorm(pixs, 130);
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 30 */
     pixDisplayWithTitle(pix1, 0, 0, NULL, rp->display);
     pixaAddPix(pixa, pix1, L_INSERT);
 
        /* Contrast normalization followed by background normalization
         * and thresholding. */
     pix1 = pixThreshOnDoubleNorm(pixs, 130);
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 1 */
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 31 */
     pixDisplayWithTitle(pix1, 850, 0, NULL, rp->display);
     pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixaDisplayTiledInColumns(pixa, 2, 0.5, 30, 2);
-    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 2 */
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 32 */
     pixDisplayWithTitle(pix2, 0, 600, NULL, rp->display);
     pixaDestroy(&pixa);
     pixDestroy(&pix2);
 
-        /* Compare Sauvola binarization with and without tiles */
-    pix1 = PixTest1(pixs, 7, 0.34, rp);  /* 3, 4 */
-    pix2 = PixTest2(pixs, 7, 0.34, 4, 4, rp);  /* 5, 6 */
-    regTestComparePix(rp, pix1, pix2);  /* 7 */
+       /* Make and use threshold value array */
+    pix1 = pixThreshOnDoubleNorm(pixs, 130);
+    pix2 = pixThresholdArrayFromResult(pixs, pix1);
+    PixTest4(pixs, pix2, pix1, rp);  /* 33 */
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-
-        /* More comparisons of Sauvola with and without tiles. */
-    PixTest3(pixs, 3, 0.20, 2, 3, 0, rp);  /* 8 - 12 */
-    PixTest3(pixs, 6, 0.20, 100, 100, 1, rp);  /* 13 - 17 */
-    PixTest3(pixs, 10, 0.40, 10, 10, 2, rp);  /* 18 - 22 */
-    PixTest3(pixs, 10, 0.40, 20, 20, 3, rp);  /* 23 - 27 */
-    PixTest3(pixs, 20, 0.34, 30, 30, 4, rp);  /* 28 - 32 */
 
     pixDestroy(&pixs);
     return regTestCleanup(rp);
 }
 
-
-PIX *
-PixTest1(PIX          *pixs,
-         l_int32       size,
-         l_float32     factor,
-         L_REGPARAMS  *rp)
+PIX *PixTest1(PIX          *pixs,
+              l_int32       size,
+              l_float32     factor,
+              L_REGPARAMS  *rp)
 {
 l_int32  w, h;
 PIX     *pixm, *pixsd, *pixth, *pixd, *pix1;
@@ -135,14 +141,12 @@ PIXA    *pixa;
     return pixd;
 }
 
-
-PIX *
-PixTest2(PIX          *pixs,
-         l_int32       size,
-         l_float32     factor,
-         l_int32       nx,
-         l_int32       ny,
-         L_REGPARAMS  *rp)
+PIX *PixTest2(PIX          *pixs,
+              l_int32       size,
+              l_float32     factor,
+              l_int32       nx,
+              l_int32       ny,
+              L_REGPARAMS  *rp)
 {
 l_int32  w, h;
 PIX     *pixth, *pixd, *pix1;
@@ -176,15 +180,13 @@ PIXA    *pixa;
     return pixd;
 }
 
-
-void
-PixTest3(PIX          *pixs,
-         l_int32       size,
-         l_float32     factor,
-         l_int32       nx,
-         l_int32       ny,
-         l_int32       paircount,
-         L_REGPARAMS  *rp)
+void PixTest3(PIX          *pixs,
+              l_int32       size,
+              l_float32     factor,
+              l_int32       nx,
+              l_int32       ny,
+              l_int32       paircount,
+              L_REGPARAMS  *rp)
 {
 PIX  *pix1, *pix2;
 
@@ -195,4 +197,37 @@ PIX  *pix1, *pix2;
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     return;
+}
+
+void PixTest4(PIX          *pixs,  /* original 8 bpp */
+              PIX          *pix2,  /* threshold value array, 8 bpp */
+              PIX          *pixb,  /* binarized 1 bpp */
+              L_REGPARAMS  *rp)
+{
+l_int32    i, j, w, h, wpls, wpl2, wpld, vals, val2, vald;
+l_uint32  *datas, *data2, *datad, *lines, *line2, *lined;
+PIX       *pixd;
+
+        /* From pixs and pix2, make pixd; compare with pixb */
+    pixGetDimensions(pixs, &w, &h, NULL);
+    pixd = pixCreate(w, h, 1);
+    datas = pixGetData(pixs);
+    data2 = pixGetData(pix2);
+    datad = pixGetData(pixd);
+    wpls = pixGetWpl(pixs);
+    wpl2 = pixGetWpl(pix2);
+    wpld = pixGetWpl(pixd);
+    for (i = 0; i < h; i++) {
+        lines = datas + i * wpls;
+        line2 = data2 + i * wpl2;
+        lined = datad + i * wpld;
+        for (j = 0; j < w; j++) {
+            vals = GET_DATA_BYTE(lines, j);
+            val2 = GET_DATA_BYTE(line2, j);
+            if (vals < val2)
+                SET_DATA_BIT(lined, j);
+        }
+    }
+    regTestComparePix(rp, pixb, pixd); 
+    pixDestroy(&pixd);
 }

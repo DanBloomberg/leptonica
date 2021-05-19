@@ -225,7 +225,7 @@ l_int32         bytesRead;
 static PIX *
 gifToPix(GifFileType  *gif)
 {
-l_int32          wpl, i, j, w, h, d, cindex, ncolors, valid;
+l_int32          wpl, i, j, w, h, d, cindex, ncolors, valid, nimages;
 l_int32          rval, gval, bval;
 l_uint32        *data, *line;
 PIX             *pixd;
@@ -246,6 +246,11 @@ int              giferr;
         DGifCloseFile(gif, &giferr);
         return (PIX *)ERROR_PTR("no images found in GIF", procName, NULL);
     }
+
+    nimages = gif->ImageCount;
+    if (nimages > 1)
+        L_WARNING("There are %d images in the file; we only read the first\n",
+                  procName, nimages);
 
     si = gif->SavedImages[0];
     w = si.ImageDesc.Width;
