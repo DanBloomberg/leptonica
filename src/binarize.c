@@ -468,14 +468,14 @@ PIX      *pixn, *pixm, *pixd, *pix1, *pix2, *pix3, *pix4;
  * <pre>
  * Notes:
  *      (1) The window width and height are 2 * %whsize + 1.  The minimum
- *          value for %whsize is 2; typically it is >= 7..
+ *          value for %whsize is 2; typically it is >= 7.
  *      (2) For nx == ny == 1, this defaults to pixSauvolaBinarize().
  *      (3) Why a tiled version?
- *          (a) Because the mean value accumulator is a uint32, overflow
- *              can occur for an image with more than 16M pixels.
- *          (b) The mean value accumulator array for 16M pixels is 64 MB.
- *              The mean square accumulator array for 16M pixels is 128 MB.
- *              Using tiles reduces the size of these arrays.
+ *          (a) A uint32 is used for the mean value accumulator, so
+ *              overflow can occur for an image with more than 16M pixels.
+ *          (b) A dpix is used to accumulate mean square values, and it
+ *              can only accommodate images with less than 2^28 pixels. 
+ *              Using tiles reduces the size of all the arrays.
  *          (c) Each tile can be processed independently, in parallel,
  *              on a multicore processor.
  *      (4) The Sauvola threshold is determined from the formula:
@@ -852,6 +852,7 @@ PIX       *pixd;
  * \param[in]    pixs          8 or 32 bpp
  * \param[in]    mindiff       minimum diff to accept as valid in contrast
  *                             normalization.  Use ~130 for noisy images.
+ * \param[out]   ppixth        [optional] threshold array for binarization
  * \return  pixd    1 bpp thresholded image, or NULL on error
  *
  * <pre>
@@ -862,13 +863,15 @@ PIX       *pixd;
  */
 PIX  *
 pixSauvolaOnContrastNorm(PIX     *pixs,
-                         l_int32  mindiff)
+                         l_int32  mindiff,
+                         PIX    **ppixth)
 {
-l_int32  d;
+l_int32  w, h, d, nx, ny;
 PIX     *pixg, *pix1, *pixd;
 
     PROCNAME("pixSauvolaOnContrastNorm");
 
+    if (ppixth) *ppixth = NULL;
     if (!pixs || (d = pixGetDepth(pixs)) < 8)
         return (PIX *)ERROR_PTR("pixs undefined or d < 8 bpp", procName, NULL);
     if (d == 32)
@@ -877,7 +880,12 @@ PIX     *pixg, *pix1, *pixd;
         pixg = pixConvertTo8(pixs, 0);
 
     pix1 = pixContrastNorm(NULL, pixg, 50, 50, mindiff, 2, 2);
-    pixSauvolaBinarizeTiled(pix1, 25, 0.40, 1, 1, NULL, &pixd);
+
+        /* Use tiles of size approximately 250 x 250 */
+    pixGetDimensions(pix1, &w, &h, NULL);
+    nx = L_MAX(1, (w + 125) / 250);
+    ny = L_MAX(1, (h + 125) / 250);
+    pixSauvolaBinarizeTiled(pix1, 25, 0.40, nx, ny, ppixth, &pixd);
     pixDestroy(&pixg);
     pixDestroy(&pix1);
     return pixd;

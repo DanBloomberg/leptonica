@@ -76,7 +76,7 @@ L_REGPARAMS  *rp;
 
         /* Contrast normalization followed by Sauvola */
     pixa = pixaCreate(0);
-    pix1 = pixSauvolaOnContrastNorm(pixs, 130);
+    pix1 = pixSauvolaOnContrastNorm(pixs, 130, NULL);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 30 */
     pixDisplayWithTitle(pix1, 0, 0, NULL, rp->display);
     pixaAddPix(pixa, pix1, L_INSERT);
