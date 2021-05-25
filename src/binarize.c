@@ -471,7 +471,7 @@ PIX      *pixn, *pixm, *pixd, *pix1, *pix2, *pix3, *pix4;
  *          (a) A uint32 is used for the mean value accumulator, so
  *              overflow can occur for an image with more than 16M pixels.
  *          (b) A dpix is used to accumulate mean square values, and it
- *              can only accommodate images with less than 2^28 pixels. 
+ *              can only accommodate images with less than 2^28 pixels.
  *              Using tiles reduces the size of all the arrays.
  *          (c) Each tile can be processed independently, in parallel,
  *              on a multicore processor.
