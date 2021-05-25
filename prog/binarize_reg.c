@@ -46,7 +46,6 @@ PIX *PixTest2(PIX *pixs, l_int32 size, l_float32 factor, l_int32 nx,
               l_int32 ny, L_REGPARAMS *rp);
 void PixTest3(PIX *pixs, l_int32 size, l_float32 factor,
               l_int32 nx, l_int32 ny, l_int32 paircount, L_REGPARAMS *rp);
-void PixTest4(PIX *pixs, PIX *pix2, PIX *pix1, L_REGPARAMS *rp);
 
 int main(int    argc,
          char **argv)
@@ -76,7 +75,7 @@ L_REGPARAMS  *rp;
 
         /* Contrast normalization followed by Sauvola */
     pixa = pixaCreate(0);
-    pix1 = pixSauvolaOnContrastNorm(pixs, 130, NULL);
+    pix1 = pixSauvolaOnContrastNorm(pixs, 130, NULL, NULL);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 30 */
     pixDisplayWithTitle(pix1, 0, 0, NULL, rp->display);
     pixaAddPix(pixa, pix1, L_INSERT);
@@ -91,13 +90,6 @@ L_REGPARAMS  *rp;
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 32 */
     pixDisplayWithTitle(pix2, 0, 600, NULL, rp->display);
     pixaDestroy(&pixa);
-    pixDestroy(&pix2);
-
-       /* Make and use threshold value array */
-    pix1 = pixThreshOnDoubleNorm(pixs, 130);
-    pix2 = pixThresholdArrayFromResult(pixs, pix1);
-    PixTest4(pixs, pix2, pix1, rp);  /* 33 */
-    pixDestroy(&pix1);
     pixDestroy(&pix2);
 
     pixDestroy(&pixs);
@@ -197,37 +189,4 @@ PIX  *pix1, *pix2;
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     return;
-}
-
-void PixTest4(PIX          *pixs,  /* original 8 bpp */
-              PIX          *pix2,  /* threshold value array, 8 bpp */
-              PIX          *pixb,  /* binarized 1 bpp */
-              L_REGPARAMS  *rp)
-{
-l_int32    i, j, w, h, wpls, wpl2, wpld, vals, val2, vald;
-l_uint32  *datas, *data2, *datad, *lines, *line2, *lined;
-PIX       *pixd;
-
-        /* From pixs and pix2, make pixd; compare with pixb */
-    pixGetDimensions(pixs, &w, &h, NULL);
-    pixd = pixCreate(w, h, 1);
-    datas = pixGetData(pixs);
-    data2 = pixGetData(pix2);
-    datad = pixGetData(pixd);
-    wpls = pixGetWpl(pixs);
-    wpl2 = pixGetWpl(pix2);
-    wpld = pixGetWpl(pixd);
-    for (i = 0; i < h; i++) {
-        lines = datas + i * wpls;
-        line2 = data2 + i * wpl2;
-        lined = datad + i * wpld;
-        for (j = 0; j < w; j++) {
-            vals = GET_DATA_BYTE(lines, j);
-            val2 = GET_DATA_BYTE(line2, j);
-            if (vals < val2)
-                SET_DATA_BIT(lined, j);
-        }
-    }
-    regTestComparePix(rp, pixb, pixd); 
-    pixDestroy(&pixd);
 }

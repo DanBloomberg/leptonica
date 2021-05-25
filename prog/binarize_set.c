@@ -127,7 +127,7 @@ static char  mainName[] = "binarize_set";
 
 #if ALL
     /* 4. Contrast normalization followed by Sauvola binarization */
-    pix1 = pixSauvolaOnContrastNorm(pixs, 130, NULL);
+    pix1 = pixSauvolaOnContrastNorm(pixs, 130, NULL, NULL);
     pixaAddPix(pixa, pix1, L_INSERT);
     pixWrite("/tmp/lept/binar/binar4.png", pix1, IFF_PNG);
     pixDisplay(pix1, 100, 600);
