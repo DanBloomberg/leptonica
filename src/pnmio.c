@@ -1352,13 +1352,12 @@ l_int32   c, ignore;
     *pval = 0;
     if (!fp)
         return ERROR_INT("stream not open", procName, 1);
-    do {  /* skip whitespace and non-numeric characters */
-        if ((c = fgetc(fp)) == EOF)
-            return 1;
-    } while (!isdigit(c));
 
-    fseek(fp, -1L, SEEK_CUR);        /* back up one byte */
-    ignore = fscanf(fp, "%d", pval);
+    if (EOF == fscanf(fp, " "))
+        return 1;
+    if (1 != fscanf(fp, "%d", pval))
+        return 1;
+
     return 0;
 }
 
@@ -1373,8 +1372,9 @@ l_int32   c, ignore;
  * <pre>
  * Notes:
  *      (1) This reads the next set of numeric chars, returning
- *          the value and swallowing the trailing whitespace character.
- *          This is needed to read the maxval in the header, which
+ *          the value and swallowing initial whitespaces
+ *          and ONE trailing whitespace character.
+ *          THIS IS NEEDED TO READ THE MAXVAL in the header, which
  *          precedes the binary data.
  * </pre>
  */
@@ -1392,6 +1392,9 @@ l_int32   i, c, foundws;
     *pval = 0;
     if (!fp)
         return ERROR_INT("stream not open", procName, 1);
+        /* Swallow whitespace */
+    if (fscanf(fp, " ") == EOF)
+        return ERROR_INT("end of file reached", procName, 1);
 
         /* The ASCII characters for the number are followed by exactly
          * one whitespace character. */
@@ -1428,8 +1431,7 @@ l_int32   i, c, foundws;
  * <pre>
  * Notes:
  *      (1) This reads the next set of alphanumeric chars,
- *          returning the string and swallowing the trailing
- *          whitespace characters.
+ *          returning the string.
  *          This is needed to read header lines, which precede
  *          the P7 format binary data.
  * </pre>
@@ -1440,9 +1442,12 @@ pnmReadNextString(FILE    *fp,
                   l_int32  size)
 {
 l_int32   i, c;
+char fmtString[6]; // must contain "%9999s" [*]
 
     PROCNAME("pnmReadNextString");
 
+    if (size > 10000) // size-1 has > 4 digits [*]
+        return ERROR_INT("size is too big", procName, 1);
     if (!buff)
         return ERROR_INT("buff not defined", procName, 1);
     *buff = '\0';
@@ -1451,50 +1456,18 @@ l_int32   i, c;
     if (size <= 0)
         return ERROR_INT("size is too small", procName, 1);
 
-    do {  /* skip whitespace */
-        if ((c = fgetc(fp)) == EOF)
-            return ERROR_INT("end of file reached", procName, 1);
-    } while (c == ' ' || c == '\t' || c == '\n' || c == '\r');
+    if (fscanf(fp, " ") == EOF)
+        return 1;
 
         /* Comment lines are allowed to appear
          * anywhere in the header lines */
-    if (c == '#') {
-        do {  /* each line starting with '#' */
-            do {  /* this entire line */
-                if ((c = fgetc(fp)) == EOF)
-                    return ERROR_INT("end of file reached", procName, 1);
-            } while (c != '\n');
-            if ((c = fgetc(fp)) == EOF)
-                return ERROR_INT("end of file reached", procName, 1);
-        } while (c == '#');
-    }
+    if (pnmSkipCommentLines(fp))
+        return ERROR_INT("end of file reached", procName, 1);
 
-        /* The next string ends when there is
-         * a whitespace character following. */
-    for (i = 0; i < size - 1; i++) {
-        if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
-            break;
-        buff[i] = c;
-        if ((c = fgetc(fp)) == EOF)
-            return ERROR_INT("end of file reached", procName, 1);
-    }
-    buff[i] = '\0';
+    snprintf(fmtString, 6, "%%%ds", size-1);
+    if (fscanf(fp, fmtString, buff) == EOF)
+        return 1;
 
-        /* Back up one byte */
-    fseek(fp, -1L, SEEK_CUR);
-    if (i >= size - 1)
-        return ERROR_INT("buff size too small", procName, 1);
-
-        /* Skip over trailing spaces and tabs */
-    for (;;) {
-        if ((c = fgetc(fp)) == EOF)
-            return ERROR_INT("end of file reached", procName, 1);
-        if (c != ' ' && c != '\t')
-            break;
-    }
-
-        /* Back up one byte */
-    fseek(fp, -1L, SEEK_CUR);
     return 0;
 }
 
@@ -1511,27 +1484,20 @@ l_int32   i, c;
 static l_int32
 pnmSkipCommentLines(FILE  *fp)
 {
-l_int32  c;
+l_int32  i;
+char  c;
 
     PROCNAME("pnmSkipCommentLines");
 
     if (!fp)
         return ERROR_INT("stream not open", procName, 1);
-    if ((c = fgetc(fp)) == EOF)
-        return 1;
-    if (c == '#') {
-        do {  /* each line starting with '#' */
-            do {  /* this entire line */
-                if ((c = fgetc(fp)) == EOF)
-                    return 1;
-            } while (c != '\n');
-            if ((c = fgetc(fp)) == EOF)
+    while ((i = fscanf(fp, "#%c", &c))) {
+        if (i == EOF) return 1; 
+        while (c != '\n') {
+            if (fscanf(fp, "%c", &c) == EOF)
                 return 1;
-        } while (c == '#');
+        }
     }
-
-        /* Back up one byte */
-    fseek(fp, -1L, SEEK_CUR);
     return 0;
 }
 
