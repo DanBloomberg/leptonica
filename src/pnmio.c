@@ -106,7 +106,12 @@
  *
  *      Writing P7 format is currently selected for 32-bpp with alpha
  *      channel, i.e. for Pix which have spp == 4, using pixWriteStreamPam().
+ *
  *      Jürgen Buchmüller provided the implementation for the P7 (pam) format.
+ *
+ *      Giulio Lunati made an elegant reimplementation of the static helper
+ *      functions using fscanf() instead of fseek(), so that it works with
+ *      pnm data from stdin.
  * </pre>
  */
 
@@ -1327,7 +1332,6 @@ FILE    *fp;
 }
 
 
-
 /*--------------------------------------------------------------------*
  *                          Static helpers                            *
  *--------------------------------------------------------------------*/
@@ -1372,10 +1376,9 @@ l_int32   c, ignore;
  * <pre>
  * Notes:
  *      (1) This reads the next set of numeric chars, returning
- *          the value and swallowing initial whitespaces
- *          and ONE trailing whitespace character.
- *          THIS IS NEEDED TO READ THE MAXVAL in the header, which
- *          precedes the binary data.
+ *          the value and swallowing initial whitespaces and ONE
+ *          trailing whitespace character.  This is needed to read
+ **         the maxval in the header, which precedes the binary data.
  * </pre>
  */
 static l_int32
@@ -1392,6 +1395,7 @@ l_int32   i, c, foundws;
     *pval = 0;
     if (!fp)
         return ERROR_INT("stream not open", procName, 1);
+
         /* Swallow whitespace */
     if (fscanf(fp, " ") == EOF)
         return ERROR_INT("end of file reached", procName, 1);
@@ -1430,10 +1434,9 @@ l_int32   i, c, foundws;
  *
  * <pre>
  * Notes:
- *      (1) This reads the next set of alphanumeric chars,
- *          returning the string.
- *          This is needed to read header lines, which precede
- *          the P7 format binary data.
+ *      (1) This reads the next set of alphanumeric chars, returning the string.
+ *          This is needed to read header lines, which precede the P7
+ *          format binary data.
  * </pre>
  */
 static l_int32
@@ -1442,25 +1445,25 @@ pnmReadNextString(FILE    *fp,
                   l_int32  size)
 {
 l_int32   i, c;
-char fmtString[6]; // must contain "%9999s" [*]
+char fmtString[6];  /* must contain "%9999s" [*] */
 
     PROCNAME("pnmReadNextString");
 
-    if (size > 10000) // size-1 has > 4 digits [*]
-        return ERROR_INT("size is too big", procName, 1);
     if (!buff)
         return ERROR_INT("buff not defined", procName, 1);
     *buff = '\0';
-    if (!fp)
-        return ERROR_INT("stream not open", procName, 1);
+    if (size > 10000)  /* size - 1 has > 4 digits [*]  */
+        return ERROR_INT("size is too big", procName, 1);
     if (size <= 0)
         return ERROR_INT("size is too small", procName, 1);
+    if (!fp)
+        return ERROR_INT("stream not open", procName, 1);
 
+        /* Skip whitespace */
     if (fscanf(fp, " ") == EOF)
         return 1;
 
-        /* Comment lines are allowed to appear
-         * anywhere in the header lines */
+        /* Comment lines are allowed to appear anywhere in the header lines */
     if (pnmSkipCommentLines(fp))
         return ERROR_INT("end of file reached", procName, 1);
 
@@ -1480,12 +1483,14 @@ char fmtString[6]; // must contain "%9999s" [*]
  *  Notes:
  *      (1) Comment lines begin with '#'
  *      (2) Usage: caller should check return value for EOF
+ *      (3) The previous implementation used fseek(fp, -1L, SEEK_CUR)
+ *          to back up one character, which doesn't work with stdin.
  */
 static l_int32
 pnmSkipCommentLines(FILE  *fp)
 {
 l_int32  i;
-char  c;
+char     c;
 
     PROCNAME("pnmSkipCommentLines");
 
@@ -1500,6 +1505,7 @@ char  c;
     }
     return 0;
 }
+
 
 /* --------------------------------------------*/
 #endif  /* USE_PNMIO */
