@@ -40,15 +40,12 @@
 #include "allheaders.h"
 
 static const char  *boxafiles[3] = {"boxap1.ba", "boxap2.ba", "boxap3.ba"};
-
-static void TestBoxa(L_REGPARAMS *rp, l_int32 index);
-static void PlotBoxa(L_REGPARAMS *rp, l_int32 index);
 static l_float32  varp[3] = {0.0165, 0.0432, 0.0716};
 static l_float32  varm[3] = {0.0088, 0.0213, 0.0357};
 static l_int32  same[3] = {1, -1, -1};
-static l_float32  devwidth[3] = {0.0864, 0.0895, 0.1174};
-static l_float32  devheight[3] = {0.0048, 0.0294, 0.0023};
 
+static void TestBoxa(L_REGPARAMS *rp, l_int32 index);
+static void PlotBoxa(L_REGPARAMS *rp, l_int32 index);
 
 l_int32 main(int    argc,
              char **argv)
@@ -102,9 +99,9 @@ PIX       *pix1;
     if (rp->display)
         lept_stderr("median width = %d, median height = %d\n", medw, medh);
 
-        /* Check for deviations from median by pairs: method 1 */
-    boxaSizeConsistency1(boxa2, L_CHECK_HEIGHT, 0.0, 0.0,
-                         &fvarp, &fvarm, &isame);
+        /* Check for deviations from median by pairs */
+    boxaSizeConsistency(boxa2, L_CHECK_HEIGHT, 0.0, 0.0,
+                        &fvarp, &fvarm, &isame);
     regTestCompareValues(rp, varp[index], fvarp, 0.003);  /* 2, 15, 28 */
     regTestCompareValues(rp, varm[index], fvarm, 0.003);  /* 3, 16, 29 */
     regTestCompareValues(rp, same[index], isame, 0);  /* 4, 17, 30 */
@@ -112,21 +109,14 @@ PIX       *pix1;
         lept_stderr("fvarp = %7.4f, fvarm = %7.4f, same = %d\n",
                     fvarp, fvarm, isame);
 
-        /* Check for deviations from median by pairs: method 2 */
-    boxaSizeConsistency2(boxa2, &devw, &devh, 0);
-    regTestCompareValues(rp, devwidth[index], devw, 0.001);  /* 5, 18, 31 */
-    regTestCompareValues(rp, devheight[index], devh, 0.001);  /* 6, 19, 32 */
-    if (rp->display)
-        lept_stderr("dev width = %7.4f, dev height = %7.4f\n", devw, devh);
-
         /* Reconcile widths */
     boxa3 = boxaReconcileSizeByMedian(boxa2, L_CHECK_WIDTH, 0.05, 0.04, 1.03,
                                       NULL, NULL, &ratiowh);
     boxaWriteMem(&data, &size, boxa3);
-    regTestWriteDataAndCheck(rp, data, size, "ba");  /* 7, 20, 33 */
+    regTestWriteDataAndCheck(rp, data, size, "ba");  /* 5, 18, 31 */
     lept_free(data);
     pix1 = boxaDisplayTiled(boxa3, NULL, 0, -1, 2200, 2, 1.0, 0, 3, 2);
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);   /* 8, 21, 34 */
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);   /* 6, 19, 32 */
     pixDisplayWithTitle(pix1, 500, 0, NULL, rp->display);
     if (rp->display)
         lept_stderr("ratio median width/height = %6.3f\n", ratiowh);
@@ -137,10 +127,10 @@ PIX       *pix1;
     boxa3 = boxaReconcileSizeByMedian(boxa2, L_CHECK_HEIGHT, 0.05, 0.04, 1.03,
                                       NULL, NULL, NULL);
     boxaWriteMem(&data, &size, boxa3);
-    regTestWriteDataAndCheck(rp, data, size, "ba");  /* 9, 22, 35 */
+    regTestWriteDataAndCheck(rp, data, size, "ba");  /* 7, 20, 33 */
     lept_free(data);
     pix1 = boxaDisplayTiled(boxa3, NULL, 0, -1, 2200, 2, 1.0, 0, 3, 2);
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);   /* 10, 23, 36 */
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);   /* 8, 21, 34 */
     pixDisplayWithTitle(pix1, 1000, 0, NULL, rp->display);
     boxaDestroy(&boxa3);
     pixDestroy(&pix1);
@@ -149,10 +139,10 @@ PIX       *pix1;
     boxa3 = boxaReconcileSizeByMedian(boxa2, L_CHECK_BOTH, 0.05, 0.04, 1.03,
                                       NULL, NULL, NULL);
     boxaWriteMem(&data, &size, boxa3);
-    regTestWriteDataAndCheck(rp, data, size, "ba");  /* 11, 24, 37 */
+    regTestWriteDataAndCheck(rp, data, size, "ba");  /* 9, 22, 35 */
     lept_free(data);
     pix1 = boxaDisplayTiled(boxa3, NULL, 0, -1, 2200, 2, 1.0, 0, 3, 2);
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);   /* 12, 25, 38 */
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);   /* 10, 23, 36 */
     pixDisplayWithTitle(pix1, 1500, 0, NULL, rp->display);
     boxaDestroy(&boxa3);
     pixDestroy(&pix1);

@@ -95,27 +95,11 @@ L_REGPARAMS  *rp;
     boxaWriteMem(&data2, &size2, boxa3);
     regTestCompareStrings(rp, data1, size1, data2, size2);  /* 7 */
     ptaDestroy(&pta);
+    boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);
     boxaDestroy(&boxa3);
     lept_free(data1);
     lept_free(data2);
-
-    boxa2 = boxaReconcileEvenOddHeight(boxa1, L_ADJUST_TOP_AND_BOT, 6,
-                                       L_ADJUST_CHOOSE_MIN, 1.0, 0);
-    pix1 = DisplayBoxa(boxa2);
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 8 */
-    pixDisplayWithTitle(pix1, 200, 0, NULL, rp->display);
-    pixDestroy(&pix1);
-
-    boxaCompareRegions(boxa1, boxa2, 10, &same, &diffarea, &diffxor, &pix1);
-    regTestCompareValues(rp, 1, same, 0.0);  /* 9 */
-    regTestCompareValues(rp, 0.053, diffarea, 0.002);  /* 10 */
-    regTestCompareValues(rp, 0.240, diffxor, 0.002);  /* 11 */
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 12 */
-    pixDisplayWithTitle(pix1, 400, 0, NULL, rp->display);
-    pixDestroy(&pix1);
-    boxaDestroy(&boxa1);
-    boxaDestroy(&boxa2);
 
         /* Test serialized boxa I/O to and from memory */
     data1 = l_binaryRead("boxa2.ba", &size1);
@@ -126,7 +110,7 @@ L_REGPARAMS  *rp;
     boxaWrite("/tmp/lept/boxa/boxa2.ba", boxa2);
     filesAreIdentical("/tmp/lept/boxa/boxa1.ba", "/tmp/lept/boxa/boxa2.ba",
                       &same);
-    regTestCompareValues(rp, 1, same, 0.0);  /* 13 */
+    regTestCompareValues(rp, 1, same, 0.0);  /* 8 */
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);
     lept_free(data1);
