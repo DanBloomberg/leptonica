@@ -1378,7 +1378,7 @@ l_int32   c, ignore;
  *      (1) This reads the next set of numeric chars, returning
  *          the value and swallowing initial whitespaces and ONE
  *          trailing whitespace character.  This is needed to read
- **         the maxval in the header, which precedes the binary data.
+ *          the maxval in the header, which precedes the binary data.
  * </pre>
  */
 static l_int32
@@ -1497,7 +1497,7 @@ char     c;
     if (!fp)
         return ERROR_INT("stream not open", procName, 1);
     while ((i = fscanf(fp, "#%c", &c))) {
-        if (i == EOF) return 1; 
+        if (i == EOF) return 1;
         while (c != '\n') {
             if (fscanf(fp, "%c", &c) == EOF)
                 return 1;

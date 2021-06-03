@@ -121,7 +121,6 @@ enum {
 /* --------------------------------------------------------------- *
  *                         Format header ids                       *
  * --------------------------------------------------------------- */
-
 /*! Header Ids */
 enum {
     BMP_ID             = 0x4d42,     /*!< BM - for bitmaps    */
@@ -133,7 +132,6 @@ enum {
 /* --------------------------------------------------------------- *
  *                Hinting bit flags in jpeg reader                 *
  * --------------------------------------------------------------- */
-
 /*! Jpeg Hints */
 /* The default behavior is now to fail on data corruption. */
 enum {
@@ -143,9 +141,18 @@ enum {
 
 
 /* --------------------------------------------------------------- *
+ *                            Jp2k codecs                          *
+ * --------------------------------------------------------------- */
+/*! Jp2k Codecs */
+enum {
+    L_J2K_CODEC = 1,    /*!< codestream                 */
+    L_JP2_CODEC = 2     /*!< file format with 'ihdr'    */
+};
+
+
+/* --------------------------------------------------------------- *
  *                    Pdf formatted encoding types                 *
  * --------------------------------------------------------------- */
-
 /*! Pdf Encoding */
 enum {
     L_DEFAULT_ENCODE  = 0,  /*!< use default encoding based on image        */
@@ -196,7 +203,6 @@ typedef struct L_Compressed_Data  L_COMP_DATA;
 /* ------------------------------------------------------------------------- *
  *                           Pdf multi image flags                           *
  * ------------------------------------------------------------------------- */
-
 /*! Pdf MultiImage */
 enum {
     L_FIRST_IMAGE   = 1,    /*!< first image to be used                      */
@@ -240,6 +246,5 @@ struct L_Pdf_Data
     l_int32            xrefloc;      /*!< location of xref                    */
 };
 typedef struct L_Pdf_Data  L_PDF_DATA;
-
 
 #endif  /* LEPTONICA_IMAGEIO_H */

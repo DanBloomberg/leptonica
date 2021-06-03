@@ -246,6 +246,7 @@ pixReadStreamJp2k(FILE     *fp,
 const char        *opjVersion;
 l_int32            i, j, index, bx, by, bw, bh, val, rval, gval, bval, aval;
 l_int32            w, h, wpl, bps, spp, xres, yres, reduce, prec, colorspace;
+l_int32            codec;  /* L_J2K_CODEC or L_JP2_CODEC */
 l_uint32           pixel;
 l_uint32          *data, *line;
 opj_dparameters_t  parameters;   /* decompression parameters */
@@ -270,11 +271,15 @@ PIX               *pix = NULL;
          return NULL;
      }
 
-        /* Get the resolution and the bits/sample */
+        /* Get the resolution, bits/sample and codec type */
     rewind(fp);
     fgetJp2kResolution(fp, &xres, &yres);
-    freadHeaderJp2k(fp, NULL, NULL, &bps, NULL);
+    freadHeaderJp2k(fp, NULL, NULL, &bps, NULL, &codec);
     rewind(fp);
+    if (codec != L_J2K_CODEC && codec != L_JP2_CODEC) {
+        L_ERROR("valid codec not identified\n", procName);
+        return NULL;
+    }
 
     if (bps > 8) {
         L_ERROR("found %d bps; can only handle 8 bps\n", procName, bps);
@@ -297,7 +302,11 @@ PIX               *pix = NULL;
     parameters.cp_reduce = reduce;
 
         /* Get a decoder handle */
-    if ((l_codec = opj_create_decompress(OPJ_CODEC_JP2)) == NULL) {
+    if (codec == L_JP2_CODEC)
+        l_codec = opj_create_decompress(OPJ_CODEC_JP2);
+    else if (codec == L_J2K_CODEC)
+        l_codec = opj_create_decompress(OPJ_CODEC_J2K);
+    if (!l_codec) {
         L_ERROR("failed to make the codec\n", procName);
         return NULL;
     }

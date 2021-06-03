@@ -95,10 +95,13 @@ static const char *FILE_GIF  =  "/tmp/lept/format/file.gif";
 static const char *FILE_WEBP =  "/tmp/lept/format/file.webp";
 static const char *FILE_JP2K =  "/tmp/lept/format/file.jp2";
 
+    /* There are two jp2 formats, and two codecs associated with them:
+     *    OPJ_CODEC_J2K (L_J2K_CODEC) is associated with JP2K_CODESTREAM
+     *    OPJ_CODEC_JP2 (L_JP2_CODEC) is associated with JP2K_IMAGE_DATA    */
 static const unsigned char JP2K_CODESTREAM[4] = { 0xff, 0x4f, 0xff, 0x51 };
-static const unsigned char JP2K_IMAGE_DATA[12] = { 0x00, 0x00, 0x00, 0x0C,
-                                                   0x6A, 0x50, 0x20, 0x20,
-                                                   0x0D, 0x0A, 0x87, 0x0A };
+static const unsigned char JP2K_IMAGE_DATA[12] = { 0x00, 0x00, 0x00, 0x0c,
+                                                   0x6a, 0x50, 0x20, 0x20,
+                                                   0x0d, 0x0a, 0x87, 0x0a };
 
 
 /*---------------------------------------------------------------------*
@@ -528,7 +531,7 @@ PIX     *pix;
         break;
 
     case IFF_JP2:
-        ret = readHeaderJp2k(filename, &w, &h, &bps, &spp);
+        ret = readHeaderJp2k(filename, &w, &h, &bps, &spp, NULL);
         break;
 
     case IFF_WEBP:
@@ -1053,7 +1056,7 @@ PIX     *pix;
         break;
 
     case IFF_JP2:
-        ret = readHeaderMemJp2k(data, size, &w, &h, &bps, &spp);
+        ret = readHeaderMemJp2k(data, size, &w, &h, &bps, &spp, NULL);
         break;
 
     case IFF_WEBP:

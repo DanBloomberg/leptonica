@@ -961,7 +961,7 @@ FILE         *fp;
     if (!fname)
         return (L_COMP_DATA *)ERROR_PTR("fname not defined", procName, NULL);
 
-    if (readHeaderJp2k(fname, &w, &h, &bps, &spp))
+    if (readHeaderJp2k(fname, &w, &h, &bps, &spp, NULL))
         return (L_COMP_DATA *)ERROR_PTR("bad jp2k metadata", procName, NULL);
 
         /* The returned jp2k data in memory is the entire jp2k file */
