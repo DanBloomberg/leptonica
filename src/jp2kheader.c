@@ -212,9 +212,9 @@ l_uint8  ihdr[4] = {0x69, 0x68, 0x64, 0x72};  /* 'ihdr' */
     }
     if (pcodec) *pcodec = codec;
 
-    if (4 * (12 + 3) >= size)
-        return ERROR_INT("header size is too small", procName, 1);
     if (codec == L_JP2_CODEC) {
+        if (size < 4 * (windex + 3))
+            return ERROR_INT("header size is too small", procName, 1);
         val = *((l_uint32 *)data + windex);
         h = convertOnLittleEnd32(val);
         val = *((l_uint32 *)data + windex + 1);
@@ -223,6 +223,8 @@ l_uint8  ihdr[4] = {0x69, 0x68, 0x64, 0x72};  /* 'ihdr' */
         spp = convertOnLittleEnd16(val);
         bps = *(data + 4 * (windex + 2) + 2) + 1;
     } else {  /* codec == L_J2K_CODEC */
+        if (size < 4 * (windex + 9))
+            return ERROR_INT("header size is too small", procName, 1);
         val = *((l_uint32 *)data + windex);
         w = convertOnLittleEnd32(val);
         val = *((l_uint32 *)data + windex + 1);

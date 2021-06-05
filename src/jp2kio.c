@@ -281,7 +281,7 @@ PIX               *pix = NULL;
         return NULL;
     }
 
-    if (bps > 8) {
+    if (bps != 8) {
         L_ERROR("found %d bps; can only handle 8 bps\n", procName, bps);
         return NULL;
     }

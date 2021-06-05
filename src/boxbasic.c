@@ -1563,16 +1563,16 @@ BOXA  *boxa;
  *          with copies of %boxa.  Any existing boxa are destroyed.
  *          After this operation, the number of boxa is equal to
  *          the number of allocated ptrs.
- *      (2) Note that we use boxaaReplaceBox() instead of boxaInsertBox().
- *          They both have the same effect when inserting into a NULL ptr
- *          in the boxa ptr array
+ *      (2) Note that we use boxaaReplaceBoxa() which replaces a boxa,
+ *          instead of boxaaInsertBoxa(), which is O(n) and shifts all
+ *          the boxa pointers from the insertion point to the end.
  *      (3) Example usage.  This function is useful to prepare for a
  *          random insertion (or replacement) of boxa into a boxaa.
  *          To randomly insert boxa into a boxaa, up to some index "max":
  *             Boxaa *baa = boxaaCreate(max);
  *               // initialize the boxa
  *             Boxa *boxa = boxaCreate(...);
- *             ...  [optionally fix with boxes]
+ *             ...  [optionally fill with boxes]
  *             boxaaInitFull(baa, boxa);
  *          A typical use is to initialize the array with empty boxa,
  *          and to replace only a subset that must be aligned with
@@ -1695,9 +1695,10 @@ l_int32  n;
  * <pre>
  * Notes:
  *      (1) This shifts boxa[i] --> boxa[i + 1] for all i >= index,
- *          and then inserts boxa as boxa[index].
- *      (2) To insert at the beginning of the array, set index = 0.
- *      (3) To append to the array, it's easier to use boxaaAddBoxa().
+ *          and then inserts boxa as boxa[index].  It is typically used
+ *          when %baa is full of boxa.
+ *      (2) To insert at the beginning of the array, set %index = 0.
+ *      (3) To append to the array, it is equivalent to boxaaAddBoxa().
  *      (4) This should not be used repeatedly to insert into large arrays,
  *          because the function is O(n).
  * </pre>
