@@ -37,7 +37,6 @@
  *
  *    (1) The DnaHash is an array of Dna.  It is a simple method used for
  *        fast lookup of templates in the jbig2 classifier (jbclass.c).
- *    (2) The number of
  * </pre>
  */
 
