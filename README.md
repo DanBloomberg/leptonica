@@ -71,7 +71,7 @@ www.leptonica.org
   * [jbig2enc](https://github.com/agl/jbig2enc) (encodes multipage binary image documents with jbig2 compression)
 
 ## Major contributors to Leptonica ##
-  * Tom Powers: Tom has supported Leptonica on Windows for many years.  He has made many contributions to code quality and documentation, including the beautiful "unofficial documentation" on the web site. Without his effort, Leptonica would not run today on Windows.
+  * Tom Powers: Tom supported the port of Leptonica to Windows for many years.  He made many contributions to code quality and documentation, including the beautiful "unofficial documentation" on the web site.
   * David Bryan: David has worked for years to support Leptonica on multiple platforms. He designed many nice features in Leptonica, such as the severity-based error messaging system, and has identified and fixed countless bugs. And he has built and tested each distribution many times on cross-compilers.
   * James Le Cuirot: James has written and supported the autotools scripts on Leptonica distributions for many years, and has helped test every distribution since 1.67.
   * Jeff Breidenbach: Jeff has built every Debian distribution for Leptonica. He has also made many improvements to formatted image I/O, including tiff, png and pdf. He is a continuous advocate for simplification.
@@ -79,4 +79,5 @@ www.leptonica.org
   * Jürgen Buchmüller: Jürgen wrote text converters to modify Leptonica source code so that it generates documentation using doxygen. He also wrote tiff wrappers for memory I/O.
   * Stefan Weil: Stefan has worked from the beginning to clean up the Leptonica GitHub distribution, including removing errors in the source code.  He also suggested and implemented the use of Coverity Scan.
   * Zdenko Podobny: Zdenko has worked, mostly behind the scenes as a primary maintainer of tesseract, to help with leptonica builds on all platforms, and coordinate with its use in tesseract.
+  * Adam Korczynski: Adam is an expert in testing libraries for safety.  He has built most of the open source fuzzers for leptonica in the oss-fuzz project, with significant code coverage.
 
