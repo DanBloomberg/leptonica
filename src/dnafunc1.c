@@ -517,7 +517,7 @@ L_DNA     *da_small, *da_big, *dad;
  *
  * <pre>
  *  Notes:
- *       (1) Use the values in %da as the hash keys.
+ *       (1) Derive the hash keys from the values in %da.
  *       (2) The indices into %da are stored in the val field of the hashitems.
  *           This is necessary so that %hmap and %da can be used together.
  * </pre>
@@ -540,7 +540,8 @@ L_HASHMAP   *hmap;
     hmap = l_hmapCreate(0, 0);
     for (i = 0; i < n; i++) {
         l_dnaGetDValue(da, i, &dval);
-        hitem = l_hmapLookup(hmap, (l_uint64)dval, i, L_HMAP_CREATE);
+        l_hashFloat64ToUint64(dval, &key);
+        hitem = l_hmapLookup(hmap, key, i, L_HMAP_CREATE);
     }
     return hmap;
 }
@@ -699,7 +700,8 @@ L_HASHMAP   *hmap;
     n = l_dnaGetCount(da_small);
     for (i = 0; i < n; i++) {
         l_dnaGetDValue(da_small, i, &dval);
-        hitem = l_hmapLookup(hmap, (l_uint64)dval, i, L_HMAP_CHECK);
+        l_hashFloat64ToUint64(dval, &key);
+        hitem = l_hmapLookup(hmap, key, i, L_HMAP_CHECK);
         if (!hitem || hitem->count == 0)
             continue;
         l_dnaAddNumber(dad, dval);

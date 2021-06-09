@@ -2658,6 +2658,7 @@ LEPT_DLL extern l_int32 lept_roundftoi ( l_float32 fval );
 LEPT_DLL extern l_ok l_hashStringToUint64 ( const char *str, l_uint64 *phash );
 LEPT_DLL extern l_ok l_hashStringToUint64Fast ( const char *str, l_uint64 *phash );
 LEPT_DLL extern l_ok l_hashPtToUint64 ( l_int32 x, l_int32 y, l_uint64 *phash );
+LEPT_DLL extern l_ok l_hashFloat64ToUint64 ( l_float64 val, l_uint64 *phash );
 LEPT_DLL extern l_ok findNextLargerPrime ( l_int32 start, l_uint32 *pprime );
 LEPT_DLL extern l_ok lept_isPrime ( l_uint64 n, l_int32 *pis_prime, l_uint32 *pfactor );
 LEPT_DLL extern l_uint32 convertIntToGrayCode ( l_uint32 val );

@@ -649,6 +649,8 @@ opj_image_t       *image = NULL;
         return ERROR_INT("failed to set up the encoder\n", procName, 1);
     }
 
+        /* Set the resolution (TBD) */
+
         /* Open a compression stream for writing.  In 2.0 we could use this:
          *     opj_stream_create_default_file_stream(fp, 0)
          * but the file stream interface was removed in 2.1.  */

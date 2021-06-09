@@ -76,6 +76,7 @@
  *           l_int32    l_hashStringToUint64()
  *           l_int32    l_hashStringToUint64Fast()
  *           l_int32    l_hashPtToUint64()
+ *           l_int32    l_hashFloat64ToUint64()
  *
  *       Prime finders
  *           l_int32    findNextLargerPrime()
@@ -813,6 +814,35 @@ l_hashPtToUint64(l_int32    x,
         return ERROR_INT("&hash not defined", procName, 1);
 
     *phash = (l_uint64)(2173249142.3849 * x + 3763193258.6227 * y);
+    return 0;
+}
+
+
+/*!
+ * \brief   l_hashFloat64ToUint64()
+ *
+ * \param[in]    val
+ * \param[out]   phash      hash key
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a simple hash for using hashmaps with 64-bit float data.
+ *      (2) The resulting hash is called a "key" in a lookup operation.
+ *          The bucket for %val in a hashmap is then found by taking the mod
+ *          of the hash key with the number of buckets (which is prime).
+ * </pre>
+ */
+l_ok
+l_hashFloat64ToUint64(l_float64  val,
+                      l_uint64  *phash)
+{
+    PROCNAME("l_hashFloatToUint64");
+
+    if (!phash)
+        return ERROR_INT("&hash not defined", procName, 1);
+    val = (val >= 0.0) ? 847019.66701 * val : -217324.91613 * val;
+    *phash = (l_uint64)val;
     return 0;
 }
 

@@ -73,7 +73,7 @@ static const l_int32  MAX_JP2K_HEIGHT = 100000;
  * \param[out]   ph [optional]
  * \param[out]   pbps [optional]  bits/sample
  * \param[out]   pspp [optional]  samples/pixel
- * \param[out]   pcodec [optional]  JP2_CODEC or J2K_CODEC
+ * \param[out]   pcodec [optional]  L_JP2_CODEC or L_J2K_CODEC
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -108,7 +108,7 @@ FILE    *fp;
  * \param[out]   ph [optional]
  * \param[out]   pbps [optional]  bits/sample
  * \param[out]   pspp [optional]  samples/pixel
- * \param[out]   pcodec [optional]  JP2_CODEC or J2K_CODEC
+ * \param[out]   pcodec [optional]  L_JP2_CODEC or L_J2K_CODEC
  * \return  0 if OK, 1 on error
  */
 l_ok
@@ -147,7 +147,7 @@ l_int32  nread, ret;
  * \param[out]   ph [optional]
  * \param[out]   pbps [optional]  bits/sample
  * \param[out]   pspp [optional]  samples/pixel
- * \param[out]   pcodec [optional]  JP2_CODEC or J2K_CODEC
+ * \param[out]   pcodec [optional]  L_JP2_CODEC or L_J2K_CODEC
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -155,7 +155,7 @@ l_int32  nread, ret;
  *      (1) The ISO/IEC reference for jpeg2000 is
  *               http://www.jpeg.org/public/15444-1annexi.pdf
  *          and the file format syntax begins at page 127.
- *      (2) With a image file codec (JP2_CODEC), the Image Header Box
+ *      (2) With a image file codec (L_JP2_CODEC), the Image Header Box
  *          begins with 'ihdr' = 0x69686472 in big-endian order.  This
  *          typically, but not always, starts on byte 44, with the
  *          big-endian data fields beginning at byte 48:
@@ -163,7 +163,7 @@ l_int32  nread, ret;
  *               w:    4 bytes
  *               spp:  2 bytes
  *               bps:  1 byte   (contains bps - 1)
- *      (3) With a codestream codec (J2K_CODEC), the first 4 bytes are
+ *      (3) With a codestream codec (L_J2K_CODEC), the first 4 bytes are
  *          0xff4fff51.  The fields for w and h appear to start on byte 8,
  *          and the fields for spp and bps appear to start on byte 40.
  * </pre>
