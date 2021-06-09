@@ -445,7 +445,7 @@ pixWriteStream(FILE    *fp,
         return pixWriteStreamGif(fp, pix);
 
     case IFF_JP2:
-        return pixWriteStreamJp2k(fp, pix, 34, 4, 0, 0);
+        return pixWriteStreamJp2k(fp, pix, 34, 4, L_JP2_CODEC, 0, 0);
 
     case IFF_WEBP:
         return pixWriteStreamWebP(fp, pix, 80, 0);

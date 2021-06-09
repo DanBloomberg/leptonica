@@ -154,7 +154,7 @@ LIBRARIAN_SHARED =	gcc -shared
 #  <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
 MINOR_REV = 81
-PATCH_REV = 0
+PATCH_REV = 1
 
 #########################################################
 

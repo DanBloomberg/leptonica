@@ -30,7 +30,7 @@
 
 #define LIBLEPT_MAJOR_VERSION   1
 #define LIBLEPT_MINOR_VERSION   81
-#define LIBLEPT_PATCH_VERSION   0
+#define LIBLEPT_PATCH_VERSION   1
 
 #include "alltypes.h"
 
@@ -1085,7 +1085,7 @@ LEPT_DLL extern l_int32 fgetJp2kResolution ( FILE *fp, l_int32 *pxres, l_int32 *
 LEPT_DLL extern PIX * pixReadJp2k ( const char *filename, l_uint32 reduction, BOX *box, l_int32 hint, l_int32 debug );
 LEPT_DLL extern PIX * pixReadStreamJp2k ( FILE *fp, l_uint32 reduction, BOX *box, l_int32 hint, l_int32 debug );
 LEPT_DLL extern l_ok pixWriteJp2k ( const char *filename, PIX *pix, l_int32 quality, l_int32 nlevels, l_int32 hint, l_int32 debug );
-LEPT_DLL extern l_ok pixWriteStreamJp2k ( FILE *fp, PIX *pix, l_int32 quality, l_int32 nlevels, l_int32 hint, l_int32 debug );
+LEPT_DLL extern l_ok pixWriteStreamJp2k ( FILE *fp, PIX *pix, l_int32 quality, l_int32 nlevels, l_int32 codec, l_int32 hint, l_int32 debug );
 LEPT_DLL extern PIX * pixReadMemJp2k ( const l_uint8 *data, size_t size, l_uint32 reduction, BOX *box, l_int32 hint, l_int32 debug );
 LEPT_DLL extern l_ok pixWriteMemJp2k ( l_uint8 **pdata, size_t *psize, PIX *pix, l_int32 quality, l_int32 nlevels, l_int32 hint, l_int32 debug );
 LEPT_DLL extern PIX * pixReadJpeg ( const char *filename, l_int32 cmapflag, l_int32 reduction, l_int32 *pnwarn, l_int32 hint );
