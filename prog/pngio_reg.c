@@ -50,20 +50,23 @@
 #include <config_auto.h>
 #endif /* HAVE_CONFIG_H */
 
-#define   FILE_1BPP          "rabi.png"
-#define   FILE_2BPP          "speckle2.png"
-#define   FILE_2BPP_C        "weasel2.4g.png"
-#define   FILE_4BPP          "speckle4.png"
-#define   FILE_4BPP_C        "weasel4.16c.png"
-#define   FILE_8BPP          "dreyfus8.png"
-#define   FILE_8BPP_C        "weasel8.240c.png"
-#define   FILE_16BPP         "test16.png"
-#define   FILE_32BPP         "weasel32.png"
-#define   FILE_32BPP_ALPHA   "test32-alpha.png"
-#define   FILE_CMAP_ALPHA    "test-cmap-alpha.png"
-#define   FILE_CMAP_ALPHA2   "test-cmap-alpha2.png"
-#define   FILE_TRANS_ALPHA   "test-fulltrans-alpha.png"
-#define   FILE_GRAY_ALPHA    "test-gray-alpha.png"
+#define   FILE_1BPP             "rabi.png"
+#define   FILE_2BPP             "speckle2.png"
+#define   FILE_2BPP_C           "weasel2.4g.png"
+#define   FILE_4BPP             "speckle4.png"
+#define   FILE_4BPP_C           "weasel4.16c.png"
+#define   FILE_8BPP             "dreyfus8.png"
+#define   FILE_8BPP_C           "weasel8.240c.png"
+#define   FILE_16BPP            "test16.png"
+#define   FILE_32BPP            "weasel32.png"
+#define   FILE_32BPP_ALPHA      "test32-alpha.png"
+#define   FILE_CMAP_ALPHA       "test-cmap-alpha.png"
+#define   FILE_CMAP_ALPHA2      "test-cmap-alpha2.png"
+#define   FILE_TRANS_ALPHA      "test-fulltrans-alpha.png"
+#define   FILE_GRAY_ALPHA       "test-gray-alpha.png"
+#define   FILE_TRANS_CMAP_2BPP  "trans-2bpp-cmap.png"
+#define   FILE_TRANS_CMAP_4BPP  "trans-4bpp-cmap.png"
+#define   FILE_TRANS_CMAP_8BPP  "trans-8bpp-cmap.png"
 
 static l_int32 test_mem_png(const char *fname);
 static l_int32 get_header_data(const char *filename);
@@ -72,6 +75,9 @@ static l_int32 test_1bpp_color(L_REGPARAMS *rp);
 static l_int32 test_1bpp_gray(L_REGPARAMS *rp);
 static l_int32 test_1bpp_bw1(L_REGPARAMS *rp);
 static l_int32 test_1bpp_bw2(L_REGPARAMS *rp);
+static l_int32 test_2bpp_cmap_trans(L_REGPARAMS  *rp);
+static l_int32 test_4bpp_cmap_trans(L_REGPARAMS  *rp);
+static l_int32 test_8bpp_cmap_trans(L_REGPARAMS  *rp);
 static l_int32 test_8bpp_trans(L_REGPARAMS  *rp);
 
 LEPT_DLL extern const char *ImageFileFormatExtensions[];
@@ -122,6 +128,12 @@ L_REGPARAMS  *rp;
     if (ioFormatTest(FILE_TRANS_ALPHA)) success = FALSE;
     lept_stderr("\nTest spp = 2, gray with alpha file:\n");
     if (ioFormatTest(FILE_GRAY_ALPHA)) success = FALSE;
+    lept_stderr("\nTest spp = 2, cmap with alpha file:\n");
+    if (ioFormatTest(FILE_TRANS_CMAP_2BPP)) success = FALSE;
+    lept_stderr("\nTest spp = 4, cmap with alpha file:\n");
+    if (ioFormatTest(FILE_TRANS_CMAP_4BPP)) success = FALSE;
+    lept_stderr("\nTest spp = 8, cmap with alpha file:\n");
+    if (ioFormatTest(FILE_TRANS_CMAP_8BPP)) success = FALSE;
     if (success) {
         lept_stderr(
             "\n  ********** Success on lossless r/w to file *********\n\n");
@@ -147,6 +159,9 @@ L_REGPARAMS  *rp;
     if (test_mem_png(FILE_CMAP_ALPHA2)) success = FALSE;
     if (test_mem_png(FILE_TRANS_ALPHA)) success = FALSE;
     if (test_mem_png(FILE_GRAY_ALPHA)) success = FALSE;
+    if (test_mem_png(FILE_TRANS_CMAP_2BPP)) success = FALSE;
+    if (test_mem_png(FILE_TRANS_CMAP_4BPP)) success = FALSE;
+    if (test_mem_png(FILE_TRANS_CMAP_8BPP)) success = FALSE;
     if (success) {
         lept_stderr(
             "\n  ****** Success on lossless r/w to memory *****\n");
@@ -156,7 +171,7 @@ L_REGPARAMS  *rp;
     }
     if (!success) failure = TRUE;
 
-    /* ------------ Part 3: Test lossless 1 and 8 bpp r/w ------------ */
+    /* ------------ Part 3: Test lossless 1, 2, 4 and 8 bpp r/w ------------ */
     lept_stderr("\nTest lossless 1 and 8 bpp r/w\n");
     success = TRUE;
     if (test_1bpp_trans(rp) == 0) success = FALSE;
@@ -164,6 +179,9 @@ L_REGPARAMS  *rp;
     if (test_1bpp_gray(rp) == 0) success = FALSE;
     if (test_1bpp_bw1(rp) == 0) success = FALSE;
     if (test_1bpp_bw2(rp) == 0) success = FALSE;
+    if (test_2bpp_cmap_trans(rp) == 0) success = FALSE;
+    if (test_4bpp_cmap_trans(rp) == 0) success = FALSE;
+    if (test_8bpp_cmap_trans(rp) == 0) success = FALSE;
     if (test_8bpp_trans(rp) == 0) success = FALSE;
 
     if (success) {
@@ -191,7 +209,9 @@ L_REGPARAMS  *rp;
     if (get_header_data(FILE_CMAP_ALPHA2)) success = FALSE;
     if (get_header_data(FILE_TRANS_ALPHA)) success = FALSE;
     if (get_header_data(FILE_GRAY_ALPHA)) success = FALSE;
-
+    if (get_header_data(FILE_TRANS_CMAP_2BPP)) success = FALSE;
+    if (get_header_data(FILE_TRANS_CMAP_4BPP)) success = FALSE;
+    if (get_header_data(FILE_TRANS_CMAP_8BPP)) success = FALSE;
     if (success) {
         lept_stderr("\n  ******* Success on reading headers *******\n\n");
     } else {
@@ -435,6 +455,100 @@ PIXCMAP  *cmap;
     else
         lept_stderr("1bpp_bw2: bad output\n");
     pixDisplayWithTitle(pix2, 700, 400, NULL, rp->display);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    return same;
+}
+
+static l_int32
+test_2bpp_cmap_trans(L_REGPARAMS  *rp)
+{
+l_int32   w, h, same;
+PIX      *pix1, *pix2;
+PIXCMAP  *cmap;
+
+    pix1 = pixRead(FILE_TRANS_CMAP_2BPP);
+    pixGetDimensions(pix1, &w, &h, NULL);
+    if (w != 82 || h != 73) {
+        lept_stderr("%s: bad dimensions\n", FILE_TRANS_CMAP_2BPP);
+        return 0;
+    }
+    pixDestroy(&pix1);
+
+    pix1 = pixRead("weasel2.4g.png");
+    cmap = pixGetColormap(pix1);
+    pixcmapSetAlpha(cmap, 2, 100);
+    pixWrite("/tmp/lept/regout/2bpp-cmap-trans.png", pix1, IFF_PNG);
+    pix2 = pixRead("/tmp/lept/regout/2bpp-cmap-trans.png");
+    pixEqual(pix1, pix2, &same);
+    if (same)
+        lept_stderr("2bpp-cmap-trans: success\n");
+    else
+        lept_stderr("2bpp-cmap-trans: bad output\n");
+    pixDisplayWithTitle(pix2, 0, 800, NULL, rp->display);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    return same;
+}
+
+static l_int32
+test_4bpp_cmap_trans(L_REGPARAMS  *rp)
+{
+l_int32   w, h, same;
+PIX      *pix1, *pix2;
+PIXCMAP  *cmap;
+
+    pix1 = pixRead(FILE_TRANS_CMAP_4BPP);
+    pixGetDimensions(pix1, &w, &h, NULL);
+    if (w != 82 || h != 73) {
+        lept_stderr("%s: bad dimensions\n", FILE_TRANS_CMAP_4BPP);
+        return 0;
+    }
+    pixDestroy(&pix1);
+
+    pix1 = pixRead("weasel4.5g.png");
+    cmap = pixGetColormap(pix1);
+    pixcmapSetAlpha(cmap, 2, 60);
+    pixWrite("/tmp/lept/regout/4bpp-cmap-trans.png", pix1, IFF_PNG);
+    pix2 = pixRead("/tmp/lept/regout/4bpp-cmap-trans.png");
+    pixEqual(pix1, pix2, &same);
+    if (same)
+        lept_stderr("4bpp-cmap-trans: success\n");
+    else
+        lept_stderr("4bpp-cmap-trans: bad output\n");
+    pixDisplayWithTitle(pix2, 200, 800, NULL, rp->display);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    return same;
+}
+
+static l_int32
+test_8bpp_cmap_trans(L_REGPARAMS  *rp)
+{
+l_int32   w, h, same;
+PIX      *pix1, *pix2;
+PIXCMAP  *cmap;
+
+    pix1 = pixRead(FILE_TRANS_CMAP_8BPP);
+    pixGetDimensions(pix1, &w, &h, NULL);
+    if (w != 82 || h != 73) {
+        lept_stderr("%s: bad dimensions\n", FILE_TRANS_CMAP_8BPP);
+        return 0;
+    }
+    pixDestroy(&pix1);
+
+    pix1 = pixRead("weasel8.5g.png");
+    cmap = pixGetColormap(pix1);
+    pixcmapSetAlpha(cmap, 2, 80);
+    pixcmapSetAlpha(cmap, 3, 80);
+    pixWrite("/tmp/lept/regout/8bpp-cmap-trans.png", pix1, IFF_PNG);
+    pix2 = pixRead("/tmp/lept/regout/8bpp-cmap-trans.png");
+    pixEqual(pix1, pix2, &same);
+    if (same)
+        lept_stderr("8bpp-cmap-trans: success\n");
+    else
+        lept_stderr("8bpp-cmap-trans: bad output\n");
+    pixDisplayWithTitle(pix2, 200, 800, NULL, rp->display);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     return same;

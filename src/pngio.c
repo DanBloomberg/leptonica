@@ -162,16 +162,18 @@ static l_int32   var_PNG_STRIP_16_TO_8 = 1;
  *          at the beginning of the file.
  *      (2) To do sequential reads of png format images from a stream,
  *          use pixReadStreamPng()
- *      (3) Any image with alpha is converted to RGBA (spp = 4, with
+ *      (3) All images with alpha is converted to RGBA (spp = 4, with
  *          equal red, green and blue channels) on reading.
- *          There are three important cases with alpha:
- *          (a) grayscale-with-alpha (spp = 2), where bpp = 8, and each
+ *          There are three cases with alpha:
+ *          (a) RGBA: spp = 4.  The alpha value is the fourth byte
+ *              (aka "channel, "component") in each 4-byte pixel.
+ *          (b) grayscale-with-alpha (spp = 2), where bpp = 8, and each
  *              pixel has an associated alpha (transparency) value
  *              in the second component of the image data.
- *          (b) spp = 1, d = 1 with colormap and alpha in the trans array.
- *              Transparency is usually associated with the white background.
- *          (c) spp = 1, d = 8 with colormap and alpha in the trans array.
- *              Each color in the colormap has a separate transparency value.
+ *          (c) colormap (spp = 1) with alpha in the trans palette.
+ *              d = 1, 2, 4, 8.  The trans palette in writing is derived
+ *              from the alpha components in the cmap.  Transparency is
+ *              often associated with a white background.
  *      (4) We use the high level png interface, where the transforms are set
  *          up in advance and the header and image are read with a single
  *          call.  The more complicated interface, where the header is
@@ -185,8 +187,8 @@ PIX *
 pixReadStreamPng(FILE  *fp)
 {
 l_uint8      byte;
-l_int32      i, j, k, index, ncolors, bitval, rval, gval, bval, valid;
-l_int32      wpl, d, spp, cindex, tRNS;
+l_int32      i, j, k, index, ncolors, rval, gval, bval, valid;
+l_int32      wpl, d, spp, cindex, bitval, bival, quadval, tRNS;
 l_uint32     png_transforms;
 l_uint32    *data, *line, *ppixel;
 int          num_palette, num_text, num_trans;
@@ -343,7 +345,9 @@ PIXCMAP     *cmap;
         /* Special spp == 1 cases with transparency:
          *    (1) 8 bpp without colormap; assume full transparency
          *    (2) 1 bpp with colormap + trans array (for alpha)
-         *    (3) 8 bpp with colormap + trans array (for alpha)
+         *    (3) 2 bpp with colormap + trans array (for alpha)
+         *    (4) 4 bpp with colormap + trans array (for alpha)
+         *    (5) 8 bpp with colormap + trans array (for alpha)
          * These all require converting to RGBA */
     if (spp == 1 && tRNS) {
         if (!cmap) {
@@ -414,8 +418,48 @@ PIXCMAP     *cmap;
                         }
                     }
                 }
+            } else if (d == 2) {
+                    /* Case 3: 2 bpp with cmap and associated transparency */
+                L_INFO("converting 2 bpp cmap with alpha ==> RGBA\n", procName);
+                for (i = 0; i < h; i++) {
+                    ppixel = data + i * wpl;
+                    rowptr = row_pointers[i];
+                    for (j = 0, index = 0; j < rowbytes; j++) {
+                        byte = rowptr[j];
+                        for (k = 0; k < 4 && index < w; k++, index++) {
+                            bival = (byte >> 2 * (3 - k)) & 3;
+                            pixcmapGetColor(cmap, bival, &rval, &gval, &bval);
+                            composeRGBPixel(rval, gval, bval, ppixel);
+                                /* Assume missing entries to be 255 (opaque)
+                                 * according to the spec:
+                                 * http://www.w3.org/TR/PNG/#11tRNS */
+                            SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL,
+                                bival < num_trans ? trans[bival] : 255);
+                            ppixel++;
+                        }
+                    }
+                }
+            } else if (d == 4) {
+                    /* Case 4: 4 bpp with cmap and associated transparency */
+                L_INFO("converting 4 bpp cmap with alpha ==> RGBA\n", procName);
+                for (i = 0; i < h; i++) {
+                    ppixel = data + i * wpl;
+                    rowptr = row_pointers[i];
+                    for (j = 0, index = 0; j < rowbytes; j++) {
+                        byte = rowptr[j];
+                        for (k = 0; k < 2 && index < w; k++, index++) {
+                            quadval = (byte >> 4 * (1 - k)) & 0xf;
+                            pixcmapGetColor(cmap, quadval, &rval, &gval, &bval);
+                            composeRGBPixel(rval, gval, bval, ppixel);
+                                /* Assume missing entries to be 255 (opaque) */
+                            SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL,
+                                quadval < num_trans ? trans[quadval] : 255);
+                            ppixel++;
+                        }
+                    }
+                }
             } else if (d == 8) {
-                    /* Case 3: 8 bpp with cmap and associated transparency */
+                    /* Case 5: 8 bpp with cmap and associated transparency */
                 L_INFO("converting 8 bpp cmap with alpha ==> RGBA\n", procName);
                 for (i = 0; i < h; i++) {
                     ppixel = data + i * wpl;
@@ -424,9 +468,7 @@ PIXCMAP     *cmap;
                         index = rowptr[j];
                         pixcmapGetColor(cmap, index, &rval, &gval, &bval);
                         composeRGBPixel(rval, gval, bval, ppixel);
-                            /* Assume missing entries to be 255 (opaque)
-                             * according to the spec:
-                             * http://www.w3.org/TR/PNG/#11tRNS */
+                            /* Assume missing entries to be 255 (opaque) */
                         SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL,
                                       index < num_trans ? trans[index] : 255);
                         ppixel++;
@@ -1032,7 +1074,8 @@ pixWriteStreamPng(FILE      *fp,
                   l_float32  gamma)
 {
 char         commentstring[] = "Comment";
-l_int32      i, j, k, wpl, d, spp, cmflag, opaque, ncolors, compval, valid;
+l_int32      i, j, k, wpl, d, spp, compval, valid;
+l_int32      cmflag, opaque, max_trans, ncolors;
 l_int32     *rmap, *gmap, *bmap, *amap;
 l_uint32    *data, *ppixel;
 png_byte     bit_depth, color_type;
@@ -1153,10 +1196,17 @@ char        *text;
         png_set_PLTE(png_ptr, info_ptr, palette, (int)ncolors);
         LEPT_FREE(palette);
 
+            /* Add the tRNS chunk.  If the non-opaque colors are listed
+             * first in the colormap, as in the spec, we can use that in
+             * the 4th arg of png_set_tRNS.  Otherwise, transparency will
+             * be lost for some colors.  To prevent that, see the comments
+             * in pixcmapNonOpaqueColorsInfo(). */
         pixcmapIsOpaque(cmap, &opaque);
-        if (!opaque)  /* alpha channel has some transparency; assume valid */
+        if (!opaque) {  /* alpha channel has some transparency; assume valid */
+            pixcmapNonOpaqueColorsInfo(cmap, NULL, &max_trans, NULL);
             png_set_tRNS(png_ptr, info_ptr, (png_bytep)alpha,
-                         (int)ncolors, NULL);
+                         max_trans + 1, NULL);
+        }
     }
 
         /* 0.4545 is treated as the default by some image
@@ -1546,8 +1596,8 @@ pixReadMemPng(const l_uint8  *filedata,
               size_t          filesize)
 {
 l_uint8      byte;
-l_int32      i, j, k, index, ncolors, bitval, rval, gval, bval, valid;
-l_int32      wpl, d, spp, cindex, tRNS;
+l_int32      i, j, k, index, ncolors, rval, gval, bval, valid;
+l_int32      wpl, d, spp, cindex, bitval, bival, quadval, tRNS;
 l_uint32     png_transforms;
 l_uint32    *data, *line, *ppixel;
 int          num_palette, num_text, num_trans;
@@ -1710,7 +1760,9 @@ PIXCMAP     *cmap;
         /* Special spp == 1 cases with transparency:
          *    (1) 8 bpp without colormap; assume full transparency
          *    (2) 1 bpp with colormap + trans array (for alpha)
-         *    (3) 8 bpp with colormap + trans array (for alpha)
+         *    (3) 2 bpp with colormap + trans array (for alpha)
+         *    (4) 4 bpp with colormap + trans array (for alpha)
+         *    (5) 8 bpp with colormap + trans array (for alpha)
          * These all require converting to RGBA */
     if (spp == 1 && tRNS) {
         if (!cmap) {
@@ -1781,8 +1833,48 @@ PIXCMAP     *cmap;
                         }
                     }
                 }
+            } else if (d == 2) {
+                    /* Case 3: 2 bpp with cmap and associated transparency */
+                L_INFO("converting 2 bpp cmap with alpha ==> RGBA\n", procName);
+                for (i = 0; i < h; i++) {
+                    ppixel = data + i * wpl;
+                    rowptr = row_pointers[i];
+                    for (j = 0, index = 0; j < rowbytes; j++) {
+                        byte = rowptr[j];
+                        for (k = 0; k < 4 && index < w; k++, index++) {
+                            bival = (byte >> 2 * (3 - k)) & 3;
+                            pixcmapGetColor(cmap, bival, &rval, &gval, &bval);
+                            composeRGBPixel(rval, gval, bval, ppixel);
+                                /* Assume missing entries to be 255 (opaque)
+                                 * according to the spec:
+                                 * http://www.w3.org/TR/PNG/#11tRNS */
+                            SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL,
+                                bival < num_trans ? trans[bival] : 255);
+                            ppixel++;
+                        }
+                    }
+                }
+            } else if (d == 4) {
+                    /* Case 4: 4 bpp with cmap and associated transparency */
+                L_INFO("converting 4 bpp cmap with alpha ==> RGBA\n", procName);
+                for (i = 0; i < h; i++) {
+                    ppixel = data + i * wpl;
+                    rowptr = row_pointers[i];
+                    for (j = 0, index = 0; j < rowbytes; j++) {
+                        byte = rowptr[j];
+                        for (k = 0; k < 2 && index < w; k++, index++) {
+                            quadval = (byte >> 4 * (1 - k)) & 0xf;
+                            pixcmapGetColor(cmap, quadval, &rval, &gval, &bval);
+                            composeRGBPixel(rval, gval, bval, ppixel);
+                                /* Assume missing entries to be 255 (opaque) */
+                            SET_DATA_BYTE(ppixel, L_ALPHA_CHANNEL,
+                                quadval < num_trans ? trans[quadval] : 255);
+                            ppixel++;
+                        }
+                    }
+                }
             } else if (d == 8) {
-                    /* Case 3: 8 bpp with cmap and associated transparency */
+                    /* Case 5: 8 bpp with cmap and associated transparency */
                 L_INFO("converting 8 bpp cmap with alpha ==> RGBA\n", procName);
                 for (i = 0; i < h; i++) {
                     ppixel = data + i * wpl;

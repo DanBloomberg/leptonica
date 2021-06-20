@@ -58,6 +58,7 @@
  *           l_int32     pixcmapGetIndex()
  *           l_int32     pixcmapHasColor()
  *           l_int32     pixcmapIsOpaque()
+ *           l_int32     pixcmapNonOpaqueColorsInfo()
  *           l_int32     pixcmapIsBlackAndWhite()
  *           l_int32     pixcmapCountGrayColors()
  *           l_int32     pixcmapGetRankIntensity()
@@ -1132,6 +1133,77 @@ RGBA_QUAD  *cta;
             break;
         }
     }
+    return 0;
+}
+
+
+/*!
+ * \brief   pixcmapNonOpaqueColorsInfo()
+ *
+ * \param[in]    cmap
+ * \param[out]   pntrans         [optional] number of transparent alpha
+ *                                          entries; <= 256
+ * \param[out]   pmax_trans      [optional] max index of transparent alpha
+ * \param[out]   pmin_opaque     [optional] min index of opaque < 256
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is used, for clarity, when writing the png tRNS palette.
+ *          According to the spec, http://www.w3.org/TR/PNG/#11tRNS,
+ *          if the tRNS palette is of size ntrans, the palette uses the first
+ *          ntrans alpha entries in the cmap, and the remaining alpha values
+ *          are assumed to be 255 (opaque), regardless of cmap alpha value.
+ *      (2) Ordinarily, the non-opaque colors come first in the cmap, so
+ *               min_opaque > max_trans
+ *          and
+ *               ntrans = max_trans + 1 = min_opaque.
+ *          But this does not happen in general.  In trans-2bpp-palette.png,
+ *          for example, only the third of four entries is not opaque, so
+ *               ntrans = 1
+ *               max_trans = 2 (index is 0-based)
+ *               min_opaque = 0
+ *          The tRNS palette must extend to the third entry to cover the
+ *          color with transparency: use 3 as the fourth arg to png_set_tRNS().
+ *      (3) If all entries are opaque, max_trans = -1.
+ *          If all entries are transparent, min_opaque = size of cmap.
+ * </pre>
+ */
+l_ok
+pixcmapNonOpaqueColorsInfo(PIXCMAP  *cmap,
+                           l_int32  *pntrans,
+                           l_int32  *pmax_trans,
+                           l_int32  *pmin_opaque)
+{
+l_int32     i, n, ntrans, max_trans, min_opaque, opaque_found;
+RGBA_QUAD  *cta;
+
+    PROCNAME("pixcmapCountNonOpaqueColors");
+
+    if (pntrans) *pntrans = 0;
+    if (pmax_trans) *pmax_trans = -1;
+    if (pmin_opaque) *pmin_opaque = 256;
+    if (!cmap)
+        return ERROR_INT("cmap not defined", procName, 1);
+
+    n = pixcmapGetCount(cmap);
+    ntrans = 0;
+    max_trans = -1;
+    min_opaque = n;
+    cta = (RGBA_QUAD *)cmap->array;
+    opaque_found = FALSE;
+    for (i = 0; i < n; i++) {
+        if (cta[i].alpha != 255) {
+            ntrans++;
+            max_trans = i;
+        } else if (opaque_found == FALSE) {
+            opaque_found = TRUE;
+            min_opaque = i;
+        }
+    }
+    if (pntrans) *pntrans = ntrans;
+    if (pmax_trans) *pmax_trans = max_trans;
+    if (pmin_opaque) *pmin_opaque = min_opaque;
     return 0;
 }
 
