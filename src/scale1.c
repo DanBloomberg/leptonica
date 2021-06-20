@@ -1331,6 +1331,7 @@ cleanup:
  *          filtering.  As a result, aliasing will occur for
  *          subsampling (%scalex and/or %scaley < 1.0).
  *      (2) If %scalex == 1.0 and %scaley == 1.0, returns a copy.
+ *      (3) For upscaling by an integer, use pixExpandReplicate().
  * </pre>
  */
 PIX *
@@ -1429,15 +1430,14 @@ l_float32  scalex, scaley;
 /*!
  * \brief   pixScaleByIntSampling()
  *
- * \param[in]    pixs     1, 2, 4, 8, 16, 32 bpp
- * \param[in]    factor   integer subsampling
+ * \param[in]    pixs     1, 2, 4, 8, 16, 32 bpp  (all depths)
+ * \param[in]    factor   integer subsampling; >= 1
  * \return  pixd, or NULL on error
  *
  * <pre>
  * Notes:
- *      (1) Simple interface to pixScaleBySampling(), for
- *          isotropic integer reduction.
- *      (2) If %factor == 1, returns a copy.
+ *      (1) Simple interface to pixScaleBySampling(), for isotropic
+ *          integer reduction.  If %factor == 1, returns a copy.
  * </pre>
  */
 PIX *

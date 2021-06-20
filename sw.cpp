@@ -19,7 +19,7 @@ void build(Solution &s)
         t += "org.sw.demo.webmproject.webp"_dep;
     };
 
-    auto &leptonica = s.addTarget<LibraryTarget>("danbloomberg.leptonica", "1.81.1");
+    auto &leptonica = s.addTarget<LibraryTarget>("danbloomberg.leptonica", "1.82.0");
     leptonica += Git("https://github.com/DanBloomberg/leptonica");
 
     {
