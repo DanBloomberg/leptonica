@@ -63,3 +63,4 @@ script:
   - cd build
   - cmake .. -DBUILD_PROG=1
   - make
+
