@@ -1,6 +1,6 @@
 # Leptonica Library #
 
-[![Build Status](https://travis-ci.org/DanBloomberg/leptonica.svg?branch=master)](https://travis-ci.org/DanBloomberg/leptonica)
+[![Build Status](https://travis-ci.com/DanBloomberg/leptonica.svg?branch=master)](https://travis-ci.com/DanBloomberg/leptonica)
 [![Build status](https://ci.appveyor.com/api/projects/status/vsk607rr6n4j2tmk?svg=true)](https://ci.appveyor.com/project/DanBloomberg/leptonica)
 ![Build status](https://github.com/DanBloomberg/leptonica/workflows/sw/badge.svg)<br>
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/leptonica/badge.svg)](https://scan.coverity.com/projects/leptonica)
