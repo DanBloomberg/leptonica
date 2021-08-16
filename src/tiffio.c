@@ -489,7 +489,7 @@ l_uint8   *linebuf, *data, *rowptr;
 l_uint16   spp, bps, photometry, tiffcomp, orientation, sample_fmt;
 l_uint16  *redmap, *greenmap, *bluemap;
 l_int32    d, wpl, bpl, comptype, i, j, k, ncolors, rval, gval, bval, aval;
-l_int32    xres, yres, tiffbpl, packedbpl, halfsize;
+l_int32    xres, yres, tiffbpl, packedbpl, half_size, twothirds_size;
 l_uint32   w, h, tiffword, read_oriented;
 l_uint32  *line, *ppixel, *tiffdata, *pixdata;
 PIX       *pix, *pix1;
@@ -577,18 +577,25 @@ PIXCMAP   *cmap;
 
         /* The relation between the size of a byte buffer required to hold
            a raster of image pixels (packedbpl) and the size of the tiff
-           buffer (tiffbuf) is either 1:1 or approximately 2:1, depending
-           on how the data is stored and subsampled.  Test this relation
-           between tiffbuf and the image parameters w, spp and bps. */
+           buffer (tiffbuf) is either 1:1 or approximately 1.5:1 or 2:1,
+           depending on how the data is stored and subsampled.  For security,
+           we test this relation between tiffbuf and the image parameters
+           w, spp and bps. */
     tiffbpl = TIFFScanlineSize(tif);
     packedbpl = (bps * spp * w + 7) / 8;
-    halfsize = (L_ABS(2 * tiffbpl - packedbpl) <= 8);
+    half_size = (L_ABS(2 * tiffbpl - packedbpl) <= 8);
+    twothirds_size = (L_ABS(3 * tiffbpl - 2 * packedbpl) <= 8);
 #if 0
-    if (halfsize)
-        L_INFO("packedbpl = %d is approx. twice tiffbpl = %d\n", procName,
-               packedbpl, tiffbpl);
+    if (half_size)
+        L_INFO("half_size: packedbpl = %d is approx. twice tiffbpl = %d\n",
+               procName, packedbpl, tiffbpl);
+    if (twothirds_size)
+        L_INFO("twothirds_size: packedbpl = %d is approx. 1.5 tiffbpl = %d\n",
+               procName, packedbpl, tiffbpl);
+    lept_stderr("tiffbpl = %d, packedbpl = %d, bps = %d, spp = %d, w = %d\n",
+                tiffbpl, packedbpl, bps, spp, w);
 #endif
-    if (tiffbpl != packedbpl && !halfsize) {
+    if (tiffbpl != packedbpl && !half_size && !twothirds_size) {
         L_ERROR("invalid tiffbpl: tiffbpl = %d, packedbpl = %d, "
                 "bps = %d, spp = %d, w = %d\n",
                 procName, tiffbpl, packedbpl, bps, spp, w);
