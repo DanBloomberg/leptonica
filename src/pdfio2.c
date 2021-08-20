@@ -598,6 +598,113 @@ PIX          *pixt;
 }
 
 
+/*!
+ * \brief   l_generateCIData()
+ *
+ * \param[in]    fname
+ * \param[in]    type       L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE,
+ *                          L_JP2K_ENCODE
+ * \param[in]    quality    for jpeg if transcoded: 1-100; 0 for default (75)
+ *                          for jp2k if transcoded: 27-45; 0 for default (34)
+ * \param[in]    ascii85    0 for binary; 1 for ascii85-encoded
+ * \param[out]   pcid       compressed data
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This can be used for both PostScript and pdf.
+ *      (1) Set ascii85:
+ *           ~ 0 for binary data (PDF only)
+ *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
+ *      (2) This attempts to compress according to the requested type.
+ *          If this can't be done, it falls back to ordinary flate encoding.
+ *      (3) This differs from l_generateCIDataForPdf(), which determines
+ *          the file format and only works for pdf.
+ * </pre>
+ */
+l_ok
+l_generateCIData(const char    *fname,
+                 l_int32        type,
+                 l_int32        quality,
+                 l_int32        ascii85,
+                 L_COMP_DATA  **pcid)
+{
+l_int32       format, d, bps, spp, iscmap;
+L_COMP_DATA  *cid;
+PIX          *pix;
+
+    PROCNAME("l_generateCIData");
+
+    if (!pcid)
+        return ERROR_INT("&cid not defined", procName, 1);
+    *pcid = NULL;
+    if (!fname)
+        return ERROR_INT("fname not defined", procName, 1);
+    if (type != L_G4_ENCODE && type != L_JPEG_ENCODE &&
+        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE)
+        return ERROR_INT("invalid conversion type", procName, 1);
+    if (ascii85 != 0 && ascii85 != 1)
+        return ERROR_INT("invalid ascii85", procName, 1);
+
+        /* Sanity check on requested encoding */
+    pixReadHeader(fname, &format, NULL, NULL, &bps, &spp, &iscmap);
+    d = bps * spp;
+    if (d == 24) d = 32;
+    if (iscmap && type != L_FLATE_ENCODE) {
+        L_WARNING("pixs has cmap; using flate encoding\n", procName);
+        type = L_FLATE_ENCODE;
+    } else if (d < 8 && type == L_JPEG_ENCODE) {
+        L_WARNING("pixs has < 8 bpp; using flate encoding\n", procName);
+        type = L_FLATE_ENCODE;
+    } else if (d < 8 && type == L_JP2K_ENCODE) {
+        L_WARNING("pixs has < 8 bpp; using flate encoding\n", procName);
+        type = L_FLATE_ENCODE;
+    } else if (d > 1 && type == L_G4_ENCODE) {
+        L_WARNING("pixs has > 1 bpp; using flate encoding\n", procName);
+        type = L_FLATE_ENCODE;
+    }
+
+    if (type == L_JPEG_ENCODE) {
+        if (format == IFF_JFIF_JPEG) {  /* do not transcode */
+            cid = l_generateJpegData(fname, ascii85);
+        } else {
+            if ((pix = pixRead(fname)) == NULL)
+                return ERROR_INT("pix not returned for JPEG", procName, 1);
+            cid = pixGenerateJpegData(pix, ascii85, quality);
+            pixDestroy(&pix);
+        }
+        if (!cid)
+            return ERROR_INT("jpeg data not made", procName, 1);
+    } else if (type == L_JP2K_ENCODE) {
+        if (format == IFF_JP2) {  /* do not transcode */
+            cid = l_generateJp2kData(fname);
+        } else {
+            if ((pix = pixRead(fname)) == NULL)
+                return ERROR_INT("pix not returned for JP2K", procName, 1);
+            cid = pixGenerateJp2kData(pix, quality);
+            pixDestroy(&pix);
+        }
+        if (!cid)
+            return ERROR_INT("jp2k data not made", procName, 1);
+    } else if (type == L_G4_ENCODE) {
+        if ((pix = pixRead(fname)) == NULL)
+            return ERROR_INT("pix not returned for G4", procName, 1);
+        cid = pixGenerateG4Data(pix, ascii85);
+        pixDestroy(&pix);
+        if (!cid)
+            return ERROR_INT("g4 data not made", procName, 1);
+    } else if (type == L_FLATE_ENCODE) {
+        if ((cid = l_generateFlateData(fname, ascii85)) == NULL)
+            return ERROR_INT("flate data not made", procName, 1);
+    } else {
+        return ERROR_INT("invalid conversion type", procName, 1);
+    }
+    *pcid = cid;
+
+    return 0;
+}
+
+
 /*---------------------------------------------------------------------*
  *                     Low-level CID-based operations                  *
  *---------------------------------------------------------------------*/
@@ -1074,113 +1181,6 @@ FILE         *fp;
     cid->minisblack = minisblack;
     cid->res = xres;
     return cid;
-}
-
-
-/*!
- * \brief   l_generateCIData()
- *
- * \param[in]    fname
- * \param[in]    type       L_G4_ENCODE, L_JPEG_ENCODE, L_FLATE_ENCODE,
- *                          L_JP2K_ENCODE
- * \param[in]    quality    for jpeg if transcoded: 1-100; 0 for default (75)
- *                          for jp2k if transcoded: 27-45; 0 for default (34)
- * \param[in]    ascii85    0 for binary; 1 for ascii85-encoded
- * \param[out]   pcid       compressed data
- * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) This can be used for both PostScript and pdf.
- *      (1) Set ascii85:
- *           ~ 0 for binary data (PDF only)
- *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
- *      (2) This attempts to compress according to the requested type.
- *          If this can't be done, it falls back to ordinary flate encoding.
- *      (3) This differs from l_generateCIDataForPdf(), which determines
- *          the file format and only works for pdf.
- * </pre>
- */
-l_ok
-l_generateCIData(const char    *fname,
-                 l_int32        type,
-                 l_int32        quality,
-                 l_int32        ascii85,
-                 L_COMP_DATA  **pcid)
-{
-l_int32       format, d, bps, spp, iscmap;
-L_COMP_DATA  *cid;
-PIX          *pix;
-
-    PROCNAME("l_generateCIData");
-
-    if (!pcid)
-        return ERROR_INT("&cid not defined", procName, 1);
-    *pcid = NULL;
-    if (!fname)
-        return ERROR_INT("fname not defined", procName, 1);
-    if (type != L_G4_ENCODE && type != L_JPEG_ENCODE &&
-        type != L_FLATE_ENCODE && type != L_JP2K_ENCODE)
-        return ERROR_INT("invalid conversion type", procName, 1);
-    if (ascii85 != 0 && ascii85 != 1)
-        return ERROR_INT("invalid ascii85", procName, 1);
-
-        /* Sanity check on requested encoding */
-    pixReadHeader(fname, &format, NULL, NULL, &bps, &spp, &iscmap);
-    d = bps * spp;
-    if (d == 24) d = 32;
-    if (iscmap && type != L_FLATE_ENCODE) {
-        L_WARNING("pixs has cmap; using flate encoding\n", procName);
-        type = L_FLATE_ENCODE;
-    } else if (d < 8 && type == L_JPEG_ENCODE) {
-        L_WARNING("pixs has < 8 bpp; using flate encoding\n", procName);
-        type = L_FLATE_ENCODE;
-    } else if (d < 8 && type == L_JP2K_ENCODE) {
-        L_WARNING("pixs has < 8 bpp; using flate encoding\n", procName);
-        type = L_FLATE_ENCODE;
-    } else if (d > 1 && type == L_G4_ENCODE) {
-        L_WARNING("pixs has > 1 bpp; using flate encoding\n", procName);
-        type = L_FLATE_ENCODE;
-    }
-
-    if (type == L_JPEG_ENCODE) {
-        if (format == IFF_JFIF_JPEG) {  /* do not transcode */
-            cid = l_generateJpegData(fname, ascii85);
-        } else {
-            if ((pix = pixRead(fname)) == NULL)
-                return ERROR_INT("pix not returned for JPEG", procName, 1);
-            cid = pixGenerateJpegData(pix, ascii85, quality);
-            pixDestroy(&pix);
-        }
-        if (!cid)
-            return ERROR_INT("jpeg data not made", procName, 1);
-    } else if (type == L_JP2K_ENCODE) {
-        if (format == IFF_JP2) {  /* do not transcode */
-            cid = l_generateJp2kData(fname);
-        } else {
-            if ((pix = pixRead(fname)) == NULL)
-                return ERROR_INT("pix not returned for JP2K", procName, 1);
-            cid = pixGenerateJp2kData(pix, quality);
-            pixDestroy(&pix);
-        }
-        if (!cid)
-            return ERROR_INT("jp2k data not made", procName, 1);
-    } else if (type == L_G4_ENCODE) {
-        if ((pix = pixRead(fname)) == NULL)
-            return ERROR_INT("pix not returned for G4", procName, 1);
-        cid = pixGenerateG4Data(pix, ascii85);
-        pixDestroy(&pix);
-        if (!cid)
-            return ERROR_INT("g4 data not made", procName, 1);
-    } else if (type == L_FLATE_ENCODE) {
-        if ((cid = l_generateFlateData(fname, ascii85)) == NULL)
-            return ERROR_INT("flate data not made", procName, 1);
-    } else {
-        return ERROR_INT("invalid conversion type", procName, 1);
-    }
-    *pcid = cid;
-
-    return 0;
 }
 
 
