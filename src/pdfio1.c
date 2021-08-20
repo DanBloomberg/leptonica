@@ -531,7 +531,7 @@ PIXCMAP  *cmap;
  *      (2) The files in the directory, after optional filtering by
  *          the substring, are lexically sorted in increasing order
  *          before concatenation.
- *      (3) This is very fast for jpeg, jp2k, tiffg4 and some png files,
+ *      (3) This is very fast for jpeg, jp2k and some png files,
  *          because the compressed data is wrapped up and concatenated.
  *          For other types of png, the images must be read and recompressed.
  * </pre>
@@ -614,7 +614,7 @@ size_t    nbytes;
  *
  * <pre>
  * Notes:
- *      (1) This is very fast for jpeg, jp2k, tiffg4 and some png files,
+ *      (1) This is very fast for jpeg, jp2k and some png files,
  *          because the compressed data is wrapped up and concatenated.
  *          For other types of png, the images must be read and recompressed.
  * </pre>
@@ -693,7 +693,7 @@ L_PTRA       *pa_data;
  *
  * <pre>
  * Notes:
- *      (1) This is very fast for jpeg, jp2k, tiffg4 and some png files,
+ *      (1) This is very fast for jpeg, jp2k and some png files,
  *          because the compressed data is wrapped up and concatenated.
  *          For other types of png, the images must be read and recompressed.
  * </pre>
@@ -731,8 +731,8 @@ L_COMP_DATA  *cid;
     }
 
         /* Generate the image data required for pdf generation, always
-         * in binary (not ascii85) coding.  Note that jpeg, jp2k, tiffg4
-         * and some png files are not transcoded.  */
+         * in binary (not ascii85) coding.  Note that jpeg, jp2k and some
+         * png files are not transcoded.  */
     l_generateCIDataForPdf(fname, NULL, 0, &cid);
     if (!cid) {
         L_ERROR("file %s format is %d; unreadable\n", procName, fname, format);

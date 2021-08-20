@@ -39,18 +39,18 @@
  *     Convert tiff multipage to pdf file
  *          l_int32              convertTiffMultipageToPdf()
  *
- *     Low-level CID-based operations
- *
- *       Without transcoding
+ *     Generates the CID, transcoding under some conditions
  *          l_int32              l_generateCIDataForPdf()
+ *          l_int32              l_generateCIData()
+ *
+ *       Lower-level CID generation without transcoding
  *          L_COMP_DATA         *l_generateFlateDataPdf()
  *          L_COMP_DATA         *l_generateJpegData()
  *          L_COMP_DATA         *l_generateJpegDataMem()
  *          static L_COMP_DATA  *l_generateJp2kData()
  *          L_COMP_DATA         *l_generateG4Data()
  *
- *       With transcoding
- *          l_int32              l_generateCIData()
+ *       Lower-level CID generation with transcoding
  *          l_int32              pixGenerateCIData()
  *          L_COMP_DATA         *l_generateFlateData()
  *          static L_COMP_DATA  *pixGenerateFlateData()
@@ -58,7 +58,7 @@
  *          static L_COMP_DATA  *pixGenerateJp2kData()
  *          static L_COMP_DATA  *pixGenerateG4Data()
  *
- *       Other
+ *       Other CID operations
  *          l_int32              cidConvertToPdfData()
  *          void                 l_CIDataDestroy()
  *
@@ -506,7 +506,7 @@ FILE    *fp;
 
 
 /*---------------------------------------------------------------------*
- *                     Low-level CID-based operations                  *
+ *                          CID-based operations                       *
  *---------------------------------------------------------------------*/
 /*!
  * \brief   l_generateCIDataForPdf()
@@ -529,6 +529,10 @@ FILE    *fp;
  *      (4) We don't try to open files named "stdin" or "-" for Tesseract
  *          compatibility reasons. We may remove this restriction
  *          in the future.
+ *      (5) Note that tiff-g4 must be transcoded to properly handle byte
+ *          order and perhaps photometry (e.g., min-is-black).  For a
+ *          multipage tiff file, data will only be extracted from the
+ *          first page, so this should not be invoked.
  * </pre>
  */
 l_ok
@@ -564,8 +568,6 @@ PIX          *pixt;
             cid = l_generateJpegData(fname, 0);
         } else if (format == IFF_JP2) {
             cid = l_generateJp2kData(fname);
-        } else if (format == IFF_TIFF_G4) {
-            cid = l_generateG4Data(fname, 0);
         } else if (format == IFF_PNG) {
             cid = l_generateFlateDataPdf(fname, pix);
         }
@@ -596,6 +598,9 @@ PIX          *pixt;
 }
 
 
+/*---------------------------------------------------------------------*
+ *                     Low-level CID-based operations                  *
+ *---------------------------------------------------------------------*/
 /*!
  * \brief   l_generateFlateDataPdf()
  *
@@ -611,7 +616,7 @@ PIX          *pixt;
  *      (2) Exception: if the png is interlaced or if it is RGBA,
  *          it will be transcoded.
  *      (3) If transcoding is required, this will not have to read from
- *          file if you also input a pix.
+ *          file if a pix is input.
  * </pre>
  */
 L_COMP_DATA *
@@ -999,6 +1004,7 @@ FILE         *fp;
  *      (1) Set ascii85flag:
  *           ~ 0 for binary data (PDF only)
  *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
+ *      (2) This does not work for multipage tiff files.
  * </pre>
  */
 L_COMP_DATA *
@@ -1007,7 +1013,7 @@ l_generateG4Data(const char  *fname,
 {
 l_uint8      *datacomp = NULL;  /* g4 compressed raster data */
 char         *data85 = NULL;  /* ascii85 encoded g4 compressed data */
-l_int32       w, h, xres, yres;
+l_int32       w, h, xres, yres, npages;
 l_int32       minisblack;  /* TRUE or FALSE */
 size_t        nbytes85, nbytescomp;
 L_COMP_DATA  *cid;
@@ -1018,9 +1024,18 @@ FILE         *fp;
     if (!fname)
         return (L_COMP_DATA *)ERROR_PTR("fname not defined", procName, NULL);
 
-        /* Read the resolution */
+        /* Make sure this is a single page tiff file */
     if ((fp = fopenReadStream(fname)) == NULL)
         return (L_COMP_DATA *)ERROR_PTR("stream not opened", procName, NULL);
+    tiffGetCount(fp, &npages);
+    fclose(fp);
+    if (npages != 1) {
+        L_ERROR(" %d page tiff; only works with 1 page\n", procName, npages);
+        return NULL;
+    }
+
+        /* Read the resolution */
+    fp = fopenReadStream(fname);
     getTiffResolution(fp, &xres, &yres);
     fclose(fp);
 
@@ -1082,8 +1097,8 @@ FILE         *fp;
  *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
  *      (2) This attempts to compress according to the requested type.
  *          If this can't be done, it falls back to ordinary flate encoding.
- *      (3) This differs from l_generateCIDataPdf(), which determines
- *          the format and attempts to generate the CID without transcoding.
+ *      (3) This differs from l_generateCIDataForPdf(), which determines
+ *          the file format and only works for pdf.
  * </pre>
  */
 l_ok
@@ -1133,7 +1148,7 @@ PIX          *pix;
             cid = l_generateJpegData(fname, ascii85);
         } else {
             if ((pix = pixRead(fname)) == NULL)
-                return ERROR_INT("pix not returned", procName, 1);
+                return ERROR_INT("pix not returned for JPEG", procName, 1);
             cid = pixGenerateJpegData(pix, ascii85, quality);
             pixDestroy(&pix);
         }
@@ -1144,14 +1159,18 @@ PIX          *pix;
             cid = l_generateJp2kData(fname);
         } else {
             if ((pix = pixRead(fname)) == NULL)
-                return ERROR_INT("pix not returned", procName, 1);
+                return ERROR_INT("pix not returned for JP2K", procName, 1);
             cid = pixGenerateJp2kData(pix, quality);
             pixDestroy(&pix);
         }
         if (!cid)
             return ERROR_INT("jp2k data not made", procName, 1);
     } else if (type == L_G4_ENCODE) {
-        if ((cid = l_generateG4Data(fname, ascii85)) == NULL)
+        if ((pix = pixRead(fname)) == NULL)
+            return ERROR_INT("pix not returned for G4", procName, 1);
+        cid = pixGenerateG4Data(pix, ascii85);
+        pixDestroy(&pix);
+        if (!cid)
             return ERROR_INT("g4 data not made", procName, 1);
     } else if (type == L_FLATE_ENCODE) {
         if ((cid = l_generateFlateData(fname, ascii85)) == NULL)
@@ -1279,6 +1298,7 @@ PIXCMAP  *cmap;
  *      (2) Set ascii85flag:
  *           ~ 0 for binary data (PDF only)
  *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
+ *      (3) Always transcodes (i.e., first decodes the png file)
  * </pre>
  */
 L_COMP_DATA *
@@ -1526,7 +1546,7 @@ L_COMP_DATA  *cid;
 /*!
  * \brief   pixGenerateG4Data()
  *
- * \param[in]    pixs           1 bpp
+ * \param[in]    pixs           1 bpp, no colormap
  * \param[in]    ascii85flag    0 for gzipped; 1 for ascii85-encoded gzipped
  * \return  cid g4 compressed image data, or NULL on error
  *
@@ -1550,6 +1570,8 @@ L_COMP_DATA  *cid;
         return (L_COMP_DATA *)ERROR_PTR("pixs not defined", procName, NULL);
     if (pixGetDepth(pixs) != 1)
         return (L_COMP_DATA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+    if (pixGetColormap(pixs))
+        return (L_COMP_DATA *)ERROR_PTR("pixs has colormap", procName, NULL);
 
         /* Compress to a temp tiff g4 file */
     fname = l_makeTempFilename();

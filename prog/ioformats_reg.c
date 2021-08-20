@@ -643,6 +643,7 @@ finish:
     else
         lept_stderr("  ******* Failure on at least one test *******\n\n");
 
+    if (failure) rp->success = FALSE;
     return regTestCleanup(rp);
 }
 
