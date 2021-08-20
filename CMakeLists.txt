@@ -57,6 +57,9 @@ if(UNIX)
     option(SYM_LINK "Create symlink leptonica -> lept on UNIX" OFF)
 endif()
 
+set(leptonica_INSTALL_CMAKE_DIR "lib/cmake/leptonica"
+    CACHE STRING "Install destination for CMake package files")
+
 if(NOT SW_BUILD)
     find_package(GIF)
     find_package(JPEG)
@@ -276,7 +279,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lept.pc DESTINATION lib/pkgconfig)
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig-version.cmake
-    DESTINATION lib/cmake)
+    DESTINATION ${leptonica_INSTALL_CMAKE_DIR})
 
 ########################################
 # uninstall target
