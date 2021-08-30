@@ -555,14 +555,16 @@ PIXCMAP   *cmap;
         L_WARNING("for 2 spp, only handle 8 bps\n", procName);
         return NULL;
     }
-    if (spp == 1)
+    if (spp == 1) {
         d = bps;
-    else if (spp == 2)  /* gray plus alpha */
+    } else if (spp == 2) {  /* gray plus alpha */
         d = 32;  /* will convert to RGBA */
-    else if (spp == 3 || spp == 4)
+    } else if (spp == 3 || spp == 4) {
         d = 32;
-    else
-        return (PIX *)ERROR_PTR("spp not in set {1,2,3,4}", procName, NULL);
+    } else {
+        L_ERROR("spp = %d; not in {1,2,3,4}\n", procName, spp);
+        return NULL;
+    }
 
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
@@ -616,7 +618,8 @@ PIXCMAP   *cmap;
             if (TIFFReadScanline(tif, linebuf, i, 0) < 0) {
                 LEPT_FREE(linebuf);
                 pixDestroy(&pix);
-                return (PIX *)ERROR_PTR("line read fail", procName, NULL);
+                L_ERROR("spp = 1, read fail at line %d\n", procName, i);
+                return NULL;
             }
             memcpy(data, linebuf, tiffbpl);
             data += bpl;
@@ -635,7 +638,8 @@ PIXCMAP   *cmap;
             if (TIFFReadScanline(tif, linebuf, i, 0) < 0) {
                 LEPT_FREE(linebuf);
                 pixDestroy(&pix);
-                return (PIX *)ERROR_PTR("line read fail", procName, NULL);
+                L_ERROR("spp = 2, read fail at line %d\n", procName, i);
+                return NULL;
             }
             rowptr = linebuf;
             ppixel = pixdata + i * wpl;
@@ -942,13 +946,16 @@ TIFF  *tif;
         return ERROR_INT("stream not defined", procName, 1 );
     if (!pix)
         return ERROR_INT("pix not defined", procName, 1 );
-    if (strcmp(modestr, "w") && strcmp(modestr, "a"))
-        return ERROR_INT("modestr not 'w' or 'a'", procName, 1 );
+    if (strcmp(modestr, "w") && strcmp(modestr, "a")) {
+        L_ERROR("modestr = %s; not 'w' or 'a'\n", procName, modestr);
+        return 1;
+    }
 
     if (pixGetDepth(pix) != 1 && comptype != IFF_TIFF &&
         comptype != IFF_TIFF_LZW && comptype != IFF_TIFF_ZIP &&
         comptype != IFF_TIFF_JPEG) {
-        L_WARNING("invalid compression type for bpp > 1\n", procName);
+        L_WARNING("invalid compression type %d for bpp > 1; using TIFF_ZIP\n",
+                  procName, comptype);
         comptype = IFF_TIFF_ZIP;
     }
 
