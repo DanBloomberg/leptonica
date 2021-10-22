@@ -36,14 +36,14 @@
  *    It will also take as input clean, orthographically-generated pdfs,
  *    and concatenate them into a single pdf file of images.
  *
- *     Syntax:  cleanpdf basedir threshold resolution outfile [rotation]
+ *     Syntax:  cleanpdf basedir threshold resolution title outfile [rotation]
  *
  *    The %basedir is a directory where the input pdf files are located.
  *    The program will operate on every file in this directory with
  *    the ".pdf" extension.
  *
  *    The input binarization %threshold should be somewhere in the
- *    range [130 - 190].   The result is typically not very sensitive to
+ *    range [130 - 190].  The result is typically not very sensitive to
  *    the value, because internally we use a pixel mapping that is adapted
  *    to the local background before thresholding to binarize the image.
  *
@@ -55,6 +55,9 @@
  *             image, followed by thresholding to 1 bpp)
  *    At 300 ppi, an 8.5 x 11 page would have 2550 x 3300 pixels.
  *    You can also input 0 for the default output resolution of 300 ppi.
+ *
+ *    The %title is the title given to the pdf.  Use %title == "none"
+ *    to omit the title.
  *
  *    The pdf output is written to %outfile.  It is advisable (but not
  *    required) to have a '.pdf' extension.
@@ -110,22 +113,25 @@ l_int32 main(int    argc,
              char **argv)
 {
 char         buf[256];
-char        *basedir, *fname, *tail, *basename, *imagedir, *outfile, *firstpath;
+char        *basedir, *fname, *tail, *basename, *imagedir, *title;
+char        *outfile, *firstpath;
 l_int32      thresh, res, rotation, i, n, ret;
 PIX         *pixs, *pix1, *pix2, *pix3, *pix4, *pix5;
 SARRAY      *sa;
 static char  mainName[] = "cleanpdf";
 
-    if (argc != 5 && argc != 6)
+    if (argc != 6 && argc != 7)
         return ERROR_INT(
-            "Syntax: cleanpdf basedir threshold resolution outfile [rotation]",
+            "\n  Syntax: cleanpdf basedir threshold resolution title "
+            "outfile [rotation]",
             mainName, 1);
     basedir = argv[1];
     thresh = atoi(argv[2]);
     res = atoi(argv[3]);
-    outfile = argv[4];
-    if (argc == 6)
-        rotation = atoi(argv[5]);
+    title = argv[4];
+    outfile = argv[5];
+    if (argc == 7)
+        rotation = atoi(argv[6]);
     else
         rotation = 0;
     if (rotation < 0 || rotation > 3) {
@@ -233,16 +239,16 @@ static char  mainName[] = "cleanpdf";
 #if 1
         /* Generate the pdf.  Compute the actual input resolution from
          * the pixel dimensions of the first image.  This will cause each
-         * page to be printed to cover an 8.5 x 11 inch sheet of paper.
-         * We use flate encoding to avoid photometric reversal which
-         * happens when encoded with G4 tiff.  */
+         * page to be printed to cover an 8.5 x 11 inch sheet of paper. */
     lept_stderr("Write output to %s\n", outfile);
     pix1 = pixRead(firstpath);
     pixInferResolution(pix1, 11.0, &res);
     pixDestroy(&pix1);
     lept_free(firstpath);
+    if (strcmp(title, "none") == 0)
+        title = NULL;
     convertFilesToPdf(imagedir, "tif", res, 1.0, L_G4_ENCODE,
-                      0, NULL, outfile);
+                      0, title, outfile);
 #endif
 
     return 0;

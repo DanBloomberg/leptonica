@@ -179,7 +179,7 @@ static l_int32   var_WRITE_DATE_AND_VERSION = 1;
  *
  * <pre>
  * Notes:
- *      (1) If %res == 0 and the input resolution field is 0,
+ *      (1) If %res == 0 and the input resolution field from the pix is 0,
  *          this will use DefaultInputRes.
  *      (2) This only writes %data if it is the last image to be
  *          written on the page.
@@ -235,12 +235,8 @@ L_PDF_DATA   *lpd = NULL;
     pixres = cid->res;
     w = cid->w;
     h = cid->h;
-    if (res <= 0.0) {
-        if (pixres > 0)
-            res = pixres;
-        else
-            res = DefaultInputRes;
-    }
+    if (res <= 0.0)
+        res = (pixres > 0) ? pixres : DefaultInputRes;
     xpt = x * 72. / res;
     ypt = y * 72. / res;
     wpt = w * 72. / res;
@@ -1592,7 +1588,7 @@ L_COMP_DATA  *cid;
  * \brief   cidConvertToPdfData()
  *
  * \param[in]    cid       compressed image data
- * \param[in]    title     [optional] pdf title; can be NULL
+ * \param[in]    title     [optional] pdf title; can be null
  * \param[out]   pdata     output pdf data for image
  * \param[out]   pnbytes   size of output pdf data
  * \return  0 if OK, 1 on error

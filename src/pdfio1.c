@@ -220,7 +220,7 @@ static const l_int32  DefaultInputRes = 300;
  *
  * \param[in]    dirname       directory name containing images
  * \param[in]    substr        [optional] substring filter on filenames;
- *                             can be NULL
+ *                             can be null
  * \param[in]    res           input resolution of all images
  * \param[in]    scalefactor   scaling factor applied to each image; > 0.0
  * \param[in]    type          encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
@@ -228,8 +228,7 @@ static const l_int32  DefaultInputRes = 300;
  *                             L_DEFAULT_ENCODE for default)
  * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
  *                             for jp2k: 27-45; 0 for default (34)
- * \param[in]    title         [optional] pdf title; if null, taken from
- *                             the first image filename
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[in]    fileout       pdf file of all images
  * \return  0 if OK, 1 on error
  *
@@ -289,8 +288,7 @@ SARRAY  *sa;
  *                             L_DEFAULT_ENCODE for default)
  * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
  *                             for jp2k: 27-45; 0 for default (34)
- * \param[in]    title         [optional] pdf title; if null, taken from
- *                             the first image filename
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[in]    fileout       pdf file of all images
  * \return  0 if OK, 1 on error
  *
@@ -343,8 +341,7 @@ size_t    nbytes;
  *                             L_DEFAULT_ENCODE for default)
  * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
  *                             for jp2k: 27-45; 0 for default (34)
- * \param[in]    title         [optional] pdf title; if null, taken from
- *                             the first image filename
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[out]   pdata         output pdf data (of all images
  * \param[out]   pnbytes       size of output pdf data
  * \return  0 if OK, 1 on error
@@ -364,14 +361,13 @@ saConvertFilesToPdfData(SARRAY      *sa,
                         l_uint8    **pdata,
                         size_t      *pnbytes)
 {
-char        *fname;
-const char  *pdftitle;
-l_uint8     *imdata;
-l_int32      i, n, ret, pagetype, npages, scaledres;
-size_t       imbytes;
-L_BYTEA     *ba;
-PIX         *pixs, *pix;
-L_PTRA      *pa_data;
+char     *fname;
+l_uint8  *imdata;
+l_int32   i, n, ret, pagetype, npages, scaledres;
+size_t    imbytes;
+L_BYTEA  *ba;
+PIX      *pixs, *pix;
+L_PTRA   *pa_data;
 
     PROCNAME("saConvertFilesToPdfData");
 
@@ -392,7 +388,6 @@ L_PTRA      *pa_data;
         /* Generate all the encoded pdf strings */
     n = sarrayGetCount(sa);
     pa_data = ptraCreate(n);
-    pdftitle = NULL;
     for (i = 0; i < n; i++) {
         if (i && (i % 10 == 0)) lept_stderr(".. %d ", i);
         fname = sarrayGetString(sa, i, L_NOCOPY);
@@ -400,8 +395,6 @@ L_PTRA      *pa_data;
             L_ERROR("image not readable from file %s\n", procName, fname);
             continue;
         }
-        if (!pdftitle)
-            pdftitle = (title) ? title : fname;
         if (scalefactor != 1.0)
             pix = pixScale(pixs, scalefactor, scalefactor);
         else
@@ -420,7 +413,7 @@ L_PTRA      *pa_data;
         }
 
         ret = pixConvertToPdfData(pix, pagetype, quality, &imdata, &imbytes,
-                                  0, 0, scaledres, pdftitle, NULL, 0);
+                                  0, 0, scaledres, title, NULL, 0);
         pixDestroy(&pix);
         if (ret) {
             LEPT_FREE(imdata);
@@ -517,9 +510,9 @@ PIXCMAP  *cmap;
  * \brief   convertUnscaledFilesToPdf()
  *
  * \param[in]    dirname   directory name containing images
- * \param[in]    substr    [optional] substring filter on filenames; can be NULL
- * \param[in]    title     [optional] pdf title; if null, taken from the first
- *                         image filename
+ * \param[in]    substr    [optional] substring filter on filenames;
+ *                         can be null
+ * \param[in]    title     [optional] pdf title; can be null
  * \param[in]    fileout   pdf file of all images
  * \return  0 if OK, 1 on error
  *
@@ -564,8 +557,7 @@ SARRAY  *sa;
  * \brief   saConvertUnscaledFilesToPdf()
  *
  * \param[in]    sa        string array of pathnames for images
- * \param[in]    title     [optional] pdf title; if null, taken from the first
- *                         image filename
+ * \param[in]    title     [optional] pdf title; can be null
  * \param[in]    fileout   pdf file of all images
  * \return  0 if OK, 1 on error
  *
@@ -606,8 +598,7 @@ size_t    nbytes;
  * \brief   saConvertUnscaledFilesToPdfData()
  *
  * \param[in]    sa        string array of pathnames for image files
- * \param[in]    title     [optional] pdf title; if null, taken from the first
- *                         image filename
+ * \param[in]    title     [optional] pdf title; can be null
  * \param[out]   pdata     output pdf data (of all images)
  * \param[out]   pnbytes   size of output pdf data
  * \return  0 if OK, 1 on error
@@ -686,7 +677,7 @@ L_PTRA       *pa_data;
  * \brief   convertUnscaledToPdfData()
  *
  * \param[in]    fname      of image file in all formats
- * \param[in]    title      [optional] pdf title; can be NULL
+ * \param[in]    title      [optional] pdf title; can be null
  * \param[out]   pdata      output pdf data for image
  * \param[out]   pnbytes    size of output pdf data
  * \return  0 if OK, 1 on error
@@ -704,8 +695,6 @@ convertUnscaledToPdfData(const char  *fname,
                          l_uint8    **pdata,
                          size_t      *pnbytes)
 {
-const char   *pdftitle = NULL;
-char         *tail = NULL;
 l_int32       format;
 L_COMP_DATA  *cid;
 
@@ -739,18 +728,9 @@ L_COMP_DATA  *cid;
         return 1;
     }
 
-        /* If %title == NULL, use the tail of %fname. */
-    if (title) {
-        pdftitle = title;
-    } else {
-        splitPathAtDirectory(fname, NULL, &tail);
-        pdftitle = tail;
-    }
-
         /* Generate the pdf string for this page (image).  This destroys
          * the cid by attaching it to an lpd and destroying the lpd. */
-    cidConvertToPdfData(cid, pdftitle, pdata, pnbytes);
-    LEPT_FREE(tail);
+    cidConvertToPdfData(cid, title, pdata, pnbytes);
     return 0;
 }
 
@@ -771,7 +751,7 @@ L_COMP_DATA  *cid;
  *                             L_DEFAULT_ENCODE for default)
  * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
  *                             for jp2k: 27-45; 0 for default (34)
- * \param[in]    title         [optional] pdf title
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[in]    fileout       pdf file of all images
  * \return  0 if OK, 1 on error
  *
@@ -830,7 +810,7 @@ size_t    nbytes;
  *                              L_DEFAULT_ENCODE for default)
  * \param[in]    quality        for jpeg: 1-100; 0 for default (75)
  *                              for jp2k: 27-45; 0 for default (34)
- * \param[in]    title          [optional] pdf title
+ * \param[in]    title          [optional] pdf title; can be null
  * \param[out]   pdata          output pdf data of all images
  * \param[out]   pnbytes        size of output pdf data
  * \return  0 if OK, 1 on error
@@ -952,7 +932,7 @@ L_PTRA   *pa_data;
  * \param[in]      res          override the resolution of the input image,
  *                              in ppi; use 0 to respect the resolution
  *                              embedded in the input images
- * \param[in]      title        [optional] pdf title; if null, taken from filein
+ * \param[in]      title        [optional] pdf title; can be null
  * \param[in,out]  plpd         ptr to lpd, which is created on the first
  *                              invocation and returned until last image is
  *                              processed, at which time it is destroyed
@@ -1052,7 +1032,7 @@ size_t    nbytes;
  * \param[in]      res          override the resolution of the input image,
  *                              in ppi; use 0 to respect the resolution
  *                              embedded in the input images
- * \param[in]      title        [optional] pdf title
+ * \param[in]      title        [optional] pdf title; can be null
  * \param[in,out]  plpd         ptr to lpd, which is created on the first
  *                              invocation and returned until last image is
  *                              processed, at which time it is destroyed
@@ -1121,7 +1101,7 @@ PIX     *pix;
  * \param[in]      res          override the resolution of the input image,
  *                              in ppi; use 0 to respect the resolution
  *                              embedded in the input images
- * \param[in]      title        [optional] pdf title; if null, use filein
+ * \param[in]      title        [optional] pdf title; can be null
  * \param[in,out]  plpd         ptr to lpd, which is created on the first
  *                              invocation and returned until last image is
  *                              processed, at which time it is destroyed
@@ -1166,7 +1146,7 @@ PIX  *pix;
         return ERROR_INT("pix not made", procName, 1);
 
     pixConvertToPdfData(pix, type, quality, pdata, pnbytes,
-                        x, y, res, (title) ? title : filein, plpd, position);
+                        x, y, res, title, plpd, position);
     pixDestroy(&pix);
     return 0;
 }
@@ -1189,7 +1169,7 @@ PIX  *pix;
  * \param[in]    res          override the resolution of the input image,
  *                            in ppi; use 0 to respect the resolution
  *                            embedded in the input images
- * \param[in]    title        [optional] pdf title
+ * \param[in]    title        [optional] pdf title; can be null
  * \param[out]   plpd         ptr to lpd, which is created on the first
  *                            invocation and returned until last image is
  *                            processed, at which time it is destroyed
@@ -1265,7 +1245,7 @@ PIX     *pix;
  * \param[in]      res          override the resolution of the input image,
  *                              in ppi; use 0 to respect the resolution
  *                              embedded in the input images
- * \param[in]      title        [optional] pdf title
+ * \param[in]      title        [optional] pdf title; can be null
  * \param[in,out]  plpd         ptr to lpd, which is created on the first
  *                              invocation and returned until last image is
  *                              processed, at which time it is destroyed
@@ -1330,8 +1310,7 @@ size_t    nbytes;
  * \param[in]    pix      all depths, cmap OK
  * \param[in]    res      override the resolution of the input image, in ppi;
  *                        use 0 to respect the resolution embedded in the input
- * \param[in]    title    [optional] pdf title; taken from the first image
- *                        placed on a page; e.g., an input image filename
+ * \param[in]    title    [optional] pdf title; can be null
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1379,8 +1358,7 @@ size_t    nbytes, nbytes_written;
  * \param[in]    pix        all depths, cmap OK
  * \param[in]    res        override the resolution of the input image, in ppi;
  *                          use 0 to respect the res embedded in the input
- * \param[in]    title      [optional] pdf title; taken from the first image
- *                          placed on a page; e.g., an input image filename
+ * \param[in]    title      [optional] pdf title; can be null
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1426,7 +1404,7 @@ l_int32  ret, type;
  *
  * \param[in]    dirname       directory name containing images
  * \param[in]    substr        [optional] substring filter on filenames;
- *                             can be NULL
+ *                             can be null
  * \param[in]    res           input resolution of all images
  * \param[in]    type          compression type for non-image regions; the
  *                             image regions are always compressed with
@@ -1436,8 +1414,7 @@ l_int32  ret, type;
  * \param[in]    baa           [optional] boxaa of image regions
  * \param[in]    quality       used for JPEG only; 0 for default (75)
  * \param[in]    scalefactor   scaling factor applied to each image region
- * \param[in]    title         [optional] pdf title; if null, taken from
- *                             the first image filename
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[in]    fileout       pdf file of all images
  * \return  0 if OK, 1 on error
  *
@@ -1570,10 +1547,11 @@ SARRAY   *sa;
  * \brief   convertNumberedMasksToBoxaa()
  *
  * \param[in]    dirname   directory name containing mask images
- * \param[in]    substr    [optional] substring filter on filenames; can be NULL
+ * \param[in]    substr    [optional] substring filter on filenames;
+ *                         can be null 
  * \param[in]    numpre    number of characters in name before number
- * \param[in]    numpost   number of characters in name after number, up
- *                         to a dot before an extension
+ * \param[in]    numpost   number of characters in name after number,
+ *                         up to a dot before an extension
  * \return  boxaa of mask regions, or NULL on error
  *
  * <pre>
@@ -1644,8 +1622,7 @@ SARRAY  *sa;
  * \param[in]    boxa          [optional] of image regions; can be null
  * \param[in]    quality       used for jpeg image regions; 0 for default
  * \param[in]    scalefactor   used for jpeg regions; must be <= 1.0
- * \param[in]    title         [optional] pdf title; typically taken from the
- *                             input file for the pix
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[in]    fileout       output pdf file
  * \return  0 if OK, 1 on error
  *
@@ -1726,8 +1703,7 @@ PIX     *pixs;
         return ERROR_INT("pixs not made", procName, 1);
 
     ret = pixConvertToPdfSegmented(pixs, res, type, thresh, boxa, quality,
-                                   scalefactor, (title) ? title : filein,
-                                   fileout);
+                                   scalefactor, title, fileout);
     pixDestroy(&pixs);
     return ret;
 }
@@ -1745,8 +1721,7 @@ PIX     *pixs;
  * \param[in]    boxa          [optional] of image regions; can be null
  * \param[in]    quality       used for jpeg image regions; 0 for default
  * \param[in]    scalefactor   used for jpeg regions; must be <= 1.0
- * \param[in]    title         [optional] pdf title; typically taken from the
- *                             input file for the pix
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[in]    fileout       output pdf file
  * \return  0 if OK, 1 on error
  *
@@ -1807,7 +1782,7 @@ size_t    nbytes;
  * \param[in]    boxa          [optional] image regions; can be null
  * \param[in]    quality       used for jpeg image regions; 0 for default
  * \param[in]    scalefactor   used for jpeg regions; must be <= 1.0
- * \param[in]    title         [optional] pdf title; if null, uses filein
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[out]   pdata         pdf data in memory
  * \param[out]   pnbytes       number of bytes in pdf data
  * \return  0 if OK, 1 on error
@@ -1856,8 +1831,7 @@ PIX     *pixs;
         return ERROR_INT("pixs not made", procName, 1);
 
     ret = pixConvertToPdfDataSegmented(pixs, res, type, thresh, boxa,
-                                       quality, scalefactor,
-                                       (title) ? title : filein,
+                                       quality, scalefactor, title,
                                        pdata, pnbytes);
     pixDestroy(&pixs);
     return ret;
@@ -1876,8 +1850,7 @@ PIX     *pixs;
  * \param[in]    boxa          [optional] of image regions; can be null
  * \param[in]    quality       used for jpeg image regions; 0 for default
  * \param[in]    scalefactor   used for jpeg regions; must be <= 1.0
- * \param[in]    title         [optional] pdf title; typically taken from the
- *                             input file for the pix
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[out]   pdata         pdf data in memory
  * \param[out]   pnbytes       number of bytes in pdf data
  * \return  0 if OK, 1 on error
@@ -2036,7 +2009,8 @@ L_PDF_DATA  *lpd;
  * \brief   concatenatePdf()
  *
  * \param[in]    dirname   directory name containing single-page pdf files
- * \param[in]    substr    [optional] substring filter on filenames; can be NULL
+ * \param[in]    substr    [optional] substring filter on filenames;
+ *                         can be null
  * \param[in]    fileout   concatenated pdf file
  * \return  0 if OK, 1 on error
  *
@@ -2150,7 +2124,8 @@ size_t    nbytes;
  * \brief   concatenatePdfToData()
  *
  * \param[in]    dirname   directory name containing single-page pdf files
- * \param[in]    substr    [optional] substring filter on filenames; can be NULL
+ * \param[in]    substr    [optional] substring filter on filenames;
+ *                         can be null
  * \param[out]   pdata     concatenated pdf data in memory
  * \param[out]   pnbytes   number of bytes in pdf data
  * \return  0 if OK, 1 on error
