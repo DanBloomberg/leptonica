@@ -44,7 +44,7 @@ install:
   - if [[ $LINUX ]]; then sudo apt-get install -y libpng12-dev libjpeg8-dev libtiff5-dev libopenjpeg-dev; fi
   #- if [[ $LINUX ]]; then sudo apt-get install -y libwebp-dev libpng12-dev libjpeg8-dev libtiff5-dev libgif-dev libopenjpeg-dev; fi
   # install giflib5
-  - if [[ $LINUX ]]; then wget https://sourceforge.net/projects/giflib/files/giflib-5.2.1.tar.gz; fi
+  - if [[ $LINUX ]]; then wget --no-check-certificate https://sourceforge.net/projects/giflib/files/giflib-5.2.1.tar.gz; fi
   - if [[ $LINUX ]]; then tar -xf giflib-5.2.1.tar.gz; fi
   - if [[ $LINUX ]]; then cd giflib-5.2.1; fi
   - if [[ $LINUX ]]; then make && sudo make install; fi
