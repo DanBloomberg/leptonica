@@ -77,13 +77,24 @@
  *      static TIFF      *openTiff()
  *
  *     Memory I/O: reading memory --> pix and writing pix --> memory
- *             [10 static helper functions]
- *             PIX       *pixReadMemTiff();
- *             PIX       *pixReadMemFromMultipageTiff();
- *             PIXA      *pixaReadMemMultipageTiff()    [ special top level ]
- *             l_int32    pixaWriteMemMultipageTiff()   [ special top level ]
- *             l_int32    pixWriteMemTiff();
- *             l_int32    pixWriteMemTiffCustom();
+ *        Ten static low-level memstream functions
+ *           static L_MEMSTREAM  *memstreamCreateForRead()
+ *           static L_MEMSTREAM  *memstreamCreateForWrite()
+ *           static tsize_t       tiffReadCallback()
+ *           static tsize_t       tiffWriteCallback()
+ *           static toff_t        tiffSeekCallback()
+ *           static l_int32       tiffCloseCallback()
+ *           static toff_t        tiffSizeCallback()
+ *           static l_int32       tiffMapCallback()
+ *           static void          tiffUnmapCallback()
+ *           static TIFF         *fopenTiffMemstream()
+ *
+ *           PIX       *pixReadMemTiff();
+ *           PIX       *pixReadMemFromMultipageTiff();
+ *           PIXA      *pixaReadMemMultipageTiff()    [ special top level ]
+ *           l_int32    pixaWriteMemMultipageTiff()   [ special top level ]
+ *           l_int32    pixWriteMemTiff();
+ *           l_int32    pixWriteMemTiffCustom();
  *
  *  Note 1: To include all necessary functions, use libtiff version 3.7.4
  *          (from 2005) or later.
@@ -2582,6 +2593,8 @@ TIFF         *tif;
         mstream = memstreamCreateForRead(*pdata, *pdatasize);
     else
         mstream = memstreamCreateForWrite(pdata, pdatasize);
+    if (!mstream)
+        return (TIFF *)ERROR_PTR("mstream not made", procName, NULL);
 
     TIFFSetWarningHandler(NULL);  /* disable warnings */
     TIFFSetErrorHandler(NULL);  /* disable error messages */

@@ -14,19 +14,14 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	l_float32  del_evenodd, rms_even, rms_odd, rms_all;
 	l_int32    isame;
 
-	boxa1 = boxaConstrainSize(boxa_payload, 0,
-				  L_ADJUST_LEFT_AND_RIGHT, 
-				  0, L_ADJUST_TOP_AND_BOT);
-	boxaDestroy(&boxa1);
-	
 	boxa1 = boxaReconcileAllByMedian(boxa_payload,
 					 L_ADJUST_LEFT_AND_RIGHT,
 					 L_ADJUST_TOP_AND_BOT, 50,
 					 0, NULL);
 	boxaDestroy(&boxa1);
 	
-	boxa1 = boxaReconcileEvenOddHeight(boxa_payload, L_ADJUST_TOP, 80,
-					   L_ADJUST_CHOOSE_MIN, 1.05, 1);
+	boxa1 = boxaReconcileSidesByMedian(boxa_payload, L_ADJUST_LEFT, 80,
+					   40, NULL);
 	boxaDestroy(&boxa1);
 
 	boxa1 = boxaReconcilePairWidth(boxa_payload, 2,
@@ -34,10 +29,8 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 				       0.5, NULL);
 	boxaDestroy(&boxa1);
 
-	boxaSizeConsistency1(boxa_payload, L_CHECK_HEIGHT,
-			     0.0, 0.0, &fvarp, &fvarm, &isame);
-
-	boxaSizeConsistency2(boxa_payload, &devw, &devh, 0);
+	boxaSizeConsistency(boxa_payload, L_CHECK_HEIGHT,
+			    0.0, 0.0, &fvarp, &fvarm, &isame);
 
 	boxaSizeVariation(boxa_payload, L_SELECT_WIDTH, &del_evenodd,
                   	  &rms_even, &rms_odd, &rms_all);
