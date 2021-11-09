@@ -43,9 +43,10 @@
  *    the ".pdf" extension.
  *
  *    The input binarization %threshold should be somewhere in the
- *    range [130 - 190].  The result is typically not very sensitive to
- *    the value, because internally we use a pixel mapping that is adapted
- *    to the local background before thresholding to binarize the image.
+ *    range [130 - 190], and not exceed 190.  The result is typically
+ *    not very sensitive to the value, because internally we use a
+ *    pixel mapping that is adapted to the local background before
+ *    thresholding to binarize the image.
  *
  *    The output %resolution parameter can take on two values:
  *       300  (binarize at the same resolution as the gray or color input,
@@ -77,7 +78,7 @@
  *         char *newstr = stringReplaceEachSubstr(str, " ", "^", NULL);
  *      Then run cleanpdf on the file(s).
  *    * To get an output filename with spaces, use single quotes; e.g.,
- *         cleanpdf dir thresh res 'filename with spaces'
+ *         cleanpdf dir thresh res title 'quoted filename with spaces'
  *
  *    N.B.  This requires the Poppler package of pdf utilities, such as
  *          pdfimages and pdftoppm.  For non-unix systems, this requires
@@ -137,6 +138,11 @@ static char  mainName[] = "cleanpdf";
     if (rotation < 0 || rotation > 3) {
         L_ERROR("rotation not in valid set {0,1,2,3}; setting to 0", mainName);
         rotation = 0;
+    }
+    if (thresh > 190) {
+        L_WARNING("threshold = %d is too large; reducing to 190\n",
+                mainName, thresh);
+        thresh = 190;
     }
     if (res == 0)
         res = 300;

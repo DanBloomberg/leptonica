@@ -36,7 +36,7 @@
  *    out several operations to make high resolution, 1 bpp g4-tiff
  *    encoded images in the pdf.
  *
- *     Syntax:  cconcatpdf basedir scalefactor outfile
+ *     Syntax:  concatpdf basedir scalefactor title outfile
  *
  *    The %basedir is a directory where the input pdf files are located.
  *    The program will operate on every file in this directory with
@@ -49,6 +49,9 @@
  *    We compute an output resolution for that pdf that will cause it
  *    to print 11 inches high, based on the height in pixels of the
  *    first image in the set.
+ *
+ *    The %title is the title given to the pdf.  Use %title == "none"
+ *    to omit the title.
  *
  *    The pdf encoding for each page is chosen by the default mechanism.
  *    See selectDefaultPdfEncoding() for details.
@@ -86,7 +89,7 @@ l_int32 main(int    argc,
              char **argv)
 {
 char         buf[256];
-char        *basedir, *fname, *tail, *basename, *imagedir, *outfile;
+char        *basedir, *fname, *tail, *basename, *imagedir, *title, *outfile;
 l_int32      res, i, n, ret;
 l_float32    scalefactor;
 PIX         *pixs, *pix1;
@@ -94,13 +97,14 @@ PIXA        *pixa1;
 SARRAY      *sa;
 static char  mainName[] = "concatpdf";
 
-    if (argc != 4)
+    if (argc != 5)
         return ERROR_INT(
-            "Syntax: concatpdf basedir scalefactor outfile",
+            "Syntax: concatpdf basedir scalefactor title outfile",
             mainName, 1);
     basedir = argv[1];
     scalefactor = atof(argv[2]);
-    outfile = argv[3];
+    title = argv[3];
+    outfile = argv[4];
     setLeptDebugOK(1);
 
 #if 1
@@ -167,7 +171,9 @@ static char  mainName[] = "concatpdf";
     pix1 = pixaGetPix(pixa1, 0, L_CLONE);
     pixInferResolution(pix1, 11.0, &res);
     pixDestroy(&pix1);
-    pixaConvertToPdf(pixa1, res, 1.0, L_DEFAULT_ENCODE, 50, NULL, outfile);
+    if (strcmp(title, "none") == 0)
+        title = NULL;
+    pixaConvertToPdf(pixa1, res, 1.0, L_DEFAULT_ENCODE, 50, title, outfile);
     pixaDestroy(&pixa1);
 #endif
 
