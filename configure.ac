@@ -254,6 +254,7 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM()],
 # Checks for library functions.
 AC_CHECK_FUNCS([fmemopen])
 AC_CHECK_FUNC([fstatat])
+AC_CHECK_FUNC([dirfd])
 
 # Configuration files
 AC_CONFIG_FILES([Makefile src/endianness.h src/Makefile prog/Makefile lept.pc])

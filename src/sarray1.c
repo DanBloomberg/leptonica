@@ -2028,9 +2028,11 @@ struct stat     st;
         return (SARRAY *)ERROR_PTR("pdir not opened", procName, NULL);
     }
     safiles = sarrayCreate(0);
-    dfd = dirfd(pdir);
     while ((pdirentry = readdir(pdir))) {
-#if HAVE_FSTATAT
+#if HAVE_DIRFD && HAVE_FSTATAT
+            /* Platform issues: although Linux has these POSIX functions,
+             * AIX doesn't have fstatat() and Solaris doesn't have dirfd(). */
+        dfd = dirfd(pdir);
         stat_ret = fstatat(dfd, pdirentry->d_name, &st, 0);
 #else
         size = strlen(realdir) + strlen(pdirentry->d_name) + 2;

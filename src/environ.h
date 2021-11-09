@@ -179,10 +179,12 @@ typedef uintptr_t l_uintptr_t;
 /*-------------------------------------------------------------------------*
  * fstatat() is defined by POSIX, but some systems do not support it.      *
  * One example is older macOS systems (pre-10.10).                         *
- * Play it safe and set the default value to 0.                            *
+ * Also, dirfd() is required by fstatat().                                 *
+ * Play it safe and set the default values to 0.                           *
  *-------------------------------------------------------------------------*/
 #if !defined(HAVE_CONFIG_H)
 #define  HAVE_FSTATAT     0
+#define  HAVE_DIRFD       0
 #endif /* ! HAVE_CONFIG_H */
 
 /*--------------------------------------------------------------------*
