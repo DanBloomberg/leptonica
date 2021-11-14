@@ -100,7 +100,7 @@ L_REGPARAMS  *rp;
     sarrayIntersectionByAset(sa1, sa2, &sa3);
     c1 = sarrayGetCount(sa3);
     sarrayDestroy(&sa3);
-    regTestCompareValues(rp, string_intersection, c1, 0);  /* 2 */
+    regTestCompareValues(rp, string_intersection, c1, 1);  /* 2 */
     if (rp->display) lept_stderr("  aset: intersection size = %d\n", c1);
     sarrayUnionByAset(sa1, sa2, &sa3);
     c1 = sarrayGetCount(sa3);
@@ -123,7 +123,7 @@ L_REGPARAMS  *rp;
     sarrayIntersectionByHmap(sa1, sa2, &sa3);
     c1 = sarrayGetCount(sa3);
     sarrayDestroy(&sa3);
-    regTestCompareValues(rp, string_intersection, c1, 0);  /* 6 */
+    regTestCompareValues(rp, string_intersection, c1, 1);  /* 6 */
     if (rp->display) lept_stderr("  hmap: intersection size = %d\n", c1);
     sarrayUnionByHmap(sa1, sa2, &sa3);
     c1 = sarrayGetCount(sa3);
@@ -160,7 +160,7 @@ L_REGPARAMS  *rp;
     ptaIntersectionByAset(pta1, pta2, &pta3);
     c1 = ptaGetCount(pta3);
     ptaDestroy(&pta3);
-    regTestCompareValues(rp, pta_intersection, c1, 0);  /* 10 */
+    regTestCompareValues(rp, pta_intersection, c1, 1);  /* 10 */
     if (rp->display) lept_stderr("  aset: intersection size = %d\n", c1);
     ptaUnionByAset(pta1, pta2, &pta3);
     c1 = ptaGetCount(pta3);
@@ -182,7 +182,7 @@ L_REGPARAMS  *rp;
     ptaIntersectionByHmap(pta1, pta2, &pta3);
     c1 = ptaGetCount(pta3);
     ptaDestroy(&pta3);
-    regTestCompareValues(rp, pta_intersection, c1, 0);  /* 14 */
+    regTestCompareValues(rp, pta_intersection, c1, 1);  /* 14 */
     if (rp->display) lept_stderr("  hmap: intersection size = %d\n", c1);
     ptaUnionByHmap(pta1, pta2, &pta3);
     c1 = ptaGetCount(pta3);
@@ -220,7 +220,7 @@ L_REGPARAMS  *rp;
     l_dnaIntersectionByAset(da1, da2, &da3);
     c1 = l_dnaGetCount(da3);
     l_dnaDestroy(&da3);
-    regTestCompareValues(rp, da_intersection, c1, 0);  /* 18 */
+    regTestCompareValues(rp, da_intersection, c1, 1);  /* 18 */
     if (rp->display) lept_stderr("  aset: intersection size = %d\n", c1);
     l_dnaUnionByAset(da1, da2, &da3);
     c1 = l_dnaGetCount(da3);
@@ -242,7 +242,7 @@ L_REGPARAMS  *rp;
     l_dnaIntersectionByHmap(da1, da2, &da3);
     c1 = l_dnaGetCount(da3);
     l_dnaDestroy(&da3);
-    regTestCompareValues(rp, da_intersection, c1, 0);  /* 22 */
+    regTestCompareValues(rp, da_intersection, c1, 1);  /* 22 */
     if (rp->display) lept_stderr("  hmap: intersection size = %d\n", c1);
     l_dnaUnionByHmap(da1, da2, &da3);
     c1 = l_dnaGetCount(da3);
