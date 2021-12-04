@@ -7,5 +7,5 @@ Name: @leptonica_NAME@
 Description: An open source C library for efficient image processing and image analysis operations
 Version: @leptonica_VERSION@
 Libs: -L${libdir} -l@leptonica_OUTPUT_NAME@
-Libs.private:
+Libs.private: @libs_private@
 Cflags: -I${includedir} -I${includedir}/leptonica
