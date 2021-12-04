@@ -270,7 +270,7 @@ endif()
 add_subdirectory(src)
 
 get_target_property(leptonica_NAME leptonica NAME)
-get_target_property(leptonica_VERSION leptonica VERSION)
+set(leptonica_VERSION ${VERSION_PLAIN})
 get_target_property(leptonica_OUTPUT_NAME leptonica OUTPUT_NAME)
 
 configure_file(lept.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/lept.pc @ONLY)
