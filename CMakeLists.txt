@@ -55,8 +55,8 @@ else()
 endif()
 if(UNIX)
     option(SYM_LINK "Create symlink leptonica -> lept on UNIX" OFF)
-    option(LIBWEBP_SUPPORT "Build with WebP support" OFF)
-    option(OPENJPEG_SUPPORT "Build with OpenJPEG support" OFF)
+    option(LIBWEBP_SUPPORT "Build with WebP support" ON)
+    option(OPENJPEG_SUPPORT "Build with OpenJPEG support" ON)
 endif()
 
 set(leptonica_INSTALL_CMAKE_DIR "lib/cmake/leptonica"
