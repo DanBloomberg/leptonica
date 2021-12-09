@@ -42,7 +42,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   if (size < 12) return EXIT_SUCCESS;
   int format;
   findFileFormatBuffer(data, &format);
-  if (format == IFF_PNM || format == IFF_JFIF_JPEG) return EXIT_SUCCESS;
+  if (format == IFF_PNM || format == IFF_JFIF_JPEG ||
+      format == IFF_TIFF) return EXIT_SUCCESS;
 
   Pix* pix = pixReadMem(reinterpret_cast<const unsigned char*>(data), size);
   if (pix == nullptr) {

@@ -99,7 +99,7 @@
 # endif  /* _MSC_VER || __MINGW32__ */
 #endif  /* _WIN32 */
 
-    /* Set to 1 to use pdftoppm; 0 for pdfimages */
+    /* Set to 1 to use pdftoppm (recommended); 0 for pdfimages */
 #define   USE_PDFTOPPM     1
 
 #include "string.h"
@@ -153,13 +153,11 @@ static char  mainName[] = "cleanpdf";
     }
     setLeptDebugOK(1);
 
-#if 1
         /* Get the names of the pdf files */
     if ((sa = getSortedPathnamesInDirectory(basedir, "pdf", 0, 0)) == NULL)
         return ERROR_INT("files not found", mainName, 1);
     sarrayWriteStderr(sa);
     n = sarrayGetCount(sa);
-#endif
 
         /* Rasterize: use either
          *     pdftoppm -r 300 fname outroot  (-r 300 renders output at 300 ppi)
@@ -177,12 +175,11 @@ static char  mainName[] = "cleanpdf";
          *    In some cases, it scrambles the order of the output pages
          *    and inserts extra images. */
     imagedir = stringJoin(basedir, "/image");
-#if 1
-#ifndef _WIN32
+  #ifndef _WIN32
     mkdir(imagedir, 0777);
-#else
+  #else
     _mkdir(imagedir);
-#endif  /* _WIN32 */
+  #endif  /* _WIN32 */
     for (i = 0; i < n; i++) {
         fname = sarrayGetString(sa, i, L_NOCOPY);
         splitPathAtDirectory(fname, NULL, &tail);
@@ -200,9 +197,7 @@ static char  mainName[] = "cleanpdf";
         ret = system(buf);   /* pdfimages or pdftoppm */
     }
     sarrayDestroy(&sa);
-#endif
 
-#if 1
         /* Clean, deskew and compress */
     sa = getSortedPathnamesInDirectory(imagedir, NULL, 0, 0);
     sarrayWriteStderr(sa);
@@ -240,9 +235,7 @@ static char  mainName[] = "cleanpdf";
         lept_free(basename);
     }
     sarrayDestroy(&sa);
-#endif
 
-#if 1
         /* Generate the pdf.  Compute the actual input resolution from
          * the pixel dimensions of the first image.  This will cause each
          * page to be printed to cover an 8.5 x 11 inch sheet of paper. */
@@ -255,8 +248,6 @@ static char  mainName[] = "cleanpdf";
         title = NULL;
     convertFilesToPdf(imagedir, "tif", res, 1.0, L_G4_ENCODE,
                       0, title, outfile);
-#endif
-
     return 0;
 }
 
