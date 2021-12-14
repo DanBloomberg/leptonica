@@ -631,7 +631,7 @@ recogGetCharsetSize(l_int32  type)
  * \brief   recogGetClassIndex()
  *
  * \param[in]    recog     with LUT's pre-computed
- * \param[in]    val       integer value; can be up to 3 bytes for UTF-8
+ * \param[in]    val       integer value; can be up to 4 bytes for UTF-8
  * \param[in]    text      text from which %val was derived; used if not found
  * \param[out]   pindex    index into dna_tochar
  * \return  0 if found; 1 if not found and added; 2 on error.
@@ -783,7 +783,8 @@ l_ok
 l_convertCharstrToInt(const char  *str,
                       l_int32     *pval)
 {
-l_int32  size, val;
+l_int32   size;
+l_uint32  val;
 
     PROCNAME("l_convertCharstrToInt");
 
@@ -798,14 +799,14 @@ l_int32  size, val;
     if (size > 4)
         return ERROR_INT("invalid string: > 4 bytes", procName, 1);
 
-    val = (l_int32)str[0];
+    val = (l_uint8)str[0];
     if (size > 1)
-        val = (val << 8) + (l_int32)str[1];
+        val = (val << 8) + (l_uint8)str[1];
     if (size > 2)
-        val = (val << 8) + (l_int32)str[2];
+        val = (val << 8) + (l_uint8)str[2];
     if (size > 3)
-        val = (val << 8) + (l_int32)str[3];
-    *pval = val;
+        val = (val << 8) + (l_uint8)str[3];
+    *pval = (l_int32)(val & 0x7fffffff);
     return 0;
 }
 
