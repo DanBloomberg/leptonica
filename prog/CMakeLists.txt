@@ -315,7 +315,7 @@ add_prog_target(yuvtest yuvtest.c)
 set (INSTALL_PROGS
     convertfilestopdf convertfilestops
     convertformat convertsegfilestopdf convertsegfilestops
-    converttopdf converttops fileinfo xtractprotos
+    converttopdf converttops fileinfo imagetops xtractprotos
 )
 
 foreach(make_install ${INSTALL_PROGS})
