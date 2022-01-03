@@ -79,6 +79,7 @@
  *           PIX        *pixAddBorder()
  *           PIX        *pixAddBlackOrWhiteBorder()
  *           PIX        *pixAddBorderGeneral()
+ *           PIX        *pixAddMultipleBlackWhiteBorders()
  *           PIX        *pixRemoveBorder()
  *           PIX        *pixRemoveBorderGeneral()
  *           PIX        *pixRemoveBorderToSize()
@@ -1957,6 +1958,69 @@ PIX     *pixd;
 
         /* Copy pixs into the interior */
     pixRasterop(pixd, left, top, ws, hs, PIX_SRC, pixs, 0, 0);
+    return pixd;
+}
+
+
+/*!
+ * \brief   pixAddMultipleBlackWhiteBorders()
+ *
+ * \param[in]    pixs       all depths; colormap ok
+ * \param[in]    nblack1    width of first black border
+ * \param[in]    nwhite1    width of first white border
+ * \param[in]    nblack2    width of second black border
+ * \param[in]    nwhite2    width of second white border
+ * \param[in]    nblack3    width of third black border
+ * \param[in]    nwhite3    width of third white border
+ * \return  pixd with the added borders, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a convenience function for adding up to 3 black and
+ *          3 white borders, alternating black and white.
+ *      (2) Each of the 6 args gives the width of the next border, starting
+ *          with a black border.  Any of the args can be 0, skipping
+ *          the addition of that border.
+ *      (3) Maximum allowed border width is 500 for any border.
+ * </pre>
+ */
+PIX *
+pixAddMultipleBlackWhiteBorders(PIX      *pixs,
+                                l_int32   nblack1,
+                                l_int32   nwhite1,
+                                l_int32   nblack2,
+                                l_int32   nwhite2,
+                                l_int32   nblack3,
+                                l_int32   nwhite3)
+{
+l_int32  i, color;
+l_int32  w[6];
+PIX     *pix1, *pixd;
+
+    PROCNAME("pixAddMultipleBlackWhiteBorders");
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+
+    w[0] = nblack1;
+    w[1] = nwhite1;
+    w[2] = nblack2;
+    w[3] = nwhite2;
+    w[4] = nblack3;
+    w[5] = nwhite3;
+    pixd = pixClone(pixs);
+    for (i = 0; i < 6; i++) {
+        if (w[i] > 500)
+            L_WARNING("w = %d > 500; skipping\n", procName, w[i]);
+        if (w[i] > 0 && w[i] <= 500) {
+            color = (i % 2 == 0) ? L_GET_BLACK_VAL : L_GET_WHITE_VAL;
+            pix1 = pixAddBlackOrWhiteBorder(pixd, w[i], w[i], w[i], w[i],
+                                            color);
+            pixDestroy(&pixd);
+            pixd = pix1;
+        }
+    }
+
     return pixd;
 }
 

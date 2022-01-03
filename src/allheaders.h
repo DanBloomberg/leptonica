@@ -1549,6 +1549,7 @@ LEPT_DLL extern PIX * pixCopyBorder ( PIX *pixd, PIX *pixs, l_int32 left, l_int3
 LEPT_DLL extern PIX * pixAddBorder ( PIX *pixs, l_int32 npix, l_uint32 val );
 LEPT_DLL extern PIX * pixAddBlackOrWhiteBorder ( PIX *pixs, l_int32 left, l_int32 right, l_int32 top, l_int32 bot, l_int32 op );
 LEPT_DLL extern PIX * pixAddBorderGeneral ( PIX *pixs, l_int32 left, l_int32 right, l_int32 top, l_int32 bot, l_uint32 val );
+LEPT_DLL extern PIX * pixAddMultipleBlackWhiteBorders ( PIX *pixs, l_int32 nblack1, l_int32 nwhite1, l_int32 nblack2, l_int32 nwhite2, l_int32 nblack3, l_int32 nwhite3 );
 LEPT_DLL extern PIX * pixRemoveBorder ( PIX *pixs, l_int32 npix );
 LEPT_DLL extern PIX * pixRemoveBorderGeneral ( PIX *pixs, l_int32 left, l_int32 right, l_int32 top, l_int32 bot );
 LEPT_DLL extern PIX * pixRemoveBorderToSize ( PIX *pixs, l_int32 wd, l_int32 hd );
