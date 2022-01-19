@@ -27,16 +27,17 @@
 /*
  * cleanpdf.c
  *
- *    This program is intended to take as input pdf files that have
+ *    This program is intended to take as input a set of pdf files that have
  *    been constructed from poorly compressed images -- typically images
  *    that have been scanned in grayscale or color but should be rendered
- *    in black and white (1 bpp).  It cleans and compresses them, and
- *    generates a pdf composed of tiff-g4 compressed images.
+ *    in black and white (1 bpp).  It cleans, compresses and concatenates
+ *    them, generating a single pdf composed of tiff-g4 compressed images.
  *
  *    It will also take as input clean, orthographically-generated pdfs,
  *    and concatenate them into a single pdf file of images.
  *
- *     Syntax:  cleanpdf basedir threshold resolution title outfile [rotation]
+ *     Syntax:  cleanpdf basedir threshold resolution title
+ *                  outfile [rotation darken]
  *
  *    The %basedir is a directory where the input pdf files are located.
  *    The program will operate on every file in this directory with
@@ -63,11 +64,18 @@
  *    The pdf output is written to %outfile.  It is advisable (but not
  *    required) to have a '.pdf' extension.
  *
+ *    The optional arguments %rotation and %darken must be used together.
  *    The optional %rotation is an integer:
  *       0      no rotation
  *       1      90 degrees cw
  *       1      180 degrees cw
  *       1      270 degrees cw
+ *
+ *    If the input is too light, so that important details are lost in
+ *    the binarization, use the optional %darken parameter with value 1:
+ *       0      default
+ *       1      darken
+ *    Using %darken = 1 greatly increases the contrast.
  *
  *    Whenever possible, the images will be deskewed.
  *
@@ -116,29 +124,34 @@ l_int32 main(int    argc,
 char         buf[256];
 char        *basedir, *fname, *tail, *basename, *imagedir, *title;
 char        *outfile, *firstpath;
-l_int32      thresh, res, rotation, i, n, ret;
+l_int32      thresh, res, rotation, darken, i, n, ret;
 PIX         *pixs, *pix1, *pix2, *pix3, *pix4, *pix5;
 SARRAY      *sa;
 static char  mainName[] = "cleanpdf";
 
-    if (argc != 6 && argc != 7)
+    if (argc != 6 && argc != 8)
         return ERROR_INT(
             "\n  Syntax: cleanpdf basedir threshold resolution title "
-            "outfile [rotation]",
+            "outfile [rotation darken]",
             mainName, 1);
     basedir = argv[1];
     thresh = atoi(argv[2]);
     res = atoi(argv[3]);
     title = argv[4];
     outfile = argv[5];
-    if (argc == 7)
+    if (argc == 8) {
         rotation = atoi(argv[6]);
-    else
+        darken = atoi(argv[7]);
+    } else {
         rotation = 0;
+        darken = 0;
+    }
     if (rotation < 0 || rotation > 3) {
         L_ERROR("rotation not in valid set {0,1,2,3}; setting to 0", mainName);
         rotation = 0;
     }
+    if (darken != 0 && darken != 1)
+        L_ERROR("darken is not in valid set {0,1}; setting to 0", mainName);
     if (thresh > 190) {
         L_WARNING("threshold = %d is too large; reducing to 190\n",
                 mainName, thresh);
@@ -213,7 +226,10 @@ static char  mainName[] = "cleanpdf";
             pix2 = pixClone(pix1);
         pix3 = pixFindSkewAndDeskew(pix2, 2, NULL, NULL);
         pix4 = pixBackgroundNormSimple(pix3, NULL, NULL);
-        pixGammaTRC(pix4, pix4, 2.0, 50, 250);
+        if (darken == 0)
+            pixGammaTRC(pix4, pix4, 2.0, 50, 220);
+        else
+            pixGammaTRC(pix4, pix4, 0.6, 130, 200);
         if (res == 300)
             pix5 = pixThresholdToBinary(pix4, thresh);
         else  /* res == 600 */
