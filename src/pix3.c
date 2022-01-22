@@ -2003,7 +2003,8 @@ pixCountPixelsInRect(PIX      *pixs,
                      l_int32  *pcount,
                      l_int32  *tab8)
 {
-l_int32  bx, by, bw, bh;
+l_int32  w, h, bx, by, bw, bh;
+BOX     *box1;
 PIX     *pix1;
 
     PROCNAME("pixCountPixelsInRect");
@@ -2015,11 +2016,15 @@ PIX     *pix1;
         return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
 
     if (box) {
-        boxGetGeometry(box, &bx, &by, &bw, &bh);
+        pixGetDimensions(pixs, &w, &h, NULL);
+        if ((box1 = boxClipToRectangle(box, w, h)) == NULL)
+            return ERROR_INT("box1 not made", procName, 1);
+        boxGetGeometry(box1, &bx, &by, &bw, &bh);
         pix1 = pixCreate(bw, bh, 1);
         pixRasterop(pix1, 0, 0, bw, bh, PIX_SRC, pixs, bx, by);
         pixCountPixels(pix1, pcount, tab8);
         pixDestroy(&pix1);
+        boxDestroy(&box1);
     } else {
         pixCountPixels(pixs, pcount, tab8);
     }
