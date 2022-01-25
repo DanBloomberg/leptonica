@@ -94,6 +94,8 @@ They are <i>not</i> a complete listing of the modifications.
         * Check for POSIX functions fstatat() and dirfd() before use.
         * Convenience function for adding multiple black and white borders.
         * Fix oss-fuzz issue 43841; made pixCountPixels() more efficient.
+        * Fix oss-fuzz issue 44008; pixCountArbInRect() used wrong depth.
+        * Always return tiff resolution of 0 (unknown) if not set.
 
 1.82.0  Sept 22, 2021
         * Fix issue-585: reading tiff rgb with tiffbpl = 1.5 * packedbpl.

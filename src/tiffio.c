@@ -1916,6 +1916,7 @@ TIFF    *tif;
  * <pre>
  * Notes:
  *      (1) Use TIFFClose(); TIFFCleanup() doesn't free internal memstream.
+ *      (2) Returns res = 0 if not set in the file.
  * </pre>
  */
 l_ok
@@ -2015,12 +2016,10 @@ l_uint32   w, h;
     if (pbps) *pbps = bps;
     if (pspp) *pspp = spp;
     if (pres) {
-        *pres = 300;  /* default ppi */
         if (getTiffStreamResolution(tif, &xres, &yres) == 0)
             *pres = (l_int32)xres;
     }
     if (pcmap) {
-        *pcmap = 0;
         if (TIFFGetField(tif, TIFFTAG_COLORMAP, &rmap, &gmap, &bmap))
             *pcmap = 1;
     }
