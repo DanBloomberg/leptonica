@@ -104,9 +104,10 @@
  *          l_int32       pixSetColormap()
  *          l_int32       pixDestroyColormap()
  *          l_uint32     *pixGetData()
+ *          l_int32       pixFreeAndSetData()
  *          l_int32       pixSetData()
- *          l_uint32     *pixExtractData()
  *          l_int32       pixFreeData()
+ *          l_uint32     *pixExtractData()
  *
  *    Pix line ptrs
  *          void        **pixGetLinePtrs()
@@ -793,8 +794,7 @@ l_uint32  *data;
     pixSetHeight(pixd, h);
     pixSetDepth(pixd, d);
     pixSetWpl(pixd, wpl);
-    pixFreeData(pixd);  /* free any existing image data */
-    pixSetData(pixd, data);  /* set the uninitialized memory buffer */
+    pixFreeAndSetData(pixd, data);  /* free old data and assign new data */
     pixCopyResolution(pixd, pixs);
     return 0;
 }
@@ -1771,6 +1771,33 @@ pixGetData(PIX  *pix)
 
 
 /*!
+ * \brief   pixFreeAndSetData()
+ *
+ * \param[in]   pix
+ * \param[in]   data
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This frees the existing raster data in the pix and assigns %data.
+ * </pre>
+ */
+l_int32
+pixFreeAndSetData(PIX       *pix,
+                  l_uint32  *data)
+{
+    PROCNAME("pixFreeAndSetData");
+
+    if (!pix)
+        return ERROR_INT("pix not defined", procName, 1);
+
+    pixFreeData(pix);
+    pix->data = data;
+    return 0;
+}
+
+
+/*!
  * \brief   pixSetData()
  *
  * \param[in]   pix
@@ -1780,7 +1807,7 @@ pixGetData(PIX  *pix)
  * <pre>
  * Notes:
  *      (1) This does not free any existing data.  To free existing
- *          data, use pixFreeData() before pixSetData().
+ *          data, use pixFreeAndSetData() instead.
  * </pre>
  */
 l_int32
@@ -1794,49 +1821,6 @@ pixSetData(PIX       *pix,
 
     pix->data = data;
     return 0;
-}
-
-
-/*!
- * \brief   pixExtractData()
- *
- * \param[in]   pix
- * \return  ptr to data, or null on error
- *
- * <pre>
- * Notes:
- *      (1) This extracts the pix image data for use in another context.
- *          The caller still needs to use pixDestroy() on the input pix.
- *      (2) If refcount == 1, the data is extracted and the
- *          pix->data ptr is set to NULL.
- *      (3) If refcount > 1, this simply returns a copy of the data,
- *          using the pix allocator, and leaving the input pix unchanged.
- * </pre>
- */
-l_uint32 *
-pixExtractData(PIX  *pixs)
-{
-l_int32    count, bytes;
-l_uint32  *data, *datas;
-
-    PROCNAME("pixExtractData");
-
-    if (!pixs)
-        return (l_uint32 *)ERROR_PTR("pixs not defined", procName, NULL);
-
-    count = pixGetRefcount(pixs);
-    if (count == 1) {  /* extract */
-        data = pixGetData(pixs);
-        pixSetData(pixs, NULL);
-    } else {  /* refcount > 1; copy */
-        bytes = 4 * pixGetWpl(pixs) * pixGetHeight(pixs);
-        datas = pixGetData(pixs);
-        if ((data = (l_uint32 *)pixdata_malloc(bytes)) == NULL)
-            return (l_uint32 *)ERROR_PTR("data not made", procName, NULL);
-        memcpy(data, datas, bytes);
-    }
-
-    return data;
 }
 
 
@@ -1869,6 +1853,48 @@ l_uint32  *data;
         pix->data = NULL;
     }
     return 0;
+}
+
+
+/*!
+ * \brief   pixExtractData()
+ *
+ * \param[in]   pix
+ * \return  ptr to data, or null on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This extracts the pix image data for use in another context.
+ *          The caller still needs to use pixDestroy() on the input pix.
+ *      (2) If refcount == 1, the data is extracted and the
+ *          pix->data ptr is set to NULL.
+ *      (3) If refcount > 1, this simply returns a copy of the data,
+ *          using the pix allocator, and leaving the input pix unchanged.
+ * </pre>
+ */
+l_uint32 *
+pixExtractData(PIX  *pixs)
+{
+l_int32    bytes;
+l_uint32  *data, *datas;
+
+    PROCNAME("pixExtractData");
+
+    if (!pixs)
+        return (l_uint32 *)ERROR_PTR("pixs not defined", procName, NULL);
+
+    if (pixGetRefcount(pixs) == 1) {  /* extract */
+        data = pixGetData(pixs);
+        pixSetData(pixs, NULL);
+    } else {  /* refcount > 1; copy */
+        bytes = 4 * pixGetWpl(pixs) * pixGetHeight(pixs);
+        datas = pixGetData(pixs);
+        if ((data = (l_uint32 *)pixdata_malloc(bytes)) == NULL)
+            return (l_uint32 *)ERROR_PTR("data not made", procName, NULL);
+        memcpy(data, datas, bytes);
+    }
+
+    return data;
 }
 
 

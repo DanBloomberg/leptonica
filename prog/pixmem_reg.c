@@ -122,8 +122,7 @@ L_REGPARAMS  *rp;
     pix3 = pixCopy(NULL, pix2);  /* for later reference */
     data = pixExtractData(pix2);
     pix4 = pixCreateTemplateNoInit(pix2);
-    pixFreeData(pix4);
-    pixSetData(pix4, data);
+    pixFreeAndSetData(pix4, data);
     regTestComparePix(rp, pix3, pix4);  /* 10 */
     pixaAddPix(pixa, pix4, L_INSERT);
     pixDestroy(&pix2);
@@ -135,8 +134,7 @@ L_REGPARAMS  *rp;
     pix2 = pixClone(pix1);  /* bump refcount of pix1 to 2 */
     data = pixExtractData(pix1);  /* should make a copy of data */
     pix3 = pixCreateTemplateNoInit(pix1);
-    pixFreeData(pix3);
-    pixSetData(pix3, data);
+    pixFreeAndSetData(pix3, data);
     regTestComparePix(rp, pix2, pix3);  /* 11 */
     pixaAddPix(pixa, pix3, L_INSERT);
     pixDestroy(&pix1);
