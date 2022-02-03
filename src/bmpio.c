@@ -123,6 +123,10 @@ PIX      *pix;
  *          * Image data
  *      (2) 2 bpp bmp files are not valid in the original spec, but they
  *          are valid in later versions.
+ *      (3) We support reading rgb files with 24 bpp of input data.  The
+ *          transparency component of the generated pix is 255 (opaque).
+ *          We do not support reading rgba files with 32 bpp input data.
+ *          For rgba images with non-opaque transparency components, use png.
  * </pre>
  */
 PIX *
@@ -217,9 +221,12 @@ PIXCMAP   *cmap;
     npixels = 1LL * width * height;
     if (npixels > L_MAX_ALLOWED_PIXELS)
         return (PIX *)ERROR_PTR("npixels too large", procName, NULL);
+    if (depth == 32)
+        return (PIX *)ERROR_PTR("32 bpp rgba input data is not supported",
+                                procName, NULL);
     if (depth != 1 && depth != 2 && depth != 4 && depth != 8 &&
-        depth != 16 && depth != 24 && depth != 32) {
-        L_ERROR("invalid depth = %d; not in {1, 2, 4, 8, 16, 24, 32}\n",
+        depth != 16 && depth != 24) {
+        L_ERROR("invalid depth = %d; not in {1, 2, 4, 8, 16, 24}\n",
                 procName, depth);
         return NULL;
     }
@@ -493,6 +500,9 @@ RGBA_QUAD  *pquad;
     } else {
         pix = pixCopy(NULL, pixs);
     }
+    if (pixGetSpp(pixs) == 4)
+        L_WARNING("transparency component for rgba pix is ignored; "
+                  "assumed opaque\n", procName);
     fdepth = (d == 32) ? 24 : d;
 
         /* Resolution is given in pixels/meter */
