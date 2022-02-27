@@ -901,7 +901,7 @@ PIX     *pixg, *pix1, *pixd;
  *                            and thresholding                          *
  *----------------------------------------------------------------------*/
 /*!
- * \brief   pixTheshOnDoubleNorm()
+ * \brief   pixThreshOnDoubleNorm()
  *
  * \param[in]    pixs          8 or 32 bpp
  * \param[in]    mindiff       minimum diff to accept as valid in contrast

@@ -285,7 +285,7 @@ pixdata_free(void  *ptr)
  *          so that it can be in either of these two forms:
  *            (a) type (function-ptr(type, ...))
  *            (b) type ((*function-ptr)(type, ...))
- *          because form (a) is implictly converted to form (b), as in the
+ *          because form (a) is implicitly converted to form (b), as in the
  *          definition of struct PixMemoryManager above.  So, for example,
  *          we should be able to declare either of these:
  *            (a) void *(allocator(size_t))
