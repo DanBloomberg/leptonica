@@ -616,8 +616,8 @@ PTAA     *ptaa;
  * \param[in]    linewb   line width to display outline of each box
  * \param[in]    colorba  color to display boxa
  * \param[in]    colorb   color to display box
- * \param[in]    w    width of outupt pix; use 0 if determined by %pixs or %baa
- * \param[in]    h    height of outupt pix; use 0 if determined by %pixs or %baa
+ * \param[in]    w    width of output pix; use 0 if determined by %pixs or %baa
+ * \param[in]    h    height of output pix; use 0 if determined by %pixs or %baa
  * \return  0 if OK, 1 on error
  *
  * <pre>
