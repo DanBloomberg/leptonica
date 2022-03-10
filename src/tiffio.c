@@ -1763,8 +1763,8 @@ l_float32  fxres, fyres;
         *pxres = (l_int32)(2.54 * fxres + 0.5);
         *pyres = (l_int32)(2.54 * fyres + 0.5);
     } else {
-        *pxres = (l_int32)fxres;
-        *pyres = (l_int32)fyres;
+        *pxres = (l_int32)(fxres + 0.5);
+        *pyres = (l_int32)(fyres + 0.5);
     }
 
     return 0;
