@@ -36,6 +36,7 @@
  *        * Extract and display rank sized components
  *        * Extract parts of an image using a boxa
  *        * Display pixaa in row major order by component pixa.
+ *        * Test zlib compression in png
  */
 
 #ifdef HAVE_CONFIG_H
@@ -46,10 +47,13 @@
 
 #define   SHOW    0
 
+static const size_t  zlibsize[5] = {1047868, 215039, 195778, 189709, 180987};
+
 int main(int    argc,
          char **argv)
 {
 l_int32   w, h, bx, by, bw, bh, i, j;
+size_t    size;
 BOX      *box1, *box2;
 BOXA     *boxa1, *boxa2, *boxae, *boxao;
 PIX      *pixs, *pix1, *pix2, *pix3, *pixg, *pixb, *pixd, *pixc;
@@ -327,5 +331,18 @@ PIXCMAP  *cmap, *cmapg;
     pixDestroy(&pix1);
     pixDestroy(&pix3);
     pixaDestroy(&pixa1);
+
+        /* Test zlib compression in png */
+        /* Note that delta may be nonzero with some libraries */
+    pixs = pixRead("feyn.tif");
+    for (i = 0; i < 5; i++) {
+        pixSetZlibCompression(pixs, 2 * i);
+        pixWrite("/tmp/lept/misc/zlibtest.png", pixs, IFF_PNG);
+        size = nbytesInFile("/tmp/lept/misc/zlibtest.png");
+        lept_stderr("zlib level = %d, file size = %ld, delta = %d\n",
+                    2 * i, (unsigned long)size, size - zlibsize[i]);
+    }
+    pixDestroy(&pixs);
+
     return 0;
 }
