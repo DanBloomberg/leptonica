@@ -3360,7 +3360,7 @@ l_uint32  *data, *line;
         return ERROR_INT("pixs not 1, 2, 4 or 8 bpp", procName, 1);
     if (val < 0)
         return ERROR_INT("val < 0", procName, 1);
-    if (d <= 8 && val > (1 << d) - 1) {
+    if (val > (1 << d) - 1) {
         L_ERROR("invalid val = %d for depth %d\n", procName, val, d);
         return 1;
     }
