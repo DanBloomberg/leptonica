@@ -915,7 +915,7 @@ l_float32  *array;
 
 
 /*!
- * \brief   numaGetRefCount()
+ * \brief   numaGetRefcount()
  *
  * \param[in]    na
  * \return  refcount, or UNDEF on error
@@ -932,7 +932,7 @@ numaGetRefcount(NUMA  *na)
 
 
 /*!
- * \brief   numaChangeRefCount()
+ * \brief   numaChangeRefcount()
  *
  * \param[in]    na
  * \param[in]    delta    change to be applied

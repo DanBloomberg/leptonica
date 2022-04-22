@@ -887,7 +887,7 @@ l_float64  *array;
 
 
 /*!
- * \brief   l_dnaGetRefCount()
+ * \brief   l_dnaGetRefcount()
  *
  * \param[in]    da
  * \return  refcount, or UNDEF on error
@@ -904,7 +904,7 @@ l_dnaGetRefcount(L_DNA  *da)
 
 
 /*!
- * \brief   l_dnaChangeRefCount()
+ * \brief   l_dnaChangeRefcount()
  *
  * \param[in]    da
  * \param[in]    delta    change to be applied
