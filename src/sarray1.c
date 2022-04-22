@@ -721,7 +721,7 @@ sarrayGetString(SARRAY  *sa,
 
 
 /*!
- * \brief   sarrayGetRefCount()
+ * \brief   sarrayGetRefcount()
  *
  * \param[in]    sa     string array
  * \return  refcount, or UNDEF on error
@@ -738,7 +738,7 @@ sarrayGetRefcount(SARRAY  *sa)
 
 
 /*!
- * \brief   sarrayChangeRefCount()
+ * \brief   sarrayChangeRefcount()
  *
  * \param[in]    sa      string array
  * \param[in]    delta   change to be applied
