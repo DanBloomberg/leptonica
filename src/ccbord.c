@@ -251,6 +251,7 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include "ccbord_internal.h"
 #include "pix_internal.h"
 #include <string.h>
 
@@ -383,7 +384,7 @@ PTAA    *local;
         return (CCBORD *)ERROR_PTR("pixs defined and not 1bpp", procName, NULL);
 
     ccb = (CCBORD *)LEPT_CALLOC(1, sizeof(CCBORD));
-    ccb->refcount++;
+    ccb->refcount = 1;
     if (pixs)
         ccb->pix = pixClone(pixs);
     boxa = boxaCreate(1);
@@ -417,8 +418,7 @@ CCBORD  *ccb;
     if ((ccb = *pccb) == NULL)
         return;
 
-    ccb->refcount--;
-    if (ccb->refcount == 0) {
+    if (--ccb->refcount == 0) {
         if (ccb->pix)
             pixDestroy(&ccb->pix);
         if (ccb->boxa)
