@@ -206,7 +206,7 @@ PTA  *pta;
     if ((pta = *ppta) == NULL)
         return;
 
-    if (atomic_fetch_sub(&pta->refcount, 1) == 1) {
+    if (--pta->refcount == 0) {
         LEPT_FREE(pta->x);
         LEPT_FREE(pta->y);
         LEPT_FREE(pta);
@@ -300,7 +300,7 @@ ptaClone(PTA  *pta)
     if (!pta)
         return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
 
-    atomic_fetch_add(&pta->refcount, 1);
+    ++pta->refcount;
     return pta;
 }
 

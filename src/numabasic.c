@@ -378,7 +378,7 @@ NUMA  *na;
         return;
 
         /* Decrement the ref count.  If it is 0, destroy the numa. */
-    if (atomic_fetch_sub(&na->refcount, 1) == 1) {
+    if (--na->refcount == 0) {
         if (na->array)
             LEPT_FREE(na->array);
         LEPT_FREE(na);
@@ -431,7 +431,7 @@ numaClone(NUMA  *na)
     if (!na)
         return (NUMA *)ERROR_PTR("na not defined", procName, NULL);
 
-    atomic_fetch_add(&na->refcount, 1);
+    ++na->refcount;
     return na;
 }
 

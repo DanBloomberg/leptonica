@@ -344,7 +344,7 @@ L_DNA  *da;
         return;
 
         /* Decrement the ref count.  If it is 0, destroy the l_dna. */
-    if (atomic_fetch_sub(&da->refcount, 1) == 1) {
+    if (--da->refcount == 0) {
         if (da->array)
             LEPT_FREE(da->array);
         LEPT_FREE(da);
@@ -401,7 +401,7 @@ l_dnaClone(L_DNA  *da)
     if (!da)
         return (L_DNA *)ERROR_PTR("da not defined", procName, NULL);
 
-    atomic_fetch_add(&da->refcount, 1);
+    ++da->refcount;
     return da;
 }
 
