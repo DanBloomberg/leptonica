@@ -27,8 +27,12 @@
 #ifndef  LEPTONICA_PIX_INTERNAL_H
 #define  LEPTONICA_PIX_INTERNAL_H
 
-#include "allheaders.h"
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L) && !defined(__STDC_NO_ATOMICS__)
 #include <stdatomic.h>
+#elif !defined(atomic_int)
+#define atomic_int int
+#endif
+#include "allheaders.h"
 
 /*! Basic rectangle */
 struct Box
