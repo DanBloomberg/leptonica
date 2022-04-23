@@ -651,7 +651,7 @@ NUMA  *nac, *nad;
     PROCNAME("pixExtractBarcodeWidths1");
 
     if (pnaehist) *pnaehist = NULL;
-    if (pnaohist) *pnaehist = NULL;
+    if (pnaohist) *pnaohist = NULL;
     if (!pixs || pixGetDepth(pixs) != 8)
         return (NUMA *)ERROR_PTR("pixs undefined or not 8 bpp", procName, NULL);
 
