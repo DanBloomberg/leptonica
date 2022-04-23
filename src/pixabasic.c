@@ -425,8 +425,7 @@ PIXA    *pixa;
         return;
 
         /* Decrement the refcount.  If it is 0, destroy the pixa. */
-    pixaChangeRefcount(pixa, -1);
-    if (pixa->refcount <= 0) {
+    if (--pixa->refcount == 0) {
         for (i = 0; i < pixa->n; i++)
             pixDestroy(&pixa->pix[i]);
         LEPT_FREE(pixa->pix);

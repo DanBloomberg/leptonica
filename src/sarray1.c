@@ -373,8 +373,7 @@ SARRAY  *sa;
     if ((sa = *psa) == NULL)
         return;
 
-    sarrayChangeRefcount(sa, -1);
-    if (sarrayGetRefcount(sa) <= 0) {
+    if (--sa->refcount == 0) {
         if (sa->array) {
             for (i = 0; i < sa->n; i++) {
                 if (sa->array[i])
@@ -428,7 +427,7 @@ sarrayClone(SARRAY  *sa)
 
     if (!sa)
         return (SARRAY *)ERROR_PTR("sa not defined", procName, NULL);
-    sarrayChangeRefcount(sa, 1);
+    ++sa->refcount;
     return sa;
 }
 

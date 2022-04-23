@@ -142,7 +142,7 @@ struct Pix
     l_uint32             d;         /*!< depth in bits (bpp)               */
     l_uint32             spp;       /*!< number of samples per pixel       */
     l_uint32             wpl;       /*!< 32-bit words/line                 */
-    l_uint32             refcount;  /*!< reference count (1 if no clones)  */
+    l_atomic             refcount;  /*!< reference count (1 if no clones)  */
     l_int32              xres;      /*!< image res (ppi) in x direction    */
                                     /*!< (use 0 if unknown)                */
     l_int32              yres;      /*!< image res (ppi) in y direction    */
@@ -456,7 +456,7 @@ struct Pixa
 {
     l_int32             n;          /*!< number of Pix in ptr array        */
     l_int32             nalloc;     /*!< number of Pix ptrs allocated      */
-    l_uint32            refcount;   /*!< reference count (1 if no clones)  */
+    l_atomic            refcount;   /*!< reference count (1 if no clones)  */
     struct Pix        **pix;        /*!< the array of ptrs to pix          */
     struct Boxa        *boxa;       /*!< array of boxes                    */
 };
@@ -483,7 +483,7 @@ struct Box
     l_int32            y;           /*!< top coordinate                    */
     l_int32            w;           /*!< box width                         */
     l_int32            h;           /*!< box height                        */
-    l_uint32           refcount;    /*!< reference count (1 if no clones)  */
+    l_atomic           refcount;    /*!< reference count (1 if no clones)  */
 };
 typedef struct Box    BOX;
 
@@ -492,7 +492,7 @@ struct Boxa
 {
     l_int32            n;           /*!< number of box in ptr array        */
     l_int32            nalloc;      /*!< number of box ptrs allocated      */
-    l_uint32           refcount;    /*!< reference count (1 if no clones)  */
+    l_atomic           refcount;    /*!< reference count (1 if no clones)  */
     struct Box       **box;         /*!< box ptr array                     */
 };
 typedef struct Boxa  BOXA;
@@ -517,7 +517,7 @@ struct Pta
 {
     l_int32            n;           /*!< actual number of pts              */
     l_int32            nalloc;      /*!< size of allocated arrays          */
-    l_uint32           refcount;    /*!< reference count (1 if no clones)  */
+    l_atomic           refcount;    /*!< reference count (1 if no clones)  */
     l_float32         *x, *y;       /*!< arrays of floats                  */
 };
 typedef struct Pta PTA;
@@ -580,7 +580,7 @@ struct FPix
     l_int32              w;         /*!< width in pixels                   */
     l_int32              h;         /*!< height in pixels                  */
     l_int32              wpl;       /*!< 32-bit words/line                 */
-    l_uint32             refcount;  /*!< reference count (1 if no clones)  */
+    l_atomic             refcount;  /*!< reference count (1 if no clones)  */
     l_int32              xres;      /*!< image res (ppi) in x direction    */
                                     /*!< (use 0 if unknown)                */
     l_int32              yres;      /*!< image res (ppi) in y direction    */
@@ -594,7 +594,7 @@ struct FPixa
 {
     l_int32             n;          /*!< number of fpix in ptr array       */
     l_int32             nalloc;     /*!< number of fpix ptrs allocated     */
-    l_uint32            refcount;   /*!< reference count (1 if no clones)  */
+    l_atomic            refcount;   /*!< reference count (1 if no clones)  */
     struct FPix       **fpix;       /*!< the array of ptrs to fpix         */
 };
 typedef struct FPixa FPIXA;
@@ -611,7 +611,7 @@ struct DPix
     l_int32              w;         /*!< width in pixels                   */
     l_int32              h;         /*!< height in pixels                  */
     l_int32              wpl;       /*!< 32-bit words/line                 */
-    l_uint32             refcount;  /*!< reference count (1 if no clones)  */
+    l_atomic             refcount;  /*!< reference count (1 if no clones)  */
     l_int32              xres;      /*!< image res (ppi) in x direction    */
                                     /*!< (use 0 if unknown)                */
     l_int32              yres;      /*!< image res (ppi) in y direction    */
