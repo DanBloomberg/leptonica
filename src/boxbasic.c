@@ -135,9 +135,8 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
-#include <stdatomic.h>
+#include "pix_internal.h"
 #include <string.h>
-#include "allheaders.h"
 
     /* Bounds on array sizes */
 static const size_t  MaxBoxaPtrArraySize = 10000000;
@@ -262,7 +261,7 @@ boxClone(BOX  *box)
     if (!box)
         return (BOX *)ERROR_PTR("box not defined", procName, NULL);
 
-    atomic_fetch_add(&box->refcount, 1);
+    ++box->refcount;
     return box;
 }
 
@@ -293,7 +292,7 @@ BOX  *box;
     if ((box = *pbox) == NULL)
         return;
 
-    if (atomic_fetch_sub(&box->refcount, 1) == 1)
+    if (--box->refcount == 0)
         LEPT_FREE(box);
     *pbox = NULL;
 }

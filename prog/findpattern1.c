@@ -44,7 +44,7 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
-#include "allheaders.h"
+#include "pix_internal.h"
 
     /* for pixGenerateSelWithRuns() */
 static const l_int32  NumHorLines = 11;

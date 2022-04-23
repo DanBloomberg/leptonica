@@ -83,7 +83,7 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
-#include "allheaders.h"
+#include "pix_internal.h"
 
 static l_int32 boxHasOverlapInXorY(l_int32 c1, l_int32 s1, l_int32 c2,
                                    l_int32 s2);

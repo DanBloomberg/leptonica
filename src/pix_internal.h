@@ -30,6 +30,16 @@
 #include "allheaders.h"
 #include <stdatomic.h>
 
+/*! Basic rectangle */
+struct Box
+{
+    l_int32            x;           /*!< left coordinate                   */
+    l_int32            y;           /*!< top coordinate                    */
+    l_int32            w;           /*!< box width                         */
+    l_int32            h;           /*!< box height                        */
+    atomic_int         refcount;    /*!< reference count (1 if no clones)  */
+};
+
     /* The 'special' field is by default 0, but it can hold integers
      * that direct non-default actions, e.g., in png and jpeg I/O. */
 

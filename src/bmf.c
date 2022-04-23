@@ -70,8 +70,8 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include "pix_internal.h"
 #include <string.h>
-#include "allheaders.h"
 #include "bmfdata.h"
 
 static const l_float32  VertFractSep = 0.3;

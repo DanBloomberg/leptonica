@@ -251,8 +251,8 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include "pix_internal.h"
 #include <string.h>
-#include "allheaders.h"
 
 static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;    /* n'import quoi */
 
