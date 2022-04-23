@@ -339,8 +339,8 @@ PIXCMAP  *cmap, *cmapg;
         pixSetZlibCompression(pixs, 2 * i);
         pixWrite("/tmp/lept/misc/zlibtest.png", pixs, IFF_PNG);
         size = nbytesInFile("/tmp/lept/misc/zlibtest.png");
-        lept_stderr("zlib level = %d, file size = %ld, delta = %d\n",
-                    2 * i, (unsigned long)size, size - zlibsize[i]);
+        lept_stderr("zlib level = %d, file size = %lu, delta = %lu\n",
+                    2 * i, (unsigned long)size, (unsigned long)(size - zlibsize[i]));
     }
     pixDestroy(&pixs);
 

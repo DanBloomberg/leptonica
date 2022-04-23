@@ -261,12 +261,14 @@ L_REGPARAMS  *rp;
     lept_free(data);
 
         /* Test ascii serialization/deserialization of colormap with alpha */
-    fp = fopenWriteStream("/tmp/lept/alpha/cmap.4", "w");
-    pixcmapWriteStream(fp, cmap);
-    fclose(fp);
-    fp = fopenReadStream("/tmp/lept/alpha/cmap.4");
-    cmap2 = pixcmapReadStream(fp);
-    fclose(fp);
+    if ((fp = fopenWriteStream("/tmp/lept/alpha/cmap.4", "w")) != NULL) {
+        pixcmapWriteStream(fp, cmap);
+        fclose(fp);
+    }
+    if ((fp = fopenReadStream("/tmp/lept/alpha/cmap.4")) != NULL) {
+        cmap2 = pixcmapReadStream(fp);
+        fclose(fp);
+    }
     cmapEqual(cmap, cmap2, 4, &equal);
     regTestCompareValues(rp, TRUE, equal, 0.0);  /* 26 */
     pixcmapDestroy(&cmap2);

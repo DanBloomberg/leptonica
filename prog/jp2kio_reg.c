@@ -194,9 +194,10 @@ PIX   *pix0, *pix1;
         /* Test write and read using J2K codec */
     lept_mkdir("lept/jp2k");
     pix0 = pixRead(fname);
-    fp = fopenWriteStream("/tmp/lept/jp2k/wyom.j2k", "wb+");
-    pixWriteStreamJp2k(fp, pix0, 34, 4, L_J2K_CODEC, 0, 0);
-    fclose(fp);
+    if ((fp = fopenWriteStream("/tmp/lept/jp2k/wyom.j2k", "wb+")) != NULL) {
+        pixWriteStreamJp2k(fp, pix0, 34, 4, L_J2K_CODEC, 0, 0);
+        fclose(fp);
+    }
     pix1 = pixRead("/tmp/lept/jp2k/wyom.j2k");
     regTestCompareSimilarPix(rp, pix0, pix1, 20, 0.01, 0);  /* 16 */
     pixDisplayWithTitle(pix1, 500, 500, NULL, rp->display);
