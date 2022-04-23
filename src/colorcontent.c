@@ -1837,8 +1837,12 @@ l_uint32  *rtab, *gtab, *btab;
     rtab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     gtab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     btab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
-    if (!rtab || !gtab || !btab)
+    if (!rtab || !gtab || !btab) {
+        LEPT_FREE(rtab);
+        LEPT_FREE(gtab);
+        LEPT_FREE(btab);
         return ERROR_INT("calloc fail for tab", procName, 1);
+    }
     *prtab = rtab;
     *pgtab = gtab;
     *pbtab = btab;
