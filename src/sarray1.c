@@ -141,7 +141,7 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
-#include <stdatomic.h>
+#include "array_internal.h"
 #include <string.h>
 #ifndef _WIN32
 #include <dirent.h>     /* unix only */
@@ -149,7 +149,6 @@
 #include <limits.h>  /* needed for realpath() */
 #include <stdlib.h>  /* needed for realpath() */
 #endif  /* ! _WIN32 */
-#include "allheaders.h"
 
 static const l_uint32  MaxPtrArraySize = 50000000;    /* 50 million */
 static const l_int32   InitialPtrArraySize = 50;      /*!< n'importe quoi */

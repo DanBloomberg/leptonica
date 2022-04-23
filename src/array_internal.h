@@ -58,4 +58,16 @@ struct Numa
     l_float32       *array;     /*!< number array                        */
 };
 
+/*! Sarray version for serialization */
+#define  SARRAY_VERSION_NUMBER     1
+
+    /*! String array: an array of C strings */
+struct Sarray
+{
+    l_int32          nalloc;    /*!< size of allocated ptr array         */
+    l_int32          n;         /*!< number of strings allocated         */
+    atomic_int       refcount;  /*!< reference count (1 if no clones)    */
+    char           **array;     /*!< string array                        */
+};
+
 #endif  /* LEPTONICA_ARRAY_INTERNAL_H */

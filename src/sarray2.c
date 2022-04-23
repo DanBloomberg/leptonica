@@ -72,8 +72,8 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include "array_internal.h"
 #include <string.h>
-#include "allheaders.h"
 
 /*----------------------------------------------------------------------*
  *                                   Sort                               *

@@ -93,17 +93,6 @@ struct L_DnaHash
 };
 typedef struct L_DnaHash L_DNAHASH;
 
-/*! Sarray version for serialization */
-#define  SARRAY_VERSION_NUMBER     1
-
-    /*! String array: an array of C strings */
-struct Sarray
-{
-    l_int32          nalloc;    /*!< size of allocated ptr array         */
-    l_int32          n;         /*!< number of strings allocated         */
-    l_int32          refcount;  /*!< reference count (1 if no clones)    */
-    char           **array;     /*!< string array                        */
-};
 typedef struct Sarray SARRAY;
 
     /*! Byte array (analogous to C++ "string") */
