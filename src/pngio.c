@@ -121,8 +121,8 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include "pix_internal.h"
 #include <string.h>
-#include "allheaders.h"
 
 /* --------------------------------------------*/
 #if  HAVE_LIBPNG   /* defined in environ.h */

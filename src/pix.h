@@ -135,24 +135,6 @@
      * that direct non-default actions, e.g., in png and jpeg I/O. */
 
 /*! Basic Pix */
-struct Pix
-{
-    l_uint32             w;         /*!< width in pixels                   */
-    l_uint32             h;         /*!< height in pixels                  */
-    l_uint32             d;         /*!< depth in bits (bpp)               */
-    l_uint32             spp;       /*!< number of samples per pixel       */
-    l_uint32             wpl;       /*!< 32-bit words/line                 */
-    l_uint32             refcount;  /*!< reference count (1 if no clones)  */
-    l_int32              xres;      /*!< image res (ppi) in x direction    */
-                                    /*!< (use 0 if unknown)                */
-    l_int32              yres;      /*!< image res (ppi) in y direction    */
-                                    /*!< (use 0 if unknown)                */
-    l_int32              informat;  /*!< input file format, IFF_*          */
-    l_int32              special;   /*!< special instructions for I/O, etc */
-    char                *text;      /*!< text string associated with pix   */
-    struct PixColormap  *colormap;  /*!< colormap (may be null)            */
-    l_uint32            *data;      /*!< the image data                    */
-};
 typedef struct Pix PIX;
 
 /*! Colormap of a Pix */

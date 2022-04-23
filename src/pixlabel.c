@@ -83,9 +83,9 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include "pix_internal.h"
 #include <string.h>
 #include <math.h>
-#include "allheaders.h"
 
 /*-----------------------------------------------------------------------*
  *      Label pixels by an index for connected component membership      *

@@ -200,8 +200,8 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include "pix_internal.h"
 #include <string.h>
-#include "allheaders.h"
 
 static void pixFree(PIX *pix);
 

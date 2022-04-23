@@ -162,8 +162,8 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include "pix_internal.h"
 #include <string.h>
-#include "allheaders.h"
 
     /* Static functions */
 static l_int32 recogTemplatesAreOK(L_RECOG *recog, l_int32 minsize,
