@@ -1138,7 +1138,8 @@ FILE         *fp;
     }
 
         /* Read the resolution */
-    fp = fopenReadStream(fname);
+    if ((fp = fopenReadStream(fname)) == NULL)
+        return (L_COMP_DATA *)ERROR_PTR("stream not opened", procName, NULL);
     getTiffResolution(fp, &xres, &yres);
     fclose(fp);
 
