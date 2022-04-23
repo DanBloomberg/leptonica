@@ -87,19 +87,6 @@ struct Numaa
 };
 typedef struct Numaa  NUMAA;
 
-/*! Dna version for serialization */
-#define  DNA_VERSION_NUMBER     1
-
-    /*! Double number array: an array of doubles */
-struct L_Dna
-{
-    l_int32          nalloc;    /*!< size of allocated number array      */
-    l_int32          n;         /*!< number of numbers saved             */
-    l_int32          refcount;  /*!< reference count (1 if no clones)    */
-    l_float64        startx;    /*!< x value assigned to array[0]        */
-    l_float64        delx;      /*!< change in x value as i --> i + 1    */
-    l_float64       *array;     /*!< number array                        */
-};
 typedef struct L_Dna  L_DNA;
 
     /*! Array of double number arrays */
