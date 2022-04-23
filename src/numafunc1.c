@@ -145,8 +145,8 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include "array_internal.h"
 #include <math.h>
-#include "allheaders.h"
 
 /*----------------------------------------------------------------------*
  *                Arithmetic and logical ops on Numas                   *

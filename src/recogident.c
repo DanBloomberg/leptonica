@@ -93,8 +93,8 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include "array_internal.h"
 #include <string.h>
-#include "allheaders.h"
 
     /* There are two methods for splitting characters: DID and greedy.
      * The default method is DID.  */

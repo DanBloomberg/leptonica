@@ -44,4 +44,18 @@ struct L_Dna
     l_float64       *array;     /*!< number array                        */
 };
 
+/*! Numa version for serialization */
+#define  NUMA_VERSION_NUMBER     1
+
+    /*! Number array: an array of floats */
+struct Numa
+{
+    l_int32          nalloc;    /*!< size of allocated number array      */
+    l_int32          n;         /*!< number of numbers saved             */
+    atomic_int       refcount;  /*!< reference count (1 if no clones)    */
+    l_float32        startx;    /*!< x value assigned to array[0]        */
+    l_float32        delx;      /*!< change in x value as i --> i + 1    */
+    l_float32       *array;     /*!< number array                        */
+};
+
 #endif  /* LEPTONICA_ARRAY_INTERNAL_H */
