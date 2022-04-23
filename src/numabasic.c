@@ -168,6 +168,7 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include <stdatomic.h>
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -378,8 +379,7 @@ NUMA  *na;
         return;
 
         /* Decrement the ref count.  If it is 0, destroy the numa. */
-    numaChangeRefcount(na, -1);
-    if (numaGetRefcount(na) <= 0) {
+    if (atomic_fetch_sub(&na->refcount, 1) == 1) {
         if (na->array)
             LEPT_FREE(na->array);
         LEPT_FREE(na);
@@ -432,7 +432,7 @@ numaClone(NUMA  *na)
     if (!na)
         return (NUMA *)ERROR_PTR("na not defined", procName, NULL);
 
-    numaChangeRefcount(na, 1);
+    atomic_fetch_add(&na->refcount, 1);
     return na;
 }
 

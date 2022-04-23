@@ -135,6 +135,7 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include <stdatomic.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -261,7 +262,7 @@ boxClone(BOX  *box)
     if (!box)
         return (BOX *)ERROR_PTR("box not defined", procName, NULL);
 
-    boxChangeRefcount(box, 1);
+    atomic_fetch_add(&box->refcount, 1);
     return box;
 }
 
@@ -292,8 +293,7 @@ BOX  *box;
     if ((box = *pbox) == NULL)
         return;
 
-    boxChangeRefcount(box, -1);
-    if (boxGetRefcount(box) <= 0)
+    if (atomic_fetch_sub(&box->refcount, 1) == 1)
         LEPT_FREE(box);
     *pbox = NULL;
 }

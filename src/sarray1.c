@@ -141,6 +141,7 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include <stdatomic.h>
 #include <string.h>
 #ifndef _WIN32
 #include <dirent.h>     /* unix only */
@@ -373,8 +374,7 @@ SARRAY  *sa;
     if ((sa = *psa) == NULL)
         return;
 
-    sarrayChangeRefcount(sa, -1);
-    if (sarrayGetRefcount(sa) <= 0) {
+    if (atomic_fetch_sub(&sa->refcount, 1) == 1) {
         if (sa->array) {
             for (i = 0; i < sa->n; i++) {
                 if (sa->array[i])
@@ -428,7 +428,7 @@ sarrayClone(SARRAY  *sa)
 
     if (!sa)
         return (SARRAY *)ERROR_PTR("sa not defined", procName, NULL);
-    sarrayChangeRefcount(sa, 1);
+    atomic_fetch_add(&sa->refcount, 1);
     return sa;
 }
 
