@@ -104,7 +104,7 @@
 #endif  /* HAVE_CONFIG_H */
 
 #include <math.h>
-#include "allheaders.h"
+#include "pix_internal.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846

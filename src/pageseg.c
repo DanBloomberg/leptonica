@@ -83,8 +83,8 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
-#include "allheaders.h"
-#include "math.h"
+#include <math.h>
+#include "pix_internal.h"
 
     /* These functions are not intended to work on very low-res images */
 static const l_int32  MinWidth = 100;

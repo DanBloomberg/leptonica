@@ -424,21 +424,6 @@ enum {
 /*-------------------------------------------------------------------------*
  *                              Array of pix                               *
  *-------------------------------------------------------------------------*/
-    /*  Serialization for primary data structures */
-#define  PIXAA_VERSION_NUMBER      2  /*!< Version for Pixaa serialization */
-#define  PIXA_VERSION_NUMBER       2  /*!< Version for Pixa serialization  */
-#define  BOXA_VERSION_NUMBER       2  /*!< Version for Boxa serialization  */
-#define  BOXAA_VERSION_NUMBER      3  /*!< Version for Boxaa serialization */
-
-/*! Array of pix */
-struct Pixa
-{
-    l_int32             n;          /*!< number of Pix in ptr array        */
-    l_int32             nalloc;     /*!< number of Pix ptrs allocated      */
-    l_uint32            refcount;   /*!< reference count (1 if no clones)  */
-    struct Pix        **pix;        /*!< the array of ptrs to pix          */
-    struct Boxa        *boxa;       /*!< array of boxes                    */
-};
 typedef struct Pixa PIXA;
 
 /*! Array of arrays of pix */
@@ -457,14 +442,6 @@ typedef struct Pixaa PIXAA;
  *-------------------------------------------------------------------------*/
 typedef struct Box    BOX;
 
-/*! Array of Box */
-struct Boxa
-{
-    l_int32            n;           /*!< number of box in ptr array        */
-    l_int32            nalloc;      /*!< number of box ptrs allocated      */
-    l_uint32           refcount;    /*!< reference count (1 if no clones)  */
-    struct Box       **box;         /*!< box ptr array                     */
-};
 typedef struct Boxa  BOXA;
 
 /*! Array of Boxa */
@@ -480,16 +457,6 @@ typedef struct Boxaa  BOXAA;
 /*-------------------------------------------------------------------------*
  *                               Array of points                           *
  *-------------------------------------------------------------------------*/
-#define  PTA_VERSION_NUMBER      1  /*!< Version for Pta serialization     */
-
-/*! Array of points */
-struct Pta
-{
-    l_int32            n;           /*!< actual number of pts              */
-    l_int32            nalloc;      /*!< size of allocated arrays          */
-    l_uint32           refcount;    /*!< reference count (1 if no clones)  */
-    l_float32         *x, *y;       /*!< arrays of floats                  */
-};
 typedef struct Pta PTA;
 
 
@@ -542,39 +509,14 @@ typedef struct PixTiling PIXTILING;
 /*-------------------------------------------------------------------------*
  *                       FPix: pix with float array                        *
  *-------------------------------------------------------------------------*/
-#define  FPIX_VERSION_NUMBER      2 /*!< Version for FPix serialization    */
-
 typedef struct FPix FPIX;
 
-/*! Array of FPix */
-struct FPixa
-{
-    l_int32             n;          /*!< number of fpix in ptr array       */
-    l_int32             nalloc;     /*!< number of fpix ptrs allocated     */
-    l_uint32            refcount;   /*!< reference count (1 if no clones)  */
-    struct FPix       **fpix;       /*!< the array of ptrs to fpix         */
-};
 typedef struct FPixa FPIXA;
 
 
 /*-------------------------------------------------------------------------*
  *                       DPix: pix with double array                       *
  *-------------------------------------------------------------------------*/
-#define  DPIX_VERSION_NUMBER      2 /*!< Version for DPix serialization    */
-
-/*! Pix with double array */
-struct DPix
-{
-    l_int32              w;         /*!< width in pixels                   */
-    l_int32              h;         /*!< height in pixels                  */
-    l_int32              wpl;       /*!< 32-bit words/line                 */
-    l_uint32             refcount;  /*!< reference count (1 if no clones)  */
-    l_int32              xres;      /*!< image res (ppi) in x direction    */
-                                    /*!< (use 0 if unknown)                */
-    l_int32              yres;      /*!< image res (ppi) in y direction    */
-                                    /*!< (use 0 if unknown)                */
-    l_float64           *data;      /*!< the double image data             */
-};
 typedef struct DPix DPIX;
 
 

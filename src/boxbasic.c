@@ -595,8 +595,7 @@ BOXA    *boxa;
         return;
 
         /* Decrement the ref count.  If it is 0, destroy the boxa. */
-    boxa->refcount--;
-    if (boxa->refcount <= 0) {
+    if (--boxa->refcount == 0) {
         for (i = 0; i < boxa->n; i++)
             boxDestroy(&boxa->box[i]);
         LEPT_FREE(boxa->box);

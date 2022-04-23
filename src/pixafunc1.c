@@ -97,7 +97,7 @@
 #endif  /* HAVE_CONFIG_H */
 
 #include <string.h>
-#include "allheaders.h"
+#include "pix_internal.h"
 
     /* For more than this number of c.c. in a binarized image of
      * semi-perimeter (w + h) about 5000 or less, the O(n) binsort

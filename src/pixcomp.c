@@ -153,7 +153,7 @@
 #endif  /* HAVE_CONFIG_H */
 
 #include <string.h>
-#include "allheaders.h"
+#include "pix_internal.h"
 
     /* Bounds on pixacomp array size */
 static const l_uint32  MaxPtrArraySize = 1000000;

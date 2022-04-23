@@ -40,8 +40,17 @@ struct Box
     atomic_int         refcount;    /*!< reference count (1 if no clones)  */
 };
 
-    /* The 'special' field is by default 0, but it can hold integers
-     * that direct non-default actions, e.g., in png and jpeg I/O. */
+/*! Array of Box */
+struct Boxa
+{
+    l_int32            n;           /*!< number of box in ptr array        */
+    l_int32            nalloc;      /*!< number of box ptrs allocated      */
+    atomic_int         refcount;    /*!< reference count (1 if no clones)  */
+    struct Box       **box;         /*!< box ptr array                     */
+};
+
+/* The 'special' field is by default 0, but it can hold integers
+ * that direct non-default actions, e.g., in png and jpeg I/O. */
 
 /*! Basic Pix */
 struct Pix
@@ -63,6 +72,24 @@ struct Pix
     l_uint32            *data;      /*!< the image data                    */
 };
 
+/*  Serialization for primary data structures */
+#define  PIXAA_VERSION_NUMBER      2  /*!< Version for Pixaa serialization */
+#define  PIXA_VERSION_NUMBER       2  /*!< Version for Pixa serialization  */
+#define  BOXA_VERSION_NUMBER       2  /*!< Version for Boxa serialization  */
+#define  BOXAA_VERSION_NUMBER      3  /*!< Version for Boxaa serialization */
+
+/*! Array of pix */
+struct Pixa
+{
+    l_int32             n;          /*!< number of Pix in ptr array        */
+    l_int32             nalloc;     /*!< number of Pix ptrs allocated      */
+    atomic_int          refcount;   /*!< reference count (1 if no clones)  */
+    struct Pix        **pix;        /*!< the array of ptrs to pix          */
+    struct Boxa        *boxa;       /*!< array of boxes                    */
+};
+
+#define  FPIX_VERSION_NUMBER      2 /*!< Version for FPix serialization    */
+
 /*! Pix with float array */
 struct FPix
 {
@@ -75,6 +102,42 @@ struct FPix
                                     /*!< (use 0 if unknown)                */
     atomic_int           refcount;  /*!< reference count (1 if no clones)  */
     l_float32           *data;      /*!< the float image data              */
+};
+
+/*! Array of FPix */
+struct FPixa
+{
+    l_int32             n;          /*!< number of fpix in ptr array       */
+    l_int32             nalloc;     /*!< number of fpix ptrs allocated     */
+    atomic_int          refcount;   /*!< reference count (1 if no clones)  */
+    struct FPix       **fpix;       /*!< the array of ptrs to fpix         */
+};
+
+#define  DPIX_VERSION_NUMBER      2 /*!< Version for DPix serialization    */
+
+/*! Pix with double array */
+struct DPix
+{
+    l_int32              w;         /*!< width in pixels                   */
+    l_int32              h;         /*!< height in pixels                  */
+    l_int32              wpl;       /*!< 32-bit words/line                 */
+    atomic_int           refcount;  /*!< reference count (1 if no clones)  */
+    l_int32              xres;      /*!< image res (ppi) in x direction    */
+                                    /*!< (use 0 if unknown)                */
+    l_int32              yres;      /*!< image res (ppi) in y direction    */
+                                    /*!< (use 0 if unknown)                */
+    l_float64           *data;      /*!< the double image data             */
+};
+
+#define  PTA_VERSION_NUMBER      1  /*!< Version for Pta serialization     */
+
+/*! Array of points */
+struct Pta
+{
+    l_int32            n;           /*!< actual number of pts              */
+    l_int32            nalloc;      /*!< size of allocated arrays          */
+    atomic_int         refcount;    /*!< reference count (1 if no clones)  */
+    l_float32         *x, *y;       /*!< arrays of floats                  */
 };
 
 #endif  /* LEPTONICA_PIX_INTERNAL_H */

@@ -96,8 +96,9 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
-#include "array_internal.h"
 #include <string.h>
+#include "array_internal.h"
+#include "pix_internal.h"
 
 static const l_uint32  MaxArraySize = 100000000;  /* 100 million */
 static const l_uint32  MaxPtrArraySize = 10000000;  /* 10 million */
