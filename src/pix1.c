@@ -597,7 +597,7 @@ pixClone(PIX  *pixs)
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    atomic_fetch_add(&pixs->refcount, 1);
+    ++pixs->refcount;
 
     return pixs;
 }
@@ -656,7 +656,7 @@ char      *text;
 
     if (!pix) return;
 
-    if (atomic_fetch_sub(&pix->refcount, 1) == 1) {
+    if (--pix->refcount == 0) {
         if ((data = pixGetData(pix)) != NULL)
             pixdata_free(data);
         if ((text = pixGetText(pix)) != NULL)
