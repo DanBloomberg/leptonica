@@ -35,7 +35,7 @@
 #endif  /* HAVE_CONFIG_H */
 
 #include <string.h>
-#include "allheaders.h"
+#include "array_internal.h"
 
 int main(int    argc,
          char **argv)

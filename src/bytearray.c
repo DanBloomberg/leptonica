@@ -68,8 +68,8 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include "array_internal.h"
 #include <string.h>
-#include "allheaders.h"
 
     /* Bounds on array size */
 static const l_uint32  MaxArraySize = 1000000000;   /* 10^9 bytes */
@@ -262,8 +262,7 @@ L_BYTEA  *ba;
         return;
 
         /* Decrement the ref count.  If it is 0, destroy the lba. */
-    ba->refcount--;
-    if (ba->refcount <= 0) {
+    if (--ba->refcount == 0) {
         if (ba->data) LEPT_FREE(ba->data);
         LEPT_FREE(ba);
     }

@@ -30,6 +30,15 @@
 #include "allheaders.h"
 #include <stdatomic.h>
 
+/*! Byte array (analogous to C++ "string") */
+struct L_Bytea
+{
+    size_t           nalloc;    /*!< number of bytes allocated in data array  */
+    size_t           size;      /*!< number of bytes presently used           */
+    atomic_int       refcount;  /*!< reference count (1 if no clones)         */
+    l_uint8         *data;      /*!< data array                               */
+};
+
 /*! Dna version for serialization */
 #define  DNA_VERSION_NUMBER     1
 
@@ -47,7 +56,7 @@ struct L_Dna
 /*! Numa version for serialization */
 #define  NUMA_VERSION_NUMBER     1
 
-    /*! Number array: an array of floats */
+/*! Number array: an array of floats */
 struct Numa
 {
     l_int32          nalloc;    /*!< size of allocated number array      */
@@ -61,7 +70,7 @@ struct Numa
 /*! Sarray version for serialization */
 #define  SARRAY_VERSION_NUMBER     1
 
-    /*! String array: an array of C strings */
+/*! String array: an array of C strings */
 struct Sarray
 {
     l_int32          nalloc;    /*!< size of allocated ptr array         */
