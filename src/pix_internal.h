@@ -27,9 +27,13 @@
 #ifndef  LEPTONICA_PIX_INTERNAL_H
 #define  LEPTONICA_PIX_INTERNAL_H
 
-#include <allheaders.h>
+#include "allheaders.h"
 #include <stdatomic.h>
 
+    /* The 'special' field is by default 0, but it can hold integers
+     * that direct non-default actions, e.g., in png and jpeg I/O. */
+
+/*! Basic Pix */
 struct Pix
 {
     l_uint32             w;         /*!< width in pixels                   */
@@ -37,16 +41,30 @@ struct Pix
     l_uint32             d;         /*!< depth in bits (bpp)               */
     l_uint32             spp;       /*!< number of samples per pixel       */
     l_uint32             wpl;       /*!< 32-bit words/line                 */
-    atomic_int           refcount;  /*!< reference count (1 if no clones)  */
     l_int32              xres;      /*!< image res (ppi) in x direction    */
                                     /*!< (use 0 if unknown)                */
     l_int32              yres;      /*!< image res (ppi) in y direction    */
                                     /*!< (use 0 if unknown)                */
+    atomic_int           refcount;  /*!< reference count (1 if no clones)  */
     l_int32              informat;  /*!< input file format, IFF_*          */
     l_int32              special;   /*!< special instructions for I/O, etc */
     char                *text;      /*!< text string associated with pix   */
     struct PixColormap  *colormap;  /*!< colormap (may be null)            */
     l_uint32            *data;      /*!< the image data                    */
+};
+
+/*! Pix with float array */
+struct FPix
+{
+    l_int32              w;         /*!< width in pixels                   */
+    l_int32              h;         /*!< height in pixels                  */
+    l_int32              wpl;       /*!< 32-bit words/line                 */
+    l_int32              xres;      /*!< image res (ppi) in x direction    */
+                                    /*!< (use 0 if unknown)                */
+    l_int32              yres;      /*!< image res (ppi) in y direction    */
+                                    /*!< (use 0 if unknown)                */
+    atomic_int           refcount;  /*!< reference count (1 if no clones)  */
+    l_float32           *data;      /*!< the float image data              */
 };
 
 #endif  /* LEPTONICA_PIX_INTERNAL_H */

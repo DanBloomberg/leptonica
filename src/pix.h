@@ -131,10 +131,7 @@
 /*-------------------------------------------------------------------------*
  *                              Basic Pix                                  *
  *-------------------------------------------------------------------------*/
-    /* The 'special' field is by default 0, but it can hold integers
-     * that direct non-default actions, e.g., in png and jpeg I/O. */
 
-/*! Basic Pix */
 typedef struct Pix PIX;
 
 /*! Colormap of a Pix */
@@ -556,19 +553,6 @@ typedef struct PixTiling PIXTILING;
  *-------------------------------------------------------------------------*/
 #define  FPIX_VERSION_NUMBER      2 /*!< Version for FPix serialization    */
 
-/*! Pix with float array */
-struct FPix
-{
-    l_int32              w;         /*!< width in pixels                   */
-    l_int32              h;         /*!< height in pixels                  */
-    l_int32              wpl;       /*!< 32-bit words/line                 */
-    l_uint32             refcount;  /*!< reference count (1 if no clones)  */
-    l_int32              xres;      /*!< image res (ppi) in x direction    */
-                                    /*!< (use 0 if unknown)                */
-    l_int32              yres;      /*!< image res (ppi) in y direction    */
-                                    /*!< (use 0 if unknown)                */
-    l_float32           *data;      /*!< the float image data              */
-};
 typedef struct FPix FPIX;
 
 /*! Array of FPix */

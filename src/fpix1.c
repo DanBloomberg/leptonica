@@ -125,9 +125,8 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
-#include <stdatomic.h>
+#include "pix_internal.h"
 #include <string.h>
-#include "allheaders.h"
 
     /* Bounds on array sizes */
 static const size_t  MaxPtrArraySize = 100000;
