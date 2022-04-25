@@ -136,11 +136,9 @@ l_rbtreeCreate(l_int32  keytype)
 {
 L_RBTREE  *t;
 
-    PROCNAME("l_rbtreeCreate");
-
     if (keytype != L_INT_TYPE && keytype != L_UINT_TYPE &&
         keytype != L_FLOAT_TYPE && keytype)
-        return (L_RBTREE *)ERROR_PTR("invalid keytype", procName, NULL);
+        return (L_RBTREE *)ERROR_PTR("invalid keytype", __func__, NULL);
 
     t = (L_RBTREE *)LEPT_CALLOC(1, sizeof(L_RBTREE));
     t->keytype = keytype;
@@ -161,10 +159,8 @@ l_rbtreeLookup(L_RBTREE  *t,
 {
 node  *n;
 
-    PROCNAME("l_rbtreeLookup");
-
     if (!t)
-        return (RB_TYPE *)ERROR_PTR("tree is null\n", procName, NULL);
+        return (RB_TYPE *)ERROR_PTR("tree is null\n", __func__, NULL);
 
     n = lookup_node(t, key);
     return n == NULL ? NULL : &n->value;
@@ -191,10 +187,8 @@ l_rbtreeInsert(L_RBTREE     *t,
 {
 node  *n, *inserted_node;
 
-    PROCNAME("l_rbtreeInsert");
-
     if (!t) {
-        L_ERROR("tree is null\n", procName);
+        L_ERROR("tree is null\n", __func__);
         return;
     }
 
@@ -244,10 +238,8 @@ l_rbtreeDelete(L_RBTREE  *t,
 {
 node  *n, *child;
 
-    PROCNAME("l_rbtreeDelete");
-
     if (!t) {
-        L_ERROR("tree is null\n", procName);
+        L_ERROR("tree is null\n", __func__);
         return;
     }
 
@@ -325,12 +317,10 @@ l_rbtreeGetFirst(L_RBTREE  *t)
 {
 node  *n;
 
-    PROCNAME("l_rbtreeGetFirst");
-
     if (!t)
-        return (L_RBTREE_NODE *)ERROR_PTR("tree is null", procName, NULL);
+        return (L_RBTREE_NODE *)ERROR_PTR("tree is null", __func__, NULL);
     if (t->root == NULL) {
-        L_INFO("tree is empty\n", procName);
+        L_INFO("tree is empty\n", __func__);
         return NULL;
     }
 
@@ -358,10 +348,8 @@ node  *n;
 L_RBTREE_NODE *
 l_rbtreeGetNext(L_RBTREE_NODE  *n)
 {
-    PROCNAME("l_rbtreeGetNext");
-
     if (!n)
-        return (L_RBTREE_NODE *)ERROR_PTR("n not defined", procName, NULL);
+        return (L_RBTREE_NODE *)ERROR_PTR("n not defined", __func__, NULL);
 
         /* If there is a right child, go to it, and then go left all the
          * way to the end.  Otherwise go up to the parent; continue upward
@@ -395,12 +383,10 @@ l_rbtreeGetLast(L_RBTREE  *t)
 {
 node  *n;
 
-    PROCNAME("l_rbtreeGetLast");
-
     if (!t)
-        return (L_RBTREE_NODE *)ERROR_PTR("tree is null", procName, NULL);
+        return (L_RBTREE_NODE *)ERROR_PTR("tree is null", __func__, NULL);
     if (t->root == NULL) {
-        L_INFO("tree is empty\n", procName);
+        L_INFO("tree is empty\n", __func__);
         return NULL;
     }
 
@@ -428,10 +414,8 @@ node  *n;
 L_RBTREE_NODE *
 l_rbtreeGetPrev(L_RBTREE_NODE  *n)
 {
-    PROCNAME("l_rbtreeGetPrev");
-
     if (!n)
-        return (L_RBTREE_NODE *)ERROR_PTR("n not defined", procName, NULL);
+        return (L_RBTREE_NODE *)ERROR_PTR("n not defined", __func__, NULL);
 
         /* If there is a left child, go to it, and then go right all the
          * way to the end.  Otherwise go up to the parent; continue upward
@@ -492,13 +476,12 @@ void
 l_rbtreePrint(FILE      *fp,
               L_RBTREE  *t)
 {
-    PROCNAME("l_rbtreePrint");
     if (!fp) {
-        L_ERROR("stream not defined\n", procName);
+        L_ERROR("stream not defined\n", __func__);
         return;
     }
     if (!t) {
-        L_ERROR("tree not defined\n", procName);
+        L_ERROR("tree not defined\n", __func__);
         return;
     }
 
@@ -554,8 +537,6 @@ compareKeys(l_int32  keytype,
             RB_TYPE  left,
             RB_TYPE  right)
 {
-static char  procName[] = "compareKeys";
-
     if (keytype == L_INT_TYPE) {
         if (left.itype < right.itype)
             return -1;
@@ -581,7 +562,7 @@ static char  procName[] = "compareKeys";
             return 0;
         }
     } else {
-        L_ERROR("unknown keytype %d\n", procName, keytype);
+        L_ERROR("unknown keytype %d\n", __func__, keytype);
         return 0;
     }
 }
