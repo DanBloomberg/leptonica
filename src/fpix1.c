@@ -239,7 +239,7 @@ fpixClone(FPIX  *fpix)
 
     if (!fpix)
         return (FPIX *)ERROR_PTR("fpix not defined", procName, NULL);
-    fpixChangeRefcount(fpix, 1);
+    ++fpix->refcount;
 
     return fpix;
 }
@@ -305,8 +305,7 @@ FPIX       *fpix;
         return;
 
         /* Decrement the ref count.  If it is 0, destroy the fpix. */
-    fpixChangeRefcount(fpix, -1);
-    if (fpixGetRefcount(fpix) <= 0) {
+    if (--fpix->refcount == 0) {
         if ((data = fpixGetData(fpix)) != NULL)
             LEPT_FREE(data);
         LEPT_FREE(fpix);
@@ -675,7 +674,7 @@ FPIXA   *fpixac;
         return (FPIXA *)ERROR_PTR("fpixa not defined", procName, NULL);
 
     if (copyflag == L_CLONE) {
-        fpixaChangeRefcount(fpixa, 1);
+        ++fpixa->refcount;
         return fpixa;
     }
 
@@ -725,8 +724,7 @@ FPIXA   *fpixa;
         return;
 
         /* Decrement the refcount.  If it is 0, destroy the pixa. */
-    fpixaChangeRefcount(fpixa, -1);
-    if (fpixa->refcount <= 0) {
+    if (--fpixa->refcount == 0) {
         for (i = 0; i < fpixa->n; i++)
             fpixDestroy(&fpixa->fpix[i]);
         LEPT_FREE(fpixa->fpix);
@@ -1162,7 +1160,7 @@ dpixClone(DPIX  *dpix)
 
     if (!dpix)
         return (DPIX *)ERROR_PTR("dpix not defined", procName, NULL);
-    dpixChangeRefcount(dpix, 1);
+    ++dpix->refcount;
     return dpix;
 }
 
@@ -1227,8 +1225,7 @@ DPIX       *dpix;
         return;
 
         /* Decrement the ref count.  If it is 0, destroy the dpix. */
-    dpixChangeRefcount(dpix, -1);
-    if (dpixGetRefcount(dpix) <= 0) {
+    if (--dpix->refcount == 0) {
         if ((data = dpixGetData(dpix)) != NULL)
             LEPT_FREE(data);
         LEPT_FREE(dpix);

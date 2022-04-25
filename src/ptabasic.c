@@ -129,7 +129,7 @@ PTA  *pta;
     pta = (PTA *)LEPT_CALLOC(1, sizeof(PTA));
     pta->n = 0;
     pta->nalloc = n;
-    ptaChangeRefcount(pta, 1);  /* sets to 1 */
+    pta->refcount = 1;
     pta->x = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32));
     pta->y = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32));
     if (!pta->x || !pta->y) {
@@ -206,8 +206,7 @@ PTA  *pta;
     if ((pta = *ppta) == NULL)
         return;
 
-    ptaChangeRefcount(pta, -1);
-    if (ptaGetRefcount(pta) <= 0) {
+    if (--pta->refcount == 0) {
         LEPT_FREE(pta->x);
         LEPT_FREE(pta->y);
         LEPT_FREE(pta);
@@ -301,7 +300,7 @@ ptaClone(PTA  *pta)
     if (!pta)
         return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
 
-    ptaChangeRefcount(pta, 1);
+    ++pta->refcount;
     return pta;
 }
 

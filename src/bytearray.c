@@ -262,8 +262,7 @@ L_BYTEA  *ba;
         return;
 
         /* Decrement the ref count.  If it is 0, destroy the lba. */
-    ba->refcount--;
-    if (ba->refcount <= 0) {
+    if (--ba->refcount == 0) {
         if (ba->data) LEPT_FREE(ba->data);
         LEPT_FREE(ba);
     }

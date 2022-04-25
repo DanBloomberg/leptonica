@@ -597,7 +597,7 @@ pixClone(PIX  *pixs)
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
-    pixChangeRefcount(pixs, 1);
+    ++pixs->refcount;
 
     return pixs;
 }
@@ -656,8 +656,7 @@ char      *text;
 
     if (!pix) return;
 
-    pixChangeRefcount(pix, -1);
-    if (pixGetRefcount(pix) <= 0) {
+    if (--pix->refcount == 0) {
         if ((data = pixGetData(pix)) != NULL)
             pixdata_free(data);
         if ((text = pixGetText(pix)) != NULL)
@@ -918,7 +917,7 @@ PIX     *pixs;
     if (pixs == pixd)  /* no-op */
         return ERROR_INT("pixd == pixs", procName, 1);
 
-    if (pixGetRefcount(pixs) == 1) {  /* transfer the data, cmap, text */
+    if (pixs->refcount == 1) {  /* transfer the data, cmap, text */
         pixFreeData(pixd);  /* dealloc any existing data */
         pixSetData(pixd, pixGetData(pixs));  /* transfer new data from pixs */
         pixs->data = NULL;  /* pixs no longer owns data */
@@ -1883,7 +1882,7 @@ l_uint32  *data, *datas;
     if (!pixs)
         return (l_uint32 *)ERROR_PTR("pixs not defined", procName, NULL);
 
-    if (pixGetRefcount(pixs) == 1) {  /* extract */
+    if (pixs->refcount == 1) {  /* extract */
         data = pixGetData(pixs);
         pixSetData(pixs, NULL);
     } else {  /* refcount > 1; copy */
@@ -2093,7 +2092,7 @@ const PIXCMAP  *cmap;
             pixGetWidth(pix), pixGetHeight(pix), pixGetDepth(pix),
             pixGetSpp(pix));
     fprintf(fp, "    wpl = %d, data = %p, refcount = %d\n",
-            pixGetWpl(pix), pix->data, pixGetRefcount(pix));
+            pixGetWpl(pix), pix->data, pix->refcount);
     fprintf(fp, "    xres = %d, yres = %d\n", pixGetXRes(pix), pixGetYRes(pix));
     if ((cmap = pix->colormap) != NULL)
         pixcmapWriteStream(fp, cmap);

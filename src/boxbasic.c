@@ -261,7 +261,7 @@ boxClone(BOX  *box)
     if (!box)
         return (BOX *)ERROR_PTR("box not defined", procName, NULL);
 
-    boxChangeRefcount(box, 1);
+    ++box->refcount;
     return box;
 }
 
@@ -292,8 +292,7 @@ BOX  *box;
     if ((box = *pbox) == NULL)
         return;
 
-    boxChangeRefcount(box, -1);
-    if (boxGetRefcount(box) <= 0)
+    if (--box->refcount == 0)
         LEPT_FREE(box);
     *pbox = NULL;
 }
@@ -596,8 +595,7 @@ BOXA    *boxa;
         return;
 
         /* Decrement the ref count.  If it is 0, destroy the boxa. */
-    boxa->refcount--;
-    if (boxa->refcount <= 0) {
+    if (--boxa->refcount == 0) {
         for (i = 0; i < boxa->n; i++)
             boxDestroy(&boxa->box[i]);
         LEPT_FREE(boxa->box);

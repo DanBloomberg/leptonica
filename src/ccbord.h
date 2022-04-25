@@ -95,7 +95,7 @@ struct CCBord
     struct Pix          *pix;          /*!< component bitmap (min size)      */
     struct Boxa         *boxa;         /*!< regions of each closed curve     */
     struct Pta          *start;        /*!< initial border pixel locations   */
-    l_int32              refcount;     /*!< number of handles; start at 1    */
+    l_atomic             refcount;     /*!< number of handles; start at 1    */
     struct Ptaa         *local;        /*!< ptaa of chain pixels (local)     */
     struct Ptaa         *global;       /*!< ptaa of chain pixels (global)    */
     struct Numaa        *step;         /*!< numaa of chain code (step dir)   */

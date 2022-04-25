@@ -71,7 +71,7 @@ struct Numa
 {
     l_int32          nalloc;    /*!< size of allocated number array      */
     l_int32          n;         /*!< number of numbers saved             */
-    l_int32          refcount;  /*!< reference count (1 if no clones)    */
+    l_atomic         refcount;  /*!< reference count (1 if no clones)    */
     l_float32        startx;    /*!< x value assigned to array[0]        */
     l_float32        delx;      /*!< change in x value as i --> i + 1    */
     l_float32       *array;     /*!< number array                        */
@@ -95,7 +95,7 @@ struct L_Dna
 {
     l_int32          nalloc;    /*!< size of allocated number array      */
     l_int32          n;         /*!< number of numbers saved             */
-    l_int32          refcount;  /*!< reference count (1 if no clones)    */
+    l_atomic         refcount;  /*!< reference count (1 if no clones)    */
     l_float64        startx;    /*!< x value assigned to array[0]        */
     l_float64        delx;      /*!< change in x value as i --> i + 1    */
     l_float64       *array;     /*!< number array                        */
@@ -127,7 +127,7 @@ struct Sarray
 {
     l_int32          nalloc;    /*!< size of allocated ptr array         */
     l_int32          n;         /*!< number of strings allocated         */
-    l_int32          refcount;  /*!< reference count (1 if no clones)    */
+    l_atomic         refcount;  /*!< reference count (1 if no clones)    */
     char           **array;     /*!< string array                        */
 };
 typedef struct Sarray SARRAY;
@@ -137,7 +137,7 @@ struct L_Bytea
 {
     size_t           nalloc;    /*!< number of bytes allocated in data array  */
     size_t           size;      /*!< number of bytes presently used           */
-    l_int32          refcount;  /*!< reference count (1 if no clones)         */
+    l_atomic         refcount;  /*!< reference count (1 if no clones)         */
     l_uint8         *data;      /*!< data array                               */
 };
 typedef struct L_Bytea L_BYTEA;

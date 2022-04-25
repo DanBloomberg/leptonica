@@ -65,6 +65,13 @@ typedef unsigned int uintptr_t;
 
 #endif /* _MSC_VER */
 
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L) && !defined(__STDC_NO_ATOMICS__)
+#include <stdatomic.h>
+typedef atomic_int l_atomic;
+#else
+typedef int l_atomic;
+#endif
+
 #ifndef LEPT_DLL
   /* Windows specifics */
   #ifdef _WIN32
