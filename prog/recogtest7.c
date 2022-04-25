@@ -52,8 +52,6 @@ PIX      *pix1, *pix2, *pix3;
 PIXA     *pixa1, *pixa2, *pixa3;
 L_RECOG  *recog1, *recog2;
 
-    PROCNAME("recogtest7");
-
     if (argc != 1) {
         lept_stderr(" Syntax: recogtest7\n");
         return 1;
@@ -69,13 +67,13 @@ L_RECOG  *recog1, *recog2;
     pixa2 = pixaMakeFromTiledPixa(pixa1, 0, 0, 100);
     pixa3 = l_bootnum_gen4(100);
     pixaEqual(pixa2, pixa3, 0, NULL, &same);
-    if (!same) L_ERROR("Bad!  The pixa differ!\n", procName);
+    if (!same) L_ERROR("Bad!  The pixa differ!\n", __func__);
     pix1 = pixaDisplayTiledWithText(pixa1, 1400, 1.0, 10, 2, 6, 0xff000000);
     pixDisplay(pix1, 100, 100);
     pix2 = pixaDisplayTiledWithText(pixa2, 1400, 1.0, 10, 2, 6, 0xff000000);
     pix3 = pixaDisplayTiledWithText(pixa3, 1400, 1.0, 10, 2, 6, 0xff000000);
     pixEqual(pix2, pix3, &same);
-    if (!same) L_ERROR("Bad! The displayed pix differ!\n", procName);
+    if (!same) L_ERROR("Bad! The displayed pix differ!\n", __func__);
     pixWrite("/tmp/lept/digits/pix1.png", pix1, IFF_PNG);
     pixWrite("/tmp/lept/digits/bootnum4.png", pix1, IFF_PNG);
     pixaDestroy(&pixa1);

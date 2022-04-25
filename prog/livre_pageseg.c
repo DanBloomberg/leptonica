@@ -108,8 +108,6 @@ l_int32   ws_flag = 0;
 l_int32   text_flag = 0;
 l_int32   block_flag = 0;
 
-    PROCNAME("DoPageSegmentation");
-
     if (which == 1)
         ht_flag = 1;
     else if (which == 2)
@@ -119,7 +117,7 @@ l_int32   block_flag = 0;
     else if (which == 4)
         block_flag = 1;
     else
-        return ERROR_INT("invalid parameter: not in [1...4]", procName, 1);
+        return ERROR_INT("invalid parameter: not in [1...4]", __func__, 1);
 
     pixa = pixaCreate(0);
     lept_mkdir("lept/livre");

@@ -93,11 +93,9 @@ PIX     *pixc1, *pixc2, *pixc3, *pixd;
 PIXA    *pixa;
 SEL     *selhm;
 
-    PROCNAME("GeneratePattern");
-
     if ((pixs = pixRead(patname[patno])) == NULL) {
         rp->success = FALSE;
-        return ERROR_INT("pixs not made", procName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
     }
 
         /* Make a hit-miss sel at specified reduction factor */
