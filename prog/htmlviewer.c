@@ -137,25 +137,23 @@ l_float32  factor;
 PIX       *pix, *pixthumb, *pixview;
 SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
 
-    PROCNAME("pixHtmlViewer");
-
     if (!dirin)
-        return ERROR_INT("dirin not defined", procName, 1);
+        return ERROR_INT("dirin not defined", __func__, 1);
     if (!dirout)
-        return ERROR_INT("dirout not defined", procName, 1);
+        return ERROR_INT("dirout not defined", __func__, 1);
     if (!rootname)
-        return ERROR_INT("rootname not defined", procName, 1);
+        return ERROR_INT("rootname not defined", __func__, 1);
 
     if (thumbwidth == 0)
         thumbwidth = DEFAULT_THUMB_WIDTH;
     if (thumbwidth < MIN_THUMB_WIDTH) {
-        L_WARNING("thumbwidth too small; using min value\n", procName);
+        L_WARNING("thumbwidth too small; using min value\n", __func__);
         thumbwidth = MIN_THUMB_WIDTH;
     }
     if (viewwidth == 0)
         viewwidth = DEFAULT_VIEW_WIDTH;
     if (viewwidth < MIN_VIEW_WIDTH) {
-        L_WARNING("viewwidth too small; using min value\n", procName);
+        L_WARNING("viewwidth too small; using min value\n", __func__);
         viewwidth = MIN_VIEW_WIDTH;
     }
 
@@ -167,13 +165,13 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
     ret = CreateDirectory(dirout, NULL) ? 0 : 1;
 #endif  /* !_WIN32 */
     if (ret) {
-        L_ERROR("output directory %s not made\n", procName, dirout);
+        L_ERROR("output directory %s not made\n", __func__, dirout);
         return 1;
     }
 
         /* Capture the filenames in the input directory */
     if ((safiles = getFilenamesInDirectory(dirin)) == NULL)
-        return ERROR_INT("safiles not made", procName, 1);
+        return ERROR_INT("safiles not made", __func__, 1);
 
         /* Generate output text file names */
     snprintf(buf, sizeof(buf), "%s/%s.html", dirout, rootname);

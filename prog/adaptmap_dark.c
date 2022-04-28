@@ -70,8 +70,6 @@ L_BMF   *bmf;
 PIXA    *pixa1, *pixa2, *pixa3, *pixa4;
 PIXAC   *pixac1, *pixac2, *pixac3;
 
-    PROCNAME("adaptmap_dark");
-
     setLeptDebugOK(1);
     bmf = bmfCreate(NULL, 10);
     index = 0;
@@ -90,7 +88,7 @@ PIXAC   *pixac1, *pixac2, *pixac3;
                              6, 2, 0);
 
         /* Convert to pdf */
-    L_INFO("Writing to /tmp/lept/adapt/cleaning.pdf\n", procName);
+    L_INFO("Writing to /tmp/lept/adapt/cleaning.pdf\n", __func__);
     pixaConvertToPdf(pixa1, 100, 1.0, L_JPEG_ENCODE,
                      75, "Adaptive cleaning",
                      "/tmp/lept/adapt/cleaning.pdf");
@@ -113,7 +111,7 @@ PIXAC   *pixac1, *pixac2, *pixac3;
     pixa2 = pixaCreateFromPixacomp(pixac3, L_CLONE);
     pixa3 = pixaConvertToNUpPixa(pixa2, NULL, 1, 2, 1000, 6, 2, 0);
     lept_stderr("Time with pixac interleaving = %7.3f sec\n", stopTimer());
-    L_INFO("Writing to /tmp/lept/adapt/cleaning2.pdf\n", procName);
+    L_INFO("Writing to /tmp/lept/adapt/cleaning2.pdf\n", __func__);
     pixaConvertToPdf(pixa3, 100, 1.0, L_JPEG_ENCODE,
                      75, "Adaptive cleaning", "/tmp/lept/adapt/cleaning2.pdf");
     pixaDestroy(&pixa1);
@@ -136,7 +134,7 @@ PIXAC   *pixac1, *pixac2, *pixac3;
     pixa3 = pixaInterleave(pixa1, pixa2, L_CLONE);
     pixa4 = pixaConvertToNUpPixa(pixa3, NULL, 1, 2, 1000, 6, 2, 0);
     lept_stderr("Time with pixa interleaving = %7.3f sec\n", stopTimer());
-    L_INFO("Writing to /tmp/lept/adapt/cleaning3.pdf\n", procName);
+    L_INFO("Writing to /tmp/lept/adapt/cleaning3.pdf\n", __func__);
     pixaConvertToPdf(pixa4, 100, 1.0, L_JPEG_ENCODE,
                      75, "Adaptive cleaning", "/tmp/lept/adapt/cleaning3.pdf");
     pixaDestroy(&pixa1);

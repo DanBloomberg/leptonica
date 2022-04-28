@@ -193,15 +193,13 @@ BOXA      *boxa1, *boxa2;
 NUMA      *nah;
 PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
 
-    PROCNAME("pixFindColorRegionsLight");
-
     if (pcolormask1) *pcolormask1 = NULL;
     if (pcolormask2) *pcolormask2 = NULL;
     if (!pcolorfract)
-        return ERROR_INT("&colorfract not defined", procName, 1);
+        return ERROR_INT("&colorfract not defined", __func__, 1);
     *pcolorfract = 0.0;
     if (!pixs || pixGetDepth(pixs) != 32)
-        return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 32 bpp", __func__, 1);
     if (factor < 1) factor = 1;
     if (darkthresh < 0) darkthresh = 70;  /* defaults */
     if (lightthresh < 0) lightthresh = 220;
@@ -214,7 +212,7 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
         pixCountPixels(pixm, &count, NULL);
         ratio = (l_float32)count / ((l_float32)(w) * h);
         if (ratio > 0.7) {
-            if (pixadb) L_INFO("pixm has big fg: %f5.2\n", procName, ratio);
+            if (pixadb) L_INFO("pixm has big fg: %f5.2\n", __func__, ratio);
             return 0;
         }
     }
@@ -243,7 +241,7 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
     pixGetRankValueMasked(pix1, pix2, 0, 0, factor, 0.95, &val95, &nah);
     pixDestroy(&pix2);
     if (pixadb) {
-        L_INFO("val at 0.95 rank = %5.1f\n", procName, val95);
+        L_INFO("val at 0.95 rank = %5.1f\n", __func__, val95);
         gplotSimple1(nah, GPLOT_PNG, "/tmp/lept/histo1", "gray histo");
         pix3 = pixRead("/tmp/lept/histo1.png");
         pix4 = pixExpandReplicate(pix3, 2);
@@ -294,9 +292,9 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
     *pcolorfract = (l_float32)count / (w * h);
     if (pixadb) {
         if (count == 0)
-            L_INFO("no light color pixels found\n", procName);
+            L_INFO("no light color pixels found\n", __func__);
         else
-            L_INFO("fraction of light color pixels = %5.3f\n", procName,
+            L_INFO("fraction of light color pixels = %5.3f\n", __func__,
                    *pcolorfract);
     }
 

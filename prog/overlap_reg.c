@@ -207,10 +207,8 @@ l_int32  i, j, n1, n2, inter, interfound, niters;
 BOX     *box1, *box2, *box3;
 BOXA    *boxa1, *boxa2;
 
-    PROCNAME("boxaCombineOverlapsAlt");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
 
     boxa1 = boxaCopy(boxas, L_COPY);
     n1 = boxaGetCount(boxa1);
