@@ -43,8 +43,6 @@
  *           l_int32   boxSetGeometry()
  *           l_int32   boxGetSideLocations()
  *           l_int32   boxSetSideLocations()
- *           l_int32   boxGetRefcount()
- *           l_int32   boxChangeRefcount()
  *           l_int32   boxIsValid()
  *
  *      Boxa creation, copy, destruction
@@ -421,44 +419,6 @@ l_int32  x, y, w, h;
     y = (t != -1) ? t : box->y;
     h = (b != -1) ? b - y + 1 : box->y + box->h - y;
     boxSetGeometry(box, x, y, w, h);
-    return 0;
-}
-
-
-/*!
- * \brief  Return the current reference count of %box
- *
- * \param[in]     box
- * \return   refcount
- */
-l_int32
-boxGetRefcount(BOX  *box)
-{
-    PROCNAME("boxGetRefcount");
-
-    if (!box)
-        return ERROR_INT("box not defined", procName, UNDEF);
-
-    return box->refcount;
-}
-
-/*!
- * \brief  Adjust the current references count of %box by %delta
- *
- * \param[in]     box ptr to box
- * \param[in]     delta adjustment, usually -1 or 1
- * \return  0 if OK, 1 on error
- */
-l_ok
-boxChangeRefcount(BOX     *box,
-                  l_int32  delta)
-{
-    PROCNAME("boxChangeRefcount");
-
-    if (!box)
-        return ERROR_INT("box not defined", procName, 1);
-
-    box->refcount += delta;
     return 0;
 }
 

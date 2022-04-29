@@ -54,8 +54,6 @@
  *          l_int32      l_dnaShiftValue()
  *          l_int32     *l_dnaGetIArray()
  *          l_float64   *l_dnaGetDArray()
- *          l_int32      l_dnaGetRefcount()
- *          l_int32      l_dnaChangeRefcount()
  *          l_int32      l_dnaGetParameters()
  *          l_int32      l_dnaSetParameters()
  *          l_int32      l_dnaCopyParameters()
@@ -882,43 +880,6 @@ l_float64  *array;
     }
 
     return array;
-}
-
-
-/*!
- * \brief   l_dnaGetRefcount()
- *
- * \param[in]    da
- * \return  refcount, or UNDEF on error
- */
-l_int32
-l_dnaGetRefcount(L_DNA  *da)
-{
-    PROCNAME("l_dnaGetRefcount");
-
-    if (!da)
-        return ERROR_INT("da not defined", procName, UNDEF);
-    return da->refcount;
-}
-
-
-/*!
- * \brief   l_dnaChangeRefcount()
- *
- * \param[in]    da
- * \param[in]    delta    change to be applied
- * \return  0 if OK, 1 on error
- */
-l_ok
-l_dnaChangeRefcount(L_DNA   *da,
-                    l_int32  delta)
-{
-    PROCNAME("l_dnaChangeRefcount");
-
-    if (!da)
-        return ERROR_INT("da not defined", procName, 1);
-    da->refcount += delta;
-    return 0;
 }
 
 

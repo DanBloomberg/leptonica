@@ -44,7 +44,6 @@
  *
  *      Pixa accessors
  *           l_int32   pixaGetCount()
- *           l_int32   pixaChangeRefcount()
  *           PIX      *pixaGetPix()
  *           l_int32   pixaGetPixDimensions()
  *           BOXA     *pixaGetBoxa()
@@ -463,7 +462,7 @@ PIXA    *pixac;
         return (PIXA *)ERROR_PTR("pixa not defined", procName, NULL);
 
     if (copyflag == L_CLONE) {
-        pixaChangeRefcount(pixa, 1);
+        ++pixa->refcount;
         return pixa;
     }
 
@@ -654,27 +653,6 @@ pixaGetCount(PIXA  *pixa)
         return ERROR_INT("pixa not defined", procName, 0);
 
     return pixa->n;
-}
-
-
-/*!
- * \brief   pixaChangeRefcount()
- *
- * \param[in]    pixa
- * \param[in]    delta
- * \return  0 if OK, 1 on error
- */
-l_ok
-pixaChangeRefcount(PIXA    *pixa,
-                   l_int32  delta)
-{
-    PROCNAME("pixaChangeRefcount");
-
-    if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
-
-    pixa->refcount += delta;
-    return 0;
 }
 
 

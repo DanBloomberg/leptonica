@@ -48,8 +48,6 @@
  *          l_int32    sarrayGetCount()
  *          char     **sarrayGetArray()
  *          char      *sarrayGetString()
- *          l_int32    sarrayGetRefcount()
- *          l_int32    sarrayChangeRefcount()
  *
  *      Conversion back to string
  *          char      *sarrayToString()
@@ -716,43 +714,6 @@ sarrayGetString(SARRAY  *sa,
         return sa->array[index];
     else  /* L_COPY */
         return stringNew(sa->array[index]);
-}
-
-
-/*!
- * \brief   sarrayGetRefcount()
- *
- * \param[in]    sa     string array
- * \return  refcount, or UNDEF on error
- */
-l_int32
-sarrayGetRefcount(SARRAY  *sa)
-{
-    PROCNAME("sarrayGetRefcount");
-
-    if (!sa)
-        return ERROR_INT("sa not defined", procName, UNDEF);
-    return sa->refcount;
-}
-
-
-/*!
- * \brief   sarrayChangeRefcount()
- *
- * \param[in]    sa      string array
- * \param[in]    delta   change to be applied
- * \return  0 if OK, 1 on error
- */
-l_ok
-sarrayChangeRefcount(SARRAY  *sa,
-                     l_int32  delta)
-{
-    PROCNAME("sarrayChangeRefcount");
-
-    if (!sa)
-        return ERROR_INT("sa not defined", procName, UNDEF);
-    sa->refcount += delta;
-    return 0;
 }
 
 

@@ -46,8 +46,6 @@
  *           l_int32         ptaRemovePt()
  *
  *      Pta accessors
- *           l_int32         ptaGetRefcount()
- *           l_int32         ptaChangeRefcount()
  *           l_int32         ptaGetCount()
  *           l_int32         ptaGetPt()
  *           l_int32         ptaGetIPt()
@@ -492,30 +490,6 @@ l_int32  i, n;
 /*---------------------------------------------------------------------*
  *                           Pta accessors                             *
  *---------------------------------------------------------------------*/
-l_int32
-ptaGetRefcount(PTA  *pta)
-{
-    PROCNAME("ptaGetRefcount");
-
-    if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
-    return pta->refcount;
-}
-
-
-l_int32
-ptaChangeRefcount(PTA     *pta,
-                  l_int32  delta)
-{
-    PROCNAME("ptaChangeRefcount");
-
-    if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
-    pta->refcount += delta;
-    return 0;
-}
-
-
 /*!
  * \brief   ptaGetCount()
  *

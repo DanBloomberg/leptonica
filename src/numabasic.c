@@ -54,8 +54,6 @@
  *          l_int32      numaShiftValue()
  *          l_int32     *numaGetIArray()
  *          l_float32   *numaGetFArray()
- *          l_int32      numaGetRefcount()
- *          l_int32      numaChangeRefcount()
  *          l_int32      numaGetParameters()
  *          l_int32      numaSetParameters()
  *          l_int32      numaCopyParameters()
@@ -910,43 +908,6 @@ l_float32  *array;
     }
 
     return array;
-}
-
-
-/*!
- * \brief   numaGetRefcount()
- *
- * \param[in]    na
- * \return  refcount, or UNDEF on error
- */
-l_int32
-numaGetRefcount(NUMA  *na)
-{
-    PROCNAME("numaGetRefcount");
-
-    if (!na)
-        return ERROR_INT("na not defined", procName, UNDEF);
-    return na->refcount;
-}
-
-
-/*!
- * \brief   numaChangeRefcount()
- *
- * \param[in]    na
- * \param[in]    delta    change to be applied
- * \return  0 if OK, 1 on error
- */
-l_ok
-numaChangeRefcount(NUMA    *na,
-                   l_int32  delta)
-{
-    PROCNAME("numaChangeRefcount");
-
-    if (!na)
-        return ERROR_INT("na not defined", procName, 1);
-    na->refcount += delta;
-    return 0;
 }
 
 

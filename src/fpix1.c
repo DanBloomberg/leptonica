@@ -47,8 +47,6 @@
  *          l_int32        fpixSetDimensions()
  *          l_int32        fpixGetWpl()
  *          l_int32        fpixSetWpl()
- *          l_int32        fpixGetRefcount()
- *          l_int32        fpixChangeRefcount()
  *          l_int32        fpixGetResolution()
  *          l_int32        fpixSetResolution()
  *          l_int32        fpixCopyResolution()
@@ -69,7 +67,6 @@
  *
  *    FPixa accessors
  *          l_int32        fpixaGetCount()
- *          l_int32        fpixaChangeRefcount()
  *          FPIX          *fpixaGetFPix()
  *          l_int32        fpixaGetFPixDimensions()
  *          l_float32     *fpixaGetData()
@@ -88,8 +85,6 @@
  *          l_int32        dpixSetDimensions()
  *          l_int32        dpixGetWpl()
  *          l_int32        dpixSetWpl()
- *          l_int32        dpixGetRefcount()
- *          l_int32        dpixChangeRefcount()
  *          l_int32        dpixGetResolution()
  *          l_int32        dpixSetResolution()
  *          l_int32        dpixCopyResolution()
@@ -399,44 +394,6 @@ fpixSetWpl(FPIX    *fpix,
         return ERROR_INT("fpix not defined", procName, 1);
 
     fpix->wpl = wpl;
-    return 0;
-}
-
-
-/*!
- * \brief   fpixGetRefcount()
- *
- * \param[in]    fpix
- * \return  refcount, or UNDEF on error
- */
-l_int32
-fpixGetRefcount(FPIX  *fpix)
-{
-    PROCNAME("fpixGetRefcount");
-
-    if (!fpix)
-        return ERROR_INT("fpix not defined", procName, UNDEF);
-    return fpix->refcount;
-}
-
-
-/*!
- * \brief   fpixChangeRefcount()
- *
- * \param[in]    fpix
- * \param[in]    delta
- * \return  0 if OK, 1 on error
- */
-l_ok
-fpixChangeRefcount(FPIX    *fpix,
-                   l_int32  delta)
-{
-    PROCNAME("fpixChangeRefcount");
-
-    if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 1);
-
-    fpix->refcount += delta;
     return 0;
 }
 
@@ -873,27 +830,6 @@ fpixaGetCount(FPIXA  *fpixa)
 
 
 /*!
- * \brief   fpixaChangeRefcount()
- *
- * \param[in]    fpixa
- * \param[in]    delta
- * \return  0 if OK, 1 on error
- */
-l_ok
-fpixaChangeRefcount(FPIXA   *fpixa,
-                    l_int32  delta)
-{
-    PROCNAME("fpixaChangeRefcount");
-
-    if (!fpixa)
-        return ERROR_INT("fpixa not defined", procName, 1);
-
-    fpixa->refcount += delta;
-    return 0;
-}
-
-
-/*!
  * \brief   fpixaGetFPix()
  *
  * \param[in]    fpixa
@@ -1319,44 +1255,6 @@ dpixSetWpl(DPIX    *dpix,
         return ERROR_INT("dpix not defined", procName, 1);
 
     dpix->wpl = wpl;
-    return 0;
-}
-
-
-/*!
- * \brief   dpixGetRefcount()
- *
- * \param[in]    dpix
- * \return  refcount, or UNDEF on error
- */
-l_int32
-dpixGetRefcount(DPIX  *dpix)
-{
-    PROCNAME("dpixGetRefcount");
-
-    if (!dpix)
-        return ERROR_INT("dpix not defined", procName, UNDEF);
-    return dpix->refcount;
-}
-
-
-/*!
- * \brief   dpixChangeRefcount()
- *
- * \param[in]    dpix
- * \param[in]    delta
- * \return  0 if OK, 1 on error
- */
-l_ok
-dpixChangeRefcount(DPIX    *dpix,
-                   l_int32  delta)
-{
-    PROCNAME("dpixChangeRefcount");
-
-    if (!dpix)
-        return ERROR_INT("dpix not defined", procName, 1);
-
-    dpix->refcount += delta;
     return 0;
 }
 

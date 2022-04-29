@@ -80,8 +80,6 @@
  *          l_int32       pixCopySpp()
  *          l_int32       pixGetWpl()
  *          l_int32       pixSetWpl()
- *          l_int32       pixGetRefcount()
- *          l_int32       pixChangeRefcount()
  *          l_uint32      pixGetXRes()
  *          l_int32       pixSetXRes()
  *          l_uint32      pixGetYRes()
@@ -1270,31 +1268,6 @@ pixSetWpl(PIX     *pix,
         return ERROR_INT("pix not defined", procName, 1);
 
     pix->wpl = wpl;
-    return 0;
-}
-
-
-l_int32
-pixGetRefcount(const PIX  *pix)
-{
-    PROCNAME("pixGetRefcount");
-
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 0);
-    return pix->refcount;
-}
-
-
-l_int32
-pixChangeRefcount(PIX     *pix,
-                  l_int32  delta)
-{
-    PROCNAME("pixChangeRefcount");
-
-    if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
-
-    pix->refcount += delta;
     return 0;
 }
 
