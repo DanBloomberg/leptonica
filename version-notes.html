@@ -91,11 +91,24 @@ They are <i>not</i> a complete listing of the modifications.
 
 1.83.0  not yet released
         * Simplify setting the title of pdf files.
+        * Catch tiff failure to open stream in fopenTiffMemStream()
         * Check for POSIX functions fstatat() and dirfd() before use.
+        * In prog/cleanpdf: do not allow threshold to exceed 190
+        * In prog/concatpdf: add input param for title; add jpeg quality factor
+        * Fix flaky hash_reg test on i686: sets generated from SelectRange()
+          can depend slightly on platform.
         * Convenience function for adding multiple black and white borders.
-        * Fix oss-fuzz issue 43841; made pixCountPixels() more efficient.
-        * Fix oss-fuzz issue 44008; pixCountArbInRect() used wrong depth.
+        * Fix oss-fuzz issue 42202: underined shift in l_convertCharstrToInt().
+        * Fix oss-fuzz issue 43841: made pixCountPixels() more efficient.
+        * Fix oss-fuzz issue 44008: pixCountArbInRect() used wrong depth.
         * Always return tiff resolution of 0 (unknown) if not set.
+        * Simplify operations on pix memory to help avoid mem leaks
+        * Make bmp non-support of 32-bit bmp (rgba) files explicit.
+        * Improve tiff read resolution conversion by rounding.
+        * Use stdatomic.h to make cloning string safe.
+        * Begin to replace procName and mainName strings by __func__.
+        * Remove information about fields in many structs from the public
+          interface allheaders.h, instead putting them in internal files.
 
 1.82.0  Sept 22, 2021
         * Fix issue-585: reading tiff rgb with tiffbpl = 1.5 * packedbpl.

@@ -40,22 +40,21 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein;
-l_int32      count;
-CCBORDA     *ccba, *ccba2;
-PIX         *pixs, *pixd, *pixd2, *pixd3;
-PIX         *pixt, *pixc, *pixc2;
-static char  mainName[] = "ccbordtest";
+char     *filein;
+l_int32   count;
+CCBORDA  *ccba, *ccba2;
+PIX      *pixs, *pixd, *pixd2, *pixd3;
+PIX      *pixt, *pixc, *pixc2;
 
     if (argc != 2)
-        return ERROR_INT(" Syntax:  ccbordtest filein", mainName, 1);
+        return ERROR_INT(" Syntax:  ccbordtest filein", __func__, 1);
     filein = argv[1];
 
     setLeptDebugOK(1);
     lept_mkdir("lept/ccbord");
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
     lept_stderr("Get border representation...");
     startTimer();
