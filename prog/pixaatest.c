@@ -35,6 +35,7 @@
 #endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
+#include "pix_internal.h"
 
 static const l_int32  nx = 10;
 static const l_int32  ny = 12;

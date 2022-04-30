@@ -42,6 +42,7 @@
 #endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
+#include "array_internal.h"
 
 static SARRAY *BuildShortStrings(l_int32 nchars);
 static PTA *BuildPointSet(l_int32 w, l_int32 h);

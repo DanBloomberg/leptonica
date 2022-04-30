@@ -72,6 +72,7 @@
 
 #include <string.h>
 #include "allheaders.h"
+#include "pix_internal.h"
 #include "bmfdata.h"
 
 static const l_float32  VertFractSep = 0.3;

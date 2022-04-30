@@ -200,6 +200,7 @@
 
 #include <string.h>
 #include "allheaders.h"
+#include "pix_internal.h"
 
 static void pixFree(PIX *pix);
 

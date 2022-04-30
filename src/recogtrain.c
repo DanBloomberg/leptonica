@@ -164,6 +164,7 @@
 
 #include <string.h>
 #include "allheaders.h"
+#include "pix_internal.h"
 
     /* Static functions */
 static l_int32 recogTemplatesAreOK(L_RECOG *recog, l_int32 minsize,

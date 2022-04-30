@@ -33,6 +33,7 @@
 #endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
+#include "pix_internal.h"
 
 static l_int32 TestTiling(PIX *pixd, PIX *pixs, l_int32 nx, l_int32 ny,
                           l_int32 w, l_int32 h, l_int32 xoverlap,

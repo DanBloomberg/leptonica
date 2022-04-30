@@ -39,6 +39,7 @@
 
 #include <math.h>
 #include "allheaders.h"
+#include "pix_internal.h"
 
 static const char *fnames[] = {"weasel32.png", "weasel2.4c.png",
                                "weasel4.16c.png", "weasel4.8g.png",

@@ -70,6 +70,7 @@
 
 #include <string.h>
 #include "allheaders.h"
+#include "array_internal.h"
 
     /* Bounds on array size */
 static const l_uint32  MaxArraySize = 1000000000;   /* 10^9 bytes */

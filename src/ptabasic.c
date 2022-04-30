@@ -96,6 +96,8 @@
 
 #include <string.h>
 #include "allheaders.h"
+#include "array_internal.h"
+#include "pix_internal.h"
 
 static const l_uint32  MaxArraySize = 100000000;  /* 100 million */
 static const l_uint32  MaxPtrArraySize = 10000000;  /* 10 million */

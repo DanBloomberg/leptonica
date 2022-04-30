@@ -37,6 +37,7 @@
 #endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
+#include "pix_internal.h"
 
 static PIX * ReconstructByValue(L_REGPARAMS *rp, const char *fname);
 static PIX * FakeReconstructByBand(L_REGPARAMS *rp, const char *fname);

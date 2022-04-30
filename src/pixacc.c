@@ -66,6 +66,7 @@
 #endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
+#include "pix_internal.h"
 
 /*---------------------------------------------------------------------*
  *                     Pixacc creation, destruction                    *

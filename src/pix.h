@@ -49,7 +49,8 @@
  *
  *   Contents:
  *
- *   (1) This file defines most of the image-related structs used in leptonica:
+ *   (1) This file has typedefs for most of the image-related structs
+ *       used in leptonica:
  *         struct Pix
  *         struct PixColormap
  *         struct RGBA_Quad
@@ -124,60 +125,183 @@
  *   (3) This file has typedefs for the pix allocator and deallocator functions
  *         alloc_fn()
  *         dealloc_fn().
+ *
+ *   -------------------------------------------------------------------
+ *   Notes on the pixels in the raster image.  This information can also
+ *   be found in pix_internal.h.
+ *
+ *       (1) The image data is stored in a single contiguous
+ *           array of l_uint32, into which the pixels are packed.
+ *           By "packed" we mean that there are no unused bits
+ *           between pixels, except for end-of-line padding to
+ *           satisfy item (2) below.
+ *
+ *       (2) Every image raster line begins on a 32-bit word
+ *           boundary within this array.
+ *
+ *       (3) Pix image data is stored in 32-bit units, with the
+ *           pixels ordered from left to right in the image being
+ *           stored in order from the MSB to LSB within the word,
+ *           for both big-endian and little-endian machines.
+ *           This is the natural ordering for big-endian machines,
+ *           as successive bytes are stored and fetched progressively
+ *           to the right.  However, for little-endians, when storing
+ *           we re-order the bytes from this byte stream order, and
+ *           reshuffle again for byte access on 32-bit entities.
+ *           So if the bytes come in sequence from left to right, we
+ *           store them on little-endians in byte order:
+ *                3 2 1 0 7 6 5 4 ...
+ *           This MSB to LSB ordering allows left and right shift
+ *           operations on 32 bit words to move the pixels properly.
+ *
+ *       (4) We use 32 bit pixels for both RGB and RGBA color images.
+ *           The A (alpha) byte is ignored in most leptonica functions
+ *           operating on color images.  Within each 4 byte pixel, the
+ *           color samples are ordered from MSB to LSB, as follows:
+ *
+ *                |  MSB  |  2nd MSB  |  3rd MSB  |  LSB  |
+ *                   red      green       blue      alpha
+ *                    0         1           2         3   (big-endian)
+ *                    3         2           1         0   (little-endian)
+ *
+ *           Because we use MSB to LSB ordering within the 32-bit word,
+ *           the individual 8-bit samples can be accessed with
+ *           GET_DATA_BYTE and SET_DATA_BYTE macros, using the
+ *           (implicitly big-ending) ordering
+ *                 red:    byte 0  (MSB)
+ *                 green:  byte 1  (2nd MSB)
+ *                 blue:   byte 2  (3rd MSB)
+ *                 alpha:  byte 3  (LSB)
+ *
+ *           The specific color assignment is made in this file,
+ *           through the definitions of COLOR_RED, etc.  Then the R, G
+ *           B and A sample values can be retrieved using
+ *                 redval = GET_DATA_BYTE(&pixel, COLOR_RED);
+ *                 greenval = GET_DATA_BYTE(&pixel, COLOR_GREEN);
+ *                 blueval = GET_DATA_BYTE(&pixel, COLOR_BLUE);
+ *                 alphaval = GET_DATA_BYTE(&pixel, L_ALPHA_CHANNEL);
+ *           and they can be set with
+ *                 SET_DATA_BYTE(&pixel, COLOR_RED, redval);
+ *                 SET_DATA_BYTE(&pixel, COLOR_GREEN, greenval);
+ *                 SET_DATA_BYTE(&pixel, COLOR_BLUE, blueval);
+ *                 SET_DATA_BYTE(&pixel, L_ALPHA_CHANNEL, alphaval);
+ *
+ *           More efficiently, these components can be extracted directly
+ *           by shifting and masking, explicitly using the values in
+ *           L_RED_SHIFT, etc.:
+ *                 (pixel32 >> L_RED_SHIFT) & 0xff;         (red)
+ *                 (pixel32 >> L_GREEN_SHIFT) & 0xff;       (green)
+ *                 (pixel32 >> L_BLUE_SHIFT) & 0xff;        (blue)
+ *                 (pixel32 >> L_ALPHA_SHIFT) & 0xff;       (alpha)
+ *           The functions extractRGBValues() and extractRGBAValues() are
+ *           provided to do this.  Likewise, the pixels can be set
+ *           directly by shifting, using composeRGBPixel() and
+ *           composeRGBAPixel().
+ *
+ *           All these operations work properly on both big- and little-endians.
+ *
+ *       (5) A reference count is held within each pix, giving the
+ *           number of ptrs to the pix.  When a pixClone() call
+ *           is made, the ref count is increased by 1, and
+ *           when a pixDestroy() call is made, the reference count
+ *           of the pix is decremented.  The pix is only destroyed
+ *           when the reference count goes to zero.
+ *
+ *       (6) Version numbers are used in the serialization of image-related
+ *           data structures.  They are placed in the files, and rarely
+ *           (if ever) change.
+ *
+ *       (7) The serialization dependencies are as follows:
+ *               pixaa  :  pixa  :  boxa
+ *               boxaa  :  boxa
+ *           So, for example, pixaa and boxaa can be changed without
+ *           forcing a change in pixa or boxa.  However, if pixa is
+ *           changed, it forces a change in pixaa, and if boxa is
+ *           changed, if forces a change in the other three.
  * </pre>
  */
-
 
 /*-------------------------------------------------------------------------*
  *                              Basic Pix                                  *
  *-------------------------------------------------------------------------*/
-    /* The 'special' field is by default 0, but it can hold integers
-     * that direct non-default actions, e.g., in png and jpeg I/O. */
-
 /*! Basic Pix */
-struct Pix
-{
-    l_uint32             w;         /*!< width in pixels                   */
-    l_uint32             h;         /*!< height in pixels                  */
-    l_uint32             d;         /*!< depth in bits (bpp)               */
-    l_uint32             spp;       /*!< number of samples per pixel       */
-    l_uint32             wpl;       /*!< 32-bit words/line                 */
-    l_atomic             refcount;  /*!< reference count (1 if no clones)  */
-    l_int32              xres;      /*!< image res (ppi) in x direction    */
-                                    /*!< (use 0 if unknown)                */
-    l_int32              yres;      /*!< image res (ppi) in y direction    */
-                                    /*!< (use 0 if unknown)                */
-    l_int32              informat;  /*!< input file format, IFF_*          */
-    l_int32              special;   /*!< special instructions for I/O, etc */
-    char                *text;      /*!< text string associated with pix   */
-    struct PixColormap  *colormap;  /*!< colormap (may be null)            */
-    l_uint32            *data;      /*!< the image data                    */
-};
 typedef struct Pix PIX;
 
 /*! Colormap of a Pix */
-struct PixColormap
-{
-    void            *array;   /*!< colormap table (array of RGBA_QUAD)     */
-    l_int32          depth;   /*!< of pix (1, 2, 4 or 8 bpp)               */
-    l_int32          nalloc;  /*!< number of color entries allocated       */
-    l_int32          n;       /*!< number of color entries used            */
-};
 typedef struct PixColormap  PIXCMAP;
-
 
     /*! Colormap table entry (after the BMP version).
      * Note that the BMP format stores the colormap table exactly
      * as it appears here, with color samples being stored sequentially,
      * in the order (b,g,r,a). */
-struct RGBA_Quad
-{
-    l_uint8     blue;         /*!< blue value */
-    l_uint8     green;        /*!< green value */
-    l_uint8     red;          /*!< red value */
-    l_uint8     alpha;        /*!< alpha value */
-};
 typedef struct RGBA_Quad  RGBA_QUAD;
+
+/*-------------------------------------------------------------------------*
+ *                               Pix arrays                                *
+ *-------------------------------------------------------------------------*/
+/*! Array of pix */
+typedef struct Pixa PIXA;
+
+/*! Array of arrays of pix */
+typedef struct Pixaa PIXAA;
+
+/*-------------------------------------------------------------------------*
+ *                    Basic rectangle and rectangle arrays                 *
+ *-------------------------------------------------------------------------*/
+/*! Basic rectangle */
+typedef struct Box    BOX;
+
+/*! Array of Box */
+typedef struct Boxa  BOXA;
+
+/*! Array of Boxa */
+typedef struct Boxaa  BOXAA;
+
+/*-------------------------------------------------------------------------*
+ *                              Arrays of points                           *
+ *-------------------------------------------------------------------------*/
+/*! Array of points */
+typedef struct Pta PTA;
+
+/*! Array of Pta */
+typedef struct Ptaa PTAA;
+
+/*-------------------------------------------------------------------------*
+ *                       Pix accumulator container                         *
+ *-------------------------------------------------------------------------*/
+/*! Pix accumulator container */
+typedef struct Pixacc PIXACC;
+
+/*-------------------------------------------------------------------------*
+ *                              Pix tiling                                 *
+ *-------------------------------------------------------------------------*/
+/*! Pix tiling */
+typedef struct PixTiling PIXTILING;
+
+/*-------------------------------------------------------------------------*
+ *                       FPix: pix with float array                        *
+ *-------------------------------------------------------------------------*/
+/*! Pix with float array */
+typedef struct FPix FPIX;
+
+/*! Array of FPix */
+typedef struct FPixa FPIXA;
+
+/*-------------------------------------------------------------------------*
+ *                       DPix: pix with double array                       *
+ *-------------------------------------------------------------------------*/
+/*! Pix with double array */
+typedef struct DPix DPIX;
+
+/*-------------------------------------------------------------------------*
+ *                       Compressed pix and arrays                         *
+ *-------------------------------------------------------------------------*/
+/*! Compressed Pix */
+typedef struct PixComp PIXC;
+
+/*! Array of compressed pix */
+typedef struct PixaComp PIXAC;
+
 
 
 /*-------------------------------------------------------------------------*
@@ -264,8 +388,8 @@ enum {
 /*------------------------------------------------------------------------*
  *!
  * <pre>
- * The following operation bit flags have been modified from
- * Sun's pixrect.h.
+ * The following operation bit flags have been modified from Sun's
+ * original "bitblt" (bit block transfer) operations (from the 1980s).
  *
  * The 'op' in 'rasterop' is represented by an integer
  * composed with Boolean functions using the set of five integers
@@ -288,24 +412,14 @@ enum {
  *      #define   PIX_CLR      0x0
  *      #define   PIX_SET      0xf
  *
- * These definitions differ from Sun's, in that Sun left-shifted
+ * [These definitions differ from Sun's, in that Sun left-shifted
  * each value by 1 pixel, and used the least significant bit as a
  * flag for the "pseudo-operation" of clipping.  We don't need
  * this bit, because it is both efficient and safe ALWAYS to clip
  * the rectangles to the src and dest images, which is what we do.
- * See the notes in rop.h on the general choice of these bit flags.
+ * See the notes in rop.h on the general choice of these bit flags.]
  *
- * [If for some reason you need compatibility with Sun's xview package,
- * you can adopt the original Sun definitions to avoid redefinition conflicts:
- *
- *      #define   PIX_SRC      (0xc << 1)
- *      #define   PIX_DST      (0xa << 1)
- *      #define   PIX_NOT(op)  ((op) ^ 0x1e)
- *      #define   PIX_CLR      (0x0 << 1)
- *      #define   PIX_SET      (0xf << 1)
- * ]
- *
- * We have, for reference, the following 16 unique op flags:
+ * Here are the 16 unique op flags:
  *
  *      PIX_CLR                           0000             0x0
  *      PIX_SET                           1111             0xf
@@ -338,327 +452,6 @@ enum {
 #define   PIX_SUBTRACT (PIX_DST & PIX_NOT(PIX_SRC)) /*!< subtract =           */
                                                     /*!<    src & !dst        */
 #define   PIX_XOR      (PIX_SRC ^ PIX_DST)        /*!< xor = src ^ dst        */
-
-
-/*-------------------------------------------------------------------------*
- * <pre>
- *   Important Notes:
- *
- *       (1) The image data is stored in a single contiguous
- *           array of l_uint32, into which the pixels are packed.
- *           By "packed" we mean that there are no unused bits
- *           between pixels, except for end-of-line padding to
- *           satisfy item (2) below.
- *
- *       (2) Every image raster line begins on a 32-bit word
- *           boundary within this array.
- *
- *       (3) Pix image data is stored in 32-bit units, with the
- *           pixels ordered from left to right in the image being
- *           stored in order from the MSB to LSB within the word,
- *           for both big-endian and little-endian machines.
- *           This is the natural ordering for big-endian machines,
- *           as successive bytes are stored and fetched progressively
- *           to the right.  However, for little-endians, when storing
- *           we re-order the bytes from this byte stream order, and
- *           reshuffle again for byte access on 32-bit entities.
- *           So if the bytes come in sequence from left to right, we
- *           store them on little-endians in byte order:
- *                3 2 1 0 7 6 5 4 ...
- *           This MSB to LSB ordering allows left and right shift
- *           operations on 32 bit words to move the pixels properly.
- *
- *       (4) We use 32 bit pixels for both RGB and RGBA color images.
- *           The A (alpha) byte is ignored in most leptonica functions
- *           operating on color images.  Within each 4 byte pixel, the
- *           color samples are ordered from MSB to LSB, as follows:
- *
- *                |  MSB  |  2nd MSB  |  3rd MSB  |  LSB  |
- *                   red      green       blue      alpha
- *                    0         1           2         3   (big-endian)
- *                    3         2           1         0   (little-endian)
- *
- *           Because we use MSB to LSB ordering within the 32-bit word,
- *           the individual 8-bit samples can be accessed with
- *           GET_DATA_BYTE and SET_DATA_BYTE macros, using the
- *           (implicitly big-ending) ordering
- *                 red:    byte 0  (MSB)
- *                 green:  byte 1  (2nd MSB)
- *                 blue:   byte 2  (3rd MSB)
- *                 alpha:  byte 3  (LSB)
- *
- *           The specific color assignment is made in this file,
- *           through the definitions of COLOR_RED, etc.  Then the R, G
- *           B and A sample values can be retrieved using
- *                 redval = GET_DATA_BYTE(&pixel, COLOR_RED);
- *                 greenval = GET_DATA_BYTE(&pixel, COLOR_GREEN);
- *                 blueval = GET_DATA_BYTE(&pixel, COLOR_BLUE);
- *                 alphaval = GET_DATA_BYTE(&pixel, L_ALPHA_CHANNEL);
- *           and they can be set with
- *                 SET_DATA_BYTE(&pixel, COLOR_RED, redval);
- *                 SET_DATA_BYTE(&pixel, COLOR_GREEN, greenval);
- *                 SET_DATA_BYTE(&pixel, COLOR_BLUE, blueval);
- *                 SET_DATA_BYTE(&pixel, L_ALPHA_CHANNEL, alphaval);
- *
- *           More efficiently, these components can be extracted directly
- *           by shifting and masking, explicitly using the values in
- *           L_RED_SHIFT, etc.:
- *                 (pixel32 >> L_RED_SHIFT) & 0xff;         (red)
- *                 (pixel32 >> L_GREEN_SHIFT) & 0xff;       (green)
- *                 (pixel32 >> L_BLUE_SHIFT) & 0xff;        (blue)
- *                 (pixel32 >> L_ALPHA_SHIFT) & 0xff;       (alpha)
- *           The functions extractRGBValues() and extractRGBAValues() are
- *           provided to do this.  Likewise, the pixels can be set
- *           directly by shifting, using composeRGBPixel() and
- *           composeRGBAPixel().
- *
- *           All these operations work properly on both big- and little-endians.
- *
- *       (5) A reference count is held within each pix, giving the
- *           number of ptrs to the pix.  When a pixClone() call
- *           is made, the ref count is increased by 1, and
- *           when a pixDestroy() call is made, the reference count
- *           of the pix is decremented.  The pix is only destroyed
- *           when the reference count goes to zero.
- *
- *       (6) The version numbers (below) are used in the serialization
- *           of these data structures.  They are placed in the files,
- *           and rarely (if ever) change.
- *
- *       (7) The serialization dependencies are as follows:
- *               pixaa  :  pixa  :  boxa
- *               boxaa  :  boxa
- *           So, for example, pixaa and boxaa can be changed without
- *           forcing a change in pixa or boxa.  However, if pixa is
- *           changed, it forces a change in pixaa, and if boxa is
- *           changed, if forces a change in the other three.
- *           We define four version numbers:
- *               PIXAA_VERSION_NUMBER
- *               PIXA_VERSION_NUMBER
- *               BOXAA_VERSION_NUMBER
- *               BOXA_VERSION_NUMBER
- * </pre>
- *-------------------------------------------------------------------------*/
-
-
-
-/*-------------------------------------------------------------------------*
- *                              Array of pix                               *
- *-------------------------------------------------------------------------*/
-    /*  Serialization for primary data structures */
-#define  PIXAA_VERSION_NUMBER      2  /*!< Version for Pixaa serialization */
-#define  PIXA_VERSION_NUMBER       2  /*!< Version for Pixa serialization  */
-#define  BOXA_VERSION_NUMBER       2  /*!< Version for Boxa serialization  */
-#define  BOXAA_VERSION_NUMBER      3  /*!< Version for Boxaa serialization */
-
-/*! Array of pix */
-struct Pixa
-{
-    l_int32             n;          /*!< number of Pix in ptr array        */
-    l_int32             nalloc;     /*!< number of Pix ptrs allocated      */
-    l_atomic            refcount;   /*!< reference count (1 if no clones)  */
-    struct Pix        **pix;        /*!< the array of ptrs to pix          */
-    struct Boxa        *boxa;       /*!< array of boxes                    */
-};
-typedef struct Pixa PIXA;
-
-/*! Array of arrays of pix */
-struct Pixaa
-{
-    l_int32             n;          /*!< number of Pixa in ptr array       */
-    l_int32             nalloc;     /*!< number of Pixa ptrs allocated     */
-    struct Pixa       **pixa;       /*!< array of ptrs to pixa             */
-    struct Boxa        *boxa;       /*!< array of boxes                    */
-};
-typedef struct Pixaa PIXAA;
-
-
-/*-------------------------------------------------------------------------*
- *                    Basic rectangle and rectangle arrays                 *
- *-------------------------------------------------------------------------*/
-/*! Basic rectangle */
-struct Box
-{
-    l_int32            x;           /*!< left coordinate                   */
-    l_int32            y;           /*!< top coordinate                    */
-    l_int32            w;           /*!< box width                         */
-    l_int32            h;           /*!< box height                        */
-    l_atomic           refcount;    /*!< reference count (1 if no clones)  */
-};
-typedef struct Box    BOX;
-
-/*! Array of Box */
-struct Boxa
-{
-    l_int32            n;           /*!< number of box in ptr array        */
-    l_int32            nalloc;      /*!< number of box ptrs allocated      */
-    l_atomic           refcount;    /*!< reference count (1 if no clones)  */
-    struct Box       **box;         /*!< box ptr array                     */
-};
-typedef struct Boxa  BOXA;
-
-/*! Array of Boxa */
-struct Boxaa
-{
-    l_int32            n;           /*!< number of boxa in ptr array       */
-    l_int32            nalloc;      /*!< number of boxa ptrs allocated     */
-    struct Boxa      **boxa;        /*!< boxa ptr array                    */
-};
-typedef struct Boxaa  BOXAA;
-
-
-/*-------------------------------------------------------------------------*
- *                               Array of points                           *
- *-------------------------------------------------------------------------*/
-#define  PTA_VERSION_NUMBER      1  /*!< Version for Pta serialization     */
-
-/*! Array of points */
-struct Pta
-{
-    l_int32            n;           /*!< actual number of pts              */
-    l_int32            nalloc;      /*!< size of allocated arrays          */
-    l_atomic           refcount;    /*!< reference count (1 if no clones)  */
-    l_float32         *x, *y;       /*!< arrays of floats                  */
-};
-typedef struct Pta PTA;
-
-
-/*-------------------------------------------------------------------------*
- *                              Array of Pta                               *
- *-------------------------------------------------------------------------*/
-/*! Array of Pta */
-struct Ptaa
-{
-    l_int32              n;         /*!< number of pta in ptr array        */
-    l_int32              nalloc;    /*!< number of pta ptrs allocated      */
-    struct Pta         **pta;       /*!< pta ptr array                     */
-};
-typedef struct Ptaa PTAA;
-
-
-/*-------------------------------------------------------------------------*
- *                       Pix accumulator container                         *
- *-------------------------------------------------------------------------*/
-/*! Pix accumulator container */
-struct Pixacc
-{
-    l_int32             w;          /*!< array width                       */
-    l_int32             h;          /*!< array height                      */
-    l_int32             offset;     /*!< used to allow negative            */
-                                    /*!< intermediate results              */
-    struct Pix         *pix;        /*!< the 32 bit accumulator pix        */
-};
-typedef struct Pixacc PIXACC;
-
-
-/*-------------------------------------------------------------------------*
- *                              Pix tiling                                 *
- *-------------------------------------------------------------------------*/
-/*! Pix tiling */
-struct PixTiling
-{
-    struct Pix          *pix;       /*!< input pix (a clone)               */
-    l_int32              nx;        /*!< number of tiles horizontally      */
-    l_int32              ny;        /*!< number of tiles vertically        */
-    l_int32              w;         /*!< tile width                        */
-    l_int32              h;         /*!< tile height                       */
-    l_int32              xoverlap;  /*!< overlap on left and right         */
-    l_int32              yoverlap;  /*!< overlap on top and bottom         */
-    l_int32              strip;     /*!< strip for paint; default is TRUE  */
-};
-typedef struct PixTiling PIXTILING;
-
-
-/*-------------------------------------------------------------------------*
- *                       FPix: pix with float array                        *
- *-------------------------------------------------------------------------*/
-#define  FPIX_VERSION_NUMBER      2 /*!< Version for FPix serialization    */
-
-/*! Pix with float array */
-struct FPix
-{
-    l_int32              w;         /*!< width in pixels                   */
-    l_int32              h;         /*!< height in pixels                  */
-    l_int32              wpl;       /*!< 32-bit words/line                 */
-    l_atomic             refcount;  /*!< reference count (1 if no clones)  */
-    l_int32              xres;      /*!< image res (ppi) in x direction    */
-                                    /*!< (use 0 if unknown)                */
-    l_int32              yres;      /*!< image res (ppi) in y direction    */
-                                    /*!< (use 0 if unknown)                */
-    l_float32           *data;      /*!< the float image data              */
-};
-typedef struct FPix FPIX;
-
-/*! Array of FPix */
-struct FPixa
-{
-    l_int32             n;          /*!< number of fpix in ptr array       */
-    l_int32             nalloc;     /*!< number of fpix ptrs allocated     */
-    l_atomic            refcount;   /*!< reference count (1 if no clones)  */
-    struct FPix       **fpix;       /*!< the array of ptrs to fpix         */
-};
-typedef struct FPixa FPIXA;
-
-
-/*-------------------------------------------------------------------------*
- *                       DPix: pix with double array                       *
- *-------------------------------------------------------------------------*/
-#define  DPIX_VERSION_NUMBER      2 /*!< Version for DPix serialization    */
-
-/*! Pix with double array */
-struct DPix
-{
-    l_int32              w;         /*!< width in pixels                   */
-    l_int32              h;         /*!< height in pixels                  */
-    l_int32              wpl;       /*!< 32-bit words/line                 */
-    l_atomic             refcount;  /*!< reference count (1 if no clones)  */
-    l_int32              xres;      /*!< image res (ppi) in x direction    */
-                                    /*!< (use 0 if unknown)                */
-    l_int32              yres;      /*!< image res (ppi) in y direction    */
-                                    /*!< (use 0 if unknown)                */
-    l_float64           *data;      /*!< the double image data             */
-};
-typedef struct DPix DPIX;
-
-
-/*-------------------------------------------------------------------------*
- *                        PixComp: compressed pix                          *
- *-------------------------------------------------------------------------*/
-/*! Compressed Pix */
-struct PixComp
-{
-    l_int32              w;         /*!< width in pixels                   */
-    l_int32              h;         /*!< height in pixels                  */
-    l_int32              d;         /*!< depth in bits                     */
-    l_int32              xres;      /*!< image res (ppi) in x direction    */
-                                    /*!<   (use 0 if unknown)              */
-    l_int32              yres;      /*!< image res (ppi) in y direction    */
-                                    /*!<   (use 0 if unknown)              */
-    l_int32              comptype;  /*!< compressed format (IFF_TIFF_G4,   */
-                                    /*!<   IFF_PNG, IFF_JFIF_JPEG)         */
-    char                *text;      /*!< text string associated with pix   */
-    l_int32              cmapflag;  /*!< flag (1 for cmap, 0 otherwise)    */
-    l_uint8             *data;      /*!< the compressed image data         */
-    size_t               size;      /*!< size of the data array            */
-};
-typedef struct PixComp PIXC;
-
-
-/*-------------------------------------------------------------------------*
- *                     PixaComp: array of compressed pix                   *
- *-------------------------------------------------------------------------*/
-#define  PIXACOMP_VERSION_NUMBER 2  /*!< Version for PixaComp serialization */
-
-/*! Array of compressed pix */
-struct PixaComp
-{
-    l_int32              n;         /*!< number of PixComp in ptr array    */
-    l_int32              nalloc;    /*!< number of PixComp ptrs allocated  */
-    l_int32              offset;    /*!< indexing offset into ptr array    */
-    struct PixComp     **pixc;      /*!< the array of ptrs to PixComp      */
-    struct Boxa         *boxa;      /*!< array of boxes                    */
-};
-typedef struct PixaComp PIXAC;
 
 
 /*-------------------------------------------------------------------------*

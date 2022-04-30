@@ -209,6 +209,7 @@
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
+#include "array_internal.h"
 
 #define L_BUF_SIZE 512
 

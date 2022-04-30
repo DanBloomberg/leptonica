@@ -109,7 +109,8 @@ They are <i>not</i> a complete listing of the modifications.
           Remove all *GetRefcount() and *ChangeRefcount() accessors.
         * Begin to replace procName and mainName strings by __func__.
         * Remove information about fields in many structs from the public
-          interface allheaders.h, instead putting them in internal files.
+          interface allheaders.h, instead putting them in internal files
+          pix_internal.h and array_internal.h.
 
 1.82.0  Sept 22, 2021
         * Fix issue-585: reading tiff rgb with tiffbpl = 1.5 * packedbpl.

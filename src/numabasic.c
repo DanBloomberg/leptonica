@@ -169,6 +169,7 @@
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
+#include "array_internal.h"
 
     /* Bounds on initial array size */
 static const l_uint32  MaxFloatArraySize = 100000000;  /* for numa */

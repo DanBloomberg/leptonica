@@ -122,6 +122,7 @@
 
 #include <string.h>
 #include "allheaders.h"
+#include "pix_internal.h"
 
     /* Bounds on array sizes */
 static const size_t  MaxPtrArraySize = 100000;

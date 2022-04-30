@@ -120,6 +120,7 @@
 
 #include <string.h>
 #include "allheaders.h"
+#include "pix_internal.h"
 
 /*
  * <pre>

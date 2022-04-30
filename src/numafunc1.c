@@ -147,6 +147,7 @@
 
 #include <math.h>
 #include "allheaders.h"
+#include "array_internal.h"
 
 /*----------------------------------------------------------------------*
  *                Arithmetic and logical ops on Numas                   *

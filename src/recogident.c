@@ -95,6 +95,7 @@
 
 #include <string.h>
 #include "allheaders.h"
+#include "array_internal.h"
 
     /* There are two methods for splitting characters: DID and greedy.
      * The default method is DID.  */

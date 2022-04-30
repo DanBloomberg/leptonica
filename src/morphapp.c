@@ -88,6 +88,7 @@
 #endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
+#include "array_internal.h"
 
 #define   SWAP(x, y)   {temp = (x); (x) = (y); (y) = temp;}
 

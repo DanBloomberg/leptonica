@@ -70,6 +70,7 @@
 
 #include <math.h>
 #include "allheaders.h"
+#include "pix_internal.h"
 
 /*---------------------------------------------------------------------*
  *                     Boxa and boxaa range selection                  *

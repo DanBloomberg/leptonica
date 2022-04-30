@@ -46,7 +46,7 @@
 #endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
-
+#include "array_internal.h"
 
 /*--------------------------------------------------------------------------*
  *                     Dnahash creation and destruction                   *

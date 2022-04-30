@@ -50,6 +50,7 @@
 #endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
+#include "pix_internal.h"
 
 static PIX *DoBlendTest(PIX *pix, BOX *box, l_uint32 val, l_float32 gamma,
                         l_int32 minval, l_int32 maxval, l_int32 which);

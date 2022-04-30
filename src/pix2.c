@@ -139,6 +139,7 @@
 
 #include <string.h>
 #include "allheaders.h"
+#include "pix_internal.h"
 
 static const l_uint32 rmask32[] = {0x0,
     0x00000001, 0x00000003, 0x00000007, 0x0000000f,

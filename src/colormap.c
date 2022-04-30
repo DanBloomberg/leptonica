@@ -111,6 +111,7 @@
 #include <math.h>
 #include <string.h>
 #include "allheaders.h"
+#include "pix_internal.h"
 
 /*-------------------------------------------------------------*
  *                Colormap creation and addition               *

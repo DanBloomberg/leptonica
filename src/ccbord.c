@@ -253,6 +253,7 @@
 
 #include <string.h>
 #include "allheaders.h"
+#include "pix_internal.h"
 
 static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;    /* n'import quoi */
 

@@ -123,6 +123,7 @@
 
 #include <string.h>
 #include "allheaders.h"
+#include "pix_internal.h"
 
 /* --------------------------------------------*/
 #if  HAVE_LIBPNG   /* defined in environ.h */

@@ -24,14 +24,14 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-#ifndef  LEPTONICA_ARRAY_H
-#define  LEPTONICA_ARRAY_H
+#ifndef  LEPTONICA_ARRAY_INTERNAL_H
+#define  LEPTONICA_ARRAY_INTERNAL_H
 
 /*!
- * \file array.h
+ * \file array_internal.h
  *
  * <pre>
- *  This file has typedefs for the following array structs:
+ *  Contains the following structs:
  *      struct Numa          array of floats
  *      struct Numaa
  *      struct L_Dna         array of doubles
@@ -40,10 +40,8 @@
  *      struct Sarray        array of C-strings
  *      struct L_Bytea       array of bytes
  *
- *  It contains definitions for:
- *      Numa interpolation flags
- *      Numa border flags
- *      Numa data type conversion to string
+ *  This file can be #included after allheaders.h in source files that
+ *  require direct access to the internal data fields in these structs.
  *
  *  Here are the non-image-related arrays in leptonica:
  *  * Numa, L_Dna, L_Ptra, Sarray:
@@ -62,48 +60,83 @@
 /*------------------------------------------------------------------------*
  *                             Array Structs                              *
  *------------------------------------------------------------------------*/
+/*! Numa version for serialization */
+#define  NUMA_VERSION_NUMBER     1
+
     /*! Number array: an array of floats */
+struct Numa
+{
+    l_int32          nalloc;    /*!< size of allocated number array      */
+    l_int32          n;         /*!< number of numbers saved             */
+    l_atomic         refcount;  /*!< reference count (1 if no clones)    */
+    l_float32        startx;    /*!< x value assigned to array[0]        */
+    l_float32        delx;      /*!< change in x value as i --> i + 1    */
+    l_float32       *array;     /*!< number array                        */
+};
 typedef struct Numa  NUMA;
 
     /*! Array of number arrays */
+struct Numaa
+{
+    l_int32          nalloc;    /*!< size of allocated ptr array          */
+    l_int32          n;         /*!< number of Numa saved                 */
+    struct Numa    **numa;      /*!< array of Numa                        */
+};
 typedef struct Numaa  NUMAA;
 
+/*! Dna version for serialization */
+#define  DNA_VERSION_NUMBER     1
+
     /*! Double number array: an array of doubles */
+struct L_Dna
+{
+    l_int32          nalloc;    /*!< size of allocated number array      */
+    l_int32          n;         /*!< number of numbers saved             */
+    l_atomic         refcount;  /*!< reference count (1 if no clones)    */
+    l_float64        startx;    /*!< x value assigned to array[0]        */
+    l_float64        delx;      /*!< change in x value as i --> i + 1    */
+    l_float64       *array;     /*!< number array                        */
+};
 typedef struct L_Dna  L_DNA;
 
     /*! Array of double number arrays */
+struct L_Dnaa
+{
+    l_int32          nalloc;    /*!< size of allocated ptr array          */
+    l_int32          n;         /*!< number of L_Dna saved                */
+    struct L_Dna   **dna;       /*!< array of L_Dna                       */
+};
 typedef struct L_Dnaa  L_DNAA;
 
-    /*! Array of double number arrays, used as a simple hash */
+struct L_DnaHash
+{
+    l_int32          nbuckets;
+    l_int32          initsize;   /*!< initial size of each dna that is made  */
+    struct L_Dna   **dna;        /*!< array of L_Dna                       */
+};
 typedef struct L_DnaHash L_DNAHASH;
 
+/*! Sarray version for serialization */
+#define  SARRAY_VERSION_NUMBER     1
+
     /*! String array: an array of C strings */
+struct Sarray
+{
+    l_int32          nalloc;    /*!< size of allocated ptr array         */
+    l_int32          n;         /*!< number of strings allocated         */
+    l_atomic         refcount;  /*!< reference count (1 if no clones)    */
+    char           **array;     /*!< string array                        */
+};
 typedef struct Sarray SARRAY;
 
     /*! Byte array (analogous to C++ "string") */
+struct L_Bytea
+{
+    size_t           nalloc;    /*!< number of bytes allocated in data array  */
+    size_t           size;      /*!< number of bytes presently used           */
+    l_atomic         refcount;  /*!< reference count (1 if no clones)         */
+    l_uint8         *data;      /*!< data array                               */
+};
 typedef struct L_Bytea L_BYTEA;
 
-
-/*------------------------------------------------------------------------*
- *                              Array flags                               *
- *------------------------------------------------------------------------*/
-/*! Numa Interpolation */
-enum {
-    L_LINEAR_INTERP = 1,        /*!< linear     */
-    L_QUADRATIC_INTERP = 2      /*!< quadratic  */
-};
-
-/*! Numa Border Adding */
-enum {
-    L_CONTINUED_BORDER = 1,    /*!< extended with same value                  */
-    L_SLOPE_BORDER = 2,        /*!< extended with constant normal derivative  */
-    L_MIRRORED_BORDER = 3      /*!< mirrored                                  */
-};
-
-/*! Numa Data Conversion */
-enum {
-    L_INTEGER_VALUE = 1,        /*!< convert to integer  */
-    L_FLOAT_VALUE = 2           /*!< convert to float    */
-};
-
-#endif  /* LEPTONICA_ARRAY_H */
+#endif  /* LEPTONICA_ARRAY_INTERNAL_H */

@@ -86,6 +86,7 @@
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
+#include "pix_internal.h"
 
 /*-----------------------------------------------------------------------*
  *      Label pixels by an index for connected component membership      *

@@ -74,6 +74,7 @@
 
 #include <string.h>
 #include "allheaders.h"
+#include "array_internal.h"
 
 /*----------------------------------------------------------------------*
  *                                   Sort                               *

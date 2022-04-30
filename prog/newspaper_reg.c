@@ -42,12 +42,12 @@
 int main(int    argc,
          char **argv)
 {
-l_int32      w, h;
-BOXA        *boxa;
-PIX         *pixs, *pixt, *pix1, *pix2, *pix3, *pix4, *pix5;
-PIX         *pix6, *pix7, *pix8, *pix9, *pix10, *pix11;
-PIXA        *pixa1, *pixa2;
-PIXCMAP     *cmap;
+l_int32       w, h;
+BOXA         *boxa;
+PIX          *pixs, *pixt, *pix1, *pix2, *pix3, *pix4, *pix5;
+PIX          *pix6, *pix7, *pix8, *pix9, *pix10, *pix11;
+PIXA         *pixa1, *pixa2;
+PIXCMAP      *cmap;
 L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &rp))
