@@ -121,15 +121,13 @@ l_float32  *array;
 NUMA       *na;
 PIX        *pixg;
 
-    PROCNAME("pixGetGrayHistogram");
-
     if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", __func__, NULL);
     d = pixGetDepth(pixs);
     if (d > 16)
-        return (NUMA *)ERROR_PTR("depth not in {1,2,4,8,16}", procName, NULL);
+        return (NUMA *)ERROR_PTR("depth not in {1,2,4,8,16}", __func__, NULL);
     if (factor < 1)
-        return (NUMA *)ERROR_PTR("sampling must be >= 1", procName, NULL);
+        return (NUMA *)ERROR_PTR("sampling must be >= 1", __func__, NULL);
 
     if (pixGetColormap(pixs))
         pixg = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
@@ -140,7 +138,7 @@ PIX        *pixg;
     size = 1 << d;
     if ((na = numaCreate(size)) == NULL) {
         pixDestroy(&pixg);
-        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not made", __func__, NULL);
     }
     numaSetCount(na, size);  /* all initialized to 0.0 */
     array = numaGetFArray(na, L_NOCOPY);
@@ -220,23 +218,21 @@ l_float32  *array;
 NUMA       *na;
 PIX        *pixg;
 
-    PROCNAME("pixGetGrayHistogramMasked");
-
     if (!pixm)
         return pixGetGrayHistogram(pixs, factor);
     if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8 && !pixGetColormap(pixs))
         return (NUMA *)ERROR_PTR("pixs neither 8 bpp nor colormapped",
-                                 procName, NULL);
+                                 __func__, NULL);
     pixGetDimensions(pixm, &wm, &hm, &dm);
     if (dm != 1)
-        return (NUMA *)ERROR_PTR("pixm not 1 bpp", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixm not 1 bpp", __func__, NULL);
     if (factor < 1)
-        return (NUMA *)ERROR_PTR("sampling must be >= 1", procName, NULL);
+        return (NUMA *)ERROR_PTR("sampling must be >= 1", __func__, NULL);
 
     if ((na = numaCreate(256)) == NULL)
-        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not made", __func__, NULL);
     numaSetCount(na, 256);  /* all initialized to 0.0 */
     array = numaGetFArray(na, L_NOCOPY);
 
@@ -298,20 +294,18 @@ l_float32  *array;
 NUMA       *na;
 PIX        *pixg;
 
-    PROCNAME("pixGetGrayHistogramInRect");
-
     if (!box)
         return pixGetGrayHistogram(pixs, factor);
     if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8 && !pixGetColormap(pixs))
         return (NUMA *)ERROR_PTR("pixs neither 8 bpp nor colormapped",
-                                 procName, NULL);
+                                 __func__, NULL);
     if (factor < 1)
-        return (NUMA *)ERROR_PTR("sampling must be >= 1", procName, NULL);
+        return (NUMA *)ERROR_PTR("sampling must be >= 1", __func__, NULL);
 
     if ((na = numaCreate(256)) == NULL)
-        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not made", __func__, NULL);
     numaSetCount(na, 256);  /* all initialized to 0.0 */
     array = numaGetFArray(na, L_NOCOPY);
 
@@ -367,18 +361,16 @@ NUMAA   *naa;
 PIX     *pix1, *pix2;
 PIXA    *pixa;
 
-    PROCNAME("pixGetGrayHistogramTiled");
-
     if (!pixs)
-        return (NUMAA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMAA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (factor < 1)
-        return (NUMAA *)ERROR_PTR("sampling must be >= 1", procName, NULL);
+        return (NUMAA *)ERROR_PTR("sampling must be >= 1", __func__, NULL);
     if (nx < 1 || ny < 1)
-        return (NUMAA *)ERROR_PTR("nx and ny must both be > 0", procName, NULL);
+        return (NUMAA *)ERROR_PTR("nx and ny must both be > 0", __func__, NULL);
 
     n = nx * ny;
     if ((naa = numaaCreate(n)) == NULL)
-        return (NUMAA *)ERROR_PTR("naa not made", procName, NULL);
+        return (NUMAA *)ERROR_PTR("naa not made", __func__, NULL);
 
     pix1 = pixConvertTo8(pixs, FALSE);
     pixa = pixaSplitPix(pix1, nx, ny, 0, 0);
@@ -425,23 +417,21 @@ l_float32  *rarray, *garray, *barray;
 NUMA       *nar, *nag, *nab;
 PIXCMAP    *cmap;
 
-    PROCNAME("pixGetColorHistogram");
-
     if (pnar) *pnar = NULL;
     if (pnag) *pnag = NULL;
     if (pnab) *pnab = NULL;
     if (!pnar || !pnag || !pnab)
-        return ERROR_INT("&nar, &nag, &nab not all defined", procName, 1);
+        return ERROR_INT("&nar, &nag, &nab not all defined", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     pixGetDimensions(pixs, &w, &h, &d);
     cmap = pixGetColormap(pixs);
     if (cmap && (d != 2 && d != 4 && d != 8))
-        return ERROR_INT("colormap and not 2, 4, or 8 bpp", procName, 1);
+        return ERROR_INT("colormap and not 2, 4, or 8 bpp", __func__, 1);
     if (!cmap && d != 32)
-        return ERROR_INT("no colormap and not rgb", procName, 1);
+        return ERROR_INT("no colormap and not rgb", __func__, 1);
     if (factor < 1)
-        return ERROR_INT("sampling factor must be >= 1", procName, 1);
+        return ERROR_INT("sampling factor must be >= 1", __func__, 1);
 
         /* Set up the histogram arrays */
     nar = numaCreate(256);
@@ -530,8 +520,6 @@ l_float32  *rarray, *garray, *barray;
 NUMA       *nar, *nag, *nab;
 PIXCMAP    *cmap;
 
-    PROCNAME("pixGetColorHistogramMasked");
-
     if (!pixm)
         return pixGetColorHistogram(pixs, factor, pnar, pnag, pnab);
 
@@ -539,20 +527,20 @@ PIXCMAP    *cmap;
     if (pnag) *pnag = NULL;
     if (pnab) *pnab = NULL;
     if (!pnar || !pnag || !pnab)
-        return ERROR_INT("&nar, &nag, &nab not all defined", procName, 1);
+        return ERROR_INT("&nar, &nag, &nab not all defined", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     pixGetDimensions(pixs, &w, &h, &d);
     cmap = pixGetColormap(pixs);
     if (cmap && (d != 2 && d != 4 && d != 8))
-        return ERROR_INT("colormap and not 2, 4, or 8 bpp", procName, 1);
+        return ERROR_INT("colormap and not 2, 4, or 8 bpp", __func__, 1);
     if (!cmap && d != 32)
-        return ERROR_INT("no colormap and not rgb", procName, 1);
+        return ERROR_INT("no colormap and not rgb", __func__, 1);
     pixGetDimensions(pixm, &wm, &hm, &dm);
     if (dm != 1)
-        return ERROR_INT("pixm not 1 bpp", procName, 1);
+        return ERROR_INT("pixm not 1 bpp", __func__, 1);
     if (factor < 1)
-        return ERROR_INT("sampling factor must be >= 1", procName, 1);
+        return ERROR_INT("sampling factor must be >= 1", __func__, 1);
 
         /* Set up the histogram arrays */
     nar = numaCreate(256);
@@ -638,21 +626,19 @@ l_uint32   *data, *line;
 l_float32  *array;
 NUMA       *na;
 
-    PROCNAME("pixGetCmapHistogram");
-
     if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetColormap(pixs) == NULL)
-        return (NUMA *)ERROR_PTR("pixs not cmapped", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not cmapped", __func__, NULL);
     if (factor < 1)
-        return (NUMA *)ERROR_PTR("sampling must be >= 1", procName, NULL);
+        return (NUMA *)ERROR_PTR("sampling must be >= 1", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 2 && d != 4 && d != 8)
-        return (NUMA *)ERROR_PTR("d not 2, 4 or 8", procName, NULL);
+        return (NUMA *)ERROR_PTR("d not 2, 4 or 8", __func__, NULL);
 
     size = 1 << d;
     if ((na = numaCreate(size)) == NULL)
-        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not made", __func__, NULL);
     numaSetCount(na, size);  /* all initialized to 0.0 */
     array = numaGetFArray(na, L_NOCOPY);
 
@@ -706,27 +692,25 @@ l_uint32   *datas, *datam, *lines, *linem;
 l_float32  *array;
 NUMA       *na;
 
-    PROCNAME("pixGetCmapHistogramMasked");
-
     if (!pixm)
         return pixGetCmapHistogram(pixs, factor);
 
     if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetColormap(pixs) == NULL)
-        return (NUMA *)ERROR_PTR("pixs not cmapped", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not cmapped", __func__, NULL);
     pixGetDimensions(pixm, &wm, &hm, &dm);
     if (dm != 1)
-        return (NUMA *)ERROR_PTR("pixm not 1 bpp", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixm not 1 bpp", __func__, NULL);
     if (factor < 1)
-        return (NUMA *)ERROR_PTR("sampling must be >= 1", procName, NULL);
+        return (NUMA *)ERROR_PTR("sampling must be >= 1", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 2 && d != 4 && d != 8)
-        return (NUMA *)ERROR_PTR("d not 2, 4 or 8", procName, NULL);
+        return (NUMA *)ERROR_PTR("d not 2, 4 or 8", __func__, NULL);
 
     size = 1 << d;
     if ((na = numaCreate(size)) == NULL)
-        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not made", __func__, NULL);
     numaSetCount(na, size);  /* all initialized to 0.0 */
     array = numaGetFArray(na, L_NOCOPY);
 
@@ -784,23 +768,21 @@ l_uint32   *datas, *lines;
 l_float32  *array;
 NUMA       *na;
 
-    PROCNAME("pixGetCmapHistogramInRect");
-
     if (!box)
         return pixGetCmapHistogram(pixs, factor);
     if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetColormap(pixs) == NULL)
-        return (NUMA *)ERROR_PTR("pixs not cmapped", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not cmapped", __func__, NULL);
     if (factor < 1)
-        return (NUMA *)ERROR_PTR("sampling must be >= 1", procName, NULL);
+        return (NUMA *)ERROR_PTR("sampling must be >= 1", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 2 && d != 4 && d != 8)
-        return (NUMA *)ERROR_PTR("d not 2, 4 or 8", procName, NULL);
+        return (NUMA *)ERROR_PTR("d not 2, 4 or 8", __func__, NULL);
 
     size = 1 << d;
     if ((na = numaCreate(size)) == NULL)
-        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not made", __func__, NULL);
     numaSetCount(na, size);  /* all initialized to 0.0 */
     array = numaGetFArray(na, L_NOCOPY);
 
@@ -846,13 +828,11 @@ pixCountRGBColorsByHash(PIX      *pixs,
 {
 L_DNA  *da1, *da2;
 
-    PROCNAME("pixCountRGBColorsByHash");
-
     if (!pncolors)
-        return ERROR_INT("&ncolors not defined", procName, 1);
+        return ERROR_INT("&ncolors not defined", __func__, 1);
     *pncolors = 0;
     if (!pixs || pixGetDepth(pixs) != 32)
-        return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 32 bpp", __func__, 1);
     da1 = pixConvertDataToDna(pixs);
     l_dnaRemoveDupsByHmap(da1, &da2, NULL);
     *pncolors = l_dnaGetCount(da2);
@@ -883,15 +863,13 @@ pixCountRGBColors(PIX      *pixs,
 {
 L_AMAP  *amap;
 
-    PROCNAME("pixCountRGBColors");
-
     if (!pncolors)
-        return ERROR_INT("&ncolors not defined", procName, 1);
+        return ERROR_INT("&ncolors not defined", __func__, 1);
     *pncolors = 0;
     if (!pixs || pixGetDepth(pixs) != 32)
-        return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 32 bpp", __func__, 1);
     if (factor <= 0)
-        return ERROR_INT("factor must be > 0", procName, 1);
+        return ERROR_INT("factor must be > 0", __func__, 1);
     amap = pixGetColorAmapHistogram(pixs, factor);
     *pncolors = l_amapSize(amap);
     l_amapDestroy(&amap);
@@ -922,14 +900,12 @@ L_AMAP    *amap;
 RB_TYPE    key, value;
 RB_TYPE   *pval;
 
-    PROCNAME("pixGetColorAmapHistogram");
-
     if (!pixs)
-        return (L_AMAP *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (L_AMAP *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (L_AMAP *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (L_AMAP *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (factor <= 0)
-        return (L_AMAP *)ERROR_PTR("factor must be > 0", procName, NULL);
+        return (L_AMAP *)ERROR_PTR("factor must be > 0", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
@@ -970,10 +946,8 @@ amapGetCountForColor(L_AMAP   *amap,
 RB_TYPE   key;
 RB_TYPE  *pval;
 
-    PROCNAME("amapGetCountForColor");
-
     if (!amap)
-        return ERROR_INT("amap not defined", procName, -1);
+        return ERROR_INT("amap not defined", __func__, -1);
 
     key.utype = val;
     pval = l_amapFind(amap, key);
@@ -1013,17 +987,15 @@ l_float32  val, rval, gval, bval;
 PIX       *pixt;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixGetRankValue");
-
     if (!pvalue)
-        return ERROR_INT("&value not defined", procName, 1);
+        return ERROR_INT("&value not defined", __func__, 1);
     *pvalue = 0;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     d = pixGetDepth(pixs);
     cmap = pixGetColormap(pixs);
     if (d != 8 && d != 32 && !cmap)
-        return ERROR_INT("pixs not 8 or 32 bpp, or cmapped", procName, 1);
+        return ERROR_INT("pixs not 8 or 32 bpp, or cmapped", __func__, 1);
     if (cmap)
         pixt = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
     else
@@ -1086,23 +1058,21 @@ pixGetRankValueMaskedRGB(PIX        *pixs,
 l_float32  scale;
 PIX       *pixmt, *pixt;
 
-    PROCNAME("pixGetRankValueMaskedRGB");
-
     if (prval) *prval = 0.0;
     if (pgval) *pgval = 0.0;
     if (pbval) *pbval = 0.0;
     if (!prval && !pgval && !pbval)
-        return ERROR_INT("no results requested", procName, 1);
+        return ERROR_INT("no results requested", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (pixGetDepth(pixs) != 32)
-        return ERROR_INT("pixs not 32 bpp", procName, 1);
+        return ERROR_INT("pixs not 32 bpp", __func__, 1);
     if (pixm && pixGetDepth(pixm) != 1)
-        return ERROR_INT("pixm not 1 bpp", procName, 1);
+        return ERROR_INT("pixm not 1 bpp", __func__, 1);
     if (factor < 1)
-        return ERROR_INT("sampling factor must be >= 1", procName, 1);
+        return ERROR_INT("sampling factor must be >= 1", __func__, 1);
     if (rank < 0.0 || rank > 1.0)
-        return ERROR_INT("rank not in [0.0 ... 1.0]", procName, 1);
+        return ERROR_INT("rank not in [0.0 ... 1.0]", __func__, 1);
 
     pixmt = NULL;
     if (pixm) {
@@ -1176,25 +1146,23 @@ pixGetRankValueMasked(PIX        *pixs,
 {
 NUMA  *na;
 
-    PROCNAME("pixGetRankValueMasked");
-
     if (pna) *pna = NULL;
     if (!pval)
-        return ERROR_INT("&val not defined", procName, 1);
+        return ERROR_INT("&val not defined", __func__, 1);
     *pval = 0.0;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (pixGetDepth(pixs) != 8 && !pixGetColormap(pixs))
-        return ERROR_INT("pixs neither 8 bpp nor colormapped", procName, 1);
+        return ERROR_INT("pixs neither 8 bpp nor colormapped", __func__, 1);
     if (pixm && pixGetDepth(pixm) != 1)
-        return ERROR_INT("pixm not 1 bpp", procName, 1);
+        return ERROR_INT("pixm not 1 bpp", __func__, 1);
     if (factor < 1)
-        return ERROR_INT("sampling factor must be >= 1", procName, 1);
+        return ERROR_INT("sampling factor must be >= 1", __func__, 1);
     if (rank < 0.0 || rank > 1.0)
-        return ERROR_INT("rank not in [0.0 ... 1.0]", procName, 1);
+        return ERROR_INT("rank not in [0.0 ... 1.0]", __func__, 1);
 
     if ((na = pixGetGrayHistogramMasked(pixs, pixm, x, y, factor)) == NULL)
-        return ERROR_INT("na not made", procName, 1);
+        return ERROR_INT("na not made", __func__, 1);
     numaHistogramGetValFromRank(na, rank, pval);
     if (pna)
         *pna = na;
@@ -1248,20 +1216,18 @@ l_uint32  *data1, *datam, *line1, *linem;
 l_float64  sum, rsum, gsum, bsum;
 PIX       *pix1;
 
-    PROCNAME("pixGetPixelAverage");
-
     if (!pval)
-        return ERROR_INT("&val not defined", procName, 1);
+        return ERROR_INT("&val not defined", __func__, 1);
     *pval = 0;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     d = pixGetDepth(pixs);
     if (d != 32 && !pixGetColormap(pixs))
-        return ERROR_INT("pixs not rgb or colormapped", procName, 1);
+        return ERROR_INT("pixs not rgb or colormapped", __func__, 1);
     if (pixm && pixGetDepth(pixm) != 1)
-        return ERROR_INT("pixm not 1 bpp", procName, 1);
+        return ERROR_INT("pixm not 1 bpp", __func__, 1);
     if (factor < 1)
-        return ERROR_INT("sampling factor must be >= 1", procName, 1);
+        return ERROR_INT("sampling factor must be >= 1", __func__, 1);
 
     if (pixGetColormap(pixs))
         pix1 = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
@@ -1270,7 +1236,7 @@ PIX       *pix1;
     pixGetDimensions(pix1, &w, &h, &d);
     if (d == 1) {
         pixDestroy(&pix1);
-        return ERROR_INT("pix1 is just 1 bpp", procName, 1);
+        return ERROR_INT("pix1 is just 1 bpp", __func__, 1);
     }
     data1 = pixGetData(pix1);
     wpl1 = pixGetWpl(pix1);
@@ -1321,7 +1287,7 @@ PIX       *pix1;
 
     pixDestroy(&pix1);
     if (count == 0)
-        return ERROR_INT("no pixels sampled", procName, 1);
+        return ERROR_INT("no pixels sampled", __func__, 1);
     if (d == 8) {
         *pval = (l_uint32)(sum / (l_float64)count);
     } else {  /* d == 32 */
@@ -1364,17 +1330,15 @@ l_float32  val, rval, gval, bval;
 PIX       *pixt;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixGetPixelStats");
-
     if (!pvalue)
-        return ERROR_INT("&value not defined", procName, 1);
+        return ERROR_INT("&value not defined", __func__, 1);
     *pvalue = 0;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     d = pixGetDepth(pixs);
     cmap = pixGetColormap(pixs);
     if (d != 8 && d != 32 && !cmap)
-        return ERROR_INT("pixs not 8 or 32 bpp, or cmapped", procName, 1);
+        return ERROR_INT("pixs not 8 or 32 bpp, or cmapped", __func__, 1);
     if (cmap)
         pixt = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
     else
@@ -1435,29 +1399,27 @@ l_int32   empty;
 PIX      *pixt;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixGetAverageMaskedRGB");
-
     if (prval) *prval = 0.0;
     if (pgval) *pgval = 0.0;
     if (pbval) *pbval = 0.0;
     if (!prval && !pgval && !pbval)
-        return ERROR_INT("no values requested", procName, 1);
+        return ERROR_INT("no values requested", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     cmap = pixGetColormap(pixs);
     if (pixGetDepth(pixs) != 32 && !cmap)
-        return ERROR_INT("pixs neither 32 bpp nor colormapped", procName, 1);
+        return ERROR_INT("pixs neither 32 bpp nor colormapped", __func__, 1);
     if (pixm && pixGetDepth(pixm) != 1)
-        return ERROR_INT("pixm not 1 bpp", procName, 1);
+        return ERROR_INT("pixm not 1 bpp", __func__, 1);
     if (factor < 1)
-        return ERROR_INT("sampling factor must be >= 1", procName, 1);
+        return ERROR_INT("sampling factor must be >= 1", __func__, 1);
     if (type != L_MEAN_ABSVAL && type != L_ROOT_MEAN_SQUARE &&
         type != L_STANDARD_DEVIATION && type != L_VARIANCE)
-        return ERROR_INT("invalid measure type", procName, 1);
+        return ERROR_INT("invalid measure type", __func__, 1);
     if (pixm) {
         pixZero(pixm, &empty);
         if (empty)
-            return ERROR_INT("empty mask", procName, 1);
+            return ERROR_INT("empty mask", __func__, 1);
     }
 
     if (prval) {
@@ -1536,27 +1498,25 @@ l_uint32  *datag, *datam, *lineg, *linem;
 l_float64  sumave, summs, ave, meansq, var;
 PIX       *pixg;
 
-    PROCNAME("pixGetAverageMasked");
-
     if (!pval)
-        return ERROR_INT("&val not defined", procName, 1);
+        return ERROR_INT("&val not defined", __func__, 1);
     *pval = 0.0;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 16 && !pixGetColormap(pixs))
-        return ERROR_INT("pixs not 8 or 16 bpp or colormapped", procName, 1);
+        return ERROR_INT("pixs not 8 or 16 bpp or colormapped", __func__, 1);
     if (pixm && pixGetDepth(pixm) != 1)
-        return ERROR_INT("pixm not 1 bpp", procName, 1);
+        return ERROR_INT("pixm not 1 bpp", __func__, 1);
     if (factor < 1)
-        return ERROR_INT("sampling factor must be >= 1", procName, 1);
+        return ERROR_INT("sampling factor must be >= 1", __func__, 1);
     if (type != L_MEAN_ABSVAL && type != L_ROOT_MEAN_SQUARE &&
         type != L_STANDARD_DEVIATION && type != L_VARIANCE)
-        return ERROR_INT("invalid measure type", procName, 1);
+        return ERROR_INT("invalid measure type", __func__, 1);
     if (pixm) {
         pixZero(pixm, &empty);
         if (empty)
-            return ERROR_INT("empty mask", procName, 1);
+            return ERROR_INT("empty mask", __func__, 1);
     }
 
     if (pixGetColormap(pixs))
@@ -1611,7 +1571,7 @@ PIX       *pixg;
 
     pixDestroy(&pixg);
     if (count == 0)
-        return ERROR_INT("no pixels sampled", procName, 1);
+        return ERROR_INT("no pixels sampled", __func__, 1);
     ave = sumave / (l_float64)count;
     meansq = summs / (l_float64)count;
     var = meansq - ave * ave;
@@ -1658,23 +1618,21 @@ pixGetAverageTiledRGB(PIX     *pixs,
 PIX      *pixt;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixGetAverageTiledRGB");
-
     if (ppixr) *ppixr = NULL;
     if (ppixg) *ppixg = NULL;
     if (ppixb) *ppixb = NULL;
     if (!ppixr && !ppixg && !ppixb)
-        return ERROR_INT("no data requested", procName, 1);
+        return ERROR_INT("no data requested", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     cmap = pixGetColormap(pixs);
     if (pixGetDepth(pixs) != 32 && !cmap)
-        return ERROR_INT("pixs neither 32 bpp nor colormapped", procName, 1);
+        return ERROR_INT("pixs neither 32 bpp nor colormapped", __func__, 1);
     if (sx < 2 || sy < 2)
-        return ERROR_INT("sx and sy not both > 1", procName, 1);
+        return ERROR_INT("sx and sy not both > 1", __func__, 1);
     if (type != L_MEAN_ABSVAL && type != L_ROOT_MEAN_SQUARE &&
         type != L_STANDARD_DEVIATION)
-        return ERROR_INT("invalid measure type", procName, 1);
+        return ERROR_INT("invalid measure type", __func__, 1);
 
     if (ppixr) {
         if (cmap)
@@ -1734,22 +1692,20 @@ l_uint32  *datat, *datad, *linet, *lined, *startt;
 l_float64  sumave, summs, ave, meansq, normfact;
 PIX       *pixt, *pixd;
 
-    PROCNAME("pixGetAverageTiled");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 && !pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pixs not 8 bpp or cmapped", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp or cmapped", __func__, NULL);
     if (sx < 2 || sy < 2)
-        return (PIX *)ERROR_PTR("sx and sy not both > 1", procName, NULL);
+        return (PIX *)ERROR_PTR("sx and sy not both > 1", __func__, NULL);
     wd = w / sx;
     hd = h / sy;
     if (wd < 1 || hd < 1)
-        return (PIX *)ERROR_PTR("wd or hd == 0", procName, NULL);
+        return (PIX *)ERROR_PTR("wd or hd == 0", __func__, NULL);
     if (type != L_MEAN_ABSVAL && type != L_ROOT_MEAN_SQUARE &&
         type != L_STANDARD_DEVIATION)
-        return (PIX *)ERROR_PTR("invalid measure type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid measure type", __func__, NULL);
 
     pixt = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     pixd = pixCreate(wd, hd, 8);
@@ -1844,8 +1800,6 @@ l_float32   norm;
 l_float32  *famean, *fameansq, *favar, *farootvar;
 l_float32  *famedian, *famode, *famodecount;
 
-    PROCNAME("pixRowStats");
-
     if (pnamean) *pnamean = NULL;
     if (pnamedian) *pnamedian = NULL;
     if (pnamode) *pnamode = NULL;
@@ -1853,14 +1807,14 @@ l_float32  *famedian, *famode, *famodecount;
     if (pnavar) *pnavar = NULL;
     if (pnarootvar) *pnarootvar = NULL;
     if (!pixs || pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs undefined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixs undefined or not 8 bpp", __func__, 1);
     famean = fameansq = favar = farootvar = NULL;
     famedian = famode = famodecount = NULL;
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if (boxClipToRectangleParams(box, w, h, &xstart, &ystart, &xend, &yend,
                                  &bw, &bh) == 1)
-        return ERROR_INT("invalid clipping box", procName, 1);
+        return ERROR_INT("invalid clipping box", __func__, 1);
 
         /* We need the mean for variance and root variance */
     datas = pixGetData(pixs);
@@ -2004,8 +1958,6 @@ l_float32   norm;
 l_float32  *famean, *fameansq, *favar, *farootvar;
 l_float32  *famedian, *famode, *famodecount;
 
-    PROCNAME("pixColumnStats");
-
     if (pnamean) *pnamean = NULL;
     if (pnamedian) *pnamedian = NULL;
     if (pnamode) *pnamode = NULL;
@@ -2013,14 +1965,14 @@ l_float32  *famedian, *famode, *famodecount;
     if (pnavar) *pnavar = NULL;
     if (pnarootvar) *pnarootvar = NULL;
     if (!pixs || pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs undefined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixs undefined or not 8 bpp", __func__, 1);
     famean = fameansq = favar = farootvar = NULL;
     famedian = famode = famodecount = NULL;
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if (boxClipToRectangleParams(box, w, h, &xstart, &ystart, &xend, &yend,
                                  &bw, &bh) == 1)
-        return ERROR_INT("invalid clipping box", procName, 1);
+        return ERROR_INT("invalid clipping box", __func__, 1);
 
         /* We need the mean for variance and root variance */
     datas = pixGetData(pixs);
@@ -2143,14 +2095,12 @@ pixGetRangeValues(PIX      *pixs,
 l_int32   d;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixGetRangeValues");
-
     if (pminval) *pminval = 0;
     if (pmaxval) *pmaxval = 0;
     if (!pminval && !pmaxval)
-        return ERROR_INT("no result requested", procName, 1);
+        return ERROR_INT("no result requested", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
 
     cmap = pixGetColormap(pixs);
     if (cmap)
@@ -2158,10 +2108,10 @@ PIXCMAP  *cmap;
                                      NULL, NULL);
 
     if (factor < 1)
-        return ERROR_INT("sampling factor must be >= 1", procName, 1);
+        return ERROR_INT("sampling factor must be >= 1", __func__, 1);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
-        return ERROR_INT("pixs not 8 or 32 bpp", procName, 1);
+        return ERROR_INT("pixs not 8 or 32 bpp", __func__, 1);
 
     if (d == 8) {
         pixGetExtremeValue(pixs, factor, L_SELECT_MIN,
@@ -2184,7 +2134,7 @@ PIXCMAP  *cmap;
         pixGetExtremeValue(pixs, factor, L_SELECT_MAX,
                            NULL, NULL, pmaxval, NULL);
     } else {
-        return ERROR_INT("invalid color", procName, 1);
+        return ERROR_INT("invalid color", __func__, 1);
     }
 
     return 0;
@@ -2226,16 +2176,14 @@ l_uint32   pixel;
 l_uint32  *data, *line;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixGetExtremeValue");
-
     if (prval) *prval = -1;
     if (pgval) *pgval = -1;
     if (pbval) *pbval = -1;
     if (pgrayval) *pgrayval = -1;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (type != L_SELECT_MIN && type != L_SELECT_MAX)
-        return ERROR_INT("invalid type", procName, 1);
+        return ERROR_INT("invalid type", __func__, 1);
 
     cmap = pixGetColormap(pixs);
     if (cmap) {
@@ -2259,13 +2207,13 @@ PIXCMAP   *cmap;
 
     pixGetDimensions(pixs, &w, &h, &d);
     if (factor < 1)
-        return ERROR_INT("sampling factor must be >= 1", procName, 1);
+        return ERROR_INT("sampling factor must be >= 1", __func__, 1);
     if (d != 8 && d != 32)
-        return ERROR_INT("pixs not 8 or 32 bpp", procName, 1);
+        return ERROR_INT("pixs not 8 or 32 bpp", __func__, 1);
     if (d == 8 && !pgrayval)
-        return ERROR_INT("can't return result in grayval", procName, 1);
+        return ERROR_INT("can't return result in grayval", __func__, 1);
     if (d == 32 && !prval && !pgval && !pbval)
-        return ERROR_INT("can't return result in r/g/b-val", procName, 1);
+        return ERROR_INT("can't return result in r/g/b-val", __func__, 1);
 
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
@@ -2360,20 +2308,18 @@ l_int32    xstart, ystart, xend, yend, xmax, ymax;
 l_uint32   val, maxval;
 l_uint32  *data, *line;
 
-    PROCNAME("pixGetMaxValueInRect");
-
     if (pmaxval) *pmaxval = 0;
     if (pxmax) *pxmax = 0;
     if (pymax) *pymax = 0;
     if (!pmaxval && !pxmax && !pymax)
-        return ERROR_INT("no data requested", procName, 1);
+        return ERROR_INT("no data requested", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (pixGetColormap(pixs) != NULL)
-        return ERROR_INT("pixs has colormap", procName, 1);
+        return ERROR_INT("pixs has colormap", __func__, 1);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 && d != 16 && d != 32)
-        return ERROR_INT("pixs not 8, 16 or 32 bpp", procName, 1);
+        return ERROR_INT("pixs not 8, 16 or 32 bpp", __func__, 1);
 
     xstart = ystart = 0;
     xend = w - 1;
@@ -2430,16 +2376,14 @@ pixGetMaxColorIndex(PIX      *pixs,
 l_int32    i, j, w, h, d, wpl, val, max, maxval, empty;
 l_uint32  *data, *line;
 
-    PROCNAME("pixGetMaxColorIndex");
-
     if (!pmaxindex)
-        return ERROR_INT("&maxindex not defined", procName, 1);
+        return ERROR_INT("&maxindex not defined", __func__, 1);
     *pmaxindex = 0;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1 && d != 2 && d != 4 && d != 8)
-        return ERROR_INT("invalid pixs depth; not in (1,2,4,8}", procName, 1);
+        return ERROR_INT("invalid pixs depth; not in (1,2,4,8}", __func__, 1);
 
     wpl = pixGetWpl(pixs);
     data = pixGetData(pixs);
@@ -2511,30 +2455,28 @@ l_int32    i, minval, maxval, rval, gval, bval;
 l_uint32  *carray;
 PIX       *pixt;
 
-    PROCNAME("pixGetBinnedComponentRange");
-
     if (pminval) *pminval = 0;
     if (pmaxval) *pmaxval = 0;
     if (pcarray) *pcarray = NULL;
     if (!pminval && !pmaxval)
-        return ERROR_INT("no result requested", procName, 1);
+        return ERROR_INT("no result requested", __func__, 1);
     if (!pixs || pixGetDepth(pixs) != 32)
-        return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 32 bpp", __func__, 1);
     if (factor < 1)
-        return ERROR_INT("sampling factor must be >= 1", procName, 1);
+        return ERROR_INT("sampling factor must be >= 1", __func__, 1);
     if (color != L_SELECT_RED && color != L_SELECT_GREEN &&
         color != L_SELECT_BLUE)
-        return ERROR_INT("invalid color", procName, 1);
+        return ERROR_INT("invalid color", __func__, 1);
     if (fontsize < 0 || fontsize > 20 || fontsize & 1 || fontsize == 2)
-        return ERROR_INT("invalid fontsize", procName, 1);
+        return ERROR_INT("invalid fontsize", __func__, 1);
 
     pixGetRankColorArray(pixs, nbins, color, factor, &carray, NULL, 0);
     if (!carray)
-        return ERROR_INT("carray not made", procName, 1);
+        return ERROR_INT("carray not made", __func__, 1);
 
     if (fontsize > 0) {
         for (i = 0; i < nbins; i++)
-            L_INFO("c[%d] = %x\n", procName, i, carray[i]);
+            L_INFO("c[%d] = %x\n", __func__, i, carray[i]);
         pixt = pixDisplayColorArray(carray, nbins, 200, 5, fontsize);
         pixDisplay(pixt, 100, 100);
         pixDestroy(&pixt);
@@ -2610,28 +2552,26 @@ l_uint32  *array;
 PIX       *pix1, *pixc, *pixg, *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixGetRankColorArray");
-
     if (!pcarray)
-        return ERROR_INT("&carray not defined", procName, 1);
+        return ERROR_INT("&carray not defined", __func__, 1);
     *pcarray = NULL;
     if (factor < 1)
-        return ERROR_INT("sampling factor must be >= 1", procName, 1);
+        return ERROR_INT("sampling factor must be >= 1", __func__, 1);
     if (nbins < 2)
-        return ERROR_INT("nbins must be at least 2", procName, 1);
+        return ERROR_INT("nbins must be at least 2", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     cmap = pixGetColormap(pixs);
     if (pixGetDepth(pixs) != 32 && !cmap)
-        return ERROR_INT("pixs neither 32 bpp nor cmapped", procName, 1);
+        return ERROR_INT("pixs neither 32 bpp nor cmapped", __func__, 1);
     if (type != L_SELECT_RED && type != L_SELECT_GREEN &&
         type != L_SELECT_BLUE && type != L_SELECT_MIN &&
         type != L_SELECT_MAX && type != L_SELECT_AVERAGE &&
         type != L_SELECT_HUE && type != L_SELECT_SATURATION)
-        return ERROR_INT("invalid type", procName, 1);
+        return ERROR_INT("invalid type", __func__, 1);
     if (pixadb) {
         if (fontsize < 0 || fontsize > 20 || fontsize & 1 || fontsize == 2) {
-            L_WARNING("invalid fontsize %d; setting to 6\n", procName,
+            L_WARNING("invalid fontsize %d; setting to 6\n", __func__,
                       fontsize);
             fontsize = 6;
         }
@@ -2639,7 +2579,7 @@ PIXCMAP   *cmap;
     pixGetDimensions(pixs, &w, &h, NULL);
     samplesperbin = (w * h) / (factor * factor * nbins);
     if (samplesperbin < 10) {
-        L_ERROR("samplesperbin = %d < 10\n", procName, samplesperbin);
+        L_ERROR("samplesperbin = %d < 10\n", __func__, samplesperbin);
         return 1;
     }
 
@@ -2659,7 +2599,7 @@ PIXCMAP   *cmap;
     pixGetBinnedColor(pixc, pixg, 1, nbins, pcarray, pixadb);
     ret = 0;
     if ((array = *pcarray) == NULL) {
-        L_ERROR("color array not returned\n", procName);
+        L_ERROR("color array not returned\n", __func__);
         ret = 1;
     }
     if (array && pixadb) {
@@ -2718,28 +2658,26 @@ L_DNAA     *daa;
 NUMA       *naeach;
 PIX        *pix1;
 
-    PROCNAME("pixGetBinnedColor");
-
     if (!pcarray)
-        return ERROR_INT("&carray not defined", procName, 1);
+        return ERROR_INT("&carray not defined", __func__, 1);
     *pcarray = NULL;
     if (!pixs || pixGetDepth(pixs) != 32)
-        return ERROR_INT("pixs undefined or not 32 bpp", procName, 1);
+        return ERROR_INT("pixs undefined or not 32 bpp", __func__, 1);
     if (!pixg || pixGetDepth(pixg) != 8)
-        return ERROR_INT("pixg undefined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixg undefined or not 8 bpp", __func__, 1);
     if (factor < 1) {
-        L_WARNING("sampling factor less than 1; setting to 1\n", procName);
+        L_WARNING("sampling factor less than 1; setting to 1\n", __func__);
         factor = 1;
     }
     if (nbins < 1 || nbins > 100)
-        return ERROR_INT("nbins not in [1,100]", procName, 1);
+        return ERROR_INT("nbins not in [1,100]", __func__, 1);
 
         /* Require that each bin has at least 5 pixels. */
     pixGetDimensions(pixs, &w, &h, NULL);
     npts = (w + factor - 1) * (h + factor - 1) / (factor * factor);
     avepts = (npts + nbins - 1) / nbins;  /* average number of pts in a bin */
     if (avepts < 5) {
-        L_ERROR("avepts = %d; must be >= 5\n", procName, avepts);
+        L_ERROR("avepts = %d; must be >= 5\n", __func__, avepts);
         return 1;
     }
 
@@ -2786,7 +2724,7 @@ PIX        *pix1;
     ntot = l_dnaaGetNumberCount(daa);
     if ((naeach = numaGetUniformBinSizes(ntot, nbins)) == NULL) {
         l_dnaaDestroy(&daa);
-        return ERROR_INT("naeach not made", procName, 1);
+        return ERROR_INT("naeach not made", __func__, 1);
     }
 
         /* Get the average color in each bin.  This algorithm is
@@ -2822,7 +2760,7 @@ PIX        *pix1;
         if (binindex == nbins) break;
     }
     if (binindex != nbins)
-        L_ERROR("binindex = %d != nbins = %d\n", procName, binindex, nbins);
+        L_ERROR("binindex = %d != nbins = %d\n", __func__, binindex, nbins);
 
     if (pixadb) {
         NUMA  *nared, *nagreen, *nablue;
@@ -2886,12 +2824,10 @@ L_BMF   *bmf;
 PIX     *pix1, *pix2, *pix3, *pix4;
 PIXA    *pixa;
 
-    PROCNAME("pixDisplayColorArray");
-
     if (!carray)
-        return (PIX *)ERROR_PTR("carray not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("carray not defined", __func__, NULL);
     if (fontsize < 0 || fontsize > 20 || fontsize & 1 || fontsize == 2)
-        return (PIX *)ERROR_PTR("invalid fontsize", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid fontsize", __func__, NULL);
 
     bmf = (fontsize == 0) ? NULL : bmfCreate(NULL, fontsize);
     pixa = pixaCreate(ncolors);
@@ -2963,30 +2899,28 @@ PIX       *pix1, *pix2, *pixd;
 PIXA      *pixa;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixRankBinByStrip");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     cmap = pixGetColormap(pixs);
     if (pixGetDepth(pixs) != 32 && !cmap)
         return (PIX *)ERROR_PTR("pixs neither 32 bpp nor cmapped",
-                                procName, NULL);
+                                __func__, NULL);
     if (direction != L_SCAN_HORIZONTAL && direction != L_SCAN_VERTICAL)
-        return (PIX *)ERROR_PTR("invalid direction", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid direction", __func__, NULL);
     if (size < 1)
-        return (PIX *)ERROR_PTR("size < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("size < 1", __func__, NULL);
     if (nbins < 2)
-        return (PIX *)ERROR_PTR("nbins must be at least 2", procName, NULL);
+        return (PIX *)ERROR_PTR("nbins must be at least 2", __func__, NULL);
     if (type != L_SELECT_RED && type != L_SELECT_GREEN &&
         type != L_SELECT_BLUE && type != L_SELECT_MIN &&
         type != L_SELECT_MAX && type != L_SELECT_AVERAGE &&
         type != L_SELECT_HUE && type != L_SELECT_SATURATION)
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);
     mindim = L_MIN(w, h);
     if (mindim < 20 || nbins > mindim)
         return (PIX *)ERROR_PTR("pix too small and/or too many bins",
-                                procName, NULL);
+                                __func__, NULL);
 
         /* Remove colormap if it exists */
     if (cmap)
@@ -3066,19 +3000,17 @@ l_int32     j, n, w, h, d;
 l_float32  *colvect;
 PIX        *pixt, *pixd;
 
-    PROCNAME("pixaGetAlignedStats");
-
     if (!pixa)
-        return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixa not defined", __func__, NULL);
     if (type != L_MEAN_ABSVAL && type != L_MEDIAN_VAL &&
         type != L_MODE_VAL && type != L_MODE_COUNT)
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
     n = pixaGetCount(pixa);
     if (n == 0)
-        return (PIX *)ERROR_PTR("no pix in pixa", procName, NULL);
+        return (PIX *)ERROR_PTR("no pix in pixa", __func__, NULL);
     pixaGetPixDimensions(pixa, 0, &w, &h, &d);
     if (d != 8)
-        return (PIX *)ERROR_PTR("pix not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not 8 bpp", __func__, NULL);
 
     pixd = pixCreate(w, h, 8);
     pixt = pixCreate(n, h, 8);
@@ -3112,22 +3044,20 @@ l_int32    i, k, n, w, h, ht, val, wplt, wpld;
 l_uint32  *datad, *datat;
 PIX       *pixt;
 
-    PROCNAME("pixaExtractColumnFromEachPix");
-
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
     if (!pixd || pixGetDepth(pixd) != 8)
-        return ERROR_INT("pixd not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixd not defined or not 8 bpp", __func__, 1);
     n = pixaGetCount(pixa);
     pixGetDimensions(pixd, &w, &h, NULL);
     if (n != w)
-        return ERROR_INT("pix width != n", procName, 1);
+        return ERROR_INT("pix width != n", __func__, 1);
     pixt = pixaGetPix(pixa, 0, L_CLONE);
     wplt = pixGetWpl(pixt);
     pixGetDimensions(pixt, NULL, &ht, NULL);
     pixDestroy(&pixt);
     if (h != ht)
-        return ERROR_INT("pixd height != column height", procName, 1);
+        return ERROR_INT("pixd height != column height", __func__, 1);
 
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
@@ -3189,17 +3119,15 @@ l_int32    i, j, k, w, h, val, wpls, sum, target, max, modeval;
 l_int32   *histo, *gray2bin, *bin2gray;
 l_uint32  *lines, *datas;
 
-    PROCNAME("pixGetRowStats");
-
     if (!pixs || pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 8 bpp", __func__, 1);
     if (!colvect)
-        return ERROR_INT("colvect not defined", procName, 1);
+        return ERROR_INT("colvect not defined", __func__, 1);
     if (type != L_MEAN_ABSVAL && type != L_MEDIAN_VAL &&
         type != L_MODE_VAL && type != L_MODE_COUNT)
-        return ERROR_INT("invalid type", procName, 1);
+        return ERROR_INT("invalid type", __func__, 1);
     if (type != L_MEAN_ABSVAL && (nbins < 1 || nbins > 256))
-        return ERROR_INT("invalid nbins", procName, 1);
+        return ERROR_INT("invalid nbins", __func__, 1);
     pixGetDimensions(pixs, &w, &h, NULL);
 
     datas = pixGetData(pixs);
@@ -3311,17 +3239,15 @@ l_int32    i, j, k, w, h, val, wpls, sum, target, max, modeval;
 l_int32   *histo, *gray2bin, *bin2gray;
 l_uint32  *datas;
 
-    PROCNAME("pixGetColumnStats");
-
     if (!pixs || pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 8 bpp", __func__, 1);
     if (!rowvect)
-        return ERROR_INT("rowvect not defined", procName, 1);
+        return ERROR_INT("rowvect not defined", __func__, 1);
     if (type != L_MEAN_ABSVAL && type != L_MEDIAN_VAL &&
         type != L_MODE_VAL && type != L_MODE_COUNT)
-        return ERROR_INT("invalid type", procName, 1);
+        return ERROR_INT("invalid type", __func__, 1);
     if (type != L_MEAN_ABSVAL && (nbins < 1 || nbins > 256))
-        return ERROR_INT("invalid nbins", procName, 1);
+        return ERROR_INT("invalid nbins", __func__, 1);
     pixGetDimensions(pixs, &w, &h, NULL);
 
     datas = pixGetData(pixs);
@@ -3409,15 +3335,13 @@ pixSetPixelColumn(PIX        *pix,
 l_int32    i, w, h, wpl;
 l_uint32  *data;
 
-    PROCNAME("pixSetCPixelColumn");
-
     if (!pix || pixGetDepth(pix) != 8)
-        return ERROR_INT("pix not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pix not defined or not 8 bpp", __func__, 1);
     if (!colvect)
-        return ERROR_INT("colvect not defined", procName, 1);
+        return ERROR_INT("colvect not defined", __func__, 1);
     pixGetDimensions(pix, &w, &h, NULL);
     if (col < 0 || col > w)
-        return ERROR_INT("invalid col", procName, 1);
+        return ERROR_INT("invalid col", __func__, 1);
 
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
@@ -3451,14 +3375,12 @@ pixThresholdForFgBg(PIX      *pixs,
 l_float32  fval;
 PIX       *pixg, *pixm;
 
-    PROCNAME("pixThresholdForFgBg");
-
     if (pfgval) *pfgval = 0;
     if (pbgval) *pbgval = 0;
     if (!pfgval && !pbgval)
-        return ERROR_INT("no data requested", procName, 1);
+        return ERROR_INT("no data requested", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
 
         /* Generate a subsampled 8 bpp version and a mask over the fg */
     pixg = pixConvertTo8BySampling(pixs, factor, 0);
@@ -3516,16 +3438,14 @@ GPLOT     *gplot;
 NUMA      *na, *nascore, *nax, *nay;
 PIX       *pixg;
 
-    PROCNAME("pixSplitDistributionFgBg");
-
     if (pthresh) *pthresh = 0;
     if (pfgval) *pfgval = 0;
     if (pbgval) *pbgval = 0;
     if (ppixdb) *ppixdb = NULL;
     if (!pthresh && !pfgval && !pbgval)
-        return ERROR_INT("no data requested", procName, 1);
+        return ERROR_INT("no data requested", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
 
         /* Generate a subsampled 8 bpp version */
     pixg = pixConvertTo8BySampling(pixs, factor, 0);

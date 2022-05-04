@@ -73,23 +73,21 @@ pixColorMorph(PIX     *pixs,
 {
 PIX  *pixr, *pixg, *pixb, *pixrm, *pixgm, *pixbm, *pixd;
 
-    PROCNAME("pixColorMorph");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (type != L_MORPH_DILATE && type != L_MORPH_ERODE &&
         type != L_MORPH_OPEN && type != L_MORPH_CLOSE)
-        return (PIX *)ERROR_PTR("invalid morph type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid morph type", __func__, NULL);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize or vsize < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("hsize or vsize < 1", __func__, NULL);
     if ((hsize & 1) == 0 ) {
-        L_WARNING("horiz sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("horiz sel size must be odd; increasing by 1\n", __func__);
         hsize++;
     }
     if ((vsize & 1) == 0 ) {
-        L_WARNING("vert sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("vert sel size must be odd; increasing by 1\n", __func__);
         vsize++;
     }
 

@@ -130,12 +130,10 @@ pixMorphDwa_1(PIX     *pixd,
 l_int32  bordercolor, bordersize;
 PIX     *pixt1, *pixt2, *pixt3;
 
-    PROCNAME("pixMorphDwa_1");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs must be 1 bpp", __func__, pixd);
 
         /* Set the border size */
     bordercolor = getMorphBorderPixelColor(L_MORPH_ERODE, 1);
@@ -191,12 +189,10 @@ l_int32    i, index, found, w, h, wpls, wpld, bordercolor, erodeop, borderop;
 l_uint32  *datad, *datas, *datat;
 PIX       *pixt;
 
-    PROCNAME("pixFMorphopGen_1");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs must be 1 bpp", __func__, pixd);
 
         /* Get boundary colors to use */
     bordercolor = getMorphBorderPixelColor(L_MORPH_ERODE, 1);
@@ -214,11 +210,11 @@ PIX       *pixt;
         }
     }
     if (found == FALSE)
-        return (PIX *)ERROR_PTR("sel index not found", procName, pixd);
+        return (PIX *)ERROR_PTR("sel index not found", __func__, pixd);
 
     if (!pixd) {
         if ((pixd = pixCreateTemplate(pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     }
     else  /* for in-place or pre-allocated */
         pixResizeImageData(pixd, pixs);
@@ -242,7 +238,7 @@ PIX       *pixt;
         }
         if (pixd == pixs) {  /* in-place; generate a temp image */
             if ((pixt = pixCopy(NULL, pixs)) == NULL)
-                return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+                return (PIX *)ERROR_PTR("pixt not made", __func__, pixd);
             datat = pixGetData(pixt) + 32 * wpls + 1;
             pixSetOrClearBorder(pixt, 32, 32, 32, 32, borderop);
             fmorphopgen_low_1(datad, w, h, wpld, datat, wpls, index);
@@ -255,7 +251,7 @@ PIX       *pixt;
     }
     else {  /* opening or closing; generate a temp image */
         if ((pixt = pixCreateTemplate(pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+            return (PIX *)ERROR_PTR("pixt not made", __func__, pixd);
         datat = pixGetData(pixt) + 32 * wpls + 1;
         if (operation == L_MORPH_OPEN) {
             pixSetOrClearBorder(pixs, 32, 32, 32, 32, erodeop);

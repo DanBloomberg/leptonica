@@ -105,18 +105,16 @@ l_hmapCreate(l_int32  ninit,
 l_uint32    size, tabsize;
 L_HASHMAP  *hmap;
 
-    PROCNAME("l_hmapCreate");
-
     ninit = L_MAX(ninit, DefaultInitNItems);
     if (maxocc <= 0) maxocc = DefaultMaxOcc;
     if (maxocc > 5) {
         L_WARNING("maxocc = %d; non-optimal value. Set to default = %d\n",
-                  procName, maxocc, DefaultMaxOcc);
+                  __func__, maxocc, DefaultMaxOcc);
         maxocc = DefaultMaxOcc;
     }
     size = ninit / maxocc;
     if (size > MaxTabsize) {
-        L_ERROR("ninit/maxocc = %d > MaxTabsize = %d\n", procName,
+        L_ERROR("ninit/maxocc = %d > MaxTabsize = %d\n", __func__,
                 size, MaxTabsize);
         return NULL;
     }
@@ -126,7 +124,7 @@ L_HASHMAP  *hmap;
     if ((hmap->hashtab =
         (L_HASHITEM **)LEPT_CALLOC(tabsize, sizeof(L_HASHITEM *))) == NULL) {
         LEPT_FREE(hmap);
-        return (L_HASHMAP *)ERROR_PTR("hashtab not made", procName, NULL);
+        return (L_HASHMAP *)ERROR_PTR("hashtab not made", __func__, NULL);
     }
 
     hmap->nitems = 0;
@@ -150,10 +148,8 @@ l_int32      i;
 L_HASHITEM  *hitem, *next;
 L_HASHMAP   *hmap;
 
-    PROCNAME("l_hmapDestroy");
-
     if (phmap == NULL) {
-        L_WARNING("ptr address is NULL!\n", procName);
+        L_WARNING("ptr address is NULL!\n", __func__);
         return;
     }
 
@@ -208,12 +204,10 @@ l_hmapLookup(L_HASHMAP  *hmap,
 l_uint32     index;
 L_HASHITEM  *hlist, *hitem;
 
-    PROCNAME("l_hmapLookup");
-
     if (!hmap)
-        return (L_HASHITEM *)ERROR_PTR("hmap not defined", procName, NULL);
+        return (L_HASHITEM *)ERROR_PTR("hmap not defined", __func__, NULL);
     if (op != L_HMAP_CHECK && op != L_HMAP_CREATE)
-        return (L_HASHITEM *)ERROR_PTR("invalid op", procName, NULL);
+        return (L_HASHITEM *)ERROR_PTR("invalid op", __func__, NULL);
 
         /* If found, return a ptr to the hitem (not a copy) */
     index = key % hmap->tabsize;  /* into hashtab */
@@ -264,10 +258,8 @@ l_int32      i, index;
 l_uint32     tabsize;
 L_HASHITEM  *hstore, *hitem, *next;
 
-    PROCNAME("l_hmapRehash");
-
     if (!hmap)
-        return ERROR_INT("hmap not defined", procName, 1);
+        return ERROR_INT("hmap not defined", __func__, 1);
 
         /* Put hash items in temporary storage in a single list,
          * successively adding each to the list head. */
@@ -287,7 +279,7 @@ L_HASHITEM  *hstore, *hitem, *next;
     hmap->hashtab = (L_HASHITEM **)LEPT_CALLOC(tabsize, sizeof(L_HASHITEM *));
     if (hmap->hashtab == NULL) {
         hmap->tabsize = 0;
-        return ERROR_INT("hashtab ptr array not made", procName, 1);
+        return ERROR_INT("hashtab ptr array not made", __func__, 1);
     }
     hmap->ntogo = hmap->maxocc * tabsize - hmap->nitems;
 

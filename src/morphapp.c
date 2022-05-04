@@ -114,10 +114,8 @@ pixExtractBoundary(PIX     *pixs,
 {
 PIX  *pixd;
 
-    PROCNAME("pixExtractBoundary");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
 
     if (type == 0)
         pixd = pixDilateBrick(NULL, pixs, 3, 3);
@@ -156,12 +154,10 @@ pixMorphSequenceMasked(PIX         *pixs,
 {
 PIX  *pixd;
 
-    PROCNAME("pixMorphSequenceMasked");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!sequence)
-        return (PIX *)ERROR_PTR("sequence not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("sequence not defined", __func__, NULL);
 
     pixd = pixMorphSequence(pixs, sequence, dispsep);
     pixCombineMasked(pixd, pixs, pixm);  /* restore src pixels under mask fg */
@@ -208,26 +204,24 @@ BOXA    *boxa;
 PIX     *pix, *pixd;
 PIXA    *pixas, *pixad;
 
-    PROCNAME("pixMorphSequenceByComponent");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!sequence)
-        return (PIX *)ERROR_PTR("sequence not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("sequence not defined", __func__, NULL);
 
     if (minw <= 0) minw = 1;
     if (minh <= 0) minh = 1;
 
         /* Get the c.c. */
     if ((boxa = pixConnComp(pixs, &pixas, connectivity)) == NULL)
-        return (PIX *)ERROR_PTR("boxa not made", procName, NULL);
+        return (PIX *)ERROR_PTR("boxa not made", __func__, NULL);
 
         /* Operate on each c.c. independently */
     pixad = pixaMorphSequenceByComponent(pixas, sequence, minw, minh);
     pixaDestroy(&pixas);
     boxaDestroy(&boxa);
     if (!pixad)
-        return (PIX *)ERROR_PTR("pixad not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixad not made", __func__, NULL);
 
         /* Display the result out into pixd */
     pixd = pixCreateTemplate(pixs);
@@ -276,35 +270,33 @@ BOX     *box;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 
-    PROCNAME("pixaMorphSequenceByComponent");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if ((n = pixaGetCount(pixas)) == 0)
-        return (PIXA *)ERROR_PTR("no pix in pixas", procName, NULL);
+        return (PIXA *)ERROR_PTR("no pix in pixas", __func__, NULL);
     if (n != pixaGetBoxaCount(pixas))
-        L_WARNING("boxa size != n\n", procName);
+        L_WARNING("boxa size != n\n", __func__);
     pixaGetPixDimensions(pixas, 0, NULL, NULL, &d);
     if (d != 1)
-        return (PIXA *)ERROR_PTR("depth not 1 bpp", procName, NULL);
+        return (PIXA *)ERROR_PTR("depth not 1 bpp", __func__, NULL);
 
     if (!sequence)
-        return (PIXA *)ERROR_PTR("sequence not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("sequence not defined", __func__, NULL);
     if (minw <= 0) minw = 1;
     if (minh <= 0) minh = 1;
 
     if ((pixad = pixaCreate(n)) == NULL)
-        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixad not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         pixaGetPixDimensions(pixas, i, &w, &h, NULL);
         if (w >= minw && h >= minh) {
             if ((pix1 = pixaGetPix(pixas, i, L_CLONE)) == NULL) {
                 pixaDestroy(&pixad);
-                return (PIXA *)ERROR_PTR("pix1 not found", procName, NULL);
+                return (PIXA *)ERROR_PTR("pix1 not found", __func__, NULL);
             }
             if ((pix2 = pixMorphCompSequence(pix1, sequence, 0)) == NULL) {
                 pixaDestroy(&pixad);
-                return (PIXA *)ERROR_PTR("pix2 not made", procName, NULL);
+                return (PIXA *)ERROR_PTR("pix2 not made", __func__, NULL);
             }
             pixaAddPix(pixad, pix2, L_INSERT);
             box = pixaGetBox(pixas, i, L_COPY);
@@ -362,31 +354,29 @@ BOXA    *boxa;
 PIX     *pix, *pixd;
 PIXA    *pixam, *pixad;
 
-    PROCNAME("pixMorphSequenceByRegion");
-
     if (pboxa) *pboxa = NULL;
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!pixm)
-        return (PIX *)ERROR_PTR("pixm not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixm not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1 || pixGetDepth(pixm) != 1)
-        return (PIX *)ERROR_PTR("pixs and pixm not both 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs and pixm not both 1 bpp", __func__, NULL);
     if (!sequence)
-        return (PIX *)ERROR_PTR("sequence not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("sequence not defined", __func__, NULL);
 
     if (minw <= 0) minw = 1;
     if (minh <= 0) minh = 1;
 
         /* Get the c.c. of the mask */
     if ((boxa = pixConnComp(pixm, &pixam, connectivity)) == NULL)
-        return (PIX *)ERROR_PTR("boxa not made", procName, NULL);
+        return (PIX *)ERROR_PTR("boxa not made", __func__, NULL);
 
         /* Operate on each region in pixs independently */
     pixad = pixaMorphSequenceByRegion(pixs, pixam, sequence, minw, minh);
     pixaDestroy(&pixam);
     boxaDestroy(&boxa);
     if (!pixad)
-        return (PIX *)ERROR_PTR("pixad not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixad not made", __func__, NULL);
 
         /* Display the result out into pixd */
     pixd = pixCreateTemplate(pixs);
@@ -439,28 +429,26 @@ BOX     *box;
 PIX     *pix1, *pix2, *pix3;
 PIXA    *pixad;
 
-    PROCNAME("pixaMorphSequenceByRegion");
-
     if (!pixs)
-        return (PIXA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIXA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
     if (!sequence)
-        return (PIXA *)ERROR_PTR("sequence not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("sequence not defined", __func__, NULL);
     if (!pixam)
-        return (PIXA *)ERROR_PTR("pixam not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixam not defined", __func__, NULL);
     pixaVerifyDepth(pixam, &same, &maxd);
     if (maxd != 1)
-        return (PIXA *)ERROR_PTR("mask depth not 1 bpp", procName, NULL);
+        return (PIXA *)ERROR_PTR("mask depth not 1 bpp", __func__, NULL);
     pixaIsFull(pixam, &fullpa, &fullba);
     if (!fullpa || !fullba)
-        return (PIXA *)ERROR_PTR("missing comps in pixam", procName, NULL);
+        return (PIXA *)ERROR_PTR("missing comps in pixam", __func__, NULL);
     n = pixaGetCount(pixam);
     if (minw <= 0) minw = 1;
     if (minh <= 0) minh = 1;
 
     if ((pixad = pixaCreate(n)) == NULL)
-        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixad not made", __func__, NULL);
 
         /* Use the rectangle to remove the appropriate part of pixs;
          * then AND with the mask component to get the actual fg
@@ -478,7 +466,7 @@ PIXA    *pixad;
             if (!pix3) {
                 boxDestroy(&box);
                 pixaDestroy(&pixad);
-                L_ERROR("pix3 not made in iter %d; aborting\n", procName, i);
+                L_ERROR("pix3 not made in iter %d; aborting\n", __func__, i);
                 break;
             }
             pixaAddPix(pixad, pix3, L_INSERT);
@@ -511,19 +499,17 @@ l_int32  n, i;
 PIX     *pixt, *pixd;
 SEL     *sel;
 
-    PROCNAME("pixUnionOfMorphOps");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (!sela)
-        return (PIX *)ERROR_PTR("sela not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("sela not defined", __func__, NULL);
     n = selaGetCount(sela);
     if (n == 0)
-        return (PIX *)ERROR_PTR("no sels in sela", procName, NULL);
+        return (PIX *)ERROR_PTR("no sels in sela", __func__, NULL);
     if (type != L_MORPH_DILATE && type != L_MORPH_ERODE &&
         type != L_MORPH_OPEN && type != L_MORPH_CLOSE &&
         type != L_MORPH_HMT)
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
 
     pixd = pixCreateTemplate(pixs);
     for (i = 0; i < n; i++) {
@@ -564,19 +550,17 @@ l_int32  n, i;
 PIX     *pixt, *pixd;
 SEL     *sel;
 
-    PROCNAME("pixIntersectionOfMorphOps");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (!sela)
-        return (PIX *)ERROR_PTR("sela not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("sela not defined", __func__, NULL);
     n = selaGetCount(sela);
     if (n == 0)
-        return (PIX *)ERROR_PTR("no sels in sela", procName, NULL);
+        return (PIX *)ERROR_PTR("no sels in sela", __func__, NULL);
     if (type != L_MORPH_DILATE && type != L_MORPH_ERODE &&
         type != L_MORPH_OPEN && type != L_MORPH_CLOSE &&
         type != L_MORPH_HMT)
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
 
     pixd = pixCreateTemplate(pixs);
     pixSetAll(pixd);
@@ -624,17 +608,15 @@ BOXA    *boxa;
 PIX     *pix1, *pix2, *pixd;
 PIXA    *pixa;
 
-    PROCNAME("pixSelectiveConnCompFill");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
     if (minw <= 0) minw = 1;
     if (minh <= 0) minh = 1;
 
     if ((boxa = pixConnComp(pixs, &pixa, connectivity)) == NULL)
-        return (PIX *)ERROR_PTR("boxa not made", procName, NULL);
+        return (PIX *)ERROR_PTR("boxa not made", __func__, NULL);
     n = boxaGetCount(boxa);
     pixd = pixCopy(NULL, pixs);
     for (i = 0; i < n; i++) {
@@ -642,7 +624,7 @@ PIXA    *pixa;
         if (w >= minw && h >= minh) {
             pix1 = pixaGetPix(pixa, i, L_CLONE);
             if ((pix2 = pixHolesByFilling(pix1, 12 - connectivity)) == NULL) {
-                L_ERROR("pix2 not made in iter %d\n", procName, i);
+                L_ERROR("pix2 not made in iter %d\n", __func__, i);
                 pixDestroy(&pix1);
                 continue;
             }
@@ -699,24 +681,22 @@ PIXA    *pixa;
 PTA     *pta;
 SEL     *sel;
 
-    PROCNAME("pixRemoveMatchedPattern");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (!pixp)
-        return ERROR_INT("pixp not defined", procName, 1);
+        return ERROR_INT("pixp not defined", __func__, 1);
     if (!pixe)
-        return ERROR_INT("pixe not defined", procName, 1);
+        return ERROR_INT("pixe not defined", __func__, 1);
     if (pixGetDepth(pixs) != 1 || pixGetDepth(pixp) != 1 ||
         pixGetDepth(pixe) != 1)
-        return ERROR_INT("all input pix not 1 bpp", procName, 1);
+        return ERROR_INT("all input pix not 1 bpp", __func__, 1);
     if (dsize < 0 || dsize > 4)
-        return ERROR_INT("dsize not in {0,1,2,3,4}", procName, 1);
+        return ERROR_INT("dsize not in {0,1,2,3,4}", __func__, 1);
 
         /* Find the connected components and their centroids */
     boxa = pixConnComp(pixe, &pixa, 8);
     if ((nc = boxaGetCount(boxa)) == 0) {
-        L_WARNING("no matched patterns\n", procName);
+        L_WARNING("no matched patterns\n", __func__);
         boxaDestroy(&boxa);
         pixaDestroy(&pixa);
         return 0;
@@ -806,26 +786,24 @@ PIXA     *pixa;
 PTA      *pta;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixDisplayMatchedPattern");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!pixp)
-        return (PIX *)ERROR_PTR("pixp not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixp not defined", __func__, NULL);
     if (!pixe)
-        return (PIX *)ERROR_PTR("pixe not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixe not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1 || pixGetDepth(pixp) != 1 ||
         pixGetDepth(pixe) != 1)
-        return (PIX *)ERROR_PTR("all input pix not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("all input pix not 1 bpp", __func__, NULL);
     if (scale > 1.0 || scale <= 0.0) {
-        L_WARNING("scale > 1.0 or < 0.0; setting to 1.0\n", procName);
+        L_WARNING("scale > 1.0 or < 0.0; setting to 1.0\n", __func__);
         scale = 1.0;
     }
 
         /* Find the connected components and their centroids */
     boxa = pixConnComp(pixe, &pixa, 8);
     if ((nc = boxaGetCount(boxa)) == 0) {
-        L_WARNING("no matched patterns\n", procName);
+        L_WARNING("no matched patterns\n", __func__);
         boxaDestroy(&boxa);
         pixaDestroy(&pixa);
         return 0;
@@ -913,19 +891,17 @@ PIX     *pix0, *pix1, *pix2;
 SEL     *selt;
 PIXA    *pixad;
 
-    PROCNAME("pixaExtendByMorph");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas undefined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas undefined", __func__, NULL);
     if (niters <= 0) {
-        L_INFO("niters = %d; nothing to do\n", procName, niters);
+        L_INFO("niters = %d; nothing to do\n", __func__, niters);
         return pixaCopy(pixas, L_CLONE);
     }
     if (type != L_MORPH_DILATE && type != L_MORPH_ERODE)
-        return (PIXA *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid type", __func__, NULL);
     pixaGetDepthInfo(pixas, &maxdepth, NULL);
     if (maxdepth > 1)
-        return (PIXA *)ERROR_PTR("some pix have bpp > 1", procName, NULL);
+        return (PIXA *)ERROR_PTR("some pix have bpp > 1", __func__, NULL);
 
     if (!sel)
         selt = selCreateBrick(2, 2, 0, 0, SEL_HIT);  /* default */
@@ -984,19 +960,17 @@ l_float32  scalefact;
 PIX       *pix1, *pix2;
 PIXA      *pixad;
 
-    PROCNAME("pixaExtendByScaling");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas undefined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas undefined", __func__, NULL);
     if (!nasc || numaGetCount(nasc) == 0)
-        return (PIXA *)ERROR_PTR("nasc undefined or empty", procName, NULL);
+        return (PIXA *)ERROR_PTR("nasc undefined or empty", __func__, NULL);
     if (type != L_HORIZ && type != L_VERT && type != L_BOTH_DIRECTIONS)
-        return (PIXA *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid type", __func__, NULL);
 
     n = pixaGetCount(pixas);
     nsc = numaGetCount(nasc);
     if ((pixad = pixaCreate(n * (nsc + 1))) == NULL) {
-        L_ERROR("pixad not made: n = %d, nsc = %d\n", procName, n, nsc);
+        L_ERROR("pixad not made: n = %d, nsc = %d\n", __func__, n, nsc);
         return NULL;
     }
     for (i = 0; i < n; i++) {
@@ -1051,20 +1025,18 @@ l_int32  same, i;
 PIX     *pixt, *pixd, *temp;
 SEL     *sel_3;
 
-    PROCNAME("pixSeedfillMorph");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (!pixm)
-        return (PIX *)ERROR_PTR("mask pix not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("mask pix not defined", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not in {4,8}", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not in {4,8}", __func__, NULL);
     if (maxiters <= 0) maxiters = 1000;
     if (pixSizesEqual(pixs, pixm) == 0)
-        return (PIX *)ERROR_PTR("pix sizes unequal", procName, NULL);
+        return (PIX *)ERROR_PTR("pix sizes unequal", __func__, NULL);
 
     if ((sel_3 = selCreateBrick(3, 3, 1, 1, SEL_HIT)) == NULL)
-        return (PIX *)ERROR_PTR("sel_3 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("sel_3 not made", __func__, NULL);
     if (connectivity == 4) {  /* remove corner hits to make a '+' */
         selSetElement(sel_3, 0, 0, SEL_DONT_CARE);
         selSetElement(sel_3, 2, 2, SEL_DONT_CARE);
@@ -1115,29 +1087,27 @@ NUMA      *na, *nah;
 PIX       *pix1, *pix2, *pix3;
 SEL       *sel_2a;
 
-    PROCNAME("pixRunHistogramMorph");
-
     if (!pixs)
-        return (NUMA *)ERROR_PTR("seed pix not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("seed pix not defined", __func__, NULL);
     if (runtype != L_RUN_OFF && runtype != L_RUN_ON)
-        return (NUMA *)ERROR_PTR("invalid run type", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid run type", __func__, NULL);
     if (direction != L_HORIZ && direction != L_VERT)
         return (NUMA *)ERROR_PTR("direction not in {L_HORIZ, L_VERT}",
-                                 procName, NULL);
+                                 __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (NUMA *)ERROR_PTR("pixs must be binary", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs must be binary", __func__, NULL);
 
     if (direction == L_HORIZ)
         sel_2a = selCreateBrick(1, 2, 0, 0, SEL_HIT);
     else   /* direction == L_VERT */
         sel_2a = selCreateBrick(2, 1, 0, 0, SEL_HIT);
     if (!sel_2a)
-        return (NUMA *)ERROR_PTR("sel_2a not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("sel_2a not made", __func__, NULL);
 
     if (runtype == L_RUN_OFF) {
         if ((pix1 = pixCopy(NULL, pixs)) == NULL) {
             selDestroy(&sel_2a);
-            return (NUMA *)ERROR_PTR("pix1 not made", procName, NULL);
+            return (NUMA *)ERROR_PTR("pix1 not made", __func__, NULL);
         }
         pixInvert(pix1, pix1);
     } else {  /* runtype == L_RUN_ON */
@@ -1211,25 +1181,23 @@ pixTophat(PIX     *pixs,
 {
 PIX  *pixt, *pixd;
 
-    PROCNAME("pixTophat");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("seed pix not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("seed pix not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize or vsize < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("hsize or vsize < 1", __func__, NULL);
     if ((hsize & 1) == 0 ) {
-        L_WARNING("horiz sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("horiz sel size must be odd; increasing by 1\n", __func__);
         hsize++;
     }
     if ((vsize & 1) == 0 ) {
-        L_WARNING("vert sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("vert sel size must be odd; increasing by 1\n", __func__);
         vsize++;
     }
     if (type != L_TOPHAT_WHITE && type != L_TOPHAT_BLACK)
         return (PIX *)ERROR_PTR("type must be L_TOPHAT_BLACK or L_TOPHAT_WHITE",
-                                procName, NULL);
+                                __func__, NULL);
 
     if (hsize == 1 && vsize == 1)
         return pixCreateTemplate(pixs);
@@ -1238,17 +1206,17 @@ PIX  *pixt, *pixd;
     {
     case L_TOPHAT_WHITE:
         if ((pixt = pixOpenGray(pixs, hsize, vsize)) == NULL)
-            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
         pixd = pixSubtractGray(NULL, pixs, pixt);
         pixDestroy(&pixt);
         break;
     case L_TOPHAT_BLACK:
         if ((pixd = pixCloseGray(pixs, hsize, vsize)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
         pixSubtractGray(pixd, pixd, pixs);
         break;
     default:
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
     }
 
     return pixd;
@@ -1310,19 +1278,17 @@ pixHDome(PIX     *pixs,
 {
 PIX  *pixsd, *pixd;
 
-    PROCNAME("pixHDome");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("src pix not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("src pix not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (height < 0)
-        return (PIX *)ERROR_PTR("height not >= 0", procName, NULL);
+        return (PIX *)ERROR_PTR("height not >= 0", __func__, NULL);
     if (height == 0)
         return pixCreateTemplate(pixs);
 
     if ((pixsd = pixCopy(NULL, pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixsd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixsd not made", __func__, NULL);
     pixAddConstantGray(pixsd, -height);
     pixSeedfillGray(pixsd, pixs, connectivity);
     pixd = pixSubtractGray(NULL, pixs, pixsd);
@@ -1367,17 +1333,15 @@ pixFastTophat(PIX     *pixs,
 {
 PIX  *pix1, *pix2, *pix3, *pixd;
 
-    PROCNAME("pixFastTophat");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("seed pix not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("seed pix not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (xsize < 1 || ysize < 1)
-        return (PIX *)ERROR_PTR("size < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("size < 1", __func__, NULL);
     if (type != L_TOPHAT_WHITE && type != L_TOPHAT_BLACK)
         return (PIX *)ERROR_PTR("type must be L_TOPHAT_BLACK or L_TOPHAT_WHITE",
-                                procName, NULL);
+                                __func__, NULL);
 
     if (xsize == 1 && ysize == 1)
         return pixCreateTemplate(pixs);
@@ -1387,7 +1351,7 @@ PIX  *pix1, *pix2, *pix3, *pixd;
     case L_TOPHAT_WHITE:
         if ((pix1 = pixScaleGrayMinMax(pixs, xsize, ysize, L_CHOOSE_MIN))
                == NULL)
-            return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pix1 not made", __func__, NULL);
         pix2 = pixBlockconv(pix1, 1, 1);  /* small smoothing */
         pix3 = pixScaleBySampling(pix2, xsize, ysize);
         pixd = pixSubtractGray(NULL, pixs, pix3);
@@ -1396,13 +1360,13 @@ PIX  *pix1, *pix2, *pix3, *pixd;
     case L_TOPHAT_BLACK:
         if ((pix1 = pixScaleGrayMinMax(pixs, xsize, ysize, L_CHOOSE_MAX))
                == NULL)
-            return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pix1 not made", __func__, NULL);
         pix2 = pixBlockconv(pix1, 1, 1);  /* small smoothing */
         pixd = pixScaleBySampling(pix2, xsize, ysize);
         pixSubtractGray(pixd, pixd, pixs);
         break;
     default:
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
     }
 
     pixDestroy(&pix1);
@@ -1429,20 +1393,18 @@ pixMorphGradient(PIX     *pixs,
 {
 PIX  *pixg, *pixd;
 
-    PROCNAME("pixMorphGradient");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("seed pix not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("seed pix not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize or vsize < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("hsize or vsize < 1", __func__, NULL);
     if ((hsize & 1) == 0 ) {
-        L_WARNING("horiz sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("horiz sel size must be odd; increasing by 1\n", __func__);
         hsize++;
     }
     if ((vsize & 1) == 0 ) {
-        L_WARNING("vert sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("vert sel size must be odd; increasing by 1\n", __func__);
         vsize++;
     }
 
@@ -1485,22 +1447,20 @@ l_float32  x, y;
 PIX       *pix;
 PTA       *pta;
 
-    PROCNAME("pixaCentroids");
-
     if (!pixa)
-        return (PTA *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pixa not defined", __func__, NULL);
     if ((n = pixaGetCount(pixa)) == 0)
-        return (PTA *)ERROR_PTR("no pix in pixa", procName, NULL);
+        return (PTA *)ERROR_PTR("no pix in pixa", __func__, NULL);
 
     if ((pta = ptaCreate(n)) == NULL)
-        return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not defined", __func__, NULL);
     centtab = makePixelCentroidTab8();
     sumtab = makePixelSumTab8();
 
     for (i = 0; i < n; i++) {
         pix = pixaGetPix(pixa, i, L_CLONE);
         if (pixCentroid(pix, centtab, sumtab, &x, &y) == 1)
-            L_ERROR("centroid failure for pix %d\n", procName, i);
+            L_ERROR("centroid failure for pix %d\n", __func__, i);
         pixDestroy(&pix);
         ptaAddPt(pta, x, y);
     }
@@ -1544,16 +1504,14 @@ l_uint32   word;
 l_uint8    byte;
 l_int32   *ctab, *stab;
 
-    PROCNAME("pixCentroid");
-
     if (!pxave || !pyave)
-        return ERROR_INT("&pxave and &pyave not defined", procName, 1);
+        return ERROR_INT("&pxave and &pyave not defined", __func__, 1);
     *pxave = *pyave = 0.0;
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     pixGetDimensions(pix, &w, &h, &d);
     if (d != 1 && d != 8)
-        return ERROR_INT("pix not 1 or 8 bpp", procName, 1);
+        return ERROR_INT("pix not 1 or 8 bpp", __func__, 1);
 
     ctab = centtab;
     stab = sumtab;
@@ -1608,7 +1566,7 @@ l_int32   *ctab, *stab;
             ysum += rowsum * i;
         }
         if (pixsum == 0) {
-            L_WARNING("no ON pixels in pix\n", procName);
+            L_WARNING("no ON pixels in pix\n", __func__);
         } else {
             *pxave = xsum / (l_float32)pixsum;
             *pyave = ysum / (l_float32)pixsum;
@@ -1624,7 +1582,7 @@ l_int32   *ctab, *stab;
             }
         }
         if (pixsum == 0) {
-            L_WARNING("all pixels are 0\n", procName);
+            L_WARNING("all pixels are 0\n", __func__);
         } else {
             *pxave = xsum / (l_float32)pixsum;
             *pyave = ysum / (l_float32)pixsum;

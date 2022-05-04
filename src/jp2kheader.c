@@ -87,13 +87,11 @@ readHeaderJp2k(const char *filename,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("readHeaderJp2k");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return ERROR_INT("image file not found", procName, 1);
+        return ERROR_INT("image file not found", __func__, 1);
     ret = freadHeaderJp2k(fp, pw, ph, pbps, pspp, pcodec);
     fclose(fp);
     return ret;
@@ -122,15 +120,13 @@ freadHeaderJp2k(FILE     *fp,
 l_uint8  buf[80];  /* just need the first 80 bytes */
 l_int32  nread, ret;
 
-    PROCNAME("freadHeaderJp2k");
-
     if (!fp)
-        return ERROR_INT("fp not defined", procName, 1);
+        return ERROR_INT("fp not defined", __func__, 1);
 
     rewind(fp);
     nread = fread(buf, 1, sizeof(buf), fp);
     if (nread != sizeof(buf))
-        return ERROR_INT("read failure", procName, 1);
+        return ERROR_INT("read failure", __func__, 1);
 
     ret = readHeaderMemJp2k(buf, sizeof(buf), pw, ph, pbps, pspp, pcodec);
     rewind(fp);
@@ -180,20 +176,18 @@ readHeaderMemJp2k(const l_uint8  *data,
 l_int32  format, val, w, h, bps, spp, loc, found, windex, codec;
 l_uint8  ihdr[4] = {0x69, 0x68, 0x64, 0x72};  /* 'ihdr' */
 
-    PROCNAME("readHeaderMemJp2k");
-
     if (pw) *pw = 0;
     if (ph) *ph = 0;
     if (pbps) *pbps = 0;
     if (pspp) *pspp = 0;
     if (pcodec) *pcodec = 0;
     if (!data)
-        return ERROR_INT("data not defined", procName, 1);
+        return ERROR_INT("data not defined", __func__, 1);
     if (size < 80)
-        return ERROR_INT("size < 80", procName, 1);
+        return ERROR_INT("size < 80", __func__, 1);
     findFileFormatBuffer(data, &format);
     if (format != IFF_JP2)
-        return ERROR_INT("not jp2 file", procName, 1);
+        return ERROR_INT("not jp2 file", __func__, 1);
 
         /* Find beginning of the image metadata */
     if (!memcmp(data, "\xff\x4f\xff\x51", 4)) {   /* codestream */
@@ -202,19 +196,19 @@ l_uint8  ihdr[4] = {0x69, 0x68, 0x64, 0x72};  /* 'ihdr' */
     } else {  /* file data with image header box 'ihdr' */
         arrayFindSequence(data, size, ihdr, 4, &loc, &found);
         if (!found)
-            return ERROR_INT("image parameters not found", procName, 1);
+            return ERROR_INT("image parameters not found", __func__, 1);
         windex = loc / 4 + 1;  /* expect 12 */
         codec = L_JP2_CODEC;
 #if  DEBUG_CODEC
         if (loc != 44)
-            L_INFO("Beginning of ihdr is at byte %d\n", procName, loc);
+            L_INFO("Beginning of ihdr is at byte %d\n", __func__, loc);
 #endif  /* DEBUG_CODEC */
     }
     if (pcodec) *pcodec = codec;
 
     if (codec == L_JP2_CODEC) {
         if (size < 4 * (windex + 3))
-            return ERROR_INT("header size is too small", procName, 1);
+            return ERROR_INT("header size is too small", __func__, 1);
         val = *((l_uint32 *)data + windex);
         h = convertOnLittleEnd32(val);
         val = *((l_uint32 *)data + windex + 1);
@@ -224,7 +218,7 @@ l_uint8  ihdr[4] = {0x69, 0x68, 0x64, 0x72};  /* 'ihdr' */
         bps = *(data + 4 * (windex + 2) + 2) + 1;
     } else {  /* codec == L_J2K_CODEC */
         if (size < 4 * (windex + 9))
-            return ERROR_INT("header size is too small", procName, 1);
+            return ERROR_INT("header size is too small", __func__, 1);
         val = *((l_uint32 *)data + windex);
         w = convertOnLittleEnd32(val);
         val = *((l_uint32 *)data + windex + 1);
@@ -239,13 +233,13 @@ l_uint8  ihdr[4] = {0x69, 0x68, 0x64, 0x72};  /* 'ihdr' */
 #endif  /* DEBUG_CODEC */
 
     if (w < 1 || h < 1)
-        return ERROR_INT("w and h must both be > 0", procName, 1);
+        return ERROR_INT("w and h must both be > 0", __func__, 1);
     if (w > MAX_JP2K_WIDTH || h > MAX_JP2K_HEIGHT)
-        return ERROR_INT("unrealistically large sizes", procName, 1);
+        return ERROR_INT("unrealistically large sizes", __func__, 1);
     if (spp != 1 && spp != 3 && spp != 4)
-        return ERROR_INT("spp must be in 1, 3 or 4", procName, 1);
+        return ERROR_INT("spp must be in 1, 3 or 4", __func__, 1);
     if (bps != 8 && bps != 16)
-        return ERROR_INT("bps must be 8 or 16", procName, 1);
+        return ERROR_INT("bps must be 8 or 16", __func__, 1);
     if (pw) *pw = w;
     if (ph) *ph = h;
     if (pspp) *pspp = spp;
@@ -288,14 +282,12 @@ l_uint8    resc[4] = {0x72, 0x65, 0x73, 0x63};  /* 'resc' */
 size_t     nbytes;
 l_float64  xres, yres, maxres;
 
-    PROCNAME("fgetJp2kResolution");
-
     if (pxres) *pxres = 0;
     if (pyres) *pyres = 0;
     if (!pxres || !pyres)
-        return ERROR_INT("&xres and &yres not both defined", procName, 1);
+        return ERROR_INT("&xres and &yres not both defined", __func__, 1);
     if (!fp)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
 
     rewind(fp);
     data = l_binaryReadStream(fp, &nbytes);
@@ -304,12 +296,12 @@ l_float64  xres, yres, maxres;
         /* Search for the start of the first capture resolution box: 'resc' */
     arrayFindSequence(data, nbytes, resc, 4, &loc, &found);
     if (!found) {
-        L_WARNING("image resolution not found\n", procName);
+        L_WARNING("image resolution not found\n", __func__);
         LEPT_FREE(data);
         return 1;
     }
     if (nbytes < 80 || loc >= nbytes - 13) {
-        L_WARNING("image resolution found without enough space\n", procName);
+        L_WARNING("image resolution found without enough space\n", __func__);
         LEPT_FREE(data);
         return 1;
     }
@@ -325,7 +317,7 @@ l_float64  xres, yres, maxres;
     xdenom = data[loc + 11] << 8 | data[loc + 10];
     xdenom = convertOnLittleEnd16(xdenom);
     if (ydenom == 0 || xdenom == 0) {
-        L_WARNING("bad data: ydenom or xdenom is 0\n", procName);
+        L_WARNING("bad data: ydenom or xdenom is 0\n", __func__);
         LEPT_FREE(data);
         return 1;
     }
@@ -341,7 +333,7 @@ l_float64  xres, yres, maxres;
         /* Sanity check for bad data */
     maxres = 100000.0;  /* ppi */
     if (xres > maxres || yres > maxres) {
-        L_WARNING("ridiculously large resolution\n", procName);
+        L_WARNING("ridiculously large resolution\n", __func__);
     } else {
         *pyres = (l_int32)(yres + 0.5);
         *pxres = (l_int32)(xres + 0.5);

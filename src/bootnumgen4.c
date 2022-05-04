@@ -801,10 +801,8 @@ l_int32   size1;
 size_t    size2;
 PIXA     *pixa1, *pixa2;
 
-    PROCNAME("l_bootnum_gen4");
-
     if (nsamp <= 0)
-        return (PIXA *)ERROR_PTR("invalid nsamp\n", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid nsamp\n", __func__, NULL);
 
         /* Unencode selected string, write to file, and read it */
     data1 = decodeBase64(l_bootnum4, strlen(l_bootnum4), &size1);

@@ -141,14 +141,12 @@ BOX      *box;
 PIX      *pixd;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixColorGrayRegions");
-
     if (!pixs || pixGetDepth(pixs) == 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (!boxa)
-        return (PIX *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("boxa not defined", __func__, NULL);
     if (type != L_PAINT_LIGHT && type != L_PAINT_DARK)
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
 
         /* If cmapped and there is room in an 8 bpp colormap for
          * expansion, convert pixs to 8 bpp, and colorize. */
@@ -166,14 +164,14 @@ PIXCMAP  *cmap;
         /* The output will be rgb.  Make sure the thresholds are valid */
     if (type == L_PAINT_LIGHT) {  /* thresh should be low */
         if (thresh >= 255)
-            return (PIX *)ERROR_PTR("thresh must be < 255", procName, NULL);
+            return (PIX *)ERROR_PTR("thresh must be < 255", __func__, NULL);
         if (thresh > 127)
-            L_WARNING("threshold set very high\n", procName);
+            L_WARNING("threshold set very high\n", __func__);
     } else {  /* type == L_PAINT_DARK; thresh should be high */
         if (thresh <= 0)
-            return (PIX *)ERROR_PTR("thresh must be > 0", procName, NULL);
+            return (PIX *)ERROR_PTR("thresh must be > 0", __func__, NULL);
         if (thresh < 128)
-            L_WARNING("threshold set very low\n", procName);
+            L_WARNING("threshold set very low\n", __func__);
     }
 
     pixd = pixConvertTo32(pixs);  /* always new image */
@@ -245,17 +243,15 @@ l_uint32  *line, *data;
 PIX       *pixt;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixColorGray");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (type != L_PAINT_LIGHT && type != L_PAINT_DARK)
-        return ERROR_INT("invalid type", procName, 1);
+        return ERROR_INT("invalid type", __func__, 1);
 
     cmap = pixGetColormap(pixs);
     pixGetDimensions(pixs, &w, &h, &d);
     if (!cmap && d != 8 && d != 32)
-        return ERROR_INT("pixs not cmapped, 8 bpp or rgb", procName, 1);
+        return ERROR_INT("pixs not cmapped, 8 bpp or rgb", __func__, 1);
     if (cmap)
         return pixColorGrayCmap(pixs, box, type, rval, gval, bval);
 
@@ -263,15 +259,15 @@ PIXCMAP   *cmap;
     if (type == L_PAINT_LIGHT) {  /* thresh should be low */
         if (thresh >= 255)
             return ERROR_INT("thresh must be < 255; else this is a no-op",
-                             procName, 1);
+                             __func__, 1);
         if (thresh > 127)
-            L_WARNING("threshold set very high\n", procName);
+            L_WARNING("threshold set very high\n", __func__);
     } else {  /* type == L_PAINT_DARK; thresh should be high */
         if (thresh <= 0)
             return ERROR_INT("thresh must be > 0; else this is a no-op",
-                             procName, 1);
+                             __func__, 1);
         if (thresh < 128)
-            L_WARNING("threshold set very low\n", procName);
+            L_WARNING("threshold set very low\n", __func__);
     }
 
         /* In-place conversion to 32 bpp if necessary */
@@ -371,20 +367,18 @@ l_uint32  *line, *data, *linem, *datam;
 PIX       *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixColorGrayMasked");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!pixm || pixGetDepth(pixm) != 1)
-        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", __func__, NULL);
     if (type != L_PAINT_LIGHT && type != L_PAINT_DARK)
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
 
     cmap = pixGetColormap(pixs);
     pixGetDimensions(pixs, &w, &h, &d);
     if (!cmap && d != 8 && d != 32)
         return (PIX *)ERROR_PTR("pixs not cmapped, 8 bpp gray or 32 bpp",
-                                procName, NULL);
+                                __func__, NULL);
     if (cmap) {
         pixd = pixCopy(NULL, pixs);
         pixColorGrayMaskedCmap(pixd, pixm, type, rval, gval, bval);
@@ -395,22 +389,22 @@ PIXCMAP   *cmap;
     if (type == L_PAINT_LIGHT) {  /* thresh should be low */
         if (thresh >= 255)
             return (PIX *)ERROR_PTR(
-                "thresh must be < 255; else this is a no-op", procName, NULL);
+                "thresh must be < 255; else this is a no-op", __func__, NULL);
         if (thresh > 127)
-            L_WARNING("threshold set very high\n", procName);
+            L_WARNING("threshold set very high\n", __func__);
     } else {  /* type == L_PAINT_DARK; thresh should be high */
         if (thresh <= 0)
             return (PIX *)ERROR_PTR(
-                "thresh must be > 0; else this is a no-op", procName, NULL);
+                "thresh must be > 0; else this is a no-op", __func__, NULL);
         if (thresh < 128)
-            L_WARNING("threshold set very low\n", procName);
+            L_WARNING("threshold set very low\n", __func__);
     }
 
     pixGetDimensions(pixm, &wm, &hm, NULL);
     if (wm != w)
-        L_WARNING("wm = %d differs from w = %d\n", procName, wm, w);
+        L_WARNING("wm = %d differs from w = %d\n", __func__, wm, w);
     if (hm != h)
-        L_WARNING("hm = %d differs from h = %d\n", procName, hm, h);
+        L_WARNING("hm = %d differs from h = %d\n", __func__, hm, h);
     wmin = L_MIN(w, wm);
     hmin = L_MIN(h, hm);
     if (d == 8)
@@ -492,12 +486,10 @@ l_int32    i, j, w, h, d, wpl;
 l_uint32   pixel;
 l_uint32  *line, *data;
 
-    PROCNAME("pixSnapColor");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd exists, but != pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd exists, but != pixs", __func__, pixd);
 
     if (pixGetColormap(pixs))
         return pixSnapColorCmap(pixd, pixs, srcval, dstval, diff);
@@ -505,7 +497,7 @@ l_uint32  *line, *data;
         /* pixs does not have a colormap; it must be 8 bpp gray or
          * 32 bpp rgb. */
     if (pixGetDepth(pixs) < 8)
-        return (PIX *)ERROR_PTR("pixs is < 8 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs is < 8 bpp", __func__, pixd);
 
         /* Do the work on pixd */
     if (!pixd)
@@ -579,14 +571,12 @@ l_int32   *tab;
 PIX       *pixm;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixSnapColorCmap");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (!pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("cmap not found", procName, pixd);
+        return (PIX *)ERROR_PTR("cmap not found", __func__, pixd);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd exists, but != pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd exists, but != pixs", __func__, pixd);
 
     if (!pixd)
         pixd = pixCopy(NULL, pixs);
@@ -618,7 +608,7 @@ PIXCMAP   *cmap;
     }
 
     if (!found) {
-        L_INFO("nothing to do\n", procName);
+        L_INFO("nothing to do\n", __func__);
         return pixd;
     }
 
@@ -695,12 +685,10 @@ l_int32   *rtab, *gtab, *btab;
 l_uint32   pixel;
 l_uint32  *line, *data;
 
-    PROCNAME("pixLinearMapToTargetColor");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", __func__, pixd);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd exists, but != pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd exists, but != pixs", __func__, pixd);
 
         /* Do the work on pixd */
     if (!pixd)
@@ -715,7 +703,7 @@ l_uint32  *line, *data;
     gtab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     btab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     if (!rtab || !gtab || !btab)
-        return (PIX *)ERROR_PTR("calloc fail for tab", procName, pixd);
+        return (PIX *)ERROR_PTR("calloc fail for tab", __func__, pixd);
     for (i = 0; i < 256; i++) {
         if (i <= rsval)
             rtab[i] = (i * rdval) / rsval;
@@ -787,10 +775,8 @@ pixelLinearMapToTargetColor(l_uint32   scolor,
 l_int32    srval, sgval, sbval, drval, dgval, dbval;
 l_int32    srmap, sgmap, sbmap, drmap, dgmap, dbmap;
 
-    PROCNAME("pixelLinearMapToTargetColor");
-
     if (!pdcolor)
-        return ERROR_INT("&dcolor not defined", procName, 1);
+        return ERROR_INT("&dcolor not defined", __func__, 1);
     *pdcolor = 0;
 
     extractRGBValues(scolor, &srval, &sgval, &sbval);
@@ -876,14 +862,12 @@ l_uint32   pixel;
 l_uint32  *line, *data;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixShiftByComponent");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd exists, but != pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd exists, but != pixs", __func__, pixd);
     if (pixGetDepth(pixs) != 32 && !pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", __func__, pixd);
 
         /* Do the work on pixd */
     if (!pixd)
@@ -901,7 +885,7 @@ PIXCMAP   *cmap;
     gtab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     btab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     if (!rtab || !gtab || !btab) {
-        L_ERROR("calloc fail for tab\n", procName);
+        L_ERROR("calloc fail for tab\n", __func__);
         goto cleanup;
     }
     for (i = 0; i < 256; i++) {
@@ -974,10 +958,8 @@ pixelShiftByComponent(l_int32    rval,
 {
 l_int32  rsval, rdval, gsval, gdval, bsval, bdval, rs, gs, bs;
 
-    PROCNAME("pixelShiftByComponent");
-
     if (!ppixel)
-        return ERROR_INT("&pixel defined", procName, 1);
+        return ERROR_INT("&pixel defined", __func__, 1);
 
     extractRGBValues(srcval, &rsval, &gsval, &bsval);
     extractRGBValues(dstval, &rdval, &gdval, &bdval);
@@ -1036,12 +1018,10 @@ pixelFractionalShift(l_int32    rval,
 {
 l_int32  nrval, ngval, nbval;
 
-    PROCNAME("pixelFractionalShift");
-
     if (!ppixel)
-        return ERROR_INT("&pixel defined", procName, 1);
+        return ERROR_INT("&pixel defined", __func__, 1);
     if (fract < -1.0 || fract > 1.0)
-        return ERROR_INT("fraction not in [-1 ... +1]", procName, 1);
+        return ERROR_INT("fraction not in [-1 ... +1]", __func__, 1);
 
     nrval = (fract < 0) ? (l_int32)((1.0 + fract) * rval + 0.5) :
             rval + (l_int32)(fract * (255 - rval) + 0.5);
@@ -1087,14 +1067,12 @@ pixMapWithInvariantHue(PIX       *pixd,
 l_int32   rval, gval, bval;
 l_uint32  dstval;
 
-    PROCNAME("pixMapWithInvariantHue");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", __func__, pixd);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd exists, but != pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd exists, but != pixs", __func__, pixd);
     if (fract < -1.0 || fract > 1.0)
-        return (PIX *)ERROR_PTR("fraction not in [-1 ... +1]", procName, NULL);
+        return (PIX *)ERROR_PTR("fraction not in [-1 ... +1]", __func__, NULL);
 
         /* Generate the dstval that is %fract toward white from %srcval */
     extractRGBValues(srcval, &rval, &gval, &bval);

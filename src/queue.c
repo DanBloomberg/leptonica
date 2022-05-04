@@ -94,15 +94,13 @@ lqueueCreate(l_int32  nalloc)
 {
 L_QUEUE  *lq;
 
-    PROCNAME("lqueueCreate");
-
     if (nalloc < MIN_BUFFER_SIZE)
         nalloc = INITIAL_BUFFER_ARRAYSIZE;
 
     lq = (L_QUEUE *)LEPT_CALLOC(1, sizeof(L_QUEUE));
     if ((lq->array = (void **)LEPT_CALLOC(nalloc, sizeof(void *))) == NULL) {
         lqueueDestroy(&lq, 0);
-        return (L_QUEUE *)ERROR_PTR("ptr array not made", procName, NULL);
+        return (L_QUEUE *)ERROR_PTR("ptr array not made", __func__, NULL);
     }
     lq->nalloc = nalloc;
     lq->nhead = lq->nelem = 0;
@@ -137,10 +135,8 @@ lqueueDestroy(L_QUEUE  **plq,
 void     *item;
 L_QUEUE  *lq;
 
-    PROCNAME("lqueueDestroy");
-
     if (plq == NULL) {
-        L_WARNING("ptr address is NULL\n", procName);
+        L_WARNING("ptr address is NULL\n", __func__);
         return;
     }
     if ((lq = *plq) == NULL)
@@ -152,7 +148,7 @@ L_QUEUE  *lq;
             LEPT_FREE(item);
         }
     } else if (lq->nelem > 0) {
-        L_WARNING("memory leak of %d items in lqueue!\n", procName, lq->nelem);
+        L_WARNING("memory leak of %d items in lqueue!\n", __func__, lq->nelem);
     }
 
     if (lq->array)
@@ -188,12 +184,10 @@ l_ok
 lqueueAdd(L_QUEUE  *lq,
           void     *item)
 {
-    PROCNAME("lqueueAdd");
-
     if (!lq)
-        return ERROR_INT("lq not defined", procName, 1);
+        return ERROR_INT("lq not defined", __func__, 1);
     if (!item)
-        return ERROR_INT("item not defined", procName, 1);
+        return ERROR_INT("item not defined", __func__, 1);
 
         /* If filled to the end and the ptrs can be shifted to the left,
          * shift them. */
@@ -205,7 +199,7 @@ lqueueAdd(L_QUEUE  *lq,
         /* If necessary, expand the allocated array by a factor of 2 */
     if (lq->nelem > 0.75 * lq->nalloc) {
         if (lqueueExtendArray(lq))
-            return ERROR_INT("extension failed", procName, 1);
+            return ERROR_INT("extension failed", __func__, 1);
     }
 
         /* Now add the item */
@@ -225,15 +219,13 @@ lqueueAdd(L_QUEUE  *lq,
 static l_int32
 lqueueExtendArray(L_QUEUE  *lq)
 {
-    PROCNAME("lqueueExtendArray");
-
     if (!lq)
-        return ERROR_INT("lq not defined", procName, 1);
+        return ERROR_INT("lq not defined", __func__, 1);
 
     if ((lq->array = (void **)reallocNew((void **)&lq->array,
                                 sizeof(void *) * lq->nalloc,
                                 2 * sizeof(void *) * lq->nalloc)) == NULL)
-        return ERROR_INT("new ptr array not returned", procName, 1);
+        return ERROR_INT("new ptr array not returned", __func__, 1);
 
     lq->nalloc = 2 * lq->nalloc;
     return 0;
@@ -258,10 +250,8 @@ lqueueRemove(L_QUEUE  *lq)
 {
 void  *item;
 
-    PROCNAME("lqueueRemove");
-
     if (!lq)
-        return (void *)ERROR_PTR("lq not defined", procName, NULL);
+        return (void *)ERROR_PTR("lq not defined", __func__, NULL);
 
     if (lq->nelem == 0)
         return NULL;
@@ -285,10 +275,8 @@ void  *item;
 l_int32
 lqueueGetCount(L_QUEUE  *lq)
 {
-    PROCNAME("lqueueGetCount");
-
     if (!lq)
-        return ERROR_INT("lq not defined", procName, 0);
+        return ERROR_INT("lq not defined", __func__, 0);
 
     return lq->nelem;
 }
@@ -310,12 +298,10 @@ lqueuePrint(FILE     *fp,
 {
 l_int32  i;
 
-    PROCNAME("lqueuePrint");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
     if (!lq)
-        return ERROR_INT("lq not defined", procName, 1);
+        return ERROR_INT("lq not defined", __func__, 1);
 
     fprintf(fp, "\n L_Queue: nalloc = %d, nhead = %d, nelem = %d, array = %p\n",
             lq->nalloc, lq->nhead, lq->nelem, lq->array);

@@ -194,15 +194,13 @@ numaCreate(l_int32  n)
 {
 NUMA  *na;
 
-    PROCNAME("numaCreate");
-
     if (n <= 0 || n > MaxFloatArraySize)
         n = InitialArraySize;
 
     na = (NUMA *)LEPT_CALLOC(1, sizeof(NUMA));
     if ((na->array = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32))) == NULL) {
         numaDestroy(&na);
-        return (NUMA *)ERROR_PTR("number array not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("number array not made", __func__, NULL);
     }
 
     na->nalloc = n;
@@ -236,12 +234,10 @@ numaCreateFromIArray(l_int32  *iarray,
 l_int32  i;
 NUMA    *na;
 
-    PROCNAME("numaCreateFromIArray");
-
     if (!iarray)
-        return (NUMA *)ERROR_PTR("iarray not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("iarray not defined", __func__, NULL);
     if (size <= 0)
-        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
+        return (NUMA *)ERROR_PTR("size must be > 0", __func__, NULL);
 
     na = numaCreate(size);
     for (i = 0; i < size; i++)
@@ -274,14 +270,12 @@ numaCreateFromFArray(l_float32  *farray,
 l_int32  i;
 NUMA    *na;
 
-    PROCNAME("numaCreateFromFArray");
-
     if (!farray)
-        return (NUMA *)ERROR_PTR("farray not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("farray not defined", __func__, NULL);
     if (size <= 0)
-        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
+        return (NUMA *)ERROR_PTR("size must be > 0", __func__, NULL);
     if (copyflag != L_INSERT && copyflag != L_COPY)
-        return (NUMA *)ERROR_PTR("invalid copyflag", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid copyflag", __func__, NULL);
 
     na = numaCreate(size);
     if (copyflag == L_INSERT) {
@@ -319,10 +313,8 @@ l_float32  val;
 NUMA      *na;
 SARRAY    *sa;
 
-    PROCNAME("numaCreateFromString");
-
     if (!str || (strlen(str) == 0))
-        return (NUMA *)ERROR_PTR("str not defined or empty", procName, NULL);
+        return (NUMA *)ERROR_PTR("str not defined or empty", __func__, NULL);
 
     sa = sarrayCreate(0);
     sarraySplitString(sa, str, ",");
@@ -332,7 +324,7 @@ SARRAY    *sa;
     for (i = 0; i < n; i++) {
         substr = sarrayGetString(sa, i, L_NOCOPY);
         if (sscanf(substr, "%f", &val) != 1) {
-            L_ERROR("substr %d not float\n", procName, i);
+            L_ERROR("substr %d not float\n", __func__, i);
             nerrors++;
         } else {
             numaAddNumber(na, val);
@@ -342,7 +334,7 @@ SARRAY    *sa;
     sarrayDestroy(&sa);
     if (nerrors > 0) {
         numaDestroy(&na);
-        return (NUMA *)ERROR_PTR("non-floats in string", procName, NULL);
+        return (NUMA *)ERROR_PTR("non-floats in string", __func__, NULL);
     }
 
     return na;
@@ -366,10 +358,8 @@ numaDestroy(NUMA  **pna)
 {
 NUMA  *na;
 
-    PROCNAME("numaDestroy");
-
     if (pna == NULL) {
-        L_WARNING("ptr address is NULL\n", procName);
+        L_WARNING("ptr address is NULL\n", __func__);
         return;
     }
 
@@ -399,13 +389,11 @@ numaCopy(NUMA  *na)
 l_int32  i;
 NUMA    *cna;
 
-    PROCNAME("numaCopy");
-
     if (!na)
-        return (NUMA *)ERROR_PTR("na not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not defined", __func__, NULL);
 
     if ((cna = numaCreate(na->nalloc)) == NULL)
-        return (NUMA *)ERROR_PTR("cna not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("cna not made", __func__, NULL);
     cna->startx = na->startx;
     cna->delx = na->delx;
 
@@ -425,10 +413,8 @@ NUMA    *cna;
 NUMA *
 numaClone(NUMA  *na)
 {
-    PROCNAME("numaClone");
-
     if (!na)
-        return (NUMA *)ERROR_PTR("na not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not defined", __func__, NULL);
 
     ++na->refcount;
     return na;
@@ -451,10 +437,8 @@ numaClone(NUMA  *na)
 l_ok
 numaEmpty(NUMA  *na)
 {
-    PROCNAME("numaEmpty");
-
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
 
     na->n = 0;
     return 0;
@@ -478,15 +462,13 @@ numaAddNumber(NUMA      *na,
 {
 l_int32  n;
 
-    PROCNAME("numaAddNumber");
-
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
 
     n = numaGetCount(na);
     if (n >= na->nalloc) {
         if (numaExtendArray(na))
-            return ERROR_INT("extension failed", procName, 1);
+            return ERROR_INT("extension failed", __func__, 1);
     }
     na->array[n] = val;
     na->n++;
@@ -510,20 +492,18 @@ numaExtendArray(NUMA  *na)
 {
 size_t  oldsize, newsize;
 
-    PROCNAME("numaExtendArray");
-
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     if (na->nalloc > MaxFloatArraySize)  /* belt & suspenders */
-        return ERROR_INT("na has too many ptrs", procName, 1);
+        return ERROR_INT("na has too many ptrs", __func__, 1);
     oldsize = na->nalloc * sizeof(l_float32);
     newsize = 2 * oldsize;
     if (newsize > 4 * MaxFloatArraySize)
-        return ERROR_INT("newsize > 400 MB; too large", procName, 1);
+        return ERROR_INT("newsize > 400 MB; too large", __func__, 1);
 
     if ((na->array = (l_float32 *)reallocNew((void **)&na->array,
                                              oldsize, newsize)) == NULL)
-        return ERROR_INT("new ptr array not returned", procName, 1);
+        return ERROR_INT("new ptr array not returned", __func__, 1);
 
     na->nalloc *= 2;
     return 0;
@@ -554,19 +534,17 @@ numaInsertNumber(NUMA      *na,
 {
 l_int32  i, n;
 
-    PROCNAME("numaInsertNumber");
-
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     n = numaGetCount(na);
     if (index < 0 || index > n) {
-        L_ERROR("index %d not in [0,...,%d]\n", procName, index, n);
+        L_ERROR("index %d not in [0,...,%d]\n", __func__, index, n);
         return 1;
     }
 
     if (n >= na->nalloc) {
         if (numaExtendArray(na))
-            return ERROR_INT("extension failed", procName, 1);
+            return ERROR_INT("extension failed", __func__, 1);
     }
     for (i = n; i > index; i--)
         na->array[i] = na->array[i - 1];
@@ -596,13 +574,11 @@ numaRemoveNumber(NUMA    *na,
 {
 l_int32  i, n;
 
-    PROCNAME("numaRemoveNumber");
-
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     n = numaGetCount(na);
     if (index < 0 || index >= n) {
-        L_ERROR("index %d not in [0,...,%d]\n", procName, index, n - 1);
+        L_ERROR("index %d not in [0,...,%d]\n", __func__, index, n - 1);
         return 1;
     }
 
@@ -628,13 +604,11 @@ numaReplaceNumber(NUMA      *na,
 {
 l_int32  n;
 
-    PROCNAME("numaReplaceNumber");
-
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     n = numaGetCount(na);
     if (index < 0 || index >= n) {
-        L_ERROR("index %d not in [0,...,%d]\n", procName, index, n - 1);
+        L_ERROR("index %d not in [0,...,%d]\n", __func__, index, n - 1);
         return 1;
     }
 
@@ -655,10 +629,8 @@ l_int32  n;
 l_int32
 numaGetCount(NUMA  *na)
 {
-    PROCNAME("numaGetCount");
-
     if (!na)
-        return ERROR_INT("na not defined", procName, 0);
+        return ERROR_INT("na not defined", __func__, 0);
     return na->n;
 }
 
@@ -683,15 +655,13 @@ l_ok
 numaSetCount(NUMA    *na,
              l_int32  newcount)
 {
-    PROCNAME("numaSetCount");
-
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     if (newcount > na->nalloc) {
         if ((na->array = (l_float32 *)reallocNew((void **)&na->array,
                          sizeof(l_float32) * na->nalloc,
                          sizeof(l_float32) * newcount)) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
+            return ERROR_INT("new ptr array not returned", __func__, 1);
         na->nalloc = newcount;
     }
     na->n = newcount;
@@ -718,16 +688,14 @@ numaGetFValue(NUMA       *na,
               l_int32     index,
               l_float32  *pval)
 {
-    PROCNAME("numaGetFValue");
-
     if (!pval)
-        return ERROR_INT("&val not defined", procName, 1);
+        return ERROR_INT("&val not defined", __func__, 1);
     *pval = 0.0;
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
 
     if (index < 0 || index >= na->n)
-        return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("index not valid", __func__, 1);
 
     *pval = na->array[index];
     return 0;
@@ -755,16 +723,14 @@ numaGetIValue(NUMA     *na,
 {
 l_float32  val;
 
-    PROCNAME("numaGetIValue");
-
     if (!pival)
-        return ERROR_INT("&ival not defined", procName, 1);
+        return ERROR_INT("&ival not defined", __func__, 1);
     *pival = 0;
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
 
     if (index < 0 || index >= na->n)
-        return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("index not valid", __func__, 1);
 
     val = na->array[index];
     *pival = (l_int32)(val + L_SIGN(val) * 0.5);
@@ -785,12 +751,10 @@ numaSetValue(NUMA      *na,
              l_int32    index,
              l_float32  val)
 {
-    PROCNAME("numaSetValue");
-
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     if (index < 0 || index >= na->n)
-        return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("index not valid", __func__, 1);
 
     na->array[index] = val;
     return 0;
@@ -810,12 +774,10 @@ numaShiftValue(NUMA      *na,
                l_int32    index,
                l_float32  diff)
 {
-    PROCNAME("numaShiftValue");
-
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     if (index < 0 || index >= na->n)
-        return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("index not valid", __func__, 1);
 
     na->array[index] += diff;
     return 0;
@@ -847,14 +809,12 @@ numaGetIArray(NUMA  *na)
 l_int32   i, n, ival;
 l_int32  *array;
 
-    PROCNAME("numaGetIArray");
-
     if (!na)
-        return (l_int32 *)ERROR_PTR("na not defined", procName, NULL);
+        return (l_int32 *)ERROR_PTR("na not defined", __func__, NULL);
 
     n = numaGetCount(na);
     if ((array = (l_int32 *)LEPT_CALLOC(n, sizeof(l_int32))) == NULL)
-        return (l_int32 *)ERROR_PTR("array not made", procName, NULL);
+        return (l_int32 *)ERROR_PTR("array not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         numaGetIValue(na, i, &ival);
         array[i] = ival;
@@ -893,17 +853,15 @@ numaGetFArray(NUMA    *na,
 l_int32     i, n;
 l_float32  *array;
 
-    PROCNAME("numaGetFArray");
-
     if (!na)
-        return (l_float32 *)ERROR_PTR("na not defined", procName, NULL);
+        return (l_float32 *)ERROR_PTR("na not defined", __func__, NULL);
 
     if (copyflag == L_NOCOPY) {
         array = na->array;
     } else {  /* copyflag == L_COPY */
         n = numaGetCount(na);
         if ((array = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32))) == NULL)
-            return (l_float32 *)ERROR_PTR("array not made", procName, NULL);
+            return (l_float32 *)ERROR_PTR("array not made", __func__, NULL);
         for (i = 0; i < n; i++)
             array[i] = na->array[i];
     }
@@ -925,14 +883,12 @@ numaGetParameters(NUMA       *na,
                   l_float32  *pstartx,
                   l_float32  *pdelx)
 {
-    PROCNAME("numaGetParameters");
-
     if (!pdelx && !pstartx)
-        return ERROR_INT("no return val requested", procName, 1);
+        return ERROR_INT("no return val requested", __func__, 1);
     if (pstartx) *pstartx = 0.0;
     if (pdelx) *pdelx = 1.0;
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
 
     if (pstartx) *pstartx = na->startx;
     if (pdelx) *pdelx = na->delx;
@@ -955,10 +911,8 @@ numaSetParameters(NUMA      *na,
                   l_float32  startx,
                   l_float32  delx)
 {
-    PROCNAME("numaSetParameters");
-
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
 
     na->startx = startx;
     na->delx = delx;
@@ -979,10 +933,8 @@ numaCopyParameters(NUMA  *nad,
 {
 l_float32  start, binsize;
 
-    PROCNAME("numaCopyParameters");
-
     if (!nas || !nad)
-        return ERROR_INT("nas and nad not both defined", procName, 1);
+        return ERROR_INT("nas and nad not both defined", __func__, 1);
 
     numaGetParameters(nas, &start, &binsize);
     numaSetParameters(nad, start, binsize);
@@ -1023,12 +975,10 @@ l_int32    i, n, ival;
 l_float32  fval;
 SARRAY    *sa;
 
-    PROCNAME("numaConvertToSarray");
-
     if (!na)
-        return (SARRAY *)ERROR_PTR("na not defined", procName, NULL);
+        return (SARRAY *)ERROR_PTR("na not defined", __func__, NULL);
     if (type != L_INTEGER_VALUE && type != L_FLOAT_VALUE)
-        return (SARRAY *)ERROR_PTR("invalid type", procName, NULL);
+        return (SARRAY *)ERROR_PTR("invalid type", __func__, NULL);
 
     if (type == L_INTEGER_VALUE) {
         if (addzeros)
@@ -1041,7 +991,7 @@ SARRAY    *sa;
 
     n = numaGetCount(na);
     if ((sa = sarrayCreate(n)) == NULL)
-        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
+        return (SARRAY *)ERROR_PTR("sa not made", __func__, NULL);
 
     for (i = 0; i < n; i++) {
         if (type == L_INTEGER_VALUE) {
@@ -1073,17 +1023,15 @@ numaRead(const char  *filename)
 FILE  *fp;
 NUMA  *na;
 
-    PROCNAME("numaRead");
-
     if (!filename)
-        return (NUMA *)ERROR_PTR("filename not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (NUMA *)ERROR_PTR("stream not opened", procName, NULL);
+        return (NUMA *)ERROR_PTR("stream not opened", __func__, NULL);
     na = numaReadStream(fp);
     fclose(fp);
     if (!na)
-        return (NUMA *)ERROR_PTR("na not read", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not read", __func__, NULL);
     return na;
 }
 
@@ -1101,30 +1049,28 @@ l_int32    i, n, index, ret, version;
 l_float32  val, startx, delx;
 NUMA      *na;
 
-    PROCNAME("numaReadStream");
-
     if (!fp)
-        return (NUMA *)ERROR_PTR("stream not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("stream not defined", __func__, NULL);
 
     ret = fscanf(fp, "\nNuma Version %d\n", &version);
     if (ret != 1)
-        return (NUMA *)ERROR_PTR("not a numa file", procName, NULL);
+        return (NUMA *)ERROR_PTR("not a numa file", __func__, NULL);
     if (version != NUMA_VERSION_NUMBER)
-        return (NUMA *)ERROR_PTR("invalid numa version", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid numa version", __func__, NULL);
     if (fscanf(fp, "Number of numbers = %d\n", &n) != 1)
-        return (NUMA *)ERROR_PTR("invalid number of numbers", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid number of numbers", __func__, NULL);
 
     if (n > MaxFloatArraySize) {
-        L_ERROR("n = %d > %d\n", procName, n, MaxFloatArraySize);
+        L_ERROR("n = %d > %d\n", __func__, n, MaxFloatArraySize);
         return NULL;
     }
     if ((na = numaCreate(n)) == NULL)
-        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not made", __func__, NULL);
 
     for (i = 0; i < n; i++) {
         if (fscanf(fp, "  [%d] = %f\n", &index, &val) != 2) {
             numaDestroy(&na);
-            return (NUMA *)ERROR_PTR("bad input data", procName, NULL);
+            return (NUMA *)ERROR_PTR("bad input data", __func__, NULL);
         }
         numaAddNumber(na, val);
     }
@@ -1151,16 +1097,14 @@ numaReadMem(const l_uint8  *data,
 FILE  *fp;
 NUMA  *na;
 
-    PROCNAME("numaReadMem");
-
     if (!data)
-        return (NUMA *)ERROR_PTR("data not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("data not defined", __func__, NULL);
     if ((fp = fopenReadFromMemory(data, size)) == NULL)
-        return (NUMA *)ERROR_PTR("stream not opened", procName, NULL);
+        return (NUMA *)ERROR_PTR("stream not opened", __func__, NULL);
 
     na = numaReadStream(fp);
     fclose(fp);
-    if (!na) L_ERROR("numa not read\n", procName);
+    if (!na) L_ERROR("numa not read\n", __func__);
     return na;
 }
 
@@ -1185,12 +1129,10 @@ l_ok
 numaWriteDebug(const char  *filename,
                NUMA        *na)
 {
-    PROCNAME("numaWriteDebug");
-
     if (LeptDebugOK) {
         return numaWrite(filename, na);
     } else {
-        L_INFO("write to named temp file %s is disabled\n", procName, filename);
+        L_INFO("write to named temp file %s is disabled\n", __func__, filename);
         return 0;
     }
 }
@@ -1210,19 +1152,17 @@ numaWrite(const char  *filename,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("numaWrite");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ret = numaWriteStream(fp, na);
     fclose(fp);
     if (ret)
-        return ERROR_INT("na not written to stream", procName, 1);
+        return ERROR_INT("na not written to stream", __func__, 1);
     return 0;
 }
 
@@ -1241,10 +1181,8 @@ numaWriteStream(FILE  *fp,
 l_int32    i, n;
 l_float32  startx, delx;
 
-    PROCNAME("numaWriteStream");
-
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     if (!fp)
         return numaWriteStderr(na);
 
@@ -1276,10 +1214,8 @@ numaWriteStderr(NUMA  *na)
 l_int32    i, n;
 l_float32  startx, delx;
 
-    PROCNAME("numaWriteStderr");
-
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
 
     n = numaGetCount(na);
     lept_stderr("\nNuma Version %d\n", NUMA_VERSION_NUMBER);
@@ -1318,32 +1254,30 @@ numaWriteMem(l_uint8  **pdata,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("numaWriteMem");
-
     if (pdata) *pdata = NULL;
     if (psize) *psize = 0;
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     if (!psize)
-        return ERROR_INT("&size not defined", procName, 1);
+        return ERROR_INT("&size not defined", __func__, 1);
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
 
 #if HAVE_FMEMOPEN
     if ((fp = open_memstream((char **)pdata, psize)) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ret = numaWriteStream(fp, na);
     fputc('\0', fp);
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #else
     if ((fp = tmpfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #endif  /* _WIN32 */
     ret = numaWriteStream(fp, na);
     rewind(fp);
@@ -1369,15 +1303,13 @@ numaaCreate(l_int32  n)
 {
 NUMAA  *naa;
 
-    PROCNAME("numaaCreate");
-
     if (n <= 0 || n > MaxPtrArraySize)
         n = InitialArraySize;
 
     naa = (NUMAA *)LEPT_CALLOC(1, sizeof(NUMAA));
     if ((naa->numa = (NUMA **)LEPT_CALLOC(n, sizeof(NUMA *))) == NULL) {
         numaaDestroy(&naa);
-        return (NUMAA *)ERROR_PTR("numa ptr array not made", procName, NULL);
+        return (NUMAA *)ERROR_PTR("numa ptr array not made", __func__, NULL);
     }
 
     naa->nalloc = n;
@@ -1439,10 +1371,8 @@ numaaTruncate(NUMAA  *naa)
 l_int32  i, n, nn;
 NUMA    *na;
 
-    PROCNAME("numaaTruncate");
-
     if (!naa)
-        return ERROR_INT("naa not defined", procName, 1);
+        return ERROR_INT("naa not defined", __func__, 1);
 
     n = numaaGetCount(naa);
     for (i = n - 1; i >= 0; i--) {
@@ -1473,10 +1403,8 @@ numaaDestroy(NUMAA  **pnaa)
 l_int32  i;
 NUMAA   *naa;
 
-    PROCNAME("numaaDestroy");
-
     if (pnaa == NULL) {
-        L_WARNING("ptr address is NULL!\n", procName);
+        L_WARNING("ptr address is NULL!\n", __func__);
         return;
     }
 
@@ -1511,22 +1439,20 @@ numaaAddNuma(NUMAA   *naa,
 l_int32  n;
 NUMA    *nac;
 
-    PROCNAME("numaaAddNuma");
-
     if (!naa)
-        return ERROR_INT("naa not defined", procName, 1);
+        return ERROR_INT("naa not defined", __func__, 1);
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
 
     if (copyflag == L_INSERT) {
         nac = na;
     } else if (copyflag == L_COPY) {
         if ((nac = numaCopy(na)) == NULL)
-            return ERROR_INT("nac not made", procName, 1);
+            return ERROR_INT("nac not made", __func__, 1);
     } else if (copyflag == L_CLONE) {
         nac = numaClone(na);
     } else {
-        return ERROR_INT("invalid copyflag", procName, 1);
+        return ERROR_INT("invalid copyflag", __func__, 1);
     }
 
     n = numaaGetCount(naa);
@@ -1534,7 +1460,7 @@ NUMA    *nac;
         if (numaaExtendArray(naa)) {
             if (copyflag != L_INSERT)
                 numaDestroy(&nac);
-            return ERROR_INT("extension failed", procName, 1);
+            return ERROR_INT("extension failed", __func__, 1);
         }
     }
     naa->numa[n] = nac;
@@ -1559,20 +1485,18 @@ numaaExtendArray(NUMAA  *naa)
 {
 size_t  oldsize, newsize;
 
-    PROCNAME("numaaExtendArray");
-
     if (!naa)
-        return ERROR_INT("naa not defined", procName, 1);
+        return ERROR_INT("naa not defined", __func__, 1);
     if (naa->nalloc > MaxPtrArraySize)  /* belt & suspenders */
-        return ERROR_INT("naa has too many ptrs", procName, 1);
+        return ERROR_INT("naa has too many ptrs", __func__, 1);
     oldsize = naa->nalloc * sizeof(NUMA *);
     newsize = 2 * oldsize;
     if (newsize > 8 * MaxPtrArraySize)
-        return ERROR_INT("newsize > 8 MB; too large", procName, 1);
+        return ERROR_INT("newsize > 8 MB; too large", __func__, 1);
 
     if ((naa->numa = (NUMA **)reallocNew((void **)&naa->numa,
                                          oldsize, newsize)) == NULL)
-        return ERROR_INT("new ptr array not returned", procName, 1);
+        return ERROR_INT("new ptr array not returned", __func__, 1);
 
     naa->nalloc *= 2;
     return 0;
@@ -1591,10 +1515,8 @@ size_t  oldsize, newsize;
 l_int32
 numaaGetCount(NUMAA  *naa)
 {
-    PROCNAME("numaaGetCount");
-
     if (!naa)
-        return ERROR_INT("naa not defined", procName, 0);
+        return ERROR_INT("naa not defined", __func__, 0);
     return naa->n;
 }
 
@@ -1610,12 +1532,10 @@ l_int32
 numaaGetNumaCount(NUMAA   *naa,
                   l_int32  index)
 {
-    PROCNAME("numaaGetNumaCount");
-
     if (!naa)
-        return ERROR_INT("naa not defined", procName, 0);
+        return ERROR_INT("naa not defined", __func__, 0);
     if (index < 0 || index >= naa->n)
-        return ERROR_INT("invalid index into naa", procName, 0);
+        return ERROR_INT("invalid index into naa", __func__, 0);
     return numaGetCount(naa->numa[index]);
 }
 
@@ -1633,10 +1553,8 @@ numaaGetNumberCount(NUMAA  *naa)
 NUMA    *na;
 l_int32  n, sum, i;
 
-    PROCNAME("numaaGetNumberCount");
-
     if (!naa)
-        return ERROR_INT("naa not defined", procName, 0);
+        return ERROR_INT("naa not defined", __func__, 0);
 
     n = numaaGetCount(naa);
     for (sum = 0, i = 0; i < n; i++) {
@@ -1679,10 +1597,8 @@ l_int32  n, sum, i;
 NUMA **
 numaaGetPtrArray(NUMAA  *naa)
 {
-    PROCNAME("numaaGetPtrArray");
-
     if (!naa)
-        return (NUMA **)ERROR_PTR("naa not defined", procName, NULL);
+        return (NUMA **)ERROR_PTR("naa not defined", __func__, NULL);
 
     naa->n = naa->nalloc;
     return naa->numa;
@@ -1702,19 +1618,17 @@ numaaGetNuma(NUMAA   *naa,
              l_int32  index,
              l_int32  accessflag)
 {
-    PROCNAME("numaaGetNuma");
-
     if (!naa)
-        return (NUMA *)ERROR_PTR("naa not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("naa not defined", __func__, NULL);
     if (index < 0 || index >= naa->n)
-        return (NUMA *)ERROR_PTR("index not valid", procName, NULL);
+        return (NUMA *)ERROR_PTR("index not valid", __func__, NULL);
 
     if (accessflag == L_COPY)
         return numaCopy(naa->numa[index]);
     else if (accessflag == L_CLONE)
         return numaClone(naa->numa[index]);
     else
-        return (NUMA *)ERROR_PTR("invalid accessflag", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid accessflag", __func__, NULL);
 }
 
 
@@ -1740,15 +1654,13 @@ numaaReplaceNuma(NUMAA   *naa,
 {
 l_int32  n;
 
-    PROCNAME("numaaReplaceNuma");
-
     if (!naa)
-        return ERROR_INT("naa not defined", procName, 1);
+        return ERROR_INT("naa not defined", __func__, 1);
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     n = numaaGetCount(naa);
     if (index < 0 || index >= n)
-        return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("index not valid", __func__, 1);
 
     numaDestroy(&naa->numa[index]);
     naa->numa[index] = na;
@@ -1776,20 +1688,18 @@ numaaGetValue(NUMAA      *naa,
 l_int32  n;
 NUMA    *na;
 
-    PROCNAME("numaaGetValue");
-
     if (!pfval && !pival)
-        return ERROR_INT("no return val requested", procName, 1);
+        return ERROR_INT("no return val requested", __func__, 1);
     if (pfval) *pfval = 0.0;
     if (pival) *pival = 0;
     if (!naa)
-        return ERROR_INT("naa not defined", procName, 1);
+        return ERROR_INT("naa not defined", __func__, 1);
     n = numaaGetCount(naa);
     if (i < 0 || i >= n)
-        return ERROR_INT("invalid index into naa", procName, 1);
+        return ERROR_INT("invalid index into naa", __func__, 1);
     na = naa->numa[i];
     if (j < 0 || j >= na->n)
-        return ERROR_INT("invalid index into na", procName, 1);
+        return ERROR_INT("invalid index into na", __func__, 1);
     if (pfval) *pfval = na->array[j];
     if (pival) *pival = (l_int32)(na->array[j]);
     return 0;
@@ -1817,13 +1727,11 @@ numaaAddNumber(NUMAA     *naa,
 l_int32  n;
 NUMA    *na;
 
-    PROCNAME("numaaAddNumber");
-
     if (!naa)
-        return ERROR_INT("naa not defined", procName, 1);
+        return ERROR_INT("naa not defined", __func__, 1);
     n = numaaGetCount(naa);
     if (index < 0 || index >= n)
-        return ERROR_INT("invalid index in naa", procName, 1);
+        return ERROR_INT("invalid index in naa", __func__, 1);
 
     na = numaaGetNuma(naa, index, L_CLONE);
     numaAddNumber(na, val);
@@ -1847,17 +1755,15 @@ numaaRead(const char  *filename)
 FILE   *fp;
 NUMAA  *naa;
 
-    PROCNAME("numaaRead");
-
     if (!filename)
-        return (NUMAA *)ERROR_PTR("filename not defined", procName, NULL);
+        return (NUMAA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (NUMAA *)ERROR_PTR("stream not opened", procName, NULL);
+        return (NUMAA *)ERROR_PTR("stream not opened", __func__, NULL);
     naa = numaaReadStream(fp);
     fclose(fp);
     if (!naa)
-        return (NUMAA *)ERROR_PTR("naa not read", procName, NULL);
+        return (NUMAA *)ERROR_PTR("naa not read", __func__, NULL);
     return naa;
 }
 
@@ -1875,34 +1781,32 @@ l_int32    i, n, index, ret, version;
 NUMA      *na;
 NUMAA     *naa;
 
-    PROCNAME("numaaReadStream");
-
     if (!fp)
-        return (NUMAA *)ERROR_PTR("stream not defined", procName, NULL);
+        return (NUMAA *)ERROR_PTR("stream not defined", __func__, NULL);
 
     ret = fscanf(fp, "\nNumaa Version %d\n", &version);
     if (ret != 1)
-        return (NUMAA *)ERROR_PTR("not a numa file", procName, NULL);
+        return (NUMAA *)ERROR_PTR("not a numa file", __func__, NULL);
     if (version != NUMA_VERSION_NUMBER)
-        return (NUMAA *)ERROR_PTR("invalid numaa version", procName, NULL);
+        return (NUMAA *)ERROR_PTR("invalid numaa version", __func__, NULL);
     if (fscanf(fp, "Number of numa = %d\n\n", &n) != 1)
-        return (NUMAA *)ERROR_PTR("invalid number of numa", procName, NULL);
+        return (NUMAA *)ERROR_PTR("invalid number of numa", __func__, NULL);
 
     if (n > MaxPtrArraySize) {
-        L_ERROR("n = %d > %d\n", procName, n, MaxPtrArraySize);
+        L_ERROR("n = %d > %d\n", __func__, n, MaxPtrArraySize);
         return NULL;
     }
     if ((naa = numaaCreate(n)) == NULL)
-        return (NUMAA *)ERROR_PTR("naa not made", procName, NULL);
+        return (NUMAA *)ERROR_PTR("naa not made", __func__, NULL);
 
     for (i = 0; i < n; i++) {
         if (fscanf(fp, "Numa[%d]:", &index) != 1) {
             numaaDestroy(&naa);
-            return (NUMAA *)ERROR_PTR("invalid numa header", procName, NULL);
+            return (NUMAA *)ERROR_PTR("invalid numa header", __func__, NULL);
         }
         if ((na = numaReadStream(fp)) == NULL) {
             numaaDestroy(&naa);
-            return (NUMAA *)ERROR_PTR("na not made", procName, NULL);
+            return (NUMAA *)ERROR_PTR("na not made", __func__, NULL);
         }
         numaaAddNuma(naa, na, L_INSERT);
     }
@@ -1925,16 +1829,14 @@ numaaReadMem(const l_uint8  *data,
 FILE   *fp;
 NUMAA  *naa;
 
-    PROCNAME("numaaReadMem");
-
     if (!data)
-        return (NUMAA *)ERROR_PTR("data not defined", procName, NULL);
+        return (NUMAA *)ERROR_PTR("data not defined", __func__, NULL);
     if ((fp = fopenReadFromMemory(data, size)) == NULL)
-        return (NUMAA *)ERROR_PTR("stream not opened", procName, NULL);
+        return (NUMAA *)ERROR_PTR("stream not opened", __func__, NULL);
 
     naa = numaaReadStream(fp);
     fclose(fp);
-    if (!naa) L_ERROR("naa not read\n", procName);
+    if (!naa) L_ERROR("naa not read\n", __func__);
     return naa;
 }
 
@@ -1953,19 +1855,17 @@ numaaWrite(const char  *filename,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("numaaWrite");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
     if (!naa)
-        return ERROR_INT("naa not defined", procName, 1);
+        return ERROR_INT("naa not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ret = numaaWriteStream(fp, naa);
     fclose(fp);
     if (ret)
-        return ERROR_INT("naa not written to stream", procName, 1);
+        return ERROR_INT("naa not written to stream", __func__, 1);
     return 0;
 }
 
@@ -1984,19 +1884,17 @@ numaaWriteStream(FILE   *fp,
 l_int32  i, n;
 NUMA    *na;
 
-    PROCNAME("numaaWriteStream");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
     if (!naa)
-        return ERROR_INT("naa not defined", procName, 1);
+        return ERROR_INT("naa not defined", __func__, 1);
 
     n = numaaGetCount(naa);
     fprintf(fp, "\nNumaa Version %d\n", NUMA_VERSION_NUMBER);
     fprintf(fp, "Number of numa = %d\n\n", n);
     for (i = 0; i < n; i++) {
         if ((na = numaaGetNuma(naa, i, L_CLONE)) == NULL)
-            return ERROR_INT("na not found", procName, 1);
+            return ERROR_INT("na not found", __func__, 1);
         fprintf(fp, "Numa[%d]:", i);
         numaWriteStream(fp, na);
         numaDestroy(&na);
@@ -2027,32 +1925,30 @@ numaaWriteMem(l_uint8  **pdata,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("numaaWriteMem");
-
     if (pdata) *pdata = NULL;
     if (psize) *psize = 0;
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     if (!psize)
-        return ERROR_INT("&size not defined", procName, 1);
+        return ERROR_INT("&size not defined", __func__, 1);
     if (!naa)
-        return ERROR_INT("naa not defined", procName, 1);
+        return ERROR_INT("naa not defined", __func__, 1);
 
 #if HAVE_FMEMOPEN
     if ((fp = open_memstream((char **)pdata, psize)) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ret = numaaWriteStream(fp, naa);
     fputc('\0', fp);
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #else
     if ((fp = tmpfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #endif  /* _WIN32 */
     ret = numaaWriteStream(fp, naa);
     rewind(fp);

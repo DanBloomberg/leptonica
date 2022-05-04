@@ -61,7 +61,7 @@ void     *result = NULL;
 ---    PROCNAME("l_autodecode_*");
 
     if (index < 0 || index >= nfunc) {
-        L_ERROR("invalid index = %d; must be less than %d\n", procName,
+        L_ERROR("invalid index = %d; must be less than %d\n", __func__,
                 index, nfunc);
         return NULL;
     }
@@ -87,7 +87,7 @@ void     *result = NULL;
 ---        lept_free(data2);
 ---        break;
     default:
-        L_ERROR("invalid index", procName);
+        L_ERROR("invalid index", __func__);
     }
 
     return result;

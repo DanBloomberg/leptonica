@@ -163,29 +163,27 @@ PIX       *pixt1, *pixt2, *pixfg, *pixbg;
 PTA       *ptah, *ptam;
 SEL       *seld, *sel;
 
-    PROCNAME("pixGenerateSelWithRuns");
-
     if (ppixe) *ppixe = NULL;
     if (!pixs)
-        return (SEL *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (SEL *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (SEL *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (SEL *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
     if (nhlines < 1 && nvlines < 1)
-        return (SEL *)ERROR_PTR("nvlines and nhlines both < 1", procName, NULL);
+        return (SEL *)ERROR_PTR("nvlines and nhlines both < 1", __func__, NULL);
 
     if (distance <= 0)
         distance = DefaultDistanceToBoundary;
     if (minlength <= 0)
         minlength = DefaultMinRunlength;
     if (distance > MaxDistanceToBoundary) {
-        L_WARNING("distance too large; setting to max value\n", procName);
+        L_WARNING("distance too large; setting to max value\n", __func__);
         distance = MaxDistanceToBoundary;
     }
 
         /* Locate the foreground */
     pixClipToForeground(pixs, &pixt1, NULL);
     if (!pixt1)
-        return (SEL *)ERROR_PTR("pixt1 not made", procName, NULL);
+        return (SEL *)ERROR_PTR("pixt1 not made", __func__, NULL);
     ws = pixGetWidth(pixt1);
     hs = pixGetHeight(pixt1);
     w = ws;
@@ -199,23 +197,23 @@ SEL       *seld, *sel;
             h += toppix;
             y = toppix;
             if (toppix < distance + minlength)
-                L_WARNING("no miss elements in added top pixels\n", procName);
+                L_WARNING("no miss elements in added top pixels\n", __func__);
         }
         if (botpix) {
             h += botpix;
             if (botpix < distance + minlength)
-                L_WARNING("no miss elements in added bot pixels\n", procName);
+                L_WARNING("no miss elements in added bot pixels\n", __func__);
         }
         if (leftpix) {
             w += leftpix;
             x = leftpix;
             if (leftpix < distance + minlength)
-                L_WARNING("no miss elements in added left pixels\n", procName);
+                L_WARNING("no miss elements in added left pixels\n", __func__);
         }
         if (rightpix) {
             w += rightpix;
             if (rightpix < distance + minlength)
-                L_WARNING("no miss elements in added right pixels\n", procName);
+                L_WARNING("no miss elements in added right pixels\n", __func__);
         }
         pixt2 = pixCreate(w, h, 1);
         pixRasterop(pixt2, x, y, ws, hs, PIX_SRC, pixt1, 0, 0);
@@ -350,29 +348,27 @@ l_uint32   val;
 PIX       *pixt1, *pixt2, *pixfg, *pixbg;
 SEL       *seld, *sel;
 
-    PROCNAME("pixGenerateSelRandom");
-
     if (ppixe) *ppixe = NULL;
     if (!pixs)
-        return (SEL *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (SEL *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (SEL *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (SEL *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
     if (hitfract <= 0.0 && missfract <= 0.0)
-        return (SEL *)ERROR_PTR("no hits or misses", procName, NULL);
+        return (SEL *)ERROR_PTR("no hits or misses", __func__, NULL);
     if (hitfract > 1.0 || missfract > 1.0)
-        return (SEL *)ERROR_PTR("fraction can't be > 1.0", procName, NULL);
+        return (SEL *)ERROR_PTR("fraction can't be > 1.0", __func__, NULL);
 
     if (distance <= 0)
         distance = DefaultDistanceToBoundary;
     if (distance > MaxDistanceToBoundary) {
-        L_WARNING("distance too large; setting to max value\n", procName);
+        L_WARNING("distance too large; setting to max value\n", __func__);
         distance = MaxDistanceToBoundary;
     }
 
         /* Locate the foreground */
     pixClipToForeground(pixs, &pixt1, NULL);
     if (!pixt1)
-        return (SEL *)ERROR_PTR("pixt1 not made", procName, NULL);
+        return (SEL *)ERROR_PTR("pixt1 not made", __func__, NULL);
     ws = pixGetWidth(pixt1);
     hs = pixGetHeight(pixt1);
     w = ws;
@@ -504,22 +500,20 @@ PIX     *pixt1, *pixt2, *pixt3, *pixfg, *pixbg;
 SEL     *selh, *selm, *sel_3, *sel;
 PTA     *ptah, *ptam;
 
-    PROCNAME("pixGenerateSelBoundary");
-
     if (ppixe) *ppixe = NULL;
     if (!pixs)
-        return (SEL *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (SEL *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (SEL *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (SEL *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
     if (hitdist < 0 || hitdist > 4 || missdist < 0 || missdist > 4)
-        return (SEL *)ERROR_PTR("dist not in {0 .. 4}", procName, NULL);
+        return (SEL *)ERROR_PTR("dist not in {0 .. 4}", __func__, NULL);
     if (hitskip < 0 && missskip < 0)
-        return (SEL *)ERROR_PTR("no hits or misses", procName, NULL);
+        return (SEL *)ERROR_PTR("no hits or misses", __func__, NULL);
 
         /* Locate the foreground */
     pixClipToForeground(pixs, &pixt1, NULL);
     if (!pixt1)
-        return (SEL *)ERROR_PTR("pixt1 not made", procName, NULL);
+        return (SEL *)ERROR_PTR("pixt1 not made", __func__, NULL);
     ws = pixGetWidth(pixt1);
     hs = pixGetHeight(pixt1);
     w = ws;
@@ -643,19 +637,17 @@ pixGetRunCentersOnLine(PIX     *pixs,
 l_int32   w, h, i, r, nruns, len;
 NUMA     *naruns, *nad;
 
-    PROCNAME("pixGetRunCentersOnLine");
-
     if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (NUMA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
     if (x != -1 && y != -1)
-        return (NUMA *)ERROR_PTR("x or y must be -1", procName, NULL);
+        return (NUMA *)ERROR_PTR("x or y must be -1", __func__, NULL);
     if (x == -1 && y == -1)
-        return (NUMA *)ERROR_PTR("x or y cannot both be -1", procName, NULL);
+        return (NUMA *)ERROR_PTR("x or y cannot both be -1", __func__, NULL);
 
     if ((nad = numaCreate(0)) == NULL)
-        return (NUMA *)ERROR_PTR("nad not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("nad not made", __func__, NULL);
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if (x == -1) {  /* horizontal run */
@@ -719,33 +711,31 @@ l_uint32  val;
 NUMA     *numa;
 PTA      *pta;
 
-    PROCNAME("pixGetRunsOnLine");
-
     if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (NUMA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     if (x1 < 0 || x1 >= w)
-        return (NUMA *)ERROR_PTR("x1 not valid", procName, NULL);
+        return (NUMA *)ERROR_PTR("x1 not valid", __func__, NULL);
     if (x2 < 0 || x2 >= w)
-        return (NUMA *)ERROR_PTR("x2 not valid", procName, NULL);
+        return (NUMA *)ERROR_PTR("x2 not valid", __func__, NULL);
     if (y1 < 0 || y1 >= h)
-        return (NUMA *)ERROR_PTR("y1 not valid", procName, NULL);
+        return (NUMA *)ERROR_PTR("y1 not valid", __func__, NULL);
     if (y2 < 0 || y2 >= h)
-        return (NUMA *)ERROR_PTR("y2 not valid", procName, NULL);
+        return (NUMA *)ERROR_PTR("y2 not valid", __func__, NULL);
 
     if ((pta = generatePtaLine(x1, y1, x2, y2)) == NULL)
-        return (NUMA *)ERROR_PTR("pta not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("pta not made", __func__, NULL);
     if ((npts = ptaGetCount(pta)) == 0) {
         ptaDestroy(&pta);
-        return (NUMA *)ERROR_PTR("pta has no pts", procName, NULL);
+        return (NUMA *)ERROR_PTR("pta has no pts", __func__, NULL);
     }
     if ((numa = numaCreate(0)) == NULL) {
         ptaDestroy(&pta);
-        return (NUMA *)ERROR_PTR("numa not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("numa not made", __func__, NULL);
     }
 
     for (i = 0; i < npts; i++) {
@@ -809,14 +799,12 @@ l_int32  x, y, xn, yn, xs, ys, xa, ya, count;
 PIX     *pixt;
 PTA     *pta;
 
-    PROCNAME("pixSubsampleBoundaryPixels");
-
     if (!pixs)
-        return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PTA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
     if (skip < 0)
-        return (PTA *)ERROR_PTR("skip < 0", procName, NULL);
+        return (PTA *)ERROR_PTR("skip < 0", __func__, NULL);
 
     if (skip == 0)
         return ptaGetPixelsFromPix(pixs, NULL);
@@ -880,12 +868,10 @@ l_int32   xdel[] = {-1, 0, 1, 0, -1, 1, 1, -1};
 l_int32   ydel[] = {0, 1, 0, -1, 1, 1, -1, -1};
 l_uint32  val;
 
-    PROCNAME("adjacentOnPixelInRaster");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 0);
+        return ERROR_INT("pixs not defined", __func__, 0);
     if (pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not 1 bpp", procName, 0);
+        return ERROR_INT("pixs not 1 bpp", __func__, 0);
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     found = 0;
@@ -938,19 +924,17 @@ l_float32  fscale;
 PIX       *pixt, *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixDisplayHitMissSel");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
     if (!sel)
-        return (PIX *)ERROR_PTR("sel not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("sel not defined", __func__, NULL);
 
     if (scalefactor <= 0)
         scalefactor = DefaultSelScalefactor;
     if (scalefactor > MaxSelScalefactor) {
-        L_WARNING("scalefactor too large; using max value\n", procName);
+        L_WARNING("scalefactor too large; using max value\n", __func__);
         scalefactor = MaxSelScalefactor;
     }
 

@@ -102,11 +102,9 @@ char     name[L_BUF_SIZE];
 l_int32  i, size;
 SEL     *sel;
 
-    PROCNAME("selaAddBasic");
-
     if (!sela) {
         if ((sela = selaCreate(0)) == NULL)
-            return (SELA *)ERROR_PTR("sela not made", procName, NULL);
+            return (SELA *)ERROR_PTR("sela not made", __func__, NULL);
     }
 
     /*--------------------------------------------------------------*
@@ -189,11 +187,9 @@ selaAddHitMiss(SELA  *sela)
 {
 SEL  *sel;
 
-    PROCNAME("selaAddHitMiss");
-
     if (!sela) {
         if ((sela = selaCreate(0)) == NULL)
-            return (SELA *)ERROR_PTR("sela not made", procName, NULL);
+            return (SELA *)ERROR_PTR("sela not made", __func__, NULL);
     }
 
 #if 0   /*  use just for testing */
@@ -329,11 +325,9 @@ char     name[L_BUF_SIZE];
 l_int32  i;
 SEL     *sel;
 
-    PROCNAME("selaAddDwaLinear");
-
     if (!sela) {
         if ((sela = selaCreate(0)) == NULL)
-            return (SELA *)ERROR_PTR("sela not made", procName, NULL);
+            return (SELA *)ERROR_PTR("sela not made", __func__, NULL);
     }
 
     for (i = 2; i < 64; i++) {
@@ -371,11 +365,9 @@ char     name[L_BUF_SIZE];
 l_int32  i, f1, f2, prevsize, size;
 SEL     *selh, *selv;
 
-    PROCNAME("selaAddDwaCombs");
-
     if (!sela) {
         if ((sela = selaCreate(0)) == NULL)
-            return (SELA *)ERROR_PTR("sela not made", procName, NULL);
+            return (SELA *)ERROR_PTR("sela not made", __func__, NULL);
     }
 
     prevsize = 0;
@@ -389,14 +381,14 @@ SEL     *selh, *selv;
             snprintf(name, L_BUF_SIZE, "sel_comb_%dh", size);
             selaAddSel(sela, selh, name, 0);
         } else {
-            L_ERROR("selh not made for i = %d\n", procName, i);
+            L_ERROR("selh not made for i = %d\n", __func__, i);
         }
         selectComposableSels(i, L_VERT, NULL, &selv);
         if (selv) {
             snprintf(name, L_BUF_SIZE, "sel_comb_%dv", size);
             selaAddSel(sela, selv, name, 0);
         } else {
-            L_ERROR("selv not made for i = %d\n", procName, i);
+            L_ERROR("selv not made for i = %d\n", __func__, i);
         }
         prevsize = size;
     }
@@ -450,16 +442,14 @@ PIXA      *pixa;
 PTA       *pta1, *pta2, *pta3, *pta4;
 SEL       *sel;
 
-    PROCNAME("selaAddCrossJunctions");
-
     if (hlsize <= 0)
-        return (SELA *)ERROR_PTR("hlsize not > 0", procName, NULL);
+        return (SELA *)ERROR_PTR("hlsize not > 0", __func__, NULL);
     if (norient < 1 || norient > 8)
-        return (SELA *)ERROR_PTR("norient not in [1, ... 8]", procName, NULL);
+        return (SELA *)ERROR_PTR("norient not in [1, ... 8]", __func__, NULL);
 
     if (!sela) {
         if ((sela = selaCreate(0)) == NULL)
-            return (SELA *)ERROR_PTR("sela not made", procName, NULL);
+            return (SELA *)ERROR_PTR("sela not made", __func__, NULL);
     }
 
     pi = 3.1415926535;
@@ -575,16 +565,14 @@ PIXA      *pixa;
 PTA       *pta1, *pta2, *pta3;
 SEL       *sel;
 
-    PROCNAME("selaAddTJunctions");
-
     if (hlsize <= 2)
-        return (SELA *)ERROR_PTR("hlsizel not > 1", procName, NULL);
+        return (SELA *)ERROR_PTR("hlsizel not > 1", __func__, NULL);
     if (norient < 1 || norient > 8)
-        return (SELA *)ERROR_PTR("norient not in [1, ... 8]", procName, NULL);
+        return (SELA *)ERROR_PTR("norient not in [1, ... 8]", __func__, NULL);
 
     if (!sela) {
         if ((sela = selaCreate(0)) == NULL)
-            return (SELA *)ERROR_PTR("sela not made", procName, NULL);
+            return (SELA *)ERROR_PTR("sela not made", __func__, NULL);
     }
 
     pi = 3.1415926535;
@@ -881,10 +869,8 @@ selMakePlusSign(l_int32  size,
 PIX  *pix;
 SEL  *sel;
 
-    PROCNAME("selMakePlusSign");
-
     if (size < 3 || linewidth > size)
-        return (SEL *)ERROR_PTR("invalid input", procName, NULL);
+        return (SEL *)ERROR_PTR("invalid input", __func__, NULL);
 
     pix = pixCreate(size, size, 1);
     pixRenderLine(pix, size / 2, 0, size / 2, size - 1,

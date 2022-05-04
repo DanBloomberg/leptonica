@@ -121,11 +121,9 @@ bmfCreate(const char  *dir,
 L_BMF   *bmf;
 PIXA  *pixa;
 
-    PROCNAME("bmfCreate");
-
     if (fontsize < 4 || fontsize > 20 || (fontsize % 2))
         return (L_BMF *)ERROR_PTR("fontsize must be in {4, 6, ..., 20}",
-                                  procName, NULL);
+                                  __func__, NULL);
 
     bmf = (L_BMF *)LEPT_CALLOC(1, sizeof(L_BMF));
 
@@ -136,11 +134,11 @@ PIXA  *pixa;
         pixa = pixaGetFont(dir, fontsize, &bmf->baseline1, &bmf->baseline2,
                            &bmf->baseline3);
         if (!pixa) {  /* Not found; make it from a file */
-            L_INFO("Generating pixa of bitmap fonts from file\n", procName);
+            L_INFO("Generating pixa of bitmap fonts from file\n", __func__);
             pixa = pixaGenerateFontFromFile(dir, fontsize, &bmf->baseline1,
                                             &bmf->baseline2, &bmf->baseline3);
             if (!pixa) {  /* Not made; make it from a string after all */
-                L_ERROR("Failed to make font; use string\n", procName);
+                L_ERROR("Failed to make font; use string\n", __func__);
                 pixa = pixaGenerateFontFromString(fontsize, &bmf->baseline1,
                                           &bmf->baseline2, &bmf->baseline3);
             }
@@ -149,7 +147,7 @@ PIXA  *pixa;
 
     if (!pixa) {
         bmfDestroy(&bmf);
-        return (L_BMF *)ERROR_PTR("font pixa not made", procName, NULL);
+        return (L_BMF *)ERROR_PTR("font pixa not made", __func__, NULL);
     }
 
     bmf->pixa = pixa;
@@ -171,10 +169,8 @@ bmfDestroy(L_BMF  **pbmf)
 {
 L_BMF  *bmf;
 
-    PROCNAME("bmfDestroy");
-
     if (pbmf == NULL) {
-        L_WARNING("ptr address is null!\n", procName);
+        L_WARNING("ptr address is null!\n", __func__);
         return;
     }
 
@@ -208,21 +204,19 @@ bmfGetPix(L_BMF  *bmf,
 l_int32  i, index;
 PIXA    *pixa;
 
-    PROCNAME("bmfGetPix");
-
     if ((index = (l_int32)chr) == 10)  /* NL */
         return NULL;
     if (!bmf)
-        return (PIX *)ERROR_PTR("bmf not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("bmf not defined", __func__, NULL);
 
     i = bmf->fonttab[index];
     if (i == UNDEF) {
-        L_ERROR("no bitmap representation for %d\n", procName, index);
+        L_ERROR("no bitmap representation for %d\n", __func__, index);
         return NULL;
     }
 
     if ((pixa = bmf->pixa) == NULL)
-        return (PIX *)ERROR_PTR("pixa not found", procName, NULL);
+        return (PIX *)ERROR_PTR("pixa not found", __func__, NULL);
 
     return pixaGetPix(pixa, i, L_CLONE);
 }
@@ -244,24 +238,22 @@ bmfGetWidth(L_BMF    *bmf,
 l_int32  i, index;
 PIXA    *pixa;
 
-    PROCNAME("bmfGetWidth");
-
     if (!pw)
-        return ERROR_INT("&w not defined", procName, 1);
+        return ERROR_INT("&w not defined", __func__, 1);
     *pw = -1;
     if (!bmf)
-        return ERROR_INT("bmf not defined", procName, 1);
+        return ERROR_INT("bmf not defined", __func__, 1);
     if ((index = (l_int32)chr) == 10)  /* NL */
         return 0;
 
     i = bmf->fonttab[index];
     if (i == UNDEF) {
-        L_ERROR("no bitmap representation for %d\n", procName, index);
+        L_ERROR("no bitmap representation for %d\n", __func__, index);
         return 1;
     }
 
     if ((pixa = bmf->pixa) == NULL)
-        return ERROR_INT("pixa not found", procName, 1);
+        return ERROR_INT("pixa not found", __func__, 1);
 
     return pixaGetPixDimensions(pixa, i, pw, NULL, NULL);
 }
@@ -282,19 +274,17 @@ bmfGetBaseline(L_BMF    *bmf,
 {
 l_int32  bl, index;
 
-    PROCNAME("bmfGetBaseline");
-
     if (!pbaseline)
-        return ERROR_INT("&baseline not defined", procName, 1);
+        return ERROR_INT("&baseline not defined", __func__, 1);
     *pbaseline = 0;
     if (!bmf)
-        return ERROR_INT("bmf not defined", procName, 1);
+        return ERROR_INT("bmf not defined", __func__, 1);
     if ((index = (l_int32)chr) == 10)  /* NL */
         return 0;
 
     bl = bmf->baselinetab[index];
     if (bl == UNDEF) {
-        L_ERROR("no bitmap representation for %d\n", procName, index);
+        L_ERROR("no bitmap representation for %d\n", __func__, index);
         return 1;
     }
 
@@ -332,13 +322,11 @@ char     *pathname;
 l_int32   fileno;
 PIXA     *pixa;
 
-    PROCNAME("pixaGetFont");
-
     fileno = (fontsize / 2) - 2;
     if (fileno < 0 || fileno >= NUM_FONTS)
-        return (PIXA *)ERROR_PTR("font size invalid", procName, NULL);
+        return (PIXA *)ERROR_PTR("font size invalid", __func__, NULL);
     if (!pbl0 || !pbl1 || !pbl2)
-        return (PIXA *)ERROR_PTR("&bl not all defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("&bl not all defined", __func__, NULL);
     *pbl0 = baselines[fileno][0];
     *pbl1 = baselines[fileno][1];
     *pbl2 = baselines[fileno][2];
@@ -348,7 +336,7 @@ PIXA     *pixa;
     LEPT_FREE(pathname);
 
     if (!pixa)
-        L_WARNING("pixa of char bitmaps not found\n", procName);
+        L_WARNING("pixa of char bitmaps not found\n", __func__);
     return pixa;
 }
 
@@ -380,25 +368,23 @@ char    *pathname;
 l_int32  bl1, bl2, bl3;
 PIXA    *pixa;
 
-    PROCNAME("pixaSaveFont");
-
     if (fontsize < 4 || fontsize > 20 || (fontsize % 2))
-        return ERROR_INT("fontsize must be in {4, 6, ..., 20}", procName, 1);
+        return ERROR_INT("fontsize must be in {4, 6, ..., 20}", __func__, 1);
 
     if (!indir)  /* Generate from a string */
         pixa = pixaGenerateFontFromString(fontsize, &bl1, &bl2, &bl3);
     else  /* Generate from an image file */
         pixa = pixaGenerateFontFromFile(indir, fontsize, &bl1, &bl2, &bl3);
     if (!pixa)
-        return ERROR_INT("pixa not made", procName, 1);
+        return ERROR_INT("pixa not made", __func__, 1);
 
     pathname = pathJoin(outdir, outputfonts[(fontsize - 4) / 2]);
     pixaWrite(pathname, pixa);
 
 #if  DEBUG_FONT_GEN
-    L_INFO("Found %d chars in font size %d\n", procName, pixaGetCount(pixa),
+    L_INFO("Found %d chars in font size %d\n", __func__, pixaGetCount(pixa),
            fontsize);
-    L_INFO("Baselines are at: %d, %d, %d\n", procName, bl1, bl2, bl3);
+    L_INFO("Baselines are at: %d, %d, %d\n", __func__, bl1, bl2, bl3);
 #endif  /* DEBUG_FONT_GEN */
 
     LEPT_FREE(pathname);
@@ -445,22 +431,20 @@ l_int32  fileno;
 PIX     *pix;
 PIXA    *pixa;
 
-    PROCNAME("pixaGenerateFontFromFile");
-
     if (!pbl0 || !pbl1 || !pbl2)
-        return (PIXA *)ERROR_PTR("&bl not all defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("&bl not all defined", __func__, NULL);
     *pbl0 = *pbl1 = *pbl2 = 0;
     if (!dir)
-        return (PIXA *)ERROR_PTR("dir not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("dir not defined", __func__, NULL);
     fileno = (fontsize / 2) - 2;
     if (fileno < 0 || fileno >= NUM_FONTS)
-        return (PIXA *)ERROR_PTR("font size invalid", procName, NULL);
+        return (PIXA *)ERROR_PTR("font size invalid", __func__, NULL);
 
     pathname = pathJoin(dir, inputfonts[fileno]);
     pix = pixRead(pathname);
     LEPT_FREE(pathname);
     if (!pix) {
-        L_ERROR("pix not found for font size %d\n", procName, fontsize);
+        L_ERROR("pix not found for font size %d\n", __func__, fontsize);
         return NULL;
     }
 
@@ -495,14 +479,12 @@ l_int32   redsize, nbytes;
 PIX      *pix;
 PIXA     *pixa;
 
-    PROCNAME("pixaGenerateFontFromString");
-
     if (!pbl0 || !pbl1 || !pbl2)
-        return (PIXA *)ERROR_PTR("&bl not all defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("&bl not all defined", __func__, NULL);
     *pbl0 = *pbl1 = *pbl2 = 0;
     redsize = (fontsize / 2) - 2;
     if (redsize < 0 || redsize >= NUM_FONTS)
-        return (PIXA *)ERROR_PTR("invalid font size", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid font size", __func__, NULL);
 
     if (fontsize == 4) {
         data = decodeBase64(fontdata_4, strlen(fontdata_4), &nbytes);
@@ -524,12 +506,12 @@ PIXA     *pixa;
         data = decodeBase64(fontdata_20, strlen(fontdata_20), &nbytes);
     }
     if (!data)
-        return (PIXA *)ERROR_PTR("data not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("data not made", __func__, NULL);
 
     pix = pixReadMem(data, nbytes);
     LEPT_FREE(data);
     if (!pix)
-        return (PIXA *)ERROR_PTR("pix not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("pix not made", __func__, NULL);
 
     pixa = pixaGenerateFont(pix, fontsize, pbl0, pbl1, pbl2);
     pixDestroy(&pix);
@@ -574,13 +556,11 @@ l_int32   n, w, inrow, top;
 l_int32  *ia;
 NUMA     *na;
 
-    PROCNAME("pixaGenerateFont");
-
     if (!pbl0 || !pbl1 || !pbl2)
-        return (PIXA *)ERROR_PTR("&bl not all defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("&bl not all defined", __func__, NULL);
     *pbl0 = *pbl1 = *pbl2 = 0;
     if (!pixs)
-        return (PIXA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixs not defined", __func__, NULL);
 
         /* Locate the 3 rows of characters */
     w = pixGetWidth(pixs);
@@ -603,12 +583,12 @@ NUMA     *na;
     numaDestroy(&na);
     nrows = boxaGetCount(boxar);
 #if  DEBUG_FONT_GEN
-    L_INFO("For fontsize %s, have %d rows\n", procName, fontsize, nrows);
+    L_INFO("For fontsize %s, have %d rows\n", __func__, fontsize, nrows);
 #endif  /* DEBUG_FONT_GEN */
     if (nrows != 3) {
-        L_INFO("nrows = %d; skipping fontsize %d\n", procName, nrows, fontsize);
+        L_INFO("nrows = %d; skipping fontsize %d\n", __func__, nrows, fontsize);
         boxaDestroy(&boxar);
-        return (PIXA *)ERROR_PTR("3 rows not generated", procName, NULL);
+        return (PIXA *)ERROR_PTR("3 rows not generated", __func__, NULL);
     }
 
         /* Grab the character images and baseline data */
@@ -625,7 +605,7 @@ NUMA     *na;
         baseline[i] = yval;
 
 #if DEBUG_BASELINE
-        L_INFO("Baseline info: row %d, yval = %d, h = %d\n", procName,
+        L_INFO("Baseline info: row %d, yval = %d, h = %d\n", __func__,
                i, yval, pixGetHeight(pixr));
         pix1 = pixCopy(NULL, pixr);
         pixRenderLine(pix1, 0, yval, pixGetWidth(pix1), yval, 1,
@@ -678,7 +658,7 @@ NUMA     *na;
 
     nchars = pixaGetCount(pixa);
     if (nchars != 95)
-        return (PIXA *)ERROR_PTR("95 chars not generated", procName, NULL);
+        return (PIXA *)ERROR_PTR("95 chars not generated", __func__, NULL);
 
     *pbl0 = baseline[0];
     *pbl1 = baseline[1];
@@ -735,12 +715,10 @@ l_int32   i, h, val1, val2, diff, diffmax, ymax;
 l_int32  *tab;
 NUMA     *na;
 
-    PROCNAME("pixGetTextBaseline");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (!py)
-        return ERROR_INT("&y not defined", procName, 1);
+        return ERROR_INT("&y not defined", __func__, 1);
     *py = 0;
     if (!tab8)
         tab = makePixelSumTab8();
@@ -808,10 +786,8 @@ l_int32   i, maxh, height, charwidth, xwidth, kernwidth;
 l_int32  *fonttab, *baselinetab, *widthtab;
 PIX      *pix;
 
-    PROCNAME("bmfMakeAsciiTables");
-
     if (!bmf)
-        return ERROR_INT("bmf not defined", procName, 1);
+        return ERROR_INT("bmf not defined", __func__, 1);
 
         /* First get the fonttab; we use this later for the char widths */
     fonttab = (l_int32 *)LEPT_CALLOC(128, sizeof(l_int32));

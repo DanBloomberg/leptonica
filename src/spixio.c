@@ -95,17 +95,15 @@ size_t    nbytes;
 l_uint8  *data;
 PIX      *pix;
 
-    PROCNAME("pixReadStreamSpix");
-
     if (!fp)
-        return (PIX *)ERROR_PTR("stream not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("stream not defined", __func__, NULL);
 
     if ((data = l_binaryReadStream(fp, &nbytes)) == NULL)
-        return (PIX *)ERROR_PTR("data not read", procName, NULL);
+        return (PIX *)ERROR_PTR("data not read", __func__, NULL);
     pix = pixReadMemSpix(data, nbytes);
     LEPT_FREE(data);
     if (!pix)
-        return (PIX *)ERROR_PTR("pix not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not made", __func__, NULL);
     return pix;
 }
 
@@ -137,14 +135,12 @@ readHeaderSpix(const char *filename,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("readHeaderSpix");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
     if (!pwidth || !pheight || !pbps || !pspp)
-        return ERROR_INT("input ptr(s) not defined", procName, 1);
+        return ERROR_INT("input ptr(s) not defined", __func__, 1);
     if ((fp = fopenReadStream(filename)) == NULL)
-        return ERROR_INT("image file not found", procName, 1);
+        return ERROR_INT("image file not found", __func__, 1);
     ret = freadHeaderSpix(fp, pwidth, pheight, pbps, pspp, piscmap);
     fclose(fp);
     return ret;
@@ -178,18 +174,16 @@ freadHeaderSpix(FILE     *fp,
 l_int32   nbytes, ret;
 l_uint32  data[6];
 
-    PROCNAME("freadHeaderSpix");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
     if (!pwidth || !pheight || !pbps || !pspp)
-        return ERROR_INT("input ptr(s) not defined", procName, 1);
+        return ERROR_INT("input ptr(s) not defined", __func__, 1);
 
     nbytes = fnbytesInFile(fp);
     if (nbytes < 32)
-        return ERROR_INT("file too small to be spix", procName, 1);
+        return ERROR_INT("file too small to be spix", __func__, 1);
     if (fread(data, 4, 6, fp) != 6)
-        return ERROR_INT("error reading data", procName, 1);
+        return ERROR_INT("error reading data", __func__, 1);
     ret = sreadHeaderSpix(data, nbytes, pwidth, pheight, pbps, pspp, piscmap);
     return ret;
 }
@@ -224,22 +218,20 @@ sreadHeaderSpix(const l_uint32  *data,
 char    *id;
 l_int32  d, ncolors;
 
-    PROCNAME("sreadHeaderSpix");
-
     if (!data)
-        return ERROR_INT("data not defined", procName, 1);
+        return ERROR_INT("data not defined", __func__, 1);
     if (!pwidth || !pheight || !pbps || !pspp)
-        return ERROR_INT("input ptr(s) not defined", procName, 1);
+        return ERROR_INT("input ptr(s) not defined", __func__, 1);
     *pwidth = *pheight = *pbps = *pspp = 0;
     if (piscmap)
       *piscmap = 0;
     if (size < 28)
-        return ERROR_INT("size too small", procName, 1);
+        return ERROR_INT("size too small", __func__, 1);
 
         /* Check file id */
     id = (char *)data;
     if (id[0] != 's' || id[1] != 'p' || id[2] != 'i' || id[3] != 'x')
-        return ERROR_INT("not a valid spix file", procName, 1);
+        return ERROR_INT("not a valid spix file", __func__, 1);
 
     *pwidth = data[1];
     *pheight = data[2];
@@ -276,15 +268,13 @@ pixWriteStreamSpix(FILE  *fp,
 l_uint8  *data;
 size_t    size;
 
-    PROCNAME("pixWriteStreamSpix");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
 
     if (pixWriteMemSpix(&data, &size, pix))
-        return ERROR_INT("failure to write pix to memory", procName, 1);
+        return ERROR_INT("failure to write pix to memory", __func__, 1);
     fwrite(data, 1, size, fp);
     LEPT_FREE(data);
     return 0;
@@ -362,14 +352,12 @@ l_uint32  *data;
 l_uint32  *rdata;  /* data in pix raster */
 PIXCMAP   *cmap;
 
-    PROCNAME("pixSerializeToMemory");
-
     if (!pdata || !pnbytes)
-        return ERROR_INT("&data and &nbytes not both defined", procName, 1);
+        return ERROR_INT("&data and &nbytes not both defined", __func__, 1);
     *pdata = NULL;
     *pnbytes = 0;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
 
     pixGetDimensions(pixs, &w, &h, &d);
     wpl = pixGetWpl(pixs);
@@ -380,7 +368,7 @@ PIXCMAP   *cmap;
     if ((cmap = pixGetColormap(pixs)) != NULL) {
         pixcmapIsValid(cmap, pixs, &valid);
         if (!valid)
-            return ERROR_INT("colormap not valid", procName, 1);
+            return ERROR_INT("colormap not valid", __func__, 1);
         pixcmapSerializeToMemory(cmap, 4, &ncolors, &cdata);
     }
 
@@ -388,7 +376,7 @@ PIXCMAP   *cmap;
     if ((data = (l_uint32 *)LEPT_CALLOC(nbytes / 4, sizeof(l_uint32)))
          == NULL) {
         LEPT_FREE(cdata);
-        return ERROR_INT("data not made", procName, 1);
+        return ERROR_INT("data not made", __func__, 1);
     }
     *pdata = data;
     *pnbytes = nbytes;
@@ -442,18 +430,16 @@ l_uint32  *imdata;  /* data in pix raster */
 PIX       *pix1, *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixDeserializeFromMemory");
-
     if (!data)
-        return (PIX *)ERROR_PTR("data not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("data not defined", __func__, NULL);
     if (nbytes < 28 || nbytes > ((1LL << 31) - 1)) {
-        L_ERROR("invalid nbytes = %zu\n", procName, nbytes);
+        L_ERROR("invalid nbytes = %zu\n", __func__, nbytes);
         return NULL;
     }
 
     id = (char *)data;
     if (id[0] != 's' || id[1] != 'p' || id[2] != 'i' || id[3] != 'x')
-        return (PIX *)ERROR_PTR("invalid id string", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid id string", __func__, NULL);
     w = data[1];
     h = data[2];
     d = data[3];
@@ -461,37 +447,37 @@ PIXCMAP   *cmap;
 
         /* Sanity checks on the amount of image data */
     if (w < 1 || w > MaxAllowedWidth)
-        return (PIX *)ERROR_PTR("invalid width", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid width", __func__, NULL);
     if (h < 1 || h > MaxAllowedHeight)
-        return (PIX *)ERROR_PTR("invalid height", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid height", __func__, NULL);
     if (1LL * w * h > MaxAllowedArea)
-        return (PIX *)ERROR_PTR("area too large", procName, NULL);
+        return (PIX *)ERROR_PTR("area too large", __func__, NULL);
     if (ncolors < 0 || ncolors > 256 || ncolors + 7 >= nbytes/sizeof(l_int32))
-        return (PIX *)ERROR_PTR("invalid ncolors", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid ncolors", __func__, NULL);
     if ((pix1 = pixCreateHeader(w, h, d)) == NULL)  /* just make the header */
-        return (PIX *)ERROR_PTR("failed to make header", procName, NULL);
+        return (PIX *)ERROR_PTR("failed to make header", __func__, NULL);
     pixdata_size = 4 * h * pixGetWpl(pix1);
     memdata_size = nbytes - 24 - 4 * ncolors - 4;
     imdata_size = data[6 + ncolors];
     pixDestroy(&pix1);
     if (pixdata_size != memdata_size || pixdata_size != imdata_size) {
         L_ERROR("pixdata_size = %d, memdata_size = %d, imdata_size = %d "
-                "not all equal!\n", procName, pixdata_size, memdata_size,
+                "not all equal!\n", __func__, pixdata_size, memdata_size,
                 imdata_size);
         return NULL;
     }
 
     if ((pixd = pixCreate(w, h, d)) == NULL)
-        return (PIX *)ERROR_PTR("pix not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not made", __func__, NULL);
     if (ncolors > 0) {
         cmap = pixcmapDeserializeFromMemory((l_uint8 *)(&data[6]), 4, ncolors);
         if (!cmap) {
             pixDestroy(&pixd);
-            return (PIX *)ERROR_PTR("cmap not made", procName, NULL);
+            return (PIX *)ERROR_PTR("cmap not made", __func__, NULL);
         }
         if (pixSetColormap(pixd, cmap)) {
             pixDestroy(&pixd);
-            return (PIX *)ERROR_PTR("cmap is not valid", procName, NULL);
+            return (PIX *)ERROR_PTR("cmap is not valid", __func__, NULL);
         }
     }
 
@@ -504,7 +490,7 @@ PIXCMAP   *cmap;
         pixcmapIsValid(cmap, pixd, &valid);
         if (!valid) {
             pixDestroy(&pixd);
-            return (PIX *)ERROR_PTR("cmap is invalid with pix", procName, NULL);
+            return (PIX *)ERROR_PTR("cmap is invalid with pix", __func__, NULL);
         }
     }
 

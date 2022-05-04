@@ -121,8 +121,6 @@ ptaCreate(l_int32  n)
 {
 PTA  *pta;
 
-    PROCNAME("ptaCreate");
-
     if (n <= 0 || n > MaxArraySize)
         n = InitialArraySize;
 
@@ -134,7 +132,7 @@ PTA  *pta;
     pta->y = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32));
     if (!pta->x || !pta->y) {
         ptaDestroy(&pta);
-        return (PTA *)ERROR_PTR("x and y arrays not both made", procName, NULL);
+        return (PTA *)ERROR_PTR("x and y arrays not both made", __func__, NULL);
     }
 
     return pta;
@@ -156,13 +154,11 @@ l_int32    i, n;
 l_float32  startx, delx, xval, yval;
 PTA       *pta;
 
-    PROCNAME("ptaCreateFromNuma");
-
     if (!nay)
-        return (PTA *)ERROR_PTR("nay not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("nay not defined", __func__, NULL);
     n = numaGetCount(nay);
     if (nax && numaGetCount(nax) != n)
-        return (PTA *)ERROR_PTR("nax and nay sizes differ", procName, NULL);
+        return (PTA *)ERROR_PTR("nax and nay sizes differ", __func__, NULL);
 
     pta = ptaCreate(n);
     numaGetParameters(nay, &startx, &delx);
@@ -196,10 +192,8 @@ ptaDestroy(PTA  **ppta)
 {
 PTA  *pta;
 
-    PROCNAME("ptaDestroy");
-
     if (ppta == NULL) {
-        L_WARNING("ptr address is NULL!\n", procName);
+        L_WARNING("ptr address is NULL!\n", __func__);
         return;
     }
 
@@ -228,13 +222,11 @@ l_int32    i;
 l_float32  x, y;
 PTA       *npta;
 
-    PROCNAME("ptaCopy");
-
     if (!pta)
-        return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not defined", __func__, NULL);
 
     if ((npta = ptaCreate(pta->nalloc)) == NULL)
-        return (PTA *)ERROR_PTR("npta not made", procName, NULL);
+        return (PTA *)ERROR_PTR("npta not made", __func__, NULL);
 
     for (i = 0; i < pta->n; i++) {
         ptaGetPt(pta, i, &x, &y);
@@ -261,22 +253,20 @@ ptaCopyRange(PTA     *ptas,
 l_int32  n, i, x, y;
 PTA     *ptad;
 
-    PROCNAME("ptaCopyRange");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
     n = ptaGetCount(ptas);
     if (istart < 0)
         istart = 0;
     if (istart >= n)
-        return (PTA *)ERROR_PTR("istart out of bounds", procName, NULL);
+        return (PTA *)ERROR_PTR("istart out of bounds", __func__, NULL);
     if (iend <= 0 || iend >= n)
         iend = n - 1;
     if (istart > iend)
-        return (PTA *)ERROR_PTR("istart > iend; no pts", procName, NULL);
+        return (PTA *)ERROR_PTR("istart > iend; no pts", __func__, NULL);
 
     if ((ptad = ptaCreate(iend - istart + 1)) == NULL)
-        return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptad not made", __func__, NULL);
     for (i = istart; i <= iend; i++) {
         ptaGetIPt(ptas, i, &x, &y);
         ptaAddPt(ptad, x, y);
@@ -295,10 +285,8 @@ PTA     *ptad;
 PTA *
 ptaClone(PTA  *pta)
 {
-    PROCNAME("ptaClone");
-
     if (!pta)
-        return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not defined", __func__, NULL);
 
     ++pta->refcount;
     return pta;
@@ -319,10 +307,8 @@ ptaClone(PTA  *pta)
 l_ok
 ptaEmpty(PTA  *pta)
 {
-    PROCNAME("ptaEmpty");
-
     if (!pta)
-        return ERROR_INT("ptad not defined", procName, 1);
+        return ERROR_INT("ptad not defined", __func__, 1);
     pta->n = 0;
     return 0;
 }
@@ -345,15 +331,13 @@ ptaAddPt(PTA       *pta,
 {
 l_int32  n;
 
-    PROCNAME("ptaAddPt");
-
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
 
     n = pta->n;
     if (n >= pta->nalloc) {
         if (ptaExtendArrays(pta))
-            return ERROR_INT("extension failed", procName, 1);
+            return ERROR_INT("extension failed", __func__, 1);
     }
 
     pta->x[n] = x;
@@ -380,12 +364,10 @@ ptaExtendArrays(PTA  *pta)
 {
 size_t  oldsize, newsize;
 
-    PROCNAME("ptaExtendArrays");
-
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if (pta->nalloc > MaxArraySize)
-        return ERROR_INT("pta at maximum size; can't extend", procName, 1);
+        return ERROR_INT("pta at maximum size; can't extend", __func__, 1);
     oldsize = 4 * pta->nalloc;
     if (pta->nalloc > MaxArraySize / 2) {
         newsize = 4 * MaxArraySize;
@@ -396,10 +378,10 @@ size_t  oldsize, newsize;
     }
     if ((pta->x = (l_float32 *)reallocNew((void **)&pta->x,
                                           oldsize, newsize)) == NULL)
-        return ERROR_INT("new x array not returned", procName, 1);
+        return ERROR_INT("new x array not returned", __func__, 1);
     if ((pta->y = (l_float32 *)reallocNew((void **)&pta->y,
                                           oldsize, newsize)) == NULL)
-        return ERROR_INT("new y array not returned", procName, 1);
+        return ERROR_INT("new y array not returned", __func__, 1);
 
     return 0;
 }
@@ -424,19 +406,17 @@ ptaInsertPt(PTA     *pta,
 {
 l_int32  i, n;
 
-    PROCNAME("ptaInsertPt");
-
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     n = ptaGetCount(pta);
     if (index < 0 || index > n) {
-        L_ERROR("index %d not in [0,...,%d]\n", procName, index, n);
+        L_ERROR("index %d not in [0,...,%d]\n", __func__, index, n);
         return 1;
     }
 
     if (n > pta->nalloc) {
         if (ptaExtendArrays(pta))
-            return ERROR_INT("extension failed", procName, 1);
+            return ERROR_INT("extension failed", __func__, 1);
     }
     pta->n++;
     for (i = n; i > index; i--) {
@@ -469,13 +449,11 @@ ptaRemovePt(PTA     *pta,
 {
 l_int32  i, n;
 
-    PROCNAME("ptaRemovePt");
-
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     n = ptaGetCount(pta);
     if (index < 0 || index >= n) {
-        L_ERROR("index %d not in [0,...,%d]\n", procName, index, n - 1);
+        L_ERROR("index %d not in [0,...,%d]\n", __func__, index, n - 1);
         return 1;
     }
 
@@ -501,10 +479,8 @@ l_int32  i, n;
 l_int32
 ptaGetCount(PTA  *pta)
 {
-    PROCNAME("ptaGetCount");
-
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 0);
+        return ERROR_INT("pta not defined", __func__, 0);
 
     return pta->n;
 }
@@ -525,14 +501,12 @@ ptaGetPt(PTA        *pta,
          l_float32  *px,
          l_float32  *py)
 {
-    PROCNAME("ptaGetPt");
-
     if (px) *px = 0;
     if (py) *py = 0;
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if (index < 0 || index >= pta->n)
-        return ERROR_INT("invalid index", procName, 1);
+        return ERROR_INT("invalid index", __func__, 1);
 
     if (px) *px = pta->x[index];
     if (py) *py = pta->y[index];
@@ -555,14 +529,12 @@ ptaGetIPt(PTA      *pta,
           l_int32  *px,
           l_int32  *py)
 {
-    PROCNAME("ptaGetIPt");
-
     if (px) *px = 0;
     if (py) *py = 0;
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if (index < 0 || index >= pta->n)
-        return ERROR_INT("invalid index", procName, 1);
+        return ERROR_INT("invalid index", __func__, 1);
 
     if (px) *px = (l_int32)(pta->x[index] + 0.5);
     if (py) *py = (l_int32)(pta->y[index] + 0.5);
@@ -584,12 +556,10 @@ ptaSetPt(PTA       *pta,
          l_float32  x,
          l_float32  y)
 {
-    PROCNAME("ptaSetPt");
-
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if (index < 0 || index >= pta->n)
-        return ERROR_INT("invalid index", procName, 1);
+        return ERROR_INT("invalid index", __func__, 1);
 
     pta->x[index] = x;
     pta->y[index] = y;
@@ -618,20 +588,18 @@ ptaGetArrays(PTA    *pta,
 l_int32  i, n;
 NUMA    *nax, *nay;
 
-    PROCNAME("ptaGetArrays");
-
     if (!pnax && !pnay)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if (pnax) *pnax = NULL;
     if (pnay) *pnay = NULL;
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if ((n = ptaGetCount(pta)) == 0)
-        return ERROR_INT("pta is empty", procName, 1);
+        return ERROR_INT("pta is empty", __func__, 1);
 
     if (pnax) {
         if ((nax = numaCreate(n)) == NULL)
-            return ERROR_INT("nax not made", procName, 1);
+            return ERROR_INT("nax not made", __func__, 1);
         *pnax = nax;
         for (i = 0; i < n; i++)
             nax->array[i] = pta->x[i];
@@ -639,7 +607,7 @@ NUMA    *nax, *nay;
     }
     if (pnay) {
         if ((nay = numaCreate(n)) == NULL)
-            return ERROR_INT("nay not made", procName, 1);
+            return ERROR_INT("nay not made", __func__, 1);
         *pnay = nay;
         for (i = 0; i < n; i++)
             nay->array[i] = pta->y[i];
@@ -664,17 +632,15 @@ ptaRead(const char  *filename)
 FILE  *fp;
 PTA   *pta;
 
-    PROCNAME("ptaRead");
-
     if (!filename)
-        return (PTA *)ERROR_PTR("filename not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PTA *)ERROR_PTR("stream not opened", procName, NULL);
+        return (PTA *)ERROR_PTR("stream not opened", __func__, NULL);
     pta = ptaReadStream(fp);
     fclose(fp);
     if (!pta)
-        return (PTA *)ERROR_PTR("pta not read", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not read", __func__, NULL);
     return pta;
 }
 
@@ -699,40 +665,38 @@ l_int32    i, n, ix, iy, type, version;
 l_float32  x, y;
 PTA       *pta;
 
-    PROCNAME("ptaReadStream");
-
     if (!fp)
-        return (PTA *)ERROR_PTR("stream not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("stream not defined", __func__, NULL);
 
     if (fscanf(fp, "\n Pta Version %d\n", &version) != 1)
-        return (PTA *)ERROR_PTR("not a pta file", procName, NULL);
+        return (PTA *)ERROR_PTR("not a pta file", __func__, NULL);
     if (version != PTA_VERSION_NUMBER)
-        return (PTA *)ERROR_PTR("invalid pta version", procName, NULL);
+        return (PTA *)ERROR_PTR("invalid pta version", __func__, NULL);
     if (fscanf(fp, " Number of pts = %d; format = %127s\n", &n, typestr) != 2)
-        return (PTA *)ERROR_PTR("not a pta file", procName, NULL);
+        return (PTA *)ERROR_PTR("not a pta file", __func__, NULL);
     if (n < 0)
-        return (PTA *)ERROR_PTR("num pts <= 0", procName, NULL);
+        return (PTA *)ERROR_PTR("num pts <= 0", __func__, NULL);
     if (n > MaxArraySize)
-        return (PTA *)ERROR_PTR("too many pts", procName, NULL);
-    if (n == 0) L_INFO("the pta is empty\n", procName);
+        return (PTA *)ERROR_PTR("too many pts", __func__, NULL);
+    if (n == 0) L_INFO("the pta is empty\n", __func__);
 
     if (!strcmp(typestr, "float"))
         type = 0;
     else  /* typestr is "integer" */
         type = 1;
     if ((pta = ptaCreate(n)) == NULL)
-        return (PTA *)ERROR_PTR("pta not made", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         if (type == 0) {  /* data is float */
             if (fscanf(fp, "   (%f, %f)\n", &x, &y) != 2) {
                 ptaDestroy(&pta);
-                return (PTA *)ERROR_PTR("error reading floats", procName, NULL);
+                return (PTA *)ERROR_PTR("error reading floats", __func__, NULL);
             }
             ptaAddPt(pta, x, y);
         } else {   /* data is integer */
             if (fscanf(fp, "   (%d, %d)\n", &ix, &iy) != 2) {
                 ptaDestroy(&pta);
-                return (PTA *)ERROR_PTR("error reading ints", procName, NULL);
+                return (PTA *)ERROR_PTR("error reading ints", __func__, NULL);
             }
             ptaAddPt(pta, ix, iy);
         }
@@ -756,16 +720,14 @@ ptaReadMem(const l_uint8  *data,
 FILE  *fp;
 PTA   *pta;
 
-    PROCNAME("ptaReadMem");
-
     if (!data)
-        return (PTA *)ERROR_PTR("data not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("data not defined", __func__, NULL);
     if ((fp = fopenReadFromMemory(data, size)) == NULL)
-        return (PTA *)ERROR_PTR("stream not opened", procName, NULL);
+        return (PTA *)ERROR_PTR("stream not opened", __func__, NULL);
 
     pta = ptaReadStream(fp);
     fclose(fp);
-    if (!pta) L_ERROR("pta not read\n", procName);
+    if (!pta) L_ERROR("pta not read\n", __func__);
     return pta;
 }
 
@@ -792,12 +754,10 @@ ptaWriteDebug(const char  *filename,
               PTA         *pta,
               l_int32      type)
 {
-    PROCNAME("ptaWriteDebug");
-
     if (LeptDebugOK) {
         return ptaWrite(filename, pta, type);
     } else {
-        L_INFO("write to named temp file %s is disabled\n", procName, filename);
+        L_INFO("write to named temp file %s is disabled\n", __func__, filename);
         return 0;
     }
 }
@@ -819,19 +779,17 @@ ptaWrite(const char  *filename,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("ptaWrite");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ret = ptaWriteStream(fp, pta, type);
     fclose(fp);
     if (ret)
-        return ERROR_INT("pta not written to stream", procName, 1);
+        return ERROR_INT("pta not written to stream", __func__, 1);
     return 0;
 }
 
@@ -852,12 +810,10 @@ ptaWriteStream(FILE    *fp,
 l_int32    i, n, ix, iy;
 l_float32  x, y;
 
-    PROCNAME("ptaWriteStream");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
 
     n = ptaGetCount(pta);
     fprintf(fp, "\n Pta Version %d\n", PTA_VERSION_NUMBER);
@@ -902,32 +858,30 @@ ptaWriteMem(l_uint8  **pdata,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("ptaWriteMem");
-
     if (pdata) *pdata = NULL;
     if (psize) *psize = 0;
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     if (!psize)
-        return ERROR_INT("&size not defined", procName, 1);
+        return ERROR_INT("&size not defined", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
 
 #if HAVE_FMEMOPEN
     if ((fp = open_memstream((char **)pdata, psize)) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ret = ptaWriteStream(fp, pta, type);
     fputc('\0', fp);
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #else
     if ((fp = tmpfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #endif  /* _WIN32 */
     ret = ptaWriteStream(fp, pta, type);
     rewind(fp);
@@ -952,8 +906,6 @@ ptaaCreate(l_int32  n)
 {
 PTAA  *ptaa;
 
-    PROCNAME("ptaaCreate");
-
     if (n <= 0 || n > MaxPtrArraySize)
         n = InitialArraySize;
 
@@ -962,7 +914,7 @@ PTAA  *ptaa;
     ptaa->nalloc = n;
     if ((ptaa->pta = (PTA **)LEPT_CALLOC(n, sizeof(PTA *))) == NULL) {
         ptaaDestroy(&ptaa);
-        return (PTAA *)ERROR_PTR("pta ptrs not made", procName, NULL);
+        return (PTAA *)ERROR_PTR("pta ptrs not made", __func__, NULL);
     }
     return ptaa;
 }
@@ -980,10 +932,8 @@ ptaaDestroy(PTAA  **pptaa)
 l_int32  i;
 PTAA    *ptaa;
 
-    PROCNAME("ptaaDestroy");
-
     if (pptaa == NULL) {
-        L_WARNING("ptr address is NULL!\n", procName);
+        L_WARNING("ptr address is NULL!\n", __func__);
         return;
     }
 
@@ -1017,23 +967,21 @@ ptaaAddPta(PTAA    *ptaa,
 l_int32  n;
 PTA     *ptac;
 
-    PROCNAME("ptaaAddPta");
-
     if (!ptaa)
-        return ERROR_INT("ptaa not defined", procName, 1);
+        return ERROR_INT("ptaa not defined", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
 
     if (copyflag == L_INSERT) {
         ptac = pta;
     } else if (copyflag == L_COPY) {
         if ((ptac = ptaCopy(pta)) == NULL)
-            return ERROR_INT("ptac not made", procName, 1);
+            return ERROR_INT("ptac not made", __func__, 1);
     } else if (copyflag == L_CLONE) {
         if ((ptac = ptaClone(pta)) == NULL)
-            return ERROR_INT("pta clone not made", procName, 1);
+            return ERROR_INT("pta clone not made", __func__, 1);
     } else {
-        return ERROR_INT("invalid copyflag", procName, 1);
+        return ERROR_INT("invalid copyflag", __func__, 1);
     }
 
     n = ptaaGetCount(ptaa);
@@ -1041,7 +989,7 @@ PTA     *ptac;
         if (ptaaExtendArray(ptaa)) {
             if (copyflag != L_INSERT)
                 ptaDestroy(&ptac);
-            return ERROR_INT("extension failed", procName, 1);
+            return ERROR_INT("extension failed", __func__, 1);
         }
     }
 
@@ -1069,18 +1017,16 @@ ptaaExtendArray(PTAA  *ptaa)
 {
 size_t  oldsize, newsize;
 
-    PROCNAME("ptaaExtendArray");
-
     if (!ptaa)
-        return ERROR_INT("ptaa not defined", procName, 1);
+        return ERROR_INT("ptaa not defined", __func__, 1);
     oldsize = ptaa->nalloc * sizeof(PTA *);
     newsize = 2 * oldsize;
     if (newsize > 8 * MaxPtrArraySize)
-        return ERROR_INT("newsize > 80 MB; too large", procName, 1);
+        return ERROR_INT("newsize > 80 MB; too large", __func__, 1);
 
     if ((ptaa->pta = (PTA **)reallocNew((void **)&ptaa->pta,
                                         oldsize, newsize)) == NULL)
-        return ERROR_INT("new ptr array not returned", procName, 1);
+        return ERROR_INT("new ptr array not returned", __func__, 1);
 
     ptaa->nalloc *= 2;
     return 0;
@@ -1099,10 +1045,8 @@ size_t  oldsize, newsize;
 l_int32
 ptaaGetCount(PTAA  *ptaa)
 {
-    PROCNAME("ptaaGetCount");
-
     if (!ptaa)
-        return ERROR_INT("ptaa not defined", procName, 0);
+        return ERROR_INT("ptaa not defined", __func__, 0);
 
     return ptaa->n;
 }
@@ -1121,19 +1065,17 @@ ptaaGetPta(PTAA    *ptaa,
            l_int32  index,
            l_int32  accessflag)
 {
-    PROCNAME("ptaaGetPta");
-
     if (!ptaa)
-        return (PTA *)ERROR_PTR("ptaa not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptaa not defined", __func__, NULL);
     if (index < 0 || index >= ptaa->n)
-        return (PTA *)ERROR_PTR("index not valid", procName, NULL);
+        return (PTA *)ERROR_PTR("index not valid", __func__, NULL);
 
     if (accessflag == L_COPY)
         return ptaCopy(ptaa->pta[index]);
     else if (accessflag == L_CLONE)
         return ptaClone(ptaa->pta[index]);
     else
-        return (PTA *)ERROR_PTR("invalid accessflag", procName, NULL);
+        return (PTA *)ERROR_PTR("invalid accessflag", __func__, NULL);
 }
 
 
@@ -1156,19 +1098,17 @@ ptaaGetPt(PTAA       *ptaa,
 {
 PTA  *pta;
 
-    PROCNAME("ptaaGetPt");
-
     if (px) *px = 0;
     if (py) *py = 0;
     if (!ptaa)
-        return ERROR_INT("ptaa not defined", procName, 1);
+        return ERROR_INT("ptaa not defined", __func__, 1);
     if (ipta < 0 || ipta >= ptaa->n)
-        return ERROR_INT("index ipta not valid", procName, 1);
+        return ERROR_INT("index ipta not valid", __func__, 1);
 
     pta = ptaaGetPta(ptaa, ipta, L_CLONE);
     if (jpt < 0 || jpt >= pta->n) {
         ptaDestroy(&pta);
-        return ERROR_INT("index jpt not valid", procName, 1);
+        return ERROR_INT("index jpt not valid", __func__, 1);
     }
 
     ptaGetPt(pta, jpt, px, py);
@@ -1194,12 +1134,10 @@ ptaaInitFull(PTAA  *ptaa,
 l_int32  n, i;
 PTA     *ptat;
 
-    PROCNAME("ptaaInitFull");
-
     if (!ptaa)
-        return ERROR_INT("ptaa not defined", procName, 1);
+        return ERROR_INT("ptaa not defined", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
 
     n = ptaa->nalloc;
     ptaa->n = n;
@@ -1233,15 +1171,13 @@ ptaaReplacePta(PTAA    *ptaa,
 {
 l_int32  n;
 
-    PROCNAME("ptaaReplacePta");
-
     if (!ptaa)
-        return ERROR_INT("ptaa not defined", procName, 1);
+        return ERROR_INT("ptaa not defined", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     n = ptaaGetCount(ptaa);
     if (index < 0 || index >= n)
-        return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("index not valid", __func__, 1);
 
     ptaDestroy(&ptaa->pta[index]);
     ptaa->pta[index] = pta;
@@ -1265,12 +1201,10 @@ ptaaAddPt(PTAA      *ptaa,
 {
 PTA  *pta;
 
-    PROCNAME("ptaaAddPt");
-
     if (!ptaa)
-        return ERROR_INT("ptaa not defined", procName, 1);
+        return ERROR_INT("ptaa not defined", __func__, 1);
     if (ipta < 0 || ipta >= ptaa->n)
-        return ERROR_INT("index ipta not valid", procName, 1);
+        return ERROR_INT("index ipta not valid", __func__, 1);
 
     pta = ptaaGetPta(ptaa, ipta, L_CLONE);
     ptaAddPt(pta, x, y);
@@ -1298,10 +1232,8 @@ ptaaTruncate(PTAA  *ptaa)
 l_int32  i, n, np;
 PTA     *pta;
 
-    PROCNAME("ptaaTruncate");
-
     if (!ptaa)
-        return ERROR_INT("ptaa not defined", procName, 1);
+        return ERROR_INT("ptaa not defined", __func__, 1);
 
     n = ptaaGetCount(ptaa);
     for (i = n - 1; i >= 0; i--) {
@@ -1338,17 +1270,15 @@ ptaaRead(const char  *filename)
 FILE  *fp;
 PTAA  *ptaa;
 
-    PROCNAME("ptaaRead");
-
     if (!filename)
-        return (PTAA *)ERROR_PTR("filename not defined", procName, NULL);
+        return (PTAA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PTAA *)ERROR_PTR("stream not opened", procName, NULL);
+        return (PTAA *)ERROR_PTR("stream not opened", __func__, NULL);
     ptaa = ptaaReadStream(fp);
     fclose(fp);
     if (!ptaa)
-        return (PTAA *)ERROR_PTR("ptaa not read", procName, NULL);
+        return (PTAA *)ERROR_PTR("ptaa not read", __func__, NULL);
     return ptaa;
 }
 
@@ -1371,29 +1301,27 @@ l_int32  i, n, version;
 PTA     *pta;
 PTAA    *ptaa;
 
-    PROCNAME("ptaaReadStream");
-
     if (!fp)
-        return (PTAA *)ERROR_PTR("stream not defined", procName, NULL);
+        return (PTAA *)ERROR_PTR("stream not defined", __func__, NULL);
 
     if (fscanf(fp, "\nPtaa Version %d\n", &version) != 1)
-        return (PTAA *)ERROR_PTR("not a ptaa file", procName, NULL);
+        return (PTAA *)ERROR_PTR("not a ptaa file", __func__, NULL);
     if (version != PTA_VERSION_NUMBER)
-        return (PTAA *)ERROR_PTR("invalid ptaa version", procName, NULL);
+        return (PTAA *)ERROR_PTR("invalid ptaa version", __func__, NULL);
     if (fscanf(fp, "Number of Pta = %d\n", &n) != 1)
-        return (PTAA *)ERROR_PTR("not a ptaa file", procName, NULL);
+        return (PTAA *)ERROR_PTR("not a ptaa file", __func__, NULL);
     if (n < 0)
-        return (PTAA *)ERROR_PTR("num pta ptrs <= 0", procName, NULL);
+        return (PTAA *)ERROR_PTR("num pta ptrs <= 0", __func__, NULL);
     if (n > MaxPtrArraySize)
-        return (PTAA *)ERROR_PTR("too many pta ptrs", procName, NULL);
-    if (n == 0) L_INFO("the ptaa is empty\n", procName);
+        return (PTAA *)ERROR_PTR("too many pta ptrs", __func__, NULL);
+    if (n == 0) L_INFO("the ptaa is empty\n", __func__);
 
     if ((ptaa = ptaaCreate(n)) == NULL)
-        return (PTAA *)ERROR_PTR("ptaa not made", procName, NULL);
+        return (PTAA *)ERROR_PTR("ptaa not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         if ((pta = ptaReadStream(fp)) == NULL) {
             ptaaDestroy(&ptaa);
-            return (PTAA *)ERROR_PTR("error reading pta", procName, NULL);
+            return (PTAA *)ERROR_PTR("error reading pta", __func__, NULL);
         }
         ptaaAddPta(ptaa, pta, L_INSERT);
     }
@@ -1416,16 +1344,14 @@ ptaaReadMem(const l_uint8  *data,
 FILE  *fp;
 PTAA  *ptaa;
 
-    PROCNAME("ptaaReadMem");
-
     if (!data)
-        return (PTAA *)ERROR_PTR("data not defined", procName, NULL);
+        return (PTAA *)ERROR_PTR("data not defined", __func__, NULL);
     if ((fp = fopenReadFromMemory(data, size)) == NULL)
-        return (PTAA *)ERROR_PTR("stream not opened", procName, NULL);
+        return (PTAA *)ERROR_PTR("stream not opened", __func__, NULL);
 
     ptaa = ptaaReadStream(fp);
     fclose(fp);
-    if (!ptaa) L_ERROR("ptaa not read\n", procName);
+    if (!ptaa) L_ERROR("ptaa not read\n", __func__);
     return ptaa;
 }
 
@@ -1452,12 +1378,10 @@ ptaaWriteDebug(const char  *filename,
                PTAA        *ptaa,
                l_int32      type)
 {
-    PROCNAME("ptaaWriteDebug");
-
     if (LeptDebugOK) {
         return ptaaWrite(filename, ptaa, type);
     } else {
-        L_INFO("write to named temp file %s is disabled\n", procName, filename);
+        L_INFO("write to named temp file %s is disabled\n", __func__, filename);
         return 0;
     }
 }
@@ -1479,19 +1403,17 @@ ptaaWrite(const char  *filename,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("ptaaWrite");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
     if (!ptaa)
-        return ERROR_INT("ptaa not defined", procName, 1);
+        return ERROR_INT("ptaa not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ret = ptaaWriteStream(fp, ptaa, type);
     fclose(fp);
     if (ret)
-        return ERROR_INT("ptaa not written to stream", procName, 1);
+        return ERROR_INT("ptaa not written to stream", __func__, 1);
     return 0;
 }
 
@@ -1512,12 +1434,10 @@ ptaaWriteStream(FILE    *fp,
 l_int32  i, n;
 PTA     *pta;
 
-    PROCNAME("ptaaWriteStream");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
     if (!ptaa)
-        return ERROR_INT("ptaa not defined", procName, 1);
+        return ERROR_INT("ptaa not defined", __func__, 1);
 
     n = ptaaGetCount(ptaa);
     fprintf(fp, "\nPtaa Version %d\n", PTA_VERSION_NUMBER);
@@ -1555,32 +1475,30 @@ ptaaWriteMem(l_uint8  **pdata,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("ptaaWriteMem");
-
     if (pdata) *pdata = NULL;
     if (psize) *psize = 0;
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     if (!psize)
-        return ERROR_INT("&size not defined", procName, 1);
+        return ERROR_INT("&size not defined", __func__, 1);
     if (!ptaa)
-        return ERROR_INT("ptaa not defined", procName, 1);
+        return ERROR_INT("ptaa not defined", __func__, 1);
 
 #if HAVE_FMEMOPEN
     if ((fp = open_memstream((char **)pdata, psize)) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ret = ptaaWriteStream(fp, ptaa, type);
     fputc('\0', fp);
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #else
     if ((fp = tmpfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #endif  /* _WIN32 */
     ret = ptaaWriteStream(fp, ptaa, type);
     rewind(fp);

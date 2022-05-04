@@ -83,14 +83,12 @@ char    *fname, *tail, *basename;
 PIX     *pixs, *pixg1, *pixg2, *pixb;
 SARRAY  *safiles;
 
-    PROCNAME("convertFilesTo1bpp");
-
     if (!dirin)
-        return ERROR_INT("dirin", procName, 1);
+        return ERROR_INT("dirin", __func__, 1);
     if (!dirout)
-        return ERROR_INT("dirout", procName, 1);
+        return ERROR_INT("dirout", __func__, 1);
     if (upscaling != 1 && upscaling != 2 && upscaling != 4)
-        return ERROR_INT("invalid upscaling factor", procName, 1);
+        return ERROR_INT("invalid upscaling factor", __func__, 1);
     if (thresh <= 0) thresh = 180;
     if (firstpage < 0) firstpage = 0;
     if (npages < 0) npages = 0;
@@ -99,16 +97,16 @@ SARRAY  *safiles;
 
     safiles = getSortedPathnamesInDirectory(dirin, substr, firstpage, npages);
     if (!safiles)
-        return ERROR_INT("safiles not made", procName, 1);
+        return ERROR_INT("safiles not made", __func__, 1);
     if ((nfiles = sarrayGetCount(safiles)) == 0) {
         sarrayDestroy(&safiles);
-        return ERROR_INT("no matching files in the directory", procName, 1);
+        return ERROR_INT("no matching files in the directory", __func__, 1);
     }
 
     for (i = 0; i < nfiles; i++) {
         fname = sarrayGetString(safiles, i, L_NOCOPY);
         if ((pixs = pixRead(fname)) == NULL) {
-            L_WARNING("Couldn't read file %s\n", procName, fname);
+            L_WARNING("Couldn't read file %s\n", __func__, fname);
             continue;
         }
         if (pixGetDepth(pixs) == 32)

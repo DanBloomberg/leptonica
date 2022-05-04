@@ -177,12 +177,10 @@ l_int32   d;
 l_uint32  fillval;
 PIX      *pixt1, *pixt2, *pixd;
 
-    PROCNAME("pixRotateAM");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) == 1)
-        return (PIX *)ERROR_PTR("pixs is 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs is 1 bpp", __func__, NULL);
 
     if (L_ABS(angle) < MinAngleToRotate)
         return pixClone(pixs);
@@ -240,12 +238,10 @@ l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
 PIX       *pix1, *pix2, *pixd;
 
-    PROCNAME("pixRotateAMColor");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 32 bpp", __func__, NULL);
 
     if (L_ABS(angle) < MinAngleToRotate)
         return pixClone(pixs);
@@ -294,12 +290,10 @@ l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
 PIX        *pixd;
 
-    PROCNAME("pixRotateAMGray");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 8 bpp", __func__, NULL);
 
     if (L_ABS(angle) < MinAngleToRotate)
         return pixClone(pixs);
@@ -475,10 +469,8 @@ l_int32   d;
 l_uint32  fillval;
 PIX      *pixt1, *pixt2, *pixd;
 
-    PROCNAME("pixRotateAMCorner");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
 
     if (L_ABS(angle) < MinAngleToRotate)
         return pixClone(pixs);
@@ -536,12 +528,10 @@ l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
 PIX       *pix1, *pix2, *pixd;
 
-    PROCNAME("pixRotateAMColorCorner");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 32 bpp", __func__, NULL);
 
     if (L_ABS(angle) < MinAngleToRotate)
         return pixClone(pixs);
@@ -590,12 +580,10 @@ l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixRotateAMGrayCorner");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 8 bpp", __func__, NULL);
 
     if (L_ABS(angle) < MinAngleToRotate)
         return pixClone(pixs);
@@ -769,12 +757,10 @@ l_int32    w, h, wpls, wpld;
 l_uint32  *datas, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixRotateAMColorFast");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 32 bpp", __func__, NULL);
 
     if (L_ABS(angle) < MinAngleToRotate)
         return pixClone(pixs);

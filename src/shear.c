@@ -124,12 +124,10 @@ l_int32    sign, w, h;
 l_int32    y, yincr, inityincr, hshift;
 l_float32  tanangle, invangle;
 
-    PROCNAME("pixHShear");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return (PIX *)ERROR_PTR("invalid incolor value", procName, pixd);
+        return (PIX *)ERROR_PTR("invalid incolor value", __func__, pixd);
 
     if (pixd == pixs) {  /* in place */
         if (!pixGetColormap(pixs)) {
@@ -145,7 +143,7 @@ l_float32  tanangle, invangle;
         /* Make sure pixd exists and is same size as pixs */
     if (!pixd) {
         if ((pixd = pixCreateTemplate(pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     } else {  /* pixd != pixs */
         pixResizeImageData(pixd, pixs);
     }
@@ -245,12 +243,10 @@ l_int32    sign, w, h;
 l_int32    x, xincr, initxincr, vshift;
 l_float32  tanangle, invangle;
 
-    PROCNAME("pixVShear");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return (PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid incolor value", __func__, NULL);
 
     if (pixd == pixs) {  /* in place */
         if (!pixGetColormap(pixs)) {
@@ -266,7 +262,7 @@ l_float32  tanangle, invangle;
         /* Make sure pixd exists and is same size as pixs */
     if (!pixd) {
         if ((pixd = pixCreateTemplate(pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     } else {  /* pixd != pixs */
         pixResizeImageData(pixd, pixs);
     }
@@ -342,10 +338,8 @@ pixHShearCorner(PIX       *pixd,
                 l_float32  radang,
                 l_int32    incolor)
 {
-    PROCNAME("pixHShearCorner");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
 
     return pixHShear(pixd, pixs, 0, radang, incolor);
 }
@@ -373,10 +367,8 @@ pixVShearCorner(PIX       *pixd,
                 l_float32  radang,
                 l_int32    incolor)
 {
-    PROCNAME("pixVShearCorner");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
 
     return pixVShear(pixd, pixs, 0, radang, incolor);
 }
@@ -404,10 +396,8 @@ pixHShearCenter(PIX       *pixd,
                 l_float32  radang,
                 l_int32    incolor)
 {
-    PROCNAME("pixHShearCenter");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
 
     return pixHShear(pixd, pixs, pixGetHeight(pixs) / 2, radang, incolor);
 }
@@ -435,10 +425,8 @@ pixVShearCenter(PIX       *pixd,
                 l_float32  radang,
                 l_int32    incolor)
 {
-    PROCNAME("pixVShearCenter");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
 
     return pixVShear(pixd, pixs, pixGetWidth(pixs) / 2, radang, incolor);
 }
@@ -477,14 +465,12 @@ l_int32    sign, w, h;
 l_int32    y, yincr, inityincr, hshift;
 l_float32  tanangle, invangle;
 
-    PROCNAME("pixHShearIP");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return ERROR_INT("invalid incolor value", procName, 1);
+        return ERROR_INT("invalid incolor value", __func__, 1);
     if (pixGetColormap(pixs))
-        return ERROR_INT("pixs is colormapped", procName, 1);
+        return ERROR_INT("pixs is colormapped", __func__, 1);
 
         /* Normalize angle */
     radang = normalizeAngleForShear(radang, MinDiffFromHalfPi);
@@ -552,14 +538,12 @@ l_int32    sign, w, h;
 l_int32    x, xincr, initxincr, vshift;
 l_float32  tanangle, invangle;
 
-    PROCNAME("pixVShearIP");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return ERROR_INT("invalid incolor value", procName, 1);
+        return ERROR_INT("invalid incolor value", __func__, 1);
     if (pixGetColormap(pixs))
-        return ERROR_INT("pixs is colormapped", procName, 1);
+        return ERROR_INT("pixs is colormapped", __func__, 1);
 
         /* Normalize angle */
     radang = normalizeAngleForShear(radang, MinDiffFromHalfPi);
@@ -637,17 +621,15 @@ l_uint32  *datas, *datad, *lines, *lined;
 l_float32  tanangle, xshift;
 PIX       *pix, *pixd;
 
-    PROCNAME("pixHShearLI");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 && d != 32 && !pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pixs not 8, 32 bpp, or cmap", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8, 32 bpp, or cmap", __func__, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return (PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid incolor value", __func__, NULL);
     if (yloc < 0 || yloc >= h)
-        return (PIX *)ERROR_PTR("yloc not in [0 ... h-1]", procName, NULL);
+        return (PIX *)ERROR_PTR("yloc not in [0 ... h-1]", __func__, NULL);
 
     if (pixGetColormap(pixs))
         pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
@@ -749,17 +731,15 @@ l_uint32  *datas, *datad, *lines, *lined;
 l_float32  tanangle, yshift;
 PIX       *pix, *pixd;
 
-    PROCNAME("pixVShearLI");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 && d != 32 && !pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pixs not 8, 32 bpp, or cmap", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8, 32 bpp, or cmap", __func__, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return (PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid incolor value", __func__, NULL);
     if (xloc < 0 || xloc >= w)
-        return (PIX *)ERROR_PTR("xloc not in [0 ... w-1]", procName, NULL);
+        return (PIX *)ERROR_PTR("xloc not in [0 ... w-1]", __func__, NULL);
 
     if (pixGetColormap(pixs))
         pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
@@ -834,8 +814,6 @@ normalizeAngleForShear(l_float32  radang,
 {
 l_float32  pi2;
 
-    PROCNAME("normalizeAngleForShear");
-
        /* Bring angle into range [-pi/2, pi/2] */
     pi2 = 3.14159265 / 2.0;
     if (radang < -pi2 || radang > pi2)
@@ -843,10 +821,10 @@ l_float32  pi2;
 
        /* If angle is too close to pi/2 or -pi/2, move it */
     if (radang > pi2 - mindif) {
-        L_WARNING("angle close to pi/2; shifting away\n", procName);
+        L_WARNING("angle close to pi/2; shifting away\n", __func__);
         radang = pi2 - mindif;
     } else if (radang < -pi2 + mindif) {
-        L_WARNING("angle close to -pi/2; shifting away\n", procName);
+        L_WARNING("angle close to -pi/2; shifting away\n", __func__);
         radang = -pi2 + mindif;
     }
 

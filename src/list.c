@@ -240,10 +240,8 @@ listDestroy(DLLIST  **phead)
 {
 DLLIST  *elem, *next, *head;
 
-    PROCNAME("listDestroy");
-
     if (phead == NULL) {
-        L_WARNING("ptr address is null!\n", procName);
+        L_WARNING("ptr address is null!\n", __func__);
         return;
     }
 
@@ -252,7 +250,7 @@ DLLIST  *elem, *next, *head;
 
     for (elem = head; elem; elem = next) {
         if (elem->data)
-            L_WARNING("list data ptr is not null\n", procName);
+            L_WARNING("list data ptr is not null\n", __func__);
         next = elem->next;
         LEPT_FREE(elem);
     }
@@ -281,13 +279,11 @@ listAddToHead(DLLIST  **phead,
 {
 DLLIST  *cell, *head;
 
-    PROCNAME("listAddToHead");
-
     if (!phead)
-        return ERROR_INT("&head not defined", procName, 1);
+        return ERROR_INT("&head not defined", __func__, 1);
     head = *phead;
     if (!data)
-        return ERROR_INT("data not defined", procName, 1);
+        return ERROR_INT("data not defined", __func__, 1);
 
     cell = (DLLIST *)LEPT_CALLOC(1, sizeof(DLLIST));
     cell->data = data;
@@ -334,15 +330,13 @@ listAddToTail(DLLIST  **phead,
 {
 DLLIST  *cell, *head, *tail;
 
-    PROCNAME("listAddToTail");
-
     if (!phead)
-        return ERROR_INT("&head not defined", procName, 1);
+        return ERROR_INT("&head not defined", __func__, 1);
     head = *phead;
     if (!ptail)
-        return ERROR_INT("&tail not defined", procName, 1);
+        return ERROR_INT("&tail not defined", __func__, 1);
     if (!data)
-        return ERROR_INT("data not defined", procName, 1);
+        return ERROR_INT("data not defined", __func__, 1);
 
     cell = (DLLIST *)LEPT_CALLOC(1, sizeof(DLLIST));
     cell->data = data;
@@ -395,15 +389,13 @@ listInsertBefore(DLLIST  **phead,
 {
 DLLIST  *cell, *head;
 
-    PROCNAME("listInsertBefore");
-
     if (!phead)
-        return ERROR_INT("&head not defined", procName, 1);
+        return ERROR_INT("&head not defined", __func__, 1);
     head = *phead;
     if (!data)
-        return ERROR_INT("data not defined", procName, 1);
+        return ERROR_INT("data not defined", __func__, 1);
     if ((!head && elem) || (head && !elem))
-        return ERROR_INT("head and elem not consistent", procName, 1);
+        return ERROR_INT("head and elem not consistent", __func__, 1);
 
         /* New cell to insert */
     cell = (DLLIST *)LEPT_CALLOC(1, sizeof(DLLIST));
@@ -458,15 +450,13 @@ listInsertAfter(DLLIST  **phead,
 {
 DLLIST  *cell, *head;
 
-    PROCNAME("listInsertAfter");
-
     if (!phead)
-        return ERROR_INT("&head not defined", procName, 1);
+        return ERROR_INT("&head not defined", __func__, 1);
     head = *phead;
     if (!data)
-        return ERROR_INT("data not defined", procName, 1);
+        return ERROR_INT("data not defined", __func__, 1);
     if ((!head && elem) || (head && !elem))
-        return ERROR_INT("head and elem not consistent", procName, 1);
+        return ERROR_INT("head and elem not consistent", __func__, 1);
 
         /* New cell to insert */
     cell = (DLLIST *)LEPT_CALLOC(1, sizeof(DLLIST));
@@ -511,21 +501,19 @@ listRemoveElement(DLLIST  **phead,
 void    *data;
 DLLIST  *head;
 
-    PROCNAME("listRemoveElement");
-
     if (!phead)
-        return (void *)ERROR_PTR("&head not defined", procName, NULL);
+        return (void *)ERROR_PTR("&head not defined", __func__, NULL);
     head = *phead;
     if (!head)
-        return (void *)ERROR_PTR("head not defined", procName, NULL);
+        return (void *)ERROR_PTR("head not defined", __func__, NULL);
     if (!elem)
-        return (void *)ERROR_PTR("elem not defined", procName, NULL);
+        return (void *)ERROR_PTR("elem not defined", __func__, NULL);
 
     data = elem->data;
 
     if (head->next == NULL) {  /* only one */
         if (elem != head)
-            return (void *)ERROR_PTR("elem must be head", procName, NULL);
+            return (void *)ERROR_PTR("elem must be head", __func__, NULL);
         *phead = NULL;
     } else if (head == elem) {   /* first one */
         elem->next->prev = NULL;
@@ -562,12 +550,10 @@ listRemoveFromHead(DLLIST  **phead)
 DLLIST  *head;
 void    *data;
 
-    PROCNAME("listRemoveFromHead");
-
     if (!phead)
-        return (void *)ERROR_PTR("&head not defined", procName, NULL);
+        return (void *)ERROR_PTR("&head not defined", __func__, NULL);
     if ((head = *phead) == NULL)
-        return (void *)ERROR_PTR("head not defined", procName, NULL);
+        return (void *)ERROR_PTR("head not defined", __func__, NULL);
 
     if (head->next == NULL) {  /* only one */
         *phead = NULL;
@@ -611,14 +597,12 @@ listRemoveFromTail(DLLIST  **phead,
 DLLIST  *head, *tail;
 void    *data;
 
-    PROCNAME("listRemoveFromTail");
-
     if (!phead)
-        return (void *)ERROR_PTR("&head not defined", procName, NULL);
+        return (void *)ERROR_PTR("&head not defined", __func__, NULL);
     if ((head = *phead) == NULL)
-        return (void *)ERROR_PTR("head not defined", procName, NULL);
+        return (void *)ERROR_PTR("head not defined", __func__, NULL);
     if (!ptail)
-        return (void *)ERROR_PTR("&tail not defined", procName, NULL);
+        return (void *)ERROR_PTR("&tail not defined", __func__, NULL);
     if ((tail = *ptail) == NULL)
         tail = listFindTail(head);
 
@@ -664,12 +648,10 @@ listFindElement(DLLIST  *head,
 {
 DLLIST  *cell;
 
-    PROCNAME("listFindElement");
-
     if (!head)
-        return (DLLIST *)ERROR_PTR("head not defined", procName, NULL);
+        return (DLLIST *)ERROR_PTR("head not defined", __func__, NULL);
     if (!data)
-        return (DLLIST *)ERROR_PTR("data not defined", procName, NULL);
+        return (DLLIST *)ERROR_PTR("data not defined", __func__, NULL);
 
     for (cell = head; cell; cell = cell->next) {
         if (cell->data == data)
@@ -691,17 +673,15 @@ listFindTail(DLLIST  *head)
 {
 DLLIST  *cell;
 
-    PROCNAME("listFindTail");
-
     if (!head)
-        return (DLLIST *)ERROR_PTR("head not defined", procName, NULL);
+        return (DLLIST *)ERROR_PTR("head not defined", __func__, NULL);
 
     for (cell = head; cell; cell = cell->next) {
         if (cell->next == NULL)
             return cell;
     }
 
-    return (DLLIST *)ERROR_PTR("tail not found !!", procName, NULL);
+    return (DLLIST *)ERROR_PTR("tail not found !!", __func__, NULL);
 }
 
 
@@ -717,10 +697,8 @@ listGetCount(DLLIST  *head)
 l_int32  count;
 DLLIST  *elem;
 
-    PROCNAME("listGetCount");
-
     if (!head)
-        return ERROR_INT("head not defined", procName, 0);
+        return ERROR_INT("head not defined", __func__, 0);
 
     count = 0;
     for (elem = head; elem; elem = elem->next)
@@ -747,12 +725,10 @@ listReverse(DLLIST  **phead)
 void    *obj;  /* whatever */
 DLLIST  *head, *rhead;
 
-    PROCNAME("listReverse");
-
     if (!phead)
-        return ERROR_INT("&head not defined", procName, 1);
+        return ERROR_INT("&head not defined", __func__, 1);
     if ((head = *phead) == NULL)
-        return ERROR_INT("head not defined", procName, 1);
+        return ERROR_INT("head not defined", __func__, 1);
 
     rhead = NULL;
     while (head) {
@@ -785,12 +761,10 @@ listJoin(DLLIST  **phead1,
 void    *obj;
 DLLIST  *head1, *head2, *tail1;
 
-    PROCNAME("listJoin");
-
     if (!phead1)
-        return ERROR_INT("&head1 not defined", procName, 1);
+        return ERROR_INT("&head1 not defined", __func__, 1);
     if (!phead2)
-        return ERROR_INT("&head2 not defined", procName, 1);
+        return ERROR_INT("&head2 not defined", __func__, 1);
 
         /* If no list2, just return list1 unchanged */
     if ((head2 = *phead2) == NULL)

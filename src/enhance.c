@@ -183,22 +183,20 @@ l_int32   d;
 NUMA     *nag;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixGammaTRC");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd not null or pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not null or pixs", __func__, pixd);
     if (gamma <= 0.0) {
-        L_WARNING("gamma must be > 0.0; setting to 1.0\n", procName);
+        L_WARNING("gamma must be > 0.0; setting to 1.0\n", __func__);
         gamma = 1.0;
     }
     if (minval >= maxval)
-        return (PIX *)ERROR_PTR("minval not < maxval", procName, pixd);
+        return (PIX *)ERROR_PTR("minval not < maxval", __func__, pixd);
     cmap = pixGetColormap(pixs);
     d = pixGetDepth(pixs);
     if (!cmap && d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("depth not 8 or 32 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("depth not 8 or 32 bpp", __func__, pixd);
 
     if (gamma == 1.0 && minval == 0 && maxval == 255)  /* no-op */
         return pixCopy(pixd, pixs);
@@ -213,7 +211,7 @@ PIXCMAP  *cmap;
 
         /* pixd is 8 or 32 bpp */
     if ((nag = numaGammaTRC(gamma, minval, maxval)) == NULL)
-        return (PIX *)ERROR_PTR("nag not made", procName, pixd);
+        return (PIX *)ERROR_PTR("nag not made", __func__, pixd);
     pixTRCMap(pixd, NULL, nag);
     numaDestroy(&nag);
 
@@ -251,24 +249,22 @@ pixGammaTRCMasked(PIX       *pixd,
 l_int32  d;
 NUMA    *nag;
 
-    PROCNAME("pixGammaTRCMasked");
-
     if (!pixm)
         return pixGammaTRC(pixd, pixs, gamma, minval, maxval);
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("invalid: pixs has a colormap", procName, pixd);
+        return (PIX *)ERROR_PTR("invalid: pixs has a colormap", __func__, pixd);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd not null or pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not null or pixs", __func__, pixd);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("depth not 8 or 32 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("depth not 8 or 32 bpp", __func__, pixd);
     if (minval >= maxval)
-        return (PIX *)ERROR_PTR("minval not < maxval", procName, pixd);
+        return (PIX *)ERROR_PTR("minval not < maxval", __func__, pixd);
     if (gamma <= 0.0) {
-        L_WARNING("gamma must be > 0.0; setting to 1.0\n", procName);
+        L_WARNING("gamma must be > 0.0; setting to 1.0\n", __func__);
         gamma = 1.0;
     }
 
@@ -279,7 +275,7 @@ NUMA    *nag;
         pixd = pixCopy(NULL, pixs);
 
     if ((nag = numaGammaTRC(gamma, minval, maxval)) == NULL)
-        return (PIX *)ERROR_PTR("nag not made", procName, pixd);
+        return (PIX *)ERROR_PTR("nag not made", __func__, pixd);
     pixTRCMap(pixd, pixm, nag);
     numaDestroy(&nag);
 
@@ -314,18 +310,16 @@ pixGammaTRCWithAlpha(PIX       *pixd,
 NUMA  *nag;
 PIX   *pixalpha;
 
-    PROCNAME("pixGammaTRCWithAlpha");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", __func__, pixd);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd not null or pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not null or pixs", __func__, pixd);
     if (gamma <= 0.0) {
-        L_WARNING("gamma must be > 0.0; setting to 1.0\n", procName);
+        L_WARNING("gamma must be > 0.0; setting to 1.0\n", __func__);
         gamma = 1.0;
     }
     if (minval >= maxval)
-        return (PIX *)ERROR_PTR("minval not < maxval", procName, pixd);
+        return (PIX *)ERROR_PTR("minval not < maxval", __func__, pixd);
 
     if (gamma == 1.0 && minval == 0 && maxval == 255)
         return pixCopy(pixd, pixs);
@@ -334,7 +328,7 @@ PIX   *pixalpha;
 
     pixalpha = pixGetRGBComponent(pixs, L_ALPHA_CHANNEL);  /* save */
     if ((nag = numaGammaTRC(gamma, minval, maxval)) == NULL)
-        return (PIX *)ERROR_PTR("nag not made", procName, pixd);
+        return (PIX *)ERROR_PTR("nag not made", __func__, pixd);
     pixTRCMap(pixd, NULL, nag);
     pixSetRGBComponent(pixd, pixalpha, L_ALPHA_CHANNEL);  /* restore */
     pixSetSpp(pixd, 4);
@@ -374,12 +368,10 @@ l_int32    i, val;
 l_float32  x, invgamma;
 NUMA      *na;
 
-    PROCNAME("numaGammaTRC");
-
     if (minval >= maxval)
-        return (NUMA *)ERROR_PTR("minval not < maxval", procName, NULL);
+        return (NUMA *)ERROR_PTR("minval not < maxval", __func__, NULL);
     if (gamma <= 0.0) {
-        L_WARNING("gamma must be > 0.0; setting to 1.0\n", procName);
+        L_WARNING("gamma must be > 0.0; setting to 1.0\n", __func__);
         gamma = 1.0;
     }
 
@@ -444,14 +436,12 @@ l_int32   d;
 NUMA     *nac;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixContrastTRC");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd not null or pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not null or pixs", __func__, pixd);
     if (factor < 0.0) {
-        L_WARNING("factor must be >= 0.0; using 0.0\n", procName);
+        L_WARNING("factor must be >= 0.0; using 0.0\n", __func__);
         factor = 0.0;
     }
     if (factor == 0.0)
@@ -460,7 +450,7 @@ PIXCMAP  *cmap;
     cmap = pixGetColormap(pixs);
     d = pixGetDepth(pixs);
     if (!cmap && d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("depth not 8 or 32 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("depth not 8 or 32 bpp", __func__, pixd);
 
     if (!pixd)  /* start with a copy if not in-place */
         pixd = pixCopy(NULL, pixs);
@@ -472,7 +462,7 @@ PIXCMAP  *cmap;
 
         /* pixd is 8 or 32 bpp */
     if ((nac = numaContrastTRC(factor)) == NULL)
-        return (PIX *)ERROR_PTR("nac not made", procName, pixd);
+        return (PIX *)ERROR_PTR("nac not made", __func__, pixd);
     pixTRCMap(pixd, NULL, nac);
     numaDestroy(&nac);
 
@@ -506,23 +496,21 @@ pixContrastTRCMasked(PIX       *pixd,
 l_int32  d;
 NUMA    *nac;
 
-    PROCNAME("pixContrastTRCMasked");
-
     if (!pixm)
         return pixContrastTRC(pixd, pixs, factor);
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("invalid: pixs has a colormap", procName, pixd);
+        return (PIX *)ERROR_PTR("invalid: pixs has a colormap", __func__, pixd);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd not null or pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not null or pixs", __func__, pixd);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("depth not 8 or 32 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("depth not 8 or 32 bpp", __func__, pixd);
 
     if (factor < 0.0) {
-        L_WARNING("factor must be >= 0.0; using 0.0\n", procName);
+        L_WARNING("factor must be >= 0.0; using 0.0\n", __func__);
         factor = 0.0;
     }
     if (factor == 0.0)
@@ -532,7 +520,7 @@ NUMA    *nac;
         pixd = pixCopy(NULL, pixs);
 
     if ((nac = numaContrastTRC(factor)) == NULL)
-        return (PIX *)ERROR_PTR("nac not made", procName, pixd);
+        return (PIX *)ERROR_PTR("nac not made", __func__, pixd);
     pixTRCMap(pixd, pixm, nac);
     numaDestroy(&nac);
 
@@ -563,11 +551,9 @@ l_int32    i, val;
 l_float64  x, ymax, ymin, dely, scale;
 NUMA      *na;
 
-    PROCNAME("numaContrastTRC");
-
     if (factor < 0.0) {
         L_WARNING("factor must be >= 0.0; using 0.0; no enhancement\n",
-                  procName);
+                  __func__);
         factor = 0.0;
     }
     if (factor == 0.0)
@@ -637,20 +623,18 @@ NUMA     *na;
 PIX      *pixt, *pix8;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixEqualizeTRC");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd not null or pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not null or pixs", __func__, pixd);
     cmap = pixGetColormap(pixs);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32 && !cmap)
-        return (PIX *)ERROR_PTR("pixs not 8/32 bpp or cmapped", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8/32 bpp or cmapped", __func__, NULL);
     if (fract < 0.0 || fract > 1.0)
-        return (PIX *)ERROR_PTR("fract not in [0.0 ... 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("fract not in [0.0 ... 1.0]", __func__, NULL);
     if (factor < 1)
-        return (PIX *)ERROR_PTR("sampling factor < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("sampling factor < 1", __func__, NULL);
 
     if (fract == 0.0)
         return pixCopy(pixd, pixs);
@@ -722,22 +706,20 @@ l_int32    iin, iout, itarg;
 l_float32  val, sum;
 NUMA      *nah, *nasum, *nad;
 
-    PROCNAME("numaEqualizeTRC");
-
     if (!pix)
-        return (NUMA *)ERROR_PTR("pix not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pix not defined", __func__, NULL);
     if (pixGetDepth(pix) != 8)
-        return (NUMA *)ERROR_PTR("pix not 8 bpp", procName, NULL);
+        return (NUMA *)ERROR_PTR("pix not 8 bpp", __func__, NULL);
     if (fract < 0.0 || fract > 1.0)
-        return (NUMA *)ERROR_PTR("fract not in [0.0 ... 1.0]", procName, NULL);
+        return (NUMA *)ERROR_PTR("fract not in [0.0 ... 1.0]", __func__, NULL);
     if (factor < 1)
-        return (NUMA *)ERROR_PTR("sampling factor < 1", procName, NULL);
+        return (NUMA *)ERROR_PTR("sampling factor < 1", __func__, NULL);
 
     if (fract == 0.0)
-        L_WARNING("fract = 0.0; no equalization requested\n", procName);
+        L_WARNING("fract = 0.0; no equalization requested\n", __func__);
 
     if ((nah = pixGetGrayHistogram(pix, factor)) == NULL)
-        return (NUMA *)ERROR_PTR("histogram not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("histogram not made", __func__, NULL);
     numaGetSum(nah, &sum);
     nasum = numaGetPartialSums(nah);
 
@@ -789,22 +771,20 @@ l_int32    w, h, d, wm, hm, wpl, wplm, i, j, sval8, dval8;
 l_uint32   sval32, dval32;
 l_uint32  *data, *datam, *line, *linem, *tab;
 
-    PROCNAME("pixTRCMap");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (pixGetColormap(pixs))
-        return ERROR_INT("pixs is colormapped", procName, 1);
+        return ERROR_INT("pixs is colormapped", __func__, 1);
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     if (numaGetCount(na) != 256)
-        return ERROR_INT("na not of size 256", procName, 1);
+        return ERROR_INT("na not of size 256", __func__, 1);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 && d != 32)
-        return ERROR_INT("pixs not 8 or 32 bpp", procName, 1);
+        return ERROR_INT("pixs not 8 or 32 bpp", __func__, 1);
     if (pixm) {
         if (pixGetDepth(pixm) != 1)
-            return ERROR_INT("pixm not 1 bpp", procName, 1);
+            return ERROR_INT("pixm not 1 bpp", __func__, 1);
     }
 
     tab = (l_uint32 *)numaGetIArray(na);  /* get the array for efficiency */
@@ -913,17 +893,15 @@ l_int32    w, h, wm, hm, wpl, wplm, i, j;
 l_uint32   sval32, dval32;
 l_uint32  *data, *datam, *line, *linem, *tabr, *tabg, *tabb;
 
-    PROCNAME("pixTRCMapGeneral");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 32 bpp", __func__, 1);
     if (pixm && pixGetDepth(pixm) != 1)
-        return ERROR_INT("pixm defined and not 1 bpp", procName, 1);
+        return ERROR_INT("pixm defined and not 1 bpp", __func__, 1);
     if (!nar || !nag || !nab)
-        return ERROR_INT("na{r,g,b} not all defined", procName, 1);
+        return ERROR_INT("na{r,g,b} not all defined", __func__, 1);
     if (numaGetCount(nar) != 256 || numaGetCount(nag) != 256 ||
         numaGetCount(nab) != 256)
-        return ERROR_INT("na{r,g,b} not all of size 256", procName, 1);
+        return ERROR_INT("na{r,g,b} not all of size 256", __func__, 1);
 
         /* Get the arrays for efficiency */
     tabr = (l_uint32 *)numaGetIArray(nar);
@@ -1005,12 +983,10 @@ pixUnsharpMasking(PIX       *pixs,
 l_int32  d;
 PIX     *pix1, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
 
-    PROCNAME("pixUnsharpMasking");
-
     if (!pixs || (pixGetDepth(pixs) == 1))
-        return (PIX *)ERROR_PTR("pixs not defined or 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined or 1 bpp", __func__, NULL);
     if (fract <= 0.0 || halfwidth <= 0) {
-        L_WARNING("no sharpening requested; clone returned\n", procName);
+        L_WARNING("no sharpening requested; clone returned\n", __func__);
         return pixClone(pixs);
     }
 
@@ -1019,7 +995,7 @@ PIX     *pix1, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
 
         /* Remove colormap; clone if possible; result is either 8 or 32 bpp */
     if ((pix1 = pixConvertTo8Or32(pixs, L_CLONE, 0)) == NULL)
-        return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pix1 not made", __func__, NULL);
 
         /* Sharpen */
     d = pixGetDepth(pix1);
@@ -1075,15 +1051,13 @@ l_int32  w, h, d;
 PIX     *pixc, *pixd;
 PIXACC  *pixacc;
 
-    PROCNAME("pixUnsharpMaskingGray");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 || pixGetColormap(pixs) != NULL)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp or has cmap", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp or has cmap", __func__, NULL);
     if (fract <= 0.0 || halfwidth <= 0) {
-        L_WARNING("no sharpening requested; clone returned\n", procName);
+        L_WARNING("no sharpening requested; clone returned\n", __func__);
         return pixClone(pixs);
     }
     if (halfwidth == 1 || halfwidth == 2)
@@ -1091,7 +1065,7 @@ PIXACC  *pixacc;
                                          L_BOTH_DIRECTIONS);
 
     if ((pixc = pixBlockconvGray(pixs, NULL, halfwidth, halfwidth)) == NULL)
-        return (PIX *)ERROR_PTR("pixc not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixc not made", __func__, NULL);
 
         /* Steps:
          *    (1) edge image is pixs - pixc  (this is highpass part)
@@ -1172,23 +1146,21 @@ pixUnsharpMaskingFast(PIX       *pixs,
 l_int32  d;
 PIX     *pixt, *pixd, *pixr, *pixrs, *pixg, *pixgs, *pixb, *pixbs;
 
-    PROCNAME("pixUnsharpMaskingFast");
-
     if (!pixs || (pixGetDepth(pixs) == 1))
-        return (PIX *)ERROR_PTR("pixs not defined or 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined or 1 bpp", __func__, NULL);
     if (fract <= 0.0 || halfwidth <= 0) {
-        L_WARNING("no sharpening requested; clone returned\n", procName);
+        L_WARNING("no sharpening requested; clone returned\n", __func__);
         return pixClone(pixs);
     }
     if (halfwidth != 1 && halfwidth != 2)
-        return (PIX *)ERROR_PTR("halfwidth must be 1 or 2", procName, NULL);
+        return (PIX *)ERROR_PTR("halfwidth must be 1 or 2", __func__, NULL);
     if (direction != L_HORIZ && direction != L_VERT &&
         direction != L_BOTH_DIRECTIONS)
-        return (PIX *)ERROR_PTR("invalid direction", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid direction", __func__, NULL);
 
         /* Remove colormap; clone if possible; result is either 8 or 32 bpp */
     if ((pixt = pixConvertTo8Or32(pixs, L_CLONE, 0)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
 
         /* Sharpen */
     d = pixGetDepth(pixt);
@@ -1242,21 +1214,19 @@ pixUnsharpMaskingGrayFast(PIX       *pixs,
 {
 PIX  *pixd;
 
-    PROCNAME("pixUnsharpMaskingGrayFast");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8 || pixGetColormap(pixs) != NULL)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp or has cmap", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp or has cmap", __func__, NULL);
     if (fract <= 0.0 || halfwidth <= 0) {
-        L_WARNING("no sharpening requested; clone returned\n", procName);
+        L_WARNING("no sharpening requested; clone returned\n", __func__);
         return pixClone(pixs);
     }
     if (halfwidth != 1 && halfwidth != 2)
-        return (PIX *)ERROR_PTR("halfwidth must be 1 or 2", procName, NULL);
+        return (PIX *)ERROR_PTR("halfwidth must be 1 or 2", __func__, NULL);
     if (direction != L_HORIZ && direction != L_VERT &&
         direction != L_BOTH_DIRECTIONS)
-        return (PIX *)ERROR_PTR("invalid direction", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid direction", __func__, NULL);
 
     if (direction != L_BOTH_DIRECTIONS)
         pixd = pixUnsharpMaskingGray1D(pixs, halfwidth, fract, direction);
@@ -1295,19 +1265,17 @@ l_uint32  *lines, *lines0, *lines1, *lines2, *lines3, *lines4, *lined;
 l_float32  val, a[5];
 PIX       *pixd;
 
-    PROCNAME("pixUnsharpMaskingGray1D");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 || pixGetColormap(pixs) != NULL)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp or has cmap", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp or has cmap", __func__, NULL);
     if (fract <= 0.0 || halfwidth <= 0) {
-        L_WARNING("no sharpening requested; clone returned\n", procName);
+        L_WARNING("no sharpening requested; clone returned\n", __func__);
         return pixClone(pixs);
     }
     if (halfwidth != 1 && halfwidth != 2)
-        return (PIX *)ERROR_PTR("halfwidth must be 1 or 2", procName, NULL);
+        return (PIX *)ERROR_PTR("halfwidth must be 1 or 2", __func__, NULL);
 
         /* Initialize pixd with pixels from pixs that will not be
          * set when computing the sharpened values. */
@@ -1429,23 +1397,21 @@ l_float32  *dataf, *linef, *linef0, *linef1, *linef2, *linef3, *linef4;
 PIX        *pixd;
 FPIX       *fpix;
 
-    PROCNAME("pixUnsharpMaskingGray2D");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 || pixGetColormap(pixs) != NULL)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp or has cmap", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp or has cmap", __func__, NULL);
     if (fract <= 0.0 || halfwidth <= 0) {
-        L_WARNING("no sharpening requested; clone returned\n", procName);
+        L_WARNING("no sharpening requested; clone returned\n", __func__);
         return pixClone(pixs);
     }
     if (halfwidth != 1 && halfwidth != 2)
-        return (PIX *)ERROR_PTR("halfwidth must be 1 or 2", procName, NULL);
+        return (PIX *)ERROR_PTR("halfwidth must be 1 or 2", __func__, NULL);
 
     if ((pixd = pixCopyBorder(NULL, pixs, halfwidth, halfwidth,
                               halfwidth, halfwidth)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
     datas = pixGetData(pixs);
@@ -1455,7 +1421,7 @@ FPIX       *fpix;
          * smoothing in an intermediate fpix.  */
     if ((fpix = fpixCreate(w, h)) == NULL) {
         pixDestroy(&pixd);
-        return (PIX *)ERROR_PTR("fpix not made", procName, NULL);
+        return (PIX *)ERROR_PTR("fpix not made", __func__, NULL);
     }
     dataf = fpixGetData(fpix);
     wplf = fpixGetWpl(fpix);
@@ -1572,25 +1538,23 @@ l_int32    w, h, d, i, j, wpl, delhue;
 l_int32    rval, gval, bval, hval, sval, vval;
 l_uint32  *data, *line;
 
-    PROCNAME("pixModifyHue");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetColormap(pixs) != NULL)
-        return (PIX *)ERROR_PTR("pixs colormapped", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs colormapped", __func__, NULL);
     if (pixd && (pixd != pixs))
-        return (PIX *)ERROR_PTR("pixd not null or pixs", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not null or pixs", __func__, pixd);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (L_ABS(fract) > 1.0)
-        return (PIX *)ERROR_PTR("fract not in [-1.0 ... 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("fract not in [-1.0 ... 1.0]", __func__, NULL);
 
     pixd = pixCopy(pixd, pixs);
 
     delhue = (l_int32)(240 * fract);
     if (delhue == 0 || delhue == 240 || delhue == -240) {
-        L_WARNING("no change requested in hue\n", procName);
+        L_WARNING("no change requested in hue\n", __func__);
         return pixd;
     }
     if (delhue < 0)
@@ -1646,19 +1610,17 @@ l_int32    w, h, d, i, j, wpl;
 l_int32    rval, gval, bval, hval, sval, vval;
 l_uint32  *data, *line;
 
-    PROCNAME("pixModifySaturation");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (L_ABS(fract) > 1.0)
-        return (PIX *)ERROR_PTR("fract not in [-1.0 ... 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("fract not in [-1.0 ... 1.0]", __func__, NULL);
 
     pixd = pixCopy(pixd, pixs);
     if (fract == 0.0) {
-        L_WARNING("no change requested in saturation\n", procName);
+        L_WARNING("no change requested in saturation\n", __func__);
         return pixd;
     }
 
@@ -1701,18 +1663,16 @@ l_int32    w, h, d, i, j, wpl, sum, count;
 l_int32    rval, gval, bval, hval, sval, vval;
 l_uint32  *data, *line;
 
-    PROCNAME("pixMeasureSaturation");
-
     if (!psat)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     *psat = 0.0;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 32)
-        return ERROR_INT("pixs not 32 bpp", procName, 1);
+        return ERROR_INT("pixs not 32 bpp", __func__, 1);
     if (factor < 1)
-        return ERROR_INT("subsampling factor < 1", procName, 1);
+        return ERROR_INT("subsampling factor < 1", __func__, 1);
 
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
@@ -1763,19 +1723,17 @@ l_int32    w, h, d, i, j, wpl;
 l_int32    rval, gval, bval, hval, sval, vval;
 l_uint32  *data, *line;
 
-    PROCNAME("pixModifyBrightness");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (L_ABS(fract) > 1.0)
-        return (PIX *)ERROR_PTR("fract not in [-1.0 ... 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("fract not in [-1.0 ... 1.0]", __func__, NULL);
 
     pixd = pixCopy(pixd, pixs);
     if (fract == 0.0) {
-        L_WARNING("no change requested in brightness\n", procName);
+        L_WARNING("no change requested in brightness\n", __func__);
         return pixd;
     }
 
@@ -1850,30 +1808,28 @@ L_BMF     *bmf;
 PIX       *pix1, *pix2, *pix3;
 PIXA      *pixa;
 
-    PROCNAME("pixMosaicColorShiftRGB");
-
     if (!pixs  || pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs undefined or not rgb", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not rgb", __func__, NULL);
     if (roff < -1.0 || roff > 1.0)
-        return (PIX *)ERROR_PTR("roff not in [-1.0, 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("roff not in [-1.0, 1.0]", __func__, NULL);
     if (goff < -1.0 || goff > 1.0)
-        return (PIX *)ERROR_PTR("goff not in [-1.0, 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("goff not in [-1.0, 1.0]", __func__, NULL);
     if (boff < -1.0 || boff > 1.0)
-        return (PIX *)ERROR_PTR("boff not in [-1.0, 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("boff not in [-1.0, 1.0]", __func__, NULL);
     if (delta < 0.0 || delta > 0.1)
-        return (PIX *)ERROR_PTR("delta not in [0.0, 0.1]", procName, NULL);
+        return (PIX *)ERROR_PTR("delta not in [0.0, 0.1]", __func__, NULL);
     if (delta == 0.0) delta = 0.04;
     if (nincr < 0 || nincr > 6)
-        return (PIX *)ERROR_PTR("nincr not in [0, 6]", procName, NULL);
+        return (PIX *)ERROR_PTR("nincr not in [0, 6]", __func__, NULL);
     if (nincr == 0) nincr = 2;
 
         /* Require width and height to be >= 100, and the aspect ratio <= 5.0 */
     pixGetDimensions(pixs, &w, &h, NULL);
     if (w < 100 || h < 100)
-        return (PIX *)ERROR_PTR("w and h not both >= 100", procName, NULL);
+        return (PIX *)ERROR_PTR("w and h not both >= 100", __func__, NULL);
     pixMaxAspectRatio(pixs, &ratio);
     if (ratio < 1.0 || ratio > 5.0) {
-        L_ERROR("invalid aspect ratio %5.1f\n", procName, ratio);
+        L_ERROR("invalid aspect ratio %5.1f\n", __func__, ratio);
         return NULL;
     }
 
@@ -1953,18 +1909,16 @@ l_uint32  *datas, *datad, *lines, *lined;
 l_float32  fi;
 PIX       *pixd;
 
-    PROCNAME("pixColorShiftRGB");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (rfract < -1.0 || rfract > 1.0)
-        return (PIX *)ERROR_PTR("rfract not in [-1.0, 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("rfract not in [-1.0, 1.0]", __func__, NULL);
     if (gfract < -1.0 || gfract > 1.0)
-        return (PIX *)ERROR_PTR("gfract not in [-1.0, 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("gfract not in [-1.0, 1.0]", __func__, NULL);
     if (bfract < -1.0 || bfract > 1.0)
-        return (PIX *)ERROR_PTR("bfract not in [-1.0, 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("bfract not in [-1.0, 1.0]", __func__, NULL);
     if (rfract == 0.0 && gfract == 0.0 && bfract == 0.0)
         return pixCopy(NULL, pixs);
 
@@ -2051,22 +2005,20 @@ l_int32    rval, gval, bval, minrg, min, maxrg, max, sat;
 l_uint32  *datas, *datad, *lines, *lined;
 l_float32  ratio;
 
-    PROCNAME("pixDarkenGray");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", __func__, NULL);
     if (thresh < 0 || thresh > 255)
-        return (PIX *)ERROR_PTR("invalid thresh", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid thresh", __func__, NULL);
     if (satlimit < 1)
-        return (PIX *)ERROR_PTR("invalid satlimit", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid satlimit", __func__, NULL);
     if (pixd && (pixs != pixd))
-        return (PIX *)ERROR_PTR("not new or in-place", procName, NULL);
+        return (PIX *)ERROR_PTR("not new or in-place", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if ((pixd = pixCopy(pixd, pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
@@ -2125,21 +2077,19 @@ l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixMultConstantColor");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     cmap = pixGetColormap(pixs);
     if (!cmap && d != 32)
-        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", __func__, NULL);
     rfact = L_MAX(0.0, rfact);
     gfact = L_MAX(0.0, gfact);
     bfact = L_MAX(0.0, bfact);
 
     if (cmap) {
         if ((pixd = pixCopy(NULL, pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
         cmap = pixGetColormap(pixd);
         ncolors = pixcmapGetCount(cmap);
         for (i = 0; i < ncolors; i++) {
@@ -2156,7 +2106,7 @@ PIXCMAP   *cmap;
     }
 
     if ((pixd = pixCreateTemplate(pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
     wpls = pixGetWpl(pixs);
@@ -2226,19 +2176,17 @@ l_float32  v[9];  /* use linear array for convenience */
 PIX       *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixMultMatrixColor");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!kel)
-        return (PIX *)ERROR_PTR("kel not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("kel not defined", __func__, NULL);
     kernelGetParameters(kel, &kw, &kh, NULL, NULL);
     if (kw != 3 || kh != 3)
-        return (PIX *)ERROR_PTR("matrix not 3x3", procName, NULL);
+        return (PIX *)ERROR_PTR("matrix not 3x3", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     cmap = pixGetColormap(pixs);
     if (!cmap && d != 32)
-        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", __func__, NULL);
 
     for (i = 0, index = 0; i < 3; i++)
         for (j = 0; j < 3; j++, index++)
@@ -2246,7 +2194,7 @@ PIXCMAP   *cmap;
 
     if (cmap) {
         if ((pixd = pixCopy(NULL, pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
         cmap = pixGetColormap(pixd);
         ncolors = pixcmapGetCount(cmap);
         for (i = 0; i < ncolors; i++) {
@@ -2263,7 +2211,7 @@ PIXCMAP   *cmap;
     }
 
     if ((pixd = pixCreateTemplate(pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
     wpls = pixGetWpl(pixs);
@@ -2333,15 +2281,13 @@ pixHalfEdgeByBandpass(PIX     *pixs,
 l_int32  d;
 PIX     *pixg, *pixacc, *pixc1, *pixc2;
 
-    PROCNAME("pixHalfEdgeByBandpass");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (sm1h == sm2h && sm1v == sm2v)
-        return (PIX *)ERROR_PTR("sm2 = sm1", procName, NULL);
+        return (PIX *)ERROR_PTR("sm2 = sm1", __func__, NULL);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", __func__, NULL);
     if (d == 32)
         pixg = pixConvertRGBToLuminance(pixs);
     else   /* d == 8 */
@@ -2350,19 +2296,19 @@ PIX     *pixg, *pixacc, *pixc1, *pixc2;
         /* Make a convolution accumulator and use it twice */
     if ((pixacc = pixBlockconvAccum(pixg)) == NULL) {
         pixDestroy(&pixg);
-        return (PIX *)ERROR_PTR("pixacc not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixacc not made", __func__, NULL);
     }
     if ((pixc1 = pixBlockconvGray(pixg, pixacc, sm1h, sm1v)) == NULL) {
         pixDestroy(&pixg);
         pixDestroy(&pixacc);
-        return (PIX *)ERROR_PTR("pixc1 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixc1 not made", __func__, NULL);
     }
     pixc2 = pixBlockconvGray(pixg, pixacc, sm2h, sm2v);
     pixDestroy(&pixg);
     pixDestroy(&pixacc);
     if (!pixc2) {
         pixDestroy(&pixc1);
-        return (PIX *)ERROR_PTR("pixc2 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixc2 not made", __func__, NULL);
     }
 
         /* Compute the half-edge using pixc1 - pixc2.  */

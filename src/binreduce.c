@@ -82,20 +82,18 @@ l_uint32   word;
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
 
-    PROCNAME("pixReduceBinary2");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     if (hs <= 1)
-        return (PIX *)ERROR_PTR("hs must be at least 2", procName, NULL);
+        return (PIX *)ERROR_PTR("hs must be at least 2", __func__, NULL);
     wpls = pixGetWpl(pixs);
     datas = pixGetData(pixs);
     pixSetPadBits(pixs, 0);
 
     if ((pixd = pixCreate(ws / 2, hs / 2, 1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, 0.5, 0.5);
     wpld = pixGetWpl(pixd);
@@ -104,7 +102,7 @@ PIX       *pixd;
     tab = (intab) ? intab : makeSubsampleTab2x();
     if (!tab) {
         pixDestroy(&pixd);
-        return (PIX *)ERROR_PTR("tab not made", procName, NULL);
+        return (PIX *)ERROR_PTR("tab not made", __func__, NULL);
     }
 
         /* e.g., if ws = 65: wd = 32, wpls = 3, wpld = 1 --> trouble */
@@ -158,22 +156,20 @@ pixReduceRankBinaryCascade(PIX     *pixs,
 PIX      *pix1, *pix2, *pix3, *pix4;
 l_uint8  *tab;
 
-    PROCNAME("pixReduceRankBinaryCascade");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs must be binary", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be binary", __func__, NULL);
     if (level1 > 4 || level2 > 4 || level3 > 4 || level4 > 4)
-        return (PIX *)ERROR_PTR("levels must not exceed 4", procName, NULL);
+        return (PIX *)ERROR_PTR("levels must not exceed 4", __func__, NULL);
 
     if (level1 <= 0) {
-        L_WARNING("no reduction because level1 not > 0\n", procName);
+        L_WARNING("no reduction because level1 not > 0\n", __func__);
         return pixCopy(NULL, pixs);
     }
 
     if ((tab = makeSubsampleTab2x()) == NULL)
-        return (PIX *)ERROR_PTR("tab not made", procName, NULL);
+        return (PIX *)ERROR_PTR("tab not made", __func__, NULL);
 
     pix1 = pixReduceRankBinary2(pixs, level1, tab);
     if (level2 <= 0) {
@@ -236,26 +232,24 @@ l_uint32   word1, word2, word3, word4;
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
 
-    PROCNAME("pixReduceRankBinary2");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
 
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not binary", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not binary", __func__, NULL);
     if (level < 1 || level > 4)
         return (PIX *)ERROR_PTR("level must be in set {1,2,3,4}",
-            procName, NULL);
+            __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     if (hs <= 1)
-        return (PIX *)ERROR_PTR("hs must be at least 2", procName, NULL);
+        return (PIX *)ERROR_PTR("hs must be at least 2", __func__, NULL);
     wpls = pixGetWpl(pixs);
     datas = pixGetData(pixs);
     pixSetPadBits(pixs, 0);
 
     if ((pixd = pixCreate(ws / 2, hs / 2, 1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, 0.5, 0.5);
     wpld = pixGetWpl(pixd);
@@ -264,7 +258,7 @@ PIX       *pixd;
     tab = (intab) ? intab : makeSubsampleTab2x();
     if (!tab) {
         pixDestroy(&pixd);
-        return (PIX *)ERROR_PTR("tab not made", procName, NULL);
+        return (PIX *)ERROR_PTR("tab not made", __func__, NULL);
     }
 
         /* e.g., if ws = 65: wd = 32, wpls = 3, wpld = 1 --> trouble */
@@ -392,8 +386,6 @@ makeSubsampleTab2x(void)
 {
 l_uint8  *tab;
 l_int32   i;
-
-    PROCNAME("makeSubsampleTab2x");
 
     tab = (l_uint8 *) LEPT_CALLOC(256, sizeof(l_uint8));
     for (i = 0; i < 256; i++) {

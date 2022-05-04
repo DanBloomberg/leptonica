@@ -99,20 +99,18 @@ l_int32    val1, val2, val3, val4, val5, val6, val7, val8, val9;
 l_uint32  *datat, *linet, *datad, *lined;
 PIX       *pixt, *pixd;
 
-    PROCNAME("pixSobelEdgeFilter");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (orientflag != L_HORIZONTAL_EDGES && orientflag != L_VERTICAL_EDGES &&
         orientflag != L_ALL_EDGES)
-        return (PIX *)ERROR_PTR("invalid orientflag", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid orientflag", __func__, NULL);
 
         /* Add 1 pixel (mirrored) to each side of the image. */
     if ((pixt = pixAddMirroredBorder(pixs, 1, 1, 1, 1)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
 
         /* Compute filter output at each location. */
     pixd = pixCreateTemplate(pixs);
@@ -207,15 +205,13 @@ l_int32    cval, rval, bval, val, lgrad, rgrad, tgrad, bgrad;
 l_uint32  *datas, *lines, *datad, *lined;
 PIX       *pixd;
 
-    PROCNAME("pixTwoSidedEdgeFilter");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (orientflag != L_HORIZONTAL_EDGES && orientflag != L_VERTICAL_EDGES)
-        return (PIX *)ERROR_PTR("invalid orientflag", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid orientflag", __func__, NULL);
 
     pixd = pixCreateTemplate(pixs);
     datas = pixGetData(pixs);
@@ -321,25 +317,23 @@ pixMeasureEdgeSmoothness(PIX         *pixs,
 l_int32  i, n, val, nval, diff, njumps, jumpsum, nreversal;
 NUMA    *na, *nae;
 
-    PROCNAME("pixMeasureEdgeSmoothness");
-
     if (pjpl) *pjpl = 0.0;
     if (pjspl) *pjspl = 0.0;
     if (prpl) *prpl = 0.0;
     if (!pjpl && !pjspl && !prpl && !debugfile)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
     if (side != L_FROM_LEFT && side != L_FROM_RIGHT &&
         side != L_FROM_TOP && side != L_FROM_BOT)
-        return ERROR_INT("invalid side", procName, 1);
+        return ERROR_INT("invalid side", __func__, 1);
     if (minjump < 1)
-        return ERROR_INT("invalid minjump; must be >= 1", procName, 1);
+        return ERROR_INT("invalid minjump; must be >= 1", __func__, 1);
     if (minreversal < 1)
-        return ERROR_INT("invalid minreversal; must be >= 1", procName, 1);
+        return ERROR_INT("invalid minreversal; must be >= 1", __func__, 1);
 
     if ((na = pixGetEdgeProfile(pixs, side, debugfile)) == NULL)
-        return ERROR_INT("edge profile not made", procName, 1);
+        return ERROR_INT("edge profile not made", __func__, 1);
     if ((n = numaGetCount(na)) < 2) {
         numaDestroy(&na);
         return 0;
@@ -396,13 +390,11 @@ NUMA     *na;
 PIX      *pixt;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixGetEdgeProfile");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (NUMA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (side != L_FROM_LEFT && side != L_FROM_RIGHT &&
         side != L_FROM_TOP && side != L_FROM_BOT)
-        return (NUMA *)ERROR_PTR("invalid side", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid side", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if (side == L_FROM_LEFT || side == L_FROM_RIGHT)
@@ -526,16 +518,14 @@ pixGetLastOffPixelInRun(PIX      *pixs,
 l_int32   loc, w, h;
 l_uint32  val;
 
-    PROCNAME("pixGetLastOffPixelInRun");
-
     if (!ploc)
-        return ERROR_INT("&loc not defined", procName, 1);
+        return ERROR_INT("&loc not defined", __func__, 1);
     *ploc = 0;
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs undefined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs undefined or not 1 bpp", __func__, 1);
     if (direction != L_FROM_LEFT && direction != L_FROM_RIGHT &&
         direction != L_FROM_TOP && direction != L_FROM_BOT)
-        return ERROR_INT("invalid side", procName, 1);
+        return ERROR_INT("invalid side", __func__, 1);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if (direction == L_FROM_LEFT) {
@@ -600,16 +590,14 @@ pixGetLastOnPixelInRun(PIX      *pixs,
 l_int32   loc, w, h;
 l_uint32  val;
 
-    PROCNAME("pixLastOnPixelInRun");
-
     if (!ploc)
-        return ERROR_INT("&loc not defined", procName, 1);
+        return ERROR_INT("&loc not defined", __func__, 1);
     *ploc = 0;
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs undefined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs undefined or not 1 bpp", __func__, 1);
     if (direction != L_FROM_LEFT && direction != L_FROM_RIGHT &&
         direction != L_FROM_TOP && direction != L_FROM_BOT)
-        return ERROR_INT("invalid side", procName, 1);
+        return ERROR_INT("invalid side", __func__, 1);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if (direction == L_FROM_LEFT) {

@@ -149,20 +149,18 @@ pixProjectiveSampledPta(PIX     *pixs,
 l_float32  *vc;
 PIX        *pixd;
 
-    PROCNAME("pixProjectiveSampledPta");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!ptas)
-        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas not defined", __func__, NULL);
     if (!ptad)
-        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad not defined", __func__, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid incolor", __func__, NULL);
     if (ptaGetCount(ptas) != 4)
-        return (PIX *)ERROR_PTR("ptas count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas count not 4", __func__, NULL);
     if (ptaGetCount(ptad) != 4)
-        return (PIX *)ERROR_PTR("ptad count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad count not 4", __func__, NULL);
 
         /* Get backwards transform from dest to src, and apply it */
     getProjectiveXformCoeffs(ptad, ptas, &vc);
@@ -201,17 +199,15 @@ l_uint32   *datas, *datad, *lines, *lined;
 PIX        *pixd;
 PIXCMAP    *cmap;
 
-    PROCNAME("pixProjectiveSampled");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!vc)
-        return (PIX *)ERROR_PTR("vc not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("vc not defined", __func__, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid incolor", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("depth not 1, 2, 4, 8 or 16", procName, NULL);
+        return (PIX *)ERROR_PTR("depth not 1, 2, 4, 8 or 16", __func__, NULL);
 
         /* Init all dest pixels to color to be brought in from outside */
     pixd = pixCreateTemplate(pixs);
@@ -293,20 +289,18 @@ l_int32   d;
 l_uint32  colorval;
 PIX      *pixt1, *pixt2, *pixd;
 
-    PROCNAME("pixProjectivePta");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!ptas)
-        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas not defined", __func__, NULL);
     if (!ptad)
-        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad not defined", __func__, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return (PIX *)ERROR_PTR("invalid incolor", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid incolor", __func__, NULL);
     if (ptaGetCount(ptas) != 4)
-        return (PIX *)ERROR_PTR("ptas count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas count not 4", __func__, NULL);
     if (ptaGetCount(ptad) != 4)
-        return (PIX *)ERROR_PTR("ptad count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad count not 4", __func__, NULL);
 
     if (pixGetDepth(pixs) == 1)
         return pixProjectiveSampledPta(pixs, ptad, ptas, incolor);
@@ -362,12 +356,10 @@ l_int32   d;
 l_uint32  colorval;
 PIX      *pixt1, *pixt2, *pixd;
 
-    PROCNAME("pixProjective");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!vc)
-        return (PIX *)ERROR_PTR("vc not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("vc not defined", __func__, NULL);
 
     if (pixGetDepth(pixs) == 1)
         return pixProjectiveSampled(pixs, vc, incolor);
@@ -418,20 +410,18 @@ pixProjectivePtaColor(PIX      *pixs,
 l_float32  *vc;
 PIX        *pixd;
 
-    PROCNAME("pixProjectivePtaColor");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!ptas)
-        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas not defined", __func__, NULL);
     if (!ptad)
-        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 32 bpp", __func__, NULL);
     if (ptaGetCount(ptas) != 4)
-        return (PIX *)ERROR_PTR("ptas count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas count not 4", __func__, NULL);
     if (ptaGetCount(ptad) != 4)
-        return (PIX *)ERROR_PTR("ptad count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad count not 4", __func__, NULL);
 
         /* Get backwards transform from dest to src, and apply it */
     getProjectiveXformCoeffs(ptad, ptas, &vc);
@@ -461,15 +451,13 @@ l_uint32  *datas, *datad, *lined;
 l_float32  x, y;
 PIX       *pix1, *pix2, *pixd;
 
-    PROCNAME("pixProjectiveColor");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 32)
-        return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 32 bpp", __func__, NULL);
     if (!vc)
-        return (PIX *)ERROR_PTR("vc not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("vc not defined", __func__, NULL);
 
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
@@ -521,20 +509,18 @@ pixProjectivePtaGray(PIX     *pixs,
 l_float32  *vc;
 PIX        *pixd;
 
-    PROCNAME("pixProjectivePtaGray");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!ptas)
-        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas not defined", __func__, NULL);
     if (!ptad)
-        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 8 bpp", __func__, NULL);
     if (ptaGetCount(ptas) != 4)
-        return (PIX *)ERROR_PTR("ptas count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas count not 4", __func__, NULL);
     if (ptaGetCount(ptad) != 4)
-        return (PIX *)ERROR_PTR("ptad count not 4", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad count not 4", __func__, NULL);
 
         /* Get backwards transform from dest to src, and apply it */
     getProjectiveXformCoeffs(ptad, ptas, &vc);
@@ -564,15 +550,13 @@ l_uint32  *datas, *datad, *lined;
 l_float32  x, y;
 PIX       *pixd;
 
-    PROCNAME("pixProjectiveGray");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs must be 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 8 bpp", __func__, NULL);
     if (!vc)
-        return (PIX *)ERROR_PTR("vc not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("vc not defined", __func__, NULL);
 
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
@@ -655,28 +639,26 @@ l_int32  ws, hs, d;
 PIX     *pixd, *pixb1, *pixb2, *pixg2, *pixga;
 PTA     *ptad2, *ptas2;
 
-    PROCNAME("pixProjectivePtaWithAlpha");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &ws, &hs, &d);
     if (d != 32 && pixGetColormap(pixs) == NULL)
-        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", __func__, NULL);
     if (pixg && pixGetDepth(pixg) != 8) {
         L_WARNING("pixg not 8 bpp; using 'fract' transparent alpha\n",
-                  procName);
+                  __func__);
         pixg = NULL;
     }
     if (!pixg && (fract < 0.0 || fract > 1.0)) {
-        L_WARNING("invalid fract; using 1.0 (fully transparent)\n", procName);
+        L_WARNING("invalid fract; using 1.0 (fully transparent)\n", __func__);
         fract = 1.0;
     }
     if (!pixg && fract == 0.0)
-        L_WARNING("fully opaque alpha; image will not be blended\n", procName);
+        L_WARNING("fully opaque alpha; image will not be blended\n", __func__);
     if (!ptad)
-        return (PIX *)ERROR_PTR("ptad not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptad not defined", __func__, NULL);
     if (!ptas)
-        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas not defined", __func__, NULL);
 
         /* Add border; the color doesn't matter */
     pixb1 = pixAddBorder(pixs, border, 0);
@@ -784,14 +766,12 @@ l_float32   x1, y1, x2, y2, x3, y3, x4, y4;
 l_float32  *b;   /* rhs vector of primed coords X'; coeffs returned in *pvc */
 l_float32  *a[8];  /* 8x8 matrix A  */
 
-    PROCNAME("getProjectiveXformCoeffs");
-
     if (!ptas)
-        return ERROR_INT("ptas not defined", procName, 1);
+        return ERROR_INT("ptas not defined", __func__, 1);
     if (!ptad)
-        return ERROR_INT("ptad not defined", procName, 1);
+        return ERROR_INT("ptad not defined", __func__, 1);
     if (!pvc)
-        return ERROR_INT("&vc not defined", procName, 1);
+        return ERROR_INT("&vc not defined", __func__, 1);
 
     b = (l_float32 *)LEPT_CALLOC(8, sizeof(l_float32));
     *pvc = b;
@@ -880,13 +860,11 @@ projectiveXformSampledPt(l_float32  *vc,
 l_float32  factor;
 l_float64  denom;
 
-    PROCNAME("projectiveXformSampledPt");
-
     if (!vc)
-        return ERROR_INT("vc not defined", procName, 1);
+        return ERROR_INT("vc not defined", __func__, 1);
 
     if ((denom = vc[6] * x + vc[7] * y + 1.0) == 0.0)
-        return ERROR_INT("denom = 0.0", procName, 1);
+        return ERROR_INT("denom = 0.0", __func__, 1);
     factor = 1.0 / denom;
     *pxp = (l_int32)(factor * (vc[0] * x + vc[1] * y + vc[2]) + 0.5);
     *pyp = (l_int32)(factor * (vc[3] * x + vc[4] * y + vc[5]) + 0.5);
@@ -918,13 +896,11 @@ projectiveXformPt(l_float32  *vc,
 l_float32  factor;
 l_float64  denom;
 
-    PROCNAME("projectiveXformPt");
-
     if (!vc)
-        return ERROR_INT("vc not defined", procName, 1);
+        return ERROR_INT("vc not defined", __func__, 1);
 
     if ((denom = vc[6] * x + vc[7] * y + 1.0) == 0.0)
-        return ERROR_INT("denom = 0.0", procName, 1);
+        return ERROR_INT("denom = 0.0", __func__, 1);
     factor = 1.0 / denom;
     *pxp = factor * (vc[0] * x + vc[1] * y + vc[2]);
     *pyp = factor * (vc[3] * x + vc[4] * y + vc[5]);

@@ -537,14 +537,12 @@ pixOctreeColorQuant(PIX     *pixs,
                     l_int32  colors,
                     l_int32  ditherflag)
 {
-    PROCNAME("pixOctreeColorQuant");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (colors < 128 || colors > 240)  /* further restricted */
-        return (PIX *)ERROR_PTR("colors must be in [128, 240]", procName, NULL);
+        return (PIX *)ERROR_PTR("colors must be in [128, 240]", __func__, NULL);
 
     return pixOctreeColorQuantGeneral(pixs, colors, ditherflag, 0.01, 0.01);
 }
@@ -613,14 +611,12 @@ CQCELL  ***cqcaa;
 PIX       *pixd, *pixsub;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixOctreeColorQuantGeneral");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (colors < 128 || colors > 240)
-        return (PIX *)ERROR_PTR("colors must be in [128, 240]", procName, NULL);
+        return (PIX *)ERROR_PTR("colors must be in [128, 240]", __func__, NULL);
 
         /* Determine if the image has sufficient color content for
          *   octree quantization, based on the input thresholds.
@@ -637,11 +633,11 @@ PIXCMAP   *cmap;
             L_INFO("\n  Pixel fraction neither white nor black = %6.3f"
                    "\n  Color fraction of those pixels = %6.3f"
                    "\n  Quantizing to 8 bpp gray\n",
-                   procName, pixfract, colorfract);
+                   __func__, pixfract, colorfract);
             return pixConvertTo8(pixs, 1);
         }
     } else {
-        L_INFO("\n  Process in color by default\n", procName);
+        L_INFO("\n  Process in color by default\n", __func__);
     }
 
         /* Conditionally subsample to speed up the first pass */
@@ -660,16 +656,16 @@ PIXCMAP   *cmap;
     cqcaa = octreeGenerateAndPrune(pixsub, colors, CqReservedColors, &cmap);
     if (!cqcaa) {
         pixDestroy(&pixsub);
-        return (PIX *)ERROR_PTR("tree not made", procName, NULL);
+        return (PIX *)ERROR_PTR("tree not made", __func__, NULL);
     }
 #if DEBUG_COLORQUANT
-    L_INFO(" Colors requested = %d\n", procName, colors);
-    L_INFO(" Actual colors = %d\n", procName, cmap->n);
+    L_INFO(" Colors requested = %d\n", __func__, colors);
+    L_INFO(" Actual colors = %d\n", __func__, cmap->n);
 #endif  /* DEBUG_COLORQUANT */
 
         /* Do not dither if image is very small */
     if (w < MinDitherSize && h < MinDitherSize && ditherflag == 1) {
-        L_INFO("Small image: dithering turned off\n", procName);
+        L_INFO("Small image: dithering turned off\n", __func__);
         ditherflag = 0;
     }
 
@@ -679,7 +675,7 @@ PIXCMAP   *cmap;
     if ((pixd = pixOctreeQuantizePixels(pixs, cqcaa, ditherflag)) == NULL) {
         pixDestroy(&pixsub);
         cqcellTreeDestroy(&cqcaa);
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     }
 
         /* Attach colormap and copy res */
@@ -746,19 +742,17 @@ PIXCMAP   *cmap;
 NUMA      *nat;  /* accumulates levels for threshold cells */
 NUMA      *nar;  /* accumulates levels for residual cells */
 
-    PROCNAME("octreeGenerateAndPrune");
-
     if (!pixs)
-        return (CQCELL ***)ERROR_PTR("pixs not defined", procName, NULL);
+        return (CQCELL ***)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (CQCELL ***)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
+        return (CQCELL ***)ERROR_PTR("pixs must be 32 bpp", __func__, NULL);
     if (colors < 128 || colors > 256)
-        return (CQCELL ***)ERROR_PTR("colors not in [128,256]", procName, NULL);
+        return (CQCELL ***)ERROR_PTR("colors not in [128,256]", __func__, NULL);
     if (!pcmap)
-        return (CQCELL ***)ERROR_PTR("&cmap not defined", procName, NULL);
+        return (CQCELL ***)ERROR_PTR("&cmap not defined", __func__, NULL);
 
     if ((cqcaa = cqcellTreeCreate()) == NULL)
-        return (CQCELL ***)ERROR_PTR("cqcaa not made", procName, NULL);
+        return (CQCELL ***)ERROR_PTR("cqcaa not made", __func__, NULL);
 
         /* Make the canonical index tables */
     rtab = gtab = btab = NULL;
@@ -820,7 +814,7 @@ NUMA      *nar;  /* accumulates levels for residual cells */
 #endif
                     } else {
                             /* This doesn't seem to happen. Do something. */
-                        L_ERROR("assigning pixels to wrong color\n", procName);
+                        L_ERROR("assigning pixels to wrong color\n", __func__);
                         pixcmapGetNearestIndex(cmap, 128, 128, 128, &cindex);
                         cqcsub->index = cindex;  /* assign to the nearest */
                         pixcmapGetColor(cmap, cindex, &rval, &gval, &bval);
@@ -872,7 +866,7 @@ NUMA      *nar;  /* accumulates levels for residual cells */
 #endif
                     } else {
                         L_WARNING("possibly assigned pixels to wrong color\n",
-                                  procName);
+                                  __func__);
                             /* This is very bad.  It will only cause trouble
                              * with dithering, and we try to avoid it with
                              * ExtraReservedColors. */
@@ -987,21 +981,19 @@ l_uint32  *rtab, *gtab, *btab;
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
 
-    PROCNAME("pixOctreeQuantizePixels");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs must be 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 32 bpp", __func__, NULL);
     if (!cqcaa)
-        return (PIX *)ERROR_PTR("cqcaa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("cqcaa not defined", __func__, NULL);
 
         /* Make output 8 bpp palette image */
     pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if ((pixd = pixCreate(w, h, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
     datad = pixGetData(pixd);
@@ -1042,7 +1034,7 @@ PIX       *pixd;
         buf2b = (l_int32 *)LEPT_CALLOC(w, sizeof(l_int32));
         if (!bufu8r || !bufu8g || !bufu8b || !buf1r || !buf1g ||
             !buf1b || !buf2r || !buf2g || !buf2b) {
-            L_ERROR("buffer not made\n", procName);
+            L_ERROR("buffer not made\n", __func__);
             success = FALSE;
             goto buffer_cleanup;
         }
@@ -1264,8 +1256,6 @@ l_int32    level, ncells, i;
 CQCELL  ***cqcaa;
 CQCELL   **cqca;   /* one array for each octree level */
 
-    PROCNAME("cqcellTreeCreate");
-
         /* Make array of accumulation cell arrays from levels 1 to 5 */
     cqcaa = (CQCELL ***)LEPT_CALLOC(CqNLevels + 1, sizeof(CQCELL **));
     for (level = 0; level <= CqNLevels; level++) {
@@ -1293,10 +1283,8 @@ l_int32    level, ncells, i;
 CQCELL  ***cqcaa;
 CQCELL   **cqca;
 
-    PROCNAME("cqcellTreeDestroy");
-
     if (pcqcaa == NULL) {
-        L_WARNING("ptr address is NULL\n", procName);
+        L_WARNING("ptr address is NULL\n", __func__);
         return;
     }
 
@@ -1359,18 +1347,16 @@ makeRGBToIndexTables(l_int32     cqlevels,
 l_int32    i;
 l_uint32  *rtab, *gtab, *btab;
 
-    PROCNAME("makeRGBToIndexTables");
-
     if (cqlevels < 1 || cqlevels > 6)
-        return ERROR_INT("cqlevels must be in {1,...6}", procName, 1);
+        return ERROR_INT("cqlevels must be in {1,...6}", __func__, 1);
     if (!prtab || !pgtab || !pbtab)
-        return ERROR_INT("not all &tabs defined", procName, 1);
+        return ERROR_INT("not all &tabs defined", __func__, 1);
 
     rtab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     gtab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     btab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     if (!rtab || !gtab || !btab)
-        return ERROR_INT("calloc fail for tab", procName, 1);
+        return ERROR_INT("calloc fail for tab", __func__, 1);
     *prtab = rtab;
     *pgtab = gtab;
     *pbtab = btab;
@@ -1438,7 +1424,7 @@ l_uint32  *rtab, *gtab, *btab;
         }
         break;
     default:
-        ERROR_INT("cqlevels not in [1...6]", procName, 1);
+        ERROR_INT("cqlevels not in [1...6]", __func__, 1);
         break;
     }
 
@@ -1588,14 +1574,12 @@ getOctcubeIndices(l_int32   rgbindex,
                   l_int32  *pbindex,
                   l_int32  *psindex)
 {
-    PROCNAME("getOctcubeIndex");
-
     if (level < 0 || level > CqNLevels - 1)
-        return ERROR_INT("level must be in e.g., [0 ... 5]", procName, 1);
+        return ERROR_INT("level must be in e.g., [0 ... 5]", __func__, 1);
     if (!pbindex)
-        return ERROR_INT("&bindex not defined", procName, 1);
+        return ERROR_INT("&bindex not defined", __func__, 1);
     if (!psindex)
-        return ERROR_INT("&sindex not defined", procName, 1);
+        return ERROR_INT("&sindex not defined", __func__, 1);
 
     *pbindex = rgbindex >> (3 * (CqNLevels - level));
     *psindex = rgbindex >> (3 * (CqNLevels - 1 - level));
@@ -1620,12 +1604,10 @@ static l_int32
 octcubeGetCount(l_int32   level,
                 l_int32  *psize)
 {
-    PROCNAME("octcubeGetCount");
-
     if (!psize)
-        return ERROR_INT("&size not defined", procName, 1);
+        return ERROR_INT("&size not defined", __func__, 1);
     if (level < 1 || level > 6)
-        return ERROR_INT("invalid level", procName, 1);
+        return ERROR_INT("invalid level", __func__, 1);
 
     *psize = 1 << (3 * level);
     return 0;
@@ -1706,25 +1688,23 @@ L_HEAP         *lh;
 PIX            *pixd;
 PIXCMAP        *cmap;
 
-    PROCNAME("pixOctreeQuantByPopulation");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (level == 0) level = 4;
     if (level < 3 || level > 4)
-        return (PIX *)ERROR_PTR("level not in {3,4}", procName, NULL);
+        return (PIX *)ERROR_PTR("level not in {3,4}", __func__, NULL);
 
         /* Do not dither if image is very small */
     pixGetDimensions(pixs, &w, &h, NULL);
     if (w < MinDitherSize && h < MinDitherSize && ditherflag == 1) {
-        L_INFO("Small image: dithering turned off\n", procName);
+        L_INFO("Small image: dithering turned off\n", __func__);
         ditherflag = 0;
     }
 
     if (octcubeGetCount(level, &size))  /* array size = 2 ** (3 * level) */
-        return (PIX *)ERROR_PTR("size not returned", procName, NULL);
+        return (PIX *)ERROR_PTR("size not returned", __func__, NULL);
     rtab = gtab = btab = NULL;
     makeRGBToIndexTables(level, &rtab, &gtab, &btab);
 
@@ -1809,7 +1789,7 @@ PIXCMAP        *cmap;
                     SET_DATA_DIBIT(lined, j, narray[octindex] - 1);
                     break;
                 default:
-                    L_WARNING("shouldn't get here\n", procName);
+                    L_WARNING("shouldn't get here\n", __func__);
                 }
             }
         }
@@ -1999,19 +1979,17 @@ l_int32   *buf1r, *buf1g, *buf1b, *buf2r, *buf2g, *buf2b;
 l_uint32  *datad, *lined;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixDitherOctindexWithCmap");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return ERROR_INT("pixs undefined or not 32 bpp", procName, 1);
+        return ERROR_INT("pixs undefined or not 32 bpp", __func__, 1);
     if (!pixd || pixGetDepth(pixd) != 8)
-        return ERROR_INT("pixd undefined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixd undefined or not 8 bpp", __func__, 1);
     if ((cmap = pixGetColormap(pixd)) == NULL)
-        return ERROR_INT("pixd not cmapped", procName, 1);
+        return ERROR_INT("pixd not cmapped", __func__, 1);
     if (!rtab || !gtab || !btab || !indexmap)
-        return ERROR_INT("not all 4 tables defined", procName, 1);
+        return ERROR_INT("not all 4 tables defined", __func__, 1);
     pixGetDimensions(pixs, &w, &h, NULL);
     if (pixGetWidth(pixd) != w || pixGetHeight(pixd) != h)
-        return ERROR_INT("pixs and pixd not same size", procName, 1);
+        return ERROR_INT("pixs and pixd not same size", __func__, 1);
 
     success = TRUE;
     bufu8r = bufu8g = bufu8b = NULL;
@@ -2027,7 +2005,7 @@ PIXCMAP   *cmap;
     buf2b = (l_int32 *)LEPT_CALLOC(w, sizeof(l_int32));
     if (!bufu8r || !bufu8g || !bufu8b || !buf1r || !buf1g ||
         !buf1b || !buf2r || !buf2g || !buf2b) {
-        L_ERROR("buffer not made\n", procName);
+        L_ERROR("buffer not made\n", __func__);
         success = FALSE;
         goto buffer_cleanup;
     }
@@ -2270,18 +2248,16 @@ L_HEAP    *lh;
 PIX       *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixOctreeQuantNumColors");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (maxcolors < 8) {
-        L_WARNING("max colors < 8; setting to 8\n", procName);
+        L_WARNING("max colors < 8; setting to 8\n", __func__);
         maxcolors = 8;
     }
     if (maxcolors > 256) {
-        L_WARNING("max colors > 256; setting to 256\n", procName);
+        L_WARNING("max colors > 256; setting to 256\n", __func__);
         maxcolors = 256;
     }
 
@@ -2328,7 +2304,7 @@ PIXCMAP   *cmap;
             /* prepare the OctcubeQuantCell array */
         if ((oqca = (OQCELL **)LEPT_CALLOC(nbase, sizeof(OQCELL *))) == NULL) {
             pixDestroy(&pixd);
-            return (PIX *)ERROR_PTR("oqca not made", procName, NULL);
+            return (PIX *)ERROR_PTR("oqca not made", __func__, NULL);
         }
         for (i = 0; i < nbase; i++) {
             oqca[i] = (OQCELL *)LEPT_CALLOC(1, sizeof(OQCELL));
@@ -2483,7 +2459,7 @@ PIXCMAP   *cmap;
             default:
                 LEPT_FREE(oqca);
                 LEPT_FREE(lut1);
-                return (PIX *)ERROR_PTR("bpp not 4 or 8!", procName, NULL);
+                return (PIX *)ERROR_PTR("bpp not 4 or 8!", __func__, NULL);
                 break;
             }
             oqca[val]->n += 1.0;
@@ -2596,26 +2572,24 @@ l_uint32  *lines, *lined, *datas, *datad;
 PIX       *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixOctcubeQuantMixedWithGray");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (graylevels < 2)
-        return (PIX *)ERROR_PTR("invalid graylevels", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid graylevels", __func__, NULL);
     if (depth == 4) {
         octlevels = 1;
         size = 8;   /* 2 ** 3 */
         if (graylevels > 8)
-            return (PIX *)ERROR_PTR("max 8 gray levels", procName, NULL);
+            return (PIX *)ERROR_PTR("max 8 gray levels", __func__, NULL);
     } else if (depth == 8) {
         octlevels = 2;
         size = 64;   /* 2 ** 6 */
         if (graylevels > 192)
-            return (PIX *)ERROR_PTR("max 192 gray levels", procName, NULL);
+            return (PIX *)ERROR_PTR("max 192 gray levels", __func__, NULL);
     } else {
-        return (PIX *)ERROR_PTR("output depth not 4 or 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("output depth not 4 or 8 bpp", __func__, NULL);
     }
 
     pixd = NULL;
@@ -2634,14 +2608,14 @@ PIXCMAP   *cmap;
     tabval = makeGrayQuantIndexTable(graylevels);
     if (!rtab || !gtab || !btab ||
         !carray || !rarray || !garray || !barray || !tabval) {
-        L_ERROR("calloc fail for an array\n", procName);
+        L_ERROR("calloc fail for an array\n", __func__);
         goto array_cleanup;
     }
 
         /* Make colormapped output pixd */
     pixGetDimensions(pixs, &w, &h, NULL);
     if ((pixd = pixCreate(w, h, depth)) == NULL) {
-        L_ERROR("pixd not made\n", procName);
+        L_ERROR("pixd not made\n", __func__);
         goto array_cleanup;
     }
     pixCopyResolution(pixd, pixs);
@@ -2812,17 +2786,15 @@ l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixFixedOctcubeQuant256");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
 
         /* Do not dither if image is very small */
     pixGetDimensions(pixs, &w, &h, NULL);
     if (w < MinDitherSize && h < MinDitherSize && ditherflag == 1) {
-        L_INFO("Small image: dithering turned off\n", procName);
+        L_INFO("Small image: dithering turned off\n", __func__);
         ditherflag = 0;
     }
 
@@ -2847,7 +2819,7 @@ PIXCMAP   *cmap;
     wpls = pixGetWpl(pixs);
     if ((pixd = pixCreate(w, h, 8)) == NULL) {
         pixcmapDestroy(&cmap);
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     }
     pixSetColormap(pixd, cmap);
     pixCopyResolution(pixd, pixs);
@@ -2880,7 +2852,7 @@ PIXCMAP   *cmap;
         itab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
         if (!rtab || !gtab || !btab || !itab) {
             pixDestroy(&pixd);
-            return (PIX *)ERROR_PTR("calloc fail for table", procName, NULL);
+            return (PIX *)ERROR_PTR("calloc fail for table", __func__, NULL);
         }
         for (i = 0; i < 256; i++) {
             rtab[i] = i & 0xe0;
@@ -2946,19 +2918,17 @@ l_uint32  *lines, *lined, *datas, *datad, *pspixel;
 PIX       *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixFewColorsOctcubeQuant1");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (level < 1 || level > 6)
-        return (PIX *)ERROR_PTR("invalid level", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid level", __func__, NULL);
 
     pixd = NULL;
 
     if (octcubeGetCount(level, &size))  /* array size = 2 ** (3 * level) */
-        return (PIX *)ERROR_PTR("size not returned", procName, NULL);
+        return (PIX *)ERROR_PTR("size not returned", __func__, NULL);
     rtab = gtab = btab = NULL;
     makeRGBToIndexTables(level, &rtab, &gtab, &btab);
 
@@ -2967,7 +2937,7 @@ PIXCMAP   *cmap;
     garray = (l_int32 *)LEPT_CALLOC(size, sizeof(l_int32));
     barray = (l_int32 *)LEPT_CALLOC(size, sizeof(l_int32));
     if (!carray || !rarray || !garray || !barray) {
-        L_ERROR("calloc fail for an array\n", procName);
+        L_ERROR("calloc fail for an array\n", __func__);
         goto array_cleanup;
     }
 
@@ -2994,7 +2964,7 @@ PIXCMAP   *cmap;
             ncolors++;
     }
     if (ncolors > 256) {
-        L_WARNING("%d colors found; more than 256\n", procName, ncolors);
+        L_WARNING("%d colors found; more than 256\n", __func__, ncolors);
         goto array_cleanup;
     }
     if (ncolors <= 4)
@@ -3043,7 +3013,7 @@ PIXCMAP   *cmap;
                 SET_DATA_BYTE(lined, j, carray[octindex] - 1);
                 break;
             default:
-                L_WARNING("shouldn't get here\n", procName);
+                L_WARNING("shouldn't get here\n", __func__);
             }
         }
     }
@@ -3121,16 +3091,14 @@ l_uint32  *colorarray;
 PIX       *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixFewColorsOctcubeQuant2");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (level < 3 || level > 6)
-        return (PIX *)ERROR_PTR("level not in {4, 5, 6}", procName, NULL);
+        return (PIX *)ERROR_PTR("level not in {4, 5, 6}", __func__, NULL);
     if (ncolors > 256)
-        return (PIX *)ERROR_PTR("ncolors > 256", procName, NULL);
+        return (PIX *)ERROR_PTR("ncolors > 256", __func__, NULL);
     if (pnerrors)
         *pnerrors = UNDEF;
 
@@ -3150,7 +3118,7 @@ PIXCMAP   *cmap;
          * used to generate the colormap.  */
     colorarray = (l_uint32 *)LEPT_CALLOC(ncolors + 1, sizeof(l_uint32));
     if (!octarray || !colorarray) {
-        L_ERROR("octarray or colorarray not made\n", procName);
+        L_ERROR("octarray or colorarray not made\n", __func__);
         goto cleanup_arrays;
     }
 
@@ -3166,7 +3134,7 @@ PIXCMAP   *cmap;
         depth = 8;
 
     if ((pixd = pixCreate(w, h, depth)) == NULL) {
-        L_ERROR("pixd not made\n", procName);
+        L_ERROR("pixd not made\n", __func__);
         goto cleanup_arrays;
     }
     pixCopyResolution(pixd, pixs);
@@ -3308,13 +3276,11 @@ l_uint32  *datac, *datam, *datad, *linec, *linem, *lined;
 PIX       *pix1, *pixc, *pixm, *pixg, *pixd;
 PIXCMAP   *cmap, *cmapd;
 
-    PROCNAME("pixFewColorsOctcubeQuantMixed");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", __func__, NULL);
     if (level <= 0) level = 3;
     if (level > 6)
-        return (PIX *)ERROR_PTR("invalid level", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid level", __func__, NULL);
     if (darkthresh <= 0) darkthresh = 20;
     if (lightthresh <= 0) lightthresh = 244;
     if (diffthresh <= 0) diffthresh = 20;
@@ -3323,7 +3289,7 @@ PIXCMAP   *cmap, *cmapd;
 
         /* Start with a simple fixed octcube quantizer. */
     if ((pix1 = pixFewColorsOctcubeQuant1(pixs, level)) == NULL)
-        return (PIX *)ERROR_PTR("too many colors", procName, NULL);
+        return (PIX *)ERROR_PTR("too many colors", __func__, NULL);
     pixc = pixConvertTo8(pix1, 1);  /* must be 8 bpp */
     pixDestroy(&pix1);
 
@@ -3423,17 +3389,15 @@ l_uint32  *rtab, *gtab, *btab;
 l_uint32  *lines, *lined, *datas, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixFixedOctcubeQuantGenRGB");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (level < 1 || level > 6)
-        return (PIX *)ERROR_PTR("level not in {1,...6}", procName, NULL);
+        return (PIX *)ERROR_PTR("level not in {1,...6}", __func__, NULL);
 
     if (makeRGBToIndexTables(level, &rtab, &gtab, &btab))
-        return (PIX *)ERROR_PTR("tables not made", procName, NULL);
+        return (PIX *)ERROR_PTR("tables not made", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     pixd = pixCreate(w, h, 32);
@@ -3494,12 +3458,10 @@ pixQuantFromCmap(PIX      *pixs,
 {
 l_int32  d;
 
-    PROCNAME("pixQuantFromCmap");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (mindepth != 2 && mindepth != 4 && mindepth != 8)
-        return (PIX *)ERROR_PTR("invalid mindepth", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid mindepth", __func__, NULL);
     d = pixGetDepth(pixs);
     if (d == 8)
         return pixGrayQuantFromCmap(pixs, cmap, mindepth);
@@ -3507,7 +3469,7 @@ l_int32  d;
         return pixOctcubeQuantFromCmap(pixs, cmap, mindepth,
                                        level, metric);
     else
-        return (PIX *)ERROR_PTR("d not 8 or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("d not 8 or 32 bpp", __func__, NULL);
 }
 
 
@@ -3585,20 +3547,18 @@ l_int32   *cmaptab;
 l_uint32  *rtab, *gtab, *btab;
 PIX       *pixd;
 
-    PROCNAME("pixOctcubeQuantFromCmap");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (!cmap)
-        return (PIX *)ERROR_PTR("cmap not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("cmap not defined", __func__, NULL);
     if (mindepth != 2 && mindepth != 4 && mindepth != 8)
-        return (PIX *)ERROR_PTR("invalid mindepth", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid mindepth", __func__, NULL);
     if (level < 1 || level > 6)
-        return (PIX *)ERROR_PTR("level not in {1...6}", procName, NULL);
+        return (PIX *)ERROR_PTR("level not in {1...6}", __func__, NULL);
     if (metric != L_MANHATTAN_DISTANCE && metric != L_EUCLIDEAN_DISTANCE)
-        return (PIX *)ERROR_PTR("invalid metric", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid metric", __func__, NULL);
 
         /* Set up the tables to map rgb to the nearest colormap index */
     rtab = gtab = btab = NULL;
@@ -3656,25 +3616,23 @@ l_uint32  *lines, *lined, *datas, *datad;
 PIX       *pixd;
 PIXCMAP   *cmapc;
 
-    PROCNAME("pixOctcubeQuantFromCmapLUT");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (!cmap)
-        return (PIX *)ERROR_PTR("cmap not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("cmap not defined", __func__, NULL);
     if (mindepth != 2 && mindepth != 4 && mindepth != 8)
-        return (PIX *)ERROR_PTR("invalid mindepth", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid mindepth", __func__, NULL);
     if (!rtab || !gtab || !btab || !cmaptab)
-        return (PIX *)ERROR_PTR("tables not all defined", procName, NULL);
+        return (PIX *)ERROR_PTR("tables not all defined", __func__, NULL);
 
         /* Init dest pix (with minimum bpp depending on cmap) */
     pixcmapGetMinDepth(cmap, &depth);
     depth = L_MAX(depth, mindepth);
     pixGetDimensions(pixs, &w, &h, NULL);
     if ((pixd = pixCreate(w, h, depth)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     cmapc = pixcmapCopy(cmap);
     pixSetColormap(pixd, cmapc);
     pixCopyResolution(pixd, pixs);
@@ -3737,25 +3695,23 @@ l_uint32   *data, *line;
 l_float32  *array;
 NUMA       *na;
 
-    PROCNAME("pixOctcubeHistogram");
-
     if (pncolors) *pncolors = 0;
     if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (NUMA *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     wpl = pixGetWpl(pixs);
     data = pixGetData(pixs);
 
     if (octcubeGetCount(level, &size))  /* array size = 2 ** (3 * level) */
-        return (NUMA *)ERROR_PTR("size not returned", procName, NULL);
+        return (NUMA *)ERROR_PTR("size not returned", __func__, NULL);
     rtab = gtab = btab = NULL;
     makeRGBToIndexTables(level, &rtab, &gtab, &btab);
 
     if ((na = numaCreate(size)) == NULL) {
-        L_ERROR("na not made\n", procName);
+        L_ERROR("na not made\n", __func__);
         goto cleanup_arrays;
     }
     numaSetCount(na, size);
@@ -3856,19 +3812,17 @@ l_int32    i, k, size, ncolors, mindist, dist, mincolor, index;
 l_int32    rval, gval, bval;  /* color at center of the octcube */
 l_int32   *rmap, *gmap, *bmap, *tab;
 
-    PROCNAME("pixcmapToOctcubeLUT");
-
     if (!cmap)
-        return (l_int32 *)ERROR_PTR("cmap not defined", procName, NULL);
+        return (l_int32 *)ERROR_PTR("cmap not defined", __func__, NULL);
     if (level < 1 || level > 6)
-        return (l_int32 *)ERROR_PTR("level not in {1...6}", procName, NULL);
+        return (l_int32 *)ERROR_PTR("level not in {1...6}", __func__, NULL);
     if (metric != L_MANHATTAN_DISTANCE && metric != L_EUCLIDEAN_DISTANCE)
-        return (l_int32 *)ERROR_PTR("invalid metric", procName, NULL);
+        return (l_int32 *)ERROR_PTR("invalid metric", __func__, NULL);
 
     if (octcubeGetCount(level, &size))  /* array size = 2 ** (3 * level) */
-        return (l_int32 *)ERROR_PTR("size not returned", procName, NULL);
+        return (l_int32 *)ERROR_PTR("size not returned", __func__, NULL);
     if ((tab = (l_int32 *)LEPT_CALLOC(size, sizeof(l_int32))) == NULL)
-        return (l_int32 *)ERROR_PTR("tab not allocated", procName, NULL);
+        return (l_int32 *)ERROR_PTR("tab not allocated", __func__, NULL);
 
     ncolors = pixcmapGetCount(cmap);
     pixcmapToArrays(cmap, &rmap, &gmap, &bmap, NULL);
@@ -3942,21 +3896,19 @@ l_uint32   *datas, *lines;
 l_int32    *histo, *map1, *map2;
 PIXCMAP    *cmap, *cmapd;
 
-    PROCNAME("pixRemoveUnusedColors");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if ((cmap = pixGetColormap(pixs)) == NULL)
         return 0;
 
     d = pixGetDepth(pixs);
     if (d != 2 && d != 4 && d != 8)
-        return ERROR_INT("d not in {2, 4, 8}", procName, 1);
+        return ERROR_INT("d not in {2, 4, 8}", __func__, 1);
 
         /* Find which indices are actually used */
     nc = pixcmapGetCount(cmap);
     if ((histo = (l_int32 *)LEPT_CALLOC(nc, sizeof(l_int32))) == NULL)
-        return ERROR_INT("histo not made", procName, 1);
+        return ERROR_INT("histo not made", __func__, 1);
     pixGetDimensions(pixs, &w, &h, NULL);
     wpls = pixGetWpl(pixs);
     datas = pixGetData(pixs);
@@ -3976,10 +3928,10 @@ PIXCMAP    *cmap, *cmapd;
                 break;
             default:
                 LEPT_FREE(histo);
-                return ERROR_INT("switch ran off end!", procName, 1);
+                return ERROR_INT("switch ran off end!", __func__, 1);
             }
             if (val >= nc) {
-                L_WARNING("cmap index out of bounds!\n", procName);
+                L_WARNING("cmap index out of bounds!\n", __func__);
                 continue;
             }
             histo[val]++;
@@ -4044,7 +3996,7 @@ PIXCMAP    *cmap, *cmapd;
                 LEPT_FREE(histo);
                 LEPT_FREE(map1);
                 LEPT_FREE(map2);
-                return ERROR_INT("switch ran off end!", procName, 1);
+                return ERROR_INT("switch ran off end!", __func__, 1);
             }
         }
     }
@@ -4091,31 +4043,29 @@ l_int32    rval, gval, bval;
 l_int32   *carray;
 l_uint32  *data, *line, *rtab, *gtab, *btab;
 
-    PROCNAME("pixNumberOccupiedOctcubes");
-
     if (!pncolors)
-        return ERROR_INT("&ncolors not defined", procName, 1);
+        return ERROR_INT("&ncolors not defined", __func__, 1);
     *pncolors = 0;
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     pixGetDimensions(pix, &w, &h, &d);
     if (d != 32)
-        return ERROR_INT("pix not 32 bpp", procName, 1);
+        return ERROR_INT("pix not 32 bpp", __func__, 1);
     if (level < 1 || level > 6)
-        return ERROR_INT("invalid level", procName, 1);
+        return ERROR_INT("invalid level", __func__, 1);
     if ((mincount < 0 && minfract < 0) || (mincount >= 0.0 && minfract >= 0.0))
-        return ERROR_INT("invalid mincount/minfract", procName, 1);
+        return ERROR_INT("invalid mincount/minfract", __func__, 1);
     if (mincount == 0 || minfract == 0.0)
         mincount = 1;
     else if (minfract > 0.0)
         mincount = L_MIN(1, (l_int32)(minfract * w * h));
 
     if (octcubeGetCount(level, &size))  /* array size = 2 ** (3 * level) */
-        return ERROR_INT("size not returned", procName, 1);
+        return ERROR_INT("size not returned", __func__, 1);
     rtab = gtab = btab = NULL;
     makeRGBToIndexTables(level, &rtab, &gtab, &btab);
     if ((carray = (l_int32 *)LEPT_CALLOC(size, sizeof(l_int32))) == NULL) {
-        L_ERROR("carray not made\n", procName);
+        L_ERROR("carray not made\n", __func__);
         goto cleanup_arrays;
     }
 

@@ -109,20 +109,18 @@ dewarpSinglePage(PIX         *pixs,
 L_DEWARPA  *dewa;
 PIX        *pixb;
 
-    PROCNAME("dewarpSinglePage");
-
     if (!ppixd)
-        return ERROR_INT("&pixd not defined", procName, 1);
+        return ERROR_INT("&pixd not defined", __func__, 1);
     *ppixd = NULL;
     if (pdewa) *pdewa = NULL;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
 
     dewarpSinglePageInit(pixs, thresh, adaptive, useboth,
                          check_columns, &pixb, &dewa);
     if (!pixb) {
         dewarpaDestroy(&dewa);
-        return ERROR_INT("pixb not made", procName, 1);
+        return ERROR_INT("pixb not made", __func__, 1);
     }
 
     dewarpSinglePageRun(pixs, pixb, dewa, ppixd, debug);
@@ -175,26 +173,24 @@ dewarpSinglePageInit(PIX         *pixs,
 {
 PIX  *pix1, *pix2;
 
-    PROCNAME("dewarpSinglePageInit");
-
     if (ppixb) *ppixb = NULL;
     if (pdewa) *pdewa = NULL;
     if (!ppixb || !pdewa)
-        return ERROR_INT("&pixb and &dewa not both defined", procName, 1);
+        return ERROR_INT("&pixb and &dewa not both defined", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
 
          /* Generate a binary image, if necessary */
     if (pixGetDepth(pixs) > 1) {
         if ((pix1 = pixConvertTo8(pixs, 0)) == NULL)
-            return ERROR_INT("pix1 not made", procName, 1);
+            return ERROR_INT("pix1 not made", __func__, 1);
         if (adaptive)
             pix2 = pixAdaptThresholdToBinary(pix1, NULL, 1.0);
         else
             pix2 = pixThresholdToBinary(pix1, thresh);
         pixDestroy(&pix1);
         if (!pix2)
-            return ERROR_INT("pix2 not made", procName, 1);
+            return ERROR_INT("pix2 not made", __func__, 1);
         *ppixb = pix2;
     } else {
         *ppixb = pixClone(pixs);
@@ -237,17 +233,15 @@ const char  *debugfile;
 l_int32      vsuccess, ret;
 L_DEWARP    *dew;
 
-    PROCNAME("dewarpSinglePageRun");
-
     if (!ppixd)
-        return ERROR_INT("&pixd not defined", procName, 1);
+        return ERROR_INT("&pixd not defined", __func__, 1);
     *ppixd = NULL;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (!pixb)
-        return ERROR_INT("pixb not defined", procName, 1);
+        return ERROR_INT("pixb not defined", __func__, 1);
     if (!dewa)
-        return ERROR_INT("dewa not defined", procName, 1);
+        return ERROR_INT("dewa not defined", __func__, 1);
 
     if (debug)
         lept_mkdir("lept/dewarp");
@@ -259,7 +253,7 @@ L_DEWARP    *dew;
     dewarpBuildPageModel(dew, debugfile);
     dewarpaModelStatus(dewa, 0, &vsuccess, NULL);
     if (vsuccess == 0) {
-        L_ERROR("failure to build model for vertical disparity\n", procName);
+        L_ERROR("failure to build model for vertical disparity\n", __func__);
         *ppixd = pixCopy(NULL, pixs);
         return 0;
     }
@@ -268,7 +262,7 @@ L_DEWARP    *dew;
     debugfile = (debug) ? "/tmp/lept/dewarp/singlepage_apply.pdf" : NULL;
     ret = dewarpaApplyDisparity(dewa, 0, pixs, 255, 0, 0, ppixd, debugfile);
     if (ret)
-        L_ERROR("invalid model; failure to apply disparity\n", procName);
+        L_ERROR("invalid model; failure to apply disparity\n", __func__);
     return 0;
 }
 
@@ -299,10 +293,8 @@ l_int32    i;
 L_DEWARP  *dew;
 NUMA      *namodels, *napages;
 
-    PROCNAME("dewarpaListPages");
-
     if (!dewa)
-        return ERROR_INT("dewa not defined", procName, 1);
+        return ERROR_INT("dewa not defined", __func__, 1);
 
     numaDestroy(&dewa->namodels);
     numaDestroy(&dewa->napages);
@@ -352,10 +344,8 @@ dewarpaSetValidModels(L_DEWARPA  *dewa,
 l_int32    i, n, maxcurv, diffcurv, diffedge;
 L_DEWARP  *dew;
 
-    PROCNAME("dewarpaSetValidModels");
-
     if (!dewa)
-        return ERROR_INT("dewa not defined", procName, 1);
+        return ERROR_INT("dewa not defined", __func__, 1);
 
     n = dewa->maxpage + 1;
     for (i = 0; i < n; i++) {
@@ -364,42 +354,42 @@ L_DEWARP  *dew;
 
         if (debug) {
             if (dew->hasref == 1) {
-                L_INFO("page %d: has only a ref model\n", procName, i);
+                L_INFO("page %d: has only a ref model\n", __func__, i);
             } else if (dew->vsuccess == 0) {
                 L_INFO("page %d: no model successfully built\n",
-                       procName, i);
+                       __func__, i);
             } else if (!notests) {
                 maxcurv = L_MAX(L_ABS(dew->mincurv), L_ABS(dew->maxcurv));
                 diffcurv = dew->maxcurv - dew->mincurv;
                 if (dewa->useboth && !dew->hsuccess)
                     L_INFO("page %d: useboth, but no horiz disparity\n",
-                               procName, i);
+                               __func__, i);
                 if (maxcurv > dewa->max_linecurv)
                     L_INFO("page %d: max curvature %d > max_linecurv\n",
-                                procName, i, diffcurv);
+                                __func__, i, diffcurv);
                 if (diffcurv < dewa->min_diff_linecurv)
                     L_INFO("page %d: diff curv %d < min_diff_linecurv\n",
-                                procName, i, diffcurv);
+                                __func__, i, diffcurv);
                 if (diffcurv > dewa->max_diff_linecurv)
                     L_INFO("page %d: abs diff curv %d > max_diff_linecurv\n",
-                                procName, i, diffcurv);
+                                __func__, i, diffcurv);
                 if (dew->hsuccess) {
                     if (L_ABS(dew->leftslope) > dewa->max_edgeslope)
                         L_INFO("page %d: abs left slope %d > max_edgeslope\n",
-                                    procName, i, dew->leftslope);
+                                    __func__, i, dew->leftslope);
                     if (L_ABS(dew->rightslope) > dewa->max_edgeslope)
                         L_INFO("page %d: abs right slope %d > max_edgeslope\n",
-                                    procName, i, dew->rightslope);
+                                    __func__, i, dew->rightslope);
                     diffedge = L_ABS(dew->leftcurv - dew->rightcurv);
                     if (L_ABS(dew->leftcurv) > dewa->max_edgecurv)
                         L_INFO("page %d: left curvature %d > max_edgecurv\n",
-                                    procName, i, dew->leftcurv);
+                                    __func__, i, dew->leftcurv);
                     if (L_ABS(dew->rightcurv) > dewa->max_edgecurv)
                         L_INFO("page %d: right curvature %d > max_edgecurv\n",
-                               procName, i, dew->rightcurv);
+                               __func__, i, dew->rightcurv);
                     if (diffedge > dewa->max_diff_edgecurv)
                         L_INFO("page %d: abs diff left-right curv %d > "
-                               "max_diff_edgecurv\n", procName, i, diffedge);
+                               "max_diff_edgecurv\n", __func__, i, diffedge);
                 }
             }
         }
@@ -459,12 +449,10 @@ l_int32    i, j, n, val, min, distdown, distup;
 L_DEWARP  *dew;
 NUMA      *na, *nah;
 
-    PROCNAME("dewarpaInsertRefModels");
-
     if (!dewa)
-        return ERROR_INT("dewa not defined", procName, 1);
+        return ERROR_INT("dewa not defined", __func__, 1);
     if (dewa->maxdist < 2)
-        L_INFO("maxdist < 2; no ref models can be used\n", procName);
+        L_INFO("maxdist < 2; no ref models can be used\n", __func__);
 
         /* Make an indicator numa for pages with valid models. */
     dewarpaSetValidModels(dewa, notests, debug);
@@ -548,7 +536,7 @@ NUMA      *na, *nah;
             /* We can replace the existing valid model with an hvalid model.
              * If it's not a reference, save it in the cache. */
         if ((dew = dewarpaGetDewarp(dewa, i)) == NULL) {
-            L_ERROR("dew is null for page %d!\n", procName, i);
+            L_ERROR("dew is null for page %d!\n", __func__, i);
         } else {
             if (dew->hasref == 0) {  /* not a ref model */
                 dewa->dewarpcache[i] = dew;  /* move it to the cache */
@@ -587,10 +575,8 @@ dewarpaStripRefModels(L_DEWARPA  *dewa)
 l_int32    i;
 L_DEWARP  *dew;
 
-    PROCNAME("dewarpaStripRefModels");
-
     if (!dewa)
-        return ERROR_INT("dewa not defined", procName, 1);
+        return ERROR_INT("dewa not defined", __func__, 1);
 
     for (i = 0; i <= dewa->maxpage; i++) {
         if ((dew = dewarpaGetDewarp(dewa, i)) != NULL) {
@@ -628,10 +614,8 @@ dewarpaRestoreModels(L_DEWARPA  *dewa)
 l_int32    i;
 L_DEWARP  *dew;
 
-    PROCNAME("dewarpaRestoreModels");
-
     if (!dewa)
-        return ERROR_INT("dewa not defined", procName, 1);
+        return ERROR_INT("dewa not defined", __func__, 1);
 
         /* Strip out ref models.  Then only real models will be in the
          * primary dewarp array. */
@@ -642,7 +626,7 @@ L_DEWARP  *dew;
         if ((dew = dewa->dewarpcache[i]) != NULL) {
             if (dewa->dewarp[i]) {
                 L_ERROR("dew in both cache and main array!: page %d\n",
-                        procName, i);
+                        __func__, i);
             } else {
                 dewa->dewarp[i] = dew;
                 dewa->dewarpcache[i] = NULL;
@@ -674,12 +658,10 @@ dewarpaInfo(FILE       *fp,
 l_int32    i, n, pageno, nnone, nvsuccess, nvvalid, nhsuccess, nhvalid, nref;
 L_DEWARP  *dew;
 
-    PROCNAME("dewarpaInfo");
-
     if (!fp)
-        return ERROR_INT("dewa not defined", procName, 1);
+        return ERROR_INT("dewa not defined", __func__, 1);
     if (!dewa)
-        return ERROR_INT("dewa not defined", procName, 1);
+        return ERROR_INT("dewa not defined", __func__, 1);
 
     fprintf(fp, "\nDewarpaInfo: %p\n", dewa);
     fprintf(fp, "nalloc = %d, maxpage = %d\n", dewa->nalloc, dewa->maxpage);
@@ -771,10 +753,8 @@ dewarpaModelStats(L_DEWARPA  *dewa,
 l_int32    i, n, pageno, nnone, nvsuccess, nvvalid, nhsuccess, nhvalid, nref;
 L_DEWARP  *dew;
 
-    PROCNAME("dewarpaModelStats");
-
     if (!dewa)
-        return ERROR_INT("dewa not defined", procName, 1);
+        return ERROR_INT("dewa not defined", __func__, 1);
 
     dewarpaListPages(dewa);
     n = numaGetCount(dewa->napages);
@@ -834,10 +814,8 @@ dewarpaTestForValidModel(L_DEWARPA  *dewa,
 {
 l_int32  maxcurv, diffcurv, diffedge;
 
-    PROCNAME("dewarpaTestForValidModel");
-
     if (!dewa || !dew)
-        return ERROR_INT("dewa and dew not both defined", procName, 1);
+        return ERROR_INT("dewa and dew not both defined", __func__, 1);
 
     if (notests) {
        dew->vvalid = dew->vsuccess;
@@ -861,7 +839,7 @@ l_int32  maxcurv, diffcurv, diffedge;
         diffcurv <= dewa->max_diff_linecurv) {
         dew->vvalid = 1;
     } else {
-        L_INFO("invalid vert model for page %d:\n", procName, dew->pageno);
+        L_INFO("invalid vert model for page %d:\n", __func__, dew->pageno);
 #if DEBUG_INVALID_MODELS
         lept_stderr("  max line curv = %d, max allowed = %d\n",
                     maxcurv, dewa->max_linecurv);
@@ -880,7 +858,7 @@ l_int32  maxcurv, diffcurv, diffedge;
             diffedge <= dewa->max_diff_edgecurv) {
             dew->hvalid = 1;
         } else {
-            L_INFO("invalid horiz model for page %d:\n", procName, dew->pageno);
+            L_INFO("invalid horiz model for page %d:\n", __func__, dew->pageno);
 #if DEBUG_INVALID_MODELS
             lept_stderr("  left edge slope = %d, max allowed = %d\n",
                         dew->leftslope, dewa->max_edgeslope);
@@ -928,20 +906,18 @@ L_DEWARP  *dew;
 PIX       *pixv, *pixvs, *pixh, *pixhs, *pixt, *pixd;
 PIXA      *pixa;
 
-    PROCNAME("dewarpaShowArrays");
-
     if (!dewa)
-        return ERROR_INT("dew not defined", procName, 1);
+        return ERROR_INT("dew not defined", __func__, 1);
     if (first < 0 || first > dewa->maxpage)
-        return ERROR_INT("first out of bounds", procName, 1);
+        return ERROR_INT("first out of bounds", __func__, 1);
     if (last <= 0 || last > dewa->maxpage) last = dewa->maxpage;
     if (last < first)
-        return ERROR_INT("last < first", procName, 1);
+        return ERROR_INT("last < first", __func__, 1);
 
     lept_rmdir("lept/dewarp1");  /* temp directory for contour plots */
     lept_mkdir("lept/dewarp1");
     if ((bmf = bmfCreate(NULL, 8)) == NULL)
-        L_ERROR("bmf not made; page info not displayed", procName);
+        L_ERROR("bmf not made; page info not displayed", __func__);
 
     lept_stderr("Generating contour plots\n");
     for (i = first; i <= last; i++) {
@@ -954,7 +930,7 @@ PIXA      *pixa;
         if (dew->sampvdispar) svd = 1;
         if (dew->samphdispar) shd = 1;
         if (!svd) {
-            L_ERROR("sampvdispar not made for page %d!\n", procName, i);
+            L_ERROR("sampvdispar not made for page %d!\n", __func__, i);
             continue;
         }
 
@@ -1021,12 +997,10 @@ char    *outdir;
 l_int32  svd, shd;
 PIX     *pixv, *pixh;
 
-    PROCNAME("dewarpDebug");
-
     if (!dew)
-        return ERROR_INT("dew not defined", procName, 1);
+        return ERROR_INT("dew not defined", __func__, 1);
     if (!subdirs)
-        return ERROR_INT("subdirs not defined", procName, 1);
+        return ERROR_INT("subdirs not defined", __func__, 1);
 
     lept_stderr("pageno = %d, hasref = %d, refpage = %d\n",
                 dew->pageno, dew->hasref, dew->refpage);
@@ -1114,16 +1088,14 @@ L_DEWARP  *dew;
 PIX       *pixs, *pixc, *pixd, *pixt1, *pixt2;
 PIXA      *pixa;
 
-    PROCNAME("dewarpShowResults");
-
     if (!dewa)
-        return ERROR_INT("dewa not defined", procName, 1);
+        return ERROR_INT("dewa not defined", __func__, 1);
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
     if (!pdfout)
-        return ERROR_INT("pdfout not defined", procName, 1);
+        return ERROR_INT("pdfout not defined", __func__, 1);
     if (firstpage > lastpage)
-        return ERROR_INT("invalid first/last page numbers", procName, 1);
+        return ERROR_INT("invalid first/last page numbers", __func__, 1);
 
     lept_rmdir("lept/dewarp_pdfout");
     lept_mkdir("lept/dewarp_pdfout");

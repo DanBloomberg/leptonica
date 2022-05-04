@@ -130,13 +130,11 @@ pixaReadFiles(const char  *dirname,
 PIXA    *pixa;
 SARRAY  *sa;
 
-    PROCNAME("pixaReadFiles");
-
     if (!dirname)
-        return (PIXA *)ERROR_PTR("dirname not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("dirname not defined", __func__, NULL);
 
     if ((sa = getSortedPathnamesInDirectory(dirname, substr, 0, 0)) == NULL)
-        return (PIXA *)ERROR_PTR("sa not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("sa not made", __func__, NULL);
 
     pixa = pixaReadFilesSA(sa);
     sarrayDestroy(&sa);
@@ -158,17 +156,15 @@ l_int32  i, n;
 PIX     *pix;
 PIXA    *pixa;
 
-    PROCNAME("pixaReadFilesSA");
-
     if (!sa)
-        return (PIXA *)ERROR_PTR("sa not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("sa not defined", __func__, NULL);
 
     n = sarrayGetCount(sa);
     pixa = pixaCreate(n);
     for (i = 0; i < n; i++) {
         str = sarrayGetString(sa, i, L_NOCOPY);
         if ((pix = pixRead(str)) == NULL) {
-            L_WARNING("pix not read from file %s\n", procName, str);
+            L_WARNING("pix not read from file %s\n", __func__, str);
             continue;
         }
         pixaAddPix(pixa, pix, L_INSERT);
@@ -195,19 +191,17 @@ pixRead(const char  *filename)
 FILE  *fp;
 PIX   *pix;
 
-    PROCNAME("pixRead");
-
     if (!filename)
-        return (PIX *)ERROR_PTR("filename not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL) {
-        L_ERROR("image file not found: %s\n", procName, filename);
+        L_ERROR("image file not found: %s\n", __func__, filename);
         return NULL;
     }
     pix = pixReadStream(fp, 0);
     fclose(fp);
     if (!pix)
-        return (PIX *)ERROR_PTR("pix not read", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not read", __func__, NULL);
     return pix;
 }
 
@@ -233,18 +227,16 @@ pixReadWithHint(const char  *filename,
 FILE  *fp;
 PIX   *pix;
 
-    PROCNAME("pixReadWithHint");
-
     if (!filename)
-        return (PIX *)ERROR_PTR("filename not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIX *)ERROR_PTR("image file not found", procName, NULL);
+        return (PIX *)ERROR_PTR("image file not found", __func__, NULL);
     pix = pixReadStream(fp, hint);
     fclose(fp);
 
     if (!pix)
-        return (PIX *)ERROR_PTR("image not returned", procName, NULL);
+        return (PIX *)ERROR_PTR("image not returned", __func__, NULL);
     return pix;
 }
 
@@ -285,20 +277,18 @@ char    *fname;
 l_int32  n;
 PIX     *pix;
 
-    PROCNAME("pixReadIndexed");
-
     if (!sa)
-        return (PIX *)ERROR_PTR("sa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("sa not defined", __func__, NULL);
     n = sarrayGetCount(sa);
     if (index < 0 || index >= n)
-        return (PIX *)ERROR_PTR("index out of bounds", procName, NULL);
+        return (PIX *)ERROR_PTR("index out of bounds", __func__, NULL);
 
     fname = sarrayGetString(sa, index, L_NOCOPY);
     if (fname[0] == '\0')
         return NULL;
 
     if ((pix = pixRead(fname)) == NULL) {
-        L_ERROR("pix not read from file %s\n", procName, fname);
+        L_ERROR("pix not read from file %s\n", __func__, fname);
         return NULL;
     }
 
@@ -327,10 +317,8 @@ l_uint8  *comment;
 PIX      *pix;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixReadStream");
-
     if (!fp)
-        return (PIX *)ERROR_PTR("stream not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("stream not defined", __func__, NULL);
     pix = NULL;
 
     findFileFormatStream(fp, &format);
@@ -338,12 +326,12 @@ PIXCMAP  *cmap;
     {
     case IFF_BMP:
         if ((pix = pixReadStreamBmp(fp)) == NULL )
-            return (PIX *)ERROR_PTR( "bmp: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR( "bmp: no pix returned", __func__, NULL);
         break;
 
     case IFF_JFIF_JPEG:
         if ((pix = pixReadStreamJpeg(fp, 0, 1, NULL, hint)) == NULL)
-            return (PIX *)ERROR_PTR( "jpeg: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR( "jpeg: no pix returned", __func__, NULL);
         ret = fgetJpegComment(fp, &comment);
         if (!ret && comment)
             pixSetText(pix, (char *)comment);
@@ -352,7 +340,7 @@ PIXCMAP  *cmap;
 
     case IFF_PNG:
         if ((pix = pixReadStreamPng(fp)) == NULL)
-            return (PIX *)ERROR_PTR("png: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR("png: no pix returned", __func__, NULL);
         break;
 
     case IFF_TIFF:
@@ -364,45 +352,45 @@ PIXCMAP  *cmap;
     case IFF_TIFF_ZIP:
     case IFF_TIFF_JPEG:
         if ((pix = pixReadStreamTiff(fp, 0)) == NULL)  /* page 0 by default */
-            return (PIX *)ERROR_PTR("tiff: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR("tiff: no pix returned", __func__, NULL);
         break;
 
     case IFF_PNM:
         if ((pix = pixReadStreamPnm(fp)) == NULL)
-            return (PIX *)ERROR_PTR("pnm: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR("pnm: no pix returned", __func__, NULL);
         break;
 
     case IFF_GIF:
         if ((pix = pixReadStreamGif(fp)) == NULL)
-            return (PIX *)ERROR_PTR("gif: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR("gif: no pix returned", __func__, NULL);
         break;
 
     case IFF_JP2:
         if ((pix = pixReadStreamJp2k(fp, 1, NULL, 0, 0)) == NULL)
-            return (PIX *)ERROR_PTR("jp2: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR("jp2: no pix returned", __func__, NULL);
         break;
 
     case IFF_WEBP:
         if ((pix = pixReadStreamWebP(fp)) == NULL)
-            return (PIX *)ERROR_PTR("webp: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR("webp: no pix returned", __func__, NULL);
         break;
 
     case IFF_PS:
-        L_ERROR("PostScript reading is not supported\n", procName);
+        L_ERROR("PostScript reading is not supported\n", __func__);
         return NULL;
 
     case IFF_LPDF:
-        L_ERROR("Pdf reading is not supported\n", procName);
+        L_ERROR("Pdf reading is not supported\n", __func__);
         return NULL;
 
     case IFF_SPIX:
         if ((pix = pixReadStreamSpix(fp)) == NULL)
-            return (PIX *)ERROR_PTR("spix: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR("spix: no pix returned", __func__, NULL);
         break;
 
     case IFF_UNKNOWN:
         return (PIX *)ERROR_PTR( "Unknown format: no pix returned",
-                procName, NULL);
+                __func__, NULL);
         break;
     }
 
@@ -412,7 +400,7 @@ PIXCMAP  *cmap;
             pixcmapIsValid(cmap, pix, &valid);
             if (!valid) {
                 pixDestroy(&pix);
-                return (PIX *)ERROR_PTR("invalid colormap", procName, NULL);
+                return (PIX *)ERROR_PTR("invalid colormap", __func__, NULL);
             }
         }
     }
@@ -456,8 +444,6 @@ l_int32  type;  /* ignored */
 FILE    *fp;
 PIX     *pix;
 
-    PROCNAME("pixReadHeader");
-
     if (pw) *pw = 0;
     if (ph) *ph = 0;
     if (pbps) *pbps = 0;
@@ -466,10 +452,10 @@ PIX     *pix;
     if (pformat) *pformat = 0;
     iscmap = 0;  /* init to false */
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return ERROR_INT("image file not found", procName, 1);
+        return ERROR_INT("image file not found", __func__, 1);
     findFileFormatStream(fp, &format);
     fclose(fp);
 
@@ -477,7 +463,7 @@ PIX     *pix;
     {
     case IFF_BMP:  /* cheating: reading the entire file */
         if ((pix = pixRead(filename)) == NULL)
-            return ERROR_INT( "bmp: pix not read", procName, 1);
+            return ERROR_INT( "bmp: pix not read", __func__, 1);
         pixGetDimensions(pix, &w, &h, &d);
         if (pixGetColormap(pix))
             iscmap = 1;
@@ -490,13 +476,13 @@ PIX     *pix;
         ret = readHeaderJpeg(filename, &w, &h, &spp, NULL, NULL);
         bps = 8;
         if (ret)
-            return ERROR_INT( "jpeg: no header info returned", procName, 1);
+            return ERROR_INT( "jpeg: no header info returned", __func__, 1);
         break;
 
     case IFF_PNG:
         ret = readHeaderPng(filename, &w, &h, &bps, &spp, &iscmap);
         if (ret)
-            return ERROR_INT( "png: no header info returned", procName, 1);
+            return ERROR_INT( "png: no header info returned", __func__, 1);
         break;
 
     case IFF_TIFF:
@@ -511,18 +497,18 @@ PIX     *pix;
         ret = readHeaderTiff(filename, 0, &w, &h, &bps, &spp, NULL, &iscmap,
                              &format);
         if (ret)
-            return ERROR_INT( "tiff: no header info returned", procName, 1);
+            return ERROR_INT( "tiff: no header info returned", __func__, 1);
         break;
 
     case IFF_PNM:
         ret = readHeaderPnm(filename, &w, &h, &d, &type, &bps, &spp);
         if (ret)
-            return ERROR_INT( "pnm: no header info returned", procName, 1);
+            return ERROR_INT( "pnm: no header info returned", __func__, 1);
         break;
 
     case IFF_GIF:  /* cheating: reading the entire file */
         if ((pix = pixRead(filename)) == NULL)
-            return ERROR_INT( "gif: pix not read", procName, 1);
+            return ERROR_INT( "gif: pix not read", __func__, 1);
         pixGetDimensions(pix, &w, &h, &d);
         pixDestroy(&pix);
         iscmap = 1;  /* always colormapped; max 256 colors */
@@ -536,26 +522,26 @@ PIX     *pix;
 
     case IFF_WEBP:
         if (readHeaderWebP(filename, &w, &h, &spp))
-            return ERROR_INT( "webp: no header info returned", procName, 1);
+            return ERROR_INT( "webp: no header info returned", __func__, 1);
         bps = 8;
         break;
 
     case IFF_PS:
         if (pformat) *pformat = format;
-        return ERROR_INT("PostScript reading is not supported\n", procName, 1);
+        return ERROR_INT("PostScript reading is not supported\n", __func__, 1);
 
     case IFF_LPDF:
         if (pformat) *pformat = format;
-        return ERROR_INT("Pdf reading is not supported\n", procName, 1);
+        return ERROR_INT("Pdf reading is not supported\n", __func__, 1);
 
     case IFF_SPIX:
         ret = readHeaderSpix(filename, &w, &h, &bps, &spp, &iscmap);
         if (ret)
-            return ERROR_INT( "spix: no header info returned", procName, 1);
+            return ERROR_INT( "spix: no header info returned", __func__, 1);
         break;
 
     case IFF_UNKNOWN:
-        L_ERROR("unknown format in file %s\n", procName, filename);
+        L_ERROR("unknown format in file %s\n", __func__, filename);
         return 1;
         break;
     }
@@ -587,16 +573,14 @@ findFileFormat(const char  *filename,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("findFileFormat");
-
     if (!pformat)
-        return ERROR_INT("&format not defined", procName, 1);
+        return ERROR_INT("&format not defined", __func__, 1);
     *pformat = IFF_UNKNOWN;
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return ERROR_INT("image file not found", procName, 1);
+        return ERROR_INT("image file not found", __func__, 1);
     ret = findFileFormatStream(fp, pformat);
     fclose(fp);
     return ret;
@@ -622,20 +606,18 @@ findFileFormatStream(FILE     *fp,
 l_uint8  firstbytes[13];
 l_int32  format;
 
-    PROCNAME("findFileFormatStream");
-
     if (!pformat)
-        return ERROR_INT("&format not defined", procName, 1);
+        return ERROR_INT("&format not defined", __func__, 1);
     *pformat = IFF_UNKNOWN;
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
 
     rewind(fp);
     if (fnbytesInFile(fp) < 12)
-        return ERROR_INT("truncated file", procName, 1);
+        return ERROR_INT("truncated file", __func__, 1);
 
     if (fread(&firstbytes, 1, 12, fp) != 12)
-        return ERROR_INT("failed to read first 12 bytes of file", procName, 1);
+        return ERROR_INT("failed to read first 12 bytes of file", __func__, 1);
     firstbytes[12] = 0;
     rewind(fp);
 
@@ -673,13 +655,11 @@ findFileFormatBuffer(const l_uint8  *buf,
 {
 l_uint16  twobytepw;
 
-    PROCNAME("findFileFormatBuffer");
-
     if (!pformat)
-        return ERROR_INT("&format not defined", procName, 1);
+        return ERROR_INT("&format not defined", __func__, 1);
     *pformat = IFF_UNKNOWN;
     if (!buf)
-        return ERROR_INT("byte buffer not defined", procName, 0);
+        return ERROR_INT("byte buffer not defined", __func__, 0);
 
         /* Check the bmp and tiff 2-byte header ids */
     ((char *)(&twobytepw))[0] = buf[0];
@@ -801,10 +781,8 @@ fileFormatIsTiff(FILE  *fp)
 {
 l_int32  format;
 
-    PROCNAME("fileFormatIsTiff");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 0);
+        return ERROR_INT("stream not defined", __func__, 0);
 
     findFileFormatStream(fp, &format);
     if (format == IFF_TIFF || format == IFF_TIFF_PACKBITS ||
@@ -848,12 +826,10 @@ l_int32   format, valid;
 PIX      *pix;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixReadMem");
-
     if (!data)
-        return (PIX *)ERROR_PTR("data not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("data not defined", __func__, NULL);
     if (size < 12)
-        return (PIX *)ERROR_PTR("size < 12", procName, NULL);
+        return (PIX *)ERROR_PTR("size < 12", __func__, NULL);
     pix = NULL;
 
     findFileFormatBuffer(data, &format);
@@ -861,17 +837,17 @@ PIXCMAP  *cmap;
     {
     case IFF_BMP:
         if ((pix = pixReadMemBmp(data, size)) == NULL )
-            return (PIX *)ERROR_PTR( "bmp: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR( "bmp: no pix returned", __func__, NULL);
         break;
 
     case IFF_JFIF_JPEG:
         if ((pix = pixReadMemJpeg(data, size, 0, 1, NULL, 0)) == NULL)
-            return (PIX *)ERROR_PTR( "jpeg: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR( "jpeg: no pix returned", __func__, NULL);
         break;
 
     case IFF_PNG:
         if ((pix = pixReadMemPng(data, size)) == NULL)
-            return (PIX *)ERROR_PTR("png: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR("png: no pix returned", __func__, NULL);
         break;
 
     case IFF_TIFF:
@@ -883,45 +859,45 @@ PIXCMAP  *cmap;
     case IFF_TIFF_ZIP:
             /* Reading page 0 by default */
         if ((pix = pixReadMemTiff(data, size, 0)) == NULL)
-            return (PIX *)ERROR_PTR("tiff: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR("tiff: no pix returned", __func__, NULL);
         break;
 
     case IFF_PNM:
         if ((pix = pixReadMemPnm(data, size)) == NULL)
-            return (PIX *)ERROR_PTR("pnm: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR("pnm: no pix returned", __func__, NULL);
         break;
 
     case IFF_GIF:
         if ((pix = pixReadMemGif(data, size)) == NULL)
-            return (PIX *)ERROR_PTR("gif: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR("gif: no pix returned", __func__, NULL);
         break;
 
     case IFF_JP2:
         if ((pix = pixReadMemJp2k(data, size, 1, NULL, 0, 0)) == NULL)
-            return (PIX *)ERROR_PTR("jp2k: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR("jp2k: no pix returned", __func__, NULL);
         break;
 
     case IFF_WEBP:
         if ((pix = pixReadMemWebP(data, size)) == NULL)
-            return (PIX *)ERROR_PTR("webp: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR("webp: no pix returned", __func__, NULL);
         break;
 
     case IFF_PS:
-        L_ERROR("PostScript reading is not supported\n", procName);
+        L_ERROR("PostScript reading is not supported\n", __func__);
         return NULL;
 
     case IFF_LPDF:
-        L_ERROR("Pdf reading is not supported\n", procName);
+        L_ERROR("Pdf reading is not supported\n", __func__);
         return NULL;
 
     case IFF_SPIX:
         if ((pix = pixReadMemSpix(data, size)) == NULL)
-            return (PIX *)ERROR_PTR("spix: no pix returned", procName, NULL);
+            return (PIX *)ERROR_PTR("spix: no pix returned", __func__, NULL);
         break;
 
     case IFF_UNKNOWN:
         return (PIX *)ERROR_PTR("Unknown format: no pix returned",
-                procName, NULL);
+                __func__, NULL);
         break;
     }
 
@@ -936,7 +912,7 @@ PIXCMAP  *cmap;
             pixcmapIsValid(cmap, pix, &valid);
             if (!valid) {
                 pixDestroy(&pix);
-                return (PIX *)ERROR_PTR("invalid colormap", procName, NULL);
+                return (PIX *)ERROR_PTR("invalid colormap", __func__, NULL);
             }
         }
         pixSetPadBits(pix, 0);
@@ -984,8 +960,6 @@ l_int32  format, ret, w, h, d, bps, spp, iscmap;
 l_int32  type;  /* not used */
 PIX     *pix;
 
-    PROCNAME("pixReadHeaderMem");
-
     if (pw) *pw = 0;
     if (ph) *ph = 0;
     if (pbps) *pbps = 0;
@@ -994,9 +968,9 @@ PIX     *pix;
     if (pformat) *pformat = 0;
     iscmap = 0;  /* init to false */
     if (!data)
-        return ERROR_INT("data not defined", procName, 1);
+        return ERROR_INT("data not defined", __func__, 1);
     if (size < 12)
-        return ERROR_INT("size < 12", procName, 1);
+        return ERROR_INT("size < 12", __func__, 1);
 
     findFileFormatBuffer(data, &format);
 
@@ -1004,7 +978,7 @@ PIX     *pix;
     {
     case IFF_BMP:  /* cheating: read the pix */
         if ((pix = pixReadMemBmp(data, size)) == NULL)
-            return ERROR_INT( "bmp: pix not read", procName, 1);
+            return ERROR_INT( "bmp: pix not read", __func__, 1);
         pixGetDimensions(pix, &w, &h, &d);
         pixDestroy(&pix);
         bps = (d == 32) ? 8 : d;
@@ -1015,13 +989,13 @@ PIX     *pix;
         ret = readHeaderMemJpeg(data, size, &w, &h, &spp, NULL, NULL);
         bps = 8;
         if (ret)
-            return ERROR_INT( "jpeg: no header info returned", procName, 1);
+            return ERROR_INT( "jpeg: no header info returned", __func__, 1);
         break;
 
     case IFF_PNG:
         ret = readHeaderMemPng(data, size, &w, &h, &bps, &spp, &iscmap);
         if (ret)
-            return ERROR_INT( "png: no header info returned", procName, 1);
+            return ERROR_INT( "png: no header info returned", __func__, 1);
         break;
 
     case IFF_TIFF:
@@ -1036,18 +1010,18 @@ PIX     *pix;
         ret = readHeaderMemTiff(data, size, 0, &w, &h, &bps, &spp,
                                 NULL, &iscmap, &format);
         if (ret)
-            return ERROR_INT( "tiff: no header info returned", procName, 1);
+            return ERROR_INT( "tiff: no header info returned", __func__, 1);
         break;
 
     case IFF_PNM:
         ret = readHeaderMemPnm(data, size, &w, &h, &d, &type, &bps, &spp);
         if (ret)
-            return ERROR_INT( "pnm: no header info returned", procName, 1);
+            return ERROR_INT( "pnm: no header info returned", __func__, 1);
         break;
 
     case IFF_GIF:  /* cheating: read the pix */
         if ((pix = pixReadMemGif(data, size)) == NULL)
-            return ERROR_INT( "gif: pix not read", procName, 1);
+            return ERROR_INT( "gif: pix not read", __func__, 1);
         pixGetDimensions(pix, &w, &h, &d);
         pixDestroy(&pix);
         iscmap = 1;  /* always colormapped; max 256 colors */
@@ -1066,21 +1040,21 @@ PIX     *pix;
 
     case IFF_PS:
         if (pformat) *pformat = format;
-        return ERROR_INT("PostScript reading is not supported\n", procName, 1);
+        return ERROR_INT("PostScript reading is not supported\n", __func__, 1);
 
     case IFF_LPDF:
         if (pformat) *pformat = format;
-        return ERROR_INT("Pdf reading is not supported\n", procName, 1);
+        return ERROR_INT("Pdf reading is not supported\n", __func__, 1);
 
     case IFF_SPIX:
         ret = sreadHeaderSpix((l_uint32 *)data, size, &w, &h, &bps,
                                &spp, &iscmap);
         if (ret)
-            return ERROR_INT( "pnm: no header info returned", procName, 1);
+            return ERROR_INT( "pnm: no header info returned", __func__, 1);
         break;
 
     case IFF_UNKNOWN:
-        return ERROR_INT("unknown format; no data returned", procName, 1);
+        return ERROR_INT("unknown format; no data returned", __func__, 1);
         break;
     }
 
@@ -1129,16 +1103,14 @@ FILE     *fpin;
 PIX      *pix, *pixt;
 PIXCMAP  *cmap;
 
-    PROCNAME("writeImageFileInfo");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
     if (!fpout)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
 
         /* Read the header */
     if (pixReadHeader(filename, &format, &w, &h, &bps, &spp, &iscmap)) {
-        L_ERROR("failure to read header of %s\n", procName, filename);
+        L_ERROR("failure to read header of %s\n", __func__, filename);
         return 1;
     }
     fprintf(fpout, "===============================================\n"
@@ -1190,7 +1162,7 @@ PIXCMAP  *cmap;
         l_pngSetReadStrip16To8(0);
 
     if ((pix = pixRead(filename)) == NULL) {
-        L_ERROR("failure to read full image of %s\n", procName, filename);
+        L_ERROR("failure to read full image of %s\n", __func__, filename);
         return 1;
     }
 
@@ -1294,14 +1266,12 @@ BOX       *box;
 PIX       *pixs, *pixc, *pix1, *pix2;
 PIXCMAP   *cmap;
 
-    PROCNAME("ioFormatTest");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
 
         /* Read the input file and limit the size */
     if ((pix1 = pixRead(filename)) == NULL)
-        return ERROR_INT("pix1 not made", procName, 1);
+        return ERROR_INT("pix1 not made", __func__, 1);
     pixGetDimensions(pix1, &w, &h, NULL);
     if (w > 250 && h > 250) {  /* take the central 250 x 250 region */
         box = boxCreate(w / 2 - 125, h / 2 - 125, 250, 250);
@@ -1338,7 +1308,7 @@ PIXCMAP   *cmap;
          * a colormap.  Although we can write/read 2 bpp BMP, nobody
          * else can read them! */
     if (d == 1 || d == 8) {
-        L_INFO("write/read bmp\n", procName);
+        L_INFO("write/read bmp\n", __func__);
         pixWrite(FILE_BMP, pixc, IFF_BMP);
         pix1 = pixRead(FILE_BMP);
         if (!cmap)
@@ -1347,7 +1317,7 @@ PIXCMAP   *cmap;
             pix2 = pixClone(pix1);
         pixEqual(pixc, pix2, &equal);
         if (!equal) {
-            L_INFO("   **** bad bmp image: d = %d ****\n", procName, d);
+            L_INFO("   **** bad bmp image: d = %d ****\n", __func__, d);
             problems = TRUE;
         }
         pixDestroy(&pix1);
@@ -1355,12 +1325,12 @@ PIXCMAP   *cmap;
     }
 
     if (d == 2 || d == 4 || d == 32) {
-        L_INFO("write/read bmp\n", procName);
+        L_INFO("write/read bmp\n", __func__);
         pixWrite(FILE_BMP, pixc, IFF_BMP);
         pix1 = pixRead(FILE_BMP);
         pixEqual(pixc, pix1, &equal);
         if (!equal) {
-            L_INFO("   **** bad bmp image: d = %d ****\n", procName, d);
+            L_INFO("   **** bad bmp image: d = %d ****\n", __func__, d);
             problems = TRUE;
         }
         pixDestroy(&pix1);
@@ -1371,12 +1341,12 @@ PIXCMAP   *cmap;
         /* PNG works for all depths, but here, because we strip
          * 16 --> 8 bpp on reading, we don't test png for 16 bpp. */
     if (d != 16) {
-        L_INFO("write/read png\n", procName);
+        L_INFO("write/read png\n", __func__);
         pixWrite(FILE_PNG, pixc, IFF_PNG);
         pix1 = pixRead(FILE_PNG);
         pixEqual(pixc, pix1, &equal);
         if (!equal) {
-            L_INFO("   **** bad png image: d = %d ****\n", procName, d);
+            L_INFO("   **** bad png image: d = %d ****\n", __func__, d);
             problems = TRUE;
         }
         pixDestroy(&pix1);
@@ -1395,37 +1365,37 @@ PIXCMAP   *cmap;
          * of color entries in pixc. */
 
         /* tiff uncompressed works for all pixel depths */
-    L_INFO("write/read uncompressed tiff\n", procName);
+    L_INFO("write/read uncompressed tiff\n", __func__);
     pixWrite(FILE_TIFF, pixc, IFF_TIFF);
     pix1 = pixRead(FILE_TIFF);
     pixEqual(pixc, pix1, &equal);
     if (!equal) {
         L_INFO("   **** bad tiff uncompressed image: d = %d ****\n",
-               procName, d);
+               __func__, d);
         problems = TRUE;
     }
     pixDestroy(&pix1);
 
         /* tiff lzw works for all pixel depths */
-    L_INFO("write/read lzw compressed tiff\n", procName);
+    L_INFO("write/read lzw compressed tiff\n", __func__);
     pixWrite(FILE_LZW, pixc, IFF_TIFF_LZW);
     pix1 = pixRead(FILE_LZW);
     pixEqual(pixc, pix1, &equal);
     if (!equal) {
         L_INFO("   **** bad tiff lzw compressed image: d = %d ****\n",
-               procName, d);
+               __func__, d);
         problems = TRUE;
     }
     pixDestroy(&pix1);
 
         /* tiff adobe deflate (zip) works for all pixel depths */
-    L_INFO("write/read zip compressed tiff\n", procName);
+    L_INFO("write/read zip compressed tiff\n", __func__);
     pixWrite(FILE_ZIP, pixc, IFF_TIFF_ZIP);
     pix1 = pixRead(FILE_ZIP);
     pixEqual(pixc, pix1, &equal);
     if (!equal) {
         L_INFO("   **** bad tiff zip compressed image: d = %d ****\n",
-               procName, d);
+               __func__, d);
         problems = TRUE;
     }
     pixDestroy(&pix1);
@@ -1433,12 +1403,12 @@ PIXCMAP   *cmap;
         /* tiff jpeg encoding works for grayscale and rgb */
     if (d == 8 || d == 32) {
         PIX  *pixc1;
-        L_INFO("write/read jpeg compressed tiff\n", procName);
+        L_INFO("write/read jpeg compressed tiff\n", __func__);
         if (d == 8 && pixGetColormap(pixc)) {
             pixc1 = pixRemoveColormap(pixc, REMOVE_CMAP_BASED_ON_SRC);
             pixWrite(FILE_TIFF_JPEG, pixc1, IFF_TIFF_JPEG);
             if ((pix1 = pixRead(FILE_TIFF_JPEG)) == NULL) {
-                L_INFO(" did not read FILE_TIFF_JPEG\n", procName);
+                L_INFO(" did not read FILE_TIFF_JPEG\n", __func__);
                 problems = TRUE;
             }
             pixDestroy(&pixc1);
@@ -1454,7 +1424,7 @@ PIXCMAP   *cmap;
             }
             if (diff > 8.0) {
                 L_INFO("   **** bad tiff jpeg compressed image: "
-                       "d = %d, diff = %5.2f ****\n", procName, d, diff);
+                       "d = %d, diff = %5.2f ****\n", __func__, d, diff);
                 problems = TRUE;
             }
         }
@@ -1463,43 +1433,43 @@ PIXCMAP   *cmap;
 
         /* tiff g4, g3, rle and packbits work for 1 bpp */
     if (d == 1) {
-        L_INFO("write/read g4 compressed tiff\n", procName);
+        L_INFO("write/read g4 compressed tiff\n", __func__);
         pixWrite(FILE_G4, pixc, IFF_TIFF_G4);
         pix1 = pixRead(FILE_G4);
         pixEqual(pixc, pix1, &equal);
         if (!equal) {
-            L_INFO("   **** bad tiff g4 image ****\n", procName);
+            L_INFO("   **** bad tiff g4 image ****\n", __func__);
             problems = TRUE;
         }
         pixDestroy(&pix1);
 
-        L_INFO("write/read g3 compressed tiff\n", procName);
+        L_INFO("write/read g3 compressed tiff\n", __func__);
         pixWrite(FILE_G3, pixc, IFF_TIFF_G3);
         pix1 = pixRead(FILE_G3);
         pixEqual(pixc, pix1, &equal);
         if (!equal) {
-            L_INFO("   **** bad tiff g3 image ****\n", procName);
+            L_INFO("   **** bad tiff g3 image ****\n", __func__);
             problems = TRUE;
         }
         pixDestroy(&pix1);
 
-        L_INFO("write/read rle compressed tiff\n", procName);
+        L_INFO("write/read rle compressed tiff\n", __func__);
         pixWrite(FILE_RLE, pixc, IFF_TIFF_RLE);
         pix1 = pixRead(FILE_RLE);
         pixEqual(pixc, pix1, &equal);
         if (!equal) {
-            L_INFO("   **** bad tiff rle image: d = %d ****\n", procName, d);
+            L_INFO("   **** bad tiff rle image: d = %d ****\n", __func__, d);
             problems = TRUE;
         }
         pixDestroy(&pix1);
 
-        L_INFO("write/read packbits compressed tiff\n", procName);
+        L_INFO("write/read packbits compressed tiff\n", __func__);
         pixWrite(FILE_PB, pixc, IFF_TIFF_PACKBITS);
         pix1 = pixRead(FILE_PB);
         pixEqual(pixc, pix1, &equal);
         if (!equal) {
             L_INFO("   **** bad tiff packbits image: d = %d ****\n",
-                   procName, d);
+                   __func__, d);
             problems = TRUE;
         }
         pixDestroy(&pix1);
@@ -1512,7 +1482,7 @@ PIXCMAP   *cmap;
          * pnm doesn't have colormaps, so when we write colormapped
          * pix out as pnm, the colormap is removed.  Thus for the test,
          * we must remove the colormap from pixc before testing.  */
-    L_INFO("write/read pnm\n", procName);
+    L_INFO("write/read pnm\n", __func__);
     pixWrite(FILE_PNM, pixc, IFF_PNM);
     pix1 = pixRead(FILE_PNM);
     if (cmap)
@@ -1521,7 +1491,7 @@ PIXCMAP   *cmap;
         pix2 = pixClone(pixc);
     pixEqual(pix1, pix2, &equal);
     if (!equal) {
-        L_INFO("   **** bad pnm image: d = %d ****\n", procName, d);
+        L_INFO("   **** bad pnm image: d = %d ****\n", __func__, d);
         problems = TRUE;
     }
     pixDestroy(&pix1);
@@ -1534,12 +1504,12 @@ PIXCMAP   *cmap;
         pix1 = pixConvertTo8(pixc, 1);
     else
         pix1 = pixClone(pixc);
-    L_INFO("write/read gif\n", procName);
+    L_INFO("write/read gif\n", __func__);
     pixWrite(FILE_GIF, pix1, IFF_GIF);
     pix2 = pixRead(FILE_GIF);
     pixEqual(pix1, pix2, &equal);
     if (!equal) {
-        L_INFO("   **** bad gif image: d = %d ****\n", procName, d);
+        L_INFO("   **** bad gif image: d = %d ****\n", __func__, d);
         problems = TRUE;
     }
     pixDestroy(&pix1);
@@ -1554,7 +1524,7 @@ PIXCMAP   *cmap;
     else
         pix1 = pixConvertTo8(pixc, 0);
     depth = pixGetDepth(pix1);
-    L_INFO("write/read jpeg\n", procName);
+    L_INFO("write/read jpeg\n", __func__);
     pixWrite(FILE_JPG, pix1, IFF_JFIF_JPEG);
     pix2 = pixRead(FILE_JPG);
     if (depth == 8) {
@@ -1566,7 +1536,7 @@ PIXCMAP   *cmap;
     }
     if (diff > 8.0) {
         L_INFO("   **** bad jpeg image: d = %d, diff = %5.2f ****\n",
-               procName, depth, diff);
+               __func__, depth, diff);
         problems = TRUE;
     }
     pixDestroy(&pix1);
@@ -1581,13 +1551,13 @@ PIXCMAP   *cmap;
     else
         pix1 = pixClone(pixc);
     depth = pixGetDepth(pix1);
-    L_INFO("write/read webp\n", procName);
+    L_INFO("write/read webp\n", __func__);
     pixWrite(FILE_WEBP, pix1, IFF_WEBP);
     pix2 = pixRead(FILE_WEBP);
     pixCompareRGB(pix1, pix2, L_COMPARE_ABS_DIFF, 0, NULL, &diff, NULL, NULL);
     if (diff > 5.0) {
         L_INFO("   **** bad webp image: d = %d, diff = %5.2f ****\n",
-               procName, depth, diff);
+               __func__, depth, diff);
         problems = TRUE;
     }
     pixDestroy(&pix1);
@@ -1602,7 +1572,7 @@ PIXCMAP   *cmap;
     else
         pix1 = pixConvertTo8(pixc, 0);
     depth = pixGetDepth(pix1);
-    L_INFO("write/read jp2k\n", procName);
+    L_INFO("write/read jp2k\n", __func__);
     pixWrite(FILE_JP2K, pix1, IFF_JP2);
     pix2 = pixRead(FILE_JP2K);
     if (depth == 8) {
@@ -1615,7 +1585,7 @@ PIXCMAP   *cmap;
     lept_stderr("diff = %7.3f\n", diff);
     if (diff > 7.0) {
         L_INFO("   **** bad jp2k image: d = %d, diff = %5.2f ****\n",
-               procName, depth, diff);
+               __func__, depth, diff);
         problems = TRUE;
     }
     pixDestroy(&pix1);
@@ -1623,7 +1593,7 @@ PIXCMAP   *cmap;
 #endif  /* HAVE_LIBJP2K */
 
     if (problems == FALSE)
-        L_INFO("All formats read and written OK!\n", procName);
+        L_INFO("All formats read and written OK!\n", __func__);
 
     pixDestroy(&pixc);
     pixDestroy(&pixs);

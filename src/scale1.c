@@ -254,10 +254,8 @@ pixScale(PIX       *pixs,
 l_int32    sharpwidth;
 l_float32  maxscale, sharpfract;
 
-    PROCNAME("pixScale");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
 
         /* Reduce the default sharpening factors by 2 if maxscale < 0.7 */
     maxscale = L_MAX(scalex, scaley);
@@ -283,10 +281,8 @@ pixScaleToSizeRel(PIX     *pixs,
 {
 l_int32  w, h, wd, hd;
 
-    PROCNAME("pixScaleToSizeRel");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
 
     if (delw == 0 && delh == 0)
         return pixCopy(NULL, pixs);
@@ -295,7 +291,7 @@ l_int32  w, h, wd, hd;
     wd = w + delw;
     hd = h + delh;
     if (wd <= 0 || hd <= 0)
-        return (PIX *)ERROR_PTR("pix dimension reduced to 0", procName, NULL);
+        return (PIX *)ERROR_PTR("pix dimension reduced to 0", __func__, NULL);
 
     return pixScaleToSize(pixs, wd, hd);
 }
@@ -327,12 +323,10 @@ pixScaleToSize(PIX     *pixs,
 l_int32    w, h;
 l_float32  scalex, scaley;
 
-    PROCNAME("pixScaleToSize");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (wd <= 0 && hd <= 0)
-        return (PIX *)ERROR_PTR("neither wd nor hd > 0", procName, NULL);
+        return (PIX *)ERROR_PTR("neither wd nor hd > 0", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if (wd <= 0) {
@@ -368,13 +362,11 @@ pixScaleToResolution(PIX        *pixs,
 l_int32    xres;
 l_float32  factor;
 
-    PROCNAME("pixScaleToResolution");
-
     if (pscalefact) *pscalefact = 1.0;
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (target <= 0)
-        return (PIX *)ERROR_PTR("target resolution <= 0", procName, NULL);
+        return (PIX *)ERROR_PTR("target resolution <= 0", __func__, NULL);
 
     xres = pixGetXRes(pixs);
     if (xres <= 0) {
@@ -430,15 +422,13 @@ l_int32    d;
 l_float32  maxscale, minscale;
 PIX       *pix1, *pix2, *pixd;
 
-    PROCNAME("pixScaleGeneral");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     d = pixGetDepth(pixs);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
-        return (PIX *)ERROR_PTR("pixs not {1,2,4,8,16,32} bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not {1,2,4,8,16,32} bpp", __func__, NULL);
     if (scalex <= 0.0 || scaley <= 0.0)
-        return (PIX *)ERROR_PTR("scale factor <= 0", procName, NULL);
+        return (PIX *)ERROR_PTR("scale factor <= 0", __func__, NULL);
     if (scalex == 1.0 && scaley == 1.0)
         return pixCopy(NULL, pixs);
 
@@ -447,7 +437,7 @@ PIX       *pix1, *pix2, *pixd;
 
         /* Remove colormap; clone if possible; result is either 8 or 32 bpp */
     if ((pix1 = pixConvertTo8Or32(pixs, L_CLONE, 0)) == NULL)
-        return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pix1 not made", __func__, NULL);
 
         /* Scale (up or down) */
     d = pixGetDepth(pix1);
@@ -521,22 +511,20 @@ l_int32    d;
 l_float32  maxscale;
 PIX       *pixt, *pixd;
 
-    PROCNAME("pixScaleLI");
-
     if (!pixs || (pixGetDepth(pixs) == 1))
-        return (PIX *)ERROR_PTR("pixs not defined or 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined or 1 bpp", __func__, NULL);
     maxscale = L_MAX(scalex, scaley);
     if (maxscale < 0.7) {
-        L_WARNING("scaling factors < 0.7; do regular scaling\n", procName);
+        L_WARNING("scaling factors < 0.7; do regular scaling\n", __func__);
         return pixScaleGeneral(pixs, scalex, scaley, 0.0, 0);
     }
     d = pixGetDepth(pixs);
     if (d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
-        return (PIX *)ERROR_PTR("pixs not {2,4,8,16,32} bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not {2,4,8,16,32} bpp", __func__, NULL);
 
         /* Remove colormap; clone if possible; result is either 8 or 32 bpp */
     if ((pixt = pixConvertTo8Or32(pixs, L_CLONE, 0)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
 
     d = pixGetDepth(pixt);
     if (d == 8)
@@ -581,13 +569,11 @@ l_uint32  *datas, *datad;
 l_float32  maxscale;
 PIX       *pixd;
 
-    PROCNAME("pixScaleColorLI");
-
     if (!pixs || (pixGetDepth(pixs) != 32))
-        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", __func__, NULL);
     maxscale = L_MAX(scalex, scaley);
     if (maxscale < 0.7) {
-        L_WARNING("scaling factors < 0.7; do regular scaling\n", procName);
+        L_WARNING("scaling factors < 0.7; do regular scaling\n", __func__);
         return pixScaleGeneral(pixs, scalex, scaley, 0.0, 0);
     }
 
@@ -606,7 +592,7 @@ PIX       *pixd;
     wd = (l_int32)(scalex * (l_float32)ws + 0.5);
     hd = (l_int32)(scaley * (l_float32)hs + 0.5);
     if ((pixd = pixCreate(wd, hd, 32)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, scalex, scaley);
     datad = pixGetData(pixd);
@@ -642,16 +628,14 @@ l_int32    ws, hs, wpls, wpld;
 l_uint32  *datas, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixScaleColor2xLI");
-
     if (!pixs || (pixGetDepth(pixs) != 32))
-        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if ((pixd = pixCreate(2 * ws, 2 * hs, 32)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, 2.0, 2.0);
     datad = pixGetData(pixd);
@@ -689,10 +673,8 @@ PIX  *pixr, *pixg, *pixb;
 PIX  *pixrs, *pixgs, *pixbs;
 PIX  *pixd;
 
-    PROCNAME("pixScaleColor4xLI");
-
     if (!pixs || (pixGetDepth(pixs) != 32))
-        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", __func__, NULL);
 
     pixr = pixGetRGBComponent(pixs, COLOR_RED);
     pixrs = pixScaleGray4xLI(pixr);
@@ -705,7 +687,7 @@ PIX  *pixd;
     pixDestroy(&pixb);
 
     if ((pixd = pixCreateRGBImage(pixrs, pixgs, pixbs)) == NULL) {
-        L_ERROR("pixd not made\n", procName);
+        L_ERROR("pixd not made\n", __func__);
     } else {
         if (pixGetSpp(pixs) == 4)
             pixScaleAndTransferAlpha(pixd, pixs, 4.0, 4.0);
@@ -786,14 +768,12 @@ l_uint32  *datas, *datad;
 l_float32  maxscale;
 PIX       *pixd;
 
-    PROCNAME("pixScaleGrayLI");
-
     if (!pixs || pixGetDepth(pixs) != 8 || pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("pixs undefined, cmapped or not 8 bpp",
-                                procName, NULL);
+                                __func__, NULL);
     maxscale = L_MAX(scalex, scaley);
     if (maxscale < 0.7) {
-        L_WARNING("scaling factors < 0.7; do regular scaling\n", procName);
+        L_WARNING("scaling factors < 0.7; do regular scaling\n", __func__);
         return pixScaleGeneral(pixs, scalex, scaley, 0.0, 0);
     }
 
@@ -812,7 +792,7 @@ PIX       *pixd;
     wd = (l_int32)(scalex * (l_float32)ws + 0.5);
     hd = (l_int32)(scaley * (l_float32)hs + 0.5);
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyText(pixd, pixs);
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
@@ -844,17 +824,15 @@ l_int32    ws, hs, wpls, wpld;
 l_uint32  *datas, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixScaleGray2xLI");
-
     if (!pixs || pixGetDepth(pixs) != 8 || pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("pixs undefined, cmapped or not 8 bpp",
-                                procName, NULL);
+                                __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if ((pixd = pixCreate(2 * ws, 2 * hs, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
     pixScaleResolution(pixd, 2.0, 2.0);
@@ -885,17 +863,15 @@ l_int32    ws, hs, wpls, wpld;
 l_uint32  *datas, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixScaleGray4xLI");
-
     if (!pixs || pixGetDepth(pixs) != 8 || pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("pixs undefined, cmapped or not 8 bpp",
-                                procName, NULL);
+                                __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if ((pixd = pixCreate(4 * ws, 4 * hs, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
     pixScaleResolution(pixd, 4.0, 4.0);
@@ -931,14 +907,12 @@ l_int32    i, ws, hs, hsm, wd, hd, wpls, wplb, wpld;
 l_uint32  *datas, *datad, *lines, *lined, *lineb;
 PIX       *pixd;
 
-    PROCNAME("pixScaleGray2xLIThresh");
-
     if (!pixs || pixGetDepth(pixs) != 8 || pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("pixs undefined, not 8 bpp, or cmapped",
-                                procName, NULL);
+                                __func__, NULL);
     if (thresh < 0 || thresh > 256)
         return (PIX *)ERROR_PTR("thresh must be in [0, ... 256]",
-            procName, NULL);
+            __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = 2 * ws;
@@ -950,12 +924,12 @@ PIX       *pixd;
         /* Make line buffer for 2 lines of virtual intermediate image */
     wplb = (wd + 3) / 4;
     if ((lineb = (l_uint32 *)LEPT_CALLOC(2 * wplb, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("lineb not made", procName, NULL);
+        return (PIX *)ERROR_PTR("lineb not made", __func__, NULL);
 
         /* Make dest binary image */
     if ((pixd = pixCreate(wd, hd, 1)) == NULL) {
         LEPT_FREE(lineb);
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     }
     pixCopyInputFormat(pixd, pixs);
     pixCopyResolution(pixd, pixs);
@@ -1013,11 +987,9 @@ l_uint32  *linebp = NULL;  /* 1 intermediate buffer line */
 l_uint32  *bufs = NULL;    /* 2 source buffer lines */
 PIX       *pixd = NULL;
 
-    PROCNAME("pixScaleGray2xLIDither");
-
     if (!pixs || pixGetDepth(pixs) != 8 || pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("pixs undefined, not 8 bpp, or cmapped",
-                                procName, NULL);
+                                __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = 2 * ws;
@@ -1028,24 +1000,24 @@ PIX       *pixd = NULL;
 
         /* Make line buffers for 2 lines of src image */
     if ((bufs = (l_uint32 *)LEPT_CALLOC(2 * wpls, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("bufs not made", procName, NULL);
+        return (PIX *)ERROR_PTR("bufs not made", __func__, NULL);
 
         /* Make line buffer for 2 lines of virtual intermediate image */
     wplb = (wd + 3) / 4;
     if ((lineb = (l_uint32 *)LEPT_CALLOC(2 * wplb, sizeof(l_uint32))) == NULL) {
-        L_ERROR("lineb not made\n", procName);
+        L_ERROR("lineb not made\n", __func__);
         goto cleanup;
     }
 
         /* Make line buffer for 1 line of virtual intermediate image */
     if ((linebp = (l_uint32 *)LEPT_CALLOC(wplb, sizeof(l_uint32))) == NULL) {
-        L_ERROR("linebp not made\n", procName);
+        L_ERROR("linebp not made\n", __func__);
         goto cleanup;
     }
 
         /* Make dest binary image */
     if ((pixd = pixCreate(wd, hd, 1)) == NULL) {
-        L_ERROR("pixd not made\n", procName);
+        L_ERROR("pixd not made\n", __func__);
         goto cleanup;
     }
     pixCopyInputFormat(pixd, pixs);
@@ -1129,14 +1101,12 @@ l_int32    i, j, ws, hs, hsm, wd, hd, wpls, wplb, wpld;
 l_uint32  *datas, *datad, *lines, *lined, *lineb;
 PIX       *pixd;
 
-    PROCNAME("pixScaleGray4xLIThresh");
-
     if (!pixs || pixGetDepth(pixs) != 8 || pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("pixs undefined, not 8 bpp, or cmapped",
-                                procName, NULL);
+                                __func__, NULL);
     if (thresh < 0 || thresh > 256)
         return (PIX *)ERROR_PTR("thresh must be in [0, ... 256]",
-            procName, NULL);
+            __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = 4 * ws;
@@ -1148,12 +1118,12 @@ PIX       *pixd;
         /* Make line buffer for 4 lines of virtual intermediate image */
     wplb = (wd + 3) / 4;
     if ((lineb = (l_uint32 *)LEPT_CALLOC(4 * wplb, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("lineb not made", procName, NULL);
+        return (PIX *)ERROR_PTR("lineb not made", __func__, NULL);
 
         /* Make dest binary image */
     if ((pixd = pixCreate(wd, hd, 1)) == NULL) {
         LEPT_FREE(lineb);
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     }
     pixCopyInputFormat(pixd, pixs);
     pixCopyResolution(pixd, pixs);
@@ -1220,11 +1190,9 @@ l_uint32  *linebp = NULL;  /* 1 intermediate buffer line */
 l_uint32  *bufs = NULL;    /* 2 source buffer lines */
 PIX       *pixd = NULL;
 
-    PROCNAME("pixScaleGray4xLIDither");
-
     if (!pixs || pixGetDepth(pixs) != 8 || pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("pixs undefined, not 8 bpp, or cmapped",
-                                procName, NULL);
+                                __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = 4 * ws;
@@ -1235,24 +1203,24 @@ PIX       *pixd = NULL;
 
         /* Make line buffers for 2 lines of src image */
     if ((bufs = (l_uint32 *)LEPT_CALLOC(2 * wpls, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("bufs not made", procName, NULL);
+        return (PIX *)ERROR_PTR("bufs not made", __func__, NULL);
 
         /* Make line buffer for 4 lines of virtual intermediate image */
     wplb = (wd + 3) / 4;
     if ((lineb = (l_uint32 *)LEPT_CALLOC(4 * wplb, sizeof(l_uint32))) == NULL) {
-        L_ERROR("lineb not made\n", procName);
+        L_ERROR("lineb not made\n", __func__);
         goto cleanup;
     }
 
         /* Make line buffer for 1 line of virtual intermediate image */
     if ((linebp = (l_uint32 *)LEPT_CALLOC(wplb, sizeof(l_uint32))) == NULL) {
-        L_ERROR("linebp not made\n", procName);
+        L_ERROR("linebp not made\n", __func__);
         goto cleanup;
     }
 
         /* Make dest binary image */
     if ((pixd = pixCreate(wd, hd, 1)) == NULL) {
-        L_ERROR("pixd not made\n", procName);
+        L_ERROR("pixd not made\n", __func__);
         goto cleanup;
     }
     pixCopyInputFormat(pixd, pixs);
@@ -1343,12 +1311,10 @@ l_int32    ws, hs, d, wpls, wd, hd, wpld;
 l_uint32  *datas, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixScaleBySampling");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (scalex <= 0.0 || scaley <= 0.0)
-        return (PIX *)ERROR_PTR("scale factor <= 0", procName, NULL);
+        return (PIX *)ERROR_PTR("scale factor <= 0", __func__, NULL);
     if (scalex == 1.0 && scaley == 1.0)
         return pixCopy(NULL, pixs);
     if ((d = pixGetDepth(pixs)) == 1)
@@ -1360,7 +1326,7 @@ PIX       *pixd;
     wd = (l_int32)(scalex * (l_float32)ws + 0.5);
     hd = (l_int32)(scaley * (l_float32)hs + 0.5);
     if ((pixd = pixCreate(wd, hd, d)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, scalex, scaley);
     pixCopyColormap(pixd, pixs);
@@ -1404,12 +1370,10 @@ pixScaleBySamplingToSize(PIX     *pixs,
 l_int32    w, h;
 l_float32  scalex, scaley;
 
-    PROCNAME("pixScaleBySamplingToSize");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (wd <= 0 && hd <= 0)
-        return (PIX *)ERROR_PTR("neither wd nor hd > 0", procName, NULL);
+        return (PIX *)ERROR_PTR("neither wd nor hd > 0", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if (wd <= 0) {
@@ -1446,13 +1410,11 @@ pixScaleByIntSampling(PIX     *pixs,
 {
 l_float32  scale;
 
-    PROCNAME("pixScaleByIntSampling");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (factor <= 1) {
         if (factor < 1)
-            L_ERROR("factor must be >= 1; returning a copy\n", procName);
+            L_ERROR("factor must be >= 1; returning a copy\n", __func__);
         return pixCopy(NULL, pixs);
     }
 
@@ -1493,14 +1455,12 @@ l_uint32  *datas, *words, *datad, *lined;
 l_float32  scale;
 PIX       *pixd;
 
-    PROCNAME("pixScaleRGBToGrayFast");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("depth not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("depth not 32 bpp", __func__, NULL);
     if (factor < 1)
-        return (PIX *)ERROR_PTR("factor must be >= 1", procName, NULL);
+        return (PIX *)ERROR_PTR("factor must be >= 1", __func__, NULL);
 
     if (color == COLOR_RED)
         shift = L_RED_SHIFT;
@@ -1509,7 +1469,7 @@ PIX       *pixd;
     else if (color == COLOR_BLUE)
         shift = L_BLUE_SHIFT;
     else
-        return (PIX *)ERROR_PTR("invalid color", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid color", __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
@@ -1518,7 +1478,7 @@ PIX       *pixd;
     wd = ws / factor;
     hd = hs / factor;
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
     scale = 1. / (l_float32) factor;
@@ -1568,14 +1528,12 @@ l_uint32  *datas, *words, *datad, *lined;
 l_float32  scale;
 PIX       *pixd;
 
-    PROCNAME("pixScaleRGBToBinaryFast");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (factor < 1)
-        return (PIX *)ERROR_PTR("factor must be >= 1", procName, NULL);
+        return (PIX *)ERROR_PTR("factor must be >= 1", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("depth not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("depth not 32 bpp", __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
@@ -1584,7 +1542,7 @@ PIX       *pixd;
     wd = ws / factor;
     hd = hs / factor;
     if ((pixd = pixCreate(wd, hd, 1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
     scale = 1. / (l_float32) factor;
@@ -1634,14 +1592,12 @@ l_uint32  *datas, *datad, *lines, *lined;
 l_float32  scale;
 PIX       *pixd;
 
-    PROCNAME("pixScaleGrayToBinaryFast");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (factor < 1)
-        return (PIX *)ERROR_PTR("factor must be >= 1", procName, NULL);
+        return (PIX *)ERROR_PTR("factor must be >= 1", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("depth not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("depth not 8 bpp", __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
@@ -1650,7 +1606,7 @@ PIX       *pixd;
     wd = ws / factor;
     hd = hs / factor;
     if ((pixd = pixCreate(wd, hd, 1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
     scale = 1. / (l_float32) factor;
@@ -1716,21 +1672,19 @@ l_uint32  *datas, *datad;
 l_float32  minscale, size;
 PIX       *pixs, *pixd;
 
-    PROCNAME("pixScaleSmooth");
-
     if (!pix)
-        return (PIX *)ERROR_PTR("pix not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not defined", __func__, NULL);
     if (scalex >= 0.7 || scaley >= 0.7) {
-        L_WARNING("scaling factor not < 0.7; do regular scaling\n", procName);
+        L_WARNING("scaling factor not < 0.7; do regular scaling\n", __func__);
         return pixScaleGeneral(pix, scalex, scaley, 0.0, 0);
     }
     d = pixGetDepth(pix);
     if (d != 2 && d != 4 && d !=8 && d != 32)
-        return (PIX *)ERROR_PTR("pix not 2, 4, 8 or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not 2, 4, 8 or 32 bpp", __func__, NULL);
 
         /* Remove colormap; clone if possible; result is either 8 or 32 bpp */
     if ((pixs = pixConvertTo8Or32(pix, L_CLONE, 0)) == NULL)
-        return (PIX *)ERROR_PTR("pixs not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not made", __func__, NULL);
     d = pixGetDepth(pixs);
 
         /* If 1.42 < 1/minscale < 2.5, use isize = 2
@@ -1745,7 +1699,7 @@ PIX       *pixs, *pixd;
         pixd = pixCreate(1, 1, d);
         pixGetPixel(pixs, ws / 2, hs / 2, &val);
         pixSetPixel(pixd, 0, 0, val);
-        L_WARNING("ridiculously small scaling factor %f\n", procName, minscale);
+        L_WARNING("ridiculously small scaling factor %f\n", __func__, minscale);
         pixDestroy(&pixs);
         return pixd;
     }
@@ -1756,7 +1710,7 @@ PIX       *pixs, *pixd;
     hd = L_MAX(1, (l_int32)(scaley * (l_float32)hs + 0.5));
     if ((pixd = pixCreate(wd, hd, d)) == NULL) {
         pixDestroy(&pixs);
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     }
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
@@ -1799,12 +1753,10 @@ pixScaleSmoothToSize(PIX     *pixs,
 l_int32    w, h;
 l_float32  scalex, scaley;
 
-    PROCNAME("pixScaleSmoothToSize");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (wd <= 0 && hd <= 0)
-        return (PIX *)ERROR_PTR("neither wd nor hd > 0", procName, NULL);
+        return (PIX *)ERROR_PTR("neither wd nor hd > 0", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if (wd <= 0) {
@@ -1839,21 +1791,19 @@ l_int32    wd, hd, wpls, wpld;
 l_uint32  *datas, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixScaleRGBToGray2");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (rwt + gwt + bwt < 0.98 || rwt + gwt + bwt > 1.02)
-        return (PIX *)ERROR_PTR("sum of wts should be 1.0", procName, NULL);
+        return (PIX *)ERROR_PTR("sum of wts should be 1.0", __func__, NULL);
 
     wd = pixGetWidth(pixs) / 2;
     hd = pixGetHeight(pixs) / 2;
     wpls = pixGetWpl(pixs);
     datas = pixGetData(pixs);
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
     pixScaleResolution(pixd, 0.5, 0.5);
@@ -1920,23 +1870,21 @@ l_uint32  *datas, *datad;
 l_float32  maxscale, minscale;
 PIX       *pixs, *pixd, *pix1, *pix2, *pix3;
 
-    PROCNAME("pixScaleAreaMap");
-
     if (!pix)
-        return (PIX *)ERROR_PTR("pix not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not defined", __func__, NULL);
     d = pixGetDepth(pix);
     if (d != 2 && d != 4 && d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("pix not 2, 4, 8 or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not 2, 4, 8 or 32 bpp", __func__, NULL);
 
     minscale = L_MIN(scalex, scaley);
     if (minscale < 0.02) {  /* too small for area mapping */
-        L_WARNING("tiny scaling factor; using pixScaleSmooth()\n", procName);
+        L_WARNING("tiny scaling factor; using pixScaleSmooth()\n", __func__);
         return pixScaleSmooth(pix, scalex, scaley);
     }
 
     maxscale = L_MAX(scalex, scaley);
     if (maxscale >= 0.7) {  /* too large for area mapping */
-        L_WARNING("scaling factor >= 0.7; do regular scaling\n", procName);
+        L_WARNING("scaling factor >= 0.7; do regular scaling\n", __func__);
         return pixScaleGeneral(pix, scalex, scaley, 0.0, 0);
     }
 
@@ -1983,7 +1931,7 @@ PIX       *pixs, *pixd, *pix1, *pix2, *pix3;
         /* Remove colormap if necessary.
          * If 2 bpp or 4 bpp gray, convert to 8 bpp */
     if ((d == 2 || d == 4 || d == 8) && pixGetColormap(pix)) {
-        L_WARNING("pix has colormap; removing\n", procName);
+        L_WARNING("pix has colormap; removing\n", __func__);
         pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
         d = pixGetDepth(pixs);
     } else if (d == 2 || d == 4) {
@@ -2000,11 +1948,11 @@ PIX       *pixs, *pixd, *pix1, *pix2, *pix3;
     hd = (l_int32)(scaley * (l_float32)hs + 0.5);
     if (wd < 1 || hd < 1) {
         pixDestroy(&pixs);
-        return (PIX *)ERROR_PTR("pixd too small", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd too small", __func__, NULL);
     }
     if ((pixd = pixCreate(wd, hd, d)) == NULL) {
         pixDestroy(&pixs);
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     }
     pixCopyInputFormat(pixd, pixs);
     pixCopyResolution(pixd, pixs);
@@ -2050,18 +1998,16 @@ l_int32    wd, hd, d, wpls, wpld;
 l_uint32  *datas, *datad;
 PIX       *pixs, *pixd;
 
-    PROCNAME("pixScaleAreaMap2");
-
     if (!pix)
-        return (PIX *)ERROR_PTR("pix not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not defined", __func__, NULL);
     d = pixGetDepth(pix);
     if (d != 2 && d != 4 && d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("pix not 2, 4, 8 or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not 2, 4, 8 or 32 bpp", __func__, NULL);
 
         /* Remove colormap if necessary.
          * If 2 bpp or 4 bpp gray, convert to 8 bpp */
     if ((d == 2 || d == 4 || d == 8) && pixGetColormap(pix)) {
-        L_WARNING("pix has colormap; removing\n", procName);
+        L_WARNING("pix has colormap; removing\n", __func__);
         pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
         d = pixGetDepth(pixs);
     } else if (d == 2 || d == 4) {
@@ -2116,12 +2062,10 @@ pixScaleAreaMapToSize(PIX     *pixs,
 l_int32    w, h;
 l_float32  scalex, scaley;
 
-    PROCNAME("pixScaleAreaMapToSize");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (wd <= 0 && hd <= 0)
-        return (PIX *)ERROR_PTR("neither wd nor hd > 0", procName, NULL);
+        return (PIX *)ERROR_PTR("neither wd nor hd > 0", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if (wd <= 0) {
@@ -2166,14 +2110,12 @@ l_int32    ws, hs, wpls, wd, hd, wpld;
 l_uint32  *datas, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixScaleBinary");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 1 bpp", __func__, NULL);
     if (scalex <= 0.0 || scaley <= 0.0)
-        return (PIX *)ERROR_PTR("scale factor <= 0", procName, NULL);
+        return (PIX *)ERROR_PTR("scale factor <= 0", __func__, NULL);
     if (scalex == 1.0 && scaley == 1.0)
         return pixCopy(NULL, pixs);
 
@@ -2183,7 +2125,7 @@ PIX       *pixd;
     wd = (l_int32)(scalex * (l_float32)ws + 0.5);
     hd = (l_int32)(scaley * (l_float32)hs + 0.5);
     if ((pixd = pixCreate(wd, hd, 1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyColormap(pixd, pixs);
     pixCopyText(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
@@ -3078,10 +3020,8 @@ l_uint32   csval;
 l_uint32  *lines, *prevlines, *lined, *prevlined;
 l_float32  wratio, hratio;
 
-    PROCNAME("scaleBySamplingLow");
-
     if (d != 2 && d != 4 && d !=8 && d != 16 && d != 32)
-        return ERROR_INT("pixel depth not supported", procName, 1);
+        return ERROR_INT("pixel depth not supported", __func__, 1);
 
         /* Clear dest */
     memset(datad, 0, 4LL * hd * wpld);
@@ -3089,10 +3029,10 @@ l_float32  wratio, hratio;
         /* the source row corresponding to dest row i ==> srow[i]
          * the source col corresponding to dest col j ==> scol[j]  */
     if ((srow = (l_int32 *)LEPT_CALLOC(hd, sizeof(l_int32))) == NULL)
-        return ERROR_INT("srow not made", procName, 1);
+        return ERROR_INT("srow not made", __func__, 1);
     if ((scol = (l_int32 *)LEPT_CALLOC(wd, sizeof(l_int32))) == NULL) {
         LEPT_FREE(srow);
-        return ERROR_INT("scol not made", procName, 1);
+        return ERROR_INT("scol not made", __func__, 1);
     }
 
     wratio = (l_float32)ws / (l_float32)wd;
@@ -3212,8 +3152,6 @@ l_uint32  *lines, *lined, *line, *ppixel;
 l_uint32   pixel;
 l_float32  wratio, hratio, norm;
 
-    PROCNAME("scaleSmoothLow");
-
         /* Clear dest */
     memset(datad, 0, 4LL * wpld * hd);
 
@@ -3223,10 +3161,10 @@ l_float32  wratio, hratio, norm;
            src pixels that correspond to dest pixel (j,i).
            The are labeled by the arrays srow[i] and scol[j]. */
     if ((srow = (l_int32 *)LEPT_CALLOC(hd, sizeof(l_int32))) == NULL)
-        return ERROR_INT("srow not made", procName, 1);
+        return ERROR_INT("srow not made", __func__, 1);
     if ((scol = (l_int32 *)LEPT_CALLOC(wd, sizeof(l_int32))) == NULL) {
         LEPT_FREE(srow);
-        return ERROR_INT("scol not made", procName, 1);
+        return ERROR_INT("scol not made", __func__, 1);
     }
 
     norm = 1. / (l_float32)(size * size);
@@ -3712,18 +3650,16 @@ l_int32   *srow, *scol;
 l_uint32  *lines, *prevlines, *lined, *prevlined;
 l_float32  wratio, hratio;
 
-    PROCNAME("scaleBinaryLow");
-
         /* Clear dest */
     memset(datad, 0, 4LL * hd * wpld);
 
         /* The source row corresponding to dest row i ==> srow[i]
          * The source col corresponding to dest col j ==> scol[j]  */
     if ((srow = (l_int32 *)LEPT_CALLOC(hd, sizeof(l_int32))) == NULL)
-        return ERROR_INT("srow not made", procName, 1);
+        return ERROR_INT("srow not made", __func__, 1);
     if ((scol = (l_int32 *)LEPT_CALLOC(wd, sizeof(l_int32))) == NULL) {
         LEPT_FREE(srow);
-        return ERROR_INT("scol not made", procName, 1);
+        return ERROR_INT("scol not made", __func__, 1);
     }
 
     wratio = (l_float32)ws / (l_float32)wd;

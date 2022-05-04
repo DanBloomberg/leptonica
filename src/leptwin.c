@@ -310,9 +310,8 @@ DWORD      imageBitsSize;
 PIX       *pixt = NULL;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixGetWindowsHBITMAP");
     if (!pix)
-        return (HBITMAP)ERROR_PTR("pix not defined", procName, NULL);
+        return (HBITMAP)ERROR_PTR("pix not defined", __func__, NULL);
 
     pixGetDimensions(pix, &width, &height, &depth);
     cmap = pixGetColormap(pix);
@@ -322,7 +321,7 @@ PIXCMAP   *cmap;
         pixt = pixConvert2To8(pix, 0, 85, 170, 255, TRUE);
         if (!pixt)
             return (HBITMAP)ERROR_PTR("unable to convert pix from 2bpp to 8bpp",
-                    procName, NULL);
+                    __func__, NULL);
         depth = pixGetDepth(pixt);
         cmap = pixGetColormap(pixt);
     }
@@ -334,7 +333,7 @@ PIXCMAP   *cmap;
 
     hBitmap = DSCreateDIBSection(width, height, depth, cmap);
     if (!hBitmap)
-        return (HBITMAP)ERROR_PTR("Unable to create HBITMAP", procName, NULL);
+        return (HBITMAP)ERROR_PTR("Unable to create HBITMAP", __func__, NULL);
 
         /* By default, Windows assumes bottom up images */
     if (pixt)

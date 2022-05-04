@@ -338,13 +338,11 @@ l_int32   i, same;
 size_t    nbytes1, nbytes2;
 l_uint8  *array1, *array2;
 
-    PROCNAME("filesAreIdentical");
-
     if (!psame)
-        return ERROR_INT("&same not defined", procName, 1);
+        return ERROR_INT("&same not defined", __func__, 1);
     *psame = 0;
     if (!fname1 || !fname2)
-        return ERROR_INT("both names not defined", procName, 1);
+        return ERROR_INT("both names not defined", __func__, 1);
 
     nbytes1 = nbytesInFile(fname1);
     nbytes2 = nbytesInFile(fname2);
@@ -352,10 +350,10 @@ l_uint8  *array1, *array2;
         return 0;
 
     if ((array1 = l_binaryRead(fname1, &nbytes1)) == NULL)
-        return ERROR_INT("array1 not read", procName, 1);
+        return ERROR_INT("array1 not read", __func__, 1);
     if ((array2 = l_binaryRead(fname2, &nbytes2)) == NULL) {
         LEPT_FREE(array1);
-        return ERROR_INT("array2 not read", procName, 1);
+        return ERROR_INT("array2 not read", __func__, 1);
     }
     same = 1;
     for (i = 0; i < nbytes1; i++) {
@@ -484,14 +482,12 @@ l_int32   i, locb, sizeb, rembytes;
 size_t    inbytes, outbytes;
 l_uint8  *datain, *dataout;
 
-    PROCNAME("fileCorruptByDeletion");
-
     if (!filein || !fileout)
-        return ERROR_INT("filein and fileout not both specified", procName, 1);
+        return ERROR_INT("filein and fileout not both specified", __func__, 1);
     if (loc < 0.0 || loc >= 1.0)
-        return ERROR_INT("loc must be in [0.0 ... 1.0)", procName, 1);
+        return ERROR_INT("loc must be in [0.0 ... 1.0)", __func__, 1);
     if (size <= 0.0)
-        return ERROR_INT("size must be > 0.0", procName, 1);
+        return ERROR_INT("size must be > 0.0", __func__, 1);
     if (loc + size > 1.0)
         size = 1.0 - loc;
 
@@ -501,7 +497,7 @@ l_uint8  *datain, *dataout;
     sizeb = (l_int32)(size * inbytes + 0.5);
     sizeb = L_MAX(1, sizeb);
     sizeb = L_MIN(sizeb, inbytes - locb);  /* >= 1 */
-    L_INFO("Removed %d bytes at location %d\n", procName, sizeb, locb);
+    L_INFO("Removed %d bytes at location %d\n", __func__, sizeb, locb);
     rembytes = inbytes - locb - sizeb;  /* >= 0; to be copied, after excision */
 
     outbytes = inbytes - sizeb;
@@ -548,14 +544,12 @@ l_int32   i, locb, sizeb;
 size_t    bytes;
 l_uint8  *data;
 
-    PROCNAME("fileCorruptByMutation");
-
     if (!filein || !fileout)
-        return ERROR_INT("filein and fileout not both specified", procName, 1);
+        return ERROR_INT("filein and fileout not both specified", __func__, 1);
     if (loc < 0.0 || loc >= 1.0)
-        return ERROR_INT("loc must be in [0.0 ... 1.0)", procName, 1);
+        return ERROR_INT("loc must be in [0.0 ... 1.0)", __func__, 1);
     if (size <= 0.0)
-        return ERROR_INT("size must be > 0.0", procName, 1);
+        return ERROR_INT("size must be > 0.0", __func__, 1);
     if (loc + size > 1.0)
         size = 1.0 - loc;
 
@@ -565,7 +559,7 @@ l_uint8  *data;
     sizeb = (l_int32)(size * bytes + 0.5);
     sizeb = L_MAX(1, sizeb);
     sizeb = L_MIN(sizeb, bytes - locb);  /* >= 1 */
-    L_INFO("Randomizing %d bytes at location %d\n", procName, sizeb, locb);
+    L_INFO("Randomizing %d bytes at location %d\n", __func__, sizeb, locb);
 
         /* Make an array of random bytes and do the substitution */
     for (i = 0; i < sizeb; i++) {
@@ -611,20 +605,18 @@ l_int32   i, index;
 size_t    inbytes, outbytes;
 l_uint8  *datain, *dataout;
 
-    PROCNAME("fileReplaceBytes");
-
     if (!filein || !fileout)
-        return ERROR_INT("filein and fileout not both specified", procName, 1);
+        return ERROR_INT("filein and fileout not both specified", __func__, 1);
 
     datain = l_binaryRead(filein, &inbytes);
     if (start + nbytes > inbytes)
-        L_WARNING("start + nbytes > length(filein) = %zu\n", procName, inbytes);
+        L_WARNING("start + nbytes > length(filein) = %zu\n", __func__, inbytes);
 
     if (!newdata) newsize = 0;
     outbytes = inbytes - nbytes + newsize;
     if ((dataout = (l_uint8 *)LEPT_CALLOC(outbytes, 1)) == NULL) {
         LEPT_FREE(datain);
-        return ERROR_INT("calloc fail for dataout", procName, 1);
+        return ERROR_INT("calloc fail for dataout", __func__, 1);
     }
 
     for (i = 0; i < start; i++)
@@ -663,13 +655,11 @@ genRandomIntOnInterval(l_int32   start,
 {
 l_float64  range;
 
-    PROCNAME("genRandomIntOnInterval");
-
     if (!pval)
-        return ERROR_INT("&val not defined", procName, 1);
+        return ERROR_INT("&val not defined", __func__, 1);
     *pval = 0;
     if (end < start)
-        return ERROR_INT("invalid range", procName, 1);
+        return ERROR_INT("invalid range", __func__, 1);
 
     if (seed > 0) srand(seed);
     range = (l_float64)(end - start + 1);
@@ -734,13 +724,11 @@ l_hashStringToUint64(const char  *str,
 {
 l_uint64  hash, mulp;
 
-    PROCNAME("l_hashStringToUint64");
-
     if (phash) *phash = 0;
     if (!str || (str[0] == '\0'))
-        return ERROR_INT("str not defined or empty", procName, 1);
+        return ERROR_INT("str not defined or empty", __func__, 1);
     if (!phash)
-        return ERROR_INT("&hash not defined", procName, 1);
+        return ERROR_INT("&hash not defined", __func__, 1);
 
     mulp = 26544357894361247;  /* prime, about 1/700 of the max uint64 */
     hash = 104395301;
@@ -774,13 +762,11 @@ l_hashStringToUint64Fast(const char  *str,
 l_uint64  h;
 l_uint8  *p;
 
-    PROCNAME("l_hashStringToUint64Fast");
-
     if (phash) *phash = 0;
     if (!str || (str[0] == '\0'))
-        return ERROR_INT("str not defined or empty", procName, 1);
+        return ERROR_INT("str not defined or empty", __func__, 1);
     if (!phash)
-        return ERROR_INT("&hash not defined", procName, 1);
+        return ERROR_INT("&hash not defined", __func__, 1);
 
     h = 0;
     for (p = (l_uint8 *)str; *p != '\0'; p++)
@@ -808,10 +794,8 @@ l_hashPtToUint64(l_int32    x,
                  l_int32    y,
                  l_uint64  *phash)
 {
-    PROCNAME("l_hashPtToUint64");
-
     if (!phash)
-        return ERROR_INT("&hash not defined", procName, 1);
+        return ERROR_INT("&hash not defined", __func__, 1);
 
     *phash = (l_uint64)(2173249142.3849 * x + 3763193258.6227 * y);
     return 0;
@@ -837,10 +821,8 @@ l_ok
 l_hashFloat64ToUint64(l_float64  val,
                       l_uint64  *phash)
 {
-    PROCNAME("l_hashFloatToUint64");
-
     if (!phash)
-        return ERROR_INT("&hash not defined", procName, 1);
+        return ERROR_INT("&hash not defined", __func__, 1);
     val = (val >= 0.0) ? 847019.66701 * val : -217324.91613 * val;
     *phash = (l_uint64)val;
     return 0;
@@ -863,13 +845,11 @@ findNextLargerPrime(l_int32    start,
 {
 l_int32  i, is_prime;
 
-    PROCNAME("findNextLargerPrime");
-
     if (!pprime)
-        return ERROR_INT("&prime not defined", procName, 1);
+        return ERROR_INT("&prime not defined", __func__, 1);
     *pprime = 0;
     if (start <= 0)
-        return ERROR_INT("start must be > 0", procName, 1);
+        return ERROR_INT("start must be > 0", __func__, 1);
 
     for (i = start + 1; ; i++) {
         lept_isPrime(i, &is_prime, NULL);
@@ -879,7 +859,7 @@ l_int32  i, is_prime;
         }
     }
 
-    return ERROR_INT("prime not found!", procName, 1);
+    return ERROR_INT("prime not found!", __func__, 1);
 }
 
 
@@ -900,14 +880,12 @@ lept_isPrime(l_uint64   n,
 l_uint32  div;
 l_uint64  limit, ratio;
 
-    PROCNAME("lept_isPrime");
-
     if (pis_prime) *pis_prime = 0;
     if (pfactor) *pfactor = 0;
     if (!pis_prime)
-        return ERROR_INT("&is_prime not defined", procName, 1);
+        return ERROR_INT("&is_prime not defined", __func__, 1);
     if (n <= 0)
-        return ERROR_INT("n must be > 0", procName, 1);
+        return ERROR_INT("n must be > 0", __func__, 1);
 
     if (n % 2 == 0) {
         if (pfactor) *pfactor = 2;
@@ -1286,13 +1264,11 @@ stopWallTimer(L_WALLTIMER  **ptimer)
 l_int32       tsec, tusec;
 L_WALLTIMER  *timer;
 
-    PROCNAME("stopWallTimer");
-
     if (!ptimer)
-        return (l_float32)ERROR_FLOAT("&timer not defined", procName, 0.0);
+        return (l_float32)ERROR_FLOAT("&timer not defined", __func__, 0.0);
     timer = *ptimer;
     if (!timer)
-        return (l_float32)ERROR_FLOAT("timer not defined", procName, 0.0);
+        return (l_float32)ERROR_FLOAT("timer not defined", __func__, 0.0);
 
     l_getCurrentTime(&timer->stop_sec, &timer->stop_usec);
     tsec = timer->stop_sec - timer->start_sec;

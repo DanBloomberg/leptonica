@@ -230,18 +230,16 @@ BOXA    *boxa;
 PIX     *pixd;
 PIXA    *pixas, *pixad;
 
-    PROCNAME("pixSelectBySize");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
     if (type != L_SELECT_WIDTH && type != L_SELECT_HEIGHT &&
         type != L_SELECT_IF_EITHER && type != L_SELECT_IF_BOTH)
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
     if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
         relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
-        return (PIX *)ERROR_PTR("invalid relation", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid relation", __func__, NULL);
     if (pchanged) *pchanged = FALSE;
 
         /* Check if any components exist */
@@ -314,16 +312,14 @@ pixaSelectBySize(PIXA     *pixas,
 NUMA  *na;
 PIXA  *pixad;
 
-    PROCNAME("pixaSelectBySize");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (type != L_SELECT_WIDTH && type != L_SELECT_HEIGHT &&
         type != L_SELECT_IF_EITHER && type != L_SELECT_IF_BOTH)
-        return (PIXA *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid type", __func__, NULL);
     if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
         relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
-        return (PIXA *)ERROR_PTR("invalid relation", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid relation", __func__, NULL);
 
         /* Compute the indicator array for saving components */
     na = pixaMakeSizeIndicator(pixas, width, height, type, relation);
@@ -369,16 +365,14 @@ pixaMakeSizeIndicator(PIXA     *pixa,
 l_int32  i, n, w, h, ival;
 NUMA    *na;
 
-    PROCNAME("pixaMakeSizeIndicator");
-
     if (!pixa)
-        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixa not defined", __func__, NULL);
     if (type != L_SELECT_WIDTH && type != L_SELECT_HEIGHT &&
         type != L_SELECT_IF_EITHER && type != L_SELECT_IF_BOTH)
-        return (NUMA *)ERROR_PTR("invalid type", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid type", __func__, NULL);
     if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
         relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
-        return (NUMA *)ERROR_PTR("invalid relation", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid relation", __func__, NULL);
 
     n = pixaGetCount(pixa);
     na = numaCreate(n);
@@ -416,7 +410,7 @@ NUMA    *na;
                     ival = 1;
             break;
         default:
-            L_WARNING("can't get here!\n", procName);
+            L_WARNING("can't get here!\n", __func__);
             break;
         }
         numaAddNumber(na, ival);
@@ -462,15 +456,13 @@ BOXA    *boxa;
 PIX     *pixd;
 PIXA    *pixas, *pixad;
 
-    PROCNAME("pixSelectByPerimToAreaRatio");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
     if (type != L_SELECT_IF_LT && type != L_SELECT_IF_GT &&
         type != L_SELECT_IF_LTE && type != L_SELECT_IF_GTE)
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
     if (pchanged) *pchanged = FALSE;
 
         /* Check if any components exist */
@@ -533,13 +525,11 @@ pixaSelectByPerimToAreaRatio(PIXA      *pixas,
 NUMA  *na, *nai;
 PIXA  *pixad;
 
-    PROCNAME("pixaSelectByPerimToAreaRatio");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (type != L_SELECT_IF_LT && type != L_SELECT_IF_GT &&
         type != L_SELECT_IF_LTE && type != L_SELECT_IF_GTE)
-        return (PIXA *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid type", __func__, NULL);
 
         /* Compute component ratios. */
     na = pixaFindPerimToAreaRatio(pixas);
@@ -593,15 +583,13 @@ BOXA    *boxa;
 PIX     *pixd;
 PIXA    *pixas, *pixad;
 
-    PROCNAME("pixSelectByPerimSizeRatio");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
     if (type != L_SELECT_IF_LT && type != L_SELECT_IF_GT &&
         type != L_SELECT_IF_LTE && type != L_SELECT_IF_GTE)
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
     if (pchanged) *pchanged = FALSE;
 
         /* Check if any components exist */
@@ -664,13 +652,11 @@ pixaSelectByPerimSizeRatio(PIXA      *pixas,
 NUMA  *na, *nai;
 PIXA  *pixad;
 
-    PROCNAME("pixaSelectByPerimSizeRatio");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (type != L_SELECT_IF_LT && type != L_SELECT_IF_GT &&
         type != L_SELECT_IF_LTE && type != L_SELECT_IF_GTE)
-        return (PIXA *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid type", __func__, NULL);
 
         /* Compute component ratios. */
     na = pixaFindPerimSizeRatio(pixas);
@@ -723,15 +709,13 @@ BOXA    *boxa;
 PIX     *pixd;
 PIXA    *pixas, *pixad;
 
-    PROCNAME("pixSelectByAreaFraction");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
     if (type != L_SELECT_IF_LT && type != L_SELECT_IF_GT &&
         type != L_SELECT_IF_LTE && type != L_SELECT_IF_GTE)
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
     if (pchanged) *pchanged = FALSE;
 
         /* Check if any components exist */
@@ -798,13 +782,11 @@ pixaSelectByAreaFraction(PIXA      *pixas,
 NUMA  *na, *nai;
 PIXA  *pixad;
 
-    PROCNAME("pixaSelectByAreaFraction");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (type != L_SELECT_IF_LT && type != L_SELECT_IF_GT &&
         type != L_SELECT_IF_LTE && type != L_SELECT_IF_GTE)
-        return (PIXA *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid type", __func__, NULL);
 
         /* Compute component ratios. */
     na = pixaFindAreaFraction(pixas);
@@ -857,15 +839,13 @@ BOXA    *boxa;
 PIX     *pixd;
 PIXA    *pixas, *pixad;
 
-    PROCNAME("pixSelectByArea");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
     if (type != L_SELECT_IF_LT && type != L_SELECT_IF_GT &&
         type != L_SELECT_IF_LTE && type != L_SELECT_IF_GTE)
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
     if (pchanged) *pchanged = FALSE;
 
         /* Check if any components exist */
@@ -932,13 +912,11 @@ pixaSelectByArea(PIXA      *pixas,
 NUMA  *na, *nai;
 PIXA  *pixad;
 
-    PROCNAME("pixaSelectByArea");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (type != L_SELECT_IF_LT && type != L_SELECT_IF_GT &&
         type != L_SELECT_IF_LTE && type != L_SELECT_IF_GTE)
-        return (PIXA *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid type", __func__, NULL);
 
         /* Compute area of each component */
     na = pixaCountPixels(pixas);
@@ -990,15 +968,13 @@ BOXA    *boxa;
 PIX     *pixd;
 PIXA    *pixas, *pixad;
 
-    PROCNAME("pixSelectByWidthHeightRatio");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
     if (type != L_SELECT_IF_LT && type != L_SELECT_IF_GT &&
         type != L_SELECT_IF_LTE && type != L_SELECT_IF_GTE)
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
     if (pchanged) *pchanged = FALSE;
 
         /* Check if any components exist */
@@ -1065,13 +1041,11 @@ pixaSelectByWidthHeightRatio(PIXA      *pixas,
 NUMA  *na, *nai;
 PIXA  *pixad;
 
-    PROCNAME("pixaSelectByWidthHeightRatio");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (type != L_SELECT_IF_LT && type != L_SELECT_IF_GT &&
         type != L_SELECT_IF_LTE && type != L_SELECT_IF_GTE)
-        return (PIXA *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid type", __func__, NULL);
 
         /* Compute component ratios. */
     na = pixaFindWidthHeightRatio(pixas);
@@ -1118,15 +1092,13 @@ NUMA    *na;
 PIX     *pix;
 PIXA    *pixad;
 
-    PROCNAME("pixaSelectByNumConnComp");
-
     if (pchanged) *pchanged = 0;
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (nmin > nmax)
-        return (PIXA *)ERROR_PTR("nmin > nmax", procName, NULL);
+        return (PIXA *)ERROR_PTR("nmin > nmax", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIXA *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIXA *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
 
         /* Get indicator array based on number of c.c. */
     n = pixaGetCount(pixas);
@@ -1175,12 +1147,10 @@ BOX     *box;
 PIX     *pix1;
 PIXA    *pixad;
 
-    PROCNAME("pixaSelectWithIndicator");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (!na)
-        return (PIXA *)ERROR_PTR("na not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("na not defined", __func__, NULL);
 
     nsave = 0;
     n = numaGetCount(na);
@@ -1234,17 +1204,15 @@ l_int32  i, n, ival, x, y, w, h;
 BOX     *box;
 PIX     *pix;
 
-    PROCNAME("pixRemoveWithIndicator");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     n = pixaGetCount(pixa);
     if (n != numaGetCount(na))
-        return ERROR_INT("pixa and na sizes not equal", procName, 1);
+        return ERROR_INT("pixa and na sizes not equal", __func__, 1);
 
     for (i = 0; i < n; i++) {
         numaGetIValue(na, i, &ival);
@@ -1287,17 +1255,15 @@ l_int32  i, n, ival, x, y, w, h;
 BOX     *box;
 PIX     *pix;
 
-    PROCNAME("pixAddWithIndicator");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     n = pixaGetCount(pixa);
     if (n != numaGetCount(na))
-        return ERROR_INT("pixa and na sizes not equal", procName, 1);
+        return ERROR_INT("pixa and na sizes not equal", __func__, 1);
 
     for (i = 0; i < n; i++) {
         numaGetIValue(na, i, &ival);
@@ -1343,19 +1309,17 @@ NUMA      *na;
 PIX       *pix1;
 PIXA      *pixad;
 
-    PROCNAME("pixaSelectWithString");
-
     if (perror) *perror = 0;
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (!str)
-        return (PIXA *)ERROR_PTR("str not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("str not defined", __func__, NULL);
 
     if ((na = numaCreateFromString(str)) == NULL)
-        return (PIXA *)ERROR_PTR("na not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("na not made", __func__, NULL);
     if ((nval = numaGetCount(na)) == 0) {
         numaDestroy(&na);
-        return (PIXA *)ERROR_PTR("no indices found", procName, NULL);
+        return (PIXA *)ERROR_PTR("no indices found", __func__, NULL);
     }
     numaGetMax(na, &maxval, NULL);
     imaxval = (l_int32)(maxval + 0.1);
@@ -1363,14 +1327,14 @@ PIXA      *pixad;
     npix = pixaGetCount(pixas);
     if (imaxval >= npix) {
         if (perror) *perror = 1;
-        L_ERROR("max index = %d, size of pixa = %d\n", procName, imaxval, npix);
+        L_ERROR("max index = %d, size of pixa = %d\n", __func__, imaxval, npix);
     }
 
     pixad = pixaCreate(nval);
     for (i = 0; i < nval; i++) {
         numaGetIValue(na, i, &val);
         if (val < 0 || val >= npix) {
-            L_ERROR("index %d out of range of pix\n", procName, val);
+            L_ERROR("index %d out of range of pix\n", __func__, val);
             continue;
         }
         pix1 = pixaGetPix(pixas, val, L_COPY);
@@ -1412,18 +1376,16 @@ BOX     *box;
 BOXA    *boxa;
 PIX     *pix;
 
-    PROCNAME("pixaRenderComponent");
-
     if (!pixa)
-        return (PIX *)ERROR_PTR("pixa not defined", procName, pixs);
+        return (PIX *)ERROR_PTR("pixa not defined", __func__, pixs);
     n = pixaGetCount(pixa);
     if (index < 0 || index >= n)
-        return (PIX *)ERROR_PTR("invalid index", procName, pixs);
+        return (PIX *)ERROR_PTR("invalid index", __func__, pixs);
     if (pixs && (pixGetDepth(pixs) != 1))
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixs);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixs);
     pixaVerifyDepth(pixa, &same, &maxd);
     if (maxd > 1)
-        return (PIX *)ERROR_PTR("not all pix with d == 1", procName, pixs);
+        return (PIX *)ERROR_PTR("not all pix with d == 1", __func__, pixs);
 
     boxa = pixaGetBoxa(pixa, L_CLONE);
     if (!pixs) {
@@ -1484,11 +1446,9 @@ BOXA    *boxa;
 NUMA    *na, *naindex;
 PIXA    *pixad;
 
-    PROCNAME("pixaSort");
-
     if (pnaindex) *pnaindex = NULL;
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (sorttype != L_SORT_BY_X && sorttype != L_SORT_BY_Y &&
         sorttype != L_SORT_BY_WIDTH && sorttype != L_SORT_BY_HEIGHT &&
         sorttype != L_SORT_BY_MIN_DIMENSION &&
@@ -1496,29 +1456,29 @@ PIXA    *pixad;
         sorttype != L_SORT_BY_PERIMETER &&
         sorttype != L_SORT_BY_AREA &&
         sorttype != L_SORT_BY_ASPECT_RATIO)
-        return (PIXA *)ERROR_PTR("invalid sort type", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid sort type", __func__, NULL);
     if (sortorder != L_SORT_INCREASING && sortorder != L_SORT_DECREASING)
-        return (PIXA *)ERROR_PTR("invalid sort order", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid sort order", __func__, NULL);
     if (copyflag != L_COPY && copyflag != L_CLONE)
-        return (PIXA *)ERROR_PTR("invalid copy flag", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid copy flag", __func__, NULL);
 
         /* Check the pixa and boxa counts. Make a boxa if required. */
     if ((n = pixaGetCount(pixas)) == 0) {
-        L_INFO("no pix in pixa\n", procName);
+        L_INFO("no pix in pixa\n", __func__);
         return pixaCopy(pixas, copyflag);
     }
     if ((boxa = pixas->boxa) == NULL)   /* not owned; do not destroy */
-        return (PIXA *)ERROR_PTR("boxa not found!", procName, NULL);
+        return (PIXA *)ERROR_PTR("boxa not found!", __func__, NULL);
     nb = boxaGetCount(boxa);
     if (nb == 0) {
         pixaSetFullSizeBoxa(pixas);
         nb = n;
         boxa = pixas->boxa;  /* not owned */
         if (sorttype == L_SORT_BY_X || sorttype == L_SORT_BY_Y)
-            L_WARNING("sort by x or y where all values are 0\n", procName);
+            L_WARNING("sort by x or y where all values are 0\n", __func__);
     }
     if (nb != n)
-        return (PIXA *)ERROR_PTR("boxa and pixa counts differ", procName, NULL);
+        return (PIXA *)ERROR_PTR("boxa and pixa counts differ", __func__, NULL);
 
         /* Use O(n) binsort if possible */
     if (n > MinCompsForBinSort &&
@@ -1529,7 +1489,7 @@ PIXA    *pixad;
 
         /* Build up numa of specific data */
     if ((na = numaCreate(n)) == NULL)
-        return (PIXA *)ERROR_PTR("na not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("na not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         boxaGetBoxGeometry(boxa, i, &x, &y, &w, &h);
         switch (sorttype)
@@ -1562,7 +1522,7 @@ PIXA    *pixad;
             numaAddNumber(na, (l_float32)w / (l_float32)h);
             break;
         default:
-            L_WARNING("invalid sort type\n", procName);
+            L_WARNING("invalid sort type\n", __func__);
         }
     }
 
@@ -1570,12 +1530,12 @@ PIXA    *pixad;
     naindex = numaGetSortIndex(na, sortorder);
     numaDestroy(&na);
     if (!naindex)
-        return (PIXA *)ERROR_PTR("naindex not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("naindex not made", __func__, NULL);
 
         /* Build up sorted pixa using sort index */
     if ((pixad = pixaSortByIndex(pixas, naindex, copyflag)) == NULL) {
         numaDestroy(&naindex);
-        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixad not made", __func__, NULL);
     }
 
     if (pnaindex)
@@ -1624,30 +1584,28 @@ BOXA    *boxa;
 NUMA    *na, *naindex;
 PIXA    *pixad;
 
-    PROCNAME("pixaBinSort");
-
     if (pnaindex) *pnaindex = NULL;
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (sorttype != L_SORT_BY_X && sorttype != L_SORT_BY_Y &&
         sorttype != L_SORT_BY_WIDTH && sorttype != L_SORT_BY_HEIGHT &&
         sorttype != L_SORT_BY_PERIMETER)
-        return (PIXA *)ERROR_PTR("invalid sort type", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid sort type", __func__, NULL);
     if (sortorder != L_SORT_INCREASING && sortorder != L_SORT_DECREASING)
-        return (PIXA *)ERROR_PTR("invalid sort order", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid sort order", __func__, NULL);
     if (copyflag != L_COPY && copyflag != L_CLONE)
-        return (PIXA *)ERROR_PTR("invalid copy flag", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid copy flag", __func__, NULL);
 
         /* Verify that the pixa and its boxa have the same count */
     if ((boxa = pixas->boxa) == NULL)   /* not owned; do not destroy */
-        return (PIXA *)ERROR_PTR("boxa not found", procName, NULL);
+        return (PIXA *)ERROR_PTR("boxa not found", __func__, NULL);
     n = pixaGetCount(pixas);
     if (boxaGetCount(boxa) != n)
-        return (PIXA *)ERROR_PTR("boxa and pixa counts differ", procName, NULL);
+        return (PIXA *)ERROR_PTR("boxa and pixa counts differ", __func__, NULL);
 
         /* Generate Numa of appropriate box dimensions */
     if ((na = numaCreate(n)) == NULL)
-        return (PIXA *)ERROR_PTR("na not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("na not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         boxaGetBoxGeometry(boxa, i, &x, &y, &w, &h);
         switch (sorttype)
@@ -1668,7 +1626,7 @@ PIXA    *pixad;
             numaAddNumber(na, w + h);
             break;
         default:
-            L_WARNING("invalid sort type\n", procName);
+            L_WARNING("invalid sort type\n", __func__);
         }
     }
 
@@ -1676,12 +1634,12 @@ PIXA    *pixad;
     naindex = numaGetBinSortIndex(na, sortorder);
     numaDestroy(&na);
     if (!naindex)
-        return (PIXA *)ERROR_PTR("naindex not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("naindex not made", __func__, NULL);
 
         /* Build up sorted pixa using sort index */
     if ((pixad = pixaSortByIndex(pixas, naindex, copyflag)) == NULL) {
         numaDestroy(&naindex);
-        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixad not made", __func__, NULL);
     }
 
     if (pnaindex)
@@ -1710,14 +1668,12 @@ BOX     *box;
 PIX     *pix;
 PIXA    *pixad;
 
-    PROCNAME("pixaSortByIndex");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (!naindex)
-        return (PIXA *)ERROR_PTR("naindex not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("naindex not defined", __func__, NULL);
     if (copyflag != L_CLONE && copyflag != L_COPY)
-        return (PIXA *)ERROR_PTR("invalid copyflag", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid copyflag", __func__, NULL);
 
     n = pixaGetCount(pixas);
     pixad = pixaCreate(n);
@@ -1753,18 +1709,16 @@ PIX     *pix;
 PIXA    *pixa;
 PIXAA   *paa;
 
-    PROCNAME("pixaSort2dByIndex");
-
     if (!pixas)
-        return (PIXAA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXAA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (!naa)
-        return (PIXAA *)ERROR_PTR("naindex not defined", procName, NULL);
+        return (PIXAA *)ERROR_PTR("naindex not defined", __func__, NULL);
 
         /* Check counts */
     ntot = numaaGetNumberCount(naa);
     pixtot = pixaGetCount(pixas);
     if (ntot != pixtot)
-        return (PIXAA *)ERROR_PTR("element count mismatch", procName, NULL);
+        return (PIXAA *)ERROR_PTR("element count mismatch", __func__, NULL);
 
     n = numaaGetCount(naa);
     paa = pixaaCreate(n);
@@ -1816,24 +1770,22 @@ l_int32  n, npix, i;
 PIX     *pix;
 PIXA    *pixad;
 
-    PROCNAME("pixaSelectRange");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (copyflag != L_COPY && copyflag != L_CLONE)
-        return (PIXA *)ERROR_PTR("invalid copyflag", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid copyflag", __func__, NULL);
     n = pixaGetCount(pixas);
     first = L_MAX(0, first);
     if (last < 0) last = n - 1;
     if (first >= n)
-        return (PIXA *)ERROR_PTR("invalid first", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid first", __func__, NULL);
     if (last >= n) {
         L_WARNING("last = %d is beyond max index = %d; adjusting\n",
-                  procName, last, n - 1);
+                  __func__, last, n - 1);
         last = n - 1;
     }
     if (first > last)
-        return (PIXA *)ERROR_PTR("first > last", procName, NULL);
+        return (PIXA *)ERROR_PTR("first > last", __func__, NULL);
 
     npix = last - first + 1;
     pixad = pixaCreate(npix);
@@ -1871,24 +1823,22 @@ l_int32  n, npixa, i;
 PIXA    *pixa;
 PIXAA   *paad;
 
-    PROCNAME("pixaaSelectRange");
-
     if (!paas)
-        return (PIXAA *)ERROR_PTR("paas not defined", procName, NULL);
+        return (PIXAA *)ERROR_PTR("paas not defined", __func__, NULL);
     if (copyflag != L_COPY && copyflag != L_CLONE)
-        return (PIXAA *)ERROR_PTR("invalid copyflag", procName, NULL);
+        return (PIXAA *)ERROR_PTR("invalid copyflag", __func__, NULL);
     n = pixaaGetCount(paas, NULL);
     first = L_MAX(0, first);
     if (last < 0) last = n - 1;
     if (first >= n)
-        return (PIXAA *)ERROR_PTR("invalid first", procName, NULL);
+        return (PIXAA *)ERROR_PTR("invalid first", __func__, NULL);
     if (last >= n) {
         L_WARNING("last = %d is beyond max index = %d; adjusting\n",
-                  procName, last, n - 1);
+                  __func__, last, n - 1);
         last = n - 1;
     }
     if (first > last)
-        return (PIXAA *)ERROR_PTR("first > last", procName, NULL);
+        return (PIXAA *)ERROR_PTR("first > last", __func__, NULL);
 
     npixa = last - first + 1;
     paad = pixaaCreate(npixa);
@@ -1931,12 +1881,10 @@ l_int32  n, i;
 PIXA    *pixa1, *pixa2;
 PIXAA   *paad;
 
-    PROCNAME("pixaaScaleToSize");
-
     if (!paas)
-        return (PIXAA *)ERROR_PTR("paas not defined", procName, NULL);
+        return (PIXAA *)ERROR_PTR("paas not defined", __func__, NULL);
     if (wd <= 0 && hd <= 0)
-        return (PIXAA *)ERROR_PTR("neither wd nor hd > 0", procName, NULL);
+        return (PIXAA *)ERROR_PTR("neither wd nor hd > 0", __func__, NULL);
 
     n = pixaaGetCount(paas, NULL);
     paad = pixaaCreate(n);
@@ -1980,18 +1928,16 @@ l_int32  n, i, wd, hd;
 PIXA    *pixa1, *pixa2;
 PIXAA   *paad;
 
-    PROCNAME("pixaaScaleToSizeVar");
-
     if (!paas)
-        return (PIXAA *)ERROR_PTR("paas not defined", procName, NULL);
+        return (PIXAA *)ERROR_PTR("paas not defined", __func__, NULL);
     if (!nawd && !nahd)
-        return (PIXAA *)ERROR_PTR("!nawd && !nahd", procName, NULL);
+        return (PIXAA *)ERROR_PTR("!nawd && !nahd", __func__, NULL);
 
     n = pixaaGetCount(paas, NULL);
     if (nawd && (n != numaGetCount(nawd)))
-        return (PIXAA *)ERROR_PTR("nawd wrong size", procName, NULL);
+        return (PIXAA *)ERROR_PTR("nawd wrong size", __func__, NULL);
     if (nahd && (n != numaGetCount(nahd)))
-        return (PIXAA *)ERROR_PTR("nahd wrong size", procName, NULL);
+        return (PIXAA *)ERROR_PTR("nahd wrong size", __func__, NULL);
     paad = pixaaCreate(n);
     for (i = 0; i < n; i++) {
         wd = hd = 0;
@@ -2028,10 +1974,8 @@ l_int32  n, i;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 
-    PROCNAME("pixaScaleToSize");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
 
     if (wd <= 0 && hd <= 0)  /* no scaling requested */
         return pixaCopy(pixas, L_CLONE);
@@ -2073,10 +2017,8 @@ l_int32  n, i;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 
-    PROCNAME("pixaScaleToSizeRel");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
 
     n = pixaGetCount(pixas);
     pixad = pixaCreate(n);
@@ -2086,7 +2028,7 @@ PIXA    *pixad;
         if (pix2) {
             pixaAddPix(pixad, pix2, L_INSERT);
         } else {
-            L_WARNING("relative scale to size failed; use a copy\n", procName);
+            L_WARNING("relative scale to size failed; use a copy\n", __func__);
             pixaAddPix(pixad, pix1, L_COPY);
         }
         pixDestroy(&pix1);
@@ -2118,12 +2060,10 @@ BOXA    *boxa1, *boxa2;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 
-    PROCNAME("pixaScale");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (scalex <= 0.0 || scaley <= 0.0)
-        return (PIXA *)ERROR_PTR("invalid scaling parameters", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid scaling parameters", __func__, NULL);
 
     n = pixaGetCount(pixas);
     pixad = pixaCreate(n);
@@ -2169,12 +2109,10 @@ BOXA    *boxa1, *boxa2;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 
-    PROCNAME("pixaScaleBySampling");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (scalex <= 0.0 || scaley <= 0.0)
-        return (PIXA *)ERROR_PTR("invalid scaling parameters", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid scaling parameters", __func__, NULL);
 
     n = pixaGetCount(pixas);
     pixad = pixaCreate(n);
@@ -2237,27 +2175,25 @@ BOXA    *boxa;
 PIX     *pixs, *pixd;
 PIXA    *pixad;
 
-    PROCNAME("pixaRotate");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (type != L_ROTATE_SHEAR && type != L_ROTATE_AREA_MAP &&
         type != L_ROTATE_SAMPLING)
-        return (PIXA *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid type", __func__, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return (PIXA *)ERROR_PTR("invalid incolor", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid incolor", __func__, NULL);
     if (L_ABS(angle) < MinAngleToRotate)
         return pixaCopy(pixas, L_COPY);
 
     n = pixaGetCount(pixas);
     if ((pixad = pixaCreate(n)) == NULL)
-        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixad not made", __func__, NULL);
     boxa = pixaGetBoxa(pixad, L_COPY);
     pixaSetBoxa(pixad, boxa, L_INSERT);
     for (i = 0; i < n; i++) {
         if ((pixs = pixaGetPix(pixas, i, L_CLONE)) == NULL) {
             pixaDestroy(&pixad);
-            return (PIXA *)ERROR_PTR("pixs not found", procName, NULL);
+            return (PIXA *)ERROR_PTR("pixs not found", __func__, NULL);
         }
         pixd = pixRotate(pixs, angle, type, incolor, width, height);
         pixaAddPix(pixad, pixd, L_INSERT);
@@ -2291,23 +2227,21 @@ BOX     *boxs, *boxd;
 PIX     *pixs, *pixd;
 PIXA    *pixad;
 
-    PROCNAME("pixaRotateOrth");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (rotation < 0 || rotation > 3)
-        return (PIXA *)ERROR_PTR("rotation not in {0,1,2,3}", procName, NULL);
+        return (PIXA *)ERROR_PTR("rotation not in {0,1,2,3}", __func__, NULL);
     if (rotation == 0)
         return pixaCopy(pixas, L_COPY);
 
     n = pixaGetCount(pixas);
     nb = pixaGetBoxaCount(pixas);
     if ((pixad = pixaCreate(n)) == NULL)
-        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixad not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         if ((pixs = pixaGetPix(pixas, i, L_CLONE)) == NULL) {
             pixaDestroy(&pixad);
-            return (PIXA *)ERROR_PTR("pixs not found", procName, NULL);
+            return (PIXA *)ERROR_PTR("pixs not found", __func__, NULL);
         }
         pixd = pixRotateOrth(pixs, rotation);
         pixaAddPix(pixad, pixd, L_INSERT);
@@ -2345,21 +2279,19 @@ BOXA    *boxas, *boxad;
 PIX     *pixs, *pixd;
 PIXA    *pixad;
 
-    PROCNAME("pixaTranslate");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (hshift == 0 && vshift == 0)
         return pixaCopy(pixas, L_COPY);
 
     n = pixaGetCount(pixas);
     nb = pixaGetBoxaCount(pixas);
     if ((pixad = pixaCreate(n)) == NULL)
-        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixad not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         if ((pixs = pixaGetPix(pixas, i, L_CLONE)) == NULL) {
             pixaDestroy(&pixad);
-            return (PIXA *)ERROR_PTR("pixs not found", procName, NULL);
+            return (PIXA *)ERROR_PTR("pixs not found", __func__, NULL);
         }
         pixd = pixTranslate(NULL, pixs, hshift, vshift, incolor);
         pixaAddPix(pixad, pixd, L_INSERT);
@@ -2422,14 +2354,12 @@ BOX     *box;
 BOXA    *boxad;
 PIX     *pixs, *pixd;
 
-    PROCNAME("pixaAddBorderGeneral");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, pixad);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, pixad);
     if (left < 0 || right < 0 || top < 0 || bot < 0)
-        return (PIXA *)ERROR_PTR("negative border added!", procName, pixad);
+        return (PIXA *)ERROR_PTR("negative border added!", __func__, pixad);
     if (pixad && (pixad != pixas))
-        return (PIXA *)ERROR_PTR("pixad defined but != pixas", procName, pixad);
+        return (PIXA *)ERROR_PTR("pixad defined but != pixas", __func__, pixad);
 
     n = pixaGetCount(pixas);
     if (!pixad)
@@ -2448,7 +2378,7 @@ PIX     *pixs, *pixd;
     boxad = pixaGetBoxa(pixad, L_CLONE);
     for (i = 0; i < nbox; i++) {
         if ((box = pixaGetBox(pixas, i, L_COPY)) == NULL) {
-            L_WARNING("box %d not found\n", procName, i);
+            L_WARNING("box %d not found\n", __func__, i);
             break;
         }
         boxAdjustSides(box, box, -left, right, -top, bot);
@@ -2490,13 +2420,11 @@ NUMA    *naindex;
 PIX     *pix;
 PIXA    *pixa, *pixat;
 
-    PROCNAME("pixaaFlattenToPixa");
-
     if (pnaindex) *pnaindex = NULL;
     if (!paa)
-        return (PIXA *)ERROR_PTR("paa not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("paa not defined", __func__, NULL);
     if (copyflag != L_COPY && copyflag != L_CLONE)
-        return (PIXA *)ERROR_PTR("invalid copyflag", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid copyflag", __func__, NULL);
 
     if (pnaindex) {
         naindex = numaCreate(0);
@@ -2544,16 +2472,14 @@ pixaaSizeRange(PIXAA    *paa,
 l_int32  minw, minh, maxw, maxh, minpw, minph, maxpw, maxph, i, n;
 PIXA    *pixa;
 
-    PROCNAME("pixaaSizeRange");
-
     if (pminw) *pminw = 0;
     if (pminh) *pminh = 0;
     if (pmaxw) *pmaxw = 0;
     if (pmaxh) *pmaxh = 0;
     if (!paa)
-        return ERROR_INT("paa not defined", procName, 1);
+        return ERROR_INT("paa not defined", __func__, 1);
     if (!pminw && !pmaxw && !pminh && !pmaxh)
-        return ERROR_INT("no data can be returned", procName, 1);
+        return ERROR_INT("no data can be returned", __func__, 1);
 
     minw = minh = 100000000;
     maxw = maxh = 0;
@@ -2598,16 +2524,14 @@ pixaSizeRange(PIXA     *pixa,
 l_int32  minw, minh, maxw, maxh, i, n, w, h;
 PIX     *pix;
 
-    PROCNAME("pixaSizeRange");
-
     if (pminw) *pminw = 0;
     if (pminh) *pminh = 0;
     if (pmaxw) *pmaxw = 0;
     if (pmaxh) *pmaxh = 0;
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
     if (!pminw && !pmaxw && !pminh && !pmaxh)
-        return ERROR_INT("no data can be returned", procName, 1);
+        return ERROR_INT("no data can be returned", __func__, 1);
 
     minw = minh = 1000000;
     maxw = maxh = 0;
@@ -2667,16 +2591,14 @@ BOX     *box;
 PIX     *pix, *pixc;
 PIXA    *pixad;
 
-    PROCNAME("pixaClipToPix");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (!pixs)
-        return (PIXA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixs not defined", __func__, NULL);
 
     n = pixaGetCount(pixas);
     if ((pixad = pixaCreate(n)) == NULL)
-        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixad not made", __func__, NULL);
 
     for (i = 0; i < n; i++) {
         pix = pixaGetPix(pixas, i, L_CLONE);
@@ -2716,14 +2638,12 @@ l_int32  i, n;
 BOX     *box1;
 PIX     *pix1, *pix2;
 
-    PROCNAME("pixaClipToForeground");
-
     if (ppixad) *ppixad = NULL;
     if (pboxa) *pboxa = NULL;
     if (!pixas)
-        return ERROR_INT("pixas not defined", procName, 1);
+        return ERROR_INT("pixas not defined", __func__, 1);
     if (!ppixad && !pboxa)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
 
     n = pixaGetCount(pixas);
     if (ppixad) *ppixad = pixaCreate(n);
@@ -2770,13 +2690,11 @@ pixaGetRenderingDepth(PIXA     *pixa,
 {
 l_int32  hascolor, maxdepth;
 
-    PROCNAME("pixaGetRenderingDepth");
-
     if (!pdepth)
-        return ERROR_INT("&depth not defined", procName, 1);
+        return ERROR_INT("&depth not defined", __func__, 1);
     *pdepth = 0;
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
 
     pixaHasColor(pixa, &hascolor);
     if (hascolor) {
@@ -2809,13 +2727,11 @@ l_int32   i, n, hascolor, d;
 PIX      *pix;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixaHasColor");
-
     if (!phascolor)
-        return ERROR_INT("&hascolor not defined", procName, 1);
+        return ERROR_INT("&hascolor not defined", __func__, 1);
     *phascolor = 0;
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
 
     n = pixaGetCount(pixa);
     hascolor = 0;
@@ -2850,13 +2766,11 @@ l_int32   i, n;
 PIX      *pix;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixaAnyColormaps");
-
     if (!phascmap)
-        return ERROR_INT("&hascmap not defined", procName, 1);
+        return ERROR_INT("&hascmap not defined", __func__, 1);
     *phascmap = 0;
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
 
     n = pixaGetCount(pixa);
     for (i = 0; i < n; i++) {
@@ -2889,15 +2803,13 @@ pixaGetDepthInfo(PIXA     *pixa,
 l_int32  i, n, d, d0;
 l_int32  maxd, same;  /* depth info */
 
-    PROCNAME("pixaGetDepthInfo");
-
     if (pmaxdepth) *pmaxdepth = 0;
     if (psame) *psame = TRUE;
     if (!pmaxdepth && !psame) return 0;
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
     if ((n = pixaGetCount(pixa)) == 0)
-        return ERROR_INT("pixa is empty", procName, 1);
+        return ERROR_INT("pixa is empty", __func__, 1);
 
     same = TRUE;
     maxd = 0;
@@ -2942,12 +2854,10 @@ BOXA    *boxa;
 PIX     *pix1, *pix2;
 PIXA    *pixa1, *pixad;
 
-    PROCNAME("pixaConvertToSameDepth");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if ((n = pixaGetCount(pixas)) == 0)
-        return (PIXA *)ERROR_PTR("no components", procName, NULL);
+        return (PIXA *)ERROR_PTR("no components", __func__, NULL);
 
 
         /* Remove colormaps if necessary */
@@ -3015,22 +2925,20 @@ BOXA    *boxa;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 
-    PROCNAME("pixaConvertToGivenDepth");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if ((n = pixaGetCount(pixas)) == 0)
-        return (PIXA *)ERROR_PTR("no components", procName, NULL);
+        return (PIXA *)ERROR_PTR("no components", __func__, NULL);
     if (depth != 8 && depth != 32)
-        return (PIXA *)ERROR_PTR("depth not 8 or 32", procName, NULL);
+        return (PIXA *)ERROR_PTR("depth not 8 or 32", __func__, NULL);
 
         /* Warn with 1 --> {8,32} or lossy conversions */
     pixaGetRenderingDepth(pixas, &maxd);
     if (maxd == 1)
-        L_WARNING("All pix are 1 bpp; converting to %d bpp\n", procName, depth);
+        L_WARNING("All pix are 1 bpp; converting to %d bpp\n", __func__, depth);
     if (maxd > depth)
         L_WARNING("Lossy conversion: max rendering depth %d > input %d\n",
-                  procName, maxd, depth);
+                  __func__, maxd, depth);
 
     pixad = pixaCreate(n);
     for (i = 0; i < n; i++) {
@@ -3091,16 +2999,14 @@ BOXA     *boxa1, *boxa2;
 NUMA     *na;
 PIX      *pix1, *pix2;
 
-    PROCNAME("pixaEqual");
-
     if (pnaindex) *pnaindex = NULL;
     if (!psame)
-        return ERROR_INT("&same not defined", procName, 1);
+        return ERROR_INT("&same not defined", __func__, 1);
     *psame = 0;
     sameboxa = 0;
     na = NULL;
     if (!pixa1 || !pixa2)
-        return ERROR_INT("pixa1 and pixa2 not both defined", procName, 1);
+        return ERROR_INT("pixa1 and pixa2 not both defined", __func__, 1);
     n = pixaGetCount(pixa1);
     if (n != pixaGetCount(pixa2))
         return 0;
@@ -3171,12 +3077,10 @@ BOX     *box;
 BOXA    *boxa;
 PIX     *pix;
 
-    PROCNAME("pixaSetFullSizeBoxa");
-
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
     if ((n = pixaGetCount(pixa)) == 0) {
-        L_INFO("pixa contains no pix\n", procName);
+        L_INFO("pixa contains no pix\n", __func__);
         return 0;
     }
 

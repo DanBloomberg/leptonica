@@ -128,12 +128,10 @@ pixOrientDetectDwa(PIX        *pixs,
 {
 PIX  *pix1;
 
-    PROCNAME("pixOrientDetectDwa");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
     if (!pupconf && !pleftconf)
-        return ERROR_INT("nothing to do", procName, 1);
+        return ERROR_INT("nothing to do", __func__, 1);
     if (mincount == 0)
         mincount = DefaultMinUpDownCount;
 
@@ -186,13 +184,11 @@ l_int32    countup, countdown, nmax;
 l_float32  nup, ndown;
 PIX       *pixt, *pix0, *pix1, *pix2, *pix3, *pixm;
 
-    PROCNAME("pixUpDownDetectDwa");
-
     if (!pconf)
-        return ERROR_INT("&conf not defined", procName, 1);
+        return ERROR_INT("&conf not defined", __func__, 1);
     *pconf = 0.0;
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
     if (mincount == 0)
         mincount = DefaultMinUpDownCount;
     if (npixels < 0)
@@ -317,13 +313,11 @@ l_int32    count1, count2, nmax;
 l_float32  nleft, nright;
 PIX       *pix0, *pix1, *pix2, *pix3;
 
-    PROCNAME("pixMirrorDetectDwa");
-
     if (!pconf)
-        return ERROR_INT("&conf not defined", procName, 1);
+        return ERROR_INT("&conf not defined", __func__, 1);
     *pconf = 0.0;
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
     if (mincount == 0)
         mincount = DefaultMinMirrorFlipCount;
 
@@ -398,12 +392,10 @@ l_int32    i, index, found, w, h, wpls, wpld;
 l_uint32  *datad, *datas, *datat;
 PIX       *pixt;
 
-    PROCNAME("pixFlipFHMTGen");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs must be 1 bpp", __func__, pixd);
 
     found = FALSE;
     for (i = 0; i < NUM_SELS_GENERATED; i++) {
@@ -414,14 +406,14 @@ PIX       *pixt;
         }
     }
     if (found == FALSE)
-        return (PIX *)ERROR_PTR("sel index not found", procName, pixd);
+        return (PIX *)ERROR_PTR("sel index not found", __func__, pixd);
 
     if (pixd) {
         if (!pixSizesEqual(pixs, pixd))
-            return (PIX *)ERROR_PTR("sizes not equal", procName, pixd);
+            return (PIX *)ERROR_PTR("sizes not equal", __func__, pixd);
     } else {
         if ((pixd = pixCreateTemplate(pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     }
 
     wpls = pixGetWpl(pixs);
@@ -438,7 +430,7 @@ PIX       *pixt;
 
     if (pixd == pixs) {  /* need temp image if in-place */
         if ((pixt = pixCopy(NULL, pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+            return (PIX *)ERROR_PTR("pixt not made", __func__, pixd);
         datat = pixGetData(pixt) + ADDED_BORDER * wpls + ADDED_BORDER / 32;
         flipfhmtgen_low(datad, w, h, wpld, datat, wpls, index);
         pixDestroy(&pixt);

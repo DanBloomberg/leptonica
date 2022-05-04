@@ -356,21 +356,19 @@ PIX       *pixp;  /* for bookkeeping, to indicate direction to parent */
 L_QUEUE   *lq;
 PTA       *pta;
 
-    PROCNAME("pixSearchBinaryMaze");
-
     if (ppixd) *ppixd = NULL;
     if (!pixs)
-        return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1)
-        return (PTA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
     if (xi <= 0 || xi >= w)
-        return (PTA *)ERROR_PTR("xi not valid", procName, NULL);
+        return (PTA *)ERROR_PTR("xi not valid", __func__, NULL);
     if (yi <= 0 || yi >= h)
-        return (PTA *)ERROR_PTR("yi not valid", procName, NULL);
+        return (PTA *)ERROR_PTR("yi not valid", __func__, NULL);
     pixGetPixel(pixs, xi, yi, &val);
     if (val != 0)
-        return (PTA *)ERROR_PTR("(xi,yi) not bg pixel", procName, NULL);
+        return (PTA *)ERROR_PTR("(xi,yi) not bg pixel", __func__, NULL);
     pixd = NULL;
     pta = NULL;
 
@@ -472,7 +470,7 @@ PTA       *pta;
     composeRGBPixel(0, 0, 255, &bpixel);  /* end point */
 
     if (found) {
-        L_INFO(" Path found\n", procName);
+        L_INFO(" Path found\n", __func__);
         pta = ptaCreate(0);
         x = xf;
         y = yf;
@@ -493,7 +491,7 @@ PTA       *pta;
                 x--;
         }
     } else {
-        L_INFO(" No path found\n", procName);
+        L_INFO(" No path found\n", __func__);
         if (pixd) {  /* paint all visited locations */
             lined32 = pixGetLinePtrs(pixd, NULL);
             for (i = 0; i < h; i++) {
@@ -743,20 +741,18 @@ PIX      *pixp;  /* for bookkeeping, to indicate direction to parent */
 L_HEAP   *lh;
 PTA      *pta;
 
-    PROCNAME("pixSearchGrayMaze");
-
     if (ppixd) *ppixd = NULL;
     if (!pixs)
-        return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (w < 50 || h < 50)
-        return (PTA *)ERROR_PTR("too small: w and h not >= 50", procName, NULL);
+        return (PTA *)ERROR_PTR("too small: w and h not >= 50", __func__, NULL);
     if (d != 8)
-        return (PTA *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (xi <= 0 || xi >= w)
-        return (PTA *)ERROR_PTR("xi not valid", procName, NULL);
+        return (PTA *)ERROR_PTR("xi not valid", __func__, NULL);
     if (yi <= 0 || yi >= h)
-        return (PTA *)ERROR_PTR("yi not valid", procName, NULL);
+        return (PTA *)ERROR_PTR("yi not valid", __func__, NULL);
     pixd = NULL;
     pta = NULL;
 
@@ -785,7 +781,7 @@ PTA      *pta;
     while (lheapGetCount(lh) > 0) {
         elp = (MAZEEL *)lheapRemove(lh);
         if (!elp) {
-            L_ERROR("heap broken!!\n", procName);
+            L_ERROR("heap broken!!\n", __func__);
             goto cleanup_stuff;
         }
         x = elp->x;

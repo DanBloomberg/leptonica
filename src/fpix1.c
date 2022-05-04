@@ -156,18 +156,16 @@ l_float32  *data;
 l_uint64    npix64;
 FPIX       *fpixd;
 
-    PROCNAME("fpixCreate");
-
     if (width <= 0)
-        return (FPIX *)ERROR_PTR("width must be > 0", procName, NULL);
+        return (FPIX *)ERROR_PTR("width must be > 0", __func__, NULL);
     if (height <= 0)
-        return (FPIX *)ERROR_PTR("height must be > 0", procName, NULL);
+        return (FPIX *)ERROR_PTR("height must be > 0", __func__, NULL);
 
         /* Avoid overflow in malloc arg, malicious or otherwise */
     npix64 = (l_uint64)width * (l_uint64)height;   /* # of 4-byte pixels */
     if (npix64 >= (1LL << 29)) {
-        L_ERROR("requested w = %d, h = %d\n", procName, width, height);
-        return (FPIX *)ERROR_PTR("requested bytes >= 2^31", procName, NULL);
+        L_ERROR("requested w = %d, h = %d\n", __func__, width, height);
+        return (FPIX *)ERROR_PTR("requested bytes >= 2^31", __func__, NULL);
     }
 
     fpixd = (FPIX *)LEPT_CALLOC(1, sizeof(FPIX));
@@ -178,7 +176,7 @@ FPIX       *fpixd;
     data = (l_float32 *)LEPT_CALLOC((size_t)width * height, sizeof(l_float32));
     if (!data) {
         fpixDestroy(&fpixd);
-        return (FPIX *)ERROR_PTR("calloc fail for data", procName, NULL);
+        return (FPIX *)ERROR_PTR("calloc fail for data", __func__, NULL);
     }
     fpixSetData(fpixd, data);
     return fpixd;
@@ -204,14 +202,12 @@ fpixCreateTemplate(FPIX  *fpixs)
 l_int32  w, h;
 FPIX    *fpixd;
 
-    PROCNAME("fpixCreateTemplate");
-
     if (!fpixs)
-        return (FPIX *)ERROR_PTR("fpixs not defined", procName, NULL);
+        return (FPIX *)ERROR_PTR("fpixs not defined", __func__, NULL);
 
     fpixGetDimensions(fpixs, &w, &h);
     if ((fpixd = fpixCreate(w, h)) == NULL)
-        return (FPIX *)ERROR_PTR("fpixd not made", procName, NULL);
+        return (FPIX *)ERROR_PTR("fpixd not made", __func__, NULL);
     fpixCopyResolution(fpixd, fpixs);
     return fpixd;
 }
@@ -231,10 +227,8 @@ FPIX    *fpixd;
 FPIX *
 fpixClone(FPIX  *fpix)
 {
-    PROCNAME("fpixClone");
-
     if (!fpix)
-        return (FPIX *)ERROR_PTR("fpix not defined", procName, NULL);
+        return (FPIX *)ERROR_PTR("fpix not defined", __func__, NULL);
     ++fpix->refcount;
 
     return fpix;
@@ -254,17 +248,15 @@ l_int32     w, h, bytes;
 l_float32  *datas, *datad;
 FPIX       *fpixd;
 
-    PROCNAME("fpixCopy");
-
     if (!fpixs)
-        return (FPIX *)ERROR_PTR("fpixs not defined", procName, NULL);
+        return (FPIX *)ERROR_PTR("fpixs not defined", __func__, NULL);
 
         /* Total bytes in image data */
     fpixGetDimensions(fpixs, &w, &h);
     bytes = 4 * w * h;
 
     if ((fpixd = fpixCreateTemplate(fpixs)) == NULL)
-        return (FPIX *)ERROR_PTR("fpixd not made", procName, NULL);
+        return (FPIX *)ERROR_PTR("fpixd not made", __func__, NULL);
     datas = fpixGetData(fpixs);
     datad = fpixGetData(fpixd);
     memcpy(datad, datas, bytes);
@@ -290,10 +282,8 @@ fpixDestroy(FPIX  **pfpix)
 l_float32  *data;
 FPIX       *fpix;
 
-    PROCNAME("fpixDestroy");
-
     if (!pfpix) {
-        L_WARNING("ptr address is null!\n", procName);
+        L_WARNING("ptr address is null!\n", __func__);
         return;
     }
 
@@ -325,14 +315,12 @@ fpixGetDimensions(FPIX     *fpix,
                   l_int32  *pw,
                   l_int32  *ph)
 {
-    PROCNAME("fpixGetDimensions");
-
     if (!pw && !ph)
-        return ERROR_INT("no return val requested", procName, 1);
+        return ERROR_INT("no return val requested", __func__, 1);
     if (pw) *pw = 0;
     if (ph) *ph = 0;
     if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 1);
+        return ERROR_INT("fpix not defined", __func__, 1);
     if (pw) *pw = fpix->w;
     if (ph) *ph = fpix->h;
     return 0;
@@ -351,10 +339,8 @@ fpixSetDimensions(FPIX     *fpix,
                   l_int32   w,
                   l_int32   h)
 {
-    PROCNAME("fpixSetDimensions");
-
     if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 1);
+        return ERROR_INT("fpix not defined", __func__, 1);
     fpix->w = w;
     fpix->h = h;
     return 0;
@@ -370,10 +356,8 @@ fpixSetDimensions(FPIX     *fpix,
 l_int32
 fpixGetWpl(FPIX  *fpix)
 {
-    PROCNAME("fpixGetWpl");
-
     if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 0);
+        return ERROR_INT("fpix not defined", __func__, 0);
     return fpix->wpl;
 }
 
@@ -389,10 +373,8 @@ l_ok
 fpixSetWpl(FPIX    *fpix,
            l_int32  wpl)
 {
-    PROCNAME("fpixSetWpl");
-
     if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 1);
+        return ERROR_INT("fpix not defined", __func__, 1);
 
     fpix->wpl = wpl;
     return 0;
@@ -411,10 +393,8 @@ fpixGetResolution(FPIX     *fpix,
                   l_int32  *pxres,
                   l_int32  *pyres)
 {
-    PROCNAME("fpixGetResolution");
-
     if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 1);
+        return ERROR_INT("fpix not defined", __func__, 1);
     if (pxres) *pxres = fpix->xres;
     if (pyres) *pyres = fpix->yres;
     return 0;
@@ -433,10 +413,8 @@ fpixSetResolution(FPIX    *fpix,
                   l_int32  xres,
                   l_int32  yres)
 {
-    PROCNAME("fpixSetResolution");
-
     if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 1);
+        return ERROR_INT("fpix not defined", __func__, 1);
 
     fpix->xres = xres;
     fpix->yres = yres;
@@ -455,10 +433,8 @@ fpixCopyResolution(FPIX  *fpixd,
                    FPIX  *fpixs)
 {
 l_int32  xres, yres;
-    PROCNAME("fpixCopyResolution");
-
     if (!fpixs || !fpixd)
-        return ERROR_INT("fpixs and fpixd not both defined", procName, 1);
+        return ERROR_INT("fpixs and fpixd not both defined", __func__, 1);
 
     fpixGetResolution(fpixs, &xres, &yres);
     fpixSetResolution(fpixd, xres, yres);
@@ -475,10 +451,8 @@ l_int32  xres, yres;
 l_float32 *
 fpixGetData(FPIX  *fpix)
 {
-    PROCNAME("fpixGetData");
-
     if (!fpix)
-        return (l_float32 *)ERROR_PTR("fpix not defined", procName, NULL);
+        return (l_float32 *)ERROR_PTR("fpix not defined", __func__, NULL);
     return fpix->data;
 }
 
@@ -494,10 +468,8 @@ l_ok
 fpixSetData(FPIX       *fpix,
             l_float32  *data)
 {
-    PROCNAME("fpixSetData");
-
     if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 1);
+        return ERROR_INT("fpix not defined", __func__, 1);
 
     fpix->data = data;
     return 0;
@@ -524,13 +496,11 @@ fpixGetPixel(FPIX       *fpix,
 {
 l_int32  w, h;
 
-    PROCNAME("fpixGetPixel");
-
     if (!pval)
-        return ERROR_INT("pval not defined", procName, 1);
+        return ERROR_INT("pval not defined", __func__, 1);
     *pval = 0.0;
     if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 1);
+        return ERROR_INT("fpix not defined", __func__, 1);
 
     fpixGetDimensions(fpix, &w, &h);
     if (x < 0 || x >= w || y < 0 || y >= h)
@@ -561,10 +531,8 @@ fpixSetPixel(FPIX      *fpix,
 {
 l_int32  w, h;
 
-    PROCNAME("fpixSetPixel");
-
     if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 1);
+        return ERROR_INT("fpix not defined", __func__, 1);
 
     fpixGetDimensions(fpix, &w, &h);
     if (x < 0 || x >= w || y < 0 || y >= h)
@@ -588,8 +556,6 @@ FPIXA *
 fpixaCreate(l_int32  n)
 {
 FPIXA  *fpixa;
-
-    PROCNAME("fpixaCreate");
 
     if (n <= 0 || n > MaxPtrArraySize)
         n = InitialPtrArraySize;
@@ -626,10 +592,8 @@ l_int32  i;
 FPIX    *fpixc;
 FPIXA   *fpixac;
 
-    PROCNAME("fpixaCopy");
-
     if (!fpixa)
-        return (FPIXA *)ERROR_PTR("fpixa not defined", procName, NULL);
+        return (FPIXA *)ERROR_PTR("fpixa not defined", __func__, NULL);
 
     if (copyflag == L_CLONE) {
         ++fpixa->refcount;
@@ -637,10 +601,10 @@ FPIXA   *fpixac;
     }
 
     if (copyflag != L_COPY && copyflag != L_COPY_CLONE)
-        return (FPIXA *)ERROR_PTR("invalid copyflag", procName, NULL);
+        return (FPIXA *)ERROR_PTR("invalid copyflag", __func__, NULL);
 
     if ((fpixac = fpixaCreate(fpixa->n)) == NULL)
-        return (FPIXA *)ERROR_PTR("fpixac not made", procName, NULL);
+        return (FPIXA *)ERROR_PTR("fpixac not made", __func__, NULL);
     for (i = 0; i < fpixa->n; i++) {
         if (copyflag == L_COPY)
             fpixc = fpixaGetFPix(fpixa, i, L_COPY);
@@ -671,10 +635,8 @@ fpixaDestroy(FPIXA  **pfpixa)
 l_int32  i;
 FPIXA   *fpixa;
 
-    PROCNAME("fpixaDestroy");
-
     if (pfpixa == NULL) {
-        L_WARNING("ptr address is NULL!\n", procName);
+        L_WARNING("ptr address is NULL!\n", __func__);
         return;
     }
 
@@ -711,12 +673,10 @@ fpixaAddFPix(FPIXA   *fpixa,
 l_int32  n;
 FPIX    *fpixc;
 
-    PROCNAME("fpixaAddFPix");
-
     if (!fpixa)
-        return ERROR_INT("fpixa not defined", procName, 1);
+        return ERROR_INT("fpixa not defined", __func__, 1);
     if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 1);
+        return ERROR_INT("fpix not defined", __func__, 1);
 
     if (copyflag == L_INSERT)
         fpixc = fpix;
@@ -725,16 +685,16 @@ FPIX    *fpixc;
     else if (copyflag == L_CLONE)
         fpixc = fpixClone(fpix);
     else
-        return ERROR_INT("invalid copyflag", procName, 1);
+        return ERROR_INT("invalid copyflag", __func__, 1);
     if (!fpixc)
-        return ERROR_INT("fpixc not made", procName, 1);
+        return ERROR_INT("fpixc not made", __func__, 1);
 
     n = fpixaGetCount(fpixa);
     if (n >= fpixa->nalloc) {
         if (fpixaExtendArray(fpixa)) {
             if (copyflag != L_INSERT)
                 fpixDestroy(&fpixc);
-            return ERROR_INT("extension failed", procName, 1);
+            return ERROR_INT("extension failed", __func__, 1);
         }
     }
     fpixa->fpix[n] = fpixc;
@@ -758,10 +718,8 @@ FPIX    *fpixc;
 static l_int32
 fpixaExtendArray(FPIXA  *fpixa)
 {
-    PROCNAME("fpixaExtendArray");
-
     if (!fpixa)
-        return ERROR_INT("fpixa not defined", procName, 1);
+        return ERROR_INT("fpixa not defined", __func__, 1);
 
     return fpixaExtendArrayToSize(fpixa, 2 * fpixa->nalloc);
 }
@@ -786,16 +744,14 @@ fpixaExtendArrayToSize(FPIXA   *fpixa,
 {
 size_t  oldsize, newsize;
 
-    PROCNAME("fpixaExtendArrayToSize");
-
     if (!fpixa)
-        return ERROR_INT("fpixa not defined", procName, 1);
+        return ERROR_INT("fpixa not defined", __func__, 1);
     if (fpixa->nalloc > MaxPtrArraySize)  /* belt & suspenders */
-        return ERROR_INT("fpixa has too many ptrs", procName, 1);
+        return ERROR_INT("fpixa has too many ptrs", __func__, 1);
     if (size > MaxPtrArraySize)
-        return ERROR_INT("size > 100K ptrs; too large", procName, 1);
+        return ERROR_INT("size > 100K ptrs; too large", __func__, 1);
     if (size <= fpixa->nalloc) {
-        L_INFO("size too small; no extension\n", procName);
+        L_INFO("size too small; no extension\n", __func__);
         return 0;
     }
 
@@ -803,7 +759,7 @@ size_t  oldsize, newsize;
     newsize = size * sizeof(FPIX *);
     if ((fpixa->fpix = (FPIX **)reallocNew((void **)&fpixa->fpix,
                                            oldsize, newsize)) == NULL)
-        return ERROR_INT("new ptr array not returned", procName, 1);
+        return ERROR_INT("new ptr array not returned", __func__, 1);
     fpixa->nalloc = size;
     return 0;
 }
@@ -821,10 +777,8 @@ size_t  oldsize, newsize;
 l_int32
 fpixaGetCount(FPIXA  *fpixa)
 {
-    PROCNAME("fpixaGetCount");
-
     if (!fpixa)
-        return ERROR_INT("fpixa not defined", procName, 0);
+        return ERROR_INT("fpixa not defined", __func__, 0);
 
     return fpixa->n;
 }
@@ -843,19 +797,17 @@ fpixaGetFPix(FPIXA   *fpixa,
              l_int32  index,
              l_int32  accesstype)
 {
-    PROCNAME("fpixaGetFPix");
-
     if (!fpixa)
-        return (FPIX *)ERROR_PTR("fpixa not defined", procName, NULL);
+        return (FPIX *)ERROR_PTR("fpixa not defined", __func__, NULL);
     if (index < 0 || index >= fpixa->n)
-        return (FPIX *)ERROR_PTR("index not valid", procName, NULL);
+        return (FPIX *)ERROR_PTR("index not valid", __func__, NULL);
 
     if (accesstype == L_COPY)
         return fpixCopy(fpixa->fpix[index]);
     else if (accesstype == L_CLONE)
         return fpixClone(fpixa->fpix[index]);
     else
-        return (FPIX *)ERROR_PTR("invalid accesstype", procName, NULL);
+        return (FPIX *)ERROR_PTR("invalid accesstype", __func__, NULL);
 }
 
 
@@ -875,19 +827,17 @@ fpixaGetFPixDimensions(FPIXA    *fpixa,
 {
 FPIX  *fpix;
 
-    PROCNAME("fpixaGetFPixDimensions");
-
     if (!pw && !ph)
-        return ERROR_INT("no return val requested", procName, 1);
+        return ERROR_INT("no return val requested", __func__, 1);
     if (pw) *pw = 0;
     if (ph) *ph = 0;
     if (!fpixa)
-        return ERROR_INT("fpixa not defined", procName, 1);
+        return ERROR_INT("fpixa not defined", __func__, 1);
     if (index < 0 || index >= fpixa->n)
-        return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("index not valid", __func__, 1);
 
     if ((fpix = fpixaGetFPix(fpixa, index, L_CLONE)) == NULL)
-        return ERROR_INT("fpix not found!", procName, 1);
+        return ERROR_INT("fpix not found!", __func__, 1);
     fpixGetDimensions(fpix, pw, ph);
     fpixDestroy(&fpix);
     return 0;
@@ -909,13 +859,11 @@ l_int32     n;
 l_float32  *data;
 FPIX       *fpix;
 
-    PROCNAME("fpixaGetData");
-
     if (!fpixa)
-        return (l_float32 *)ERROR_PTR("fpixa not defined", procName, NULL);
+        return (l_float32 *)ERROR_PTR("fpixa not defined", __func__, NULL);
     n = fpixaGetCount(fpixa);
     if (index < 0 || index >= n)
-        return (l_float32 *)ERROR_PTR("invalid index", procName, NULL);
+        return (l_float32 *)ERROR_PTR("invalid index", __func__, NULL);
 
     fpix = fpixaGetFPix(fpixa, index, L_CLONE);
     data = fpixGetData(fpix);
@@ -943,16 +891,14 @@ fpixaGetPixel(FPIXA      *fpixa,
 l_int32  n, ret;
 FPIX    *fpix;
 
-    PROCNAME("fpixaGetPixel");
-
     if (!pval)
-        return ERROR_INT("pval not defined", procName, 1);
+        return ERROR_INT("pval not defined", __func__, 1);
     *pval = 0.0;
     if (!fpixa)
-        return ERROR_INT("fpixa not defined", procName, 1);
+        return ERROR_INT("fpixa not defined", __func__, 1);
     n = fpixaGetCount(fpixa);
     if (index < 0 || index >= n)
-        return ERROR_INT("invalid index into fpixa", procName, 1);
+        return ERROR_INT("invalid index into fpixa", __func__, 1);
 
     fpix = fpixaGetFPix(fpixa, index, L_CLONE);
     ret = fpixGetPixel(fpix, x, y, pval);
@@ -980,13 +926,11 @@ fpixaSetPixel(FPIXA     *fpixa,
 l_int32  n, ret;
 FPIX    *fpix;
 
-    PROCNAME("fpixaSetPixel");
-
     if (!fpixa)
-        return ERROR_INT("fpixa not defined", procName, 1);
+        return ERROR_INT("fpixa not defined", __func__, 1);
     n = fpixaGetCount(fpixa);
     if (index < 0 || index >= n)
-        return ERROR_INT("invalid index into fpixa", procName, 1);
+        return ERROR_INT("invalid index into fpixa", __func__, 1);
 
     fpix = fpixaGetFPix(fpixa, index, L_CLONE);
     ret = fpixSetPixel(fpix, x, y, val);
@@ -1019,18 +963,16 @@ l_float64  *data;
 l_uint64    npix64;
 DPIX       *dpix;
 
-    PROCNAME("dpixCreate");
-
     if (width <= 0)
-        return (DPIX *)ERROR_PTR("width must be > 0", procName, NULL);
+        return (DPIX *)ERROR_PTR("width must be > 0", __func__, NULL);
     if (height <= 0)
-        return (DPIX *)ERROR_PTR("height must be > 0", procName, NULL);
+        return (DPIX *)ERROR_PTR("height must be > 0", __func__, NULL);
 
         /* Avoid overflow in malloc arg, malicious or otherwise */
     npix64 = (l_uint64)width * (l_uint64)height;   /* # of 8 byte pixels */
     if (npix64 >= (1LL << 28)) {
-        L_ERROR("requested w = %d, h = %d\n", procName, width, height);
-        return (DPIX *)ERROR_PTR("requested bytes >= 2^31", procName, NULL);
+        L_ERROR("requested w = %d, h = %d\n", __func__, width, height);
+        return (DPIX *)ERROR_PTR("requested bytes >= 2^31", __func__, NULL);
     }
 
     dpix = (DPIX *)LEPT_CALLOC(1, sizeof(DPIX));
@@ -1041,7 +983,7 @@ DPIX       *dpix;
     data = (l_float64 *)LEPT_CALLOC((size_t)width * height, sizeof(l_float64));
     if (!data) {
         dpixDestroy(&dpix);
-        return (DPIX *)ERROR_PTR("calloc fail for data", procName, NULL);
+        return (DPIX *)ERROR_PTR("calloc fail for data", __func__, NULL);
     }
     dpixSetData(dpix, data);
     return dpix;
@@ -1067,10 +1009,8 @@ dpixCreateTemplate(DPIX  *dpixs)
 l_int32  w, h;
 DPIX    *dpixd;
 
-    PROCNAME("dpixCreateTemplate");
-
     if (!dpixs)
-        return (DPIX *)ERROR_PTR("dpixs not defined", procName, NULL);
+        return (DPIX *)ERROR_PTR("dpixs not defined", __func__, NULL);
 
     dpixGetDimensions(dpixs, &w, &h);
     dpixd = dpixCreate(w, h);
@@ -1093,10 +1033,8 @@ DPIX    *dpixd;
 DPIX *
 dpixClone(DPIX  *dpix)
 {
-    PROCNAME("dpixClone");
-
     if (!dpix)
-        return (DPIX *)ERROR_PTR("dpix not defined", procName, NULL);
+        return (DPIX *)ERROR_PTR("dpix not defined", __func__, NULL);
     ++dpix->refcount;
     return dpix;
 }
@@ -1115,17 +1053,15 @@ l_int32     w, h, bytes;
 l_float64  *datas, *datad;
 DPIX       *dpixd;
 
-    PROCNAME("dpixCopy");
-
     if (!dpixs)
-        return (DPIX *)ERROR_PTR("dpixs not defined", procName, NULL);
+        return (DPIX *)ERROR_PTR("dpixs not defined", __func__, NULL);
 
         /* Total bytes in image data */
     dpixGetDimensions(dpixs, &w, &h);
     bytes = 8 * w * h;
 
     if ((dpixd = dpixCreateTemplate(dpixs)) == NULL)
-        return (DPIX *)ERROR_PTR("dpixd not made", procName, NULL);
+        return (DPIX *)ERROR_PTR("dpixd not made", __func__, NULL);
     datas = dpixGetData(dpixs);
     datad = dpixGetData(dpixd);
     memcpy(datad, datas, bytes);
@@ -1151,10 +1087,8 @@ dpixDestroy(DPIX  **pdpix)
 l_float64  *data;
 DPIX       *dpix;
 
-    PROCNAME("dpixDestroy");
-
     if (!pdpix) {
-        L_WARNING("ptr address is null!\n", procName);
+        L_WARNING("ptr address is null!\n", __func__);
         return;
     }
 
@@ -1186,14 +1120,12 @@ dpixGetDimensions(DPIX     *dpix,
                   l_int32  *pw,
                   l_int32  *ph)
 {
-    PROCNAME("dpixGetDimensions");
-
     if (!pw && !ph)
-        return ERROR_INT("no return val requested", procName, 1);
+        return ERROR_INT("no return val requested", __func__, 1);
     if (pw) *pw = 0;
     if (ph) *ph = 0;
     if (!dpix)
-        return ERROR_INT("dpix not defined", procName, 1);
+        return ERROR_INT("dpix not defined", __func__, 1);
     if (pw) *pw = dpix->w;
     if (ph) *ph = dpix->h;
     return 0;
@@ -1212,10 +1144,8 @@ dpixSetDimensions(DPIX     *dpix,
                   l_int32   w,
                   l_int32   h)
 {
-    PROCNAME("dpixSetDimensions");
-
     if (!dpix)
-        return ERROR_INT("dpix not defined", procName, 1);
+        return ERROR_INT("dpix not defined", __func__, 1);
     dpix->w = w;
     dpix->h = h;
     return 0;
@@ -1231,10 +1161,8 @@ dpixSetDimensions(DPIX     *dpix,
 l_int32
 dpixGetWpl(DPIX  *dpix)
 {
-    PROCNAME("dpixGetWpl");
-
     if (!dpix)
-        return ERROR_INT("dpix not defined", procName, 0);
+        return ERROR_INT("dpix not defined", __func__, 0);
     return dpix->wpl;
 }
 
@@ -1250,10 +1178,8 @@ l_ok
 dpixSetWpl(DPIX    *dpix,
            l_int32  wpl)
 {
-    PROCNAME("dpixSetWpl");
-
     if (!dpix)
-        return ERROR_INT("dpix not defined", procName, 1);
+        return ERROR_INT("dpix not defined", __func__, 1);
 
     dpix->wpl = wpl;
     return 0;
@@ -1272,10 +1198,8 @@ dpixGetResolution(DPIX     *dpix,
                   l_int32  *pxres,
                   l_int32  *pyres)
 {
-    PROCNAME("dpixGetResolution");
-
     if (!dpix)
-        return ERROR_INT("dpix not defined", procName, 1);
+        return ERROR_INT("dpix not defined", __func__, 1);
     if (pxres) *pxres = dpix->xres;
     if (pyres) *pyres = dpix->yres;
     return 0;
@@ -1294,10 +1218,8 @@ dpixSetResolution(DPIX    *dpix,
                   l_int32  xres,
                   l_int32  yres)
 {
-    PROCNAME("dpixSetResolution");
-
     if (!dpix)
-        return ERROR_INT("dpix not defined", procName, 1);
+        return ERROR_INT("dpix not defined", __func__, 1);
 
     dpix->xres = xres;
     dpix->yres = yres;
@@ -1316,10 +1238,8 @@ dpixCopyResolution(DPIX  *dpixd,
                    DPIX  *dpixs)
 {
 l_int32  xres, yres;
-    PROCNAME("dpixCopyResolution");
-
     if (!dpixs || !dpixd)
-        return ERROR_INT("dpixs and dpixd not both defined", procName, 1);
+        return ERROR_INT("dpixs and dpixd not both defined", __func__, 1);
 
     dpixGetResolution(dpixs, &xres, &yres);
     dpixSetResolution(dpixd, xres, yres);
@@ -1336,10 +1256,8 @@ l_int32  xres, yres;
 l_float64 *
 dpixGetData(DPIX  *dpix)
 {
-    PROCNAME("dpixGetData");
-
     if (!dpix)
-        return (l_float64 *)ERROR_PTR("dpix not defined", procName, NULL);
+        return (l_float64 *)ERROR_PTR("dpix not defined", __func__, NULL);
     return dpix->data;
 }
 
@@ -1355,10 +1273,8 @@ l_ok
 dpixSetData(DPIX       *dpix,
             l_float64  *data)
 {
-    PROCNAME("dpixSetData");
-
     if (!dpix)
-        return ERROR_INT("dpix not defined", procName, 1);
+        return ERROR_INT("dpix not defined", __func__, 1);
 
     dpix->data = data;
     return 0;
@@ -1385,13 +1301,11 @@ dpixGetPixel(DPIX       *dpix,
 {
 l_int32  w, h;
 
-    PROCNAME("dpixGetPixel");
-
     if (!pval)
-        return ERROR_INT("pval not defined", procName, 1);
+        return ERROR_INT("pval not defined", __func__, 1);
     *pval = 0.0;
     if (!dpix)
-        return ERROR_INT("dpix not defined", procName, 1);
+        return ERROR_INT("dpix not defined", __func__, 1);
 
     dpixGetDimensions(dpix, &w, &h);
     if (x < 0 || x >= w || y < 0 || y >= h)
@@ -1422,10 +1336,8 @@ dpixSetPixel(DPIX      *dpix,
 {
 l_int32  w, h;
 
-    PROCNAME("dpixSetPixel");
-
     if (!dpix)
-        return ERROR_INT("dpix not defined", procName, 1);
+        return ERROR_INT("dpix not defined", __func__, 1);
 
     dpixGetDimensions(dpix, &w, &h);
     if (x < 0 || x >= w || y < 0 || y >= h)
@@ -1451,17 +1363,15 @@ fpixRead(const char  *filename)
 FILE  *fp;
 FPIX  *fpix;
 
-    PROCNAME("fpixRead");
-
     if (!filename)
-        return (FPIX *)ERROR_PTR("filename not defined", procName, NULL);
+        return (FPIX *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (FPIX *)ERROR_PTR("stream not opened", procName, NULL);
+        return (FPIX *)ERROR_PTR("stream not opened", __func__, NULL);
     fpix = fpixReadStream(fp);
     fclose(fp);
     if (!fpix)
-        return (FPIX *)ERROR_PTR("fpix not read", procName, NULL);
+        return (FPIX *)ERROR_PTR("fpix not read", __func__, NULL);
     return fpix;
 }
 
@@ -1480,17 +1390,15 @@ l_int32     w, h, nbytes, xres, yres, version;
 l_float32  *data;
 FPIX       *fpix;
 
-    PROCNAME("fpixReadStream");
-
     if (!fp)
-        return (FPIX *)ERROR_PTR("stream not defined", procName, NULL);
+        return (FPIX *)ERROR_PTR("stream not defined", __func__, NULL);
 
     if (fscanf(fp, "\nFPix Version %d\n", &version) != 1)
-        return (FPIX *)ERROR_PTR("not a fpix file", procName, NULL);
+        return (FPIX *)ERROR_PTR("not a fpix file", __func__, NULL);
     if (version != FPIX_VERSION_NUMBER)
-        return (FPIX *)ERROR_PTR("invalid fpix version", procName, NULL);
+        return (FPIX *)ERROR_PTR("invalid fpix version", __func__, NULL);
     if (fscanf(fp, "w = %d, h = %d, nbytes = %d\n", &w, &h, &nbytes) != 3)
-        return (FPIX *)ERROR_PTR("read fail for data size", procName, NULL);
+        return (FPIX *)ERROR_PTR("read fail for data size", __func__, NULL);
 
         /* Use fgets() and sscanf(); not fscanf(), for the last
          * bit of header data before the float data.  The reason is
@@ -1498,17 +1406,17 @@ FPIX       *fpix;
          * happens to begin with ascii character(s) that are white
          * space, it will swallow them and all will be lost!  */
     if (fgets(buf, sizeof(buf), fp) == NULL)
-        return (FPIX *)ERROR_PTR("fgets read fail", procName, NULL);
+        return (FPIX *)ERROR_PTR("fgets read fail", __func__, NULL);
     if (sscanf(buf, "xres = %d, yres = %d\n", &xres, &yres) != 2)
-        return (FPIX *)ERROR_PTR("read fail for xres, yres", procName, NULL);
+        return (FPIX *)ERROR_PTR("read fail for xres, yres", __func__, NULL);
 
     if ((fpix = fpixCreate(w, h)) == NULL)
-        return (FPIX *)ERROR_PTR("fpix not made", procName, NULL);
+        return (FPIX *)ERROR_PTR("fpix not made", __func__, NULL);
     fpixSetResolution(fpix, xres, yres);
     data = fpixGetData(fpix);
     if (fread(data, 1, nbytes, fp) != nbytes) {
         fpixDestroy(&fpix);
-        return (FPIX *)ERROR_PTR("read error for nbytes", procName, NULL);
+        return (FPIX *)ERROR_PTR("read error for nbytes", __func__, NULL);
     }
     fgetc(fp);  /* ending nl */
 
@@ -1532,16 +1440,14 @@ fpixReadMem(const l_uint8  *data,
 FILE  *fp;
 FPIX  *fpix;
 
-    PROCNAME("fpixReadMem");
-
     if (!data)
-        return (FPIX *)ERROR_PTR("data not defined", procName, NULL);
+        return (FPIX *)ERROR_PTR("data not defined", __func__, NULL);
     if ((fp = fopenReadFromMemory(data, size)) == NULL)
-        return (FPIX *)ERROR_PTR("stream not opened", procName, NULL);
+        return (FPIX *)ERROR_PTR("stream not opened", __func__, NULL);
 
     fpix = fpixReadStream(fp);
     fclose(fp);
-    if (!fpix) L_ERROR("fpix not read\n", procName);
+    if (!fpix) L_ERROR("fpix not read\n", __func__);
     return fpix;
 }
 
@@ -1560,19 +1466,17 @@ fpixWrite(const char  *filename,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("fpixWrite");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
     if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 1);
+        return ERROR_INT("fpix not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ret = fpixWriteStream(fp, fpix);
     fclose(fp);
     if (ret)
-        return ERROR_INT("fpix not written to stream", procName, 1);
+        return ERROR_INT("fpix not written to stream", __func__, 1);
     return 0;
 }
 
@@ -1593,12 +1497,10 @@ l_uint32    nbytes;
 l_float32  *data;
 FPIX       *fpixt;
 
-    PROCNAME("fpixWriteStream");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
     if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 1);
+        return ERROR_INT("fpix not defined", __func__, 1);
 
         /* Convert to little-endian if necessary */
     fpixt = fpixEndianByteSwap(NULL, fpix);
@@ -1639,32 +1541,30 @@ fpixWriteMem(l_uint8  **pdata,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("fpixWriteMem");
-
     if (pdata) *pdata = NULL;
     if (psize) *psize = 0;
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     if (!psize)
-        return ERROR_INT("&size not defined", procName, 1);
+        return ERROR_INT("&size not defined", __func__, 1);
     if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 1);
+        return ERROR_INT("fpix not defined", __func__, 1);
 
 #if HAVE_FMEMOPEN
     if ((fp = open_memstream((char **)pdata, psize)) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ret = fpixWriteStream(fp, fpix);
     fputc('\0', fp);
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #else
     if ((fp = tmpfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #endif  /* _WIN32 */
     ret = fpixWriteStream(fp, fpix);
     rewind(fp);
@@ -1698,12 +1598,10 @@ FPIX *
 fpixEndianByteSwap(FPIX  *fpixd,
                    FPIX  *fpixs)
 {
-    PROCNAME("fpixEndianByteSwap");
-
     if (!fpixs)
-        return (FPIX *)ERROR_PTR("fpixs not defined", procName, fpixd);
+        return (FPIX *)ERROR_PTR("fpixs not defined", __func__, fpixd);
     if (fpixd && (fpixs != fpixd))
-        return (FPIX *)ERROR_PTR("fpixd != fpixs", procName, fpixd);
+        return (FPIX *)ERROR_PTR("fpixd != fpixs", __func__, fpixd);
 
 #ifdef L_BIG_ENDIAN
     {
@@ -1753,17 +1651,15 @@ dpixRead(const char  *filename)
 FILE  *fp;
 DPIX  *dpix;
 
-    PROCNAME("dpixRead");
-
     if (!filename)
-        return (DPIX *)ERROR_PTR("filename not defined", procName, NULL);
+        return (DPIX *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (DPIX *)ERROR_PTR("stream not opened", procName, NULL);
+        return (DPIX *)ERROR_PTR("stream not opened", __func__, NULL);
     dpix = dpixReadStream(fp);
     fclose(fp);
     if (!dpix)
-        return (DPIX *)ERROR_PTR("dpix not read", procName, NULL);
+        return (DPIX *)ERROR_PTR("dpix not read", __func__, NULL);
     return dpix;
 }
 
@@ -1782,17 +1678,15 @@ l_int32     w, h, nbytes, version, xres, yres;
 l_float64  *data;
 DPIX       *dpix;
 
-    PROCNAME("dpixReadStream");
-
     if (!fp)
-        return (DPIX *)ERROR_PTR("stream not defined", procName, NULL);
+        return (DPIX *)ERROR_PTR("stream not defined", __func__, NULL);
 
     if (fscanf(fp, "\nDPix Version %d\n", &version) != 1)
-        return (DPIX *)ERROR_PTR("not a dpix file", procName, NULL);
+        return (DPIX *)ERROR_PTR("not a dpix file", __func__, NULL);
     if (version != DPIX_VERSION_NUMBER)
-        return (DPIX *)ERROR_PTR("invalid dpix version", procName, NULL);
+        return (DPIX *)ERROR_PTR("invalid dpix version", __func__, NULL);
     if (fscanf(fp, "w = %d, h = %d, nbytes = %d\n", &w, &h, &nbytes) != 3)
-        return (DPIX *)ERROR_PTR("read fail for data size", procName, NULL);
+        return (DPIX *)ERROR_PTR("read fail for data size", __func__, NULL);
 
         /* Use fgets() and sscanf(); not fscanf(), for the last
          * bit of header data before the float data.  The reason is
@@ -1800,17 +1694,17 @@ DPIX       *dpix;
          * happens to begin with ascii character(s) that are white
          * space, it will swallow them and all will be lost!  */
     if (fgets(buf, sizeof(buf), fp) == NULL)
-        return (DPIX *)ERROR_PTR("fgets read fail", procName, NULL);
+        return (DPIX *)ERROR_PTR("fgets read fail", __func__, NULL);
     if (sscanf(buf, "xres = %d, yres = %d\n", &xres, &yres) != 2)
-        return (DPIX *)ERROR_PTR("read fail for xres, yres", procName, NULL);
+        return (DPIX *)ERROR_PTR("read fail for xres, yres", __func__, NULL);
 
     if ((dpix = dpixCreate(w, h)) == NULL)
-        return (DPIX *)ERROR_PTR("dpix not made", procName, NULL);
+        return (DPIX *)ERROR_PTR("dpix not made", __func__, NULL);
     dpixSetResolution(dpix, xres, yres);
     data = dpixGetData(dpix);
     if (fread(data, 1, nbytes, fp) != nbytes) {
         dpixDestroy(&dpix);
-        return (DPIX *)ERROR_PTR("read error for nbytes", procName, NULL);
+        return (DPIX *)ERROR_PTR("read error for nbytes", __func__, NULL);
     }
     fgetc(fp);  /* ending nl */
 
@@ -1834,16 +1728,14 @@ dpixReadMem(const l_uint8  *data,
 FILE  *fp;
 DPIX  *dpix;
 
-    PROCNAME("dpixReadMem");
-
     if (!data)
-        return (DPIX *)ERROR_PTR("data not defined", procName, NULL);
+        return (DPIX *)ERROR_PTR("data not defined", __func__, NULL);
     if ((fp = fopenReadFromMemory(data, size)) == NULL)
-        return (DPIX *)ERROR_PTR("stream not opened", procName, NULL);
+        return (DPIX *)ERROR_PTR("stream not opened", __func__, NULL);
 
     dpix = dpixReadStream(fp);
     fclose(fp);
-    if (!dpix) L_ERROR("dpix not read\n", procName);
+    if (!dpix) L_ERROR("dpix not read\n", __func__);
     return dpix;
 }
 
@@ -1862,19 +1754,17 @@ dpixWrite(const char  *filename,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("dpixWrite");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
     if (!dpix)
-        return ERROR_INT("dpix not defined", procName, 1);
+        return ERROR_INT("dpix not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ret = dpixWriteStream(fp, dpix);
     fclose(fp);
     if (ret)
-        return ERROR_INT("dpix not written to stream", procName, 1);
+        return ERROR_INT("dpix not written to stream", __func__, 1);
     return 0;
 }
 
@@ -1895,12 +1785,10 @@ l_uint32    nbytes;
 l_float64  *data;
 DPIX       *dpixt;
 
-    PROCNAME("dpixWriteStream");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
     if (!dpix)
-        return ERROR_INT("dpix not defined", procName, 1);
+        return ERROR_INT("dpix not defined", __func__, 1);
 
         /* Convert to little-endian if necessary */
     dpixt = dpixEndianByteSwap(NULL, dpix);
@@ -1941,32 +1829,30 @@ dpixWriteMem(l_uint8  **pdata,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("dpixWriteMem");
-
     if (pdata) *pdata = NULL;
     if (psize) *psize = 0;
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     if (!psize)
-        return ERROR_INT("&size not defined", procName, 1);
+        return ERROR_INT("&size not defined", __func__, 1);
     if (!dpix)
-        return ERROR_INT("dpix not defined", procName, 1);
+        return ERROR_INT("dpix not defined", __func__, 1);
 
 #if HAVE_FMEMOPEN
     if ((fp = open_memstream((char **)pdata, psize)) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ret = dpixWriteStream(fp, dpix);
     fputc('\0', fp);
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", procName);
+    L_INFO("work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #else
     if ((fp = tmpfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #endif  /* _WIN32 */
     ret = dpixWriteStream(fp, dpix);
     rewind(fp);
@@ -2000,12 +1886,10 @@ DPIX *
 dpixEndianByteSwap(DPIX  *dpixd,
                    DPIX  *dpixs)
 {
-    PROCNAME("dpixEndianByteSwap");
-
     if (!dpixs)
-        return (DPIX *)ERROR_PTR("dpixs not defined", procName, dpixd);
+        return (DPIX *)ERROR_PTR("dpixs not defined", __func__, dpixd);
     if (dpixd && (dpixs != dpixd))
-        return (DPIX *)ERROR_PTR("dpixd != dpixs", procName, dpixd);
+        return (DPIX *)ERROR_PTR("dpixd != dpixs", __func__, dpixd);
 
 #ifdef L_BIG_ENDIAN
     {
@@ -2064,14 +1948,12 @@ fpixPrintStream(FILE    *fp,
 l_int32    i, j, w, h, count;
 l_float32  val;
 
-    PROCNAME("fpixPrintStream");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
     if (!fpix)
-        return ERROR_INT("fpix not defined", procName, 1);
+        return ERROR_INT("fpix not defined", __func__, 1);
     if (factor < 1)
-        return ERROR_INT("sampling factor < 1f", procName, 1);
+        return ERROR_INT("sampling factor < 1f", __func__, 1);
 
     fpixGetDimensions(fpix, &w, &h);
     fprintf(fp, "\nFPix: w = %d, h = %d\n", w, h);

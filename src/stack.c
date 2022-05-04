@@ -83,8 +83,6 @@ lstackCreate(l_int32  n)
 {
 L_STACK  *lstack;
 
-    PROCNAME("lstackCreate");
-
     if (n <= 0 || n > MaxPtrArraySize)
         n = InitialPtrArraySize;
 
@@ -92,7 +90,7 @@ L_STACK  *lstack;
     lstack->array = (void **)LEPT_CALLOC(n, sizeof(void *));
     if (!lstack->array) {
         lstackDestroy(&lstack, FALSE);
-        return (L_STACK *)ERROR_PTR("lstack array not made", procName, NULL);
+        return (L_STACK *)ERROR_PTR("lstack array not made", __func__, NULL);
     }
 
     lstack->nalloc = n;
@@ -127,10 +125,8 @@ lstackDestroy(L_STACK  **plstack,
 void     *item;
 L_STACK  *lstack;
 
-    PROCNAME("lstackDestroy");
-
     if (plstack == NULL) {
-        L_WARNING("ptr address is NULL\n", procName);
+        L_WARNING("ptr address is NULL\n", __func__);
         return;
     }
     if ((lstack = *plstack) == NULL)
@@ -142,7 +138,7 @@ L_STACK  *lstack;
             LEPT_FREE(item);
         }
     } else if (lstack->n > 0) {
-        L_WARNING("memory leak of %d items in lstack\n", procName, lstack->n);
+        L_WARNING("memory leak of %d items in lstack\n", __func__, lstack->n);
     }
 
     if (lstack->auxstack)
@@ -170,17 +166,15 @@ l_ok
 lstackAdd(L_STACK  *lstack,
           void     *item)
 {
-    PROCNAME("lstackAdd");
-
     if (!lstack)
-        return ERROR_INT("lstack not defined", procName, 1);
+        return ERROR_INT("lstack not defined", __func__, 1);
     if (!item)
-        return ERROR_INT("item not defined", procName, 1);
+        return ERROR_INT("item not defined", __func__, 1);
 
         /* Do we need to extend the array? */
     if (lstack->n >= lstack->nalloc) {
         if (lstackExtendArray(lstack))
-            return ERROR_INT("extension failed", procName, 1);
+            return ERROR_INT("extension failed", __func__, 1);
     }
 
         /* Store the new pointer */
@@ -203,10 +197,8 @@ lstackRemove(L_STACK  *lstack)
 {
 void  *item;
 
-    PROCNAME("lstackRemove");
-
     if (!lstack)
-        return ERROR_PTR("lstack not defined", procName, NULL);
+        return ERROR_PTR("lstack not defined", __func__, NULL);
 
     if (lstack->n == 0)
         return NULL;
@@ -227,15 +219,13 @@ void  *item;
 static l_int32
 lstackExtendArray(L_STACK  *lstack)
 {
-    PROCNAME("lstackExtendArray");
-
     if (!lstack)
-        return ERROR_INT("lstack not defined", procName, 1);
+        return ERROR_INT("lstack not defined", __func__, 1);
 
     if ((lstack->array = (void **)reallocNew((void **)&lstack->array,
                               sizeof(void *) * lstack->nalloc,
                               2 * sizeof(void *) * lstack->nalloc)) == NULL)
-        return ERROR_INT("new lstack array not defined", procName, 1);
+        return ERROR_INT("new lstack array not defined", __func__, 1);
 
     lstack->nalloc = 2 * lstack->nalloc;
     return 0;
@@ -251,10 +241,8 @@ lstackExtendArray(L_STACK  *lstack)
 l_int32
 lstackGetCount(L_STACK  *lstack)
 {
-    PROCNAME("lstackGetCount");
-
     if (!lstack)
-        return ERROR_INT("lstack not defined", procName, 1);
+        return ERROR_INT("lstack not defined", __func__, 1);
 
     return lstack->n;
 }
@@ -277,12 +265,10 @@ lstackPrint(FILE     *fp,
 {
 l_int32  i;
 
-    PROCNAME("lstackPrint");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
     if (!lstack)
-        return ERROR_INT("lstack not defined", procName, 1);
+        return ERROR_INT("lstack not defined", __func__, 1);
 
     fprintf(fp, "\n Stack: nalloc = %d, n = %d, array = %p\n",
             lstack->nalloc, lstack->n, lstack->array);
