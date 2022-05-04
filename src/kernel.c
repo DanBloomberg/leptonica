@@ -115,18 +115,16 @@ kernelCreate(l_int32  height,
 l_uint64   size64;
 L_KERNEL  *kel;
 
-    PROCNAME("kernelCreate");
-
     if (width <= 0)
-        return (L_KERNEL *)ERROR_PTR("width must be > 0", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("width must be > 0", __func__, NULL);
     if (height <= 0)
-        return (L_KERNEL *)ERROR_PTR("height must be > 0", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("height must be > 0", __func__, NULL);
 
         /* Avoid overflow in malloc arg */
     size64 = (l_uint64)width * (l_uint64)height;
     if (size64 >= (1LL << 29)) {
-        L_ERROR("requested width = %d, height = %d\n", procName, width, height);
-        return (L_KERNEL *)ERROR_PTR("size >= 2^29", procName, NULL);
+        L_ERROR("requested width = %d, height = %d\n", __func__, width, height);
+        return (L_KERNEL *)ERROR_PTR("size >= 2^29", __func__, NULL);
     }
 
     kel = (L_KERNEL *)LEPT_CALLOC(1, sizeof(L_KERNEL));
@@ -134,7 +132,7 @@ L_KERNEL  *kel;
     kel->sx = width;
     if ((kel->data = create2dFloatArray(height, width)) == NULL) {
         LEPT_FREE(kel);
-        return (L_KERNEL *)ERROR_PTR("data not allocated", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("data not allocated", __func__, NULL);
     }
     return kel;
 }
@@ -152,10 +150,8 @@ kernelDestroy(L_KERNEL  **pkel)
 l_int32    i;
 L_KERNEL  *kel;
 
-    PROCNAME("kernelDestroy");
-
     if (pkel == NULL)  {
-        L_WARNING("ptr address is NULL!\n", procName);
+        L_WARNING("ptr address is NULL!\n", __func__);
         return;
     }
     if ((kel = *pkel) == NULL)
@@ -181,14 +177,12 @@ kernelCopy(L_KERNEL  *kels)
 l_int32    i, j, sx, sy, cx, cy;
 L_KERNEL  *keld;
 
-    PROCNAME("kernelCopy");
-
     if (!kels)
-        return (L_KERNEL *)ERROR_PTR("kels not defined", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("kels not defined", __func__, NULL);
 
     kernelGetParameters(kels, &sy, &sx, &cy, &cx);
     if ((keld = kernelCreate(sy, sx)) == NULL)
-        return (L_KERNEL *)ERROR_PTR("keld not made", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("keld not made", __func__, NULL);
     keld->cy = cy;
     keld->cx = cx;
     for (i = 0; i < sy; i++)
@@ -217,17 +211,15 @@ kernelGetElement(L_KERNEL   *kel,
                  l_int32     col,
                  l_float32  *pval)
 {
-    PROCNAME("kernelGetElement");
-
     if (!pval)
-        return ERROR_INT("&val not defined", procName, 1);
+        return ERROR_INT("&val not defined", __func__, 1);
     *pval = 0;
     if (!kel)
-        return ERROR_INT("kernel not defined", procName, 1);
+        return ERROR_INT("kernel not defined", __func__, 1);
     if (row < 0 || row >= kel->sy)
-        return ERROR_INT("kernel row out of bounds", procName, 1);
+        return ERROR_INT("kernel row out of bounds", __func__, 1);
     if (col < 0 || col >= kel->sx)
-        return ERROR_INT("kernel col out of bounds", procName, 1);
+        return ERROR_INT("kernel col out of bounds", __func__, 1);
 
     *pval = kel->data[row][col];
     return 0;
@@ -249,14 +241,12 @@ kernelSetElement(L_KERNEL  *kel,
                  l_int32    col,
                  l_float32  val)
 {
-    PROCNAME("kernelSetElement");
-
     if (!kel)
-        return ERROR_INT("kel not defined", procName, 1);
+        return ERROR_INT("kel not defined", __func__, 1);
     if (row < 0 || row >= kel->sy)
-        return ERROR_INT("kernel row out of bounds", procName, 1);
+        return ERROR_INT("kernel row out of bounds", __func__, 1);
     if (col < 0 || col >= kel->sx)
-        return ERROR_INT("kernel col out of bounds", procName, 1);
+        return ERROR_INT("kernel col out of bounds", __func__, 1);
 
     kel->data[row][col] = val;
     return 0;
@@ -277,14 +267,12 @@ kernelGetParameters(L_KERNEL  *kel,
                     l_int32   *pcy,
                     l_int32   *pcx)
 {
-    PROCNAME("kernelGetParameters");
-
     if (psy) *psy = 0;
     if (psx) *psx = 0;
     if (pcy) *pcy = 0;
     if (pcx) *pcx = 0;
     if (!kel)
-        return ERROR_INT("kernel not defined", procName, 1);
+        return ERROR_INT("kernel not defined", __func__, 1);
     if (psy) *psy = kel->sy;
     if (psx) *psx = kel->sx;
     if (pcy) *pcy = kel->cy;
@@ -305,10 +293,8 @@ kernelSetOrigin(L_KERNEL  *kel,
                 l_int32    cy,
                 l_int32    cx)
 {
-    PROCNAME("kernelSetOrigin");
-
     if (!kel)
-        return ERROR_INT("kel not defined", procName, 1);
+        return ERROR_INT("kel not defined", __func__, 1);
     kel->cy = cy;
     kel->cx = cx;
     return 0;
@@ -328,13 +314,11 @@ kernelGetSum(L_KERNEL   *kel,
 {
 l_int32    sx, sy, i, j;
 
-    PROCNAME("kernelGetSum");
-
     if (!psum)
-        return ERROR_INT("&sum not defined", procName, 1);
+        return ERROR_INT("&sum not defined", __func__, 1);
     *psum = 0.0;
     if (!kel)
-        return ERROR_INT("kernel not defined", procName, 1);
+        return ERROR_INT("kernel not defined", __func__, 1);
 
     kernelGetParameters(kel, &sy, &sx, NULL, NULL);
     for (i = 0; i < sy; i++) {
@@ -362,14 +346,12 @@ kernelGetMinMax(L_KERNEL   *kel,
 l_int32    sx, sy, i, j;
 l_float32  val, minval, maxval;
 
-    PROCNAME("kernelGetMinmax");
-
     if (!pmin && !pmax)
-        return ERROR_INT("neither &min nor &max defined", procName, 1);
+        return ERROR_INT("neither &min nor &max defined", __func__, 1);
     if (pmin) *pmin = 0.0;
     if (pmax) *pmax = 0.0;
     if (!kel)
-        return ERROR_INT("kernel not defined", procName, 1);
+        return ERROR_INT("kernel not defined", __func__, 1);
 
     kernelGetParameters(kel, &sy, &sx, NULL, NULL);
     minval = 10000000.0;
@@ -418,20 +400,18 @@ l_int32    i, j, sx, sy, cx, cy;
 l_float32  sum, factor;
 L_KERNEL  *keld;
 
-    PROCNAME("kernelNormalize");
-
     if (!kels)
-        return (L_KERNEL *)ERROR_PTR("kels not defined", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("kels not defined", __func__, NULL);
 
     kernelGetSum(kels, &sum);
     if (L_ABS(sum) < 0.00001) {
-        L_WARNING("null sum; not normalizing; returning a copy\n", procName);
+        L_WARNING("null sum; not normalizing; returning a copy\n", __func__);
         return kernelCopy(kels);
     }
 
     kernelGetParameters(kels, &sy, &sx, &cy, &cx);
     if ((keld = kernelCreate(sy, sx)) == NULL)
-        return (L_KERNEL *)ERROR_PTR("keld not made", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("keld not made", __func__, NULL);
     keld->cy = cy;
     keld->cx = cx;
 
@@ -462,14 +442,12 @@ kernelInvert(L_KERNEL  *kels)
 l_int32    i, j, sx, sy, cx, cy;
 L_KERNEL  *keld;
 
-    PROCNAME("kernelInvert");
-
     if (!kels)
-        return (L_KERNEL *)ERROR_PTR("kels not defined", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("kels not defined", __func__, NULL);
 
     kernelGetParameters(kels, &sy, &sx, &cy, &cx);
     if ((keld = kernelCreate(sy, sx)) == NULL)
-        return (L_KERNEL *)ERROR_PTR("keld not made", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("keld not made", __func__, NULL);
     keld->cy = sy - 1 - cy;
     keld->cx = sx - 1 - cx;
 
@@ -506,12 +484,10 @@ create2dFloatArray(l_int32  sy,
 l_int32      i;
 l_float32  **array;
 
-    PROCNAME("create2dFloatArray");
-
     if (sx <= 0 || sx > MaxArraySize)
-        return (l_float32 **)ERROR_PTR("sx out of bounds", procName, NULL);
+        return (l_float32 **)ERROR_PTR("sx out of bounds", __func__, NULL);
     if (sy <= 0 || sy > MaxArraySize)
-        return (l_float32 **)ERROR_PTR("sy out of bounds", procName, NULL);
+        return (l_float32 **)ERROR_PTR("sy out of bounds", __func__, NULL);
 
     array = (l_float32 **)LEPT_CALLOC(sy, sizeof(l_float32 *));
     for (i = 0; i < sy; i++)
@@ -535,16 +511,14 @@ kernelRead(const char  *fname)
 FILE      *fp;
 L_KERNEL  *kel;
 
-    PROCNAME("kernelRead");
-
     if (!fname)
-        return (L_KERNEL *)ERROR_PTR("fname not defined", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("fname not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(fname)) == NULL)
-        return (L_KERNEL *)ERROR_PTR("stream not opened", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("stream not opened", __func__, NULL);
     if ((kel = kernelReadStream(fp)) == NULL) {
         fclose(fp);
-        return (L_KERNEL *)ERROR_PTR("kel not returned", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("kel not returned", __func__, NULL);
     }
     fclose(fp);
 
@@ -564,26 +538,24 @@ kernelReadStream(FILE  *fp)
 l_int32    sy, sx, cy, cx, i, j, ret, version, ignore;
 L_KERNEL  *kel;
 
-    PROCNAME("kernelReadStream");
-
     if (!fp)
-        return (L_KERNEL *)ERROR_PTR("stream not defined", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("stream not defined", __func__, NULL);
 
     ret = fscanf(fp, "  Kernel Version %d\n", &version);
     if (ret != 1)
-        return (L_KERNEL *)ERROR_PTR("not a kernel file", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("not a kernel file", __func__, NULL);
     if (version != KERNEL_VERSION_NUMBER)
-        return (L_KERNEL *)ERROR_PTR("invalid kernel version", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("invalid kernel version", __func__, NULL);
 
     if (fscanf(fp, "  sy = %d, sx = %d, cy = %d, cx = %d\n",
             &sy, &sx, &cy, &cx) != 4)
-        return (L_KERNEL *)ERROR_PTR("dimensions not read", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("dimensions not read", __func__, NULL);
     if (sx > MaxArraySize || sy > MaxArraySize) {
-        L_ERROR("sx = %d or sy = %d > %d\n", procName, sx, sy, MaxArraySize);
+        L_ERROR("sx = %d or sy = %d > %d\n", __func__, sx, sy, MaxArraySize);
         return NULL;
     }
     if ((kel = kernelCreate(sy, sx)) == NULL)
-        return (L_KERNEL *)ERROR_PTR("kel not made", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("kel not made", __func__, NULL);
     kernelSetOrigin(kel, cy, cx);
 
     for (i = 0; i < sy; i++) {
@@ -610,15 +582,13 @@ kernelWrite(const char  *fname,
 {
 FILE  *fp;
 
-    PROCNAME("kernelWrite");
-
     if (!fname)
-        return ERROR_INT("fname not defined", procName, 1);
+        return ERROR_INT("fname not defined", __func__, 1);
     if (!kel)
-        return ERROR_INT("kel not defined", procName, 1);
+        return ERROR_INT("kel not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(fname, "wb")) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     kernelWriteStream(fp, kel);
     fclose(fp);
 
@@ -639,12 +609,10 @@ kernelWriteStream(FILE      *fp,
 {
 l_int32  sx, sy, cx, cy, i, j;
 
-    PROCNAME("kernelWriteStream");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
     if (!kel)
-        return ERROR_INT("kel not defined", procName, 1);
+        return ERROR_INT("kel not defined", __func__, 1);
     kernelGetParameters(kel, &sy, &sx, &cy, &cx);
 
     fprintf(fp, "  Kernel Version %d\n", KERNEL_VERSION_NUMBER);
@@ -697,16 +665,14 @@ l_float32  val;
 L_KERNEL  *kel;
 NUMA      *na;
 
-    PROCNAME("kernelCreateFromString");
-
     if (h < 1)
-        return (L_KERNEL *)ERROR_PTR("height must be > 0", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("height must be > 0", __func__, NULL);
     if (w < 1)
-        return (L_KERNEL *)ERROR_PTR("width must be > 0", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("width must be > 0", __func__, NULL);
     if (cy < 0 || cy >= h)
-        return (L_KERNEL *)ERROR_PTR("cy invalid", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("cy invalid", __func__, NULL);
     if (cx < 0 || cx >= w)
-        return (L_KERNEL *)ERROR_PTR("cx invalid", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("cx invalid", __func__, NULL);
 
     kel = kernelCreate(h, w);
     kernelSetOrigin(kel, cy, cx);
@@ -716,7 +682,7 @@ NUMA      *na;
         kernelDestroy(&kel);
         numaDestroy(&na);
         lept_stderr("w = %d, h = %d, num ints = %d\n", w, h, n);
-        return (L_KERNEL *)ERROR_PTR("invalid integer data", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("invalid integer data", __func__, NULL);
     }
 
     index = 0;
@@ -782,16 +748,14 @@ NUMA      *na, *nat;
 SARRAY    *sa;
 L_KERNEL  *kel;
 
-    PROCNAME("kernelCreateFromFile");
-
     if (!filename)
-        return (L_KERNEL *)ERROR_PTR("filename not defined", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((filestr = (char *)l_binaryRead(filename, &size)) == NULL)
-        return (L_KERNEL *)ERROR_PTR("file not found", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("file not found", __func__, NULL);
     if (size == 0) {
         LEPT_FREE(filestr);
-        return (L_KERNEL *)ERROR_PTR("file is empty", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("file is empty", __func__, NULL);
     }
 
     sa = sarrayCreateLinesFromString(filestr, 1);
@@ -811,17 +775,17 @@ L_KERNEL  *kel;
     line = sarrayGetString(sa, first, L_NOCOPY);
     if (sscanf(line, "%d %d", &h, &w) != 2) {
         sarrayDestroy(&sa);
-        return (L_KERNEL *)ERROR_PTR("error reading h,w", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("error reading h,w", __func__, NULL);
     }
     if (h > MaxArraySize || w > MaxArraySize) {
-        L_ERROR("h = %d or w = %d > %d\n", procName, h, w, MaxArraySize);
+        L_ERROR("h = %d or w = %d > %d\n", __func__, h, w, MaxArraySize);
         sarrayDestroy(&sa);
         return NULL;
     }
     line = sarrayGetString(sa, first + 1, L_NOCOPY);
     if (sscanf(line, "%d %d", &cy, &cx) != 2) {
         sarrayDestroy(&sa);
-        return (L_KERNEL *)ERROR_PTR("error reading cy,cx", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("error reading cy,cx", __func__, NULL);
     }
 
         /* Extract the data.  This ends when we reach eof, or when we
@@ -842,7 +806,7 @@ L_KERNEL  *kel;
     if (n != w * h) {
         numaDestroy(&na);
         lept_stderr("w = %d, h = %d, num ints = %d\n", w, h, n);
-        return (L_KERNEL *)ERROR_PTR("invalid integer data", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("invalid integer data", __func__, NULL);
     }
 
     kel = kernelCreate(h, w);
@@ -885,15 +849,13 @@ l_int32    i, j, w, h, d;
 l_uint32   val;
 L_KERNEL  *kel;
 
-    PROCNAME("kernelCreateFromPix");
-
     if (!pix)
-        return (L_KERNEL *)ERROR_PTR("pix not defined", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("pix not defined", __func__, NULL);
     pixGetDimensions(pix, &w, &h, &d);
     if (d != 8)
-        return (L_KERNEL *)ERROR_PTR("pix not 8 bpp", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("pix not 8 bpp", __func__, NULL);
     if (cy < 0 || cx < 0 || cy >= h || cx >= w)
-        return (L_KERNEL *)ERROR_PTR("(cy, cx) invalid", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("(cy, cx) invalid", __func__, NULL);
 
     kel = kernelCreate(h, w);
     kernelSetOrigin(kel, cy, cx);
@@ -947,17 +909,15 @@ l_int32    normval;
 l_float32  minval, maxval, max, val, norm;
 PIX       *pixd, *pixt0, *pixt1;
 
-    PROCNAME("kernelDisplayInPix");
-
     if (!kel)
-        return (PIX *)ERROR_PTR("kernel not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("kernel not defined", __func__, NULL);
 
         /* Normalize the max value to be 255 for display */
     kernelGetParameters(kel, &sy, &sx, &cy, &cx);
     kernelGetMinMax(kel, &minval, &maxval);
     max = L_MAX(maxval, -minval);
     if (max == 0.0)
-        return (PIX *)ERROR_PTR("kernel elements all 0.0", procName, NULL);
+        return (PIX *)ERROR_PTR("kernel elements all 0.0", __func__, NULL);
     norm = 255. / (l_float32)max;
 
         /* Handle the 1 element/pixel case; typically with large kernels */
@@ -975,13 +935,13 @@ PIX       *pixd, *pixt0, *pixt1;
 
         /* Enforce the constraints for the grid line version */
     if (size < 17) {
-        L_WARNING("size < 17; setting to 17\n", procName);
+        L_WARNING("size < 17; setting to 17\n", __func__);
         size = 17;
     }
     if (size % 2 == 0)
         size++;
     if (gthick < 2) {
-        L_WARNING("grid thickness < 2; setting to 2\n", procName);
+        L_WARNING("grid thickness < 2; setting to 2\n", __func__);
         gthick = 2;
     }
 
@@ -1060,10 +1020,8 @@ char      *tail = NULL;
 l_float32  val;
 NUMA      *na;
 
-    PROCNAME("parseStringForNumbers");
-
     if (!str)
-        return (NUMA *)ERROR_PTR("str not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("str not defined", __func__, NULL);
 
     newstr = stringNew(str);  /* to enforce const-ness of str */
     na = numaCreate(0);
@@ -1113,10 +1071,8 @@ l_int32    i, j;
 l_float32  normval;
 L_KERNEL  *kel;
 
-    PROCNAME("makeFlatKernel");
-
     if ((kel = kernelCreate(height, width)) == NULL)
-        return (L_KERNEL *)ERROR_PTR("kel not made", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("kel not made", __func__, NULL);
     kernelSetOrigin(kel, cy, cx);
     normval = 1.0 / (l_float32)(height * width);
     for (i = 0; i < height; i++) {
@@ -1159,12 +1115,10 @@ l_int32    sx, sy, i, j;
 l_float32  val;
 L_KERNEL  *kel;
 
-    PROCNAME("makeGaussianKernel");
-
     sx = 2 * halfw + 1;
     sy = 2 * halfh + 1;
     if ((kel = kernelCreate(sy, sx)) == NULL)
-        return (L_KERNEL *)ERROR_PTR("kel not made", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("kel not made", __func__, NULL);
     kernelSetOrigin(kel, halfh, halfw);
     for (i = 0; i < sy; i++) {
         for (j = 0; j < sx; j++) {
@@ -1212,10 +1166,8 @@ makeGaussianKernelSep(l_int32    halfh,
                       L_KERNEL **pkelx,
                       L_KERNEL **pkely)
 {
-    PROCNAME("makeGaussianKernelSep");
-
     if (!pkelx || !pkely)
-        return ERROR_INT("&kelx and &kely not defined", procName, 1);
+        return ERROR_INT("&kelx and &kely not defined", __func__, 1);
 
     *pkelx = makeGaussianKernel(0, halfw, stdev, max);
     *pkely = makeGaussianKernel(halfh, 0, stdev, 1.0);
@@ -1260,12 +1212,10 @@ l_int32    sx, sy, i, j;
 l_float32  pi, squaredist, highnorm, lownorm, val;
 L_KERNEL  *kel;
 
-    PROCNAME("makeDoGKernel");
-
     sx = 2 * halfw + 1;
     sy = 2 * halfh + 1;
     if ((kel = kernelCreate(sy, sx)) == NULL)
-        return (L_KERNEL *)ERROR_PTR("kel not made", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("kel not made", __func__, NULL);
     kernelSetOrigin(kel, halfh, halfw);
 
     pi = 3.1415926535;

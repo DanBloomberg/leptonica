@@ -189,12 +189,10 @@ l_jpegSetQuality(l_int32  new_quality)
 {
 l_int32  prevq, newq;
 
-    PROCNAME("l_jpeqSetQuality");
-
     prevq = var_JPEG_QUALITY;
     newq = (new_quality == 0) ? 75 : new_quality;
     if (newq < 1 || newq > 100)
-        L_ERROR("invalid jpeg quality; unchanged\n", procName);
+        L_ERROR("invalid jpeg quality; unchanged\n", __func__);
     else
         var_JPEG_QUALITY = newq;
     return prevq;
@@ -253,15 +251,13 @@ char     bigbuf[Bufsize];
 l_int32  i, n, pixformat;
 PIX     *pix;
 
-    PROCNAME("pixaWriteFiles");
-
     if (!rootname)
-        return ERROR_INT("rootname not defined", procName, 1);
+        return ERROR_INT("rootname not defined", __func__, 1);
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
     if (format < 0 || format == IFF_UNKNOWN ||
         format >= NumImageFileFormatExtensions)
-        return ERROR_INT("invalid format", procName, 1);
+        return ERROR_INT("invalid format", __func__, 1);
 
     n = pixaGetCount(pixa);
     for (i = 0; i < n; i++) {
@@ -302,12 +298,10 @@ pixWriteDebug(const char  *fname,
               PIX         *pix,
               l_int32      format)
 {
-    PROCNAME("pixWriteDebug");
-
     if (LeptDebugOK) {
         return pixWrite(fname, pix, format);
     } else {
-        L_INFO("write to named temp file %s is disabled\n", procName, fname);
+        L_INFO("write to named temp file %s is disabled\n", __func__, fname);
         return 0;
     }
 }
@@ -342,20 +336,18 @@ pixWrite(const char  *fname,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("pixWrite");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!fname)
-        return ERROR_INT("fname not defined", procName, 1);
+        return ERROR_INT("fname not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(fname, "wb+")) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
 
     ret = pixWriteStream(fp, pix, format);
     fclose(fp);
     if (ret)
-        return ERROR_INT("pix not written to stream", procName, 1);
+        return ERROR_INT("pix not written to stream", __func__, 1);
     return 0;
 }
 
@@ -373,15 +365,13 @@ pixWriteAutoFormat(const char  *filename,
 {
 l_int32  format;
 
-    PROCNAME("pixWriteAutoFormat");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
 
     if (pixGetAutoFormat(pix, &format))
-        return ERROR_INT("auto format not returned", procName, 1);
+        return ERROR_INT("auto format not returned", __func__, 1);
     return pixWrite(filename, pix, format);
 }
 
@@ -399,12 +389,10 @@ pixWriteStream(FILE    *fp,
                PIX     *pix,
                l_int32  format)
 {
-    PROCNAME("pixWriteStream");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
 
     if (format == IFF_DEFAULT)
         format = pixChooseOutputFormat(pix);
@@ -457,7 +445,7 @@ pixWriteStream(FILE    *fp,
         return pixWriteStreamSpix(fp, pix);
 
     default:
-        return ERROR_INT("unknown format", procName, 1);
+        return ERROR_INT("unknown format", __func__, 1);
     }
 
     return 0;
@@ -488,12 +476,10 @@ pixWriteImpliedFormat(const char  *filename,
 {
 l_int32  format;
 
-    PROCNAME("pixWriteImpliedFormat");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
 
         /* Determine output format */
     format = getImpliedFileFormat(filename);
@@ -515,7 +501,7 @@ l_int32  format;
         quality = L_MAX(quality, 0);
         if (progressive != 0 && progressive != 1) {
             progressive = 0;
-            L_WARNING("invalid progressive; setting to baseline\n", procName);
+            L_WARNING("invalid progressive; setting to baseline\n", __func__);
         }
         if (quality == 0)
             quality = 75;
@@ -550,10 +536,8 @@ pixChooseOutputFormat(PIX  *pix)
 {
 l_int32  d, format;
 
-    PROCNAME("pixChooseOutputFormat");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 0);
+        return ERROR_INT("pix not defined", __func__, 0);
 
     d = pixGetDepth(pix);
     format = pixGetInputFormat(pix);
@@ -628,13 +612,11 @@ pixGetAutoFormat(PIX      *pix,
 l_int32   d;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixGetAutoFormat");
-
     if (!pformat)
-        return ERROR_INT("&format not defined", procName, 0);
+        return ERROR_INT("&format not defined", __func__, 0);
     *pformat = IFF_UNKNOWN;
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 0);
+        return ERROR_INT("pix not defined", __func__, 0);
 
     d = pixGetDepth(pix);
     cmap = pixGetColormap(pix);
@@ -665,10 +647,8 @@ PIXCMAP  *cmap;
 const char *
 getFormatExtension(l_int32  format)
 {
-    PROCNAME("getFormatExtension");
-
     if (format < 0 || format >= NumImageFileFormatExtensions)
-        return (const char *)ERROR_PTR("invalid format", procName, NULL);
+        return (const char *)ERROR_PTR("invalid format", __func__, NULL);
 
     return ImageFileFormatExtensions[format];
 }
@@ -705,14 +685,12 @@ pixWriteMem(l_uint8  **pdata,
 {
 l_int32  ret;
 
-    PROCNAME("pixWriteMem");
-
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1 );
+        return ERROR_INT("&data not defined", __func__, 1 );
     if (!psize)
-        return ERROR_INT("&size not defined", procName, 1 );
+        return ERROR_INT("&size not defined", __func__, 1 );
     if (!pix)
-        return ERROR_INT("&pix not defined", procName, 1 );
+        return ERROR_INT("&pix not defined", __func__, 1 );
 
     if (format == IFF_DEFAULT)
         format = pixChooseOutputFormat(pix);
@@ -775,7 +753,7 @@ l_int32  ret;
         break;
 
     default:
-        return ERROR_INT("unknown format", procName, 1);
+        return ERROR_INT("unknown format", __func__, 1);
     }
 
     return ret;
@@ -809,19 +787,17 @@ l_fileDisplay(const char  *fname,
 {
 PIX  *pixs, *pixd;
 
-    PROCNAME("l_fileDisplay");
-
     if (!LeptDebugOK) {
         L_INFO("displaying files is disabled; "
-               "use setLeptDebugOK(1) to enable\n", procName);
+               "use setLeptDebugOK(1) to enable\n", __func__);
         return 0;
     }
     if (scale == 0.0)
         return 0;
     if (scale < 0.0)
-        return ERROR_INT("invalid scale factor", procName, 1);
+        return ERROR_INT("invalid scale factor", __func__, 1);
     if ((pixs = pixRead(fname)) == NULL)
-        return ERROR_INT("pixs not read", procName, 1);
+        return ERROR_INT("pixs not read", __func__, 1);
 
     if (scale == 1.0) {
         pixd = pixClone(pixs);
@@ -922,27 +898,25 @@ char           *pathname;
 char            fullpath[_MAX_PATH];
 #endif  /* _WIN32 */
 
-    PROCNAME("pixDisplayWithTitle");
-
     if (!LeptDebugOK) {
         L_INFO("displaying images is disabled;\n      "
-               "use setLeptDebugOK(1) to enable\n", procName);
+               "use setLeptDebugOK(1) to enable\n", __func__);
         return 0;
     }
 
 #ifdef OS_IOS /* iOS 11 does not support system() */
-    return ERROR_INT("iOS 11 does not support system()", procName, 1);
+    return ERROR_INT("iOS 11 does not support system()", __func__, 1);
 #endif /* OS_IOS */
 
     if (dispflag != 1) return 0;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (var_DISPLAY_PROG != L_DISPLAY_WITH_XZGV &&
         var_DISPLAY_PROG != L_DISPLAY_WITH_XLI &&
         var_DISPLAY_PROG != L_DISPLAY_WITH_XV &&
         var_DISPLAY_PROG != L_DISPLAY_WITH_IV &&
         var_DISPLAY_PROG != L_DISPLAY_WITH_OPEN) {
-        return ERROR_INT("no program chosen for display", procName, 1);
+        return ERROR_INT("no program chosen for display", __func__, 1);
     }
 
         /* Display with three views if either spp = 4 or if colormapped
@@ -984,7 +958,7 @@ char            fullpath[_MAX_PATH];
     }
     pixDestroy(&pix0);
     if (!pix1)
-        return ERROR_INT("pix1 not made", procName, 1);
+        return ERROR_INT("pix1 not made", __func__, 1);
 
         /* Generate the three views if required */
     if (threeviews)
@@ -1094,16 +1068,14 @@ l_int32  w, rval, gval, bval;
 L_BMF   *bmf;
 PIX     *pix1, *pix2;
 
-    PROCNAME("pixMakeColorSquare");
-
     w = (size <= 0) ? 100 : size;
     if (addlabel && w < 100) {
-        L_WARNING("size too small for label; omitting label\n", procName);
+        L_WARNING("size too small for label; omitting label\n", __func__);
         addlabel = 0;
     }
 
     if ((pix1 = pixCreate(w, w, 32)) == NULL)
-        return (PIX *)ERROR_PTR("pix1 not madel", procName, NULL);
+        return (PIX *)ERROR_PTR("pix1 not madel", __func__, NULL);
     pixSetAllArbitrary(pix1, color);
     if (!addlabel)
         return pix1;
@@ -1111,7 +1083,7 @@ PIX     *pix1, *pix2;
         /* Adding text of color component values */
     if (location != L_ADD_ABOVE && location != L_ADD_AT_TOP &&
         location != L_ADD_AT_BOT && location != L_ADD_BELOW) {
-        L_ERROR("invalid location: adding below\n", procName);
+        L_ERROR("invalid location: adding below\n", __func__);
         location = L_ADD_BELOW;
     }
     bmf = bmfCreate(NULL, 4);
@@ -1158,23 +1130,21 @@ l_chooseDisplayProg(l_int32  selection)
 void
 changeFormatForMissingLib(l_int32  *pformat)
 {
-    PROCNAME("changeFormatForMissingLib");
-
 #if !defined(HAVE_LIBJPEG)
     if (*pformat == IFF_JFIF_JPEG) {
-        L_WARNING("jpeg library missing; output bmp format\n", procName);
+        L_WARNING("jpeg library missing; output bmp format\n", __func__);
         *pformat = IFF_BMP;
     }
 #endif  /* !defined(HAVE_LIBJPEG) */
 #if !defined(HAVE_LIBPNG)
     if (*pformat == IFF_PNG) {
-        L_WARNING("png library missing; output bmp format\n", procName);
+        L_WARNING("png library missing; output bmp format\n", __func__);
         *pformat = IFF_BMP;
     }
 #endif  /* !defined(HAVE_LIBPNG) */
 #if !defined(HAVE_LIBTIFF)
     if (L_FORMAT_IS_TIFF(*pformat)) {
-        L_WARNING("tiff library missing; output bmp format\n", procName);
+        L_WARNING("tiff library missing; output bmp format\n", __func__);
         *pformat = IFF_BMP;
     }
 #endif  /* !defined(HAVE_LIBTIFF) */

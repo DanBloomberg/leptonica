@@ -129,12 +129,10 @@ l_int32    n, i;
 l_float32  x, y;
 PTA       *ptad;
 
-    PROCNAME("pixSubsample");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
     if (subfactor < 1)
-        return (PTA *)ERROR_PTR("subfactor < 1", procName, NULL);
+        return (PTA *)ERROR_PTR("subfactor < 1", __func__, NULL);
 
     ptad = ptaCreate(0);
     n = ptaGetCount(ptas);
@@ -172,10 +170,8 @@ ptaJoin(PTA     *ptad,
 {
 l_int32  n, i, x, y;
 
-    PROCNAME("ptaJoin");
-
     if (!ptad)
-        return ERROR_INT("ptad not defined", procName, 1);
+        return ERROR_INT("ptad not defined", __func__, 1);
     if (!ptas)
         return 0;
 
@@ -185,12 +181,12 @@ l_int32  n, i, x, y;
     if (iend < 0 || iend >= n)
         iend = n - 1;
     if (istart > iend)
-        return ERROR_INT("istart > iend; no pts", procName, 1);
+        return ERROR_INT("istart > iend; no pts", __func__, 1);
 
     for (i = istart; i <= iend; i++) {
         ptaGetIPt(ptas, i, &x, &y);
         if (ptaAddPt(ptad, x, y) == 1) {
-            L_ERROR("failed to add pt at i = %d\n", procName, i);
+            L_ERROR("failed to add pt at i = %d\n", __func__, i);
             return 1;
         }
     }
@@ -223,10 +219,8 @@ ptaaJoin(PTAA    *ptaad,
 l_int32  n, i;
 PTA     *pta;
 
-    PROCNAME("ptaaJoin");
-
     if (!ptaad)
-        return ERROR_INT("ptaad not defined", procName, 1);
+        return ERROR_INT("ptaad not defined", __func__, 1);
     if (!ptaas)
         return 0;
 
@@ -236,7 +230,7 @@ PTA     *pta;
     if (iend < 0 || iend >= n)
         iend = n - 1;
     if (istart > iend)
-        return ERROR_INT("istart > iend; no pts", procName, 1);
+        return ERROR_INT("istart > iend; no pts", __func__, 1);
 
     for (i = istart; i <= iend; i++) {
         pta = ptaaGetPta(ptaas, i, L_CLONE);
@@ -262,14 +256,12 @@ l_int32    n, i, ix, iy;
 l_float32  x, y;
 PTA       *ptad;
 
-    PROCNAME("ptaReverse");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
 
     n = ptaGetCount(ptas);
     if ((ptad = ptaCreate(n)) == NULL)
-        return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptad not made", __func__, NULL);
     for (i = n - 1; i >= 0; i--) {
         if (type == 0) {
             ptaGetPt(ptas, i, &x, &y);
@@ -297,14 +289,12 @@ l_int32    n, i;
 l_float32  x, y;
 PTA       *ptad;
 
-    PROCNAME("ptaTranspose");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
 
     n = ptaGetCount(ptas);
     if ((ptad = ptaCreate(n)) == NULL)
-        return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptad not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         ptaGetPt(ptas, i, &x, &y);
         ptaAddPt(ptad, y, x);
@@ -339,10 +329,8 @@ l_int32  n, i, x, y, j, index, state;
 l_int32  x1, y1, x2, y2;
 PTA     *ptad;
 
-    PROCNAME("ptaCyclicPerm");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
 
     n = ptaGetCount(ptas);
 
@@ -350,7 +338,7 @@ PTA     *ptad;
     ptaGetIPt(ptas, 0, &x1, &y1);
     ptaGetIPt(ptas, n - 1, &x2, &y2);
     if (x1 != x2 || y1 != y2)
-        return (PTA *)ERROR_PTR("start and end pts not same", procName, NULL);
+        return (PTA *)ERROR_PTR("start and end pts not same", __func__, NULL);
     state = L_NOT_FOUND;
     for (i = 0; i < n; i++) {
         ptaGetIPt(ptas, i, &x, &y);
@@ -360,10 +348,10 @@ PTA     *ptad;
         }
     }
     if (state == L_NOT_FOUND)
-        return (PTA *)ERROR_PTR("start pt not in ptas", procName, NULL);
+        return (PTA *)ERROR_PTR("start pt not in ptas", __func__, NULL);
 
     if ((ptad = ptaCreate(n)) == NULL)
-        return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptad not made", __func__, NULL);
     for (j = 0; j < n - 1; j++) {
         if (i + j < n - 1)
             index = i + j;
@@ -395,25 +383,23 @@ l_int32    n, npt, i;
 l_float32  x, y;
 PTA       *ptad;
 
-    PROCNAME("ptaSelectRange");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
     if ((n = ptaGetCount(ptas)) == 0) {
-        L_WARNING("ptas is empty\n", procName);
+        L_WARNING("ptas is empty\n", __func__);
         return ptaCopy(ptas);
     }
     first = L_MAX(0, first);
     if (last < 0) last = n - 1;
     if (first >= n)
-        return (PTA *)ERROR_PTR("invalid first", procName, NULL);
+        return (PTA *)ERROR_PTR("invalid first", __func__, NULL);
     if (last >= n) {
         L_WARNING("last = %d is beyond max index = %d; adjusting\n",
-                  procName, last, n - 1);
+                  __func__, last, n - 1);
         last = n - 1;
     }
     if (first > last)
-        return (PTA *)ERROR_PTR("first > last", procName, NULL);
+        return (PTA *)ERROR_PTR("first > last", __func__, NULL);
 
     npt = last - first + 1;
     ptad = ptaCreate(npt);
@@ -446,10 +432,8 @@ ptaGetBoundingRegion(PTA  *pta)
 {
 l_int32  n, i, x, y, minx, maxx, miny, maxy;
 
-    PROCNAME("ptaGetBoundingRegion");
-
     if (!pta)
-        return (BOX *)ERROR_PTR("pta not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("pta not defined", __func__, NULL);
 
     minx = 10000000;
     miny = 10000000;
@@ -495,18 +479,16 @@ ptaGetRange(PTA        *pta,
 l_int32    n, i;
 l_float32  x, y, minx, maxx, miny, maxy;
 
-    PROCNAME("ptaGetRange");
-
     if (!pminx && !pmaxx && !pminy && !pmaxy)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if (pminx) *pminx = 0;
     if (pmaxx) *pmaxx = 0;
     if (pminy) *pminy = 0;
     if (pmaxy) *pmaxy = 0;
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if ((n = ptaGetCount(pta)) == 0)
-        return ERROR_INT("no points in pta", procName, 1);
+        return ERROR_INT("no points in pta", __func__, 1);
 
     ptaGetPt(pta, 0, &x, &y);
     minx = x;
@@ -543,12 +525,10 @@ PTA       *ptad;
 l_int32    n, i, contains;
 l_float32  x, y;
 
-    PROCNAME("ptaGetInsideBox");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
     if (!box)
-        return (PTA *)ERROR_PTR("box not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("box not defined", __func__, NULL);
 
     n = ptaGetCount(ptas);
     ptad = ptaCreate(0);
@@ -582,12 +562,10 @@ l_int32    i, j, x, y, w, h, wpl, mindim, found;
 l_uint32  *data, *line;
 PTA       *pta;
 
-    PROCNAME("pixFindCornerPixels");
-
     if (!pixs)
-        return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PTA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
 
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
@@ -596,7 +574,7 @@ PTA       *pta;
     wpl = pixGetWpl(pixs);
 
     if ((pta = ptaCreate(4)) == NULL)
-        return (PTA *)ERROR_PTR("pta not made", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not made", __func__, NULL);
 
     for (found = FALSE, i = 0; i < mindim; i++) {
         for (j = 0; j <= i; j++) {
@@ -674,10 +652,8 @@ ptaContainsPt(PTA     *pta,
 {
 l_int32  i, n, ix, iy;
 
-    PROCNAME("ptaContainsPt");
-
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 0);
+        return ERROR_INT("pta not defined", __func__, 0);
 
     n = ptaGetCount(pta);
     for (i = 0; i < n; i++) {
@@ -702,12 +678,10 @@ ptaTestIntersection(PTA  *pta1,
 {
 l_int32  i, j, n1, n2, x1, y1, x2, y2;
 
-    PROCNAME("ptaTestIntersection");
-
     if (!pta1)
-        return ERROR_INT("pta1 not defined", procName, 0);
+        return ERROR_INT("pta1 not defined", __func__, 0);
     if (!pta2)
-        return ERROR_INT("pta2 not defined", procName, 0);
+        return ERROR_INT("pta2 not defined", __func__, 0);
 
     n1 = ptaGetCount(pta1);
     n2 = ptaGetCount(pta2);
@@ -747,10 +721,8 @@ ptaTransform(PTA       *ptas,
 l_int32  n, i, x, y;
 PTA     *ptad;
 
-    PROCNAME("ptaTransform");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
     n = ptaGetCount(ptas);
     ptad = ptaCreate(n);
     for (i = 0; i < n; i++) {
@@ -786,13 +758,11 @@ ptaPtInsidePolygon(PTA       *pta,
 l_int32    i, n;
 l_float32  sum, x1, y1, x2, y2, xp1, yp1, xp2, yp2;
 
-    PROCNAME("ptaPtInsidePolygon");
-
     if (!pinside)
-        return ERROR_INT("&inside not defined", procName, 1);
+        return ERROR_INT("&inside not defined", __func__, 1);
     *pinside = 0;
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
 
         /* Think of (x1,y1) as the end point of a vector that starts
          * from the origin (0,0), and ditto for (x2,y2). */
@@ -872,15 +842,13 @@ l_int32    i, n;
 l_float32  x0, y0, x1, y1, x2, y2;
 l_float64  cprod;
 
-    PROCNAME("ptaPolygonIsConvex");
-
     if (!pisconvex)
-        return ERROR_INT("&isconvex not defined", procName, 1);
+        return ERROR_INT("&isconvex not defined", __func__, 1);
     *pisconvex = 0;
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if ((n = ptaGetCount(pta)) < 3)
-        return ERROR_INT("pta has < 3 pts", procName, 1);
+        return ERROR_INT("pta has < 3 pts", __func__, 1);
 
     for (i = 0; i < n; i++) {
         ptaGetPt(pta, i, &x0, &y0);
@@ -925,18 +893,16 @@ ptaGetMinMax(PTA        *pta,
 l_int32    i, n;
 l_float32  x, y, xmin, ymin, xmax, ymax;
 
-    PROCNAME("ptaGetMinMax");
-
     if (pxmin) *pxmin = -1.0;
     if (pymin) *pymin = -1.0;
     if (pxmax) *pxmax = -1.0;
     if (pymax) *pymax = -1.0;
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if (!pxmin && !pxmax && !pymin && !pymax)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if ((n = ptaGetCount(pta)) == 0) {
-        L_WARNING("pta is empty\n", procName);
+        L_WARNING("pta is empty\n", __func__);
         return 0;
     }
 
@@ -979,20 +945,18 @@ l_int32    i, n;
 l_float32  x, y;
 PTA       *ptad;
 
-    PROCNAME("ptaSelectByValue");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
     if (ptaGetCount(ptas) == 0) {
-        L_WARNING("ptas is empty\n", procName);
+        L_WARNING("ptas is empty\n", __func__);
         return ptaCopy(ptas);
     }
     if (type != L_SELECT_XVAL && type != L_SELECT_YVAL &&
         type != L_SELECT_IF_EITHER && type != L_SELECT_IF_BOTH)
-        return (PTA *)ERROR_PTR("invalid type", procName, NULL);
+        return (PTA *)ERROR_PTR("invalid type", __func__, NULL);
     if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
         relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
-        return (PTA *)ERROR_PTR("invalid relation", procName, NULL);
+        return (PTA *)ERROR_PTR("invalid relation", __func__, NULL);
 
     n = ptaGetCount(ptas);
     ptad = ptaCreate(n);
@@ -1044,14 +1008,12 @@ l_int32   i, n, x, y;
 l_uint32  val;
 PTA      *ptad;
 
-    PROCNAME("ptaCropToMask");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
     if (!pixm || pixGetDepth(pixm) != 1)
-        return (PTA *)ERROR_PTR("pixm undefined or not 1 bpp", procName, NULL);
+        return (PTA *)ERROR_PTR("pixm undefined or not 1 bpp", __func__, NULL);
     if (ptaGetCount(ptas) == 0) {
-        L_INFO("ptas is empty\n", procName);
+        L_INFO("ptas is empty\n", __func__);
         return ptaCopy(ptas);
     }
 
@@ -1113,17 +1075,15 @@ l_int32     n, i;
 l_float32   a, b, factor, sx, sy, sxx, sxy, val;
 l_float32  *xa, *ya;
 
-    PROCNAME("ptaGetLinearLSF");
-
     if (pa) *pa = 0.0;
     if (pb) *pb = 0.0;
     if (pnafit) *pnafit = NULL;
     if (!pa && !pb && !pnafit)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if ((n = ptaGetCount(pta)) < 2)
-        return ERROR_INT("less than 2 pts found", procName, 1);
+        return ERROR_INT("less than 2 pts found", __func__, 1);
 
     xa = pta->x;  /* not a copy */
     ya = pta->y;  /* not a copy */
@@ -1137,7 +1097,7 @@ l_float32  *xa, *ya;
         }
         factor = n * sxx - sx * sx;
         if (factor == 0.0)
-            return ERROR_INT("no solution found", procName, 1);
+            return ERROR_INT("no solution found", __func__, 1);
         factor = 1. / factor;
 
         a = factor * ((l_float32)n * sxy - sx * sy);
@@ -1148,7 +1108,7 @@ l_float32  *xa, *ya;
             sxy += xa[i] * ya[i];
         }
         if (sxx == 0.0)
-            return ERROR_INT("no solution found", procName, 1);
+            return ERROR_INT("no solution found", __func__, 1);
         a = sxy / sxx;
         b = 0.0;
     } else {  /* a = 0; horizontal line */
@@ -1217,18 +1177,16 @@ l_float32  *xa, *ya;
 l_float32  *f[3];
 l_float32   g[3];
 
-    PROCNAME("ptaGetQuadraticLSF");
-
     if (pa) *pa = 0.0;
     if (pb) *pb = 0.0;
     if (pc) *pc = 0.0;
     if (pnafit) *pnafit = NULL;
     if (!pa && !pb && !pc && !pnafit)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if ((n = ptaGetCount(pta)) < 3)
-        return ERROR_INT("less than 3 pts found", procName, 1);
+        return ERROR_INT("less than 3 pts found", __func__, 1);
 
     xa = pta->x;  /* not a copy */
     ya = pta->y;  /* not a copy */
@@ -1265,7 +1223,7 @@ l_float32   g[3];
     for (i = 0; i < 3; i++)
         LEPT_FREE(f[i]);
     if (ret)
-        return ERROR_INT("quadratic solution failed", procName, 1);
+        return ERROR_INT("quadratic solution failed", __func__, 1);
 
     if (pa) *pa = g[0];
     if (pb) *pb = g[1];
@@ -1331,19 +1289,17 @@ l_float32  *xa, *ya;
 l_float32  *f[4];
 l_float32   g[4];
 
-    PROCNAME("ptaGetCubicLSF");
-
     if (pa) *pa = 0.0;
     if (pb) *pb = 0.0;
     if (pc) *pc = 0.0;
     if (pd) *pd = 0.0;
     if (pnafit) *pnafit = NULL;
     if (!pa && !pb && !pc && !pd && !pnafit)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if ((n = ptaGetCount(pta)) < 4)
-        return ERROR_INT("less than 4 pts found", procName, 1);
+        return ERROR_INT("less than 4 pts found", __func__, 1);
 
     xa = pta->x;  /* not a copy */
     ya = pta->y;  /* not a copy */
@@ -1391,7 +1347,7 @@ l_float32   g[4];
     for (i = 0; i < 4; i++)
         LEPT_FREE(f[i]);
     if (ret)
-        return ERROR_INT("cubic solution failed", procName, 1);
+        return ERROR_INT("cubic solution failed", __func__, 1);
 
     if (pa) *pa = g[0];
     if (pb) *pb = g[1];
@@ -1463,8 +1419,6 @@ l_float32  *xa, *ya;
 l_float32  *f[5];
 l_float32   g[5];
 
-    PROCNAME("ptaGetQuarticLSF");
-
     if (pa) *pa = 0.0;
     if (pb) *pb = 0.0;
     if (pc) *pc = 0.0;
@@ -1472,11 +1426,11 @@ l_float32   g[5];
     if (pe) *pe = 0.0;
     if (pnafit) *pnafit = NULL;
     if (!pa && !pb && !pc && !pd && !pe && !pnafit)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if ((n = ptaGetCount(pta)) < 5)
-        return ERROR_INT("less than 5 pts found", procName, 1);
+        return ERROR_INT("less than 5 pts found", __func__, 1);
 
     xa = pta->x;  /* not a copy */
     ya = pta->y;  /* not a copy */
@@ -1538,7 +1492,7 @@ l_float32   g[5];
     for (i = 0; i < 5; i++)
         LEPT_FREE(f[i]);
     if (ret)
-        return ERROR_INT("quartic solution failed", procName, 1);
+        return ERROR_INT("quartic solution failed", __func__, 1);
 
     if (pa) *pa = g[0];
     if (pb) *pb = g[1];
@@ -1597,24 +1551,22 @@ l_float32  x, y, yf, val, mederr;
 NUMA      *nafit, *naerror;
 PTA       *ptad;
 
-    PROCNAME("ptaNoisyLinearLSF");
-
     if (pptad) *pptad = NULL;
     if (pa) *pa = 0.0;
     if (pb) *pb = 0.0;
     if (pmederr) *pmederr = 0.0;
     if (pnafit) *pnafit = NULL;
     if (!pptad && !pa && !pb && !pnafit)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if (factor <= 0.0)
-        return ERROR_INT("factor must be > 0.0", procName, 1);
+        return ERROR_INT("factor must be > 0.0", __func__, 1);
     if ((n = ptaGetCount(pta)) < 3)
-        return ERROR_INT("less than 2 pts found", procName, 1);
+        return ERROR_INT("less than 2 pts found", __func__, 1);
 
     if (ptaGetLinearLSF(pta, pa, pb, &nafit) != 0)
-        return ERROR_INT("error in linear LSF", procName, 1);
+        return ERROR_INT("error in linear LSF", __func__, 1);
 
         /* Get the median error */
     naerror = numaCreate(n);
@@ -1685,8 +1637,6 @@ l_float32  x, y, yf, val, mederr;
 NUMA      *nafit, *naerror;
 PTA       *ptad;
 
-    PROCNAME("ptaNoisyQuadraticLSF");
-
     if (pptad) *pptad = NULL;
     if (pa) *pa = 0.0;
     if (pb) *pb = 0.0;
@@ -1694,16 +1644,16 @@ PTA       *ptad;
     if (pmederr) *pmederr = 0.0;
     if (pnafit) *pnafit = NULL;
     if (!pptad && !pa && !pb && !pc && !pnafit)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if (factor <= 0.0)
-        return ERROR_INT("factor must be > 0.0", procName, 1);
+        return ERROR_INT("factor must be > 0.0", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if ((n = ptaGetCount(pta)) < 3)
-        return ERROR_INT("less than 3 pts found", procName, 1);
+        return ERROR_INT("less than 3 pts found", __func__, 1);
 
     if (ptaGetQuadraticLSF(pta, NULL, NULL, NULL, &nafit) != 0)
-        return ERROR_INT("error in quadratic LSF", procName, 1);
+        return ERROR_INT("error in quadratic LSF", __func__, 1);
 
         /* Get the median error */
     naerror = numaCreate(n);
@@ -1728,7 +1678,7 @@ PTA       *ptad;
     n = ptaGetCount(ptad);
     if ((n = ptaGetCount(ptad)) < 3) {
         ptaDestroy(&ptad);
-        return ERROR_INT("less than 3 pts found", procName, 1);
+        return ERROR_INT("less than 3 pts found", __func__, 1);
     }
 
        /* Do LSF again */
@@ -1756,10 +1706,8 @@ applyLinearFit(l_float32   a,
                   l_float32   x,
                   l_float32  *py)
 {
-    PROCNAME("applyLinearFit");
-
     if (!py)
-        return ERROR_INT("&y not defined", procName, 1);
+        return ERROR_INT("&y not defined", __func__, 1);
 
     *py = a * x + b;
     return 0;
@@ -1781,10 +1729,8 @@ applyQuadraticFit(l_float32   a,
                   l_float32   x,
                   l_float32  *py)
 {
-    PROCNAME("applyQuadraticFit");
-
     if (!py)
-        return ERROR_INT("&y not defined", procName, 1);
+        return ERROR_INT("&y not defined", __func__, 1);
 
     *py = a * x * x + b * x + c;
     return 0;
@@ -1807,10 +1753,8 @@ applyCubicFit(l_float32   a,
               l_float32   x,
               l_float32  *py)
 {
-    PROCNAME("applyCubicFit");
-
     if (!py)
-        return ERROR_INT("&y not defined", procName, 1);
+        return ERROR_INT("&y not defined", __func__, 1);
 
     *py = a * x * x * x + b * x * x + c * x + d;
     return 0;
@@ -1836,10 +1780,8 @@ applyQuarticFit(l_float32   a,
 {
 l_float32  x2;
 
-    PROCNAME("applyQuarticFit");
-
     if (!py)
-        return ERROR_INT("&y not defined", procName, 1);
+        return ERROR_INT("&y not defined", __func__, 1);
 
     x2 = x * x;
     *py = a * x2 * x2 + b * x2 * x + c * x2 + d * x + e;
@@ -1880,17 +1822,15 @@ l_uint32        val;
 NUMA           *na, *nar, *nag, *nab;
 PIX            *pixt;
 
-    PROCNAME("pixPlotAlongPta");
-
     lept_mkdir("lept/plot");
 
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
         outformat != GPLOT_EPS && outformat != GPLOT_LATEX) {
-        L_WARNING("outformat invalid; using GPLOT_PNG\n", procName);
+        L_WARNING("outformat invalid; using GPLOT_PNG\n", __func__);
         outformat = GPLOT_PNG;
     }
 
@@ -1975,10 +1915,8 @@ l_int32    i, j, w, h, wpl, xstart, xend, ystart, yend, bw, bh;
 l_uint32  *data, *line;
 PTA       *pta;
 
-    PROCNAME("ptaGetPixelsFromPix");
-
     if (!pixs || (pixGetDepth(pixs) != 1))
-        return (PTA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     data = pixGetData(pixs);
@@ -1993,7 +1931,7 @@ PTA       *pta;
     }
 
     if ((pta = ptaCreate(0)) == NULL)
-        return (PTA *)ERROR_PTR("pta not made", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not made", __func__, NULL);
     for (i = ystart; i <= yend; i++) {
         line = data + i * wpl;
         for (j = xstart; j <= xend; j++) {
@@ -2028,13 +1966,11 @@ pixGenerateFromPta(PTA     *pta,
 l_int32  n, i, x, y;
 PIX     *pix;
 
-    PROCNAME("pixGenerateFromPta");
-
     if (!pta)
-        return (PIX *)ERROR_PTR("pta not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pta not defined", __func__, NULL);
 
     if ((pix = pixCreate(w, h, 1)) == NULL)
-        return (PIX *)ERROR_PTR("pix not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not made", __func__, NULL);
     n = ptaGetCount(pta);
     for (i = 0; i < n; i++) {
         ptaGetIPt(pta, i, &x, &y);
@@ -2068,12 +2004,10 @@ ptaGetBoundaryPixels(PIX     *pixs,
 PIX  *pixt;
 PTA  *pta;
 
-    PROCNAME("ptaGetBoundaryPixels");
-
     if (!pixs || (pixGetDepth(pixs) != 1))
-        return (PTA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (type != L_BOUNDARY_FG && type != L_BOUNDARY_BG)
-        return (PTA *)ERROR_PTR("invalid type", procName, NULL);
+        return (PTA *)ERROR_PTR("invalid type", __func__, NULL);
 
     if (type == L_BOUNDARY_FG)
         pixt = pixMorphSequence(pixs, "e3.3", 0);
@@ -2124,16 +2058,14 @@ PIXA    *pixa;
 PTA     *pta1, *pta2;
 PTAA    *ptaa;
 
-    PROCNAME("ptaaGetBoundaryPixels");
-
     if (pboxa) *pboxa = NULL;
     if (ppixa) *ppixa = NULL;
     if (!pixs || (pixGetDepth(pixs) != 1))
-        return (PTAA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PTAA *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (type != L_BOUNDARY_FG && type != L_BOUNDARY_BG)
-        return (PTAA *)ERROR_PTR("invalid type", procName, NULL);
+        return (PTAA *)ERROR_PTR("invalid type", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PTAA *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PTAA *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     boxa = pixConnComp(pixs, &pixa, connectivity);
@@ -2203,11 +2135,9 @@ l_uint32  *data, *line;
 PTA       *pta;
 PTAA      *ptaa;
 
-    PROCNAME("ptaaIndexLabeledPixels");
-
     if (pncc) *pncc = 0;
     if (!pixs || (pixGetDepth(pixs) != 32))
-        return (PTAA *)ERROR_PTR("pixs undef or not 32 bpp", procName, NULL);
+        return (PTAA *)ERROR_PTR("pixs undef or not 32 bpp", __func__, NULL);
 
         /* The number of c.c. is the maximum pixel value.  Use this to
          * initialize ptaa with sufficient pta arrays */
@@ -2259,15 +2189,13 @@ ptaGetNeighborPixLocs(PIX  *pixs,
 l_int32  w, h;
 PTA     *pta;
 
-    PROCNAME("ptaGetNeighborPixLocs");
-
     if (!pixs)
-        return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);
     if (x < 0 || x >= w || y < 0 || y >= h)
-        return (PTA *)ERROR_PTR("(x,y) not in pixs", procName, NULL);
+        return (PTA *)ERROR_PTR("(x,y) not in pixs", __func__, NULL);
     if (conn != 4 && conn != 8)
-        return (PTA *)ERROR_PTR("conn not 4 or 8", procName, NULL);
+        return (PTA *)ERROR_PTR("conn not 4 or 8", __func__, NULL);
 
     pta = ptaCreate(conn);
     if (x > 0)
@@ -2313,10 +2241,8 @@ l_int32    i, n;
 l_float32  startx, delx, val;
 PTA       *pta;
 
-    PROCNAME("numaConvertToPta1");
-
     if (!na)
-        return (PTA *)ERROR_PTR("na not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("na not defined", __func__, NULL);
 
     n = numaGetCount(na);
     pta = ptaCreate(n);
@@ -2344,16 +2270,14 @@ l_int32    i, n, nx, ny;
 l_float32  valx, valy;
 PTA       *pta;
 
-    PROCNAME("numaConvertToPta2");
-
     if (!nax || !nay)
-        return (PTA *)ERROR_PTR("nax and nay not both defined", procName, NULL);
+        return (PTA *)ERROR_PTR("nax and nay not both defined", __func__, NULL);
 
     nx = numaGetCount(nax);
     ny = numaGetCount(nay);
     n = L_MIN(nx, ny);
     if (nx != ny)
-        L_WARNING("nx = %d does not equal ny = %d\n", procName, nx, ny);
+        L_WARNING("nx = %d does not equal ny = %d\n", __func__, nx, ny);
     pta = ptaCreate(n);
     for (i = 0; i < n; i++) {
         numaGetFValue(nax, i, &valx);
@@ -2380,14 +2304,12 @@ ptaConvertToNuma(PTA    *pta,
 l_int32    i, n;
 l_float32  valx, valy;
 
-    PROCNAME("ptaConvertToNuma");
-
     if (pnax) *pnax = NULL;
     if (pnay) *pnay = NULL;
     if (!pnax || !pnay)
-        return ERROR_INT("&nax and &nay not both defined", procName, 1);
+        return ERROR_INT("&nax and &nay not both defined", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
 
     n = ptaGetCount(pta);
     *pnax = numaCreate(n);
@@ -2431,14 +2353,12 @@ pixDisplayPta(PIX  *pixd,
 l_int32   i, n, w, h, x, y;
 l_uint32  rpixel, gpixel, bpixel;
 
-    PROCNAME("pixDisplayPta");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (!pta)
-        return (PIX *)ERROR_PTR("pta not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pta not defined", __func__, pixd);
     if (pixd && (pixd != pixs || pixGetDepth(pixd) != 32))
-        return (PIX *)ERROR_PTR("invalid pixd", procName, pixd);
+        return (PIX *)ERROR_PTR("invalid pixd", __func__, pixd);
 
     if (!pixd)
         pixd = pixConvertTo32(pixs);
@@ -2502,16 +2422,14 @@ l_uint32  color;
 PIXCMAP  *cmap;
 PTA      *pta;
 
-    PROCNAME("pixDisplayPtaaPattern");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (!ptaa)
-        return (PIX *)ERROR_PTR("ptaa not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("ptaa not defined", __func__, pixd);
     if (pixd && (pixd != pixs || pixGetDepth(pixd) != 32))
-        return (PIX *)ERROR_PTR("invalid pixd", procName, pixd);
+        return (PIX *)ERROR_PTR("invalid pixd", __func__, pixd);
     if (!pixp)
-        return (PIX *)ERROR_PTR("pixp not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixp not defined", __func__, pixd);
 
     if (!pixd)
         pixd = pixConvertTo32(pixs);
@@ -2568,16 +2486,14 @@ pixDisplayPtaPattern(PIX      *pixd,
 l_int32  i, n, w, h, x, y;
 PTA     *ptat;
 
-    PROCNAME("pixDisplayPtaPattern");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (!pta)
-        return (PIX *)ERROR_PTR("pta not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pta not defined", __func__, pixd);
     if (pixd && (pixd != pixs || pixGetDepth(pixd) != 32))
-        return (PIX *)ERROR_PTR("invalid pixd", procName, pixd);
+        return (PIX *)ERROR_PTR("invalid pixd", __func__, pixd);
     if (!pixp)
-        return (PIX *)ERROR_PTR("pixp not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixp not defined", __func__, pixd);
 
     if (!pixd)
         pixd = pixConvertTo32(pixs);
@@ -2629,14 +2545,12 @@ ptaReplicatePattern(PTA     *ptas,
 l_int32  i, j, n, np, x, y, xp, yp, xf, yf;
 PTA     *ptat, *ptad;
 
-    PROCNAME("ptaReplicatePattern");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
     if (!pixp && !ptap)
-        return (PTA *)ERROR_PTR("no pattern is defined", procName, NULL);
+        return (PTA *)ERROR_PTR("no pattern is defined", __func__, NULL);
     if (pixp && ptap)
-        L_WARNING("pixp and ptap defined; using ptap\n", procName);
+        L_WARNING("pixp and ptap defined; using ptap\n", __func__);
 
     n = ptaGetCount(ptas);
     ptad = ptaCreate(n);
@@ -2679,24 +2593,22 @@ NUMA      *na1, *na2, *na3;
 PIX       *pixd;
 PTA       *pta;
 
-    PROCNAME("pixDisplayPtaa");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!ptaa)
-        return (PIX *)ERROR_PTR("ptaa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptaa not defined", __func__, NULL);
     npta = ptaaGetCount(ptaa);
     if (npta == 0)
-        return (PIX *)ERROR_PTR("no pta", procName, NULL);
+        return (PIX *)ERROR_PTR("no pta", __func__, NULL);
 
     if ((pixd = pixConvertTo32(pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixGetDimensions(pixd, &w, &h, NULL);
 
         /* Make a colormap for the paths */
     if ((pixela = (l_uint32 *)LEPT_CALLOC(npta, sizeof(l_uint32))) == NULL) {
         pixDestroy(&pixd);
-        return (PIX *)ERROR_PTR("calloc fail for pixela", procName, NULL);
+        return (PIX *)ERROR_PTR("calloc fail for pixela", __func__, NULL);
     }
     na1 = numaPseudorandomSequence(256, 14657);
     na2 = numaPseudorandomSequence(256, 34631);

@@ -204,21 +204,19 @@ BOXA    *boxa, *boxa4, *boxasub, *boxad;
 PARTEL  *partel;
 L_HEAP  *lh;
 
-    PROCNAME("boxaGetWhiteblocks");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (sortflag != L_SORT_BY_WIDTH && sortflag != L_SORT_BY_HEIGHT &&
         sortflag != L_SORT_BY_MIN_DIMENSION &&
         sortflag != L_SORT_BY_MAX_DIMENSION &&
         sortflag != L_SORT_BY_PERIMETER && sortflag != L_SORT_BY_AREA)
-        return (BOXA *)ERROR_PTR("invalid sort flag", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid sort flag", __func__, NULL);
     if (maxboxes < 1) {
         maxboxes = 1;
-        L_WARNING("setting maxboxes = 1\n", procName);
+        L_WARNING("setting maxboxes = 1\n", __func__);
     }
     if (maxoverlap < 0.0 || maxoverlap > 1.0)
-        return (BOXA *)ERROR_PTR("invalid maxoverlap", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid maxoverlap", __func__, NULL);
     if (maxpops == 0)
         maxpops = DefaultMaxPops;
 
@@ -334,10 +332,8 @@ partelDestroy(PARTEL  **ppartel)
 {
 PARTEL  *partel;
 
-    PROCNAME("partelDestroy");
-
     if (ppartel == NULL) {
-        L_WARNING("ptr address is null!\n", procName);
+        L_WARNING("ptr address is null!\n", __func__);
         return;
     }
 
@@ -367,10 +363,8 @@ partelSetSize(PARTEL  *partel,
 {
 l_int32  w, h;
 
-    PROCNAME("partelSetSize");
-
     if (!partel)
-        return ERROR_INT("partel not defined", procName, 1);
+        return ERROR_INT("partel not defined", __func__, 1);
 
     boxGetGeometry(partel->box, NULL, NULL, &w, &h);
     if (sortflag == L_SORT_BY_WIDTH)
@@ -386,7 +380,7 @@ l_int32  w, h;
     else if (sortflag == L_SORT_BY_AREA)
         partel->size = (l_float32)(w * h);
     else
-        return ERROR_INT("invalid sortflag", procName, 1);
+        return ERROR_INT("invalid sortflag", __func__, 1);
     return 0;
 }
 
@@ -415,12 +409,10 @@ BOX     *boxp;  /* pivot box */
 BOX     *boxsub;
 BOXA    *boxa4;
 
-    PROCNAME("boxaGenerateSubboxes");
-
     if (!box)
-        return (BOXA *)ERROR_PTR("box not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("box not defined", __func__, NULL);
     if (!boxa)
-        return (BOXA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxa not defined", __func__, NULL);
 
     boxa4 = boxaCreate(4);
     boxp = boxaSelectPivotBox(box, boxa, maxperim, fract);
@@ -493,17 +485,15 @@ l_int32    smallfound, minindex, perim, minsize;
 l_float32  delx, dely, mindist, threshdist, dist, x, y, cx, cy;
 BOX       *boxt;
 
-    PROCNAME("boxaSelectPivotBox");
-
     if (!box)
-        return (BOX *)ERROR_PTR("box not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("box not defined", __func__, NULL);
     if (!boxa)
-        return (BOX *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("boxa not defined", __func__, NULL);
     n = boxaGetCount(boxa);
     if (n == 0)
-        return (BOX *)ERROR_PTR("no boxes in boxa", procName, NULL);
+        return (BOX *)ERROR_PTR("no boxes in boxa", __func__, NULL);
     if (fract < 0.0 || fract > 1.0) {
-        L_WARNING("fract out of bounds; using 0.0\n", procName);
+        L_WARNING("fract out of bounds; using 0.0\n", __func__);
         fract = 0.0;
     }
 
@@ -571,14 +561,12 @@ l_int32    i, n, bigoverlap;
 l_float32  fract;
 BOX       *boxt;
 
-    PROCNAME("boxCheckIfOverlapIsBig");
-
     if (!box)
-        return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", __func__, 1);
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     if (maxoverlap < 0.0 || maxoverlap > 1.0)
-        return ERROR_INT("invalid maxoverlap", procName, 1);
+        return ERROR_INT("invalid maxoverlap", __func__, 1);
 
     n = boxaGetCount(boxa);
     if (n == 0 || maxoverlap == 1.0)
@@ -626,12 +614,10 @@ l_float32  fract;
 BOX       *box1, *box2;
 BOXA      *boxad;
 
-    PROCNAME("boxaPruneSortedOnOverlap");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (maxoverlap < 0.0 || maxoverlap > 1.0)
-        return (BOXA *)ERROR_PTR("invalid maxoverlap", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid maxoverlap", __func__, NULL);
 
     n = boxaGetCount(boxas);
     if (n == 0 || maxoverlap == 1.0)

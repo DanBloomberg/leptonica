@@ -211,15 +211,13 @@ pixRotateShear(PIX       *pixs,
                l_float32  angle,
                l_int32    incolor)
 {
-    PROCNAME("pixRotateShear");
-
     if (!pixs)
-        return (PIX *)(PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)(PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return (PIX *)(PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
+        return (PIX *)(PIX *)ERROR_PTR("invalid incolor value", __func__, NULL);
 
     if (L_ABS(angle) > MaxShearAngle) {
-        L_ERROR("%6.2f radians; too large for shear rotation\n", procName,
+        L_ERROR("%6.2f radians; too large for shear rotation\n", __func__,
                 L_ABS(angle));
         return NULL;
     }
@@ -267,15 +265,13 @@ pixRotate2Shear(PIX       *pixs,
 {
 PIX  *pix1, *pix2, *pixd;
 
-    PROCNAME("pixRotate2Shear");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return (PIX *)(PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
+        return (PIX *)(PIX *)ERROR_PTR("invalid incolor value", __func__, NULL);
 
     if (L_ABS(angle) > MaxShearAngle) {
-        L_ERROR("%6.2f radians; too large for shear rotation\n", procName,
+        L_ERROR("%6.2f radians; too large for shear rotation\n", __func__,
                 L_ABS(angle));
         return NULL;
     }
@@ -283,14 +279,14 @@ PIX  *pix1, *pix2, *pixd;
         return pixClone(pixs);
     if (L_ABS(angle) > MaxTwoShearAngle)
         L_WARNING("%6.2f radians; large angle for 2-shear rotation\n",
-                  procName, L_ABS(angle));
+                  __func__, L_ABS(angle));
 
     if ((pix1 = pixHShear(NULL, pixs, ycen, angle, incolor)) == NULL)
-        return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pix1 not made", __func__, NULL);
     pixd = pixVShear(NULL, pix1, xcen, angle, incolor);
     pixDestroy(&pix1);
     if (!pixd)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
 
     if (pixGetDepth(pixs) == 32 && pixGetSpp(pixs) == 4) {
         pix1 = pixGetRGBComponent(pixs, L_ALPHA_CHANNEL);
@@ -345,15 +341,13 @@ pixRotate3Shear(PIX       *pixs,
 l_float32  hangle;
 PIX       *pix1, *pix2, *pixd;
 
-    PROCNAME("pixRotate3Shear");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return (PIX *)(PIX *)ERROR_PTR("invalid incolor value", procName, NULL);
+        return (PIX *)(PIX *)ERROR_PTR("invalid incolor value", __func__, NULL);
 
     if (L_ABS(angle) > MaxShearAngle) {
-        L_ERROR("%6.2f radians; too large for shear rotation\n", procName,
+        L_ERROR("%6.2f radians; too large for shear rotation\n", __func__,
                 L_ABS(angle));
         return NULL;
     }
@@ -361,15 +355,15 @@ PIX       *pix1, *pix2, *pixd;
         return pixClone(pixs);
     if (L_ABS(angle) > MaxThreeShearAngle) {
         L_WARNING("%6.2f radians; large angle for 3-shear rotation\n",
-                  procName, L_ABS(angle));
+                  __func__, L_ABS(angle));
     }
 
     hangle = atan(sin(angle));
     if ((pixd = pixVShear(NULL, pixs, xcen, angle / 2., incolor)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     if ((pix1 = pixHShear(NULL, pixd, ycen, hangle, incolor)) == NULL) {
         pixDestroy(&pixd);
-        return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pix1 not made", __func__, NULL);
     }
     pixVShear(pixd, pix1, xcen, angle / 2., incolor);
     pixDestroy(&pix1);
@@ -425,20 +419,18 @@ pixRotateShearIP(PIX       *pixs,
 {
 l_float32  hangle;
 
-    PROCNAME("pixRotateShearIP");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return ERROR_INT("invalid value for incolor", procName, 1);
+        return ERROR_INT("invalid value for incolor", __func__, 1);
     if (pixGetColormap(pixs) != NULL)
-        return ERROR_INT("pixs is colormapped", procName, 1);
+        return ERROR_INT("pixs is colormapped", __func__, 1);
 
     if (angle == 0.0)
         return 0;
     if (L_ABS(angle) > MaxThreeShearAngle) {
         L_WARNING("%6.2f radians; large angle for in-place 3-shear rotation\n",
-                  procName, L_ABS(angle));
+                  __func__, L_ABS(angle));
     }
 
     hangle = atan(sin(angle));
@@ -465,10 +457,8 @@ pixRotateShearCenter(PIX       *pixs,
                      l_float32  angle,
                      l_int32    incolor)
 {
-    PROCNAME("pixRotateShearCenter");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
 
     return pixRotateShear(pixs, pixGetWidth(pixs) / 2,
                           pixGetHeight(pixs) / 2, angle, incolor);
@@ -488,10 +478,8 @@ pixRotateShearCenterIP(PIX       *pixs,
                        l_float32  angle,
                        l_int32    incolor)
 {
-    PROCNAME("pixRotateShearCenterIP");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
 
     return pixRotateShearIP(pixs, pixGetWidth(pixs) / 2,
                             pixGetHeight(pixs) / 2, angle, incolor);

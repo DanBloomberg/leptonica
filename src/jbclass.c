@@ -292,15 +292,13 @@ jbRankHausInit(l_int32    components,
 {
 JBCLASSER  *classer;
 
-    PROCNAME("jbRankHausInit");
-
     if (components != JB_CONN_COMPS && components != JB_CHARACTERS &&
         components != JB_WORDS)
-        return (JBCLASSER *)ERROR_PTR("invalid components", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("invalid components", __func__, NULL);
     if (size < 1 || size > 10)
-        return (JBCLASSER *)ERROR_PTR("size not reasonable", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("size not reasonable", __func__, NULL);
     if (rank < 0.5 || rank > 1.0)
-        return (JBCLASSER *)ERROR_PTR("rank not in [0.5-1.0]", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("rank not in [0.5-1.0]", __func__, NULL);
     if (maxwidth == 0) {
         if (components == JB_CONN_COMPS)
             maxwidth = MAX_CONN_COMP_WIDTH;
@@ -313,7 +311,7 @@ JBCLASSER  *classer;
         maxheight = MAX_COMP_HEIGHT;
 
     if ((classer = jbClasserCreate(JB_RANKHAUS, components)) == NULL)
-        return (JBCLASSER *)ERROR_PTR("classer not made", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("classer not made", __func__, NULL);
     classer->maxwidth = maxwidth;
     classer->maxheight = maxheight;
     classer->sizehaus = size;
@@ -393,17 +391,15 @@ jbCorrelationInitInternal(l_int32    components,
 {
 JBCLASSER  *classer;
 
-    PROCNAME("jbCorrelationInitInternal");
-
     if (components != JB_CONN_COMPS && components != JB_CHARACTERS &&
         components != JB_WORDS)
-        return (JBCLASSER *)ERROR_PTR("invalid components", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("invalid components", __func__, NULL);
     if (thresh < 0.4 || thresh > 0.98)
         return (JBCLASSER *)ERROR_PTR("thresh not in range [0.4 - 0.98]",
-                procName, NULL);
+                __func__, NULL);
     if (weightfactor < 0.0 || weightfactor > 1.0)
         return (JBCLASSER *)ERROR_PTR("weightfactor not in range [0.0 - 1.0]",
-                procName, NULL);
+                __func__, NULL);
     if (maxwidth == 0) {
         if (components == JB_CONN_COMPS)
             maxwidth = MAX_CONN_COMP_WIDTH;
@@ -417,7 +413,7 @@ JBCLASSER  *classer;
 
 
     if ((classer = jbClasserCreate(JB_CORRELATION, components)) == NULL)
-        return (JBCLASSER *)ERROR_PTR("classer not made", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("classer not made", __func__, NULL);
     classer->maxwidth = maxwidth;
     classer->maxheight = maxheight;
     classer->thresh = thresh;
@@ -452,23 +448,21 @@ l_int32  i, nfiles;
 char    *fname;
 PIX     *pix;
 
-    PROCNAME("jbAddPages");
-
     if (!classer)
-        return ERROR_INT("classer not defined", procName, 1);
+        return ERROR_INT("classer not defined", __func__, 1);
     if (!safiles)
-        return ERROR_INT("safiles not defined", procName, 1);
+        return ERROR_INT("safiles not defined", __func__, 1);
 
     classer->safiles = sarrayCopy(safiles);
     nfiles = sarrayGetCount(safiles);
     for (i = 0; i < nfiles; i++) {
         fname = sarrayGetString(safiles, i, L_NOCOPY);
         if ((pix = pixRead(fname)) == NULL) {
-            L_WARNING("image file %d not read\n", procName, i);
+            L_WARNING("image file %d not read\n", __func__, i);
             continue;
         }
         if (pixGetDepth(pix) != 1) {
-            L_WARNING("image file %d not 1 bpp\n", procName, i);
+            L_WARNING("image file %d not 1 bpp\n", __func__, i);
             continue;
         }
         jbAddPage(classer, pix);
@@ -493,12 +487,10 @@ jbAddPage(JBCLASSER  *classer,
 BOXA  *boxas;
 PIXA  *pixas;
 
-    PROCNAME("jbAddPage");
-
     if (!classer)
-        return ERROR_INT("classer not defined", procName, 1);
+        return ERROR_INT("classer not defined", __func__, 1);
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
 
     classer->w = pixGetWidth(pixs);
     classer->h = pixGetHeight(pixs);
@@ -506,7 +498,7 @@ PIXA  *pixas;
         /* Get the appropriate components and their bounding boxes */
     if (jbGetComponents(pixs, classer->components, classer->maxwidth,
                         classer->maxheight, &boxas, &pixas)) {
-        return ERROR_INT("components not made", procName, 1);
+        return ERROR_INT("components not made", __func__, 1);
     }
 
     jbAddPageComponents(classer, pixs, boxas, pixas);
@@ -539,12 +531,10 @@ jbAddPageComponents(JBCLASSER  *classer,
 {
 l_int32  n;
 
-    PROCNAME("jbAddPageComponents");
-
     if (!classer)
-        return ERROR_INT("classer not defined", procName, 1);
+        return ERROR_INT("classer not defined", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
 
         /* Test for no components on the current page.  Always update the
          * number of pages processed, even if nothing is on it. */
@@ -558,10 +548,10 @@ l_int32  n;
          * it uses a specified threshold. */
     if (classer->method == JB_RANKHAUS) {
         if (jbClassifyRankHaus(classer, boxas, pixas))
-            return ERROR_INT("rankhaus classification failed", procName, 1);
+            return ERROR_INT("rankhaus classification failed", __func__, 1);
     } else {  /* classer->method == JB_CORRELATION */
         if (jbClassifyCorrelation(classer, boxas, pixas))
-            return ERROR_INT("correlation classification failed", procName, 1);
+            return ERROR_INT("correlation classification failed", __func__, 1);
     }
 
         /* Find the global UL corners, adjusted for each instance so
@@ -569,7 +559,7 @@ l_int32  n;
          * centroids in the same place.  Then the template can be
          * used to replace the instance. */
     if (jbGetULCorners(classer, pixs, boxas))
-        return ERROR_INT("UL corners not found", procName, 1);
+        return ERROR_INT("UL corners not found", __func__, 1);
 
         /* Update total component counts and number of pages processed. */
     n = boxaGetCount(boxas);
@@ -612,18 +602,16 @@ PIXAA      *pixaa;
 PTA        *pta, *ptac, *ptact;
 SEL        *sel;
 
-    PROCNAME("jbClassifyRankHaus");
-
     if (!classer)
-        return ERROR_INT("classer not defined", procName, 1);
+        return ERROR_INT("classer not defined", __func__, 1);
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     if (!pixas)
-        return ERROR_INT("pixas not defined", procName, 1);
+        return ERROR_INT("pixas not defined", __func__, 1);
     if ((n = pixaGetCount(pixas)) == 0)
-        return ERROR_INT("pixas is empty", procName, 1);
+        return ERROR_INT("pixas is empty", __func__, 1);
     if ((nafg = pixaCountPixels(pixas)) == NULL)  /* areas for this page */
-        return ERROR_INT("fg counting failed", procName, 1);
+        return ERROR_INT("fg counting failed", __func__, 1);
 
     npages = classer->npages;
     size = classer->sizehaus;
@@ -1057,21 +1045,19 @@ l_int32   **pixrowcts;  /* row-by-row pixel counts of each pixa */
 l_int32     x, y, rowcount, downcount, wpl;
 l_uint8     byte;
 
-    PROCNAME("jbClassifyCorrelation");
-
     if (!classer)
-        return ERROR_INT("classer not found", procName, 1);
+        return ERROR_INT("classer not found", __func__, 1);
     if (!boxa)
-        return ERROR_INT("boxa not found", procName, 1);
+        return ERROR_INT("boxa not found", __func__, 1);
     if (!pixas)
-        return ERROR_INT("pixas not found", procName, 1);
+        return ERROR_INT("pixas not found", __func__, 1);
 
     npages = classer->npages;
 
         /* Generate the bordered pixa, which contains all the the
          * input components.  This will not be saved.   */
     if ((n = pixaGetCount(pixas)) == 0) {
-        L_WARNING("pixas is empty\n", procName);
+        L_WARNING("pixas is empty\n", __func__);
         return 0;
     }
     pixa1 = pixaCreate(n);
@@ -1138,7 +1124,7 @@ l_uint8     byte;
             ptaAddPt(pta,
                  xsum / (l_float32)downcount, ysum / (l_float32)downcount);
         } else {  /* no pixels; shouldn't happen */
-            L_ERROR("downcount == 0 !\n", procName);
+            L_ERROR("downcount == 0 !\n", __func__);
             ptaAddPt(pta, pixGetWidth(pix) / 2, pixGetHeight(pix) / 2);
         }
         pixDestroy(&pix);
@@ -1326,19 +1312,17 @@ BOXA      *boxa;
 PIX       *pix1, *pix2, *pix3;
 PIXA      *pixa, *pixat;
 
-    PROCNAME("jbGetComponents");
-
     if (!pboxad)
-        return ERROR_INT("&boxad not defined", procName, 1);
+        return ERROR_INT("&boxad not defined", __func__, 1);
     *pboxad = NULL;
     if (!ppixad)
-        return ERROR_INT("&pixad not defined", procName, 1);
+        return ERROR_INT("&pixad not defined", __func__, 1);
     *ppixad = NULL;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (components != JB_CONN_COMPS && components != JB_CHARACTERS &&
         components != JB_WORDS)
-        return ERROR_INT("invalid components", procName, 1);
+        return ERROR_INT("invalid components", __func__, 1);
 
     pixZero(pixs, &empty);
     if (empty) {
@@ -1469,14 +1453,12 @@ BOXA     *boxa;
 NUMA     *nacc, *nadiff;
 PIX      *pix1, *pix2;
 
-    PROCNAME("pixWordMaskByDilation");
-
     if (ppixm) *ppixm = NULL;
     if (psize) *psize = 0;
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs undefined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs undefined or not 1 bpp", __func__, 1);
     if (!ppixm && !psize)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
 
         /* Find a good dilation to create the word mask, by successively
          * increasing dilation size and counting the connected components. */
@@ -1528,7 +1510,7 @@ PIX      *pix1, *pix2;
     if (xres == 0) xres = 150;
     if (xres > 110) ibest++;
     if (ibest < 2) {
-        L_INFO("setting ibest to minimum allowed value of 2\n", procName);
+        L_INFO("setting ibest to minimum allowed value of 2\n", __func__);
         ibest = 2;
     }
 
@@ -1536,7 +1518,7 @@ PIX      *pix1, *pix2;
         lept_mkdir("lept/jb");
         {NUMA  *naseq;
          PIX   *pix3, *pix4;
-            L_INFO("Best dilation: %d\n", procName, L_MAX(3, ibest + 1));
+            L_INFO("Best dilation: %d\n", __func__, L_MAX(3, ibest + 1));
             naseq = numaMakeSequence(1, 1, numaGetCount(nacc));
             pix3 = gplotGeneralPix2(naseq, nacc, GPLOT_LINES,
                                     "/tmp/lept/jb/numcc",
@@ -1600,18 +1582,16 @@ pixWordBoxesByDilation(PIX      *pixs,
 BOXA  *boxa1, *boxa2;
 PIX   *pix1, *pix2;
 
-    PROCNAME("pixWordBoxesByDilation");
-
     if (psize) *psize = 0;
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs undefined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs undefined or not 1 bpp", __func__, 1);
     if (!pboxa)
-        return ERROR_INT("&boxa not defined", procName, 1);
+        return ERROR_INT("&boxa not defined", __func__, 1);
     *pboxa = NULL;
 
         /* Make a first estimate of the word mask */
     if (pixWordMaskByDilation(pixs, &pix1, psize, pixadb))
-        return ERROR_INT("pixWordMaskByDilation() failed", procName, 1);
+        return ERROR_INT("pixWordMaskByDilation() failed", __func__, 1);
 
         /* Prune the word mask.  Get the bounding boxes of the words.
          * Remove the small ones, which can be due to punctuation
@@ -1661,20 +1641,18 @@ PIX       *pix, *pixt1, *pixt2, *pixsum;
 PIXA      *pixa, *pixad;
 PTA       *ptat, *pta;
 
-    PROCNAME("jbAccumulateComposites");
-
     if (!pptat)
-        return (PIXA *)ERROR_PTR("&ptat not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("&ptat not defined", __func__, NULL);
     *pptat = NULL;
     if (!pna)
-        return (PIXA *)ERROR_PTR("&na not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("&na not defined", __func__, NULL);
     *pna = NULL;
     if (!pixaa)
-        return (PIXA *)ERROR_PTR("pixaa not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixaa not defined", __func__, NULL);
 
     n = pixaaGetCount(pixaa, NULL);
     if ((ptat = ptaCreate(n)) == NULL)
-        return (PIXA *)ERROR_PTR("ptat not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("ptat not made", __func__, NULL);
     *pptat = ptat;
     pixad = pixaCreate(n);
     na = numaCreate(n);
@@ -1685,7 +1663,7 @@ PTA       *ptat, *pta;
         nt = pixaGetCount(pixa);
         numaAddNumber(na, nt);
         if (nt == 0) {
-            L_WARNING("empty pixa found!\n", procName);
+            L_WARNING("empty pixa found!\n", __func__);
             pixaDestroy(&pixa);
             continue;
         }
@@ -1750,12 +1728,10 @@ PIX       *pixsum;   /* accumulated composite */
 PIX       *pixd;
 PIXA      *pixad;
 
-    PROCNAME("jbTemplatesFromComposites");
-
     if (!pixac)
-        return (PIXA *)ERROR_PTR("pixac not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixac not defined", __func__, NULL);
     if (!na)
-        return (PIXA *)ERROR_PTR("na not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("na not defined", __func__, NULL);
 
     n = pixaGetCount(pixac);
     pixad = pixaCreate(n);
@@ -1790,13 +1766,11 @@ jbClasserCreate(l_int32  method,
 {
 JBCLASSER  *classer;
 
-    PROCNAME("jbClasserCreate");
-
     if (method != JB_RANKHAUS && method != JB_CORRELATION)
-        return (JBCLASSER *)ERROR_PTR("invalid method", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("invalid method", __func__, NULL);
     if (components != JB_CONN_COMPS && components != JB_CHARACTERS &&
         components != JB_WORDS)
-        return (JBCLASSER *)ERROR_PTR("invalid component", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("invalid component", __func__, NULL);
 
     classer = (JBCLASSER *)LEPT_CALLOC(1, sizeof(JBCLASSER));
     classer->method = method;
@@ -1878,17 +1852,15 @@ l_int32  maxw, maxh;
 JBDATA  *data;
 PIX     *pix;
 
-    PROCNAME("jbDataSave");
-
     if (!classer)
-        return (JBDATA *)ERROR_PTR("classer not defined", procName, NULL);
+        return (JBDATA *)ERROR_PTR("classer not defined", __func__, NULL);
 
         /* Write the templates into an array. */
     pixaSizeRange(classer->pixat, NULL, NULL, &maxw, &maxh);
     pix = pixaDisplayOnLattice(classer->pixat, maxw + 1, maxh + 1,
                                NULL, NULL);
     if (!pix)
-        return (JBDATA *)ERROR_PTR("data not made", procName, NULL);
+        return (JBDATA *)ERROR_PTR("data not made", __func__, NULL);
 
     data = (JBDATA *)LEPT_CALLOC(1, sizeof(JBDATA));
     data->pix = pix;
@@ -1953,12 +1925,10 @@ PTA     *ptaul;
 PIX     *pixt;
 FILE    *fp;
 
-    PROCNAME("jbDataWrite");
-
     if (!rootout)
-        return ERROR_INT("no rootout", procName, 1);
+        return ERROR_INT("no rootout", __func__, 1);
     if (!jbdata)
-        return ERROR_INT("no jbdata", procName, 1);
+        return ERROR_INT("no jbdata", __func__, 1);
 
     npages = jbdata->npages;
     w = jbdata->w;
@@ -1976,7 +1946,7 @@ FILE    *fp;
 
     snprintf(buf, L_BUF_SIZE, "%s%s", rootout, JB_DATA_EXT);
     if ((fp = fopenWriteStream(buf, "wb")) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ncomp = ptaGetCount(ptaul);
     fprintf(fp, "jb data file\n");
     fprintf(fp, "num pages = %d\n", npages);
@@ -2017,25 +1987,23 @@ PIX      *pixs;
 PTA      *ptaul;
 SARRAY   *sa;
 
-    PROCNAME("jbDataRead");
-
     if (!rootname)
-        return (JBDATA *)ERROR_PTR("rootname not defined", procName, NULL);
+        return (JBDATA *)ERROR_PTR("rootname not defined", __func__, NULL);
 
     snprintf(fname, L_BUF_SIZE, "%s%s", rootname, JB_TEMPLATE_EXT);
     if ((pixs = pixRead(fname)) == NULL)
-        return (JBDATA *)ERROR_PTR("pix not read", procName, NULL);
+        return (JBDATA *)ERROR_PTR("pix not read", __func__, NULL);
 
     snprintf(fname, L_BUF_SIZE, "%s%s", rootname, JB_DATA_EXT);
     if ((data = l_binaryRead(fname, &size)) == NULL) {
         pixDestroy(&pixs);
-        return (JBDATA *)ERROR_PTR("data not read", procName, NULL);
+        return (JBDATA *)ERROR_PTR("data not read", __func__, NULL);
     }
 
     if ((sa = sarrayCreateLinesFromString((char *)data, 0)) == NULL) {
         pixDestroy(&pixs);
         LEPT_FREE(data);
-        return (JBDATA *)ERROR_PTR("sa not made", procName, NULL);
+        return (JBDATA *)ERROR_PTR("sa not made", __func__, NULL);
     }
     nsa = sarrayGetCount(sa);   /* number of cc + 6 */
     linestr = sarrayGetString(sa, 0, L_NOCOPY);
@@ -2043,7 +2011,7 @@ SARRAY   *sa;
         pixDestroy(&pixs);
         LEPT_FREE(data);
         sarrayDestroy(&sa);
-        return (JBDATA *)ERROR_PTR("invalid jb data file", procName, NULL);
+        return (JBDATA *)ERROR_PTR("invalid jb data file", __func__, NULL);
     }
     linestr = sarrayGetString(sa, 1, L_NOCOPY);
     sscanf(linestr, "num pages = %d", &npages);
@@ -2066,7 +2034,7 @@ SARRAY   *sa;
 
     ninit = ncomp;
     if (ncomp > 1000000) {  /* fuzz protection */
-        L_WARNING("ncomp > 1M\n", procName);
+        L_WARNING("ncomp > 1M\n", __func__);
         ninit = 1000000;
     }
     naclass = numaCreate(ninit);
@@ -2121,10 +2089,8 @@ PIXA     *pixad;   /* pixa of output images */
 PIXCMAP  *cmap;
 PTA      *ptaul;
 
-    PROCNAME("jbDataRender");
-
     if (!data)
-        return (PIXA *)ERROR_PTR("data not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("data not defined", __func__, NULL);
 
     npages = data->npages;
     w = data->w;
@@ -2142,7 +2108,7 @@ PTA      *ptaul;
          * and the data associated with each component.  First,
          * generate the output pixa as a set of empty pix. */
     if ((pixad = pixaCreate(npages)) == NULL)
-        return (PIXA *)ERROR_PTR("pixad not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixad not made", __func__, NULL);
     for (i = 0; i < npages; i++) {
         if (debugflag == FALSE) {
             pix = pixCreate(w, h, 1);
@@ -2160,7 +2126,7 @@ PTA      *ptaul;
         /* Put the class templates into a pixa. */
     if ((pixat = pixaCreateFromPix(pixt, nclass, cellw, cellh)) == NULL) {
         pixaDestroy(&pixad);
-        return (PIXA *)ERROR_PTR("pixat not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixat not made", __func__, NULL);
     }
 
         /* Place each component in the right location on its page. */
@@ -2229,14 +2195,12 @@ NUMA      *naclass;
 PIX       *pixt;
 PTA       *ptac, *ptact, *ptaul;
 
-    PROCNAME("jbGetULCorners");
-
     if (!classer)
-        return ERROR_INT("classer not defined", procName, 1);
+        return ERROR_INT("classer not defined", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
 
     n = boxaGetCount(boxa);
     ptaul = classer->ptaul;
@@ -2262,7 +2226,7 @@ PTA       *ptac, *ptact, *ptaul;
             idely = (l_int32)(dely - 0.5);
         if ((box = boxaGetBox(boxa, i, L_CLONE)) == NULL) {
             LEPT_FREE(sumtab);
-            return ERROR_INT("box not found", procName, 1);
+            return ERROR_INT("box not found", __func__, 1);
         }
         boxGetGeometry(box, &x, &y, NULL, NULL);
 
@@ -2317,10 +2281,8 @@ PIX       *pix;
 PIXA      *pixat;
 PTA       *ptaul, *ptall;
 
-    PROCNAME("jbGetLLCorners");
-
     if (!classer)
-        return ERROR_INT("classer not defined", procName, 1);
+        return ERROR_INT("classer not defined", __func__, 1);
 
     ptaul = classer->ptaul;
     naclass = classer->naclass;
@@ -2410,10 +2372,8 @@ findSimilarSizedTemplatesDestroy(JBFINDCTX  **pstate)
 {
 JBFINDCTX  *state;
 
-    PROCNAME("findSimilarSizedTemplatesDestroy");
-
     if (pstate == NULL) {
-        L_WARNING("ptr address is null\n", procName);
+        L_WARNING("ptr address is null\n", __func__);
         return;
     }
     if ((state = *pstate) == NULL)
@@ -2526,16 +2486,14 @@ PIX     *pixi;  /* clipped from source pixs */
 PIX     *pixr;  /* temporary storage */
 BOX     *box;
 
-    PROCNAME("finalPositioningForAlignment");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (!pixt)
-        return ERROR_INT("pixt not defined", procName, 1);
+        return ERROR_INT("pixt not defined", __func__, 1);
     if (!pdx || !pdy)
-        return ERROR_INT("&dx and &dy not both defined", procName, 1);
+        return ERROR_INT("&dx and &dy not both defined", __func__, 1);
     if (!sumtab)
-        return ERROR_INT("sumtab not defined", procName, 1);
+        return ERROR_INT("sumtab not defined", __func__, 1);
     *pdx = *pdy = 0;
 
         /* Use JB_ADDED_PIXELS pixels padding on each side */
@@ -2545,7 +2503,7 @@ BOX     *box;
     pixi = pixClipRectangle(pixs, box, NULL);
     boxDestroy(&box);
     if (!pixi)
-        return ERROR_INT("pixi not made", procName, 1);
+        return ERROR_INT("pixi not made", __func__, 1);
 
     pixr = pixCreate(pixGetWidth(pixi), pixGetHeight(pixi), 1);
     mincount = 0x7fffffff;

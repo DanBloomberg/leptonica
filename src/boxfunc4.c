@@ -101,27 +101,25 @@ l_int32  n, nbox, i;
 BOX     *box;
 BOXA    *boxad;
 
-    PROCNAME("boxaSelectRange");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (copyflag != L_COPY && copyflag != L_CLONE)
-        return (BOXA *)ERROR_PTR("invalid copyflag", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid copyflag", __func__, NULL);
     if ((n = boxaGetCount(boxas)) == 0) {
-        L_WARNING("boxas is empty\n", procName);
+        L_WARNING("boxas is empty\n", __func__);
         return boxaCopy(boxas, copyflag);
     }
     first = L_MAX(0, first);
     if (last < 0) last = n - 1;
     if (first >= n)
-        return (BOXA *)ERROR_PTR("invalid first", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid first", __func__, NULL);
     if (last >= n) {
         L_WARNING("last = %d is beyond max index = %d; adjusting\n",
-                  procName, last, n - 1);
+                  __func__, last, n - 1);
         last = n - 1;
     }
     if (first > last)
-        return (BOXA *)ERROR_PTR("first > last", procName, NULL);
+        return (BOXA *)ERROR_PTR("first > last", __func__, NULL);
 
     nbox = last - first + 1;
     boxad = boxaCreate(nbox);
@@ -159,25 +157,23 @@ l_int32  n, nboxa, i;
 BOXA    *boxa;
 BOXAA   *baad;
 
-    PROCNAME("boxaaSelectRange");
-
     if (!baas)
-        return (BOXAA *)ERROR_PTR("baas not defined", procName, NULL);
+        return (BOXAA *)ERROR_PTR("baas not defined", __func__, NULL);
     if (copyflag != L_COPY && copyflag != L_CLONE)
-        return (BOXAA *)ERROR_PTR("invalid copyflag", procName, NULL);
+        return (BOXAA *)ERROR_PTR("invalid copyflag", __func__, NULL);
     if ((n = boxaaGetCount(baas)) == 0)
-        return (BOXAA *)ERROR_PTR("empty baas", procName, NULL);
+        return (BOXAA *)ERROR_PTR("empty baas", __func__, NULL);
     first = L_MAX(0, first);
     if (last < 0) last = n - 1;
     if (first >= n)
-        return (BOXAA *)ERROR_PTR("invalid first", procName, NULL);
+        return (BOXAA *)ERROR_PTR("invalid first", __func__, NULL);
     if (last >= n) {
         L_WARNING("last = %d is beyond max index = %d; adjusting\n",
-                  procName, last, n - 1);
+                  __func__, last, n - 1);
         last = n - 1;
     }
     if (first > last)
-        return (BOXAA *)ERROR_PTR("first > last", procName, NULL);
+        return (BOXAA *)ERROR_PTR("first > last", __func__, NULL);
 
     nboxa = last - first + 1;
     baad = boxaaCreate(nboxa);
@@ -228,26 +224,24 @@ boxaSelectBySize(BOXA     *boxas,
 BOXA  *boxad;
 NUMA  *na;
 
-    PROCNAME("boxaSelectBySize");
-
     if (pchanged) *pchanged = FALSE;
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (boxaGetCount(boxas) == 0) {
-        L_WARNING("boxas is empty\n", procName);
+        L_WARNING("boxas is empty\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if (type != L_SELECT_WIDTH && type != L_SELECT_HEIGHT &&
         type != L_SELECT_IF_EITHER && type != L_SELECT_IF_BOTH)
-        return (BOXA *)ERROR_PTR("invalid type", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid type", __func__, NULL);
     if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
         relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
-        return (BOXA *)ERROR_PTR("invalid relation", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid relation", __func__, NULL);
 
         /* Compute the indicator array for saving components */
     if ((na =
          boxaMakeSizeIndicator(boxas, width, height, type, relation)) == NULL)
-        return (BOXA *)ERROR_PTR("na not made", procName, NULL);
+        return (BOXA *)ERROR_PTR("na not made", __func__, NULL);
 
         /* Filter to get output */
     boxad = boxaSelectWithIndicator(boxas, na, pchanged);
@@ -290,18 +284,16 @@ boxaMakeSizeIndicator(BOXA     *boxa,
 l_int32  i, n, w, h, ival;
 NUMA    *na;
 
-    PROCNAME("boxaMakeSizeIndicator");
-
     if (!boxa)
-        return (NUMA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("boxa not defined", __func__, NULL);
     if ((n = boxaGetCount(boxa)) == 0)
-        return (NUMA *)ERROR_PTR("boxa is empty", procName, NULL);
+        return (NUMA *)ERROR_PTR("boxa is empty", __func__, NULL);
     if (type != L_SELECT_WIDTH && type != L_SELECT_HEIGHT &&
         type != L_SELECT_IF_EITHER && type != L_SELECT_IF_BOTH)
-        return (NUMA *)ERROR_PTR("invalid type", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid type", __func__, NULL);
     if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
         relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
-        return (NUMA *)ERROR_PTR("invalid relation", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid relation", __func__, NULL);
 
     na = numaCreate(n);
     for (i = 0; i < n; i++) {
@@ -338,7 +330,7 @@ NUMA    *na;
                     ival = 1;
             break;
         default:
-            L_WARNING("can't get here!\n", procName);
+            L_WARNING("can't get here!\n", __func__);
             break;
         }
         numaAddNumber(na, ival);
@@ -376,18 +368,16 @@ boxaSelectByArea(BOXA     *boxas,
 BOXA  *boxad;
 NUMA  *na;
 
-    PROCNAME("boxaSelectByArea");
-
     if (pchanged) *pchanged = FALSE;
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (boxaGetCount(boxas) == 0) {
-        L_WARNING("boxas is empty\n", procName);
+        L_WARNING("boxas is empty\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
         relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
-        return (BOXA *)ERROR_PTR("invalid relation", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid relation", __func__, NULL);
 
         /* Compute the indicator array for saving components */
     na = boxaMakeAreaIndicator(boxas, area, relation);
@@ -425,15 +415,13 @@ boxaMakeAreaIndicator(BOXA     *boxa,
 l_int32  i, n, w, h, ival;
 NUMA    *na;
 
-    PROCNAME("boxaMakeAreaIndicator");
-
     if (!boxa)
-        return (NUMA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("boxa not defined", __func__, NULL);
     if ((n = boxaGetCount(boxa)) == 0)
-        return (NUMA *)ERROR_PTR("boxa is empty", procName, NULL);
+        return (NUMA *)ERROR_PTR("boxa is empty", __func__, NULL);
     if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
         relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
-        return (NUMA *)ERROR_PTR("invalid relation", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid relation", __func__, NULL);
 
     na = numaCreate(n);
     for (i = 0; i < n; i++) {
@@ -480,18 +468,16 @@ boxaSelectByWHRatio(BOXA      *boxas,
 BOXA  *boxad;
 NUMA  *na;
 
-    PROCNAME("boxaSelectByWHRatio");
-
     if (pchanged) *pchanged = FALSE;
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (boxaGetCount(boxas) == 0) {
-        L_WARNING("boxas is empty\n", procName);
+        L_WARNING("boxas is empty\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
         relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
-        return (BOXA *)ERROR_PTR("invalid relation", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid relation", __func__, NULL);
 
         /* Compute the indicator array for saving components */
     na = boxaMakeWHRatioIndicator(boxas, ratio, relation);
@@ -530,15 +516,13 @@ l_int32    i, n, w, h, ival;
 l_float32  whratio;
 NUMA      *na;
 
-    PROCNAME("boxaMakeWHRatioIndicator");
-
     if (!boxa)
-        return (NUMA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("boxa not defined", __func__, NULL);
     if ((n = boxaGetCount(boxa)) == 0)
-        return (NUMA *)ERROR_PTR("boxa is empty", procName, NULL);
+        return (NUMA *)ERROR_PTR("boxa is empty", __func__, NULL);
     if (relation != L_SELECT_IF_LT && relation != L_SELECT_IF_GT &&
         relation != L_SELECT_IF_LTE && relation != L_SELECT_IF_GTE)
-        return (NUMA *)ERROR_PTR("invalid relation", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid relation", __func__, NULL);
 
     na = numaCreate(n);
     for (i = 0; i < n; i++) {
@@ -583,13 +567,11 @@ l_int32  i, n, ival, nsave;
 BOX     *box;
 BOXA    *boxad;
 
-    PROCNAME("boxaSelectWithIndicator");
-
     if (pchanged) *pchanged = FALSE;
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (!na)
-        return (BOXA *)ERROR_PTR("na not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("na not defined", __func__, NULL);
 
     nsave = 0;
     n = numaGetCount(na);
@@ -639,10 +621,8 @@ l_int32  n;
 NUMA    *na;
 BOXA    *boxad;
 
-    PROCNAME("boxaPermutePseudorandom");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxa not defined", __func__, NULL);
 
     n = boxaGetCount(boxas);
     na = numaPseudorandomSequence(n, 0);
@@ -679,12 +659,10 @@ boxaPermuteRandom(BOXA  *boxad,
 {
 l_int32  i, n, index;
 
-    PROCNAME("boxaPermuteRandom");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxa not defined", __func__, NULL);
     if (boxad && (boxad != boxas))
-        return (BOXA *)ERROR_PTR("boxad defined but in-place", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxad defined but in-place", __func__, NULL);
 
     if (!boxad)
         boxad = boxaCopy(boxas, L_COPY);
@@ -718,17 +696,15 @@ boxaSwapBoxes(BOXA    *boxa,
 l_int32  n;
 BOX     *box;
 
-    PROCNAME("boxaSwapBoxes");
-
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     n = boxaGetCount(boxa);
     if (i < 0 || i >= n)
-        return ERROR_INT("i invalid", procName, 1);
+        return ERROR_INT("i invalid", __func__, 1);
     if (j < 0 || j >= n)
-        return ERROR_INT("j invalid", procName, 1);
+        return ERROR_INT("j invalid", __func__, 1);
     if (i == j)
-        return ERROR_INT("i == j", procName, 1);
+        return ERROR_INT("i == j", __func__, 1);
 
     box = boxa->box[i];
     boxa->box[i] = boxa->box[j];
@@ -766,16 +742,14 @@ l_int32  i, n;
 BOX     *box;
 PTA     *pta, *pta1;
 
-    PROCNAME("boxaConvertToPta");
-
     if (!boxa)
-        return (PTA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("boxa not defined", __func__, NULL);
     if (ncorners != 2 && ncorners != 4)
-        return (PTA *)ERROR_PTR("ncorners not 2 or 4", procName, NULL);
+        return (PTA *)ERROR_PTR("ncorners not 2 or 4", __func__, NULL);
 
     n = boxaGetCount(boxa);
     if ((pta = ptaCreate(n)) == NULL)
-        return (PTA *)ERROR_PTR("pta not made", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         box = boxaGetBox(boxa, i, L_COPY);
         pta1 = boxConvertToPta(box, ncorners);
@@ -811,18 +785,16 @@ l_int32  i, n, nbox, x1, y1, x2, y2, x3, y3, x4, y4, x, y, xmax, ymax;
 BOX     *box;
 BOXA    *boxa;
 
-    PROCNAME("ptaConvertToBoxa");
-
     if (!pta)
-        return (BOXA *)ERROR_PTR("pta not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("pta not defined", __func__, NULL);
     if (ncorners != 2 && ncorners != 4)
-        return (BOXA *)ERROR_PTR("ncorners not 2 or 4", procName, NULL);
+        return (BOXA *)ERROR_PTR("ncorners not 2 or 4", __func__, NULL);
     n = ptaGetCount(pta);
     if (n % ncorners != 0)
-        return (BOXA *)ERROR_PTR("size % ncorners != 0", procName, NULL);
+        return (BOXA *)ERROR_PTR("size % ncorners != 0", __func__, NULL);
     nbox = n / ncorners;
     if ((boxa = boxaCreate(nbox)) == NULL)
-        return (BOXA *)ERROR_PTR("boxa not made", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxa not made", __func__, NULL);
     for (i = 0; i < n; i += ncorners) {
         ptaGetIPt(pta, i, &x1, &y1);
         ptaGetIPt(pta, i + 1, &x2, &y2);
@@ -865,15 +837,13 @@ boxConvertToPta(BOX     *box,
 l_int32  x, y, w, h;
 PTA     *pta;
 
-    PROCNAME("boxConvertToPta");
-
     if (!box)
-        return (PTA *)ERROR_PTR("box not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("box not defined", __func__, NULL);
     if (ncorners != 2 && ncorners != 4)
-        return (PTA *)ERROR_PTR("ncorners not 2 or 4", procName, NULL);
+        return (PTA *)ERROR_PTR("ncorners not 2 or 4", __func__, NULL);
 
     if ((pta = ptaCreate(ncorners)) == NULL)
-        return (PTA *)ERROR_PTR("pta not made", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not made", __func__, NULL);
     boxGetGeometry(box, &x, &y, &w, &h);
     ptaAddPt(pta, x, y);
     if (ncorners == 2) {
@@ -905,10 +875,8 @@ ptaConvertToBox(PTA  *pta)
 {
 l_int32  n, x1, y1, x2, y2, x3, y3, x4, y4, x, y, xmax, ymax;
 
-    PROCNAME("ptaConvertToBox");
-
     if (!pta)
-        return (BOX *)ERROR_PTR("pta not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("pta not defined", __func__, NULL);
     n = ptaGetCount(pta);
     ptaGetIPt(pta, 0, &x1, &y1);
     ptaGetIPt(pta, 1, &x2, &y2);
@@ -958,15 +926,13 @@ boxaGetExtent(BOXA     *boxa,
 {
 l_int32  i, n, x, y, w, h, xmax, ymax, xmin, ymin, found;
 
-    PROCNAME("boxaGetExtent");
-
     if (!pw && !ph && !pbox)
-        return ERROR_INT("no ptrs defined", procName, 1);
+        return ERROR_INT("no ptrs defined", __func__, 1);
     if (pw) *pw = 0;
     if (ph) *ph = 0;
     if (pbox) *pbox = NULL;
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
 
     n = boxaGetCount(boxa);
     xmax = ymax = 0;
@@ -1027,17 +993,15 @@ l_int32  i, n, x, y, w, h, sum;
 BOX     *box, *boxc;
 PIX     *pixt;
 
-    PROCNAME("boxaGetCoverage");
-
     if (!pfract)
-        return ERROR_INT("&fract not defined", procName, 1);
+        return ERROR_INT("&fract not defined", __func__, 1);
     *pfract = 0.0;
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
 
     n = boxaGetCount(boxa);
     if (n == 0)
-        return ERROR_INT("no boxes in boxa", procName, 1);
+        return ERROR_INT("no boxes in boxa", __func__, 1);
 
     if (exactflag == 0) {  /* quick and dirty */
         sum = 0;
@@ -1087,16 +1051,14 @@ boxaaSizeRange(BOXAA    *baa,
 l_int32  minw, minh, maxw, maxh, minbw, minbh, maxbw, maxbh, i, n;
 BOXA    *boxa;
 
-    PROCNAME("boxaaSizeRange");
-
     if (!pminw && !pmaxw && !pminh && !pmaxh)
-        return ERROR_INT("no data can be returned", procName, 1);
+        return ERROR_INT("no data can be returned", __func__, 1);
     if (pminw) *pminw = 0;
     if (pminh) *pminh = 0;
     if (pmaxw) *pmaxw = 0;
     if (pmaxh) *pmaxh = 0;
     if (!baa)
-        return ERROR_INT("baa not defined", procName, 1);
+        return ERROR_INT("baa not defined", __func__, 1);
 
     minw = minh = 100000000;
     maxw = maxh = 0;
@@ -1142,16 +1104,14 @@ boxaSizeRange(BOXA     *boxa,
 {
 l_int32  minw, minh, maxw, maxh, i, n, w, h;
 
-    PROCNAME("boxaSizeRange");
-
     if (!pminw && !pmaxw && !pminh && !pmaxh)
-        return ERROR_INT("no data can be returned", procName, 1);
+        return ERROR_INT("no data can be returned", __func__, 1);
     if (pminw) *pminw = 0;
     if (pminh) *pminh = 0;
     if (pmaxw) *pmaxw = 0;
     if (pmaxh) *pmaxh = 0;
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
 
     minw = minh = 100000000;
     maxw = maxh = 0;
@@ -1195,16 +1155,14 @@ boxaLocationRange(BOXA     *boxa,
 {
 l_int32  minx, miny, maxx, maxy, i, n, x, y;
 
-    PROCNAME("boxaLocationRange");
-
     if (!pminx && !pminy && !pmaxx && !pmaxy)
-        return ERROR_INT("no data can be returned", procName, 1);
+        return ERROR_INT("no data can be returned", __func__, 1);
     if (pminx) *pminx = 0;
     if (pminy) *pminy = 0;
     if (pmaxx) *pmaxx = 0;
     if (pmaxy) *pmaxy = 0;
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
 
     minx = miny = 100000000;
     maxx = maxy = 0;
@@ -1246,14 +1204,12 @@ boxaGetSizes(BOXA   *boxa,
 l_int32  i, n, w, h;
 BOX     *box;
 
-    PROCNAME("boxaGetSizes");
-
     if (pnaw) *pnaw = NULL;
     if (pnah) *pnah = NULL;
     if (!pnaw && !pnah)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
 
     n = boxaGetValidCount(boxa);
     if (pnaw) *pnaw = numaCreate(n);
@@ -1290,13 +1246,11 @@ boxaGetArea(BOXA     *boxa,
 {
 l_int32  i, n, w, h;
 
-    PROCNAME("boxaGetArea");
-
     if (!parea)
-        return ERROR_INT("&area not defined", procName, 1);
+        return ERROR_INT("&area not defined", __func__, 1);
     *parea = 0;
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
 
     n = boxaGetCount(boxa);
     for (i = 0; i < n; i++) {
@@ -1354,10 +1308,8 @@ BOXA    *boxa;
 PIX     *pix1, *pix2, *pixd;
 PIXA    *pixat;
 
-    PROCNAME("boxaDisplayTiled");
-
     if (!boxas)
-        return (PIX *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("boxas not defined", __func__, NULL);
 
     boxa = boxaSaveValid(boxas, L_COPY);
     n = boxaGetCount(boxa);
@@ -1366,23 +1318,23 @@ PIXA    *pixat;
         if (n != npix) {
             boxaDestroy(&boxa);
             return (PIX *)ERROR_PTR("boxa and pixa counts differ",
-                                    procName, NULL);
+                                    __func__, NULL);
         }
     }
     first = L_MAX(0, first);
     if (last < 0) last = n - 1;
     if (first >= n) {
         boxaDestroy(&boxa);
-        return (PIX *)ERROR_PTR("invalid first", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid first", __func__, NULL);
     }
     if (last >= n) {
         L_WARNING("last = %d is beyond max index = %d; adjusting\n",
-                  procName, last, n - 1);
+                  __func__, last, n - 1);
         last = n - 1;
     }
     if (first > last) {
         boxaDestroy(&boxa);
-        return (PIX *)ERROR_PTR("first > last", procName, NULL);
+        return (PIX *)ERROR_PTR("first > last", __func__, NULL);
     }
 
         /* Because the bitmap font will be reduced when tiled, choose the

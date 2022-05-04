@@ -193,15 +193,13 @@ l_float32  scale;
 FILE      *fp;
 PIX       *pix;
 
-    PROCNAME("pixWritePSEmbed");
-
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
 
     if ((pix = pixRead(filein)) == NULL)
-        return ERROR_INT("image not read from file", procName, 1);
+        return ERROR_INT("image not read from file", __func__, 1);
     w = pixGetWidth(pix);
     h = pixGetHeight(pix);
     if (w * 11.0 > h * 8.5)
@@ -210,7 +208,7 @@ PIX       *pix;
         scale = 11.0 * 300. / (l_float32)h;
 
     if ((fp = fopenWriteStream(fileout, "wb")) == NULL)
-        return ERROR_INT("file not opened for write", procName, 1);
+        return ERROR_INT("file not opened for write", __func__, 1);
     ret = pixWriteStreamPS(fp, pix, NULL, 0, scale);
     fclose(fp);
 
@@ -248,19 +246,17 @@ char    *outstr;
 l_int32  length;
 PIX     *pixc;
 
-    PROCNAME("pixWriteStreamPS");
-
     if (!fp)
-        return (l_int32)ERROR_INT("stream not open", procName, 1);
+        return (l_int32)ERROR_INT("stream not open", __func__, 1);
     if (!pix)
-        return (l_int32)ERROR_INT("pix not defined", procName, 1);
+        return (l_int32)ERROR_INT("pix not defined", __func__, 1);
 
     if ((pixc = pixConvertForPSWrap(pix)) == NULL)
-        return (l_int32)ERROR_INT("pixc not made", procName, 1);
+        return (l_int32)ERROR_INT("pixc not made", __func__, 1);
 
     if ((outstr = pixWriteStringPS(pixc, box, res, scale)) == NULL) {
         pixDestroy(&pixc);
-        return (l_int32)ERROR_INT("outstr not made", procName, 1);
+        return (l_int32)ERROR_INT("outstr not made", __func__, 1);
     }
     length = strlen(outstr);
     fwrite(outstr, 1, length, fp);
@@ -352,13 +348,11 @@ l_int32    wpl, psbpl, hexbytes, boxflag, bps;
 l_uint32  *line, *data;
 PIX       *pix;
 
-    PROCNAME("pixWriteStringPS");
-
     if (!pixs)
-        return (char *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (char *)ERROR_PTR("pixs not defined", __func__, NULL);
 
     if ((pix = pixConvertForPSWrap(pixs)) == NULL)
-        return (char *)ERROR_PTR("pix not made", procName, NULL);
+        return (char *)ERROR_PTR("pix not made", __func__, NULL);
     pixGetDimensions(pix, &w, &h, &d);
 
         /* Get the factors by which PS scales and translates, in pts */
@@ -386,7 +380,7 @@ PIX       *pix;
     data = pixGetData(pix);
     hexbytes = 2 * psbpl * h;  /* size of ps hex array */
     if ((hexdata = (char *)LEPT_CALLOC(hexbytes + 1, sizeof(char))) == NULL)
-        return (char *)ERROR_PTR("hexdata not made", procName, NULL);
+        return (char *)ERROR_PTR("hexdata not made", __func__, NULL);
     if (d == 1 || d == 8) {
         for (i = 0, k = 0; i < h; i++) {
             line = data + i * wpl;
@@ -422,7 +416,7 @@ PIX       *pix;
                                     xpt, ypt, wpt, hpt, boxflag);
     pixDestroy(&pix);
     if (!outstr)
-        return (char *)ERROR_PTR("outstr not made", procName, NULL);
+        return (char *)ERROR_PTR("outstr not made", __func__, NULL);
     return outstr;
 }
 
@@ -464,10 +458,8 @@ char    *outstr;
 char     bigbuf[Bufsize];
 SARRAY  *sa;
 
-    PROCNAME("generateUncompressedPS");
-
     if (!hexdata)
-        return (char *)ERROR_PTR("hexdata not defined", procName, NULL);
+        return (char *)ERROR_PTR("hexdata not defined", __func__, NULL);
 
     sa = sarrayCreate(0);
     sarrayAddString(sa, "%!Adobe-PS", L_COPY);
@@ -528,7 +520,7 @@ SARRAY  *sa;
 
     outstr = sarrayToString(sa, 1);
     sarrayDestroy(&sa);
-    if (!outstr) L_ERROR("outstr not made\n", procName);
+    if (!outstr) L_ERROR("outstr not made\n", __func__);
     return outstr;
 }
 
@@ -568,8 +560,6 @@ getScaledParametersPS(BOX        *box,
 l_int32    bx, by, bw, bh;
 l_float32  winch, hinch, xinch, yinch, fres;
 
-    PROCNAME("getScaledParametersPS");
-
     if (res == 0)
         res = DefaultInputRes;
     fres = (l_float32)res;
@@ -585,7 +575,7 @@ l_float32  winch, hinch, xinch, yinch, fres;
         /* Limit valid resolution interval */
     if (res < MinRes || res > MaxRes) {
         L_WARNING("res %d out of bounds; using default res; no scaling\n",
-                  procName, res);
+                  __func__, res);
         res = DefaultInputRes;
         fres = (l_float32)res;
     }
@@ -610,13 +600,13 @@ l_float32  winch, hinch, xinch, yinch, fres;
     }
 
     if (xinch < 0)
-        L_WARNING("left edge < 0.0 inch\n", procName);
+        L_WARNING("left edge < 0.0 inch\n", __func__);
     if (xinch + winch > 8.5)
-        L_WARNING("right edge > 8.5 inch\n", procName);
+        L_WARNING("right edge > 8.5 inch\n", __func__);
     if (yinch < 0.0)
-        L_WARNING("bottom edge < 0.0 inch\n", procName);
+        L_WARNING("bottom edge < 0.0 inch\n", __func__);
     if (yinch + hinch > 11.0)
-        L_WARNING("top edge > 11.0 inch\n", procName);
+        L_WARNING("top edge > 11.0 inch\n", __func__);
 
     *pwpt = 72. * winch;
     *phpt = 72. * hinch;
@@ -683,16 +673,14 @@ l_int32       w, h, nbytes, ret;
 l_float32     xpt, ypt, wpt, hpt;
 L_COMP_DATA  *cid;
 
-    PROCNAME("convertJpegToPSEmbed");
-
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
 
         /* Generate the ascii encoded jpeg data */
     if ((cid = l_generateJpegData(filein, 1)) == NULL)
-        return ERROR_INT("jpeg data not made", procName, 1);
+        return ERROR_INT("jpeg data not made", __func__, 1);
     w = cid->w;
     h = cid->h;
 
@@ -713,12 +701,12 @@ L_COMP_DATA  *cid;
     outstr = generateJpegPS(NULL, cid, xpt, ypt, wpt, hpt, 1, 1);
     l_CIDataDestroy(&cid);
     if (!outstr)
-        return ERROR_INT("outstr not made", procName, 1);
+        return ERROR_INT("outstr not made", __func__, 1);
     nbytes = strlen(outstr);
 
     ret = l_binaryWrite(fileout, "w", outstr, nbytes);
     LEPT_FREE(outstr);
-    if (ret) L_ERROR("ps string not written to file\n", procName);
+    if (ret) L_ERROR("ps string not written to file\n", __func__);
     return ret;
 }
 
@@ -804,22 +792,20 @@ convertJpegToPS(const char  *filein,
 char    *outstr;
 l_int32  nbytes;
 
-    PROCNAME("convertJpegToPS");
-
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
     if (strcmp(operation, "w") && strcmp(operation, "a"))
-        return ERROR_INT("operation must be \"w\" or \"a\"", procName, 1);
+        return ERROR_INT("operation must be \"w\" or \"a\"", __func__, 1);
 
     if (convertJpegToPSString(filein, &outstr, &nbytes, x, y, res, scale,
                           pageno, endpage))
-        return ERROR_INT("ps string not made", procName, 1);
+        return ERROR_INT("ps string not made", __func__, 1);
 
     if (l_binaryWrite(fileout, operation, outstr, nbytes)) {
         LEPT_FREE(outstr);
-        return ERROR_INT("ps string not written to file", procName, 1);
+        return ERROR_INT("ps string not written to file", __func__, 1);
     }
 
     LEPT_FREE(outstr);
@@ -867,20 +853,18 @@ char         *outstr;
 l_float32     xpt, ypt, wpt, hpt;
 L_COMP_DATA  *cid;
 
-    PROCNAME("convertJpegToPSString");
-
     if (!poutstr)
-        return ERROR_INT("&outstr not defined", procName, 1);
+        return ERROR_INT("&outstr not defined", __func__, 1);
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *poutstr = NULL;
     *pnbytes = 0;
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
 
         /* Generate the ascii encoded jpeg data */
     if ((cid = l_generateJpegData(filein, 1)) == NULL)
-        return ERROR_INT("jpeg data not made", procName, 1);
+        return ERROR_INT("jpeg data not made", __func__, 1);
 
         /* Get scaled location in pts.  Guess the input scan resolution
          * based on the input parameter %res, the resolution data in
@@ -919,7 +903,7 @@ L_COMP_DATA  *cid;
     outstr = generateJpegPS(NULL, cid, xpt, ypt, wpt, hpt, pageno, endpage);
     l_CIDataDestroy(&cid);
     if (!outstr)
-        return ERROR_INT("outstr not made", procName, 1);
+        return ERROR_INT("outstr not made", __func__, 1);
     *poutstr = outstr;
     *pnbytes = strlen(outstr);
     return 0;
@@ -961,10 +945,8 @@ char    *outstr;
 char     bigbuf[Bufsize];
 SARRAY  *sa;
 
-    PROCNAME("generateJpegPS");
-
     if (!cid)
-        return (char *)ERROR_PTR("jpeg data not defined", procName, NULL);
+        return (char *)ERROR_PTR("jpeg data not defined", __func__, NULL);
     w = cid->w;
     h = cid->h;
     bps = cid->bps;
@@ -1081,15 +1063,13 @@ l_int32       w, h, nbytes, ret;
 l_float32     xpt, ypt, wpt, hpt;
 L_COMP_DATA  *cid;
 
-    PROCNAME("convertG4ToPSEmbed");
-
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
 
     if ((cid = l_generateG4Data(filein, 1)) == NULL)
-        return ERROR_INT("g4 data not made", procName, 1);
+        return ERROR_INT("g4 data not made", __func__, 1);
     w = cid->w;
     h = cid->h;
 
@@ -1110,12 +1090,12 @@ L_COMP_DATA  *cid;
     outstr = generateG4PS(NULL, cid, xpt, ypt, wpt, hpt, 1, 1, 1);
     l_CIDataDestroy(&cid);
     if (!outstr)
-        return ERROR_INT("outstr not made", procName, 1);
+        return ERROR_INT("outstr not made", __func__, 1);
     nbytes = strlen(outstr);
 
     ret = l_binaryWrite(fileout, "w", outstr, nbytes);
     LEPT_FREE(outstr);
-    if (ret) L_ERROR("ps string not written to file\n", procName);
+    if (ret) L_ERROR("ps string not written to file\n", __func__);
     return ret;
 }
 
@@ -1193,23 +1173,21 @@ convertG4ToPS(const char  *filein,
 char    *outstr;
 l_int32  nbytes, ret;
 
-    PROCNAME("convertG4ToPS");
-
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
     if (strcmp(operation, "w") && strcmp(operation, "a"))
-        return ERROR_INT("operation must be \"w\" or \"a\"", procName, 1);
+        return ERROR_INT("operation must be \"w\" or \"a\"", __func__, 1);
 
     if (convertG4ToPSString(filein, &outstr, &nbytes, x, y, res, scale,
                             pageno, maskflag, endpage))
-        return ERROR_INT("ps string not made", procName, 1);
+        return ERROR_INT("ps string not made", __func__, 1);
 
     ret = l_binaryWrite(fileout, operation, outstr, nbytes);
     LEPT_FREE(outstr);
     if (ret)
-        return ERROR_INT("ps string not written to file", procName, 1);
+        return ERROR_INT("ps string not written to file", __func__, 1);
     return 0;
 }
 
@@ -1257,19 +1235,17 @@ char         *outstr;
 l_float32     xpt, ypt, wpt, hpt;
 L_COMP_DATA  *cid;
 
-    PROCNAME("convertG4ToPSString");
-
     if (!poutstr)
-        return ERROR_INT("&outstr not defined", procName, 1);
+        return ERROR_INT("&outstr not defined", __func__, 1);
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *poutstr = NULL;
     *pnbytes = 0;
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
 
     if ((cid = l_generateG4Data(filein, 1)) == NULL)
-        return ERROR_INT("g4 data not made", procName, 1);
+        return ERROR_INT("g4 data not made", __func__, 1);
 
         /* Get scaled location in pts.  Guess the input scan resolution
          * based on the input parameter %res, the resolution data in
@@ -1308,7 +1284,7 @@ L_COMP_DATA  *cid;
                           maskflag, pageno, endpage);
     l_CIDataDestroy(&cid);
     if (!outstr)
-        return ERROR_INT("outstr not made", procName, 1);
+        return ERROR_INT("outstr not made", __func__, 1);
     *poutstr = outstr;
     *pnbytes = strlen(outstr);
     return 0;
@@ -1353,10 +1329,8 @@ char    *outstr;
 char     bigbuf[Bufsize];
 SARRAY  *sa;
 
-    PROCNAME("generateG4PS");
-
     if (!cid)
-        return (char *)ERROR_PTR("g4 data not defined", procName, NULL);
+        return (char *)ERROR_PTR("g4 data not defined", __func__, NULL);
     w = cid->w;
     h = cid->h;
 
@@ -1480,19 +1454,17 @@ l_float32  scale;
 PIX       *pix, *pixs;
 FILE      *fp;
 
-    PROCNAME("convertTiffMultipageToPS");
-
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
 
     if ((fp = fopenReadStream(filein)) == NULL)
-        return ERROR_INT("file not found", procName, 1);
+        return ERROR_INT("file not found", __func__, 1);
     istiff = fileFormatIsTiff(fp);
     if (!istiff) {
         fclose(fp);
-        return ERROR_INT("file not tiff format", procName, 1);
+        return ERROR_INT("file not tiff format", __func__, 1);
     }
     tiffGetCount(fp, &npages);
     fclose(fp);
@@ -1502,7 +1474,7 @@ FILE      *fp;
 
     for (i = 0; i < npages; i++) {
         if ((pix = pixReadTiff(filein, i)) == NULL)
-            return ERROR_INT("pix not made", procName, 1);
+            return ERROR_INT("pix not made", __func__, 1);
 
         pixGetDimensions(pix, &w, &h, NULL);
         if (w == 1728 && h < w)   /* it's a std res fax */
@@ -1558,15 +1530,13 @@ l_int32       w, h, nbytes, ret;
 l_float32     xpt, ypt, wpt, hpt;
 L_COMP_DATA  *cid;
 
-    PROCNAME("convertFlateToPSEmbed");
-
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
 
     if ((cid = l_generateFlateData(filein, 1)) == NULL)
-        return ERROR_INT("flate data not made", procName, 1);
+        return ERROR_INT("flate data not made", __func__, 1);
     w = cid->w;
     h = cid->h;
 
@@ -1587,12 +1557,12 @@ L_COMP_DATA  *cid;
     outstr = generateFlatePS(NULL, cid, xpt, ypt, wpt, hpt, 1, 1);
     l_CIDataDestroy(&cid);
     if (!outstr)
-        return ERROR_INT("outstr not made", procName, 1);
+        return ERROR_INT("outstr not made", __func__, 1);
     nbytes = strlen(outstr);
 
     ret = l_binaryWrite(fileout, "w", outstr, nbytes);
     LEPT_FREE(outstr);
-    if (ret) L_ERROR("ps string not written to file\n", procName);
+    if (ret) L_ERROR("ps string not written to file\n", __func__);
     return ret;
 }
 
@@ -1677,22 +1647,20 @@ convertFlateToPS(const char  *filein,
 char    *outstr;
 l_int32  nbytes, ret;
 
-    PROCNAME("convertFlateToPS");
-
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
     if (strcmp(operation, "w") && strcmp(operation, "a"))
-        return ERROR_INT("operation must be \"w\" or \"a\"", procName, 1);
+        return ERROR_INT("operation must be \"w\" or \"a\"", __func__, 1);
 
     if (convertFlateToPSString(filein, &outstr, &nbytes, x, y, res, scale,
                                pageno, endpage))
-        return ERROR_INT("ps string not made", procName, 1);
+        return ERROR_INT("ps string not made", __func__, 1);
 
     ret = l_binaryWrite(fileout, operation, outstr, nbytes);
     LEPT_FREE(outstr);
-    if (ret) L_ERROR("ps string not written to file\n", procName);
+    if (ret) L_ERROR("ps string not written to file\n", __func__);
     return ret;
 }
 
@@ -1745,19 +1713,17 @@ char         *outstr;
 l_float32     xpt, ypt, wpt, hpt;
 L_COMP_DATA  *cid;
 
-    PROCNAME("convertFlateToPSString");
-
     if (!poutstr)
-        return ERROR_INT("&outstr not defined", procName, 1);
+        return ERROR_INT("&outstr not defined", __func__, 1);
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *pnbytes = 0;
     *poutstr = NULL;
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
 
     if ((cid = l_generateFlateData(filein, 1)) == NULL)
-        return ERROR_INT("flate data not made", procName, 1);
+        return ERROR_INT("flate data not made", __func__, 1);
 
         /* Get scaled location in pts.  Guess the input scan resolution
          * based on the input parameter %res, the resolution data in
@@ -1792,7 +1758,7 @@ L_COMP_DATA  *cid;
     outstr = generateFlatePS(NULL, cid, xpt, ypt, wpt, hpt, pageno, endpage);
     l_CIDataDestroy(&cid);
     if (!outstr)
-        return ERROR_INT("outstr not made", procName, 1);
+        return ERROR_INT("outstr not made", __func__, 1);
     *poutstr = outstr;
     *pnbytes = strlen(outstr);
     return 0;
@@ -1829,10 +1795,8 @@ char    *outstr;
 char     bigbuf[Bufsize];
 SARRAY  *sa;
 
-    PROCNAME("generateFlatePS");
-
     if (!cid)
-        return (char *)ERROR_PTR("flate data not defined", procName, NULL);
+        return (char *)ERROR_PTR("flate data not defined", __func__, NULL);
     w = cid->w;
     h = cid->h;
     bps = cid->bps;
@@ -1961,14 +1925,12 @@ pixWriteMemPS(l_uint8  **pdata,
               l_int32    res,
               l_float32  scale)
 {
-    PROCNAME("pixWriteMemPS");
-
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1 );
+        return ERROR_INT("&data not defined", __func__, 1 );
     if (!psize)
-        return ERROR_INT("&size not defined", procName, 1 );
+        return ERROR_INT("&size not defined", __func__, 1 );
     if (!pix)
-        return ERROR_INT("&pix not defined", procName, 1 );
+        return ERROR_INT("&pix not defined", __func__, 1 );
 
     *pdata = (l_uint8 *)pixWriteStringPS(pix, box, res, scale);
     *psize = strlen((char *)(*pdata));

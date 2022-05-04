@@ -155,10 +155,8 @@ l_int32  start, next, stop, charindex, found;
 size_t   nbytes;
 SARRAY  *sa, *saout, *satest;
 
-    PROCNAME("parseForProtos");
-
     if (!filein)
-        return (char *)ERROR_PTR("filein not defined", procName, NULL);
+        return (char *)ERROR_PTR("filein not defined", __func__, NULL);
 
         /* Read in the cpp output into memory, one string for each
          * line in the file, omitting blank lines.  */
@@ -244,12 +242,10 @@ getNextNonCommentLine(SARRAY  *sa,
 char    *str;
 l_int32  i, n;
 
-    PROCNAME("getNextNonCommentLine");
-
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
     if (!pnext)
-        return ERROR_INT("&pnext not defined", procName, 1);
+        return ERROR_INT("&pnext not defined", __func__, 1);
 
         /* Init for situation where this line and all following are comments */
     *pnext = -1;
@@ -257,7 +253,7 @@ l_int32  i, n;
     n = sarrayGetCount(sa);
     for (i = start; i < n; i++) {
         if ((str = sarrayGetString(sa, i, L_NOCOPY)) == NULL)
-            return ERROR_INT("str not returned; shouldn't happen", procName, 1);
+            return ERROR_INT("str not returned; shouldn't happen", __func__, 1);
         if (str[0] != '#') {
             *pnext = i;
             return 0;
@@ -291,12 +287,10 @@ getNextNonBlankLine(SARRAY  *sa,
 char    *str;
 l_int32  i, j, n, len;
 
-    PROCNAME("getNextNonBlankLine");
-
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
     if (!pnext)
-        return ERROR_INT("&pnext not defined", procName, 1);
+        return ERROR_INT("&pnext not defined", __func__, 1);
 
         /* Init for situation where this line and all following are blank */
     *pnext = -1;
@@ -304,7 +298,7 @@ l_int32  i, j, n, len;
     n = sarrayGetCount(sa);
     for (i = start; i < n; i++) {
         if ((str = sarrayGetString(sa, i, L_NOCOPY)) == NULL)
-            return ERROR_INT("str not returned; shouldn't happen", procName, 1);
+            return ERROR_INT("str not returned; shouldn't happen", __func__, 1);
         len = strlen(str);
         for (j = 0; j < len; j++) {
             if (str[j] != ' ' && str[j] != '\t'
@@ -341,12 +335,10 @@ getNextNonDoubleSlashLine(SARRAY  *sa,
 char    *str;
 l_int32  i, n, len;
 
-    PROCNAME("getNextNonDoubleSlashLine");
-
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
     if (!pnext)
-        return ERROR_INT("&pnext not defined", procName, 1);
+        return ERROR_INT("&pnext not defined", __func__, 1);
 
         /* Init for situation where this line and all following
          * start with '//' */
@@ -355,7 +347,7 @@ l_int32  i, n, len;
     n = sarrayGetCount(sa);
     for (i = start; i < n; i++) {
         if ((str = sarrayGetString(sa, i, L_NOCOPY)) == NULL)
-            return ERROR_INT("str not returned; shouldn't happen", procName, 1);
+            return ERROR_INT("str not returned; shouldn't happen", __func__, 1);
         len = strlen(str);
         if (len < 2 || str[0] != '/' || str[1] != '/') {
             *pnext = i;
@@ -412,18 +404,16 @@ l_int32  soffsetlp, soffsetrp, soffsetlb, soffsetsc;
 l_int32  boffsetlp, boffsetrp, boffsetlb, boffsetsc;
 l_int32  toffsetlp, toffsetrp, toffsetlb, toffsetsc;
 
-    PROCNAME("searchForProtoSignature");
-
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
     if (!pstart)
-        return ERROR_INT("&start not defined", procName, 1);
+        return ERROR_INT("&start not defined", __func__, 1);
     if (!pstop)
-        return ERROR_INT("&stop not defined", procName, 1);
+        return ERROR_INT("&stop not defined", __func__, 1);
     if (!pcharindex)
-        return ERROR_INT("&charindex not defined", procName, 1);
+        return ERROR_INT("&charindex not defined", __func__, 1);
     if (!pfound)
-        return ERROR_INT("&found not defined", procName, 1);
+        return ERROR_INT("&found not defined", __func__, 1);
 
     *pfound = FALSE;
 
@@ -531,10 +521,8 @@ char    *str, *newstr, *protostr, *cleanstr;
 SARRAY  *sap;
 l_int32  i;
 
-    PROCNAME("captureProtoSignature");
-
     if (!sa)
-        return (char *)ERROR_PTR("sa not defined", procName, NULL);
+        return (char *)ERROR_PTR("sa not defined", __func__, NULL);
 
     sap = sarrayCreate(0);
     for (i = start; i < stop; i++) {
@@ -576,10 +564,8 @@ char     externstring[] = "extern";
 l_int32  i, j, nwords, nchars, index, len;
 SARRAY  *sa, *saout;
 
-    PROCNAME("cleanProtoSignature");
-
     if (!instr)
-        return (char *)ERROR_PTR("instr not defined", procName, NULL);
+        return (char *)ERROR_PTR("instr not defined", __func__, NULL);
 
     sa = sarrayCreateWordsFromString(instr);
     nwords = sarrayGetCount(sa);
@@ -593,7 +579,7 @@ SARRAY  *sa, *saout;
             if (index > L_BUF_SIZE - 6) {
                 sarrayDestroy(&sa);
                 sarrayDestroy(&saout);
-                return (char *)ERROR_PTR("token too large", procName, NULL);
+                return (char *)ERROR_PTR("token too large", __func__, NULL);
             }
             if (str[j] == '(') {
                 buf[index++] = ' ';
@@ -640,12 +626,10 @@ skipToEndOfFunction(SARRAY   *sa,
 l_int32  end, rbindex;
 l_int32 soffsetlb, boffsetlb, toffsetlb;
 
-    PROCNAME("skipToEndOfFunction");
-
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
     if (!pnext)
-        return ERROR_INT("&next not defined", procName, 1);
+        return ERROR_INT("&next not defined", __func__, 1);
 
     getOffsetForCharacter(sa, start, '{', &soffsetlb, &boffsetlb,
                 &toffsetlb);
@@ -686,14 +670,12 @@ skipToMatchingBrace(SARRAY   *sa,
 char    *str;
 l_int32  i, j, jstart, n, sumbrace, found, instring, nchars;
 
-    PROCNAME("skipToMatchingBrace");
-
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
     if (!pstop)
-        return ERROR_INT("&stop not defined", procName, 1);
+        return ERROR_INT("&stop not defined", __func__, 1);
     if (!prbindex)
-        return ERROR_INT("&rbindex not defined", procName, 1);
+        return ERROR_INT("&rbindex not defined", __func__, 1);
 
     instring = 0;  /* init to FALSE; toggle on double quotes */
     *pstop = -1;
@@ -732,7 +714,7 @@ l_int32  i, j, jstart, n, sumbrace, found, instring, nchars;
         }
     }
 
-    return ERROR_INT("matching right brace not found", procName, 1);
+    return ERROR_INT("matching right brace not found", __func__, 1);
 }
 
 
@@ -762,12 +744,10 @@ skipToSemicolon(SARRAY   *sa,
 char    *str;
 l_int32  i, j, n, jstart, nchars, found;
 
-    PROCNAME("skipToSemicolon");
-
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
     if (!pnext)
-        return ERROR_INT("&next not defined", procName, 1);
+        return ERROR_INT("&next not defined", __func__, 1);
 
     *pnext = -1;
     n = sarrayGetCount(sa);
@@ -790,7 +770,7 @@ l_int32  i, j, n, jstart, nchars, found;
         }
     }
 
-    return ERROR_INT("semicolon not found", procName, 1);
+    return ERROR_INT("semicolon not found", __func__, 1);
 }
 
 
@@ -831,16 +811,14 @@ getOffsetForCharacter(SARRAY   *sa,
 char    *str;
 l_int32  i, j, n, nchars, totchars, found;
 
-    PROCNAME("getOffsetForCharacter");
-
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
     if (!psoffset)
-        return ERROR_INT("&soffset not defined", procName, 1);
+        return ERROR_INT("&soffset not defined", __func__, 1);
     if (!pboffset)
-        return ERROR_INT("&boffset not defined", procName, 1);
+        return ERROR_INT("&boffset not defined", __func__, 1);
     if (!ptoffset)
-        return ERROR_INT("&toffset not defined", procName, 1);
+        return ERROR_INT("&toffset not defined", __func__, 1);
 
     *psoffset = -1;  /* init to not found */
     *pboffset = 100000000;
@@ -851,7 +829,7 @@ l_int32  i, j, n, nchars, totchars, found;
     totchars = 0;
     for (i = start; i < n; i++) {
         if ((str = sarrayGetString(sa, i, L_NOCOPY)) == NULL)
-            return ERROR_INT("str not returned; shouldn't happen", procName, 1);
+            return ERROR_INT("str not returned; shouldn't happen", __func__, 1);
         nchars = strlen(str);
         for (j = 0; j < nchars; j++) {
             if (str[j] == tchar) {
@@ -923,16 +901,14 @@ getOffsetForMatchingRP(SARRAY   *sa,
 char    *str;
 l_int32  i, j, n, nchars, totchars, leftmatch, firstline, jstart, found;
 
-    PROCNAME("getOffsetForMatchingRP");
-
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
     if (!psoffset)
-        return ERROR_INT("&soffset not defined", procName, 1);
+        return ERROR_INT("&soffset not defined", __func__, 1);
     if (!pboffset)
-        return ERROR_INT("&boffset not defined", procName, 1);
+        return ERROR_INT("&boffset not defined", __func__, 1);
     if (!ptoffset)
-        return ERROR_INT("&toffset not defined", procName, 1);
+        return ERROR_INT("&toffset not defined", __func__, 1);
 
     *psoffset = -1;  /* init to not found */
     *pboffset = 100000000;
@@ -945,7 +921,7 @@ l_int32  i, j, n, nchars, totchars, leftmatch, firstline, jstart, found;
     firstline = start + soffsetlp;
     for (i = firstline; i < n; i++) {
         if ((str = sarrayGetString(sa, i, L_NOCOPY)) == NULL)
-            return ERROR_INT("str not returned; shouldn't happen", procName, 1);
+            return ERROR_INT("str not returned; shouldn't happen", __func__, 1);
         nchars = strlen(str);
         jstart = 0;
         if (i == firstline)

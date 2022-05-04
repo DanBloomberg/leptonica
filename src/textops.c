@@ -132,22 +132,20 @@ PIX      *pixd;
 PIXCMAP  *cmap, *cmapd;
 SARRAY   *salines;
 
-    PROCNAME("pixAddSingleTextblock");
-
     if (poverflow) *poverflow = 0;
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (location != L_ADD_ABOVE && location != L_ADD_AT_TOP &&
         location != L_ADD_AT_BOT && location != L_ADD_BELOW)
-        return (PIX *)ERROR_PTR("invalid location", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid location", __func__, NULL);
     if (!bmf) {
-        L_ERROR("no bitmap fonts; returning a copy\n", procName);
+        L_ERROR("no bitmap fonts; returning a copy\n", __func__);
         return pixCopy(NULL, pixs);
     }
     if (!textstr)
         textstr = pixGetText(pixs);
     if (!textstr) {
-        L_WARNING("no textstring defined; returning a copy\n", procName);
+        L_WARNING("no textstring defined; returning a copy\n", __func__);
         return pixCopy(NULL, pixs);
     }
 
@@ -172,7 +170,7 @@ SARRAY   *salines;
     xstart = (l_int32)(0.1 * w);
     salines = bmfGetLineStrings(bmf, textstr, w - 2 * xstart, 0, &htext);
     if (!salines)
-        return (PIX *)ERROR_PTR("line string sa not made", procName, NULL);
+        return (PIX *)ERROR_PTR("line string sa not made", __func__, NULL);
     nlines = sarrayGetCount(salines);
 
         /* Add white border if required */
@@ -287,21 +285,19 @@ PIX      *pixd;
 PIXCMAP  *cmap, *cmapd;
 SARRAY   *sa;
 
-    PROCNAME("pixAddTextlines");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (location != L_ADD_ABOVE && location != L_ADD_BELOW &&
         location != L_ADD_LEFT && location != L_ADD_RIGHT)
-        return (PIX *)ERROR_PTR("invalid location", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid location", __func__, NULL);
     if (!bmf) {
-        L_ERROR("no bitmap fonts; returning a copy\n", procName);
+        L_ERROR("no bitmap fonts; returning a copy\n", __func__);
         return pixCopy(NULL, pixs);
     }
     if (!textstr) {
         textstr = pixGetText(pixs);
         if (!textstr) {
-            L_WARNING("no textstring defined; returning a copy\n", procName);
+            L_WARNING("no textstring defined; returning a copy\n", __func__);
             return pixCopy(NULL, pixs);
         }
     }
@@ -451,14 +447,12 @@ l_int32   d, h, i, w, x, y, nlines, htext, xwidth, wline, ovf, overflow;
 SARRAY   *salines;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixSetTextblock");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (!bmf)
-        return ERROR_INT("bmf not defined", procName, 1);
+        return ERROR_INT("bmf not defined", __func__, 1);
     if (!textstr)
-        return ERROR_INT("textstr not defined", procName, 1);
+        return ERROR_INT("textstr not defined", __func__, 1);
 
         /* Make sure the "color" value for the text will work
          * for the pix.  If the pix is not colormapped and the
@@ -479,15 +473,15 @@ PIXCMAP  *cmap;
         val = 0x80808000;
 
     if (w < x0 + wtext) {
-        L_WARNING("reducing width of textblock\n", procName);
+        L_WARNING("reducing width of textblock\n", __func__);
         wtext = w - x0 - w / 10;
         if (wtext <= 0)
-            return ERROR_INT("wtext too small; no room for text", procName, 1);
+            return ERROR_INT("wtext too small; no room for text", __func__, 1);
     }
 
     salines = bmfGetLineStrings(bmf, textstr, wtext, firstindent, &htext);
     if (!salines)
-        return ERROR_INT("line string sa not made", procName, 1);
+        return ERROR_INT("line string sa not made", __func__, 1);
     nlines = sarrayGetCount(salines);
     bmfGetWidth(bmf, 'x', &xwidth);
 
@@ -564,14 +558,12 @@ l_uint32  textcolor;
 PIX      *pix;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixSetTextline");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (!bmf)
-        return ERROR_INT("bmf not defined", procName, 1);
+        return ERROR_INT("bmf not defined", __func__, 1);
     if (!textstr)
-        return ERROR_INT("teststr not defined", procName, 1);
+        return ERROR_INT("teststr not defined", __func__, 1);
 
     d = pixGetDepth(pixs);
     cmap = pixGetColormap(pixs);
@@ -657,15 +649,13 @@ l_int32  i, n, index;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 
-    PROCNAME("pixaAddTextNumber");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (!bmf)
-        return (PIXA *)ERROR_PTR("bmf not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("bmf not defined", __func__, NULL);
     if (location != L_ADD_ABOVE && location != L_ADD_BELOW &&
         location != L_ADD_LEFT && location != L_ADD_RIGHT)
-        return (PIXA *)ERROR_PTR("invalid location", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid location", __func__, NULL);
 
     n = pixaGetCount(pixas);
     pixad = pixaCreate(n);
@@ -727,21 +717,19 @@ l_int32  i, n, nstr;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 
-    PROCNAME("pixaAddTextlines");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (!bmf)
-        return (PIXA *)ERROR_PTR("bmf not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("bmf not defined", __func__, NULL);
     if (location != L_ADD_ABOVE && location != L_ADD_BELOW &&
         location != L_ADD_LEFT && location != L_ADD_RIGHT)
-        return (PIXA *)ERROR_PTR("invalid location", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid location", __func__, NULL);
 
     n = pixaGetCount(pixas);
     pixad = pixaCreate(n);
     nstr = (sa) ? sarrayGetCount(sa) : 0;
     if (nstr > 0 && nstr < n)
-        L_WARNING("There are %d strings and %d pix\n", procName, nstr, n);
+        L_WARNING("There are %d strings and %d pix\n", __func__, nstr, n);
     for (i = 0; i < n; i++) {
         pix1 = pixaGetPix(pixas, i, L_CLONE);
         if (i < nstr)
@@ -799,20 +787,18 @@ L_BMF    *bmf8;
 PIX      *pix1, *pix2, *pix3;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixaAddPixWithText");
-
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (location != L_ADD_ABOVE && location != L_ADD_BELOW &&
         location != L_ADD_LEFT && location != L_ADD_RIGHT)
-        return ERROR_INT("invalid location", procName, 1);
+        return ERROR_INT("invalid location", __func__, 1);
 
     if (!textstr) {
         textstr = pixGetText(pixs);
         if (!textstr) {
-            L_WARNING("no textstring defined; inserting copy", procName);
+            L_WARNING("no textstring defined; inserting copy", __func__);
             pixaAddPix(pixa, pixs, L_COPY);
             return 0;
         }
@@ -841,7 +827,7 @@ PIXCMAP  *cmap;
     pixDestroy(&pix2);
     if (!bmf) bmfDestroy(&bmf8);
     if (!pix3)
-        return ERROR_INT("pix3 not made", procName, 1);
+        return ERROR_INT("pix3 not made", __func__, 1);
 
     pixaAddPix(pixa, pix3, L_INSERT);
     return 0;
@@ -879,25 +865,23 @@ l_int32  i, ifirst, sumw, newsum, w, nwords, nlines, len, xwidth;
 NUMA    *na;
 SARRAY  *sa, *sawords;
 
-    PROCNAME("bmfGetLineStrings");
-
     if (!bmf)
-        return (SARRAY *)ERROR_PTR("bmf not defined", procName, NULL);
+        return (SARRAY *)ERROR_PTR("bmf not defined", __func__, NULL);
     if (!textstr)
-        return (SARRAY *)ERROR_PTR("teststr not defined", procName, NULL);
+        return (SARRAY *)ERROR_PTR("teststr not defined", __func__, NULL);
 
     if ((sawords = sarrayCreateWordsFromString(textstr)) == NULL)
-        return (SARRAY *)ERROR_PTR("sawords not made", procName, NULL);
+        return (SARRAY *)ERROR_PTR("sawords not made", __func__, NULL);
 
     if ((na = bmfGetWordWidths(bmf, textstr, sawords)) == NULL) {
         sarrayDestroy(&sawords);
-        return (SARRAY *)ERROR_PTR("na not made", procName, NULL);
+        return (SARRAY *)ERROR_PTR("na not made", __func__, NULL);
     }
     nwords = numaGetCount(na);
     if (nwords == 0) {
         sarrayDestroy(&sawords);
         numaDestroy(&na);
-        return (SARRAY *)ERROR_PTR("no words in textstr", procName, NULL);
+        return (SARRAY *)ERROR_PTR("no words in textstr", __func__, NULL);
     }
     bmfGetWidth(bmf, 'x', &xwidth);
 
@@ -952,18 +936,16 @@ char    *wordstr;
 l_int32  i, nwords, width;
 NUMA    *na;
 
-    PROCNAME("bmfGetWordWidths");
-
     if (!bmf)
-        return (NUMA *)ERROR_PTR("bmf not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("bmf not defined", __func__, NULL);
     if (!textstr)
-        return (NUMA *)ERROR_PTR("teststr not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("teststr not defined", __func__, NULL);
     if (!sa)
-        return (NUMA *)ERROR_PTR("sa not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("sa not defined", __func__, NULL);
 
     nwords = sarrayGetCount(sa);
     if ((na = numaCreate(nwords)) == NULL)
-        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not made", __func__, NULL);
 
     for (i = 0; i < nwords; i++) {
         wordstr = sarrayGetString(sa, i, L_NOCOPY);
@@ -992,14 +974,12 @@ bmfGetStringWidth(L_BMF       *bmf,
 char     chr;
 l_int32  i, w, width, nchar;
 
-    PROCNAME("bmfGetStringWidth");
-
     if (!bmf)
-        return ERROR_INT("bmf not defined", procName, 1);
+        return ERROR_INT("bmf not defined", __func__, 1);
     if (!textstr)
-        return ERROR_INT("teststr not defined", procName, 1);
+        return ERROR_INT("teststr not defined", __func__, 1);
     if (!pw)
-        return ERROR_INT("&w not defined", procName, 1);
+        return ERROR_INT("&w not defined", __func__, 1);
 
     nchar = strlen(textstr);
     w = 0;
@@ -1036,13 +1016,11 @@ char    *linestr, *parastring;
 l_int32  nlines, i, allwhite, leadwhite;
 SARRAY  *salines, *satemp, *saout;
 
-    PROCNAME("splitStringToParagraphs");
-
     if (!textstr)
-        return (SARRAY *)ERROR_PTR("textstr not defined", procName, NULL);
+        return (SARRAY *)ERROR_PTR("textstr not defined", __func__, NULL);
 
     if ((salines = sarrayCreateLinesFromString(textstr, 1)) == NULL)
-        return (SARRAY *)ERROR_PTR("salines not made", procName, NULL);
+        return (SARRAY *)ERROR_PTR("salines not made", __func__, NULL);
     nlines = sarrayGetCount(salines);
     saout = sarrayCreate(0);
     satemp = sarrayCreate(0);
@@ -1084,12 +1062,10 @@ stringAllWhitespace(char     *textstr,
 {
 l_int32  len, i;
 
-    PROCNAME("stringAllWhitespace");
-
     if (!textstr)
-        return ERROR_INT("textstr not defined", procName, 1);
+        return ERROR_INT("textstr not defined", __func__, 1);
     if (!pval)
-        return ERROR_INT("&va not defined", procName, 1);
+        return ERROR_INT("&va not defined", __func__, 1);
 
     len = strlen(textstr);
     *pval = 1;
@@ -1114,12 +1090,10 @@ static l_int32
 stringLeadingWhitespace(char     *textstr,
                         l_int32  *pval)
 {
-    PROCNAME("stringLeadingWhitespace");
-
     if (!textstr)
-        return ERROR_INT("textstr not defined", procName, 1);
+        return ERROR_INT("textstr not defined", __func__, 1);
     if (!pval)
-        return ERROR_INT("&va not defined", procName, 1);
+        return ERROR_INT("&va not defined", __func__, 1);
 
     *pval = 0;
     if (textstr[0] == ' ' || textstr[0] == '\t')

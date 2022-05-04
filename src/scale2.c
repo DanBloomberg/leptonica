@@ -212,27 +212,25 @@ l_int32    w, h, minsrc, mindest;
 l_float32  mag, red;
 PIX       *pixt, *pixd;
 
-    PROCNAME("pixScaleToGray");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
     if (scalefactor <= 0.0)
-        return (PIX *)ERROR_PTR("scalefactor <= 0.0", procName, NULL);
+        return (PIX *)ERROR_PTR("scalefactor <= 0.0", __func__, NULL);
     if (scalefactor >= 1.0)
-        return (PIX *)ERROR_PTR("scalefactor >= 1.0", procName, NULL);
+        return (PIX *)ERROR_PTR("scalefactor >= 1.0", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);
     minsrc = L_MIN(w, h);
     mindest = (l_int32)((l_float32)minsrc * scalefactor);
     if (mindest < 2)
-        return (PIX *)ERROR_PTR("scalefactor too small", procName, NULL);
+        return (PIX *)ERROR_PTR("scalefactor too small", __func__, NULL);
 
     if (scalefactor > 0.5) {   /* see note (5) */
         mag = 2.0 * scalefactor;  /* will be < 2.0 */
 /*        lept_stderr("2x with mag %7.3f\n", mag);  */
         if ((pixt = pixScaleBinary(pixs, mag, mag)) == NULL)
-            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
         pixd = pixScaleToGray2(pixt);
     } else if (scalefactor == 0.5) {
         return pixd = pixScaleToGray2(pixs);
@@ -240,13 +238,13 @@ PIX       *pixt, *pixd;
         mag = 3.0 * scalefactor;   /* will be < 1.5 */
 /*        lept_stderr("3x with mag %7.3f\n", mag);  */
         if ((pixt = pixScaleBinary(pixs, mag, mag)) == NULL)
-            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
         pixd = pixScaleToGray3(pixt);
     } else if (scalefactor > 0.25) {  /* see note (5) */
         mag = 4.0 * scalefactor;   /* will be < 1.3333 */
 /*        lept_stderr("4x with mag %7.3f\n", mag);  */
         if ((pixt = pixScaleBinary(pixs, mag, mag)) == NULL)
-            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
         pixd = pixScaleToGray4(pixt);
     } else if (scalefactor == 0.25) {
         return pixd = pixScaleToGray4(pixs);
@@ -254,7 +252,7 @@ PIX       *pixt, *pixd;
         mag = 6.0 * scalefactor;   /* will be < 1.5 */
 /*        lept_stderr("6x with mag %7.3f\n", mag); */
         if ((pixt = pixScaleBinary(pixs, mag, mag)) == NULL)
-            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
         pixd = pixScaleToGray6(pixt);
     } else if (scalefactor == 0.16667) {
         return pixd = pixScaleToGray6(pixs);
@@ -262,7 +260,7 @@ PIX       *pixt, *pixd;
         mag = 8.0 * scalefactor;   /*  will be < 1.3333  */
 /*        lept_stderr("8x with mag %7.3f\n", mag);  */
         if ((pixt = pixScaleBinary(pixs, mag, mag)) == NULL)
-            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
         pixd = pixScaleToGray8(pixt);
     } else if (scalefactor == 0.125) {
         return pixd = pixScaleToGray8(pixs);
@@ -270,7 +268,7 @@ PIX       *pixt, *pixd;
         red = 8.0 * scalefactor;   /* will be > 0.5 */
 /*        lept_stderr("8x with red %7.3f\n", red);  */
         if ((pixt = pixScaleBinary(pixs, red, red)) == NULL)
-            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
         pixd = pixScaleToGray8(pixt);
     } else if (scalefactor == 0.0625) {
         return pixd = pixScaleToGray16(pixs);
@@ -278,7 +276,7 @@ PIX       *pixt, *pixd;
         red = 16.0 * scalefactor;  /* will be <= 1.0 */
 /*        lept_stderr("16x with red %7.3f\n", red);  */
         if ((pixt = pixScaleToGray16(pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
         if (red < 0.7)
             pixd = pixScaleSmooth(pixt, red, red);  /* see note (3) */
         else
@@ -287,7 +285,7 @@ PIX       *pixt, *pixd;
 
     pixDestroy(&pixt);
     if (!pixd)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyInputFormat(pixd, pixs);
     return pixd;
 }
@@ -323,21 +321,19 @@ l_int32    w, h, minsrc, mindest;
 l_float32  eps, factor;
 PIX       *pixt, *pixd;
 
-    PROCNAME("pixScaleToGrayFast");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
     if (scalefactor <= 0.0)
-        return (PIX *)ERROR_PTR("scalefactor <= 0.0", procName, NULL);
+        return (PIX *)ERROR_PTR("scalefactor <= 0.0", __func__, NULL);
     if (scalefactor >= 1.0)
-        return (PIX *)ERROR_PTR("scalefactor >= 1.0", procName, NULL);
+        return (PIX *)ERROR_PTR("scalefactor >= 1.0", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);
     minsrc = L_MIN(w, h);
     mindest = (l_int32)((l_float32)minsrc * scalefactor);
     if (mindest < 2)
-        return (PIX *)ERROR_PTR("scalefactor too small", procName, NULL);
+        return (PIX *)ERROR_PTR("scalefactor too small", __func__, NULL);
     eps = 0.0001;
 
         /* Handle the special cases */
@@ -357,12 +353,12 @@ PIX       *pixt, *pixd;
     if (scalefactor > 0.0625) {  /* scale binary first */
         factor = 2.0 * scalefactor;
         if ((pixt = pixScaleBinary(pixs, factor, factor)) == NULL)
-            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
         pixd = pixScaleToGray2(pixt);
     } else {  /* scalefactor < 0.0625; scale-to-gray first */
         factor = 16.0 * scalefactor;  /* will be < 1.0 */
         if ((pixt = pixScaleToGray16(pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
         if (factor < 0.7)
             pixd = pixScaleSmooth(pixt, factor, factor);
         else
@@ -370,7 +366,7 @@ PIX       *pixt, *pixd;
     }
     pixDestroy(&pixt);
     if (!pixd)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyInputFormat(pixd, pixs);
     return pixd;
 }
@@ -396,21 +392,19 @@ l_uint32  *sumtab;
 l_uint32  *datas, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixScaleToGray2");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 1 bpp", __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = ws / 2;
     hd = hs / 2;
     if (wd == 0 || hd == 0)
-        return (PIX *)ERROR_PTR("pixs too small", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs too small", __func__, NULL);
 
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixSetPadBits(pixs, 0);
     pixCopyInputFormat(pixd, pixs);
     pixCopyResolution(pixd, pixs);
@@ -454,21 +448,19 @@ l_uint32  *sumtab;
 l_uint32  *datas, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixScaleToGray3");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = (ws / 3) & 0xfffffff8;    /* truncate to factor of 8 */
     hd = hs / 3;
     if (wd == 0 || hd == 0)
-        return (PIX *)ERROR_PTR("pixs too small", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs too small", __func__, NULL);
 
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyInputFormat(pixd, pixs);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, 0.33333, 0.33333);
@@ -508,21 +500,19 @@ l_uint32  *sumtab;
 l_uint32  *datas, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixScaleToGray4");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 1 bpp", __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = (ws / 4) & 0xfffffffe;    /* truncate to factor of 2 */
     hd = hs / 4;
     if (wd == 0 || hd == 0)
-        return (PIX *)ERROR_PTR("pixs too small", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs too small", __func__, NULL);
 
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyInputFormat(pixd, pixs);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, 0.25, 0.25);
@@ -562,21 +552,19 @@ l_int32   *tab8;
 l_uint32  *datas, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixScaleToGray6");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = (ws / 6) & 0xfffffff8;    /* truncate to factor of 8 */
     hd = hs / 6;
     if (wd == 0 || hd == 0)
-        return (PIX *)ERROR_PTR("pixs too small", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs too small", __func__, NULL);
 
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyInputFormat(pixd, pixs);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, 0.16667, 0.16667);
@@ -611,21 +599,19 @@ l_int32   *tab8;
 l_uint32  *datas, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixScaleToGray8");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 1 bpp", __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = ws / 8;  /* truncate to nearest dest byte */
     hd = hs / 8;
     if (wd == 0 || hd == 0)
-        return (PIX *)ERROR_PTR("pixs too small", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs too small", __func__, NULL);
 
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyInputFormat(pixd, pixs);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, 0.125, 0.125);
@@ -659,21 +645,19 @@ l_int32   *tab8;
 l_uint32  *datas, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixScaleToGray16");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs must be 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be 1 bpp", __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     wd = ws / 16;
     hd = hs / 16;
     if (wd == 0 || hd == 0)
-        return (PIX *)ERROR_PTR("pixs too small", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs too small", __func__, NULL);
 
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyInputFormat(pixd, pixs);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, 0.0625, 0.0625);
@@ -731,21 +715,19 @@ l_int32    w, h, minsrc, mindest;
 l_float32  red;
 PIX       *pixs1, *pixs2, *pixt, *pixd;
 
-    PROCNAME("pixScaleToGrayMipmap");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
     if (scalefactor <= 0.0)
-        return (PIX *)ERROR_PTR("scalefactor <= 0.0", procName, NULL);
+        return (PIX *)ERROR_PTR("scalefactor <= 0.0", __func__, NULL);
     if (scalefactor >= 1.0)
-        return (PIX *)ERROR_PTR("scalefactor >= 1.0", procName, NULL);
+        return (PIX *)ERROR_PTR("scalefactor >= 1.0", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);
     minsrc = L_MIN(w, h);
     mindest = (l_int32)((l_float32)minsrc * scalefactor);
     if (mindest < 2)
-        return (PIX *)ERROR_PTR("scalefactor too small", procName, NULL);
+        return (PIX *)ERROR_PTR("scalefactor too small", __func__, NULL);
 
     if (scalefactor > 0.5) {
         pixs1 = pixConvert1To8(NULL, pixs, 255, 0);
@@ -774,7 +756,7 @@ PIX       *pixs1, *pixs2, *pixt, *pixd;
     } else {  /* end of the pyramid; just do it */
         red = 16.0 * scalefactor;  /* will be <= 1.0 */
         if ((pixt = pixScaleToGray16(pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
         if (red < 0.7)
             pixd = pixScaleSmooth(pixt, red, red);
         else
@@ -820,22 +802,20 @@ l_int32    ws1, hs1, ws2, hs2, wd, hd, wpls1, wpls2, wpld;
 l_uint32  *datas1, *datas2, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixScaleMipmap");
-
     if (!pixs1 || pixGetDepth(pixs1) != 8 || pixGetColormap(pixs1))
         return (PIX *)ERROR_PTR("pixs1 underdefined, not 8 bpp, or cmapped",
-                                procName, NULL);
+                                __func__, NULL);
     if (!pixs2 || pixGetDepth(pixs2) != 8 || pixGetColormap(pixs2))
         return (PIX *)ERROR_PTR("pixs2 underdefined, not 8 bpp, or cmapped",
-                                procName, NULL);
+                                __func__, NULL);
     pixGetDimensions(pixs1, &ws1, &hs1, NULL);
     pixGetDimensions(pixs2, &ws2, &hs2, NULL);
     if (scale > 1.0 || scale < 0.5)
-        return (PIX *)ERROR_PTR("scale not in [0.5, 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("scale not in [0.5, 1.0]", __func__, NULL);
     if (ws1 < 2 * ws2)
-        return (PIX *)ERROR_PTR("invalid width ratio", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid width ratio", __func__, NULL);
     if (hs1 < 2 * hs2)
-        return (PIX *)ERROR_PTR("invalid height ratio", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid height ratio", __func__, NULL);
 
         /* Generate wd and hd from the lower resolution dimensions,
          * to guarantee staying within both src images */
@@ -846,7 +826,7 @@ PIX       *pixd;
     wd = (l_int32)(2. * scale * pixGetWidth(pixs2));
     hd = (l_int32)(2. * scale * pixGetHeight(pixs2));
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyInputFormat(pixd, pixs1);
     pixCopyResolution(pixd, pixs1);
     pixScaleResolution(pixd, scale, scale);
@@ -879,15 +859,13 @@ l_uint32   sval32;
 l_uint32  *lines, *datas, *lined, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixExpandReplicate");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
-        return (PIX *)ERROR_PTR("depth not in {1,2,4,8,16,32}", procName, NULL);
+        return (PIX *)ERROR_PTR("depth not in {1,2,4,8,16,32}", __func__, NULL);
     if (factor <= 0)
-        return (PIX *)ERROR_PTR("factor <= 0; invalid", procName, NULL);
+        return (PIX *)ERROR_PTR("factor <= 0; invalid", __func__, NULL);
     if (factor == 1)
         return pixCopy(NULL, pixs);
 
@@ -897,7 +875,7 @@ PIX       *pixd;
     wd = factor * w;
     hd = factor * h;
     if ((pixd = pixCreate(wd, hd, d)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyColormap(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
     pixCopyResolution(pixd, pixs);
@@ -1026,17 +1004,15 @@ l_int32    minval, maxval, val;
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
 
-    PROCNAME("pixScaleGrayMinMax");
-
     if (!pixs || pixGetDepth(pixs) != 8 || pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("pixs undefined, not 8 bpp, or cmapped",
-                                procName, NULL);
+                                __func__, NULL);
     pixGetDimensions(pixs, &ws, &hs, NULL);
     if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX &&
         type != L_CHOOSE_MAXDIFF)
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
     if (xfact < 1 || yfact < 1)
-        return (PIX *)ERROR_PTR("xfact and yfact must be >= 1", procName, NULL);
+        return (PIX *)ERROR_PTR("xfact and yfact must be >= 1", __func__, NULL);
 
     if (xfact == 2 && yfact == 2)
         return pixScaleGrayMinMax2(pixs, type);
@@ -1052,7 +1028,7 @@ PIX       *pixd;
         yfact = hs;
     }
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyInputFormat(pixd, pixs);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
@@ -1132,22 +1108,20 @@ l_int32    val[4];
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
 
-    PROCNAME("pixScaleGrayMinMax2");
-
     if (!pixs || pixGetDepth(pixs) != 8 || pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("pixs undefined, not 8 bpp, or cmapped",
-                                procName, NULL);
+                                __func__, NULL);
     pixGetDimensions(pixs, &ws, &hs, NULL);
     if (ws < 2 || hs < 2)
-        return (PIX *)ERROR_PTR("too small: ws < 2 or hs < 2", procName, NULL);
+        return (PIX *)ERROR_PTR("too small: ws < 2 or hs < 2", __func__, NULL);
     if (type != L_CHOOSE_MIN && type != L_CHOOSE_MAX &&
         type != L_CHOOSE_MAXDIFF)
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
 
     wd = ws / 2;
     hd = hs / 2;
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyInputFormat(pixd, pixs);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
@@ -1214,16 +1188,14 @@ pixScaleGrayRankCascade(PIX     *pixs,
 {
 PIX  *pixt1, *pixt2, *pixt3, *pixt4;
 
-    PROCNAME("pixScaleGrayRankCascade");
-
     if (!pixs || pixGetDepth(pixs) != 8 || pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("pixs undefined, not 8 bpp, or cmapped",
-                                procName, NULL);
+                                __func__, NULL);
     if (level1 > 4 || level2 > 4 || level3 > 4 || level4 > 4)
-        return (PIX *)ERROR_PTR("levels must not exceed 4", procName, NULL);
+        return (PIX *)ERROR_PTR("levels must not exceed 4", __func__, NULL);
 
     if (level1 <= 0) {
-        L_WARNING("no reduction because level1 not > 0\n", procName);
+        L_WARNING("no reduction because level1 not > 0\n", __func__);
         return pixCopy(NULL, pixs);
     }
 
@@ -1280,13 +1252,11 @@ l_int32    midval[4];  /* should only use 2 of these */
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
 
-    PROCNAME("pixScaleGrayRank2");
-
     if (!pixs || pixGetDepth(pixs) != 8 || pixGetColormap(pixs))
         return (PIX *)ERROR_PTR("pixs undefined, not 8 bpp, or cmapped",
-                                procName, NULL);
+                                __func__, NULL);
     if (rank < 1 || rank > 4)
-        return (PIX *)ERROR_PTR("invalid rank", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid rank", __func__, NULL);
 
     if (rank == 1)
         return pixScaleGrayMinMax2(pixs, L_CHOOSE_MIN);
@@ -1297,7 +1267,7 @@ PIX       *pixd;
     wd = ws / 2;
     hd = hs / 2;
     if ((pixd = pixCreate(wd, hd, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyInputFormat(pixd, pixs);
     datas = pixGetData(pixs);
     datad = pixGetData(pixd);
@@ -1368,14 +1338,12 @@ pixScaleAndTransferAlpha(PIX       *pixd,
 {
 PIX  *pix1, *pix2;
 
-    PROCNAME("pixScaleAndTransferAlpha");
-
     if (!pixs || !pixd)
-        return ERROR_INT("pixs and pixd not both defined", procName, 1);
+        return ERROR_INT("pixs and pixd not both defined", __func__, 1);
     if (pixGetDepth(pixs) != 32 || pixGetSpp(pixs) != 4)
-        return ERROR_INT("pixs not 32 bpp and 4 spp", procName, 1);
+        return ERROR_INT("pixs not 32 bpp and 4 spp", __func__, 1);
     if (pixGetDepth(pixd) != 32)
-        return ERROR_INT("pixd not 32 bpp", procName, 1);
+        return ERROR_INT("pixd not 32 bpp", __func__, 1);
 
     if (scalex == 1.0 && scaley == 1.0) {
         pixCopyRGBComponent(pixd, pixs, L_ALPHA_CHANNEL);
@@ -1449,26 +1417,24 @@ pixScaleWithAlpha(PIX       *pixs,
 l_int32  ws, hs, d, spp;
 PIX     *pixd, *pix32, *pixg2, *pixgs;
 
-    PROCNAME("pixScaleWithAlpha");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &ws, &hs, &d);
     if (d != 32 && !pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", __func__, NULL);
     if (scalex <= 0.0 || scaley <= 0.0)
-        return (PIX *)ERROR_PTR("scale factor <= 0.0", procName, NULL);
+        return (PIX *)ERROR_PTR("scale factor <= 0.0", __func__, NULL);
     if (pixg && pixGetDepth(pixg) != 8) {
         L_WARNING("pixg not 8 bpp; using 'fract' transparent alpha\n",
-                  procName);
+                  __func__);
         pixg = NULL;
     }
     if (!pixg && (fract < 0.0 || fract > 1.0)) {
-        L_WARNING("invalid fract; using fully opaque\n", procName);
+        L_WARNING("invalid fract; using fully opaque\n", __func__);
         fract = 1.0;
     }
     if (!pixg && fract == 0.0)
-        L_WARNING("transparent alpha; image will not be blended\n", procName);
+        L_WARNING("transparent alpha; image will not be blended\n", __func__);
 
         /* Make sure input to scaling is 32 bpp rgb, and scale it */
     if (d != 32)
@@ -1608,8 +1574,6 @@ l_int32    i;
 l_int32    sum[] = {0, 1, 1, 2};
 l_uint32  *tab;
 
-    PROCNAME("makeSumTabSG2");
-
         /* Pack the four sums separately in four bytes */
     tab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     for (i = 0; i < 256; i++) {
@@ -1636,8 +1600,6 @@ makeValTabSG2(void)
 {
 l_int32   i;
 l_uint8  *tab;
-
-    PROCNAME("makeValTabSG2");
 
     tab = (l_uint8 *)LEPT_CALLOC(5, sizeof(l_uint8));
     for (i = 0; i < 5; i++)
@@ -1767,8 +1729,6 @@ l_int32    i;
 l_int32    sum[] = {0, 1, 1, 2, 1, 2, 2, 3};
 l_uint32  *tab;
 
-    PROCNAME("makeSumTabSG3");
-
         /* Pack the two sums separately in two bytes */
     tab = (l_uint32 *)LEPT_CALLOC(64, sizeof(l_uint32));
     for (i = 0; i < 64; i++) {
@@ -1794,8 +1754,6 @@ makeValTabSG3(void)
 {
 l_int32   i;
 l_uint8  *tab;
-
-    PROCNAME("makeValTabSG3");
 
     tab = (l_uint8 *)LEPT_CALLOC(10, sizeof(l_uint8));
     for (i = 0; i < 10; i++)
@@ -1888,8 +1846,6 @@ l_int32    i;
 l_int32    sum[] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
 l_uint32  *tab;
 
-    PROCNAME("makeSumTabSG4");
-
         /* Pack the two sums separately in two bytes */
     tab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     for (i = 0; i < 256; i++) {
@@ -1915,8 +1871,6 @@ makeValTabSG4(void)
 {
 l_int32   i;
 l_uint8  *tab;
-
-    PROCNAME("makeValTabSG4");
 
     tab = (l_uint8 *)LEPT_CALLOC(17, sizeof(l_uint8));
     for (i = 0; i < 17; i++)
@@ -2063,8 +2017,6 @@ makeValTabSG6(void)
 l_int32   i;
 l_uint8  *tab;
 
-    PROCNAME("makeValTabSG6");
-
     tab = (l_uint8 *)LEPT_CALLOC(37, sizeof(l_uint8));
     for (i = 0; i < 37; i++)
         tab[i] = 0xff - (i * 255) / 36;
@@ -2156,8 +2108,6 @@ makeValTabSG8(void)
 {
 l_int32   i;
 l_uint8  *tab;
-
-    PROCNAME("makeValTabSG8");
 
     tab = (l_uint8 *)LEPT_CALLOC(65, sizeof(l_uint8));
     for (i = 0; i < 65; i++)
@@ -2284,8 +2234,6 @@ l_int32   *srow, *scol;
 l_uint32  *lines1, *lines2, *lined;
 l_float32  ratio, w1, w2;
 
-    PROCNAME("scaleMipmapLow");
-
         /* Clear dest */
     memset(datad, 0, 4LL * wpld * hd);
 
@@ -2298,10 +2246,10 @@ l_float32  ratio, w1, w2;
            resolution src pixels are obtained from these arrays
            by multiplying by 2. */
     if ((srow = (l_int32 *)LEPT_CALLOC(hd, sizeof(l_int32))) == NULL)
-        return ERROR_INT("srow not made", procName, 1);
+        return ERROR_INT("srow not made", __func__, 1);
     if ((scol = (l_int32 *)LEPT_CALLOC(wd, sizeof(l_int32))) == NULL) {
         LEPT_FREE(srow);
-        return ERROR_INT("scol not made", procName, 1);
+        return ERROR_INT("scol not made", __func__, 1);
     }
     ratio = 1. / (2. * red);  /* 0.5 for red = 1, 1 for red = 0.5 */
     for (i = 0; i < hd; i++)

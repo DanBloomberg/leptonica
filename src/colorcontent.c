@@ -214,22 +214,20 @@ l_uint32   pixel;
 l_uint32  *data1, *datar, *datag, *datab, *line1, *liner, *lineg, *lineb;
 PIX       *pix1, *pixr, *pixg, *pixb;
 
-    PROCNAME("pixColorContent");
-
     if (!ppixr && !ppixg && !ppixb)
-        return ERROR_INT("no return val requested", procName, 1);
+        return ERROR_INT("no return val requested", __func__, 1);
     if (ppixr) *ppixr = NULL;
     if (ppixg) *ppixg = NULL;
     if (ppixb) *ppixb = NULL;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (mingray < 0) mingray = 0;
     if (mingray > 255)
-        return ERROR_INT("mingray > 255", procName, 1);
+        return ERROR_INT("mingray > 255", __func__, 1);
 
         /* Do the optional linear color map; this checks the ref vals */
     if ((pix1 = pixColorShiftWhitePoint(pixs, rref, gref, bref)) == NULL)
-        return ERROR_INT("pix1 not returned", procName, 1);
+        return ERROR_INT("pix1 not returned", __func__, 1);
 
     pixr = pixg = pixb = NULL;
     pixGetDimensions(pix1, &w, &h, NULL);
@@ -372,17 +370,15 @@ l_uint32   pixel;
 l_uint32  *data1, *datad, *line1, *lined;
 PIX       *pix1, *pixd;
 
-    PROCNAME("pixColorMagnitude");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (type != L_INTERMED_DIFF && type != L_AVE_MAX_DIFF_2 &&
         type != L_MAX_DIFF)
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
 
         /* Do the optional linear color map; this checks the ref vals */
     if ((pix1 = pixColorShiftWhitePoint(pixs, rref, gref, bref)) == NULL)
-        return (PIX *)ERROR_PTR("pix1 not returned", procName, NULL);
+        return (PIX *)ERROR_PTR("pix1 not returned", __func__, NULL);
 
     pixGetDimensions(pix1, &w, &h, NULL);
     pixd = pixCreate(w, h, 8);
@@ -504,15 +500,13 @@ l_int32    total, npix, ncolor;
 l_uint32   pixel;
 l_uint32  *data, *line;
 
-    PROCNAME("pixColorFraction");
-
     if (ppixfract) *ppixfract = 0.0;
     if (pcolorfract) *pcolorfract = 0.0;
     if (!ppixfract || !pcolorfract)
         return ERROR_INT("&pixfract and &colorfract not defined",
-                         procName, 1);
+                         __func__, 1);
     if (!pixs || pixGetDepth(pixs) != 32)
-        return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 32 bpp", __func__, 1);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     data = pixGetData(pixs);
@@ -540,7 +534,7 @@ l_uint32  *data, *line;
     }
 
     if (npix == 0) {
-        L_WARNING("No pixels found for consideration\n", procName);
+        L_WARNING("No pixels found for consideration\n", __func__);
         return 0;
     }
     *ppixfract = (l_float32)npix / (l_float32)total;
@@ -593,15 +587,13 @@ NUMA      *nar, *nag, *nab;
 PIX       *pix1, *pix2;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixColorShiftWhitePoint");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
 
     cmap = pixGetColormap(pixs);
     if (!cmap && pixGetDepth(pixs) != 32)
         return (PIX *)ERROR_PTR("pixs neither cmapped nor 32 bpp",
-                                procName, NULL);
+                                __func__, NULL);
     if (cmap)
         pix1 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
     else
@@ -612,7 +604,7 @@ PIXCMAP   *cmap;
 
         /* Some ref values are < 0, or some (but not all) are 0 */
     if ((rref < 0 || gref < 0 || bref < 0) || (rref * gref * bref == 0)) {
-        L_WARNING("invalid set of ref values\n", procName);
+        L_WARNING("invalid set of ref values\n", __func__);
         return pix1;
     }
 
@@ -695,22 +687,20 @@ l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixc, *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixMaskOverColorPixels");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
 
     cmap = pixGetColormap(pixs);
     if (!cmap && d != 32)
-        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", __func__, NULL);
     if (cmap)
         pixc = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
     else
         pixc = pixClone(pixs);
     if (!pixc || pixGetDepth(pixc) != 32) {
         pixDestroy(&pixc);
-        return (PIX *)ERROR_PTR("rgb pix not made", procName, NULL);
+        return (PIX *)ERROR_PTR("rgb pix not made", __func__, NULL);
     }
 
     pixd = pixCreate(w, h, 1);
@@ -776,20 +766,18 @@ l_int32    rval, gval, bval, minrg, min, maxrg, max, sat;
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
 
-    PROCNAME("pixMaskOverGrayPixels");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", __func__, NULL);
     if (maxlimit < 0 || maxlimit > 255)
-        return (PIX *)ERROR_PTR("invalid maxlimit", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid maxlimit", __func__, NULL);
     if (satlimit < 1)
-        return (PIX *)ERROR_PTR("invalid satlimit", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid satlimit", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if ((pixd = pixCreate(w, h, 1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
@@ -839,15 +827,13 @@ l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixc, *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixMaskOverColorRange");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
 
     cmap = pixGetColormap(pixs);
     if (!cmap && d != 32)
-        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not cmapped or 32 bpp", __func__, NULL);
     if (cmap)
         pixc = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
     else
@@ -963,15 +949,13 @@ l_uint32  *carray;
 BOXA      *boxa1, *boxa2;
 PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
 
-    PROCNAME("pixFindColorRegions");
-
     if (pcolormask1) *pcolormask1 = NULL;
     if (pcolormask2) *pcolormask2 = NULL;
     if (!pcolorfract)
-        return ERROR_INT("&colorfract not defined", procName, 1);
+        return ERROR_INT("&colorfract not defined", __func__, 1);
     *pcolorfract = 0.0;
     if (!pixs || pixGetDepth(pixs) != 32)
-        return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 32 bpp", __func__, 1);
     if (factor < 1) factor = 1;
     if (lightthresh < 0) lightthresh = 210;  /* defaults */
     if (darkthresh < 0) darkthresh = 70;
@@ -983,7 +967,7 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
     if (pixm) {
         pixForegroundFraction(pixm, &ratio);
         if (ratio > 0.7) {
-            if (pixadb) L_INFO("pixm has big fg: %f5.2\n", procName, ratio);
+            if (pixadb) L_INFO("pixm has big fg: %f5.2\n", __func__, ratio);
             return 0;
         }
     }
@@ -993,18 +977,18 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
          * reddish and, using lightthresh, not too dark. */
     pixGetRankColorArray(pixs, 10, L_SELECT_AVERAGE, factor, &carray, NULL, 0);
     if (!carray)
-        return ERROR_INT("rank color array not made", procName, 1);
+        return ERROR_INT("rank color array not made", __func__, 1);
     extractRGBValues(carray[9], &rval, &gval, &bval);
     if (pixadb) L_INFO("lightest background color: (r,g,b) = (%d,%d,%d)\n",
-                       procName, rval, gval, bval);
+                       __func__, rval, gval, bval);
     proceed = TRUE;
     if ((rval < bval - 2) || (rval < gval - 2)) {
-        if (pixadb) L_INFO("background not reddish\n", procName);
+        if (pixadb) L_INFO("background not reddish\n", __func__);
         proceed = FALSE;
     }
     aveval = (rval + gval + bval) / 3;
     if (aveval < lightthresh) {
-        if (pixadb) L_INFO("background too dark\n", procName);
+        if (pixadb) L_INFO("background too dark\n", __func__);
         proceed = FALSE;
     }
     if (pixadb) {
@@ -1075,9 +1059,9 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixm1, *pixm2, *pixm3;
     *pcolorfract = (l_float32)count / ((l_float32)(w) * h);
     if (pixadb) {
         if (count == 0)
-            L_INFO("no light color pixels found\n", procName);
+            L_INFO("no light color pixels found\n", __func__);
         else
-            L_INFO("fraction of light color pixels = %5.3f\n", procName,
+            L_INFO("fraction of light color pixels = %5.3f\n", __func__,
                    *pcolorfract);
     }
 
@@ -1170,29 +1154,27 @@ pixNumSignificantGrayColors(PIX       *pixs,
 l_int32  i, w, h, count, mincount, ncolors;
 NUMA    *na;
 
-    PROCNAME("pixNumSignificantGrayColors");
-
     if (!pncolors)
-        return ERROR_INT("&ncolors not defined", procName, 1);
+        return ERROR_INT("&ncolors not defined", __func__, 1);
     *pncolors = 0;
     if (!pixs || pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 8 bpp", __func__, 1);
     if (darkthresh < 0) darkthresh = 20;  /* defaults */
     if (lightthresh < 0) lightthresh = 236;
     if (minfract < 0.0) minfract = 0.0001;
     if (minfract > 1.0)
-        return ERROR_INT("minfract > 1.0", procName, 1);
+        return ERROR_INT("minfract > 1.0", __func__, 1);
     if (minfract >= 0.001)
         L_WARNING("minfract too big; likely to underestimate ncolors\n",
-                  procName);
+                  __func__);
     if (lightthresh > 255 || darkthresh >= lightthresh)
-        return ERROR_INT("invalid thresholds", procName, 1);
+        return ERROR_INT("invalid thresholds", __func__, 1);
     if (factor < 1) factor = 1;
 
     pixGetDimensions(pixs, &w, &h, NULL);
     mincount = (l_int32)(minfract * w * h * factor * factor);
     if ((na = pixGetGrayHistogram(pixs, factor)) == NULL)
-        return ERROR_INT("na not made", procName, 1);
+        return ERROR_INT("na not made", __func__, 1);
     ncolors = 2;  /* add in black and white */
     for (i = darkthresh; i <= lightthresh; i++) {
         numaGetIValue(na, i, &count);
@@ -1294,14 +1276,12 @@ l_float32  pixfract, colorfract;
 PIX       *pixt, *pixsc, *pixg, *pixe, *pixb, *pixm;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixColorsForQuantization");
-
     if (piscolor) *piscolor = 0;
     if (!pncolors)
-        return ERROR_INT("&ncolors not defined", procName, 1);
+        return ERROR_INT("&ncolors not defined", __func__, 1);
     *pncolors = 0;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if ((cmap = pixGetColormap(pixs)) != NULL) {
         *pncolors = pixcmapGetCount(cmap);
         if (piscolor)
@@ -1311,7 +1291,7 @@ PIXCMAP   *cmap;
 
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 && d != 32)
-        return ERROR_INT("pixs not 8 or 32 bpp", procName, 1);
+        return ERROR_INT("pixs not 8 or 32 bpp", __func__, 1);
     if (thresh <= 0)
         thresh = 15;
 
@@ -1436,16 +1416,14 @@ l_uint32   pixel;
 l_uint32  *data, *line;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixNumColors");
-
     if (!pncolors)
-        return ERROR_INT("&ncolors not defined", procName, 1);
+        return ERROR_INT("&ncolors not defined", __func__, 1);
     *pncolors = 0;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 2 && d != 4 && d != 8 && d != 32)
-        return ERROR_INT("d not in {2, 4, 8, 32}", procName, 1);
+        return ERROR_INT("d not in {2, 4, 8, 32}", __func__, 1);
     if (factor < 1) factor = 1;
 
     data = pixGetData(pixs);
@@ -1475,7 +1453,7 @@ PIXCMAP   *cmap;
             count = pixcmapGetCount(cmap);
             if (sum != count)
                 L_WARNING("colormap size %d differs from actual colors\n",
-                          procName, count);
+                          __func__, count);
         }
         return 0;
     }
@@ -1538,14 +1516,12 @@ l_uint32  *datas, *lines, *datad, *lined;
 PIX       *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixConvertRGBToCmapLossless");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", __func__, NULL);
 
     pixNumColors(pixs, 1, &ncolors);
     if (ncolors > 256) {
-        L_ERROR("too many colors found: %d\n", procName, ncolors);
+        L_ERROR("too many colors found: %d\n", __func__, ncolors);
         return NULL;
     }
 
@@ -1560,7 +1536,7 @@ PIXCMAP   *cmap;
         d = 8;
 
     if ((pixd = pixCreate(w, h, d)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     cmap = pixcmapCreate(d);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
@@ -1635,27 +1611,25 @@ pixGetMostPopulatedColors(PIX        *pixs,
 l_int32  n, i, rgbindex, rval, gval, bval;
 NUMA    *nahisto, *naindex;
 
-    PROCNAME("pixGetMostPopulatedColors");
-
     if (!parray && !pcmap)
-        return ERROR_INT("no return val requested", procName, 1);
+        return ERROR_INT("no return val requested", __func__, 1);
     if (parray) *parray = NULL;
     if (pcmap) *pcmap = NULL;
     if (!pixs || pixGetDepth(pixs) != 32)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (sigbits < 2 || sigbits > 6)
-        return ERROR_INT("sigbits not in [2 ... 6]", procName, 1);
+        return ERROR_INT("sigbits not in [2 ... 6]", __func__, 1);
     if (factor < 1 || ncolors < 1)
-        return ERROR_INT("factor < 1 or ncolors < 1", procName, 1);
+        return ERROR_INT("factor < 1 or ncolors < 1", __func__, 1);
 
     if ((nahisto = pixGetRGBHistogram(pixs, sigbits, factor)) == NULL)
-        return ERROR_INT("nahisto not made", procName, 1);
+        return ERROR_INT("nahisto not made", __func__, 1);
 
         /* naindex contains the index into nahisto, which is the rgbindex */
     naindex = numaSortIndexAutoSelect(nahisto, L_SORT_DECREASING);
     numaDestroy(&nahisto);
     if (!naindex)
-        return ERROR_INT("naindex not made", procName, 1);
+        return ERROR_INT("naindex not made", __func__, 1);
 
     n = numaGetCount(naindex);
     ncolors = L_MIN(n, ncolors);
@@ -1711,12 +1685,10 @@ l_int32   w, h;
 PIX      *pixd;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixSimpleColorQuantize");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (sigbits < 2 || sigbits > 4)
-        return (PIX *)ERROR_PTR("sigbits not in {2,3,4}", procName, NULL);
+        return (PIX *)ERROR_PTR("sigbits not in {2,3,4}", __func__, NULL);
 
     pixGetMostPopulatedColors(pixs, sigbits, factor, ncolors, NULL, &cmap);
     pixGetDimensions(pixs, &w, &h, NULL);
@@ -1758,14 +1730,12 @@ l_float32  *array;
 l_uint32   *data, *line, *rtab, *gtab, *btab;
 NUMA       *na;
 
-    PROCNAME("pixGetRGBHistogram");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (sigbits < 2 || sigbits > 6)
-        return (NUMA *)ERROR_PTR("sigbits not in [2 ... 6]", procName, NULL);
+        return (NUMA *)ERROR_PTR("sigbits not in [2 ... 6]", __func__, NULL);
     if (factor < 1)
-        return (NUMA *)ERROR_PTR("factor < 1", procName, NULL);
+        return (NUMA *)ERROR_PTR("factor < 1", __func__, NULL);
 
         /* Get histogram size: 2^(3 * sigbits) */
     size = 1 << (3 * sigbits);  /* 64, 512, 4096, 32768, 262144 */
@@ -1778,7 +1748,7 @@ NUMA       *na;
     pixGetDimensions(pixs, &w, &h, NULL);
     npts = ((w + factor - 1) / factor) * ((h + factor - 1) / factor);
     if (npts < 1000)
-        L_WARNING("only sampling %d pixels\n", procName, npts);
+        L_WARNING("only sampling %d pixels\n", __func__, npts);
     wpl = pixGetWpl(pixs);
     data = pixGetData(pixs);
     for (i = 0; i < h; i += factor) {
@@ -1824,15 +1794,13 @@ makeRGBIndexTables(l_uint32  **prtab,
 l_int32    i;
 l_uint32  *rtab, *gtab, *btab;
 
-    PROCNAME("makeRGBIndexTables");
-
     if (prtab) *prtab = NULL;
     if (pgtab) *pgtab = NULL;
     if (pbtab) *pbtab = NULL;
     if (!prtab || !pgtab || !pbtab)
-        return ERROR_INT("not all table ptrs defined", procName, 1);
+        return ERROR_INT("not all table ptrs defined", __func__, 1);
     if (sigbits < 2 || sigbits > 6)
-        return ERROR_INT("sigbits not in [2 ... 6]", procName, 1);
+        return ERROR_INT("sigbits not in [2 ... 6]", __func__, 1);
 
     rtab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
     gtab = (l_uint32 *)LEPT_CALLOC(256, sizeof(l_uint32));
@@ -1841,7 +1809,7 @@ l_uint32  *rtab, *gtab, *btab;
         LEPT_FREE(rtab);
         LEPT_FREE(gtab);
         LEPT_FREE(btab);
-        return ERROR_INT("calloc fail for tab", procName, 1);
+        return ERROR_INT("calloc fail for tab", __func__, 1);
     }
     *prtab = rtab;
     *pgtab = gtab;
@@ -1883,8 +1851,8 @@ l_uint32  *rtab, *gtab, *btab;
         }
         break;
     default:
-        L_ERROR("Illegal sigbits = %d\n", procName, sigbits);
-        return ERROR_INT("sigbits not in [2 ... 6]", procName, 1);
+        L_ERROR("Illegal sigbits = %d\n", __func__, sigbits);
+        return ERROR_INT("sigbits not in [2 ... 6]", __func__, 1);
     }
 
     return 0;
@@ -1916,15 +1884,13 @@ getRGBFromIndex(l_uint32  index,
                 l_int32  *pgval,
                 l_int32  *pbval)
 {
-    PROCNAME("getRGBFromIndex");
-
     if (prval) *prval = 0;
     if (pgval) *pgval = 0;
     if (pbval) *pbval = 0;
     if (!prval || !pgval || !pbval)
-        return ERROR_INT("not all component ptrs defined", procName, 1);
+        return ERROR_INT("not all component ptrs defined", __func__, 1);
     if (sigbits < 2 || sigbits > 6)
-        return ERROR_INT("sigbits not in [2 ... 6]", procName, 1);
+        return ERROR_INT("sigbits not in [2 ... 6]", __func__, 1);
 
     switch (sigbits) {
     case 2:
@@ -1953,8 +1919,8 @@ getRGBFromIndex(l_uint32  index,
         *pbval = ((index << 2) & 0xfc) | 0x02;
         break;
     default:
-        L_ERROR("Illegal sigbits = %d\n", procName, sigbits);
-        return ERROR_INT("sigbits not in [2 ... 6]", procName, 1);
+        L_ERROR("Illegal sigbits = %d\n", __func__, sigbits);
+        return ERROR_INT("sigbits not in [2 ... 6]", __func__, 1);
     }
 
     return 0;
@@ -2005,21 +1971,19 @@ l_float32  fract, ratio;
 PIX       *pix1, *pix2, *pix3, *pix4;
 FPIX      *fpix;
 
-    PROCNAME("pixHasHighlightRed");
-
     if (pratio) *pratio = 0.0;
     if (ppixdb) *ppixdb = NULL;
     if (phasred) *phasred = 0;
     if (!pratio && !ppixdb)
-        return ERROR_INT("no return val requested", procName, 1);
+        return ERROR_INT("no return val requested", __func__, 1);
     if (!phasred)
-        return ERROR_INT("&hasred not defined", procName, 1);
+        return ERROR_INT("&hasred not defined", __func__, 1);
     if (!pixs || pixGetDepth(pixs) != 32)
-        return ERROR_INT("pixs not defined or not 32 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 32 bpp", __func__, 1);
     if (minfract <= 0.0)
-        return ERROR_INT("minfract must be > 0.0", procName, 1);
+        return ERROR_INT("minfract must be > 0.0", __func__, 1);
     if (fthresh < 1.5 || fthresh > 3.5)
-        L_WARNING("fthresh = %f is out of normal bounds\n", procName, fthresh);
+        L_WARNING("fthresh = %f is out of normal bounds\n", __func__, fthresh);
 
     if (factor > 1)
         pix1 = pixScaleByIntSampling(pixs, factor);
@@ -2039,7 +2003,7 @@ FPIX      *fpix;
     pixAnd(pix4, pix4, pix2);
     pixForegroundFraction(pix4, &fract);
     ratio = fract / minfract;
-    L_INFO("fract = %7.5f, ratio = %7.3f\n", procName, fract, ratio);
+    L_INFO("fract = %7.5f, ratio = %7.3f\n", __func__, fract, ratio);
     if (pratio) *pratio = ratio;
     if (ratio >= 1.0)
         *phasred = 1;

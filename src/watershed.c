@@ -212,22 +212,20 @@ wshedCreate(PIX     *pixs,
 l_int32   w, h;
 L_WSHED  *wshed;
 
-    PROCNAME("wshedCreate");
-
     if (!pixs)
-        return (L_WSHED *)ERROR_PTR("pixs is not defined", procName, NULL);
+        return (L_WSHED *)ERROR_PTR("pixs is not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (L_WSHED *)ERROR_PTR("pixs is not 8 bpp", procName, NULL);
+        return (L_WSHED *)ERROR_PTR("pixs is not 8 bpp", __func__, NULL);
     if (!pixm)
-        return (L_WSHED *)ERROR_PTR("pixm is not defined", procName, NULL);
+        return (L_WSHED *)ERROR_PTR("pixm is not defined", __func__, NULL);
     if (pixGetDepth(pixm) != 1)
-        return (L_WSHED *)ERROR_PTR("pixm is not 1 bpp", procName, NULL);
+        return (L_WSHED *)ERROR_PTR("pixm is not 1 bpp", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);
     if (pixGetWidth(pixm) != w || pixGetHeight(pixm) != h)
-        return (L_WSHED *)ERROR_PTR("pixs/m sizes are unequal", procName, NULL);
+        return (L_WSHED *)ERROR_PTR("pixs/m sizes are unequal", __func__, NULL);
 
     if ((wshed = (L_WSHED *)LEPT_CALLOC(1, sizeof(L_WSHED))) == NULL)
-        return (L_WSHED *)ERROR_PTR("wshed not made", procName, NULL);
+        return (L_WSHED *)ERROR_PTR("wshed not made", __func__, NULL);
 
     wshed->pixs = pixClone(pixs);
     wshed->pixm = pixClone(pixm);
@@ -256,10 +254,8 @@ wshedDestroy(L_WSHED  **pwshed)
 l_int32   i;
 L_WSHED  *wshed;
 
-    PROCNAME("wshedDestroy");
-
     if (pwshed == NULL) {
-        L_WARNING("ptr address is null!\n", procName);
+        L_WARNING("ptr address is null!\n", __func__);
         return;
     }
 
@@ -332,10 +328,8 @@ PIXA     *pixad;
 L_STACK  *rstack;
 PTA      *ptas, *ptao;
 
-    PROCNAME("wshedApply");
-
     if (!wshed)
-        return ERROR_INT("wshed not defined", procName, 1);
+        return ERROR_INT("wshed not defined", __func__, 1);
 
     /* ------------------------------------------------------------ *
      *  Initialize priority queue and pixlab with seeds and minima  *
@@ -406,7 +400,7 @@ PTA      *ptas, *ptao;
     wshed->pixad = pixad;  /* wshed owns this */
     nalevels = numaCreate(nseeds);
     wshed->nalevels = nalevels;  /* wshed owns this */
-    L_INFO("nseeds = %d, nother = %d\n", procName, nseeds, nother);
+    L_INFO("nseeds = %d, nother = %d\n", __func__, nseeds, nother);
     while (lheapGetCount(lh) > 0) {
         popWSPixel(lh, rstack, &val, &x, &y, &index);
 /*        lept_stderr("x = %d, y = %d, index = %d\n", x, y, index); */
@@ -563,10 +557,8 @@ wshedSaveBasin(L_WSHED  *wshed,
 BOX  *box;
 PIX  *pix;
 
-    PROCNAME("wshedSaveBasin");
-
     if (!wshed) {
-        L_ERROR("wshed not defined\n", procName);
+        L_ERROR("wshed not defined\n", __func__);
         return;
     }
 
@@ -615,16 +607,14 @@ BOX      *box;
 PIX      *pixs, *pixt, *pixd;
 L_QUEUE  *lq;
 
-    PROCNAME("identifyWatershedBasin");
-
     if (!pbox)
-        return ERROR_INT("&box not defined", procName, 1);
+        return ERROR_INT("&box not defined", __func__, 1);
     *pbox = NULL;
     if (!ppixd)
-        return ERROR_INT("&pixd not defined", procName, 1);
+        return ERROR_INT("&pixd not defined", __func__, 1);
     *ppixd = NULL;
     if (!wshed)
-        return ERROR_INT("wshed not defined", procName, 1);
+        return ERROR_INT("wshed not defined", __func__, 1);
 
         /* Make a queue and an auxiliary stack */
     lq = lqueueCreate(0);
@@ -722,15 +712,13 @@ l_int32  *lut;
 NUMA     *na;
 NUMA    **links;
 
-    PROCNAME("mergeLookup");
-
     if (!wshed)
-        return ERROR_INT("wshed not defined", procName, 1);
+        return ERROR_INT("wshed not defined", __func__, 1);
     size = wshed->arraysize;
     if (sindex < 0 || sindex >= size)
-        return ERROR_INT("invalid sindex", procName, 1);
+        return ERROR_INT("invalid sindex", __func__, 1);
     if (dindex < 0 || dindex >= size)
-        return ERROR_INT("invalid dindex", procName, 1);
+        return ERROR_INT("invalid dindex", __func__, 1);
 
         /* Redirect links in the lut */
     n = 0;
@@ -784,20 +772,18 @@ wshedGetHeight(L_WSHED  *wshed,
 {
 l_int32  minval;
 
-    PROCNAME("wshedGetHeight");
-
     if (!pheight)
-        return ERROR_INT("&height not defined", procName, 1);
+        return ERROR_INT("&height not defined", __func__, 1);
     *pheight = 0;
     if (!wshed)
-        return ERROR_INT("wshed not defined", procName, 1);
+        return ERROR_INT("wshed not defined", __func__, 1);
 
     if (label < wshed->nseeds)
         numaGetIValue(wshed->nash, label, &minval);
     else if (label < wshed->nseeds + wshed->nother)
         numaGetIValue(wshed->namh, label, &minval);
     else
-        return ERROR_INT("finished watershed; should not call", procName, 1);
+        return ERROR_INT("finished watershed; should not call", __func__, 1);
 
     *pheight = val - minval;
     return 0;
@@ -830,10 +816,8 @@ pushNewPixel(L_QUEUE  *lq,
 {
 L_NEWPIXEL  *np;
 
-    PROCNAME("pushNewPixel");
-
     if (!lq) {
-        L_ERROR("queue not defined\n", procName);
+        L_ERROR("queue not defined\n", __func__);
         return;
     }
 
@@ -876,10 +860,8 @@ popNewPixel(L_QUEUE  *lq,
 {
 L_NEWPIXEL  *np;
 
-    PROCNAME("popNewPixel");
-
     if (!lq) {
-        L_ERROR("lqueue not defined\n", procName);
+        L_ERROR("lqueue not defined\n", __func__);
         return;
     }
 
@@ -917,14 +899,12 @@ pushWSPixel(L_HEAP   *lh,
 {
 L_WSPIXEL  *wsp;
 
-    PROCNAME("pushWSPixel");
-
     if (!lh) {
-        L_ERROR("heap not defined\n", procName);
+        L_ERROR("heap not defined\n", __func__);
         return;
     }
     if (!stack) {
-        L_ERROR("stack not defined\n", procName);
+        L_ERROR("stack not defined\n", __func__);
         return;
     }
 
@@ -969,18 +949,16 @@ popWSPixel(L_HEAP   *lh,
 {
 L_WSPIXEL  *wsp;
 
-    PROCNAME("popWSPixel");
-
     if (!lh) {
-        L_ERROR("lheap not defined\n", procName);
+        L_ERROR("lheap not defined\n", __func__);
         return;
     }
     if (!stack) {
-        L_ERROR("stack not defined\n", procName);
+        L_ERROR("stack not defined\n", __func__);
         return;
     }
     if (!pval || !px || !py || !pindex) {
-        L_ERROR("data can't be returned\n", procName);
+        L_ERROR("data can't be returned\n", __func__);
         return;
     }
 
@@ -1041,10 +1019,8 @@ wshedBasins(L_WSHED  *wshed,
             PIXA    **ppixa,
             NUMA    **pnalevels)
 {
-    PROCNAME("wshedBasins");
-
     if (!wshed)
-        return ERROR_INT("wshed not defined", procName, 1);
+        return ERROR_INT("wshed not defined", __func__, 1);
 
     if (ppixa)
         *ppixa = pixaCopy(wshed->pixad, L_CLONE);
@@ -1068,10 +1044,8 @@ NUMA    *na;
 PIX     *pix, *pixd;
 PIXA    *pixa;
 
-    PROCNAME("wshedRenderFill");
-
     if (!wshed)
-        return (PIX *)ERROR_PTR("wshed not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("wshed not defined", __func__, NULL);
 
     wshedBasins(wshed, &pixa, &na);
     pixd = pixCopy(NULL, wshed->pixs);
@@ -1103,10 +1077,8 @@ l_int32  w, h;
 PIX     *pixg, *pixt, *pixc, *pixm, *pixd;
 PIXA    *pixa;
 
-    PROCNAME("wshedRenderColors");
-
     if (!wshed)
-        return (PIX *)ERROR_PTR("wshed not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("wshed not defined", __func__, NULL);
 
     wshedBasins(wshed, &pixa, NULL);
     pixg = pixCopy(NULL, wshed->pixs);

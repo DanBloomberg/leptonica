@@ -192,17 +192,15 @@ l_uint32  *data1, *data2, *line1, *line2;
 PIX       *pixs1, *pixs2, *pixt1, *pixt2, *pixalpha;
 PIXCMAP   *cmap1, *cmap2;
 
-    PROCNAME("pixEqualWithAlpha");
-
     if (!psame)
-        return ERROR_INT("psame not defined", procName, 1);
+        return ERROR_INT("psame not defined", __func__, 1);
     *psame = 0;  /* init to not equal */
     if (!pix1 || !pix2)
-        return ERROR_INT("pix1 and pix2 not both defined", procName, 1);
+        return ERROR_INT("pix1 and pix2 not both defined", __func__, 1);
     pixGetDimensions(pix1, &w1, &h1, &d1);
     pixGetDimensions(pix2, &w2, &h2, &d2);
     if (w1 != w2 || h1 != h2) {
-        L_INFO("pix sizes differ\n", procName);
+        L_INFO("pix sizes differ\n", __func__);
         return 0;
     }
 
@@ -222,7 +220,7 @@ PIXCMAP   *cmap1, *cmap2;
             pixalpha = (spp1 == 4) ? pix1 : pix2;
             pixAlphaIsOpaque(pixalpha, &opaque);
             if (!opaque) {
-                L_INFO("just one pix has a non-opaque alpha layer\n", procName);
+                L_INFO("just one pix has a non-opaque alpha layer\n", __func__);
                 return 0;
             }
         }
@@ -232,7 +230,7 @@ PIXCMAP   *cmap1, *cmap2;
     cmap2 = pixGetColormap(pix2);
     if (!cmap1 && !cmap2 && (d1 != d2) && (d1 == 32 || d2 == 32)) {
         L_INFO("no colormaps, pix depths unequal, and one of them is RGB\n",
-               procName);
+               __func__);
         return 0;
     }
 
@@ -278,7 +276,7 @@ PIXCMAP   *cmap1, *cmap2;
     d2 = pixGetDepth(pixs2);
     if (d1 != d2) {
         if (d1 == 16 || d2 == 16) {
-            L_INFO("one pix is 16 bpp\n", procName);
+            L_INFO("one pix is 16 bpp\n", __func__);
             pixDestroy(&pixs1);
             pixDestroy(&pixs2);
             return 0;
@@ -286,7 +284,7 @@ PIXCMAP   *cmap1, *cmap2;
         pixt1 = pixConvertLossless(pixs1, 8);
         pixt2 = pixConvertLossless(pixs2, 8);
         if (!pixt1 || !pixt2) {
-            L_INFO("failure to convert to 8 bpp\n", procName);
+            L_INFO("failure to convert to 8 bpp\n", __func__);
             pixDestroy(&pixs1);
             pixDestroy(&pixs2);
             pixDestroy(&pixt1);
@@ -391,27 +389,25 @@ l_uint32   endmask, val1, val2;
 l_uint32  *data1, *data2, *line1, *line2;
 PIXCMAP   *cmap1, *cmap2;
 
-    PROCNAME("pixEqualWithCmap");
-
     if (!psame)
-        return ERROR_INT("&same not defined", procName, 1);
+        return ERROR_INT("&same not defined", __func__, 1);
     *psame = 0;
     if (!pix1)
-        return ERROR_INT("pix1 not defined", procName, 1);
+        return ERROR_INT("pix1 not defined", __func__, 1);
     if (!pix2)
-        return ERROR_INT("pix2 not defined", procName, 1);
+        return ERROR_INT("pix2 not defined", __func__, 1);
 
     if (pixSizesEqual(pix1, pix2) == 0)
         return 0;
     cmap1 = pixGetColormap(pix1);
     cmap2 = pixGetColormap(pix2);
     if (!cmap1 || !cmap2) {
-        L_INFO("both images don't have colormap\n", procName);
+        L_INFO("both images don't have colormap\n", __func__);
         return 0;
     }
     pixGetDimensions(pix1, &w, &h, &d);
     if (d != 1 && d != 2 && d != 4 && d != 8) {
-        L_INFO("pix depth not in {1, 2, 4, 8}\n", procName);
+        L_INFO("pix depth not in {1, 2, 4, 8}\n", __func__);
         return 0;
     }
 
@@ -484,22 +480,20 @@ cmapEqual(PIXCMAP  *cmap1,
 {
 l_int32  n1, n2, i, rval1, rval2, gval1, gval2, bval1, bval2, aval1, aval2;
 
-    PROCNAME("cmapEqual");
-
     if (!psame)
-        return ERROR_INT("&same not defined", procName, 1);
+        return ERROR_INT("&same not defined", __func__, 1);
     *psame = FALSE;
     if (!cmap1)
-        return ERROR_INT("cmap1 not defined", procName, 1);
+        return ERROR_INT("cmap1 not defined", __func__, 1);
     if (!cmap2)
-        return ERROR_INT("cmap2 not defined", procName, 1);
+        return ERROR_INT("cmap2 not defined", __func__, 1);
     if (ncomps != 3 && ncomps != 4)
-        return ERROR_INT("ncomps not 3 or 4", procName, 1);
+        return ERROR_INT("ncomps not 3 or 4", __func__, 1);
 
     n1 = pixcmapGetCount(cmap1);
     n2 = pixcmapGetCount(cmap2);
     if (n1 != n2) {
-        L_INFO("colormap sizes are different\n", procName);
+        L_INFO("colormap sizes are different\n", __func__);
         return 0;
     }
 
@@ -542,13 +536,11 @@ l_int32   n, i, rval, gval, bval, numpix;
 NUMA     *na;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixUsesCmapColor");
-
     if (!pcolor)
-        return ERROR_INT("&color not defined", procName, 1);
+        return ERROR_INT("&color not defined", __func__, 1);
     *pcolor = 0;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
 
     if ((cmap = pixGetColormap(pixs)) == NULL)
         return 0;
@@ -609,15 +601,13 @@ l_int32   count1, count2, countn;
 l_int32  *tab8;
 PIX      *pixn;
 
-    PROCNAME("pixCorrelationBinary");
-
     if (!pval)
-        return ERROR_INT("&pval not defined", procName, 1);
+        return ERROR_INT("&pval not defined", __func__, 1);
     *pval = 0.0;
     if (!pix1)
-        return ERROR_INT("pix1 not defined", procName, 1);
+        return ERROR_INT("pix1 not defined", __func__, 1);
     if (!pix2)
-        return ERROR_INT("pix2 not defined", procName, 1);
+        return ERROR_INT("pix2 not defined", __func__, 1);
 
     tab8 = makePixelSumTab8();
     pixCountPixels(pix1, &count1, tab8);
@@ -666,14 +656,12 @@ l_int32   w1, h1, d1, w2, h2, d2, minw, minh;
 PIX      *pixt, *pixd;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixDisplayDiffBinary");
-
     if (!pix1 || !pix2)
-        return (PIX *)ERROR_PTR("pix1, pix2 not both defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pix1, pix2 not both defined", __func__, NULL);
     pixGetDimensions(pix1, &w1, &h1, &d1);
     pixGetDimensions(pix2, &w2, &h2, &d2);
     if (d1 != 1 || d2 != 1)
-        return (PIX *)ERROR_PTR("pix1 and pix2 not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pix1 and pix2 not 1 bpp", __func__, NULL);
     minw = L_MIN(w1, w2);
     minh = L_MIN(h1, h2);
 
@@ -725,18 +713,16 @@ pixCompareBinary(PIX        *pix1,
 l_int32   w, h, count;
 PIX      *pixt;
 
-    PROCNAME("pixCompareBinary");
-
     if (ppixdiff) *ppixdiff = NULL;
     if (!pfract)
-        return ERROR_INT("&pfract not defined", procName, 1);
+        return ERROR_INT("&pfract not defined", __func__, 1);
     *pfract = 1.0;  /* initialize to max difference */
     if (!pix1 || pixGetDepth(pix1) != 1)
-        return ERROR_INT("pix1 not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pix1 not defined or not 1 bpp", __func__, 1);
     if (!pix2 || pixGetDepth(pix2) != 1)
-        return ERROR_INT("pix2 not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pix2 not defined or not 1 bpp", __func__, 1);
     if (comptype != L_COMPARE_XOR && comptype != L_COMPARE_SUBTRACT)
-        return ERROR_INT("invalid comptype", procName, 1);
+        return ERROR_INT("invalid comptype", __func__, 1);
 
     if (comptype == L_COMPARE_XOR)
         pixt = pixXor(NULL, pix1, pix2);
@@ -808,20 +794,18 @@ pixCompareGrayOrRGB(PIX        *pix1,
 l_int32  retval, d1, d2;
 PIX     *pixt1, *pixt2, *pixs1, *pixs2;
 
-    PROCNAME("pixCompareGrayOrRGB");
-
     if (psame) *psame = 0;
     if (pdiff) *pdiff = 255.0;
     if (prmsdiff) *prmsdiff = 255.0;
     if (ppixdiff) *ppixdiff = NULL;
     if (!pix1 || pixGetDepth(pix1) == 1)
-        return ERROR_INT("pix1 not defined or 1 bpp", procName, 1);
+        return ERROR_INT("pix1 not defined or 1 bpp", __func__, 1);
     if (!pix2 || pixGetDepth(pix2) == 1)
-        return ERROR_INT("pix2 not defined or 1 bpp", procName, 1);
+        return ERROR_INT("pix2 not defined or 1 bpp", __func__, 1);
     if (comptype != L_COMPARE_SUBTRACT && comptype != L_COMPARE_ABS_DIFF)
-        return ERROR_INT("invalid comptype", procName, 1);
+        return ERROR_INT("invalid comptype", __func__, 1);
     if (plottype < 0 || plottype >= NUM_GPLOT_OUTPUTS)
-        return ERROR_INT("invalid plottype", procName, 1);
+        return ERROR_INT("invalid plottype", __func__, 1);
 
     pixt1 = pixRemoveColormap(pix1, REMOVE_CMAP_BASED_ON_SRC);
     pixt2 = pixRemoveColormap(pix2, REMOVE_CMAP_BASED_ON_SRC);
@@ -842,7 +826,7 @@ PIX     *pixt1, *pixt2, *pixs1, *pixs2;
     if (d1 != d2) {
         pixDestroy(&pixs1);
         pixDestroy(&pixs2);
-        return ERROR_INT("intrinsic depths are not equal", procName, 1);
+        return ERROR_INT("intrinsic depths are not equal", __func__, 1);
     }
 
     if (d1 == 8 || d1 == 16)
@@ -895,26 +879,24 @@ GPLOT          *gplot;
 NUMA           *na, *nac;
 PIX            *pixt;
 
-    PROCNAME("pixCompareGray");
-
     if (psame) *psame = 0;
     if (pdiff) *pdiff = 255.0;
     if (prmsdiff) *prmsdiff = 255.0;
     if (ppixdiff) *ppixdiff = NULL;
     if (!pix1)
-        return ERROR_INT("pix1 not defined", procName, 1);
+        return ERROR_INT("pix1 not defined", __func__, 1);
     if (!pix2)
-        return ERROR_INT("pix2 not defined", procName, 1);
+        return ERROR_INT("pix2 not defined", __func__, 1);
     d1 = pixGetDepth(pix1);
     d2 = pixGetDepth(pix2);
     if ((d1 != d2) || (d1 != 8 && d1 != 16))
-        return ERROR_INT("depths unequal or not 8 or 16 bpp", procName, 1);
+        return ERROR_INT("depths unequal or not 8 or 16 bpp", __func__, 1);
     if (pixGetColormap(pix1) || pixGetColormap(pix2))
-        return ERROR_INT("pix1 and/or pix2 are colormapped", procName, 1);
+        return ERROR_INT("pix1 and/or pix2 are colormapped", __func__, 1);
     if (comptype != L_COMPARE_SUBTRACT && comptype != L_COMPARE_ABS_DIFF)
-        return ERROR_INT("invalid comptype", procName, 1);
+        return ERROR_INT("invalid comptype", __func__, 1);
     if (plottype < 0 || plottype >= NUM_GPLOT_OUTPUTS)
-        return ERROR_INT("invalid plottype", procName, 1);
+        return ERROR_INT("invalid plottype", __func__, 1);
 
     lept_mkdir("lept/comp");
 
@@ -925,7 +907,7 @@ PIX            *pixt;
 
     pixZero(pixt, &same);
     if (same)
-        L_INFO("Images are pixel-wise identical\n", procName);
+        L_INFO("Images are pixel-wise identical\n", __func__);
     if (psame) *psame = same;
 
     if (pdiff)
@@ -933,7 +915,7 @@ PIX            *pixt;
 
         /* Don't bother to plot if the images are the same */
     if (plottype && !same) {
-        L_INFO("Images differ: output plots will be generated\n", procName);
+        L_INFO("Images differ: output plots will be generated\n", __func__);
         na = pixGetGrayHistogram(pixt, 1);
         numaGetNonzeroRange(na, TINY, &first, &last);
         nac = numaClipToInterval(na, 0, last);
@@ -1006,20 +988,18 @@ NUMA           *nar, *nag, *nab, *narc, *nagc, *nabc;
 PIX            *pixr1, *pixr2, *pixg1, *pixg2, *pixb1, *pixb2;
 PIX            *pixr, *pixg, *pixb;
 
-    PROCNAME("pixCompareRGB");
-
     if (psame) *psame = 0;
     if (pdiff) *pdiff = 0.0;
     if (prmsdiff) *prmsdiff = 0.0;
     if (ppixdiff) *ppixdiff = NULL;
     if (!pix1 || pixGetDepth(pix1) != 32)
-        return ERROR_INT("pix1 not defined or not 32 bpp", procName, 1);
+        return ERROR_INT("pix1 not defined or not 32 bpp", __func__, 1);
     if (!pix2 || pixGetDepth(pix2) != 32)
-        return ERROR_INT("pix2 not defined or not ew bpp", procName, 1);
+        return ERROR_INT("pix2 not defined or not ew bpp", __func__, 1);
     if (comptype != L_COMPARE_SUBTRACT && comptype != L_COMPARE_ABS_DIFF)
-        return ERROR_INT("invalid comptype", procName, 1);
+        return ERROR_INT("invalid comptype", __func__, 1);
     if (plottype < 0 || plottype >= NUM_GPLOT_OUTPUTS)
-        return ERROR_INT("invalid plottype", procName, 1);
+        return ERROR_INT("invalid plottype", __func__, 1);
 
     lept_mkdir("lept/comp");
 
@@ -1044,7 +1024,7 @@ PIX            *pixr, *pixg, *pixb;
     pixZero(pixb, &bsame);
     same = rsame && gsame && bsame;
     if (same)
-        L_INFO("Images are pixel-wise identical\n", procName);
+        L_INFO("Images are pixel-wise identical\n", __func__);
     if (psame) *psame = same;
 
     if (pdiff) {
@@ -1056,7 +1036,7 @@ PIX            *pixr, *pixg, *pixb;
 
         /* Don't bother to plot if the images are the same */
     if (plottype && !same) {
-        L_INFO("Images differ: output plots will be generated\n", procName);
+        L_INFO("Images differ: output plots will be generated\n", __func__);
         nar = pixGetGrayHistogram(pixr, 1);
         nag = pixGetGrayHistogram(pixg, 1);
         nab = pixGetGrayHistogram(pixb, 1);
@@ -1156,27 +1136,25 @@ PIX       *pixt, *pixr, *pixg, *pixb;
 PIX       *pixrdiff, *pixgdiff, *pixbdiff;
 PIXACC    *pixacc;
 
-    PROCNAME("pixCompareTiled");
-
     if (!ppixdiff)
-        return ERROR_INT("&pixdiff not defined", procName, 1);
+        return ERROR_INT("&pixdiff not defined", __func__, 1);
     *ppixdiff = NULL;
     if (!pix1)
-        return ERROR_INT("pix1 not defined", procName, 1);
+        return ERROR_INT("pix1 not defined", __func__, 1);
     if (!pix2)
-        return ERROR_INT("pix2 not defined", procName, 1);
+        return ERROR_INT("pix2 not defined", __func__, 1);
     d1 = pixGetDepth(pix1);
     d2 = pixGetDepth(pix2);
     if (d1 != d2)
-        return ERROR_INT("depths not equal", procName, 1);
+        return ERROR_INT("depths not equal", __func__, 1);
     if (d1 != 8 && d1 != 32)
-        return ERROR_INT("pix1 not 8 or 32 bpp", procName, 1);
+        return ERROR_INT("pix1 not 8 or 32 bpp", __func__, 1);
     if (d2 != 8 && d2 != 32)
-        return ERROR_INT("pix2 not 8 or 32 bpp", procName, 1);
+        return ERROR_INT("pix2 not 8 or 32 bpp", __func__, 1);
     if (sx < 2 || sy < 2)
-        return ERROR_INT("sx and sy not both > 1", procName, 1);
+        return ERROR_INT("sx and sy not both > 1", __func__, 1);
     if (type != L_MEAN_ABSVAL && type != L_ROOT_MEAN_SQUARE)
-        return ERROR_INT("invalid type", procName, 1);
+        return ERROR_INT("invalid type", __func__, 1);
 
     pixt = pixAbsDifference(pix1, pix2);
     if (d1 == 8) {
@@ -1246,15 +1224,13 @@ l_int32     i;
 l_float32  *array1, *array2;
 NUMA       *nah, *nan, *nad;
 
-    PROCNAME("pixCompareRankDifference");
-
     if (!pix1)
-        return (NUMA *)ERROR_PTR("pix1 not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pix1 not defined", __func__, NULL);
     if (!pix2)
-        return (NUMA *)ERROR_PTR("pix2 not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pix2 not defined", __func__, NULL);
 
     if ((nah = pixGetDifferenceHistogram(pix1, pix2, factor)) == NULL)
-        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not made", __func__, NULL);
 
     nan = numaNormalizeHistogram(nah, 1.0);
     array1 = numaGetFArray(nan, L_NOCOPY);
@@ -1334,23 +1310,21 @@ pixTestForSimilarity(PIX       *pix1,
 {
 l_float32   fractdiff, avediff;
 
-    PROCNAME("pixTestForSimilarity");
-
     if (!psimilar)
-        return ERROR_INT("&similar not defined", procName, 1);
+        return ERROR_INT("&similar not defined", __func__, 1);
     *psimilar = 0;
     if (!pix1)
-        return ERROR_INT("pix1 not defined", procName, 1);
+        return ERROR_INT("pix1 not defined", __func__, 1);
     if (!pix2)
-        return ERROR_INT("pix2 not defined", procName, 1);
+        return ERROR_INT("pix2 not defined", __func__, 1);
     if (pixSizesEqual(pix1, pix2) == 0)
-        return ERROR_INT("pix sizes not equal", procName, 1);
+        return ERROR_INT("pix sizes not equal", __func__, 1);
     if (mindiff <= 0)
-        return ERROR_INT("mindiff must be > 0", procName, 1);
+        return ERROR_INT("mindiff must be > 0", __func__, 1);
 
     if (pixGetDifferenceStats(pix1, pix2, factor, mindiff,
                               &fractdiff, &avediff, details))
-        return ERROR_INT("diff stats not found", procName, 1);
+        return ERROR_INT("diff stats not found", __func__, 1);
 
     if (maxave <= 0.0) maxave = 256.0;
     if (fractdiff <= maxfract && avediff <= maxave)
@@ -1415,27 +1389,25 @@ l_float32   fract, ave;
 l_float32  *array;
 NUMA       *nah, *nan, *nac;
 
-    PROCNAME("pixGetDifferenceStats");
-
     if (pfractdiff) *pfractdiff = 0.0;
     if (pavediff) *pavediff = 0.0;
     if (!pfractdiff)
-        return ERROR_INT("&fractdiff not defined", procName, 1);
+        return ERROR_INT("&fractdiff not defined", __func__, 1);
     if (!pavediff)
-        return ERROR_INT("&avediff not defined", procName, 1);
+        return ERROR_INT("&avediff not defined", __func__, 1);
     if (!pix1)
-        return ERROR_INT("pix1 not defined", procName, 1);
+        return ERROR_INT("pix1 not defined", __func__, 1);
     if (!pix2)
-        return ERROR_INT("pix2 not defined", procName, 1);
+        return ERROR_INT("pix2 not defined", __func__, 1);
     if (mindiff <= 0)
-        return ERROR_INT("mindiff must be > 0", procName, 1);
+        return ERROR_INT("mindiff must be > 0", __func__, 1);
 
     if ((nah = pixGetDifferenceHistogram(pix1, pix2, factor)) == NULL)
-        return ERROR_INT("na not made", procName, 1);
+        return ERROR_INT("na not made", __func__, 1);
 
     if ((nan = numaNormalizeHistogram(nah, 1.0)) == NULL) {
         numaDestroy(&nah);
-        return ERROR_INT("nan not made", procName, 1);
+        return ERROR_INT("nan not made", __func__, 1);
     }
     array = numaGetFArray(nan, L_NOCOPY);
 
@@ -1517,22 +1489,20 @@ l_float32  *array;
 NUMA       *na;
 PIX        *pixt1, *pixt2;
 
-    PROCNAME("pixGetDifferenceHistogram");
-
     if (!pix1)
-        return (NUMA *)ERROR_PTR("pix1 not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pix1 not defined", __func__, NULL);
     if (!pix2)
-        return (NUMA *)ERROR_PTR("pix2 not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pix2 not defined", __func__, NULL);
     d1 = pixGetDepth(pix1);
     d2 = pixGetDepth(pix2);
     if (d1 == 16 || d2 == 16)
-        return (NUMA *)ERROR_PTR("d == 16 not supported", procName, NULL);
+        return (NUMA *)ERROR_PTR("d == 16 not supported", __func__, NULL);
     if (d1 < 8 && !pixGetColormap(pix1))
         return (NUMA *)ERROR_PTR("pix1 depth < 8 bpp and not cmapped",
-                                 procName, NULL);
+                                 __func__, NULL);
     if (d2 < 8 && !pixGetColormap(pix2))
         return (NUMA *)ERROR_PTR("pix2 depth < 8 bpp and not cmapped",
-                                 procName, NULL);
+                                 __func__, NULL);
     pixt1 = pixRemoveColormap(pix1, REMOVE_CMAP_BASED_ON_SRC);
     pixt2 = pixRemoveColormap(pix2, REMOVE_CMAP_BASED_ON_SRC);
     pixGetDimensions(pixt1, &w1, &h1, &d1);
@@ -1540,7 +1510,7 @@ PIX        *pixt1, *pixt2;
     if (d1 != d2) {
         pixDestroy(&pixt1);
         pixDestroy(&pixt2);
-        return (NUMA *)ERROR_PTR("pix depths not equal", procName, NULL);
+        return (NUMA *)ERROR_PTR("pix depths not equal", __func__, NULL);
     }
     if (factor < 1) factor = 1;
 
@@ -1648,25 +1618,23 @@ l_int32  d1, d2, w, h, count;
 PIX     *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8, *pix9;
 PIX     *pix10, *pix11;
 
-    PROCNAME("pixGetPerceptualDiff");
-
     if (ppixdiff1) *ppixdiff1 = NULL;
     if (ppixdiff2) *ppixdiff2 = NULL;
     if (!pfract)
-        return ERROR_INT("&fract not defined", procName, 1);
+        return ERROR_INT("&fract not defined", __func__, 1);
     *pfract = 1.0;  /* init to completely different */
     if ((dilation & 1) == 0)
-        return ERROR_INT("dilation must be odd", procName, 1);
+        return ERROR_INT("dilation must be odd", __func__, 1);
     if (!pixs1)
-        return ERROR_INT("pixs1 not defined", procName, 1);
+        return ERROR_INT("pixs1 not defined", __func__, 1);
     if (!pixs2)
-        return ERROR_INT("pixs2 not defined", procName, 1);
+        return ERROR_INT("pixs2 not defined", __func__, 1);
     d1 = pixGetDepth(pixs1);
     d2 = pixGetDepth(pixs2);
     if (!pixGetColormap(pixs1) && d1 < 8)
-        return ERROR_INT("pixs1 not cmapped and < 8 bpp", procName, 1);
+        return ERROR_INT("pixs1 not cmapped and < 8 bpp", __func__, 1);
     if (!pixGetColormap(pixs2) && d2 < 8)
-        return ERROR_INT("pixs2 not cmapped and < 8 bpp", procName, 1);
+        return ERROR_INT("pixs2 not cmapped and < 8 bpp", __func__, 1);
 
         /* Integer downsample if requested */
     if (sampling > 1) {
@@ -1696,7 +1664,7 @@ PIX     *pix10, *pix11;
         pixDestroy(&pix3);
         pixDestroy(&pix4);
         L_INFO("depths unequal or not in {8,32}: d1 = %d, d2 = %d\n",
-               procName, d1, d2);
+               __func__, d1, d2);
         return 1;
     }
 
@@ -1811,24 +1779,22 @@ l_int32    same, i, j, w, h, d, wpl1, wpl2, v1, v2, r1, g1, b1, r2, g2, b2;
 l_uint32  *data1, *data2, *line1, *line2;
 l_float32  mse;  /* mean squared error */
 
-    PROCNAME("pixGetPSNR");
-
     if (!ppsnr)
-        return ERROR_INT("&psnr not defined", procName, 1);
+        return ERROR_INT("&psnr not defined", __func__, 1);
     *ppsnr = 0.0;
     if (!pix1 || !pix2)
-        return ERROR_INT("empty input pix", procName, 1);
+        return ERROR_INT("empty input pix", __func__, 1);
     if (!pixSizesEqual(pix1, pix2))
-        return ERROR_INT("pix sizes unequal", procName, 1);
+        return ERROR_INT("pix sizes unequal", __func__, 1);
     if (pixGetColormap(pix1))
-        return ERROR_INT("pix1 has colormap", procName, 1);
+        return ERROR_INT("pix1 has colormap", __func__, 1);
     if (pixGetColormap(pix2))
-        return ERROR_INT("pix2 has colormap", procName, 1);
+        return ERROR_INT("pix2 has colormap", __func__, 1);
     pixGetDimensions(pix1, &w, &h, &d);
     if (d != 8 && d != 32)
-        return ERROR_INT("pix not 8 or 32 bpp", procName, 1);
+        return ERROR_INT("pix not 8 or 32 bpp", __func__, 1);
     if (factor < 1)
-        return ERROR_INT("invalid sampling factor", procName, 1);
+        return ERROR_INT("invalid sampling factor", __func__, 1);
 
     pixEqual(pix1, pix2, &same);
     if (same) {
@@ -1947,32 +1913,30 @@ NUMAA      *naa;
 NUMAA     **n3a;  /* array of naa */
 PIX        *pix;
 
-    PROCNAME("pixaComparePhotoRegionsByHisto");
-
     if (pscores) *pscores = NULL;
     if (ppixd) *ppixd = NULL;
     if (!pnai)
-        return ERROR_INT("&na not defined", procName, 1);
+        return ERROR_INT("&na not defined", __func__, 1);
     *pnai = NULL;
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
     if (minratio < 0.0 || minratio > 1.0)
-        return ERROR_INT("minratio not in [0.0 ... 1.0]", procName, 1);
+        return ERROR_INT("minratio not in [0.0 ... 1.0]", __func__, 1);
     if (textthresh <= 0.0) textthresh = 1.3;
     if (factor < 1)
-        return ERROR_INT("subsampling factor must be >= 1", procName, 1);
+        return ERROR_INT("subsampling factor must be >= 1", __func__, 1);
     if (n < 1 || n > 7) {
-        L_WARNING("n = %d is invalid; setting to 4\n", procName, n);
+        L_WARNING("n = %d is invalid; setting to 4\n", __func__, n);
         n = 4;
     }
     if (simthresh <= 0.0) simthresh = 0.25;
     if (simthresh > 1.0)
-        return ERROR_INT("simthresh invalid; should be near 0.25", procName, 1);
+        return ERROR_INT("simthresh invalid; should be near 0.25", __func__, 1);
 
         /* Prepare the histograms */
     nim = pixaGetCount(pixa);
     if ((n3a = (NUMAA **)LEPT_CALLOC(nim, sizeof(NUMAA *))) == NULL)
-        return ERROR_INT("calloc fail for n3a", procName, 1);
+        return ERROR_INT("calloc fail for n3a", __func__, 1);
     naw = numaCreate(0);
     nah = numaCreate(0);
     for (i = 0; i < nim; i++) {
@@ -2001,7 +1965,7 @@ PIX        *pix;
     if ((scores =
                (l_float32 *)LEPT_CALLOC((size_t)nim * nim, sizeof(l_float32)))
                 == NULL) {
-        L_ERROR("calloc fail for scores\n", procName);
+        L_ERROR("calloc fail for scores\n", __func__);
         goto cleanup;
     }
     nai = numaMakeConstant(-1, nim);  /* classid array */
@@ -2165,19 +2129,17 @@ NUMAA     *naa1, *naa2;
 PIX       *pix3, *pix4;
 PIXA      *pixa;
 
-    PROCNAME("pixComparePhotoRegionsByHisto");
-
     if (!pscore)
-        return ERROR_INT("&score not defined", procName, 1);
+        return ERROR_INT("&score not defined", __func__, 1);
     *pscore = 0.0;
     if (!pix1 || !pix2)
-        return ERROR_INT("pix1 and pix2 not both defined", procName, 1);
+        return ERROR_INT("pix1 and pix2 not both defined", __func__, 1);
     if (minratio < 0.5 || minratio > 1.0)
-        return ERROR_INT("minratio not in [0.5 ... 1.0]", procName, 1);
+        return ERROR_INT("minratio not in [0.5 ... 1.0]", __func__, 1);
     if (factor < 1)
-        return ERROR_INT("subsampling factor must be >= 1", procName, 1);
+        return ERROR_INT("subsampling factor must be >= 1", __func__, 1);
     if (n < 1 || n > 7) {
-        L_WARNING("n = %d is invalid; setting to 4\n", procName, n);
+        L_WARNING("n = %d is invalid; setting to 4\n", __func__, n);
         n = 4;
     }
 
@@ -2281,22 +2243,20 @@ NUMAA  *naa;
 PIX    *pix1, *pix2, *pix3, *pixm;
 PIXA   *pixa;
 
-    PROCNAME("pixGenPhotoHistos");
-
     if (pnaa) *pnaa = NULL;
     if (pw) *pw = 0;
     if (ph) *ph = 0;
     if (!pnaa)
-        return ERROR_INT("&naa not defined", procName, 1);
+        return ERROR_INT("&naa not defined", __func__, 1);
     if (!pw || !ph)
-        return ERROR_INT("&w and &h not both defined", procName, 1);
+        return ERROR_INT("&w and &h not both defined", __func__, 1);
     if (!pixs || pixGetDepth(pixs) == 1)
-        return ERROR_INT("pixs not defined or 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or 1 bpp", __func__, 1);
     if (factor < 1)
-        return ERROR_INT("subsampling factor must be >= 1", procName, 1);
+        return ERROR_INT("subsampling factor must be >= 1", __func__, 1);
     if (thresh <= 0.0) thresh = 1.3;  /* default */
     if (n < 1 || n > 7) {
-        L_WARNING("n = %d is invalid; setting to 4\n", procName, n);
+        L_WARNING("n = %d is invalid; setting to 4\n", __func__, n);
         n = 4;
     }
 
@@ -2387,12 +2347,10 @@ l_float32  cx, cy;
 l_int32    xs, ys, delx, dely, icx, icy, ws, hs, wd, hd;
 PIX       *pix1, *pixd;
 
-    PROCNAME("pixPadToCenterCentroid");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (factor < 1)
-        return (PIX *)ERROR_PTR("invalid sampling factor", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid sampling factor", __func__, NULL);
 
     pix1 = pixConvertTo8(pixs, FALSE);
     pixCentroid8(pix1, factor, &cx, &cy);
@@ -2443,16 +2401,14 @@ l_float32  sumx, sumy, sumv;
 l_uint32  *data, *line;
 PIX       *pix1;
 
-    PROCNAME("pixCentroid8");
-
     if (pcx) *pcx = 0.0;
     if (pcy) *pcy = 0.0;
     if (!pixs || pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs undefined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixs undefined or not 8 bpp", __func__, 1);
     if (factor < 1)
-        return ERROR_INT("subsampling factor must be >= 1", procName, 1);
+        return ERROR_INT("subsampling factor must be >= 1", __func__, 1);
     if (!pcx || !pcy)
-        return ERROR_INT("&cx and &cy not both defined", procName, 1);
+        return ERROR_INT("&cx and &cy not both defined", __func__, 1);
 
     pix1 = pixInvert(NULL, pixs);
     pixGetDimensions(pix1, &w, &h, NULL);
@@ -2471,7 +2427,7 @@ PIX       *pix1;
     pixDestroy(&pix1);
 
     if (sumv == 0) {
-        L_INFO("input image is white\n", procName);
+        L_INFO("input image is white\n", __func__);
         *pcx = (l_float32)(w) / 2;
         *pcy = (l_float32)(h) / 2;
     } else {
@@ -2535,15 +2491,13 @@ NUMAA     *naa;
 PIX       *pix1;
 PIXA      *pixa1, *pixa2, *pixa3;
 
-    PROCNAME("pixDecideIfPhotoImage");
-
     if (!pnaa)
-        return ERROR_INT("&naa not defined", procName, 1);
+        return ERROR_INT("&naa not defined", __func__, 1);
     *pnaa = NULL;
     if (!pix || pixGetDepth(pix) != 8 || pixGetColormap(pix))
-        return ERROR_INT("pix undefined or invalid", procName, 1);
+        return ERROR_INT("pix undefined or invalid", __func__, 1);
     if (n < 1 || n > 7) {
-        L_WARNING("n = %d is invalid; setting to 4\n", procName, n);
+        L_WARNING("n = %d is invalid; setting to 4\n", __func__, n);
         n = 4;
     }
     if (thresh <= 0.0) thresh = 1.3;  /* default */
@@ -2551,14 +2505,14 @@ PIXA      *pixa1, *pixa2, *pixa3;
         /* Look for text lines */
     pixDecideIfText(pix, NULL, &istext, pixadebug);
     if (istext) {
-        L_INFO("Image is text\n", procName);
+        L_INFO("Image is text\n", __func__);
         return 0;
     }
 
         /* Determine grid from n */
     pixGetDimensions(pix, &w, &h, NULL);
     if (w == 0 || h == 0)
-        return ERROR_INT("invalid pix dimension", procName, 1);
+        return ERROR_INT("invalid pix dimension", __func__, 1);
     findHistoGridDimensions(n, w, h, &nx, &ny, 1);
 
         /* Evaluate histograms in each tile */
@@ -2622,10 +2576,10 @@ PIXA      *pixa1, *pixa2, *pixa3;
     if (pixadebug) {
         if (isphoto)
             L_INFO("ratio %f > %f; isphoto is true\n",
-                   procName, ratio, thresh);
+                   __func__, ratio, thresh);
         else
             L_INFO("ratio %f < %f; isphoto is false\n",
-                   procName, ratio, thresh);
+                   __func__, ratio, thresh);
     }
     if (isphoto)
         *pnaa = naa;
@@ -2743,13 +2697,11 @@ l_float32  wratio, hratio, score, minscore, dist;
 L_BMF     *bmf;
 NUMA      *na1, *na2, *nadist, *nascore;
 
-    PROCNAME("compareTilesByHisto");
-
     if (!pscore)
-        return ERROR_INT("&score not defined", procName, 1);
+        return ERROR_INT("&score not defined", __func__, 1);
     *pscore = 0.0;
     if (!naa1 || !naa2)
-        return ERROR_INT("naa1 and naa2 not both defined", procName, 1);
+        return ERROR_INT("naa1 and naa2 not both defined", __func__, 1);
 
         /* Filter for different sizes */
     wratio = (w1 < w2) ? (l_float32)w1 / (l_float32)w2 :
@@ -2759,12 +2711,12 @@ NUMA      *na1, *na2, *nadist, *nascore;
     if (wratio < minratio || hratio < minratio) {
         if (pixadebug)
             L_INFO("Sizes differ: wratio = %f, hratio = %f\n",
-                   procName, wratio, hratio);
+                   __func__, wratio, hratio);
         return 0;
     }
     n = numaaGetCount(naa1);
     if (n != numaaGetCount(naa2)) {  /* due to differing w/h ratio */
-        L_INFO("naa1 and naa2 sizes are different\n", procName);
+        L_INFO("naa1 and naa2 sizes are different\n", __func__);
         return 0;
     }
 
@@ -2922,22 +2874,20 @@ BOX       *box3, *box4;
 PIX       *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
 PIXA      *pixa;
 
-    PROCNAME("pixCompareGrayByHisto");
-
     if (!pscore)
-        return ERROR_INT("&score not defined", procName, 1);
+        return ERROR_INT("&score not defined", __func__, 1);
     *pscore = 0.0;
     if (!pix1 || !pix2)
-        return ERROR_INT("pix1 and pix2 not both defined", procName, 1);
+        return ERROR_INT("pix1 and pix2 not both defined", __func__, 1);
     if (minratio < 0.5 || minratio > 1.0)
-        return ERROR_INT("minratio not in [0.5 ... 1.0]", procName, 1);
+        return ERROR_INT("minratio not in [0.5 ... 1.0]", __func__, 1);
     if (maxgray < 200)
-        return ERROR_INT("invalid maxgray; should be >= 200", procName, 1);
+        return ERROR_INT("invalid maxgray; should be >= 200", __func__, 1);
     maxgray = L_MIN(255, maxgray);
     if (factor < 1)
-        return ERROR_INT("subsampling factor must be >= 1", procName, 1);
+        return ERROR_INT("subsampling factor must be >= 1", __func__, 1);
     if (n < 1 || n > 7) {
-        L_WARNING("n = %d is invalid; setting to 4\n", procName, n);
+        L_WARNING("n = %d is invalid; setting to 4\n", __func__, n);
         n = 4;
     }
 
@@ -3048,13 +2998,11 @@ NUMA      *na1, *na2, *na3, *na4, *na5, *na6, *na7;
 PIX       *pix3, *pix4;
 PIXA      *pixa1, *pixa2;
 
-    PROCNAME("pixCompareTilesByHisto");
-
     if (!pscore)
-        return ERROR_INT("&score not defined", procName, 1);
+        return ERROR_INT("&score not defined", __func__, 1);
     *pscore = 0.0;
     if (!pix1 || !pix2)
-        return ERROR_INT("pix1 and pix2 not both defined", procName, 1);
+        return ERROR_INT("pix1 and pix2 not both defined", __func__, 1);
 
         /* Determine grid from n */
     pixGetDimensions(pix1, &w, &h, NULL);
@@ -3173,16 +3121,14 @@ l_int32    w1, h1, w2, h2, icx1, icy1, icx2, icy2;
 l_int32    xm, xm1, xm2, xp, xp1, xp2, ym, ym1, ym2, yp, yp1, yp2;
 PIX       *pix3, *pix4;
 
-    PROCNAME("pixCropAlignedToCentroid");
-
     if (pbox1) *pbox1 = NULL;
     if (pbox2) *pbox2 = NULL;
     if (!pix1 || !pix2)
-        return ERROR_INT("pix1 and pix2 not both defined", procName, 1);
+        return ERROR_INT("pix1 and pix2 not both defined", __func__, 1);
     if (factor < 1)
-        return ERROR_INT("subsampling factor must be >= 1", procName, 1);
+        return ERROR_INT("subsampling factor must be >= 1", __func__, 1);
     if (!pbox1 || !pbox2)
-        return ERROR_INT("&box1 and &box2 not both defined", procName, 1);
+        return ERROR_INT("&box1 and &box2 not both defined", __func__, 1);
 
     pix3 = pixConvertTo8(pix1, FALSE);
     pix4 = pixConvertTo8(pix2, FALSE);
@@ -3247,24 +3193,22 @@ l_int32    i, j, n, nn, ival;
 l_float32  maxval;
 NUMA      *na1, *na2;
 
-    PROCNAME("l_compressGrayHistograms");
-
     if (!psize)
-        return (l_uint8 *)ERROR_PTR("&size not defined", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("&size not defined", __func__, NULL);
     *psize = 0;
     if (!naa)
-        return (l_uint8 *)ERROR_PTR("naa not defined", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("naa not defined", __func__, NULL);
     n = numaaGetCount(naa);
     for (i = 0; i < n; i++) {
         nn = numaaGetNumaCount(naa, i);
         if (nn != 256) {
-            L_ERROR("%d numbers in numa[%d]\n", procName, nn, i);
+            L_ERROR("%d numbers in numa[%d]\n", __func__, nn, i);
             return NULL;
         }
     }
 
     if ((bytea = (l_uint8 *)LEPT_CALLOC(8 + 256 * n, sizeof(l_uint8))) == NULL)
-        return (l_uint8 *)ERROR_PTR("bytea not made", procName, NULL);
+        return (l_uint8 *)ERROR_PTR("bytea not made", __func__, NULL);
     *psize = 8 + 256 * n;
     l_setDataFourBytes(bytea, 0, w);
     l_setDataFourBytes(bytea, 1, h);
@@ -3314,17 +3258,15 @@ l_int32  i, j, n;
 NUMA    *na;
 NUMAA   *naa;
 
-    PROCNAME("l_uncompressGrayHistograms");
-
     if (pw) *pw = 0;
     if (ph) *ph = 0;
     if (!pw || !ph)
-        return (NUMAA *)ERROR_PTR("&w and &h not both defined", procName, NULL);
+        return (NUMAA *)ERROR_PTR("&w and &h not both defined", __func__, NULL);
     if (!bytea)
-        return (NUMAA *)ERROR_PTR("bytea not defined", procName, NULL);
+        return (NUMAA *)ERROR_PTR("bytea not defined", __func__, NULL);
     n = (size - 8) / 256;
     if ((size - 8) % 256 != 0)
-        return (NUMAA *)ERROR_PTR("bytea size is invalid", procName, NULL);
+        return (NUMAA *)ERROR_PTR("bytea size is invalid", __func__, NULL);
 
     *pw = l_getDataFourBytes(bytea, 0);
     *ph = l_getDataFourBytes(bytea, 1);
@@ -3390,19 +3332,17 @@ l_float32  cx1, cx2, cy1, cy2, score;
 PIX       *pixb1, *pixb2, *pixt1, *pixt2, *pixt3, *pixt4;
 PIXA      *pixa1, *pixa2, *pixadb;
 
-    PROCNAME("pixCompareWithTranslation");
-
     if (pdelx) *pdelx = 0;
     if (pdely) *pdely = 0;
     if (pscore) *pscore = 0.0;
     if (!pdelx || !pdely)
-        return ERROR_INT("&delx and &dely not defined", procName, 1);
+        return ERROR_INT("&delx and &dely not defined", __func__, 1);
     if (!pscore)
-        return ERROR_INT("&score not defined", procName, 1);
+        return ERROR_INT("&score not defined", __func__, 1);
     if (!pix1)
-        return ERROR_INT("pix1 not defined", procName, 1);
+        return ERROR_INT("pix1 not defined", __func__, 1);
     if (!pix2)
-        return ERROR_INT("pix2 not defined", procName, 1);
+        return ERROR_INT("pix2 not defined", __func__, 1);
 
         /* Make tables */
     subtab = makeSubsampleTab2x();
@@ -3547,17 +3487,15 @@ l_float32  maxscore, score;
 FPIX      *fpix;
 PIX       *pix3, *pix4;
 
-    PROCNAME("pixBestCorrelation");
-
     if (pdelx) *pdelx = 0;
     if (pdely) *pdely = 0;
     if (pscore) *pscore = 0.0;
     if (!pix1 || pixGetDepth(pix1) != 1)
-        return ERROR_INT("pix1 not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pix1 not defined or not 1 bpp", __func__, 1);
     if (!pix2 || pixGetDepth(pix2) != 1)
-        return ERROR_INT("pix2 not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pix2 not defined or not 1 bpp", __func__, 1);
     if (!area1 || !area2)
-        return ERROR_INT("areas must be > 0", procName, 1);
+        return ERROR_INT("areas must be > 0", __func__, 1);
 
     if (debugflag > 0)
         fpix = fpixCreate(2 * maxshift + 1, 2 * maxshift + 1);

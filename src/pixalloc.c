@@ -184,13 +184,11 @@ L_PIX_MEM_STORE  *pms;
 L_PTRA           *pa;
 L_PTRAA          *paa;
 
-    PROCNAME("createPMS");
-
     if (!numalloc)
-        return ERROR_INT("numalloc not defined", procName, 1);
+        return ERROR_INT("numalloc not defined", __func__, 1);
     numaGetSum(numalloc, &nchunks);
     if (nchunks > 1000.0)
-        L_WARNING("There are %.0f chunks\n", procName, nchunks);
+        L_WARNING("There are %.0f chunks\n", __func__, nchunks);
 
     pms = (L_PIX_MEM_STORE *)LEPT_CALLOC(1, sizeof(L_PIX_MEM_STORE));
     CustomPMS = pms;
@@ -203,7 +201,7 @@ L_PTRAA          *paa;
     pms->nlevels = nlevels;
 
     if ((sizes = (size_t *)LEPT_CALLOC(nlevels, sizeof(size_t))) == NULL)
-        return ERROR_INT("sizes not made", procName, 1);
+        return ERROR_INT("sizes not made", __func__, 1);
     pms->sizes = sizes;
     if (smallest % 4 != 0)
         smallest += 4 - (smallest % 4);
@@ -215,7 +213,7 @@ L_PTRAA          *paa;
     alloca = numaGetIArray(numalloc);
     pms->allocarray = alloca;
     if ((paa = ptraaCreate(nlevels)) == NULL)
-        return ERROR_INT("paa not made", procName, 1);
+        return ERROR_INT("paa not made", __func__, 1);
     pms->paa = paa;
 
     for (i = 0, nbytes = 0; i < nlevels; i++)
@@ -224,18 +222,18 @@ L_PTRAA          *paa;
 
     if ((baseptr = (l_uint32 *)LEPT_CALLOC(nbytes / 4, sizeof(l_uint32)))
         == NULL)
-        return ERROR_INT("calloc fail for baseptr", procName, 1);
+        return ERROR_INT("calloc fail for baseptr", __func__, 1);
     pms->baseptr = baseptr;
     pms->maxptr = baseptr + nbytes / 4;  /* just beyond the memory store */
     if ((firstptr = (l_uint32 **)LEPT_CALLOC(nlevels, sizeof(l_uint32 *)))
         == NULL)
-        return ERROR_INT("calloc fail for firstptr", procName, 1);
+        return ERROR_INT("calloc fail for firstptr", __func__, 1);
     pms->firstptr = firstptr;
 
     data = baseptr;
     for (i = 0; i < nlevels; i++) {
         if ((pa = ptraCreate(alloca[i])) == NULL)
-            return ERROR_INT("pa not made", procName, 1);
+            return ERROR_INT("pa not made", __func__, 1);
         ptraaInsertPtra(paa, i, pa);
         firstptr[i] = data;
         for (j = 0; j < alloca[i]; j++) {
@@ -316,16 +314,14 @@ void             *data;
 L_PIX_MEM_STORE  *pms;
 L_PTRA           *pa;
 
-    PROCNAME("pmsCustomAlloc");
-
     if ((pms = CustomPMS) == NULL)
-        return (void *)ERROR_PTR("pms not defined", procName, NULL);
+        return (void *)ERROR_PTR("pms not defined", __func__, NULL);
 
     pmsGetLevelForAlloc(nbytes, &level);
 
     if (level < 0) {  /* size range invalid; must alloc */
         if ((data = pmsGetAlloc(nbytes)) == NULL)
-            return (void *)ERROR_PTR("data not made", procName, NULL);
+            return (void *)ERROR_PTR("data not made", __func__, NULL);
     } else {  /* get from store */
         pa = ptraaGetPtra(pms->paa, level, L_HANDLE_ONLY);
         data = ptraRemoveLast(pa);
@@ -359,15 +355,13 @@ l_int32           level;
 L_PIX_MEM_STORE  *pms;
 L_PTRA           *pa;
 
-    PROCNAME("pmsCustomDealloc");
-
     if ((pms = CustomPMS) == NULL) {
-        L_ERROR("pms not defined\n", procName);
+        L_ERROR("pms not defined\n", __func__);
         return;
     }
 
     if (pmsGetLevelForDealloc(data, &level) == 1) {
-        L_ERROR("level not found\n", procName);
+        L_ERROR("level not found\n", __func__);
         return;
     }
 
@@ -406,19 +400,17 @@ void             *data;
 FILE             *fp;
 L_PIX_MEM_STORE  *pms;
 
-    PROCNAME("pmsGetAlloc");
-
     if ((pms = CustomPMS) == NULL)
-        return (void *)ERROR_PTR("pms not defined", procName, NULL);
+        return (void *)ERROR_PTR("pms not defined", __func__, NULL);
 
     if ((data = (void *)LEPT_CALLOC(nbytes, sizeof(char))) == NULL)
-        return (void *)ERROR_PTR("data not made", procName, NULL);
+        return (void *)ERROR_PTR("data not made", __func__, NULL);
     if (pms->logfile && nbytes >= pms->smallest) {
         if ((fp = fopenWriteStream(pms->logfile, "a")) != NULL) {
             fprintf(fp, "Alloc %zu bytes at %p\n", nbytes, data);
             fclose(fp);
         } else {
-            L_ERROR("failed to open stream for %s\n", procName, pms->logfile);
+            L_ERROR("failed to open stream for %s\n", __func__, pms->logfile);
         }
     }
     return data;
@@ -440,13 +432,11 @@ l_int32           i;
 l_float64         ratio;
 L_PIX_MEM_STORE  *pms;
 
-    PROCNAME("pmsGetLevelForAlloc");
-
     if (!plevel)
-        return ERROR_INT("&level not defined", procName, 1);
+        return ERROR_INT("&level not defined", __func__, 1);
     *plevel = -1;
     if ((pms = CustomPMS) == NULL)
-        return ERROR_INT("pms not defined", procName, 1);
+        return ERROR_INT("pms not defined", __func__, 1);
 
     if (nbytes < pms->minsize || nbytes > pms->largest)
         return 0;   /*  -1  */
@@ -479,15 +469,13 @@ l_int32           i;
 l_uint32         *first;
 L_PIX_MEM_STORE  *pms;
 
-    PROCNAME("pmsGetLevelForDealloc");
-
     if (!plevel)
-        return ERROR_INT("&level not defined", procName, 1);
+        return ERROR_INT("&level not defined", __func__, 1);
     *plevel = -1;
     if (!data)
-        return ERROR_INT("data not defined", procName, 1);
+        return ERROR_INT("data not defined", __func__, 1);
     if ((pms = CustomPMS) == NULL)
-        return ERROR_INT("pms not defined", procName, 1);
+        return ERROR_INT("pms not defined", __func__, 1);
 
     if (data < (void *)pms->baseptr || data >= (void *)pms->maxptr)
         return 0;   /*  -1  */

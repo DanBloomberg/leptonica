@@ -144,14 +144,12 @@ pixaFindDimensions(PIXA   *pixa,
 l_int32  i, n, w, h;
 PIX     *pixt;
 
-    PROCNAME("pixaFindDimensions");
-
     if (pnaw) *pnaw = NULL;
     if (pnah) *pnah = NULL;
     if (!pnaw && !pnah)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
 
     n = pixaGetCount(pixa);
     if (pnaw) *pnaw = numaCreate(n);
@@ -195,13 +193,11 @@ l_int32  *tab8;
 l_int32   nfg, nbound;
 PIX      *pixt;
 
-    PROCNAME("pixFindAreaPerimRatio");
-
     if (!pfract)
-        return ERROR_INT("&fract not defined", procName, 1);
+        return ERROR_INT("&fract not defined", __func__, 1);
     *pfract = 0.0;
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
 
     if (!tab)
         tab8 = makePixelSumTab8();
@@ -246,10 +242,8 @@ l_float32  fract;
 NUMA      *na;
 PIX       *pixt;
 
-    PROCNAME("pixaFindPerimToAreaRatio");
-
     if (!pixa)
-        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixa not defined", __func__, NULL);
 
     n = pixaGetCount(pixa);
     na = numaCreate(n);
@@ -296,13 +290,11 @@ l_int32  *tab8;
 l_int32   nfg, nbound;
 PIX      *pixt;
 
-    PROCNAME("pixFindPerimToAreaRatio");
-
     if (!pfract)
-        return ERROR_INT("&fract not defined", procName, 1);
+        return ERROR_INT("&fract not defined", __func__, 1);
     *pfract = 0.0;
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
 
     if (!tab)
         tab8 = makePixelSumTab8();
@@ -350,10 +342,8 @@ l_float32  ratio;
 NUMA      *na;
 PIX       *pixt;
 
-    PROCNAME("pixaFindPerimSizeRatio");
-
     if (!pixa)
-        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixa not defined", __func__, NULL);
 
     n = pixaGetCount(pixa);
     na = numaCreate(n);
@@ -400,13 +390,11 @@ l_int32  *tab8;
 l_int32   w, h, nbound;
 PIX      *pixt;
 
-    PROCNAME("pixFindPerimSizeRatio");
-
     if (!pratio)
-        return ERROR_INT("&ratio not defined", procName, 1);
+        return ERROR_INT("&ratio not defined", __func__, 1);
     *pratio = 0.0;
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
 
     if (!tab)
         tab8 = makePixelSumTab8();
@@ -446,10 +434,8 @@ l_float32  fract;
 NUMA      *na;
 PIX       *pixt;
 
-    PROCNAME("pixaFindAreaFraction");
-
     if (!pixa)
-        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixa not defined", __func__, NULL);
 
     n = pixaGetCount(pixa);
     na = numaCreate(n);
@@ -488,13 +474,11 @@ pixFindAreaFraction(PIX        *pixs,
 l_int32   w, h, sum;
 l_int32  *tab8;
 
-    PROCNAME("pixFindAreaFraction");
-
     if (!pfract)
-        return ERROR_INT("&fract not defined", procName, 1);
+        return ERROR_INT("&fract not defined", __func__, 1);
     *pfract = 0.0;
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
 
     if (!tab)
         tab8 = makePixelSumTab8();
@@ -540,12 +524,10 @@ BOX       *box;
 NUMA      *na;
 PIX       *pix;
 
-    PROCNAME("pixaFindAreaFractionMasked");
-
     if (!pixa)
-        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixa not defined", __func__, NULL);
     if (!pixm || pixGetDepth(pixm) != 1)
-        return (NUMA *)ERROR_PTR("pixm undefined or not 1 bpp", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixm undefined or not 1 bpp", __func__, NULL);
 
     n = pixaGetCount(pixa);
     na = numaCreate(n);
@@ -618,15 +600,13 @@ l_int32   x, y, w, h, sum, masksum;
 l_int32  *tab8;
 PIX      *pix1;
 
-    PROCNAME("pixFindAreaFractionMasked");
-
     if (!pfract)
-        return ERROR_INT("&fract not defined", procName, 1);
+        return ERROR_INT("&fract not defined", __func__, 1);
     *pfract = 0.0;
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
     if (!pixm || pixGetDepth(pixm) != 1)
-        return ERROR_INT("pixm not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixm not defined or not 1 bpp", __func__, 1);
 
     if (!tab)
         tab8 = makePixelSumTab8();
@@ -673,10 +653,8 @@ l_int32  i, n, w, h;
 NUMA    *na;
 PIX     *pixt;
 
-    PROCNAME("pixaFindWidthHeightRatio");
-
     if (!pixa)
-        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixa not defined", __func__, NULL);
 
     n = pixaGetCount(pixa);
     na = numaCreate(n);
@@ -709,10 +687,8 @@ l_int32  i, n, w, h;
 NUMA    *na;
 PIX     *pixt;
 
-    PROCNAME("pixaFindWidthHeightProduct");
-
     if (!pixa)
-        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixa not defined", __func__, NULL);
 
     n = pixaGetCount(pixa);
     na = numaCreate(n);
@@ -755,16 +731,14 @@ l_int32  *tab8;
 l_int32   w, h, nintersect, nunion;
 PIX      *pixt;
 
-    PROCNAME("pixFindOverlapFraction");
-
     if (pnoverlap) *pnoverlap = 0;
     if (!pratio)
-        return ERROR_INT("&ratio not defined", procName, 1);
+        return ERROR_INT("&ratio not defined", __func__, 1);
     *pratio = 0.0;
     if (!pixs1 || pixGetDepth(pixs1) != 1)
-        return ERROR_INT("pixs1 not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs1 not defined or not 1 bpp", __func__, 1);
     if (!pixs2 || pixGetDepth(pixs2) != 1)
-        return ERROR_INT("pixs2 not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs2 not defined or not 1 bpp", __func__, 1);
 
     if (!tab)
         tab8 = makePixelSumTab8();
@@ -821,14 +795,12 @@ BOXA    *boxa, *boxad;
 PIX     *pix;
 PIXA    *pixa;
 
-    PROCNAME("pixFindRectangleComps");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (BOXA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (BOXA *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (dist < 0)
-        return (BOXA *)ERROR_PTR("dist must be >= 0", procName, NULL);
+        return (BOXA *)ERROR_PTR("dist must be >= 0", __func__, NULL);
     if (minw <= 2 * dist && minh <= 2 * dist)
-        return (BOXA *)ERROR_PTR("invalid parameters", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid parameters", __func__, NULL);
 
     boxa = pixConnComp(pixs, &pixa, 8);
     boxad = boxaCreate(0);
@@ -898,18 +870,16 @@ pixConformsToRectangle(PIX      *pixs,
 l_int32  w, h, empty;
 PIX     *pix1, *pix2;
 
-    PROCNAME("pixConformsToRectangle");
-
     if (!pconforms)
-        return ERROR_INT("&conforms not defined", procName, 1);
+        return ERROR_INT("&conforms not defined", __func__, 1);
     *pconforms = 0;
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
     if (dist < 0)
-        return ERROR_INT("dist must be >= 0", procName, 1);
+        return ERROR_INT("dist must be >= 0", __func__, 1);
     pixGetDimensions(pixs, &w, &h, NULL);
     if (w <= 2 * dist || h <= 2 * dist) {
-        L_WARNING("automatic conformation: distance too large\n", procName);
+        L_WARNING("automatic conformation: distance too large\n", __func__);
         *pconforms = 1;
         return 0;
     }
@@ -965,12 +935,10 @@ BOX     *box, *boxc;
 PIX     *pix;
 PIXA    *pixa;
 
-    PROCNAME("pixClipRectangles");
-
     if (!pixs)
-        return (PIXA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!boxa)
-        return (PIXA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("boxa not defined", __func__, NULL);
 
     n = boxaGetCount(boxa);
     pixa = pixaCreate(n);
@@ -1031,18 +999,16 @@ l_int32  w, h, d, bx, by, bw, bh;
 BOX     *boxc;
 PIX     *pixd;
 
-    PROCNAME("pixClipRectangle");
-
     if (pboxc) *pboxc = NULL;
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!box)
-        return (PIX *)ERROR_PTR("box not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("box not defined", __func__, NULL);
 
         /* Clip the input box to the pix */
     pixGetDimensions(pixs, &w, &h, &d);
     if ((boxc = boxClipToRectangle(box, w, h)) == NULL) {
-        L_WARNING("box doesn't overlap pix\n", procName);
+        L_WARNING("box doesn't overlap pix\n", __func__);
         return NULL;
     }
     boxGetGeometry(boxc, &bx, &by, &bw, &bh);
@@ -1050,7 +1016,7 @@ PIX     *pixd;
         /* Extract the block */
     if ((pixd = pixCreate(bw, bh, d)) == NULL) {
         boxDestroy(&boxc);
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     }
     pixCopyResolution(pixd, pixs);
     pixCopyColormap(pixd, pixs);
@@ -1095,15 +1061,13 @@ l_int32  w, h, bx, by, bw, bh, bord;
 BOX     *box1;
 PIX     *pix1;
 
-    PROCNAME("pixClipRectangleWithBorder");
-
     if (!pboxn)
-        return (PIX *)ERROR_PTR("&boxn not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("&boxn not defined", __func__, NULL);
     *pboxn = NULL;
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!box)
-        return (PIX *)ERROR_PTR("box not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("box not defined", __func__, NULL);
 
         /* Determine the border width */
     pixGetDimensions(pixs, &w, &h, NULL);
@@ -1171,12 +1135,10 @@ BOX      *box;
 PIX      *pixmi, *pixd;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixClipMasked");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!pixm || pixGetDepth(pixm) != 1)
-        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", __func__, NULL);
 
         /* Clip out the region specified by pixm and (x,y) */
     pixGetDimensions(pixm, &wm, &hm, NULL);
@@ -1228,13 +1190,11 @@ pixCropToMatch(PIX   *pixs1,
 {
 l_int32  w1, h1, w2, h2, w, h;
 
-    PROCNAME("pixCropToMatch");
-
     if (!ppixd1 || !ppixd2)
-        return ERROR_INT("&pixd1 and &pixd2 not both defined", procName, 1);
+        return ERROR_INT("&pixd1 and &pixd2 not both defined", __func__, 1);
     *ppixd1 = *ppixd2 = NULL;
     if (!pixs1 || !pixs2)
-        return ERROR_INT("pixs1 and pixs2 not defined", procName, 1);
+        return ERROR_INT("pixs1 and pixs2 not defined", __func__, 1);
 
     pixGetDimensions(pixs1, &w1, &h1, NULL);
     pixGetDimensions(pixs2, &w2, &h2, NULL);
@@ -1244,7 +1204,7 @@ l_int32  w1, h1, w2, h2, w, h;
     *ppixd1 = pixCropToSize(pixs1, w, h);
     *ppixd2 = pixCropToSize(pixs2, w, h);
     if (*ppixd1 == NULL || *ppixd2 == NULL)
-        return ERROR_INT("cropped image failure", procName, 1);
+        return ERROR_INT("cropped image failure", __func__, 1);
     return 0;
 }
 
@@ -1271,10 +1231,8 @@ pixCropToSize(PIX     *pixs,
 l_int32  ws, hs, wd, hd, d;
 PIX     *pixd;
 
-    PROCNAME("pixCropToSize");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, &d);
     if (ws <= w && hs <= h)  /* no cropping necessary */
@@ -1283,7 +1241,7 @@ PIX     *pixd;
     wd = L_MIN(ws, w);
     hd = L_MIN(hs, h);
     if ((pixd = pixCreate(wd, hd, d)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixCopyColormap(pixd, pixs);
     pixCopyText(pixd, pixs);
@@ -1326,12 +1284,10 @@ pixResizeToMatch(PIX     *pixs,
 l_int32  i, j, ws, hs, d;
 PIX     *pixd;
 
-    PROCNAME("pixResizeToMatch");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!pixt && (w <= 0 || h <= 0))
-        return (PIX *)ERROR_PTR("both w and h not > 0", procName, NULL);
+        return (PIX *)ERROR_PTR("both w and h not > 0", __func__, NULL);
 
     if (pixt)  /* redefine w, h */
         pixGetDimensions(pixt, &w, &h, NULL);
@@ -1340,7 +1296,7 @@ PIX     *pixd;
         return pixCopy(NULL, pixs);
 
     if ((pixd = pixCreate(w, h, d)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixCopyColormap(pixd, pixs);
     pixCopyText(pixd, pixs);
@@ -1399,11 +1355,9 @@ NUMA    *naindex;
 PIX     *pixd;
 PIXA    *pixa1, *pixa2;
 
-    PROCNAME("pixSelectComponentBySize");
-
     if (pbox) *pbox = NULL;
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (type == L_SELECT_BY_WIDTH)
         sorttype = L_SORT_BY_WIDTH;
     else if (type == L_SELECT_BY_HEIGHT)
@@ -1415,12 +1369,12 @@ PIXA    *pixa1, *pixa2;
     else if (type == L_SELECT_BY_PERIMETER)
         sorttype = L_SORT_BY_PERIMETER;
     else
-        return (PIX *)ERROR_PTR("invalid selection type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid selection type", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
     pixZero(pixs, &empty);
     if (empty)
-        return (PIX *)ERROR_PTR("no foreground pixels", procName, NULL);
+        return (PIX *)ERROR_PTR("no foreground pixels", __func__, NULL);
 
     boxa1 = pixConnComp(pixs, &pixa1, connectivity);
     n = boxaGetCount(boxa1);
@@ -1470,15 +1424,13 @@ l_int32  x, y, w, h;
 BOX     *box;
 PIX     *pix1, *pix2;
 
-    PROCNAME("pixFilterComponentBySize");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
 
     pix1 = pixSelectComponentBySize(pixs, rankorder, type, connectivity, &box);
     if (!pix1) {
         boxDestroy(&box);
-        return (PIX *)ERROR_PTR("pix1 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pix1 not made", __func__, NULL);
     }
 
         /* Put the selected component in a new pix at the same
@@ -1535,21 +1487,19 @@ pixMakeSymmetricMask(l_int32    w,
                      l_float32  vf,
                      l_int32    type)
 {
-    PROCNAME("pixMakeSymmetricMask");
-
     if (w <= 0 || h <= 0)
-        return (PIX *)ERROR_PTR("mask size 0", procName, NULL);
+        return (PIX *)ERROR_PTR("mask size 0", __func__, NULL);
     if (hf < 0.0 || hf > 1.0)
-        return (PIX *)ERROR_PTR("invalid horiz fractions", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid horiz fractions", __func__, NULL);
     if (vf < 0.0 || vf > 1.0)
-        return (PIX *)ERROR_PTR("invalid vert fractions", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid vert fractions", __func__, NULL);
 
     if (type == L_USE_INNER)
         return pixMakeFrameMask(w, h, hf, 1.0, vf, 1.0);
     else if (type == L_USE_OUTER)
         return pixMakeFrameMask(w, h, 0.0, hf, 0.0, vf);
     else
-        return (PIX *)ERROR_PTR("invalid type", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid type", __func__, NULL);
 }
 
 
@@ -1596,16 +1546,14 @@ pixMakeFrameMask(l_int32    w,
 l_int32  h1, h2, v1, v2;
 PIX     *pixd;
 
-    PROCNAME("pixMakeFrameMask");
-
     if (w <= 0 || h <= 0)
-        return (PIX *)ERROR_PTR("mask size 0", procName, NULL);
+        return (PIX *)ERROR_PTR("mask size 0", __func__, NULL);
     if (hf1 < 0.0 || hf1 > 1.0 || hf2 < 0.0 || hf2 > 1.0)
-        return (PIX *)ERROR_PTR("invalid horiz fractions", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid horiz fractions", __func__, NULL);
     if (vf1 < 0.0 || vf1 > 1.0 || vf2 < 0.0 || vf2 > 1.0)
-        return (PIX *)ERROR_PTR("invalid vert fractions", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid vert fractions", __func__, NULL);
     if (hf1 > hf2 || vf1 > vf2)
-        return (PIX *)ERROR_PTR("invalid relative sizes", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid relative sizes", __func__, NULL);
 
     pixd = pixCreate(w, h, 1);
 
@@ -1659,12 +1607,10 @@ l_int32  empty, same, niters;
 BOXA    *boxa;
 PIX     *pix1, *pix2;
 
-    PROCNAME("pixMakeCoveringOfRectangles");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (maxiters < 0)
-        return (PIX *)ERROR_PTR("maxiters must be >= 0", procName, NULL);
+        return (PIX *)ERROR_PTR("maxiters must be >= 0", __func__, NULL);
     if (maxiters == 0) maxiters = 50;  /* ridiculously large number */
 
     pixZero(pixs, &empty);
@@ -1687,11 +1633,11 @@ PIX     *pix1, *pix2;
         pixEqual(pix1, pix2, &same);
         pixDestroy(&pix2);
         if (same) {
-            L_INFO("%d iterations\n", procName, niters - 1);
+            L_INFO("%d iterations\n", __func__, niters - 1);
             return pix1;
         }
     }
-    L_INFO("maxiters = %d reached\n", procName, niters);
+    L_INFO("maxiters = %d reached\n", __func__, niters);
     return pix1;
 }
 
@@ -1732,21 +1678,19 @@ pixFractionFgInMask(PIX        *pix1,
 l_int32  w1, h1, w2, h2, empty, count1, count3;
 PIX     *pix3;
 
-    PROCNAME("pixFractionFgInMask");
-
     if (!pfract)
-        return ERROR_INT("&fract not defined", procName, 1);
+        return ERROR_INT("&fract not defined", __func__, 1);
     *pfract = 0.0;
     if (!pix1 || pixGetDepth(pix1) != 1)
-        return ERROR_INT("pix1 not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pix1 not defined or not 1 bpp", __func__, 1);
     if (!pix2 || pixGetDepth(pix2) != 1)
-        return ERROR_INT("pix2 not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pix2 not defined or not 1 bpp", __func__, 1);
 
     pixGetDimensions(pix1, &w1, &h1, NULL);
     pixGetDimensions(pix2, &w2, &h2, NULL);
     if (w1 != w2 || h1 != h2) {
         L_INFO("sizes unequal: (w1,w2) = (%d,%d), (h1,h2) = (%d,%d)\n",
-               procName, w1, w2, h1, h2);
+               __func__, w1, w2, h1, h2);
     }
     pixZero(pix1, &empty);
     if (empty) return 0;
@@ -1791,14 +1735,12 @@ l_uint32   result, mask;
 l_uint32  *data, *line;
 BOX       *box;
 
-    PROCNAME("pixClipToForeground");
-
     if (ppixd) *ppixd = NULL;
     if (pbox) *pbox = NULL;
     if (!ppixd && !pbox)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if (!pixs || (pixGetDepth(pixs) != 1))
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     nfullwords = w / 32;
@@ -1887,13 +1829,11 @@ pixTestClipToForeground(PIX      *pixs,
 l_int32    i, j, w, h, wpl, found;
 l_uint32  *data, *line;
 
-    PROCNAME("pixTestClipToForeground");
-
     if (!pcanclip)
-        return ERROR_INT("&canclip not defined", procName, 1);
+        return ERROR_INT("&canclip not defined", __func__, 1);
     *pcanclip = 0;
     if (!pixs || (pixGetDepth(pixs) != 1))
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
 
         /* Check top and bottom raster lines */
     pixGetDimensions(pixs, &w, &h, NULL);
@@ -1961,14 +1901,12 @@ pixClipBoxToForeground(PIX   *pixs,
 l_int32  w, h, bx, by, bw, bh, cbw, cbh, left, right, top, bottom;
 BOX     *boxt, *boxd;
 
-    PROCNAME("pixClipBoxToForeground");
-
     if (ppixd) *ppixd = NULL;
     if (pboxd) *pboxd = NULL;
     if (!ppixd && !pboxd)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if (!pixs || (pixGetDepth(pixs) != 1))
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
 
     if (!boxs)
         return pixClipToForeground(pixs, ppixd, pboxd);
@@ -1978,7 +1916,7 @@ BOX     *boxt, *boxd;
     cbw = L_MIN(bw, w - bx);
     cbh = L_MIN(bh, h - by);
     if (cbw < 0 || cbh < 0)
-        return ERROR_INT("box not within image", procName, 1);
+        return ERROR_INT("box not within image", __func__, 1);
     boxt = boxCreate(bx, by, cbw, cbh);
 
     if (pixScanForForeground(pixs, boxt, L_FROM_LEFT, &left)) {
@@ -2028,19 +1966,17 @@ l_int32    bx, by, bw, bh, x, xstart, xend, y, ystart, yend, wpl;
 l_uint32  *data, *line;
 BOX       *boxt;
 
-    PROCNAME("pixScanForForeground");
-
     if (!ploc)
-        return ERROR_INT("&loc not defined", procName, 1);
+        return ERROR_INT("&loc not defined", __func__, 1);
     *ploc = 0;
     if (!pixs || (pixGetDepth(pixs) != 1))
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
 
         /* Clip box to pixs if it exists */
     pixGetDimensions(pixs, &bw, &bh, NULL);
     if (box) {
         if ((boxt = boxClipToRectangle(box, bw, bh)) == NULL)
-            return ERROR_INT("invalid box", procName, 1);
+            return ERROR_INT("invalid box", __func__, 1);
         boxGetGeometry(boxt, &bx, &by, &bw, &bh);
         boxDestroy(&boxt);
     } else {
@@ -2094,7 +2030,7 @@ BOX       *boxt;
             }
         }
     } else {
-        return ERROR_INT("invalid scanflag", procName, 1);
+        return ERROR_INT("invalid scanflag", __func__, 1);
     }
 
     return 1;  /* no fg found */
@@ -2148,17 +2084,15 @@ l_int32  w, h, bx, by, bw, bh, cbw, cbh, left, right, top, bottom;
 l_int32  lfound, rfound, tfound, bfound, change;
 BOX     *boxt, *boxd;
 
-    PROCNAME("pixClipBoxToEdges");
-
     if (ppixd) *ppixd = NULL;
     if (pboxd) *pboxd = NULL;
     if (!ppixd && !pboxd)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if (!pixs || (pixGetDepth(pixs) != 1))
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
     if (lowthresh < 1 || highthresh < 1 ||
         lowthresh > highthresh || maxwidth < 1)
-        return ERROR_INT("invalid thresholds", procName, 1);
+        return ERROR_INT("invalid thresholds", __func__, 1);
     factor = L_MIN(1, factor);
 
     if (lowthresh == 1 && highthresh == 1)
@@ -2170,7 +2104,7 @@ BOX     *boxt, *boxd;
         cbw = L_MIN(bw, w - bx);
         cbh = L_MIN(bh, h - by);
         if (cbw < 0 || cbh < 0)
-            return ERROR_INT("box not within image", procName, 1);
+            return ERROR_INT("box not within image", __func__, 1);
         boxt = boxCreate(bx, by, cbw, cbh);
     } else {
         boxt = boxCreate(0, 0, w, h);
@@ -2221,7 +2155,7 @@ BOX     *boxt, *boxd;
     boxDestroy(&boxt);
 
     if (change == 0)
-        return ERROR_INT("not all edges found", procName, 1);
+        return ERROR_INT("not all edges found", __func__, 1);
 
     boxd = boxCreate(left, top, right - left + 1, bottom - top + 1);
     if (ppixd)
@@ -2279,23 +2213,21 @@ l_int32    x, xstart, xend, y, ystart, yend;
 l_uint32  *data, *line;
 BOX       *boxt;
 
-    PROCNAME("pixScanForEdge");
-
     if (!ploc)
-        return ERROR_INT("&ploc not defined", procName, 1);
+        return ERROR_INT("&ploc not defined", __func__, 1);
     *ploc = 0;
     if (!pixs || (pixGetDepth(pixs) != 1))
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
     if (lowthresh < 1 || highthresh < 1 ||
         lowthresh > highthresh || maxwidth < 1)
-        return ERROR_INT("invalid thresholds", procName, 1);
+        return ERROR_INT("invalid thresholds", __func__, 1);
     factor = L_MIN(1, factor);
 
         /* Clip box to pixs if it exists */
     pixGetDimensions(pixs, &bw, &bh, NULL);
     if (box) {
         if ((boxt = boxClipToRectangle(box, bw, bh)) == NULL)
-            return ERROR_INT("invalid box", procName, 1);
+            return ERROR_INT("invalid box", __func__, 1);
         boxGetGeometry(boxt, &bx, &by, &bw, &bh);
         boxDestroy(&boxt);
     } else {
@@ -2414,7 +2346,7 @@ BOX       *boxt;
             }
         }
     } else {
-        return ERROR_INT("invalid scanflag", procName, 1);
+        return ERROR_INT("invalid scanflag", __func__, 1);
     }
 
     return 1;  /* edge not found */
@@ -2460,17 +2392,15 @@ l_float64  slope;
 NUMA      *na;
 PTA       *pta;
 
-    PROCNAME("pixExtractOnLine");
-
     if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1 && d != 8)
-        return (NUMA *)ERROR_PTR("d not 1 or 8 bpp", procName, NULL);
+        return (NUMA *)ERROR_PTR("d not 1 or 8 bpp", __func__, NULL);
     if (pixGetColormap(pixs))
-        return (NUMA *)ERROR_PTR("pixs has a colormap", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs has a colormap", __func__, NULL);
     if (factor < 1) {
-        L_WARNING("factor must be >= 1; setting to 1\n", procName);
+        L_WARNING("factor must be >= 1; setting to 1\n", __func__);
         factor = 1;
     }
 
@@ -2577,17 +2507,15 @@ l_int32    i, j, w, h, d, direction, count, wpl;
 l_uint32  *data, *line;
 l_float32  sum;
 
-    PROCNAME("pixAverageOnLine");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1 && d != 8)
-        return ERROR_INT("d not 1 or 8 bpp", procName, 1);
+        return ERROR_INT("d not 1 or 8 bpp", __func__, 1);
     if (pixGetColormap(pixs))
-        return ERROR_INT("pixs has a colormap", procName, 1);
+        return ERROR_INT("pixs has a colormap", __func__, 1);
     if (x1 > x2 || y1 > y2)
-        return ERROR_INT("x1 > x2 or y1 > y2", procName, 1);
+        return ERROR_INT("x1 > x2 or y1 > y2", __func__, 1);
 
     if (y1 == y2) {
         x1 = L_MAX(0, x1);
@@ -2600,11 +2528,11 @@ l_float32  sum;
         x1 = L_MAX(0, L_MIN(x1, w - 1));
         direction = L_VERTICAL_LINE;
     } else {
-        return ERROR_INT("line neither horiz nor vert", procName, 1);
+        return ERROR_INT("line neither horiz nor vert", __func__, 1);
     }
 
     if (factor < 1) {
-        L_WARNING("factor must be >= 1; setting to 1\n", procName);
+        L_WARNING("factor must be >= 1; setting to 1\n", __func__);
         factor = 1;
     }
 
@@ -2678,23 +2606,21 @@ l_float32  ave;
 NUMA      *nad;
 PIX       *pixr, *pixg;
 
-    PROCNAME("pixAverageIntensityProfile");
-
     if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (fract < 0.0 || fract > 1.0)
-        return (NUMA *)ERROR_PTR("fract < 0.0 or > 1.0", procName, NULL);
+        return (NUMA *)ERROR_PTR("fract < 0.0 or > 1.0", __func__, NULL);
     if (dir != L_HORIZONTAL_LINE && dir != L_VERTICAL_LINE)
-        return (NUMA *)ERROR_PTR("invalid direction", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid direction", __func__, NULL);
     if (first < 0) first = 0;
     if (last < first)
-        return (NUMA *)ERROR_PTR("last must be >= first", procName, NULL);
+        return (NUMA *)ERROR_PTR("last must be >= first", __func__, NULL);
     if (factor1 < 1) {
-        L_WARNING("factor1 must be >= 1; setting to 1\n", procName);
+        L_WARNING("factor1 must be >= 1; setting to 1\n", __func__);
         factor1 = 1;
     }
     if (factor2 < 1) {
-        L_WARNING("factor2 must be >= 1; setting to 1\n", procName);
+        L_WARNING("factor2 must be >= 1; setting to 1\n", __func__);
         factor2 = 1;
     }
 
@@ -2715,7 +2641,7 @@ PIX       *pixr, *pixg;
         start = (l_int32)(0.5 * (1.0 - fract) * (l_float32)w);
         end = w - start;
         if (last > h - 1) {
-            L_WARNING("last > h - 1; clipping\n", procName);
+            L_WARNING("last > h - 1; clipping\n", __func__);
             last = h - 1;
         }
         for (i = first; i <= last; i += factor2) {
@@ -2726,7 +2652,7 @@ PIX       *pixr, *pixg;
         start = (l_int32)(0.5 * (1.0 - fract) * (l_float32)h);
         end = h - start;
         if (last > w - 1) {
-            L_WARNING("last > w - 1; clipping\n", procName);
+            L_WARNING("last > w - 1; clipping\n", __func__);
             last = w - 1;
         }
         for (j = first; j <= last; j += factor2) {
@@ -2793,23 +2719,21 @@ l_int32   i, j, w, h, d, start, end, nr;
 NUMA     *naline, *nad;
 PIX      *pixr, *pixg;
 
-    PROCNAME("pixReversalProfile");
-
     if (!pixs)
-        return (NUMA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (fract < 0.0 || fract > 1.0)
-        return (NUMA *)ERROR_PTR("fract < 0.0 or > 1.0", procName, NULL);
+        return (NUMA *)ERROR_PTR("fract < 0.0 or > 1.0", __func__, NULL);
     if (dir != L_HORIZONTAL_LINE && dir != L_VERTICAL_LINE)
-        return (NUMA *)ERROR_PTR("invalid direction", procName, NULL);
+        return (NUMA *)ERROR_PTR("invalid direction", __func__, NULL);
     if (first < 0) first = 0;
     if (last < first)
-        return (NUMA *)ERROR_PTR("last must be >= first", procName, NULL);
+        return (NUMA *)ERROR_PTR("last must be >= first", __func__, NULL);
     if (factor1 < 1) {
-        L_WARNING("factor1 must be >= 1; setting to 1\n", procName);
+        L_WARNING("factor1 must be >= 1; setting to 1\n", __func__);
         factor1 = 1;
     }
     if (factor2 < 1) {
-        L_WARNING("factor2 must be >= 1; setting to 1\n", procName);
+        L_WARNING("factor2 must be >= 1; setting to 1\n", __func__);
         factor2 = 1;
     }
 
@@ -2832,7 +2756,7 @@ PIX      *pixr, *pixg;
         start = (l_int32)(0.5 * (1.0 - fract) * (l_float32)w);
         end = w - start;
         if (last > h - 1) {
-            L_WARNING("last > h - 1; clipping\n", procName);
+            L_WARNING("last > h - 1; clipping\n", __func__);
             last = h - 1;
         }
         for (i = first; i <= last; i += factor2) {
@@ -2845,7 +2769,7 @@ PIX      *pixr, *pixg;
         start = (l_int32)(0.5 * (1.0 - fract) * (l_float32)h);
         end = h - start;
         if (last > w - 1) {
-            L_WARNING("last > w - 1; clipping\n", procName);
+            L_WARNING("last > w - 1; clipping\n", __func__);
             last = w - 1;
         }
         for (j = first; j <= last; j += factor2) {
@@ -2905,21 +2829,19 @@ l_float64   sum1, sum2, ave, var;
 NUMA       *na1, *nad;
 PTA        *pta;
 
-    PROCNAME("pixWindowedVarianceOnLine");
-
     if (!pnad)
-        return ERROR_INT("&nad not defined", procName, 1);
+        return ERROR_INT("&nad not defined", __func__, 1);
     *pnad = NULL;
     if (!pixs || pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs not defined or not 8bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 8bpp", __func__, 1);
     if (size < 2)
-        return ERROR_INT("window size must be > 1", procName, 1);
+        return ERROR_INT("window size must be > 1", __func__, 1);
     if (dir != L_HORIZONTAL_LINE && dir != L_VERTICAL_LINE)
-        return ERROR_INT("invalid direction", procName, 1);
+        return ERROR_INT("invalid direction", __func__, 1);
     pixGetDimensions(pixs, &w, &h, NULL);
     maxloc = (dir == L_HORIZONTAL_LINE) ? h - 1 : w - 1;
     if (loc < 0 || loc > maxloc)
-        return ERROR_INT("invalid line position", procName, 1);
+        return ERROR_INT("invalid line position", __func__, 1);
 
         /* Clip line to the image */
     cmin = L_MIN(c1, c2);
@@ -3025,23 +2947,21 @@ l_float32  sum;
 NUMA      *namin, *namax;
 PTA       *pta;
 
-    PROCNAME("pixMinMaxNearLine");
-
     if (pnamin) *pnamin = NULL;
     if (pnamax) *pnamax = NULL;
     if (pminave) *pminave = UNDEF;
     if (pmaxave) *pmaxave = UNDEF;
     if (!pnamin && !pnamax && !pminave && !pmaxave)
-        return ERROR_INT("no output requested", procName, 1);
+        return ERROR_INT("no output requested", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 || pixGetColormap(pixs))
-        return ERROR_INT("pixs not 8 bpp or has colormap", procName, 1);
+        return ERROR_INT("pixs not 8 bpp or has colormap", __func__, 1);
     dist = L_ABS(dist);
     if (direction != L_SCAN_NEGATIVE && direction != L_SCAN_POSITIVE &&
         direction != L_SCAN_BOTH)
-        return ERROR_INT("invalid direction", procName, 1);
+        return ERROR_INT("invalid direction", __func__, 1);
 
     pta = generatePtaLine(x1, y1, x2, y2);
     n = ptaGetCount(pta);
@@ -3089,7 +3009,7 @@ PTA       *pta;
         numaDestroy(&namin);
         numaDestroy(&namax);
         ptaDestroy(&pta);
-        return ERROR_INT("no output from this line", procName, 1);
+        return ERROR_INT("no output from this line", __func__, 1);
     }
 
     if (pminave) {
@@ -3137,14 +3057,12 @@ l_int32    histo[256];
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
 
-    PROCNAME("pixRankRowTransform");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pixs has a colormap", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs has a colormap", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     pixd = pixCreateTemplate(pixs);
@@ -3190,14 +3108,12 @@ l_int32    histo[256];
 void     **lines8, **lined8;
 PIX       *pixd;
 
-    PROCNAME("pixRankColumnTransform");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pixs has a colormap", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs has a colormap", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     pixd = pixCreateTemplate(pixs);

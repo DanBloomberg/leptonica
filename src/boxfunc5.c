@@ -114,26 +114,24 @@ l_int32  n;
 BOXA    *boxae, *boxao, *boxamede, *boxamedo, *boxame, *boxamo, *boxad;
 PIX     *pix1;
 
-    PROCNAME("boxaSmoothSequenceMedian");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (halfwin <= 0) {
-        L_WARNING("halfwin must be > 0; returning copy\n", procName);
+        L_WARNING("halfwin must be > 0; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if (maxdiff < 0) {
-        L_WARNING("maxdiff must be >= 0; returning copy\n", procName);
+        L_WARNING("maxdiff must be >= 0; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if (subflag != L_USE_MINSIZE && subflag != L_USE_MAXSIZE &&
         subflag != L_SUB_ON_LOC_DIFF && subflag != L_SUB_ON_SIZE_DIFF &&
         subflag != L_USE_CAPPED_MIN && subflag != L_USE_CAPPED_MAX) {
-        L_WARNING("invalid subflag; returning copy\n", procName);
+        L_WARNING("invalid subflag; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if ((n = boxaGetCount(boxas)) < 6) {
-        L_WARNING("need at least 6 boxes; returning copy\n", procName);
+        L_WARNING("need at least 6 boxes; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
 
@@ -213,22 +211,20 @@ BOXA    *boxaf, *boxad;
 NUMA    *nal, *nat, *nar, *nab, *naml, *namt, *namr, *namb;
 PIX     *pix1;
 
-    PROCNAME("boxaWindowedMedian");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if ((n = boxaGetCount(boxas)) < 3) {
-        L_WARNING("less than 3 boxes; returning a copy\n", procName);
+        L_WARNING("less than 3 boxes; returning a copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if (halfwin <= 0) {
-        L_WARNING("halfwin must be > 0; returning copy\n", procName);
+        L_WARNING("halfwin must be > 0; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
 
         /* Fill invalid boxes in the input sequence */
     if ((boxaf = boxaFillSequence(boxas, L_USE_ALL_BOXES, debug)) == NULL)
-        return (BOXA *)ERROR_PTR("filled boxa not made", procName, NULL);
+        return (BOXA *)ERROR_PTR("filled boxa not made", __func__, NULL);
 
         /* Get the windowed median output from each of the sides */
     boxaExtractAsNuma(boxaf, &nal, &nat, &nar, &nab, NULL, NULL, 0);
@@ -358,23 +354,21 @@ l_int32  n, i, ls, ts, rs, bs, ws, hs, lm, tm, rm, bm, wm, hm, ld, td, rd, bd;
 BOX     *boxs, *boxm, *boxd, *boxempty;
 BOXA    *boxad;
 
-    PROCNAME("boxaModifyWithBoxa");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (!boxam) {
-        L_WARNING("boxam not defined; returning copy", procName);
+        L_WARNING("boxam not defined; returning copy", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if (subflag != L_USE_MINSIZE && subflag != L_USE_MAXSIZE &&
         subflag != L_SUB_ON_LOC_DIFF && subflag != L_SUB_ON_SIZE_DIFF &&
         subflag != L_USE_CAPPED_MIN && subflag != L_USE_CAPPED_MAX) {
-        L_WARNING("invalid subflag; returning copy", procName);
+        L_WARNING("invalid subflag; returning copy", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     n = boxaGetCount(boxas);
     if (n != boxaGetCount(boxam)) {
-        L_WARNING("boxas and boxam sizes differ; returning copy", procName);
+        L_WARNING("boxas and boxam sizes differ; returning copy", __func__);
         return boxaCopy(boxas, L_COPY);
     }
 
@@ -474,12 +468,10 @@ l_int32  i, ne, no, nmin, xe, we, xo, wo, inde, indo, x, w;
 BOX     *boxe, *boxo;
 BOXA    *boxae, *boxao, *boxad;
 
-    PROCNAME("boxaReconcilePairWidth");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (factor <= 0.0) {
-        L_WARNING("invalid factor; setting to 1.0\n", procName);
+        L_WARNING("invalid factor; setting to 1.0\n", __func__);
         factor = 1.0;
     }
 
@@ -599,23 +591,21 @@ l_int32    i, n, bw1, bh1, bw2, bh2, npairs;
 l_float32  ave, fdiff, sumdiff, med, fvarp, fvarm;
 NUMA      *na1;
 
-    PROCNAME("boxaSizeConsistency");
-
     if (pfvarp) *pfvarp = 0.0;
     if (pfvarm) *pfvarm = 0.0;
     if (!psame)
-        return ERROR_INT("&same not defined", procName, 1);
+        return ERROR_INT("&same not defined", __func__, 1);
     *psame = -1;
     if (!boxas)
-        return ERROR_INT("boxas not defined", procName, 1);
+        return ERROR_INT("boxas not defined", __func__, 1);
     if (boxaGetValidCount(boxas) < 6)
-        return ERROR_INT("need a least 6 valid boxes", procName, 1);
+        return ERROR_INT("need a least 6 valid boxes", __func__, 1);
     if (type != L_CHECK_WIDTH && type != L_CHECK_HEIGHT)
-        return ERROR_INT("invalid type", procName, 1);
+        return ERROR_INT("invalid type", __func__, 1);
     if (threshp < 0.0 || threshp >= 0.5)
-        return ERROR_INT("invalid threshp", procName, 1);
+        return ERROR_INT("invalid threshp", __func__, 1);
     if (threshm < 0.0 || threshm >= 0.5)
-        return ERROR_INT("invalid threshm", procName, 1);
+        return ERROR_INT("invalid threshm", __func__, 1);
     if (threshp == 0.0) threshp = 0.02;
     if (threshm == 0.0) threshm = 0.015;
 
@@ -647,7 +637,7 @@ NUMA      *na1;
         /* Evaluate the average abs fractional deviation from the median */
     numaGetMedian(na1, &med);
     if (med == 0.0) {
-        L_WARNING("median value is 0\n", procName);
+        L_WARNING("median value is 0\n", __func__);
     } else {
         numaGetMeanDevFromMedian(na1, med, &fvarm);
         fvarm /= med;
@@ -699,24 +689,22 @@ l_int32  ncols;
 BOXA    *boxa1e, *boxa1o, *boxa2e, *boxa2o, *boxa3e, *boxa3o, *boxad;
 PIX     *pix1;
 
-    PROCNAME("boxaReconcileAllByMedian");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (select1 != L_ADJUST_LEFT_AND_RIGHT && select1 != L_ADJUST_SKIP) {
-        L_WARNING("invalid select1; returning copy\n", procName);
+        L_WARNING("invalid select1; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if (select2 != L_ADJUST_TOP_AND_BOT && select2 != L_ADJUST_SKIP) {
-        L_WARNING("invalid select2; returning copy\n", procName);
+        L_WARNING("invalid select2; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if (thresh < 0) {
-        L_WARNING("thresh must be >= 0; returning copy\n", procName);
+        L_WARNING("thresh must be >= 0; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if (boxaGetValidCount(boxas) < 3) {
-        L_WARNING("need at least 3 valid boxes; returning copy\n", procName);
+        L_WARNING("need at least 3 valid boxes; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
 
@@ -814,22 +802,20 @@ BOX     *box;
 BOXA    *boxa1, *boxad;
 PIX     *pix;
 
-    PROCNAME("boxaReconcileSidesByMedian");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (select != L_ADJUST_LEFT && select != L_ADJUST_RIGHT &&
         select != L_ADJUST_TOP && select != L_ADJUST_BOT &&
         select != L_ADJUST_LEFT_AND_RIGHT && select != L_ADJUST_TOP_AND_BOT) {
-        L_WARNING("invalid select; returning copy\n", procName);
+        L_WARNING("invalid select; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if (thresh < 0) {
-        L_WARNING("thresh must be >= 0; returning copy\n", procName);
+        L_WARNING("thresh must be >= 0; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if (boxaGetValidCount(boxas) < 3) {
-        L_WARNING("need at least 3 valid boxes; returning copy\n", procName);
+        L_WARNING("need at least 3 valid boxes; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
 
@@ -997,30 +983,28 @@ BOX       *box;
 BOXA      *boxa1, *boxae, *boxao, *boxad;
 NUMA      *naind, *nadelw, *nadelh;
 
-    PROCNAME("boxaReconcileSizeByMedian");
-
     if (pnadelw) *pnadelw = NULL;
     if (pnadelh) *pnadelh = NULL;
     if (pratiowh) *pratiowh = 0.0;
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (type != L_CHECK_WIDTH && type != L_CHECK_HEIGHT &&
         type != L_CHECK_BOTH) {
-        L_WARNING("invalid type; returning copy\n", procName);
+        L_WARNING("invalid type; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if (dfract <= 0.0 || dfract >= 0.5) {
-        L_WARNING("invalid dimensional fract; returning copy\n", procName);
+        L_WARNING("invalid dimensional fract; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if (sfract <= 0.0 || sfract >= 0.5) {
-        L_WARNING("invalid side fract; returning copy\n", procName);
+        L_WARNING("invalid side fract; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
     if (factor < 0.8 || factor > 1.25)
-        L_WARNING("factor %5.3f is typ. closer to 1.0\n", procName, factor);
+        L_WARNING("factor %5.3f is typ. closer to 1.0\n", __func__, factor);
     if (boxaGetValidCount(boxas) < 6) {
-        L_WARNING("need at least 6 valid boxes; returning copy\n", procName);
+        L_WARNING("need at least 6 valid boxes; returning copy\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
 
@@ -1045,7 +1029,7 @@ NUMA      *naind, *nadelw, *nadelh;
                              &nadelw, NULL);
         if (pratiowh) {
             *pratiowh = (l_float32)medw / (l_float32)medh;
-            L_INFO("median ratio w/h = %5.3f\n", procName, *pratiowh);
+            L_INFO("median ratio w/h = %5.3f\n", __func__, *pratiowh);
         }
         if (pnadelw)
             *pnadelw = nadelw;
@@ -1076,7 +1060,7 @@ NUMA      *naind, *nadelw, *nadelh;
             numaDestroy(&naind);
             boxaDestroy(&boxae);
             boxaDestroy(&boxao);
-            L_INFO("no width outlier boxes found\n", procName);
+            L_INFO("no width outlier boxes found\n", __func__);
             return boxaCopy(boxas, L_COPY);
         }
 
@@ -1087,7 +1071,7 @@ NUMA      *naind, *nadelw, *nadelh;
              * to the even boxes, there are no odd inliers; in that case,
              * use the even inliers sides to decide whether to adjust
              * the left or the right sides of individual outliers. */
-        L_INFO("fixing width of outlier boxes\n", procName);
+        L_INFO("fixing width of outlier boxes\n", __func__);
         medlefte = medrighte = medlefto = medrighto = 0;
         if ((ne = boxaGetValidCount(boxae)) > 0)
             boxaGetMedianVals(boxae, &medlefte, NULL, &medrighte, NULL,
@@ -1132,7 +1116,7 @@ NUMA      *naind, *nadelw, *nadelh;
                              NULL, &nadelh);
         if (pratiowh) {
             *pratiowh = (l_float32)medw / (l_float32)medh;
-            L_INFO("median ratio w/h = %5.3f\n", procName, *pratiowh);
+            L_INFO("median ratio w/h = %5.3f\n", __func__, *pratiowh);
         }
         if (pnadelh)
             *pnadelh = nadelh;
@@ -1163,7 +1147,7 @@ NUMA      *naind, *nadelw, *nadelh;
             numaDestroy(&naind);
             boxaDestroy(&boxae);
             boxaDestroy(&boxao);
-            L_INFO("no height outlier boxes found\n", procName);
+            L_INFO("no height outlier boxes found\n", __func__);
             return boxaCopy(boxas, L_COPY);
         }
 
@@ -1174,7 +1158,7 @@ NUMA      *naind, *nadelw, *nadelh;
              * to the even boxes, there are no odd inliers; in that case,
              * use the even inlier sides to decide whether to adjust
              * the top or the bottom sides of individual outliers. */
-        L_INFO("fixing height of outlier boxes\n", procName);
+        L_INFO("fixing height of outlier boxes\n", __func__);
         medlefte = medtope = medbote = medtopo = medboto = 0;
         if ((ne = boxaGetValidCount(boxae)) > 0)
             boxaGetMedianVals(boxae, NULL, &medtope, NULL, &medbote,
@@ -1266,19 +1250,17 @@ BOXA           *boxat;
 GPLOT          *gplot;
 NUMA           *nal, *nat, *nar, *nab;
 
-    PROCNAME("boxaPlotSides");
-
     if (pnal) *pnal = NULL;
     if (pnat) *pnat = NULL;
     if (pnar) *pnar = NULL;
     if (pnab) *pnab = NULL;
     if (ppixd) *ppixd = NULL;
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     if ((n = boxaGetCount(boxa)) < 2)
-        return ERROR_INT("less than 2 boxes", procName, 1);
+        return ERROR_INT("less than 2 boxes", __func__, 1);
     if (!ppixd)
-        return ERROR_INT("&pixd not defined", procName, 1);
+        return ERROR_INT("&pixd not defined", __func__, 1);
 
     boxat = boxaFillSequence(boxa, L_USE_ALL_BOXES, 0);
 
@@ -1394,17 +1376,15 @@ BOXA           *boxat;
 GPLOT          *gplot;
 NUMA           *naw, *nah;
 
-    PROCNAME("boxaPlotSizes");
-
     if (pnaw) *pnaw = NULL;
     if (pnah) *pnah = NULL;
     if (ppixd) *ppixd = NULL;
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     if ((n = boxaGetCount(boxa)) < 2)
-        return ERROR_INT("less than 2 boxes", procName, 1);
+        return ERROR_INT("less than 2 boxes", __func__, 1);
     if (!ppixd)
-        return ERROR_INT("&pixd not defined", procName, 1);
+        return ERROR_INT("&pixd not defined", __func__, 1);
 
     boxat = boxaFillSequence(boxa, L_USE_ALL_BOXES, 0);
 
@@ -1472,21 +1452,19 @@ boxaFillSequence(BOXA    *boxas,
 l_int32  n, nv;
 BOXA    *boxae, *boxao, *boxad;
 
-    PROCNAME("boxaFillSequence");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (useflag != L_USE_ALL_BOXES && useflag != L_USE_SAME_PARITY_BOXES)
-        return (BOXA *)ERROR_PTR("invalid useflag", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid useflag", __func__, NULL);
 
     n = boxaGetCount(boxas);
     nv = boxaGetValidCount(boxas);
     if (n == nv)
         return boxaCopy(boxas, L_COPY);  /* all valid */
     if (debug)
-        L_INFO("%d valid boxes, %d invalid boxes\n", procName, nv, n - nv);
+        L_INFO("%d valid boxes, %d invalid boxes\n", __func__, nv, n - nv);
     if (useflag == L_USE_SAME_PARITY_BOXES && n < 3) {
-        L_WARNING("n < 3; some invalid\n", procName);
+        L_WARNING("n < 3; some invalid\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
 
@@ -1504,7 +1482,7 @@ BOXA    *boxae, *boxao, *boxad;
 
     nv = boxaGetValidCount(boxad);
     if (n != nv)
-        L_WARNING("there are still %d invalid boxes\n", procName, n - nv);
+        L_WARNING("there are still %d invalid boxes\n", __func__, n - nv);
 
     return boxad;
 }
@@ -1530,21 +1508,19 @@ l_int32   n, nv, i, j, spandown, spanup;
 l_int32  *indic;
 BOX      *box, *boxt;
 
-    PROCNAME("boxaFillAll");
-
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     n = boxaGetCount(boxa);
     nv = boxaGetValidCount(boxa);
     if (n == nv) return 0;
     if (nv == 0) {
-        L_WARNING("no valid boxes out of %d boxes\n", procName, n);
+        L_WARNING("no valid boxes out of %d boxes\n", __func__, n);
         return 0;
     }
 
         /* Make indicator array for valid boxes */
     if ((indic = (l_int32 *)LEPT_CALLOC(n, sizeof(l_int32))) == NULL)
-        return ERROR_INT("indic not made", procName, 1);
+        return ERROR_INT("indic not made", __func__, 1);
     for (i = 0; i < n; i++) {
         box = boxaGetValidBox(boxa, i, L_CLONE);
         if (box)
@@ -1620,21 +1596,19 @@ l_float32  sum;
 BOXA      *boxae, *boxao;
 NUMA      *nae, *nao, *na_all;
 
-    PROCNAME("boxaSizeVariation");
-
     if (pdel_evenodd) *pdel_evenodd = 0.0;
     if (prms_even) *prms_even = 0.0;
     if (prms_odd) *prms_odd = 0.0;
     if (prms_all) *prms_all = 0.0;
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     if (type != L_SELECT_WIDTH && type != L_SELECT_HEIGHT)
-        return ERROR_INT("invalid type", procName, 1);
+        return ERROR_INT("invalid type", __func__, 1);
     if (!pdel_evenodd && !prms_even && !prms_odd && !prms_all)
-        return ERROR_INT("nothing to do", procName, 1);
+        return ERROR_INT("nothing to do", __func__, 1);
     n = boxaGetCount(boxa);
     if (n < 4)
-        return ERROR_INT("too few boxes", procName, 1);
+        return ERROR_INT("too few boxes", __func__, 1);
 
     boxaSplitEvenOdd(boxa, 0, &boxae, &boxao);
     ne = boxaGetCount(boxae);
@@ -1643,7 +1617,7 @@ NUMA      *nae, *nao, *na_all;
     if (nmin == 0) {
         boxaDestroy(&boxae);
         boxaDestroy(&boxao);
-        return ERROR_INT("either no even or no odd boxes", procName, 1);
+        return ERROR_INT("either no even or no odd boxes", __func__, 1);
     }
 
     if (type == L_SELECT_WIDTH) {
@@ -1725,8 +1699,6 @@ l_int32  i, n, bw, bh, medw, medh, medwe, medwo, medhe, medho;
 BOXA    *boxae, *boxao;
 NUMA    *nadelw, *nadelh;
 
-    PROCNAME("boxaMedianDimensions");
-
     if (pmedw) *pmedw = 0;
     if (pmedh) *pmedh = 0;
     if (pmedwe) *pmedwe= 0;
@@ -1736,16 +1708,16 @@ NUMA    *nadelw, *nadelh;
     if (pnadelw) *pnadelw = NULL;
     if (pnadelh) *pnadelh = NULL;
     if (!boxas)
-        return ERROR_INT("boxas not defined", procName, 1);
+        return ERROR_INT("boxas not defined", __func__, 1);
     if (boxaGetValidCount(boxas) < 6)
-        return ERROR_INT("need at least 6 valid boxes", procName, 1);
+        return ERROR_INT("need at least 6 valid boxes", __func__, 1);
 
         /* Require at least 3 valid boxes of both types */
     boxaSplitEvenOdd(boxas, 0, &boxae, &boxao);
     if (boxaGetValidCount(boxae) < 3 || boxaGetValidCount(boxao) < 3) {
         boxaDestroy(&boxae);
         boxaDestroy(&boxao);
-        return ERROR_INT("don't have 3+ valid boxes of each type", procName, 1);
+        return ERROR_INT("don't have 3+ valid boxes of each type", __func__, 1);
     }
 
         /* Get the relevant median widths and heights */

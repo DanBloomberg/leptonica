@@ -132,14 +132,12 @@ pixTilingCreate(PIX     *pixs,
 l_int32     width, height;
 PIXTILING  *pt;
 
-    PROCNAME("pixTilingCreate");
-
     if (!pixs)
-        return (PIXTILING *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIXTILING *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (nx < 1 && w < 1)
-        return (PIXTILING *)ERROR_PTR("invalid width spec", procName, NULL);
+        return (PIXTILING *)ERROR_PTR("invalid width spec", __func__, NULL);
     if (ny < 1 && h < 1)
-        return (PIXTILING *)ERROR_PTR("invalid height spec", procName, NULL);
+        return (PIXTILING *)ERROR_PTR("invalid height spec", __func__, NULL);
 
         /* Find the tile width and number of tiles.  All tiles except the
          * rightmost ones have the same width.  The width of the
@@ -153,8 +151,8 @@ PIXTILING  *pt;
         ny = L_MAX(1, height / h);
     h = height / ny;  /* possibly reset */
     if (xoverlap > w || yoverlap > h) {
-        L_INFO("tile width = %d, tile height = %d\n", procName, w, h);
-        return (PIXTILING *)ERROR_PTR("overlap too large", procName, NULL);
+        L_INFO("tile width = %d, tile height = %d\n", __func__, w, h);
+        return (PIXTILING *)ERROR_PTR("overlap too large", __func__, NULL);
     }
 
     pt = (PIXTILING *)LEPT_CALLOC(1, sizeof(PIXTILING));
@@ -181,10 +179,8 @@ pixTilingDestroy(PIXTILING  **ppt)
 {
 PIXTILING  *pt;
 
-    PROCNAME("pixTilingDestroy");
-
     if (ppt == NULL) {
-        L_WARNING("ptr address is null!\n", procName);
+        L_WARNING("ptr address is null!\n", __func__);
         return;
     }
 
@@ -210,10 +206,8 @@ pixTilingGetCount(PIXTILING  *pt,
                   l_int32    *pnx,
                   l_int32    *pny)
 {
-    PROCNAME("pixTilingGetCount");
-
     if (!pt)
-        return ERROR_INT("pt not defined", procName, 1);
+        return ERROR_INT("pt not defined", __func__, 1);
     if (pnx) *pnx = pt->nx;
     if (pny) *pny = pt->ny;
     return 0;
@@ -233,10 +227,8 @@ pixTilingGetSize(PIXTILING  *pt,
                  l_int32    *pw,
                  l_int32    *ph)
 {
-    PROCNAME("pixTilingGetSize");
-
     if (!pt)
-        return ERROR_INT("pt not defined", procName, 1);
+        return ERROR_INT("pt not defined", __func__, 1);
     if (pw) *pw = pt->w;
     if (ph) *ph = pt->h;
     return 0;
@@ -263,17 +255,15 @@ l_int32  left, top, xtraleft, xtraright, xtratop, xtrabot, width, height;
 BOX     *box;
 PIX     *pixs, *pixt, *pixd;
 
-    PROCNAME("pixTilingGetTile");
-
     if (!pt)
-        return (PIX *)ERROR_PTR("pt not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pt not defined", __func__, NULL);
     if ((pixs = pt->pix) == NULL)
-        return (PIX *)ERROR_PTR("pix not found", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not found", __func__, NULL);
     pixTilingGetCount(pt, &nx, &ny);
     if (i < 0 || i >= ny)
-        return (PIX *)ERROR_PTR("invalid row index i", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid row index i", __func__, NULL);
     if (j < 0 || j >= nx)
-        return (PIX *)ERROR_PTR("invalid column index j", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid column index j", __func__, NULL);
 
         /* Grab the tile with as much overlap as exists within the
          * input pix.   First, compute the (left, top) coordinates.  */
@@ -368,10 +358,8 @@ PIX     *pixs, *pixt, *pixd;
 l_ok
 pixTilingNoStripOnPaint(PIXTILING  *pt)
 {
-    PROCNAME("pixTilingNoStripOnPaint");
-
     if (!pt)
-        return ERROR_INT("pt not defined", procName, 1);
+        return ERROR_INT("pt not defined", __func__, 1);
     pt->strip = FALSE;
     return 0;
 }
@@ -396,18 +384,16 @@ pixTilingPaintTile(PIX        *pixd,
 {
 l_int32  w, h;
 
-    PROCNAME("pixTilingPaintTile");
-
     if (!pixd)
-        return ERROR_INT("pixd not defined", procName, 1);
+        return ERROR_INT("pixd not defined", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (!pt)
-        return ERROR_INT("pt not defined", procName, 1);
+        return ERROR_INT("pt not defined", __func__, 1);
     if (i < 0 || i >= pt->ny)
-        return ERROR_INT("invalid row index i", procName, 1);
+        return ERROR_INT("invalid row index i", __func__, 1);
     if (j < 0 || j >= pt->nx)
-        return ERROR_INT("invalid column index j", procName, 1);
+        return ERROR_INT("invalid column index j", __func__, 1);
 
         /* Strip added border pixels off if requested */
     pixGetDimensions(pixs, &w, &h, NULL);

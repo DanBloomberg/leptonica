@@ -113,18 +113,16 @@ BOX          *box;
 BOXA         *boxas;
 L_COLORFILL  *cf;
 
-    PROCNAME("l_colorfillCreate");
-
     if (!pixs)
-        return (L_COLORFILL *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (L_COLORFILL *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (L_COLORFILL *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (L_COLORFILL *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     tw = w / nx;
     th = h / ny;
     if (tw < 10 || th < 10)
-        return (L_COLORFILL *)ERROR_PTR("tile size too small", procName, NULL);
+        return (L_COLORFILL *)ERROR_PTR("tile size too small", __func__, NULL);
     boxas = boxaCreate(nx * ny);
     for (i = 0; i < ny; i++) {
         for (j = 0; j < nx; j++) {
@@ -159,10 +157,8 @@ l_colorfillDestroy(L_COLORFILL  **pcf)
 {
 L_COLORFILL  *cf;
 
-    PROCNAME("l_colorfillDestroy");
-
     if (pcf == NULL) {
-        L_WARNING("ptr address is null!\n", procName);
+        L_WARNING("ptr address is null!\n", __func__);
         return;
     }
 
@@ -237,18 +233,16 @@ l_int32    i, n;
 PIX       *pix1, *pix2, *pix3;
 PIXA      *pixas, *pixam;
 
-    PROCNAME("pixColorContentByLocation");
-
     if (!cf)
-        return ERROR_INT("cf not defined", procName, 1);
+        return ERROR_INT("cf not defined", __func__, 1);
     if (minmax <= 0) minmax = DefaultMinMax;
     if (minmax > 200)
-        return ERROR_INT("minmax > 200; unreasonably large", procName, 1);
+        return ERROR_INT("minmax > 200; unreasonably large", __func__, 1);
 
         /* Do the optional linear color map; this checks the ref vals
          * and uses them if valid.  Use {0,0,0} to skip this operation. */
     if ((pix1 = pixColorShiftWhitePoint(cf->pixs, rref, gref, bref)) == NULL)
-        return ERROR_INT("pix1 not returned", procName, 1);
+        return ERROR_INT("pix1 not returned", __func__, 1);
     cf->pixst = pix1;
 
         /* Break the image up into small tiles */
@@ -310,10 +304,8 @@ PIX       *pixm, *pixm1, *pixv, *pixnc, *pixncd, *pixss, *pixf;
 PTA       *pta1;
 L_QUEUE   *lq;
 
-    PROCNAME("pixColorFill");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", __func__, NULL);
 
         /* Set the non-color pixels to 0; generate a mask representing them */
     pixGetDimensions(pixs, &w, &h, NULL);
@@ -861,10 +853,8 @@ NUMA      *na;
 PIX       *pixm, *pix1, *pix2, *pixdb;
 PIXA      *pixa1;
 
-    PROCNAME("evalColorfillData");
-
     if (!cf)
-        return ERROR_INT("cf not defind", procName, 1);
+        return ERROR_INT("cf not defind", __func__, 1);
 
     tab = makePixelSumTab8();
     n = cf->nx * cf->ny;

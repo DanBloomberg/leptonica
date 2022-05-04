@@ -196,16 +196,14 @@ l_int32  i, n, d, xb, yb, wb, hb, res;
 BOXA    *boxa;
 PIX     *pix1, *pixd;
 
-    PROCNAME("pixaDisplay");
-
     if (!pixa)
-        return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixa not defined", __func__, NULL);
 
     n = pixaGetCount(pixa);
     if (n == 0 && w == 0 && h == 0)
-        return (PIX *)ERROR_PTR("no components; no size", procName, NULL);
+        return (PIX *)ERROR_PTR("no components; no size", __func__, NULL);
     if (n == 0) {
-        L_WARNING("no components; returning empty 1 bpp pix\n", procName);
+        L_WARNING("no components; returning empty 1 bpp pix\n", __func__);
         return pixCreate(w, h, 1);
     }
 
@@ -216,7 +214,7 @@ PIX     *pix1, *pixd;
         boxaGetExtent(boxa, &w, &h, NULL);
         boxaDestroy(&boxa);
         if (w == 0 || h == 0)
-            return (PIX *)ERROR_PTR("no associated boxa", procName, NULL);
+            return (PIX *)ERROR_PTR("no associated boxa", __func__, NULL);
     }
 
         /* Use the first pix in pixa to determine depth and resolution  */
@@ -226,13 +224,13 @@ PIX     *pix1, *pixd;
     pixDestroy(&pix1);
 
     if ((pixd = pixCreate(w, h, d)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixSetResolution(pixd, res, res);
     if (d > 1)
         pixSetAll(pixd);
     for (i = 0; i < n; i++) {
         if (pixaGetBoxGeometry(pixa, i, &xb, &yb, &wb, &hb)) {
-            L_WARNING("no box found!\n", procName);
+            L_WARNING("no box found!\n", __func__);
             continue;
         }
         pix1 = pixaGetPix(pixa, i, L_CLONE);
@@ -275,16 +273,14 @@ BOXA     *boxa;
 PIX      *pixs, *pix1, *pixd;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixaDisplayRandomCmap");
-
     if (!pixa)
-        return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixa not defined", __func__, NULL);
 
     if ((n = pixaGetCount(pixa)) == 0)
-        return (PIX *)ERROR_PTR("no components", procName, NULL);
+        return (PIX *)ERROR_PTR("no components", __func__, NULL);
     pixaVerifyDepth(pixa, &same, &maxd);
     if (maxd > 1)
-        return (PIX *)ERROR_PTR("not all components are 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("not all components are 1 bpp", __func__, NULL);
 
         /* If w and h are not input, determine the minimum size required
          * to contain the origin and all c.c. */
@@ -296,7 +292,7 @@ PIXCMAP  *cmap;
 
         /* Set up an 8 bpp dest pix, with a colormap with 254 random colors */
     if ((pixd = pixCreate(w, h, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     cmap = pixcmapCreateRandom(8, 1, 1);
     pixSetColormap(pixd, cmap);
 
@@ -353,13 +349,11 @@ BOX     *box;
 PIX     *pix1, *pix2, *pix3, *pixd;
 PIXA    *pixa1, *pixa2;
 
-    PROCNAME("pixaDisplayLinearly");
-
     if (pboxa) *pboxa = NULL;
     if (!pixas)
-        return (PIX *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (direction != L_HORIZ && direction != L_VERT)
-        return (PIX *)ERROR_PTR("invalid direction", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid direction", __func__, NULL);
 
         /* Make sure all pix are at the same depth */
     pixa1 = pixaConvertToSameDepth(pixas);
@@ -373,7 +367,7 @@ PIXA    *pixa1, *pixa2;
     x = y = 0;
     for (i = 0; i < n; i++) {
         if ((pix1 = pixaGetPix(pixa1, i, L_CLONE)) == NULL) {
-            L_WARNING("missing pix at index %d\n", procName, i);
+            L_WARNING("missing pix at index %d\n", __func__, i);
             continue;
         }
 
@@ -451,16 +445,14 @@ BOXA    *boxa;
 PIX     *pix1, *pix2, *pixd;
 PIXA    *pixa1;
 
-    PROCNAME("pixaDisplayOnLattice");
-
     if (pncols) *pncols = 0;
     if (pboxa) *pboxa = NULL;
     if (!pixa)
-        return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixa not defined", __func__, NULL);
 
         /* If any pix have colormaps, or if the depths differ, generate rgb */
     if ((n = pixaGetCount(pixa)) == 0)
-        return (PIX *)ERROR_PTR("no components", procName, NULL);
+        return (PIX *)ERROR_PTR("no components", __func__, NULL);
     pixaAnyColormaps(pixa, &hascmap);
     pixaVerifyDepth(pixa, &samedepth, NULL);
     if (hascmap || !samedepth) {
@@ -488,7 +480,7 @@ PIXA    *pixa1;
     pixDestroy(&pix1);
     if ((pixd = pixCreate(w, h, d)) == NULL) {
         pixaDestroy(&pixa1);
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     }
     pixSetBlackOrWhite(pixd, L_SET_WHITE);
     pixSetResolution(pixd, res, res);
@@ -501,7 +493,7 @@ PIXA    *pixa1;
             pix1 = pixaGetPix(pixa1, index, L_CLONE);
             pixGetDimensions(pix1, &wt, &ht, NULL);
             if (wt > cellw || ht > cellh) {
-                L_INFO("pix(%d) omitted; size %dx%x\n", procName, index,
+                L_INFO("pix(%d) omitted; size %dx%x\n", __func__, index,
                        wt, ht);
                 box = boxCreate(0, 0, 0, 0);
                 boxaAddBox(boxa, box, L_INSERT);
@@ -564,16 +556,14 @@ l_int32  w, h, d, wt, ht;
 l_int32  i, j, k, x, y, n;
 PIX     *pix1, *pixd;
 
-    PROCNAME("pixaDisplayUnsplit");
-
     if (!pixa)
-        return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixa not defined", __func__, NULL);
     if (nx <= 0 || ny <= 0)
-        return (PIX *)ERROR_PTR("nx and ny must be > 0", procName, NULL);
+        return (PIX *)ERROR_PTR("nx and ny must be > 0", __func__, NULL);
     if ((n = pixaGetCount(pixa)) == 0)
-        return (PIX *)ERROR_PTR("no components", procName, NULL);
+        return (PIX *)ERROR_PTR("no components", __func__, NULL);
     if (n != nx * ny)
-        return (PIX *)ERROR_PTR("n != nx * ny", procName, NULL);
+        return (PIX *)ERROR_PTR("n != nx * ny", __func__, NULL);
     borderwidth = L_MAX(0, borderwidth);
 
     pixaGetPixDimensions(pixa, 0, &wt, &ht, &d);
@@ -581,7 +571,7 @@ PIX     *pix1, *pixd;
     h = ny * (ht + 2 * borderwidth);
 
     if ((pixd = pixCreate(w, h, d)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pix1 = pixaGetPix(pixa, 0, L_CLONE);
     pixCopyColormap(pixd, pix1);
     pixDestroy(&pix1);
@@ -640,13 +630,11 @@ l_int32  ystart, xstart, wt, ht;
 PIX     *pix1, *pix2, *pixd;
 PIXA    *pixa1;
 
-    PROCNAME("pixaDisplayTiled");
-
     if (!pixa)
-        return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixa not defined", __func__, NULL);
     spacing = L_MAX(spacing, 0);
     if ((n = pixaGetCount(pixa)) == 0)
-        return (PIX *)ERROR_PTR("no components", procName, NULL);
+        return (PIX *)ERROR_PTR("no components", __func__, NULL);
 
         /* If any pix have colormaps, generate rgb */
     pixaAnyColormaps(pixa, &hascmap);
@@ -666,7 +654,7 @@ PIXA    *pixa1;
     pixaGetDepthInfo(pixa1, &d, &same);
     if (!same) {
         pixaDestroy(&pixa1);
-        return (PIX *)ERROR_PTR("depths not equal", procName, NULL);
+        return (PIX *)ERROR_PTR("depths not equal", __func__, NULL);
     }
     pixaSizeRange(pixa1, NULL, NULL, &wmax, &hmax);
 
@@ -679,7 +667,7 @@ PIXA    *pixa1;
     hd = hmax * nrows + spacing * (nrows + 1);
     if ((pixd = pixCreate(wd, hd, d)) == NULL) {
         pixaDestroy(&pixa1);
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     }
 
         /* Reset the background color if necessary */
@@ -766,18 +754,16 @@ NUMA     *namaxh;  /* height of max pix in the row */
 PIX      *pix, *pixn, *pix1, *pixd;
 PIXA     *pixan;
 
-    PROCNAME("pixaDisplayTiledInRows");
-
     if (!pixa)
-        return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixa not defined", __func__, NULL);
     if (outdepth != 1 && outdepth != 8 && outdepth != 32)
-        return (PIX *)ERROR_PTR("outdepth not in {1, 8, 32}", procName, NULL);
+        return (PIX *)ERROR_PTR("outdepth not in {1, 8, 32}", __func__, NULL);
     spacing = L_MAX(spacing, 0);
     border = L_MAX(border, 0);
     if (scalefactor <= 0.0) scalefactor = 1.0;
 
     if ((n = pixaGetCount(pixa)) == 0)
-        return (PIX *)ERROR_PTR("no components", procName, NULL);
+        return (PIX *)ERROR_PTR("no components", __func__, NULL);
 
         /* Normalize depths, scale, remove colormaps; optionally add border */
     pixan = pixaCreate(n);
@@ -809,10 +795,10 @@ PIXA     *pixan;
     }
     if (pixaGetCount(pixan) != n) {
         n = pixaGetCount(pixan);
-        L_WARNING("only got %d components\n", procName, n);
+        L_WARNING("only got %d components\n", __func__, n);
         if (n == 0) {
             pixaDestroy(&pixan);
-            return (PIX *)ERROR_PTR("no components", procName, NULL);
+            return (PIX *)ERROR_PTR("no components", __func__, NULL);
         }
     }
 
@@ -849,7 +835,7 @@ PIXA     *pixan;
         numaDestroy(&nainrow);
         numaDestroy(&namaxh);
         pixaDestroy(&pixan);
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     }
 
         /* Reset the background color if necessary */
@@ -941,14 +927,12 @@ BOXA     *boxa;
 PIX      *pix1, *pix2, *pix3, *pixd;
 PIXA     *pixa1, *pixa2;
 
-    PROCNAME("pixaDisplayTiledInColumns");
-
     if (!pixas)
-        return (PIX *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixas not defined", __func__, NULL);
     border = L_MAX(border, 0);
     if (scalefactor <= 0.0) scalefactor = 1.0;
     if ((n = pixaGetCount(pixas)) == 0)
-        return (PIX *)ERROR_PTR("no components", procName, NULL);
+        return (PIX *)ERROR_PTR("no components", __func__, NULL);
 
         /* Convert to same depth, if necessary */
     pixa1 = pixaConvertToSameDepth(pixas);
@@ -976,10 +960,10 @@ PIXA     *pixa1, *pixa2;
     pixaDestroy(&pixa1);
     if (pixaGetCount(pixa2) != n) {
         n = pixaGetCount(pixa2);
-        L_WARNING("only got %d components\n", procName, n);
+        L_WARNING("only got %d components\n", __func__, n);
         if (n == 0) {
             pixaDestroy(&pixa2);
-            return (PIX *)ERROR_PTR("no components", procName, NULL);
+            return (PIX *)ERROR_PTR("no components", __func__, NULL);
         }
     }
 
@@ -1057,19 +1041,17 @@ l_float32  scalefact;
 PIX       *pix, *pixn, *pix1, *pixb, *pixd;
 PIXA      *pixan;
 
-    PROCNAME("pixaDisplayTiledAndScaled");
-
     if (!pixa)
-        return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixa not defined", __func__, NULL);
     if (outdepth != 1 && outdepth != 8 && outdepth != 32)
-        return (PIX *)ERROR_PTR("outdepth not in {1, 8, 32}", procName, NULL);
+        return (PIX *)ERROR_PTR("outdepth not in {1, 8, 32}", __func__, NULL);
     if (ncols <= 0)
-        return (PIX *)ERROR_PTR("ncols must be > 0", procName, NULL);
+        return (PIX *)ERROR_PTR("ncols must be > 0", __func__, NULL);
     spacing = L_MAX(spacing, 0);
     if (border < 0 || border > tilewidth / 5)
         border = 0;
     if ((n = pixaGetCount(pixa)) == 0)
-        return (PIX *)ERROR_PTR("no components", procName, NULL);
+        return (PIX *)ERROR_PTR("no components", __func__, NULL);
 
         /* Normalize scale and depth for each pix; optionally add border */
     pixan = pixaCreate(n);
@@ -1104,7 +1086,7 @@ PIXA      *pixan;
     }
     if ((n = pixaGetCount(pixan)) == 0) { /* should not have changed! */
         pixaDestroy(&pixan);
-        return (PIX *)ERROR_PTR("no components", procName, NULL);
+        return (PIX *)ERROR_PTR("no components", __func__, NULL);
     }
 
         /* Determine the size of each row and of pixd */
@@ -1112,7 +1094,7 @@ PIXA      *pixan;
     nrows = (n + ncols - 1) / ncols;
     if ((rowht = (l_int32 *)LEPT_CALLOC(nrows, sizeof(l_int32))) == NULL) {
         pixaDestroy(&pixan);
-        return (PIX *)ERROR_PTR("rowht array not made", procName, NULL);
+        return (PIX *)ERROR_PTR("rowht array not made", __func__, NULL);
     }
     maxht = 0;
     ninrow = 0;
@@ -1212,21 +1194,19 @@ L_BMF    *bmf;
 PIX      *pix1, *pix2, *pix3, *pix4, *pixd;
 PIXA     *pixad;
 
-    PROCNAME("pixaDisplayTiledWithText");
-
     if (!pixa)
-        return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixa not defined", __func__, NULL);
     if ((n = pixaGetCount(pixa)) == 0)
-        return (PIX *)ERROR_PTR("no components", procName, NULL);
+        return (PIX *)ERROR_PTR("no components", __func__, NULL);
     if (maxwidth <= 0)
-        return (PIX *)ERROR_PTR("invalid maxwidth", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid maxwidth", __func__, NULL);
     spacing = L_MAX(spacing, 0);
     border = L_MAX(border, 0);
     if (scalefactor <= 0.0) scalefactor = 1.0;
     if (fontsize < 4 || fontsize > 20 || (fontsize & 1)) {
         l_int32 fsize = L_MAX(L_MIN(fontsize, 20), 4);
         if (fsize & 1) fsize--;
-        L_WARNING("changed fontsize from %d to %d\n", procName,
+        L_WARNING("changed fontsize from %d to %d\n", __func__,
                   fontsize, fsize);
         fontsize = fsize;
     }
@@ -1311,26 +1291,24 @@ NUMA      *nay;  /* top of the next pix to add in that column */
 PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pixd;
 PIXA      *pixad;
 
-    PROCNAME("pixaDisplayTiledByIndex");
-
     if (!pixa)
-        return (PIX *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixa not defined", __func__, NULL);
     if (!na)
-        return (PIX *)ERROR_PTR("na not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("na not defined", __func__, NULL);
     if ((n = pixaGetCount(pixa)) == 0)
-        return (PIX *)ERROR_PTR("no pixa components", procName, NULL);
+        return (PIX *)ERROR_PTR("no pixa components", __func__, NULL);
     if (n != numaGetCount(na))
-        return (PIX *)ERROR_PTR("pixa and na counts differ", procName, NULL);
+        return (PIX *)ERROR_PTR("pixa and na counts differ", __func__, NULL);
     if (width <= 0)
-        return (PIX *)ERROR_PTR("invalid width", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid width", __func__, NULL);
     if (width < 20)
-        L_WARNING("very small width: %d\n", procName, width);
+        L_WARNING("very small width: %d\n", __func__, width);
     spacing = L_MAX(spacing, 0);
     border = L_MAX(border, 0);
     if (fontsize < 4 || fontsize > 20 || (fontsize & 1)) {
         l_int32 fsize = L_MAX(L_MIN(fontsize, 20), 4);
         if (fsize & 1) fsize--;
-        L_WARNING("changed fontsize from %d to %d\n", procName,
+        L_WARNING("changed fontsize from %d to %d\n", __func__,
                   fontsize, fsize);
         fontsize = fsize;
     }
@@ -1436,26 +1414,24 @@ PIX     *pix5, *pix6, *pix7, *pix8, *pix9;
 PIXA    *pixa1, *pixa2;
 SARRAY  *sa1;
 
-    PROCNAME("pixaDisplayPairTiledInColumns");
-
     if (!pixas1)
-        return (PIX *)ERROR_PTR("pixas1 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixas1 not defined", __func__, NULL);
     if (!pixas2)
-        return (PIX *)ERROR_PTR("pixas2 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixas2 not defined", __func__, NULL);
     spacing1 = L_MAX(spacing1, 0);
     spacing2 = L_MAX(spacing2, 0);
     border1 = L_MAX(border1, 0);
     border2 = L_MAX(border2, 0);
     if (scalefactor <= 0.0) scalefactor = 1.0;
     if ((n = pixaGetCount(pixas1)) == 0)
-        return (PIX *)ERROR_PTR("no components", procName, NULL);
+        return (PIX *)ERROR_PTR("no components", __func__, NULL);
     if (n != pixaGetCount(pixas2))
-        return (PIX *)ERROR_PTR("pixa sizes differ", procName, NULL);
+        return (PIX *)ERROR_PTR("pixa sizes differ", __func__, NULL);
     text = (fontsize <= 0) ? 0 : 1;
     if (text && (fontsize < 4 || fontsize > 20 || (fontsize & 1))) {
         l_int32 fsize = L_MAX(L_MIN(fontsize, 20), 4);
         if (fsize & 1) fsize--;
-        L_WARNING("changed fontsize from %d to %d\n", procName,
+        L_WARNING("changed fontsize from %d to %d\n", __func__,
                   fontsize, fsize);
         fontsize = fsize;
     }
@@ -1579,14 +1555,12 @@ BOXA    *boxa;
 PIX     *pix1, *pixd;
 PIXA    *pixa;
 
-    PROCNAME("pixaaDisplay");
-
     if (!paa)
-        return (PIX *)ERROR_PTR("paa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("paa not defined", __func__, NULL);
 
     n = pixaaGetCount(paa, NULL);
     if (n == 0)
-        return (PIX *)ERROR_PTR("no components", procName, NULL);
+        return (PIX *)ERROR_PTR("no components", __func__, NULL);
 
         /* If w and h not input, determine the minimum size required
          * to contain the origin and all c.c. */
@@ -1620,7 +1594,7 @@ PIXA    *pixa;
 
     if ((pixd = pixCreate(w, h, d)) == NULL) {
         boxaDestroy(&boxa1);
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     }
 
     x = y = 0;
@@ -1683,17 +1657,15 @@ l_int32  i, n, vs;
 PIX     *pix1, *pix2;
 PIXA    *pixa1, *pixa2;
 
-    PROCNAME("pixaaDisplayByPixa");
-
     if (!paa)
-        return (PIX *)ERROR_PTR("paa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("paa not defined", __func__, NULL);
     if (scalefactor <= 0.0) scalefactor = 1.0;
     if (hspacing < 0) hspacing = 0;
     if (vspacing < 0) vspacing = 0;
     if (border < 0) border = 0;
 
     if ((n = pixaaGetCount(paa, NULL)) == 0)
-        return (PIX *)ERROR_PTR("no components", procName, NULL);
+        return (PIX *)ERROR_PTR("no components", __func__, NULL);
 
         /* Vertical spacing of amount %hspacing is also added at this step */
     pixa2 = pixaCreate(0);
@@ -1747,19 +1719,17 @@ l_int32  i, n;
 PIX     *pix;
 PIXA    *pixa, *pixad;
 
-    PROCNAME("pixaaDisplayTiledAndScaled");
-
     if (!paa)
-        return (PIXA *)ERROR_PTR("paa not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("paa not defined", __func__, NULL);
     if (outdepth != 1 && outdepth != 8 && outdepth != 32)
-        return (PIXA *)ERROR_PTR("outdepth not in {1, 8, 32}", procName, NULL);
+        return (PIXA *)ERROR_PTR("outdepth not in {1, 8, 32}", __func__, NULL);
     if (ncols <= 0)
-        return (PIXA *)ERROR_PTR("ncols must be > 0", procName, NULL);
+        return (PIXA *)ERROR_PTR("ncols must be > 0", __func__, NULL);
     if (border < 0 || border > tilewidth / 5)
         border = 0;
 
     if ((n = pixaaGetCount(paa, NULL)) == 0)
-        return (PIXA *)ERROR_PTR("no components", procName, NULL);
+        return (PIXA *)ERROR_PTR("no components", __func__, NULL);
 
     pixad = pixaCreate(n);
     for (i = 0; i < n; i++) {
@@ -1793,10 +1763,8 @@ BOXA    *boxa;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 
-    PROCNAME("pixaConvertTo1");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
 
     n = pixaGetCount(pixas);
     pixad = pixaCreate(n);
@@ -1834,10 +1802,8 @@ BOXA    *boxa;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 
-    PROCNAME("pixaConvertTo8");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
 
     n = pixaGetCount(pixas);
     pixad = pixaCreate(n);
@@ -1875,10 +1841,8 @@ BOXA    *boxa;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 
-    PROCNAME("pixaConvertTo8Colormap");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
 
     n = pixaGetCount(pixas);
     pixad = pixaCreate(n);
@@ -1916,10 +1880,8 @@ BOXA    *boxa;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 
-    PROCNAME("pixaConvertTo32");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
 
     n = pixaGetCount(pixas);
     pixad = pixaCreate(n);
@@ -1974,17 +1936,15 @@ NUMA    *na;
 PIX     *pix1;
 PIXA    *pixad;
 
-    PROCNAME("pixaConstrainedSelect");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     n = pixaGetCount(pixas);
     first = L_MAX(0, first);
     last = (last < 0) ? n - 1 : L_MIN(n - 1, last);
     if (last < first)
-        return (PIXA *)ERROR_PTR("last < first!", procName, NULL);
+        return (PIXA *)ERROR_PTR("last < first!", __func__, NULL);
     if (nmax < 1)
-        return (PIXA *)ERROR_PTR("nmax < 1!", procName, NULL);
+        return (PIXA *)ERROR_PTR("nmax < 1!", __func__, NULL);
 
     na = genConstrainedNumaInRange(first, last, nmax, use_pairs);
     nselect = numaGetCount(na);
@@ -2046,23 +2006,21 @@ L_BMF   *bmf;
 NUMA    *na;
 PIXA    *pixa1, *pixa2;
 
-    PROCNAME("pixaSelectToPdf");
-
     if (!pixas)
-        return ERROR_INT("pixas not defined", procName, 1);
+        return ERROR_INT("pixas not defined", __func__, 1);
     if (type < 0 || type > L_FLATE_ENCODE) {
-        L_WARNING("invalid compression type; using default\n", procName);
+        L_WARNING("invalid compression type; using default\n", __func__);
         type = 0;
     }
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
 
         /* Select from given range */
     n = pixaGetCount(pixas);
     first = L_MAX(0, first);
     last = (last < 0) ? n - 1 : L_MIN(n - 1, last);
     if (first > last) {
-        L_ERROR("first = %d > last = %d\n", procName, first, last);
+        L_ERROR("first = %d > last = %d\n", __func__, first, last);
         return 1;
     }
     pixa1 = pixaSelectRange(pixas, first, last, L_CLONE);
@@ -2119,12 +2077,10 @@ l_int32  ntiles, i;
 PIX     *pix1;
 PIXA    *pixad, *pixa1;
 
-    PROCNAME("pixaMakeFromTiledPixa");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (nsamp > 1000)
-        return (PIXA *)ERROR_PTR("nsamp too large; typ. 100", procName, NULL);
+        return (PIXA *)ERROR_PTR("nsamp too large; typ. 100", __func__, NULL);
 
     if (w <= 0) w = 20;
     if (h <= 0) h = 30;
@@ -2139,7 +2095,7 @@ PIXA    *pixad, *pixa1;
         pix1 = pixaGetPix(pixas, i, L_CLONE);
         pixGetTileCount(pix1, &ntiles);
         if (nsamp > ntiles)
-            L_WARNING("requested %d; only %d tiles\n", procName, nsamp, ntiles);
+            L_WARNING("requested %d; only %d tiles\n", __func__, nsamp, ntiles);
         pixa1 = pixaMakeFromTiledPix(pix1, w, h, 0, nsamp, NULL);
         snprintf(buf, sizeof(buf), "%d", i);
         pixaSetText(pixa1, buf, NULL);
@@ -2201,12 +2157,10 @@ PIX      *pix1;
 PIXA     *pixa1;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixaMakeFromTiledPix");
-
     if (!pixs)
-        return (PIXA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!boxa && (w <= 0 || h <= 0))
-        return (PIXA *)ERROR_PTR("w and h must be > 0", procName, NULL);
+        return (PIXA *)ERROR_PTR("w and h must be > 0", __func__, NULL);
 
     if (boxa)  /* general case */
        return pixaCreateFromBoxa(pixs, boxa, start, num, NULL);
@@ -2216,9 +2170,9 @@ PIXCMAP  *cmap;
     nx = ws / w;
     ny = hs / h;
     if (nx < 1 || ny < 1)
-        return (PIXA *)ERROR_PTR("invalid dimensions", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid dimensions", __func__, NULL);
     if (nx * w != ws || ny * h != hs)
-        L_WARNING("some tiles will be clipped\n", procName);
+        L_WARNING("some tiles will be clipped\n", __func__);
 
         /* Check the text field of the pix.  It may tell how many
          * tiles hold valid data.  If a valid value is not found,
@@ -2231,7 +2185,7 @@ PIXCMAP  *cmap;
 
         /* Extract the tiles */
     if ((pixa1 = pixaCreate(num)) == NULL) {
-        return (PIXA *)ERROR_PTR("pixa1 not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixa1 not made", __func__, NULL);
     }
     cmap = pixGetColormap(pixs);
     for (i = 0, k = 0; i < ny; i++) {
@@ -2270,13 +2224,11 @@ pixGetTileCount(PIX      *pix,
 char    *text;
 l_int32  n;
 
-    PROCNAME("pixGetTileCount");
-
     if (!pn)
-        return ERROR_INT("&n not defined", procName, 1);
+        return ERROR_INT("&n not defined", __func__, 1);
     *pn = 0;
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
 
     text = pixGetText(pix);
     if (text && strlen(text) > 4) {
@@ -2325,14 +2277,12 @@ l_int32  n, i, j, ntile, nout, index;
 PIX     *pix1, *pix2;
 PIXA    *pixa1, *pixa2, *pixad;
 
-    PROCNAME("pixaDisplayMultiTiled");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (nx < 1 || ny < 1 || nx > 50 || ny > 50)
-        return (PIXA *)ERROR_PTR("invalid tiling factor(s)", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid tiling factor(s)", __func__, NULL);
     if ((n = pixaGetCount(pixas)) == 0)
-        return (PIXA *)ERROR_PTR("pixas is empty", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas is empty", __func__, NULL);
 
         /* Filter out large ones if requested */
     if (maxw == 0 && maxh == 0) {
@@ -2404,16 +2354,14 @@ l_int32  i, j, index, n, nt;
 PIX     *pix1, *pix2;
 PIXA    *pixa1;
 
-    PROCNAME("pixaSplitIntoFiles");
-
     if (!pixas)
-        return ERROR_INT("pixas not defined", procName, 1);
+        return ERROR_INT("pixas not defined", __func__, 1);
     if (nsplit <= 1)
-        return ERROR_INT("nsplit must be >= 2", procName, 1);
+        return ERROR_INT("nsplit must be >= 2", __func__, 1);
     if ((nt = pixaGetCount(pixas)) == 0)
-        return ERROR_INT("pixas is empty", procName, 1);
+        return ERROR_INT("pixas is empty", __func__, 1);
     if (!write_pixa && !write_pix && !write_pdf)
-        return ERROR_INT("no output is requested", procName, 1);
+        return ERROR_INT("no output is requested", __func__, 1);
 
     lept_mkdir("lept/split");
     n = (nt + nsplit - 1) / nsplit;
@@ -2494,21 +2442,19 @@ l_int32  d, format;
 char     rootpath[256];
 PIXA    *pixa;
 
-    PROCNAME("convertToNUpFiles");
-
     if (!dir)
-        return ERROR_INT("dir not defined", procName, 1);
+        return ERROR_INT("dir not defined", __func__, 1);
     if (nx < 1 || ny < 1 || nx > 50 || ny > 50)
-        return ERROR_INT("invalid tiling N-factor", procName, 1);
+        return ERROR_INT("invalid tiling N-factor", __func__, 1);
     if (fontsize < 0 || fontsize > 20 || fontsize & 1 || fontsize == 2)
-        return ERROR_INT("invalid fontsize", procName, 1);
+        return ERROR_INT("invalid fontsize", __func__, 1);
     if (!outdir)
-        return ERROR_INT("outdir not defined", procName, 1);
+        return ERROR_INT("outdir not defined", __func__, 1);
 
     pixa = convertToNUpPixa(dir, substr, nx, ny, tw, spacing, border,
                             fontsize);
     if (!pixa)
-        return ERROR_INT("pixa not made", procName, 1);
+        return ERROR_INT("pixa not made", __func__, 1);
 
     lept_rmdir(outdir);
     lept_mkdir(outdir);
@@ -2556,16 +2502,14 @@ char    *fname, *tail;
 PIXA    *pixa1, *pixa2;
 SARRAY  *sa1, *sa2;
 
-    PROCNAME("convertToNUpPixa");
-
     if (!dir)
-        return (PIXA *)ERROR_PTR("dir not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("dir not defined", __func__, NULL);
     if (nx < 1 || ny < 1 || nx > 50 || ny > 50)
-        return (PIXA *)ERROR_PTR("invalid tiling N-factor", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid tiling N-factor", __func__, NULL);
     if (tw < 20)
-        return (PIXA *)ERROR_PTR("tw must be >= 20", procName, NULL);
+        return (PIXA *)ERROR_PTR("tw must be >= 20", __func__, NULL);
     if (fontsize < 0 || fontsize > 20 || fontsize & 1 || fontsize == 2)
-        return (PIXA *)ERROR_PTR("invalid fontsize", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid fontsize", __func__, NULL);
 
     sa1 = getSortedPathnamesInDirectory(dir, substr, 0, 0);
     pixa1 = pixaReadFilesSA(sa1);
@@ -2623,20 +2567,18 @@ L_BMF     *bmf;
 PIX       *pix1, *pix2, *pix3, *pix4;
 PIXA      *pixa1, *pixad;
 
-    PROCNAME("pixaConvertToNUpPixa");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (nx < 1 || ny < 1 || nx > 50 || ny > 50)
-        return (PIXA *)ERROR_PTR("invalid tiling N-factor", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid tiling N-factor", __func__, NULL);
     if (tw < 20)
-        return (PIXA *)ERROR_PTR("tw must be >= 20", procName, NULL);
+        return (PIXA *)ERROR_PTR("tw must be >= 20", __func__, NULL);
     if (fontsize < 0 || fontsize > 20 || fontsize & 1 || fontsize == 2)
-        return (PIXA *)ERROR_PTR("invalid fontsize", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid fontsize", __func__, NULL);
 
     nt = pixaGetCount(pixas);
     if (sa && (sarrayGetCount(sa) != nt)) {
-        L_WARNING("pixa size %d not equal to sarray size %d\n", procName,
+        L_WARNING("pixa size %d not equal to sarray size %d\n", __func__,
                   nt, sarrayGetCount(sa));
     }
 
@@ -2735,29 +2677,27 @@ l_int32  n1, n2, npairs;
 PIXA    *pixa3, *pixa4, *pixa5;
 SARRAY  *sa;
 
-    PROCNAME("pixaCompareInPdf");
-
     if (!pixa1 || !pixa2)
-        return ERROR_INT("pixa1 and pixa2 not both defined", procName, 1);
+        return ERROR_INT("pixa1 and pixa2 not both defined", __func__, 1);
     if (nx < 1 || ny < 1 || nx > 20 || ny > 20)
-        return ERROR_INT("invalid tiling factors", procName, 1);
+        return ERROR_INT("invalid tiling factors", __func__, 1);
     if (tw < 20)
-        return ERROR_INT("invalid tw; tw must be >= 20", procName, 1);
+        return ERROR_INT("invalid tw; tw must be >= 20", __func__, 1);
     if (fontsize < 0 || fontsize > 20 || fontsize & 1 || fontsize == 2)
-        return ERROR_INT("invalid fontsize", procName, 1);
+        return ERROR_INT("invalid fontsize", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
     n1 = pixaGetCount(pixa1);
     n2 = pixaGetCount(pixa2);
     if (n1 == 0 || n2 == 0)
-        return ERROR_INT("at least one pixa is empty", procName, 1);
+        return ERROR_INT("at least one pixa is empty", __func__, 1);
     if (n1 != n2)
         L_WARNING("sizes (%d, %d) differ; using the minimum in interleave\n",
-                  procName, n1, n2);
+                  __func__, n1, n2);
 
         /* Interleave the input pixa */
     if ((pixa3 = pixaInterleave(pixa1, pixa2, L_CLONE)) == NULL)
-        return ERROR_INT("pixa3 not made", procName, 1);
+        return ERROR_INT("pixa3 not made", __func__, 1);
 
         /* Scale the images if necessary and pair them up side/by/side */
     pixa4 = pixaConvertToNUpPixa(pixa3, NULL, 2, 1, tw, spacing, border, 0);

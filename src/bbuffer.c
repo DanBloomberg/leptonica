@@ -132,15 +132,13 @@ bbufferCreate(const l_uint8  *indata,
 {
 L_BBUFFER  *bb;
 
-    PROCNAME("bbufferCreate");
-
     if (nalloc <= 0 || nalloc > MaxArraySize)
         nalloc = InitialArraySize;
 
     bb = (L_BBUFFER *)LEPT_CALLOC(1, sizeof(L_BBUFFER));
     if ((bb->array = (l_uint8 *)LEPT_CALLOC(nalloc, sizeof(l_uint8))) == NULL) {
         LEPT_FREE(bb);
-        return (L_BBUFFER *)ERROR_PTR("byte array not made", procName, NULL);
+        return (L_BBUFFER *)ERROR_PTR("byte array not made", __func__, NULL);
     }
     bb->nalloc = nalloc;
     bb->nwritten = 0;
@@ -173,10 +171,8 @@ bbufferDestroy(L_BBUFFER  **pbb)
 {
 L_BBUFFER  *bb;
 
-    PROCNAME("bbufferDestroy");
-
     if (pbb == NULL) {
-        L_WARNING("ptr address is NULL\n", procName);
+        L_WARNING("ptr address is NULL\n", __func__);
         return;
     }
 
@@ -210,14 +206,12 @@ l_uint8    *array;
 size_t      nbytes;
 L_BBUFFER  *bb;
 
-    PROCNAME("bbufferDestroyAndSaveData");
-
     if (pbb == NULL) {
-        L_WARNING("ptr address is NULL\n", procName);
+        L_WARNING("ptr address is NULL\n", __func__);
         return NULL;
     }
     if (pnbytes == NULL) {
-        L_WARNING("&nbytes is NULL\n", procName);
+        L_WARNING("&nbytes is NULL\n", __func__);
         bbufferDestroy(pbb);
         return NULL;
     }
@@ -229,7 +223,7 @@ L_BBUFFER  *bb;
     nbytes = bb->n - bb->nwritten;
     *pnbytes = nbytes;
     if ((array = (l_uint8 *)LEPT_CALLOC(nbytes, sizeof(l_uint8))) == NULL) {
-        L_WARNING("calloc failure for array\n", procName);
+        L_WARNING("calloc failure for array\n", __func__);
         return NULL;
     }
     memcpy(array, bb->array + bb->nwritten, nbytes);
@@ -268,14 +262,12 @@ bbufferRead(L_BBUFFER  *bb,
 {
 l_int32  navail, nadd, nwritten;
 
-    PROCNAME("bbufferRead");
-
     if (!bb)
-        return ERROR_INT("bb not defined", procName, 1);
+        return ERROR_INT("bb not defined", __func__, 1);
     if (!src)
-        return ERROR_INT("src not defined", procName, 1);
+        return ERROR_INT("src not defined", __func__, 1);
     if (nbytes == 0)
-        return ERROR_INT("no bytes to read", procName, 1);
+        return ERROR_INT("no bytes to read", __func__, 1);
 
     if ((nwritten = bb->nwritten)) {  /* move the unwritten bytes over */
         memmove(bb->array, bb->array + nwritten, bb->n - nwritten);
@@ -289,7 +281,7 @@ l_int32  navail, nadd, nwritten;
     if (nbytes > navail) {
         nadd = L_MAX(bb->nalloc, nbytes);
         if (bbufferExtendArray(bb, nadd))
-            return ERROR_INT("extension failed", procName, 1);
+            return ERROR_INT("extension failed", __func__, 1);
     }
 
         /* Read in the new bytes */
@@ -314,14 +306,12 @@ bbufferReadStream(L_BBUFFER  *bb,
 {
 l_int32  navail, nadd, nread, nwritten;
 
-    PROCNAME("bbufferReadStream");
-
     if (!bb)
-        return ERROR_INT("bb not defined", procName, 1);
+        return ERROR_INT("bb not defined", __func__, 1);
     if (!fp)
-        return ERROR_INT("fp not defined", procName, 1);
+        return ERROR_INT("fp not defined", __func__, 1);
     if (nbytes == 0)
-        return ERROR_INT("no bytes to read", procName, 1);
+        return ERROR_INT("no bytes to read", __func__, 1);
 
     if ((nwritten = bb->nwritten)) {  /* move any unwritten bytes over */
         memmove(bb->array, bb->array + nwritten, bb->n - nwritten);
@@ -335,7 +325,7 @@ l_int32  navail, nadd, nread, nwritten;
     if (nbytes > navail) {
         nadd = L_MAX(bb->nalloc, nbytes);
         if (bbufferExtendArray(bb, nadd))
-            return ERROR_INT("extension failed", procName, 1);
+            return ERROR_INT("extension failed", __func__, 1);
     }
 
         /* Read in the new bytes */
@@ -363,15 +353,13 @@ l_ok
 bbufferExtendArray(L_BBUFFER  *bb,
                    l_int32     nbytes)
 {
-    PROCNAME("bbufferExtendArray");
-
     if (!bb)
-        return ERROR_INT("bb not defined", procName, 1);
+        return ERROR_INT("bb not defined", __func__, 1);
 
     if ((bb->array = (l_uint8 *)reallocNew((void **)&bb->array,
                                 bb->nalloc,
                                 bb->nalloc + nbytes)) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
+            return ERROR_INT("new ptr array not returned", __func__, 1);
 
     bb->nalloc += nbytes;
     return 0;
@@ -398,16 +386,14 @@ bbufferWrite(L_BBUFFER  *bb,
 {
 size_t  nleft, nout;
 
-    PROCNAME("bbufferWrite");
-
     if (!bb)
-        return ERROR_INT("bb not defined", procName, 1);
+        return ERROR_INT("bb not defined", __func__, 1);
     if (!dest)
-        return ERROR_INT("dest not defined", procName, 1);
+        return ERROR_INT("dest not defined", __func__, 1);
     if (nbytes <= 0)
-        return ERROR_INT("no bytes requested to write", procName, 1);
+        return ERROR_INT("no bytes requested to write", __func__, 1);
     if (!pnout)
-        return ERROR_INT("&nout not defined", procName, 1);
+        return ERROR_INT("&nout not defined", __func__, 1);
 
     nleft = bb->n - bb->nwritten;
     nout = L_MIN(nleft, nbytes);
@@ -450,16 +436,14 @@ bbufferWriteStream(L_BBUFFER  *bb,
 {
 size_t  nleft, nout;
 
-    PROCNAME("bbufferWriteStream");
-
     if (!bb)
-        return ERROR_INT("bb not defined", procName, 1);
+        return ERROR_INT("bb not defined", __func__, 1);
     if (!fp)
-        return ERROR_INT("output stream not defined", procName, 1);
+        return ERROR_INT("output stream not defined", __func__, 1);
     if (nbytes <= 0)
-        return ERROR_INT("no bytes requested to write", procName, 1);
+        return ERROR_INT("no bytes requested to write", __func__, 1);
     if (!pnout)
-        return ERROR_INT("&nout not defined", procName, 1);
+        return ERROR_INT("&nout not defined", __func__, 1);
 
     nleft = bb->n - bb->nwritten;
     nout = L_MIN(nleft, nbytes);

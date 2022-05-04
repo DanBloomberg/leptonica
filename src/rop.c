@@ -213,10 +213,8 @@ pixRasterop(PIX     *pixd,
 {
 l_int32  dpw, dph, dpd, spw, sph, spd;
 
-    PROCNAME("pixRasterop");
-
     if (!pixd)
-        return ERROR_INT("pixd not defined", procName, 1);
+        return ERROR_INT("pixd not defined", __func__, 1);
 
     if (op == PIX_DST)   /* no-op */
         return 0;
@@ -224,7 +222,7 @@ l_int32  dpw, dph, dpd, spw, sph, spd;
     pixGetDimensions(pixd, &dpw, &dph, &dpd);
 #if 0
     if (checkRasteropCrop(dpw, dph, dx, dy, dw, dh)) {
-        L_WARNING("dest crop box out of bounds\n", procName);
+        L_WARNING("dest crop box out of bounds\n", __func__);
         return 1;
     }
 #endif
@@ -238,13 +236,13 @@ l_int32  dpw, dph, dpd, spw, sph, spd;
 
         /* Two-image rasterop; the depths must match */
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     pixGetDimensions(pixs, &spw, &sph, &spd);
     if (dpd != spd)
-        return ERROR_INT("depths of pixs and pixd differ", procName, 1);
+        return ERROR_INT("depths of pixs and pixd differ", __func__, 1);
 #if 0
     if (checkRasteropCrop(spw, sph, sx, sy, dw, dh)) {
-        L_WARNING("source crop box out of bounds\n", procName);
+        L_WARNING("source crop box out of bounds\n", __func__);
         return 1;
     }
 #endif
@@ -290,14 +288,12 @@ l_int32   w, h, d, index, op;
 PIX      *pixt;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixRasteropVip");
-
     if (!pixd)
-        return ERROR_INT("pixd not defined", procName, 1);
+        return ERROR_INT("pixd not defined", __func__, 1);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return ERROR_INT("invalid value for incolor", procName, 1);
+        return ERROR_INT("invalid value for incolor", __func__, 1);
     if (bw <= 0)
-        return ERROR_INT("bw must be > 0", procName, 1);
+        return ERROR_INT("bw must be > 0", __func__, 1);
 
     if (vshift == 0)
         return 0;
@@ -368,14 +364,12 @@ l_int32   w, h, d, index, op;
 PIX      *pixt;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixRasteropHip");
-
     if (!pixd)
-        return ERROR_INT("pixd not defined", procName, 1);
+        return ERROR_INT("pixd not defined", __func__, 1);
     if (incolor != L_BRING_IN_WHITE && incolor != L_BRING_IN_BLACK)
-        return ERROR_INT("invalid value for incolor", procName, 1);
+        return ERROR_INT("invalid value for incolor", __func__, 1);
     if (bh <= 0)
-        return ERROR_INT("bh must be > 0", procName, 1);
+        return ERROR_INT("bh must be > 0", __func__, 1);
 
     if (hshift == 0)
         return 0;
@@ -448,14 +442,12 @@ pixTranslate(PIX     *pixd,
              l_int32  vshift,
              l_int32  incolor)
 {
-    PROCNAME("pixTranslate");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
 
         /* Prepare pixd for in-place operation */
     if ((pixd = pixCopy(pixd, pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
 
     pixRasteropIP(pixd, hshift, vshift, incolor);
     return pixd;
@@ -479,10 +471,8 @@ pixRasteropIP(PIX     *pixd,
 {
 l_int32  w, h;
 
-    PROCNAME("pixRasteropIP");
-
     if (!pixd)
-        return ERROR_INT("pixd not defined", procName, 1);
+        return ERROR_INT("pixd not defined", __func__, 1);
 
     pixGetDimensions(pixd, &w, &h, NULL);
     pixRasteropHip(pixd, 0, h, hshift, incolor);
@@ -517,12 +507,10 @@ pixRasteropFullImage(PIX     *pixd,
                      PIX     *pixs,
                      l_int32  op)
 {
-    PROCNAME("pixRasteropFullImage");
-
     if (!pixd)
-        return ERROR_INT("pixd not defined", procName, 1);
+        return ERROR_INT("pixd not defined", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
 
     pixRasterop(pixd, 0, 0, pixGetWidth(pixd), pixGetHeight(pixd), op,
                 pixs, 0, 0);
@@ -557,16 +545,14 @@ checkRasteropCrop(l_int32 pixw,
                   l_int32 w,
                   l_int32 h)
 {
-    PROCNAME("checkRasteropCrop");
-
     if (pixw < 1 || pixh < 1 || w < 1 || h < 1)
-        return ERROR_INT("dimension is <= 0", procName, 1);
+        return ERROR_INT("dimension is <= 0", __func__, 1);
 
     if (x + w <= 0 || y + h <= 0)
-        return ERROR_INT("box to left or above pix", procName, 1);
+        return ERROR_INT("box to left or above pix", __func__, 1);
 
     if (x >= pixw || y >= pixh)
-        return ERROR_INT("box to right or below pix", procName, 1);
+        return ERROR_INT("box to right or below pix", __func__, 1);
 
     return 0;
 }

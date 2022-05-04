@@ -103,16 +103,14 @@ char   **array;
 char    *tmp;
 l_int32  n, i, j, gap;
 
-    PROCNAME("sarraySort");
-
     if (!sain)
-        return (SARRAY *)ERROR_PTR("sain not defined", procName, NULL);
+        return (SARRAY *)ERROR_PTR("sain not defined", __func__, NULL);
 
         /* Make saout if necessary; otherwise do in-place */
     if (!saout)
         saout = sarrayCopy(sain);
     else if (sain != saout)
-        return (SARRAY *)ERROR_PTR("invalid: not in-place", procName, NULL);
+        return (SARRAY *)ERROR_PTR("invalid: not in-place", __func__, NULL);
     array = saout->array;  /* operate directly on the array */
     n = sarrayGetCount(saout);
 
@@ -152,12 +150,10 @@ char    *str;
 l_int32  i, n, index;
 SARRAY  *saout;
 
-    PROCNAME("sarraySortByIndex");
-
     if (!sain)
-        return (SARRAY *)ERROR_PTR("sain not defined", procName, NULL);
+        return (SARRAY *)ERROR_PTR("sain not defined", __func__, NULL);
     if (!naindex)
-        return (SARRAY *)ERROR_PTR("naindex not defined", procName, NULL);
+        return (SARRAY *)ERROR_PTR("naindex not defined", __func__, NULL);
 
     n = sarrayGetCount(sain);
     saout = sarrayCreate(n);
@@ -190,12 +186,10 @@ stringCompareLexical(const char *str1,
 {
 l_int32  i, len1, len2, len;
 
-    PROCNAME("sarrayCompareLexical");
-
     if (!str1)
-        return ERROR_INT("str1 not defined", procName, 1);
+        return ERROR_INT("str1 not defined", __func__, 1);
     if (!str2)
-        return ERROR_INT("str2 not defined", procName, 1);
+        return ERROR_INT("str2 not defined", __func__, 1);
 
     len1 = strlen(str1);
     len2 = strlen(str2);
@@ -235,10 +229,8 @@ l_uint64  hash;
 L_ASET   *set;
 RB_TYPE   key;
 
-    PROCNAME("l_asetCreateFromSarray");
-
     if (!sa)
-        return (L_ASET *)ERROR_PTR("sa not defined", procName, NULL);
+        return (L_ASET *)ERROR_PTR("sa not defined", __func__, NULL);
 
     set = l_asetCreate(L_UINT_TYPE);
     n = sarrayGetCount(sa);
@@ -281,13 +273,11 @@ L_ASET   *set;
 RB_TYPE   key;
 SARRAY   *sad;
 
-    PROCNAME("sarrayRemoveDupsByAset");
-
     if (!psad)
-        return ERROR_INT("&sad not defined", procName, 1);
+        return ERROR_INT("&sad not defined", __func__, 1);
     *psad = NULL;
     if (!sas)
-        return ERROR_INT("sas not defined", procName, 1);
+        return ERROR_INT("sas not defined", __func__, 1);
 
     set = l_asetCreate(L_UINT_TYPE);
     sad = sarrayCreate(0);
@@ -333,21 +323,19 @@ sarrayUnionByAset(SARRAY   *sa1,
 {
 SARRAY  *sa3;
 
-    PROCNAME("sarrayUnionByAset");
-
     if (!psad)
-        return ERROR_INT("&sad not defined", procName, 1);
+        return ERROR_INT("&sad not defined", __func__, 1);
     *psad = NULL;
     if (!sa1)
-        return ERROR_INT("sa1 not defined", procName, 1);
+        return ERROR_INT("sa1 not defined", __func__, 1);
     if (!sa2)
-        return ERROR_INT("sa2 not defined", procName, 1);
+        return ERROR_INT("sa2 not defined", __func__, 1);
 
         /* Join */
     sa3 = sarrayCopy(sa1);
     if (sarrayJoin(sa3, sa2) == 1) {
         sarrayDestroy(&sa3);
-        return ERROR_INT("join failed for sa3", procName, 1);
+        return ERROR_INT("join failed for sa3", __func__, 1);
     }
 
         /* Eliminate duplicates */
@@ -389,15 +377,13 @@ L_ASET   *set1, *set2;
 RB_TYPE   key;
 SARRAY   *sa_small, *sa_big, *sad;
 
-    PROCNAME("sarrayIntersectionByAset");
-
     if (!psad)
-        return ERROR_INT("&sad not defined", procName, 1);
+        return ERROR_INT("&sad not defined", __func__, 1);
     *psad = NULL;
     if (!sa1)
-        return ERROR_INT("sa1 not defined", procName, 1);
+        return ERROR_INT("sa1 not defined", __func__, 1);
     if (!sa2)
-        return ERROR_INT("sa2 not defined", procName, 1);
+        return ERROR_INT("sa2 not defined", __func__, 1);
 
         /* Put the elements of the biggest array into a set */
     n1 = sarrayGetCount(sa1);
@@ -445,14 +431,12 @@ char        *str;
 L_HASHITEM  *hitem;
 L_HASHMAP   *hmap;
 
-    PROCNAME("l_hmapCreateFromSarray");
-
     if (!sa)
-        return (L_HASHMAP *)ERROR_PTR("sa not defined", procName, NULL);
+        return (L_HASHMAP *)ERROR_PTR("sa not defined", __func__, NULL);
 
     n = sarrayGetCount(sa);
     if ((hmap = l_hmapCreate(0.51 * n, 2)) == NULL)
-        return (L_HASHMAP *)ERROR_PTR("hmap not made", procName, NULL);
+        return (L_HASHMAP *)ERROR_PTR("hmap not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         str = sarrayGetString(sa, i, L_NOCOPY);
         l_hashStringToUint64Fast(str, &key);
@@ -482,18 +466,16 @@ SARRAY      *sad;
 L_HASHITEM  *hitem;
 L_HASHMAP   *hmap;
 
-    PROCNAME("sarrayRemoveDupsByHmap");
-
     if (phmap) *phmap = NULL;
     if (!psad)
-        return ERROR_INT("&sad not defined", procName, 1);
+        return ERROR_INT("&sad not defined", __func__, 1);
     *psad = NULL;
     if (!sas)
-        return ERROR_INT("sas not defined", procName, 1);
+        return ERROR_INT("sas not defined", __func__, 1);
 
         /* Traverse the hashtable lists */
     if ((hmap = l_hmapCreateFromSarray(sas)) == NULL)
-        return ERROR_INT("hmap not made", procName, 1);
+        return ERROR_INT("hmap not made", __func__, 1);
     sad = sarrayCreate(0);
     *psad = sad;
     tabsize = hmap->tabsize;
@@ -529,20 +511,18 @@ sarrayUnionByHmap(SARRAY   *sa1,
 {
 SARRAY  *sa3;
 
-    PROCNAME("l_hmapUnionSarray");
-
     if (!psad)
-        return ERROR_INT("&sad not defined", procName, 1);
+        return ERROR_INT("&sad not defined", __func__, 1);
     *psad = NULL;
     if (!sa1)
-        return ERROR_INT("sa1 not defined", procName, 1);
+        return ERROR_INT("sa1 not defined", __func__, 1);
     if (!sa2)
-        return ERROR_INT("sa2 not defined", procName, 1);
+        return ERROR_INT("sa2 not defined", __func__, 1);
 
     sa3 = sarrayCopy(sa1);
     if (sarrayJoin(sa3, sa2) == 1) {
         sarrayDestroy(&sa3);
-        return ERROR_INT("sa3 join failed", procName, 1);
+        return ERROR_INT("sa3 join failed", __func__, 1);
     }
     sarrayRemoveDupsByHmap(sa3, psad, NULL);
     sarrayDestroy(&sa3);
@@ -570,15 +550,13 @@ SARRAY      *sa_small, *sa_big, *sa3, *sad;
 L_HASHITEM  *hitem;
 L_HASHMAP   *hmap;
 
-    PROCNAME("sarrayIntersectionByHmap");
-
     if (!psad)
-        return ERROR_INT("&sad not defined", procName, 1);
+        return ERROR_INT("&sad not defined", __func__, 1);
     *psad = NULL;
     if (!sa1)
-        return ERROR_INT("sa1 not defined", procName, 1);
+        return ERROR_INT("sa1 not defined", __func__, 1);
     if (!sa2)
-        return ERROR_INT("sa2 not defined", procName, 1);
+        return ERROR_INT("sa2 not defined", __func__, 1);
 
         /* Make a hashmap for the elements of the biggest array */
     n1 = sarrayGetCount(sa1);
@@ -586,7 +564,7 @@ L_HASHMAP   *hmap;
     sa_small = (n1 < n2) ? sa1 : sa2;   /* do not destroy sa_small */
     sa_big = (n1 < n2) ? sa2 : sa1;   /* do not destroy sa_big */
     if ((hmap = l_hmapCreateFromSarray(sa_big)) == NULL)
-        return ERROR_INT("hmap not made", procName, 1);
+        return ERROR_INT("hmap not made", __func__, 1);
 
         /* Remove duplicates from the smallest array.  Alternatively,
          * we can skip this step and avoid counting duplicates in
@@ -629,10 +607,8 @@ char     buf[32];
 l_int32  i;
 SARRAY  *sa;
 
-    PROCNAME("sarrayGenerateIntegers");
-
     if ((sa = sarrayCreate(n)) == NULL)
-        return (SARRAY *)ERROR_PTR("sa not made", procName, NULL);
+        return (SARRAY *)ERROR_PTR("sa not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         snprintf(buf, sizeof(buf), "%d", i);
         sarrayAddString(sa, buf, L_COPY);
@@ -672,15 +648,13 @@ char    *key, *val, *str;
 l_int32  i, n;
 SARRAY  *sa1;
 
-    PROCNAME("sarrayLookupCSKV");
-
     if (!pvalstring)
-        return ERROR_INT("&valstring not defined", procName, 1);
+        return ERROR_INT("&valstring not defined", __func__, 1);
     *pvalstring = NULL;
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
     if (!keystring)
-        return ERROR_INT("keystring not defined", procName, 1);
+        return ERROR_INT("keystring not defined", __func__, 1);
 
     n = sarrayGetCount(sa);
     for (i = 0; i < n; i++) {

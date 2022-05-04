@@ -283,10 +283,8 @@ l_int32    orient;
 l_float32  upconf, leftconf;
 PIX       *pix1;
 
-    PROCNAME("pixOrientCorrect");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
 
         /* Get confidences for orientation */
     pixUpDownDetect(pixs, &upconf, 0, 0, debug);
@@ -303,32 +301,32 @@ PIX       *pix1;
     switch (orient)
     {
     case L_TEXT_ORIENT_UNKNOWN:
-        L_INFO("text orientation not determined; no rotation\n", procName);
+        L_INFO("text orientation not determined; no rotation\n", __func__);
         if (protation) *protation = 0;
         return pixCopy(NULL, pixs);
         break;
     case L_TEXT_ORIENT_UP:
-        L_INFO("text is oriented up; no rotation\n", procName);
+        L_INFO("text is oriented up; no rotation\n", __func__);
         if (protation) *protation = 0;
         return pixCopy(NULL, pixs);
         break;
     case L_TEXT_ORIENT_LEFT:
-        L_INFO("landscape; text oriented left; 90 cw rotation\n", procName);
+        L_INFO("landscape; text oriented left; 90 cw rotation\n", __func__);
         if (protation) *protation = 90;
         return pixRotateOrth(pixs, 1);
         break;
     case L_TEXT_ORIENT_DOWN:
-        L_INFO("text oriented down; 180 cw rotation\n", procName);
+        L_INFO("text oriented down; 180 cw rotation\n", __func__);
         if (protation) *protation = 180;
         return pixRotateOrth(pixs, 2);
         break;
     case L_TEXT_ORIENT_RIGHT:
-        L_INFO("landscape; text oriented right; 270 cw rotation\n", procName);
+        L_INFO("landscape; text oriented right; 270 cw rotation\n", __func__);
         if (protation) *protation = 270;
         return pixRotateOrth(pixs, 3);
         break;
     default:
-        L_ERROR("invalid orient flag!\n", procName);
+        L_ERROR("invalid orient flag!\n", __func__);
         return pixCopy(NULL, pixs);
     }
 }
@@ -410,12 +408,10 @@ pixOrientDetect(PIX        *pixs,
 {
 PIX  *pix1;
 
-    PROCNAME("pixOrientDetect");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
     if (!pupconf && !pleftconf)
-        return ERROR_INT("nothing to do", procName, 1);
+        return ERROR_INT("nothing to do", __func__, 1);
     if (mincount == 0)
         mincount = DefaultMinUpDownCount;
 
@@ -470,13 +466,11 @@ makeOrientDecision(l_float32  upconf,
 {
 l_float32  absupconf, absleftconf;
 
-    PROCNAME("makeOrientDecision");
-
     if (!porient)
-        return ERROR_INT("&orient not defined", procName, 1);
+        return ERROR_INT("&orient not defined", __func__, 1);
     *porient = L_TEXT_ORIENT_UNKNOWN;  /* default: no decision */
     if (upconf == 0.0 || leftconf == 0.0) {
-        L_INFO("not enough confidence to get orientation\n", procName);
+        L_INFO("not enough confidence to get orientation\n", __func__);
         return 0;
     }
 
@@ -566,13 +560,11 @@ l_float32  nup, ndown;
 PIX       *pix0, *pix1, *pix2, *pix3, *pixm;
 SEL       *sel1, *sel2, *sel3, *sel4;
 
-    PROCNAME("pixUpDownDetect");
-
     if (!pconf)
-        return ERROR_INT("&conf not defined", procName, 1);
+        return ERROR_INT("&conf not defined", __func__, 1);
     *pconf = 0.0;
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
     if (mincount == 0)
         mincount = DefaultMinUpDownCount;
     if (npixels < 0)
@@ -725,13 +717,11 @@ l_float32  nleft, nright;
 PIX       *pix0, *pix1, *pix2, *pix3;
 SEL       *sel1, *sel2;
 
-    PROCNAME("pixMirrorDetect");
-
     if (!pconf)
-        return ERROR_INT("&conf not defined", procName, 1);
+        return ERROR_INT("&conf not defined", __func__, 1);
     *pconf = 0.0;
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
     if (mincount == 0)
         mincount = DefaultMinMirrorFlipCount;
 

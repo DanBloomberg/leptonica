@@ -193,10 +193,8 @@ l_int32  *array;
 size_t    size;
 SARRAY   *saline, *sa1, *sa2;
 
-    PROCNAME("sudokuReadFile");
-
     if (!filename)
-        return (l_int32 *)ERROR_PTR("filename not defined", procName, NULL);
+        return (l_int32 *)ERROR_PTR("filename not defined", __func__, NULL);
     data = l_binaryRead(filename, &size);
     sa1 = sarrayCreateLinesFromString((char *)data, 0);
     sa2 = sarrayCreate(9);
@@ -213,8 +211,8 @@ SARRAY   *saline, *sa1, *sa2;
     nlines = sarrayGetCount(sa2);
     if (nlines != 9) {
         sarrayDestroy(&sa2);
-        L_ERROR("file has %d lines\n", procName, nlines);
-        return (l_int32 *)ERROR_PTR("invalid file", procName, NULL);
+        L_ERROR("file has %d lines\n", __func__, nlines);
+        return (l_int32 *)ERROR_PTR("invalid file", __func__, NULL);
     }
 
         /* Read the data into the array, verifying that each data
@@ -243,7 +241,7 @@ SARRAY   *saline, *sa1, *sa2;
 
     if (error) {
         LEPT_FREE(array);
-        return (l_int32 *)ERROR_PTR("invalid data", procName, NULL);
+        return (l_int32 *)ERROR_PTR("invalid data", __func__, NULL);
     }
 
     return array;
@@ -268,17 +266,15 @@ sudokuReadString(const char  *str)
 l_int32   i;
 l_int32  *array;
 
-    PROCNAME("sudokuReadString");
-
     if (!str)
-        return (l_int32 *)ERROR_PTR("str not defined", procName, NULL);
+        return (l_int32 *)ERROR_PTR("str not defined", __func__, NULL);
 
         /* Read in the initial solution */
     array = (l_int32 *)LEPT_CALLOC(81, sizeof(l_int32));
     for (i = 0; i < 81; i++) {
         if (sscanf(str + 2 * i, "%d ", &array[i]) != 1) {
             LEPT_FREE(array);
-            return (l_int32 *)ERROR_PTR("invalid format", procName, NULL);
+            return (l_int32 *)ERROR_PTR("invalid format", __func__, NULL);
         }
     }
 
@@ -309,10 +305,8 @@ sudokuCreate(l_int32  *array)
 l_int32    i, val, locs_index;
 L_SUDOKU  *sud;
 
-    PROCNAME("sudokuCreate");
-
     if (!array)
-        return (L_SUDOKU *)ERROR_PTR("array not defined", procName, NULL);
+        return (L_SUDOKU *)ERROR_PTR("array not defined", __func__, NULL);
 
     locs_index = 0;  /* into locs array */
     sud = (L_SUDOKU *)LEPT_CALLOC(1, sizeof(L_SUDOKU));
@@ -344,10 +338,8 @@ sudokuDestroy(L_SUDOKU  **psud)
 {
 L_SUDOKU  *sud;
 
-    PROCNAME("sudokuDestroy");
-
     if (psud == NULL) {
-        L_WARNING("ptr address is NULL\n", procName);
+        L_WARNING("ptr address is NULL\n", __func__);
         return;
     }
     if ((sud = *psud) == NULL)
@@ -374,13 +366,11 @@ L_SUDOKU  *sud;
 l_int32
 sudokuSolve(L_SUDOKU  *sud)
 {
-    PROCNAME("sudokuSolve");
-
     if (!sud)
-        return ERROR_INT("sud not defined", procName, 0);
+        return ERROR_INT("sud not defined", __func__, 0);
 
     if (!sudokuValidState(sud->init))
-        return ERROR_INT("initial state not valid", procName, 0);
+        return ERROR_INT("initial state not valid", __func__, 0);
 
     while (1) {
         if (sudokuNewGuess(sud))
@@ -417,10 +407,8 @@ sudokuValidState(l_int32  *state)
 {
 l_int32  i;
 
-    PROCNAME("sudokuValidState");
-
     if (!state)
-        return ERROR_INT("state not defined", procName, 0);
+        return ERROR_INT("state not defined", __func__, 0);
 
     for (i = 0; i < 81; i++) {
         if (!sudokuTestState(state, i))
@@ -570,13 +558,11 @@ l_int32    same1, same2, same3;
 l_int32   *array1, *array2, *array3;
 L_SUDOKU  *sud, *sud1, *sud2, *sud3;
 
-    PROCNAME("sudokuTestUniqueness");
-
     if (!punique)
-        return ERROR_INT("&unique not defined", procName, 1);
+        return ERROR_INT("&unique not defined", __func__, 1);
     *punique = 0;
     if (!array)
-        return ERROR_INT("array not defined", procName, 1);
+        return ERROR_INT("array not defined", __func__, 1);
 
     sud = sudokuCreate(array);
     sudokuSolve(sud);
@@ -632,21 +618,19 @@ sudokuCompareState(L_SUDOKU  *sud1,
 l_int32   i, same;
 l_int32  *array;
 
-    PROCNAME("sudokuCompareState");
-
     if (!psame)
-        return ERROR_INT("&same not defined", procName, 1);
+        return ERROR_INT("&same not defined", __func__, 1);
     *psame = 0;
     if (!sud1)
-        return ERROR_INT("sud1 not defined", procName, 1);
+        return ERROR_INT("sud1 not defined", __func__, 1);
     if (!sud2)
-        return ERROR_INT("sud1 not defined", procName, 1);
+        return ERROR_INT("sud1 not defined", __func__, 1);
     if (quads < 1 || quads > 3)
-        return ERROR_INT("valid quads in {1,2,3}", procName, 1);
+        return ERROR_INT("valid quads in {1,2,3}", __func__, 1);
 
     same = TRUE;
     if ((array = sudokuRotateArray(sud1->state, quads)) == NULL)
-        return ERROR_INT("array not made", procName, 1);
+        return ERROR_INT("array not made", __func__, 1);
     for (i = 0; i < 81; i++) {
         if (array[i] != sud2->state[i]) {
             same = FALSE;
@@ -673,12 +657,10 @@ sudokuRotateArray(l_int32  *array,
 l_int32   i, j, sindex, dindex;
 l_int32  *rarray;
 
-    PROCNAME("sudokuRotateArray");
-
     if (!array)
-        return (l_int32 *)ERROR_PTR("array not defined", procName, NULL);
+        return (l_int32 *)ERROR_PTR("array not defined", __func__, NULL);
     if (quads < 1 || quads > 3)
-        return (l_int32 *)ERROR_PTR("valid quads in {1,2,3}", procName, NULL);
+        return (l_int32 *)ERROR_PTR("valid quads in {1,2,3}", __func__, NULL);
 
     rarray = (l_int32 *)LEPT_CALLOC(81, sizeof(l_int32));
     if (quads == 1) {
@@ -740,12 +722,10 @@ sudokuGenerate(l_int32  *array,
 l_int32    index, sector, nzeros, removefirst, tries, val, oldval, unique;
 L_SUDOKU  *sud, *testsud;
 
-    PROCNAME("sudokuGenerate");
-
     if (!array)
-        return (L_SUDOKU *)ERROR_PTR("array not defined", procName, NULL);
+        return (L_SUDOKU *)ERROR_PTR("array not defined", __func__, NULL);
     if (minelems > 80)
-        return (L_SUDOKU *)ERROR_PTR("minelems must be < 81", procName, NULL);
+        return (L_SUDOKU *)ERROR_PTR("minelems must be < 81", __func__, NULL);
 
         /* Remove up to 30 numbers at random from the solution.
          * Test if the solution is valid -- the initial 'solution' may
@@ -769,13 +749,13 @@ L_SUDOKU  *sud, *testsud;
     sudokuSolve(testsud);
     if (testsud->failure) {
         sudokuDestroy(&testsud);
-        L_ERROR("invalid initial solution\n", procName);
+        L_ERROR("invalid initial solution\n", __func__);
         return NULL;
     }
     sudokuTestUniqueness(testsud->init, &unique);
     sudokuDestroy(&testsud);
     if (!unique) {
-        L_ERROR("non-unique result with 30 zeroes\n", procName);
+        L_ERROR("non-unique result with 30 zeroes\n", __func__);
         return NULL;
     }
 
@@ -861,16 +841,14 @@ sudokuOutput(L_SUDOKU  *sud,
 l_int32   i, j;
 l_int32  *array;
 
-    PROCNAME("sudokuOutput");
-
     if (!sud)
-        return ERROR_INT("sud not defined", procName, 1);
+        return ERROR_INT("sud not defined", __func__, 1);
     if (arraytype == L_SUDOKU_INIT)
         array = sud->init;
     else if (arraytype == L_SUDOKU_STATE)
         array = sud->state;
     else
-        return ERROR_INT("invalid arraytype", procName, 1);
+        return ERROR_INT("invalid arraytype", __func__, 1);
 
     for (i = 0; i < 9; i++) {
         for (j = 0; j < 9; j++)

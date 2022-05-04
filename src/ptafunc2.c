@@ -102,18 +102,16 @@ ptaSort(PTA     *ptas,
 PTA   *ptad;
 NUMA  *naindex;
 
-    PROCNAME("ptaSort");
-
     if (pnaindex) *pnaindex = NULL;
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
     if (sorttype != L_SORT_BY_X && sorttype != L_SORT_BY_Y)
-        return (PTA *)ERROR_PTR("invalid sort type", procName, NULL);
+        return (PTA *)ERROR_PTR("invalid sort type", __func__, NULL);
     if (sortorder != L_SORT_INCREASING && sortorder != L_SORT_DECREASING)
-        return (PTA *)ERROR_PTR("invalid sort order", procName, NULL);
+        return (PTA *)ERROR_PTR("invalid sort order", __func__, NULL);
 
     if (ptaGetSortIndex(ptas, sorttype, sortorder, &naindex) != 0)
-        return (PTA *)ERROR_PTR("naindex not made", procName, NULL);
+        return (PTA *)ERROR_PTR("naindex not made", __func__, NULL);
 
     ptad = ptaSortByIndex(ptas, naindex);
     if (pnaindex)
@@ -121,7 +119,7 @@ NUMA  *naindex;
     else
         numaDestroy(&naindex);
     if (!ptad)
-        return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptad not made", __func__, NULL);
     return ptad;
 }
 
@@ -145,22 +143,20 @@ l_int32    i, n;
 l_float32  x, y;
 NUMA      *na, *nai;
 
-    PROCNAME("ptaGetSortIndex");
-
     if (!pnaindex)
-        return ERROR_INT("&naindex not defined", procName, 1);
+        return ERROR_INT("&naindex not defined", __func__, 1);
     *pnaindex = NULL;
     if (!ptas)
-        return ERROR_INT("ptas not defined", procName, 1);
+        return ERROR_INT("ptas not defined", __func__, 1);
     if (sorttype != L_SORT_BY_X && sorttype != L_SORT_BY_Y)
-        return ERROR_INT("invalid sort type", procName, 1);
+        return ERROR_INT("invalid sort type", __func__, 1);
     if (sortorder != L_SORT_INCREASING && sortorder != L_SORT_DECREASING)
-        return ERROR_INT("invalid sort order", procName, 1);
+        return ERROR_INT("invalid sort order", __func__, 1);
 
         /* Build up numa of specific data */
     n = ptaGetCount(ptas);
     if ((na = numaCreate(n)) == NULL)
-        return ERROR_INT("na not made", procName, 1);
+        return ERROR_INT("na not made", __func__, 1);
     for (i = 0; i < n; i++) {
         ptaGetPt(ptas, i, &x, &y);
         if (sorttype == L_SORT_BY_X)
@@ -173,7 +169,7 @@ NUMA      *na, *nai;
     nai = numaGetSortIndex(na, sortorder);
     numaDestroy(&na);
     if (!nai)
-        return ERROR_INT("naindex not made", procName, 1);
+        return ERROR_INT("naindex not made", __func__, 1);
     *pnaindex = nai;
     return 0;
 }
@@ -194,17 +190,15 @@ l_int32    i, index, n;
 l_float32  x, y;
 PTA       *ptad;
 
-    PROCNAME("ptaSortByIndex");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
     if (!naindex)
-        return (PTA *)ERROR_PTR("naindex not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("naindex not defined", __func__, NULL);
 
         /* Build up sorted pta using sort index */
     n = numaGetCount(naindex);
     if ((ptad = ptaCreate(n)) == NULL)
-        return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptad not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         numaGetIValue(naindex, i, &index);
         ptaGetPt(ptas, index, &x, &y);
@@ -230,16 +224,14 @@ l_int32  i, n, index;
 PTA     *pta;
 PTAA    *ptaad;
 
-    PROCNAME("ptaaSortByIndex");
-
     if (!ptaas)
-        return (PTAA *)ERROR_PTR("ptaas not defined", procName, NULL);
+        return (PTAA *)ERROR_PTR("ptaas not defined", __func__, NULL);
     if (!naindex)
-        return (PTAA *)ERROR_PTR("naindex not defined", procName, NULL);
+        return (PTAA *)ERROR_PTR("naindex not defined", __func__, NULL);
 
     n = ptaaGetCount(ptaas);
     if (numaGetCount(naindex) != n)
-        return (PTAA *)ERROR_PTR("numa and ptaa sizes differ", procName, NULL);
+        return (PTAA *)ERROR_PTR("numa and ptaa sizes differ", __func__, NULL);
     ptaad = ptaaCreate(n);
     for (i = 0; i < n; i++) {
         numaGetIValue(naindex, i, &index);
@@ -271,19 +263,17 @@ ptaGetRankValue(PTA        *pta,
 l_int32  index, n;
 PTA     *ptas;
 
-    PROCNAME("ptaGetRankValue");
-
     if (!pval)
-        return ERROR_INT("&val not defined", procName, 1);
+        return ERROR_INT("&val not defined", __func__, 1);
     *pval = 0.0;
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if (sorttype != L_SORT_BY_X && sorttype != L_SORT_BY_Y)
-        return ERROR_INT("invalid sort type", procName, 1);
+        return ERROR_INT("invalid sort type", __func__, 1);
     if (fract < 0.0 || fract > 1.0)
-        return ERROR_INT("fract not in [0.0 ... 1.0]", procName, 1);
+        return ERROR_INT("fract not in [0.0 ... 1.0]", __func__, 1);
     if ((n = ptaGetCount(pta)) == 0)
-        return ERROR_INT("pta empty", procName, 1);
+        return ERROR_INT("pta empty", __func__, 1);
 
     if (ptasort)
         ptas = ptasort;
@@ -321,10 +311,8 @@ l_float32  x, y, yp, val;
 NUMA      *na1, *na2, *nas, *nax;
 PTA       *pta1, *ptad;
 
-    PROCNAME("ptaSort2d");
-
     if (!pta)
-        return (PTA *)ERROR_PTR("pta not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not defined", __func__, NULL);
 
         /* Sort by row-major (y first, then x).  After sort by y,
          * the x values at the same y are not sorted.  */
@@ -404,13 +392,11 @@ l_int32    i, n1, n2;
 l_float32  x1, y1, x2, y2;
 PTA       *ptas1, *ptas2;
 
-    PROCNAME("ptaEqual");
-
     if (!psame)
-        return ERROR_INT("&same not defined", procName, 1);
+        return ERROR_INT("&same not defined", __func__, 1);
     *psame = 0.0;
     if (!pta1 || !pta2)
-        return ERROR_INT("pta1 and pta2 not both defined", procName, 1);
+        return ERROR_INT("pta1 and pta2 not both defined", __func__, 1);
 
     n1 = ptaGetCount(pta1);
     n2 = ptaGetCount(pta2);
@@ -453,10 +439,8 @@ l_uint64  hash;
 L_ASET   *set;
 RB_TYPE   key;
 
-    PROCNAME("l_asetCreateFromPta");
-
     if (!pta)
-        return (L_ASET *)ERROR_PTR("pta not defined", procName, NULL);
+        return (L_ASET *)ERROR_PTR("pta not defined", __func__, NULL);
 
     set = l_asetCreate(L_UINT_TYPE);
     n = ptaGetCount(pta);
@@ -495,13 +479,11 @@ l_uint64  hash;
 L_ASET   *set;
 RB_TYPE   key;
 
-    PROCNAME("ptaRemoveDupsByAset");
-
     if (!pptad)
-        return ERROR_INT("&ptad not defined", procName, 1);
+        return ERROR_INT("&ptad not defined", __func__, 1);
     *pptad = NULL;
     if (!ptas)
-        return ERROR_INT("ptas not defined", procName, 1);
+        return ERROR_INT("ptas not defined", __func__, 1);
 
     set = l_asetCreate(L_UINT_TYPE);
     n = ptaGetCount(ptas);
@@ -548,15 +530,13 @@ ptaUnionByAset(PTA   *pta1,
 {
 PTA  *pta3;
 
-    PROCNAME("ptaUnionByAset");
-
     if (!pptad)
-        return ERROR_INT("&ptad not defined", procName, 1);
+        return ERROR_INT("&ptad not defined", __func__, 1);
     *pptad = NULL;
     if (!pta1)
-        return ERROR_INT("pta1 not defined", procName, 1);
+        return ERROR_INT("pta1 not defined", __func__, 1);
     if (!pta2)
-        return ERROR_INT("pta2 not defined", procName, 1);
+        return ERROR_INT("pta2 not defined", __func__, 1);
 
         /* Join */
     pta3 = ptaCopy(pta1);
@@ -597,15 +577,13 @@ L_ASET   *set1, *set2;
 RB_TYPE   key;
 PTA      *pta_small, *pta_big, *ptad;
 
-    PROCNAME("ptaIntersectionByAset");
-
     if (!pptad)
-        return ERROR_INT("&ptad not defined", procName, 1);
+        return ERROR_INT("&ptad not defined", __func__, 1);
     *pptad = NULL;
     if (!pta1)
-        return ERROR_INT("pta1 not defined", procName, 1);
+        return ERROR_INT("pta1 not defined", __func__, 1);
     if (!pta2)
-        return ERROR_INT("pta2 not defined", procName, 1);
+        return ERROR_INT("pta2 not defined", __func__, 1);
 
         /* Put the elements of the biggest array into a set */
     n1 = ptaGetCount(pta1);
@@ -658,14 +636,12 @@ l_uint64     key;
 L_HASHITEM  *hitem;
 L_HASHMAP   *hmap;
 
-    PROCNAME("l_hmapCreateFromPta");
-
     if (!pta)
-        return (L_HASHMAP *)ERROR_PTR("pta not defined", procName, NULL);
+        return (L_HASHMAP *)ERROR_PTR("pta not defined", __func__, NULL);
 
     n = ptaGetCount(pta);
     if ((hmap = l_hmapCreate(0.51 * n, 2)) == NULL)
-        return (L_HASHMAP *)ERROR_PTR("hmap not made", procName, NULL);
+        return (L_HASHMAP *)ERROR_PTR("hmap not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         ptaGetIPt(pta, i, &x, &y);
         l_hashPtToUint64(x, y, &key);
@@ -699,18 +675,16 @@ PTA         *ptad;
 L_HASHITEM  *hitem;
 L_HASHMAP   *hmap;
 
-    PROCNAME("ptaRemoveDupsByHmap");
-
     if (phmap) *phmap = NULL;
     if (!pptad)
-        return ERROR_INT("&ptad not defined", procName, 1);
+        return ERROR_INT("&ptad not defined", __func__, 1);
     *pptad = NULL;
     if (!ptas)
-        return ERROR_INT("ptas not defined", procName, 1);
+        return ERROR_INT("ptas not defined", __func__, 1);
 
         /* Traverse the hashtable lists */
     if ((hmap = l_hmapCreateFromPta(ptas)) == NULL)
-        return ERROR_INT("hmap not made", procName, 1);
+        return ERROR_INT("hmap not made", __func__, 1);
     ptad = ptaCreate(0);
     *pptad = ptad;
     tabsize = hmap->tabsize;
@@ -751,20 +725,18 @@ ptaUnionByHmap(PTA   *pta1,
 {
 PTA  *pta3;
 
-    PROCNAME("ptaUnionByHmap");
-
     if (!pptad)
-        return ERROR_INT("&ptad not defined", procName, 1);
+        return ERROR_INT("&ptad not defined", __func__, 1);
     *pptad = NULL;
     if (!pta1)
-        return ERROR_INT("pta1 not defined", procName, 1);
+        return ERROR_INT("pta1 not defined", __func__, 1);
     if (!pta2)
-        return ERROR_INT("pta2 not defined", procName, 1);
+        return ERROR_INT("pta2 not defined", __func__, 1);
 
     pta3 = ptaCopy(pta1);
     if (ptaJoin(pta3, pta2, 0, -1) == 1) {
         ptaDestroy(&pta3);
-        return ERROR_INT("pta join failed", procName, 1);
+        return ERROR_INT("pta join failed", __func__, 1);
     }
     ptaRemoveDupsByHmap(pta3, pptad, NULL);
     ptaDestroy(&pta3);
@@ -796,15 +768,13 @@ PTA         *pta_small, *pta_big, *ptad;
 L_HASHITEM  *hitem;
 L_HASHMAP   *hmap;
 
-    PROCNAME("ptaIntersectionByHmap");
-
     if (!pptad)
-        return ERROR_INT("&ptad not defined", procName, 1);
+        return ERROR_INT("&ptad not defined", __func__, 1);
     *pptad = NULL;
     if (!pta1)
-        return ERROR_INT("pta1 not defined", procName, 1);
+        return ERROR_INT("pta1 not defined", __func__, 1);
     if (!pta2)
-        return ERROR_INT("pta2 not defined", procName, 1);
+        return ERROR_INT("pta2 not defined", __func__, 1);
 
         /* Make a hashmap for the elements of the biggest array */
     n1 = ptaGetCount(pta1);
@@ -812,7 +782,7 @@ L_HASHMAP   *hmap;
     pta_small = (n1 < n2) ? pta1 : pta2;   /* do not destroy pta_small */
     pta_big = (n1 < n2) ? pta2 : pta1;   /* do not destroy pta_big */
     if ((hmap = l_hmapCreateFromPta(pta_big)) == NULL)
-        return ERROR_INT("hmap not made", procName, 1);
+        return ERROR_INT("hmap not made", __func__, 1);
 
         /* Go through the smallest array, doing a lookup of its (x,y) into
          * the big array hashmap.  If an hitem is returned, check the count.

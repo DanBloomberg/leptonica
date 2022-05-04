@@ -125,15 +125,13 @@ BOXA    *boxa;
 PIX     *pixsd, *pixm, *pixd;
 SEL     *sel_ital1, *sel_ital2, *sel_ital3;
 
-    PROCNAME("pixItalicWords");
-
     if (!pboxa)
-        return ERROR_INT("&boxa not defined", procName, 1);
+        return ERROR_INT("&boxa not defined", __func__, 1);
     *pboxa = NULL;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (boxaw && pixw)
-        return ERROR_INT("both boxaw and pixw are defined", procName, 1);
+        return ERROR_INT("both boxaw and pixw are defined", __func__, 1);
 
     sel_ital1 = selCreateFromString(str_ital1, 13, 6, NULL);
     sel_ital2 = selCreateFromString(str_ital2, 10, 6, NULL);
@@ -156,7 +154,7 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
         pixm = pixClone(pixw);
     } else {
         pixWordMaskByDilation(pixs, NULL, &size, NULL);
-        L_INFO("dilation size = %d\n", procName, size);
+        L_INFO("dilation size = %d\n", __func__, size);
         snprintf(opstring, sizeof(opstring), "d1.5 + c%d.1", size);
         pixm = pixMorphSequence(pixs, opstring, 0);
     }
@@ -205,7 +203,7 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
              *    (width of pixs in pixels) / 6
              * and the images have been saved at half this resolution.   */
         res = pixGetWidth(pixs) / 12;
-        L_INFO("resolution = %d\n", procName, res);
+        L_INFO("resolution = %d\n", __func__, res);
         l_pdfSetDateAndVersion(0);
         pixaConvertToPdf(pixa1, res, 1.0, L_FLATE_ENCODE, 75, "Italic Finder",
                          "/tmp/lept/ital/ital.pdf");

@@ -112,11 +112,9 @@ l_amapCreate(l_int32  keytype)
 {
 L_AMAP  *m;
 
-    PROCNAME("l_amapCreate");
-
     if (keytype != L_INT_TYPE && keytype != L_UINT_TYPE &&
         keytype != L_FLOAT_TYPE)
-        return (L_AMAP *)ERROR_PTR("invalid keytype", procName, NULL);
+        return (L_AMAP *)ERROR_PTR("invalid keytype", __func__, NULL);
 
     m = (L_AMAP *)LEPT_CALLOC(1, sizeof(L_AMAP));
     m->keytype = keytype;
@@ -190,11 +188,9 @@ l_asetCreate(l_int32  keytype)
 {
 L_ASET  *s;
 
-    PROCNAME("l_asetCreate");
-
     if (keytype != L_INT_TYPE && keytype != L_UINT_TYPE &&
         keytype != L_FLOAT_TYPE)
-        return (L_ASET *)ERROR_PTR("invalid keytype", procName, NULL);
+        return (L_ASET *)ERROR_PTR("invalid keytype", __func__, NULL);
 
     s = (L_ASET *)LEPT_CALLOC(1, sizeof(L_ASET));
     s->keytype = keytype;

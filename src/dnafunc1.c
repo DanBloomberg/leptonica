@@ -110,10 +110,8 @@ l_dnaJoin(L_DNA   *dad,
 l_int32    n, i;
 l_float64  val;
 
-    PROCNAME("l_dnaJoin");
-
     if (!dad)
-        return ERROR_INT("dad not defined", procName, 1);
+        return ERROR_INT("dad not defined", __func__, 1);
     if (!das)
         return 0;
 
@@ -123,12 +121,12 @@ l_float64  val;
     if (iend < 0 || iend >= n)
         iend = n - 1;
     if (istart > iend)
-        return ERROR_INT("istart > iend; nothing to add", procName, 1);
+        return ERROR_INT("istart > iend; nothing to add", __func__, 1);
 
     for (i = istart; i <= iend; i++) {
         l_dnaGetDValue(das, i, &val);
         if (l_dnaAddNumber(dad, val) == 1) {
-            L_ERROR("failed to add double at i = %d\n", procName, i);
+            L_ERROR("failed to add double at i = %d\n", __func__, i);
             return 1;
         }
 
@@ -157,10 +155,8 @@ l_int32  i, nalloc;
 L_DNA   *da, *dad;
 L_DNA  **array;
 
-    PROCNAME("l_dnaaFlattenToDna");
-
     if (!daa)
-        return (L_DNA *)ERROR_PTR("daa not defined", procName, NULL);
+        return (L_DNA *)ERROR_PTR("daa not defined", __func__, NULL);
 
     nalloc = daa->nalloc;
     array = daa->dna;
@@ -192,25 +188,23 @@ l_int32    n, i;
 l_float64  dval;
 L_DNA     *dad;
 
-    PROCNAME("l_dnaSelectRange");
-
     if (!das)
-        return (L_DNA *)ERROR_PTR("das not defined", procName, NULL);
+        return (L_DNA *)ERROR_PTR("das not defined", __func__, NULL);
     if ((n = l_dnaGetCount(das)) == 0) {
-        L_WARNING("das is empty\n", procName);
+        L_WARNING("das is empty\n", __func__);
         return l_dnaCopy(das);
     }
     first = L_MAX(0, first);
     if (last < 0) last = n - 1;
     if (first >= n)
-        return (L_DNA *)ERROR_PTR("invalid first", procName, NULL);
+        return (L_DNA *)ERROR_PTR("invalid first", __func__, NULL);
     if (last >= n) {
         L_WARNING("last = %d is beyond max index = %d; adjusting\n",
-                  procName, last, n - 1);
+                  __func__, last, n - 1);
         last = n - 1;
     }
     if (first > last)
-        return (L_DNA *)ERROR_PTR("first > last", procName, NULL);
+        return (L_DNA *)ERROR_PTR("first > last", __func__, NULL);
 
     dad = l_dnaCreate(last - first + 1);
     for (i = first; i <= last; i++) {
@@ -237,10 +231,8 @@ l_int32    i, n;
 l_float64  val;
 NUMA      *na;
 
-    PROCNAME("l_dnaConvertToNuma");
-
     if (!da)
-        return (NUMA *)ERROR_PTR("da not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("da not defined", __func__, NULL);
 
     n = l_dnaGetCount(da);
     na = numaCreate(n);
@@ -265,10 +257,8 @@ l_int32    i, n;
 l_float32  val;
 L_DNA     *da;
 
-    PROCNAME("numaConvertToDna");
-
     if (!na)
-        return (L_DNA *)ERROR_PTR("na not defined", procName, NULL);
+        return (L_DNA *)ERROR_PTR("na not defined", __func__, NULL);
 
     n = numaGetCount(na);
     da = l_dnaCreate(n);
@@ -301,12 +291,10 @@ l_int32    i, j, w, h, wpl;
 l_uint32  *data, *line;
 L_DNA     *da;
 
-    PROCNAME("pixConvertDataToDna");
-
     if (!pix)
-        return (L_DNA *)ERROR_PTR("pix not defined", procName, NULL);
+        return (L_DNA *)ERROR_PTR("pix not defined", __func__, NULL);
     if (pixGetDepth(pix) != 32)
-        return (L_DNA *)ERROR_PTR("pix not 32 bpp", procName, NULL);
+        return (L_DNA *)ERROR_PTR("pix not 32 bpp", __func__, NULL);
 
     pixGetDimensions(pix, &w, &h, NULL);
     data = pixGetData(pix);
@@ -338,10 +326,8 @@ l_float64  val;
 L_ASET    *set;
 RB_TYPE    key;
 
-    PROCNAME("l_asetCreateFromDna");
-
     if (!da)
-        return (L_ASET *)ERROR_PTR("da not defined", procName, NULL);
+        return (L_ASET *)ERROR_PTR("da not defined", __func__, NULL);
 
     set = l_asetCreate(L_FLOAT_TYPE);
     n = l_dnaGetCount(da);
@@ -372,13 +358,11 @@ L_DNA     *dad;
 L_ASET    *set;
 RB_TYPE    key;
 
-    PROCNAME("l_dnaRemoveDupsByAset");
-
     if (!pdad)
-        return ERROR_INT("&dad not defined", procName, 1);
+        return ERROR_INT("&dad not defined", __func__, 1);
     *pdad = NULL;
     if (!das)
-        return ERROR_INT("das not defined", procName, 1);
+        return ERROR_INT("das not defined", __func__, 1);
 
     set = l_asetCreate(L_FLOAT_TYPE);
     dad = l_dnaCreate(0);
@@ -421,20 +405,18 @@ l_dnaUnionByAset(L_DNA   *da1,
 {
 L_DNA  *da3;
 
-    PROCNAME("l_dnaUnionByAset");
-
     if (!pdad)
-        return ERROR_INT("&dad not defined", procName, 1);
+        return ERROR_INT("&dad not defined", __func__, 1);
     if (!da1)
-        return ERROR_INT("da1 not defined", procName, 1);
+        return ERROR_INT("da1 not defined", __func__, 1);
     if (!da2)
-        return ERROR_INT("da2 not defined", procName, 1);
+        return ERROR_INT("da2 not defined", __func__, 1);
 
         /* Join */
     da3 = l_dnaCopy(da1);
     if (l_dnaJoin(da3, da2, 0, -1) == 1) {
         l_dnaDestroy(&da3);
-        return ERROR_INT("join failed for da3", procName, 1);
+        return ERROR_INT("join failed for da3", __func__, 1);
     }
 
         /* Eliminate duplicates */
@@ -471,15 +453,13 @@ L_ASET    *set1, *set2;
 RB_TYPE    key;
 L_DNA     *da_small, *da_big, *dad;
 
-    PROCNAME("l_dnaIntersectionByAset");
-
     if (!pdad)
-        return ERROR_INT("&dad not defined", procName, 1);
+        return ERROR_INT("&dad not defined", __func__, 1);
     *pdad = NULL;
     if (!da1)
-        return ERROR_INT("&da1 not defined", procName, 1);
+        return ERROR_INT("&da1 not defined", __func__, 1);
     if (!da2)
-        return ERROR_INT("&da2 not defined", procName, 1);
+        return ERROR_INT("&da2 not defined", __func__, 1);
 
         /* Put the elements of the largest array into a set */
     n1 = l_dnaGetCount(da1);
@@ -533,10 +513,8 @@ l_float64    dval;
 L_HASHITEM  *hitem;
 L_HASHMAP   *hmap;
 
-    PROCNAME("l_hmapCreateFromDna");
-
     if (!da)
-        return (L_HASHMAP *)ERROR_PTR("da not defined", procName, NULL);
+        return (L_HASHMAP *)ERROR_PTR("da not defined", __func__, NULL);
 
     n = l_dnaGetCount(da);
     hmap = l_hmapCreate(0, 0);
@@ -575,18 +553,16 @@ L_DNA       *dad;
 L_HASHITEM  *hitem;
 L_HASHMAP   *hmap;
 
-    PROCNAME("l_dnaRemoveDupsByHmap");
-
     if (phmap) *phmap = NULL;
     if (!pdad)
-        return ERROR_INT("&dad not defined", procName, 1);
+        return ERROR_INT("&dad not defined", __func__, 1);
     *pdad = NULL;
     if (!das)
-        return ERROR_INT("das not defined", procName, 1);
+        return ERROR_INT("das not defined", __func__, 1);
 
         /* Traverse the hashtable lists */
     if ((hmap = l_hmapCreateFromDna(das)) == NULL)
-        return ERROR_INT("hmap not made", procName, 1);
+        return ERROR_INT("hmap not made", __func__, 1);
     dad = l_dnaCreate(0);
     *pdad = dad;
     tabsize = hmap->tabsize;
@@ -627,20 +603,18 @@ l_dnaUnionByHmap(L_DNA   *da1,
 {
 L_DNA  *da3;
 
-    PROCNAME("l_dnaUnionByHmap");
-
     if (!pdad)
-        return ERROR_INT("&dad not defined", procName, 1);
+        return ERROR_INT("&dad not defined", __func__, 1);
     *pdad = NULL;
     if (!da1)
-        return ERROR_INT("da1 not defined", procName, 1);
+        return ERROR_INT("da1 not defined", __func__, 1);
     if (!da2)
-        return ERROR_INT("da2 not defined", procName, 1);
+        return ERROR_INT("da2 not defined", __func__, 1);
 
     da3 = l_dnaCopy(da1);
     if (l_dnaJoin(da3, da2, 0, -1) == 1) {
         l_dnaDestroy(&da3);
-        return ERROR_INT("da3 join failed", procName, 1);
+        return ERROR_INT("da3 join failed", __func__, 1);
     }
     l_dnaRemoveDupsByHmap(da3, pdad, NULL);
     l_dnaDestroy(&da3);
@@ -674,15 +648,13 @@ L_DNA       *da_small, *da_big, *dad;
 L_HASHITEM  *hitem;
 L_HASHMAP   *hmap;
 
-    PROCNAME("l_dnaIntersectionByHmap");
-
     if (!pdad)
-        return ERROR_INT("&dad not defined", procName, 1);
+        return ERROR_INT("&dad not defined", __func__, 1);
     *pdad = NULL;
     if (!da1)
-        return ERROR_INT("da1 not defined", procName, 1);
+        return ERROR_INT("da1 not defined", __func__, 1);
     if (!da2)
-        return ERROR_INT("da2 not defined", procName, 1);
+        return ERROR_INT("da2 not defined", __func__, 1);
 
         /* Make a hashmap for the elements of the biggest array */
     n1 = l_dnaGetCount(da1);
@@ -690,7 +662,7 @@ L_HASHMAP   *hmap;
     da_small = (n1 < n2) ? da1 : da2;   /* do not destroy da_small */
     da_big = (n1 < n2) ? da2 : da1;   /* do not destroy da_big */
     if ((hmap = l_hmapCreateFromDna(da_big)) == NULL)
-        return ERROR_INT("hmap not made", procName, 1);
+        return ERROR_INT("hmap not made", __func__, 1);
 
         /* Go through the smallest array, doing a lookup of its dval into
          * the big array hashmap.  If an hitem is returned, check the count.
@@ -739,20 +711,18 @@ L_DNA       *dac, *dav;
 L_HASHITEM  *hitem;
 L_HASHMAP   *hmap;
 
-    PROCNAME("l_dnaMakeHistoByHmap");
-
     if (pdav) *pdav = NULL;
     if (pdac) *pdac = NULL;
     if (!das)
-        return ERROR_INT("das not defined", procName, 1);
+        return ERROR_INT("das not defined", __func__, 1);
     if (!pdav)
-        return ERROR_INT("&dav not defined", procName, 1);
+        return ERROR_INT("&dav not defined", __func__, 1);
     if (!pdac)
-        return ERROR_INT("&dac not defined", procName, 1);
+        return ERROR_INT("&dac not defined", __func__, 1);
 
         /* Traverse the hashtable lists */
     if ((hmap = l_hmapCreateFromDna(das)) == NULL)
-        return ERROR_INT("hmap not made", procName, 1);
+        return ERROR_INT("hmap not made", __func__, 1);
     dav = l_dnaCreate(0);
     *pdav = dav;
     dac = l_dnaCreate(0);
@@ -789,10 +759,8 @@ l_dnaDiffAdjValues(L_DNA  *das)
 l_int32  i, n, prev, cur;
 L_DNA   *dad;
 
-    PROCNAME("l_dnaDiffAdjValues");
-
     if (!das)
-        return (L_DNA *)ERROR_PTR("das not defined", procName, NULL);
+        return (L_DNA *)ERROR_PTR("das not defined", __func__, NULL);
     n = l_dnaGetCount(das);
     dad = l_dnaCreate(n - 1);
     prev = 0;

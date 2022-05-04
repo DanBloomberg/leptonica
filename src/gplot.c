@@ -195,21 +195,19 @@ char     buf[Bufsize];
 l_int32  badchar;
 GPLOT   *gplot;
 
-    PROCNAME("gplotCreate");
-
     if (!rootname)
-        return (GPLOT *)ERROR_PTR("rootname not defined", procName, NULL);
+        return (GPLOT *)ERROR_PTR("rootname not defined", __func__, NULL);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
         outformat != GPLOT_EPS && outformat != GPLOT_LATEX &&
         outformat != GPLOT_PNM)
-        return (GPLOT *)ERROR_PTR("outformat invalid", procName, NULL);
+        return (GPLOT *)ERROR_PTR("outformat invalid", __func__, NULL);
     stringCheckForChars(rootname, "`;&|><\"?*$()", &badchar);
     if (badchar)  /* danger of command injection */
-        return (GPLOT *)ERROR_PTR("invalid rootname", procName, NULL);
+        return (GPLOT *)ERROR_PTR("invalid rootname", __func__, NULL);
 
 #if !defined(HAVE_LIBPNG)
     if (outformat == GPLOT_PNG) {
-        L_WARNING("png library missing; output pnm format\n", procName);
+        L_WARNING("png library missing; output pnm format\n", __func__);
         outformat = GPLOT_PNM;
     }
 #endif
@@ -256,10 +254,8 @@ gplotDestroy(GPLOT  **pgplot)
 {
 GPLOT  *gplot;
 
-    PROCNAME("gplotDestroy");
-
     if (pgplot == NULL) {
-        L_WARNING("ptr address is null!\n", procName);
+        L_WARNING("ptr address is null!\n", __func__);
         return;
     }
 
@@ -330,21 +326,19 @@ l_int32    n, i;
 l_float32  valx, valy, startx, delx;
 SARRAY    *sa;
 
-    PROCNAME("gplotAddPlot");
-
     if (!gplot)
-        return ERROR_INT("gplot not defined", procName, 1);
+        return ERROR_INT("gplot not defined", __func__, 1);
     if (!nay)
-        return ERROR_INT("nay not defined", procName, 1);
+        return ERROR_INT("nay not defined", __func__, 1);
     if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
-        return ERROR_INT("invalid plotstyle", procName, 1);
+        return ERROR_INT("invalid plotstyle", __func__, 1);
 
     if ((n = numaGetCount(nay)) == 0)
-        return ERROR_INT("no points to plot", procName, 1);
+        return ERROR_INT("no points to plot", __func__, 1);
     if (nax && (n != numaGetCount(nax)))
-        return ERROR_INT("nax and nay sizes differ", procName, 1);
+        return ERROR_INT("nax and nay sizes differ", __func__, 1);
     if (n == 1 && plotstyle == GPLOT_LINES) {
-        L_INFO("only 1 pt; changing style to points\n", procName);
+        L_INFO("only 1 pt; changing style to points\n", __func__);
         plotstyle = GPLOT_POINTS;
     }
 
@@ -400,15 +394,13 @@ l_ok
 gplotSetScaling(GPLOT   *gplot,
                 l_int32  scaling)
 {
-    PROCNAME("gplotSetScaling");
-
     if (!gplot)
-        return ERROR_INT("gplot not defined", procName, 1);
+        return ERROR_INT("gplot not defined", __func__, 1);
     if (scaling != GPLOT_LINEAR_SCALE &&
         scaling != GPLOT_LOG_SCALE_X &&
         scaling != GPLOT_LOG_SCALE_Y &&
         scaling != GPLOT_LOG_SCALE_X_Y)
-        return ERROR_INT("invalid gplot scaling", procName, 1);
+        return ERROR_INT("invalid gplot scaling", __func__, 1);
     gplot->scaling = scaling;
     return 0;
 }
@@ -430,15 +422,13 @@ gplotSetScaling(GPLOT   *gplot,
 PIX *
 gplotMakeOutputPix(GPLOT  *gplot)
 {
-    PROCNAME("gplotMakeOutputPix");
-
     if (!gplot)
-        return (PIX *)ERROR_PTR("gplot not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("gplot not defined", __func__, NULL);
     if (gplot->outformat != GPLOT_PNG && gplot->outformat != GPLOT_PNM)
-        return (PIX *)ERROR_PTR("output format not an image", procName, NULL);
+        return (PIX *)ERROR_PTR("output format not an image", __func__, NULL);
 
     if (gplotMakeOutput(gplot))
-        return (PIX *)ERROR_PTR("plot output not made", procName, NULL);
+        return (PIX *)ERROR_PTR("plot output not made", __func__, NULL);
     return pixRead(gplot->outname);
 }
 
@@ -468,19 +458,17 @@ gplotMakeOutput(GPLOT  *gplot)
 char     buf[Bufsize];
 char    *cmdname;
 
-    PROCNAME("gplotMakeOutput");
-
     if (!gplot)
-        return ERROR_INT("gplot not defined", procName, 1);
+        return ERROR_INT("gplot not defined", __func__, 1);
 
     if (!LeptDebugOK) {
         L_INFO("running gnuplot is disabled; "
-               "use setLeptDebugOK(1) to enable\n", procName);
+               "use setLeptDebugOK(1) to enable\n", __func__);
         return 0;
     }
 
 #ifdef OS_IOS /* iOS 11 does not support system() */
-    return ERROR_INT("iOS 11 does not support system()", procName, 0);
+    return ERROR_INT("iOS 11 does not support system()", __func__, 0);
 #endif /* OS_IOS */
 
     gplotGenCommandFile(gplot);
@@ -513,10 +501,8 @@ char    *cmdstr, *plotlabel, *dataname;
 l_int32  i, plotstyle, nplots;
 FILE    *fp;
 
-    PROCNAME("gplotGenCommandFile");
-
     if (!gplot)
-        return ERROR_INT("gplot not defined", procName, 1);
+        return ERROR_INT("gplot not defined", __func__, 1);
 
         /* Remove any previous command data */
     sarrayClear(gplot->cmddata);
@@ -591,7 +577,7 @@ FILE    *fp;
     cmdstr = sarrayToString(gplot->cmddata, 1);
     if ((fp = fopenWriteStream(gplot->cmdname, "w")) == NULL) {
         LEPT_FREE(cmdstr);
-        return ERROR_INT("cmd stream not opened", procName, 1);
+        return ERROR_INT("cmd stream not opened", __func__, 1);
     }
     fwrite(cmdstr, 1, strlen(cmdstr), fp);
     fclose(fp);
@@ -620,17 +606,15 @@ char    *plotdata, *dataname;
 l_int32  i, nplots;
 FILE    *fp;
 
-    PROCNAME("gplotGenDataFiles");
-
     if (!gplot)
-        return ERROR_INT("gplot not defined", procName, 1);
+        return ERROR_INT("gplot not defined", __func__, 1);
 
     nplots = sarrayGetCount(gplot->datanames);
     for (i = 0; i < nplots; i++) {
         plotdata = sarrayGetString(gplot->plotdata, i, L_NOCOPY);
         dataname = sarrayGetString(gplot->datanames, i, L_NOCOPY);
         if ((fp = fopen(dataname, "w")) == NULL)
-            return ERROR_INT("datafile stream not opened", procName, 1);
+            return ERROR_INT("datafile stream not opened", __func__, 1);
         fwrite(plotdata, 1, strlen(plotdata), fp);
         fclose(fp);
     }
@@ -669,11 +653,9 @@ gplotSimple1(NUMA        *na,
 {
 GPLOT  *gplot;
 
-    PROCNAME("gplotSimple1");
-
     gplot = gplotSimpleXY1(NULL, na, GPLOT_LINES, outformat, outroot, title);
     if (!gplot)
-        return ERROR_INT("failed to generate plot", procName, 1);
+        return ERROR_INT("failed to generate plot", __func__, 1);
     gplotDestroy(&gplot);
     return 0;
 }
@@ -708,12 +690,10 @@ gplotSimple2(NUMA        *na1,
 {
 GPLOT  *gplot;
 
-    PROCNAME("gplotSimple2");
-
     gplot = gplotSimpleXY2(NULL, na1, na2, GPLOT_LINES,
                            outformat, outroot, title);
     if (!gplot)
-        return ERROR_INT("failed to generate plot", procName, 1);
+        return ERROR_INT("failed to generate plot", __func__, 1);
     gplotDestroy(&gplot);
     return 0;
 }
@@ -747,11 +727,9 @@ gplotSimpleN(NUMAA       *naa,
 {
 GPLOT  *gplot;
 
-    PROCNAME("gplotSimpleN");
-
     gplot = gplotSimpleXYN(NULL, naa, GPLOT_LINES, outformat, outroot, title);
     if (!gplot)
-        return ERROR_INT("failed to generate plot", procName, 1);
+        return ERROR_INT("failed to generate plot", __func__, 1);
     gplotDestroy(&gplot);
     return 0;
 }
@@ -781,20 +759,18 @@ static l_int32  index;
 GPLOT          *gplot;
 PIX            *pix;
 
-    PROCNAME("gplotSimplePix1");
-
     if (!na)
-        return (PIX *)ERROR_PTR("na not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("na not defined", __func__, NULL);
 
     lept_mkdir("lept/gplot/pix");
     snprintf(buf, sizeof(buf), "/tmp/lept/gplot/pix1.%d", index++);
     gplot = gplotSimpleXY1(NULL, na, GPLOT_LINES, GPLOT_PNG, buf, title);
     if (!gplot)
-        return (PIX *)ERROR_PTR("failed to generate plot", procName, NULL);
+        return (PIX *)ERROR_PTR("failed to generate plot", __func__, NULL);
     pix = pixRead(gplot->outname);
     gplotDestroy(&gplot);
     if (!pix)
-        return (PIX *)ERROR_PTR("failed to generate plot", procName, NULL);
+        return (PIX *)ERROR_PTR("failed to generate plot", __func__, NULL);
     return pix;
 }
 
@@ -825,20 +801,18 @@ static l_int32  index;
 GPLOT          *gplot;
 PIX            *pix;
 
-    PROCNAME("gplotSimplePix2");
-
     if (!na1 || !na2)
-        return (PIX *)ERROR_PTR("both na1, na2 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("both na1, na2 not defined", __func__, NULL);
 
     lept_mkdir("lept/gplot/pix");
     snprintf(buf, sizeof(buf), "/tmp/lept/gplot/pix2.%d", index++);
     gplot = gplotSimpleXY2(NULL, na1, na2, GPLOT_LINES, GPLOT_PNG, buf, title);
     if (!gplot)
-        return (PIX *)ERROR_PTR("failed to generate plot", procName, NULL);
+        return (PIX *)ERROR_PTR("failed to generate plot", __func__, NULL);
     pix = pixRead(gplot->outname);
     gplotDestroy(&gplot);
     if (!pix)
-        return (PIX *)ERROR_PTR("failed to generate plot", procName, NULL);
+        return (PIX *)ERROR_PTR("failed to generate plot", __func__, NULL);
     return pix;
 }
 
@@ -868,20 +842,18 @@ static l_int32  index;
 GPLOT          *gplot;
 PIX            *pix;
 
-    PROCNAME("gplotSimplePixN");
-
     if (!naa)
-        return (PIX *)ERROR_PTR("naa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("naa not defined", __func__, NULL);
 
     lept_mkdir("lept/gplot/pix");
     snprintf(buf, sizeof(buf), "/tmp/lept/gplot/pixN.%d", index++);
     gplot = gplotSimpleXYN(NULL, naa, GPLOT_LINES, GPLOT_PNG, buf, title);
     if (!gplot)
-        return (PIX *)ERROR_PTR("failed to generate plot", procName, NULL);
+        return (PIX *)ERROR_PTR("failed to generate plot", __func__, NULL);
     pix = pixRead(gplot->outname);
     gplotDestroy(&gplot);
     if (!pix)
-        return (PIX *)ERROR_PTR("failed to generate plot", procName, NULL);
+        return (PIX *)ERROR_PTR("failed to generate plot", __func__, NULL);
     return pix;
 }
 
@@ -921,21 +893,19 @@ gplotSimpleXY1(NUMA        *nax,
 {
 GPLOT  *gplot;
 
-    PROCNAME("gplotSimpleXY1");
-
     if (!nay)
-        return (GPLOT *)ERROR_PTR("nay not defined", procName, NULL);
+        return (GPLOT *)ERROR_PTR("nay not defined", __func__, NULL);
     if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
-        return (GPLOT *)ERROR_PTR("invalid plotstyle", procName, NULL);
+        return (GPLOT *)ERROR_PTR("invalid plotstyle", __func__, NULL);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
         outformat != GPLOT_EPS && outformat != GPLOT_LATEX &&
         outformat != GPLOT_PNM)
-        return (GPLOT *)ERROR_PTR("invalid outformat", procName, NULL);
+        return (GPLOT *)ERROR_PTR("invalid outformat", __func__, NULL);
     if (!outroot)
-        return (GPLOT *)ERROR_PTR("outroot not specified", procName, NULL);
+        return (GPLOT *)ERROR_PTR("outroot not specified", __func__, NULL);
 
     if ((gplot = gplotCreate(outroot, outformat, title, NULL, NULL)) == 0)
-        return (GPLOT *)ERROR_PTR("gplot not made", procName, NULL);
+        return (GPLOT *)ERROR_PTR("gplot not made", __func__, NULL);
     gplotAddPlot(gplot, nax, nay, plotstyle, NULL);
     gplotMakeOutput(gplot);
     return gplot;
@@ -979,22 +949,20 @@ gplotSimpleXY2(NUMA        *nax,
 {
 GPLOT  *gplot;
 
-    PROCNAME("gplotSimpleXY2");
-
     if (!nay1 || !nay2)
         return (GPLOT *)ERROR_PTR("nay1 and nay2 not both defined",
-                                  procName, NULL);
+                                  __func__, NULL);
     if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
-        return (GPLOT *)ERROR_PTR("invalid plotstyle", procName, NULL);
+        return (GPLOT *)ERROR_PTR("invalid plotstyle", __func__, NULL);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
         outformat != GPLOT_EPS && outformat != GPLOT_LATEX &&
         outformat != GPLOT_PNM)
-        return (GPLOT *)ERROR_PTR("invalid outformat", procName, NULL);
+        return (GPLOT *)ERROR_PTR("invalid outformat", __func__, NULL);
     if (!outroot)
-        return (GPLOT *)ERROR_PTR("outroot not specified", procName, NULL);
+        return (GPLOT *)ERROR_PTR("outroot not specified", __func__, NULL);
 
     if ((gplot = gplotCreate(outroot, outformat, title, NULL, NULL)) == 0)
-        return (GPLOT *)ERROR_PTR("gplot not made", procName, NULL);
+        return (GPLOT *)ERROR_PTR("gplot not made", __func__, NULL);
     gplotAddPlot(gplot, nax, nay1, plotstyle, NULL);
     gplotAddPlot(gplot, nax, nay2, plotstyle, NULL);
     gplotMakeOutput(gplot);
@@ -1039,23 +1007,21 @@ l_int32  i, n;
 GPLOT   *gplot;
 NUMA    *nay;
 
-    PROCNAME("gplotSimpleXYN");
-
     if (!naay)
-        return (GPLOT *)ERROR_PTR("naay not defined", procName, NULL);
+        return (GPLOT *)ERROR_PTR("naay not defined", __func__, NULL);
     if ((n = numaaGetCount(naay)) == 0)
-        return (GPLOT *)ERROR_PTR("no numa in array", procName, NULL);
+        return (GPLOT *)ERROR_PTR("no numa in array", __func__, NULL);
     if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
-        return (GPLOT *)ERROR_PTR("invalid plotstyle", procName, NULL);
+        return (GPLOT *)ERROR_PTR("invalid plotstyle", __func__, NULL);
     if (outformat != GPLOT_PNG && outformat != GPLOT_PS &&
         outformat != GPLOT_EPS && outformat != GPLOT_LATEX &&
         outformat != GPLOT_PNM)
-        return (GPLOT *)ERROR_PTR("invalid outformat", procName, NULL);
+        return (GPLOT *)ERROR_PTR("invalid outformat", __func__, NULL);
     if (!outroot)
-        return (GPLOT *)ERROR_PTR("outroot not specified", procName, NULL);
+        return (GPLOT *)ERROR_PTR("outroot not specified", __func__, NULL);
 
     if ((gplot = gplotCreate(outroot, outformat, title, NULL, NULL)) == 0)
-        return (GPLOT *)ERROR_PTR("gplot not made", procName, NULL);
+        return (GPLOT *)ERROR_PTR("gplot not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         nay = numaaGetNuma(naay, i, L_CLONE);
         gplotAddPlot(gplot, nax, nay, plotstyle, NULL);
@@ -1095,18 +1061,16 @@ gplotGeneralPix1(NUMA        *na,
 GPLOT *gplot;
 PIX   *pix;
 
-    PROCNAME("gplotGeneralPix1");
-
     if (!na)
-        return (PIX *)ERROR_PTR("na not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("na not defined", __func__, NULL);
     if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
-        return (PIX *)ERROR_PTR("invalid plotstyle", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid plotstyle", __func__, NULL);
     if (!rootname)
-        return (PIX *)ERROR_PTR("rootname not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("rootname not defined", __func__, NULL);
 
     gplot = gplotCreate(rootname, GPLOT_PNG, title, xlabel, ylabel);
     if (!gplot)
-        return (PIX *)ERROR_PTR("gplot not made", procName, NULL);
+        return (PIX *)ERROR_PTR("gplot not made", __func__, NULL);
     gplotAddPlot(gplot, NULL, na, plotstyle, NULL);
     pix = gplotMakeOutputPix(gplot);
     gplotDestroy(&gplot);
@@ -1145,20 +1109,18 @@ gplotGeneralPix2(NUMA        *na1,
 GPLOT *gplot;
 PIX   *pix;
 
-    PROCNAME("gplotGeneralPix2");
-
     if (!na1)
-        return (PIX *)ERROR_PTR("na1 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("na1 not defined", __func__, NULL);
     if (!na2)
-        return (PIX *)ERROR_PTR("na2 not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("na2 not defined", __func__, NULL);
     if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
-        return (PIX *)ERROR_PTR("invalid plotstyle", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid plotstyle", __func__, NULL);
     if (!rootname)
-        return (PIX *)ERROR_PTR("rootname not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("rootname not defined", __func__, NULL);
 
     gplot = gplotCreate(rootname, GPLOT_PNG, title, xlabel, ylabel);
     if (!gplot)
-        return (PIX *)ERROR_PTR("gplot not made", procName, NULL);
+        return (PIX *)ERROR_PTR("gplot not made", __func__, NULL);
     gplotAddPlot(gplot, na1, na2, plotstyle, NULL);
     pix = gplotMakeOutputPix(gplot);
     gplotDestroy(&gplot);
@@ -1199,22 +1161,20 @@ GPLOT   *gplot;
 NUMA    *nay;
 PIX     *pix;
 
-    PROCNAME("gplotGeneralPixN");
-
     if (!nax)
-        return (PIX *)ERROR_PTR("nax not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("nax not defined", __func__, NULL);
     if (!naay)
-        return (PIX *)ERROR_PTR("naay not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("naay not defined", __func__, NULL);
     if ((n = numaaGetCount(naay)) == 0)
-        return (PIX *)ERROR_PTR("no numa in array", procName, NULL);
+        return (PIX *)ERROR_PTR("no numa in array", __func__, NULL);
     if (plotstyle < 0 || plotstyle >= NUM_GPLOT_STYLES)
-        return (PIX *)ERROR_PTR("invalid plotstyle", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid plotstyle", __func__, NULL);
     if (!rootname)
-        return (PIX *)ERROR_PTR("rootname not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("rootname not defined", __func__, NULL);
 
     gplot = gplotCreate(rootname, GPLOT_PNG, title, xlabel, ylabel);
     if (!gplot)
-        return (PIX *)ERROR_PTR("gplot not made", procName, NULL);
+        return (PIX *)ERROR_PTR("gplot not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         nay = numaaGetNuma(naay, i, L_CLONE);
         gplotAddPlot(gplot, nax, nay, plotstyle, NULL);
@@ -1244,22 +1204,20 @@ l_int32  outformat, ret, version, ignore;
 FILE    *fp;
 GPLOT   *gplot;
 
-    PROCNAME("gplotRead");
-
     if (!filename)
-        return (GPLOT *)ERROR_PTR("filename not defined", procName, NULL);
+        return (GPLOT *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (GPLOT *)ERROR_PTR("stream not opened", procName, NULL);
+        return (GPLOT *)ERROR_PTR("stream not opened", __func__, NULL);
 
     ret = fscanf(fp, "Gplot Version %d\n", &version);
     if (ret != 1) {
         fclose(fp);
-        return (GPLOT *)ERROR_PTR("not a gplot file", procName, NULL);
+        return (GPLOT *)ERROR_PTR("not a gplot file", __func__, NULL);
     }
     if (version != GPLOT_VERSION_NUMBER) {
         fclose(fp);
-        return (GPLOT *)ERROR_PTR("invalid gplot version", procName, NULL);
+        return (GPLOT *)ERROR_PTR("invalid gplot version", __func__, NULL);
     }
 
     ignore = fscanf(fp, "Rootname: %511s\n", buf);  /* Bufsize - 1 */
@@ -1282,7 +1240,7 @@ GPLOT   *gplot;
     LEPT_FREE(ylabel);
     if (!gplot) {
         fclose(fp);
-        return (GPLOT *)ERROR_PTR("gplot not made", procName, NULL);
+        return (GPLOT *)ERROR_PTR("gplot not made", __func__, NULL);
     }
     sarrayDestroy(&gplot->cmddata);
     sarrayDestroy(&gplot->datanames);
@@ -1326,15 +1284,13 @@ gplotWrite(const char  *filename,
 {
 FILE  *fp;
 
-    PROCNAME("gplotWrite");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
     if (!gplot)
-        return ERROR_INT("gplot not defined", procName, 1);
+        return ERROR_INT("gplot not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
 
     fprintf(fp, "Gplot Version %d\n", GPLOT_VERSION_NUMBER);
     fprintf(fp, "Rootname: %s\n", gplot->rootname);

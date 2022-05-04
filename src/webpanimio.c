@@ -79,20 +79,18 @@ pixaWriteWebPAnim(const char  *filename,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("pixaWriteWebPAnim");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "wb+")) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ret = pixaWriteStreamWebPAnim(fp, pixa, loopcount, duration,
                                   quality, lossless);
     fclose(fp);
     if (ret)
-        return ERROR_INT("pixs not compressed to stream", procName, 1);
+        return ERROR_INT("pixs not compressed to stream", __func__, 1);
     return 0;
 }
 
@@ -126,23 +124,21 @@ pixaWriteStreamWebPAnim(FILE    *fp,
 l_uint8  *filedata;
 size_t    filebytes, nbytes;
 
-    PROCNAME("pixaWriteStreamWebpAnim");
-
     if (!fp)
-        return ERROR_INT("stream not open", procName, 1);
+        return ERROR_INT("stream not open", __func__, 1);
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
 
     filedata = NULL;
     pixaWriteMemWebPAnim(&filedata, &filebytes, pixa, loopcount,
                          duration, quality, lossless);
     rewind(fp);
     if (!filedata)
-        return ERROR_INT("filedata not made", procName, 1);
+        return ERROR_INT("filedata not made", __func__, 1);
     nbytes = fwrite(filedata, 1, filebytes, fp);
     free(filedata);
     if (nbytes != filebytes)
-        return ERROR_INT("Write error", procName, 1);
+        return ERROR_INT("Write error", __func__, 1);
     return 0;
 }
 
@@ -184,25 +180,23 @@ WebPMux                *mux = NULL;
 WebPMuxAnimParams       newparams;
 WebPPicture             frame;
 
-    PROCNAME("pixaWriteMemWebPAnim");
-
     if (!pencdata)
-        return ERROR_INT("&encdata not defined", procName, 1);
+        return ERROR_INT("&encdata not defined", __func__, 1);
     *pencdata = NULL;
     if (!pencsize)
-        return ERROR_INT("&encsize not defined", procName, 1);
+        return ERROR_INT("&encsize not defined", __func__, 1);
     *pencsize = 0;
     if (!pixa)
-        return ERROR_INT("&pixa not defined", procName, 1);
+        return ERROR_INT("&pixa not defined", __func__, 1);
     if ((n = pixaGetCount(pixa)) == 0)
-        return ERROR_INT("no images in pixa", procName, 1);
+        return ERROR_INT("no images in pixa", __func__, 1);
     if (loopcount < 0) loopcount = 0;
     if (lossless == 0 && (quality < 0 || quality > 100))
-        return ERROR_INT("quality not in [0 ... 100]", procName, 1);
+        return ERROR_INT("quality not in [0 ... 100]", __func__, 1);
 
     pixaVerifyDimensions(pixa, &same, &w, &h);
     if (!same)
-        return ERROR_INT("sizes of all pix are not the same", procName, 1);
+        return ERROR_INT("sizes of all pix are not the same", __func__, 1);
 
         /* Set up the encoder */
     WebPAnimEncoderOptionsInit(&enc_options);
@@ -244,16 +238,16 @@ WebPPicture             frame;
     if (loopcount > 0) {
         mux = WebPMuxCreate(&webp_data, 1);
         if (!mux) {
-            L_ERROR("could not re-mux to add loop count\n", procName);
+            L_ERROR("could not re-mux to add loop count\n", __func__);
         } else {
             ret = WebPMuxGetAnimationParams(mux, &newparams);
             if (ret != WEBP_MUX_OK) {
-                L_ERROR("failed to get loop count\n", procName);
+                L_ERROR("failed to get loop count\n", __func__);
             } else {
                 newparams.loop_count = loopcount;
                 ret = WebPMuxSetAnimationParams(mux, &newparams);
                 if (ret != WEBP_MUX_OK)
-                    L_ERROR("failed to set loop count\n", procName);
+                    L_ERROR("failed to set loop count\n", __func__);
             }
             WebPDataClear(&webp_data);
             WebPMuxAssemble(mux, &webp_data);
@@ -263,7 +257,7 @@ WebPPicture             frame;
 
     *pencdata = (l_uint8 *)webp_data.bytes;
     *pencsize = webp_data.size;
-    L_INFO("data size = %zu\n", procName, webp_data.size);
+    L_INFO("data size = %zu\n", __func__, webp_data.size);
     return 0;
 }
 

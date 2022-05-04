@@ -107,14 +107,12 @@ pixStrokeWidthTransform(PIX     *pixs,
 l_float32  angle, pi;
 PIX       *pixh, *pixv, *pixt, *pixg1, *pixg2, *pixg3, *pixg4;
 
-    PROCNAME("pixStrokeWidthTransform");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (depth != 8 && depth != 16)
-        return (PIX *)ERROR_PTR("depth must be 8 or 16 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("depth must be 8 or 16 bpp", __func__, NULL);
     if (nangles != 2 && nangles != 4 && nangles != 6 && nangles != 8)
-        return (PIX *)ERROR_PTR("nangles not in {2,4,6,8}", procName, NULL);
+        return (PIX *)ERROR_PTR("nangles not in {2,4,6,8}", __func__, NULL);
 
         /* Use fg runs for evaluation */
     if (color == 0)
@@ -204,10 +202,8 @@ l_int32  w, h, diag, xoff, yoff;
 PIX     *pixb, *pixr, *pixh, *pixv, *pixg1, *pixg2, *pixd;
 BOX     *box;
 
-    PROCNAME("pixFindMinRunsOrthogonal");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
 
         /* Rasterop into the center of a sufficiently large image
          * so we don't lose pixels for any rotation angle. */
@@ -272,14 +268,12 @@ l_int32   *start, *end, *buffer;
 l_uint32  *datad, *lined;
 PIX       *pixt, *pixd;
 
-    PROCNAME("pixRunlengthTransform");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
     if (depth != 8 && depth != 16)
-        return (PIX *)ERROR_PTR("depth must be 8 or 16 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("depth must be 8 or 16 bpp", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if (direction == L_HORIZONTAL_RUNS)
@@ -287,15 +281,15 @@ PIX       *pixt, *pixd;
     else if (direction == L_VERTICAL_RUNS)
         maxsize = 1 + h / 2;
     else
-        return (PIX *)ERROR_PTR("invalid direction", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid direction", __func__, NULL);
     bufsize = L_MAX(w, h);
     if (bufsize > 1000000) {
-        L_ERROR("largest image dimension = %d; too big\n", procName, bufsize);
+        L_ERROR("largest image dimension = %d; too big\n", __func__, bufsize);
         return NULL;
     }
 
     if ((pixd = pixCreate(w, h, depth)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
@@ -382,22 +376,20 @@ l_int32    inrun;  /* boolean */
 l_int32    index, w, h, d, j, wpl, val;
 l_uint32  *line;
 
-    PROCNAME("pixFindHorizontalRuns");
-
     if (!pn)
-        return ERROR_INT("&n not defined", procName, 1);
+        return ERROR_INT("&n not defined", __func__, 1);
     *pn = 0;
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     pixGetDimensions(pix, &w, &h, &d);
     if (d != 1)
-        return ERROR_INT("pix not 1 bpp", procName, 1);
+        return ERROR_INT("pix not 1 bpp", __func__, 1);
     if (y < 0 || y >= h)
-        return ERROR_INT("y not in [0 ... h - 1]", procName, 1);
+        return ERROR_INT("y not in [0 ... h - 1]", __func__, 1);
     if (!xstart)
-        return ERROR_INT("xstart not defined", procName, 1);
+        return ERROR_INT("xstart not defined", __func__, 1);
     if (!xend)
-        return ERROR_INT("xend not defined", procName, 1);
+        return ERROR_INT("xend not defined", __func__, 1);
 
     wpl = pixGetWpl(pix);
     line = pixGetData(pix) + y * wpl;
@@ -459,22 +451,20 @@ l_int32    inrun;  /* boolean */
 l_int32    index, w, h, d, i, wpl, val;
 l_uint32  *data, *line;
 
-    PROCNAME("pixFindVerticalRuns");
-
     if (!pn)
-        return ERROR_INT("&n not defined", procName, 1);
+        return ERROR_INT("&n not defined", __func__, 1);
     *pn = 0;
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     pixGetDimensions(pix, &w, &h, &d);
     if (d != 1)
-        return ERROR_INT("pix not 1 bpp", procName, 1);
+        return ERROR_INT("pix not 1 bpp", __func__, 1);
     if (x < 0 || x >= w)
-        return ERROR_INT("x not in [0 ... w - 1]", procName, 1);
+        return ERROR_INT("x not in [0 ... w - 1]", __func__, 1);
     if (!ystart)
-        return ERROR_INT("ystart not defined", procName, 1);
+        return ERROR_INT("ystart not defined", __func__, 1);
     if (!yend)
-        return ERROR_INT("yend not defined", procName, 1);
+        return ERROR_INT("yend not defined", __func__, 1);
 
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
@@ -532,13 +522,11 @@ pixFindMaxRuns(PIX     *pix,
 l_int32  w, h, i, start, size;
 NUMA    *nasize;
 
-    PROCNAME("pixFindMaxRuns");
-
     if (pnastart) *pnastart = NULL;
     if (direction != L_HORIZONTAL_RUNS && direction != L_VERTICAL_RUNS)
-        return (NUMA *)ERROR_PTR("direction invalid", procName, NULL);
+        return (NUMA *)ERROR_PTR("direction invalid", __func__, NULL);
     if (!pix || pixGetDepth(pix) != 1)
-        return (NUMA *)ERROR_PTR("pix undefined or not 1 bpp", procName, NULL);
+        return (NUMA *)ERROR_PTR("pix undefined or not 1 bpp", __func__, NULL);
 
     pixGetDimensions(pix, &w, &h, NULL);
     nasize = numaCreate(w);
@@ -587,17 +575,15 @@ l_int32    inrun;  /* boolean */
 l_int32    w, h, j, wpl, val, maxstart, maxsize, length, start;
 l_uint32  *line;
 
-    PROCNAME("pixFindMaxHorizontalRunOnLine");
-
     if (pxstart) *pxstart = 0;
     if (!psize)
-        return ERROR_INT("&size not defined", procName, 1);
+        return ERROR_INT("&size not defined", __func__, 1);
     *psize = 0;
     if (!pix || pixGetDepth(pix) != 1)
-        return ERROR_INT("pix not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pix not defined or not 1 bpp", __func__, 1);
     pixGetDimensions(pix, &w, &h, NULL);
     if (y < 0 || y >= h)
-        return ERROR_INT("y not in [0 ... h - 1]", procName, 1);
+        return ERROR_INT("y not in [0 ... h - 1]", __func__, 1);
 
     wpl = pixGetWpl(pix);
     line = pixGetData(pix) + y * wpl;
@@ -661,17 +647,15 @@ l_int32    inrun;  /* boolean */
 l_int32    w, h, i, wpl, val, maxstart, maxsize, length, start;
 l_uint32  *data, *line;
 
-    PROCNAME("pixFindMaxVerticalRunOnLine");
-
     if (pystart) *pystart = 0;
     if (!psize)
-        return ERROR_INT("&size not defined", procName, 1);
+        return ERROR_INT("&size not defined", __func__, 1);
     *psize = 0;
     if (!pix || pixGetDepth(pix) != 1)
-        return ERROR_INT("pix not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pix not defined or not 1 bpp", __func__, 1);
     pixGetDimensions(pix, &w, &h, NULL);
     if (x < 0 || x >= w)
-        return ERROR_INT("x not in [0 ... w - 1]", procName, 1);
+        return ERROR_INT("x not in [0 ... w - 1]", __func__, 1);
 
     wpl = pixGetWpl(pix);
     data = pixGetData(pix);
@@ -742,14 +726,12 @@ runlengthMembershipOnLine(l_int32  *buffer,
 {
 l_int32  i, j, first, last, diff, max;
 
-    PROCNAME("runlengthMembershipOnLine");
-
     if (!buffer)
-        return ERROR_INT("buffer not defined", procName, 1);
+        return ERROR_INT("buffer not defined", __func__, 1);
     if (!start)
-        return ERROR_INT("start not defined", procName, 1);
+        return ERROR_INT("start not defined", __func__, 1);
     if (!end)
-        return ERROR_INT("end not defined", procName, 1);
+        return ERROR_INT("end not defined", __func__, 1);
 
     if (depth == 8)
         max = 0xff;

@@ -121,24 +121,22 @@ PTA     *pta1;
 SEL     *sel;
 SELA    *sela;
 
-    PROCNAME("pixFindCheckerboardCorners");
-
     if (ppix_corners) *ppix_corners = NULL;
     if (ppta_corners) *ppta_corners = NULL;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (size <= 0) size = 7;
     if (size < 7)
-        return ERROR_INT("size too small", procName, 1);
+        return ERROR_INT("size too small", __func__, 1);
     if (dilation < 1 || dilation > 5)
-        return ERROR_INT("dilation not in [1 ...5]", procName, 1);
+        return ERROR_INT("dilation not in [1 ...5]", __func__, 1);
     if (nsels != 2 && nsels != 4)
-        return ERROR_INT("nsels not 2 or 4", procName, 1);
+        return ERROR_INT("nsels not 2 or 4", __func__, 1);
 
         /* Generate the hit-miss sels for finding corners */
     sela = makeCheckerboardCornerSela(size, dilation, nsels, pixadb);
     if (!sela)
-        return ERROR_INT("sela not made", procName, 1);
+        return ERROR_INT("sela not made", __func__, 1);
     if (pixadb) {
         pix1 = selaDisplayInPix(sela, 15, 3, 15, 2);
         pixaAddPix(pixadb, pix1, L_INSERT);
@@ -208,18 +206,16 @@ PIXA    *pixa1;
 SARRAY  *sa;
 SELA    *sela;
 
-    PROCNAME("makeCheckerboardCornerSela");
-
     if (size <= 0) size = 7;
     if (size < 7)
-        return (SELA *)ERROR_PTR("size too small", procName, NULL);
+        return (SELA *)ERROR_PTR("size too small", __func__, NULL);
     if (dilation < 1 || dilation > 5)
-        return (SELA *)ERROR_PTR("dilation not in [1 ...5]", procName, NULL);
+        return (SELA *)ERROR_PTR("dilation not in [1 ...5]", __func__, NULL);
     if (nsels != 2 && nsels != 4)
-        return (SELA *)ERROR_PTR("nsels not 2 or 4", procName, NULL);
+        return (SELA *)ERROR_PTR("nsels not 2 or 4", __func__, NULL);
 
     if ((pixa1 = makeCheckerboardCornerPixa(size, dilation, nsels)) == NULL)
-        return (SELA *)ERROR_PTR("pixa for sels not made", procName, NULL);
+        return (SELA *)ERROR_PTR("pixa for sels not made", __func__, NULL);
     if (pixadb) {
         pix1 = pixaDisplayTiledInColumns(pixa1, 4, 8.0, 15, 2);
         pixaAddPix(pixadb, pix1, L_INSERT);
@@ -229,7 +225,7 @@ SELA    *sela;
     pixaDestroy(&pixa1);
     sarrayDestroy(&sa);
     if (!sela)
-        return (SELA *)ERROR_PTR("sela not made", procName, NULL);
+        return (SELA *)ERROR_PTR("sela not made", __func__, NULL);
     return sela;
 }
 

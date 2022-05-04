@@ -110,17 +110,15 @@ boxContains(BOX     *box1,
 {
 l_int32  x1, y1, w1, h1, x2, y2, w2, h2, valid1, valid2;
 
-    PROCNAME("boxContains");
-
     if (!presult)
-        return ERROR_INT("&result not defined", procName, 1);
+        return ERROR_INT("&result not defined", __func__, 1);
     *presult = 0;
     if (!box1 || !box2)
-        return ERROR_INT("boxes not both defined", procName, 1);
+        return ERROR_INT("boxes not both defined", __func__, 1);
     boxIsValid(box1, &valid1);
     boxIsValid(box2, &valid2);
     if (!valid1 || !valid2)
-        return ERROR_INT("boxes not both valid", procName, 1);
+        return ERROR_INT("boxes not both valid", __func__, 1);
 
     boxGetGeometry(box1, &x1, &y1, &w1, &h1);
     boxGetGeometry(box2, &x2, &y2, &w2, &h2);
@@ -145,17 +143,15 @@ boxIntersects(BOX      *box1,
 {
 l_int32  l1, l2, r1, r2, t1, t2, b1, b2, w1, h1, w2, h2, valid1, valid2;
 
-    PROCNAME("boxIntersects");
-
     if (!presult)
-        return ERROR_INT("&result not defined", procName, 1);
+        return ERROR_INT("&result not defined", __func__, 1);
     *presult = 0;
     if (!box1 || !box2)
-        return ERROR_INT("boxes not both defined", procName, 1);
+        return ERROR_INT("boxes not both defined", __func__, 1);
     boxIsValid(box1, &valid1);
     boxIsValid(box2, &valid2);
     if (!valid1 || !valid2)
-        return ERROR_INT("boxes not both valid", procName, 1);
+        return ERROR_INT("boxes not both valid", __func__, 1);
 
     boxGetGeometry(box1, &l1, &t1, &w1, &h1);
     boxGetGeometry(box2, &l2, &t2, &w2, &h2);
@@ -193,12 +189,10 @@ l_int32  i, n, val, valid;
 BOX     *box1;
 BOXA    *boxad;
 
-    PROCNAME("boxaContainedInBox");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (!box)
-        return (BOXA *)ERROR_PTR("box not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("box not defined", __func__, NULL);
     n = boxaGetCount(boxas);
     boxIsValid(box, &valid);
     if (n == 0 || !valid)
@@ -239,15 +233,13 @@ boxaContainedInBoxCount(BOXA     *boxa,
 l_int32  i, n, val, valid;
 BOX     *box1;
 
-    PROCNAME("boxaContainedInBoxCount");
-
     if (!pcount)
-        return ERROR_INT("&count not defined", procName, 1);
+        return ERROR_INT("&count not defined", __func__, 1);
     *pcount = 0;
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     if (!box)
-        return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", __func__, 1);
     n = boxaGetCount(boxa);
     boxIsValid(box, &valid);
     if (n == 0 || !valid)
@@ -281,13 +273,11 @@ boxaContainedInBoxa(BOXA     *boxa1,
 l_int32  i, j, n1, n2, cont, result;
 BOX     *box1, *box2;
 
-    PROCNAME("boxaContainedInBoxa");
-
     if (!pcontained)
-        return ERROR_INT("&contained not defined", procName, 1);
+        return ERROR_INT("&contained not defined", __func__, 1);
     *pcontained = 0;
     if (!boxa1 || !boxa2)
-        return ERROR_INT("boxa1 and boxa2 not both defined", procName, 1);
+        return ERROR_INT("boxa1 and boxa2 not both defined", __func__, 1);
 
     n1 = boxaGetCount(boxa1);
     n2 = boxaGetCount(boxa2);
@@ -336,12 +326,10 @@ l_int32  i, n, val, valid;
 BOX     *box1;
 BOXA    *boxad;
 
-    PROCNAME("boxaIntersectsBox");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (!box)
-        return (BOXA *)ERROR_PTR("box not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("box not defined", __func__, NULL);
     n = boxaGetCount(boxas);
     boxIsValid(box, &valid);
     if (n == 0 || !valid)
@@ -377,15 +365,13 @@ boxaIntersectsBoxCount(BOXA     *boxa,
 l_int32  i, n, val, valid;
 BOX     *box1;
 
-    PROCNAME("boxaIntersectsBoxCount");
-
     if (!pcount)
-        return ERROR_INT("&count not defined", procName, 1);
+        return ERROR_INT("&count not defined", __func__, 1);
     *pcount = 0;
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     if (!box)
-        return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", __func__, 1);
     n = boxaGetCount(boxa);
     boxIsValid(box, &valid);
     if (n == 0 || !valid)
@@ -424,12 +410,10 @@ l_int32  i, n, valid;
 BOX     *box1, *boxo;
 BOXA    *boxad;
 
-    PROCNAME("boxaClipToBox");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (!box)
-        return (BOXA *)ERROR_PTR("box not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("box not defined", __func__, NULL);
     n = boxaGetCount(boxas);
     boxIsValid(box, &valid);
     if (n == 0 || !valid)
@@ -484,10 +468,8 @@ BOX     *box1, *box2, *box3;
 BOXA    *boxa1, *boxa2;
 PIX     *pix1;
 
-    PROCNAME("boxaCombineOverlaps");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
 
     if (pixadb) boxaGetExtent(boxas, &w, &h, NULL);
 
@@ -538,7 +520,7 @@ PIX     *pix1;
     }
 
     if (pixadb)
-        L_INFO("number of iterations: %d\n", procName, niters);
+        L_INFO("number of iterations: %d\n", __func__, niters);
     return boxa1;
 }
 
@@ -582,14 +564,12 @@ BOX     *box1, *box2, *box3;
 BOXA    *boxa1, *boxa2, *boxac1, *boxac2;
 PIX     *pix1;
 
-    PROCNAME("boxaCombineOverlapsInPair");
-
     if (pboxad1) *pboxad1 = NULL;
     if (pboxad2) *pboxad2 = NULL;
     if (!boxas1 || !boxas2)
-        return ERROR_INT("boxas1 and boxas2 not both defined", procName, 1);
+        return ERROR_INT("boxas1 and boxas2 not both defined", __func__, 1);
     if (!pboxad1 || !pboxad2)
-        return ERROR_INT("&boxad1 and &boxad2 not both defined", procName, 1);
+        return ERROR_INT("&boxad1 and &boxad2 not both defined", __func__, 1);
 
     if (pixadb) {
         boxaGetExtent(boxas1, &w, &h, NULL);
@@ -688,7 +668,7 @@ PIX     *pix1;
     }
 
     if (pixadb)
-        L_INFO("number of iterations: %d\n", procName, niters);
+        L_INFO("number of iterations: %d\n", __func__, niters);
     *pboxad1 = boxac1;
     *pboxad2 = boxac2;
     return 0;
@@ -714,14 +694,12 @@ boxOverlapRegion(BOX  *box1,
 l_int32  l1, l2, r1, r2, t1, t2, b1, b2, w1, h1, w2, h2, ld, td, rd, bd;
 l_int32  valid1, valid2;
 
-    PROCNAME("boxOverlapRegion");
-
     if (!box1 || !box2)
-        return (BOX *)ERROR_PTR("boxes not both defined", procName, NULL);
+        return (BOX *)ERROR_PTR("boxes not both defined", __func__, NULL);
     boxIsValid(box1, &valid1);
     boxIsValid(box2, &valid2);
     if (!valid1 || !valid2) {
-        L_WARNING("at least one box is invalid\n", procName);
+        L_WARNING("at least one box is invalid\n", __func__);
         return NULL;
     }
 
@@ -764,14 +742,12 @@ boxBoundingRegion(BOX  *box1,
 l_int32  l1, l2, r1, r2, t1, t2, b1, b2, w1, h1, w2, h2, ld, td, rd, bd;
 l_int32  valid1, valid2;
 
-    PROCNAME("boxBoundingRegion");
-
     if (!box1 || !box2)
-        return (BOX *)ERROR_PTR("boxes not both defined", procName, NULL);
+        return (BOX *)ERROR_PTR("boxes not both defined", __func__, NULL);
     boxIsValid(box1, &valid1);
     boxIsValid(box2, &valid2);
     if (!valid1 && !valid2) {
-        L_WARNING("both boxes are invalid\n", procName);
+        L_WARNING("both boxes are invalid\n", __func__);
         return boxCreate(0, 0, 0, 0);
     }
     if (valid1 && !valid2)
@@ -815,17 +791,15 @@ boxOverlapFraction(BOX        *box1,
 l_int32  w2, h2, w, h, valid1, valid2;
 BOX     *boxo;
 
-    PROCNAME("boxOverlapFraction");
-
     if (!pfract)
-        return ERROR_INT("&fract not defined", procName, 1);
+        return ERROR_INT("&fract not defined", __func__, 1);
     *pfract = 0.0;
     if (!box1 || !box2)
-        return ERROR_INT("boxes not both defined", procName, 1);
+        return ERROR_INT("boxes not both defined", __func__, 1);
     boxIsValid(box1, &valid1);
     boxIsValid(box2, &valid2);
     if (!valid1 || !valid2) {
-        L_WARNING("boxes not both valid\n", procName);
+        L_WARNING("boxes not both valid\n", __func__);
         return 0;
     }
 
@@ -855,17 +829,15 @@ boxOverlapArea(BOX      *box1,
 l_int32  w, h, valid1, valid2;
 BOX     *box;
 
-    PROCNAME("boxOverlapArea");
-
     if (!parea)
-        return ERROR_INT("&area not defined", procName, 1);
+        return ERROR_INT("&area not defined", __func__, 1);
     *parea = 0;
     if (!box1 || !box2)
-        return ERROR_INT("boxes not both defined", procName, 1);
+        return ERROR_INT("boxes not both defined", __func__, 1);
     boxIsValid(box1, &valid1);
     boxIsValid(box2, &valid2);
     if (!valid1 || !valid2)
-        return ERROR_INT("boxes not both valid", procName, 1);
+        return ERROR_INT("boxes not both valid", __func__, 1);
 
     if ((box = boxOverlapRegion(box1, box2)) == NULL)  /* no overlap */
         return 0;
@@ -926,19 +898,17 @@ BOX       *box1, *box2, *box3;
 BOXA      *boxat, *boxad;
 NUMA      *namap;
 
-    PROCNAME("boxaHandleOverlaps");
-
     if (pnamap) *pnamap = NULL;
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (op != L_COMBINE && op != L_REMOVE_SMALL)
-        return (BOXA *)ERROR_PTR("invalid op", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid op", __func__, NULL);
 
     n = boxaGetCount(boxas);
     if (n == 0)
         return boxaCreate(1);  /* empty */
     if (range == 0) {
-        L_WARNING("range is 0\n", procName);
+        L_WARNING("range is 0\n", __func__);
         return boxaCopy(boxas, L_COPY);
     }
 
@@ -1049,18 +1019,16 @@ boxOverlapDistance(BOX      *box1,
 {
 l_int32  l1, t1, w1, h1, r1, b1, l2, t2, w2, h2, r2, b2, valid1, valid2;
 
-    PROCNAME("boxOverlapDistance");
-
     if (!ph_ovl && !pv_ovl)
-        return ERROR_INT("nothing to do", procName, 1);
+        return ERROR_INT("nothing to do", __func__, 1);
     if (ph_ovl) *ph_ovl = 0;
     if (pv_ovl) *pv_ovl = 0;
     if (!box1 || !box2)
-        return ERROR_INT("boxes not both defined", procName, 1);
+        return ERROR_INT("boxes not both defined", __func__, 1);
     boxIsValid(box1, &valid1);
     boxIsValid(box2, &valid2);
     if (!valid1 || !valid2)
-        return ERROR_INT("boxes not both valid", procName, 1);
+        return ERROR_INT("boxes not both valid", __func__, 1);
 
     if (ph_ovl) {
         boxGetGeometry(box1, &l1, NULL, &w1, NULL);
@@ -1122,18 +1090,16 @@ boxSeparationDistance(BOX      *box1,
 {
 l_int32  h_ovl, v_ovl, valid1, valid2;
 
-    PROCNAME("boxSeparationDistance");
-
     if (ph_sep) *ph_sep = 0;
     if (pv_sep) *pv_sep = 0;
     if (!ph_sep || !pv_sep)
-        return ERROR_INT("&h_sep and &v_sep not both defined", procName, 1);
+        return ERROR_INT("&h_sep and &v_sep not both defined", __func__, 1);
     if (!box1 || !box2)
-        return ERROR_INT("boxes not both defined", procName, 1);
+        return ERROR_INT("boxes not both defined", __func__, 1);
     boxIsValid(box1, &valid1);
     boxIsValid(box2, &valid2);
     if (!valid1 || !valid2)
-        return ERROR_INT("boxes not both valid", procName, 1);
+        return ERROR_INT("boxes not both valid", __func__, 1);
 
     boxOverlapDistance(box1, box2, &h_ovl, &v_ovl);
     if (h_ovl <= 0)
@@ -1167,21 +1133,19 @@ boxCompareSize(BOX      *box1,
 {
 l_int32  w1, h1, w2, h2, size1, size2, valid1, valid2;
 
-    PROCNAME("boxCompareSize");
-
     if (!prel)
-        return ERROR_INT("&rel not defined", procName, 1);
+        return ERROR_INT("&rel not defined", __func__, 1);
     *prel = 0;
     if (!box1 || !box2)
-        return ERROR_INT("boxes not both defined", procName, 1);
+        return ERROR_INT("boxes not both defined", __func__, 1);
     boxIsValid(box1, &valid1);
     boxIsValid(box2, &valid2);
     if (!valid1 || !valid2)
-        return ERROR_INT("boxes not both valid", procName, 1);
+        return ERROR_INT("boxes not both valid", __func__, 1);
     if (type != L_SORT_BY_WIDTH && type != L_SORT_BY_HEIGHT &&
         type != L_SORT_BY_MAX_DIMENSION && type != L_SORT_BY_PERIMETER &&
         type != L_SORT_BY_AREA)
-        return ERROR_INT("invalid compare type", procName, 1);
+        return ERROR_INT("invalid compare type", __func__, 1);
 
     boxGetGeometry(box1, NULL, NULL, &w1, &h1);
     boxGetGeometry(box2, NULL, NULL, &w2, &h2);
@@ -1222,13 +1186,11 @@ boxContainsPt(BOX       *box,
 {
 l_int32  bx, by, bw, bh;
 
-    PROCNAME("boxContainsPt");
-
     if (!pcontains)
-        return ERROR_INT("&contains not defined", procName, 1);
+        return ERROR_INT("&contains not defined", __func__, 1);
     *pcontains = 0;
     if (!box)
-        return ERROR_INT("&box not defined", procName, 1);
+        return ERROR_INT("&box not defined", __func__, 1);
     boxGetGeometry(box, &bx, &by, &bw, &bh);
     if (x >= bx && x < bx + bw && y >= by && y < by + bh)
         *pcontains = 1;
@@ -1258,12 +1220,10 @@ l_int32    i, n, minindex;
 l_float32  delx, dely, dist, mindist, cx, cy;
 BOX       *box;
 
-    PROCNAME("boxaGetNearestToPt");
-
     if (!boxa)
-        return (BOX *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("boxa not defined", __func__, NULL);
     if ((n = boxaGetCount(boxa)) == 0)
-        return (BOX *)ERROR_PTR("n = 0", procName, NULL);
+        return (BOX *)ERROR_PTR("n = 0", __func__, NULL);
 
     mindist = 1000000000.;
     minindex = 0;
@@ -1311,16 +1271,14 @@ l_int32    i, n, minindex;
 l_float32  dist, mindist, cx, cy;
 BOX       *box;
 
-    PROCNAME("boxaGetNearestToLine");
-
     if (!boxa)
-        return (BOX *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("boxa not defined", __func__, NULL);
     if ((n = boxaGetCount(boxa)) == 0)
-        return (BOX *)ERROR_PTR("n = 0", procName, NULL);
+        return (BOX *)ERROR_PTR("n = 0", __func__, NULL);
     if (y >= 0 && x >= 0)
-        return (BOX *)ERROR_PTR("either x or y must be < 0", procName, NULL);
+        return (BOX *)ERROR_PTR("either x or y must be < 0", __func__, NULL);
     if (y < 0 && x < 0)
-        return (BOX *)ERROR_PTR("either x or y must be >= 0", procName, NULL);
+        return (BOX *)ERROR_PTR("either x or y must be >= 0", __func__, NULL);
 
     mindist = 1000000000.;
     minindex = 0;
@@ -1371,16 +1329,14 @@ l_int32  i, n, index, dist;
 NUMA    *nai, *nad;
 NUMAA   *naai, *naad;
 
-    PROCNAME("boxaFindNearestBoxes");
-
     if (pnaaindex) *pnaaindex = NULL;
     if (pnaadist) *pnaadist = NULL;
     if (!pnaaindex)
-        return ERROR_INT("&naaindex not defined", procName, 1);
+        return ERROR_INT("&naaindex not defined", __func__, 1);
     if (!pnaadist)
-        return ERROR_INT("&naadist not defined", procName, 1);
+        return ERROR_INT("&naadist not defined", __func__, 1);
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
 
     n = boxaGetCount(boxa);
     naai = numaaCreate(n);
@@ -1453,24 +1409,22 @@ boxaGetNearestByDirection(BOXA     *boxa,
 l_int32  j, jmin, jmax, n, mindist, dist, index;
 l_int32  x, y, w, h, bx, by, bw, bh;
 
-    PROCNAME("boxaGetNearestByDirection");
-
     if (pindex) *pindex = -1;
     if (pdist) *pdist = 100000;
     if (!pindex)
-        return ERROR_INT("&index not defined", procName, 1);
+        return ERROR_INT("&index not defined", __func__, 1);
     if (!pdist)
-        return ERROR_INT("&dist not defined", procName, 1);
+        return ERROR_INT("&dist not defined", __func__, 1);
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     if (dir != L_FROM_LEFT && dir != L_FROM_RIGHT &&
         dir != L_FROM_TOP && dir != L_FROM_BOT)
-        return ERROR_INT("invalid dir", procName, 1);
+        return ERROR_INT("invalid dir", __func__, 1);
     if (dist_select != L_NON_NEGATIVE && dist_select != L_ALL)
-        return ERROR_INT("invalid dist_select", procName, 1);
+        return ERROR_INT("invalid dist_select", __func__, 1);
     n = boxaGetCount(boxa);
     if (i < 0 || i >= n)
-        return ERROR_INT("invalid box index", procName, 1);
+        return ERROR_INT("invalid box index", __func__, 1);
 
     jmin = (range <= 0) ? 0 : L_MAX(0, i - range);
     jmax = (range <= 0) ? n - 1 : L_MIN(n -1, i + range);
@@ -1587,14 +1541,12 @@ boxGetCenter(BOX        *box,
 {
 l_int32  x, y, w, h;
 
-    PROCNAME("boxGetCenter");
-
     if (pcx) *pcx = 0;
     if (pcy) *pcy = 0;
     if (!pcx || !pcy)
-        return ERROR_INT("&cx, &cy not both defined", procName, 1);
+        return ERROR_INT("&cx, &cy not both defined", __func__, 1);
     if (!box)
-        return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", __func__, 1);
     boxGetGeometry(box, &x, &y, &w, &h);
     if (w == 0 || h == 0) return 1;
     *pcx = (l_float32)(x + 0.5 * w);
@@ -1637,19 +1589,17 @@ l_int32    bx, by, bw, bh, xp, yp, xt, yt, i, n;
 l_float32  invslope;
 PTA       *pta;
 
-    PROCNAME("boxIntersectByLine");
-
     if (px1) *px1 = 0;
     if (px2) *px2 = 0;
     if (py1) *py1 = 0;
     if (py2) *py2 = 0;
     if (pn) *pn = 0;
     if (!px1 || !py1 || !px2 || !py2)
-        return ERROR_INT("&x1, &y1, &x2, &y2 not all defined", procName, 1);
+        return ERROR_INT("&x1, &y1, &x2, &y2 not all defined", __func__, 1);
     if (!pn)
-        return ERROR_INT("&n not defined", procName, 1);
+        return ERROR_INT("&n not defined", __func__, 1);
     if (!box)
-        return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", __func__, 1);
     boxGetGeometry(box, &bx, &by, &bw, &bh);
     if (bw == 0 || bh == 0) return 1;
 
@@ -1732,13 +1682,11 @@ boxClipToRectangle(BOX     *box,
 {
 BOX  *boxd;
 
-    PROCNAME("boxClipToRectangle");
-
     if (!box)
-        return (BOX *)ERROR_PTR("box not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("box not defined", __func__, NULL);
     if (box->x >= wi || box->y >= hi ||
         box->x + box->w <= 0 || box->y + box->h <= 0)
-        return (BOX *)ERROR_PTR("box outside rectangle", procName, NULL);
+        return (BOX *)ERROR_PTR("box outside rectangle", __func__, NULL);
 
     boxd = boxCopy(box);
     if (boxd->x < 0) {
@@ -1796,8 +1744,6 @@ boxClipToRectangleParams(BOX      *box,
 l_int32  bw, bh;
 BOX     *boxc;
 
-    PROCNAME("boxClipToRectangleParams");
-
     if (pxstart) *pxstart = 0;
     if (pystart) *pystart = 0;
     if (pxend) *pxend = w;
@@ -1805,18 +1751,18 @@ BOX     *boxc;
     if (pbw) *pbw = w;
     if (pbh) *pbh = h;
     if (!pxstart || !pystart || !pxend || !pyend)
-        return ERROR_INT("invalid ptr input", procName, 1);
+        return ERROR_INT("invalid ptr input", __func__, 1);
     if (!box) return 0;
 
     if ((boxc = boxClipToRectangle(box, w, h)) == NULL)
-        return ERROR_INT("box outside image", procName, 1);
+        return ERROR_INT("box outside image", __func__, 1);
     boxGetGeometry(boxc, pxstart, pystart, &bw, &bh);
     boxDestroy(&boxc);
 
     if (pbw) *pbw = bw;
     if (pbh) *pbh = bh;
     if (bw == 0 || bh == 0)
-        return ERROR_INT("invalid clipping box", procName, 1);
+        return ERROR_INT("invalid clipping box", __func__, 1);
     *pxend = *pxstart + bw;  /* 1 past the end */
     *pyend = *pystart + bh;  /* 1 past the end */
     return 0;
@@ -1852,10 +1798,8 @@ boxRelocateOneSide(BOX     *boxd,
 {
 l_int32  x, y, w, h;
 
-    PROCNAME("boxRelocateOneSide");
-
     if (!boxs)
-        return (BOX *)ERROR_PTR("boxs not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("boxs not defined", __func__, NULL);
     if (!boxd)
         boxd = boxCopy(boxs);
 
@@ -1901,10 +1845,8 @@ l_int32  n, i, x, y;
 BOX     *box1, *box2;
 BOXA    *boxad;
 
-    PROCNAME("boxaAdjustSides");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
 
     n = boxaGetCount(boxas);
     boxad = boxaCreate(n);
@@ -1950,13 +1892,11 @@ boxaAdjustBoxSides(BOXA    *boxa,
 {
 BOX  *box;
 
-    PROCNAME("boxaAdjustBoxSides");
-
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
 
     if ((box = boxaGetBox(boxa, index, L_CLONE)) == NULL)
-        return ERROR_INT("invalid index", procName, 1);
+        return ERROR_INT("invalid index", __func__, 1);
 
     boxAdjustSides(box, box, delleft, delright, deltop, delbot);
     boxDestroy(&box);  /* the clone */
@@ -1998,10 +1938,8 @@ boxAdjustSides(BOX     *boxd,
 {
 l_int32  x, y, w, h, xl, xr, yt, yb, wnew, hnew;
 
-    PROCNAME("boxAdjustSides");
-
     if (!boxs)
-        return (BOX *)ERROR_PTR("boxs not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("boxs not defined", __func__, NULL);
 
     boxGetGeometry(boxs, &x, &y, &w, &h);
     xl = L_MAX(0, x + delleft);
@@ -2012,7 +1950,7 @@ l_int32  x, y, w, h, xl, xr, yt, yb, wnew, hnew;
     hnew = yb - yt;
 
     if (wnew < 1 || hnew < 1)
-        return (BOX *)ERROR_PTR("boxd has 0 area", procName, NULL);
+        return (BOX *)ERROR_PTR("boxd has 0 area", __func__, NULL);
     if (!boxd)
         return boxCreate(xl, yt, wnew, hnew);
 
@@ -2050,17 +1988,15 @@ boxaSetSide(BOXA    *boxad,
 l_int32  n, i;
 BOX     *box;
 
-    PROCNAME("boxaSetSide");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (boxad && (boxas != boxad))
-        return (BOXA *)ERROR_PTR("not in-place", procName, NULL);
+        return (BOXA *)ERROR_PTR("not in-place", __func__, NULL);
     if (side != L_SET_LEFT && side != L_SET_RIGHT &&
         side != L_SET_TOP && side != L_SET_BOT)
-        return (BOXA *)ERROR_PTR("invalid side", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid side", __func__, NULL);
     if (val < 0)
-        return (BOXA *)ERROR_PTR("val < 0", procName, NULL);
+        return (BOXA *)ERROR_PTR("val < 0", __func__, NULL);
 
     if (!boxad)
         boxad = boxaCopy(boxas, L_COPY);
@@ -2098,15 +2034,13 @@ boxSetSide(BOX     *boxs,
 {
 l_int32  x, y, w, h, diff;
 
-    PROCNAME("boxSetSide");
-
     if (!boxs)
-        return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", __func__, 1);
     if (side != L_SET_LEFT && side != L_SET_RIGHT &&
         side != L_SET_TOP && side != L_SET_BOT)
-        return ERROR_INT("invalid side", procName, 1);
+        return ERROR_INT("invalid side", __func__, 1);
     if (val < 0)
-        return ERROR_INT("val < 0", procName, 1);
+        return ERROR_INT("val < 0", __func__, 1);
 
     boxGetGeometry(boxs, &x, &y, &w, &h);
     if (side == L_SET_LEFT) {
@@ -2162,17 +2096,15 @@ boxaAdjustWidthToTarget(BOXA    *boxad,
 l_int32  x, y, w, h, n, i, diff;
 BOX     *box;
 
-    PROCNAME("boxaAdjustWidthToTarget");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (boxad && (boxas != boxad))
-        return (BOXA *)ERROR_PTR("not in-place", procName, NULL);
+        return (BOXA *)ERROR_PTR("not in-place", __func__, NULL);
     if (sides != L_ADJUST_LEFT && sides != L_ADJUST_RIGHT &&
         sides != L_ADJUST_LEFT_AND_RIGHT)
-        return (BOXA *)ERROR_PTR("invalid sides", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid sides", __func__, NULL);
     if (target < 1)
-        return (BOXA *)ERROR_PTR("target < 1", procName, NULL);
+        return (BOXA *)ERROR_PTR("target < 1", __func__, NULL);
 
     if (!boxad)
         boxad = boxaCopy(boxas, L_COPY);
@@ -2230,17 +2162,15 @@ boxaAdjustHeightToTarget(BOXA    *boxad,
 l_int32  x, y, w, h, n, i, diff;
 BOX     *box;
 
-    PROCNAME("boxaAdjustHeightToTarget");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (boxad && (boxas != boxad))
-        return (BOXA *)ERROR_PTR("not in-place", procName, NULL);
+        return (BOXA *)ERROR_PTR("not in-place", __func__, NULL);
     if (sides != L_ADJUST_TOP && sides != L_ADJUST_BOT &&
         sides != L_ADJUST_TOP_AND_BOT)
-        return (BOXA *)ERROR_PTR("invalid sides", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid sides", __func__, NULL);
     if (target < 1)
-        return (BOXA *)ERROR_PTR("target < 1", procName, NULL);
+        return (BOXA *)ERROR_PTR("target < 1", __func__, NULL);
 
     if (!boxad)
         boxad = boxaCopy(boxas, L_COPY);
@@ -2280,13 +2210,11 @@ boxEqual(BOX      *box1,
          BOX      *box2,
          l_int32  *psame)
 {
-    PROCNAME("boxEqual");
-
     if (!psame)
-        return ERROR_INT("&same not defined", procName, 1);
+        return ERROR_INT("&same not defined", __func__, 1);
     *psame = 0;
     if (!box1 || !box2)
-        return ERROR_INT("boxes not both defined", procName, 1);
+        return ERROR_INT("boxes not both defined", __func__, 1);
     if (box1->x == box2->x && box1->y == box2->y &&
         box1->w == box2->w && box1->h == box2->h)
         *psame = 1;
@@ -2334,20 +2262,18 @@ l_int32  *countarray;
 BOX      *box1, *box2;
 NUMA     *na;
 
-    PROCNAME("boxaEqual");
-
     if (pnaindex) *pnaindex = NULL;
     if (!psame)
-        return ERROR_INT("&same not defined", procName, 1);
+        return ERROR_INT("&same not defined", __func__, 1);
     *psame = 0;
     if (!boxa1 || !boxa2)
-        return ERROR_INT("boxa1 and boxa2 not both defined", procName, 1);
+        return ERROR_INT("boxa1 and boxa2 not both defined", __func__, 1);
     n = boxaGetCount(boxa1);
     if (n != boxaGetCount(boxa2))
         return 0;
 
     if ((countarray = (l_int32 *)LEPT_CALLOC(n, sizeof(l_int32))) == NULL)
-        return ERROR_INT("calloc fail for countarray", procName, 1);
+        return ERROR_INT("calloc fail for countarray", __func__, 1);
     na = numaMakeConstant(0.0, n);
 
     for (i = 0; i < n; i++) {
@@ -2412,17 +2338,15 @@ boxSimilar(BOX      *box1,
 {
 l_int32  l1, l2, r1, r2, t1, t2, b1, b2, valid1, valid2;
 
-    PROCNAME("boxSimilar");
-
     if (!psimilar)
-        return ERROR_INT("&similar not defined", procName, 1);
+        return ERROR_INT("&similar not defined", __func__, 1);
     *psimilar = 0;
     if (!box1 || !box2)
-        return ERROR_INT("boxes not both defined", procName, 1);
+        return ERROR_INT("boxes not both defined", __func__, 1);
     boxIsValid(box1, &valid1);
     boxIsValid(box2, &valid2);
     if (!valid1 || !valid2)
-        return ERROR_INT("boxes not both valid", procName, 1);
+        return ERROR_INT("boxes not both valid", __func__, 1);
 
     boxGetSideLocations(box1, &l1, &r1, &t1, &b1);
     boxGetSideLocations(box2, &l2, &r2, &t2, &b2);
@@ -2474,18 +2398,16 @@ boxaSimilar(BOXA     *boxa1,
 l_int32  i, n1, n2, match, mismatch;
 BOX     *box1, *box2;
 
-    PROCNAME("boxaSimilar");
-
     if (psimilar) *psimilar = 0;
     if (pnasim) *pnasim = NULL;
     if (!boxa1 || !boxa2)
-        return ERROR_INT("boxa1 and boxa2 not both defined", procName, 1);
+        return ERROR_INT("boxa1 and boxa2 not both defined", __func__, 1);
     if (!psimilar)
-        return ERROR_INT("&similar not defined", procName, 1);
+        return ERROR_INT("&similar not defined", __func__, 1);
     n1 = boxaGetCount(boxa1);
     n2 = boxaGetCount(boxa2);
     if (n1 != n2) {
-        L_ERROR("boxa counts differ: %d vs %d\n", procName, n1, n2);
+        L_ERROR("boxa counts differ: %d vs %d\n", __func__, n1, n2);
         return 1;
     }
     if (pnasim) *pnasim = numaCreate(n1);
@@ -2505,7 +2427,7 @@ BOX     *box1, *box2;
             if (!debug && pnasim == NULL)
                 return 0;
             else if (debug)
-                L_INFO("box %d not similar\n", procName, i);
+                L_INFO("box %d not similar\n", __func__, i);
         }
     }
 
@@ -2543,10 +2465,8 @@ boxaJoin(BOXA    *boxad,
 l_int32  n, i;
 BOX     *box;
 
-    PROCNAME("boxaJoin");
-
     if (!boxad)
-        return ERROR_INT("boxad not defined", procName, 1);
+        return ERROR_INT("boxad not defined", __func__, 1);
     if (!boxas || ((n = boxaGetCount(boxas)) == 0))
         return 0;
 
@@ -2555,7 +2475,7 @@ BOX     *box;
     if (iend < 0 || iend >= n)
         iend = n - 1;
     if (istart > iend)
-        return ERROR_INT("istart > iend; nothing to add", procName, 1);
+        return ERROR_INT("istart > iend; nothing to add", __func__, 1);
 
     for (i = istart; i <= iend; i++) {
         box = boxaGetBox(boxas, i, L_CLONE);
@@ -2592,10 +2512,8 @@ boxaaJoin(BOXAA   *baad,
 l_int32  n, i;
 BOXA    *boxa;
 
-    PROCNAME("boxaaJoin");
-
     if (!baad)
-        return ERROR_INT("baad not defined", procName, 1);
+        return ERROR_INT("baad not defined", __func__, 1);
     if (!baas)
         return 0;
 
@@ -2605,7 +2523,7 @@ BOXA    *boxa;
     if (iend < 0 || iend >= n)
         iend = n - 1;
     if (istart > iend)
-        return ERROR_INT("istart > iend; nothing to add", procName, 1);
+        return ERROR_INT("istart > iend; nothing to add", __func__, 1);
 
     for (i = istart; i <= iend; i++) {
         boxa = boxaaGetBoxa(baas, i, L_CLONE);
@@ -2642,14 +2560,12 @@ boxaSplitEvenOdd(BOXA    *boxa,
 l_int32  i, n;
 BOX     *box, *box1;
 
-    PROCNAME("boxaSplitEvenOdd");
-
     if (pboxae) *pboxae = NULL;
     if (pboxao) *pboxao = NULL;
     if (!pboxae || !pboxao)
-        return ERROR_INT("&boxae and &boxao not both defined", procName, 1);
+        return ERROR_INT("&boxae and &boxao not both defined", __func__, 1);
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
 
     n = boxaGetCount(boxa);
     *pboxae = boxaCreate(n);
@@ -2706,14 +2622,12 @@ l_int32  i, n, ne, no;
 BOX     *box;
 BOXA    *boxad;
 
-    PROCNAME("boxaMergeEvenOdd");
-
     if (!boxae || !boxao)
-        return (BOXA *)ERROR_PTR("boxae and boxao not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxae and boxao not defined", __func__, NULL);
     ne = boxaGetCount(boxae);
     no = boxaGetCount(boxao);
     if (ne < no || ne > no + 1)
-        return (BOXA *)ERROR_PTR("boxa sizes invalid", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxa sizes invalid", __func__, NULL);
 
     boxad = boxaCreate(ne);
     if (fillflag == 0) {  /* both are approx. half-sized; all valid boxes */

@@ -147,8 +147,6 @@ l_int32    npts, diff, getyofx, sign, i, x, y;
 l_float32  slope;
 PTA       *pta;
 
-    PROCNAME("generatePtaLine");
-
         /* Generate line parameters */
     if (x1 == x2 && y1 == y2) {  /* same point */
         getyofx = TRUE;
@@ -168,7 +166,7 @@ PTA       *pta;
     }
 
     if ((pta = ptaCreate(npts)) == NULL)
-        return (PTA *)ERROR_PTR("pta not made", procName, NULL);
+        return (PTA *)ERROR_PTR("pta not made", __func__, NULL);
 
     if (npts == 1) {  /* degenerate case */
         ptaAddPt(pta, x1, y1);
@@ -212,15 +210,13 @@ generatePtaWideLine(l_int32  x1,
 l_int32  i, x1a, x2a, y1a, y2a;
 PTA     *pta, *ptaj;
 
-    PROCNAME("generatePtaWideLine");
-
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
 
     if ((ptaj = generatePtaLine(x1, y1, x2, y2)) == NULL)
-        return (PTA *)ERROR_PTR("ptaj not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptaj not made", __func__, NULL);
     if (width == 1)
         return ptaj;
 
@@ -279,19 +275,17 @@ generatePtaBox(BOX     *box,
 l_int32  x, y, w, h;
 PTA     *ptad, *pta;
 
-    PROCNAME("generatePtaBox");
-
     if (!box)
-        return (PTA *)ERROR_PTR("box not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("box not defined", __func__, NULL);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
 
         /* Generate line points and add them to the pta. */
     boxGetGeometry(box, &x, &y, &w, &h);
     if (w == 0 || h == 0)
-        return (PTA *)ERROR_PTR("box has w = 0 or h = 0", procName, NULL);
+        return (PTA *)ERROR_PTR("box has w = 0 or h = 0", __func__, NULL);
     ptad = ptaCreate(0);
     if ((width & 1) == 1) {   /* odd width */
         pta = generatePtaWideLine(x - width / 2, y,
@@ -358,12 +352,10 @@ l_int32  i, n;
 BOX     *box;
 PTA     *ptad, *ptat, *pta;
 
-    PROCNAME("generatePtaBoxa");
-
     if (!boxa)
-        return (PTA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("boxa not defined", __func__, NULL);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
 
@@ -416,20 +408,18 @@ generatePtaHashBox(BOX     *box,
 l_int32  bx, by, bh, bw, x, y, x1, y1, x2, y2, i, n, npts;
 PTA     *ptad, *pta;
 
-    PROCNAME("generatePtaHashBox");
-
     if (!box)
-        return (PTA *)ERROR_PTR("box not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("box not defined", __func__, NULL);
     if (spacing <= 1)
-        return (PTA *)ERROR_PTR("spacing not > 1", procName, NULL);
+        return (PTA *)ERROR_PTR("spacing not > 1", __func__, NULL);
     if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
         orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
-        return (PTA *)ERROR_PTR("invalid line orientation", procName, NULL);
+        return (PTA *)ERROR_PTR("invalid line orientation", __func__, NULL);
     boxGetGeometry(box, &bx, &by, &bw, &bh);
     if (bw == 0 || bh == 0)
-        return (PTA *)ERROR_PTR("box has bw = 0 or bh = 0", procName, NULL);
+        return (PTA *)ERROR_PTR("box has bw = 0 or bh = 0", __func__, NULL);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
 
@@ -521,19 +511,17 @@ l_int32  i, n;
 BOX     *box;
 PTA     *ptad, *ptat, *pta;
 
-    PROCNAME("generatePtaHashBoxa");
-
     if (!boxa)
-        return (PTA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("boxa not defined", __func__, NULL);
     if (spacing <= 1)
-        return (PTA *)ERROR_PTR("spacing not > 1", procName, NULL);
+        return (PTA *)ERROR_PTR("spacing not > 1", __func__, NULL);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
     if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
         orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
-        return (PTA *)ERROR_PTR("invalid line orientation", procName, NULL);
+        return (PTA *)ERROR_PTR("invalid line orientation", __func__, NULL);
 
     n = boxaGetCount(boxa);
     ptat = ptaCreate(0);
@@ -577,10 +565,8 @@ BOX     *box;
 PTA     *pta;
 PTAA    *ptaa;
 
-    PROCNAME("generatePtaaBoxa");
-
     if (!boxa)
-        return (PTAA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (PTAA *)ERROR_PTR("boxa not defined", __func__, NULL);
 
     n = boxaGetCount(boxa);
     ptaa = ptaaCreate(n);
@@ -634,19 +620,17 @@ BOX     *box;
 PTA     *pta;
 PTAA    *ptaa;
 
-    PROCNAME("generatePtaaHashBoxa");
-
     if (!boxa)
-        return (PTAA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (PTAA *)ERROR_PTR("boxa not defined", __func__, NULL);
     if (spacing <= 1)
-        return (PTAA *)ERROR_PTR("spacing not > 1", procName, NULL);
+        return (PTAA *)ERROR_PTR("spacing not > 1", __func__, NULL);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
     if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
         orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
-        return (PTAA *)ERROR_PTR("invalid line orientation", procName, NULL);
+        return (PTAA *)ERROR_PTR("invalid line orientation", __func__, NULL);
 
     n = boxaGetCount(boxa);
     ptaa = ptaaCreate(n);
@@ -679,12 +663,10 @@ generatePtaPolyline(PTA     *ptas,
 l_int32  i, n, x1, y1, x2, y2;
 PTA     *ptad, *ptat, *pta;
 
-    PROCNAME("generatePtaPolyline");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
 
@@ -740,14 +722,12 @@ BOX     *box;
 BOXA    *boxa;
 PTA     *pta;
 
-    PROCNAME("generatePtaGrid");
-
     if (nx < 1 || ny < 1)
-        return (PTA *)ERROR_PTR("nx and ny must be > 0", procName, NULL);
+        return (PTA *)ERROR_PTR("nx and ny must be > 0", __func__, NULL);
     if (w < 2 * nx || h < 2 * ny)
-        return (PTA *)ERROR_PTR("w and/or h too small", procName, NULL);
+        return (PTA *)ERROR_PTR("w and/or h too small", __func__, NULL);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
 
@@ -792,10 +772,8 @@ convertPtaLineTo4cc(PTA  *ptas)
 l_int32  i, n, x, y, xp, yp;
 PTA     *ptad;
 
-    PROCNAME("convertPtaLineTo4cc");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
 
     n = ptaGetCount(ptas);
     ptad = ptaCreate(n);
@@ -836,10 +814,8 @@ l_int32    x, y;
 l_float32  radthresh, sqdist;
 PTA       *pta;
 
-    PROCNAME("generatePtaFilledCircle");
-
     if (radius < 1)
-        return (PTA *)ERROR_PTR("radius must be >= 1", procName, NULL);
+        return (PTA *)ERROR_PTR("radius must be >= 1", __func__, NULL);
 
     pta = ptaCreate(0);
     radthresh = (radius + 0.5) * (radius + 0.5);
@@ -875,9 +851,8 @@ generatePtaFilledSquare(l_int32  side)
 l_int32  x, y;
 PTA     *pta;
 
-    PROCNAME("generatePtaFilledSquare");
     if (side < 1)
-        return (PTA *)ERROR_PTR("side must be > 0", procName, NULL);
+        return (PTA *)ERROR_PTR("side must be > 0", __func__, NULL);
 
     pta = ptaCreate(0);
     for (y = 0; y < side; y++)
@@ -935,10 +910,8 @@ locatePtRadially(l_int32     xr,
                  l_float64  *px,
                  l_float64  *py)
 {
-    PROCNAME("locatePtRadially");
-
     if (!px || !py)
-        return ERROR_INT("&x and &y not both defined", procName, 1);
+        return ERROR_INT("&x and &y not both defined", __func__, 1);
 
     *px = xr + dist * cos(radang);
     *py = yr + dist * sin(radang);
@@ -981,19 +954,17 @@ l_int32  w, h, size, rval, gval, bval;
 PIX     *pix1;
 PTA     *pta;
 
-    PROCNAME("pixRenderPlotFromNuma");
-
     if (!ppix)
-        return ERROR_INT("&pix not defined", procName, 1);
+        return ERROR_INT("&pix not defined", __func__, 1);
     if (*ppix == NULL)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
 
     pixGetDimensions(*ppix, &w, &h, NULL);
     size = (plotloc == L_PLOT_AT_TOP || plotloc == L_PLOT_AT_MID_HORIZ ||
             plotloc == L_PLOT_AT_BOT) ? h : w;
     pta = makePlotPtaFromNuma(na, size, plotloc, linewidth, max);
     if (!pta)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
 
     if (pixGetDepth(*ppix) != 32) {
         pix1 = pixConvertTo32(*ppix);
@@ -1037,10 +1008,8 @@ makePlotPtaFromNuma(NUMA    *na,
 {
 l_int32  orient, refpos;
 
-    PROCNAME("makePlotPtaFromNuma");
-
     if (!na)
-        return (PTA *)ERROR_PTR("na not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("na not defined", __func__, NULL);
     if (plotloc == L_PLOT_AT_TOP || plotloc == L_PLOT_AT_MID_HORIZ ||
         plotloc == L_PLOT_AT_BOT) {
         orient = L_HORIZONTAL_LINE;
@@ -1048,7 +1017,7 @@ l_int32  orient, refpos;
                plotloc == L_PLOT_AT_RIGHT) {
         orient = L_VERTICAL_LINE;
     } else {
-        return (PTA *)ERROR_PTR("invalid plotloc", procName, NULL);
+        return (PTA *)ERROR_PTR("invalid plotloc", __func__, NULL);
     }
 
     if (plotloc == L_PLOT_AT_LEFT || plotloc == L_PLOT_AT_TOP)
@@ -1099,16 +1068,14 @@ l_int32  rval, gval, bval;
 PIX     *pix1;
 PTA     *pta;
 
-    PROCNAME("pixRenderPlotFromNumaGen");
-
     if (!ppix)
-        return ERROR_INT("&pix not defined", procName, 1);
+        return ERROR_INT("&pix not defined", __func__, 1);
     if (*ppix == NULL)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
 
     pta = makePlotPtaFromNumaGen(na, orient, linewidth, refpos, max, drawref);
     if (!pta)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
 
     if (pixGetDepth(*ppix) != 32) {
         pix1 = pixConvertTo32(*ppix);
@@ -1163,18 +1130,16 @@ l_int32    i, n, maxw, maxh;
 l_float32  minval, maxval, absval, val, scale, start, del;
 PTA       *pta1, *pta2, *ptad;
 
-    PROCNAME("makePlotPtaFromNumaGen");
-
     if (!na)
-        return (PTA *)ERROR_PTR("na not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("na not defined", __func__, NULL);
     if (orient != L_HORIZONTAL_LINE && orient != L_VERTICAL_LINE)
-        return (PTA *)ERROR_PTR("invalid orient", procName, NULL);
+        return (PTA *)ERROR_PTR("invalid orient", __func__, NULL);
     if (linewidth < 1) {
-        L_WARNING("linewidth < 1; setting to 1\n", procName);
+        L_WARNING("linewidth < 1; setting to 1\n", __func__);
         linewidth = 1;
     }
     if (linewidth > 7) {
-        L_WARNING("linewidth > 7; setting to 7\n", procName);
+        L_WARNING("linewidth > 7; setting to 7\n", __func__);
         linewidth = 7;
     }
 
@@ -1270,16 +1235,14 @@ pixRenderPta(PIX     *pix,
 {
 l_int32  i, n, x, y, w, h, d, maxval;
 
-    PROCNAME("pixRenderPta");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (pixGetColormap(pix))
-        return ERROR_INT("pix is colormapped", procName, 1);
+        return ERROR_INT("pix is colormapped", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
-        return ERROR_INT("invalid op", procName, 1);
+        return ERROR_INT("invalid op", __func__, 1);
 
     pixGetDimensions(pix, &w, &h, &d);
     maxval = 1;
@@ -1364,15 +1327,13 @@ l_uint8   val;
 l_uint32  val32;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixRenderPtaArb");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     d = pixGetDepth(pix);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 32)
-        return ERROR_INT("depth not in {1,2,4,8,32}", procName, 1);
+        return ERROR_INT("depth not in {1,2,4,8,32}", __func__, 1);
 
     if (d == 1) {
         pixRenderPta(pix, pta, L_SET_PIXELS);
@@ -1440,16 +1401,14 @@ l_uint8    nrval, ngval, nbval;
 l_uint32   val32;
 l_float32  frval, fgval, fbval;
 
-    PROCNAME("pixRenderPtaBlend");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!pta)
-        return ERROR_INT("pta not defined", procName, 1);
+        return ERROR_INT("pta not defined", __func__, 1);
     if (pixGetDepth(pix) != 32)
-        return ERROR_INT("depth not 32 bpp", procName, 1);
+        return ERROR_INT("depth not 32 bpp", __func__, 1);
     if (fract < 0.0 || fract > 1.0) {
-        L_WARNING("fract must be in [0.0, 1.0]; setting to 0.5\n", procName);
+        L_WARNING("fract must be in [0.0, 1.0]; setting to 0.5\n", __func__);
         fract = 0.5;
     }
 
@@ -1503,19 +1462,17 @@ pixRenderLine(PIX     *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderLine");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (width < 1) {
-        L_WARNING("width must be > 0; setting to 1\n", procName);
+        L_WARNING("width must be > 0; setting to 1\n", __func__);
         width = 1;
     }
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
-        return ERROR_INT("invalid op", procName, 1);
+        return ERROR_INT("invalid op", __func__, 1);
 
     if ((pta = generatePtaWideLine(x1, y1, x2, y2, width)) == NULL)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPta(pix, pta, op);
     ptaDestroy(&pta);
     return 0;
@@ -1545,17 +1502,15 @@ pixRenderLineArb(PIX     *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderLineArb");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (width < 1) {
-        L_WARNING("width must be > 0; setting to 1\n", procName);
+        L_WARNING("width must be > 0; setting to 1\n", __func__);
         width = 1;
     }
 
     if ((pta = generatePtaWideLine(x1, y1, x2, y2, width)) == NULL)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
     return 0;
@@ -1587,17 +1542,15 @@ pixRenderLineBlend(PIX       *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderLineBlend");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (width < 1) {
-        L_WARNING("width must be > 0; setting to 1\n", procName);
+        L_WARNING("width must be > 0; setting to 1\n", __func__);
         width = 1;
     }
 
     if ((pta = generatePtaWideLine(x1, y1, x2, y2, width)) == NULL)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);
     return 0;
@@ -1621,21 +1574,19 @@ pixRenderBox(PIX     *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderBox");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!box)
-        return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
-        return ERROR_INT("invalid op", procName, 1);
+        return ERROR_INT("invalid op", __func__, 1);
 
     if ((pta = generatePtaBox(box, width)) == NULL)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPta(pix, pta, op);
     ptaDestroy(&pta);
     return 0;
@@ -1661,19 +1612,17 @@ pixRenderBoxArb(PIX     *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderBoxArb");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!box)
-        return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
 
     if ((pta = generatePtaBox(box, width)) == NULL)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
     return 0;
@@ -1702,19 +1651,17 @@ pixRenderBoxBlend(PIX       *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderBoxBlend");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!box)
-        return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
 
     if ((pta = generatePtaBox(box, width)) == NULL)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);
     return 0;
@@ -1738,21 +1685,19 @@ pixRenderBoxa(PIX     *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderBoxa");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
-        return ERROR_INT("invalid op", procName, 1);
+        return ERROR_INT("invalid op", __func__, 1);
 
     if ((pta = generatePtaBoxa(boxa, width, 0)) == NULL)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPta(pix, pta, op);
     ptaDestroy(&pta);
     return 0;
@@ -1778,19 +1723,17 @@ pixRenderBoxaArb(PIX     *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderBoxaArb");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
 
     if ((pta = generatePtaBoxa(boxa, width, 0)) == NULL)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
     return 0;
@@ -1821,19 +1764,17 @@ pixRenderBoxaBlend(PIX       *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderBoxaBlend");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
 
     if ((pta = generatePtaBoxa(boxa, width, removedups)) == NULL)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);
     return 0;
@@ -1863,27 +1804,25 @@ pixRenderHashBox(PIX     *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderHashBox");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!box)
-        return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", __func__, 1);
     if (spacing <= 1)
-        return ERROR_INT("spacing not > 1", procName, 1);
+        return ERROR_INT("spacing not > 1", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
     if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
         orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
-        return ERROR_INT("invalid line orientation", procName, 1);
+        return ERROR_INT("invalid line orientation", __func__, 1);
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
-        return ERROR_INT("invalid op", procName, 1);
+        return ERROR_INT("invalid op", __func__, 1);
 
     pta = generatePtaHashBox(box, spacing, width, orient, outline);
     if (!pta)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPta(pix, pta, op);
     ptaDestroy(&pta);
     return 0;
@@ -1915,25 +1854,23 @@ pixRenderHashBoxArb(PIX     *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderHashBoxArb");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!box)
-        return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", __func__, 1);
     if (spacing <= 1)
-        return ERROR_INT("spacing not > 1", procName, 1);
+        return ERROR_INT("spacing not > 1", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
     if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
         orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
-        return ERROR_INT("invalid line orientation", procName, 1);
+        return ERROR_INT("invalid line orientation", __func__, 1);
 
     pta = generatePtaHashBox(box, spacing, width, orient, outline);
     if (!pta)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
     return 0;
@@ -1968,25 +1905,23 @@ pixRenderHashBoxBlend(PIX       *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderHashBoxBlend");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!box)
-        return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", __func__, 1);
     if (spacing <= 1)
-        return ERROR_INT("spacing not > 1", procName, 1);
+        return ERROR_INT("spacing not > 1", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
     if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
         orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
-        return ERROR_INT("invalid line orientation", procName, 1);
+        return ERROR_INT("invalid line orientation", __func__, 1);
 
     pta = generatePtaHashBox(box, spacing, width, orient, outline);
     if (!pta)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);
     return 0;
@@ -2032,21 +1967,19 @@ BOX     *box1, *box2;
 PIX     *pix1;
 PTA     *pta1, *pta2;
 
-    PROCNAME("pixRenderHashMaskArb");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!pixm || pixGetDepth(pixm) != 1)
-        return ERROR_INT("pixm not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixm not defined or not 1 bpp", __func__, 1);
     if (spacing <= 1)
-        return ERROR_INT("spacing not > 1", procName, 1);
+        return ERROR_INT("spacing not > 1", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
     if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
         orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
-        return ERROR_INT("invalid line orientation", procName, 1);
+        return ERROR_INT("invalid line orientation", __func__, 1);
 
         /* Get the points for masked hash lines */
     pixGetDimensions(pixm, &w, &h, NULL);
@@ -2095,27 +2028,25 @@ pixRenderHashBoxa(PIX     *pix,
  {
 PTA  *pta;
 
-    PROCNAME("pixRenderHashBoxa");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     if (spacing <= 1)
-        return ERROR_INT("spacing not > 1", procName, 1);
+        return ERROR_INT("spacing not > 1", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
     if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
         orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
-        return ERROR_INT("invalid line orientation", procName, 1);
+        return ERROR_INT("invalid line orientation", __func__, 1);
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
-        return ERROR_INT("invalid op", procName, 1);
+        return ERROR_INT("invalid op", __func__, 1);
 
     pta = generatePtaHashBoxa(boxa, spacing, width, orient, outline, 1);
     if (!pta)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPta(pix, pta, op);
     ptaDestroy(&pta);
     return 0;
@@ -2149,25 +2080,23 @@ pixRenderHashBoxaArb(PIX     *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderHashBoxArb");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     if (spacing <= 1)
-        return ERROR_INT("spacing not > 1", procName, 1);
+        return ERROR_INT("spacing not > 1", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
     if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
         orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
-        return ERROR_INT("invalid line orientation", procName, 1);
+        return ERROR_INT("invalid line orientation", __func__, 1);
 
     pta = generatePtaHashBoxa(boxa, spacing, width, orient, outline, 1);
     if (!pta)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
     return 0;
@@ -2204,25 +2133,23 @@ pixRenderHashBoxaBlend(PIX       *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderHashBoxaBlend");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!boxa)
-        return ERROR_INT("boxa not defined", procName, 1);
+        return ERROR_INT("boxa not defined", __func__, 1);
     if (spacing <= 1)
-        return ERROR_INT("spacing not > 1", procName, 1);
+        return ERROR_INT("spacing not > 1", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
     if (orient != L_HORIZONTAL_LINE && orient != L_POS_SLOPE_LINE &&
         orient != L_VERTICAL_LINE && orient != L_NEG_SLOPE_LINE)
-        return ERROR_INT("invalid line orientation", procName, 1);
+        return ERROR_INT("invalid line orientation", __func__, 1);
 
     pta = generatePtaHashBoxa(boxa, spacing, width, orient, outline, 1);
     if (!pta)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);
     return 0;
@@ -2253,21 +2180,19 @@ pixRenderPolyline(PIX     *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderPolyline");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!ptas)
-        return ERROR_INT("ptas not defined", procName, 1);
+        return ERROR_INT("ptas not defined", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
     if (op != L_SET_PIXELS && op != L_CLEAR_PIXELS && op != L_FLIP_PIXELS)
-        return ERROR_INT("invalid op", procName, 1);
+        return ERROR_INT("invalid op", __func__, 1);
 
     if ((pta = generatePtaPolyline(ptas, width, closeflag, 0)) == NULL)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPta(pix, pta, op);
     ptaDestroy(&pta);
     return 0;
@@ -2300,19 +2225,17 @@ pixRenderPolylineArb(PIX     *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderPolylineArb");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!ptas)
-        return ERROR_INT("ptas not defined", procName, 1);
+        return ERROR_INT("ptas not defined", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
 
     if ((pta = generatePtaPolyline(ptas, width, closeflag, 0)) == NULL)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
     return 0;
@@ -2345,19 +2268,17 @@ pixRenderPolylineBlend(PIX       *pix,
 {
 PTA  *pta;
 
-    PROCNAME("pixRenderPolylineBlend");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!ptas)
-        return ERROR_INT("ptas not defined", procName, 1);
+        return ERROR_INT("ptas not defined", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
 
     if ((pta = generatePtaPolyline(ptas, width, closeflag, removedups)) == NULL)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPtaBlend(pix, pta, rval, gval, bval, fract);
     ptaDestroy(&pta);
     return 0;
@@ -2385,20 +2306,18 @@ pixRenderGridArb(PIX     *pix,
 l_int32  w, h;
 PTA     *pta;
 
-    PROCNAME("pixRenderGridArb");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (nx < 1 || ny < 1)
-        return ERROR_INT("nx, ny must be > 0", procName, 1);
+        return ERROR_INT("nx, ny must be > 0", __func__, 1);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
 
     pixGetDimensions(pix, &w, &h, NULL);
     if ((pta = generatePtaGrid(w, h, nx, ny, width)) == NULL)
-        return ERROR_INT("pta not made", procName, 1);
+        return ERROR_INT("pta not made", __func__, 1);
     pixRenderPtaArb(pix, pta, rval, gval, bval);
     ptaDestroy(&pta);
     return 0;
@@ -2445,14 +2364,12 @@ PIXCMAP  *cmap;
 PTA      *pta, *ptat;
 PIX      *pixd;
 
-    PROCNAME("pixRenderRandomCmapPtaa");
-
     if (!pix)
-        return (PIX *)ERROR_PTR("pix not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not defined", __func__, NULL);
     if (!ptaa)
-        return (PIX *)ERROR_PTR("ptaa not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptaa not defined", __func__, NULL);
     if (polyflag != 0 && width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
 
@@ -2512,16 +2429,14 @@ l_float32  fxmin, fxmax, fymin, fymax;
 PIX       *pixd;
 PTA       *pta1, *pta2;
 
-    PROCNAME("pixRenderPolygon");
-
     if (pxmin) *pxmin = 0;
     if (pymin) *pymin = 0;
     if (!ptas)
-        return (PIX *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("ptas not defined", __func__, NULL);
 
         /* Generate a 4-connected polygon line */
     if ((pta1 = generatePtaPolyline(ptas, width, 1, 0)) == NULL)
-        return (PIX *)ERROR_PTR("pta1 not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pta1 not made", __func__, NULL);
     if (width < 2)
         pta2 = convertPtaLineTo4cc(pta1);
     else
@@ -2567,14 +2482,12 @@ l_int32   w, h, i, n, inside, found;
 l_int32  *xstart, *xend;
 PIX      *pixi, *pixd;
 
-    PROCNAME("pixFillPolygon");
-
     if (!pixs || (pixGetDepth(pixs) != 1))
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (!pta)
-        return (PIX *)ERROR_PTR("pta not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pta not defined", __func__, NULL);
     if (ptaGetCount(pta) < 2)
-        return (PIX *)ERROR_PTR("pta has < 2 pts", procName, NULL);
+        return (PIX *)ERROR_PTR("pta has < 2 pts", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     xstart = (l_int32 *)LEPT_CALLOC(L_MAX(1, w / 2), sizeof(l_int32));
@@ -2582,7 +2495,7 @@ PIX      *pixi, *pixd;
     if (!xstart || !xend) {
         LEPT_FREE(xstart);
         LEPT_FREE(xend);
-        return (PIX *)ERROR_PTR("xstart and xend not made", procName, NULL);
+        return (PIX *)ERROR_PTR("xstart and xend not made", __func__, NULL);
     }
 
         /* Find a raster with 2 or more black runs.  The first background
@@ -2600,7 +2513,7 @@ PIX      *pixi, *pixd;
         }
     }
     if (!found) {
-        L_WARNING("nothing found to fill\n", procName);
+        L_WARNING("nothing found to fill\n", __func__);
         LEPT_FREE(xstart);
         LEPT_FREE(xend);
         return 0;
@@ -2653,25 +2566,23 @@ l_int32    w, h, d, maxval, wpls, wpld, i, j, val, test;
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
 
-    PROCNAME("pixRenderContours");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pixs has colormap", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs has colormap", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 && d != 16)
-        return (PIX *)ERROR_PTR("pixs not 8 or 16 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 or 16 bpp", __func__, NULL);
     if (outdepth != 1 && outdepth != d) {
-        L_WARNING("invalid outdepth; setting to 1\n", procName);
+        L_WARNING("invalid outdepth; setting to 1\n", __func__);
         outdepth = 1;
     }
     maxval = (1 << d) - 1;
     if (startval < 0 || startval > maxval)
         return (PIX *)ERROR_PTR("startval not in [0 ... maxval]",
-               procName, NULL);
+               __func__, NULL);
     if (incr < 1)
-        return (PIX *)ERROR_PTR("incr < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("incr < 1", __func__, NULL);
 
     if (outdepth == d)
         pixd = pixCopy(NULL, pixs);
@@ -2747,7 +2658,7 @@ PIX       *pixd;
         break;
 
     default:
-        return (PIX *)ERROR_PTR("pixs not 8 or 16 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 or 16 bpp", __func__, NULL);
     }
 
     return pixd;
@@ -2775,17 +2686,15 @@ fpixAutoRenderContours(FPIX    *fpix,
 {
 l_float32  minval, maxval, incr;
 
-    PROCNAME("fpixAutoRenderContours");
-
     if (!fpix)
-        return (PIX *)ERROR_PTR("fpix not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("fpix not defined", __func__, NULL);
     if (ncontours < 2 || ncontours > 500)
-        return (PIX *)ERROR_PTR("ncontours < 2 or > 500", procName, NULL);
+        return (PIX *)ERROR_PTR("ncontours < 2 or > 500", __func__, NULL);
 
     fpixGetMin(fpix, &minval, NULL, NULL);
     fpixGetMax(fpix, &maxval, NULL, NULL);
     if (minval == maxval)
-        return (PIX *)ERROR_PTR("all values in fpix are equal", procName, NULL);
+        return (PIX *)ERROR_PTR("all values in fpix are equal", __func__, NULL);
     incr = (maxval - minval) / ((l_float32)ncontours - 1);
     return fpixRenderContours(fpix, incr, 0.15);
 }
@@ -2819,18 +2728,16 @@ l_float32  *datas, *lines;
 PIX        *pixd;
 PIXCMAP    *cmap;
 
-    PROCNAME("fpixRenderContours");
-
     if (!fpixs)
-        return (PIX *)ERROR_PTR("fpixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("fpixs not defined", __func__, NULL);
     if (incr <= 0.0)
-        return (PIX *)ERROR_PTR("incr <= 0.0", procName, NULL);
+        return (PIX *)ERROR_PTR("incr <= 0.0", __func__, NULL);
     if (proxim <= 0.0)
         proxim = 0.15;  /* default */
 
     fpixGetDimensions(fpixs, &w, &h);
     if ((pixd = pixCreate(w, h, 8)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     cmap = pixcmapCreate(8);
     pixSetColormap(pixd, cmap);
     pixcmapAddColor(cmap, 255, 255, 255);  /* white */
@@ -2893,12 +2800,10 @@ pixGeneratePtaBoundary(PIX     *pixs,
 PIX  *pix1;
 PTA  *pta;
 
-    PROCNAME("pixGeneratePtaBoundary");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PTA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (width < 1) {
-        L_WARNING("width < 1; setting to 1\n", procName);
+        L_WARNING("width < 1; setting to 1\n", __func__);
         width = 1;
     }
 

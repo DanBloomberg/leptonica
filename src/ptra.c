@@ -145,10 +145,8 @@ ptraCreate(l_int32  n)
 {
 L_PTRA  *pa;
 
-    PROCNAME("ptraCreate");
-
     if (n > MaxInitPtraSize) {
-        L_ERROR("n = %d > maxsize = %d\n", procName, n, MaxInitPtraSize);
+        L_ERROR("n = %d > maxsize = %d\n", __func__, n, MaxInitPtraSize);
         return NULL;
     }
     if (n <= 0) n = DefaultInitPtraSize;
@@ -156,7 +154,7 @@ L_PTRA  *pa;
     pa = (L_PTRA *)LEPT_CALLOC(1, sizeof(L_PTRA));
     if ((pa->array = (void **)LEPT_CALLOC(n, sizeof(void *))) == NULL) {
         ptraDestroy(&pa, 0, 0);
-        return (L_PTRA *)ERROR_PTR("ptr array not made", procName, NULL);
+        return (L_PTRA *)ERROR_PTR("ptr array not made", __func__, NULL);
     }
     pa->nalloc = n;
     pa->imax = -1;
@@ -199,10 +197,8 @@ l_int32  i, nactual;
 void    *item;
 L_PTRA  *pa;
 
-    PROCNAME("ptraDestroy");
-
     if (ppa == NULL) {
-        L_WARNING("ptr address is NULL\n", procName);
+        L_WARNING("ptr address is NULL\n", __func__);
         return;
     }
     if ((pa = *ppa) == NULL)
@@ -217,7 +213,7 @@ L_PTRA  *pa;
             }
         } else if (warnflag) {
             L_WARNING("potential memory leak of %d items in ptra\n",
-                      procName, nactual);
+                      __func__, nactual);
         }
     }
 
@@ -252,16 +248,14 @@ ptraAdd(L_PTRA  *pa,
 {
 l_int32  imax;
 
-    PROCNAME("ptraAdd");
-
     if (!pa)
-        return ERROR_INT("pa not defined", procName, 1);
+        return ERROR_INT("pa not defined", __func__, 1);
     if (!item)
-        return ERROR_INT("item not defined", procName, 1);
+        return ERROR_INT("item not defined", __func__, 1);
 
     ptraGetMaxIndex(pa, &imax);
     if (imax >= pa->nalloc - 1 && ptraExtendArray(pa))
-        return ERROR_INT("extension failure", procName, 1);
+        return ERROR_INT("extension failure", __func__, 1);
     pa->array[imax + 1] = (void *)item;
     pa->imax++;
     pa->nactual++;
@@ -278,15 +272,13 @@ l_int32  imax;
 static l_int32
 ptraExtendArray(L_PTRA  *pa)
 {
-    PROCNAME("ptraExtendArray");
-
     if (!pa)
-        return ERROR_INT("pa not defined", procName, 1);
+        return ERROR_INT("pa not defined", __func__, 1);
 
     if ((pa->array = (void **)reallocNew((void **)&pa->array,
                                 sizeof(void *) * pa->nalloc,
                                 2 * sizeof(void *) * pa->nalloc)) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
+            return ERROR_INT("new ptr array not returned", __func__, 1);
 
     pa->nalloc *= 2;
     return 0;
@@ -349,20 +341,18 @@ ptraInsert(L_PTRA  *pa,
 l_int32    i, ihole, imax;
 l_float32  nexpected;
 
-    PROCNAME("ptraInsert");
-
     if (!pa)
-        return ERROR_INT("pa not defined", procName, 1);
+        return ERROR_INT("pa not defined", __func__, 1);
     if (index < 0 || index > pa->nalloc)
-        return ERROR_INT("index not in [0 ... nalloc]", procName, 1);
+        return ERROR_INT("index not in [0 ... nalloc]", __func__, 1);
     if (shiftflag != L_AUTO_DOWNSHIFT && shiftflag != L_MIN_DOWNSHIFT &&
         shiftflag != L_FULL_DOWNSHIFT)
-        return ERROR_INT("invalid shiftflag", procName, 1);
+        return ERROR_INT("invalid shiftflag", __func__, 1);
 
     if (item) pa->nactual++;
     if (index == pa->nalloc) {  /* can happen when index == n */
         if (ptraExtendArray(pa))
-            return ERROR_INT("extension failure", procName, 1);
+            return ERROR_INT("extension failure", __func__, 1);
     }
 
         /* We are inserting into a hole or adding to the end of the array.
@@ -382,7 +372,7 @@ l_float32  nexpected;
          * in every situation, but only an anomalous sequence of insertions
          * into the array would cause extra ptr allocation.  */
     if (imax >= pa->nalloc - 1 && ptraExtendArray(pa))
-        return ERROR_INT("extension failure", procName, 1);
+        return ERROR_INT("extension failure", __func__, 1);
 
         /* If there are no holes, do a full downshift.
          * Otherwise, if L_AUTO_DOWNSHIFT, use the expected number
@@ -446,13 +436,11 @@ ptraRemove(L_PTRA  *pa,
 l_int32  i, imax, fromend, icurrent;
 void    *item;
 
-    PROCNAME("ptraRemove");
-
     if (!pa)
-        return (void *)ERROR_PTR("pa not defined", procName, NULL);
+        return (void *)ERROR_PTR("pa not defined", __func__, NULL);
     ptraGetMaxIndex(pa, &imax);
     if (index < 0 || index > imax)
-        return (void *)ERROR_PTR("index not in [0 ... imax]", procName, NULL);
+        return (void *)ERROR_PTR("index not in [0 ... imax]", __func__, NULL);
 
     item = pa->array[index];
     if (item)
@@ -492,10 +480,8 @@ ptraRemoveLast(L_PTRA  *pa)
 {
 l_int32  imax;
 
-    PROCNAME("ptraRemoveLast");
-
     if (!pa)
-        return (void *)ERROR_PTR("pa not defined", procName, NULL);
+        return (void *)ERROR_PTR("pa not defined", __func__, NULL);
 
         /* Remove the last item in the array.  No compaction is required. */
     ptraGetMaxIndex(pa, &imax);
@@ -525,13 +511,11 @@ ptraReplace(L_PTRA  *pa,
 l_int32  imax;
 void    *olditem;
 
-    PROCNAME("ptraReplace");
-
     if (!pa)
-        return (void *)ERROR_PTR("pa not defined", procName, NULL);
+        return (void *)ERROR_PTR("pa not defined", __func__, NULL);
     ptraGetMaxIndex(pa, &imax);
     if (index < 0 || index > imax)
-        return (void *)ERROR_PTR("index not in [0 ... imax]", procName, NULL);
+        return (void *)ERROR_PTR("index not in [0 ... imax]", __func__, NULL);
 
     olditem = pa->array[index];
     pa->array[index] = item;
@@ -565,15 +549,13 @@ ptraSwap(L_PTRA  *pa,
 l_int32  imax;
 void    *item;
 
-    PROCNAME("ptraSwap");
-
     if (!pa)
-        return ERROR_INT("pa not defined", procName, 1);
+        return ERROR_INT("pa not defined", __func__, 1);
     if (index1 == index2)
         return 0;
     ptraGetMaxIndex(pa, &imax);
     if (index1 < 0 || index1 > imax || index2 < 0 || index2 > imax)
-        return ERROR_INT("invalid index: not in [0 ... imax]", procName, 1);
+        return ERROR_INT("invalid index: not in [0 ... imax]", __func__, 1);
 
     item = ptraRemove(pa, index1, L_NO_COMPACTION);
     item = ptraReplace(pa, index2, item, FALSE);
@@ -599,10 +581,8 @@ ptraCompactArray(L_PTRA  *pa)
 {
 l_int32  i, imax, nactual, index;
 
-    PROCNAME("ptraCompactArray");
-
     if (!pa)
-        return ERROR_INT("pa not defined", procName, 1);
+        return ERROR_INT("pa not defined", __func__, 1);
     ptraGetMaxIndex(pa, &imax);
     ptraGetActualCount(pa, &nactual);
     if (imax + 1 == nactual) return 0;
@@ -614,7 +594,7 @@ l_int32  i, imax, nactual, index;
     }
     pa->imax = index - 1;
     if (nactual != index)
-        L_ERROR("index = %d; != nactual\n", procName, index);
+        L_ERROR("index = %d; != nactual\n", __func__, index);
 
     return 0;
 }
@@ -634,10 +614,8 @@ ptraReverse(L_PTRA  *pa)
 {
 l_int32  i, imax;
 
-    PROCNAME("ptraReverse");
-
     if (!pa)
-        return ERROR_INT("pa not defined", procName, 1);
+        return ERROR_INT("pa not defined", __func__, 1);
     ptraGetMaxIndex(pa, &imax);
 
     for (i = 0; i < (imax + 1) / 2; i++)
@@ -660,10 +638,8 @@ ptraJoin(L_PTRA  *pa1,
 l_int32  i, imax;
 void    *item;
 
-    PROCNAME("ptraJoin");
-
     if (!pa1)
-        return ERROR_INT("pa1 not defined", procName, 1);
+        return ERROR_INT("pa1 not defined", __func__, 1);
     if (!pa2)
         return 0;
 
@@ -707,12 +683,10 @@ l_ok
 ptraGetMaxIndex(L_PTRA   *pa,
                 l_int32  *pmaxindex)
 {
-    PROCNAME("ptraGetMaxIndex");
-
     if (!pa)
-        return ERROR_INT("pa not defined", procName, 1);
+        return ERROR_INT("pa not defined", __func__, 1);
     if (!pmaxindex)
-        return ERROR_INT("&maxindex not defined", procName, 1);
+        return ERROR_INT("&maxindex not defined", __func__, 1);
     *pmaxindex = pa->imax;
     return 0;
 }
@@ -735,12 +709,10 @@ l_ok
 ptraGetActualCount(L_PTRA   *pa,
                    l_int32  *pcount)
 {
-    PROCNAME("ptraGetActualCount");
-
     if (!pa)
-        return ERROR_INT("pa not defined", procName, 1);
+        return ERROR_INT("pa not defined", __func__, 1);
     if (!pcount)
-        return ERROR_INT("&count not defined", procName, 1);
+        return ERROR_INT("&count not defined", __func__, 1);
     *pcount = pa->nactual;
 
     return 0;
@@ -767,13 +739,11 @@ void *
 ptraGetPtrToItem(L_PTRA  *pa,
                  l_int32  index)
 {
-    PROCNAME("ptraGetPtrToItem");
-
     if (!pa)
-        return (void *)ERROR_PTR("pa not defined", procName, NULL);
+        return (void *)ERROR_PTR("pa not defined", __func__, NULL);
     if (index < 0 || index >= pa->nalloc)
         return (void *)ERROR_PTR("index not in [0 ... nalloc-1]",
-                                 procName, NULL);
+                                 __func__, NULL);
 
     return pa->array[index];
 }
@@ -799,15 +769,13 @@ ptraaCreate(l_int32  n)
 {
 L_PTRAA  *paa;
 
-    PROCNAME("ptraaCreate");
-
     if (n <= 0)
-        return (L_PTRAA *)ERROR_PTR("n must be > 0", procName, NULL);
+        return (L_PTRAA *)ERROR_PTR("n must be > 0", __func__, NULL);
 
     paa = (L_PTRAA *)LEPT_CALLOC(1, sizeof(L_PTRAA));
     if ((paa->ptra = (L_PTRA **)LEPT_CALLOC(n, sizeof(L_PTRA *))) == NULL) {
         ptraaDestroy(&paa, 0, 0);
-        return (L_PTRAA *)ERROR_PTR("ptr array not made", procName, NULL);
+        return (L_PTRAA *)ERROR_PTR("ptr array not made", __func__, NULL);
     }
     paa->nalloc = n;
     return paa;
@@ -839,10 +807,8 @@ l_int32   i, n;
 L_PTRA   *pa;
 L_PTRAA  *paa;
 
-    PROCNAME("ptraaDestroy");
-
     if (ppaa == NULL) {
-        L_WARNING("ptr address is NULL\n", procName);
+        L_WARNING("ptr address is NULL\n", __func__);
         return;
     }
     if ((paa = *ppaa) == NULL)
@@ -874,12 +840,10 @@ l_ok
 ptraaGetSize(L_PTRAA  *paa,
              l_int32  *psize)
 {
-    PROCNAME("ptraaGetSize");
-
     if (!paa)
-        return ERROR_INT("paa not defined", procName, 1);
+        return ERROR_INT("paa not defined", __func__, 1);
     if (!psize)
-        return ERROR_INT("&size not defined", procName, 1);
+        return ERROR_INT("&size not defined", __func__, 1);
     *psize = paa->nalloc;
 
     return 0;
@@ -908,17 +872,15 @@ ptraaInsertPtra(L_PTRAA  *paa,
 {
 l_int32  n;
 
-    PROCNAME("ptraaInsertPtra");
-
     if (!paa)
-        return ERROR_INT("paa not defined", procName, 1);
+        return ERROR_INT("paa not defined", __func__, 1);
     if (!pa)
-        return ERROR_INT("pa not defined", procName, 1);
+        return ERROR_INT("pa not defined", __func__, 1);
     ptraaGetSize(paa, &n);
     if (index < 0 || index >= n)
-        return ERROR_INT("invalid index", procName, 1);
+        return ERROR_INT("invalid index", __func__, 1);
     if (paa->ptra[index] != NULL)
-        return ERROR_INT("ptra already stored at index", procName, 1);
+        return ERROR_INT("ptra already stored at index", __func__, 1);
 
     paa->ptra[index] = pa;
     return 0;
@@ -952,15 +914,13 @@ ptraaGetPtra(L_PTRAA  *paa,
 l_int32  n;
 L_PTRA  *pa;
 
-    PROCNAME("ptraaGetPtra");
-
     if (!paa)
-        return (L_PTRA *)ERROR_PTR("paa not defined", procName, NULL);
+        return (L_PTRA *)ERROR_PTR("paa not defined", __func__, NULL);
     ptraaGetSize(paa, &n);
     if (index < 0 || index >= n)
-        return (L_PTRA *)ERROR_PTR("invalid index", procName, NULL);
+        return (L_PTRA *)ERROR_PTR("invalid index", __func__, NULL);
     if (accessflag != L_HANDLE_ONLY && accessflag != L_REMOVE)
-        return (L_PTRA *)ERROR_PTR("invalid accessflag", procName, NULL);
+        return (L_PTRA *)ERROR_PTR("invalid accessflag", __func__, NULL);
 
     pa = paa->ptra[index];
     if (accessflag == L_REMOVE)
@@ -992,10 +952,8 @@ ptraaFlattenToPtra(L_PTRAA  *paa)
 l_int32  i, n;
 L_PTRA    *pat, *pad;
 
-    PROCNAME("ptraaFlattenToPtra");
-
     if (!paa)
-        return (L_PTRA *)ERROR_PTR("paa not defined", procName, NULL);
+        return (L_PTRA *)ERROR_PTR("paa not defined", __func__, NULL);
 
     pad = ptraCreate(0);
     ptraaGetSize(paa, &n);

@@ -116,21 +116,19 @@ l_uint8  *filedata;
 size_t    filesize;
 PIX      *pix;
 
-    PROCNAME("pixReadStreamGif");
-
     if (!fp)
-        return (PIX *)ERROR_PTR("fp not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("fp not defined", __func__, NULL);
 
         /* Read data into memory from file */
     rewind(fp);
     if ((filedata = l_binaryReadStream(fp, &filesize)) == NULL)
-        return (PIX *)ERROR_PTR("filedata not read", procName, NULL);
+        return (PIX *)ERROR_PTR("filedata not read", __func__, NULL);
 
         /* Uncompress from memory */
     pix = pixReadMemGif(filedata, filesize);
     LEPT_FREE(filedata);
     if (!pix)
-        L_ERROR("failed to read gif from file data\n", procName);
+        L_ERROR("failed to read gif from file data\n", __func__);
     return pix;
 }
 
@@ -159,27 +157,25 @@ pixReadMemGif(const l_uint8  *cdata,
 GifFileType   *gif;
 GifReadBuffer  buffer;
 
-    PROCNAME("pixReadMemGif");
-
         /* 5.1+ and not 5.1.2 */
 #if (GIFLIB_MAJOR < 5 || (GIFLIB_MAJOR == 5 && GIFLIB_MINOR == 0))
-    L_ERROR("Require giflib-5.1 or later\n", procName);
+    L_ERROR("Require giflib-5.1 or later\n", __func__);
     return NULL;
 #endif  /* < 5.1 */
 #if GIFLIB_MAJOR == 5 && GIFLIB_MINOR == 1 && GIFLIB_RELEASE == 2  /* 5.1.2 */
-    L_ERROR("Can't use giflib-5.1.2; suggest 5.1.3 or later\n", procName);
+    L_ERROR("Can't use giflib-5.1.2; suggest 5.1.3 or later\n", __func__);
     return NULL;
 #endif  /* 5.1.2 */
 
     if (!cdata)
-        return (PIX *)ERROR_PTR("cdata not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("cdata not defined", __func__, NULL);
 
     buffer.cdata = cdata;
     buffer.size = size;
     buffer.pos = 0;
     if ((gif = DGifOpen((void*)&buffer, gifReadFunc, NULL)) == NULL)
         return (PIX *)ERROR_PTR("could not open gif stream from memory",
-                                procName, NULL);
+                                __func__, NULL);
 
     return gifToPix(gif);
 }
@@ -193,10 +189,8 @@ gifReadFunc(GifFileType  *gif,
 GifReadBuffer  *buffer;
 l_int32         bytesRead;
 
-    PROCNAME("gifReadFunc");
-
     if ((buffer = (GifReadBuffer*)gif->UserData) == NULL)
-        return ERROR_INT("UserData not set", procName, -1);
+        return ERROR_INT("UserData not set", __func__, -1);
 
     if(buffer->pos >= buffer->size || bytesToRead > buffer->size)
         return -1;
@@ -234,35 +228,33 @@ ColorMapObject  *gif_cmap;
 SavedImage       si;
 int              giferr;
 
-    PROCNAME("gifToPix");
-
         /* Read all the data, but use only the first image found */
     if (DGifSlurp(gif) != GIF_OK) {
         DGifCloseFile(gif, &giferr);
-        return (PIX *)ERROR_PTR("failed to read GIF data", procName, NULL);
+        return (PIX *)ERROR_PTR("failed to read GIF data", __func__, NULL);
     }
 
     if (gif->SavedImages == NULL) {
         DGifCloseFile(gif, &giferr);
-        return (PIX *)ERROR_PTR("no images found in GIF", procName, NULL);
+        return (PIX *)ERROR_PTR("no images found in GIF", __func__, NULL);
     }
 
     nimages = gif->ImageCount;
     if (nimages > 1)
         L_WARNING("There are %d images in the file; we only read the first\n",
-                  procName, nimages);
+                  __func__, nimages);
 
     si = gif->SavedImages[0];
     w = si.ImageDesc.Width;
     h = si.ImageDesc.Height;
     if (w <= 0 || h <= 0) {
         DGifCloseFile(gif, &giferr);
-        return (PIX *)ERROR_PTR("invalid image dimensions", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid image dimensions", __func__, NULL);
     }
 
     if (si.RasterBits == NULL) {
         DGifCloseFile(gif, &giferr);
-        return (PIX *)ERROR_PTR("no raster data in GIF", procName, NULL);
+        return (PIX *)ERROR_PTR("no raster data in GIF", __func__, NULL);
     }
 
     if (si.ImageDesc.ColorMap) {
@@ -274,13 +266,13 @@ int              giferr;
     } else {
             /* don't know where to take cmap from */
         DGifCloseFile(gif, &giferr);
-        return (PIX *)ERROR_PTR("color map is missing", procName, NULL);
+        return (PIX *)ERROR_PTR("color map is missing", __func__, NULL);
     }
 
     ncolors = gif_cmap->ColorCount;
     if (ncolors <= 0 || ncolors > 256) {
         DGifCloseFile(gif, &giferr);
-        return (PIX *)ERROR_PTR("ncolors is invalid", procName, NULL);
+        return (PIX *)ERROR_PTR("ncolors is invalid", __func__, NULL);
     }
     if (ncolors <= 2)
         d = 1;
@@ -301,7 +293,7 @@ int              giferr;
     if ((pixd = pixCreate(w, h, d)) == NULL) {
         DGifCloseFile(gif, &giferr);
         pixcmapDestroy(&cmap);
-        return (PIX *)ERROR_PTR("failed to allocate pixd", procName, NULL);
+        return (PIX *)ERROR_PTR("failed to allocate pixd", __func__, NULL);
     }
     pixSetInputFormat(pixd, IFF_GIF);
     pixSetColormap(pixd, cmap);
@@ -310,7 +302,7 @@ int              giferr;
         DGifCloseFile(gif, &giferr);
         pixDestroy(&pixd);
         pixcmapDestroy(&cmap);
-        return (PIX *)ERROR_PTR("colormap is invalid", procName, NULL);
+        return (PIX *)ERROR_PTR("colormap is invalid", __func__, NULL);
     }
 
     wpl = pixGetWpl(pixd);
@@ -372,24 +364,22 @@ pixWriteStreamGif(FILE  *fp,
 l_uint8  *filedata;
 size_t    filebytes, nbytes;
 
-    PROCNAME("pixWriteStreamGif");
-
     if (!fp)
-        return ERROR_INT("stream not open", procName, 1);
+        return ERROR_INT("stream not open", __func__, 1);
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
 
     pixSetPadBits(pix, 0);
     if (pixWriteMemGif(&filedata, &filebytes, pix) != 0) {
         LEPT_FREE(filedata);
-        return ERROR_INT("failure to gif encode pix", procName, 1);
+        return ERROR_INT("failure to gif encode pix", __func__, 1);
     }
 
     rewind(fp);
     nbytes = fwrite(filedata, 1, filebytes, fp);
     LEPT_FREE(filedata);
     if (nbytes != filebytes)
-        return ERROR_INT("write error", procName, 1);
+        return ERROR_INT("write error", __func__, 1);
     return 0;
 }
 
@@ -417,33 +407,31 @@ l_int32       result;
 GifFileType  *gif;
 L_BBUFFER    *buffer;
 
-    PROCNAME("pixWriteMemGif");
-
         /* 5.1+ and not 5.1.2 */
 #if (GIFLIB_MAJOR < 5 || (GIFLIB_MAJOR == 5 && GIFLIB_MINOR == 0))
-    L_ERROR("Require giflib-5.1 or later\n", procName);
+    L_ERROR("Require giflib-5.1 or later\n", __func__);
     return 1;
 #endif  /* < 5.1 */
 #if GIFLIB_MAJOR == 5 && GIFLIB_MINOR == 1 && GIFLIB_RELEASE == 2  /* 5.1.2 */
-    L_ERROR("Can't use giflib-5.1.2; suggest 5.1.3 or later\n", procName);
+    L_ERROR("Can't use giflib-5.1.2; suggest 5.1.3 or later\n", __func__);
     return 1;
 #endif  /* 5.1.2 */
 
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1 );
+        return ERROR_INT("&data not defined", __func__, 1 );
     *pdata = NULL;
     if (!psize)
-        return ERROR_INT("&size not defined", procName, 1 );
+        return ERROR_INT("&size not defined", __func__, 1 );
     *psize = 0;
     if (!pix)
-        return ERROR_INT("&pix not defined", procName, 1 );
+        return ERROR_INT("&pix not defined", __func__, 1 );
 
     if ((buffer = bbufferCreate(NULL, 0)) == NULL)
-        return ERROR_INT("failed to create buffer", procName, 1);
+        return ERROR_INT("failed to create buffer", __func__, 1);
 
     if ((gif = EGifOpen((void*)buffer, gifWriteFunc, NULL)) == NULL) {
         bbufferDestroy(&buffer);
-        return ERROR_INT("failed to create GIF image handle", procName, 1);
+        return ERROR_INT("failed to create GIF image handle", __func__, 1);
     }
 
     result = pixToGif(pix, gif);
@@ -465,10 +453,8 @@ gifWriteFunc(GifFileType        *gif,
 {
 L_BBUFFER  *buffer;
 
-    PROCNAME("gifWriteFunc");
-
     if ((buffer = (L_BBUFFER*)gif->UserData) == NULL)
-        return ERROR_INT("UserData not set", procName, -1);
+        return ERROR_INT("UserData not set", __func__, -1);
 
     if(bbufferRead(buffer, (l_uint8*)src, bytesToWrite) == 0)
         return bytesToWrite;
@@ -503,12 +489,10 @@ PIXCMAP         *cmap;
 ColorMapObject  *gif_cmap;
 GifByteType     *gif_line;
 
-    PROCNAME("pixToGif");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!gif)
-        return ERROR_INT("gif not defined", procName, 1);
+        return ERROR_INT("gif not defined", __func__, 1);
 
     d = pixGetDepth(pix);
     if (d == 32) {
@@ -526,17 +510,17 @@ GifByteType     *gif_line;
     }
 
     if (!pixd)
-        return ERROR_INT("failed to convert to colormapped pix", procName, 1);
+        return ERROR_INT("failed to convert to colormapped pix", __func__, 1);
     d = pixGetDepth(pixd);
     cmap = pixGetColormap(pixd);
     if (!cmap) {
         pixDestroy(&pixd);
-        return ERROR_INT("cmap is missing", procName, 1);
+        return ERROR_INT("cmap is missing", __func__, 1);
     }
     pixcmapIsValid(cmap, pixd, &valid);
     if (!valid) {
         pixDestroy(&pixd);
-        return ERROR_INT("colormap is not valid", procName, 1);
+        return ERROR_INT("colormap is not valid", __func__, 1);
     }
 
         /* 'Round' the number of gif colors up to a power of 2 */
@@ -549,13 +533,13 @@ GifByteType     *gif_line;
     }
     if (gif_ncolor < 1) {
         pixDestroy(&pixd);
-        return ERROR_INT("number of colors is invalid", procName, 1);
+        return ERROR_INT("number of colors is invalid", __func__, 1);
     }
 
         /* Save the cmap colors in a gif_cmap */
     if ((gif_cmap = GifMakeMapObject(gif_ncolor, NULL)) == NULL) {
         pixDestroy(&pixd);
-        return ERROR_INT("failed to create GIF color map", procName, 1);
+        return ERROR_INT("failed to create GIF color map", __func__, 1);
     }
     for (i = 0; i < gif_ncolor; i++) {
         rval = gval = bval = 0;
@@ -564,7 +548,7 @@ GifByteType     *gif_line;
                 pixDestroy(&pixd);
                 GifFreeMapObject(gif_cmap);
                 return ERROR_INT("failed to get color from color map",
-                                 procName, 1);
+                                 __func__, 1);
             }
             ncolor--;
         }
@@ -578,26 +562,26 @@ GifByteType     *gif_line;
         != GIF_OK) {
         pixDestroy(&pixd);
         GifFreeMapObject(gif_cmap);
-        return ERROR_INT("failed to write screen description", procName, 1);
+        return ERROR_INT("failed to write screen description", __func__, 1);
     }
     GifFreeMapObject(gif_cmap); /* not needed after this point */
 
     if (EGifPutImageDesc(gif, 0, 0, w, h, FALSE, NULL) != GIF_OK) {
         pixDestroy(&pixd);
-        return ERROR_INT("failed to image screen description", procName, 1);
+        return ERROR_INT("failed to image screen description", __func__, 1);
     }
 
     data = pixGetData(pixd);
     wpl = pixGetWpl(pixd);
     if (d != 1 && d != 2 && d != 4 && d != 8) {
         pixDestroy(&pixd);
-        return ERROR_INT("image depth is not in {1, 2, 4, 8}", procName, 1);
+        return ERROR_INT("image depth is not in {1, 2, 4, 8}", __func__, 1);
     }
 
     if ((gif_line = (GifByteType *)LEPT_CALLOC(sizeof(GifByteType), w))
         == NULL) {
         pixDestroy(&pixd);
-        return ERROR_INT("mem alloc fail for data line", procName, 1);
+        return ERROR_INT("mem alloc fail for data line", __func__, 1);
     }
 
     for (i = 0; i < h; i++) {
@@ -625,7 +609,7 @@ GifByteType     *gif_line;
         if (EGifPutLine(gif, gif_line, w) != GIF_OK) {
             LEPT_FREE(gif_line);
             pixDestroy(&pixd);
-            return ERROR_INT("failed to write data line into GIF", procName, 1);
+            return ERROR_INT("failed to write data line into GIF", __func__, 1);
         }
     }
 
@@ -635,7 +619,7 @@ GifByteType     *gif_line;
          * to read comments. */
     if ((text = pixGetText(pix)) != NULL) {
         if (EGifPutComment(gif, text) != GIF_OK)
-            L_WARNING("gif comment not written\n", procName);
+            L_WARNING("gif comment not written\n", __func__);
     }
 
     LEPT_FREE(gif_line);
@@ -663,10 +647,8 @@ l_int32    w, h, d, wpl, j, k, srow, drow;
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
 
-    PROCNAME("pixUninterlaceGIF");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, &d);
     wpl = pixGetWpl(pixs);

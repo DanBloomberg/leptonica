@@ -169,20 +169,18 @@ l_int32    leftpix, rightpix, toppix, bottompix, maxsize;
 l_uint32  *datab, *datat;
 PIX       *pixb, *pixt, *pixd;
 
-    PROCNAME("pixErodeGray");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize or vsize < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("hsize or vsize < 1", __func__, NULL);
     if ((hsize & 1) == 0 ) {
-        L_WARNING("horiz sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("horiz sel size must be odd; increasing by 1\n", __func__);
         hsize++;
     }
     if ((vsize & 1) == 0 ) {
-        L_WARNING("vert sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("vert sel size must be odd; increasing by 1\n", __func__);
         vsize++;
     }
 
@@ -212,7 +210,7 @@ PIX       *pixb, *pixt, *pixd;
     pixb = pixAddBorderGeneral(pixs, leftpix, rightpix, toppix, bottompix, 255);
     pixt = pixCreateTemplate(pixb);
     if (!pixb || !pixt) {
-        L_ERROR("pixb and pixt not made\n", procName);
+        L_ERROR("pixb and pixt not made\n", __func__);
         goto cleanup;
     }
 
@@ -226,7 +224,7 @@ PIX       *pixb, *pixt, *pixd;
     maxsize = L_MAX(hsize, vsize);
     minarray = (l_uint8 *)LEPT_CALLOC(2 * maxsize, sizeof(l_uint8));
     if (!buffer || !minarray) {
-        L_ERROR("buffer and minarray not made\n", procName);
+        L_ERROR("buffer and minarray not made\n", __func__);
         goto cleanup;
     }
 
@@ -249,7 +247,7 @@ PIX       *pixb, *pixt, *pixd;
 
     pixd = pixRemoveBorderGeneral(pixt, leftpix, rightpix, toppix, bottompix);
     if (!pixd)
-        L_ERROR("pixd not made\n", procName);
+        L_ERROR("pixd not made\n", __func__);
 
 cleanup:
     LEPT_FREE(buffer);
@@ -285,20 +283,18 @@ l_int32    leftpix, rightpix, toppix, bottompix, maxsize;
 l_uint32  *datab, *datat;
 PIX       *pixb, *pixt, *pixd;
 
-    PROCNAME("pixDilateGray");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize or vsize < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("hsize or vsize < 1", __func__, NULL);
     if ((hsize & 1) == 0 ) {
-        L_WARNING("horiz sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("horiz sel size must be odd; increasing by 1\n", __func__);
         hsize++;
     }
     if ((vsize & 1) == 0 ) {
-        L_WARNING("vert sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("vert sel size must be odd; increasing by 1\n", __func__);
         vsize++;
     }
 
@@ -328,7 +324,7 @@ PIX       *pixb, *pixt, *pixd;
     pixb = pixAddBorderGeneral(pixs, leftpix, rightpix, toppix, bottompix, 0);
     pixt = pixCreateTemplate(pixb);
     if (!pixb || !pixt) {
-        L_ERROR("pixb and pixt not made\n", procName);
+        L_ERROR("pixb and pixt not made\n", __func__);
         goto cleanup;
     }
 
@@ -342,7 +338,7 @@ PIX       *pixb, *pixt, *pixd;
     maxsize = L_MAX(hsize, vsize);
     maxarray = (l_uint8 *)LEPT_CALLOC(2 * maxsize, sizeof(l_uint8));
     if (!buffer || !maxarray) {
-        L_ERROR("buffer and maxarray not made\n", procName);
+        L_ERROR("buffer and maxarray not made\n", __func__);
         goto cleanup;
     }
 
@@ -365,7 +361,7 @@ PIX       *pixb, *pixt, *pixd;
 
     pixd = pixRemoveBorderGeneral(pixt, leftpix, rightpix, toppix, bottompix);
     if (!pixd)
-        L_ERROR("pixd not made\n", procName);
+        L_ERROR("pixd not made\n", __func__);
 
 cleanup:
     LEPT_FREE(buffer);
@@ -402,20 +398,18 @@ l_int32    leftpix, rightpix, toppix, bottompix, maxsize;
 l_uint32  *datab, *datat;
 PIX       *pixb, *pixt, *pixd;
 
-    PROCNAME("pixOpenGray");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize or vsize < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("hsize or vsize < 1", __func__, NULL);
     if ((hsize & 1) == 0 ) {
-        L_WARNING("horiz sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("horiz sel size must be odd; increasing by 1\n", __func__);
         hsize++;
     }
     if ((vsize & 1) == 0 ) {
-        L_WARNING("vert sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("vert sel size must be odd; increasing by 1\n", __func__);
         vsize++;
     }
 
@@ -445,7 +439,7 @@ PIX       *pixb, *pixt, *pixd;
     pixb = pixAddBorderGeneral(pixs, leftpix, rightpix, toppix, bottompix, 255);
     pixt = pixCreateTemplate(pixb);
     if (!pixb || !pixt) {
-        L_ERROR("pixb and pixt not made\n", procName);
+        L_ERROR("pixb and pixt not made\n", __func__);
         goto cleanup;
     }
 
@@ -459,7 +453,7 @@ PIX       *pixb, *pixt, *pixd;
     maxsize = L_MAX(hsize, vsize);
     array = (l_uint8 *)LEPT_CALLOC(2 * maxsize, sizeof(l_uint8));
     if (!buffer || !array) {
-        L_ERROR("buffer and array not made\n", procName);
+        L_ERROR("buffer and array not made\n", __func__);
         goto cleanup;
     }
 
@@ -497,7 +491,7 @@ PIX       *pixb, *pixt, *pixd;
 
     pixd = pixRemoveBorderGeneral(pixb, leftpix, rightpix, toppix, bottompix);
     if (!pixd)
-        L_ERROR("pixd not made\n", procName);
+        L_ERROR("pixd not made\n", __func__);
 
 cleanup:
     LEPT_FREE(buffer);
@@ -534,20 +528,18 @@ l_int32    leftpix, rightpix, toppix, bottompix, maxsize;
 l_uint32  *datab, *datat;
 PIX       *pixb, *pixt, *pixd;
 
-    PROCNAME("pixCloseGray");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize or vsize < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("hsize or vsize < 1", __func__, NULL);
     if ((hsize & 1) == 0 ) {
-        L_WARNING("horiz sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("horiz sel size must be odd; increasing by 1\n", __func__);
         hsize++;
     }
     if ((vsize & 1) == 0 ) {
-        L_WARNING("vert sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("vert sel size must be odd; increasing by 1\n", __func__);
         vsize++;
     }
 
@@ -577,7 +569,7 @@ PIX       *pixb, *pixt, *pixd;
     pixb = pixAddBorderGeneral(pixs, leftpix, rightpix, toppix, bottompix, 0);
     pixt = pixCreateTemplate(pixb);
     if (!pixb || !pixt) {
-        L_ERROR("pixb and pixt not made\n", procName);
+        L_ERROR("pixb and pixt not made\n", __func__);
         goto cleanup;
     }
 
@@ -591,7 +583,7 @@ PIX       *pixb, *pixt, *pixd;
     maxsize = L_MAX(hsize, vsize);
     array = (l_uint8 *)LEPT_CALLOC(2 * maxsize, sizeof(l_uint8));
     if (!buffer || !array) {
-        L_ERROR("buffer and array not made\n", procName);
+        L_ERROR("buffer and array not made\n", __func__);
         goto cleanup;
     }
 
@@ -628,7 +620,7 @@ PIX       *pixb, *pixt, *pixd;
 
     pixd = pixRemoveBorderGeneral(pixb, leftpix, rightpix, toppix, bottompix);
     if (!pixd)
-        L_ERROR("pixd not made\n", procName);
+        L_ERROR("pixd not made\n", __func__);
 
 cleanup:
     LEPT_FREE(buffer);
@@ -668,17 +660,15 @@ pixErodeGray3(PIX     *pixs,
 {
 PIX  *pixt, *pixb, *pixbd, *pixd;
 
-    PROCNAME("pixErodeGray3");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pix has colormap", procName, NULL);
+        return (PIX *)ERROR_PTR("pix has colormap", __func__, NULL);
     if ((hsize != 1 && hsize != 3) ||
         (vsize != 1 && vsize != 3))
-        return (PIX *)ERROR_PTR("invalid size: must be 1 or 3", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid size: must be 1 or 3", __func__, NULL);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(NULL, pixs);
@@ -722,12 +712,10 @@ l_int32    w, h, wpl, i, j;
 l_int32    val0, val1, val2, val3, val4, val5, val6, val7, val8, val9, minval;
 PIX       *pixd;
 
-    PROCNAME("pixErodeGray3h");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
 
     pixd = pixCreateTemplate(pixs);
     pixGetDimensions(pixs, &w, &h, NULL);
@@ -789,12 +777,10 @@ l_int32    w, h, wpl, i, j;
 l_int32    val0, val1, val2, val3, val4, val5, val6, val7, val8, val9, minval;
 PIX       *pixd;
 
-    PROCNAME("pixErodeGray3v");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
 
     pixd = pixCreateTemplate(pixs);
     pixGetDimensions(pixs, &w, &h, NULL);
@@ -854,17 +840,15 @@ pixDilateGray3(PIX     *pixs,
 {
 PIX  *pixt, *pixb, *pixbd, *pixd;
 
-    PROCNAME("pixDilateGray3");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pix has colormap", procName, NULL);
+        return (PIX *)ERROR_PTR("pix has colormap", __func__, NULL);
     if ((hsize != 1 && hsize != 3) ||
         (vsize != 1 && vsize != 3))
-        return (PIX *)ERROR_PTR("invalid size: must be 1 or 3", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid size: must be 1 or 3", __func__, NULL);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(NULL, pixs);
@@ -908,12 +892,10 @@ l_int32    w, h, wpl, i, j;
 l_int32    val0, val1, val2, val3, val4, val5, val6, val7, val8, val9, maxval;
 PIX       *pixd;
 
-    PROCNAME("pixDilateGray3h");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
 
     pixd = pixCreateTemplate(pixs);
     pixGetDimensions(pixs, &w, &h, NULL);
@@ -972,12 +954,10 @@ l_int32    w, h, wpl, i, j;
 l_int32    val0, val1, val2, val3, val4, val5, val6, val7, val8, val9, maxval;
 PIX       *pixd;
 
-    PROCNAME("pixDilateGray3v");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
 
     pixd = pixCreateTemplate(pixs);
     pixGetDimensions(pixs, &w, &h, NULL);
@@ -1039,17 +1019,15 @@ pixOpenGray3(PIX     *pixs,
 {
 PIX  *pixt, *pixb, *pixbd, *pixd;
 
-    PROCNAME("pixOpenGray3");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pix has colormap", procName, NULL);
+        return (PIX *)ERROR_PTR("pix has colormap", __func__, NULL);
     if ((hsize != 1 && hsize != 3) ||
         (vsize != 1 && vsize != 3))
-        return (PIX *)ERROR_PTR("invalid size: must be 1 or 3", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid size: must be 1 or 3", __func__, NULL);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(NULL, pixs);
@@ -1105,17 +1083,15 @@ pixCloseGray3(PIX     *pixs,
 {
 PIX  *pixt, *pixb, *pixbd, *pixd;
 
-    PROCNAME("pixCloseGray3");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pix has colormap", procName, NULL);
+        return (PIX *)ERROR_PTR("pix has colormap", __func__, NULL);
     if ((hsize != 1 && hsize != 3) ||
         (vsize != 1 && vsize != 3))
-        return (PIX *)ERROR_PTR("invalid size: must be 1 or 3", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid size: must be 1 or 3", __func__, NULL);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(NULL, pixs);

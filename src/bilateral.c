@@ -164,30 +164,28 @@ l_int32       w, h, d, filtersize;
 l_float32     sstdev;  /* scaled spatial stdev */
 PIX          *pixt, *pixr, *pixg, *pixb, *pixd;
 
-    PROCNAME("pixBilateral");
-
     if (!pixs || pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pixs not defined or cmapped", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined or cmapped", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", __func__, NULL);
     if (reduction != 1 && reduction != 2 && reduction != 4)
-        return (PIX *)ERROR_PTR("reduction invalid", procName, NULL);
+        return (PIX *)ERROR_PTR("reduction invalid", __func__, NULL);
     filtersize = (l_int32)(2.0 * spatial_stdev + 1.0 + 0.5);
     if (w < 2 * filtersize || h < 2 * filtersize) {
         L_WARNING("w = %d, h = %d; w or h < 2 * filtersize = %d; "
-                  "returning copy\n", procName, w, h, 2 * filtersize);
+                  "returning copy\n", __func__, w, h, 2 * filtersize);
         return pixCopy(NULL, pixs);
     }
     sstdev = spatial_stdev / (l_float32)reduction;  /* reduced spat. stdev */
     if (sstdev < 0.5)
-        return (PIX *)ERROR_PTR("sstdev < 0.5", procName, NULL);
+        return (PIX *)ERROR_PTR("sstdev < 0.5", __func__, NULL);
     if (range_stdev <= 5.0)
-        return (PIX *)ERROR_PTR("range_stdev <= 5.0", procName, NULL);
+        return (PIX *)ERROR_PTR("range_stdev <= 5.0", __func__, NULL);
     if (ncomps < 4 || ncomps > 30)
-        return (PIX *)ERROR_PTR("ncomps not in [4 ... 30]", procName, NULL);
+        return (PIX *)ERROR_PTR("ncomps not in [4 ... 30]", __func__, NULL);
     if (ncomps * range_stdev < 100.0)
-        return (PIX *)ERROR_PTR("ncomps * range_stdev < 100.0", procName, NULL);
+        return (PIX *)ERROR_PTR("ncomps * range_stdev < 100.0", __func__, NULL);
 
     if (d == 8)
         return pixBilateralGray(pixs, spatial_stdev, range_stdev,
@@ -241,26 +239,24 @@ l_float32     sstdev;  /* scaled spatial stdev */
 PIX          *pixd;
 L_BILATERAL  *bil;
 
-    PROCNAME("pixBilateralGray");
-
     if (!pixs || pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pixs not defined or cmapped", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined or cmapped", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp gray", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp gray", __func__, NULL);
     if (reduction != 1 && reduction != 2 && reduction != 4)
-        return (PIX *)ERROR_PTR("reduction invalid", procName, NULL);
+        return (PIX *)ERROR_PTR("reduction invalid", __func__, NULL);
     sstdev = spatial_stdev / (l_float32)reduction;  /* reduced spat. stdev */
     if (sstdev < 0.5)
-        return (PIX *)ERROR_PTR("sstdev < 0.5", procName, NULL);
+        return (PIX *)ERROR_PTR("sstdev < 0.5", __func__, NULL);
     if (range_stdev <= 5.0)
-        return (PIX *)ERROR_PTR("range_stdev <= 5.0", procName, NULL);
+        return (PIX *)ERROR_PTR("range_stdev <= 5.0", __func__, NULL);
     if (ncomps < 4 || ncomps > 30)
-        return (PIX *)ERROR_PTR("ncomps not in [4 ... 30]", procName, NULL);
+        return (PIX *)ERROR_PTR("ncomps not in [4 ... 30]", __func__, NULL);
     if (ncomps * range_stdev < 100.0)
-        return (PIX *)ERROR_PTR("ncomps * range_stdev < 100.0", procName, NULL);
+        return (PIX *)ERROR_PTR("ncomps * range_stdev < 100.0", __func__, NULL);
 
     bil = bilateralCreate(pixs, spatial_stdev, range_stdev, ncomps, reduction);
-    if (!bil) return (PIX *)ERROR_PTR("bil not made", procName, NULL);
+    if (!bil) return (PIX *)ERROR_PTR("bil not made", __func__, NULL);
     pixd = bilateralApply(bil);
     bilateralDestroy(&bil);
     return pixd;
@@ -309,8 +305,6 @@ L_BILATERAL  *bil;
 PIX          *pix1, *pix2, *pixt, *pixsc, *pixd;
 PIXA         *pixac;
 
-    PROCNAME("bilateralCreate");
-
     if (reduction == 1) {
         pix1 = pixClone(pixs);
     } else if (reduction == 2) {
@@ -321,7 +315,7 @@ PIXA         *pixac;
         pixDestroy(&pix2);
     }
     if (!pix1)
-        return (L_BILATERAL *)ERROR_PTR("pix1 not made", procName, NULL);
+        return (L_BILATERAL *)ERROR_PTR("pix1 not made", __func__, NULL);
 
     sstdev = spatial_stdev / (l_float32)reduction;  /* reduced spat. stdev */
     border = (l_int32)(2 * sstdev + 1);
@@ -330,7 +324,7 @@ PIXA         *pixac;
     pixGetExtremeValue(pix1, 1, L_SELECT_MAX, NULL, NULL, NULL, &maxval);
     pixDestroy(&pix1);
     if (!pixsc)
-        return (L_BILATERAL *)ERROR_PTR("pixsc not made", procName, NULL);
+        return (L_BILATERAL *)ERROR_PTR("pixsc not made", __func__, NULL);
 
     bil = (L_BILATERAL *)LEPT_CALLOC(1, sizeof(L_BILATERAL));
     bil->spatial_stdev = sstdev;
@@ -489,10 +483,8 @@ l_uint32  ***lineset = NULL;  /* for set of PBC */
 PIX         *pixs, *pixd;
 PIXA        *pixac;
 
-    PROCNAME("bilateralApply");
-
     if (!bil)
-        return (PIX *)ERROR_PTR("bil not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("bil not defined", __func__, NULL);
     pixs = bil->pixs;
     ncomps = bil->ncomps;
     kindex = bil->kindex;
@@ -501,10 +493,10 @@ PIXA        *pixac;
     pixac = bil->pixac;
     lineset = bil->lineset;
     if (pixaGetCount(pixac) != ncomps)
-        return (PIX *)ERROR_PTR("PBC images do not exist", procName, NULL);
+        return (PIX *)ERROR_PTR("PBC images do not exist", __func__, NULL);
 
     if ((pixd = pixCreateTemplate(pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     datad = pixGetData(pixd);
@@ -541,10 +533,8 @@ bilateralDestroy(L_BILATERAL  **pbil)
 l_int32       i;
 L_BILATERAL  *bil;
 
-    PROCNAME("bilateralDestroy");
-
     if (pbil == NULL) {
-        L_WARNING("ptr address is null!\n", procName);
+        L_WARNING("ptr address is null!\n", __func__);
         return;
     }
 
@@ -601,16 +591,15 @@ pixBilateralExact(PIX       *pixs,
 l_int32  d;
 PIX     *pixt, *pixr, *pixg, *pixb, *pixd;
 
-    PROCNAME("pixBilateralExact");
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetColormap(pixs) != NULL)
-        return (PIX *)ERROR_PTR("pixs is cmapped", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs is cmapped", __func__, NULL);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", __func__, NULL);
     if (!spatial_kel)
-        return (PIX *)ERROR_PTR("spatial_ke not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("spatial_ke not defined", __func__, NULL);
 
     if (d == 8) {
         return pixBilateralGrayExact(pixs, spatial_kel, range_kel);
@@ -659,31 +648,29 @@ l_float32  sum, weight_sum, weight;
 L_KERNEL  *keli;
 PIX       *pixt, *pixd;
 
-    PROCNAME("pixBilateralGrayExact");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs must be gray", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be gray", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (!spatial_kel)
-        return (PIX *)ERROR_PTR("spatial kel not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("spatial kel not defined", __func__, NULL);
     kernelGetParameters(spatial_kel, &sy, &sx, NULL, NULL);
     if (w < 2 * sx + 1 || h < 2 * sy + 1) {
         L_WARNING("w = %d < 2 * sx + 1 = %d, or h = %d < 2 * sy + 1 = %d; "
-                  "returning copy\n", procName, w, 2 * sx + 1, h, 2 * sy + 1);
+                  "returning copy\n", __func__, w, 2 * sx + 1, h, 2 * sy + 1);
         return pixCopy(NULL, pixs);
     }
     if (!range_kel)
         return pixConvolve(pixs, spatial_kel, 8, 1);
     if (range_kel->sx != 256 || range_kel->sy != 1)
-        return (PIX *)ERROR_PTR("range kel not {256 x 1", procName, NULL);
+        return (PIX *)ERROR_PTR("range kel not {256 x 1", __func__, NULL);
 
     keli = kernelInvert(spatial_kel);
     kernelGetParameters(keli, &sy, &sx, &cy, &cx);
     if ((pixt = pixAddMirroredBorder(pixs, cx, sx - cx, cy, sy - cy)) == NULL) {
         kernelDestroy(&keli);
-        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
     }
 
     pixd = pixCreate(w, h, 8);
@@ -762,19 +749,17 @@ l_int32    d, halfwidth;
 L_KERNEL  *spatial_kel, *range_kel;
 PIX       *pixd;
 
-    PROCNAME("pixBlockBilateralExact");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", __func__, NULL);
     if (pixGetColormap(pixs) != NULL)
-        return (PIX *)ERROR_PTR("pixs is cmapped", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs is cmapped", __func__, NULL);
     if (spatial_stdev <= 0.0)
-        return (PIX *)ERROR_PTR("invalid spatial stdev", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid spatial stdev", __func__, NULL);
     if (range_stdev <= 0.0)
-        return (PIX *)ERROR_PTR("invalid range stdev", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid range stdev", __func__, NULL);
 
     halfwidth = 2 * spatial_stdev;
     spatial_kel = makeGaussianKernel(halfwidth, halfwidth, spatial_stdev, 1.0);
@@ -812,14 +797,12 @@ l_int32    x;
 l_float32  val, denom;
 L_KERNEL  *kel;
 
-    PROCNAME("makeRangeKernel");
-
     if (range_stdev <= 0.0)
-        return (L_KERNEL *)ERROR_PTR("invalid stdev <= 0", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("invalid stdev <= 0", __func__, NULL);
 
     denom = 2. * range_stdev * range_stdev;
     if ((kel = kernelCreate(1, 256)) == NULL)
-        return (L_KERNEL *)ERROR_PTR("kel not made", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("kel not made", __func__, NULL);
     kernelSetOrigin(kel, 0, 0);
     for (x = 0; x < 256; x++) {
         val = expf(-(l_float32)(x * x) / denom);

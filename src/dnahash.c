@@ -73,10 +73,8 @@ l_int32     is_prime;
 l_uint32    newsize;
 L_DNAHASH  *dahash;
 
-    PROCNAME("l_dnaHashCreate");
-
     if (nbuckets <= 0)
-        return (L_DNAHASH *)ERROR_PTR("negative hash size", procName, NULL);
+        return (L_DNAHASH *)ERROR_PTR("negative hash size", __func__, NULL);
     lept_isPrime(nbuckets, &is_prime, NULL);
     if (!is_prime) {
         findNextLargerPrime(nbuckets, &newsize);
@@ -87,7 +85,7 @@ L_DNAHASH  *dahash;
     if ((dahash->dna = (L_DNA **)LEPT_CALLOC(nbuckets, sizeof(L_DNA *)))
         == NULL) {
         LEPT_FREE(dahash);
-        return (L_DNAHASH *)ERROR_PTR("dna ptr array not made", procName, NULL);
+        return (L_DNAHASH *)ERROR_PTR("dna ptr array not made", __func__, NULL);
     }
 
     dahash->nbuckets = nbuckets;
@@ -108,10 +106,8 @@ l_dnaHashDestroy(L_DNAHASH **pdahash)
 L_DNAHASH  *dahash;
 l_int32    i;
 
-    PROCNAME("l_dnaHashDestroy");
-
     if (pdahash == NULL) {
-        L_WARNING("ptr address is NULL!\n", procName);
+        L_WARNING("ptr address is NULL!\n", __func__);
         return;
     }
 
@@ -145,10 +141,8 @@ l_dnaHashGetDna(L_DNAHASH  *dahash,
 l_int32  bucket;
 L_DNA   *da;
 
-    PROCNAME("l_dnaHashGetDna");
-
     if (!dahash)
-        return (L_DNA *)ERROR_PTR("dahash not defined", procName, NULL);
+        return (L_DNA *)ERROR_PTR("dahash not defined", __func__, NULL);
     bucket = key % dahash->nbuckets;
     da = dahash->dna[bucket];
     if (da) {
@@ -180,15 +174,13 @@ l_dnaHashAdd(L_DNAHASH  *dahash,
 l_int32  bucket;
 L_DNA   *da;
 
-    PROCNAME("l_dnaHashAdd");
-
     if (!dahash)
-        return ERROR_INT("dahash not defined", procName, 1);
+        return ERROR_INT("dahash not defined", __func__, 1);
     bucket = key % dahash->nbuckets;
     da = dahash->dna[bucket];
     if (!da) {
         if ((da = l_dnaCreate(dahash->initsize)) == NULL)
-            return ERROR_INT("da not made", procName, 1);
+            return ERROR_INT("da not made", __func__, 1);
         dahash->dna[bucket] = da;
     }
     l_dnaAddNumber(da, value);
