@@ -195,7 +195,6 @@ struct Pix
     struct PixColormap  *colormap;  /*!< colormap (may be null)            */
     l_uint32            *data;      /*!< the image data                    */
 };
-typedef struct Pix PIX;
 
 /*! Colormap of a Pix */
 struct PixColormap
@@ -205,7 +204,6 @@ struct PixColormap
     l_int32          nalloc;  /*!< number of color entries allocated       */
     l_int32          n;       /*!< number of color entries used            */
 };
-typedef struct PixColormap  PIXCMAP;
 
 
     /*! Colormap table entry (after the BMP version).
@@ -219,7 +217,6 @@ struct RGBA_Quad
     l_uint8     red;          /*!< red value */
     l_uint8     alpha;        /*!< alpha value */
 };
-typedef struct RGBA_Quad  RGBA_QUAD;
 
 
 /*-------------------------------------------------------------------------*
@@ -240,7 +237,6 @@ struct Pixa
     struct Pix        **pix;        /*!< the array of ptrs to pix          */
     struct Boxa        *boxa;       /*!< array of boxes                    */
 };
-typedef struct Pixa PIXA;
 
 /*! Array of arrays of pix */
 struct Pixaa
@@ -250,7 +246,6 @@ struct Pixaa
     struct Pixa       **pixa;       /*!< array of ptrs to pixa             */
     struct Boxa        *boxa;       /*!< array of boxes                    */
 };
-typedef struct Pixaa PIXAA;
 
 
 /*-------------------------------------------------------------------------*
@@ -265,7 +260,6 @@ struct Box
     l_int32            h;           /*!< box height                        */
     l_atomic           refcount;    /*!< reference count (1 if no clones)  */
 };
-typedef struct Box    BOX;
 
 /*! Array of Box */
 struct Boxa
@@ -275,7 +269,6 @@ struct Boxa
     l_atomic           refcount;    /*!< reference count (1 if no clones)  */
     struct Box       **box;         /*!< box ptr array                     */
 };
-typedef struct Boxa  BOXA;
 
 /*! Array of Boxa */
 struct Boxaa
@@ -284,7 +277,6 @@ struct Boxaa
     l_int32            nalloc;      /*!< number of boxa ptrs allocated     */
     struct Boxa      **boxa;        /*!< boxa ptr array                    */
 };
-typedef struct Boxaa  BOXAA;
 
 
 /*-------------------------------------------------------------------------*
@@ -300,7 +292,6 @@ struct Pta
     l_atomic           refcount;    /*!< reference count (1 if no clones)  */
     l_float32         *x, *y;       /*!< arrays of floats                  */
 };
-typedef struct Pta PTA;
 
 
 /*-------------------------------------------------------------------------*
@@ -313,7 +304,6 @@ struct Ptaa
     l_int32              nalloc;    /*!< number of pta ptrs allocated      */
     struct Pta         **pta;       /*!< pta ptr array                     */
 };
-typedef struct Ptaa PTAA;
 
 
 /*-------------------------------------------------------------------------*
@@ -328,7 +318,6 @@ struct Pixacc
                                     /*!< intermediate results              */
     struct Pix         *pix;        /*!< the 32 bit accumulator pix        */
 };
-typedef struct Pixacc PIXACC;
 
 
 /*-------------------------------------------------------------------------*
@@ -346,7 +335,6 @@ struct PixTiling
     l_int32              yoverlap;  /*!< overlap on top and bottom         */
     l_int32              strip;     /*!< strip for paint; default is TRUE  */
 };
-typedef struct PixTiling PIXTILING;
 
 
 /*-------------------------------------------------------------------------*
@@ -367,7 +355,6 @@ struct FPix
                                     /*!< (use 0 if unknown)                */
     l_float32           *data;      /*!< the float image data              */
 };
-typedef struct FPix FPIX;
 
 /*! Array of FPix */
 struct FPixa
@@ -377,7 +364,6 @@ struct FPixa
     l_atomic            refcount;   /*!< reference count (1 if no clones)  */
     struct FPix       **fpix;       /*!< the array of ptrs to fpix         */
 };
-typedef struct FPixa FPIXA;
 
 
 /*-------------------------------------------------------------------------*
@@ -398,7 +384,6 @@ struct DPix
                                     /*!< (use 0 if unknown)                */
     l_float64           *data;      /*!< the double image data             */
 };
-typedef struct DPix DPIX;
 
 
 /*-------------------------------------------------------------------------*
@@ -421,7 +406,6 @@ struct PixComp
     l_uint8             *data;      /*!< the compressed image data         */
     size_t               size;      /*!< size of the data array            */
 };
-typedef struct PixComp PIXC;
 
 
 /*-------------------------------------------------------------------------*
@@ -438,7 +422,5 @@ struct PixaComp
     struct PixComp     **pixc;      /*!< the array of ptrs to PixComp      */
     struct Boxa         *boxa;      /*!< array of boxes                    */
 };
-typedef struct PixaComp PIXAC;
-
 
 #endif  /* LEPTONICA_PIX_INTERNAL_H */

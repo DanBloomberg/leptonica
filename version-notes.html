@@ -107,10 +107,12 @@ They are <i>not</i> a complete listing of the modifications.
         * Improve tiff read resolution conversion by rounding.
         * Use stdatomic.h to make cloning string safe.
           Remove all *GetRefcount() and *ChangeRefcount() accessors.
-        * Begin to replace procName and mainName strings by __func__.
+        * Replace procName strings by __func__.
         * Remove information about fields in many structs from the public
           interface allheaders.h, instead putting them in internal files
           pix_internal.h and array_internal.h.
+        * Increase the .so number from 5.4.0 to 6.0.0.
+        * Rename the autotools generated libraries from liblept to libleptonica
 
 1.82.0  Sept 22, 2021
         * Fix issue-585: reading tiff rgb with tiffbpl = 1.5 * packedbpl.

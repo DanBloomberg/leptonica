@@ -73,7 +73,6 @@ struct Numa
     l_float32        delx;      /*!< change in x value as i --> i + 1    */
     l_float32       *array;     /*!< number array                        */
 };
-typedef struct Numa  NUMA;
 
     /*! Array of number arrays */
 struct Numaa
@@ -82,7 +81,6 @@ struct Numaa
     l_int32          n;         /*!< number of Numa saved                 */
     struct Numa    **numa;      /*!< array of Numa                        */
 };
-typedef struct Numaa  NUMAA;
 
 /*! Dna version for serialization */
 #define  DNA_VERSION_NUMBER     1
@@ -97,7 +95,6 @@ struct L_Dna
     l_float64        delx;      /*!< change in x value as i --> i + 1    */
     l_float64       *array;     /*!< number array                        */
 };
-typedef struct L_Dna  L_DNA;
 
     /*! Array of double number arrays */
 struct L_Dnaa
@@ -106,7 +103,6 @@ struct L_Dnaa
     l_int32          n;         /*!< number of L_Dna saved                */
     struct L_Dna   **dna;       /*!< array of L_Dna                       */
 };
-typedef struct L_Dnaa  L_DNAA;
 
 struct L_DnaHash
 {
@@ -114,7 +110,6 @@ struct L_DnaHash
     l_int32          initsize;   /*!< initial size of each dna that is made  */
     struct L_Dna   **dna;        /*!< array of L_Dna                       */
 };
-typedef struct L_DnaHash L_DNAHASH;
 
 /*! Sarray version for serialization */
 #define  SARRAY_VERSION_NUMBER     1
@@ -127,7 +122,6 @@ struct Sarray
     l_atomic         refcount;  /*!< reference count (1 if no clones)    */
     char           **array;     /*!< string array                        */
 };
-typedef struct Sarray SARRAY;
 
     /*! Byte array (analogous to C++ "string") */
 struct L_Bytea
@@ -137,6 +131,5 @@ struct L_Bytea
     l_atomic         refcount;  /*!< reference count (1 if no clones)         */
     l_uint8         *data;      /*!< data array                               */
 };
-typedef struct L_Bytea L_BYTEA;
 
 #endif  /* LEPTONICA_ARRAY_INTERNAL_H */
