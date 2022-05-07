@@ -93,7 +93,7 @@ for f in $SRC/leptonica/prog/fuzzing/*_fuzzer.cc; do
   $CXX $CXXFLAGS -std=c++11 -I"$WORK/include" \
     $SRC/leptonica/prog/fuzzing/${fuzzer}_fuzzer.cc -o $OUT/${fuzzer}_fuzzer \
     -Isrc/ \
-    "$WORK/lib/liblept.a" \
+    "$WORK/lib/libleptonica.a" \
     "$WORK/lib/libtiff.a" \
     "$WORK/lib/libwebp.a" \
     "$WORK/lib/libpng.a" \
