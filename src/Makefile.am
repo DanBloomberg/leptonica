@@ -65,12 +65,15 @@ libleptonica_la_SOURCES = adaptmap.c affine.c                        \
  writefile.c zlibmem.c zlibmemstub.c
 
 pkginclude_HEADERS = allheaders.h alltypes.h                    \
- array.h array_internal.h arrayaccess.h bbuffer.h               \
- bilateral.h bmf.h bmfdata.h bmp.h ccbord.h colorfill.h         \
- dewarp.h endianness.h environ.h                                \
+ array.h array_internal.h                                       \
+ arrayaccess.h bbuffer.h                                        \
+ bilateral.h bmf.h bmfdata.h bmp.h                              \
+ ccbord.h ccbord_internal.h                                     \
+ colorfill.h dewarp.h endianness.h environ.h                    \
  gplot.h hashmap.h heap.h imageio.h jbclass.h                   \
  leptwin.h list.h morph.h                                       \
- pix.h pix_internal.h ptra.h queue.h rbtree.h                   \
+ pix.h pix_internal.h                                           \
+ ptra.h queue.h rbtree.h                                        \
  readbarcode.h recog.h regutils.h stack.h                       \
  stringcode.h sudoku.h watershed.h
 
