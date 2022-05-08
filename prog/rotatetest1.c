@@ -38,15 +38,14 @@
 int main(int    argc,
          char **argv)
 {
-l_int32      i, w, h, d, rotflag;
-PIX         *pixs, *pixt, *pixd;
-l_float32    angle, deg2rad, ang;
-char        *filein, *fileout;
-static char  mainName[] = "rotatetest1";
+l_int32    i, w, h, d, rotflag;
+PIX       *pixs, *pixt, *pixd;
+l_float32  angle, deg2rad, ang;
+char      *filein, *fileout;
 
     if (argc != 4)
         return ERROR_INT(" Syntax:  rotatetest1 filein angle fileout",
-                         mainName, 1);
+                         __func__, 1);
     filein = argv[1];
     angle = atof(argv[2]);
     fileout = argv[3];
@@ -56,7 +55,7 @@ static char  mainName[] = "rotatetest1";
 
     deg2rad = 3.1415926535 / 180.;
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
+        return ERROR_INT("pix not made", __func__, 1);
     if (pixGetDepth(pixs) == 1) {
         pixt = pixScaleToGray3(pixs);
         pixDestroy(&pixs);

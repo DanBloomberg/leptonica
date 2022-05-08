@@ -58,18 +58,17 @@
 int main(int    argc,
          char **argv)
 {
-char        *filename;
-l_int32      w, h, type, maxboxes;
-l_float32    ovlap;
-BOX         *box;
-BOXA        *boxa, *boxat, *boxad;
-PIX         *pix, *pixs, *pix1, *pix2;
-PIXA        *pixa;
-static char  mainName[] = "partitiontest";
+char      *filename;
+l_int32    w, h, type, maxboxes;
+l_float32  ovlap;
+BOX       *box;
+BOXA      *boxa, *boxat, *boxad;
+PIX       *pix, *pixs, *pix1, *pix2;
+PIXA      *pixa;
 
     if (argc != 3 && argc != 5)
         return ERROR_INT("syntax: partitiontest <fname> type [maxboxes ovlap]",
-                         mainName, 1);
+                         __func__, 1);
     filename = argv[1];
     type = atoi(argv[2]);
 
@@ -93,7 +92,7 @@ static char  mainName[] = "partitiontest";
                     "     8:   L_SORT_BY_MAX_DIMENSION\n"
                     "     9:   L_SORT_BY_PERIMETER\n"
                     "    10:   L_SORT_BY_AREA\n");
-        return ERROR_INT("invalid type: see source", mainName, 1);
+        return ERROR_INT("invalid type: see source", __func__, 1);
     }
     if (argc == 5) {
         maxboxes = atoi(argv[3]);

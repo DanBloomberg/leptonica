@@ -54,14 +54,13 @@
 int main(int    argc,
          char **argv)
 {
-l_int32      start, nbytes;
-char        *filein, *fileout, *newstr;
-static char  mainName[] = "replacebytes";
+l_int32  start, nbytes;
+char    *filein, *fileout, *newstr;
 
     if (argc != 5 && argc != 6)
         return ERROR_INT(
                   "syntax: replacebytes filein start nbytes [string] fileout",
-                   mainName, 1);
+                   __func__, 1);
     filein = argv[1];
     start = atof(argv[2]);
     nbytes = atof(argv[3]);

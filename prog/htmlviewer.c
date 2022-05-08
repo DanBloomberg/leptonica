@@ -71,14 +71,13 @@ static void WriteFormattedPix(const char *fname, PIX *pix);
 int main(int    argc,
          char **argv)
 {
-char        *dirin, *dirout, *rootname;
-l_int32      thumbwidth, viewwidth;
-static char  mainName[] = "htmlviewer";
+char    *dirin, *dirout, *rootname;
+l_int32  thumbwidth, viewwidth;
 
     if (argc != 6)
         return ERROR_INT(
             " Syntax:  htmlviewer dirin dirout rootname thumbwidth viewwidth",
-             mainName, 1);
+             __func__, 1);
     dirin = argv[1];
     dirout = argv[2];
     rootname = argv[3];

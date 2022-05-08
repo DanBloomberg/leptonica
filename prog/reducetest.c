@@ -41,14 +41,13 @@
 int main(int    argc,
          char **argv)
 {
-PIX         *pixs, *pixd;
-l_int32      level1, level2, level3, level4;
-char        *filein, *fileout;
-static char  mainName[] = "reducetest";
+PIX     *pixs, *pixd;
+l_int32  level1, level2, level3, level4;
+char    *filein, *fileout;
 
     if (argc != 7)
         return ERROR_INT(" Syntax:  reducetest filein fileout l1 l2 l3 l4",
-                         mainName, 1);
+                         __func__, 1);
     filein = argv[1];
     fileout = argv[2];
     level1 = atoi(argv[3]);
@@ -58,7 +57,7 @@ static char  mainName[] = "reducetest";
     setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
 #if 1
     pixd = pixReduceRankBinaryCascade(pixs, level1, level2, level3, level4);

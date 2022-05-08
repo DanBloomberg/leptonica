@@ -79,11 +79,10 @@ FILE        *fp;
 PIX         *pixs, *pixt, *pixr;
 PIXA        *pixa;
 SARRAY      *sa;
-static char  mainName[] = "printsplitimage";
 
     if (argc != 4 && argc != 5)
         return ERROR_INT(" Syntax:  printsplitimage filein nx ny [printer]",
-                         mainName, 1);
+                         __func__, 1);
     filein = argv[1];
     nx = atoi(argv[2]);
     ny = atoi(argv[3]);
@@ -101,7 +100,7 @@ static char  mainName[] = "printsplitimage";
     lept_mkdir("lept/split");
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
     pixGetDimensions(pixs, &ws, &hs, NULL);
     if (ny * ws > nx * hs) {
         pixr = pixRotate90(pixs, 1);

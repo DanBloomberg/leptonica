@@ -61,16 +61,15 @@
 int main(int    argc,
          char **argv)
 {
-char        *str1, *str2, *pngname;
-l_int32      i;
-size_t       size1, size2;
-l_float32    x, y1, y2, pi;
-GPLOT       *gplot1, *gplot2, *gplot3, *gplot4, *gplot5;
-NUMA        *nax, *nay1, *nay2;
-static char  mainName[] = "plottest";
+char      *str1, *str2, *pngname;
+l_int32    i;
+size_t     size1, size2;
+l_float32  x, y1, y2, pi;
+GPLOT     *gplot1, *gplot2, *gplot3, *gplot4, *gplot5;
+NUMA      *nax, *nay1, *nay2;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax:  plottest", mainName, 1);
+        return ERROR_INT(" Syntax:  plottest", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/plot");
@@ -107,7 +106,7 @@ static char  mainName[] = "plottest";
         /* Test gplot serialization */
     gplotWrite("/tmp/lept/plot/plot1.gp", gplot1);
     if ((gplot2 = gplotRead("/tmp/lept/plot/plot1.gp")) == NULL)
-        return ERROR_INT("gplotRead failure!", mainName, 1);
+        return ERROR_INT("gplotRead failure!", __func__, 1);
     gplotWrite("/tmp/lept/plot/plot2.gp", gplot2);
 
         /* Are the two written gplot files the same? */
@@ -140,7 +139,7 @@ static char  mainName[] = "plottest";
         /* Write, read back, and generate the plot */
     gplotWrite("/tmp/lept/plot/plot4.gp", gplot4);
     if ((gplot5 = gplotRead("/tmp/lept/plot/plot4.gp")) == NULL)
-        return ERROR_INT("gplotRead failure!", mainName, 1);
+        return ERROR_INT("gplotRead failure!", __func__, 1);
     gplotMakeOutput(gplot5);
     l_fileDisplay("/tmp/lept/plot/set2.png", 750, 100, 1.0);
 

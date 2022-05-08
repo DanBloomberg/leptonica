@@ -50,12 +50,11 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_int32      w, h, width, sep, first, last;
-l_float32    scalefact;
-BOXA        *boxa1, *boxa2;
-PIX         *pixd;
-static char  mainName[] = "displayboxa";
+char      *filein, *fileout;
+l_int32    w, h, width, sep, first, last;
+l_float32  scalefact;
+BOXA      *boxa1, *boxa2;
+PIX       *pixd;
 
     if (argc != 6) {
         lept_stderr("Syntax error in displayboxa:\n"
@@ -68,13 +67,13 @@ static char  mainName[] = "displayboxa";
     width = atoi(argv[4]);
     fileout = argv[5];
     if (width < 30) {
-        L_ERROR("width too small; setting to 100\n", mainName);
+        L_ERROR("width too small; setting to 100\n", __func__);
         width = 100;
     }
     setLeptDebugOK(1);
 
     if ((boxa1 = boxaRead(filein)) == NULL)
-        return ERROR_INT("boxa not made", mainName, 1);
+        return ERROR_INT("boxa not made", __func__, 1);
     boxaGetExtent(boxa1, &w, &h, NULL);
     scalefact = (l_float32)width / (l_float32)w;
     boxa2 = boxaTransform(boxa1, 0, 0, scalefact, scalefact);

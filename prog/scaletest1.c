@@ -41,15 +41,14 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_int32      d;
-l_float32    scalex, scaley;
-PIX         *pixs, *pixd;
-static char  mainName[] = "scaletest1";
+char      *filein, *fileout;
+l_int32    d;
+l_float32  scalex, scaley;
+PIX       *pixs, *pixd;
 
     if (argc != 5)
 	return ERROR_INT(" Syntax:  scaletest1 filein scalex scaley fileout",
-	                 mainName, 1);
+	                 __func__, 1);
     filein = argv[1];
     scalex = atof(argv[2]);
     scaley = atof(argv[3]);
@@ -57,7 +56,7 @@ static char  mainName[] = "scaletest1";
     setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
-	return ERROR_INT("pixs not made", mainName, 1);
+	return ERROR_INT("pixs not made", __func__, 1);
 
         /* choose type of scaling operation */
 #if 1

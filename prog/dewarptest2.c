@@ -50,15 +50,14 @@
 l_int32 main(int    argc,
              char **argv)
 {
-l_int32      d, method, pageno;
-L_DEWARP    *dew1;
-L_DEWARPA   *dewa;
-PIX         *pixs, *pixn, *pixg, *pixb, *pixd;
-static char  mainName[] = "dewarptest2";
+l_int32     d, method, pageno;
+L_DEWARP   *dew1;
+L_DEWARPA  *dewa;
+PIX        *pixs, *pixn, *pixg, *pixb, *pixd;
 
     if (argc != 2 && argc != 4)
         return ERROR_INT("Syntax: dewarptest2 method [image pageno]",
-                         mainName, 1);
+                         __func__, 1);
     if (argc == 2) {
         pixs = pixRead("cat.035.jpg");
         pageno = 35;
@@ -68,7 +67,7 @@ static char  mainName[] = "dewarptest2";
         pageno = atoi(argv[3]);
     }
     if (!pixs)
-        return ERROR_INT("image not read", mainName, 1);
+        return ERROR_INT("image not read", __func__, 1);
     method = atoi(argv[1]);
 
     setLeptDebugOK(1);

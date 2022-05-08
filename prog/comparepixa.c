@@ -66,10 +66,9 @@
 int main(int    argc,
          char **argv)
 {
-char        *fileout;
-l_int32      nx, ny, tw, spacing, border, fontsize;
-PIXA        *pixa1, *pixa2;
-static char  mainName[] = "comparepixa";
+char    *fileout;
+l_int32  nx, ny, tw, spacing, border, fontsize;
+PIXA    *pixa1, *pixa2;
 
     if (argc != 10) {
         lept_stderr("Syntax error in comparepixa:\n"
@@ -81,9 +80,9 @@ static char  mainName[] = "comparepixa";
 
         /* Input files can be either pixa or pixacomp */
     if ((pixa1 = pixaReadBoth(argv[1])) == NULL)
-        return ERROR_INT("pixa1 not read", mainName, 1);
+        return ERROR_INT("pixa1 not read", __func__, 1);
     if ((pixa2 = pixaReadBoth(argv[2])) == NULL)
-        return ERROR_INT("pixa2 not read", mainName, 1);
+        return ERROR_INT("pixa2 not read", __func__, 1);
     nx = atoi(argv[3]);
     ny = atoi(argv[4]);
     tw = atoi(argv[5]);

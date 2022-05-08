@@ -45,11 +45,10 @@ static const char *fileout = "/tmp/lept/fpix/fpixcontours.png";
 int main(int    argc,
          char **argv)
 {
-char        *filein;
-l_int32      ncontours;
-FPIX        *fpix;
-PIX         *pix;
-static char  mainName[] = "fpixcontours";
+char    *filein;
+l_int32  ncontours;
+FPIX    *fpix;
+PIX     *pix;
 
     if (argc != 2 && argc != 3) {
         lept_stderr("Syntax: fpixcontours filein [ncontours]\n");
@@ -65,7 +64,7 @@ static char  mainName[] = "fpixcontours";
     lept_mkdir("lept/fpix");
 
     if ((fpix = fpixRead(filein)) == NULL)
-        return ERROR_INT(mainName, "fpix not read", 1);
+        return ERROR_INT(__func__, "fpix not read", 1);
     pix = fpixAutoRenderContours(fpix, ncontours);
     pixWrite(fileout, pix, IFF_PNG);
     pixDisplay(pix, 100, 100);

@@ -50,14 +50,13 @@
 int main(int    argc,
          char **argv)
 {
-char        *filename;
-l_int32      index;
-SELA        *sela;
-static char  mainName[] = "fmorphautogen";
+char    *filename;
+l_int32  index;
+SELA    *sela;
 
     if (argc != 2 && argc != 3)
         return ERROR_INT(" Syntax:  fmorphautogen index <filename>",
-                         mainName, 1);
+                         __func__, 1);
     index = atoi(argv[1]);
     filename = NULL;
     if (argc == 3)

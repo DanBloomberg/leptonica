@@ -39,11 +39,10 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein;
-static char  mainName[] = "fileinfo";
+char  *filein;
 
     if (argc != 2)
-        return ERROR_INT(" Syntax:  fileinfo filein", mainName, 1);
+        return ERROR_INT(" Syntax:  fileinfo filein", __func__, 1);
     filein = argv[1];
 
     setLeptDebugOK(1);

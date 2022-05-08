@@ -66,15 +66,14 @@ static const char *dilation_sequence = "d3.3";
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_int32      thresh;
-PIX         *pixs, *pixg, *pixb;
-PIX         *pixmask4, *pixseed4, *pixsf4, *pixd4, *pixd;
-static char  mainName[] = "pagesegtest2";
+char    *filein, *fileout;
+l_int32  thresh;
+PIX     *pixs, *pixg, *pixb;
+PIX     *pixmask4, *pixseed4, *pixsf4, *pixd4, *pixd;
 
     if (argc != 4)
         return ERROR_INT(" Syntax:  pagesegtest2 filein thresh fileout",
-                         mainName, 1);
+                         __func__, 1);
     filein = argv[1];
     thresh = atoi(argv[2]);
     fileout = argv[3];
@@ -82,7 +81,7 @@ static char  mainName[] = "pagesegtest2";
 
         /* Get a 1 bpp version of the page */
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
     if (pixGetDepth(pixs) == 32)
         pixg = pixConvertRGBToGrayFast(pixs);
     else

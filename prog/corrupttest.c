@@ -65,20 +65,19 @@ static const char *corruptfile = "/tmp/lept/corrupt/badfile";
 int main(int     argc,
          char  **argv)
 {
-size_t       filesize;
-l_float32    loc, size;
-l_float32    coeff1[15], coeff2[25];
-l_int32      i, j, w, xres, yres, format, ret, nwarn, hint, deletion, show;
-l_uint8     *comment, *filedata;
-char        *filein;
-size_t       nbytes;
-FILE        *fp;
-PIX         *pix;
-static char  mainName[] = "corrupttest";
+size_t     filesize;
+l_float32  loc, size;
+l_float32  coeff1[15], coeff2[25];
+l_int32    i, j, w, xres, yres, format, ret, nwarn, hint, deletion, show;
+l_uint8   *comment, *filedata;
+char      *filein;
+size_t     nbytes;
+FILE      *fp;
+PIX       *pix;
 
     if (argc != 3 && argc != 5)
         return ERROR_INT("syntax: corrupttest filein deletion [loc size]",
-        mainName, 1);
+        __func__, 1);
     filein = argv[1];
     deletion = atoi(argv[2]);
     findFileFormat(filein, &format);
@@ -98,7 +97,7 @@ static char  mainName[] = "corrupttest";
             fileCorruptByMutation(filein, loc, size, corruptfile);
         }
         if ((fp = fopenReadStream(corruptfile)) == NULL)
-            return ERROR_INT("stream not opened", mainName, 1);
+            return ERROR_INT("stream not opened", __func__, 1);
         if (format == IFF_JFIF_JPEG) {
             if ((pix = pixReadJpeg(corruptfile, 0, 1, &nwarn, hint)) != NULL) {
                 pixDisplay(pix, 100, 100);

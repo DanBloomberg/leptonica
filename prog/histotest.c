@@ -47,15 +47,14 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein;
-l_int32      d, sigbits;
-GPLOT       *gplot;
-NUMA        *na;
-PIX         *pixs;
-static char  mainName[] = "histotest";
+char    *filein;
+l_int32  d, sigbits;
+GPLOT   *gplot;
+NUMA    *na;
+PIX     *pixs;
 
     if (argc != 3)
-        return ERROR_INT(" Syntax:  histotest filein sigbits", mainName, 1);
+        return ERROR_INT(" Syntax:  histotest filein sigbits", __func__, 1);
     filein = argv[1];
     sigbits = atoi(argv[2]);
 
@@ -63,15 +62,15 @@ static char  mainName[] = "histotest";
     lept_mkdir("lept/histo");
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
-        return ERROR_INT("depth not 8 or 32 bpp", mainName, 1);
+        return ERROR_INT("depth not 8 or 32 bpp", __func__, 1);
 
     if (d == 32) {
         startTimer();
         if ((na = pixOctcubeHistogram(pixs, sigbits, NULL)) == NULL)
-            return ERROR_INT("na not made", mainName, 1);
+            return ERROR_INT("na not made", __func__, 1);
         lept_stderr("histo time = %7.3f sec\n", stopTimer());
         gplot = gplotCreate("/tmp/lept/histo/color", GPLOT_PNG,
                             "color histogram with octcube indexing",
@@ -83,7 +82,7 @@ static char  mainName[] = "histotest";
     }
     else {
         if ((na = pixGetGrayHistogram(pixs, 1)) == NULL)
-            return ERROR_INT("na not made", mainName, 1);
+            return ERROR_INT("na not made", __func__, 1);
         numaWrite("/tmp/junkna", na);
         gplot = gplotCreate("/tmp/lept/histo/gray", GPLOT_PNG,
                             "grayscale histogram", "gray value",

@@ -41,19 +41,18 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein;
-l_int32      i, n, ns;
-BOXA        *boxa;
-PIX         *pixs, *pixt;
-PIXA        *pixa, *pixas, *pixas2;
-static char  mainName[] = "sorttest";
+char    *filein;
+l_int32  i, n, ns;
+BOXA    *boxa;
+PIX     *pixs, *pixt;
+PIXA    *pixa, *pixas, *pixas2;
 
     if (argc != 2)
-        return ERROR_INT(" Syntax:  sorttest filein", mainName, 1);
+        return ERROR_INT(" Syntax:  sorttest filein", __func__, 1);
 
     filein = argv[1];
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
 #if 0
     boxa = pixConnComp(pixs, NULL, 8);

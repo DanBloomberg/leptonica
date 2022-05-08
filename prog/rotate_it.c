@@ -56,16 +56,15 @@
 int main(int    argc,
          char **argv)
 {
-l_int32      icolor, itype, format, quads;
-l_float32    angle, deg2rad, anglerad;
-char        *filein, *fileout, *type, *incolor;
-PIX         *pixs, *pixd;
-static char  mainName[] = "rotate_it";
+l_int32    icolor, itype, format, quads;
+l_float32  angle, deg2rad, anglerad;
+char      *filein, *fileout, *type, *incolor;
+PIX       *pixs, *pixd;
 
     if (argc != 4 && argc != 6)
         return ERROR_INT(
             "\n    Syntax:  rotate_it filein angle fileout [type incolor]",
-            mainName, 1);
+            __func__, 1);
     filein = argv[1];
     angle = atof(argv[2]);
     fileout = argv[3];
@@ -78,7 +77,7 @@ static char  mainName[] = "rotate_it";
     deg2rad = 3.1415926535 / 180.;
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
     format = pixGetInputFormat(pixs);
     if (format == IFF_UNKNOWN) format = IFF_PNG;
 

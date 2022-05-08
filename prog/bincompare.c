@@ -44,27 +44,26 @@
 int main(int    argc,
          char **argv)
 {
-l_int32      w, h, d, n;
-char        *filein1, *filein2, *fileout;
-PIX         *pixs1, *pixs2;
-static char  mainName[] = "bincompare";
+l_int32  w, h, d, n;
+char    *filein1, *filein2, *fileout;
+PIX     *pixs1, *pixs2;
 
     if (argc != 4)
         return ERROR_INT(" Syntax:  bincompare filein1 filein2 fileout",
-                         mainName, 1);
+                         __func__, 1);
     filein1 = argv[1];
     filein2 = argv[2];
     fileout = argv[3];
     setLeptDebugOK(1);
 
     if ((pixs1 = pixRead(filein1)) == NULL)
-        return ERROR_INT("pixs1 not made", mainName, 1);
+        return ERROR_INT("pixs1 not made", __func__, 1);
     if ((pixs2 = pixRead(filein2)) == NULL)
-        return ERROR_INT("pixs2 not made", mainName, 1);
+        return ERROR_INT("pixs2 not made", __func__, 1);
 
     pixGetDimensions(pixs1, &w, &h, &d);
     if (d != 1)
-        return ERROR_INT("pixs1 not binary", mainName, 1);
+        return ERROR_INT("pixs1 not binary", __func__, 1);
 
     pixCountPixels(pixs1, &n, NULL);
     lept_stderr("Number of fg pixels in file1 = %d\n", n);

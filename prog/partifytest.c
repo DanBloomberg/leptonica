@@ -37,10 +37,8 @@
 int main(int    argc,
          char **argv)
 {
-static char  mainName[] = "partifytest";
-
     if (argc != 1)
-        return ERROR_INT("syntax: partifytest", mainName, 1);
+        return ERROR_INT("syntax: partifytest", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/partify");

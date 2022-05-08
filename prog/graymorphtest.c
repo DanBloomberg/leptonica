@@ -39,14 +39,13 @@
 int main(int    argc,
          char **argv)
 {
-char           *filein, *fileout;
-l_int32         wsize, hsize, w, h, d;
-PIX            *pixs, *pixd;
-static char     mainName[] = "graymorphtest";
+char    *filein, *fileout;
+l_int32  wsize, hsize, w, h, d;
+PIX     *pixs, *pixd;
 
     if (argc != 5)
         return ERROR_INT(" Syntax:  graymorphtest filein wsize hsize fileout",
-                         mainName, 1);
+                         __func__, 1);
     filein = argv[1];
     wsize = atoi(argv[2]);
     hsize = atoi(argv[3]);
@@ -54,10 +53,10 @@ static char     mainName[] = "graymorphtest";
     setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
+        return ERROR_INT("pix not made", __func__, 1);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8)
-        return ERROR_INT("pix not 8 bpp", mainName, 1);
+        return ERROR_INT("pix not 8 bpp", __func__, 1);
 
     /* ---------- Choose an operation ----------  */
 #if 1

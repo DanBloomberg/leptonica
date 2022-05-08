@@ -37,12 +37,11 @@
 int main(int    argc,
          char **argv)
 {
-PIX         *pixs, *pixsg, *pix1, *pix2;
-PIXA        *pixa;
-static char  mainName[] = "livre_tophat";
+PIX   *pixs, *pixsg, *pix1, *pix2;
+PIXA  *pixa;
 
     if (argc != 1)
-	return ERROR_INT(" Syntax: livre_tophat", mainName, 1);
+	return ERROR_INT(" Syntax: livre_tophat", __func__, 1);
     setLeptDebugOK(1);
 
         /* Read the image in at 150 ppi. */

@@ -41,22 +41,21 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_uint8     *array1, *array2, *dataout, *dataout2;
-l_int32      i, blocksize, same;
-size_t       nbytes, nout, nout2;
-L_BBUFFER   *bb, *bb2;
-FILE        *fp;
-static char  mainName[] = "buffertest";
+char       *filein, *fileout;
+l_uint8    *array1, *array2, *dataout, *dataout2;
+l_int32     i, blocksize, same;
+size_t      nbytes, nout, nout2;
+L_BBUFFER  *bb, *bb2;
+FILE       *fp;
 
     if (argc != 3)
-        return ERROR_INT(" Syntax:  buffertest filein fileout", mainName, 1);
+        return ERROR_INT(" Syntax:  buffertest filein fileout", __func__, 1);
     filein = argv[1];
     fileout = argv[2];
     setLeptDebugOK(1);
 
     if ((array1 = l_binaryRead(filein, &nbytes)) == NULL)
-        return ERROR_INT("array not made", mainName, 1);
+        return ERROR_INT("array not made", __func__, 1);
     lept_stderr("Bytes read from file: %lu\n", (unsigned long)nbytes);
 
         /* Application of byte buffer ops: compress/decompress in memory */

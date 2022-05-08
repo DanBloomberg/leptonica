@@ -98,13 +98,12 @@ static const char *version = "1.5";
 int main(int    argc,
          char **argv)
 {
-char        *filein, *str, *tempfile, *prestring, *outprotos, *protostr;
-char         buf[L_BUFSIZE];
-l_int32      i, maxindex, in_line, nflags, protos_added, firstfile, len, ret;
-size_t       nbytes;
-L_BYTEA     *ba, *ba2;
-SARRAY      *sa;
-static char  mainName[] = "xtractprotos";
+char     *filein, *str, *tempfile, *prestring, *outprotos, *protostr;
+char      buf[L_BUFSIZE];
+l_int32   i, maxindex, in_line, nflags, protos_added, firstfile, len, ret;
+size_t    nbytes;
+L_BYTEA  *ba, *ba2;
+SARRAY   *sa;
 
     if (argc == 1) {
         lept_stderr(
@@ -135,7 +134,7 @@ static char  mainName[] = "xtractprotos";
                     return 1;
                 }
                 if ((len = strlen(buf)) > L_BUFSIZE - 3) {
-                    L_WARNING("prestring too large; omitting!\n", mainName);
+                    L_WARNING("prestring too large; omitting!\n", __func__);
                 } else {
                     buf[len] = ' ';
                     buf[len + 1] = '\0';

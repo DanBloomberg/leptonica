@@ -78,17 +78,16 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_int32      sharpen, antialias, togray, format, lossless, d;
-l_float32    scalex, scaley;
-PIX         *pixs, *pixd;
-static char  mainName[] = "scale_it";
+char      *filein, *fileout;
+l_int32    sharpen, antialias, togray, format, lossless, d;
+l_float32  scalex, scaley;
+PIX       *pixs, *pixd;
 
     if (argc != 6 && argc != 9)
         return ERROR_INT(
             "\n    Syntax:  scale_it filein scalex scaley fileout lossless "
                            "[sharpen antialias togray]",
-            mainName, 1);
+            __func__, 1);
 
     filein = argv[1];
     scalex = atof(argv[2]);
@@ -102,11 +101,11 @@ static char  mainName[] = "scale_it";
         togray = atoi(argv[8]);
     }
     if (scalex <= 0 || scaley <= 0)
-        return ERROR_INT("invalid scale factor; must be > 0.0", mainName, 1);
+        return ERROR_INT("invalid scale factor; must be > 0.0", __func__, 1);
     setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
-	return ERROR_INT("pixs not made", mainName, 1);
+	return ERROR_INT("pixs not made", __func__, 1);
     d = pixGetDepth(pixs);
     if (d == 1) {
         if (togray && scalex < 1.0)
@@ -123,7 +122,7 @@ static char  mainName[] = "scale_it";
         }
     }
     if (!pixd)
-	return ERROR_INT("pixd not made", mainName, 1);
+	return ERROR_INT("pixd not made", __func__, 1);
 
     d = pixGetDepth(pixd);
     if (d == 1)

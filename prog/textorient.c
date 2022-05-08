@@ -68,12 +68,11 @@ const char  *filein, *fileout;
 l_int32      pixformat;
 l_float32    minupconf, minratio;
 PIX         *pixs, *pixd;
-static char  mainName[] = "textorient";
 
     if (argc != 5) {
         return ERROR_INT(
             "Syntax:  textorient filein minupconf minratio, fileout",
-             mainName, 1);
+             __func__, 1);
     }
     filein = argv[1];
     minupconf = atof(argv[2]);

@@ -49,11 +49,10 @@
 int main(int    argc,
          char **argv)
 {
-PIX         *pixs, *pixg, *pixc, *pixd;
-static char  mainName[] = "morphseq_reg";
+PIX  *pixs, *pixg, *pixc, *pixd;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax:  morphseq_reg", mainName, 1);
+        return ERROR_INT(" Syntax:  morphseq_reg", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept");

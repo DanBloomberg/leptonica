@@ -45,15 +45,14 @@
 int main(int    argc,
          char **argv)
 {
-l_int32      dir;
-PIX         *pixs, *pixd, *pixt;
-l_float32    pops;
-char        *filein, *fileout;
-static char  mainName[] = "rotateorthtest1";
+l_int32    dir;
+PIX       *pixs, *pixd, *pixt;
+l_float32  pops;
+char      *filein, *fileout;
 
     if (argc != 3 && argc != 4)
         return ERROR_INT(" Syntax:  rotateorthtest1 filein fileout [direction]",
-                         mainName, 1);
+                         __func__, 1);
     filein = argv[1];
     fileout = argv[2];
     if (argc == 4)
@@ -63,7 +62,7 @@ static char  mainName[] = "rotateorthtest1";
     setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
+        return ERROR_INT("pix not made", __func__, 1);
 
         /* Do a single operation */
 #if 1

@@ -64,20 +64,19 @@ static const char *seltext = "xxxxxxx"
 int main(int    argc,
          char **argv)
 {
-l_int32      w, h, d, w2, h2, i, ncols, same;
-l_float32    angle, conf;
-BOX         *box;
-BOXA        *boxa1, *boxa2;
-PIX         *pix, *pixs, *pixb, *pixb2;
-PIX         *pix1, *pix2, *pix3, *pix4;
-PIXA        *pixam;  /* mask with a single component over each column */
-PIXA        *pixa, *pixa1, *pixa2;
-PIXAA       *pixaa, *pixaa2;
-SEL         *selsplit;
-static char  mainName[] = "arabic_lines";
+l_int32    w, h, d, w2, h2, i, ncols, same;
+l_float32  angle, conf;
+BOX       *box;
+BOXA      *boxa1, *boxa2;
+PIX       *pix, *pixs, *pixb, *pixb2;
+PIX       *pix1, *pix2, *pix3, *pix4;
+PIXA      *pixam;  /* mask with a single component over each column */
+PIXA      *pixa, *pixa1, *pixa2;
+PIXAA     *pixaa, *pixaa2;
+SEL       *selsplit;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax:  arabic_lines", mainName, 1);
+        return ERROR_INT(" Syntax:  arabic_lines", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/lineseg");
@@ -152,7 +151,7 @@ static char  mainName[] = "arabic_lines";
     filesAreIdentical("/tmp/lept/lineseg/pixaa", "/tmp/lept/lineseg/pixaa2",
                       &same);
     if (!same)
-       L_ERROR("pixaa I/O failure\n", mainName);
+       L_ERROR("pixaa I/O failure\n", __func__);
     pixaaDestroy(&pixaa2);
 
         /* Test pixaa display */

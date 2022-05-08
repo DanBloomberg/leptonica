@@ -45,22 +45,21 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_int32      i;
-l_uint32     val;
-l_float32    size;
-PIX         *pixs, *pixd, *pixm, *pixmi, *pixt1, *pixt2, *pixt3;
-static char  mainName[] = "seedfilltest";
+char      *filein, *fileout;
+l_int32    i;
+l_uint32   val;
+l_float32  size;
+PIX       *pixs, *pixd, *pixm, *pixmi, *pixt1, *pixt2, *pixt3;
 
     if (argc != 3)
-        return ERROR_INT(" Syntax:  seedfilltest filein fileout", mainName, 1);
+        return ERROR_INT(" Syntax:  seedfilltest filein fileout", __func__, 1);
     filein = argv[1];
     fileout = argv[2];
     pixd = NULL;
     setLeptDebugOK(1);
 
     if ((pixm = pixRead(filein)) == NULL)
-        return ERROR_INT("pixm not made", mainName, 1);
+        return ERROR_INT("pixm not made", __func__, 1);
     pixmi = pixInvert(NULL, pixm);
 
     size = pixGetWidth(pixm) * pixGetHeight(pixm);
@@ -70,7 +69,7 @@ static char  mainName[] = "seedfilltest";
         if (val == 0) break;
     }
     if (i == 100)
-        return ERROR_INT("no seed pixel found", mainName, 1);
+        return ERROR_INT("no seed pixel found", __func__, 1);
     pixSetPixel(pixs, XS + 5 * i, YS + 5 * i, 1);
 
 #if 0

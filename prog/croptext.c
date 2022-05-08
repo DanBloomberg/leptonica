@@ -47,16 +47,15 @@
 int main(int    argc,
          char **argv)
 {
-char        *dirin, *dirout, *infile, *outfile, *tail;
-l_int32      i, nfiles, border, x, y, w, h, xb, yb, wb, hb;
-BOX         *box1, *box2;
-BOXA        *boxa1, *boxa2;
-PIX         *pixs, *pixt1, *pixd;
-SARRAY      *safiles;
-static char  mainName[] = "croptext";
+char    *dirin, *dirout, *infile, *outfile, *tail;
+l_int32  i, nfiles, border, x, y, w, h, xb, yb, wb, hb;
+BOX     *box1, *box2;
+BOXA    *boxa1, *boxa2;
+PIX     *pixs, *pixt1, *pixd;
+SARRAY  *safiles;
 
     if (argc != 4)
-        return ERROR_INT("Syntax: croptext dirin border dirout", mainName, 1);
+        return ERROR_INT("Syntax: croptext dirin border dirout", __func__, 1);
     dirin = argv[1];
     border = atoi(argv[2]);
     dirout = argv[3];

@@ -62,16 +62,15 @@ static const l_float32  DefaultSweepRange = 7.0;    /* degrees */
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_int32      threshold, tryboth, format;
-l_float32    deg2rad, sweeprange, angle, conf;
-PIX         *pixs, *pix1, *pix2, *pixd;
-static char  mainName[] = "deskew_it";
+char      *filein, *fileout;
+l_int32    threshold, tryboth, format;
+l_float32  deg2rad, sweeprange, angle, conf;
+PIX       *pixs, *pix1, *pix2, *pixd;
 
     if (argc != 6)
         return ERROR_INT(
           "\n   Syntax: deskew_it filein threshold sweeprange tryboth fileout",
-          mainName, 1);
+          __func__, 1);
 
     filein = argv[1];
     threshold = atoi(argv[2]);
@@ -84,7 +83,7 @@ static char  mainName[] = "deskew_it";
     deg2rad = 3.1415926535 / 180.;
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
     sweeprange = (sweeprange == 0) ? DefaultSweepRange : sweeprange;
     threshold = (threshold == 0) ? DefaultThreshold : threshold;
@@ -94,7 +93,7 @@ static char  mainName[] = "deskew_it";
     pixd = pixDeskewGeneral(pixs, 0, sweeprange, 0.0, 0, threshold,
                             &angle, &conf);
     if (!pixd) {
-        L_ERROR("deskew failed; pixd not made\n", mainName);
+        L_ERROR("deskew failed; pixd not made\n", __func__);
         pixWrite(fileout, pixs, format);
         pixDestroy(&pixs);
         return 1;
@@ -120,7 +119,7 @@ static char  mainName[] = "deskew_it";
                             &angle, &conf);
     pixDestroy(&pix1);
     if (!pix2) {
-        L_ERROR("deskew failed at 90 deg; pixd not made\n", mainName);
+        L_ERROR("deskew failed at 90 deg; pixd not made\n", __func__);
         pixWrite(fileout, pixs, format);
         pixDestroy(&pixs);
         return 1;

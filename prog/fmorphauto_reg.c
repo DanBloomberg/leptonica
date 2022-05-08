@@ -49,20 +49,19 @@ LEPT_DLL extern l_int32 MORPH_BC;
 int main(int    argc,
          char **argv)
 {
-l_int32      i, nsels, same, xorcount;
-char        *filein, *selname;
-PIX         *pixs, *pixs1, *pixt1, *pixt2, *pixt3, *pixt4;
-SEL         *sel;
-SELA        *sela;
-static char  mainName[] = "fmorphauto_reg";
+l_int32  i, nsels, same, xorcount;
+char    *filein, *selname;
+PIX     *pixs, *pixs1, *pixt1, *pixt2, *pixt3, *pixt4;
+SEL     *sel;
+SELA    *sela;
 
     if (argc != 2)
-        return ERROR_INT(" Syntax:  fmorphauto_reg filein", mainName, 1);
+        return ERROR_INT(" Syntax:  fmorphauto_reg filein", __func__, 1);
     filein = argv[1];
     setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
+        return ERROR_INT("pix not made", __func__, 1);
 
     sela = selaAddBasic(NULL);
     nsels = selaGetCount(sela);

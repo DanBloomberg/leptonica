@@ -50,13 +50,12 @@
 int main(int    argc,
          char **argv)
 {
-char        *filename;
-l_int32      index;
-SELA        *sela;
-static char  mainName[] = "fhmtautogen";
+char    *filename;
+l_int32  index;
+SELA    *sela;
 
     if (argc != 2 && argc != 3)
-        return ERROR_INT(" Syntax:  fhmtautogen index <filename>", mainName, 1);
+        return ERROR_INT(" Syntax:  fhmtautogen index <filename>", __func__, 1);
 
     setLeptDebugOK(1);
     index = atoi(argv[1]);

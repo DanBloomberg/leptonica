@@ -55,25 +55,24 @@ static const l_float32  FILL_FACTOR = 0.95;   /* fill factor on 8.5 x 11 page */
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_int32      w, h, index, level;
-l_float32    scale;
-FILE        *fp;
-PIX         *pixs, *pix1;
-static char  mainName[] = "imagetops";
+char      *filein, *fileout;
+l_int32    w, h, index, level;
+l_float32  scale;
+FILE      *fp;
+PIX       *pixs, *pix1;
 
     if (argc != 4)
         return ERROR_INT(
             " Syntax:  imagetops <filein> <compression level> <fileout>",
-            mainName, 1);
+            __func__, 1);
     filein = argv[1];
     level = atoi(argv[2]);
     fileout = argv[3];
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
     if (level < 1 || level > 3)
-        return ERROR_INT("valid levels are: 1, 2, 3", mainName, 1);
+        return ERROR_INT("valid levels are: 1, 2, 3", __func__, 1);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if (w > h) {

@@ -67,10 +67,9 @@ int main(int    argc,
 l_int32      ret;
 char        *filein, *tempfile, *printer;
 char         buf[512];
-static char  mainName[] = "printtiff";
 
     if (argc != 2 && argc != 3)
-        return ERROR_INT(" Syntax:  printtiff filein [printer]", mainName, 1);
+        return ERROR_INT(" Syntax:  printtiff filein [printer]", __func__, 1);
     filein = argv[1];
     if (argc == 3)
         printer = argv[2];

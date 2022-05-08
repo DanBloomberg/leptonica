@@ -44,13 +44,12 @@
 l_int32 main(int    argc,
              char **argv)
 {
-char         buf[512], dirname[256];
-char        *dirin, *pattern, *subdirout, *fname, *tail, *basename;
-l_int32      thresh, i, n;
-l_float32    scalefactor;
-PIX         *pix1, *pix2, *pix3, *pix4;
-SARRAY      *sa;
-static char  mainName[] = "binarizefiles.c";
+char       buf[512], dirname[256];
+char      *dirin, *pattern, *subdirout, *fname, *tail, *basename;
+l_int32    thresh, i, n;
+l_float32  scalefactor;
+PIX       *pix1, *pix2, *pix3, *pix4;
+SARRAY    *sa;
 
     if (argc != 6) {
         lept_stderr(
@@ -71,7 +70,7 @@ static char  mainName[] = "binarizefiles.c";
     if (!strcmp(pattern, "allfiles"))
               pattern = NULL;
     if (scalefactor <= 0.0 || scalefactor > 4.0) {
-        L_WARNING("invalid scalefactor: setting to 1.0\n", mainName);
+        L_WARNING("invalid scalefactor: setting to 1.0\n", __func__);
         scalefactor = 1.0;
     }
 
@@ -89,7 +88,7 @@ static char  mainName[] = "binarizefiles.c";
     for (i = 0; i < n; i++) {
         fname = sarrayGetString(sa, i, L_NOCOPY);
         if ((pix1 = pixRead(fname)) == NULL) {
-            L_ERROR("file %s not read as image", mainName, fname);
+            L_ERROR("file %s not read as image", __func__, fname);
             continue;
         }
         splitPathAtDirectory(fname, NULL, &tail);

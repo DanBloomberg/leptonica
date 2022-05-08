@@ -42,22 +42,21 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein;
-l_int32      i, n, w, h, samecount, count;
-BOX         *box, *boxc;
-BOXA        *boxa, *boxan;
-DLLIST      *head, *tail, *head2, *tail2, *elem, *nextelem;
-PIX         *pixs;
-static char  mainName[] = "listtest";
+char    *filein;
+l_int32  i, n, w, h, samecount, count;
+BOX     *box, *boxc;
+BOXA    *boxa, *boxan;
+DLLIST  *head, *tail, *head2, *tail2, *elem, *nextelem;
+PIX     *pixs;
 
     if (argc != 2)
-        return ERROR_INT(" Syntax:  listtest filein", mainName, 1);
+        return ERROR_INT(" Syntax:  listtest filein", __func__, 1);
     filein = argv[1];
     setLeptDebugOK(1);
 
     boxa = boxan = NULL;
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
+        return ERROR_INT("pix not made", __func__, 1);
 
         /* start with a boxa */
     boxa = pixConnComp(pixs, NULL, 4);

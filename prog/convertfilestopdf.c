@@ -59,10 +59,9 @@
 int main(int    argc,
          char **argv)
 {
-char        *dirin, *substr, *title, *fileout;
-l_int32      ret, res, type, quality;
-l_float32    scalefactor;
-static char  mainName[] = "convertfilestopdf";
+char      *dirin, *substr, *title, *fileout;
+l_int32    ret, res, type, quality;
+l_float32  scalefactor;
 
     if (argc != 9) {
         lept_stderr(
@@ -97,7 +96,7 @@ static char  mainName[] = "convertfilestopdf";
     if (!strcmp(substr, "allfiles"))
         substr = NULL;
     if (scalefactor <= 0.0 || scalefactor > 2.0) {
-        L_WARNING("invalid scalefactor: setting to 1.0\n", mainName);
+        L_WARNING("invalid scalefactor: setting to 1.0\n", __func__);
         scalefactor = 1.0;
     }
     if (!strcmp(title, "none"))

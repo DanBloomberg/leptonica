@@ -66,21 +66,20 @@ static const char  rootname[] = "/tmp/lept/jb/result";
 int main(int    argc,
          char **argv)
 {
-char         filename[BUF_SIZE];
-char        *dirin;
-l_int32      i, firstpage, npages, nfiles;
-l_float32    thresh, weight;
-JBDATA      *data;
-JBCLASSER   *classer;
-SARRAY      *safiles;
-PIX         *pix;
-PIXA        *pixa, *pixadb;
-static char  mainName[] = "jbcorrelation";
+char        filename[BUF_SIZE];
+char       *dirin;
+l_int32     i, firstpage, npages, nfiles;
+l_float32   thresh, weight;
+JBDATA     *data;
+JBCLASSER  *classer;
+SARRAY     *safiles;
+PIX        *pix;
+PIXA       *pixa, *pixadb;
 
     if (argc != 4 && argc != 6)
         return ERROR_INT(
              " Syntax: jbcorrelation dirin thresh weight [firstpage, npages]",
-             mainName, 1);
+             __func__, 1);
     dirin = argv[1];
     thresh = atof(argv[2]);
     weight = atof(argv[3]);

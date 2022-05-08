@@ -69,21 +69,20 @@ static const char  rootname[] = "/tmp/lept/jb/result";
 int main(int    argc,
          char **argv)
 {
-char         filename[BUF_SIZE];
-char        *dirin, *fname;
-l_int32      i, size, firstpage, npages, nfiles;
-l_float32    rank;
-JBDATA      *data;
-JBCLASSER   *classer;
-SARRAY      *safiles;
-PIX         *pix, *pixt;
-PIXA        *pixa, *pixadb;
-static char  mainName[] = "jbrankhaus";
+char        filename[BUF_SIZE];
+char       *dirin, *fname;
+l_int32     i, size, firstpage, npages, nfiles;
+l_float32   rank;
+JBDATA     *data;
+JBCLASSER  *classer;
+SARRAY     *safiles;
+PIX        *pix, *pixt;
+PIXA       *pixa, *pixadb;
 
     if (argc != 4 && argc != 6)
         return ERROR_INT(
              " Syntax: jbrankhaus dirin size rank [firstpage, npages]",
-             mainName, 1);
+             __func__, 1);
     dirin = argv[1];
     size = atoi(argv[2]);
     rank = atof(argv[3]);

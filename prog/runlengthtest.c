@@ -40,12 +40,11 @@
 int main(int    argc,
          char **argv)
 {
-l_float32    avediff, rmsdiff;
-PIX         *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
-static char  mainName[] = "runlengthtest";
+l_float32  avediff, rmsdiff;
+PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax:  runlengthtest", mainName, 1);
+        return ERROR_INT(" Syntax:  runlengthtest", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/run");

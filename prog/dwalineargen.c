@@ -62,11 +62,10 @@
 int main(int    argc,
          char **argv)
 {
-SELA        *sela;
-static char  mainName[] = "dwalineargen";
+SELA  *sela;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax:  dwalineargen", mainName, 1);
+        return ERROR_INT(" Syntax:  dwalineargen", __func__, 1);
     setLeptDebugOK(1);
 
         /* Generate the linear sel dwa code */

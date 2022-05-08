@@ -41,16 +41,15 @@ static const l_int32  nbins = 10;
 int main(int    argc,
          char **argv)
 {
-char        *name, *tail;
-l_int32      i, j, n, minval, maxval, rdiff, gdiff, bdiff, maxdiff;
-l_uint32    *rau32, *gau32, *bau32, *carray, *darray;
-PIX         *pixs, *pix1, *pix2, *pix3, *pix4;
-PIXA        *pixa, *pixa1;
-SARRAY      *sa;
-static char  mainName[] = "lightcolortest";
+char      *name, *tail;
+l_int32    i, j, n, minval, maxval, rdiff, gdiff, bdiff, maxdiff;
+l_uint32  *rau32, *gau32, *bau32, *carray, *darray;
+PIX       *pixs, *pix1, *pix2, *pix3, *pix4;
+PIXA      *pixa, *pixa1;
+SARRAY    *sa;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax:  lightcolortest", mainName, 1);
+        return ERROR_INT(" Syntax:  lightcolortest", __func__, 1);
 
     setLeptDebugOK(1);
     sa = getSortedPathnamesInDirectory( ".", "comap.", 0, 0);
@@ -121,7 +120,7 @@ static char  mainName[] = "lightcolortest";
     pixaConvertToPdf(pixa, 100, 1.0, L_FLATE_ENCODE, 0, "lightcolortest",
                      "/tmp/lept/color/lightcolortest.pdf");
     L_INFO("Generated pdf file: /tmp/lept/color/lightcolortest.pdf",
-           mainName);
+           __func__);
     pixaDestroy(&pixa);
     sarrayDestroy(&sa);
     return 0;

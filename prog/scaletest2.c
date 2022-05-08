@@ -41,18 +41,17 @@
 int main(int    argc,
          char **argv)
 {
-PIX         *pixs;
-l_int32      d;
-static char  mainName[] = "scaletest2";
+PIX     *pixs;
+l_int32  d;
 
     if (argc != 2)
-        return ERROR_INT(" Syntax:  scaletest2 filein", mainName, 1);
+        return ERROR_INT(" Syntax:  scaletest2 filein", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/scale");
 
     if ((pixs = pixRead(argv[1])) == NULL)
-       	return ERROR_INT("pixs not made", mainName, 1);
+       	return ERROR_INT("pixs not made", __func__, 1);
     d = pixGetDepth(pixs);
 
 #if 1

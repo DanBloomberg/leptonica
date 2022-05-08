@@ -121,19 +121,18 @@ PIX *pixConvertTo8Special(PIX *pix);
 l_int32 main(int    argc,
              char **argv)
 {
-char         buf[256];
-char        *basedir, *fname, *tail, *basename, *imagedir, *title;
-char        *outfile, *firstpath;
-l_int32      thresh, res, rotation, darken, i, n, ret;
-PIX         *pixs, *pix1, *pix2, *pix3, *pix4, *pix5;
-SARRAY      *sa;
-static char  mainName[] = "cleanpdf";
+char     buf[256];
+char    *basedir, *fname, *tail, *basename, *imagedir, *title;
+char    *outfile, *firstpath;
+l_int32  thresh, res, rotation, darken, i, n, ret;
+PIX     *pixs, *pix1, *pix2, *pix3, *pix4, *pix5;
+SARRAY  *sa;
 
     if (argc != 6 && argc != 8)
         return ERROR_INT(
             "\n  Syntax: cleanpdf basedir threshold resolution title "
             "outfile [rotation darken]",
-            mainName, 1);
+            __func__, 1);
     basedir = argv[1];
     thresh = atoi(argv[2]);
     res = atoi(argv[3]);
@@ -147,28 +146,28 @@ static char  mainName[] = "cleanpdf";
         darken = 0;
     }
     if (rotation < 0 || rotation > 3) {
-        L_ERROR("rotation not in valid set {0,1,2,3}; setting to 0", mainName);
+        L_ERROR("rotation not in valid set {0,1,2,3}; setting to 0", __func__);
         rotation = 0;
     }
     if (darken != 0 && darken != 1)
-        L_ERROR("darken is not in valid set {0,1}; setting to 0", mainName);
+        L_ERROR("darken is not in valid set {0,1}; setting to 0", __func__);
     if (thresh > 190) {
         L_WARNING("threshold = %d is too large; reducing to 190\n",
-                mainName, thresh);
+                __func__, thresh);
         thresh = 190;
     }
     if (res == 0)
         res = 300;
     if (res != 300 && res != 600) {
         L_ERROR("invalid res = %d; res must be in {0, 300, 600}\n",
-                mainName, res);
+                __func__, res);
         return 1;
     }
     setLeptDebugOK(1);
 
         /* Get the names of the pdf files */
     if ((sa = getSortedPathnamesInDirectory(basedir, "pdf", 0, 0)) == NULL)
-        return ERROR_INT("files not found", mainName, 1);
+        return ERROR_INT("files not found", __func__, 1);
     sarrayWriteStderr(sa);
     n = sarrayGetCount(sa);
 

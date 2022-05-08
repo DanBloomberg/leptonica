@@ -41,16 +41,15 @@ static const l_int32   BIN_SIZE = 1;
 int main(int    argc,
          char **argv)
 {
-char        *filein;
-l_int32      i, j, w, h, d, sampling;
-l_float32    rank, rval;
-l_uint32     val;
-NUMA        *na, *nah, *nar, *nav;
-PIX         *pix;
-static char  mainName[] = "numaranktest";
+char      *filein;
+l_int32    i, j, w, h, d, sampling;
+l_float32  rank, rval;
+l_uint32   val;
+NUMA      *na, *nah, *nar, *nav;
+PIX       *pix;
 
     if (argc != 3)
-        return ERROR_INT(" Syntax:  numaranktest filein sampling", mainName, 1);
+        return ERROR_INT(" Syntax:  numaranktest filein sampling", __func__, 1);
     filein = argv[1];
     sampling = atoi(argv[2]);
 
@@ -58,10 +57,10 @@ static char  mainName[] = "numaranktest";
     lept_mkdir("lept/numa");
 
     if ((pix = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
+        return ERROR_INT("pix not made", __func__, 1);
     pixGetDimensions(pix, &w, &h, &d);
     if (d != 8)
-        return ERROR_INT("d != 8 bpp", mainName, 1);
+        return ERROR_INT("d != 8 bpp", __func__, 1);
 
     na = numaCreate(0);
     for (i = 0; i < h; i += sampling) {

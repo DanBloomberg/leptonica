@@ -40,20 +40,19 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein;
-l_int32      w, h;
-PIX         *pixs, *pix1, *pix2, *pix3, *pix4, *pix5;
-static char  mainName[] = "arithtest";
+char    *filein;
+l_int32  w, h;
+PIX     *pixs, *pix1, *pix2, *pix3, *pix4, *pix5;
 
     if (argc != 2)
-        return ERROR_INT(" Syntax:  arithtest filein", mainName, 1);
+        return ERROR_INT(" Syntax:  arithtest filein", __func__, 1);
     filein = argv[1];
 
     setLeptDebugOK(1);
     lept_mkdir("lept/arith");
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
+        return ERROR_INT("pix not made", __func__, 1);
 
         /* Input a grayscale image and convert it to 16 bpp */
     pixGetDimensions(pixs, &w, &h, NULL);

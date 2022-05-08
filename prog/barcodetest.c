@@ -45,20 +45,19 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein;
-PIX         *pixs;
-SARRAY      *saw1, *saw2, *sad1, *sad2;
-static char  mainName[] = "barcodetest";
+char    *filein;
+PIX     *pixs;
+SARRAY  *saw1, *saw2, *sad1, *sad2;
 
     if (argc != 2)
-        return ERROR_INT(" Syntax:  barcodetest filein", mainName, 1);
+        return ERROR_INT(" Syntax:  barcodetest filein", __func__, 1);
     filein = argv[1];
 
     setLeptDebugOK(1);
     lept_mkdir("lept/barc");
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
     sad1 = pixProcessBarcodes(pixs, L_BF_ANY, L_USE_WIDTHS, &saw1, 0);
     sarrayWrite("/tmp/lept/barc/saw1.sa", saw1);

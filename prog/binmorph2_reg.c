@@ -47,14 +47,12 @@ static void writeResult(const char *sequence, l_int32 same);
 int main(int    argc,
          char **argv)
 {
-char         buffer1[256];
-char         buffer2[256];
-l_int32      i, same, same2, factor1, factor2, diff, success;
-PIX         *pixs, *pixsd, *pixt1, *pixt2, *pixt3;
-static char  mainName[] = "binmorph2_reg";
+char     buffer1[256], buffer2[256];
+l_int32  i, same, same2, factor1, factor2, diff, success;
+PIX     *pixs, *pixsd, *pixt1, *pixt2, *pixt3;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax:  binmorph2_reg", mainName, 1);
+        return ERROR_INT(" Syntax:  binmorph2_reg", __func__, 1);
 
     setLeptDebugOK(1);
     pixs = pixRead("feyn-fract.tif");

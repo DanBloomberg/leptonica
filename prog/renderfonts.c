@@ -41,14 +41,13 @@
 int main(int    argc,
          char **argv)
 {
-char        *textstr;
-l_int32      width, wtext, overflow;
-L_BMF       *bmf;
-PIX         *pixs, *pix;
-static char  mainName[] = "renderfonts";
+char    *textstr;
+l_int32  width, wtext, overflow;
+L_BMF   *bmf;
+PIX     *pixs, *pix;
 
     if (argc != 1)
-        return ERROR_INT("Syntax: renderfonts", mainName, 1);
+        return ERROR_INT("Syntax: renderfonts", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/render");

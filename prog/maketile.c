@@ -53,18 +53,17 @@
 int main(int    argc,
          char **argv)
 {
-char        *dirin, *fileout, *fname, *fullname;
-l_int32      depth, width, background, i, nfiles;
-l_float32    scale;
-SARRAY      *safiles;
-PIX         *pix, *pixt, *pixd;
-PIXA        *pixa;
-static char  mainName[] = "maketile";
+char      *dirin, *fileout, *fname, *fullname;
+l_int32    depth, width, background, i, nfiles;
+l_float32  scale;
+SARRAY    *safiles;
+PIX       *pix, *pixt, *pixd;
+PIXA      *pixa;
 
     if (argc != 7)
         return ERROR_INT(
             "Syntax:  maketile dirin depth scale width background fileout",
-            mainName, 1);
+            __func__, 1);
     dirin = argv[1];
     depth = atoi(argv[2]);
     scale = atof(argv[3]);
@@ -75,7 +74,7 @@ static char  mainName[] = "maketile";
 
         /* capture the filenames in the input directory; ignore directories */
     if ((safiles = getFilenamesInDirectory(dirin)) == NULL)
-        return ERROR_INT("safiles not made", mainName, 1);
+        return ERROR_INT("safiles not made", __func__, 1);
 
             /* capture images with the requisite depth */
     nfiles = sarrayGetCount(safiles);

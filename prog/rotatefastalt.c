@@ -61,11 +61,10 @@ int main(int    argc,
 char      *filein, *fileout;
 l_float32  angle, deg2rad;
 PIX       *pixs, *pixd;
-static char  mainName[] = "rotatefastalt";
 
     if (argc != 4)
         return ERROR_INT("Syntax:  rotatefastalt filein angle fileout",
-                         mainName, 1);
+                         __func__, 1);
     filein = argv[1];
     angle = atof(argv[2]);
     fileout = argv[3];
@@ -73,7 +72,7 @@ static char  mainName[] = "rotatefastalt";
     setLeptDebugOK(1);
     deg2rad = 3.1415926535 / 180.;
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not read", mainName, 1);
+        return ERROR_INT("pixs not read", __func__, 1);
 
     startTimer();
     pixd = pixRotateAMColorFast2(pixs, deg2rad * angle, 255);

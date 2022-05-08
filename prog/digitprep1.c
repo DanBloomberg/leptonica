@@ -42,23 +42,22 @@ static const l_int32  HEIGHT = 32;  /* pixels */
 int main(int    argc,
          char **argv)
 {
-char         buf[16];
-l_int32      i, n, h;
-l_float32    scalefact;
-BOXA        *boxa;
-PIX         *pixs, *pix1, *pix2;
-PIXA        *pixa, *pixas, *pixad;
-PIXAA       *paa;
-static char  mainName[] = "digitprep1";
+char       buf[16];
+l_int32    i, n, h;
+l_float32  scalefact;
+BOXA      *boxa;
+PIX       *pixs, *pix1, *pix2;
+PIXA      *pixa, *pixas, *pixad;
+PIXAA     *paa;
 
     if (argc != 1) {
-        ERROR_INT(" Syntax: digitprep1", mainName, 1);
+        ERROR_INT(" Syntax: digitprep1", __func__, 1);
         return 1;
     }
 
     setLeptDebugOK(1);
     if ((pixs = pixRead("barcode-digits.png")) == NULL)
-        return ERROR_INT("pixs not read", mainName, 1);
+        return ERROR_INT("pixs not read", __func__, 1);
 
         /* Extract the digits and scale to HEIGHT */
     boxa = pixConnComp(pixs, &pixa, 8);
@@ -78,7 +77,7 @@ static char  mainName[] = "digitprep1";
         scalefact = HEIGHT / (l_float32)h;
         pix2 = pixScale(pix1, scalefact, scalefact);
         if (pixGetHeight(pix2) != 32)
-            return ERROR_INT("height not 32!", mainName, 1);
+            return ERROR_INT("height not 32!", __func__, 1);
         snprintf(buf, sizeof(buf), "%d", i);
         pixSetText(pix2, buf);
         pixaAddPix(pixad, pix2, L_INSERT);

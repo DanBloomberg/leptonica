@@ -50,16 +50,15 @@
 int main(int    argc,
          char **argv)
 {
-l_int32      w, h, ystart, yend, y, ymax, ymid, i, window, sum1, sum2, rankx;
-l_uint32     uval;
-l_float32    ave, rankval, maxvar, variance, norm, conf, angle, radangle;
-NUMA        *na1;
-PIX         *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
-PIXA        *pixa;
-static char  mainName[] = "findbinding";
+l_int32    w, h, ystart, yend, y, ymax, ymid, i, window, sum1, sum2, rankx;
+l_uint32   uval;
+l_float32  ave, rankval, maxvar, variance, norm, conf, angle, radangle;
+NUMA      *na1;
+PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
+PIXA      *pixa;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax:  findbinding", mainName, 1);
+        return ERROR_INT(" Syntax:  findbinding", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/binding");

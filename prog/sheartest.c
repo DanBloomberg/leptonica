@@ -43,15 +43,14 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_int32      i, w, h, liney, linex, same;
-l_float32    angle, deg2rad;
-PIX         *pixt1, *pixt2, *pixs, *pixd;
-static char  mainName[] = "sheartest";
+char      *filein, *fileout;
+l_int32    i, w, h, liney, linex, same;
+l_float32  angle, deg2rad;
+PIX       *pixt1, *pixt2, *pixs, *pixd;
 
     if (argc != 4)
         return ERROR_INT(" Syntax:  sheartest filein angle fileout",
-                         mainName, 1);
+                         __func__, 1);
 
     setLeptDebugOK(1);
 
@@ -87,7 +86,7 @@ static char  mainName[] = "sheartest";
     deg2rad = 3.1415926535 / 180.;
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
+        return ERROR_INT("pix not made", __func__, 1);
 
     pixGetDimensions(pixs, &w, &h, NULL);
 

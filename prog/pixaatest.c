@@ -44,14 +44,13 @@ static const l_int32  ncols = 3;
 int main(int    argc,
          char **argv)
 {
-l_int32      w, d, tilewidth;
-PIX         *pixs;
-PIXA        *pixa, *pixad1, *pixad2;
-PIXAA       *pixaa1, *pixaa2;
-static char  mainName[] = "pixaatest";
+l_int32  w, d, tilewidth;
+PIX     *pixs;
+PIXA    *pixa, *pixad1, *pixad2;
+PIXAA   *pixaa1, *pixaa2;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax: pixaatest", mainName, 1);
+        return ERROR_INT(" Syntax: pixaatest", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("/lept/paa");

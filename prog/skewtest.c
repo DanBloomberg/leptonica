@@ -65,15 +65,14 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein;
-l_int32      ret;
-l_float32    deg2rad;
-l_float32    angle, conf, score, endscore;
-PIX         *pix, *pixs, *pixd;
-static char  mainName[] = "skewtest";
+char      *filein;
+l_int32    ret;
+l_float32  deg2rad;
+l_float32  angle, conf, score, endscore;
+PIX       *pix, *pixs, *pixd;
 
     if (argc != 2)
-        return ERROR_INT(" Syntax:  skewtest filein", mainName, 1);
+        return ERROR_INT(" Syntax:  skewtest filein", __func__, 1);
     filein = argv[1];
 
     setLeptDebugOK(1);
@@ -83,7 +82,7 @@ static char  mainName[] = "skewtest";
     deg2rad = 3.1415926535 / 180.;
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
         /* Find the skew angle various ways */
     pix = pixConvertTo1(pixs, BIN_THRESHOLD);
@@ -129,7 +128,7 @@ static char  mainName[] = "skewtest";
                                         SEARCH_REDUCTION, SWEEP_RANGE2,
                                         SWEEP_DELTA2, SEARCH_MIN_DELTA);
         if (ret)
-            L_WARNING("skew angle not valid\n", mainName);
+            L_WARNING("skew angle not valid\n", __func__);
         else {
             lept_stderr("conf = %5.3f, angle = %7.3f degrees\n", conf, angle);
             if (conf > 2.5)
@@ -160,7 +159,7 @@ static char  mainName[] = "skewtest";
     ret = pixFindSkew(pixs, &angle, &conf);
     lept_stderr("angle = %8.4f, conf = %8.4f\n", angle, conf);
     if (ret) {
-        L_WARNING("skew angle not valid\n", mainName);
+        L_WARNING("skew angle not valid\n", __func__);
         return 1;
     }
 #endif
@@ -170,7 +169,7 @@ static char  mainName[] = "skewtest";
                            SWEEP_RANGE, SWEEP_DELTA);
     lept_stderr("angle = %8.4f, conf = %8.4f\n", angle, conf);
     if (ret) {
-        L_WARNING("skew angle not valid\n", mainName);
+        L_WARNING("skew angle not valid\n", __func__);
         return 1;
     }
 #endif
@@ -182,7 +181,7 @@ static char  mainName[] = "skewtest";
                                     SEARCH_MIN_DELTA);
     lept_stderr("angle = %8.4f, conf = %8.4f\n", angle, conf);
     if (ret) {
-        L_WARNING("skew angle not valid\n", mainName);
+        L_WARNING("skew angle not valid\n", __func__);
         return 1;
     }
 #endif

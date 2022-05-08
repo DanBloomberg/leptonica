@@ -57,18 +57,17 @@ l_int32 DoPageSegmentation(PIX *pixs, l_int32 which);
 int main(int    argc,
          char **argv)
 {
-char        *filein;
-l_int32      i;
-PIX         *pixs;   /* input image should be at least 300 ppi */
-static char  mainName[] = "livre_pageseg";
+char    *filein;
+l_int32  i;
+PIX     *pixs;   /* input image should be at least 300 ppi */
 
     if (argc != 2)
-        return ERROR_INT(" Syntax:  livre_pageseg filein", mainName, 1);
+        return ERROR_INT(" Syntax:  livre_pageseg filein", __func__, 1);
     filein = argv[1];
     setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
+        return ERROR_INT("pix not made", __func__, 1);
 
     for (i = 1; i <= 4; i++)
         DoPageSegmentation(pixs, i);

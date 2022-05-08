@@ -82,19 +82,18 @@ static const l_float32  FILL_FACTOR = 0.95;   /* fill factor on 8.5 x 11 page */
 int main(int    argc,
          char **argv)
 {
-char        *filein, *printer, *extra, *fname;
-char         buffer[512];
-l_int32      i, w, h, ret, index;
-l_float32    scale;
-FILE        *fp;
-PIX         *pixs, *pix1;
-SARRAY      *sa;
-static char  mainName[] = "printimage";
+char      *filein, *printer, *extra, *fname;
+char       buffer[512];
+l_int32    i, w, h, ret, index;
+l_float32  scale;
+FILE      *fp;
+PIX       *pixs, *pix1;
+SARRAY    *sa;
 
     if (argc < 2)
         return ERROR_INT(
             " Syntax:  printimage <filein> [printer, other lpr args]",
-            mainName, 1);
+            __func__, 1);
     filein = argv[1];
     printer = (argc > 2) ? argv[2] : NULL;
 
@@ -109,7 +108,7 @@ static char  mainName[] = "printimage";
     (void)lept_rm(NULL, "print_image.ps");
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if (w > h) {

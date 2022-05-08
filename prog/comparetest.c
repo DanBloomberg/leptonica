@@ -61,17 +61,16 @@
 int main(int    argc,
          char **argv)
 {
-l_int32      type, comptype, d1, d2, same, first, last;
-l_float32    fract, diff, rmsdiff;
-char        *filein1, *filein2, *fileout;
-GPLOT       *gplot;
-NUMA        *na1, *na2;
-PIX         *pixs1, *pixs2, *pixd;
-static char  mainName[] = "comparetest";
+l_int32    type, comptype, d1, d2, same, first, last;
+l_float32  fract, diff, rmsdiff;
+char      *filein1, *filein2, *fileout;
+GPLOT     *gplot;
+NUMA      *na1, *na2;
+PIX       *pixs1, *pixs2, *pixd;
 
     if (argc != 5)
         return ERROR_INT(" Syntax:  comparetest filein1 filein2 type fileout",
-                         mainName, 1);
+                         __func__, 1);
     filein1 = argv[1];
     filein2 = argv[2];
     type = atoi(argv[3]);
@@ -84,9 +83,9 @@ static char  mainName[] = "comparetest";
     l_pngSetReadStrip16To8(0);
 
     if ((pixs1 = pixRead(filein1)) == NULL)
-        return ERROR_INT("pixs1 not made", mainName, 1);
+        return ERROR_INT("pixs1 not made", __func__, 1);
     if ((pixs2 = pixRead(filein2)) == NULL)
-        return ERROR_INT("pixs2 not made", mainName, 1);
+        return ERROR_INT("pixs2 not made", __func__, 1);
     d1 = pixGetDepth(pixs1);
     d2 = pixGetDepth(pixs2);
 

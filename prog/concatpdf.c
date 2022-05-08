@@ -94,19 +94,18 @@
 l_int32 main(int    argc,
              char **argv)
 {
-char         buf[256];
-char        *basedir, *fname, *tail, *basename, *imagedir, *title, *outfile;
-l_int32      res, quality, i, n, ret;
-l_float32    scalefactor;
-PIX         *pixs, *pix1;
-PIXA        *pixa1;
-SARRAY      *sa;
-static char  mainName[] = "concatpdf";
+char       buf[256];
+char      *basedir, *fname, *tail, *basename, *imagedir, *title, *outfile;
+l_int32    res, quality, i, n, ret;
+l_float32  scalefactor;
+PIX       *pixs, *pix1;
+PIXA      *pixa1;
+SARRAY    *sa;
 
     if (argc != 6)
         return ERROR_INT(
             "Syntax: concatpdf basedir scalefactor quality title outfile",
-            mainName, 1);
+            __func__, 1);
     basedir = argv[1];
     scalefactor = atof(argv[2]);
     quality = atoi(argv[3]);  /* jpeg quality */
@@ -115,17 +114,17 @@ static char  mainName[] = "concatpdf";
     setLeptDebugOK(1);
     if (quality <= 0) quality = 50;  /* default value */
     if (quality < 25) {
-        L_WARNING("quality %d too low; setting to 25\n", mainName, quality);
+        L_WARNING("quality %d too low; setting to 25\n", __func__, quality);
         quality = 25;
     }
     if (quality > 95) {
-        L_WARNING("quality %d too high; setting to 95\n", mainName, quality);
+        L_WARNING("quality %d too high; setting to 95\n", __func__, quality);
         quality = 95;
     }
 
         /* Get the names of the pdf files */
     if ((sa = getSortedPathnamesInDirectory(basedir, "pdf", 0, 0)) == NULL)
-        return ERROR_INT("files not found", mainName, 1);
+        return ERROR_INT("files not found", __func__, 1);
     sarrayWriteStderr(sa);
     n = sarrayGetCount(sa);
 

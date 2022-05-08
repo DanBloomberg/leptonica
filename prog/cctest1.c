@@ -52,23 +52,22 @@
 l_int32 main(l_int32  argc,
              char   **argv)
 {
-char        *filein;
-l_int32      i, n, count;
-BOX         *box;
-BOXA        *boxa;
-PIX         *pixs, *pixd;
-PIXA        *pixa;
-PIXCMAP     *cmap;
-static char  mainName[] = "cctest1";
+char     *filein;
+l_int32   i, n, count;
+BOX      *box;
+BOXA     *boxa;
+PIX      *pixs, *pixd;
+PIXA     *pixa;
+PIXCMAP  *cmap;
 
     if (argc != 2)
-        return ERROR_INT(" Syntax:  cctest1 filein", mainName, 1);
+        return ERROR_INT(" Syntax:  cctest1 filein", __func__, 1);
     filein = argv[1];
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
     if (pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not 1 bpp", mainName, 1);
+        return ERROR_INT("pixs not 1 bpp", __func__, 1);
 
         /* Test speed of pixCountConnComp() */
     startTimer();

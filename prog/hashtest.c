@@ -58,30 +58,29 @@ static PTA *BuildPointSet(l_int32  w, l_int32 h);
 l_int32 main(int    argc,
              char **argv)
 {
-l_int32    dnasize, ptasize, strsize, i, n, c1, c2, c3, s1;
-L_ASET    *set;
-L_DNA     *da0, *da1, *da2, *da3;
-L_HASHMAP *hmap;
-PTA       *pta0, *pta1, *pta2, *pta3;
-SARRAY    *sa0, *sa1, *sa2, *sa3;
-static char  mainName[] = "hashtest";
+l_int32     dnasize, ptasize, strsize, i, n, c1, c2, c3, s1;
+L_ASET     *set;
+L_DNA      *da0, *da1, *da2, *da3;
+L_HASHMAP  *hmap;
+PTA        *pta0, *pta1, *pta2, *pta3;
+SARRAY     *sa0, *sa1, *sa2, *sa3;
 
     if (argc != 4)
         return ERROR_INT(" Syntax:  hashtest dnasize ptasize strsize",
-                         mainName, 1);
+                         __func__, 1);
     setLeptDebugOK(1);
 
     dnasize = atoi(argv[1]);
     ptasize = atoi(argv[2]);
     strsize = atoi(argv[3]);
     if (dnasize < 0)
-        return ERROR_INT(" dnasize < 0; must be in [0 ... 10M]", mainName, 1);
+        return ERROR_INT(" dnasize < 0; must be in [0 ... 10M]", __func__, 1);
     if (dnasize > 10000000) {
         lept_stderr("very large dnasize = %d; using 10M\n", dnasize);
         dnasize = 10000000;
     }
     if (ptasize < 0)
-        return ERROR_INT(" ptasize < 0; must be in [0 ... 5000]", mainName, 1);
+        return ERROR_INT(" ptasize < 0; must be in [0 ... 5000]", __func__, 1);
     if (ptasize > 5000) {
         lept_stderr("very large ptasize = %d; using 5000\n", ptasize);
         ptasize = 5000;

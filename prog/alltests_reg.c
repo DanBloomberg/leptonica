@@ -213,15 +213,14 @@ static const char *header = {"\n=======================\n"
 int main(int    argc,
          char **argv)
 {
-char        *str, *results_file;
-char         command[256], buf[256];
-l_int32      i, ntests, dotest, nfail, ret, start, stop;
-SARRAY      *sa;
-static char  mainName[] = "alltests_reg";
+char    *str, *results_file;
+char     command[256], buf[256];
+l_int32  i, ntests, dotest, nfail, ret, start, stop;
+SARRAY  *sa;
 
     if (argc != 2)
         return ERROR_INT(" Syntax alltests_reg [generate | compare | display]",
-                         mainName, 1);
+                         __func__, 1);
 
     setLeptDebugOK(1);  /* required for testing */
     l_getCurrentTime(&start, NULL);

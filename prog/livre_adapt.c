@@ -41,17 +41,16 @@
 int main(int    argc,
          char **argv)
 {
-PIX         *pixs, *pix1, *pix2, *pix3, *pixr, *pixg, *pixb, *pixsg, *pixsm;
-PIXA        *pixa;
-static char  mainName[] = "livre_adapt";
+PIX   *pixs, *pix1, *pix2, *pix3, *pixr, *pixg, *pixb, *pixsg, *pixsm;
+PIXA  *pixa;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax:  livre_adapt", mainName, 1);
+        return ERROR_INT(" Syntax:  livre_adapt", __func__, 1);
     setLeptDebugOK(1);
 
         /* Read the image in at 150 ppi. */
     if ((pixs = pixRead("brothers.150.jpg")) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
+        return ERROR_INT("pix not made", __func__, 1);
     pixa = pixaCreate(0);
     pixaAddPix(pixa, pixs, L_INSERT);
 

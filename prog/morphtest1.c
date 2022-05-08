@@ -46,22 +46,21 @@
 int main(int    argc,
          char **argv)
 {
-l_int32      i, index;
-l_float32    cputime, epo;
-char        *filein, *fileout;
-PIX         *pixs, *pixd;
-SEL         *sel;
-SELA        *sela;
-static char  mainName[] = "morphtest1";
+l_int32    i, index;
+l_float32  cputime, epo;
+char      *filein, *fileout;
+PIX       *pixs, *pixd;
+SEL       *sel;
+SELA      *sela;
 
     if (argc != 3)
-        return ERROR_INT(" Syntax:  morphtest1 filein fileout", mainName, 1);
+        return ERROR_INT(" Syntax:  morphtest1 filein fileout", __func__, 1);
     filein = argv[1];
     fileout = argv[2];
     setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
+        return ERROR_INT("pix not made", __func__, 1);
     sela = selaAddBasic(NULL);
 
     /* ------------------------   Timing  -------------------------------*/

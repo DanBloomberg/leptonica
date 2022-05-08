@@ -42,12 +42,11 @@
 int main(int    argc,
          char **argv)
 {
-char         buf[256];
-l_int32      ignore;
-static char  mainName[] = "livre_makefigs";
+char     buf[256];
+l_int32  ignore;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax:  livre_makefigs", mainName, 1);
+        return ERROR_INT(" Syntax:  livre_makefigs", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/livre");

@@ -43,15 +43,14 @@
 int main(int    argc,
          char **argv)
 {
-PIX         *pixs, *pixd;
-l_int32      smooth;
-l_float32    fract;
-char        *filein, *fileout;
-static char  mainName[] = "sharptest";
+PIX       *pixs, *pixd;
+l_int32    smooth;
+l_float32  fract;
+char      *filein, *fileout;
 
     if (argc != 5)
         return ERROR_INT(" Syntax:  sharptest filein smooth fract fileout",
-                         mainName, 1);
+                         __func__, 1);
     filein = argv[1];
     smooth = atoi(argv[2]);
     fract = atof(argv[3]);
@@ -59,7 +58,7 @@ static char  mainName[] = "sharptest";
     setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
     pixd = pixUnsharpMasking(pixs, smooth, fract);
     pixWrite(fileout, pixd, IFF_JFIF_JPEG);

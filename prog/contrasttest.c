@@ -41,19 +41,18 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-char         buf[512];
-l_int32      iplot;
-l_float32    factor;    /* scaled width of atan curve */
-l_float32    fact[] = {0.2f, 0.4f, 0.6f, 0.8f, 1.0f, -1.0f};
-GPLOT       *gplot;
-NUMA        *na, *nax;
-PIX         *pixs;
-static char  mainName[] = "contrasttest";
+char      *filein, *fileout;
+char       buf[512];
+l_int32    iplot;
+l_float32  factor;    /* scaled width of atan curve */
+l_float32  fact[] = {0.2f, 0.4f, 0.6f, 0.8f, 1.0f, -1.0f};
+GPLOT     *gplot;
+NUMA      *na, *nax;
+PIX       *pixs;
 
     if (argc != 4)
         return ERROR_INT(" Syntax:  contrasttest filein factor fileout",
-               mainName, 1);
+               __func__, 1);
     filein = argv[1];
     factor = atof(argv[2]);
     fileout = argv[3];
@@ -62,7 +61,7 @@ static char  mainName[] = "contrasttest";
     lept_mkdir("lept/contrast");
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
     na = numaContrastTRC(factor);
     gplotSimple1(na, GPLOT_PNG, "/tmp/lept/contrast/trc1", "contrast trc");

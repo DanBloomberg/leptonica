@@ -51,14 +51,13 @@ static const l_uint32  MissColor = 0xaa44bb00;
 int main(int    argc,
          char **argv)
 {
-BOX         *box;
-PIX         *pixs, *pixc, *pixp, *pixsel, *pixhmt;
-PIX         *pixd1, *pixd2, *pixd3;
-SEL         *selhm;
-static char  mainName[] = "findpattern3";
+BOX  *box;
+PIX  *pixs, *pixc, *pixp, *pixsel, *pixhmt;
+PIX  *pixd1, *pixd2, *pixd3;
+SEL  *selhm;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax:  findpattern3", mainName, 1);
+        return ERROR_INT(" Syntax:  findpattern3", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/hmt");

@@ -39,15 +39,14 @@
 int main(int    argc,
          char **argv)
 {
-PIX         *pixs, *pixd;
-l_int32      minval, maxval;
-l_float32    gamma;
-char        *filein, *fileout;
-static char  mainName[] = "trctest";
+PIX       *pixs, *pixd;
+l_int32    minval, maxval;
+l_float32  gamma;
+char      *filein, *fileout;
 
     if (argc != 6)
         return ERROR_INT(" Syntax:  trctest filein gamma minval maxval fileout",
-                         mainName, 1);
+                         __func__, 1);
     filein = argv[1];
     gamma = atof(argv[2]);
     minval = atoi(argv[3]);
@@ -56,7 +55,7 @@ static char  mainName[] = "trctest";
     setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
     pixd = pixGammaTRC(NULL, pixs, gamma, minval, maxval);
     pixWrite(fileout, pixd, IFF_PNG);
     pixDestroy(&pixs);

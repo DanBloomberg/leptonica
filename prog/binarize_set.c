@@ -61,16 +61,15 @@
 int main(int    argc,
          char **argv)
 {
-char        *infile;
-l_int32      w, d, threshval, ival, newval;
-l_uint32     val;
-PIX         *pixs, *pixg, *pixg2;
-PIX         *pix1, *pix2;
-PIXA        *pixa;
-static char  mainName[] = "binarize_set";
+char     *infile;
+l_int32   w, d, threshval, ival, newval;
+l_uint32  val;
+PIX      *pixs, *pixg, *pixg2;
+PIX      *pix1, *pix2;
+PIXA     *pixa;
 
     if (argc != 2)
-        return ERROR_INT(" Syntax: binarize_set infile", mainName, 1);
+        return ERROR_INT(" Syntax: binarize_set infile", __func__, 1);
     infile = argv[1];
 
     setLeptDebugOK(1);

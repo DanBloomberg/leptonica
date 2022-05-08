@@ -55,24 +55,23 @@ static const l_int32  MAX_WORD_HEIGHT = 100;
 int main(int    argc,
          char **argv)
 {
-char         filename[BUF_SIZE];
-char        *dirin, *rootname, *fname;
-l_int32      i, j, w, h, firstpage, npages, nfiles, ncomp;
-l_int32      index, ival, rval, gval, bval;
-BOX         *box;
-BOXA        *boxa;
-BOXAA       *baa;
-NUMA        *nai;
-NUMAA       *naa;
-SARRAY      *safiles;
-PIX         *pixs, *pix1, *pix2, *pixd;
-PIXCMAP     *cmap;
-static char  mainName[] = "wordsinorder";
+char      filename[BUF_SIZE];
+char     *dirin, *rootname, *fname;
+l_int32   i, j, w, h, firstpage, npages, nfiles, ncomp;
+l_int32   index, ival, rval, gval, bval;
+BOX      *box;
+BOXA     *boxa;
+BOXAA    *baa;
+NUMA     *nai;
+NUMAA    *naa;
+SARRAY   *safiles;
+PIX      *pixs, *pix1, *pix2, *pixd;
+PIXCMAP  *cmap;
 
     if (argc != 3 && argc != 5)
         return ERROR_INT(
             " Syntax: wordsinorder dirin rootname [firstpage, npages]",
-            mainName, 1);
+            __func__, 1);
     dirin = argv[1];
     rootname = argv[2];
     if (argc == 3) {
@@ -94,7 +93,7 @@ static char  mainName[] = "wordsinorder";
     for (i = 0; i < nfiles; i++) {
         fname = sarrayGetString(safiles, i, L_NOCOPY);
         if ((pixs = pixRead(fname)) == NULL) {
-            L_WARNING("image file %d not read\n", mainName, i);
+            L_WARNING("image file %d not read\n", __func__, i);
             continue;
         }
         pix1 = pixReduceRankBinary2(pixs, 1, NULL);

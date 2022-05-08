@@ -46,19 +46,18 @@ static const l_int32  NTIMES = 20;
 int main(int    argc,
          char **argv)
 {
-char        *selname;
-l_int32      i, j, nsels, sx, sy;
-l_float32    fact, time;
-GPLOT       *gplot;
-NUMA        *na1, *na2, *na3, *na4, *nac1, *nac2, *nac3, *nac4, *nax;
-PIX         *pixs, *pixt;
-PIXA        *pixa;
-SEL         *sel;
-SELA        *selalinear;
-static char  mainName[] = "dwamorph2_reg";
+char      *selname;
+l_int32    i, j, nsels, sx, sy;
+l_float32  fact, time;
+GPLOT     *gplot;
+NUMA      *na1, *na2, *na3, *na4, *nac1, *nac2, *nac3, *nac4, *nax;
+PIX       *pixs, *pixt;
+PIXA      *pixa;
+SEL       *sel;
+SELA      *selalinear;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax: dwamorph2_reg", mainName, 1);
+        return ERROR_INT(" Syntax: dwamorph2_reg", __func__, 1);
     setLeptDebugOK(1);
 
     pixs = pixRead("feyn-fract.tif");

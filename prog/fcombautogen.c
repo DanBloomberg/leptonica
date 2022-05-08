@@ -53,14 +53,13 @@
 int main(int    argc,
          char **argv)
 {
-char        *filename;
-l_int32      index, ret;
-SELA        *sela;
-static char  mainName[] = "fcombautogen";
+char    *filename;
+l_int32  index, ret;
+SELA    *sela;
 
     if (argc != 2 && argc != 3)
         return ERROR_INT(" Syntax:  fcombautogen index <filename>",
-                         mainName, 1);
+                         __func__, 1);
 
     setLeptDebugOK(1);
     index = atoi(argv[1]);

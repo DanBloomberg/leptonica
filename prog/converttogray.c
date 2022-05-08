@@ -38,15 +38,14 @@
 int main(int    argc,
           char **argv)
 {
-char        *filein;
-char        *fileout = NULL;
-l_int32      d, same;
-PIX         *pixs, *pixd, *pix1, *pix2, *pix3, *pix4;
-static char  mainName[] = "converttogray";
+char    *filein;
+char    *fileout = NULL;
+l_int32  d, same;
+PIX     *pixs, *pixd, *pix1, *pix2, *pix3, *pix4;
 
     if (argc != 2 && argc != 3)
         return ERROR_INT(" Syntax:  converttogray filein [fileout]",
-                         mainName, 1);
+                         __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/gray");
@@ -54,7 +53,7 @@ static char  mainName[] = "converttogray";
     filein = argv[1];
     if (argc == 3) fileout = argv[2];
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
     if (fileout) {
         pixd = pixConvertRGBToGray(pixs, 0.33, 0.34, 0.33);
@@ -114,7 +113,7 @@ static char  mainName[] = "converttogray";
         pixDestroy(&pix3);
         pixDestroy(&pix4);
     } else {
-        L_INFO("only converts 2 and 4 bpp; d = %d\n", mainName, d);
+        L_INFO("only converts 2 and 4 bpp; d = %d\n", __func__, d);
     }
 
     pixDestroy(&pixs);

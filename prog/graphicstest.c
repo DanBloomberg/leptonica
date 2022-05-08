@@ -39,22 +39,21 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_int32      d;
-BOX         *box1, *box2, *box3, *box4;
-BOXA        *boxa;
-PIX         *pixs, *pix1;
-PTA         *pta;
-static char  mainName[] = "graphicstest";
+char    *filein, *fileout;
+l_int32  d;
+BOX     *box1, *box2, *box3, *box4;
+BOXA    *boxa;
+PIX     *pixs, *pix1;
+PTA     *pta;
 
     if (argc != 3)
-        return ERROR_INT(" Syntax: graphicstest filein fileout", mainName, 1);
+        return ERROR_INT(" Syntax: graphicstest filein fileout", __func__, 1);
     filein = argv[1];
     fileout = argv[2];
     setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT(" Syntax: pixs not made", mainName, 1);
+        return ERROR_INT(" Syntax: pixs not made", __func__, 1);
     d = pixGetDepth(pixs);
     if (d <= 8)
         pix1 = pixConvertTo32(pixs);

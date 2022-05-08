@@ -46,17 +46,16 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_int32      i, j, w, d, nhue, nsat, tilewidth;
-l_float32    scale, dhue, dsat, delhue, delsat;
-PIX         *pixs, *pixt1, *pixt2, *pixd;
-PIXA        *pixa;
-static char  mainName[] = "modifyhuesat";
+char      *filein, *fileout;
+l_int32    i, j, w, d, nhue, nsat, tilewidth;
+l_float32  scale, dhue, dsat, delhue, delsat;
+PIX       *pixs, *pixt1, *pixt2, *pixd;
+PIXA      *pixa;
 
     if (argc != 7)
         return ERROR_INT(
             " Syntax: modifyhuesat filein nhue dhue nsat dsat fileout",
-            mainName, 1);
+            __func__, 1);
     filein = argv[1];
     nhue = atoi(argv[2]);
     dhue = atof(argv[3]);
@@ -74,7 +73,7 @@ static char  mainName[] = "modifyhuesat";
 
     setLeptDebugOK(1);
     if ((pixt1 = pixRead(filein)) == NULL)
-        return ERROR_INT("pixt1 not read", mainName, 1);
+        return ERROR_INT("pixt1 not read", __func__, 1);
     pixGetDimensions(pixt1, &w, NULL, NULL);
     scale = 250.0 / (l_float32)w;
     pixt2 = pixScale(pixt1, scale, scale);

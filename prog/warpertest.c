@@ -59,10 +59,9 @@ BOX       *box;
 L_BMF     *bmf;
 PIX       *pixs, *pix1, *pix2, *pixd;
 PIXA      *pixa;
-static char  mainName[] = "warpertest";
 
     if (argc != 1)
-        return ERROR_INT("syntax: warpertest", mainName, 1);
+        return ERROR_INT("syntax: warpertest", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/warp");
