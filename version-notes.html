@@ -93,7 +93,8 @@ They are <i>not</i> a complete listing of the modifications.
         * Simplify setting the title of pdf files.
         * Catch tiff failure to open stream in fopenTiffMemStream()
         * Check for POSIX functions fstatat() and dirfd() before use.
-        * In prog/cleanpdf: do not allow threshold to exceed 190
+        * In prog/cleanpdf: do not allow threshold to exceed 190.  Make all
+          parameters required; do not use default values for invalid parameters.
         * In prog/concatpdf: add input param for title; add jpeg quality factor
         * Fix flaky hash_reg test on i686: sets generated from SelectRange()
           can depend slightly on platform.

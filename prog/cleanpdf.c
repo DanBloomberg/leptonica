@@ -36,12 +36,12 @@
  *    It will also take as input clean, orthographically-generated pdfs,
  *    and concatenate them into a single pdf file of images.
  *
- *     Syntax:  cleanpdf basedir threshold resolution title
- *                  outfile [rotation darken]
+ *     Syntax:
+ *        cleanpdf basedir threshold resolution darken rotation title outfile
  *
  *    The %basedir is a directory where the input pdf files are located.
  *    The program will operate on every file in this directory with
- *    the ".pdf" extension.
+ *    the ".pdf" extension.  Use "." if the files are in the current directory.
  *
  *    The input binarization %threshold should be somewhere in the
  *    range [130 - 190], and not exceed 190.  The result is typically
@@ -58,24 +58,23 @@
  *    At 300 ppi, an 8.5 x 11 page would have 2550 x 3300 pixels.
  *    You can also input 0 for the default output resolution of 300 ppi.
  *
+ *    The %darken parameter adjusts the binarization to avoid losing input
+ *    details that are too light.  It takes on 3 values: 0,1,2,3, where
+ *    0 is the lightest and is the default.  The contrast is increased
+ *    as %darken increases.
+ *
+ *    The %rotation parameter is an integer that specifies the rotation
+ *    to be applied to each image:
+ *       0      no rotation   (default)
+ *       1      90 degrees cw
+ *       2      180 degrees cw
+ *       3      270 degrees cw
+ *
  *    The %title is the title given to the pdf.  Use %title == "none"
  *    to omit the title.
  *
  *    The pdf output is written to %outfile.  It is advisable (but not
  *    required) to have a '.pdf' extension.
- *
- *    The optional arguments %rotation and %darken must be used together.
- *    The optional %rotation is an integer:
- *       0      no rotation
- *       1      90 degrees cw
- *       1      180 degrees cw
- *       1      270 degrees cw
- *
- *    If the input is too light, so that important details are lost in
- *    the binarization, use the optional %darken parameter with value 1:
- *       0      default
- *       1      darken
- *    Using %darken = 1 greatly increases the contrast.
  *
  *    Whenever possible, the images will be deskewed.
  *
@@ -128,29 +127,18 @@ l_int32  thresh, res, rotation, darken, i, n, ret;
 PIX     *pixs, *pix1, *pix2, *pix3, *pix4, *pix5;
 SARRAY  *sa;
 
-    if (argc != 6 && argc != 8)
+    if (argc != 8)
         return ERROR_INT(
-            "\n  Syntax: cleanpdf basedir threshold resolution title "
-            "outfile [rotation darken]",
+            "\n  Syntax: cleanpdf basedir threshold resolution "
+            "darken rotation title outfile",
             __func__, 1);
     basedir = argv[1];
     thresh = atoi(argv[2]);
     res = atoi(argv[3]);
-    title = argv[4];
-    outfile = argv[5];
-    if (argc == 8) {
-        rotation = atoi(argv[6]);
-        darken = atoi(argv[7]);
-    } else {
-        rotation = 0;
-        darken = 0;
-    }
-    if (rotation < 0 || rotation > 3) {
-        L_ERROR("rotation not in valid set {0,1,2,3}; setting to 0", __func__);
-        rotation = 0;
-    }
-    if (darken != 0 && darken != 1)
-        L_ERROR("darken is not in valid set {0,1}; setting to 0", __func__);
+    darken = atoi(argv[4]);
+    rotation = atoi(argv[5]);
+    title = argv[6];
+    outfile = argv[7];
     if (thresh > 190) {
         L_WARNING("threshold = %d is too large; reducing to 190\n",
                 __func__, thresh);
@@ -161,6 +149,16 @@ SARRAY  *sa;
     if (res != 300 && res != 600) {
         L_ERROR("invalid res = %d; res must be in {0, 300, 600}\n",
                 __func__, res);
+        return 1;
+    }
+    if (darken < 0 || darken > 3) {
+        L_ERROR("invalid darken = %d; darken must be in {0,1,2,3}\n",
+                __func__, darken);
+        return 1;
+    }
+    if (rotation < 0 || rotation > 3) {
+        L_ERROR("invalid rotation = %d; rotation must be in  {0,1,2,3}\n",
+                __func__, rotation);
         return 1;
     }
     setLeptDebugOK(1);
@@ -227,7 +225,11 @@ SARRAY  *sa;
         pix4 = pixBackgroundNormSimple(pix3, NULL, NULL);
         if (darken == 0)
             pixGammaTRC(pix4, pix4, 2.0, 50, 220);
-        else
+        else if (darken == 1)
+            pixGammaTRC(pix4, pix4, 1.4, 80, 210);
+        else if (darken == 2)
+            pixGammaTRC(pix4, pix4, 1.0, 100, 210);
+        else  /* darken == 3 */
             pixGammaTRC(pix4, pix4, 0.6, 130, 200);
         if (res == 300)
             pix5 = pixThresholdToBinary(pix4, thresh);
