@@ -267,7 +267,7 @@ AC_SUBST([VERSION_MINOR], [$AX_MINOR_VERSION])
 AC_SUBST([VERSION_PATCH], [$(echo "$AX_POINT_VERSION" | $SED 's/^\([[0-9]][[0-9]]*\).*/\1/')])
 INCLUDE_PATH=`eval echo $includedir`
 AC_SUBST([INCLUDE_DIR], ["${INCLUDE_PATH}/leptonica"])
-AC_SUBST([leptonica_OUTPUT_NAME], ["lept"])
+AC_SUBST([leptonica_OUTPUT_NAME], ["leptonica"])
 AC_CONFIG_FILES(cmake/templates/LeptonicaConfig.cmake)
 AC_CONFIG_FILES(cmake/templates/LeptonicaConfig-version.cmake)
 
