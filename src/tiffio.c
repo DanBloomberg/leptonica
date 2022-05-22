@@ -2149,7 +2149,13 @@ TIFF     *tif;
     TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &rowsperstrip);
     if (h != rowsperstrip)
         L_WARNING("more than 1 strip\n", __func__);
-    TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &minisblack);  /* for 1 bpp */
+        /* From the standard:
+             TIFFTAG_PHOTOMETRIC = 0 (false) -->  min value is white.
+             TIFFTAG_PHOTOMETRIC = 1 (true) -->  min value is black.
+           Most 1 bpp tiffs have the tag value 0 (black is 1),
+           because there are fewer black pixels than white pixels,
+           so it makes sense to encode runs of black pixels.  */
+    TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &minisblack);
 /*    TIFFPrintDirectory(tif, stderr, 0); */
     TIFFClose(tif);
     if (pw) *pw = (l_int32)w;

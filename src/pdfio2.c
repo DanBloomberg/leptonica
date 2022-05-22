@@ -1950,7 +1950,12 @@ SARRAY       *sa;
             }
             bstr = stringNew("/BitsPerComponent 1\n"
                              "/Interpolate true");
-                /* Note: the reversal is deliberate */
+                /* Note: the reversal is deliberate.  The BlackIs1 flag
+                 * is misleadingly named: it says whether to invert the
+                 * image on decoding because the black pixels are 0,
+                 * not whether the black pixels are 1!  The default for
+                 * BlackIs1 is "false", which means "don't invert because
+                 * black is 1."  Yikes. */
             photometry = (cid->minisblack) ? stringNew("true")
                                            : stringNew("false");
             snprintf(buff, sizeof(buff),
