@@ -44,10 +44,12 @@
  *    the ".pdf" extension.  Use "." if the files are in the current directory.
  *
  *    The input binarization %threshold should be somewhere in the
- *    range [130 - 190], and not exceed 190.  The result is typically
- *    not very sensitive to the value, because internally we use a
- *    pixel mapping that is adapted to the local background before
- *    thresholding to binarize the image.
+ *    range [130 - 190], and not exceed 190.  The result is relatively
+ *    insensitive to the value, because internally we use a pixel mapping
+ *    that is adapted to the local background before thresholding to
+ *    binarize the image.  However, using a lower threshold value will
+ *    somewhat weaken the foreground, and this can be compensated by
+ *    using a larger value of the %darken parameter (see below).
  *
  *    The output %resolution parameter can take on two values:
  *       300  (binarize at the same resolution as the gray or color input,
@@ -59,7 +61,7 @@
  *    You can also input 0 for the default output resolution of 300 ppi.
  *
  *    The %darken parameter adjusts the binarization to avoid losing input
- *    details that are too light.  It takes on 3 values: 0,1,2,3, where
+ *    details that are too light.  It takes on 10 values from 0 to 9, where
  *    0 is the lightest and is the default.  The contrast is increased
  *    as %darken increases.
  *
@@ -151,8 +153,8 @@ SARRAY  *sa;
                 __func__, res);
         return 1;
     }
-    if (darken < 0 || darken > 3) {
-        L_ERROR("invalid darken = %d; darken must be in {0,1,2,3}\n",
+    if (darken < 0 || darken > 9) {
+        L_ERROR("invalid darken = %d; darken must be in {0,...,9}\n",
                 __func__, darken);
         return 1;
     }
@@ -226,11 +228,23 @@ SARRAY  *sa;
         if (darken == 0)
             pixGammaTRC(pix4, pix4, 2.0, 50, 220);
         else if (darken == 1)
-            pixGammaTRC(pix4, pix4, 1.4, 80, 210);
+            pixGammaTRC(pix4, pix4, 1.8, 60, 215);
         else if (darken == 2)
+            pixGammaTRC(pix4, pix4, 1.6, 70, 215);
+        else if (darken == 3)
+            pixGammaTRC(pix4, pix4, 1.4, 80, 210);
+        else if (darken == 4)
+            pixGammaTRC(pix4, pix4, 1.2, 90, 210);
+        else if (darken == 5)
             pixGammaTRC(pix4, pix4, 1.0, 100, 210);
-        else  /* darken == 3 */
+        else if (darken == 6)
+            pixGammaTRC(pix4, pix4, 0.85, 110, 205);
+        else if (darken == 7)
+            pixGammaTRC(pix4, pix4, 0.7, 120, 205);
+        else if (darken == 8)
             pixGammaTRC(pix4, pix4, 0.6, 130, 200);
+        else  /* darken == 9 */
+            pixGammaTRC(pix4, pix4, 0.5, 140, 195);
         if (res == 300)
             pix5 = pixThresholdToBinary(pix4, thresh);
         else  /* res == 600 */
