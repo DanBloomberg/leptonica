@@ -63,12 +63,6 @@ set(include_files_list
     sys/stat.h
     sys/types.h
     unistd.h
-
-    openjpeg-2.0/openjpeg.h
-    openjpeg-2.1/openjpeg.h
-    openjpeg-2.2/openjpeg.h
-    openjpeg-2.3/openjpeg.h
-    openjpeg-2.4/openjpeg.h
 )
 check_includes(include_files_list)
 
@@ -102,6 +96,7 @@ endif()
 
 if (JP2K_FOUND)
     set(HAVE_LIBJP2K 1)
+    set(LIBJP2K_HEADER <${JP2K_HEADER_DIR}/openjpeg.h>)
 endif()
 
 if (PNG_FOUND)
@@ -127,6 +122,7 @@ file(APPEND ${AUTOCONFIG_SRC} "
 
 /* Define to 1 if you have libopenjp2. */
 #cmakedefine HAVE_LIBJP2K 1
+#cmakedefine LIBJP2K_HEADER <${JP2K_HEADER_DIR}/openjpeg.h>
 
 /* Define to 1 if you have jpeg. */
 #cmakedefine HAVE_LIBJPEG 1
@@ -145,18 +141,6 @@ file(APPEND ${AUTOCONFIG_SRC} "
 
 /* Define to 1 if you have zlib. */
 #cmakedefine HAVE_LIBZ 1
-
-#if defined(HAVE_OPENJPEG_2_4_OPENJPEG_H)
-#define LIBJP2K_HEADER <openjpeg-2.4/openjpeg.h>
-#elif defined(HAVE_OPENJPEG_2_3_OPENJPEG_H)
-#define LIBJP2K_HEADER <openjpeg-2.3/openjpeg.h>
-#elif defined(HAVE_OPENJPEG_2_2_OPENJPEG_H)
-#define LIBJP2K_HEADER <openjpeg-2.2/openjpeg.h>
-#elif defined(HAVE_OPENJPEG_2_1_OPENJPEG_H)
-#define LIBJP2K_HEADER <openjpeg-2.1/openjpeg.h>
-#elif defined(HAVE_OPENJPEG_2_0_OPENJPEG_H)
-#define LIBJP2K_HEADER <openjpeg-2.0/openjpeg.h>
-#endif
 ")
 
 ########################################
