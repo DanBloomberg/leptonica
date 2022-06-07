@@ -487,6 +487,8 @@ PIXCMAP  *cmap;
         *ptype = L_FLATE_ENCODE;
     } else if (d == 8 || d == 32) {
         *ptype = L_JPEG_ENCODE;
+    } else if (d == 16) {
+        *ptype = L_FLATE_ENCODE;
     } else {
         return ERROR_INT("type selection failure", __func__, 1);
     }
