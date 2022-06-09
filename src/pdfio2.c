@@ -1419,7 +1419,7 @@ PIXCMAP      *cmap;
 /*!
  * \brief   pixGenerateJpegData()
  *
- * \param[in]    pixs           8 or 32 bpp, no colormap
+ * \param[in]    pixs           8, 16 or 32 bpp, no colormap
  * \param[in]    ascii85flag    0 for jpeg; 1 for ascii85-encoded jpeg
  * \param[in]    quality        0 for default, which is 75
  * \return  cid jpeg compressed data, or NULL on error
@@ -1429,6 +1429,7 @@ PIXCMAP      *cmap;
  *      (1) Set ascii85flag:
  *           ~ 0 for binary data (PDF only)
  *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
+ *      (2) If 16 bpp, convert first to 8 bpp, using the MSB
  * </pre>
  */
 static L_COMP_DATA *
@@ -1445,8 +1446,9 @@ L_COMP_DATA  *cid;
     if (pixGetColormap(pixs))
         return (L_COMP_DATA *)ERROR_PTR("pixs has colormap", __func__, NULL);
     d = pixGetDepth(pixs);
-    if (d != 8 && d != 32)
-        return (L_COMP_DATA *)ERROR_PTR("pixs not 8 or 32 bpp", __func__, NULL);
+    if (d != 8 && d != 16 && d != 32)
+        return (L_COMP_DATA *)ERROR_PTR("pixs not 8, 16 or 32 bpp",
+                __func__, NULL);
 
         /* Compress to a temp jpeg file */
     fname = l_makeTempFilename();
