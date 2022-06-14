@@ -47,7 +47,7 @@
 PIX * pixReadJpeg(const char *filename, l_int32 cmflag, l_int32 reduction,
                   l_int32 *pnwarn, l_int32 hint)
 {
-    return (PIX * )ERROR_PTR("function not present", "pixReadJpeg", NULL);
+    return (PIX * )ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -55,7 +55,7 @@ PIX * pixReadJpeg(const char *filename, l_int32 cmflag, l_int32 reduction,
 PIX * pixReadStreamJpeg(FILE *fp, l_int32 cmflag, l_int32 reduction,
                         l_int32 *pnwarn, l_int32 hint)
 {
-    return (PIX * )ERROR_PTR("function not present", "pixReadStreamJpeg", NULL);
+    return (PIX * )ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -63,7 +63,7 @@ PIX * pixReadStreamJpeg(FILE *fp, l_int32 cmflag, l_int32 reduction,
 l_ok readHeaderJpeg(const char *filename, l_int32 *pw, l_int32 *ph,
                     l_int32 *pspp, l_int32 *pycck, l_int32 *pcmyk)
 {
-    return ERROR_INT("function not present", "readHeaderJpeg", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -71,21 +71,21 @@ l_ok readHeaderJpeg(const char *filename, l_int32 *pw, l_int32 *ph,
 l_ok freadHeaderJpeg(FILE *fp, l_int32 *pw, l_int32 *ph,
                      l_int32 *pspp, l_int32 *pycck, l_int32 *pcmyk)
 {
-    return ERROR_INT("function not present", "freadHeaderJpeg", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_int32 fgetJpegResolution(FILE *fp, l_int32 *pxres, l_int32 *pyres)
 {
-    return ERROR_INT("function not present", "fgetJpegResolution", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_int32 fgetJpegComment(FILE *fp, l_uint8 **pcomment)
 {
-    return ERROR_INT("function not present", "fgetJpegComment", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -93,7 +93,7 @@ l_int32 fgetJpegComment(FILE *fp, l_uint8 **pcomment)
 l_ok pixWriteJpeg(const char *filename, PIX *pix, l_int32 quality,
                   l_int32 progressive)
 {
-    return ERROR_INT("function not present", "pixWriteJpeg", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -101,7 +101,7 @@ l_ok pixWriteJpeg(const char *filename, PIX *pix, l_int32 quality,
 l_ok pixWriteStreamJpeg(FILE *fp, PIX *pix, l_int32 quality,
                         l_int32 progressive)
 {
-    return ERROR_INT("function not present", "pixWriteStreamJpeg", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -109,7 +109,7 @@ l_ok pixWriteStreamJpeg(FILE *fp, PIX *pix, l_int32 quality,
 PIX * pixReadMemJpeg(const l_uint8 *cdata, size_t size, l_int32 cmflag,
                      l_int32 reduction, l_int32 *pnwarn, l_int32 hint)
 {
-    return (PIX * )ERROR_PTR("function not present", "pixReadMemJpeg", NULL);
+    return (PIX * )ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -118,7 +118,7 @@ l_ok readHeaderMemJpeg(const l_uint8 *cdata, size_t size,
                        l_int32 *pw, l_int32 *ph, l_int32 *pspp,
                        l_int32 *pycck, l_int32 *pcmyk)
 {
-    return ERROR_INT("function not present", "readHeaderMemJpeg", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -126,7 +126,7 @@ l_ok readHeaderMemJpeg(const l_uint8 *cdata, size_t size,
 l_ok readResolutionMemJpeg(const l_uint8 *data, size_t size,
                            l_int32 *pxres, l_int32 *pyres)
 {
-    return ERROR_INT("function not present", "readResolutionMemJpeg", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -134,14 +134,14 @@ l_ok readResolutionMemJpeg(const l_uint8 *data, size_t size,
 l_ok pixWriteMemJpeg(l_uint8 **pdata, size_t *psize, PIX *pix,
                      l_int32 quality, l_int32 progressive)
 {
-    return ERROR_INT("function not present", "pixWriteMemJpeg", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok pixSetChromaSampling(PIX *pix, l_int32 sampling)
 {
-    return ERROR_INT("function not present", "pixSetChromaSampling", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/

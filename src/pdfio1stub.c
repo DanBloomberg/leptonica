@@ -49,7 +49,7 @@ l_ok convertFilesToPdf(const char *dirname, const char *substr,
                        l_int32 type, l_int32 quality,
                        const char *title, const char *fileout)
 {
-    return ERROR_INT("function not present", "convertFilesToPdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -58,7 +58,7 @@ l_ok saConvertFilesToPdf(SARRAY *sa, l_int32 res, l_float32 scalefactor,
                          l_int32 type, l_int32 quality,
                          const char *title, const char *fileout)
 {
-    return ERROR_INT("function not present", "saConvertFilesToPdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -68,14 +68,14 @@ l_ok saConvertFilesToPdfData(SARRAY *sa, l_int32 res,
                              l_int32 quality, const char *title,
                              l_uint8 **pdata, size_t *pnbytes)
 {
-    return ERROR_INT("function not present", "saConvertFilesToPdfData", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok selectDefaultPdfEncoding(PIX *pix, l_int32 *ptype)
 {
-    return ERROR_INT("function not present", "selectDefaultPdfEncoding", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -83,7 +83,7 @@ l_ok selectDefaultPdfEncoding(PIX *pix, l_int32 *ptype)
 l_ok convertUnscaledFilesToPdf(const char *dirname, const char *substr,
                                const char *title, const char *fileout)
 {
-    return ERROR_INT("function not present", "convertUnscaledFilesToPdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -91,7 +91,7 @@ l_ok convertUnscaledFilesToPdf(const char *dirname, const char *substr,
 l_ok saConvertUnscaledFilesToPdf(SARRAY *sa, const char *title,
                                  const char *fileout)
 {
-    return ERROR_INT("function not present", "saConvertUnscaledFilesToPdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -99,8 +99,7 @@ l_ok saConvertUnscaledFilesToPdf(SARRAY *sa, const char *title,
 l_ok saConvertUnscaledFilesToPdfData(SARRAY *sa, const char *title,
                                      l_uint8 **pdata, size_t *pnbytes)
 {
-    return ERROR_INT("function not present",
-                     "saConvertUnscaledFilesToPdfData", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -108,7 +107,7 @@ l_ok saConvertUnscaledFilesToPdfData(SARRAY *sa, const char *title,
 l_ok convertUnscaledToPdfData(const char *fname, const char *title,
                               l_uint8 **pdata, size_t *pnbytes)
 {
-    return ERROR_INT("function not present", "convertUnscaledToPdfData", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -117,7 +116,7 @@ l_ok pixaConvertToPdf(PIXA *pixa, l_int32 res, l_float32 scalefactor,
                       l_int32 type, l_int32 quality,
                       const char *title, const char *fileout)
 {
-    return ERROR_INT("function not present", "pixaConvertToPdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -126,7 +125,7 @@ l_ok pixaConvertToPdfData(PIXA *pixa, l_int32 res, l_float32 scalefactor,
                           l_int32 type, l_int32 quality, const char *title,
                           l_uint8 **pdata, size_t *pnbytes)
 {
-    return ERROR_INT("function not present", "pixaConvertToPdfData", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -138,7 +137,7 @@ l_ok convertToPdf(const char *filein,
                      const char *title,
                      L_PDF_DATA **plpd, l_int32 position)
 {
-    return ERROR_INT("function not present", "convertToPdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -150,7 +149,7 @@ l_ok convertImageDataToPdf(l_uint8 *imdata, size_t size,
                            const char *title,
                            L_PDF_DATA **plpd, l_int32 position)
 {
-    return ERROR_INT("function not present", "convertImageDataToPdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -162,7 +161,7 @@ l_ok convertToPdfData(const char *filein,
                       const char *title,
                       L_PDF_DATA **plpd, l_int32 position)
 {
-    return ERROR_INT("function not present", "convertToPdfData", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -174,7 +173,7 @@ l_ok convertImageDataToPdfData(l_uint8 *imdata, size_t size,
                                const char *title,
                                L_PDF_DATA **plpd, l_int32 position)
 {
-    return ERROR_INT("function not present", "convertImageDataToPdfData", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -185,14 +184,14 @@ l_ok pixConvertToPdf(PIX *pix, l_int32 type, l_int32 quality,
                      const char *title,
                      L_PDF_DATA **plpd, l_int32 position)
 {
-    return ERROR_INT("function not present", "pixConvertToPdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok pixWriteStreamPdf(FILE *fp, PIX *pix, l_int32 res, const char *title)
 {
-    return ERROR_INT("function not present", "pixWriteStreamPdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -200,7 +199,7 @@ l_ok pixWriteStreamPdf(FILE *fp, PIX *pix, l_int32 res, const char *title)
 l_ok pixWriteMemPdf(l_uint8 **pdata, size_t *pnbytes, PIX *pix,
                     l_int32 res, const char *title)
 {
-    return ERROR_INT("function not present", "pixWriteMemPdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -211,7 +210,7 @@ l_ok convertSegmentedFilesToPdf(const char *dirname, const char *substr,
                                 l_float32 scalefactor, const char *title,
                                 const char *fileout)
 {
-    return ERROR_INT("function not present", "convertSegmentedFilesToPdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -219,8 +218,7 @@ l_ok convertSegmentedFilesToPdf(const char *dirname, const char *substr,
 BOXAA * convertNumberedMasksToBoxaa(const char *dirname, const char *substr,
                                     l_int32 numpre, l_int32 numpost)
 {
-    return (BOXAA *)ERROR_PTR("function not present",
-                              "convertNumberedMasksToBoxaa", NULL);
+    return (BOXAA *)ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -230,7 +228,7 @@ l_ok convertToPdfSegmented(const char *filein, l_int32 res, l_int32 type,
                            l_float32 scalefactor, const char *title,
                            const char *fileout)
 {
-    return ERROR_INT("function not present", "convertToPdfSegmented", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -240,7 +238,7 @@ l_ok pixConvertToPdfSegmented(PIX *pixs, l_int32 res, l_int32 type,
                               l_float32 scalefactor, const char *title,
                               const char *fileout)
 {
-    return ERROR_INT("function not present", "pixConvertToPdfSegmented", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -251,7 +249,7 @@ l_ok convertToPdfDataSegmented(const char *filein, l_int32 res,
                                const char *title,
                                l_uint8 **pdata, size_t *pnbytes)
 {
-    return ERROR_INT("function not present", "convertToPdfDataSegmented", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -262,7 +260,7 @@ l_ok pixConvertToPdfDataSegmented(PIX *pixs, l_int32 res, l_int32 type,
                                   const char *title,
                                   l_uint8 **pdata, size_t *pnbytes)
 {
-    return ERROR_INT("function not present", "pixConvertToPdfDataSegmented", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -270,21 +268,21 @@ l_ok pixConvertToPdfDataSegmented(PIX *pixs, l_int32 res, l_int32 type,
 l_ok concatenatePdf(const char *dirname, const char *substr,
                     const char *fileout)
 {
-    return ERROR_INT("function not present", "concatenatePdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok saConcatenatePdf(SARRAY *sa, const char *fileout)
 {
-    return ERROR_INT("function not present", "saConcatenatePdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok ptraConcatenatePdf(L_PTRA *pa, const char *fileout)
 {
-    return ERROR_INT("function not present", "ptraConcatenatePdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -292,14 +290,14 @@ l_ok ptraConcatenatePdf(L_PTRA *pa, const char *fileout)
 l_ok concatenatePdfToData(const char *dirname, const char *substr,
                           l_uint8 **pdata, size_t *pnbytes)
 {
-    return ERROR_INT("function not present", "concatenatePdfToData", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok saConcatenatePdfToData(SARRAY *sa, l_uint8 **pdata, size_t *pnbytes)
 {
-    return ERROR_INT("function not present", "saConcatenatePdfToData", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/

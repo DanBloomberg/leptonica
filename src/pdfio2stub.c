@@ -50,7 +50,7 @@ l_ok pixConvertToPdfData(PIX *pix, l_int32 type, l_int32 quality,
                          const char *title,
                          L_PDF_DATA **plpd, l_int32 position)
 {
-    return ERROR_INT("function not present", "pixConvertToPdfData", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -58,14 +58,14 @@ l_ok pixConvertToPdfData(PIX *pix, l_int32 type, l_int32 quality,
 l_ok ptraConcatenatePdfToData(L_PTRA *pa_data, SARRAY *sa,
                               l_uint8 **pdata, size_t *pnbytes)
 {
-    return ERROR_INT("function not present", "ptraConcatenatePdfToData", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok convertTiffMultipageToPdf(const char *filein, const char *fileout)
 {
-    return ERROR_INT("function not present", "convertTiffMultipageToPdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -73,23 +73,21 @@ l_ok convertTiffMultipageToPdf(const char *filein, const char *fileout)
 l_ok l_generateCIDataForPdf(const char *fname, PIX *pix, l_int32 quality,
                             L_COMP_DATA **pcid)
 {
-    return ERROR_INT("function not present", "l_generateCIDataForPdf", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 L_COMP_DATA * l_generateFlateDataPdf(const char *fname, PIX *pix)
 {
-    return (L_COMP_DATA *)ERROR_PTR("function not present",
-                                    "l_generateFlateDataPdf", NULL);
+    return (L_COMP_DATA *)ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
 
 L_COMP_DATA * l_generateJpegData(const char *fname, l_int32 ascii85flag)
 {
-    return (L_COMP_DATA *)ERROR_PTR("function not present",
-                                    "l_generateJpegData", NULL);
+    return (L_COMP_DATA *)ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -97,8 +95,7 @@ L_COMP_DATA * l_generateJpegData(const char *fname, l_int32 ascii85flag)
 L_COMP_DATA * l_generateJpegDataMem(l_uint8 *data, size_t nbytes,
                                     l_int32 ascii85flag)
 {
-    return (L_COMP_DATA *)ERROR_PTR("function not present",
-                                    "l_generateJpegDataMem", NULL);
+    return (L_COMP_DATA *)ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -106,7 +103,7 @@ L_COMP_DATA * l_generateJpegDataMem(l_uint8 *data, size_t nbytes,
 l_ok l_generateCIData(const char *fname, l_int32 type, l_int32 quality,
                       l_int32 ascii85, L_COMP_DATA **pcid)
 {
-    return ERROR_INT("function not present", "l_generateCIData", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -114,23 +111,21 @@ l_ok l_generateCIData(const char *fname, l_int32 type, l_int32 quality,
 l_ok pixGenerateCIData(PIX *pixs, l_int32 type, l_int32 quality,
                        l_int32 ascii85, L_COMP_DATA **pcid)
 {
-    return ERROR_INT("function not present", "pixGenerateCIData", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 L_COMP_DATA * l_generateFlateData(const char *fname, l_int32 ascii85flag)
 {
-    return (L_COMP_DATA *)ERROR_PTR("function not present",
-                                    "l_generateFlateData", NULL);
+    return (L_COMP_DATA *)ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
 
 L_COMP_DATA * l_generateG4Data(const char *fname, l_int32 ascii85flag)
 {
-    return (L_COMP_DATA *)ERROR_PTR("function not present",
-                                    "l_generateG4Data", NULL);
+    return (L_COMP_DATA *)ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -138,14 +133,14 @@ L_COMP_DATA * l_generateG4Data(const char *fname, l_int32 ascii85flag)
 l_ok cidConvertToPdfData(L_COMP_DATA *cid, const char *title,
                          l_uint8 **pdata, size_t *pnbytes)
 {
-    return ERROR_INT("function not present", "cidConvertToPdfData", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 void l_CIDataDestroy(L_COMP_DATA  **pcid)
 {
-    L_ERROR("function not present\n", "l_CIDataDestroy");
+    L_ERROR("function not present\n", __func__);
     return;
 }
 
@@ -153,7 +148,7 @@ void l_CIDataDestroy(L_COMP_DATA  **pcid)
 
 void l_pdfSetG4ImageMask(l_int32 flag)
 {
-    L_ERROR("function not present\n", "l_pdfSetG4ImageMask");
+    L_ERROR("function not present\n", __func__);
     return;
 }
 
@@ -161,7 +156,7 @@ void l_pdfSetG4ImageMask(l_int32 flag)
 
 void l_pdfSetDateAndVersion(l_int32 flag)
 {
-    L_ERROR("function not present\n", "l_pdfSetDateAndVersion");
+    L_ERROR("function not present\n", __func__);
     return;
 }
 

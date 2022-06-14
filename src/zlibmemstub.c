@@ -44,14 +44,14 @@
 
 l_uint8 * zlibCompress(const l_uint8 *datain, size_t nin, size_t *pnout)
 {
-    return (l_uint8 *)ERROR_PTR("function not present", "zlibCompress", NULL);
+    return (l_uint8 *)ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_uint8 * zlibUncompress(const l_uint8 *datain, size_t nin, size_t *pnout)
 {
-    return (l_uint8 *)ERROR_PTR("function not present", "zlibUncompress", NULL);
+    return (l_uint8 *)ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* --------------------------------------------*/

@@ -44,7 +44,7 @@
 
 PIX * pixReadStreamPng(FILE *fp)
 {
-    return (PIX * )ERROR_PTR("function not present", "pixReadStreamPng", NULL);
+    return (PIX * )ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -52,7 +52,7 @@ PIX * pixReadStreamPng(FILE *fp)
 l_ok readHeaderPng(const char *filename, l_int32 *pwidth, l_int32 *pheight,
                    l_int32 *pbps, l_int32 *pspp, l_int32 *piscmap)
 {
-    return ERROR_INT("function not present", "readHeaderPng", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -60,7 +60,7 @@ l_ok readHeaderPng(const char *filename, l_int32 *pwidth, l_int32 *pheight,
 l_ok freadHeaderPng(FILE *fp, l_int32 *pwidth, l_int32 *pheight,
                     l_int32 *pbps, l_int32 *pspp, l_int32 *piscmap)
 {
-    return ERROR_INT("function not present", "freadHeaderPng", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -69,42 +69,42 @@ l_ok readHeaderMemPng(const l_uint8 *data, size_t size, l_int32 *pwidth,
                       l_int32 *pheight, l_int32 *pbps, l_int32 *pspp,
                       l_int32 *piscmap)
 {
-    return ERROR_INT("function not present", "readHeaderMemPng", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_int32 fgetPngResolution(FILE *fp, l_int32 *pxres, l_int32 *pyres)
 {
-    return ERROR_INT("function not present", "fgetPngResolution", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok isPngInterlaced(const char *filename, l_int32 *pinterlaced)
 {
-    return ERROR_INT("function not present", "isPngInterlaced", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok fgetPngColormapInfo(FILE *fp, PIXCMAP **pcmap, l_int32 *ptransparency)
 {
-    return ERROR_INT("function not present", "fgetPngColormapInfo", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok pixWritePng(const char *filename, PIX *pix, l_float32 gamma)
 {
-    return ERROR_INT("function not present", "pixWritePng", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok pixWriteStreamPng(FILE *fp, PIX *pix, l_float32 gamma)
 {
-    return ERROR_INT("function not present", "pixWriteStreamPng", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -112,14 +112,14 @@ l_ok pixWriteStreamPng(FILE *fp, PIX *pix, l_float32 gamma)
 l_ok pixSetZlibCompression(PIX *pix, l_int32 compval)
 
 {
-    return ERROR_INT("function not present", "pixSetZlibCompression", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 void l_pngSetReadStrip16To8(l_int32 flag)
 {
-    L_ERROR("function not present\n", "l_pngSetReadStrip16To8");
+    L_ERROR("function not present\n", __func__);
     return;
 }
 
@@ -127,7 +127,7 @@ void l_pngSetReadStrip16To8(l_int32 flag)
 
 PIX * pixReadMemPng(const l_uint8 *filedata, size_t filesize)
 {
-    return (PIX * )ERROR_PTR("function not present", "pixReadMemPng", NULL);
+    return (PIX * )ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -135,7 +135,7 @@ PIX * pixReadMemPng(const l_uint8 *filedata, size_t filesize)
 l_ok pixWriteMemPng(l_uint8 **pfiledata, size_t *pfilesize, PIX *pix,
                     l_float32 gamma)
 {
-    return ERROR_INT("function not present", "pixWriteMemPng", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* --------------------------------------------*/

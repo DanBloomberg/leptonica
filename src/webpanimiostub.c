@@ -45,7 +45,7 @@
 l_ok pixaWriteWebPAnim(const char *filename, PIXA *pixa, l_int32 loopcount,
                        l_int32 duration, l_int32 quality, l_int32 lossless)
 {
-    return ERROR_INT("function not present", "pixaWriteWebPAnim", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -54,7 +54,7 @@ l_ok pixaWriteStreamWebPAnim(FILE *fp, PIXA *pixa, l_int32 loopcount,
                              l_int32 duration, l_int32 quality,
                              l_int32 lossless)
 {
-    return ERROR_INT("function not present", "pixaWriteStreamWebPAnim", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -63,7 +63,7 @@ l_ok pixaWriteMemWebPAnim(l_uint8 **pencdata, size_t *pencsize, PIXA *pixa,
                           l_int32 loopcount, l_int32 duration,
                           l_int32 quality, l_int32 lossless)
 {
-    return ERROR_INT("function not present", "pixaWriteMemWebPAnim", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* --------------------------------------------*/
