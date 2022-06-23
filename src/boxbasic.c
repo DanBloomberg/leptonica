@@ -298,11 +298,11 @@ BOX  *box;
  * \return  0 if OK, 1 on error
  */
 l_ok
-boxGetGeometry(BOX      *box,
-               l_int32  *px,
-               l_int32  *py,
-               l_int32  *pw,
-               l_int32  *ph)
+boxGetGeometry(const BOX *box,
+               l_int32   *px,
+               l_int32   *py,
+               l_int32   *pw,
+               l_int32   *ph)
 {
     if (px) *px = 0;
     if (py) *py = 0;
@@ -355,11 +355,11 @@ boxSetGeometry(BOX     *box,
  * </pre>
  */
 l_ok
-boxGetSideLocations(BOX      *box,
-                    l_int32  *pl,
-                    l_int32  *pr,
-                    l_int32  *pt,
-                    l_int32  *pb)
+boxGetSideLocations(const BOX *box,
+                    l_int32   *pl,
+                    l_int32   *pr,
+                    l_int32   *pt,
+                    l_int32   *pb)
 {
 l_int32  x, y, w, h;
 
@@ -658,7 +658,7 @@ size_t  oldsize, newsize;
  * \return  count of all boxes; 0 if no boxes or on error
  */
 l_int32
-boxaGetCount(BOXA  *boxa)
+boxaGetCount(const BOXA  *boxa)
 {
     if (!boxa)
         return ERROR_INT("boxa not defined", __func__, 0);
