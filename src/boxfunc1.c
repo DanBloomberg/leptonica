@@ -1535,7 +1535,7 @@ l_int32  dist;
  * \return  0 if OK, 1 on error or if box is not valid
  */
 l_ok
-boxGetCenter(BOX        *box,
+boxGetCenter(const BOX  *box,
              l_float32  *pcx,
              l_float32  *pcy)
 {
@@ -1575,7 +1575,7 @@ l_int32  x, y, w, h;
  * </pre>
  */
 l_ok
-boxIntersectByLine(BOX       *box,
+boxIntersectByLine(const BOX *box,
                    l_int32    x,
                    l_int32    y,
                    l_float32  slope,
