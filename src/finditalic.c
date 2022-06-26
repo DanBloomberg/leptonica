@@ -119,8 +119,8 @@ pixItalicWords(PIX     *pixs,
                BOXA   **pboxa,
                l_int32  debugflag)
 {
-char     opstring[32];
-l_int32  size;
+char     opstring[32], buf[32];
+l_int32  size, type;
 BOXA    *boxa;
 PIX     *pixsd, *pixm, *pixd;
 SEL     *sel_ital1, *sel_ital2, *sel_ital3;
@@ -150,13 +150,16 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
     if (boxaw) {
         pixm = pixCreateTemplate(pixs);
         pixMaskBoxa(pixm, pixm, boxaw, L_SET_PIXELS);
+        type = 1;
     } else if (pixw) {
         pixm = pixClone(pixw);
+        type = 2;
     } else {
         pixWordMaskByDilation(pixs, NULL, &size, NULL);
         L_INFO("dilation size = %d\n", __func__, size);
         snprintf(opstring, sizeof(opstring), "d1.5 + c%d.1", size);
         pixm = pixMorphSequence(pixs, opstring, 0);
+        type = 3;
     }
 
         /* Binary reconstruction to fill in those word mask
@@ -195,7 +198,8 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
         pixDestroy(&pix2);
         pixDestroy(&pix3);
         pix2 = pixaDisplayTiledInColumns(pixa1, 1, 0.5, 20, 2);
-        pixWriteDebug("/tmp/lept/ital/ital.png", pix2, IFF_PNG);
+        snprintf(buf, sizeof(buf), "/tmp/lept/ital/ital.%d.png", type);
+        pixWriteDebug(buf, pix2, IFF_PNG);
         pixDestroy(&pix2);
 
             /* Assuming the image represents 6 inches of actual page width,
@@ -205,8 +209,9 @@ SEL     *sel_ital1, *sel_ital2, *sel_ital3;
         res = pixGetWidth(pixs) / 12;
         L_INFO("resolution = %d\n", __func__, res);
         l_pdfSetDateAndVersion(0);
+        snprintf(buf, sizeof(buf), "/tmp/lept/ital/ital.%d.pdf", type);
         pixaConvertToPdf(pixa1, res, 1.0, L_FLATE_ENCODE, 75, "Italic Finder",
-                         "/tmp/lept/ital/ital.pdf");
+                         buf);
         l_pdfSetDateAndVersion(1);
         pixaDestroy(&pixa1);
         boxaDestroy(&boxat);

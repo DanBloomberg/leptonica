@@ -63,8 +63,8 @@ L_REGPARAMS  *rp;
     pixItalicWords(pixs, NULL, NULL, &boxa1, 1);
     boxaWrite("/tmp/lept/ital/ital1.ba", boxa1);
     regTestCheckFile(rp, "/tmp/lept/ital/ital1.ba");  /* 0 */
-    regTestCheckFile(rp, "/tmp/lept/ital/ital.pdf");  /* 1 */
-    pix1 = pixRead("/tmp/lept/ital/ital.png");
+    regTestCheckFile(rp, "/tmp/lept/ital/ital.3.pdf");  /* 1 */
+    pix1 = pixRead("/tmp/lept/ital/ital.3.png");
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 2 */
     pixDisplayWithTitle(pix1, 0, 0, "Intermediate steps", rp->display);
     pixDestroy(&pix1);
@@ -96,11 +96,7 @@ L_REGPARAMS  *rp;
     boxaWrite("/tmp/lept/ital/ital2.ba", boxa2);
     regTestCheckFile(rp, "/tmp/lept/ital/ital2.ba");  /* 7 */
 
-        /* Re-run italic finder using word mask bounding boxes. */
-        /* *** Note that this overwrites the word mask images.
-         * *** Consequently, the images in /tmp/lept/ital/ital.pdf
-         * *** are different from the golden file index 1, which
-         * *** was written with a generated word mask.  */
+        /* Re-run italic finder using word mask bounding boxes */
     boxa3 = pixConnComp(pixm, NULL, 8);
     pixItalicWords(pixs, boxa3, NULL, &boxa4, 1);
     boxaWrite("/tmp/lept/ital/ital3.ba", boxa3);
