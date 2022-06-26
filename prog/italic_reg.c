@@ -96,7 +96,11 @@ L_REGPARAMS  *rp;
     boxaWrite("/tmp/lept/ital/ital2.ba", boxa2);
     regTestCheckFile(rp, "/tmp/lept/ital/ital2.ba");  /* 7 */
 
-        /* Re-run italic finder using word mask bounding boxes */
+        /* Re-run italic finder using word mask bounding boxes. */
+        /* *** Note that this overwrites the word mask images.
+         * *** Consequently, the images in /tmp/lept/ital/ital.pdf
+         * *** are different from the golden file index 1, which
+         * *** was written with a generated word mask.  */
     boxa3 = pixConnComp(pixm, NULL, 8);
     pixItalicWords(pixs, boxa3, NULL, &boxa4, 1);
     boxaWrite("/tmp/lept/ital/ital3.ba", boxa3);

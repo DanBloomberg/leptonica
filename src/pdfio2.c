@@ -2385,7 +2385,9 @@ SARRAY  *sa;
                                "/Type /Pages\n"
                                "/Kids [%s]\n"
                                "/Count %d\n"
-                               ">>\n", str, n);
+                               ">>\n" 
+                               "endobj\n",
+                               str, n);
     sarrayDestroy(&sa);
     LEPT_FREE(str);
     return buf;
