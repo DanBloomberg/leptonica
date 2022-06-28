@@ -47,6 +47,7 @@ int main(int    argc,
 char          buf1[64], buf2[64];
 l_int32       i, n, hw, thresh, same, ival;
 l_float32     val, maxval, rank;
+BOX          *box1;
 NUMA         *na, *nax, *nay, *nap, *nasy, *na1, *na2, *na3, *na4;
 PIX          *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pixd;
 PIXA         *pixa;
@@ -176,6 +177,27 @@ L_REGPARAMS  *rp;
     numaDestroy(&na4);
     pixaDestroy(&pixa);
 
+    pixs = pixRead("lyra.005.jpg");
+    box1 = boxCreate(0, 173, 350, 580);
+    pix1 = pixClipRectangle(pixs, box1, 0);
+    pix2 = pixRotateOrth(pix1, 1);
+    pix3 = pixConvertTo8(pix2, 0);
+    pixThresholdByHisto(pix3, 1, 0, 0, &ival, &pix4, &na1, &pix5);
+    pixa = pixaCreate(4);
+    pixaAddPix(pixa, pix2, L_INSERT);
+    pixaAddPix(pixa, pix3, L_INSERT);
+    pixaAddPix(pixa, pix4, L_INSERT);
+    pixaAddPix(pixa, pix5, L_INSERT);
+    pixd = pixaDisplayTiledInColumns(pixa, 1,1.0, 25, 2);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 10 */
+    pixDisplayWithTitle(pixd, 0, 500, NULL, rp->display);
+    pixDestroy(&pixs);
+    pixDestroy(&pix2);
+    pixDestroy(&pixd);
+    boxDestroy(&box1);
+    numaDestroy(&na1);
+    pixaDestroy(&pixa);
+
     /* -------------------------------------------------------------------*
      *                      Insertion in a sorted array                   *
      * -------------------------------------------------------------------*/
@@ -191,7 +213,7 @@ L_REGPARAMS  *rp;
     na2 = numaSort(NULL, na1, L_SORT_INCREASING);
     numaReverse(na2, na2);
     numaSimilar(na1, na2, 0.0, &same);
-    regTestCompareValues(rp, 1, same, 0.0);  /* 10 */
+    regTestCompareValues(rp, 1, same, 0.0);  /* 11 */
     numaDestroy(&na1);
     numaDestroy(&na2);
 
@@ -207,7 +229,7 @@ L_REGPARAMS  *rp;
     na2 = numaSort(NULL, na1, L_SORT_DECREASING);
     numaReverse(na2, na2);
     numaSimilar(na1, na2, 0.0, &same);
-    regTestCompareValues(rp, 1, same, 0.0);  /* 11 */
+    regTestCompareValues(rp, 1, same, 0.0);  /* 12 */
     numaDestroy(&na1);
     numaDestroy(&na2);
 

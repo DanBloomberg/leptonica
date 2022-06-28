@@ -36,6 +36,10 @@
  *    where the number of octcubes is 8^(sigbits)
  *
  *    For gray, sigbits is ignored.
+ *
+ *    Also tests pixThresholdByHisto(), sliding the histogram fully
+ *    to the left and right until, in each case, all numbers are 0.
+ *    This has been valgrinded, to show that no memory errors occur.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -48,10 +52,12 @@ int main(int    argc,
          char **argv)
 {
 char    *filein;
-l_int32  d, sigbits;
+l_int32  d, sigbits, i, val;
+BOX     *box1;
 GPLOT   *gplot;
-NUMA    *na;
-PIX     *pixs;
+NUMA    *na1, *na2;
+PIX     *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pix6;
+PIXA    *pixa1;
 
     if (argc != 3)
         return ERROR_INT(" Syntax:  histotest filein sigbits", __func__, 1);
@@ -69,33 +75,75 @@ PIX     *pixs;
 
     if (d == 32) {
         startTimer();
-        if ((na = pixOctcubeHistogram(pixs, sigbits, NULL)) == NULL)
-            return ERROR_INT("na not made", __func__, 1);
+        if ((na1 = pixOctcubeHistogram(pixs, sigbits, NULL)) == NULL)
+            return ERROR_INT("na1 not made", __func__, 1);
         lept_stderr("histo time = %7.3f sec\n", stopTimer());
         gplot = gplotCreate("/tmp/lept/histo/color", GPLOT_PNG,
                             "color histogram with octcube indexing",
                             "octcube index", "number of pixels in cube");
-        gplotAddPlot(gplot, NULL, na, GPLOT_LINES, "input pix");
+        gplotAddPlot(gplot, NULL, na1, GPLOT_LINES, "input pix");
         gplotMakeOutput(gplot);
         gplotDestroy(&gplot);
         l_fileDisplay("/tmp/lept/histo/color.png", 100, 100, 1.0);
     }
     else {
-        if ((na = pixGetGrayHistogram(pixs, 1)) == NULL)
-            return ERROR_INT("na not made", __func__, 1);
-        numaWrite("/tmp/junkna", na);
+        if ((na1 = pixGetGrayHistogram(pixs, 1)) == NULL)
+            return ERROR_INT("na1 not made", __func__, 1);
+        numaWrite("/tmp/junk.na", na1);
         gplot = gplotCreate("/tmp/lept/histo/gray", GPLOT_PNG,
                             "grayscale histogram", "gray value",
                             "number of pixels");
         gplotSetScaling(gplot, GPLOT_LOG_SCALE_Y);
-        gplotAddPlot(gplot, NULL, na, GPLOT_LINES, "input pix");
+        gplotAddPlot(gplot, NULL, na1, GPLOT_LINES, "input pix");
         gplotMakeOutput(gplot);
         gplotDestroy(&gplot);
         l_fileDisplay("/tmp/lept/histo/gray.png", 100, 100, 1.0);
     }
 
     pixDestroy(&pixs);
-    numaDestroy(&na);
+    numaDestroy(&na1);
+
+        /* Test behavior of pixThresholdByHisto() */
+#if 0  /* for valgrind, use pnm instead of jpg */
+    pix1 = pixRead("lyra.005.jpg");
+    pixWrite("/tmp/lyra.005.pnm", pix1, IFF_PNM);
+#endif
+/*    pix1 = pixRead("/tmp/lyra.005.pnm"); */
+    pixs = pixRead("lyra.005.jpg");
+    box1 = boxCreate(0, 173, 350, 580);
+    pix1 = pixClipRectangle(pixs, box1, 0);
+    pix2 = pixRotateOrth(pix1, 1);
+    pix3 = pixConvertTo8(pix2, 0);
+    pixThresholdByHisto(pix3, 1, 0, 0, &val, &pix4, &na1, &pix5);
+    lept_stderr("val = %d\n", val);
+    pixa1 = pixaCreate(4);
+    pixaAddPix(pixa1, pix2, L_INSERT);
+    pixaAddPix(pixa1, pix3, L_INSERT);
+    pixaAddPix(pixa1, pix4, L_INSERT);
+    pixaAddPix(pixa1, pix5, L_INSERT);
+    pix6 = pixaDisplayTiledInColumns(pixa1, 1,1.0, 25, 2);
+    pixDisplay(pix6, 200, 200);
+    na2 = numaCopy(na1);
+    for (i = 0; i < 260; i++) {
+        numaRemoveNumber(na1, 0);
+        numaAddNumber(na1, 0);
+        numaFindLocForThreshold(na1, 0, &val, NULL);
+        lept_stderr("val = %d\n", val);
+    }
+    for (i = 0; i < 260; i++) {
+        numaInsertNumber(na2, 0, 0);
+        numaRemoveNumber(na2, 256);
+        numaFindLocForThreshold(na2, 0, &val, NULL);
+        lept_stderr("val = %d\n", val);
+    }
+    numaDestroy(&na1);
+    numaDestroy(&na2);
+    pixaDestroy(&pixa1);
+    pixDestroy(&pixs);
+    pixDestroy(&pix1);
+    pixDestroy(&pix6);
+    boxDestroy(&box1);
+
     return 0;
 }
 

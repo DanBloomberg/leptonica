@@ -1124,15 +1124,16 @@ PIX       *pix1, *pix2, *pix3;
 /*!
  * \brief   pixThresholdByHisto()
  *
- * \param[in]    pixs          gray 8 bpp, no colormap
- * \param[in]    factor        subsampling factor >= 1
- * \param[in]    halfw         half of window width for smoothing;
- *                             use 0 for default
- * \param[in]    delta         relative amount to resolve peaks and valleys;
- *                             in (0 ... 1], use 0 for default
- * \param[out]   pthresh       best global threshold; 0 if no threshold is found
- * \param[out]   ppixd         [optional] thresholded 1 bpp pix
- * \param[out]   ppixhisto     [optional] rescaled histogram of gray values
+ * \param[in]    pixs        gray 8 bpp, no colormap
+ * \param[in]    factor      subsampling factor >= 1
+ * \param[in]    halfw       half of window width for smoothing;
+ *                           use 0 for default
+ * \param[in]    skip        look-ahead distance to avoid false minima;
+ *                           use 0 for default
+ * \param[out]   pthresh     best global threshold; 0 if no threshold is found
+ * \param[out]   ppixd       [optional] thresholded 1 bpp pix
+ * \param[out]   pnahisto    [optional] rescaled histogram of gray values
+ * \param[out]   ppixhisto   [optional] plot of rescaled histogram
  * \return  0 if OK, 1 on error or if no threshold is found
  *
  * <pre>
@@ -1141,24 +1142,27 @@ PIX       *pix1, *pix2, *pix3;
  *          has a fairly well-defined fg and bg.
  *      (2) If it finds a good threshold and %ppixd is defined, the binarized
  *          image is returned in &pixd; otherwise it return null.
- *      (3) Suggest using default values for %half and %delta.
- *      (4) Returns 0 in %pthresh if it can't find a good threshold.
+ *      (3) See numaFindLocForThreshold() for use of %skip.
+ *      (4) Suggest using default values (20) for %half and %skip.
+ *      (5) Returns 0 in %pthresh if it can't find a good threshold.
  * </pre>
  */
 l_ok
 pixThresholdByHisto(PIX       *pixs,
                     l_int32    factor,
                     l_int32    halfw,
-                    l_float32  delta,
+                    l_int32    skip,
                     l_int32   *pthresh,
                     PIX      **ppixd,
+                    NUMA     **pnahisto,
                     PIX      **ppixhisto)
 {
 l_float32  maxval, fract;
 NUMA      *na1, *na2, *na3;
 
-    if (ppixhisto) *ppixhisto = NULL;
     if (ppixd) *ppixd = NULL;
+    if (pnahisto) *pnahisto = NULL;
+    if (ppixhisto) *ppixhisto = NULL;
     if (!pthresh)
         return ERROR_INT("&thresh not defined", __func__, 1);
     *pthresh = 0;
@@ -1169,7 +1173,7 @@ NUMA      *na1, *na2, *na3;
     if (factor < 1)
         return ERROR_INT("sampling must be >= 1", __func__, 1);
     if (halfw <= 0) halfw = 20;
-    if (delta <= 0.0) delta = 0.1;
+    if (skip <= 0) skip = 20;
 
         /* Make a histogram of pixel values where the largest peak
          * is normalized to a value of 1.0. */
@@ -1180,7 +1184,8 @@ NUMA      *na1, *na2, *na3;
     numaDestroy(&na1);
     numaDestroy(&na2);
 
-    numaFindLocForThreshold(na3, 0, pthresh, &fract);
+    if (numaFindLocForThreshold(na3, skip, pthresh, &fract) == 1)
+        return ERROR_INT("failure to find threshold", __func__, 1);
     L_INFO("fractional area under first peak: %5.3f\n", __func__, fract);
 
     if (ppixhisto) {
@@ -1188,8 +1193,10 @@ NUMA      *na1, *na2, *na3;
         gplotSimple1(na3, GPLOT_PNG, "/tmp/lept/histo/histo", NULL);
         *ppixhisto = pixRead("/tmp/lept/histo/histo.png");
     }
-    numaDestroy(&na3);
-
+    if (pnahisto)
+        *pnahisto = na3;
+    else
+        numaDestroy(&na3);
     if (*pthresh > 0 && ppixd)
         *ppixd = pixThresholdToBinary(pixs, *pthresh);
     return 0;

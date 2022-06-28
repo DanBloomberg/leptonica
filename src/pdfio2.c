@@ -2385,7 +2385,7 @@ SARRAY  *sa;
                                "/Type /Pages\n"
                                "/Kids [%s]\n"
                                "/Count %d\n"
-                               ">>\n" 
+                               ">>\n"
                                "endobj\n",
                                str, n);
     sarrayDestroy(&sa);
