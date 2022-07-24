@@ -92,6 +92,10 @@ typedef int l_atomic;
   #include <stdint.h>
 #endif  /* _WIN32 */
 
+#ifdef __APPLE__
+  #include <Availability.h>
+#endif /* __APPLE__ */
+
 typedef intptr_t l_intptr_t;
 typedef uintptr_t l_uintptr_t;
 
@@ -179,7 +183,8 @@ typedef uintptr_t l_uintptr_t;
  * To use them on MacOS, which does not support these functions, set it to 0.
  *-------------------------------------------------------------------------*/
 #if !defined(HAVE_CONFIG_H) && !defined(ANDROID_BUILD) && !defined(OS_IOS) && \
-    !defined(_WIN32)
+    !defined(_WIN32) && (!defined(__MAC_OS_X_VERSION_MIN_REQUIRED) || \
+                          __MAC_OS_X_VERSION_MIN_REQUIRED > 101200)
 #define  HAVE_FMEMOPEN    1
 #endif  /* ! HAVE_CONFIG_H etc. */
 
