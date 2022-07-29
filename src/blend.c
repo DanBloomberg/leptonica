@@ -1750,19 +1750,19 @@ PIX       *pixr1, *pixr2, *pix1, *pix2, *pixg2, *pixd;
     pixDestroy(&pixr1);
     pixDestroy(&pixr2);
 
+        /* Output a copy of pix1 to avoid side-effecting input pixs1 */
+    pixd = pixCopy(NULL, pix1);
+    pixDestroy(&pix1);
+
         /* Sanity check: both either 8 or 32 bpp */
-    d1 = pixGetDepth(pix1);
+    d1 = pixGetDepth(pixd);
     d2 = pixGetDepth(pix2);
-    if (d1 != d2 || (d1 != 8 && d1 != 32)) {
-        pixDestroy(&pix1);
+    if (!pixd || d1 != d2 || (d1 != 8 && d1 != 32)) {
+        pixDestroy(&pixd);
         pixDestroy(&pix2);
         pixDestroy(&pixg2);
         return (PIX *)ERROR_PTR("depths not regularized! bad!", __func__, NULL);
     }
-
-        /* Start with a copy of pix1 */
-    pixd = pixCopy(NULL, pix1);
-    pixDestroy(&pix1);
 
         /* Blend pix2 onto pixd, using pixg2.
          * Let the normalized pixel value of pixg2 be f = pixval / 255,
