@@ -44,19 +44,18 @@ popd
 
 # libwebp
 pushd $SRC/libwebp
-export WEBP_CFLAGS="$CFLAGS -DWEBP_MAX_IMAGE_SIZE=838860800" # 800MiB
+WEBP_CFLAGS="$CFLAGS -DWEBP_MAX_IMAGE_SIZE=838860800" # 800MiB
+
 ./autogen.sh
-./configure \
+CFLAGS="$WEBP_CFLAGS" ./configure \
+  --enable-asserts \
   --enable-libwebpdemux \
   --enable-libwebpmux \
   --disable-shared \
   --disable-jpeg \
   --disable-tiff \
   --disable-gif \
-  --disable-wic \
-  --disable-threading \
-  --prefix="$WORK" \
-  CFLAGS="$WEBP_CFLAGS"
+  --disable-wic
 make clean
 make -j$(nproc)
 make install
@@ -64,14 +63,18 @@ popd
 
 # libtiff
 pushd "$SRC/libtiff"
-cmake . -DCMAKE_INSTALL_PREFIX="$WORK" -DBUILD_SHARED_LIBS=off
-make clean
+autoreconf -fi
+./configure \
+  --disable-lzma \
+  --disable-shared \
+  --disable-dependency-tracking \
+  --prefix=$WORK
 make -j$(nproc)
 make install
 popd
 
 # leptonica
-export LEPTONICA_LIBS="$WORK/lib/libjbig.a $WORK/lib/libzstd.a $WORK/lib/libwebp.a $WORK/lib/libpng.a"
+export LEPTONICA_LIBS="$WORK/lib/libjbig.a $WORK/lib/libzstd.a $WORK/lib/libwebp.a $WORK/lib/libpng.a $WORK/lib/libsharpyuv.a"
 ./autogen.sh
 ./configure \
   --enable-static \
@@ -101,6 +104,7 @@ for f in $SRC/leptonica/prog/fuzzing/*_fuzzer.cc; do
     "$WORK/lib/libjbig.a" \
     "$WORK/lib/libzstd.a" \
     "$WORK/lib/libz.a" \
+    "$WORK/lib/libsharpyuv.a" \
     $LIB_FUZZING_ENGINE
 done
 

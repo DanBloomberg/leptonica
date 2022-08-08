@@ -45,10 +45,13 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	pixDestroy(&pix_copy1);
 
 	pix_copy1 = pixCopy(NULL, pixs_payload);
-	pixThresholdByHisto(pix_copy1, 2, 0, 0, &l_i, &pix1, &pix2);
+	NUMA *na1;
+	l_int32 ival;
+	pixThresholdByHisto(pix_copy1, 2, 0, 0, &ival, &pix1, &na1, &pix2);
 	pixDestroy(&pix1);
 	pixDestroy(&pix2);
 	pixDestroy(&pix_copy1);
+	numaDestroy(&na1);
 
 	pixDestroy(&pixs_payload);
 	return 0;
