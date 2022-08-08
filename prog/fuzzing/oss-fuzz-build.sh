@@ -55,7 +55,8 @@ CFLAGS="$WEBP_CFLAGS" ./configure \
   --disable-jpeg \
   --disable-tiff \
   --disable-gif \
-  --disable-wic
+  --disable-wic \
+  --prefix=$WORK
 make clean
 make -j$(nproc)
 make install
