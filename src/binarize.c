@@ -1184,8 +1184,10 @@ NUMA      *na1, *na2, *na3;
     numaDestroy(&na1);
     numaDestroy(&na2);
 
-    if (numaFindLocForThreshold(na3, skip, pthresh, &fract) == 1)
+    if (numaFindLocForThreshold(na3, skip, pthresh, &fract) == 1) {
+        numaDestroy(&na3);
         return ERROR_INT("failure to find threshold", __func__, 1);
+    }
     L_INFO("fractional area under first peak: %5.3f\n", __func__, fract);
 
     if (ppixhisto) {
