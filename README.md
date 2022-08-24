@@ -80,3 +80,15 @@ www.leptonica.org
   * Zdenko Podobny: Zdenko has worked, mostly behind the scenes as a primary maintainer of tesseract, to help with leptonica builds on all platforms, and coordinate with its use in tesseract.
   * Adam Korczynski: Adam is an expert in testing libraries for safety.  He has built most of the open source fuzzers for leptonica in the oss-fuzz project, with significant code coverage.
 
+## Installing leptonica (vcpkg)
+  * You can build and install leptonica using [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:
+
+  ``` sh or powershell
+      git clone https://github.com/Microsoft/vcpkg.git
+      cd vcpkg
+      ./bootstrap-vcpkg.sh # "./bootstrap-vcpkg.bat" for powershell
+      ./vcpkg integrate install
+      ./vcpkg install leptonica
+  ```
+
+  * The leptonica port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
