@@ -1352,6 +1352,8 @@ PIXCMAP      *cmap;
     } else {
         pixt = pixClone(pixs);
     }
+    if (!pixt)
+        return (L_COMP_DATA *)ERROR_PTR("pixt not made", __func__, NULL);
     spp = (d == 32) ? 3 : 1;
     bps = (d == 32) ? 8 : d;
 
@@ -1373,6 +1375,11 @@ PIXCMAP      *cmap;
         /* Extract and compress the raster data */
     pixGetRasterData(pixt, &data, &nbytes);
     pixDestroy(&pixt);
+    if (!data) {
+        LEPT_FREE(cmapdata85);
+        LEPT_FREE(cmapdatahex);
+        return (L_COMP_DATA *)ERROR_PTR("data not returned", __func__, NULL);
+    }
     datacomp = zlibCompress(data, nbytes, &nbytescomp);
     LEPT_FREE(data);
     if (!datacomp) {
