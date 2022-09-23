@@ -75,7 +75,7 @@ $(FUZZERS): all
           -I $(top_srcdir)/src \
           -I $(builddir)/src \
           $< \
-          $(builddir)/src/.libs/liblept.a \
+          $(builddir)/src/.libs/libleptonica.a \
           $(GIFLIB_LIBS) \
           $(JPEG_LIBS) \
           $(LIBJP2K_LIBS) \
