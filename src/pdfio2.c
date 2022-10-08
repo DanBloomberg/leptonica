@@ -216,6 +216,9 @@ L_PDF_DATA   *lpd = NULL;
         type != L_FLATE_ENCODE && type != L_JP2K_ENCODE) {
         selectDefaultPdfEncoding(pix, &type);
     }
+    if (quality < 0 || quality > 100)
+        return ERROR_INT("invalid quality", __func__, 1);
+
     if (plpd) {  /* part of multi-page invocation */
         if (position == L_FIRST_IMAGE)
             *plpd = NULL;
@@ -559,7 +562,8 @@ PIX          *pixt;
         } else if (format == IFF_PNG) {
             cid = l_generateFlateDataPdf(fname, pix);
         }
-
+        if (!cid)
+            return ERROR_INT("cid not made from file", __func__, 1);
     }
 
         /* Otherwise, use the pix to generate the pdf output */
@@ -576,10 +580,8 @@ PIX          *pixt;
         }
         pixGenerateCIData(pixt, type, quality, 0, &cid);
         pixDestroy(&pixt);
-    }
-    if (!cid) {
-        L_ERROR("totally kerflummoxed\n", __func__);
-        return 1;
+        if (!cid)
+            return ERROR_INT("cid not made from pix", __func__, 1);
     }
     *pcid = cid;
     return 0;
@@ -1178,6 +1180,7 @@ FILE         *fp;
  *      (1) Set ascii85:
  *           ~ 0 for binary data (PDF only)
  *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
+ *      (2) Do not accept images with an asperity ratio greater than 10.
  * </pre>
  */
 l_ok
@@ -1187,7 +1190,7 @@ pixGenerateCIData(PIX           *pixs,
                   l_int32        ascii85,
                   L_COMP_DATA  **pcid)
 {
-l_int32   d;
+l_int32   w, h, d, maxAsp;
 PIXCMAP  *cmap;
 
     if (!pcid)
@@ -1201,6 +1204,12 @@ PIXCMAP  *cmap;
     }
     if (ascii85 != 0 && ascii85 != 1)
         return ERROR_INT("invalid ascii85", __func__, 1);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    if (w == 0 || h == 0)
+        return ERROR_INT("invalid w or h", __func__, 1);
+    maxAsp = L_MAX(w / h, h / w);
+    if (maxAsp > 10)
+        return ERROR_INT("max asperity > 10", __func__, 1);
 
         /* Conditionally modify the encoding type if libz is
          * available and the requested library is missing. */

@@ -788,7 +788,7 @@ size_t    nbytes;
  *
  * \param[in]    pixa           containing images all at the same resolution
  * \param[in]    res            input resolution of all images
- * \param[in]    scalefactor    scaling factor applied to each image; > 0.0
+ * \param[in]    scalefactor    scaling factor applied to each image; > 0.0; <50
  * \param[in]    type           encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
  *                              L_FLATE_ENCODE, L_JP2K_ENCODE, or
  *                              L_DEFAULT_ENCODE for default)
@@ -830,6 +830,8 @@ L_PTRA   *pa_data;
     if (!pixa)
         return ERROR_INT("pixa not defined", __func__, 1);
     if (scalefactor <= 0.0) scalefactor = 1.0;
+    if (scalefactor >= 50.0)
+        return ERROR_INT("scalefactor too large", __func__, 1);
     if (type != L_DEFAULT_ENCODE && type != L_JPEG_ENCODE &&
         type != L_G4_ENCODE && type != L_FLATE_ENCODE &&
         type != L_JP2K_ENCODE) {
@@ -837,13 +839,15 @@ L_PTRA   *pa_data;
                   __func__);
         type = L_DEFAULT_ENCODE;
     }
+    if (quality < 0 || quality > 100)
+        return ERROR_INT("invalid quality", __func__, 1);
 
         /* Generate all the encoded pdf strings */
     n = pixaGetCount(pixa);
     pa_data = ptraCreate(n);
     for (i = 0; i < n; i++) {
         if ((pixs = pixaGetPix(pixa, i, L_CLONE)) == NULL) {
-            L_ERROR("pix[%d] not retrieved\n", __func__, i);
+            L_ERROR("pixs[%d] not retrieved\n", __func__, i);
             continue;
         }
         if (scalefactor != 1.0)
@@ -851,6 +855,10 @@ L_PTRA   *pa_data;
         else
             pix = pixClone(pixs);
         pixDestroy(&pixs);
+        if (!pix) {
+            L_ERROR("pix[%d] not made\n", __func__, i);
+            continue;
+        }
         scaledres = (l_int32)(res * scalefactor);
 
             /* Select the encoding type */
