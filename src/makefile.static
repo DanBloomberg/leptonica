@@ -45,10 +45,11 @@
 #   Set flags in environ.h.  The default is to have libjpeg, libpng,
 #   libtiff and libz, but not libwebp, libopenjp or libgif.
 #
-#   Customization for non-POSIX-compliant GNU functions
-#   fmemopen() and open_memstream().
-#   The default is not to use, because they only work on linux.
-#   To use these, #define HAVE_FMEMOPEN to 1 in environ.h.
+#   The GNU functions fmemopen() and open_memstream() conform to
+#   IEEE Std 1003.1-2008 ("POSIX.1").  In addition to Linux and BSD,
+#   they are supported on maxOS (> 10.12).  They are not supported on
+#   Android, IOS or Windows.  The decision for whether to use them
+#   is made in environ.h.
 #
 #   Customization for POSIX-compliant function fstatat().
 #   The default is not to use, because some systems do not support it.
