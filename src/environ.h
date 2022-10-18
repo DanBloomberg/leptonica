@@ -173,7 +173,7 @@ typedef uintptr_t l_uintptr_t;
 
 
 /*-------------------------------------------------------------------------*
- * On linux, BSD and MacOS(> 10.12) you can redirect writing data from a
+ * On linux, BSD and macOS(> 10.12) you can redirect writing data from a
  * filestream to memory using open_memstream() and redirect reading data
  * from a filestream to reading from memory using fmemopen().
  * Specifically, you can compress (write compressed data to memory

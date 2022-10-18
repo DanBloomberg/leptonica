@@ -45,10 +45,11 @@
 #   Set flags in environ.h.  The default is to have libjpeg, libpng,
 #   libtiff and libz, but not libwebp, libopenjp or libgif.
 #
-#   The GNU functions fmemopen() and open_memstream() conform to
+#   The functions fmemopen() and open_memstream() conform to
 #   IEEE Std 1003.1-2008 ("POSIX.1").  In addition to Linux and BSD,
-#   they are supported on maxOS (> 10.12).  They are not supported on
-#   Android, IOS or Windows.  The decision for whether to use them
+#   they are supported on macOS (> 10.12).  They are not supported on
+#   Windows and we are not currently using them with either Android or iOS.
+#   The code for determining use of these functions on different platforms
 #   is made in environ.h.
 #
 #   Customization for POSIX-compliant function fstatat().
