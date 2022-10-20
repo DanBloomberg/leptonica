@@ -47,8 +47,8 @@
 #
 #   The functions fmemopen() and open_memstream() conform to
 #   IEEE Std 1003.1-2008 ("POSIX.1").  In addition to Linux and BSD,
-#   they are supported on macOS (> 10.12).  They are not supported on
-#   Windows and we are not currently using them with either Android or iOS.
+#   they are supported on macOS (> 10.12), iOS (>= 11.0) and
+#   android (sdk >= 23).  However, they are not supported on Windows.
 #   The code for determining use of these functions on different platforms
 #   is made in environ.h.
 #
