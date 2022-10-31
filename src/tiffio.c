@@ -464,13 +464,18 @@ TIFF  *tif;
  *          1 spp (colormapped): 1, 2, 4, 8 bps
  *          2 spp (gray+alpha): 8 bps
  *          3 spp (rgb) and 4 spp (rgba): 8 or 16 bps
- *      (2) We do not handle 16 bps for spp == 2.
- *      (3) We do not support tiled format or webp encoded tiff.
- *      (4) 2 bpp gray+alpha are rasterized as 32 bit/pixel rgba, with
+ *          Note that 16 bps rgb and rgba are converted to 8 bps in the pix.
+ *      (2) In particular, we do not support
+ *             16 bps for spp == 2
+ *              4 bps for spp == 3 or spp == 4.
+ *      (3) We only support uint image data.
+ *      (4) We do not support tiled format, old-style jpeg encoding,
+ *          or webp encoded tiff.
+ *      (5) 2 bpp gray+alpha are rasterized as 32 bit/pixel rgba, with
  *          the gray value replicated in r, g and b.
- *      (5) For colormapped images, we support 8 bits/color in the palette.
+ *      (6) For colormapped images, we support 8 bits/color in the palette.
  *          Tiff colormaps have 16 bits/color, and we reduce them to 8.
- *      (6) Quoting the libtiff documentation at
+ *      (7) Quoting the libtiff documentation at
  *               http://libtiff.maptools.org/libtiff.html
  *          "libtiff provides a high-level interface for reading image data
  *          from a TIFF file. This interface handles the details of data
@@ -557,7 +562,13 @@ PIXCMAP   *cmap;
         return NULL;
     }
     if (spp == 2 && bps != 8) {
-        L_WARNING("for 2 spp, only handle 8 bps\n", __func__);
+        L_ERROR("for 2 spp, only handle 8 bps; this is %d bps\n",
+                __func__, bps);
+        return NULL;
+    }
+    if ((spp == 3 || spp == 4) && bps < 8) {
+        L_ERROR("for 3 and 4 spp, only handle 8 and 16 bps; this is %d bps\n",
+                __func__, bps);
         return NULL;
     }
     if (spp == 1) {
