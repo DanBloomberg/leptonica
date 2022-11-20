@@ -785,8 +785,15 @@ NUMA     *na1, *na2, *nai1, *nai2, *nasx, *nasy;
     yloc2 = (l_int32 *)LEPT_CALLOC(n2, sizeof(l_int32));
     xleft1 = (l_int32 *)LEPT_CALLOC(n1, sizeof(l_int32));
     xleft2 = (l_int32 *)LEPT_CALLOC(n2, sizeof(l_int32));
-    if (!line1 || !line2 || !yloc1 || !yloc2 || !xleft1 || !xleft2)
-        return ERROR_INT("callof failure for an array", __func__, 1);
+    if (!line1 || !line2 || !yloc1 || !yloc2 || !xleft1 || !xleft2) {
+        LEPT_FREE(line1);
+        LEPT_FREE(line2);
+        LEPT_FREE(yloc1);
+        LEPT_FREE(yloc2);
+        LEPT_FREE(xleft1);
+        LEPT_FREE(xleft2);
+        return ERROR_INT("calloc failure for an array", __func__, 1);
+    }
     for (i = 0; i < n1; i++) {
         na1 = numaaGetNuma(naa1, i, L_CLONE);
         numaGetIValue(na1, 0, yloc1 + i);
