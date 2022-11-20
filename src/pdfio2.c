@@ -925,6 +925,9 @@ FILE         *fp;
     if (!fname)
         return (L_COMP_DATA *)ERROR_PTR("fname not defined", __func__, NULL);
 
+    if (ascii85flag != 0 && ascii85flag != 1)
+        return (L_COMP_DATA *)ERROR_PTR("wrong ascii85flags", __func__, NULL);
+
         /* Read the metadata */
     if (readHeaderJpeg(fname, &w, &h, &spp, NULL, NULL))
         return (L_COMP_DATA *)ERROR_PTR("bad jpeg metadata", __func__, NULL);
