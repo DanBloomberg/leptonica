@@ -1540,7 +1540,8 @@ size_t  encodesize;  /* ignored */
     if (!pix)
         return ERROR_INT("pix not defined", __func__, 1);
 
-    stringReplace(&pix->text, encodeAscii85WithComp(data, size, &encodesize));
+    LEPT_FREE(pix->text);
+    pix->text = encodeAscii85WithComp(data, size, &encodesize);
     return 0;
 }
 
