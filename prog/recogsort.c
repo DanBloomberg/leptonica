@@ -57,7 +57,7 @@ SARRAY   *sa1;
         /* Read the training data */
     pixat = pixaRead("recog/sets/train06.pa");
     recog = recogCreateFromPixa(pixat, 0, 0, 0, 128, 1);
-    recogAverageSamples(&recog, 0);  /* required for splitting characters */
+    recogAverageSamples(recog, 0);  /* required for splitting characters */
     pix1 = pixaDisplayTiledWithText(pixat, 1500, 1.0, 10, 1, 8, 0xff000000);
     pixDisplay(pix1, 0, 0);
     pixDestroy(&pix1);

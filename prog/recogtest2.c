@@ -160,7 +160,7 @@ SARRAY   *sa;
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     lept_stderr("final size: %d\n", recog->num_samples);
-    recogDebugAverages(&recog, 1);
+    recogDebugAverages(recog, 1);
     recogShowContent(stderr, recog, 1);
     recogShowMatchesInRange(recog, recog->pixa_tr, 0.75, 1.0, 1);
     pixWrite("/tmp/lept/recog/range.png", recog->pixdb_range, IFF_PNG);

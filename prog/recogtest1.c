@@ -89,7 +89,7 @@ L_RECOG  *recog1, *recog2;
 
 #if 1
     lept_stderr("AverageSamples\n");
-    recogAverageSamples(&recog1, 1);
+    recogAverageSamples(recog1, 1);
     recogShowAverageTemplates(recog1);
     pix1 = pixaGetPix(recog1->pixadb_ave, 0, L_CLONE);
     pixWrite("/tmp/lept/digits/unscaled_ave.png", pix1, IFF_PNG);
@@ -100,7 +100,7 @@ L_RECOG  *recog1, *recog2;
 #endif
 
 #if 1
-    recogDebugAverages(&recog1, 0);
+    recogDebugAverages(recog1, 0);
     recogShowMatchesInRange(recog1, recog1->pixa_tr, 0.65, 1.0, 0);
     pixWrite("/tmp/lept/digits/match_ave1.png", recog1->pixdb_range, IFF_PNG);
     recogShowMatchesInRange(recog1, recog1->pixa_tr, 0.0, 1.0, 0);
@@ -163,7 +163,7 @@ L_RECOG  *recog1, *recog2;
     pixa1 = pixaRead("recog/sets/train03.pa");
     recog2 = recogCreateFromPixa(pixa1, 0, 40, 0, 128, 1);
     recogShowContent(stderr, recog2, 3, 1);
-    recogDebugAverages(&recog2, 3);
+    recogDebugAverages(recog2, 3);
     pixWrite("/tmp/lept/digits/averages.png", recog2->pixdb_ave, IFF_PNG);
     recogShowAverageTemplates(recog2);
     pixaDestroy(&pixa1);

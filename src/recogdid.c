@@ -294,7 +294,7 @@ recogPrepareForDecoding(L_RECOG  *recog,
                         PIX      *pixs,
                         l_int32   debug)
 {
-l_int32  i;
+l_int32  i, ret;
 PIX     *pix1;
 L_RDID  *did;
 
@@ -305,8 +305,11 @@ L_RDID  *did;
     if (!recog->train_done)
         return ERROR_INT("training not finished", __func__, 1);
 
-    if (!recog->ave_done)
-        recogAverageSamples(&recog, 0);
+    if (!recog->ave_done) {
+        ret = recogAverageSamples(recog, 0);
+        if (!ret)
+            return ERROR_INT("averaging of samples failed", __func__, 1);
+    }
 
         /* Binarize and crop to foreground if necessary */
     if ((pix1 = recogProcessToIdentify(recog, pixs, 0)) == NULL)

@@ -966,7 +966,7 @@ recogIdentifyPix(L_RECOG  *recog,
                  PIX     **ppixdb)
 {
 char      *text;
-l_int32    i, j, n, bestindex, bestsample, area1, area2;
+l_int32    i, j, n, bestindex, bestsample, area1, area2, ret;
 l_int32    shiftx, shifty, bestdelx, bestdely, bestwidth, maxyshift;
 l_float32  x1, y1, x2, y2, delx, dely, score, maxscore;
 NUMA      *numa;
@@ -982,8 +982,8 @@ PTA       *pta;
 
         /* Do the averaging if required and not yet done. */
     if (recog->templ_use == L_USE_AVERAGE_TEMPLATES && !recog->ave_done) {
-        recogAverageSamples(&recog, 0);
-        if (!recog)
+        ret = recogAverageSamples(recog, 0);
+        if (ret)
             return ERROR_INT("averaging failed", __func__, 1);
     }
 

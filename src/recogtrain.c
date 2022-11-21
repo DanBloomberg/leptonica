@@ -459,7 +459,7 @@ PIX     *pix1, *pix2;
 /*!
  * \brief   recogAverageSamples()
  *
- * \param[in]   precog    addr of existing recog; may be destroyed
+ * \param[in]   recog    addr of existing recog
  * \param[in]   debug
  * \return  0 on success, 1 on failure
  *
@@ -474,14 +474,15 @@ PIX     *pix1, *pix2;
  *      (2) If the data in any class is nonexistent (no samples), or
  *          very bad (no fg pixels in the average), or if the ratio
  *          of max/min average unscaled class template heights is
- *          greater than max_ht_ratio, this destroys the recog.
- *          The caller must check the return value of the recog.
+ *          greater than max_ht_ratio, this function fails.  The caller
+ *          must check the return value of the recog, and destroy the
+ *          recog on failure.
  *      (3) Set debug = 1 to view the resulting templates and their centroids.
  * </pre>
  */
 l_int32
-recogAverageSamples(L_RECOG  **precog,
-                    l_int32    debug)
+recogAverageSamples(L_RECOG  *recog,
+                    l_int32   debug)
 {
 l_int32    i, nsamp, size, area, bx, by, badclass;
 l_float32  x, y, hratio;
@@ -489,11 +490,8 @@ BOX       *box;
 PIXA      *pixa1;
 PIX       *pix1, *pix2, *pix3;
 PTA       *pta1;
-L_RECOG   *recog;
 
-    if (!precog)
-        return ERROR_INT("&recog not defined", __func__, 1);
-    if ((recog = *precog) == NULL)
+    if (!recog)
         return ERROR_INT("recog not defined", __func__, 1);
 
     if (recog->ave_done) {
@@ -566,11 +564,9 @@ L_RECOG   *recog;
         ptaDestroy(&pta1);
     }
 
-        /* Are any classes bad?  If so, destroy the recog and return an error */
-    if (badclass) {
-        recogDestroy(precog);
-        return ERROR_INT("at least 1 bad class; destroying recog", __func__, 1);
-    }
+        /* Are any classes bad?  */
+    if (badclass)
+        return ERROR_INT("at least 1 bad class", __func__, 1);
 
         /* Get the range of sizes of the unscaled average templates.
          * Reject if the height ratio is too large.  */
@@ -578,9 +574,8 @@ L_RECOG   *recog;
                   &recog->maxwidth_u, &recog->maxheight_u);
     hratio = (l_float32)recog->maxheight_u / (l_float32)recog->minheight_u;
     if (hratio > recog->max_ht_ratio) {
-        L_ERROR("ratio of max/min height of average templates = %4.1f;"
-                " destroying recog\n", __func__, hratio);
-        recogDestroy(precog);
+        L_ERROR("ratio of max/min height of average templates = %4.1f\n",
+                __func__, hratio);
         return 1;
     }
 
@@ -595,7 +590,7 @@ L_RECOG   *recog;
         pixInvert(pix2, pix2);
         pixClipToForeground(pix2, &pix3, &box);
         if (!box) {
-            L_ERROR("no fg pixels in average for sclass %d\n", __func__, i);
+            L_ERROR("no fg pixels in average for class %d\n", __func__, i);
             badclass = TRUE;
             pixDestroy(&pix1);
             pixDestroy(&pix2);
@@ -616,10 +611,8 @@ L_RECOG   *recog;
         ptaDestroy(&pta1);
     }
 
-    if (badclass) {
-        recogDestroy(precog);
-        return ERROR_INT("at least 1 bad class; destroying recog", __func__, 1);
-    }
+    if (badclass)
+        return ERROR_INT("no fg pixels in at least 1 class", __func__, 1);
 
         /* Get the range of widths of the scaled average templates */
     pixaSizeRange(recog->pixa, &recog->minwidth, NULL, &recog->maxwidth, NULL);
@@ -1172,9 +1165,10 @@ L_RECOG   *recog;
     recog = recogCreateFromPixa(pixas, 0, 40, 0, 128, 1);
     if (!recog)
         return (PIXA *)ERROR_PTR("bad pixas; recog not made", __func__, NULL);
-    recogAverageSamples(&recog, debug);
-    if (!recog)
+    if (recogAverageSamples(recog, debug) != 0) {
+        recogDestroy(&recog);
         return (PIXA *)ERROR_PTR("bad templates", __func__, NULL);
+    }
 
     nasave = (ppixsave) ? numaCreate(0) : NULL;
     pixarem = (ppixrem) ? pixaCreate(0) : NULL;
@@ -1367,9 +1361,10 @@ L_RECOG   *recog;
     recog = recogCreateFromPixa(pixas, 0, 40, 0, 128, 1);
     if (!recog)
         return (PIXA *)ERROR_PTR("bad pixas; recog not made", __func__, NULL);
-    recogAverageSamples(&recog, debug);
-    if (!recog)
+    if (recogAverageSamples(recog, debug) != 0) {
+        recogDestroy(&recog);
         return (PIXA *)ERROR_PTR("bad templates", __func__, NULL);
+    }
 
     nasave = (ppixsave) ? numaCreate(0) : NULL;
     pixarem = (ppixrem) ? pixaCreate(0) : NULL;
@@ -2009,7 +2004,7 @@ NUMA    *na;
 /*!
  * \brief   recogDebugAverages()
  *
- * \param[in]    precog    addr of recog
+ * \param[in]    recog    addr of recog
  * \param[in]    debug     0 no output; 1 for images; 2 for text; 3 for both
  * \return  0 if OK, 1 on error
  *
@@ -2020,30 +2015,26 @@ NUMA    *na;
  *          correlated to.  This is written into the recog.
  *      (2) It also generates pixa_tr of all the input training images,
  *          which can be used, e.g., in recogShowMatchesInRange().
- *      (3) Destroys the recog if the averaging function finds any bad classes.
+ *      (3) Returns an error if the averaging function finds bad classes.
  * </pre>
  */
 l_ok
-recogDebugAverages(L_RECOG  **precog,
-                   l_int32    debug)
+recogDebugAverages(L_RECOG  *recog,
+                   l_int32   debug)
 {
 l_int32    i, j, n, np, index;
 l_float32  score;
 PIX       *pix1, *pix2, *pix3;
 PIXA      *pixa, *pixat;
 PIXAA     *paa1, *paa2;
-L_RECOG   *recog;
 
-    if (!precog)
-        return ERROR_INT("&recog not defined", __func__, 1);
-    if ((recog = *precog) == NULL)
+    if (!recog)
         return ERROR_INT("recog not defined", __func__, 1);
 
         /* Mark the training as finished if necessary, and make sure
          * that the average templates have been built. */
-    recogAverageSamples(&recog, 0);
-    if (!recog)
-        return ERROR_INT("averaging failed; recog destroyed", __func__, 1);
+    if (recogAverageSamples(recog, 0) != 0)
+        return ERROR_INT("averaging failed", __func__, 1);
 
         /* Save a pixa of all the training examples */
     paa1 = recog->pixaa;

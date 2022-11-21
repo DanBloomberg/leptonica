@@ -1167,6 +1167,7 @@ L_RECOG  *recog;
         return ERROR_INT("recog not defined", __func__, 1);
     if (!paa) {
         recogDestroy(&recog);
+        *precog = NULL;
         return ERROR_INT("paa not defined", __func__, 1);
     }
 

@@ -64,11 +64,11 @@ L_RECOG  *recog;
         /* Generate the recognizer */
     pixa1 = pixaRead("recog/sets/train01.pa");
     recog = recogCreateFromPixa(pixa1, 0, 0, 0, 128, 1);  /* no scaling */
-    recogAverageSamples(&recog, 1);
+    recogAverageSamples(recog, 1);
     recogWrite("/tmp/lept/recog/rec1.rec", recog);
 
         /* Show the templates */
-    recogDebugAverages(&recog, 1);
+    recogDebugAverages(recog, 1);
     recogShowMatchesInRange(recog, recog->pixa_tr, 0.0, 1.0, 1);
 
         /* Get a set of problem images to decode */

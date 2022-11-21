@@ -92,7 +92,7 @@ L_RECOG  *recog1, *recog2;
 
 #if 1
     lept_stderr("\nShow averaged samples\n");
-    recogAverageSamples(&recog1, 1);
+    recogAverageSamples(recog1, 1);
     recogShowAverageTemplates(recog1);
     pix1 = pixaGetPix(recog1->pixadb_ave, 0, L_CLONE);
     pixWrite("/tmp/lept/digits/unscaled_ave.png", pix1, IFF_PNG);
@@ -111,7 +111,7 @@ L_RECOG  *recog1, *recog2;
     pixDestroy(&pix1);
     recog1 = recogCreateFromPixa(pixa1, scaledw, scaledh, 0, 120, 1);
     lept_stderr("\nShow matches against all inputs for given range\n");
-    recogDebugAverages(&recog1, 0);
+    recogDebugAverages(recog1, 0);
     recogShowMatchesInRange(recog1, recog1->pixa_tr, 0.85, 1.00, 1);
     pixWrite("/tmp/lept/digits/match_input.png", recog1->pixdb_range, IFF_PNG);
     lept_stderr("\nShow best match against average template\n");

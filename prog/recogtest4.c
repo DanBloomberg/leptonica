@@ -75,12 +75,11 @@ L_RECOG  *recog;
 #else   /* no scaling */
     recog = recogCreateFromPixa(pixa1, 0, 0, 0, 128, 1);
 #endif
-    recogAverageSamples(&recog, 1);
+    recogAverageSamples(recog, 1);
     recogWrite("/tmp/lept/recog/rec1.rec", recog);
 
         /* Show the templates */
-    recogDebugAverages(&recog, 1);
-    if (!recog) {
+    if (recogDebugAverages(recog, 1) != 0) {
         lept_stderr("Averaging failed!!\n");
         return 1;
     }
