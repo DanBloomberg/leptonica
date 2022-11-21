@@ -1589,7 +1589,9 @@ l_int32   *ctab, *stab;
         }
     }
 
-    if (!centtab) LEPT_FREE(ctab);
-    if (!sumtab) LEPT_FREE(stab);
+    if (d == 1) {
+        if (!centtab) LEPT_FREE(ctab);
+        if (!sumtab) LEPT_FREE(stab);
+    }
     return 0;
 }
