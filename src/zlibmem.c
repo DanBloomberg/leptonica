@@ -122,7 +122,6 @@ z_stream    z;
     z.zalloc = (alloc_func)0;
     z.zfree = (free_func)0;
     z.opaque = (voidpf)0;
-
     z.next_in = bufferin;
     z.avail_in = 0;
     z.next_out = bufferout;
@@ -222,14 +221,17 @@ z_stream    z;
 
     z.zalloc = (alloc_func)0;
     z.zfree = (free_func)0;
-
     z.next_in = bufferin;
     z.avail_in = 0;
     z.next_out = bufferout;
     z.avail_out = L_BUF_SIZE;
 
-    inflateInit(&z);
-
+    status = inflateInit(&z);
+    if (status != Z_OK) {
+        L_ERROR("inflateInit fail for buffer\n", __func__);
+        success = FALSE;
+        goto cleanup_arrays;
+    }
 
     for ( ; ; ) {
         if (z.avail_in == 0) {

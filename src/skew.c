@@ -160,7 +160,6 @@ static const l_int32  DefaultBinaryThreshold = 130;
  *      (1) This binarizes if necessary and does both horizontal
  *          and vertical deskewing, using the default parameters in
  *          the underlying pixDeskew().  See usage there.
- *      (2) This may return a clone.
  * </pre>
  */
 PIX *
