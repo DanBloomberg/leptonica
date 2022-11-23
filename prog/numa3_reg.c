@@ -45,7 +45,7 @@ int main(int    argc,
          char **argv)
 {
 char          buf1[64], buf2[64];
-l_int32       i, n, hw, thresh, same, ival;
+l_int32       i, hw, thresh, same, ival;
 l_float32     val, maxval, rank;
 BOX          *box1;
 NUMA         *na, *nax, *nay, *nap, *nasy, *na1, *na2, *na3, *na4;
@@ -192,7 +192,7 @@ L_REGPARAMS  *rp;
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 10 */
     pixDisplayWithTitle(pixd, 0, 500, NULL, rp->display);
     pixDestroy(&pixs);
-    pixDestroy(&pix2);
+    pixDestroy(&pix1);
     pixDestroy(&pixd);
     boxDestroy(&box1);
     numaDestroy(&na1);
