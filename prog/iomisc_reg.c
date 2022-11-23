@@ -254,6 +254,7 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, tiffsize[5], size, 0.0);  /* 29 */
     if (rp->display)
         lept_stderr("lzw: %ld\n", (unsigned long)size);
+    pixDestroy(&pixs);
 
         /* Test read/write of alpha with pnm */
     pixs = pixRead("books_logo.png");
