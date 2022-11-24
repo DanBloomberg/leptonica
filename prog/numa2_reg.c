@@ -62,7 +62,7 @@ PIXA        *pixa1;
 L_REGPARAMS  *rp;
 
 #if !defined(HAVE_LIBPNG)
-    L_ERROR("This test requires libpng to run.\n", "numa2_reg");
+    L_ERROR("This test requires libpng to run.\n", __func__);
     exit(77);
 #endif
 

@@ -2886,8 +2886,7 @@ PTA        *pta;
         }
         ave = norm * sum1;
         var = norm * sum2 - ave * ave;
-        /* Avoid small negative values from rounding effects */
-        if (var < 0)
+        if (var < 0)  /* avoid small negative values from rounding effects */
             var = 0.0;
         rootvar = (l_float32)sqrt(var);
         numaAddNumber(nad, rootvar);
