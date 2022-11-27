@@ -44,7 +44,7 @@
 int main(int    argc,
          char **argv)
 {
-l_int32       i, orient, rotation;
+l_int32       orient, rotation;
 l_float32     upconf, leftconf, conf;
 PIX          *pix, *pixs, *pix1, *pix2;
 PIXA         *pixa;

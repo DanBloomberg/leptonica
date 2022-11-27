@@ -61,7 +61,7 @@ int main(int    argc,
          char **argv)
 {
 char         *text;
-l_int32       w, h, d, level, wpl, format, xres, yres;
+l_int32       w, h, d, wpl, format, xres, yres;
 l_int32       bps, spp, res, iscmap;
 size_t        size;
 FILE         *fp;

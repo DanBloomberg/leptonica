@@ -48,7 +48,7 @@ char         *fname;
 BOX          *box;
 BOXA         *boxa;
 PIX          *pixs, *pix32, *pix1, *pix2, *pix3, *pix4;
-PIXA         *pixa, *pixa1, *pixa2, *pixa3, *pixa4;
+PIXA         *pixa, *pixa1, *pixa2, *pixa3;
 SARRAY       *sa1, *sa2;
 L_REGPARAMS  *rp;
 

@@ -442,6 +442,15 @@ Building leptonica
    (4) Programs that were used to test library functions or auto-generate
        library code.  These are useful for testing the behavior of small
        sets of functions and for providing example code.
+
+6. Sanitizers can be used on all the regression tests in alltests_reg.c.
+
+   First run autogen.sh to generate the configure script
+     autogen.sh
+   Then run configure to generate the Makefile with the address sanitizer
+     ./configure '--disable-shared' '--enable-debug' 'CFLAGS=-D_GLIBCXX_DEBUG -DDEBUG=1 -Wall -pedantic -g -O0 -fsanitize=address,undefined -fstack-protector-strong -ftrapv'
+   Make and run all the regression tests
+      make check
 </pre>
 
 <h2> <A NAME="DEPENDENCIES">

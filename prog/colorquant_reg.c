@@ -36,7 +36,6 @@
 
 #include "allheaders.h"
 
-static const l_int32 SPACE = 30;
 static const l_int32 MAX_WIDTH = 350;
 static const char *image[4] = {"marge.jpg",
                                "test24.jpg",

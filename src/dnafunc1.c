@@ -547,7 +547,6 @@ l_dnaRemoveDupsByHmap(L_DNA       *das,
                       L_HASHMAP  **phmap)
 {
 l_int32      i, tabsize;
-l_uint64     key;
 l_float64    dval;
 L_DNA       *dad;
 L_HASHITEM  *hitem;

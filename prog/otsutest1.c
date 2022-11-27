@@ -39,7 +39,6 @@ static const l_int32 NTests = 5;
 static const l_int32 gaussmean1[5] = {20, 40, 60, 80, 60};
 static const l_int32 gaussstdev1[5] = {10, 20, 20, 20, 30};
 static const l_int32 gaussmean2[5] = {220, 200, 140, 180, 150};
-static const l_int32 gaussstdev2[5] = {15, 20, 40, 20, 30};
 static const l_float32 gaussfract1[5] = {0.2f, 0.3f, 0.1f, 0.5f, 0.3f};
 static char  buf[256];
 

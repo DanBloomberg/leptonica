@@ -670,7 +670,6 @@ ptaRemoveDupsByHmap(PTA         *ptas,
                     L_HASHMAP  **phmap)
 {
 l_int32      i, x, y, tabsize;
-l_uint64     key;
 PTA         *ptad;
 L_HASHITEM  *hitem;
 L_HASHMAP   *hmap;

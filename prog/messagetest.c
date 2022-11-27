@@ -154,7 +154,7 @@ l_int32  orig_severity;
     L_INFO    ("Second message\n", "messagetest");
     L_WARNING ("Second message\n", "messagetest");
     L_ERROR   ("Second message\n", "messagetest");
-};
+}
 
 void TestStderrRedirect() {
 PIX  *pix1;

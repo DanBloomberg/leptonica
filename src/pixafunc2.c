@@ -1407,7 +1407,7 @@ pixaDisplayPairTiledInColumns(PIXA      *pixas1,
                               l_int32    startindex,
                               SARRAY    *sa)
 {
-l_int32  i, n, w, maxd, maxd1, maxd2, res, text;
+l_int32  i, n, w, maxd, maxd1, maxd2, text;
 NUMA    *na;
 PIX     *pixs1, *pixs2, *pix1, *pix2, *pix3, *pix4;
 PIX     *pix5, *pix6, *pix7, *pix8, *pix9;
@@ -1482,7 +1482,6 @@ SARRAY  *sa1;
             pix5 = pixClone(pix3);
             pix6 = pixClone(pix4);
         }
-        if (i == 0) res = pixGetXRes(pix3);
         pixDestroy(&pix3);
         pixDestroy(&pix4);
         if (spacing1) {  /* white border */

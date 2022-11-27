@@ -1663,7 +1663,7 @@ numaDiscretizeSortedInBins(NUMA    *na,
 {
 NUMA      *nabinval;  /* average gray value in the bins */
 NUMA      *naeach;
-l_int32    i, ntot, count, bincount, binindex, binsize;
+l_int32    i, ntot, bincount, binindex, binsize;
 l_float32  sum, val, ave;
 
     if (!pnabinval)
@@ -1738,7 +1738,6 @@ numaDiscretizeHistoInBins(NUMA    *na,
                           NUMA   **pnarank)
 {
 NUMA      *nabinval;  /* average gray value in the bins */
-NUMA      *narank;  /* rank value as function of input value */
 NUMA      *naeach, *nan;
 l_int32    i, j, k, nxvals, occup, count, bincount, binindex, binsize;
 l_float32  sum, ave, ntot;

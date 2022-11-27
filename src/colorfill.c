@@ -297,7 +297,7 @@ pixColorFill(PIX     *pixs,
              l_int32  minarea,
              l_int32  debug)
 {
-l_int32    x, y, w, h, empty;
+l_int32    x, y, w, h;
 l_uint32   val;
 L_KERNEL  *kel;
 PIX       *pixm, *pixm1, *pixv, *pixnc, *pixncd, *pixss, *pixf;

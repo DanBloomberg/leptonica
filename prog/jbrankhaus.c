@@ -70,13 +70,13 @@ int main(int    argc,
          char **argv)
 {
 char        filename[BUF_SIZE];
-char       *dirin, *fname;
+char       *dirin;
 l_int32     i, size, firstpage, npages, nfiles;
 l_float32   rank;
 JBDATA     *data;
 JBCLASSER  *classer;
 SARRAY     *safiles;
-PIX        *pix, *pixt;
+PIX        *pix;
 PIXA       *pixa, *pixadb;
 
     if (argc != 4 && argc != 6)

@@ -460,7 +460,6 @@ sarrayRemoveDupsByHmap(SARRAY      *sas,
                        L_HASHMAP  **phmap)
 {
 l_int32      i, tabsize;
-l_uint64     key;
 char        *str;
 SARRAY      *sad;
 L_HASHITEM  *hitem;

@@ -45,7 +45,7 @@ int main(int    argc,
 l_int32       i, j;
 PIX          *pixm, *pixmi, *pixs1, *pixs1_8, *pix1;
 PIX          *pixs2, *pixs2_8, *pixs3, *pixs3_8;
-PIX          *pixb1, *pixb2, *pixb3, *pixmin, *pixd;
+PIX          *pixb1, *pixb2, *pixb3, *pixmin;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
 
