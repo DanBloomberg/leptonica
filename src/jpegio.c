@@ -114,7 +114,7 @@
  *
  *    Compressing to memory and decompressing from memory
  *    ---------------------------------------------------
- *    On systems like windows without fmemopen() and open_memstream(),
+ *    On systems like Windows without fmemopen() and open_memstream(),
  *    we write data to a temp file and read it back for operations
  *    between pix and compressed-data, such as pixReadMemJpeg() and
  *    pixWriteMemJpeg().
@@ -148,7 +148,7 @@ static void jpeg_error_catch_all_2(j_common_ptr cinfo);
 static l_uint8 jpeg_getc(j_decompress_ptr cinfo);
 
     /* Note: 'boolean' is defined in jmorecfg.h.  We use it explicitly
-     * here because for windows where __MINGW32__ is defined,
+     * here because for Windows where __MINGW32__ is defined,
      * the prototype for jpeg_comment_callback() is given as
      * returning a boolean.  */
 static boolean jpeg_comment_callback(j_decompress_ptr cinfo);

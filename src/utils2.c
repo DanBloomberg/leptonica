@@ -91,7 +91,7 @@
  *           FILE      *fopenWriteStream()
  *           FILE      *fopenReadFromMemory()
  *
- *       Opening a windows tmpfile for writing
+ *       Opening a Windows tmpfile for writing
  *           FILE      *fopenWriteWinTempfile()
  *
  *       Multi-platform functions that avoid C-runtime boundary crossing
@@ -136,9 +136,9 @@
   *     and genPathname(), all input pathnames must have unix separators.
  *  (2) On Windows, when you specify a read or write to "/tmp/...",
  *      the filename is rewritten to use the Windows temp directory:
- *         /tmp  ==>   [Temp]...    (windows)
+ *         /tmp  ==>   [Temp]...    (Windows)
  *  (3) This filename rewrite, along with the conversion from unix
- *      to windows pathnames, happens in genPathname().
+ *      to Windows pathnames, happens in genPathname().
  *  (4) Use fopenReadStream() and fopenWriteStream() to open files,
  *      because these use genPathname() to find the platform-dependent
  *      filenames.  Likewise for l_binaryRead() and l_binaryWrite().
@@ -1777,7 +1777,7 @@ FILE  *fp;
  *          of the text in the split files will be identical to the original.
  *      (3) The output filenames are in the form:
  *               <rootpath>_N.<ext>, N = 1, ... n
- *      (4) This handles the temp directory pathname conversion on windows:
+ *      (4) This handles the temp directory pathname conversion on Windows:
  *              /tmp  ==>  [Windows Temp directory]
  *      (5) Files can also be sharded into sets of lines by the program 'split':
  *              split -n l/<n> <filename>
@@ -1856,7 +1856,7 @@ SARRAY   *sa;
  * Notes:
  *      (1) This should be used whenever you want to run fopen() to
  *          read from a stream.  Never call fopen() directory.
- *      (2) This handles the temp directory pathname conversion on windows:
+ *      (2) This handles the temp directory pathname conversion on Windows:
  *              /tmp  ==>  [Windows Temp directory]
  * </pre>
  */
@@ -1897,7 +1897,7 @@ FILE  *fp;
  * Notes:
  *      (1) This should be used whenever you want to run fopen() to
  *          write or append to a stream.  Never call fopen() directory.
- *      (2) This handles the temp directory pathname conversion on windows:
+ *      (2) This handles the temp directory pathname conversion on Windows:
  *              /tmp  ==>  [Windows Temp directory]
  * </pre>
  */
@@ -1963,7 +1963,7 @@ FILE  *fp;
 
 
 /*--------------------------------------------------------------------*
- *                Opening a windows tmpfile for writing               *
+ *                Opening a Windows tmpfile for writing               *
  *--------------------------------------------------------------------*/
 /*!
  * \brief   fopenWriteWinTempfile()
@@ -2080,7 +2080,7 @@ lept_fclose(FILE *fp)
  *
  * <pre>
  * Notes:
- *      (1) For safety with windows DLLs, this can be used in conjunction
+ *      (1) For safety with Windows DLLs, this can be used in conjunction
  *          with lept_free() to avoid C-runtime boundary problems.
  *          Just use these two functions throughout your application.
  * </pre>
@@ -2131,7 +2131,7 @@ lept_free(void *ptr)
  *      (2) This makes any subdirectories of /tmp that are required.
  *      (3) The root temp directory is:
  *            /tmp    (unix)  [default]
- *            [Temp]  (windows)
+ *            [Temp]  (Windows)
  * </pre>
  */
 l_int32
@@ -2201,7 +2201,7 @@ l_uint32  attributes;
  *      (2) This removes all files from the specified subdirectory of
  *          the root temp directory:
  *            /tmp    (unix)
- *            [Temp]  (windows)
+ *            [Temp]  (Windows)
  *          and then removes the subdirectory.
  *      (3) The combination
  *            lept_rmdir(subdir);
@@ -2276,9 +2276,9 @@ char    *newpath;
  * Notes:
  *      (1) Always use unix pathname separators.
  *      (2) By calling genPathname(), if the pathname begins with "/tmp"
- *          this does an automatic directory translation on windows
- *          to a path in the windows [Temp] directory:
- *             "/tmp"  ==>  [Temp] (windows)
+ *          this does an automatic directory translation on Windows
+ *          to a path in the Windows [Temp] directory:
+ *             "/tmp"  ==>  [Temp] (Windows)
  * </pre>
  */
 void
@@ -2331,9 +2331,9 @@ char  *realdir;
  *          all files in /tmp.
  *      (3) Use unix pathname separators.
  *      (4) By calling genPathname(), if the pathname begins with "/tmp"
- *          this does an automatic directory translation on windows
- *          to a path in the windows [Temp] directory:
- *             "/tmp"  ==>  [Temp] (windows)
+ *          this does an automatic directory translation on Windows
+ *          to a path in the Windows [Temp] directory:
+ *             "/tmp"  ==>  [Temp] (Windows)
  *      (5) Error conditions:
  *            * returns -1 if the directory is not found
  *            * returns the number of files (> 0) that it was unable to remove.
@@ -2383,8 +2383,8 @@ SARRAY  *sa;
  * <pre>
  * Notes:
  *      (1) By calling genPathname(), this does an automatic directory
- *          translation on windows to a path in the windows [Temp] directory:
- *             "/tmp/..."  ==>  [Temp]/... (windows)
+ *          translation on Windows to a path in the Windows [Temp] directory:
+ *             "/tmp/..."  ==>  [Temp]/... (Windows)
  * </pre>
  */
 l_int32
@@ -2468,9 +2468,9 @@ l_int32  ret;
  *          be freed by the caller.
  *      (6) Reminders:
  *          (a) specify files using unix pathnames
- *          (b) for windows, translates
+ *          (b) for Windows, translates
  *                 /tmp  ==>  [Temp]
- *              where [Temp] is the windows temp directory
+ *              where [Temp] is the Windows temp directory
  *      (7) Examples:
  *          * newdir = NULL,    newtail = NULL    ==> /tmp/src-tail
  *          * newdir = NULL,    newtail = abc     ==> /tmp/abc
@@ -2564,9 +2564,9 @@ l_int32  ret;
  *          be freed by the caller.
  *      (6) Reminders:
  *          (a) specify files using unix pathnames
- *          (b) for windows, translates
+ *          (b) for Windows, translates
  *                 /tmp  ==>  [Temp]
- *              where [Temp] is the windows temp directory
+ *              where [Temp] is the Windows temp directory
  *      (7) Examples:
  *          * newdir = NULL,    newtail = NULL    ==> /tmp/src-tail
  *          * newdir = NULL,    newtail = abc     ==> /tmp/abc
@@ -2719,7 +2719,7 @@ l_int32  ret;
  *      (5) The input can have either forward (unix) or backward (win)
  *          slash separators.  The output has unix separators.
  *          Note that Win32 pathname functions generally accept both
- *          slash forms, but the windows command line interpreter
+ *          slash forms, but the Windows command line interpreter
  *          only accepts backward slashes, because forward slashes are
  *          used to demarcate switches (vs. dashes in unix).
  * </pre>
@@ -3014,7 +3014,7 @@ size_t   len;
 
     len = strlen(path);
     if (type == UNIX_PATH_SEPCHAR) {
-#ifdef _WIN32  /* only convert on windows */
+#ifdef _WIN32  /* only convert on Windows */
         for (i = 0; i < len; i++) {
             if (path[i] == '\\')
                 path[i] = '/';
@@ -3046,12 +3046,12 @@ size_t   len;
  *              %fname == NULL.
  *            * from the name of a file in the local directory placed in
  *              %fname, with %dir == NULL.
- *            * if in a "/tmp" directory and on windows, the windows
+ *            * if in a "/tmp" directory and on Windows, the Windows
  *              temp directory is used.
- *      (2) On windows, if the root of %dir is '/tmp', this does a name
+ *      (2) On Windows, if the root of %dir is '/tmp', this does a name
  *          translation:
- *             "/tmp"  ==>  [Temp] (windows)
- *          where [Temp] is the windows temp directory.
+ *             "/tmp"  ==>  [Temp] (Windows)
+ *          where [Temp] is the Windows temp directory.
  *      (3) On unix, the TMPDIR variable is ignored.  No rewriting
  *          of temp directories is permitted.
  *      (4) There are four cases for the input:
@@ -3116,7 +3116,7 @@ size_t   size;
 #ifdef _WIN32
         l_int32 tmpdirlen;
         char tmpdir[MAX_PATH];
-        GetTempPath(sizeof(tmpdir), tmpdir);  /* get the windows temp dir */
+        GetTempPath(sizeof(tmpdir), tmpdir);  /* get the Windows temp dir */
         tmpdirlen = strlen(tmpdir);
         if (tmpdirlen > 0 && tmpdir[tmpdirlen - 1] == '\\') {
             tmpdir[tmpdirlen - 1] = '\0';  /* trim the trailing '\' */
@@ -3157,10 +3157,10 @@ size_t   size;
  *      (2) Caller allocates %result, large enough to hold the path,
  *          which is:
  *            /tmp/%subdir       (unix)
- *            [Temp]/%subdir     (windows, mac, ios)
+ *            [Temp]/%subdir     (Windows, macOS, iOS)
  *          where [Temp] is a path determined
- *             - on windows, mac: by GetTempPath()
- *             - on ios: by confstr() (see man page)
+ *             - on Windows: by GetTempPath()
+ *             - on macOS, iOS: by confstr() (see man page)
  *          and %subdir is in general a set of nested subdirectories:
  *            dir1/dir2/.../dirN
  *          which in use would not typically exceed 2 levels.
@@ -3269,7 +3269,7 @@ size_t  len;
  *      (1) On unix, this makes a filename of the form
  *               "/tmp/lept.XXXXXX",
  *          where each X is a random character.
- *      (2) On windows, this makes a filename of the form
+ *      (2) On Windows, this makes a filename of the form
  *               "/[Temp]/lp.XXXXXX".
  *      (3) On all systems, this fails if the file is not writable.
  *      (4) Safest usage is to write to a subdirectory in debug code.

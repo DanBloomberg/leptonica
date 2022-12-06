@@ -449,7 +449,7 @@ gplotMakeOutputPix(GPLOT  *gplot)
  *          actually generate the plot.
  *      (3) The command file name for unix is canonical (i.e., directory /tmp)
  *          but the temp filename paths in the command file must be correct.
- *      (4) The gnuplot program for windows is wgnuplot.exe.
+ *      (4) The gnuplot program for Windows is wgnuplot.exe.
  * </pre>
  */
 l_ok

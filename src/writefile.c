@@ -319,7 +319,7 @@ pixWriteDebug(const char  *fname,
  * Notes:
  *      (1) Open for write using binary mode (with the "b" flag)
  *          to avoid having Windows automatically translate the NL
- *          into CRLF, which corrupts image files.  On non-windows
+ *          into CRLF, which corrupts image files.  On non-Windows
  *          systems this flag should be ignored, per ISO C90.
  *          Thanks to Dave Bryan for pointing this out.
  *      (2) If the default image format IFF_DEFAULT is requested:
@@ -492,7 +492,7 @@ l_int32  format;
 #ifdef _WIN32
             format = IFF_TIFF_LZW;  /* poor compression */
 #else
-            format = IFF_TIFF_ZIP;  /* native windows tools can't handle this */
+            format = IFF_TIFF_ZIP;  /* native Windows tools can't handle this */
 #endif  /* _WIN32 */
     }
 
@@ -668,7 +668,7 @@ getFormatExtension(l_int32  format)
  *
  * <pre>
  * Notes:
- *      (1) On windows, this will only write tiff and PostScript to memory.
+ *      (1) On Windows, this will only write tiff and PostScript to memory.
  *          For other formats, it requires open_memstream(3).
  *      (2) PostScript output is uncompressed, in hex ascii.
  *          Most printers support level 2 compression (tiff_g4 for 1 bpp,

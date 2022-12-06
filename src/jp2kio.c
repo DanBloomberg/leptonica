@@ -52,7 +52,7 @@
  *
  *    Compressing to memory and decompressing from memory
  *    ---------------------------------------------------
- *    On systems like windows without fmemopen() and open_memstream(),
+ *    On systems like Windows without fmemopen() and open_memstream(),
  *    we write data to a temp file and read it back for operations
  *    between pix and compressed-data, such as pixReadMemJp2k() and
  *    pixWriteMemJp2k().

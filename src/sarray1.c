@@ -1852,7 +1852,7 @@ SARRAY  *saout;
  * <pre>
  * Notes:
  *      (1) The versions compiled under unix and cygwin use the POSIX C
- *          library commands for handling directories.  For windows,
+ *          library commands for handling directories.  For Windows,
  *          there is a separate implementation.
  *      (2) It returns an array of filename tails; i.e., only the part of
  *          the path after the last slash.
