@@ -2649,7 +2649,7 @@ pixGetBinnedColor(PIX        *pixs,
                   l_uint32  **pcarray,
                   PIXA       *pixadb)
 {
-l_int32     i, j, k, w, h, wpls, wplg;
+l_int32     i, j, w, h, wpls, wplg;
 l_int32     count, bincount, binindex, binsize, npts, avepts, ntot;
 l_int32     rval, gval, bval, grayval, rave, gave, bave;
 l_uint32   *datas, *datag, *lines, *lineg, *carray;
@@ -2734,11 +2734,9 @@ PIX        *pix1;
     bincount = 0;
     binindex = 0;
     numaGetIValue(naeach, 0, &binsize);
-    k = 0;  /* count up to ntot */
     for (i = 0; i < 256; i++) {
         count = l_dnaaGetDnaCount(daa, i);
         for (j = 0; j < count; j++) {
-            k++;
             bincount++;
             l_dnaaGetValue(daa, i, j, &val64);
             extractRGBValues((l_uint32)val64, &rval, &gval, &bval);

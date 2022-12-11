@@ -344,7 +344,7 @@ pixaDisplayLinearly(PIXA      *pixas,
                     l_int32    border,
                     BOXA     **pboxa)
 {
-l_int32  i, n, x, y, w, h, size, depth, bordval;
+l_int32  i, n, x, y, w, h, depth, bordval;
 BOX     *box;
 PIX     *pix1, *pix2, *pix3, *pixd;
 PIXA    *pixa1, *pixa2;
@@ -363,7 +363,6 @@ PIXA    *pixa1, *pixa2;
     n = pixaGetCount(pixa1);
     pixa2 = pixaCreate(n);
     bordval = (depth == 1) ? 1 : 0;
-    size = (n - 1) * spacing;
     x = y = 0;
     for (i = 0; i < n; i++) {
         if ((pix1 = pixaGetPix(pixa1, i, L_CLONE)) == NULL) {
@@ -382,13 +381,10 @@ PIXA    *pixa1, *pixa2;
 
         pixGetDimensions(pix3, &w, &h, NULL);
         box = boxCreate(x, y, w, h);
-        if (direction == L_HORIZ) {
-            size += w;
+        if (direction == L_HORIZ)
             x += w + spacing;
-        } else {  /* vertical */
-            size += h;
+        else  /* vertical */
             y += h + spacing;
-        }
         pixaAddPix(pixa2, pix3, L_INSERT);
         pixaAddBox(pixa2, box, L_INSERT);
         pixDestroy(&pix1);

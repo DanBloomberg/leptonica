@@ -1739,7 +1739,7 @@ numaDiscretizeHistoInBins(NUMA    *na,
 {
 NUMA      *nabinval;  /* average gray value in the bins */
 NUMA      *naeach, *nan;
-l_int32    i, j, k, nxvals, occup, count, bincount, binindex, binsize;
+l_int32    i, j, nxvals, occup, count, bincount, binindex, binsize;
 l_float32  sum, ave, ntot;
 
     if (pnarank) *pnarank = NULL;
@@ -1766,11 +1766,9 @@ l_float32  sum, ave, ntot;
     binindex = 0;
     numaGetIValue(naeach, 0, &binsize);
     nabinval = numaCreate(nbins);
-    k = 0;  /* count up to ntot */
     for (i = 0; i < nxvals; i++) {
         numaGetIValue(na, i, &count);
         for (j = 0; j < count; j++) {
-            k++;
             bincount++;
             sum += i;
             if (bincount == binsize) {  /* add bin entry */
