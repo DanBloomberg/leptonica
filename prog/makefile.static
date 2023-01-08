@@ -256,7 +256,8 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		scale_it.c scaletest1.c scaletest2.c \
 		seedfilltest.c settest.c sharptest.c \
 		sheartest.c showedges.c \
-		skewtest.c sorttest.c splitimage2pdf.c \
+		skewtest.c sorttest.c \
+		splitimage2pdf.c splitpdf.c \
 		sudokutest.c textorient.c \
 		tiffpdftest.c trctest.c \
 		underlinetest.c warpertest.c wordsinorder.c \
@@ -1175,6 +1176,9 @@ sorttest:	sorttest.o $(LEPTLIB)
 
 splitimage2pdf:	splitimage2pdf.o $(LEPTLIB)
 	$(CC) -o splitimage2pdf splitimage2pdf.o $(ALL_LIBS) $(EXTRALIBS)
+
+splitpdf:	splitpdf.o $(LEPTLIB)
+	$(CC) -o splitpdf splitpdf.o $(ALL_LIBS) $(EXTRALIBS)
 
 sudokutest:	sudokutest.o $(LEPTLIB)
 	$(CC) -o sudokutest sudokutest.o $(ALL_LIBS) $(EXTRALIBS)

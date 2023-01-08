@@ -1883,7 +1883,7 @@ l_float32  maxval, delx;
  * <pre>
  * Notes:
  *      (1) The numbers in the bins can differ by 1.  The sum of
- *          bin numbers in @naeach is @ntotal.
+ *          bin numbers in %naeach is %ntotal.
  * </pre>
  */
 NUMA *
@@ -1900,6 +1900,13 @@ NUMA    *naeach;
 
     if ((naeach = numaCreate(nbins)) == NULL)
         return (NUMA *)ERROR_PTR("naeach not made", __func__, NULL);
+
+    if (ntotal < nbins) {  /* put 1 in each of %ntotal bins */
+        for (i = 0; i < ntotal; i++)
+            numaAddNumber(naeach, 1);
+        return naeach;
+    }
+
     start = 0;
     for (i = 0; i < nbins; i++) {
         end = ntotal * (i + 1) / nbins;

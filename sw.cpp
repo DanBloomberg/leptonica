@@ -354,6 +354,7 @@ void build(Solution &s)
             {"skewtest", {"skewtest.c"}},
             {"sorttest", {"sorttest.c"}},
             {"splitimage2pdf", {"splitimage2pdf.c"}},
+            {"splitpdf", {"splitpdf.c"}},
             {"sudokutest", {"sudokutest.c"}},
             {"textorient", {"textorient.c"}},
             {"tiffpdftest", {"tiffpdftest.c"}},

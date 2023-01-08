@@ -85,9 +85,13 @@
  *          static void          pdfdataDestroy()
  *          static L_COMP_DATA  *pdfdataGetCid()
  *
+ *     Find number of pages in a pdf
+ *          l_int32              getPdfPageCount()
+ *
  *     Set flags for special modes
  *          void                 l_pdfSetG4ImageMask()
  *          void                 l_pdfSetDateAndVersion()
+ *
  * </pre>
  */
 
@@ -2581,7 +2585,86 @@ pdfdataGetCid(L_PDF_DATA  *lpd,
 
 
 /*---------------------------------------------------------------------*
- *                       Set flags for special modes                   *
+ *                     Find number of pages in a pdf                   *
+ *---------------------------------------------------------------------*/
+/*!
+ * \brief   getPdfPageCount()
+ *
+ * \param[in]    fname      compressed image data
+ * \param[out]   pnpages    number of pages
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Looks for the argument of the first instance of /Count in the file.
+ *      (2) This first reads 10000 bytes from the beginning of the file.
+ *          If "/Count" is not in that string, it reads the entire file
+ *          and looks for "/Count".
+ *      (3) This will not work on encrypted pdf files.
+ * </pre>
+ */
+l_ok
+getPdfPageCount(const char  *fname,
+                l_int32     *pnpages)
+{
+l_uint8  *data;
+l_int32   format, loc, ret, npages, found;
+size_t    nread;
+
+    if (!pnpages)
+        return ERROR_INT("&npages not defined", __func__, 1);
+    *pnpages = 0;
+    if (!fname)
+        return ERROR_INT("fname not defined", __func__, 1);
+
+        /* Make sure this a pdf file */
+    findFileFormat(fname, &format);
+    if (format != IFF_LPDF)
+        return ERROR_INT("file is not pdf", __func__, 1);
+
+        /* Read 10000 bytes from the beginning of the file */
+    if ((data = l_binaryReadSelect(fname, 0, 10000, &nread))
+                 == NULL)
+        return ERROR_INT("partial data not read", __func__, 1);
+
+        /* Find the location of the first instance of "/Count".
+         * If it is not found, try reading the entire file and
+         * looking again. */
+    arrayFindSequence(data, nread, (const l_uint8 *)"/Count",
+          strlen("/Count"), &loc, &found);
+    if (!found) {
+        lept_stderr("Reading entire file\n");
+        lept_free(data);
+        if ((data = l_binaryRead(fname, &nread)) == NULL)
+            return ERROR_INT("full data not read", __func__, 1);
+        arrayFindSequence(data, nread, (const l_uint8 *)"/Count",
+             strlen("/Count"), &loc, &found);
+        if (!found) {
+            lept_free(data);
+            return ERROR_INT("/Count not found", __func__, 1);
+        }
+    }
+
+        /* Unlikely: make sure we can read the count field */
+    if (nread - loc < 12)  { /* haven't read enough to capture page count */
+        lept_free(data);
+        return ERROR_INT("data may not include page count field", __func__, 1);
+    }
+
+        /* Read the page count; if not found, puts garbage in npages */
+    ret = sscanf((char *)&data[loc], "/Count %d", &npages);
+    lept_free(data);
+    if (ret != 1)
+        return ERROR_INT("npages not found", __func__, 1);
+    *pnpages = npages;
+/*    lept_stderr("bytes read = %d, loc = %d, npages = %d\n",
+                nread, loc, *pnpages);  */
+    return 0;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                      Set flags for special modes                    *
  *---------------------------------------------------------------------*/
 /*!
  * \brief   l_pdfSetG4ImageMask()

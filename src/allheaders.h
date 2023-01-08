@@ -1440,6 +1440,7 @@ LEPT_DLL extern l_ok pixGenerateCIData ( PIX *pixs, l_int32 type, l_int32 qualit
 LEPT_DLL extern L_COMP_DATA * l_generateFlateData ( const char *fname, l_int32 ascii85flag );
 LEPT_DLL extern l_ok cidConvertToPdfData ( L_COMP_DATA *cid, const char *title, l_uint8 **pdata, size_t *pnbytes );
 LEPT_DLL extern void l_CIDataDestroy ( L_COMP_DATA **pcid );
+LEPT_DLL extern l_ok getPdfPageCount ( const char *fname, l_int32 *pnpages );
 LEPT_DLL extern void l_pdfSetG4ImageMask ( l_int32 flag );
 LEPT_DLL extern void l_pdfSetDateAndVersion ( l_int32 flag );
 LEPT_DLL extern void setPixMemoryManager ( alloc_fn allocator, dealloc_fn deallocator );

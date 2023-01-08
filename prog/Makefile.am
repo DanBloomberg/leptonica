@@ -117,7 +117,7 @@ OTHER_PROGS = adaptmap_dark \
 	scale_it scaletest1 scaletest2 \
 	seedfilltest settest sharptest \
 	sheartest showedges skewtest \
-	sorttest splitimage2pdf sudokutest \
+	sorttest splitimage2pdf splitpdf sudokutest \
 	textorient tiffpdftest trctest \
 	underlinetest warpertest wordsinorder \
 	writemtiff yuvtest

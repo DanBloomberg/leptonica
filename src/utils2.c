@@ -1181,13 +1181,15 @@ L_DNA   *da;
  *
  * <pre>
  * Notes:
- *      (1) The byte arrays 'data' and 'sequence' are not C strings,
+ *      (1) The byte arrays 'data' and 'sequence' are in general not C strings,
  *          because they can contain null bytes.  Therefore, for each
  *          we must give the length of the array.
  *      (2) This searches for the first occurrence in %data of %sequence,
  *          which consists of %seqlen bytes.  The parameter %seqlen
  *          must not exceed the actual length of the %sequence byte array.
- *      (3) If the sequence is not found, the offset will be 0, so you
+ *      (3) If either byte array is a C string, cast the array to
+ *          (const l_uint8 *) and use strlen() on the string for its length.
+ *      (4) If the sequence is not found, the offset will be 0, so you
  *          must check %found.
  * </pre>
  */
