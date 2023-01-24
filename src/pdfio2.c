@@ -566,8 +566,6 @@ PIX          *pixt;
         } else if (format == IFF_PNG) {
             cid = l_generateFlateDataPdf(fname, pix);
         }
-        if (!cid)
-            return ERROR_INT("cid not made from file", __func__, 1);
     }
 
         /* Otherwise, use the pix to generate the pdf output */
