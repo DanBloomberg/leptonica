@@ -117,7 +117,7 @@ freadHeaderJp2k(FILE     *fp,
                 l_int32  *pspp,
                 l_int32  *pcodec)
 {
-l_uint8  buf[80];  /* just need the first 80 bytes */
+l_uint8  buf[120];  /* usually just need the first 80 bytes */
 l_int32  nread, ret;
 
     if (!fp)
@@ -173,7 +173,7 @@ readHeaderMemJp2k(const l_uint8  *data,
                   l_int32        *pspp,
                   l_int32        *pcodec)
 {
-l_int32  format, val, w, h, bps, spp, loc, found, windex, codec;
+l_int32  format, val, w, h, bps, spp, loc, found, index, codec;
 l_uint8  ihdr[4] = {0x69, 0x68, 0x64, 0x72};  /* 'ihdr' */
 
     if (pw) *pw = 0;
@@ -183,7 +183,7 @@ l_uint8  ihdr[4] = {0x69, 0x68, 0x64, 0x72};  /* 'ihdr' */
     if (pcodec) *pcodec = 0;
     if (!data)
         return ERROR_INT("data not defined", __func__, 1);
-    if (size < 80)
+    if (size < 120)
         return ERROR_INT("size < 80", __func__, 1);
     findFileFormatBuffer(data, &format);
     if (format != IFF_JP2)
@@ -191,13 +191,13 @@ l_uint8  ihdr[4] = {0x69, 0x68, 0x64, 0x72};  /* 'ihdr' */
 
         /* Find beginning of the image metadata */
     if (!memcmp(data, "\xff\x4f\xff\x51", 4)) {   /* codestream */
-        windex = 2;
+        index = 8;
         codec = L_J2K_CODEC;
     } else {  /* file data with image header box 'ihdr' */
         arrayFindSequence(data, size, ihdr, 4, &loc, &found);
         if (!found)
             return ERROR_INT("image parameters not found", __func__, 1);
-        windex = loc / 4 + 1;  /* expect 12 */
+        index = loc + 4;
         codec = L_JP2_CODEC;
 #if  DEBUG_CODEC
         if (loc != 44)
@@ -207,25 +207,25 @@ l_uint8  ihdr[4] = {0x69, 0x68, 0x64, 0x72};  /* 'ihdr' */
     if (pcodec) *pcodec = codec;
 
     if (codec == L_JP2_CODEC) {
-        if (size < 4 * (windex + 3))
+        if (size < index + 4 * 3)
             return ERROR_INT("header size is too small", __func__, 1);
-        val = *((l_uint32 *)data + windex);
+        val = *(l_uint32 *)(data + index);
         h = convertOnLittleEnd32(val);
-        val = *((l_uint32 *)data + windex + 1);
+        val = *(l_uint32 *)(data + index + 4);
         w = convertOnLittleEnd32(val);
-        val = *((l_uint16 *)data + 2 * (windex + 2));
+        val = *(l_uint16 *)(data + index + 8);
         spp = convertOnLittleEnd16(val);
-        bps = *(data + 4 * (windex + 2) + 2) + 1;
+        bps = *(data + index + 10) + 1;
     } else {  /* codec == L_J2K_CODEC */
-        if (size < 4 * (windex + 9))
+        if (size < index + 4 * 9)
             return ERROR_INT("header size is too small", __func__, 1);
-        val = *((l_uint32 *)data + windex);
+        val = *(l_uint32 *)(data + index);
         w = convertOnLittleEnd32(val);
-        val = *((l_uint32 *)data + windex + 1);
+        val = *(l_uint32 *)(data + index + 4);
         h = convertOnLittleEnd32(val);
-        val = *((l_uint16 *)data + 2 * (windex + 8));
+        val = *(l_uint16 *)(data + index + 32);
         spp = convertOnLittleEnd16(val);
-        bps = *(data + 4 * (windex + 8) + 2) + 1;
+        bps = *(data + index + 34) + 1;
     }
 #if  DEBUG_CODEC
     lept_stderr("h = %d, w = %d, codec: %s, spp = %d, bps = %d\n", h, w,
