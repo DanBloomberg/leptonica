@@ -299,7 +299,10 @@ get_target_property(leptonica_NAME leptonica NAME)
 set(leptonica_VERSION ${VERSION_PLAIN})
 get_target_property(leptonica_OUTPUT_NAME leptonica OUTPUT_NAME)
 
-configure_file(lept.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/lept.pc @ONLY)
+configure_file(lept.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/lept.pc.in @ONLY)
+# to resolve generator expression in OUTPUT_NAME
+file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lept.pc INPUT ${CMAKE_CURRENT_BINARY_DIR}/lept.pc.in)
+
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/LeptonicaConfig-version.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig-version.cmake @ONLY)
