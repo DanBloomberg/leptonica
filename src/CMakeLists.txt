@@ -20,7 +20,7 @@ add_library                     (leptonica ${src} ${hdr})
 set_target_properties           (leptonica PROPERTIES VERSION   6.0.0)
 set_target_properties           (leptonica PROPERTIES SOVERSION 6)
 
-set_target_properties           (leptonica PROPERTIES OUTPUT_NAME tesseract$<$<BOOL:${WIN32}>:-${VERSION_PLAIN}$<$<CONFIG:DEBUG>:d>>)
+set_target_properties           (leptonica PROPERTIES OUTPUT_NAME leptonica$<$<BOOL:${WIN32}>:-${VERSION_PLAIN}$<$<CONFIG:DEBUG>:d>>)
 
 if (BUILD_SHARED_LIBS)
     target_compile_definitions  (leptonica PRIVATE -DLIBLEPT_EXPORTS)
