@@ -39,7 +39,7 @@ set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake Targets")
 #
 # ##############################################################################
 
-project(leptonica C CXX VERSION 1.84.0)
+project(leptonica LANGUAGES C CXX VERSION 1.84.0)
 
 set(MINIMUM_WEBPMUX_VERSION 0.5.0)
 
