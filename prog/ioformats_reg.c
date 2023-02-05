@@ -49,7 +49,9 @@
  *
  *    Section 6. Test writing 24 bpp (not 32 bpp) pix
  *
- *    Section 7. Test header reading
+ *    Section 7. Miscellaneous additional tests
+ *
+ *    Section 8. Test header reading
  *
  *    This test requires the following external I/O libraries
  *        libjpeg, libtiff, libpng, libz
@@ -587,7 +589,22 @@ part6:
     pixDestroy(&pix);
     pixDestroy(&pixt);
 
-    /* -------------- Part 7: Read header information -------------- */
+    /* ------------- Part 7: Miscellaneous additional tests ------------ */
+        /* Test writing and reading alpha */
+    pix1 = pixRead("test32-alpha.png");
+    lept_stderr("Test write/read of BMP with alpha\n");
+    if (test_writemem(pix1, IFF_BMP, NULL)) success = FALSE;
+    lept_stderr("Test write/read of PNG with alpha\n");
+    if (test_writemem(pix1, IFF_PNG, NULL)) success = FALSE;
+    pixDestroy(&pix1);
+    if (success)
+        lept_stderr("\n  ******* Success on misc tests *******\n\n");
+    else
+        lept_stderr("\n  ******* Failure on misc tests *******\n\n");
+    if (!success) failure = TRUE;
+    pixDestroy(&pix);
+
+    /* -------------- Part 8: Read header information -------------- */
     success = TRUE;
     if (get_header_data(FILE_1BPP, IFF_TIFF_G4)) success = FALSE;
     if (get_header_data(FILE_2BPP, IFF_PNG)) success = FALSE;

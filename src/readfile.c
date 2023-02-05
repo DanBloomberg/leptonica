@@ -465,11 +465,10 @@ PIX     *pix;
         if ((pix = pixRead(filename)) == NULL)
             return ERROR_INT( "bmp: pix not read", __func__, 1);
         pixGetDimensions(pix, &w, &h, &d);
-        if (pixGetColormap(pix))
-            iscmap = 1;
-        pixDestroy(&pix);
         bps = (d == 32) ? 8 : d;
-        spp = (d == 32) ? 3 : 1;
+        spp = pixGetSpp(pix);
+        iscmap = (pixGetColormap(pix)) ? 1 : 0;
+        pixDestroy(&pix);
         break;
 
     case IFF_JFIF_JPEG:
