@@ -39,12 +39,8 @@ set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake Targets")
 #
 # ##############################################################################
 
-project(leptonica C CXX)
+project(leptonica LANGUAGES C CXX VERSION 1.84.0)
 
-set(VERSION_MAJOR 1)
-set(VERSION_MINOR 84)
-set(VERSION_PATCH 0)
-set(VERSION_PLAIN ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 set(MINIMUM_WEBPMUX_VERSION 0.5.0)
 
 option(BUILD_PROG "Build utility programs" OFF)
@@ -296,7 +292,6 @@ endif()
 add_subdirectory(src)
 
 get_target_property(leptonica_NAME leptonica NAME)
-set(leptonica_VERSION ${VERSION_PLAIN})
 get_target_property(leptonica_OUTPUT_NAME leptonica OUTPUT_NAME)
 
 configure_file(lept.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/lept.pc.in @ONLY)
