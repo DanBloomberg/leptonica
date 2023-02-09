@@ -35,6 +35,8 @@ if (JPEG_LIBRARIES)
     target_link_libraries       (leptonica PRIVATE ${JPEG_LIBRARIES})
 endif()
 if (OPENJPEG_SUPPORT)
+    # openjp2 < 2.5.0 does not sets the INTERFACE_INCLUDE_DIRECTORIES property
+    target_include_directories  (leptonica PRIVATE ${OPENJPEG_INCLUDE_DIRS})
     target_link_libraries       (leptonica PRIVATE openjp2)
 endif()
 if (PNG_LIBRARIES)
