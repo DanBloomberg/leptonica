@@ -173,6 +173,7 @@ void build(Solution &s)
             {"pageseg_reg", {"pageseg_reg.c"}},
             {"paintmask_reg", {"paintmask_reg.c"}},
             {"paint_reg", {"paint_reg.c"}},
+            {"partition_reg", {"partition_reg.c"}},
             {"pdfio1_reg", {"pdfio1_reg.c"}},
             {"pdfio2_reg", {"pdfio2_reg.c"}},
             {"pdfseg_reg", {"pdfseg_reg.c"}},

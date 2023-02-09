@@ -151,6 +151,7 @@ static const char *tests[] = {
                               "pageseg_reg",
                               "paint_reg",
                               "paintmask_reg",
+                              "partition_reg",
                               "pdfio1_reg",
                               "pdfio2_reg",
                               "pdfseg_reg",
