@@ -1,4 +1,4 @@
-set(Leptonica_VERSION @VERSION_PLAIN@)
+set(Leptonica_VERSION @leptonica_VERSION@)
 set(PACKAGE_VERSION ${Leptonica_VERSION})
 
 set(PACKAGE_VERSION_EXACT False)

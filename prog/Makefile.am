@@ -34,7 +34,7 @@ AUTO_REG_PROGS = adaptmap_reg adaptnorm_reg affine_reg alphaops_reg \
 	maze_reg mtiff_reg multitype_reg \
 	nearline_reg newspaper_reg numa1_reg numa2_reg numa3_reg \
 	overlap_reg pageseg_reg paint_reg paintmask_reg \
-	pdfio1_reg pdfio2_reg pdfseg_reg \
+	partition_reg pdfio1_reg pdfio2_reg pdfseg_reg \
 	pixa1_reg pixa2_reg pixadisp_reg pixcomp_reg \
 	pixmem_reg pixserial_reg pngio_reg pnmio_reg \
 	projection_reg projective_reg \

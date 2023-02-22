@@ -186,7 +186,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		multitype_reg.c nearline_reg.c newspaper_reg.c \
 		numa1_reg.c numa2_reg.c numa3_reg.c \
 		overlap_reg.c pageseg_reg.c paint_reg.c paintmask_reg.c \
-		pdfio1_reg.c pdfio2_reg.c pdfseg_reg.c \
+		partition_reg.c pdfio1_reg.c pdfio2_reg.c pdfseg_reg.c \
 		pixa1_reg.c pixa2_reg.c \
 		pixadisp_reg.c pixalloc_reg.c \
 		pixcomp_reg.c pixmem_reg.c \
@@ -636,6 +636,9 @@ paint_reg:	paint_reg.o $(LEPTLIB)
 
 paintmask_reg:	paintmask_reg.o $(LEPTLIB)
 	$(CC) -o paintmask_reg paintmask_reg.o $(ALL_LIBS) $(EXTRALIBS)
+
+partition_reg:	partition_reg.o $(LEPTLIB)
+	$(CC) -o partition_reg partition_reg.o $(ALL_LIBS) $(EXTRALIBS)
 
 pdfio1_reg:	pdfio1_reg.o $(LEPTLIB)
 	$(CC) -o pdfio1_reg pdfio1_reg.o $(ALL_LIBS) $(EXTRALIBS)

@@ -23,15 +23,16 @@ www.leptonica.org
 
   * I/O for standard image formats (_jpg_, _png_, _tiff_, _webp_, _jp2_, _bmp_, _pnm_, _gif_, _ps_, _pdf_)
   * Utilities to handle arrays of image-related data types (e.g., _pixa_, _boxa_, _pta_)
-  * Utilities for stacks, generic arrays, queues, heaps, lists; number and string arrays; etc.
+  * Utilities for stacks, generic arrays, queues, heaps, lists, sets, ordered maps, hashmaps; number and string arrays; etc.
 
 ## Examples of some applications enabled and implemented ##
 
   * Octcube-based color quantization (w/ and w/out dithering)
   * Modified median cut color quantization (w/ and w/out dithering)
-  * Skew determination of text images
-  * Adaptive normalization and binarization
+  * Determination of skew and orientation of text images
+  * Adaptive background normalization and binarization
   * Segmentation of page images with mixed text and images
+  * Color segmentation by clustering and seed-filling
   * Location of baselines and local skew determination
   * jbig2 unsupervised classifier
   * Border representations of 1 bpp images and raster conversion for SVG
@@ -52,12 +53,12 @@ www.leptonica.org
   * _Simple_: small number of data structures; simplest implementations provided that are efficient
   * _Consistent_: data allocated on the heap with simple ownership rules; function names usually begin with primary data structure (e.g., _pix_); simple code patterns throughout
   * _Robust_: all ptr args checked; extensive use of accessors; exit not permitted
-  * _Tested_: thorough regression tests provided for most basic functions; valgrind tested
+  * _Tested_: over 140 regression tests provided for basic functions and applications; valgrind tested
   * _ANSI C_: automatically generated prototype header file
   * _Portable_: endian-independent; builds in Linux, macOS, MinGW, Cygwin, Windows
-  * _Nearly thread-safe_: ref counting on some structs
+  * _Thread-safe_: uses atomic operations for reference counting
   * _Documentation_: large number of in-line comments; doxygen; web pages for further background
-  * _Examples_: many programs provided to test and show usage of approx. 2600 functions in the library
+  * _Examples_: many programs provided to test and show usage of over 2700 functions in the library
 
 
 ## Open Source Projects that use Leptonica ##
