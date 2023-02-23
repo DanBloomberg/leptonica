@@ -60,7 +60,7 @@ set(leptonica_INSTALL_CMAKE_DIR
     CACHE STRING "Install destination for CMake package files")
 
 if(NOT SW_BUILD)
-  find_package(GIF)
+  find_package(GIF 5)
   if(GIF_FOUND)
     set(libs_private "${libs_private} -lgif")
   endif()
