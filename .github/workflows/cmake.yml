@@ -41,5 +41,5 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target install
+      run: sudo cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target install
   
