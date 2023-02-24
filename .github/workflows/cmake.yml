@@ -1,6 +1,6 @@
 name: CMake
 
-on: [pull_request, workflow_dispatch]
+on: [push, pull_request, workflow_dispatch]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
