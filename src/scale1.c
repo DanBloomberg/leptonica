@@ -96,6 +96,7 @@
  *
  *         Grayscale and color scaling by closest pixel sampling
  *               static l_int32    scaleBySamplingLow()
+ *               static l_int32    scaleBySamplingTopLeft()
  *
  *         Color and grayscale downsampling with (antialias) lowpass filter
  *               static l_int32    scaleSmoothLow()
@@ -140,6 +141,9 @@ static void scaleGray4xLILineLow(l_uint32 *lined, l_int32 wpld,
                                  l_uint32 *lines, l_int32 ws, l_int32 wpls,
                                  l_int32 lastlineflag);
 static l_int32 scaleBySamplingLow(l_uint32 *datad, l_int32 wd, l_int32 hd,
+                                  l_int32 wpld, l_uint32 *datas, l_int32 ws,
+                                  l_int32 hs, l_int32 d, l_int32 wpls);
+static l_int32 scaleBySamplingTopLeft(l_uint32 *datad, l_int32 wd, l_int32 hd,
                                   l_int32 wpld, l_uint32 *datas, l_int32 ws,
                                   l_int32 hs, l_int32 d, l_int32 wpls);
 static l_int32 scaleSmoothLow(l_uint32 *datad, l_int32 wd, l_int32 hd,
@@ -1336,6 +1340,67 @@ PIX       *pixd;
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
     scaleBySamplingLow(datad, wd, hd, wpld, datas, ws, hs, d, wpls);
+    if (d == 32 && pixGetSpp(pixs) == 4)
+        pixScaleAndTransferAlpha(pixd, pixs, scalex, scaley);
+
+    return pixd;
+}
+
+
+/*------------------------------------------------------------------*
+ * Scaling by top/left pixel sampling, expanding from (0,0) down & left *
+ *------------------------------------------------------------------*/
+/*!
+ * \brief   pixScaleBySamplingTopLeft()
+ *
+ * \param[in]    pixs       1, 2, 4, 8, 16, 32 bpp
+ * \param[in]    scalex     must be > 0.0
+ * \param[in]    scaley     must be > 0.0
+ * \return  pixd, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This function samples from the source without
+ *          filtering.  As a result, aliasing will occur for
+ *          subsampling (%scalex and/or %scaley < 1.0).
+ *      (2) If %scalex == 1.0 and %scaley == 1.0, returns a copy.
+ *      (3) For upscaling by an integer, use pixExpandReplicate().
+ * </pre>
+ */
+PIX *
+pixScaleBySamplingTopLeft(PIX       *pixs,
+                   l_float32  scalex,
+                   l_float32  scaley)
+{
+l_int32    ws, hs, d, wpls, wd, hd, wpld;
+l_uint32  *datas, *datad;
+PIX       *pixd;
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
+    if (scalex <= 0.0 || scaley <= 0.0)
+        return (PIX *)ERROR_PTR("scale factor <= 0", __func__, NULL);
+    if (scalex == 1.0 && scaley == 1.0)
+        return pixCopy(NULL, pixs);
+    if ((d = pixGetDepth(pixs)) == 1)
+        return pixScaleBinary(pixs, scalex, scaley);
+
+    pixGetDimensions(pixs, &ws, &hs, NULL);
+    datas = pixGetData(pixs);
+    wpls = pixGetWpl(pixs);
+    wd = (l_int32)(scalex * (l_float32)ws + 0.5);
+    hd = (l_int32)(scaley * (l_float32)hs + 0.5);
+    if ((pixd = pixCreate(wd, hd, d)) == NULL)
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
+    pixCopyResolution(pixd, pixs);
+    pixScaleResolution(pixd, scalex, scaley);
+    pixCopyColormap(pixd, pixs);
+    pixCopyText(pixd, pixs);
+    pixCopyInputFormat(pixd, pixs);
+    pixCopySpp(pixd, pixs);
+    datad = pixGetData(pixd);
+    wpld = pixGetWpl(pixd);
+    scaleBySamplingTopLeft(datad, wd, hd, wpld, datas, ws, hs, d, wpls);
     if (d == 32 && pixGetSpp(pixs) == 4)
         pixScaleAndTransferAlpha(pixd, pixs, scalex, scaley);
 
@@ -3041,6 +3106,141 @@ l_float32  wratio, hratio;
         srow[i] = L_MIN((l_int32)(hratio * i + 0.5), hs - 1);
     for (j = 0; j < wd; j++)
         scol[j] = L_MIN((l_int32)(wratio * j + 0.5), ws - 1);
+
+    prevlines = NULL;
+    for (i = 0; i < hd; i++) {
+        lines = datas + srow[i] * wpls;
+        lined = datad + i * wpld;
+        if (lines != prevlines) {  /* make dest from new source row */
+            prevxs = -1;
+            sval = 0;
+            csval = 0;
+            if (d == 2) {
+                for (j = 0; j < wd; j++) {
+                    xs = scol[j];
+                    if (xs != prevxs) {  /* get dest pix from source col */
+                        sval = GET_DATA_DIBIT(lines, xs);
+                        SET_DATA_DIBIT(lined, j, sval);
+                        prevxs = xs;
+                    } else {  /* copy prev dest pix */
+                        SET_DATA_DIBIT(lined, j, sval);
+                    }
+                }
+            } else if (d == 4) {
+                for (j = 0; j < wd; j++) {
+                    xs = scol[j];
+                    if (xs != prevxs) {  /* get dest pix from source col */
+                        sval = GET_DATA_QBIT(lines, xs);
+                        SET_DATA_QBIT(lined, j, sval);
+                        prevxs = xs;
+                    } else {  /* copy prev dest pix */
+                        SET_DATA_QBIT(lined, j, sval);
+                    }
+                }
+            } else if (d == 8) {
+                for (j = 0; j < wd; j++) {
+                    xs = scol[j];
+                    if (xs != prevxs) {  /* get dest pix from source col */
+                        sval = GET_DATA_BYTE(lines, xs);
+                        SET_DATA_BYTE(lined, j, sval);
+                        prevxs = xs;
+                    } else {  /* copy prev dest pix */
+                        SET_DATA_BYTE(lined, j, sval);
+                    }
+                }
+            } else if (d == 16) {
+                for (j = 0; j < wd; j++) {
+                    xs = scol[j];
+                    if (xs != prevxs) {  /* get dest pix from source col */
+                        sval = GET_DATA_TWO_BYTES(lines, xs);
+                        SET_DATA_TWO_BYTES(lined, j, sval);
+                        prevxs = xs;
+                    } else {  /* copy prev dest pix */
+                        SET_DATA_TWO_BYTES(lined, j, sval);
+                    }
+                }
+            } else {  /* d == 32 */
+                for (j = 0; j < wd; j++) {
+                    xs = scol[j];
+                    if (xs != prevxs) {  /* get dest pix from source col */
+                        csval = lines[xs];
+                        lined[j] = csval;
+                        prevxs = xs;
+                    } else {  /* copy prev dest pix */
+                        lined[j] = csval;
+                    }
+                }
+            }
+        } else {  /* lines == prevlines; copy prev dest row */
+            prevlined = lined - wpld;
+            memcpy(lined, prevlined, 4 * wpld);
+        }
+        prevlines = lines;
+    }
+
+    LEPT_FREE(srow);
+    LEPT_FREE(scol);
+    return 0;
+}
+
+
+/*------------------------------------------------------------------*
+ *       Grayscale and color scaling by closest pixel sampling      *
+ *------------------------------------------------------------------*/
+/*!
+ * \brief   scaleBySamplingTopLeft()
+ *
+ * <pre>
+ * Notes:
+ *      (1) The dest must be cleared prior to this operation,
+ *          and we clear it here in the low-level code.
+ *      (2) We reuse dest pixels and dest pixel rows whenever
+ *          possible.  This speeds the upscaling; downscaling
+ *          is done by strict subsampling and is unaffected.
+ *      (3) Because we are sampling and not interpolating, this
+ *          routine works directly, without conversion to full
+ *          RGB color, for 2, 4 or 8 bpp palette color images.
+ * </pre>
+ */
+static l_int32
+scaleBySamplingTopLeft(l_uint32 *datad,
+                   l_int32    wd,
+                   l_int32    hd,
+                   l_int32    wpld,
+                   l_uint32  *datas,
+                   l_int32    ws,
+                   l_int32    hs,
+                   l_int32    d,
+                   l_int32    wpls)
+{
+l_int32    i, j;
+l_int32    xs, prevxs, sval;
+l_int32   *srow, *scol;
+l_uint32   csval;
+l_uint32  *lines, *prevlines, *lined, *prevlined;
+l_float32  wratio, hratio;
+
+    if (d != 2 && d != 4 && d !=8 && d != 16 && d != 32)
+        return ERROR_INT("pixel depth not supported", __func__, 1);
+
+        /* Clear dest */
+    memset(datad, 0, 4LL * hd * wpld);
+
+        /* the source row corresponding to dest row i ==> srow[i]
+         * the source col corresponding to dest col j ==> scol[j]  */
+    if ((srow = (l_int32 *)LEPT_CALLOC(hd, sizeof(l_int32))) == NULL)
+        return ERROR_INT("srow not made", __func__, 1);
+    if ((scol = (l_int32 *)LEPT_CALLOC(wd, sizeof(l_int32))) == NULL) {
+        LEPT_FREE(srow);
+        return ERROR_INT("scol not made", __func__, 1);
+    }
+
+    wratio = (l_float32)ws / (l_float32)wd;
+    hratio = (l_float32)hs / (l_float32)hd;
+    for (i = 0; i < hd; i++)
+        srow[i] = L_MIN((l_int32)(hratio * i), hs - 1);
+    for (j = 0; j < wd; j++)
+        scol[j] = L_MIN((l_int32)(wratio * j), ws - 1);
 
     prevlines = NULL;
     for (i = 0; i < hd; i++) {

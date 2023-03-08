@@ -2415,6 +2415,7 @@ LEPT_DLL extern PIX * pixScaleGray2xLIDither ( PIX *pixs );
 LEPT_DLL extern PIX * pixScaleGray4xLIThresh ( PIX *pixs, l_int32 thresh );
 LEPT_DLL extern PIX * pixScaleGray4xLIDither ( PIX *pixs );
 LEPT_DLL extern PIX * pixScaleBySampling ( PIX *pixs, l_float32 scalex, l_float32 scaley );
+LEPT_DLL extern PIX * pixScaleBySamplingTopLeft (PIX *pixs, l_float32 scalex, l_float32 scaley);
 LEPT_DLL extern PIX * pixScaleBySamplingToSize ( PIX *pixs, l_int32 wd, l_int32 hd );
 LEPT_DLL extern PIX * pixScaleByIntSampling ( PIX *pixs, l_int32 factor );
 LEPT_DLL extern PIX * pixScaleRGBToGrayFast ( PIX *pixs, l_int32 factor, l_int32 color );
