@@ -337,7 +337,10 @@ jmp_buf                        jmpbuf;  /* must be local to the function */
         rowbuffer = (JSAMPROW)LEPT_CALLOC(sizeof(JSAMPLE), w);
         pix = pixCreate(w, h, 8);
     }
-    pixSetInputFormat(pix, IFF_JFIF_JPEG);
+	if (!pix)
+		return (PIX*)ERROR_PTR("cannot load jpeg", __func__, NULL);
+
+	pixSetInputFormat(pix, IFF_JFIF_JPEG);
     if (!rowbuffer || !pix) {
         LEPT_FREE(rowbuffer);
         rowbuffer = NULL;
