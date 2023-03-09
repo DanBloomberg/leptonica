@@ -2634,6 +2634,8 @@ LEPT_DLL extern l_ok fileCorruptByMutation ( const char *filein, l_float32 loc, 
 LEPT_DLL extern l_ok fileReplaceBytes ( const char *filein, l_int32 start, l_int32 nbytes, l_uint8 *newdata, size_t newsize, const char *fileout );
 LEPT_DLL extern l_ok genRandomIntOnInterval ( l_int32 start, l_int32 end, l_int32 seed, l_int32 *pval );
 LEPT_DLL extern l_int32 lept_roundftoi ( l_float32 fval );
+LEPT_DLL extern l_int32 lept_floor ( l_float32 fval );
+LEPT_DLL extern l_int32 lept_ceiling ( l_float32 fval );
 LEPT_DLL extern l_ok l_hashStringToUint64 ( const char *str, l_uint64 *phash );
 LEPT_DLL extern l_ok l_hashStringToUint64Fast ( const char *str, l_uint64 *phash );
 LEPT_DLL extern l_ok l_hashPtToUint64 ( l_int32 x, l_int32 y, l_uint64 *phash );
