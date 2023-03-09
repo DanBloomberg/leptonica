@@ -2415,6 +2415,7 @@ LEPT_DLL extern PIX * pixScaleGray2xLIDither ( PIX *pixs );
 LEPT_DLL extern PIX * pixScaleGray4xLIThresh ( PIX *pixs, l_int32 thresh );
 LEPT_DLL extern PIX * pixScaleGray4xLIDither ( PIX *pixs );
 LEPT_DLL extern PIX * pixScaleBySampling ( PIX *pixs, l_float32 scalex, l_float32 scaley );
+LEPT_DLL extern PIX * pixScaleBySamplingWithShift ( PIX *pixs, l_float32 scalex, l_float32 scaley, l_float32 shiftx, l_float32 shifty );
 LEPT_DLL extern PIX * pixScaleBySamplingToSize ( PIX *pixs, l_int32 wd, l_int32 hd );
 LEPT_DLL extern PIX * pixScaleByIntSampling ( PIX *pixs, l_int32 factor );
 LEPT_DLL extern PIX * pixScaleRGBToGrayFast ( PIX *pixs, l_int32 factor, l_int32 color );
@@ -2427,6 +2428,7 @@ LEPT_DLL extern PIX * pixScaleAreaMap ( PIX *pix, l_float32 scalex, l_float32 sc
 LEPT_DLL extern PIX * pixScaleAreaMap2 ( PIX *pix );
 LEPT_DLL extern PIX * pixScaleAreaMapToSize ( PIX *pixs, l_int32 wd, l_int32 hd );
 LEPT_DLL extern PIX * pixScaleBinary ( PIX *pixs, l_float32 scalex, l_float32 scaley );
+LEPT_DLL extern PIX * pixScaleBinaryWithShift ( PIX *pixs, l_float32 scalex, l_float32 scaley, l_float32 shiftx, l_float32 shifty );
 LEPT_DLL extern PIX * pixScaleToGray ( PIX *pixs, l_float32 scalefactor );
 LEPT_DLL extern PIX * pixScaleToGrayFast ( PIX *pixs, l_float32 scalefactor );
 LEPT_DLL extern PIX * pixScaleToGray2 ( PIX *pixs );

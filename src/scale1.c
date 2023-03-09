@@ -53,6 +53,7 @@
  *
  *         Scaling by closest pixel sampling
  *               PIX      *pixScaleBySampling()
+ *               PIX      *pixScaleBySamplingWithShift()
  *               PIX      *pixScaleBySamplingToSize()
  *               PIX      *pixScaleByIntSampling()
  *
@@ -73,6 +74,7 @@
  *
  *         Binary scaling by closest pixel sampling
  *               PIX      *pixScaleBinary()
+ *               PIX      *pixScaleBinaryWithShift()
  *
  *     Low-level static functions:
  *
@@ -141,7 +143,8 @@ static void scaleGray4xLILineLow(l_uint32 *lined, l_int32 wpld,
                                  l_int32 lastlineflag);
 static l_int32 scaleBySamplingLow(l_uint32 *datad, l_int32 wd, l_int32 hd,
                                   l_int32 wpld, l_uint32 *datas, l_int32 ws,
-                                  l_int32 hs, l_int32 d, l_int32 wpls);
+                                  l_int32 hs, l_int32 d, l_int32 wpls,
+                                  l_float32 shiftx, l_float32 shifty);
 static l_int32 scaleSmoothLow(l_uint32 *datad, l_int32 wd, l_int32 hd,
                               l_int32 wpld, l_uint32 *datas, l_int32 ws,
                               l_int32 hs, l_int32 d, l_int32 wpls,
@@ -160,7 +163,8 @@ static void scaleAreaMapLow2(l_uint32 *datad, l_int32 wd, l_int32 hd,
                              l_int32 wpls);
 static l_int32 scaleBinaryLow(l_uint32 *datad, l_int32 wd, l_int32 hd,
                               l_int32 wpld, l_uint32 *datas, l_int32 ws,
-                              l_int32 hs, l_int32 wpls);
+                              l_int32 hs, l_int32 wpls,
+                              l_float32 shiftx, l_float32 shifty);
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_OVERFLOW   0
@@ -1307,6 +1311,36 @@ pixScaleBySampling(PIX       *pixs,
                    l_float32  scalex,
                    l_float32  scaley)
 {
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
+    return pixScaleBySamplingWithShift(pixs, scalex, scaley, 0.5, 0.5);
+}
+
+
+/*!
+ * \brief   pixScaleBySamplingWithShift()
+ *
+ * \param[in]    pixs      1, 2, 4, 8, 16, 32 bpp
+ * \param[in]    scalex    must be > 0.0
+ * \param[in]    scaley    must be > 0.0
+ * \param[in]    shiftx    0.5 for default; 0.0 to mihimize edge effects
+ * \param[in]    shifty    0.5 for default; 0.0 to mihimize edge effects
+ * \return  pixd, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The @shiftx and @shifty parameters are usually unimportant.
+ *          Visible artifacts are minimized by using 0.0.
+ *          Allowed values are 0.0 and 0.5.
+ * </pre>
+ */
+PIX *
+pixScaleBySamplingWithShift(PIX       *pixs,
+                            l_float32  scalex,
+                            l_float32  scaley,
+                            l_float32  shiftx,
+                            l_float32  shifty)
+{
 l_int32    ws, hs, d, wpls, wd, hd, wpld;
 l_uint32  *datas, *datad;
 PIX       *pixd;
@@ -1317,8 +1351,12 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("scale factor <= 0", __func__, NULL);
     if (scalex == 1.0 && scaley == 1.0)
         return pixCopy(NULL, pixs);
+    if (shiftx != 0.0 && shiftx != 0.5)
+        return (PIX *)ERROR_PTR("shiftx != 0.0 or 0.5", __func__, NULL);
+    if (shifty != 0.0 && shifty != 0.5)
+        return (PIX *)ERROR_PTR("shifty != 0.0 or 0.5", __func__, NULL);
     if ((d = pixGetDepth(pixs)) == 1)
-        return pixScaleBinary(pixs, scalex, scaley);
+        return pixScaleBinaryWithShift(pixs, scalex, scaley, shiftx, shifty);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
@@ -1335,7 +1373,8 @@ PIX       *pixd;
     pixCopySpp(pixd, pixs);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
-    scaleBySamplingLow(datad, wd, hd, wpld, datas, ws, hs, d, wpls);
+    scaleBySamplingLow(datad, wd, hd, wpld, datas, ws, hs, d, wpls,
+                       shiftx, shifty);
     if (d == 32 && pixGetSpp(pixs) == 4)
         pixScaleAndTransferAlpha(pixd, pixs, scalex, scaley);
 
@@ -2106,6 +2145,38 @@ pixScaleBinary(PIX       *pixs,
                l_float32  scalex,
                l_float32  scaley)
 {
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
+    if (pixGetDepth(pixs) != 1)
+        return (PIX *)ERROR_PTR("pixs must be 1 bpp", __func__, NULL);
+    return pixScaleBinaryWithShift(pixs, scalex, scaley, 0.5, 0.5);
+}
+
+
+/*!
+ * \brief   pixScaleBinaryWithShift()
+ *
+ * \param[in]    pixs      1 bpp
+ * \param[in]    scalex    must be > 0.0
+ * \param[in]    scaley    must be > 0.0
+ * \param[in]    shiftx    0.5 for default; 0.0 to mihimize edge effects
+ * \param[in]    shifty    0.5 for default; 0.0 to mihimize edge effects
+ * \return  pixd, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The @shiftx and @shifty parameters are usually unimportant.
+ *          Visible artifacts are minimized by using 0.0.
+ *          Allowed values are 0.0 and 0.5.
+ * </pre>
+ */
+PIX *
+pixScaleBinaryWithShift(PIX       *pixs,
+                        l_float32  scalex,
+                        l_float32  scaley,
+                        l_float32  shiftx,
+                        l_float32  shifty)
+{
 l_int32    ws, hs, wpls, wd, hd, wpld;
 l_uint32  *datas, *datad;
 PIX       *pixd;
@@ -2118,6 +2189,10 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("scale factor <= 0", __func__, NULL);
     if (scalex == 1.0 && scaley == 1.0)
         return pixCopy(NULL, pixs);
+    if (shiftx != 0.0 && shiftx != 0.5)
+        return (PIX *)ERROR_PTR("shiftx != 0.0 or 0.5", __func__, NULL);
+    if (shifty != 0.0 && shifty != 0.5)
+        return (PIX *)ERROR_PTR("shifty != 0.0 or 0.5", __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
@@ -2133,7 +2208,7 @@ PIX       *pixd;
     pixScaleResolution(pixd, scalex, scaley);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
-    scaleBinaryLow(datad, wd, hd, wpld, datas, ws, hs, wpls);
+    scaleBinaryLow(datad, wd, hd, wpld, datas, ws, hs, wpls, shiftx, shifty);
     return pixd;
 }
 
@@ -3011,7 +3086,9 @@ scaleBySamplingLow(l_uint32  *datad,
                    l_int32    ws,
                    l_int32    hs,
                    l_int32    d,
-                   l_int32    wpls)
+                   l_int32    wpls,
+                   l_float32  shiftx,
+                   l_float32  shifty)
 {
 l_int32    i, j;
 l_int32    xs, prevxs, sval;
@@ -3038,9 +3115,9 @@ l_float32  wratio, hratio;
     wratio = (l_float32)ws / (l_float32)wd;
     hratio = (l_float32)hs / (l_float32)hd;
     for (i = 0; i < hd; i++)
-        srow[i] = L_MIN((l_int32)(hratio * i + 0.5), hs - 1);
+        srow[i] = L_MIN((l_int32)(hratio * i + shifty), hs - 1);
     for (j = 0; j < wd; j++)
-        scol[j] = L_MIN((l_int32)(wratio * j + 0.5), ws - 1);
+        scol[j] = L_MIN((l_int32)(wratio * j + shiftx), ws - 1);
 
     prevlines = NULL;
     for (i = 0; i < hd; i++) {
@@ -3642,7 +3719,9 @@ scaleBinaryLow(l_uint32  *datad,
                l_uint32  *datas,
                l_int32    ws,
                l_int32    hs,
-               l_int32    wpls)
+               l_int32    wpls,
+               l_float32  shiftx,
+               l_float32  shifty)
 {
 l_int32    i, j;
 l_int32    xs, prevxs, sval;
@@ -3665,9 +3744,9 @@ l_float32  wratio, hratio;
     wratio = (l_float32)ws / (l_float32)wd;
     hratio = (l_float32)hs / (l_float32)hd;
     for (i = 0; i < hd; i++)
-        srow[i] = L_MIN((l_int32)(hratio * i + 0.5), hs - 1);
+        srow[i] = L_MIN((l_int32)(hratio * i + shifty), hs - 1);
     for (j = 0; j < wd; j++)
-        scol[j] = L_MIN((l_int32)(wratio * j + 0.5), ws - 1);
+        scol[j] = L_MIN((l_int32)(wratio * j + shiftx), ws - 1);
 
     prevlines = NULL;
     prevxs = -1;
