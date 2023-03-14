@@ -106,7 +106,7 @@ if (TIFF_FOUND)
     set(HAVE_LIBTIFF 1)
 endif()
 
-if (WEBP_FOUND)
+if (LIBWEBP_SUPPORT)
     set(HAVE_LIBWEBP 1)
     set(HAVE_LIBWEBP_ANIM 1)
 endif()
