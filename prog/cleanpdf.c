@@ -101,7 +101,7 @@
  *         char *newstr = stringReplaceEachSubstr(str, " ", "^", NULL);
  *      Then run cleanpdf on the file(s).
  *    * To get an output filename with spaces, use single quotes; e.g.,
- *         cleanpdf dir thresh res title 'quoted filename with spaces'
+ *         cleanpdf dir [...] title 'quoted filename with spaces'
  *
  *    N.B.  This requires the Poppler package of pdf utilities, such as
  *          pdfimages and pdftoppm.  For non-unix systems, this requires

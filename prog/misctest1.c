@@ -37,6 +37,7 @@
  *        * Extract parts of an image using a boxa
  *        * Display pixaa in row major order by component pixa.
  *        * Test zlib compression in png
+ *        * Show sampled scaling with and without source shift
  */
 
 #ifdef HAVE_CONFIG_H
@@ -343,6 +344,25 @@ PIXCMAP  *cmap, *cmapg;
                     2 * i, (unsigned long)size, (unsigned long)(size - zlibsize[i]));
     }
     pixDestroy(&pixs);
+
+        /* Show sampled scaling with and without source shift */
+    pixs = pixCreate(3, 3, 4);
+    cmap = pixcmapCreateRandom(4, 0, 0);
+    for (i = 0; i < 3; i++)
+        for (j = 0; j < 3; j++)
+            pixSetPixel(pixs, j, i, 3 * i + j);
+    pixSetColormap(pixs, cmap);
+    pix1 = pixScaleBySampling(pixs, 100, 100);
+    pix2 = pixScaleBySamplingWithShift(pixs, 100, 100, 0.0, 0.0);
+    pixa1 = pixaCreate(2);
+    pixaAddPix(pixa1, pix1, L_INSERT);
+    pixaAddPix(pixa1, pix2, L_INSERT);
+    pix3 = pixaDisplayTiledInColumns(pixa1, 2, 1.0, 30, 2);
+    pixWrite("/tmp/lept/misc/sampletest.png", pix3, IFF_PNG);
+    pixDisplay(pix3, 1000, 100);
+    pixDestroy(&pixs);
+    pixDestroy(&pix3);
+    pixaDestroy(&pixa1);
 
     return 0;
 }
