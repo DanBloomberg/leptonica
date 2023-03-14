@@ -2415,6 +2415,7 @@ LEPT_DLL extern PIX * pixScaleGray2xLIDither ( PIX *pixs );
 LEPT_DLL extern PIX * pixScaleGray4xLIThresh ( PIX *pixs, l_int32 thresh );
 LEPT_DLL extern PIX * pixScaleGray4xLIDither ( PIX *pixs );
 LEPT_DLL extern PIX * pixScaleBySampling ( PIX *pixs, l_float32 scalex, l_float32 scaley );
+LEPT_DLL extern PIX * pixScaleBySamplingWithShift ( PIX *pixs, l_float32 scalex, l_float32 scaley, l_float32 shiftx, l_float32 shifty );
 LEPT_DLL extern PIX * pixScaleBySamplingToSize ( PIX *pixs, l_int32 wd, l_int32 hd );
 LEPT_DLL extern PIX * pixScaleByIntSampling ( PIX *pixs, l_int32 factor );
 LEPT_DLL extern PIX * pixScaleRGBToGrayFast ( PIX *pixs, l_int32 factor, l_int32 color );
@@ -2427,6 +2428,7 @@ LEPT_DLL extern PIX * pixScaleAreaMap ( PIX *pix, l_float32 scalex, l_float32 sc
 LEPT_DLL extern PIX * pixScaleAreaMap2 ( PIX *pix );
 LEPT_DLL extern PIX * pixScaleAreaMapToSize ( PIX *pixs, l_int32 wd, l_int32 hd );
 LEPT_DLL extern PIX * pixScaleBinary ( PIX *pixs, l_float32 scalex, l_float32 scaley );
+LEPT_DLL extern PIX * pixScaleBinaryWithShift ( PIX *pixs, l_float32 scalex, l_float32 scaley, l_float32 shiftx, l_float32 shifty );
 LEPT_DLL extern PIX * pixScaleToGray ( PIX *pixs, l_float32 scalefactor );
 LEPT_DLL extern PIX * pixScaleToGrayFast ( PIX *pixs, l_float32 scalefactor );
 LEPT_DLL extern PIX * pixScaleToGray2 ( PIX *pixs );
@@ -2634,6 +2636,8 @@ LEPT_DLL extern l_ok fileCorruptByMutation ( const char *filein, l_float32 loc, 
 LEPT_DLL extern l_ok fileReplaceBytes ( const char *filein, l_int32 start, l_int32 nbytes, l_uint8 *newdata, size_t newsize, const char *fileout );
 LEPT_DLL extern l_ok genRandomIntOnInterval ( l_int32 start, l_int32 end, l_int32 seed, l_int32 *pval );
 LEPT_DLL extern l_int32 lept_roundftoi ( l_float32 fval );
+LEPT_DLL extern l_int32 lept_floor ( l_float32 fval );
+LEPT_DLL extern l_int32 lept_ceiling ( l_float32 fval );
 LEPT_DLL extern l_ok l_hashStringToUint64 ( const char *str, l_uint64 *phash );
 LEPT_DLL extern l_ok l_hashStringToUint64Fast ( const char *str, l_uint64 *phash );
 LEPT_DLL extern l_ok l_hashPtToUint64 ( l_int32 x, l_int32 y, l_uint64 *phash );

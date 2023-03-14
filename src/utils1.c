@@ -69,8 +69,10 @@
  *       Generate random integer in given interval
  *           l_int32    genRandomIntOnInterval()
  *
- *       Simple math function
+ *       Simple math functions
  *           l_int32    lept_roundftoi()
+ *           l_int32    lept_floor()
+ *           l_int32    lept_ceiling()
  *
  *       64-bit hash functions
  *           l_int32    l_hashStringToUint64()
@@ -670,13 +672,13 @@ l_float64  range;
 
 
 /*---------------------------------------------------------------------*
- *                         Simple math function                        *
+ *                        Simple math functions                        *
  *---------------------------------------------------------------------*/
 /*!
  * \brief   lept_roundftoi()
  *
  * \param[in]    fval
- * \return  value rounded to int
+ * \return  value rounded to the nearest integer
  *
  * <pre>
  * Notes:
@@ -690,6 +692,41 @@ l_int32
 lept_roundftoi(l_float32  fval)
 {
     return (fval >= 0.0) ? (l_int32)(fval + 0.5) : (l_int32)(fval - 0.5);
+}
+
+
+/*!
+ * \brief   lept_floor()
+ *
+ * \param[in]    fval
+ * \return  largest integer that is not greater than %fval
+ */
+l_int32
+lept_floor(l_float32  fval)
+{
+    return (fval >= 0.0) ? (l_int32)(fval) : -(l_int32)(-fval);
+}
+
+
+/*!
+ * \brief   lept_ceiling()
+ *
+ * \param[in]    fval
+ * \return  smallest integer that is not less than %fval
+ *
+ * <pre>
+ * Notes:
+ *      (1) If fval is equal to its interger value, return that.
+ *          Otherwise:
+ *            For fval > 0, fval --> 1 + floor(fval)
+ *            For fval < 0, fval --> -(1 + floor(-fval))
+ * </pre>
+ */
+l_int32
+lept_ceiling(l_float32  fval)
+{
+    return (fval == (l_int32)fval ? (l_int32)fval :
+            fval > 0.0 ? 1 + (l_int32)(fval) : -(1 + (l_int32)(-fval)));
 }
 
 

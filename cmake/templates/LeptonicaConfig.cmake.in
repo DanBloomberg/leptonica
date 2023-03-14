@@ -21,6 +21,9 @@
 # ===================================================================================
 
 include(CMakeFindDependencyMacro)
+if (@OPENJPEG_SUPPORT@)
+    find_dependency(OpenJPEG CONFIG)
+endif()
 if (@LIBWEBP_SUPPORT@)
     find_dependency(WebP @MINIMUM_WEBPMUX_VERSION@ CONFIG)
 endif()

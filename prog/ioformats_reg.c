@@ -570,7 +570,7 @@ part6:
     }
     pixDestroy(&pixd);
     pixd = pixRead("/tmp/lept/regout/junk24.jpg");
-    regTestCompareSimilarPix(rp, pix, pixd, 10, 0.0002, 0);
+    regTestCompareSimilarPix(rp, pix, pixd, 10, 0.0002, 0);  /* 0 */
     pixDestroy(&pixd);
     pixd = pixRead("/tmp/lept/regout/junk24.tif");
     pixEqual(pix, pixd, &same);
@@ -597,6 +597,30 @@ part6:
     lept_stderr("Test write/read of PNG with alpha\n");
     if (test_writemem(pix1, IFF_PNG, NULL)) success = FALSE;
     pixDestroy(&pix1);
+
+    pix1 = pixRead("test-rgba.bmp");
+    pixWrite("/tmp/lept/regout/alpha1.bmp", pix1, IFF_BMP);
+    pixWrite("/tmp/lept/regout/alpha1.png", pix1, IFF_PNG);
+    pix2 = pixRead("/tmp/lept/regout/alpha1.bmp");
+    pix3 = pixRead("/tmp/lept/regout/alpha1.png");
+    pixEqual(pix2, pix1, &same);
+    regTestCompareValues(rp, 1.0, same, 0.0);  /* 1 */
+    pixEqual(pix3, pix1, &same);
+    regTestCompareValues(rp, 1.0, same, 0.0);  /* 2 */
+    pixWrite("/tmp/lept/regout/alpha2.bmp", pix2, IFF_BMP);
+    pix4 = pixRead("/tmp/lept/regout/alpha2.bmp");
+    pixEqual(pix4, pix1, &same);
+    regTestCompareValues(rp, 1.0, same, 0.0);  /* 3 */
+    if (rp->success == FALSE) success = FALSE;
+    if (rp->display) {
+        writeImageFileInfo("/tmp/lept/regout/alpha2.bmp", stderr, 0);
+        pixDisplay(pix1, 300, 100);
+    }
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+
     if (success)
         lept_stderr("\n  ******* Success on misc tests *******\n\n");
     else
