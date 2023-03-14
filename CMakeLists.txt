@@ -121,24 +121,9 @@ if(NOT SW_BUILD)
     endif(WEBPMUX)
   endif(LIBWEBP_SUPPORT)
   if(OPENJPEG_SUPPORT)
-    find_package(OpenJPEG)
-    # we need absolute path in some cases on Windows
-    find_library(JP2K_LIBRARY NAMES openjp2)
-    if(OpenJPEG_FOUND AND JP2K_LIBRARY)
-      set(JP2K_FOUND TRUE)
-      set(JP2K_INCLUDE_DIRS ${OPENJPEG_INCLUDE_DIRS})
-      get_filename_component(JP2K_HEADER_DIR "${JP2K_INCLUDE_DIRS}" NAME)
-    else()
-      if(PKG_CONFIG_FOUND)
-        pkg_check_modules(JP2K libopenjp2>=2.0 QUIET)
-      endif(PKG_CONFIG_FOUND)
-    endif()
-    if(JP2K_FOUND)
-      set(JP2K_LIBRARIES ${JP2K_LIBRARY})
-      set(pkgs_private "${pkgs_private} libopenjp2")
-      message(STATUS "FOUND OpenJPEG: ${JP2K_LIBRARIES}")
-    endif()
-  endif(OPENJPEG_SUPPORT)
+    find_package(OpenJPEG CONFIG REQUIRED)
+    set(pkgs_private "${pkgs_private} libopenjp2")
+  endif()
 else() # SW_BUILD=ON
   find_package(SW REQUIRED)
   sw_add_package(
@@ -154,8 +139,7 @@ else() # SW_BUILD=ON
     -DHAVE_LIBWEBP=1
     -DHAVE_LIBWEBP_ANIM=1
     -DHAVE_LIBZ=1
-    -DHAVE_LIBJP2K=1
-    -DLIBJP2K_HEADER="openjpeg.h")
+    -DHAVE_LIBJP2K=1)
 endif()
 
 set(libs_private "${libs_private} -lm")
