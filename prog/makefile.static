@@ -144,6 +144,7 @@ ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm
 #ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lwebp -lopenjp2 -lz -lm
 #ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lwebp -lopenjp2 -lgif -lz -lm
 #ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lwebp -lwebpmux -lopenjp2 -lgif -lz -lm
+#ALL_LIBS =	$(LEPTLIB) -lm    #no external linked imaging libraries
 
 #########################################################################
 
