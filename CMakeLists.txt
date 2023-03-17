@@ -39,7 +39,10 @@ set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake Targets")
 #
 # ##############################################################################
 
-project(leptonica LANGUAGES C CXX VERSION 1.84.0)
+project(
+  leptonica
+  LANGUAGES C CXX
+  VERSION 1.84.0)
 
 set(MINIMUM_WEBPMUX_VERSION 0.5.0)
 
@@ -52,7 +55,8 @@ endif()
 if(UNIX OR MINGW)
   option(SYM_LINK "Create symlink leptonica -> lept on UNIX" OFF)
 endif()
-option(STRICT_CONF "Strict configuration - fail when optional library is not found" OFF)
+option(STRICT_CONF
+       "Strict configuration - fail when optional library is not found" OFF)
 option(ENABLE_ZLIB "Enable ZLIB support" ON)
 option(ENABLE_PNG "Enable PNG support" ON)
 option(ENABLE_GIF "Enable GIF support" ON)
@@ -72,8 +76,11 @@ if(NOT SW_BUILD)
     if(ZLIB_FOUND)
       set(pkgs_private "${pkgs_private} zlib")
     else()
-      if (STRICT_CONF)
-        message(FATAL_ERROR "Could not find ZLIB libs.\n Use -DENABLE_ZLIB=OFF to disable ZLIB support.")
+      if(STRICT_CONF)
+        message(
+          FATAL_ERROR
+            "Could not find ZLIB libs.\n Use -DENABLE_ZLIB=OFF to disable ZLIB support."
+        )
       endif(STRICT_CONF)
     endif(ZLIB_FOUND)
   endif(ENABLE_ZLIB)
@@ -82,8 +89,11 @@ if(NOT SW_BUILD)
     if(PNG_FOUND)
       set(pkgs_private "${pkgs_private} libpng")
     else()
-      if (STRICT_CONF)
-        message(FATAL_ERROR "Could not find PNG libs.\n Use -DENABLE_PNG=OFF to disable PNG support.")
+      if(STRICT_CONF)
+        message(
+          FATAL_ERROR
+            "Could not find PNG libs.\n Use -DENABLE_PNG=OFF to disable PNG support."
+        )
       endif(STRICT_CONF)
     endif(PNG_FOUND)
   endif(ENABLE_PNG)
@@ -92,8 +102,11 @@ if(NOT SW_BUILD)
     if(GIF_FOUND)
       set(libs_private "${libs_private} -lgif")
     else()
-      if (STRICT_CONF)
-        message(FATAL_ERROR "Could not find GIF 5 libs.\n Use -DENABLE_GIF=OFF to disable GIF support.")
+      if(STRICT_CONF)
+        message(
+          FATAL_ERROR
+            "Could not find GIF 5 libs.\n Use -DENABLE_GIF=OFF to disable GIF support."
+        )
       endif(STRICT_CONF)
     endif(GIF_FOUND)
   endif(ENABLE_GIF)
@@ -102,8 +115,11 @@ if(NOT SW_BUILD)
     if(JPEG_FOUND)
       set(pkgs_private "${pkgs_private} libjpeg")
     else()
-      if (STRICT_CONF)
-        message(FATAL_ERROR "Could not find JPEG libs.\n Use -DENABLE_JPEG=OFF to disable JPEG support.")
+      if(STRICT_CONF)
+        message(
+          FATAL_ERROR
+            "Could not find JPEG libs.\n Use -DENABLE_JPEG=OFF to disable JPEG support."
+        )
       endif(STRICT_CONF)
     endif(JPEG_FOUND)
   endif(ENABLE_JPEG)
@@ -112,8 +128,11 @@ if(NOT SW_BUILD)
     if(TIFF_FOUND)
       set(pkgs_private "${pkgs_private} libtiff-4")
     else()
-      if (STRICT_CONF)
-        message(FATAL_ERROR "Could not find TIFF libs.\n Use -DENABLE_TIFF=OFF to disable TIFF support.")
+      if(STRICT_CONF)
+        message(
+          FATAL_ERROR
+            "Could not find TIFF libs.\n Use -DENABLE_TIFF=OFF to disable TIFF support."
+        )
       endif(STRICT_CONF)
     endif(TIFF_FOUND)
   endif(ENABLE_TIFF)
@@ -126,8 +145,8 @@ if(NOT SW_BUILD)
       find_library(WEBP_LIBRARY NAMES webp)
       find_library(WEBP_MUX_LIBRARY NAMES webpmux)
       if(WEBP_INCLUDE_DIR
-        AND WEBP_MUX_INCLUDE_DIR
-        AND WEBP_LIBRARY)
+         AND WEBP_MUX_INCLUDE_DIR
+         AND WEBP_LIBRARY)
         message(STATUS "Found non-cmake WebP: ${WEBP_LIBRARY}")
         set(WEBP_INCLUDE_DIRS "${WEBP_INCLUDE_DIR};${WEBP_MUX_INCLUDE_DIR}")
         set(WEBP_LIBRARIES "${WEBP_LIBRARY}")
@@ -135,9 +154,15 @@ if(NOT SW_BUILD)
           list(APPEND WEBP_LIBRARIES "${WEBP_MUX_LIBRARY}")
         endif(WEBP_MUX_LIBRARY)
       else()
-        message(STATUS "WEBP_INCLUDE_DIR: ${WEBP_INCLUDE_DIR}\nWEBP_MUX_INCLUDE_DIR: ${WEBP_MUX_INCLUDE_DIR}\nWEBP_LIBRARY: ${WEBP_LIBRARY}\nWEBP_MUX_LIBRARY: ${WEBP_MUX_LIBRARY}")
-        if (STRICT_CONF)
-          message(FATAL_ERROR "Could not find WebP libs.\n Use -DENABLE_WEBP=OFF to disable WebP support.")
+        message(
+          STATUS
+            "WEBP_INCLUDE_DIR: ${WEBP_INCLUDE_DIR}\nWEBP_MUX_INCLUDE_DIR: ${WEBP_MUX_INCLUDE_DIR}\nWEBP_LIBRARY: ${WEBP_LIBRARY}\nWEBP_MUX_LIBRARY: ${WEBP_MUX_LIBRARY}"
+        )
+        if(STRICT_CONF)
+          message(
+            FATAL_ERROR
+              "Could not find WebP libs.\n Use -DENABLE_WEBP=OFF to disable WebP support."
+          )
         endif(STRICT_CONF)
       endif()
     endif()
@@ -146,15 +171,18 @@ if(NOT SW_BUILD)
   if(ENABLE_OPENJPEG)
     find_package(OpenJPEG CONFIG)
     if(STRICT_CONF AND NOT OpenJPEG_FOUND)
-      message(FATAL_ERROR "Could not find OpenJPEG libs.\n Use -DENABLE_OPENJPEG=OFF to disable OpenJPEG support.")
+      message(
+        FATAL_ERROR
+          "Could not find OpenJPEG libs.\n Use -DENABLE_OPENJPEG=OFF to disable OpenJPEG support."
+      )
     endif(STRICT_CONF AND NOT OpenJPEG_FOUND)
     set(pkgs_private "${pkgs_private} libopenjp2")
     include_directories(${OPENJPEG_INCLUDE_DIRS})
     if(WIN32)
       if(BUILD_SHARED_LIBS)
-          add_definitions(-DOPJ_EXPORTS)
+        add_definitions(-DOPJ_EXPORTS)
       else()
-          add_definitions(-DOPJ_STATIC)
+        add_definitions(-DOPJ_STATIC)
       endif()
     endif(WIN32)
   endif(ENABLE_OPENJPEG)
@@ -314,7 +342,10 @@ get_target_property(leptonica_OUTPUT_NAME leptonica OUTPUT_NAME)
 
 configure_file(lept.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/lept.pc.in @ONLY)
 # to resolve generator expression in OUTPUT_NAME
-file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lept_$<CONFIG>.pc INPUT ${CMAKE_CURRENT_BINARY_DIR}/lept.pc.in)
+file(
+  GENERATE
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/lept_$<CONFIG>.pc
+  INPUT ${CMAKE_CURRENT_BINARY_DIR}/lept.pc.in)
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/LeptonicaConfig-version.cmake.in
@@ -323,7 +354,8 @@ configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/LeptonicaConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig.cmake @ONLY)
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lept_$<CONFIG>.pc DESTINATION lib/pkgconfig)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lept_$<CONFIG>.pc
+        DESTINATION lib/pkgconfig)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig.cmake
               ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig-version.cmake
         DESTINATION ${leptonica_INSTALL_CMAKE_DIR})
