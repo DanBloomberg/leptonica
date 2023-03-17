@@ -148,7 +148,7 @@ if(NOT SW_BUILD)
          AND WebP_MUX_INCLUDE_DIR
          AND WebP_LIBRARY)
         message(STATUS "Found non-cmake WebP: ${WebP_LIBRARY}")
-        set(WebP_INCLUDE_DIR S "${WebP_INCLUDE_DIR };${WebP_MUX_INCLUDE_DIR}")
+        set(WebP_INCLUDE_DIR S "${WebP_INCLUDE_DIR};${WebP_MUX_INCLUDE_DIR}")
         set(WebP_LIBRARIES "${WebP_LIBRARY}")
         if(WebP_MUX_LIBRARY)
           list(APPEND WebP_LIBRARIES "${WebP_MUX_LIBRARY}")
@@ -157,7 +157,7 @@ if(NOT SW_BUILD)
       else()
         message(
           STATUS
-            "WebP_INCLUDE_DIR : ${WebP_INCLUDE_DIR }\nWebP_MUX_INCLUDE_DIR: ${WebP_MUX_INCLUDE_DIR}\nWebP_LIBRARY: ${WebP_LIBRARY}\nWebP_MUX_LIBRARY: ${WebP_MUX_LIBRARY}"
+            "WebP_INCLUDE_DIR : ${WebP_INCLUDE_DIR}\nWebP_MUX_INCLUDE_DIR: ${WebP_MUX_INCLUDE_DIR}\nWebP_LIBRARY: ${WebP_LIBRARY}\nWebP_MUX_LIBRARY: ${WebP_MUX_LIBRARY}"
         )
         if(STRICT_CONF)
           message(
