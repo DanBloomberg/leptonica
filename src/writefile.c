@@ -110,7 +110,7 @@ static const l_int32  MaxSizeForPng = 200;
 static const l_float32  DefaultScaling = 1.0;
 
     /* Global array of image file format extension names.                */
-    /* This is in 1-1 corrspondence with format enum in imageio.h.       */
+    /* This is in 1-1 correspondence with format enum in imageio.h.       */
     /* The empty string at the end represents the serialized format,     */
     /* which has no recognizable extension name, but the array must      */
     /* be padded to agree with the format enum.                          */
