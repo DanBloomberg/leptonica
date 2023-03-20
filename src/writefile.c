@@ -92,7 +92,8 @@
 #include <string.h>
 #include "allheaders.h"
 
-    /* Display program (xv, xli, xzgv, open) to be invoked by pixDisplay()  */
+    /* Set defaults for the display program (xv, xli, xzgv, open, irfanview)
+     * that is invoked by pixDisplay()  */
 #ifdef _WIN32
 static l_int32  var_DISPLAY_PROG = L_DISPLAY_WITH_IV;  /* default */
 #elif  defined(__APPLE__)
@@ -829,8 +830,10 @@ PIX  *pixs, *pixd;
  *          may be unpredictable.
  *      (2) It does nothing unless LeptDebugOK == TRUE.
  *      (3) It uses these programs to display the image:
- *             On Unix: xzgv, xli or xv
- *             On Windows: i_view
+ *             On Unix: xzgv, xli, xv or (for apple) open
+ *             On Windows: i_view or the application currently registered
+ *                         as the default viewer (the browser 'open' action
+ *                         based on the extension of the image file).
  *          The display program must be on your $PATH variable.  It is
  *          chosen by setting the global var_DISPLAY_PROG, using
  *          l_chooseDisplayProg().  Default on Unix is xzgv.
@@ -851,6 +854,8 @@ PIX  *pixs, *pixd;
  *          versions of the image: the image with a fully opaque
  *          alpha, the alpha, and the image as it would appear with
  *          a white background.
+ *      (7) pixDisplay() can be inactivated at runtime by calling:
+ *               l_chooseDisplayProg(L_DISPLAY_WITH_NONE);
  * </pre>
  */
 l_ok
@@ -874,7 +879,8 @@ pixDisplay(PIX     *pixs,
  * <pre>
  * Notes:
  *      (1) See notes for pixDisplay().
- *      (2) This displays the image if dispflag == 1; otherwise it punts.
+ *      (2) This displays the image if dispflag == 1 and the global
+ *          var_DISPLAY_PROG != L_DISPLAY_WITH_NONE; otherwise it punts.
  * </pre>
  */
 l_ok
@@ -908,16 +914,24 @@ char            fullpath[_MAX_PATH];
     return ERROR_INT("iOS 11 does not support system()", __func__, 1);
 #endif /* OS_IOS */
 
-    if (dispflag != 1) return 0;
+    if (dispflag != 1 || var_DISPLAY_PROG == L_DISPLAY_WITH_NONE)
+        return 0;
     if (!pixs)
         return ERROR_INT("pixs not defined", __func__, 1);
+
+#ifndef _WIN32  /* unix */
     if (var_DISPLAY_PROG != L_DISPLAY_WITH_XZGV &&
         var_DISPLAY_PROG != L_DISPLAY_WITH_XLI &&
         var_DISPLAY_PROG != L_DISPLAY_WITH_XV &&
-        var_DISPLAY_PROG != L_DISPLAY_WITH_IV &&
-        var_DISPLAY_PROG != L_DISPLAY_WITH_OPEN) {
-        return ERROR_INT("no program chosen for display", __func__, 1);
-    }
+        var_DISPLAY_PROG != L_DISPLAY_WITH_OPEN)
+        return ERROR_INT("invalid unix program chosen for display",
+                         __func__, 1);
+#else  /* _WIN32 */
+    if (var_DISPLAY_PROG != L_DISPLAY_WITH_IV &&
+        var_DISPLAY_PROG != L_DISPLAY_WITH_OPEN)
+        return ERROR_INT("invalid windows program chosen for display",
+                         __func__, 1);
+#endif  /* _WIN32 */
 
         /* Display with three views if either spp = 4 or if colormapped
          * and the alpha component is not fully opaque */
@@ -1010,23 +1024,27 @@ char            fullpath[_MAX_PATH];
             snprintf(buffer, Bufsize,
                      "xv -quit -geometry +%d+%d %s &", x, y, tempname);
         }
-    } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_OPEN) {
+    } else {  /* L_DISPLAY_WITH_OPEN */
         snprintf(buffer, Bufsize, "open %s &", tempname);
     }
     callSystemDebug(buffer);
 
 #else  /* _WIN32 */
 
-        /* Windows: L_DISPLAY_WITH_IV */
+        /* Windows: L_DISPLAY_WITH_IV || L_DISPLAY_WITH_OPEN */
     pathname = genPathname(tempname, NULL);
     _fullpath(fullpath, pathname, sizeof(fullpath));
-    if (title) {
-        snprintf(buffer, Bufsize,
-                 "i_view32.exe \"%s\" /pos=(%d,%d) /title=\"%s\"",
-                 fullpath, x, y, title);
-    } else {
-        snprintf(buffer, Bufsize, "i_view32.exe \"%s\" /pos=(%d,%d)",
-                 fullpath, x, y);
+    if (var_DISPLAY_PROG == L_DISPLAY_WITH_IV) {
+        if (title) {
+            snprintf(buffer, Bufsize,
+                     "i_view32.exe \"%s\" /pos=(%d,%d) /title=\"%s\"",
+                     fullpath, x, y, title);
+        } else {
+            snprintf(buffer, Bufsize, "i_view32.exe \"%s\" /pos=(%d,%d)",
+                     fullpath, x, y);
+        }
+    } else {  /* L_DISPLAY_WITH_OPEN */
+        snprintf(buffer, Bufsize, "explorer.exe /open,\"%s\"", fullpath);
     }
     callSystemDebug(buffer);
     LEPT_FREE(pathname);

@@ -1036,11 +1036,12 @@ enum {
  *-------------------------------------------------------------------------*/
 /*! Display Program */
 enum {
+    L_DISPLAY_WITH_NONE = 0,  /*!< Disable pixDisplay()                    */
     L_DISPLAY_WITH_XZGV = 1,  /*!< Use xzgv with pixDisplay()              */
     L_DISPLAY_WITH_XLI = 2,   /*!< Use xli with pixDisplay()               */
     L_DISPLAY_WITH_XV = 3,    /*!< Use xv with pixDisplay()                */
-    L_DISPLAY_WITH_IV = 4,    /*!< Use irfvanview (win) with pixDisplay()  */
-    L_DISPLAY_WITH_OPEN = 5   /*!< Use open (apple) with pixDisplay()      */
+    L_DISPLAY_WITH_IV = 4,    /*!< Use irfanview (win) with pixDisplay()   */
+    L_DISPLAY_WITH_OPEN = 5   /*!< Use open (apple/win) with pixDisplay()  */
 };
 
 /*-------------------------------------------------------------------------*
