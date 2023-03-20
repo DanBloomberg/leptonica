@@ -94,7 +94,7 @@
 
     /* Display program (xv, xli, xzgv, open) to be invoked by pixDisplay()  */
 #ifdef _WIN32
-static l_int32  var_DISPLAY_PROG = L_DISPLAY_WITH_IV;  /* default */
+static l_int32  var_DISPLAY_PROG = L_DISPLAY_WITH_OPEN;  /* default */
 #elif  defined(__APPLE__)
 static l_int32  var_DISPLAY_PROG = L_DISPLAY_WITH_OPEN;  /* default */
 #else
@@ -895,7 +895,8 @@ PIXCMAP        *cmap;
 l_int32         wt, ht;
 #else
 char           *pathname;
-char            fullpath[_MAX_PATH];
+char           *fullpath;
+size_t         fullpathsize;
 #endif  /* _WIN32 */
 
     if (!LeptDebugOK) {
@@ -915,7 +916,9 @@ char            fullpath[_MAX_PATH];
         var_DISPLAY_PROG != L_DISPLAY_WITH_XLI &&
         var_DISPLAY_PROG != L_DISPLAY_WITH_XV &&
         var_DISPLAY_PROG != L_DISPLAY_WITH_IV &&
-        var_DISPLAY_PROG != L_DISPLAY_WITH_OPEN) {
+        var_DISPLAY_PROG != L_DISPLAY_WITH_OPEN &&
+		var_DISPLAY_PROG != L_DISPLAY_WITH_NONE &&
+		var_DISPLAY_PROG != L_DISPLAY_WITH_STORE) {
         return ERROR_INT("no program chosen for display", __func__, 1);
     }
 
@@ -1012,24 +1015,50 @@ char            fullpath[_MAX_PATH];
         }
     } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_OPEN) {
         snprintf(buffer, Bufsize, "open %s &", tempname);
-    }
-    callSystemDebug(buffer);
+    } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_NONE) {
+		*buffer = 0;
+	} else if (var_DISPLAY_PROG == L_DISPLAY_WITH_STORE) {
+		*buffer = 0;
+	}
+
+	if (*buffer)
+        callSystemDebug(buffer);
 
 #else  /* _WIN32 */
 
-        /* Windows: L_DISPLAY_WITH_IV */
-    pathname = genPathname(tempname, NULL);
-    _fullpath(fullpath, pathname, sizeof(fullpath));
-    if (title) {
-        snprintf(buffer, Bufsize,
-                 "i_view32.exe \"%s\" /pos=(%d,%d) /title=\"%s\"",
-                 fullpath, x, y, title);
-    } else {
-        snprintf(buffer, Bufsize, "i_view32.exe \"%s\" /pos=(%d,%d)",
-                 fullpath, x, y);
-    }
-    callSystemDebug(buffer);
-    LEPT_FREE(pathname);
+	pathname = genPathname(tempname, NULL);
+	fullpathsize = strlen(pathname) + L_MAX(Bufsize, _MAX_PATH);
+	fullpath = LEPT_MALLOC(fullpathsize);
+	
+	_fullpath(fullpath, pathname, fullpathsize);
+
+	if (var_DISPLAY_PROG == L_DISPLAY_WITH_NONE) {
+	 *buffer = 0;
+	}
+    else if (var_DISPLAY_PROG == L_DISPLAY_WITH_STORE) {
+	 *buffer = 0;
+	}
+	else if (var_DISPLAY_PROG == L_DISPLAY_WITH_OPEN) {
+		snprintf(buffer, Bufsize, "explorer.exe /open,\"%s\"", fullpath);
+	}
+	else {
+		/* Windows: L_DISPLAY_WITH_IV */
+		if (title) {
+			snprintf(buffer, Bufsize,
+				"i_view32.exe \"%s\" /pos=(%d,%d) /title=\"%s\"",
+				fullpath, x, y, title);
+		}
+		else {
+			snprintf(buffer, Bufsize, "i_view32.exe \"%s\" /pos=(%d,%d)",
+				fullpath, x, y);
+		}
+	}
+
+	if (*buffer)
+		callSystemDebug(buffer);
+
+    LEPT_FREE(fullpath);
+	LEPT_FREE(pathname);
 
 #endif  /* _WIN32 */
 
