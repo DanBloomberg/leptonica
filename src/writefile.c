@@ -909,7 +909,7 @@ size_t         fullpathsize;
     return ERROR_INT("iOS 11 does not support system()", __func__, 1);
 #endif /* OS_IOS */
 
-    if (dispflag != 1) return 0;
+    if (dispflag != 1 || var_DISPLAY_PROG == L_DISPLAY_WITH_NONE) return 0;
     if (!pixs)
         return ERROR_INT("pixs not defined", __func__, 1);
     if (var_DISPLAY_PROG != L_DISPLAY_WITH_XZGV &&
@@ -917,7 +917,6 @@ size_t         fullpathsize;
         var_DISPLAY_PROG != L_DISPLAY_WITH_XV &&
         var_DISPLAY_PROG != L_DISPLAY_WITH_IV &&
         var_DISPLAY_PROG != L_DISPLAY_WITH_OPEN &&
-		var_DISPLAY_PROG != L_DISPLAY_WITH_NONE &&
 		var_DISPLAY_PROG != L_DISPLAY_WITH_STORE) {
         return ERROR_INT("no program chosen for display", __func__, 1);
     }
@@ -1015,8 +1014,6 @@ size_t         fullpathsize;
         }
     } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_OPEN) {
         snprintf(buffer, Bufsize, "open %s &", tempname);
-    } else if (var_DISPLAY_PROG == L_DISPLAY_WITH_NONE) {
-		*buffer = 0;
 	} else if (var_DISPLAY_PROG == L_DISPLAY_WITH_STORE) {
 		*buffer = 0;
 	}
@@ -1032,11 +1029,8 @@ size_t         fullpathsize;
 	
 	_fullpath(fullpath, pathname, fullpathsize);
 
-	if (var_DISPLAY_PROG == L_DISPLAY_WITH_NONE) {
-	 *buffer = 0;
-	}
-    else if (var_DISPLAY_PROG == L_DISPLAY_WITH_STORE) {
-	 *buffer = 0;
+    if (var_DISPLAY_PROG == L_DISPLAY_WITH_STORE) {
+		*buffer = 0;
 	}
 	else if (var_DISPLAY_PROG == L_DISPLAY_WITH_OPEN) {
 		snprintf(buffer, Bufsize, "explorer.exe /open,\"%s\"", fullpath);
