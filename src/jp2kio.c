@@ -490,12 +490,12 @@ FILE  *fp;
         return ERROR_INT("filename not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "wb+")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
 
     if (pixWriteStreamJp2k(fp, pix, quality, nlevels, L_JP2_CODEC,
                            hint, debug)) {
         fclose(fp);
-        return ERROR_INT("pix not written to stream", __func__, 1);
+        return ERROR_INT_1("pix not written to stream", filename, __func__, 1);
     }
 
     fclose(fp);
@@ -861,7 +861,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);

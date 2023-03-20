@@ -1239,7 +1239,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);
@@ -1295,7 +1295,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);

@@ -208,7 +208,7 @@ PIX       *pix;
         scale = 11.0 * 300. / (l_float32)h;
 
     if ((fp = fopenWriteStream(fileout, "wb")) == NULL)
-        return ERROR_INT("file not opened for write", __func__, 1);
+        return ERROR_INT_1("file not opened for write", fileout, __func__, 1);
     ret = pixWriteStreamPS(fp, pix, NULL, 0, scale);
     fclose(fp);
 
@@ -1460,11 +1460,11 @@ FILE      *fp;
         return ERROR_INT("fileout not defined", __func__, 1);
 
     if ((fp = fopenReadStream(filein)) == NULL)
-        return ERROR_INT("file not found", __func__, 1);
+        return ERROR_INT_1("file not found", filein, __func__, 1);
     istiff = fileFormatIsTiff(fp);
     if (!istiff) {
         fclose(fp);
-        return ERROR_INT("file not tiff format", __func__, 1);
+        return ERROR_INT_1("file not tiff format", filein, __func__, 1);
     }
     tiffGetCount(fp, &npages);
     fclose(fp);

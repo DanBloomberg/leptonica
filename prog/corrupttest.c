@@ -97,7 +97,7 @@ PIX       *pix;
             fileCorruptByMutation(filein, loc, size, corruptfile);
         }
         if ((fp = fopenReadStream(corruptfile)) == NULL)
-            return ERROR_INT("stream not opened", __func__, 1);
+            return ERROR_INT_1("stream not opened", corruptfile, __func__, 1);
         if (format == IFF_JFIF_JPEG) {
             if ((pix = pixReadJpeg(corruptfile, 0, 1, &nwarn, hint)) != NULL) {
                 pixDisplay(pix, 100, 100);

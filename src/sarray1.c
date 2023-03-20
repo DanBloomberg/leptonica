@@ -1356,11 +1356,11 @@ SARRAY  *sa;
         return (SARRAY *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (SARRAY *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (SARRAY *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
     sa = sarrayReadStream(fp);
     fclose(fp);
     if (!sa)
-        return (SARRAY *)ERROR_PTR("sa not read", __func__, NULL);
+        return (SARRAY *)ERROR_PTR_1("sa not read", filename, __func__, NULL);
     return sa;
 }
 
@@ -1489,11 +1489,11 @@ FILE    *fp;
         return ERROR_INT("sa not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     ret = sarrayWriteStream(fp, sa);
     fclose(fp);
     if (ret)
-        return ERROR_INT("sa not written to stream", __func__, 1);
+        return ERROR_INT_1("sa not written to stream", filename, __func__, 1);
     return 0;
 }
 
@@ -1599,7 +1599,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);
@@ -1635,10 +1635,10 @@ FILE  *fp;
         return ERROR_INT("sa not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "a")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     if (sarrayWriteStream(fp, sa)) {
         fclose(fp);
-        return ERROR_INT("sa not appended to stream", __func__, 1);
+        return ERROR_INT_1("sa not appended to stream", filename, __func__, 1);
     }
 
     fclose(fp);

@@ -933,11 +933,11 @@ L_DNA  *da;
         return (L_DNA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (L_DNA *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (L_DNA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
     da = l_dnaReadStream(fp);
     fclose(fp);
     if (!da)
-        return (L_DNA *)ERROR_PTR("da not read", __func__, NULL);
+        return (L_DNA *)ERROR_PTR_1("da not read", filename, __func__, NULL);
     return da;
 }
 
@@ -1040,11 +1040,11 @@ FILE    *fp;
         return ERROR_INT("da not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     ret = l_dnaWriteStream(fp, da);
     fclose(fp);
     if (ret)
-        return ERROR_INT("da not written to stream", __func__, 1);
+        return ERROR_INT_1("da not written to stream", filename, __func__, 1);
     return 0;
 }
 
@@ -1153,7 +1153,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);
@@ -1597,11 +1597,11 @@ L_DNAA  *daa;
         return (L_DNAA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (L_DNAA *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (L_DNAA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
     daa = l_dnaaReadStream(fp);
     fclose(fp);
     if (!daa)
-        return (L_DNAA *)ERROR_PTR("daa not read", __func__, NULL);
+        return (L_DNAA *)ERROR_PTR_1("daa not read", filename, __func__, NULL);
     return daa;
 }
 
@@ -1704,11 +1704,11 @@ FILE    *fp;
         return ERROR_INT("daa not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     ret = l_dnaaWriteStream(fp, daa);
     fclose(fp);
     if (ret)
-        return ERROR_INT("daa not written to stream", __func__, 1);
+        return ERROR_INT_1("daa not written to stream", filename, __func__, 1);
     return 0;
 }
 
@@ -1785,7 +1785,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);

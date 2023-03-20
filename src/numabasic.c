@@ -1027,11 +1027,11 @@ NUMA  *na;
         return (NUMA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (NUMA *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (NUMA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
     na = numaReadStream(fp);
     fclose(fp);
     if (!na)
-        return (NUMA *)ERROR_PTR("na not read", __func__, NULL);
+        return (NUMA *)ERROR_PTR_1("na not read", filename, __func__, NULL);
     return na;
 }
 
@@ -1158,11 +1158,11 @@ FILE    *fp;
         return ERROR_INT("na not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     ret = numaWriteStream(fp, na);
     fclose(fp);
     if (ret)
-        return ERROR_INT("na not written to stream", __func__, 1);
+        return ERROR_INT_1("na not written to stream", filename, __func__, 1);
     return 0;
 }
 
@@ -1271,7 +1271,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);
@@ -1759,11 +1759,11 @@ NUMAA  *naa;
         return (NUMAA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (NUMAA *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (NUMAA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
     naa = numaaReadStream(fp);
     fclose(fp);
     if (!naa)
-        return (NUMAA *)ERROR_PTR("naa not read", __func__, NULL);
+        return (NUMAA *)ERROR_PTR_1("naa not read", filename, __func__, NULL);
     return naa;
 }
 
@@ -1861,11 +1861,11 @@ FILE    *fp;
         return ERROR_INT("naa not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     ret = numaaWriteStream(fp, naa);
     fclose(fp);
     if (ret)
-        return ERROR_INT("naa not written to stream", __func__, 1);
+        return ERROR_INT_1("naa not written to stream", filename, __func__, 1);
     return 0;
 }
 
@@ -1942,7 +1942,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);

@@ -1416,16 +1416,16 @@ TIFF    *tif;
         return (PIXA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIXA *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (PIXA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
     if (fileFormatIsTiff(fp)) {
         tiffGetCount(fp, &npages);
         L_INFO(" Tiff: %d pages\n", __func__, npages);
     } else {
-        return (PIXA *)ERROR_PTR("file not tiff", __func__, NULL);
+        return (PIXA *)ERROR_PTR_1("file not tiff", filename, __func__, NULL);
     }
 
     if ((tif = fopenTiff(fp, "r")) == NULL)
-        return (PIXA *)ERROR_PTR("tif not opened", __func__, NULL);
+        return (PIXA *)ERROR_PTR_1("tif not opened", filename, __func__, NULL);
 
     pixa = pixaCreate(npages);
     pix = NULL;
@@ -2134,25 +2134,25 @@ TIFF     *tif;
     *pnbytes = 0;
 
     if ((fpin = fopenReadStream(filein)) == NULL)
-        return ERROR_INT("stream not opened to file", __func__, 1);
+        return ERROR_INT_1("stream not opened to file", filein, __func__, 1);
     istiff = fileFormatIsTiff(fpin);
     fclose(fpin);
     if (!istiff)
-        return ERROR_INT("filein not tiff", __func__, 1);
+        return ERROR_INT_1("filein not tiff", filein, __func__, 1);
 
     if ((inarray = l_binaryRead(filein, &fbytes)) == NULL)
-        return ERROR_INT("inarray not made", __func__, 1);
+        return ERROR_INT_1("inarray not made", filein, __func__, 1);
 
         /* Get metadata about the image */
     if ((tif = openTiff(filein, "rb")) == NULL) {
         LEPT_FREE(inarray);
-        return ERROR_INT("tif not open for read", __func__, 1);
+        return ERROR_INT_1("tif not open for read", filein, __func__, 1);
     }
     TIFFGetField(tif, TIFFTAG_COMPRESSION, &comptype);
     if (comptype != COMPRESSION_CCITTFAX4) {
         LEPT_FREE(inarray);
         TIFFClose(tif);
-        return ERROR_INT("filein is not g4 compressed", __func__, 1);
+        return ERROR_INT_1("filein is not g4 compressed", filein, __func__, 1);
     }
 
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);

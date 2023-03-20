@@ -342,12 +342,12 @@ FILE    *fp;
         return ERROR_INT("fname not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(fname, "wb+")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", fname, __func__, 1);
 
     ret = pixWriteStream(fp, pix, format);
     fclose(fp);
     if (ret)
-        return ERROR_INT("pix not written to stream", __func__, 1);
+        return ERROR_INT_1("pix not written to stream", fname, __func__, 1);
     return 0;
 }
 

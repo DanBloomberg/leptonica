@@ -1263,10 +1263,10 @@ SELA  *sela;
         return (SELA *)ERROR_PTR("fname not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(fname)) == NULL)
-        return (SELA *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (SELA *)ERROR_PTR_1("stream not opened", fname, __func__, NULL);
     if ((sela = selaReadStream(fp)) == NULL) {
         fclose(fp);
-        return (SELA *)ERROR_PTR("sela not returned", __func__, NULL);
+        return (SELA *)ERROR_PTR_1("sela not returned", fname, __func__, NULL);
     }
     fclose(fp);
 
@@ -1329,10 +1329,10 @@ SEL   *sel;
         return (SEL *)ERROR_PTR("fname not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(fname)) == NULL)
-        return (SEL *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (SEL *)ERROR_PTR_1("stream not opened", fname, __func__, NULL);
     if ((sel = selReadStream(fp)) == NULL) {
         fclose(fp);
-        return (SEL *)ERROR_PTR("sela not returned", __func__, NULL);
+        return (SEL *)ERROR_PTR_1("sela not returned", fname, __func__, NULL);
     }
     fclose(fp);
 
@@ -1405,7 +1405,7 @@ FILE  *fp;
         return ERROR_INT("sela not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(fname, "wb")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", fname, __func__, 1);
     selaWriteStream(fp, sela);
     fclose(fp);
 
@@ -1463,7 +1463,7 @@ FILE  *fp;
         return ERROR_INT("sel not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(fname, "wb")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", fname, __func__, 1);
     selWriteStream(fp, sel);
     fclose(fp);
 

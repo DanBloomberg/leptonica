@@ -2191,10 +2191,10 @@ FILE  *fp;
         return ERROR_INT("ccba not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "wb+")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     if (ccbaWriteStream(fp, ccba)) {
         fclose(fp);
-        return ERROR_INT("ccba not written to stream", __func__, 1);
+        return ERROR_INT_1("ccba not written to stream", filename, __func__, 1);
     }
 
     fclose(fp);
@@ -2339,12 +2339,12 @@ CCBORDA  *ccba;
         return (CCBORDA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (CCBORDA *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (CCBORDA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
     ccba = ccbaReadStream(fp);
     fclose(fp);
 
     if (!ccba)
-        return (CCBORDA *)ERROR_PTR("ccba not returned", __func__, NULL);
+        return (CCBORDA *)ERROR_PTR_1("ccba not returned", filename, __func__, NULL);
     return ccba;
 }
 
