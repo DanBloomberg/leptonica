@@ -505,6 +505,9 @@ RGBA_QUAD  *pquad;
         L_WARNING("2 bpp files can't be read; converting to 8 bpp\n", __func__);
         pix = pixConvert2To8(pixs, 0, 85, 170, 255, 1);
         d = 8;
+	} else if (d == 24) {
+        pix = pixConvert24To32(pixs);
+		d = 32;
     } else {
         pix = pixCopy(NULL, pixs);
     }
