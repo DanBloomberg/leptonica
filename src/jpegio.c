@@ -226,7 +226,7 @@ PIX      *pix;
         return (PIX *)ERROR_PTR("reduction not in {1,2,4,8}", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIX *)ERROR_PTR("image file not found", __func__, NULL);
+        return (PIX *)ERROR_PTR_1("image file not found", filename, __func__, NULL);
     pix = pixReadStreamJpeg(fp, cmapflag, reduction, pnwarn, hint);
     if (pix) {
         ret = fgetJpegComment(fp, &comment);
@@ -237,7 +237,7 @@ PIX      *pix;
     fclose(fp);
 
     if (!pix)
-        return (PIX *)ERROR_PTR("image not returned", __func__, NULL);
+        return (PIX *)ERROR_PTR_1("image not returned", filename, __func__, NULL);
     return pix;
 }
 
@@ -524,7 +524,7 @@ FILE    *fp;
         return ERROR_INT("no results requested", __func__, 1);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return ERROR_INT("image file not found", __func__, 1);
+        return ERROR_INT_1("image file not found", filename, __func__, 1);
     ret = freadHeaderJpeg(fp, pw, ph, pspp, pycck, pcmyk);
     fclose(fp);
     return ret;

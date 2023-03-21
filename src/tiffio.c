@@ -401,7 +401,7 @@ PIX   *pix;
         return (PIX *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIX *)ERROR_PTR("image file not found", __func__, NULL);
+        return (PIX *)ERROR_PTR_1("image file not found", filename, __func__, NULL);
     pix = pixReadStreamTiff(fp, n);
     fclose(fp);
     return pix;
@@ -1800,7 +1800,7 @@ FILE    *fp;
         return ERROR_INT("no results requested", __func__, 1);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return ERROR_INT("image file not found", __func__, 1);
+        return ERROR_INT_1("image file not found", filename, __func__, 1);
     ret = freadHeaderTiff(fp, n, pw, ph, pbps, pspp, pres, pcmap, pformat);
     fclose(fp);
     return ret;

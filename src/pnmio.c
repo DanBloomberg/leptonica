@@ -536,7 +536,7 @@ FILE    *fp;
         return ERROR_INT("filename not defined", __func__, 1);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return ERROR_INT("image file not found", __func__, 1);
+        return ERROR_INT_1("image file not found", filename, __func__, 1);
     ret = freadHeaderPnm(fp, pw, ph, pd, ptype, pbps, pspp);
     fclose(fp);
     return ret;
