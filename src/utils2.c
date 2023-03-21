@@ -3083,7 +3083,8 @@ size_t   size;
         if ((cdir = getcwd(NULL, 0)) == NULL)
             return (char *)ERROR_PTR("no current dir found", __func__, NULL);
     } else {
-        cdir = stringNew(dir);
+        if ((cdir = stringNew(dir)) == NULL)
+            return (char *)ERROR_PTR("stringNew failed", __func__, NULL);
     }
 
         /* Convert to unix path separators, and remove the trailing
