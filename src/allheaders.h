@@ -2753,6 +2753,7 @@ LEPT_DLL extern l_ok pixWriteStream ( FILE *fp, PIX *pix, l_int32 format );
 LEPT_DLL extern l_ok pixWriteImpliedFormat ( const char *filename, PIX *pix, l_int32 quality, l_int32 progressive );
 LEPT_DLL extern l_int32 pixChooseOutputFormat ( PIX *pix );
 LEPT_DLL extern l_int32 getImpliedFileFormat ( const char *filename );
+LEPT_DLL extern l_int32 getFormatFromExtension ( const char *extension );
 LEPT_DLL extern l_ok pixGetAutoFormat ( PIX *pix, l_int32 *pformat );
 LEPT_DLL extern const char * getFormatExtension ( l_int32 format );
 LEPT_DLL extern l_ok pixWriteMem ( l_uint8 **pdata, size_t *psize, PIX *pix, l_int32 format );

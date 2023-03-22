@@ -44,6 +44,7 @@
  *     Selection of output format if default is requested
  *        l_int32     pixChooseOutputFormat()
  *        l_int32     getImpliedFileFormat()
+ *        l_int32     getFormatFromExtension()
  *        l_int32     pixGetAutoFormat()
  *        const char *getFormatExtension()
  *
@@ -145,22 +146,24 @@ LEPT_DLL const char *ImageFileFormatExtensions[] =
     /* Local map of image file name extension to output format */
 struct ExtensionMap
 {
-    char     extension[8];
+    char     extension[16];
     l_int32  format;
 };
 static const struct ExtensionMap extension_map[] =
-                            { { ".bmp",  IFF_BMP       },
-                              { ".jpg",  IFF_JFIF_JPEG },
-                              { ".jpeg", IFF_JFIF_JPEG },
-                              { ".png",  IFF_PNG       },
-                              { ".tif",  IFF_TIFF      },
-                              { ".tiff", IFF_TIFF      },
-                              { ".pnm",  IFF_PNM       },
-                              { ".gif",  IFF_GIF       },
-                              { ".jp2",  IFF_JP2       },
-                              { ".ps",   IFF_PS        },
-                              { ".pdf",  IFF_LPDF      },
-                              { ".webp", IFF_WEBP      } };
+                            { { ".bmp",      IFF_BMP       },
+                              { ".jpg",      IFF_JFIF_JPEG },
+                              { ".jpeg",     IFF_JFIF_JPEG },
+                              { ".JPG",      IFF_JFIF_JPEG },
+                              { ".png",      IFF_PNG       },
+                              { ".tif",      IFF_TIFF      },
+                              { ".tiff",     IFF_TIFF      },
+                              { ".tiffg4",   IFF_TIFF_G4   },
+                              { ".pnm",      IFF_PNM       },
+                              { ".gif",      IFF_GIF       },
+                              { ".jp2",      IFF_JP2       },
+                              { ".ps",       IFF_PS        },
+                              { ".pdf",      IFF_LPDF      },
+                              { ".webp",     IFF_WEBP      } };
 
 
 /*---------------------------------------------------------------------*
@@ -569,11 +572,42 @@ l_int32
 getImpliedFileFormat(const char  *filename)
 {
 char    *extension;
-int      i, numext;
 l_int32  format = IFF_UNKNOWN;
+
+    if (!filename)
+        return ERROR_INT("extension not defined", __func__, IFF_UNKNOWN);
 
     if (splitPathAtExtension (filename, NULL, &extension))
         return IFF_UNKNOWN;
+
+    format = getFormatFromExtension(extension);
+    LEPT_FREE(extension);
+    return format;
+}
+
+
+/*!
+ * \brief   getFormatFromExtension()
+ *
+ * \param[in]    extension
+ * \return  output format, or IFF_UNKNOWN on error or invalid extension.
+ *
+ * <pre>
+ * Notes:
+ *      (1) This determines the integer for writing in a format that
+ *          corresponds to the image file type extension.  For example,
+ *          the integer code corresponding to the extension "jpg" is 2;
+ *          it is used to write with jpeg encoding.
+ * </pre>
+ */
+l_int32
+getFormatFromExtension(const char  *extension)
+{
+int      i, numext;
+l_int32  format = IFF_UNKNOWN;
+
+    if (!extension)
+        return ERROR_INT("extension not defined", __func__, IFF_UNKNOWN);
 
     numext = sizeof(extension_map) / sizeof(extension_map[0]);
     for (i = 0; i < numext; i++) {
@@ -582,8 +616,6 @@ l_int32  format = IFF_UNKNOWN;
             break;
         }
     }
-
-    LEPT_FREE(extension);
     return format;
 }
 

@@ -2632,26 +2632,26 @@ size_t    nread;
           strlen("/Count"), &loc, &found);
     if (!found) {
         lept_stderr("Reading entire file\n");
-        lept_free(data);
+        LEPT_FREE(data);
         if ((data = l_binaryRead(fname, &nread)) == NULL)
             return ERROR_INT("full data not read", __func__, 1);
         arrayFindSequence(data, nread, (const l_uint8 *)"/Count",
              strlen("/Count"), &loc, &found);
         if (!found) {
-            lept_free(data);
+            LEPT_FREE(data);
             return ERROR_INT("/Count not found", __func__, 1);
         }
     }
 
         /* Unlikely: make sure we can read the count field */
     if (nread - loc < 12)  { /* haven't read enough to capture page count */
-        lept_free(data);
+        LEPT_FREE(data);
         return ERROR_INT("data may not include page count field", __func__, 1);
     }
 
         /* Read the page count; if not found, puts garbage in npages */
     ret = sscanf((char *)&data[loc], "/Count %d", &npages);
-    lept_free(data);
+    LEPT_FREE(data);
     if (ret != 1)
         return ERROR_INT("npages not found", __func__, 1);
     *pnpages = npages;

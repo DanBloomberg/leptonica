@@ -113,7 +113,7 @@ OTHER_PROGS = adaptmap_dark \
 	renderfonts replacebytes \
 	rotatefastalt rotate_it \
 	rotateorthtest1 rotatetest1 \
-	runlengthtest scaleandtile \
+	runlengthtest scaleandtile scaleimages \
 	scale_it scaletest1 scaletest2 \
 	seedfilltest settest sharptest \
 	sheartest showedges skewtest \

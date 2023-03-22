@@ -253,7 +253,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		renderfonts.c replacebytes.c \
 		rotatefastalt.c rotate_it.c \
 		rotateorthtest1.c rotatetest1.c \
-		runlengthtest.c scaleandtile.c \
+		runlengthtest.c scaleandtile.c scaleimages.c \
 		scale_it.c scaletest1.c scaletest2.c \
 		seedfilltest.c settest.c sharptest.c \
 		sheartest.c showedges.c \
@@ -1147,6 +1147,9 @@ runlengthtest:	runlengthtest.o $(LEPTLIB)
 
 scaleandtile:	scaleandtile.o $(LEPTLIB)
 	$(CC) -o scaleandtile scaleandtile.o $(ALL_LIBS) $(EXTRALIBS)
+
+scaleimages:	scaleimages.o $(LEPTLIB)
+	$(CC) -o scaleimages scaleimages.o $(ALL_LIBS) $(EXTRALIBS)
 
 scale_it:	scale_it.o $(LEPTLIB)
 	$(CC) -o scale_it scale_it.o $(ALL_LIBS) $(EXTRALIBS)

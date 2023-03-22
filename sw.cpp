@@ -343,6 +343,7 @@ void build(Solution &s)
             {"rotatetest1", {"rotatetest1.c"}},
             {"runlengthtest", {"runlengthtest.c"}},
             {"scaleandtile", {"scaleandtile.c"}},
+            {"scaleimages", {"scaleimages.c"}},
             {"scale_it", {"scale_it.c"}},
             {"scaletest1", {"scaletest1.c"}},
             {"scaletest2", {"scaletest2.c"}},
