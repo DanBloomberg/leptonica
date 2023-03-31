@@ -140,7 +140,7 @@ FILE    *fp;
     if (!pwidth || !pheight || !pbps || !pspp)
         return ERROR_INT("input ptr(s) not defined", __func__, 1);
     if ((fp = fopenReadStream(filename)) == NULL)
-        return ERROR_INT("image file not found", __func__, 1);
+        return ERROR_INT_1("image file not found", filename, __func__, 1);
     ret = freadHeaderSpix(fp, pwidth, pheight, pbps, pspp, piscmap);
     fclose(fp);
     return ret;

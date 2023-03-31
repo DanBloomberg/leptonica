@@ -157,11 +157,11 @@ L_BYTEA  *ba;
         return (L_BYTEA *)ERROR_PTR("fname not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(fname)) == NULL)
-        return (L_BYTEA *)ERROR_PTR("file stream not opened", __func__, NULL);
+        return (L_BYTEA *)ERROR_PTR_1("file stream not opened", fname, __func__, NULL);
     ba = l_byteaInitFromStream(fp);
     fclose(fp);
     if (!ba)
-        return (L_BYTEA *)ERROR_PTR("ba not made", __func__, NULL);
+        return (L_BYTEA *)ERROR_PTR_1("ba not made", fname, __func__, NULL);
     return ba;
 }
 
@@ -577,7 +577,7 @@ FILE    *fp;
         return ERROR_INT("ba not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(fname, "wb")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", fname, __func__, 1);
     ret = l_byteaWriteStream(fp, ba, startloc, nbytes);
     fclose(fp);
     return ret;

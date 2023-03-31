@@ -589,7 +589,7 @@ FILE    *fp;
     if (!filename)
         return ERROR_INT("filename not defined", __func__, 1);
     if ((fp = fopenReadStream(filename)) == NULL)
-        return ERROR_INT("image file not found", __func__, 1);
+        return ERROR_INT_1("image file not found", filename, __func__, 1);
     ret = freadHeaderPng(fp, pw, ph, pbps, pspp, piscmap);
     fclose(fp);
     return ret;
@@ -828,10 +828,10 @@ FILE    *fp;
         return ERROR_INT("filename not defined", __func__, 1);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     if (fread(buf, 1, 32, fp) != 32) {
         fclose(fp);
-        return ERROR_INT("data not read", __func__, 1);
+        return ERROR_INT_1("data not read", filename, __func__, 1);
     }
     fclose(fp);
 
@@ -968,11 +968,11 @@ FILE  *fp;
         return ERROR_INT("filename not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "wb+")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
 
     if (pixWriteStreamPng(fp, pix, gamma)) {
         fclose(fp);
-        return ERROR_INT("pix not written to stream", __func__, 1);
+        return ERROR_INT_1("pix not written to stream", filename, __func__, 1);
     }
 
     fclose(fp);

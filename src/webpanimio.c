@@ -83,12 +83,12 @@ FILE    *fp;
         return ERROR_INT("pixa not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "wb+")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     ret = pixaWriteStreamWebPAnim(fp, pixa, loopcount, duration,
                                   quality, lossless);
     fclose(fp);
     if (ret)
-        return ERROR_INT("pixs not compressed to stream", __func__, 1);
+        return ERROR_INT_1("pixs not compressed to stream", filename, __func__, 1);
     return 0;
 }
 

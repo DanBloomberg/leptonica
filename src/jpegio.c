@@ -226,7 +226,7 @@ PIX      *pix;
         return (PIX *)ERROR_PTR("reduction not in {1,2,4,8}", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIX *)ERROR_PTR("image file not found", __func__, NULL);
+        return (PIX *)ERROR_PTR_1("image file not found", filename, __func__, NULL);
     pix = pixReadStreamJpeg(fp, cmapflag, reduction, pnwarn, hint);
     if (pix) {
         ret = fgetJpegComment(fp, &comment);
@@ -237,7 +237,7 @@ PIX      *pix;
     fclose(fp);
 
     if (!pix)
-        return (PIX *)ERROR_PTR("image not returned", __func__, NULL);
+        return (PIX *)ERROR_PTR_1("image not returned", filename, __func__, NULL);
     return pix;
 }
 
@@ -524,7 +524,7 @@ FILE    *fp;
         return ERROR_INT("no results requested", __func__, 1);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return ERROR_INT("image file not found", __func__, 1);
+        return ERROR_INT_1("image file not found", filename, __func__, 1);
     ret = freadHeaderJpeg(fp, pw, ph, pspp, pycck, pcmyk);
     fclose(fp);
     return ret;
@@ -740,11 +740,11 @@ FILE  *fp;
         return ERROR_INT("filename not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "wb+")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
 
     if (pixWriteStreamJpeg(fp, pix, quality, progressive)) {
         fclose(fp);
-        return ERROR_INT("pix not written to stream", __func__, 1);
+        return ERROR_INT_1("pix not written to stream", filename, __func__, 1);
     }
 
     fclose(fp);
@@ -1133,7 +1133,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);

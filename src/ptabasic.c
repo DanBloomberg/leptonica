@@ -636,11 +636,11 @@ PTA   *pta;
         return (PTA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PTA *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (PTA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
     pta = ptaReadStream(fp);
     fclose(fp);
     if (!pta)
-        return (PTA *)ERROR_PTR("pta not read", __func__, NULL);
+        return (PTA *)ERROR_PTR_1("pta not read", filename, __func__, NULL);
     return pta;
 }
 
@@ -785,11 +785,11 @@ FILE    *fp;
         return ERROR_INT("pta not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     ret = ptaWriteStream(fp, pta, type);
     fclose(fp);
     if (ret)
-        return ERROR_INT("pta not written to stream", __func__, 1);
+        return ERROR_INT_1("pta not written to stream", filename, __func__, 1);
     return 0;
 }
 
@@ -875,7 +875,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);
@@ -1274,11 +1274,11 @@ PTAA  *ptaa;
         return (PTAA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PTAA *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (PTAA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
     ptaa = ptaaReadStream(fp);
     fclose(fp);
     if (!ptaa)
-        return (PTAA *)ERROR_PTR("ptaa not read", __func__, NULL);
+        return (PTAA *)ERROR_PTR_1("ptaa not read", filename, __func__, NULL);
     return ptaa;
 }
 
@@ -1409,11 +1409,11 @@ FILE    *fp;
         return ERROR_INT("ptaa not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     ret = ptaaWriteStream(fp, ptaa, type);
     fclose(fp);
     if (ret)
-        return ERROR_INT("ptaa not written to stream", __func__, 1);
+        return ERROR_INT_1("ptaa not written to stream", filename, __func__, 1);
     return 0;
 }
 
@@ -1492,7 +1492,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);

@@ -647,11 +647,11 @@ SARRAY  *sa;
         /* Open the stream, read lines until you find one with more
          * than a newline, and grab the first word. */
     if ((fp = fopenReadStream(filename)) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     do {
         if ((fgets(buf, sizeof(buf), fp)) == NULL) {
             fclose(fp);
-            return ERROR_INT("fgets read fail", __func__, 1);
+            return ERROR_INT_1("fgets read fail", filename, __func__, 1);
         }
     } while (buf[0] == '\n');
     fclose(fp);
@@ -666,7 +666,7 @@ SARRAY  *sa;
         if (findFileFormat(filename, &format) == 0) {
             l_getIndexFromStructname("Pix", pindex);
         } else {
-            return ERROR_INT("no file type identified", __func__, 1);
+            return ERROR_INT_1("no file type identified", filename, __func__, 1);
         }
     }
 

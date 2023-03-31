@@ -546,6 +546,9 @@ LEPT_DLL extern l_int32  LeptMsgSeverity;
   #define ERROR_INT(a, b, c)            ((l_int32)(c))
   #define ERROR_FLOAT(a, b, c)          ((l_float32)(c))
   #define ERROR_PTR(a, b, c)            ((void *)(c))
+  #define ERROR_INT_1(a, f, b, c)       ((l_int32)(c))
+  #define ERROR_FLOAT_1(a, f, b, c)     ((l_float32)(c))
+  #define ERROR_PTR_1(a, f, b, c)       ((void *)(c))
   #define L_ERROR(a, ...)
   #define L_WARNING(a, ...)
   #define L_INFO(a, ...)
@@ -562,6 +565,13 @@ LEPT_DLL extern l_int32  LeptMsgSeverity;
       IF_SEV(L_SEVERITY_ERROR, returnErrorFloat((a), (b), (c)), (l_float32)(c))
   #define ERROR_PTR(a, b, c) \
       IF_SEV(L_SEVERITY_ERROR, returnErrorPtr((a), (b), (c)), (void *)(c))
+
+#define ERROR_INT_1(a, f, b, c) \
+      IF_SEV(L_SEVERITY_ERROR, returnErrorInt1((a), (f), (b), (c)), (l_int32)(c))
+#define ERROR_FLOAT_1(a, f, b, c) \
+      IF_SEV(L_SEVERITY_ERROR, returnErrorFloat1((a), (f), (b), (c)), (l_float32)(c))
+#define ERROR_PTR_1(a, f, b, c) \
+      IF_SEV(L_SEVERITY_ERROR, returnErrorPtr1((a), (f), (b), (c)), (void *)(c))
 
   #define L_ERROR(a, ...) \
       IF_SEV(L_SEVERITY_ERROR, \

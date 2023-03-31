@@ -1946,7 +1946,7 @@ FILE    *fp;
 
     snprintf(buf, L_BUF_SIZE, "%s%s", rootout, JB_DATA_EXT);
     if ((fp = fopenWriteStream(buf, "wb")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", buf, __func__, 1);
     ncomp = ptaGetCount(ptaul);
     fprintf(fp, "jb data file\n");
     fprintf(fp, "num pages = %d\n", npages);

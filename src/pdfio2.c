@@ -489,11 +489,11 @@ PIXA    *pixa;
 FILE    *fp;
 
     if ((fp = fopenReadStream(filein)) == NULL)
-        return ERROR_INT("file not found", __func__, 1);
+        return ERROR_INT_1("file not found", filein, __func__, 1);
     istiff = fileFormatIsTiff(fp);
     fclose(fp);
     if (!istiff)
-        return ERROR_INT("file not tiff format", __func__, 1);
+        return ERROR_INT_1("file not tiff format", filein, __func__, 1);
 
     pixa = pixaReadMultipageTiff(filein);
     pixaConvertToPdf(pixa, 0, 1.0, 0, 0, "weasel2", fileout);
@@ -776,7 +776,7 @@ PIXCMAP      *cmap = NULL;
          * Implementation by Jeff Breidenbach.
          * First, read the metadata */
     if ((fp = fopenReadStream(fname)) == NULL)
-        return (L_COMP_DATA *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (L_COMP_DATA *)ERROR_PTR_1("stream not opened", fname, __func__, NULL);
     freadHeaderPng(fp, &w, &h, &bps, &spp, &cmapflag);
     fgetPngResolution(fp, &xres, &yres);
     fclose(fp);
@@ -787,7 +787,7 @@ PIXCMAP      *cmap = NULL;
 
         /* Read the entire png file */
     if ((pngcomp = l_binaryRead(fname, &nbytespng)) == NULL)
-        return (L_COMP_DATA *)ERROR_PTR("unable to read file",
+        return (L_COMP_DATA *)ERROR_PTR_1("unable to read file", fname,
                                         __func__, NULL);
 
         /* Extract flate data, copying portions of it to memory, including
@@ -935,14 +935,14 @@ FILE         *fp;
         return (L_COMP_DATA *)ERROR_PTR("bad jpeg metadata", __func__, NULL);
     bps = 8;
     if ((fp = fopenReadStream(fname)) == NULL)
-        return (L_COMP_DATA *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (L_COMP_DATA *)ERROR_PTR_1("stream not opened", fname, __func__, NULL);
     fgetJpegResolution(fp, &xres, &yres);
     fclose(fp);
 
         /* Read the entire jpeg file.  The returned jpeg data in memory
          * starts with ffd8 and ends with ffd9 */
     if ((data = l_binaryRead(fname, &nbytes)) == NULL)
-        return (L_COMP_DATA *)ERROR_PTR("data not extracted", __func__, NULL);
+        return (L_COMP_DATA *)ERROR_PTR_1("data not extracted", fname, __func__, NULL);
 
         /* Optionally, encode the compressed data */
     if (ascii85flag == 1) {
@@ -1116,17 +1116,17 @@ FILE         *fp;
 
         /* Make sure this is a single page tiff file */
     if ((fp = fopenReadStream(fname)) == NULL)
-        return (L_COMP_DATA *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (L_COMP_DATA *)ERROR_PTR_1("stream not opened", fname, __func__, NULL);
     tiffGetCount(fp, &npages);
     fclose(fp);
     if (npages != 1) {
-        L_ERROR(" %d page tiff; only works with 1 page\n", __func__, npages);
+        L_ERROR(" %d page tiff; only works with 1 page (file: %s)\n", __func__, npages, fname);
         return NULL;
     }
 
         /* Read the resolution */
     if ((fp = fopenReadStream(fname)) == NULL)
-        return (L_COMP_DATA *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (L_COMP_DATA *)ERROR_PTR_1("stream not opened", fname, __func__, NULL);
     getTiffResolution(fp, &xres, &yres);
     fclose(fp);
 
@@ -1135,7 +1135,7 @@ FILE         *fp;
          * ending before the directory. */
     if (extractG4DataFromFile(fname, &datacomp, &nbytescomp,
                               &w, &h, &minisblack)) {
-        return (L_COMP_DATA *)ERROR_PTR("datacomp not extracted",
+        return (L_COMP_DATA *)ERROR_PTR_1("datacomp not extracted", fname,
                                         __func__, NULL);
     }
 

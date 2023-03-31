@@ -515,10 +515,10 @@ L_KERNEL  *kel;
         return (L_KERNEL *)ERROR_PTR("fname not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(fname)) == NULL)
-        return (L_KERNEL *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (L_KERNEL *)ERROR_PTR_1("stream not opened", fname, __func__, NULL);
     if ((kel = kernelReadStream(fp)) == NULL) {
         fclose(fp);
-        return (L_KERNEL *)ERROR_PTR("kel not returned", __func__, NULL);
+        return (L_KERNEL *)ERROR_PTR_1("kel not returned", fname, __func__, NULL);
     }
     fclose(fp);
 
@@ -588,7 +588,7 @@ FILE  *fp;
         return ERROR_INT("kel not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(fname, "wb")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", fname, __func__, 1);
     kernelWriteStream(fp, kel);
     fclose(fp);
 
@@ -752,10 +752,10 @@ L_KERNEL  *kel;
         return (L_KERNEL *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((filestr = (char *)l_binaryRead(filename, &size)) == NULL)
-        return (L_KERNEL *)ERROR_PTR("file not found", __func__, NULL);
+        return (L_KERNEL *)ERROR_PTR_1("file not found", filename, __func__, NULL);
     if (size == 0) {
         LEPT_FREE(filestr);
-        return (L_KERNEL *)ERROR_PTR("file is empty", __func__, NULL);
+        return (L_KERNEL *)ERROR_PTR_1("file is empty", filename, __func__, NULL);
     }
 
     sa = sarrayCreateLinesFromString(filestr, 1);

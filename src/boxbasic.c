@@ -1761,11 +1761,11 @@ BOXAA  *baa;
         return (BOXAA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (BOXAA *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (BOXAA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
     baa = boxaaReadStream(fp);
     fclose(fp);
     if (!baa)
-        return (BOXAA *)ERROR_PTR("boxaa not read", __func__, NULL);
+        return (BOXAA *)ERROR_PTR_1("boxaa not read", filename, __func__, NULL);
     return baa;
 }
 
@@ -1868,11 +1868,11 @@ FILE    *fp;
         return ERROR_INT("baa not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     ret = boxaaWriteStream(fp, baa);
     fclose(fp);
     if (ret)
-        return ERROR_INT("baa not written to stream", __func__, 1);
+        return ERROR_INT_1("baa not written to stream", filename, __func__, 1);
     return 0;
 }
 
@@ -1954,7 +1954,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);
@@ -1990,11 +1990,11 @@ BOXA  *boxa;
         return (BOXA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (BOXA *)ERROR_PTR("stream not opened", __func__, NULL);
+        return (BOXA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
     boxa = boxaReadStream(fp);
     fclose(fp);
     if (!boxa)
-        return (BOXA *)ERROR_PTR("boxa not read", __func__, NULL);
+        return (BOXA *)ERROR_PTR_1("boxa not read", filename, __func__, NULL);
     return boxa;
 }
 
@@ -2123,11 +2123,11 @@ FILE    *fp;
         return ERROR_INT("boxa not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", __func__, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     ret = boxaWriteStream(fp, boxa);
     fclose(fp);
     if (ret)
-        return ERROR_INT("boxa not written to stream", __func__, 1);
+        return ERROR_INT_1("boxa not written to stream", filename, __func__, 1);
 
     return 0;
 }
@@ -2233,7 +2233,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);

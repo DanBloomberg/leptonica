@@ -237,6 +237,66 @@ returnErrorPtr(const char  *msg,
 }
 
 
+/*!
+ * \brief   returnErrorInt1()
+ *
+ * \param[in]    msg        error message
+ * \param[in]    arg        additional error message argument (will be appended to the error message)
+ * \param[in]    procname
+ * \param[in]    ival       return error val
+ * \return  ival typically 1 for an error return
+ */
+l_int32
+returnErrorInt1(const char  *msg,
+               const char  *arg,
+               const char  *procname,
+               l_int32      ival)
+{
+    lept_stderr("Leptonica Error in %s: %s: %s\n", procname, msg, arg);
+    return ival;
+}
+
+
+/*!
+ * \brief   returnErrorFloat()
+ *
+ * \param[in]    msg        error message
+ * \param[in]    arg        additional error message argument (will be appended to the error message)
+ * \param[in]    procname
+ * \param[in]    fval       return error val
+ * \return  fval
+ */
+l_float32
+returnErrorFloat1(const char  *msg,
+                 const char  *arg,
+                 const char  *procname,
+                 l_float32    fval)
+{
+    lept_stderr("Leptonica Error in %s: %s: %s\n", procname, msg, arg);
+    return fval;
+}
+
+
+/*!
+ * \brief   returnErrorPtr()
+ *
+ * \param[in]    msg        error message
+ * \param[in]    arg        additional error message argument (will be appended to the error message)
+ * \param[in]    procname
+ * \param[in]    pval       return error val
+ * \return  pval  typically null for an error return
+ */
+void *
+returnErrorPtr1(const char  *msg,
+               const char  *arg,
+               const char  *procname,
+               void        *pval)
+{
+    lept_stderr("Leptonica Error in %s: %s: %s\n", procname, msg, arg);
+    return pval;
+}
+
+
 /*------------------------------------------------------------------------*
  *                   Runtime redirection of stderr                        *
  *------------------------------------------------------------------------*
