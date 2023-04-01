@@ -1322,7 +1322,8 @@ FILE     *fp;
         return (l_uint8 *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (l_uint8 *)ERROR_PTR_1("file stream not opened", filename, __func__, NULL);
+        return (l_uint8 *)ERROR_PTR_1("file stream not opened",
+                                      filename, __func__, NULL);
     data = l_binaryReadStream(fp, pnbytes);
     fclose(fp);
     return data;
@@ -1437,7 +1438,8 @@ FILE     *fp;
         return (l_uint8 *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (l_uint8 *)ERROR_PTR_1("file stream not opened", filename, __func__, NULL);
+        return (l_uint8 *)ERROR_PTR_1("file stream not opened",
+                                      filename, __func__, NULL);
     data = l_binaryReadSelectStream(fp, start, nbytes, pnread);
     fclose(fp);
     return data;
@@ -1879,8 +1881,8 @@ FILE  *fp;
 
         /* Else, strip directory and try locally */
     splitPathAtDirectory(filename, NULL, &tail);
-	if (tail == NULL)
-		return (FILE*)ERROR_PTR_1("allocation failure / out of memory / path tail extraction failure", filename, __func__, NULL);
+    if (!tail)
+        return (FILE*)ERROR_PTR_1("tail not found", filename, __func__, NULL);
     fp = fopen(tail, "rb");
     if (!fp)
         fp = (FILE *)ERROR_PTR_1("file not found", tail, __func__, NULL);
@@ -1918,8 +1920,8 @@ FILE  *fp;
     fp = fopen(fname, modestring);
     if (!fp)
         fp = (FILE *)ERROR_PTR_1("stream not opened", fname, __func__, NULL);
-	LEPT_FREE(fname);
-	return fp;
+    LEPT_FREE(fname);
+    return fp;
 }
 
 
@@ -1949,7 +1951,7 @@ FILE  *fp;
     if ((fp = fmemopen((void *)data, size, "rb")) == NULL)
         return (FILE *)ERROR_PTR("stream not opened", __func__, NULL);
 #else  /* write to tmp file */
-    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return (FILE *)ERROR_PTR("tmpfile stream not opened", __func__, NULL);

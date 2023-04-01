@@ -492,19 +492,28 @@ LEPT_DLL extern l_int32  LeptMsgSeverity;
  * <pre>
  *  Usage
  *  =====
- *  Messages are of two types.
+ *  Messages are of three types.
  *
  *  (1) The messages
  *      ERROR_INT(a,b,c)       : returns l_int32
  *      ERROR_FLOAT(a,b,c)     : returns l_float32
  *      ERROR_PTR(a,b,c)       : returns void*
- *  are used to return from functions and take a fixed set of parameters:
+ *  are used to return from functions and take three parameters:
  *      a : <message string>
- *      b : procName
+ *      b : __func__   (the procedure name)
  *      c : <return value from function>
- *  where procName is the name of the local variable naming the function.
  *
- *  (2) The purely informational L_* messages
+ *  (2) The messages
+ *      ERROR_INT_1(a,f,b,c)     : returns l_int32
+ *      ERROR_FLOAT_2(a,f,b,c)   : returns l_float32
+ *      ERROR_PTR_2(a,f,b,c)     : returns void*
+ *  are used to return from functions and take four parameters:
+ *      a : <message string>
+ *      f : <second message string> (typically, a filename for an fopen()))
+ *      b : __func__   (the procedure name)
+ *      c : <return value from function>
+ *
+ *  (3) The purely informational L_* messages
  *      L_ERROR(a,...)
  *      L_WARNING(a,...)
  *      L_INFO(a,...)
@@ -566,12 +575,15 @@ LEPT_DLL extern l_int32  LeptMsgSeverity;
   #define ERROR_PTR(a, b, c) \
       IF_SEV(L_SEVERITY_ERROR, returnErrorPtr((a), (b), (c)), (void *)(c))
 
-#define ERROR_INT_1(a, f, b, c) \
-      IF_SEV(L_SEVERITY_ERROR, returnErrorInt1((a), (f), (b), (c)), (l_int32)(c))
-#define ERROR_FLOAT_1(a, f, b, c) \
-      IF_SEV(L_SEVERITY_ERROR, returnErrorFloat1((a), (f), (b), (c)), (l_float32)(c))
-#define ERROR_PTR_1(a, f, b, c) \
-      IF_SEV(L_SEVERITY_ERROR, returnErrorPtr1((a), (f), (b), (c)), (void *)(c))
+  #define ERROR_INT_1(a, f, b, c) \
+      IF_SEV(L_SEVERITY_ERROR, returnErrorInt1((a), (f), (b), (c)), \
+             (l_int32)(c))
+  #define ERROR_FLOAT_1(a, f, b, c) \
+      IF_SEV(L_SEVERITY_ERROR, returnErrorFloat1((a), (f), (b), (c)), \
+             (l_float32)(c))
+  #define ERROR_PTR_1(a, f, b, c) \
+      IF_SEV(L_SEVERITY_ERROR, returnErrorPtr1((a), (f), (b), (c)), \
+             (void *)(c))
 
   #define L_ERROR(a, ...) \
       IF_SEV(L_SEVERITY_ERROR, \

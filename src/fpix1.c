@@ -1367,7 +1367,8 @@ FPIX  *fpix;
         return (FPIX *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (FPIX *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
+        return (FPIX *)ERROR_PTR_1("stream not opened",
+                                   filename, __func__, NULL);
     fpix = fpixReadStream(fp);
     fclose(fp);
     if (!fpix)
@@ -1558,7 +1559,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);
@@ -1655,7 +1656,8 @@ DPIX  *dpix;
         return (DPIX *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (DPIX *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
+        return (DPIX *)ERROR_PTR_1("stream not opened",
+                                   filename, __func__, NULL);
     dpix = dpixReadStream(fp);
     fclose(fp);
     if (!dpix)
@@ -1846,7 +1848,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);

@@ -401,7 +401,8 @@ PIX   *pix;
         return (PIX *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIX *)ERROR_PTR_1("image file not found", filename, __func__, NULL);
+        return (PIX *)ERROR_PTR_1("image file not found",
+                                  filename, __func__, NULL);
     pix = pixReadStreamTiff(fp, n);
     fclose(fp);
     return pix;
@@ -1416,16 +1417,19 @@ TIFF    *tif;
         return (PIXA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIXA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
+        return (PIXA *)ERROR_PTR_1("stream not opened",
+                                   filename, __func__, NULL);
     if (fileFormatIsTiff(fp)) {
         tiffGetCount(fp, &npages);
         L_INFO(" Tiff: %d pages\n", __func__, npages);
     } else {
-        return (PIXA *)ERROR_PTR_1("file not tiff", filename, __func__, NULL);
+        return (PIXA *)ERROR_PTR_1("file is not tiff",
+                                   filename, __func__, NULL);
     }
 
     if ((tif = fopenTiff(fp, "r")) == NULL)
-        return (PIXA *)ERROR_PTR_1("tif not opened", filename, __func__, NULL);
+        return (PIXA *)ERROR_PTR_1("tif not opened",
+                                   filename, __func__, NULL);
 
     pixa = pixaCreate(npages);
     pix = NULL;

@@ -1112,11 +1112,13 @@ L_DEWARP  *dew;
     if (!filename)
         return (L_DEWARP *)ERROR_PTR("filename not defined", __func__, NULL);
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (L_DEWARP *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
+        return (L_DEWARP *)ERROR_PTR_1("stream not opened",
+                                       filename, __func__, NULL);
 
     if ((dew = dewarpReadStream(fp)) == NULL) {
         fclose(fp);
-        return (L_DEWARP *)ERROR_PTR_1("dew not read", filename, __func__, NULL);
+        return (L_DEWARP *)ERROR_PTR_1("dew not read",
+                                       filename, __func__, NULL);
     }
 
     fclose(fp);
@@ -1385,7 +1387,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);
@@ -1420,11 +1422,13 @@ L_DEWARPA  *dewa;
     if (!filename)
         return (L_DEWARPA *)ERROR_PTR("filename not defined", __func__, NULL);
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (L_DEWARPA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
+        return (L_DEWARPA *)ERROR_PTR_1("stream not opened",
+                                        filename, __func__, NULL);
 
     if ((dewa = dewarpaReadStream(fp)) == NULL) {
         fclose(fp);
-        return (L_DEWARPA *)ERROR_PTR_1("dewa not read", filename, __func__, NULL);
+        return (L_DEWARPA *)ERROR_PTR_1("dewa not read",
+                                        filename, __func__, NULL);
     }
 
     fclose(fp);
@@ -1654,7 +1658,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);

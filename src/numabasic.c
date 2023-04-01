@@ -1027,11 +1027,13 @@ NUMA  *na;
         return (NUMA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (NUMA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
+        return (NUMA *)ERROR_PTR_1("stream not opened",
+                                   filename, __func__, NULL);
     na = numaReadStream(fp);
     fclose(fp);
     if (!na)
-        return (NUMA *)ERROR_PTR_1("na not read", filename, __func__, NULL);
+        return (NUMA *)ERROR_PTR_1("na not read",
+                                   filename, __func__, NULL);
     return na;
 }
 
@@ -1271,7 +1273,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);
@@ -1759,11 +1761,13 @@ NUMAA  *naa;
         return (NUMAA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (NUMAA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
+        return (NUMAA *)ERROR_PTR_1("stream not opened",
+                                    filename, __func__, NULL);
     naa = numaaReadStream(fp);
     fclose(fp);
     if (!naa)
-        return (NUMAA *)ERROR_PTR_1("naa not read", filename, __func__, NULL);
+        return (NUMAA *)ERROR_PTR_1("naa not read",
+                                    filename, __func__, NULL);
     return naa;
 }
 
@@ -1942,7 +1946,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);

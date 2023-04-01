@@ -115,13 +115,13 @@ char  *data = NULL;
     else if (format == L_BF_CODE93)
         data = barcodeDecode93(barstr, debugflag);
     else if (format == L_BF_CODE39)
-    	data = barcodeDecode39(barstr, debugflag);
+        data = barcodeDecode39(barstr, debugflag);
     else if (format == L_BF_CODABAR)
-    	data = barcodeDecodeCodabar(barstr, debugflag);
+        data = barcodeDecodeCodabar(barstr, debugflag);
     else if (format == L_BF_UPCA)
-    	data = barcodeDecodeUpca(barstr, debugflag);
+        data = barcodeDecodeUpca(barstr, debugflag);
     else if (format == L_BF_EAN13)
-    	data = barcodeDecodeEan13(barstr, 0, debugflag);
+        data = barcodeDecodeEan13(barstr, 0, debugflag);
     else
         return (char *)ERROR_PTR("format not implemented", __func__, NULL);
 

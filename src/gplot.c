@@ -614,7 +614,8 @@ FILE    *fp;
         plotdata = sarrayGetString(gplot->plotdata, i, L_NOCOPY);
         dataname = sarrayGetString(gplot->datanames, i, L_NOCOPY);
         if ((fp = fopen(dataname, "w")) == NULL)
-            return ERROR_INT_1("datafile stream not opened", dataname, __func__, 1);
+            return ERROR_INT_1("datafile stream not opened",
+                               dataname, __func__, 1);
         fwrite(plotdata, 1, strlen(plotdata), fp);
         fclose(fp);
     }
@@ -1208,16 +1209,19 @@ GPLOT   *gplot;
         return (GPLOT *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (GPLOT *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
+        return (GPLOT *)ERROR_PTR_1("stream not opened",
+                                    filename, __func__, NULL);
 
     ret = fscanf(fp, "Gplot Version %d\n", &version);
     if (ret != 1) {
         fclose(fp);
-        return (GPLOT *)ERROR_PTR_1("not a gplot file", filename, __func__, NULL);
+        return (GPLOT *)ERROR_PTR_1("not a gplot file",
+                                    filename, __func__, NULL);
     }
     if (version != GPLOT_VERSION_NUMBER) {
         fclose(fp);
-        return (GPLOT *)ERROR_PTR_1("invalid gplot version", filename, __func__, NULL);
+        return (GPLOT *)ERROR_PTR_1("invalid gplot version",
+                                    filename, __func__, NULL);
     }
 
     ignore = fscanf(fp, "Rootname: %511s\n", buf);  /* Bufsize - 1 */

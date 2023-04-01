@@ -2490,11 +2490,13 @@ PIXA  *pixa;
         return (PIXA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIXA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
+        return (PIXA *)ERROR_PTR_1("stream not opened",
+                                   filename, __func__, NULL);
     pixa = pixaReadStream(fp);
     fclose(fp);
     if (!pixa)
-        return (PIXA *)ERROR_PTR_1("pixa not read", filename, __func__, NULL);
+        return (PIXA *)ERROR_PTR_1("pixa not read",
+                                   filename, __func__, NULL);
     return pixa;
 }
 
@@ -2744,7 +2746,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);
@@ -2890,7 +2892,8 @@ PIXAA  *paa;
         return (PIXAA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIXAA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
+        return (PIXAA *)ERROR_PTR_1("stream not opened",
+                                    filename, __func__, NULL);
     paa = pixaaReadStream(fp);
     fclose(fp);
     if (!paa)
@@ -3113,7 +3116,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);

@@ -1767,11 +1767,13 @@ PIXCMAP  *cmap;
         return (PIXCMAP *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIXCMAP *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
+        return (PIXCMAP *)ERROR_PTR_1("stream not opened",
+                                      filename, __func__, NULL);
     cmap = pixcmapReadStream(fp);
     fclose(fp);
     if (!cmap)
-        return (PIXCMAP *)ERROR_PTR_1("cmap not read", filename, __func__, NULL);
+        return (PIXCMAP *)ERROR_PTR_1("cmap not read",
+                                     filename, __func__, NULL);
     return cmap;
 }
 
@@ -1947,7 +1949,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);

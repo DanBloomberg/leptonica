@@ -157,7 +157,8 @@ L_BYTEA  *ba;
         return (L_BYTEA *)ERROR_PTR("fname not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(fname)) == NULL)
-        return (L_BYTEA *)ERROR_PTR_1("file stream not opened", fname, __func__, NULL);
+        return (L_BYTEA *)ERROR_PTR_1("file stream not opened",
+                                      fname, __func__, NULL);
     ba = l_byteaInitFromStream(fp);
     fclose(fp);
     if (!ba)

@@ -88,7 +88,8 @@ FILE    *fp;
                                   quality, lossless);
     fclose(fp);
     if (ret)
-        return ERROR_INT_1("pixs not compressed to stream", filename, __func__, 1);
+        return ERROR_INT_1("pixs not compressed to stream",
+                           filename, __func__, 1);
     return 0;
 }
 

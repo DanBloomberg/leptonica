@@ -158,7 +158,8 @@ L_REGPARAMS  *rp;
         rp->fp = fopenWriteStream(rp->tempfile, "wb");
         if (rp->fp == NULL) {
             rp->success = FALSE;
-            return ERROR_INT_1("stream not opened for tempfile", rp->tempfile, __func__, 1);
+            return ERROR_INT_1("stream not opened for tempfile",
+                               rp->tempfile, __func__, 1);
         }
     } else if (!strcmp(argv[1], "generate")) {
         rp->mode = L_REG_GENERATE;

@@ -47,6 +47,9 @@
  *           l_int32    returnErrorInt()
  *           l_float32  returnErrorFloat()
  *           void      *returnErrorPtr()
+ *           l_int32    returnErrorInt1()
+ *           l_float32  returnErrorFloat1()
+ *           void      *returnErrorPtr1()
  *
  *       Runtime redirection of stderr
  *           void leptSetStderrHandler()
@@ -178,8 +181,11 @@ char    *envsev;
  *                                                                      *
  *    (1) These error functions print messages to stderr and allow      *
  *        exit from the function that called them.                      *
- *    (2) They must be invoked only by the macros ERROR_INT,            *
- *        ERROR_FLOAT and ERROR_PTR, which are in environ.h             *
+ *    (2) They must be invoked only by the three argument macros        *
+ *           ERROR_INT, ERROR_FLOAT, ERROR_PTR                          *
+ *        or the four argument macros                                   *
+ *           ERROR_INT_1, ERROR_FLOAT_1, ERROR_PTR_1                    *
+ *        which are in environ.h.                                       *
  *    (3) The print output can be disabled at compile time, either      *
  *        by using -DNO_CONSOLE_IO or by setting LeptMsgSeverity.       *
  *----------------------------------------------------------------------*/
@@ -187,9 +193,9 @@ char    *envsev;
  * \brief   returnErrorInt()
  *
  * \param[in]    msg        error message
- * \param[in]    procname
- * \param[in]    ival       return error val
- * \return  ival typically 1 for an error return
+ * \param[in]    procname   use __func__
+ * \param[in]    ival       return error val (typically 1 for an error)  
+ * \return  ival
  */
 l_int32
 returnErrorInt(const char  *msg,
@@ -205,8 +211,8 @@ returnErrorInt(const char  *msg,
  * \brief   returnErrorFloat()
  *
  * \param[in]    msg        error message
- * \param[in]    procname
- * \param[in]    fval       return error val
+ * \param[in]    procname   use __func__
+ * \param[in]    fval       return float error val
  * \return  fval
  */
 l_float32
@@ -223,9 +229,9 @@ returnErrorFloat(const char  *msg,
  * \brief   returnErrorPtr()
  *
  * \param[in]    msg        error message
- * \param[in]    procname
- * \param[in]    pval       return error val
- * \return  pval  typically null for an error return
+ * \param[in]    procname   use __func__
+ * \param[in]    pval       return error val (typically null for an error)
+ * \return  pval
  */
 void *
 returnErrorPtr(const char  *msg,
@@ -241,16 +247,17 @@ returnErrorPtr(const char  *msg,
  * \brief   returnErrorInt1()
  *
  * \param[in]    msg        error message
- * \param[in]    arg        additional error message argument (will be appended to the error message)
- * \param[in]    procname
- * \param[in]    ival       return error val
- * \return  ival typically 1 for an error return
+ * \param[in]    arg        additional error message argument
+ *                          (will be appended to the error message)
+ * \param[in]    procname   use __func__
+ * \param[in]    ival       return error val; typically 1 for an error return
+ * \return  ival   typically 1 for an error return
  */
 l_int32
 returnErrorInt1(const char  *msg,
-               const char  *arg,
-               const char  *procname,
-               l_int32      ival)
+                const char  *arg,
+                const char  *procname,
+                l_int32      ival)
 {
     lept_stderr("Leptonica Error in %s: %s: %s\n", procname, msg, arg);
     return ival;
@@ -258,19 +265,20 @@ returnErrorInt1(const char  *msg,
 
 
 /*!
- * \brief   returnErrorFloat()
+ * \brief   returnErrorFloat1()
  *
  * \param[in]    msg        error message
- * \param[in]    arg        additional error message argument (will be appended to the error message)
- * \param[in]    procname
- * \param[in]    fval       return error val
+ * \param[in]    arg        additional error message argument
+ *                          (will be appended to the error message)
+ * \param[in]    procname   use __func__
+ * \param[in]    fval       return float error val
  * \return  fval
  */
 l_float32
 returnErrorFloat1(const char  *msg,
-                 const char  *arg,
-                 const char  *procname,
-                 l_float32    fval)
+                  const char  *arg,
+                  const char  *procname,
+                  l_float32    fval)
 {
     lept_stderr("Leptonica Error in %s: %s: %s\n", procname, msg, arg);
     return fval;
@@ -278,19 +286,20 @@ returnErrorFloat1(const char  *msg,
 
 
 /*!
- * \brief   returnErrorPtr()
+ * \brief   returnErrorPtr1()
  *
  * \param[in]    msg        error message
- * \param[in]    arg        additional error message argument (will be appended to the error message)
- * \param[in]    procname
- * \param[in]    pval       return error val
- * \return  pval  typically null for an error return
+ * \param[in]    arg        additional error message argument
+ *                          (will be appended to the error message)
+ * \param[in]    procname   use __func__
+ * \param[in]    pval       return error val (typically null for an error)
+ * \return  pval
  */
 void *
 returnErrorPtr1(const char  *msg,
-               const char  *arg,
-               const char  *procname,
-               void        *pval)
+                const char  *arg,
+                const char  *procname,
+                void        *pval)
 {
     lept_stderr("Leptonica Error in %s: %s: %s\n", procname, msg, arg);
     return pval;

@@ -209,12 +209,14 @@ PIX      *pix;
         return (PIX *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIX *)ERROR_PTR_1("image file not found", filename, __func__, NULL);
+        return (PIX *)ERROR_PTR_1("image file not found",
+                                  filename, __func__, NULL);
     pix = pixReadStreamJp2k(fp, reduction, box, hint, debug);
     fclose(fp);
 
     if (!pix)
-        return (PIX *)ERROR_PTR_1("image not returned", filename, __func__, NULL);
+        return (PIX *)ERROR_PTR_1("image not returned",
+                                  filename, __func__, NULL);
     return pix;
 }
 

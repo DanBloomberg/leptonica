@@ -195,7 +195,8 @@ PIX   *pix;
         return (PIX *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-		return (PIX*)ERROR_PTR_1("image file not found", filename, __func__, NULL);
+        return (PIX*)ERROR_PTR_1("image file not found",
+                                 filename, __func__, NULL);
     pix = pixReadStream(fp, 0);
     fclose(fp);
     if (!pix)
@@ -229,12 +230,14 @@ PIX   *pix;
         return (PIX *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIX *)ERROR_PTR_1("image file not found", filename, __func__, NULL);
+        return (PIX *)ERROR_PTR_1("image file not found",
+                                  filename, __func__, NULL);
     pix = pixReadStream(fp, hint);
     fclose(fp);
 
     if (!pix)
-        return (PIX *)ERROR_PTR_1("image not returned", filename, __func__, NULL);
+        return (PIX *)ERROR_PTR_1("image not returned",
+                                  filename, __func__, NULL);
     return pix;
 }
 
@@ -473,13 +476,15 @@ PIX     *pix;
         ret = readHeaderJpeg(filename, &w, &h, &spp, NULL, NULL);
         bps = 8;
         if (ret)
-            return ERROR_INT_1( "jpeg: no header info returned", filename, __func__, 1);
+            return ERROR_INT_1("jpeg: no header info returned",
+                               filename, __func__, 1);
         break;
 
     case IFF_PNG:
         ret = readHeaderPng(filename, &w, &h, &bps, &spp, &iscmap);
         if (ret)
-            return ERROR_INT_1( "png: no header info returned", filename, __func__, 1);
+            return ERROR_INT_1("png: no header info returned",
+                               filename, __func__, 1);
         break;
 
     case IFF_TIFF:
@@ -494,13 +499,15 @@ PIX     *pix;
         ret = readHeaderTiff(filename, 0, &w, &h, &bps, &spp, NULL, &iscmap,
                              &format);
         if (ret)
-            return ERROR_INT_1( "tiff: no header info returned", filename, __func__, 1);
+            return ERROR_INT_1("tiff: no header info returned",
+                               filename, __func__, 1);
         break;
 
     case IFF_PNM:
         ret = readHeaderPnm(filename, &w, &h, &d, &type, &bps, &spp);
         if (ret)
-            return ERROR_INT_1( "pnm: no header info returned", filename, __func__, 1);
+            return ERROR_INT_1("pnm: no header info returned",
+                               filename, __func__, 1);
         break;
 
     case IFF_GIF:  /* cheating: reading the entire file */
@@ -519,7 +526,8 @@ PIX     *pix;
 
     case IFF_WEBP:
         if (readHeaderWebP(filename, &w, &h, &spp))
-            return ERROR_INT_1( "webp: no header info returned", filename, __func__, 1);
+            return ERROR_INT_1("webp: no header info returned",
+                               filename, __func__, 1);
         bps = 8;
         break;
 
@@ -534,11 +542,12 @@ PIX     *pix;
     case IFF_SPIX:
         ret = readHeaderSpix(filename, &w, &h, &bps, &spp, &iscmap);
         if (ret)
-            return ERROR_INT_1( "spix: no header info returned", filename, __func__, 1);
+            return ERROR_INT_1("spix: no header info returned",
+                               filename, __func__, 1);
         break;
 
     case IFF_UNKNOWN:
-		return ERROR_INT_1("unknown format in file", filename, __func__, 1);
+        return ERROR_INT_1("unknown format in file", filename, __func__, 1);
     }
 
     if (pw) *pw = w;

@@ -666,7 +666,8 @@ SARRAY  *sa;
         if (findFileFormat(filename, &format) == 0) {
             l_getIndexFromStructname("Pix", pindex);
         } else {
-            return ERROR_INT_1("no file type identified", filename, __func__, 1);
+            return ERROR_INT_1("no file type identified",
+                               filename, __func__, 1);
         }
     }
 

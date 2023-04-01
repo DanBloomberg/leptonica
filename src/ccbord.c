@@ -2339,12 +2339,14 @@ CCBORDA  *ccba;
         return (CCBORDA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (CCBORDA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
+        return (CCBORDA *)ERROR_PTR_1("stream not opened",
+                                      filename, __func__, NULL);
     ccba = ccbaReadStream(fp);
     fclose(fp);
 
     if (!ccba)
-        return (CCBORDA *)ERROR_PTR_1("ccba not returned", filename, __func__, NULL);
+        return (CCBORDA *)ERROR_PTR_1("ccba not returned",
+                                      filename, __func__, NULL);
     return ccba;
 }
 

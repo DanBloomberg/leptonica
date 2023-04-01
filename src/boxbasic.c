@@ -1761,11 +1761,13 @@ BOXAA  *baa;
         return (BOXAA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (BOXAA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
+        return (BOXAA *)ERROR_PTR_1("stream not opened",
+                                    filename, __func__, NULL);
     baa = boxaaReadStream(fp);
     fclose(fp);
     if (!baa)
-        return (BOXAA *)ERROR_PTR_1("boxaa not read", filename, __func__, NULL);
+        return (BOXAA *)ERROR_PTR_1("boxaa not read",
+                                    filename, __func__, NULL);
     return baa;
 }
 
@@ -1954,7 +1956,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);
@@ -1990,11 +1992,13 @@ BOXA  *boxa;
         return (BOXA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (BOXA *)ERROR_PTR_1("stream not opened", filename, __func__, NULL);
+        return (BOXA *)ERROR_PTR_1("stream not opened",
+                                   filename, __func__, NULL);
     boxa = boxaReadStream(fp);
     fclose(fp);
     if (!boxa)
-        return (BOXA *)ERROR_PTR_1("boxa not read", filename, __func__, NULL);
+        return (BOXA *)ERROR_PTR_1("boxa not read",
+                                   filename, __func__, NULL);
     return boxa;
 }
 
@@ -2233,7 +2237,7 @@ FILE    *fp;
     fclose(fp);
     *psize = *psize - 1;
 #else
-    L_INFO("no fmemopen API --> work-around: writing to a temp file\n", __func__);
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
         return ERROR_INT("tmpfile stream not opened", __func__, 1);
