@@ -1034,15 +1034,10 @@ FILE  *fp;
  *          and 32.  However, it is possible, and in some cases desirable,
  *          to write out a png file using an rgb pix that has 24 bpp.
  *          For example, the open source xpdf SplashBitmap class generates
- *          24 bpp rgb images.  Consequently, we enable writing 24 bpp pix.
- *          To generate such a pix, you can make a 24 bpp pix without data
- *          and assign the data array to the pix; e.g.,
- *              pix = pixCreateHeader(w, h, 24);
- *              pixSetData(pix, rgbdata);
- *          See pixConvert32To24() for an example, where we get rgbdata
- *          from the 32 bpp pix.  Caution: do not call pixSetPadBits(),
- *          because the alignment is wrong and you may erase part of the
- *          last pixel on each line.
+ *          24 bpp rgb images.  Consequently, we enable writing 24 bpp pix
+ *          without converting it to 32 bpp first.  Caution: do not call
+ *          pixSetPadBits(), because the alignment is wrong and you may
+ *          erase part of the last pixel on each line.
  *      (8) If the pix has a colormap, it is written to file.  In most
  *          situations, the alpha component is 255 for each colormap entry,
  *          which is opaque and indicates that it should be ignored.
@@ -1095,7 +1090,9 @@ char        *text;
     } else {
         cmflag = 0;
     }
-    pixSetPadBits(pix, 0);
+
+        /* Do not set pad bits for d = 24 ! */
+    if (d != 24) pixSetPadBits(pix, 0);
 
         /* Set the color type and bit depth. */
     if (d == 32 && spp == 4) {
@@ -1250,16 +1247,15 @@ char        *text;
         return 0;
     }
 
-        /* For rgb, compose and write a row at a time */
+        /* For rgb and rgba, compose and write a row at a time */
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
-    if (d == 24) {  /* See note 7 above: special case of 24 bpp rgb */
+    if (d == 24) {  /* See note 7 above */
         for (i = 0; i < h; i++) {
             ppixel = data + i * wpl;
             png_write_rows(png_ptr, (png_bytepp)&ppixel, 1);
         }
-    } else {  /* 32 bpp rgb and rgba.  Write out the alpha channel if either
-             * the pix has 4 spp or writing it is requested anyway */
+    } else {  /* 32 bpp rgb and rgba.  If spp = 4, write the alpha channel */
         rowbuffer = (png_bytep)LEPT_CALLOC(w, 4);
         for (i = 0; i < h; i++) {
             ppixel = data + i * wpl;
@@ -2013,7 +2009,8 @@ MEMIODATA    state;
         cmflag = 0;
     }
 
-    pixSetPadBits(pix, 0);
+        /* Do not set pad bits for d = 24 ! */
+    if (d != 24) pixSetPadBits(pix, 0);
 
         /* Set the color type and bit depth. */
     if (d == 32 && spp == 4) {
@@ -2162,16 +2159,15 @@ MEMIODATA    state;
         return 0;
     }
 
-        /* For rgb, compose and write a row at a time */
+        /* For rgb and rgba, compose and write a row at a time */
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
-    if (d == 24) {  /* See note 7 above: special case of 24 bpp rgb */
+    if (d == 24) {  /* See note 7 in pixWriteStreamPng() */
         for (i = 0; i < h; i++) {
             ppixel = data + i * wpl;
             png_write_rows(png_ptr, (png_bytepp)&ppixel, 1);
         }
-    } else {  /* 32 bpp rgb and rgba.  Write out the alpha channel if either
-             * the pix has 4 spp or writing it is requested anyway */
+    } else {  /* 32 bpp rgb and rgba.  If spp = 4, write the alpha channel */
         rowbuffer = (png_bytep)LEPT_CALLOC(w, 4);
         for (i = 0; i < h; i++) {
             ppixel = data + i * wpl;

@@ -646,15 +646,10 @@ part6:
     regTestCompareValues(rp, 1.0, same, 0.0);  /* 6 */
     pix5 = pixDisplayDiff(pix1, pix3, 1, 1, 0xff000000);
     regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 7 */
-        /* Note: png write/read fails (same == 0).  Comparison of pix1 and
-         * pix4 (see pix6) shows a difference in the right-most column,
-         * observed for all images tested, so it doesn't depend on width.
-         * Source of problem is in png writing 24 bpp pix; not yet fixed. */
     pixEqual(pix4, pix1, &same);  /* png */
-    regTestCompareValues(rp, 0.0, same, 0.0);  /* 8 */
+    regTestCompareValues(rp, 1.0, same, 0.0);  /* 8 */
     pix6 = pixDisplayDiff(pix1, pix4, 1, 1, 0xff000000);
     regTestWritePixAndCheck(rp, pix6, IFF_PNG);  /* 9 */
-    if (rp->success == FALSE) success = FALSE;
     if (rp->display) pixDisplay(pix6, 800, 100);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
@@ -662,6 +657,7 @@ part6:
     pixDestroy(&pix4);
     pixDestroy(&pix5);
     pixDestroy(&pix6);
+    if (rp->success == FALSE) success = FALSE;
 
     if (success)
         lept_stderr("\n  ******* Success on misc tests *******\n\n");
