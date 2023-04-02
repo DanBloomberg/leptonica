@@ -39,6 +39,7 @@
  *           l_int32     pixCorrelationBinary()
  *
  *      Difference of two images of same size
+ *           l_int32     pixDisplayDiff()
  *           l_int32     pixDisplayDiffBinary()
  *           l_int32     pixCompareBinary()
  *           l_int32     pixCompareGrayOrRGB()
@@ -629,6 +630,103 @@ PIX      *pixn;
 /*------------------------------------------------------------------*
  *                   Difference of two images                       *
  *------------------------------------------------------------------*/
+/*!
+ * \brief   pixDisplayDiff()
+ *
+ * \param[in]    pix1       any depth
+ * \param[in]    pix2       any depth
+ * \param[in]    showall    1 to display input images; 0 to only display result
+ * \param[in]    mindiff    min difference to identify pixel
+ * \param[in]    diffcolor  color of pixel indicating difference >= mindiff
+ * \return  pixd  32 bpp rgb, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This aligns the UL corners of pix1 and pix2, crops to the
+ *          overlapping pixels, and shows which pixels have a significant
+ *          difference in value.
+ *      (2) Requires %pix1 and %pix2 to have the same depth.
+ *      (3) If rgb, a pixel is identified as different if any component
+ *          values of the corresponding pixels equals or exceeds %mindiff.
+ *      (4) %diffcolor is in format 0xrrggbbaa.
+ *      (5) If %pix1 and %pix2 are 1 bpp, ignores %mindiff and %diffcolor,
+ *          and uses the result of pixDisplayDiffBinary().
+ * </pre>
+ */
+PIX *
+pixDisplayDiff(PIX      *pix1,
+               PIX      *pix2,
+               l_int32   showall,
+               l_int32   mindiff,
+               l_uint32  diffcolor)
+{
+l_int32    i, j, w1, h1, d1, w2, h2, d2, minw, minh, wpl1, wpl2, wpl3;
+l_int32    rval1, gval1, bval1, rval2, gval2, bval2;
+l_uint32   val1, val2;
+l_uint32  *data1, *data2, *data3, *line1, *line2, *line3;
+PIX       *pix3, *pix4, *pixd;
+PIXA      *pixa1;
+
+    if (!pix1 || !pix2)
+        return (PIX *)ERROR_PTR("pix1, pix2 not both defined", __func__, NULL);
+    pixGetDimensions(pix1, &w1, &h1, &d1);
+    pixGetDimensions(pix2, &w2, &h2, &d2);
+    if (d1 != d2)
+        return (PIX *)ERROR_PTR("unequal depths", __func__, NULL);
+    if (mindiff <= 0)
+        return (PIX *)ERROR_PTR("mindiff must be > 0", __func__, NULL);
+
+    if (d1 == 1) {
+        pix3 = pixDisplayDiffBinary(pix1, pix2);
+        pixd = pixConvertTo32(pix3); 
+        pixDestroy(&pix3);
+    } else {
+        minw = L_MIN(w1, w2);
+        minh = L_MIN(h1, h2);
+        pix3 = pixConvertTo32(pix1);
+        pix4 = pixConvertTo32(pix2);
+        pixd = pixCreate(minw, minh, 32);
+        pixRasterop(pixd, 0, 0, minw, minh, PIX_SRC, pix3, 0, 0);
+        data1 = pixGetData(pix3);
+        wpl1 = pixGetWpl(pix3);
+        data2 = pixGetData(pix4);
+        wpl2 = pixGetWpl(pix4);
+        data3 = pixGetData(pixd);
+        wpl3 = pixGetWpl(pixd);
+        for (i = 0; i < minh; i++) {
+            line1 = data1 + i * wpl1;
+            line2 = data2 + i * wpl2;
+            line3 = data3 + i * wpl3;
+            for (j = 0; j < minw; j++) {
+                val1 = GET_DATA_FOUR_BYTES(line1, j);
+                val2 = GET_DATA_FOUR_BYTES(line2, j);
+                extractRGBValues(val1, &rval1, &gval1, &bval1);
+                extractRGBValues(val2, &rval2, &gval2, &bval2);
+                if (L_ABS(rval1 - rval2) >= mindiff ||
+                    L_ABS(gval1 - gval2) >= mindiff ||
+                    L_ABS(bval1 - bval2) >= mindiff)
+                    SET_DATA_FOUR_BYTES(line3, j, diffcolor);
+            }
+        }
+    }
+                
+    if (showall) {
+        pixa1 = pixaCreate(3);
+        if (d1 == 1) {
+            pixaAddPix(pixa1, pix1, L_COPY);
+            pixaAddPix(pixa1, pix2, L_COPY);
+        } else {
+            pixaAddPix(pixa1, pix3, L_INSERT);
+            pixaAddPix(pixa1, pix4, L_INSERT);
+        }
+        pixaAddPix(pixa1, pixd, L_INSERT);  /* save diff image */
+        pixd = pixaDisplayTiledInColumns(pixa1, 2, 1.0, 30, 2);  /* all 3 */
+        pixaDestroy(&pixa1);
+    }
+    return pixd;
+}
+
+
 /*!
  * \brief   pixDisplayDiffBinary()
  *

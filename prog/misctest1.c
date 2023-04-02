@@ -38,6 +38,7 @@
  *        * Display pixaa in row major order by component pixa.
  *        * Test zlib compression in png
  *        * Show sampled scaling with and without source indexing shift
+ *        * Display differences in images with pixDisplayDiff()
  */
 
 #ifdef HAVE_CONFIG_H
@@ -57,7 +58,7 @@ l_int32   w, h, bx, by, bw, bh, i, j;
 size_t    size;
 BOX      *box1, *box2;
 BOXA     *boxa1, *boxa2, *boxae, *boxao;
-PIX      *pixs, *pix1, *pix2, *pix3, *pixg, *pixb, *pixd, *pixc;
+PIX      *pixs, *pix1, *pix2, *pix3, *pix4, *pixg, *pixb, *pixd, *pixc;
 PIX      *pixm, *pixm2, *pixd2, *pixs2;
 PIXA     *pixa1, *pixa2;
 PIXAA    *paa;
@@ -364,6 +365,26 @@ PIXCMAP  *cmap, *cmapg;
     pixDestroy(&pixs);
     pixDestroy(&pix3);
     pixaDestroy(&pixa1);
+
+        /* Display differences in images with pixDisplayDiff() */
+    pix1 = pixRead("feyn-fract.tif");
+    pix2 = pixTranslate(NULL, pix1, 20, 0, L_BRING_IN_WHITE);
+    pix3 = pixDisplayDiff(pix1, pix2, 1, 1, 0xff000000);
+    pixWrite("/tmp/lept/misc/diff-1bit.png", pix3, IFF_PNG);
+    pixDisplay(pix3, 100, 1000);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pix1 = pixRead("test-rgb.png");
+    pix2 = pixExpandReplicate(pix1, 4);
+    pix3 = pixTranslate(NULL, pix2, 1, 0, L_BRING_IN_WHITE);
+    pix4 = pixDisplayDiff(pix2, pix3, 1, 10, 0xff000000);
+    pixWrite("/tmp/lept/misc/diff-32bit.png", pix4, IFF_PNG);
+    pixDisplay(pix4, 400, 1000);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
 
     return 0;
 }

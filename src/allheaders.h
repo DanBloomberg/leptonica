@@ -583,6 +583,7 @@ LEPT_DLL extern l_ok pixEqualWithCmap ( PIX *pix1, PIX *pix2, l_int32 *psame );
 LEPT_DLL extern l_ok cmapEqual ( PIXCMAP *cmap1, PIXCMAP *cmap2, l_int32 ncomps, l_int32 *psame );
 LEPT_DLL extern l_ok pixUsesCmapColor ( PIX *pixs, l_int32 *pcolor );
 LEPT_DLL extern l_ok pixCorrelationBinary ( PIX *pix1, PIX *pix2, l_float32 *pval );
+LEPT_DLL extern PIX * pixDisplayDiff ( PIX *pix1, PIX *pix2, l_int32 showall, l_int32 mindiff, l_uint32 diffcolor );
 LEPT_DLL extern PIX * pixDisplayDiffBinary ( PIX *pix1, PIX *pix2 );
 LEPT_DLL extern l_ok pixCompareBinary ( PIX *pix1, PIX *pix2, l_int32 comptype, l_float32 *pfract, PIX **ppixdiff );
 LEPT_DLL extern l_ok pixCompareGrayOrRGB ( PIX *pix1, PIX *pix2, l_int32 comptype, l_int32 plottype, l_int32 *psame, l_float32 *pdiff, l_float32 *prmsdiff, PIX **ppixdiff );
