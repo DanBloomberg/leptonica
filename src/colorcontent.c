@@ -445,10 +445,10 @@ PIX       *pix1, *pixd;
  *                             component values; below this the pixel is not
  *                             considered to have sufficient color
  * \param[in]    factor        subsampling factor
- * \param[out]   ppixfract     fraction of pixels in intermediate
+ * \param[out]   ppixfract     [optional] fraction of pixels in intermediate
  *                             brightness range that were considered
  *                             for color content
- * \param[out]   pcolorfract   fraction of pixels that meet the
+ * \param[out]   pcolorfract   [optional] fraction of pixels that meet the
  *                             criterion for sufficient color; 0.0 on error
  * \return  0 if OK, 1 on error
  *
@@ -502,8 +502,8 @@ l_uint32  *data, *line;
 
     if (ppixfract) *ppixfract = 0.0;
     if (pcolorfract) *pcolorfract = 0.0;
-    if (!ppixfract || !pcolorfract)
-        return ERROR_INT("&pixfract and &colorfract not defined",
+    if (!ppixfract && !pcolorfract)
+        return ERROR_INT("neither &pixfract nor &colorfract are defined",
                          __func__, 1);
     if (!pixs || pixGetDepth(pixs) != 32)
         return ERROR_INT("pixs not defined or not 32 bpp", __func__, 1);
@@ -537,8 +537,8 @@ l_uint32  *data, *line;
         L_WARNING("No pixels found for consideration\n", __func__);
         return 0;
     }
-    *ppixfract = (l_float32)npix / (l_float32)total;
-    *pcolorfract = (l_float32)ncolor / (l_float32)npix;
+    if (ppixfract) *ppixfract = (l_float32)npix / (l_float32)total;
+    if (pcolorfract) *pcolorfract = (l_float32)ncolor / (l_float32)npix;
     return 0;
 }
 

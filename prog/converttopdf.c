@@ -30,6 +30,8 @@
  *    Bundles all image files that are in the designated directory, with
  *    optional matching substring, into a pdf.
  *
+ *    Syntax:  converttopdf dir [substring] fileout
+ *
  *    The encoding type depends on the input file format:
  *      jpeg     ==>  DCT (not transcoded)
  *      jp2k     ==>  JPX (not transcoded)
