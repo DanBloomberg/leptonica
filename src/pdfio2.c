@@ -88,6 +88,9 @@
  *     Find number of pages in a pdf
  *          l_int32              getPdfPageCount()
  *
+ *     Find page widths and heights in a pdf
+ *          l_int32              getPdfPageSizes()
+ *
  *     Set flags for special modes
  *          void                 l_pdfSetG4ImageMask()
  *          void                 l_pdfSetDateAndVersion()
@@ -2593,7 +2596,7 @@ pdfdataGetCid(L_PDF_DATA  *lpd,
 /*!
  * \brief   getPdfPageCount()
  *
- * \param[in]    fname      compressed image data
+ * \param[in]    fname      filename
  * \param[out]   pnpages    number of pages
  * \return  0 if OK, 1 on error
  *
@@ -2662,6 +2665,122 @@ size_t    nread;
     *pnpages = npages;
 /*    lept_stderr("bytes read = %d, loc = %d, npages = %d\n",
                 nread, loc, *pnpages);  */
+    return 0;
+}
+
+
+/*---------------------------------------------------------------------*
+ *                Find page widths and heights in a pdf                *
+ *---------------------------------------------------------------------*/
+/*!
+ * \brief   getPdfPageSizes()
+ *
+ * \param[in]    fname        filename
+ * \param[out]   pnaw         [optional] array of page widths
+ * \param[out]   pnah         [optional] array of page heights
+ * \param[out]   pmedw        [optional] median page width
+ * \param[out]   pmedh        [optional] median page height
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Finds the arguments of each instance of '/Width' and '/Height'
+ *          in the file.
+ *      (2) This will not work on encrypted pdf files.
+ * </pre>
+ */
+l_ok
+getPdfPageSizes(const char  *fname,
+                NUMA       **pnaw,
+                NUMA       **pnah,
+                l_int32     *pmedw,
+                l_int32     *pmedh)
+{
+l_uint8   *data;
+l_int32    i, nw, nh, format, ret, loc, width, height;
+l_float32  fval;
+size_t     nread;
+L_DNA     *dnaw;  /* width locations */
+L_DNA     *dnah;  /* height locations */
+NUMA      *naw;   /* widths */
+NUMA      *nah;   /* heights */
+
+    if (pnaw) *pnaw = NULL;
+    if (pnah) *pnah = NULL;
+    if (pmedw) *pmedw = 0;
+    if (pmedh) *pmedh = 0;
+    if (!pnaw && !pnah && !pmedw && !pmedh)
+        return ERROR_INT("no output requested", __func__, 1);
+    if (!fname)
+        return ERROR_INT("fname not defined", __func__, 1);
+
+        /* Make sure this a pdf file */
+    findFileFormat(fname, &format);
+    if (format != IFF_LPDF)
+        return ERROR_INT("file is not pdf", __func__, 1);
+
+        /* Read the file into memory and find all locations of
+         * '/Width' and '/Height' */
+    if ((data = l_binaryRead(fname, &nread)) == NULL)
+        return ERROR_INT("full data not read", __func__, 1);
+    dnaw = arrayFindEachSequence(data, nread, (const l_uint8 *)"/Width",
+                                 strlen("/Width"));
+    dnah = arrayFindEachSequence(data, nread, (const l_uint8 *)"/Height",
+                                 strlen("/Height"));
+    if (!dnaw)
+        L_ERROR("unable to find widths\n", __func__);
+    if (!dnah)
+        L_ERROR("unable to find heights\n", __func__);
+    if (!dnaw && !dnah) {
+        LEPT_FREE(data);
+        return ERROR_INT("no fields found", __func__, 1);
+    }
+
+        /* Find the page widths and heights */
+    nw = l_dnaGetCount(dnaw);
+    naw = numaCreate(nw);
+    for (i = 0; i < nw; i++) {
+        l_dnaGetIValue(dnaw, i, &loc);
+        ret = sscanf((char *)&data[loc], "/Width %d", &width);
+        if (ret != 1) {
+            L_ERROR("width not found for item %d at loc %d\n",
+                    __func__, i, loc);
+            continue;
+        }
+        numaAddNumber(naw, width);
+    }
+    nh = l_dnaGetCount(dnah);
+    nah = numaCreate(nh);
+    for (i = 0; i < nh; i++) {
+        l_dnaGetIValue(dnah, i, &loc);
+        ret = sscanf((char *)&data[loc], "/Height %d", &height);
+        if (ret != 1) {
+            L_ERROR("height not found for item %d at loc %d\n",
+                    __func__, i, loc);
+            continue;
+        }
+        numaAddNumber(nah, height);
+    }
+
+    LEPT_FREE(data);
+    l_dnaDestroy(&dnaw);
+    l_dnaDestroy(&dnah);
+    if (pmedw) {
+        numaGetMedian(naw, &fval);
+        *pmedw = lept_roundftoi(fval);
+    }
+    if (pnaw)
+        *pnaw = naw;
+    else
+        numaDestroy(&naw);
+    if (pmedh) {
+        numaGetMedian(nah, &fval);
+        *pmedh = lept_roundftoi(fval);
+    }
+    if (pnah)
+        *pnah = nah;
+    else
+        numaDestroy(&nah);
     return 0;
 }
 
