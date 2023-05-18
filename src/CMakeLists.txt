@@ -73,6 +73,10 @@ if (UNIX)
     endif(SYM_LINK)
 endif()
 
+if (MSVC)
+    target_link_libraries       (leptonica PRIVATE user32.lib gdi32.lib)
+endif()
+
 if (NOT SW_BUILD)
     export(TARGETS leptonica FILE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake)
 else()
