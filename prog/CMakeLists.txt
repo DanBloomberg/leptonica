@@ -3,9 +3,6 @@
 ########################################
 function(add_prog_target target)
     set                             (${target}_src "${ARGN}")
-    if (WIN32)
-        set_source_files_properties (${${target}_src} PROPERTIES LANGUAGE CXX)
-    endif()
     add_executable                  (${target} ${${target}_src})
     if (BUILD_SHARED_LIBS)
         target_compile_definitions  (${target} PRIVATE -DLIBLEPT_IMPORTS)

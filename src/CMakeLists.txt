@@ -10,9 +10,6 @@
 
 file(GLOB hdr "*.h")
 file(GLOB src "*.c")
-if (MSVC)
-    set_source_files_properties(${src} PROPERTIES LANGUAGE CXX)
-endif()
 
 string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 
@@ -71,6 +68,10 @@ if (UNIX)
             COMMENT "Creating lept symlink")
         install(FILES ${CMAKE_BINARY_DIR}/src/${old_target} DESTINATION lib)
     endif(SYM_LINK)
+endif()
+
+if (MSVC)
+    target_link_libraries       (leptonica PRIVATE user32.lib gdi32.lib)
 endif()
 
 if (NOT SW_BUILD)
