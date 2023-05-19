@@ -4,6 +4,11 @@
 function(add_prog_target target)
     set                             (${target}_src "${ARGN}")
     add_executable                  (${target} ${${target}_src})
+    string(FIND ${target} "gif" GIF_TEST_FOUND)
+    if (GIF_TEST_FOUND EQUAL 0)
+        # gif_lib.h is not found on Windows
+        target_include_directories  (${target} PRIVATE ${GIF_INCLUDE_DIR})
+    endif()
     if (BUILD_SHARED_LIBS)
         target_compile_definitions  (${target} PRIVATE -DLIBLEPT_IMPORTS)
     endif()
