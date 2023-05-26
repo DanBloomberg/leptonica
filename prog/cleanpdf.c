@@ -109,7 +109,8 @@
  *    If the larger of the two is significantly bigger than 792 printer
  *    points, corresponding to 11 inches, we compensate with a resolution
  *    below 300 ppi that will make the largest image dimension about
- *    3300 pixels.
+ *    3300 pixels.  If no media box is found, it is necessary to render
+ *    a test image using a small resolution and find the size of the image.
  *
  *    Notes on using filenames with internal spaces.
  *    * The file-handling functions in leptonica do not support filenames
@@ -218,15 +219,13 @@ SARRAY  *sa, *sa1;
     n = sarrayGetCount(sa);
 
         /* Figure out the resolution to use with the image renderer.
-           Check the media box sizes.  These gives the output image size
-           in printer points.  The largest expected output image has a max
-           dimension of about 11 inches, which corresponds to 792 points.
-           At a resolution of 300 ppi, the max image size is 3300 for
-           an image dimension of 792 printer points.  We use the median
-           of media box sizes.  If the max dimension of this median is
-           significantly larger than 792, we prevent the image from
-           getting too big during rendering by reducing the resolution
-           that is input to the renderer.  Specifically:
+           This first checks the media box sizes, which give the output
+           image size in printer points (1/72 inch).  The largest expected
+           output image has a max dimension of about 11 inches, corresponding
+           to 792 points.  At a resolution of 300 ppi, the max image size
+           is then 3300.  For robustness, use the median of media box sizes.
+           If the max dimension of this median is significantly larger than
+           792, reduce the input resolution to the renderer. Specifically:
             * Calculate the median of the MediaBox widths and heights.
             * If the max exceeds 850, reduce the resolution so that the max
               dimension of the rendered image is 3300.  The new resolution
@@ -235,40 +234,8 @@ SARRAY  *sa, *sa1;
            If the media boxes are not found, render a page using a small
            given resolution (72) and use the max dimension to find the
            resolution that will produce a 3300 pixel size output.  */
-    render_res = 300;  /* default value */
     firstfile = sarrayGetString(sa, 0, L_NOCOPY);
-    ret = getPdfMediaBoxSizes(firstfile, NULL, NULL, &medw, &medh);
-    if (ret == 0) {  /* Maybe use the mediaboxes to find the resolution */
-        lept_stderr("Media Box medians: medw = %d, medh = %d\n", medw, medh);
-        medmax = L_MAX(medw, medh);
-        if (medmax > 850) {
-            render_res = 300 * ((l_float32)792 / (l_float32)medmax);
-            lept_stderr(" Oversize media box: rendering with resolution = %d\n",
-                        render_res);
-        }
-    } else {  /* No mediaboxes; render one page and measure the max dimension */
-        lept_stderr("Media Box dimensions not found\n");
-        getPdfPageCount(firstfile, &npages);
-        pageno = (npages > 0) ? (npages + 1) / 2 : 1;
-        splitPathAtDirectory(firstfile, NULL, &tail);
-        splitPathAtExtension(tail, &basename, NULL);
-        snprintf(buf, sizeof(buf), "pdftoppm -f %d -l %d -r 72 %s %s/%s",
-                 pageno, pageno, firstfile, imagedir, basename);
-        lept_free(tail);
-        lept_free(basename);
-        ret = system(buf);   /* pdfimages or pdftoppm */
-            /* Get the page size */
-        sa1 = getSortedPathnamesInDirectory(imagedir, NULL, 0, 0);
-        fname = sarrayGetString(sa1, 0, L_NOCOPY);
-        pixReadHeader(fname, NULL, &w, &h, NULL, NULL, NULL);
-        sarrayDestroy(&sa1);
-        if (w > 0 && h > 0) {
-            render_res = L_MIN((72 * 3300 / L_MAX(w, h)), 600);
-            lept_stderr("render_res = %d\n", render_res);
-        } else {
-            L_ERROR("page size not found; assuming res = 300\n", __func__);
-        }
-    }
+    getPdfRendererResolution(firstfile, imagedir, &render_res);
 
         /* Rasterize: use either
          *     pdftoppm -r res fname outroot  (-r res renders output at res ppi)

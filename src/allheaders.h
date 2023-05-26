@@ -1444,6 +1444,7 @@ LEPT_DLL extern void l_CIDataDestroy ( L_COMP_DATA **pcid );
 LEPT_DLL extern l_ok getPdfPageCount ( const char *fname, l_int32 *pnpages );
 LEPT_DLL extern l_ok getPdfPageSizes ( const char *fname, NUMA **pnaw, NUMA **pnah, l_int32 *pmedw, l_int32 *pmedh );
 LEPT_DLL extern l_ok getPdfMediaBoxSizes ( const char *fname, NUMA **pnaw, NUMA **pnah, l_int32 *pmedw, l_int32 *pmedh );
+LEPT_DLL extern l_ok getPdfRendererResolution ( const char *infile, const char *outdir, l_int32 *pres );
 LEPT_DLL extern void l_pdfSetG4ImageMask ( l_int32 flag );
 LEPT_DLL extern void l_pdfSetDateAndVersion ( l_int32 flag );
 LEPT_DLL extern void setPixMemoryManager ( alloc_fn allocator, dealloc_fn deallocator );
