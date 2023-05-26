@@ -154,12 +154,12 @@ l_int32 main(int    argc,
              char **argv)
 {
 char     buf[256], sequence[32];
-char    *basedir, *fname, *tail, *basename, *imagedir, *title;
+char    *basedir, *fname, *tail, *basename, *imagedir, *firstfile, *title;
 char    *outfile, *firstpath;
 l_int32  thresh, res, render_res, rotation, darken, opensize, i, n, ret;
-l_int32  medw, medh, medmax;
+l_int32  medw, medh, medmax, npages, pageno, w, h;
 PIX     *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pix6;
-SARRAY  *sa;
+SARRAY  *sa, *sa1;
 
     if (argc != 9)
         return ERROR_INT(
@@ -203,37 +203,71 @@ SARRAY  *sa;
     }
     setLeptDebugOK(1);
 
-        /* Get the names of the pdf files */
+        /* Set up a directory for temp images */
+    imagedir = stringJoin(basedir, "/image");
+  #ifndef _WIN32
+    mkdir(imagedir, 0777);
+  #else
+    _mkdir(imagedir);
+  #endif  /* _WIN32 */
+
+        /* Get the names of the input pdf files */
     if ((sa = getSortedPathnamesInDirectory(basedir, "pdf", 0, 0)) == NULL)
         return ERROR_INT("files not found", __func__, 1);
     sarrayWriteStderr(sa);
     n = sarrayGetCount(sa);
 
-        /* Check the media box size.  This gives the output image size
-           in printer points.  The largest expect output image has a max
+        /* Figure out the resolution to use with the image renderer.
+           Check the media box sizes.  These gives the output image size
+           in printer points.  The largest expected output image has a max
            dimension of about 11 inches, which corresponds to 792 points.
            At a resolution of 300 ppi, the max image size is 3300 for
-           an image dimension of 792 printer points..
-           If the max dimension in the media box is significantly larger
-           than 792, we prevent the image from getting too big during
-           rendering by reducing the resolution that is input to the renderer.
-           Calculate the median of the MediaBox widths and heights.
-           If the max exceeds 850, reduce the resolution so that the
-           max dimension of the rendered image is 3300.  The new resolution
-           input to the renderer is reduced from 300 by the factor:
-                            (792 / medmax)                            */
-    ret = getPdfMediaBoxSizes(sarrayGetString(sa, 0, L_NOCOPY),
-                              NULL, NULL, &medw, &medh);
-    if (ret == 0)
-        lept_stderr("Media Box medians: medw = %d, medh = %d\n", medw, medh);
-    else
-        lept_stderr("Media Box dimensions not found\n");
-    medmax = L_MAX(medw, medh);
+           an image dimension of 792 printer points.  We use the median
+           of media box sizes.  If the max dimension of this median is
+           significantly larger than 792, we prevent the image from
+           getting too big during rendering by reducing the resolution
+           that is input to the renderer.  Specifically:
+            * Calculate the median of the MediaBox widths and heights.
+            * If the max exceeds 850, reduce the resolution so that the max
+              dimension of the rendered image is 3300.  The new resolution
+              input to the renderer is reduced from 300 by the factor:
+                            (792 / medmax)
+           If the media boxes are not found, render a page using a small
+           given resolution (72) and use the max dimension to find the
+           resolution that will produce a 3300 pixel size output.  */
     render_res = 300;  /* default value */
-    if (medmax > 850) {
-        render_res = 300 * ((l_float32)792 / (l_float32)medmax);
-        lept_stderr(" Oversize media box: rendering with resolution = %d\n",
-                    render_res);
+    firstfile = sarrayGetString(sa, 0, L_NOCOPY);
+    ret = getPdfMediaBoxSizes(firstfile, NULL, NULL, &medw, &medh);
+    if (ret == 0) {  /* Maybe use the mediaboxes to find the resolution */
+        lept_stderr("Media Box medians: medw = %d, medh = %d\n", medw, medh);
+        medmax = L_MAX(medw, medh);
+        if (medmax > 850) {
+            render_res = 300 * ((l_float32)792 / (l_float32)medmax);
+            lept_stderr(" Oversize media box: rendering with resolution = %d\n",
+                        render_res);
+        }
+    } else {  /* No mediaboxes; render one page and measure the max dimension */
+        lept_stderr("Media Box dimensions not found\n");
+        getPdfPageCount(firstfile, &npages);
+        pageno = (npages > 0) ? (npages + 1) / 2 : 1;
+        splitPathAtDirectory(firstfile, NULL, &tail);
+        splitPathAtExtension(tail, &basename, NULL);
+        snprintf(buf, sizeof(buf), "pdftoppm -f %d -l %d -r 72 %s %s/%s",
+                 pageno, pageno, firstfile, imagedir, basename);
+        lept_free(tail);
+        lept_free(basename);
+        ret = system(buf);   /* pdfimages or pdftoppm */
+            /* Get the page size */
+        sa1 = getSortedPathnamesInDirectory(imagedir, NULL, 0, 0);
+        fname = sarrayGetString(sa1, 0, L_NOCOPY);
+        pixReadHeader(fname, NULL, &w, &h, NULL, NULL, NULL);
+        sarrayDestroy(&sa1);
+        if (w > 0 && h > 0) {
+            render_res = L_MIN((72 * 3300 / L_MAX(w, h)), 600);
+            lept_stderr("render_res = %d\n", render_res);
+        } else {
+            L_ERROR("page size not found; assuming res = 300\n", __func__);
+        }
     }
 
         /* Rasterize: use either
@@ -251,12 +285,6 @@ SARRAY  *sa;
          *    This only works when all pages are pdf wrappers around images.
          *    In some cases, it scrambles the order of the output pages
          *    and inserts extra images. */
-    imagedir = stringJoin(basedir, "/image");
-  #ifndef _WIN32
-    mkdir(imagedir, 0777);
-  #else
-    _mkdir(imagedir);
-  #endif  /* _WIN32 */
     for (i = 0; i < n; i++) {
         fname = sarrayGetString(sa, i, L_NOCOPY);
         splitPathAtDirectory(fname, NULL, &tail);
@@ -352,6 +380,7 @@ SARRAY  *sa;
         title = NULL;
     convertFilesToPdf(imagedir, "tif", res, 1.0, L_G4_ENCODE,
                       0, title, outfile);
+    lept_free(imagedir);
     return 0;
 }
 

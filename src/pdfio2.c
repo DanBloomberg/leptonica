@@ -2607,7 +2607,8 @@ pdfdataGetCid(L_PDF_DATA  *lpd,
  *      (2) This first reads 10000 bytes from the beginning of the file.
  *          If "/Count" is not in that string, it reads the entire file
  *          and looks for "/Count".
- *      (3) This will not work on encrypted pdf files.
+ *      (3) This will not work on encrypted pdf files or on files where
+ *          the "/Count" field is binary compressed.
  * </pre>
  */
 l_ok
@@ -2640,7 +2641,7 @@ size_t    nread;
     arrayFindSequence(data, nread, (const l_uint8 *)"/Count",
           strlen("/Count"), &loc, &found);
     if (!found) {
-        lept_stderr("Reading entire file\n");
+        lept_stderr("Reading entire file looking for '/Count'\n");
         LEPT_FREE(data);
         if ((data = l_binaryRead(fname, &nread)) == NULL)
             return ERROR_INT("full data not read", __func__, 1);
@@ -2687,7 +2688,8 @@ size_t    nread;
  * Notes:
  *      (1) Finds the arguments of each instance of '/Width' and '/Height'
  *          in the file.
- *      (2) This will not work on encrypted pdf files.
+ *      (2) This will not work on encrypted pdf files or on files where
+ *          the "/Width" and "/Height" fields are binary compressed.
  * </pre>
  */
 l_ok
@@ -2799,12 +2801,16 @@ NUMA      *nah;   /* heights */
  * <pre>
  * Notes:
  *      (1) Finds the arguments of each instance of '/MediaBox' in the file.
- *      (2) This will not work on encrypted pdf files.
+ *      (2) This will not work on encrypted pdf files or on files where
+ *          the "/MediaBoxes" field is binary compressed.
  *      (3) This is useful for determining if the media boxes are
  *          incorrectly assigned, such as assuming the resolution is 72 ppi.
  *          If that happens and the input the the renderer assumes the
  *          resolution is 300 ppi, the rendered images will be over 4x too
  *          large in each dimension.
+ *      (4) An image dimension of 11 inches corresponds to a MediaBox
+ *          parameter of 792.  We consider a value > 850 to be oversized
+ *          and not to be taken literally.
  * </pre>
  */
 l_ok
@@ -2862,12 +2868,13 @@ NUMA      *nah;   /* mediabox heights */
         numaAddNumber(naw, w);
         numaAddNumber(nah, h);
     }
-
     LEPT_FREE(data);
     l_dnaDestroy(&dna);
+
     if (pmedw) {
         numaGetMedian(naw, &fval);
         *pmedw = lept_roundftoi(fval);
+        if (*pmedw > 850) lept_stderr("oversize width: %d\n", *pmedw);
     }
     if (pnaw)
         *pnaw = naw;
@@ -2876,6 +2883,7 @@ NUMA      *nah;   /* mediabox heights */
     if (pmedh) {
         numaGetMedian(nah, &fval);
         *pmedh = lept_roundftoi(fval);
+        if (*pmedh > 850) lept_stderr("oversize height: %d\n", *pmedh);
     }
     if (pnah)
         *pnah = nah;
