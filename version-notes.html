@@ -91,6 +91,9 @@ They are <i>not</i> a complete listing of the modifications.
 
 1.84.0  Jan 7, 2023
         * Add getPdfPageCount() to find the number of pages in a pdf file.
+        * Add getPdfPageSizes() and getPdfMediaBoxSizes() to find the
+          information necessary to render images properly.  Modify cleanpdf.c
+          to use this information.
         * Add prog/splitpdf.c to split a pdf file into nearly equal page sets.
         * Add ability to read and write rgba in bmp format, and
           test in ioformats_reg.

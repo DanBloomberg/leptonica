@@ -88,8 +88,9 @@
  *     Find number of pages in a pdf
  *          l_int32              getPdfPageCount()
  *
- *     Find page widths and heights in a pdf
+ *     Find widths and heights of pages and media boxes in a pdf
  *          l_int32              getPdfPageSizes()
+ *          l_int32              getPdfMediaBoxSizes()
  *
  *     Set flags for special modes
  *          void                 l_pdfSetG4ImageMask()
@@ -2670,7 +2671,7 @@ size_t    nread;
 
 
 /*---------------------------------------------------------------------*
- *                Find page widths and heights in a pdf                *
+ *      Find widths and heights of pages and media boxes in a pdf      *
  *---------------------------------------------------------------------*/
 /*!
  * \brief   getPdfPageSizes()
@@ -2765,6 +2766,105 @@ NUMA      *nah;   /* heights */
     LEPT_FREE(data);
     l_dnaDestroy(&dnaw);
     l_dnaDestroy(&dnah);
+    if (pmedw) {
+        numaGetMedian(naw, &fval);
+        *pmedw = lept_roundftoi(fval);
+    }
+    if (pnaw)
+        *pnaw = naw;
+    else
+        numaDestroy(&naw);
+    if (pmedh) {
+        numaGetMedian(nah, &fval);
+        *pmedh = lept_roundftoi(fval);
+    }
+    if (pnah)
+        *pnah = nah;
+    else
+        numaDestroy(&nah);
+    return 0;
+}
+
+
+/*!
+ * \brief   getPdfMediaBoxSizes()
+ *
+ * \param[in]    fname        filename
+ * \param[out]   pnaw         [optional] array of mediabox widths
+ * \param[out]   pnah         [optional] array of mediabox heights
+ * \param[out]   pmedw        [optional] median mediabox width
+ * \param[out]   pmedh        [optional] median mediabox height
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Finds the arguments of each instance of '/MediaBox' in the file.
+ *      (2) This will not work on encrypted pdf files.
+ *      (3) This is useful for determining if the media boxes are
+ *          incorrectly assigned, such as assuming the resolution is 72 ppi.
+ *          If that happens and the input the the renderer assumes the
+ *          resolution is 300 ppi, the rendered images will be over 4x too
+ *          large in each dimension.
+ * </pre>
+ */
+l_ok
+getPdfMediaBoxSizes(const char  *fname,
+                    NUMA       **pnaw,
+                    NUMA       **pnah,
+                    l_int32     *pmedw,
+                    l_int32     *pmedh)
+{
+l_uint8   *data;
+l_int32    i, n, format, ret, loc;
+l_float32  fval, ignore1, ignore2, w, h;
+size_t     nread;
+L_DNA     *dna;   /* mediabox locations */
+NUMA      *naw;   /* mediabox widths */
+NUMA      *nah;   /* mediabox heights */
+
+    if (pnaw) *pnaw = NULL;
+    if (pnah) *pnah = NULL;
+    if (pmedw) *pmedw = 0;
+    if (pmedh) *pmedh = 0;
+    if (!pnaw && !pnah && !pmedw && !pmedh)
+        return ERROR_INT("no output requested", __func__, 1);
+    if (!fname)
+        return ERROR_INT("fname not defined", __func__, 1);
+
+        /* Make sure this a pdf file */
+    findFileFormat(fname, &format);
+    if (format != IFF_LPDF)
+        return ERROR_INT("file is not pdf", __func__, 1);
+
+        /* Read the file into memory and find all locations of '/MediaBox' */
+    if ((data = l_binaryRead(fname, &nread)) == NULL)
+        return ERROR_INT("full data not read", __func__, 1);
+    dna = arrayFindEachSequence(data, nread, (const l_uint8 *)"/MediaBox",
+                                strlen("/MediaBox"));
+    if (!dna) {
+        LEPT_FREE(data);
+        return ERROR_INT("no mediaboxes found", __func__, 1);
+    }
+
+        /* Find the mediabox widths and heights */
+    n = l_dnaGetCount(dna);
+    naw = numaCreate(n);
+    nah = numaCreate(n);
+    for (i = 0; i < n; i++) {
+        l_dnaGetIValue(dna, i, &loc);
+        ret = sscanf((char *)&data[loc], "/MediaBox [ %f %f %f %f",
+                     &ignore1, &ignore2, &w, &h);
+        if (ret != 4) {
+            L_ERROR("mediabox sizes not found for item %d at loc %d\n",
+                    __func__, i, loc);
+            continue;
+        }
+        numaAddNumber(naw, w);
+        numaAddNumber(nah, h);
+    }
+
+    LEPT_FREE(data);
+    l_dnaDestroy(&dna);
     if (pmedw) {
         numaGetMedian(naw, &fval);
         *pmedw = lept_roundftoi(fval);

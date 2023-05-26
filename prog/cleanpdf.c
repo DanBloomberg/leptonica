@@ -94,6 +94,23 @@
  *
  *    Whenever possible, the images will be deskewed.
  *
+ *    Some pdf files have oversize media boxes.  PDF is a
+ *    resolution-independent format for storing data that can be imaged.
+ *    Usually the data is stored in fonts, which are a description of the
+ *    shape that can be rendered at different image resolutions.  We deal
+ *    here with images that are made up of a fixed number of pixels, and
+ *    thus are not resolution independent.  It is necessary for image
+ *    specification to include data for the renderer that says how big
+ *    (in inches) to display or print the image.  That is done with /MediaBox,
+ *    whose 3rd and 4th parameters are the width and height of the output
+ *    image in printer points.  (1 printer point = 1/72 inch).  To prevent
+ *    pdf files with incorrect use of /MediaBox from forcing the renderer
+ *    to make oversize images, we find the median media box width and height.
+ *    If the larger of the two is significantly bigger than 792 printer
+ *    points, corresponding to 11 inches, we compensate with a resolution
+ *    below 300 ppi that will make the largest image dimension about
+ *    3300 pixels.
+ *
  *    Notes on using filenames with internal spaces.
  *    * The file-handling functions in leptonica do not support filenames
  *      that have spaces.  To use cleanpdf in linux with such input
@@ -139,7 +156,8 @@ l_int32 main(int    argc,
 char     buf[256], sequence[32];
 char    *basedir, *fname, *tail, *basename, *imagedir, *title;
 char    *outfile, *firstpath;
-l_int32  thresh, res, rotation, darken, opensize, i, n, ret;
+l_int32  thresh, res, render_res, rotation, darken, opensize, i, n, ret;
+l_int32  medw, medh, medmax;
 PIX     *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pix6;
 SARRAY  *sa;
 
@@ -191,8 +209,35 @@ SARRAY  *sa;
     sarrayWriteStderr(sa);
     n = sarrayGetCount(sa);
 
+        /* Check the media box size.  This gives the output image size
+           in printer points.  The largest expect output image has a max
+           dimension of about 11 inches, which corresponds to 792 points.
+           At a resolution of 300 ppi, the max image size is 3300 for
+           an image dimension of 792 printer points..
+           If the max dimension in the media box is significantly larger
+           than 792, we prevent the image from getting too big during
+           rendering by reducing the resolution that is input to the renderer.
+           Calculate the median of the MediaBox widths and heights.
+           If the max exceeds 850, reduce the resolution so that the
+           max dimension of the rendered image is 3300.  The new resolution
+           input to the renderer is reduced from 300 by the factor:
+                            (792 / medmax)                            */
+    ret = getPdfMediaBoxSizes(sarrayGetString(sa, 0, L_NOCOPY),
+                              NULL, NULL, &medw, &medh);
+    if (ret == 0)
+        lept_stderr("Media Box medians: medw = %d, medh = %d\n", medw, medh);
+    else
+        lept_stderr("Media Box dimensions not found\n");
+    medmax = L_MAX(medw, medh);
+    render_res = 300;  /* default value */
+    if (medmax > 850) {
+        render_res = 300 * ((l_float32)792 / (l_float32)medmax);
+        lept_stderr(" Oversize media box: rendering with resolution = %d\n",
+                    render_res);
+    }
+
         /* Rasterize: use either
-         *     pdftoppm -r 300 fname outroot  (-r 300 renders output at 300 ppi)
+         *     pdftoppm -r res fname outroot  (-r res renders output at res ppi)
          * or
          *     pdfimages -j fname outroot   (-j outputs jpeg if input is dct)
          * Use of pdftoppm:
@@ -217,8 +262,8 @@ SARRAY  *sa;
         splitPathAtDirectory(fname, NULL, &tail);
         splitPathAtExtension(tail, &basename, NULL);
   #if USE_PDFTOPPM
-        snprintf(buf, sizeof(buf), "pdftoppm -r 300 %s %s/%s",
-                 fname, imagedir, basename);
+        snprintf(buf, sizeof(buf), "pdftoppm -r %d %s %s/%s",
+                 render_res, fname, imagedir, basename);
   #else
         snprintf(buf, sizeof(buf), "pdfimages -j %s %s/%s",
                  fname, imagedir, basename);
