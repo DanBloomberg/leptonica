@@ -83,6 +83,15 @@
  *    The pdf output is written to %outfile.  It is advisable (but not
  *    required) to have a '.pdf' extension.
  *
+ *    The intent is to use pdftoppm to render the images at 150 pixels/inch
+ *    for a full page, when scalefactor = 1.0.  The renderer uses the
+ *    mediaboxes to decide how big to make the images.  If those boxes
+ *    have values that are too large, the intermediate ppm images can
+ *    be very large.  To prevent that, we compute the resolution to input
+ *    to pdftoppm that results in RGB ppm images representing page images
+ *    at about 150 ppi (when scalefactor = 1.0).  These images are about
+ *    6MB, but are written quickly because there is no compression.
+ *
  *    N.B.  This requires the Poppler package of pdf utilities, such as
  *          pdfimages and pdftoppm.  For non-unix systems, this requires
  *          installation of the cygwin Poppler package:
@@ -112,7 +121,7 @@ l_int32 main(int    argc,
 {
 char       buf[256];
 char      *basedir, *fname, *tail, *basename, *imagedir, *title, *outfile;
-l_int32    res, one_bit, save_color, quality, i, n, ret;
+l_int32    res, render_res, one_bit, save_color, quality, i, n, ret;
 l_float32  scalefactor, colorfract;
 PIX       *pixs, *pix1, *pix2;
 PIXA      *pixa1 = NULL;
@@ -141,32 +150,42 @@ SARRAY    *sa;
         quality = 95;
     }
 
-        /* Get the names of the pdf files */
-    if ((sa = getSortedPathnamesInDirectory(basedir, "pdf", 0, 0)) == NULL)
-        return ERROR_INT("files not found", __func__, 1);
-    sarrayWriteStderr(sa);
-    n = sarrayGetCount(sa);
-
-        /* Rasterize:
-         *     pdftoppm -r 150 fname outroot
-         * Use of pdftoppm:
-         *    This works on all pdf pages, both wrapped images and pages that
-         *    were made orthographically.  We use the default output resolution
-         *    of 150 ppi for pdftoppm, which makes uncompressed 6 MB files
-         *    and is very fast.  If you want higher resolution 1 bpp output,
-         *    use cleanpdf.c. */
+        /* Set up a directory for temp images */
     imagedir = stringJoin(basedir, "/image");
 #ifndef _WIN32
     mkdir(imagedir, 0777);
 #else
     _mkdir(imagedir);
 #endif  /* _WIN32 */
+
+        /* Get the names of the pdf files */
+    if ((sa = getSortedPathnamesInDirectory(basedir, "pdf", 0, 0)) == NULL)
+        return ERROR_INT("files not found", __func__, 1);
+    sarrayWriteStderr(sa);
+    n = sarrayGetCount(sa);
+
+        /* Figure out the resolution to use with the image renderer to
+         * generate page images with a resolution of not more than 150 ppi.
+         * These would have a maximum dimension of about 1650 pixels. 
+         * Use the first pdf file in the directory.  */
+    fname = sarrayGetString(sa, 0, L_NOCOPY);
+    getPdfRendererResolution(fname, imagedir, &render_res);  /* for 300 ppi */
+    render_res /= 2;  /* for 150 ppi */
+
+        /* Rasterize:
+         *     pdftoppm -r 150 fname outroot
+         * Use of pdftoppm:
+         *    This works on all pdf pages, both wrapped images and pages that
+         *    were made orthographically.  We generate images that are no
+         *    larger than about 1650 pixels in the maximum direction. This
+         *    makes uncompressed 6 MB files and is very fast.  If you want
+         *    higher resolution 1 bpp output, use cleanpdf.c. */
     for (i = 0; i < n; i++) {
         fname = sarrayGetString(sa, i, L_NOCOPY);
         splitPathAtDirectory(fname, NULL, &tail);
         splitPathAtExtension(tail, &basename, NULL);
-        snprintf(buf, sizeof(buf), "pdftoppm -r 150 %s %s/%s",
-                 fname, imagedir, basename);
+        snprintf(buf, sizeof(buf), "pdftoppm -r %d %s %s/%s",
+                 render_res, fname, imagedir, basename);
         lept_free(tail);
         lept_free(basename);
         lept_stderr("%s\n", buf);

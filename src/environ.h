@@ -502,16 +502,18 @@ LEPT_DLL extern l_int32  LeptMsgSeverity;
  *      a : <message string>
  *      b : __func__   (the procedure name)
  *      c : <return value from function>
+ *  A newline is added by the function after the message.
  *
  *  (2) The messages
  *      ERROR_INT_1(a,f,b,c)     : returns l_int32
- *      ERROR_FLOAT_2(a,f,b,c)   : returns l_float32
- *      ERROR_PTR_2(a,f,b,c)     : returns void*
+ *      ERROR_FLOAT_1(a,f,b,c)   : returns l_float32
+ *      ERROR_PTR_1(a,f,b,c)     : returns void*
  *  are used to return from functions and take four parameters:
  *      a : <message string>
  *      f : <second message string> (typically, a filename for an fopen()))
  *      b : __func__   (the procedure name)
  *      c : <return value from function>
+ *  A newline is added by the function after the message.
  *
  *  (3) The purely informational L_* messages
  *      L_ERROR(a,...)
@@ -521,6 +523,8 @@ LEPT_DLL extern l_int32  LeptMsgSeverity;
  *      a  :  <message string> with optional format conversions
  *      v1 : procName    (this must be included as the first vararg)
  *      v2, ... :  optional varargs to match format converters in the message
+ *  Unlike the messages that return a value in (2) and (3) above,
+ *  here a newline needs to be included at the end of the message string.
  *
  *  To return an error from a function that returns void, use:
  *      L_ERROR(<message string>, procName, [...])
