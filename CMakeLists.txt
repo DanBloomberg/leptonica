@@ -41,8 +41,13 @@ set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake Targets")
 
 project(
   leptonica
-  LANGUAGES C CXX
+  LANGUAGES C
   VERSION 1.84.0)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+# Standard installation paths
+include(GNUInstallDirs)
 
 set(MINIMUM_WEBPMUX_VERSION 0.5.0)
 
