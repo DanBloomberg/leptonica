@@ -77,6 +77,7 @@ SARRAY    *sa1;
     scalefactor = atof(argv[3]);
     dirout = argv[4];
     rootname = argv[5];
+	comptype = NULL;
     if (argc == 7)
         comptype = argv[6];
 
@@ -92,7 +93,7 @@ SARRAY    *sa1;
         }
 
             /* Determine the output compression format */
-        if (argc == 7)
+        if (comptype)
             format = getFormatFromExtension(comptype);
         else
             format = getImpliedFileFormat(fname);

@@ -664,7 +664,7 @@ l_int32    i, j, w1, h1, d1, w2, h2, d2, minw, minh, wpl1, wpl2, wpl3;
 l_int32    rval1, gval1, bval1, rval2, gval2, bval2;
 l_uint32   val1, val2;
 l_uint32  *data1, *data2, *data3, *line1, *line2, *line3;
-PIX       *pix3, *pix4, *pixd;
+PIX       *pix3 = NULL, *pix4 = NULL, *pixd;
 PIXA      *pixa1;
 
     if (!pix1 || !pix2)
