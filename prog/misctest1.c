@@ -39,6 +39,7 @@
  *        * Test zlib compression in png
  *        * Show sampled scaling with and without source indexing shift
  *        * Display differences in images with pixDisplayDiff()
+ *        * Demonstrate read of cmap+alpha png, and I/O of rgba pnm, bmp, webp
  */
 
 #ifdef HAVE_CONFIG_H
@@ -54,7 +55,7 @@ static const size_t  zlibsize[5] = {1047868, 215039, 195778, 189709, 180987};
 int main(int    argc,
          char **argv)
 {
-l_int32   w, h, bx, by, bw, bh, i, j;
+l_int32   w, h, bx, by, bw, bh, i, j, same;
 size_t    size;
 BOX      *box1, *box2;
 BOXA     *boxa1, *boxa2, *boxae, *boxao;
@@ -385,6 +386,31 @@ PIXCMAP  *cmap, *cmapg;
     pixDestroy(&pix2);
     pixDestroy(&pix3);
     pixDestroy(&pix4);
+
+        /* Demonstrate read of cmap+alpha png, and I/O of rgba pnm, bmp, webp */
+    pix1 = pixRead("elephant-cmap-alpha.png");  /* has colormap */
+    pixDisplay(pix1, 1300, 800);
+    pixWrite("/tmp/lept/misc/e.pnm", pix1, IFF_PNM);
+    pixWrite("/tmp/lept/misc/e.bmp", pix1, IFF_BMP);
+  #if HAVE_LIBWEBP
+    pixWrite("/tmp/lept/misc/e.webp", pix1, IFF_WEBP);
+  #endif  /* HAVE_LIBWEBP */
+    pix2 = pixRead("/tmp/lept/misc/e.pnm");
+    pixEqual(pix1, pix2, &same);
+    lept_stderr("png vs pnm same? (yes): %d\n", same);
+    pixDestroy(&pix2);
+    pix2 = pixRead("/tmp/lept/misc/e.bmp");
+    pixEqual(pix1, pix2, &same);
+    lept_stderr("png vs bmp same? (yes): %d\n", same);
+    pixDestroy(&pix2);
+  #if HAVE_LIBWEBP
+    pix2 = pixRead("/tmp/lept/misc/e.webp");
+    pixDisplay(pix2, 1440, 800);  /* interesting change in rgb layer */
+    pixEqual(pix1, pix2, &same);
+    lept_stderr("png vs webp same? (no): %d\n", same);
+    pixDestroy(&pix2);
+  #endif  /* HAVE_LIBWEBP */
+    pixDestroy(&pix1);
 
     return 0;
 }
