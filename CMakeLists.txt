@@ -231,7 +231,7 @@ set(libs_private "${libs_private} -lm")
 #
 # ##############################################################################
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(CLANG 1)
 endif()
 
@@ -247,12 +247,10 @@ else()
 endif()
 
 include(CheckCCompilerFlag)
-include(CheckCXXCompilerFlag)
 
 # Check for valid compiler flags
 macro(CHECK_CCXX_COMPILER_FLAG flag_ result_)
   check_c_compiler_flag(${flag_} C_HAS${result_})
-  check_cxx_compiler_flag(${flag_} CXX_HAS${result_})
 endmacro()
 
 if(MSVC)
@@ -260,7 +258,7 @@ if(MSVC)
   add_compile_options("$<$<CONFIG:Release>:/W1;/Ox>")
   add_compile_options("$<$<CONFIG:Debug>:/W4;/DDEBUG>")
   if(NOT CLANG)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
   endif()
 else()
   if(CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]")
@@ -278,9 +276,6 @@ else()
       check_ccxx_compiler_flag(${flag_} ${flag_var})
       if(C_HAS${flag_var})
         set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${flag_}")
-      endif()
-      if(CXX_HAS${flag_var})
-        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${flag_}")
       endif()
     endforeach()
     add_definitions(-DDEBUG)
