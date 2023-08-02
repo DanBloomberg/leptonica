@@ -302,6 +302,9 @@ Building leptonica
        * To make a static library:
             cmake .. -DBUILD_SHARED_LIBS=OFF
             make
+       * To make a dynamic library (default) and STATIC (or builtin) dependencies:
+            cmake .. -DSW_BUILD_SHARED_LIBS=0
+            make
        * To build with debug:
             cmake .. -DCMAKE_BUILD_TYPE=Debug
             make
