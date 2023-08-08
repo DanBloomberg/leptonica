@@ -459,7 +459,7 @@ PIXCMAP   *cmap;
  * \param[in]    srcval   color center to be selected for change: 0xrrggbb00
  * \param[in]    dstval   target color for pixels: 0xrrggbb00
  * \param[in]    diff     max absolute difference, applied to all components
- * \return  pixd   with all pixels within diff of pixval set to pixval,
+ * \return  pixd   with all pixels within diff of srcval set to dstval,
  *                 or pixd on error
  *
  * <pre>
