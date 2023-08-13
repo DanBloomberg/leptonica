@@ -82,7 +82,7 @@ OTHER_PROGS = adaptmap_dark \
 	blendcmaptest buffertest \
 	ccbordtest cctest1 cleanpdf \
 	colorsegtest comparepages comparepixa \
-	comparetest concatpdf \
+	comparetest compresspdf \
 	contrasttest converttogray \
 	cornertest corrupttest croptext deskew_it \
 	dewarprules dewarptest1 dewarptest2 \

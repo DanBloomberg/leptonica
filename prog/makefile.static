@@ -215,7 +215,7 @@ SRC =		adaptmap_reg.c adaptnorm_reg.c affine_reg.c \
 		ccbordtest.c cctest1.c \
 		cleanpdf.c colorsegtest.c comparepages.c \
 		comparepixa.c comparetest.c \
-		concatpdf.c contrasttest.c \
+		compresspdf.c contrasttest.c \
 		convertfilestopdf.c convertfilestops.c \
 		convertformat.c \
 		convertsegfilestopdf.c convertsegfilestops.c \
@@ -851,8 +851,8 @@ comparepixa:	comparepixa.o $(LEPTLIB)
 comparetest:	comparetest.o $(LEPTLIB)
 	$(CC) -o comparetest comparetest.o $(ALL_LIBS) $(EXTRALIBS)
 
-concatpdf:	concatpdf.o $(LEPTLIB)
-	$(CC) -o concatpdf concatpdf.o $(ALL_LIBS) $(EXTRALIBS)
+compresspdf:	compresspdf.o $(LEPTLIB)
+	$(CC) -o compresspdf compresspdf.o $(ALL_LIBS) $(EXTRALIBS)
 
 contrasttest:	contrasttest.o $(LEPTLIB)
 	$(CC) -o contrasttest contrasttest.o $(ALL_LIBS) $(EXTRALIBS)

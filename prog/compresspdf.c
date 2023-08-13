@@ -25,30 +25,31 @@
  *====================================================================*/
 
 /*
- * concatpdf.c
+ * compresspdf.c
  *
  *    This program concatenates all pdfs in a directory by rendering them
  *    as images, optionally scaling the images, and generating an output pdf.
- *    The pdfs are taken in lexical order.  It chooses the same encoding
- *    for all pages, which is either tiffg4 or jpeg (DCT).  For the latter,
- *    the jpeg quality factor can be used to trade off the size of the
- *    resulting pdf against the image quality.
+ *    The pdfs are taken in lexical order.  Pages are encoded with either
+ *    tiffg4 or jpeg (DCT), or a mixture of them depending on input parameters
+ *    and page color content.  For DCT encoding, the jpeg quality factor
+ *    can be used to trade off the size of the resulting pdf against
+ *    the image quality.
  *
- *    If the pages are monochrome (black and white), use of the %one-bit
+ *    If the pages are monochrome (black and white), use of the %onebit
  *    flag will achieve better compression with less distortion.
  *    If most of the pages are black and white, but some have color that
- *    needs to be saved, input parameters %one_bit and %save_color should
+ *    needs to be saved, input parameters %onebit and %savecolor should
  *    be both set to 1.  Then the pages with color are compressed with DCT
  *    and the monochrome pages are compressed with tiffg4.
  *
  *    The first step is to render the images as RGB, using Poppler's pdftoppm.
- *    Compare concatpdf with cleanpdf, which carries out several cleanup
+ *    Compare compresspdf with cleanpdf, which carries out several cleanup
  *    operations, such as deskewing and adaptive thresholding to clean
- *    noisy or dark backgrounds in grayscale or color images, which results
+ *    noisy or dark backgrounds in grayscale or color images, resulting
  *    in high resolution, 1 bpp tiffg4 encoded images in the pdf.
  *
  *      Syntax:
- *       concatpdf basedir scalefactor one_bit save_color quality title outfile
+ *       compresspdf basedir scalefactor onebit savecolor quality title fileout
  *
  *    The %basedir is a directory where the input pdf files are located.
  *    The program will operate on every file in this directory with
@@ -63,12 +64,12 @@
  *    first image in the set.
  *
  *    Images are saved in the ./image directory as RGB in ppm format.
- *    If the %one_bit flag is 0, these will be encoded in the output pdf
+ *    If the %onebit flag is 0, these will be encoded in the output pdf
  *    using DCT.  To force the images to be 1 bpp, with tiffg4 encoding, set
- *    the $one-bit flag to 1.
+ *    the $onebit flag to 1.
  *
- *    The %save_color flag is ignored unless %one_bit is 1.  In that case,
- *    if %save_color is 1, the image is tested for color content, and if
+ *    The %savecolor flag is ignored unless %onebit is 1.  In that case,
+ *    if %savecolor is 1, the image is tested for color content, and if
  *    even a relatively small amount is found, the image will be encoded
  *    with DCT instead of tiffg4.
  *
@@ -80,7 +81,7 @@
  *    The %title is the title given to the pdf.  Use %title == "none"
  *    to omit the title.
  *
- *    The pdf output is written to %outfile.  It is advisable (but not
+ *    The pdf output is written to %fileout.  It is advisable (but not
  *    required) to have a '.pdf' extension.
  *
  *    The intent is to use pdftoppm to render the images at 150 pixels/inch
@@ -120,25 +121,22 @@ l_int32 main(int    argc,
              char **argv)
 {
 char       buf[256];
-char      *basedir, *fname, *tail, *basename, *imagedir, *title, *outfile;
-l_int32    res, render_res, one_bit, save_color, quality, i, n, ret;
-l_float32  scalefactor, colorfract;
-PIX       *pixs, *pix1, *pix2;
-PIXA      *pixa1 = NULL;
-PIXAC     *pixac1 = NULL;
+char      *basedir, *fname, *tail, *basename, *imagedir, *title, *fileout;
+l_int32    render_res, onebit, savecolor, quality, i, n, ret;
+l_float32  scalefactor;
 SARRAY    *sa;
 
     if (argc != 8)
         return ERROR_INT(
-            "Syntax: concatpdf basedir scalefactor one-bit save_color quality "
-            "title outfile", __func__, 1);
+            "Syntax: compresspdf basedir scalefactor onebit savecolor quality "
+            "title fileout", __func__, 1);
     basedir = argv[1];
     scalefactor = atof(argv[2]);
-    one_bit = atoi(argv[3]);  /* set to 1 to enforce 1 bpp tiffg4 encoding */
-    save_color = atoi(argv[4]);  /* if one_bit == 1, set to 1 to save color */
+    onebit = atoi(argv[3]);  /* set to 1 to enforce 1 bpp tiffg4 encoding */
+    savecolor = atoi(argv[4]);  /* if onebit == 1, set to 1 to save color */
     quality = atoi(argv[5]);  /* jpeg quality */
     title = argv[6];
-    outfile = argv[7];
+    fileout = argv[7];
     setLeptDebugOK(1);
     if (quality <= 0) quality = 50;  /* default value */
     if (quality < 25) {
@@ -196,75 +194,17 @@ SARRAY    *sa;
         /* Optionally binarize, then scale and collect all images in memory.
          * If n > 100, use pixacomp instead of pixa to store everything
          * before generating the pdf.
-         * If we want to use the one-bit option so that the images are
-         * encoded with tiffg4, it is necessary to binarize here.
-         * Do not let 'pdftoppm -mono' do the binarization, because it will
-         * apply error-diffusion dithering on gray or color images. */
+         * When using the onebit option, It is important to binarize
+         * the images in leptonica.  Do not let 'pdftoppm -mono' do
+         * the binarization, because it will apply error-diffusion
+         * dithering to gray and color images. */
     sa = getSortedPathnamesInDirectory(imagedir, NULL, 0, 0);
     lept_free(imagedir);
     sarrayWriteStderr(sa);
-    n = sarrayGetCount(sa);
-    if (n <= 100)
-        pixa1 = pixaCreate(n);
-    else
-        pixac1 = pixacompCreate(n);
-    for (i = 0; i < n; i++) {
-        if (i == 0)
-            lept_stderr("page: ");
-        else if (i % 10 == 0)
-            lept_stderr("%d . ", i);
-        fname = sarrayGetString(sa, i, L_NOCOPY);
-        pixs = pixRead(fname);
-        if (one_bit) {
-            if (save_color) {
-                pixColorFraction(pixs, 40, 224, 80, 4, NULL, &colorfract);
-                if (colorfract > 0.01)  /* save the color */
-                    pix1 = pixClone(pixs);
-                else
-                    pix1 = pixConvertTo1(pixs, 180);
-            } else {  /* do not save any color */
-                pix1 = pixConvertTo1(pixs, 180);
-            }
-        } else {  /* DCT encoding for all images */
-            pix1 = pixClone(pixs);
-        }
-        if (scalefactor == 1.0)
-            pix2 = pixClone(pix1);
-        else
-            pix2 = pixScale(pix1, scalefactor, scalefactor);
-        if (n <= 100) {
-            pixaAddPix(pixa1, pix2, L_INSERT);
-        } else {
-            pixacompAddPix(pixac1, pix2, IFF_DEFAULT);
-            pixDestroy(&pix2);
-        }
-        pixDestroy(&pixs);
-        pixDestroy(&pix1);
-    }
-    sarrayDestroy(&sa);
+    lept_stderr("compressing ...\n");
+    compressFilesToPdf(sa, onebit, savecolor, scalefactor, quality,
+                       title, fileout);
 
-        /* Generate the pdf.  Compute the actual input resolution from
-         * the pixel dimensions of the first image.  This will cause each
-         * page to be printed to cover an 8.5 x 11 inch sheet of paper. */
-    lept_stderr("\nWrite output to %s\n", outfile);
-    if (n <= 100)
-        pix1 = pixaGetPix(pixa1, 0, L_CLONE);
-    else
-        pix1 = pixacompGetPix(pixac1, 0);
-    pixInferResolution(pix1, 11.0, &res);
-    pixDestroy(&pix1);
-    if (strcmp(title, "none") == 0)
-        title = NULL;
-    if (n <= 100) {
-        pixaConvertToPdf(pixa1, res, 1.0, L_DEFAULT_ENCODE, quality,
-                         title, outfile);
-        pixaDestroy(&pixa1);
-    } else {
-        pixacompConvertToPdf(pixac1, res, 1.0, L_DEFAULT_ENCODE, quality,
-                             title, outfile);
-        pixacompDestroy(&pixac1);
-    }
     return 0;
 }
-
 

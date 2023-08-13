@@ -38,7 +38,7 @@
  *
  *    Syntax:
  *       cleanpdf basedir threshold resolution
- *                darken rotation opensize title outfile
+ *                darken rotation opensize title fileout
  *
  *    A typical command is:
  *        cleanpdf . 180 300 0 0 0 none <name-of-output-pdf-file>
@@ -89,7 +89,7 @@
  *    The %title is the title given to the pdf.  Use %title == "none"
  *    to omit the title.
  *
- *    The pdf output is written to %outfile.  It is advisable (but not
+ *    The pdf output is written to %fileout.  It is advisable (but not
  *    required) to have a '.pdf' extension.
  *
  *    Whenever possible, the images will be deskewed.
@@ -148,24 +148,24 @@
 #include <sys/types.h>
 #include "allheaders.h"
 
+#if 0
     /* Special version */
 PIX *pixConvertTo8Special(PIX *pix);
+#endif
 
 l_int32 main(int    argc,
              char **argv)
 {
-char     buf[256], sequence[32];
+char     buf[256];
 char    *basedir, *fname, *tail, *basename, *imagedir, *firstfile, *title;
-char    *outfile, *firstpath;
+char    *fileout;
 l_int32  thresh, res, render_res, rotation, darken, opensize, i, n, ret;
-l_int32  medw, medh, medmax, npages, pageno, w, h;
-PIX     *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pix6;
-SARRAY  *sa, *sa1;
+SARRAY  *sa;
 
     if (argc != 9)
         return ERROR_INT(
             "\n  Syntax: cleanpdf basedir threshold resolution "
-            "darken rotation opensize title outfile",
+            "darken rotation opensize title fileout",
             __func__, 1);
     basedir = argv[1];
     thresh = atoi(argv[2]);
@@ -174,7 +174,7 @@ SARRAY  *sa, *sa1;
     rotation = atoi(argv[5]);
     opensize = atoi(argv[6]);
     title = argv[7];
-    outfile = argv[8];
+    fileout = argv[8];
     if (thresh > 190) {
         L_WARNING("threshold = %d is too large; reducing to 190\n",
                 __func__, thresh);
@@ -272,110 +272,10 @@ SARRAY  *sa, *sa1;
 
         /* Clean, deskew and compress */
     sa = getSortedPathnamesInDirectory(imagedir, NULL, 0, 0);
-    sarrayWriteStderr(sa);
-    n = sarrayGetCount(sa);
-    firstpath = NULL;
-    for (i = 0; i < n; i++) {
-        PIX *pix6;
-        fname = sarrayGetString(sa, i, L_NOCOPY);
-        pixs = pixRead(fname);
-        pix1 = pixConvertTo8Special(pixs);
-        if (rotation > 0)
-            pix2 = pixRotateOrth(pix1, rotation);
-        else
-            pix2 = pixClone(pix1);
-        pix3 = pixFindSkewAndDeskew(pix2, 2, NULL, NULL);
-        pix4 = pixBackgroundNormSimple(pix3, NULL, NULL);
-        if (darken == 0)
-            pixGammaTRC(pix4, pix4, 2.0, 50, 220);
-        else if (darken == 1)
-            pixGammaTRC(pix4, pix4, 1.8, 60, 215);
-        else if (darken == 2)
-            pixGammaTRC(pix4, pix4, 1.6, 70, 215);
-        else if (darken == 3)
-            pixGammaTRC(pix4, pix4, 1.4, 80, 210);
-        else if (darken == 4)
-            pixGammaTRC(pix4, pix4, 1.2, 90, 210);
-        else if (darken == 5)
-            pixGammaTRC(pix4, pix4, 1.0, 100, 210);
-        else if (darken == 6)
-            pixGammaTRC(pix4, pix4, 0.85, 110, 205);
-        else if (darken == 7)
-            pixGammaTRC(pix4, pix4, 0.7, 120, 205);
-        else if (darken == 8)
-            pixGammaTRC(pix4, pix4, 0.6, 130, 200);
-        else  /* darken == 9 */
-            pixGammaTRC(pix4, pix4, 0.5, 140, 195);
-        if (res == 300)
-            pix5 = pixThresholdToBinary(pix4, thresh);
-        else  /* res == 600 */
-            pix5 = pixScaleGray2xLIThresh(pix4, thresh);
-        if (opensize == 2 || opensize == 3) {
-            snprintf(sequence, sizeof(sequence), "o%d.%d", opensize, opensize);
-            pix6 = pixMorphSequence(pix5, sequence, 0);
-        } else {
-            pix6 = pixClone(pix5);
-        }
-        splitPathAtDirectory(fname, NULL, &tail);
-        splitPathAtExtension(tail, &basename, NULL);
-        snprintf(buf, sizeof(buf), "%s/%s.tif", imagedir, basename);
-        lept_stderr("%s\n", buf);
-        pixWrite(buf, pix6, IFF_TIFF_G4);
-        if (i == 0)  /* save full path to first image */
-            firstpath = stringNew(buf);
-        pixDestroy(&pixs);
-        pixDestroy(&pix1);
-        pixDestroy(&pix2);
-        pixDestroy(&pix3);
-        pixDestroy(&pix4);
-        pixDestroy(&pix5);
-        pixDestroy(&pix6);
-        lept_free(tail);
-        lept_free(basename);
-    }
-    sarrayDestroy(&sa);
-
-        /* Generate the pdf.  Compute the actual input resolution from
-         * the pixel dimensions of the first image.  This will cause each
-         * page to be printed to cover an 8.5 x 11 inch sheet of paper. */
-    lept_stderr("Write output to %s\n", outfile);
-    pix1 = pixRead(firstpath);
-    pixInferResolution(pix1, 11.0, &res);
-    pixDestroy(&pix1);
-    lept_free(firstpath);
-    if (strcmp(title, "none") == 0)
-        title = NULL;
-    convertFilesToPdf(imagedir, "tif", res, 1.0, L_G4_ENCODE,
-                      0, title, outfile);
     lept_free(imagedir);
+    sarrayWriteStderr(sa);
+    lept_stderr("cleaning ...\n");
+    cleanTo1bppFilesToPdf(sa, thresh, res, darken, rotation, opensize,
+                          title, fileout);
     return 0;
-}
-
-
-    /* A special version of pixConvertTo8() that returns an image without
-     * a colormap and uses pixConvertRGBToGrayMinMax() to strongly
-     * render color into black. */
-PIX *
-pixConvertTo8Special(PIX  *pixs)
-{
-    l_int32 d = pixGetDepth(pixs);
-    if (d == 1) {
-        return pixConvert1To8(NULL, pixs, 255, 0);
-    } else if (d == 2) {
-        return pixConvert2To8(pixs, 0, 85, 170, 255, FALSE);
-    } else if (d == 4) {
-        return pixConvert4To8(pixs, FALSE);
-    } else if (d == 8) {
-        if (pixGetColormap(pixs) != NULL)
-            return pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
-        else
-            return pixCopy(NULL, pixs);
-    } else if (d == 16) {
-        return pixConvert16To8(pixs, L_MS_BYTE);
-    } else if (d == 32) {
-        return pixConvertRGBToGrayMinMax(pixs, L_CHOOSE_MIN);
-    }
-
-    L_ERROR("Invalid depth d = %d\n", "pixConvertSpecialTo8", d);
-    return NULL;
 }

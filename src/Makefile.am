@@ -39,6 +39,7 @@ libleptonica_la_SOURCES = adaptmap.c affine.c                        \
  numabasic.c numafunc1.c numafunc2.c                            \
  pageseg.c paintcmap.c                                          \
  parseprotos.c partify.c partition.c                            \
+ pdfapp.c pdfappstub.c                                          \
  pdfio1.c pdfio1stub.c pdfio2.c pdfio2stub.c                    \
  pix1.c pix2.c pix3.c pix4.c pix5.c                             \
  pixabasic.c pixacc.c pixafunc1.c pixafunc2.c                   \

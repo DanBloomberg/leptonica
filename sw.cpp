@@ -242,7 +242,7 @@ void build(Solution &s)
             {"comparepages", {"comparepages.c"}},
             {"comparepixa", {"comparepixa.c"}},
             {"comparetest", {"comparetest.c"}},
-            {"concatpdf", {"concatpdf.c"}},
+            {"compresspdf", {"compresspdf.c"}},
             {"contrasttest", {"contrasttest.c"}},
             {"convertfilestopdf", {"convertfilestopdf.c"}},
             {"convertfilestops", {"convertfilestops.c"}},

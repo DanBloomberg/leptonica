@@ -102,6 +102,9 @@ They are <i>not</i> a complete listing of the modifications.
           ioformats_reg.  Test new pixDisplayDiff() for visualizing diffs.
         * Allow prog/concatpdf to output pdf with tiffg4 encoding and with
           mixed tiffg4 and DCT encoding depending on image color content.
+        * Rename prog/concatpdf --> prog/compresspdf
+        * Put image processing and generation of output pdf from compresspdf
+          and cleanpdf into functions in new files: pdfapp.c, pdfappstub.c.
 
 1.83.0  Dec 20, 2022
         * Simplify setting the title of pdf files.

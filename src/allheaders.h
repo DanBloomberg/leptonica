@@ -1400,6 +1400,8 @@ LEPT_DLL extern l_ok partifyFiles ( const char *dirname, const char *substr, l_i
 LEPT_DLL extern l_ok partifyPixac ( PIXAC *pixac, l_int32 nparts, const char *outroot, PIXA *pixadb );
 LEPT_DLL extern BOXA * boxaGetWhiteblocks ( BOXA *boxas, BOX *box, l_int32 sortflag, l_int32 maxboxes, l_float32 maxoverlap, l_int32 maxperim, l_float32 fract, l_int32 maxpops );
 LEPT_DLL extern BOXA * boxaPruneSortedOnOverlap ( BOXA *boxas, l_float32 maxoverlap );
+LEPT_DLL extern l_ok compressFilesToPdf ( SARRAY *sa, l_int32 onebit, l_int32 savecolor, l_float32 scalefactor, l_int32 quality, const char *title, const char *fileout );
+LEPT_DLL extern l_ok cleanTo1bppFilesToPdf ( SARRAY *sa, l_int32 thresh, l_int32 res, l_int32 darken, l_int32 rotation, l_int32 opensize, const char *title, const char *fileout );
 LEPT_DLL extern l_ok convertFilesToPdf ( const char *dirname, const char *substr, l_int32 res, l_float32 scalefactor, l_int32 type, l_int32 quality, const char *title, const char *fileout );
 LEPT_DLL extern l_ok saConvertFilesToPdf ( SARRAY *sa, l_int32 res, l_float32 scalefactor, l_int32 type, l_int32 quality, const char *title, const char *fileout );
 LEPT_DLL extern l_ok saConvertFilesToPdfData ( SARRAY *sa, l_int32 res, l_float32 scalefactor, l_int32 type, l_int32 quality, const char *title, l_uint8 **pdata, size_t *pnbytes );

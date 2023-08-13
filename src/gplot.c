@@ -132,11 +132,16 @@
  *           \end{document}
  *         You can then generate a dvi file <latexname>.dvi using
  *           latex <latexname>.tex
- *         and a PostScript file <psname>.ps from that using
+ *         a PostScript file <psname>.ps from that using
  *           dvips -o <psname>.ps <latexname>.dvi
+ *         and pdf file <psname>.pdf from that using Ghostscript's ps2pdf:
+ *           ps2pdf <psname>.ps <pdfname>.pdf
  *
- *     N.B. To generate plots, it is necessary to have gnuplot installed on
- *          your Unix system, or wgnuplot on Windows.
+ *     N.B. To generate plots:
+ *          (1) It is necessary to have gnuplot installed on your Unix system,
+ *              or wgnuplot on Windows.
+ *          (2) You must enable debug operations:
+ *                setLeptDebugOK(1);
  * </pre>
  */
 
