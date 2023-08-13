@@ -1767,7 +1767,7 @@ l_int32  w, h;
  * Notes:
  *      (1) For a binary image, if there are no fg (black) pixels, empty = 1.
  *      (2) For a grayscale image, if all pixels are black (0), empty = 1.
- *      (3) For an RGB image, if all 4 components in every pixel is 0,
+ *      (3) For an RGB image, if all 4 components in every pixel is 0 (i.e. opaque black),
  *          empty = 1.
  *      (4) For a colormapped image, pixel values are 0.  The colormap
  *          is ignored.
