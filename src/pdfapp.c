@@ -130,8 +130,8 @@ char      *fname;
 l_int32    n, i, res;
 l_float32  colorfract;
 PIX       *pixs, *pix1, *pix2;
-PIXA      *pixa1;
-PIXAC     *pixac1;
+PIXA      *pixa1 = NULL;
+PIXAC     *pixac1 = NULL;
 
     if (!sa)
         return ERROR_INT("sa not defined", __func__, 1);
