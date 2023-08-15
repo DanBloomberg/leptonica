@@ -2941,7 +2941,7 @@ getPdfRendererResolution(const char  *infile,
 {
 char      buf[256];
 char     *tail, *basename, *fname;
-l_int32   ret, res, resmax, medw, medh, medmax, npages, pageno, w, h;
+l_int32   ret, res, medw, medh, medmax, npages, pageno, w, h;
 SARRAY   *sa;
 
     if (!pres)
