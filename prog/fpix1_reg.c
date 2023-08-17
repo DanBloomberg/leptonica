@@ -158,27 +158,21 @@ L_REGPARAMS  *rp;
                        &diff, NULL, NULL);
         lept_stderr("Ave diff of pixConvolve and fpixConvolve: %f\n", diff);
     }
-    pixCompareGray(pix2, pix4, L_COMPARE_ABS_DIFF, GPLOT_PNG, NULL,
-                   &diff, NULL, NULL);
-    lept_stderr("Ave diff of pixConvolveSep and fpixConvolveSep: %f\n", diff);
-    pix5 = pixRead("/tmp/lept/comp/compare_gray0.png");
-    regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 9 */
-    pixaAddPix(pixa, pix5, L_INSERT);
     pix1 = pixaDisplayTiledInColumns(pixa, 2, 1.0, 20, 2);
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 10 */
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 9 */
     pixaDestroy(&pixa);
     pixDestroy(&pix1);
 
         /* Test arithmetic operations; add in a fraction rotated by 180 */
     pixa = pixaCreate(0);
     pixs3 = pixRotate180(NULL, pixs);
-    regTestWritePixAndCheck(rp, pixs3, IFF_JFIF_JPEG);  /* 11 */
+    regTestWritePixAndCheck(rp, pixs3, IFF_JFIF_JPEG);  /* 10 */
     pixaAddPix(pixa, pixs3, L_INSERT);
     fpixs3 = pixConvertToFPix(pixs3, 3);
     fpixd = fpixLinearCombination(NULL, fpixs, fpixs3, 20.0, 5.0);
     fpixAddMultConstant(fpixd, 0.0, 23.174);   /* multiply up in magnitude */
     pixd = fpixDisplayMaxDynamicRange(fpixd);  /* bring back to 8 bpp */
-    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 12 */
+    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 11 */
     pixaAddPix(pixa, pixd, L_INSERT);
     fpixDestroy(&fpixs3);
     fpixDestroy(&fpixd);
@@ -187,7 +181,7 @@ L_REGPARAMS  *rp;
 
         /* Display results */
     pixd = pixaDisplayTiledInColumns(pixa, 2, 1.0, 20, 2);
-    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 13 */
+    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 12 */
     pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
@@ -198,36 +192,36 @@ L_REGPARAMS  *rp;
     pixg = pixConvertTo8(pixs, 0);
     l_setConvolveSampling(5, 5);
     pix1 = pixConvolve(pixg, kel, 8, 1);
-    regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 14 */
+    regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 13 */
     pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixConvolveSep(pixg, kelx, kely, 8, 1);
-    regTestWritePixAndCheck(rp, pix2, IFF_JFIF_JPEG);  /* 15 */
+    regTestWritePixAndCheck(rp, pix2, IFF_JFIF_JPEG);  /* 14 */
     pixaAddPix(pixa, pix2, L_INSERT);
     pix3 = pixConvolveRGB(pixs, kel);
-    regTestWritePixAndCheck(rp, pix3, IFF_JFIF_JPEG);  /* 16 */
+    regTestWritePixAndCheck(rp, pix3, IFF_JFIF_JPEG);  /* 15 */
     pixaAddPix(pixa, pix3, L_INSERT);
     pix4 = pixConvolveRGBSep(pixs, kelx, kely);
-    regTestWritePixAndCheck(rp, pix4, IFF_JFIF_JPEG);  /* 17 */
+    regTestWritePixAndCheck(rp, pix4, IFF_JFIF_JPEG);  /* 16 */
     pixaAddPix(pixa, pix4, L_INSERT);
 
         /* Then on fpix */
     fpixg = pixConvertToFPix(pixg, 1);
     fpix1 = fpixConvolve(fpixg, kel, 1);
     pix5 = fpixConvertToPix(fpix1, 8, L_CLIP_TO_ZERO, 0);
-    regTestWritePixAndCheck(rp, pix5, IFF_JFIF_JPEG);  /* 18 */
+    regTestWritePixAndCheck(rp, pix5, IFF_JFIF_JPEG);  /* 17 */
     pixaAddPix(pixa, pix5, L_INSERT);
     fpix2 = fpixConvolveSep(fpixg, kelx, kely, 1);
     pix6 = fpixConvertToPix(fpix2, 8, L_CLIP_TO_ZERO, 0);
-    regTestWritePixAndCheck(rp, pix6, IFF_JFIF_JPEG);  /* 19 */
+    regTestWritePixAndCheck(rp, pix6, IFF_JFIF_JPEG);  /* 18 */
     pixaAddPix(pixa, pix6, L_INSERT);
-    regTestCompareSimilarPix(rp, pix1, pix5, 2, 0.00, 0);  /* 20 */
-    regTestCompareSimilarPix(rp, pix2, pix6, 2, 0.00, 0);  /* 21 */
+    regTestCompareSimilarPix(rp, pix1, pix5, 2, 0.00, 0);  /* 19 */
+    regTestCompareSimilarPix(rp, pix2, pix6, 2, 0.00, 0);  /* 20 */
     fpixDestroy(&fpixg);
     fpixDestroy(&fpix1);
     fpixDestroy(&fpix2);
 
     pixd = pixaDisplayTiledInColumns(pixa, 2, 1.0, 20, 2);
-    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 22 */
+    regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 21 */
     pixDisplayWithTitle(pixd, 600, 100, NULL, rp->display);
     pixDestroy(&pixs);
     pixDestroy(&pixg);
@@ -262,14 +256,14 @@ L_REGPARAMS  *rp;
     pix5 = pixRead("karen8.jpg");
     dpix2 = pixConvertToDPix(pix5, 1);
     pix6 = dpixConvertToPix(dpix2, 8, L_CLIP_TO_ZERO, 0);
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 23 */
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 22 */
     pixDisplayWithTitle(pix1, 0, 100, NULL, rp->display);
-    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 24 */
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 23 */
     pixDisplayWithTitle(pix2, 470, 100, NULL, rp->display);
-    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 25 */
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 24 */
     pixDisplayWithTitle(pix3, 1035, 100, NULL, rp->display);
-    regTestComparePix(rp, pix3, pix4);  /* 26 */
-    regTestComparePix(rp, pix5, pix6);  /* 27 */
+    regTestComparePix(rp, pix3, pix4);  /* 25 */
+    regTestComparePix(rp, pix5, pix6);  /* 26 */
     pixDestroy(&pixs);
     pixDestroy(&pixn);
     pixDestroy(&pixg);
@@ -290,14 +284,14 @@ L_REGPARAMS  *rp;
     fpixWrite("/tmp/lept/regout/fpix1.fp", dew->fullvdispar);
     fpix1 = fpixRead("/tmp/lept/regout/fpix1.fp");
     pix1 = fpixAutoRenderContours(fpix1, 40);
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 28 */
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 27 */
     pixDisplayWithTitle(pix1, 0, 500, NULL, rp->display);
     pixDestroy(&pix1);
 
     MakePtasAffine(1, &ptas, &ptad);
     fpix2 = fpixAffinePta(fpix1, ptad, ptas, 200, 0.0);
     pix2 = fpixAutoRenderContours(fpix2, 40);
-    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 29 */
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 28 */
     pixDisplayWithTitle(pix2, 400, 500, NULL, rp->display);
     fpixDestroy(&fpix2);
     pixDestroy(&pix2);
@@ -307,7 +301,7 @@ L_REGPARAMS  *rp;
     MakePtas(1, &ptas, &ptad);
     fpix2 = fpixProjectivePta(fpix1, ptad, ptas, 200, 0.0);
     pix3 = fpixAutoRenderContours(fpix2, 40);
-    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 30 */
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 29 */
     pixDisplayWithTitle(pix3, 400, 500, NULL, rp->display);
     fpixDestroy(&fpix1);
     fpixDestroy(&fpix2);

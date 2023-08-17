@@ -458,6 +458,9 @@ L_PTRA   *pa_data;
  *          as a jpeg (dct).  For example, an image made by pixScaleToGray3()
  *          will have 10 colors, and flate encoding will give about
  *          twice the compression as jpeg with quality = 75.
+ *      (2) We could have used L_JP2K_ENCODE instead of L_JPEG_ENCODE.
+ *          However, the jp2k compression is not much better than jpeg, and
+ *          the jpeg library is more commonly available than the jp2k library.
  * </pre>
  */
 l_ok

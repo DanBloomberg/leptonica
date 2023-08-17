@@ -70,7 +70,7 @@ L_REGPARAMS  *rp;
     pixs = pixRead("test8.jpg");
     nasy= pixGetGrayHistogramMasked(pixs, NULL, 0, 0, 1);
     numaMakeRankFromHistogram(0.0, 1.0, nasy, 350, &nax, &nay);
-    pix1 = gplotGeneralPix2(nax, nay, GPLOT_LINES, "/tmp/lept/numa1/rank1",
+    pix1 = gplotGeneralPix2(nax, nay, GPLOT_LINES, "/tmp/lept/numa3/rank1",
                             "test rank extractor", "pix val", "rank val");
     numaDestroy(&nasy);
     numaDestroy(&nax);
@@ -86,7 +86,7 @@ L_REGPARAMS  *rp;
       numaHistogramGetValFromRank(na, rank, &val);
       numaAddNumber(nap, val);
     }
-    pix2 = gplotGeneralPix1(nap, GPLOT_LINES, "/tmp/lept/numa1/rank2",
+    pix2 = gplotGeneralPix1(nap, GPLOT_LINES, "/tmp/lept/numa3/rank2",
                             "rank value", NULL, NULL);
     pixa = pixaCreate(2);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
@@ -107,19 +107,19 @@ L_REGPARAMS  *rp;
      *                           Numa-morphology                          *
      * -------------------------------------------------------------------*/
     na = numaRead("lyra.5.na");
-    pix1 = gplotGeneralPix1(na, GPLOT_LINES, "/tmp/lept/numa1/lyra1",
+    pix1 = gplotGeneralPix1(na, GPLOT_LINES, "/tmp/lept/numa3/lyra1",
                             "Original", NULL, NULL);
     na1 = numaErode(na, 21);
-    pix2 = gplotGeneralPix1(na1, GPLOT_LINES, "/tmp/lept/numa1/lyra2",
+    pix2 = gplotGeneralPix1(na1, GPLOT_LINES, "/tmp/lept/numa3/lyra2",
                             "Erosion", NULL, NULL);
     na2 = numaDilate(na, 21);
-    pix3 = gplotGeneralPix1(na2, GPLOT_LINES, "/tmp/lept/numa1/lyra3",
+    pix3 = gplotGeneralPix1(na2, GPLOT_LINES, "/tmp/lept/numa3/lyra3",
                             "Dilation", NULL, NULL);
     na3 = numaOpen(na, 21);
-    pix4 = gplotGeneralPix1(na3, GPLOT_LINES, "/tmp/lept/numa1/lyra4",
+    pix4 = gplotGeneralPix1(na3, GPLOT_LINES, "/tmp/lept/numa3/lyra4",
                             "Opening", NULL, NULL);
     na4 = numaClose(na, 21);
-    pix5 = gplotGeneralPix1(na4, GPLOT_LINES, "/tmp/lept/numa1/lyra5",
+    pix5 = gplotGeneralPix1(na4, GPLOT_LINES, "/tmp/lept/numa3/lyra5",
                             "Closing", NULL, NULL);
     pixa = pixaCreate(2);
     pixaAddPix(pixa, pix1, L_INSERT);
@@ -157,7 +157,7 @@ L_REGPARAMS  *rp;
         na3 = numaTransform(na2, 0.0, 1.0 / maxval);
         numaFindLocForThreshold(na3, 0, &thresh, NULL);
         numaAddNumber(na4, thresh);
-        snprintf(buf1, sizeof(buf1), "/tmp/lept/numa1/histoplot-%d", hw);
+        snprintf(buf1, sizeof(buf1), "/tmp/lept/numa3/histoplot-%d", hw);
         snprintf(buf2, sizeof(buf2), "halfwidth = %d, skip = 20, thresh = %d",
                  hw, thresh);
         pix1 = gplotGeneralPix1(na3, GPLOT_LINES, buf1, buf2, NULL, NULL);
@@ -167,12 +167,12 @@ L_REGPARAMS  *rp;
         numaDestroy(&na2);
         numaDestroy(&na3);
     }
-    numaWrite("/tmp/lept/numa1/threshvals.na", na4);
-    regTestCheckFile(rp, "/tmp/lept/numa1/threshvals.na");  /* 9 */
-    L_INFO("writing /tmp/lept/numa1/histoplots.pdf\n", "numa1_reg");
+    numaWrite("/tmp/lept/numa3/threshvals.na", na4);
+    regTestCheckFile(rp, "/tmp/lept/numa3/threshvals.na");  /* 9 */
+    L_INFO("writing /tmp/lept/numa3/histoplots.pdf\n", "numa3_reg");
     pixaConvertToPdf(pixa, 0, 1.0, L_FLATE_ENCODE, 0,
                      "Effect of smoothing on threshold value",
-                     "/tmp/lept/numa1/histoplots.pdf");
+                     "/tmp/lept/numa3/histoplots.pdf");
     numaDestroy(&na1);
     numaDestroy(&na4);
     pixaDestroy(&pixa);

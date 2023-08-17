@@ -49,8 +49,7 @@ l_int32       i, j, same, ok, plottype;
 l_float32     sum, avediff, rmsdiff;
 L_KERNEL     *kel1, *kel2, *kel3, *kel4, *kelx, *kely;
 BOX          *box;
-PIX          *pix, *pixs, *pixb, *pixg, *pixd, *pixp, *pixt;
-PIX          *pixt1, *pixt2, *pixt3;
+PIX          *pix, *pix1, *pix2, *pix3, *pixs, *pixb, *pixg, *pixd;
 PIXA         *pixa;
 PIXAA        *paa;
 SARRAY       *sa;
@@ -110,29 +109,29 @@ L_REGPARAMS  *rp;
     kernelDestroy(&kel2);
 
         /* Test creating from a pix */
-    pixt = pixCreate(5, 3, 8);
-    pixSetPixel(pixt, 0, 0, 20);
-    pixSetPixel(pixt, 1, 0, 50);
-    pixSetPixel(pixt, 2, 0, 80);
-    pixSetPixel(pixt, 3, 0, 50);
-    pixSetPixel(pixt, 4, 0, 20);
-    pixSetPixel(pixt, 0, 1, 80);
-    pixSetPixel(pixt, 1, 1, 120);
-    pixSetPixel(pixt, 2, 1, 180);
-    pixSetPixel(pixt, 3, 1, 120);
-    pixSetPixel(pixt, 4, 1, 80);
-    pixSetPixel(pixt, 0, 0, 20);
-    pixSetPixel(pixt, 1, 2, 50);
-    pixSetPixel(pixt, 2, 2, 80);
-    pixSetPixel(pixt, 3, 2, 50);
-    pixSetPixel(pixt, 4, 2, 20);
-    kel3 = kernelCreateFromPix(pixt, 1, 2);
+    pix1 = pixCreate(5, 3, 8);
+    pixSetPixel(pix1, 0, 0, 20);
+    pixSetPixel(pix1, 1, 0, 50);
+    pixSetPixel(pix1, 2, 0, 80);
+    pixSetPixel(pix1, 3, 0, 50);
+    pixSetPixel(pix1, 4, 0, 20);
+    pixSetPixel(pix1, 0, 1, 80);
+    pixSetPixel(pix1, 1, 1, 120);
+    pixSetPixel(pix1, 2, 1, 180);
+    pixSetPixel(pix1, 3, 1, 120);
+    pixSetPixel(pix1, 4, 1, 80);
+    pixSetPixel(pix1, 0, 0, 20);
+    pixSetPixel(pix1, 1, 2, 50);
+    pixSetPixel(pix1, 2, 2, 80);
+    pixSetPixel(pix1, 3, 2, 50);
+    pixSetPixel(pix1, 4, 2, 20);
+    kel3 = kernelCreateFromPix(pix1, 1, 2);
     pixd = kernelDisplayInPix(kel3, 41, 2);
     pixWrite("/tmp/lept/regout/ker2.png", pixd, IFF_PNG);
     regTestCheckFile(rp, "/tmp/lept/regout/ker2.png");  /* 5 */
     pixaAddPix(pixa, pixd, L_INSERT);
     pixaaAddPixa(paa, pixa, L_INSERT);
-    pixDestroy(&pixt);
+    pixDestroy(&pix1);
     kernelDestroy(&kel3);
 
         /* Test convolution with kel1 */
@@ -159,30 +158,30 @@ L_REGPARAMS  *rp;
     pixaAddPix(pixa, pixd, L_COPY);
     pixWrite("/tmp/lept/regout/ker4.png", pixd, IFF_PNG);
     regTestCheckFile(rp, "/tmp/lept/regout/ker4.png");  /* 7 */
-    pixt = pixBlockconv(pixg, 5, 5);
-    pixaAddPix(pixa, pixt, L_COPY);
-    pixWrite("/tmp/lept/regout/ker5.png", pixt, IFF_PNG);
+    pix1 = pixBlockconv(pixg, 5, 5);
+    pixaAddPix(pixa, pix1, L_COPY);
+    pixWrite("/tmp/lept/regout/ker5.png", pix1, IFF_PNG);
     regTestCheckFile(rp, "/tmp/lept/regout/ker5.png");  /* 8 */
     if (rp->display)
-        pixCompareGray(pixd, pixt, L_COMPARE_ABS_DIFF, GPLOT_PNG, NULL,
+        pixCompareGray(pixd, pix1, L_COMPARE_ABS_DIFF, GPLOT_PNG, NULL,
                        NULL, NULL, NULL);
-    pixt2 = pixBlockconvTiled(pixg, 5, 5, 3, 6);
-    pixaAddPix(pixa, pixt2, L_INSERT);
+    pix2 = pixBlockconvTiled(pixg, 5, 5, 3, 6);
+    pixaAddPix(pixa, pix2, L_INSERT);
     pixaaAddPixa(paa, pixa, L_INSERT);
-    pixWrite("/tmp/lept/regout/ker5a.png", pixt2, IFF_PNG);
+    pixWrite("/tmp/lept/regout/ker5a.png", pix2, IFF_PNG);
     regTestCheckFile(rp, "/tmp/lept/regout/ker5a.png");  /* 9 */
 
     ok = TRUE;
     for (i = 1; i <= 7; i++) {
         for (j = 1; j <= 7; j++) {
             if (i == 1 && j == 1) continue;
-            pixt2 = pixBlockconvTiled(pixg, 5, 5, j, i);
-            pixEqual(pixt2, pixd, &same);
+            pix2 = pixBlockconvTiled(pixg, 5, 5, j, i);
+            pixEqual(pix2, pixd, &same);
             if (!same) {
                 lept_stderr("Error for nx = %d, ny = %d\n", j, i);
                 ok = FALSE;
             }
-            pixDestroy(&pixt2);
+            pixDestroy(&pix2);
         }
     }
     if (ok)
@@ -193,7 +192,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pixs);
     pixDestroy(&pixg);
     pixDestroy(&pixd);
-    pixDestroy(&pixt);
+    pixDestroy(&pix1);
     kernelDestroy(&kel2);
 
         /* Do another flat rectangular test; this time with white at edge.
@@ -209,27 +208,23 @@ L_REGPARAMS  *rp;
     pixa = pixaCreate(0);
     kel3 = makeFlatKernel(7, 7, 3, 3);
     startTimer();
-    pixt = pixConvolve(pixs, kel3, 8, 1);
+    pix1 = pixConvolve(pixs, kel3, 8, 1);
     lept_stderr("Generic convolution time: %5.3f sec\n", stopTimer());
-    pixaAddPix(pixa, pixt, L_INSERT);
-    pixWrite("/tmp/lept/regout/conv1.png", pixt, IFF_PNG);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pixWrite("/tmp/lept/regout/conv1.png", pix1, IFF_PNG);
     regTestCheckFile(rp, "/tmp/lept/regout/conv1.png");  /* 10 */
 
     startTimer();
-    pixt2 = pixBlockconv(pixs, 3, 3);
+    pix2 = pixBlockconv(pixs, 3, 3);
     lept_stderr("Flat block convolution time: %5.3f sec\n", stopTimer());
-    pixaAddPix(pixa, pixt2, L_INSERT);
-    pixWrite("/tmp/lept/regout/conv2.png", pixt2, IFF_PNG);  /* ditto */
+    pixaAddPix(pixa, pix2, L_INSERT);
+    pixWrite("/tmp/lept/regout/conv2.png", pix2, IFF_PNG);  /* ditto */
     regTestCheckFile(rp, "/tmp/lept/regout/conv2.png");  /* 11 */
 
     plottype = (rp->display) ? GPLOT_PNG : 0;
-    pixCompareGray(pixt, pixt2, L_COMPARE_ABS_DIFF, plottype, NULL,
+    pixCompareGray(pix1, pix2, L_COMPARE_ABS_DIFF, plottype, NULL,
                    &avediff, &rmsdiff, NULL);
-    pixp = pixRead("/tmp/lept/comp/compare_gray0.png");
-    pixaAddPix(pixa, pixp, L_INSERT);
     pixaaAddPixa(paa, pixa, L_INSERT);
-    pixWrite("/tmp/lept/regout/conv3.png", pixp, IFF_PNG);
-    regTestCheckFile(rp, "/tmp/lept/regout/conv3.png");  /* 12 */
     lept_stderr("Ave diff = %6.4f, RMS diff = %6.4f\n", avediff, rmsdiff);
     if (avediff <= 0.01)
         lept_stderr("OK: avediff = %6.4f <= 0.01\n", avediff);
@@ -247,31 +242,31 @@ L_REGPARAMS  *rp;
     pixs = pixRead("test24.jpg");
     kel4 = makeFlatKernel(7, 7, 3, 3);
     startTimer();
-    pixt1 = pixConvolveRGB(pixs, kel4);
+    pix1 = pixConvolveRGB(pixs, kel4);
     lept_stderr("Time 7x7 non-separable: %7.3f sec\n", stopTimer());
-    pixWrite("/tmp/lept/regout/conv4.jpg", pixt1, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/regout/conv4.jpg", pix1, IFF_JFIF_JPEG);
     regTestCheckFile(rp, "/tmp/lept/regout/conv4.jpg");  /* 13 */
 
     kelx = makeFlatKernel(1, 7, 0, 3);
     kely = makeFlatKernel(7, 1, 3, 0);
     startTimer();
-    pixt2 = pixConvolveRGBSep(pixs, kelx, kely);
+    pix2 = pixConvolveRGBSep(pixs, kelx, kely);
     lept_stderr("Time 7x1,1x7 separable: %7.3f sec\n", stopTimer());
-    pixWrite("/tmp/lept/regout/conv5.jpg", pixt2, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/regout/conv5.jpg", pix2, IFF_JFIF_JPEG);
     regTestCheckFile(rp, "/tmp/lept/regout/conv5.jpg");  /* 14 */
 
     startTimer();
-    pixt3 = pixBlockconv(pixs, 3, 3);
+    pix3 = pixBlockconv(pixs, 3, 3);
     lept_stderr("Time 7x7 blockconv: %7.3f sec\n", stopTimer());
-    pixWrite("/tmp/lept/regout/conv6.jpg", pixt3, IFF_JFIF_JPEG);
+    pixWrite("/tmp/lept/regout/conv6.jpg", pix3, IFF_JFIF_JPEG);
     regTestCheckFile(rp, "/tmp/lept/regout/conv6.jpg");  /* 15 */
-    regTestComparePix(rp, pixt1, pixt2);  /* 16 */
-    regTestCompareSimilarPix(rp, pixt2, pixt3, 15, 0.0005, 0);  /* 17 */
+    regTestComparePix(rp, pix1, pix2);  /* 16 */
+    regTestCompareSimilarPix(rp, pix2, pix3, 15, 0.0005, 0);  /* 17 */
 
     pixDestroy(&pixs);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixt3);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
     kernelDestroy(&kel4);
     kernelDestroy(&kelx);
     kernelDestroy(&kely);
@@ -284,15 +279,15 @@ L_REGPARAMS  *rp;
     kernelGetSum(kel1, &sum);
     lept_stderr("Sum for gaussian kernel = %f\n", sum);
     kernelWrite("/tmp/lept/regout/gauss.kel", kel1);
-    pixt = pixConvolve(pixs, kel1, 8, 1);
-    pixt2 = pixConvolve(pixs, kel1, 16, 0);
-    pixaAddPix(pixa, pixt, L_INSERT);
-    pixaAddPix(pixa, pixt2, L_INSERT);
-    pixWrite("/tmp/lept/regout/ker6.png", pixt, IFF_PNG);
+    pix1 = pixConvolve(pixs, kel1, 8, 1);
+    pix2 = pixConvolve(pixs, kel1, 16, 0);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pixaAddPix(pixa, pix2, L_INSERT);
+    pixWrite("/tmp/lept/regout/ker6.png", pix1, IFF_PNG);
     regTestCheckFile(rp, "/tmp/lept/regout/ker6.png");  /* 18 */
 
-    pixt = kernelDisplayInPix(kel1, 25, 2);
-    pixaAddPix(pixa, pixt, L_INSERT);
+    pix1 = kernelDisplayInPix(kel1, 25, 2);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pixaaAddPixa(paa, pixa, L_INSERT);
     kernelDestroy(&kel1);
     pixDestroy(&pixs);
@@ -309,25 +304,25 @@ L_REGPARAMS  *rp;
     kernelWrite("/tmp/lept/regout/gauss.kelx", kelx);
     kernelWrite("/tmp/lept/regout/gauss.kely", kely);
 
-    pixt = pixConvolveSep(pixs, kelx, kely, 8, 1);
-    pixt2 = pixConvolveSep(pixs, kelx, kely, 16, 0);
-    pixaAddPix(pixa, pixt, L_INSERT);
-    pixaAddPix(pixa, pixt2, L_INSERT);
-    pixWrite("/tmp/lept/regout/ker7.png", pixt, IFF_PNG);
+    pix1 = pixConvolveSep(pixs, kelx, kely, 8, 1);
+    pix2 = pixConvolveSep(pixs, kelx, kely, 16, 0);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pixaAddPix(pixa, pix2, L_INSERT);
+    pixWrite("/tmp/lept/regout/ker7.png", pix1, IFF_PNG);
     regTestCheckFile(rp, "/tmp/lept/regout/ker7.png");  /* 19 */
 
-    pixt = kernelDisplayInPix(kelx, 25, 2);
-    pixaAddPix(pixa, pixt, L_INSERT);
-    pixt = kernelDisplayInPix(kely, 25, 2);
-    pixaAddPix(pixa, pixt, L_INSERT);
+    pix1 = kernelDisplayInPix(kelx, 25, 2);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix1 = kernelDisplayInPix(kely, 25, 2);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pixaaAddPixa(paa, pixa, L_INSERT);
     kernelDestroy(&kelx);
     kernelDestroy(&kely);
 
         /* Test generation and convolution with diff of gaussians kernel */
-/*    pixt = pixRead("marge.jpg");
-    pixs = pixConvertRGBToLuminance(pixt);
-    pixDestroy(&pixt); */
+/*    pix1 = pixRead("marge.jpg");
+    pixs = pixConvertRGBToLuminance(pix1);
+    pixDestroy(&pix1); */
     pixa = pixaCreate(0);
     pixs = pixRead("test8.jpg");
     pixaAddPix(pixa, pixs, L_INSERT);
@@ -335,14 +330,14 @@ L_REGPARAMS  *rp;
     kernelGetSum(kel1, &sum);
     lept_stderr("Sum for DoG kernel = %f\n", sum);
     kernelWrite("/tmp/lept/regout/dog.kel", kel1);
-    pixt = pixConvolve(pixs, kel1, 8, 0);
-/*    pixInvert(pixt, pixt); */
-    pixaAddPix(pixa, pixt, L_INSERT);
-    pixWrite("/tmp/lept/regout/ker8.png", pixt, IFF_PNG);
+    pix1 = pixConvolve(pixs, kel1, 8, 0);
+/*    pixInvert(pix1, pix1); */
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pixWrite("/tmp/lept/regout/ker8.png", pix1, IFF_PNG);
     regTestCheckFile(rp, "/tmp/lept/regout/ker8.png");  /* 20 */
 
-    pixt = kernelDisplayInPix(kel1, 20, 2);
-    pixaAddPix(pixa, pixt, L_INSERT);
+    pix1 = kernelDisplayInPix(kel1, 20, 2);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pixaaAddPixa(paa, pixa, L_INSERT);
     kernelDestroy(&kel1);
 
