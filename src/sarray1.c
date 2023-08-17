@@ -1869,6 +1869,9 @@ SARRAY  *saout;
  *          On these systems, this function will return directories
  *          (except for '.' and '..', which are eliminated using
  *          the d_name field).
+ *      (5) For unix, we avoid the bug in earlier versions of realpath()
+ *          by requiring either POSIX 2008 or use of glibc.
+ *          
  * </pre>
  */
 
@@ -1877,12 +1880,7 @@ SARRAY  *saout;
 SARRAY *
 getFilenamesInDirectory(const char  *dirname)
 {
-#if _POSIX_VERSION >= 200112 || defined(__GLIBC__)
-char           *dir;
-#else
-char            dir[PATH_MAX + 1];
-#endif
-char           *realdir, *stat_path, *ignore;
+char           *gendir, *realdir, *stat_path;
 size_t          size;
 SARRAY         *safiles;
 DIR            *pdir;
@@ -1898,35 +1896,22 @@ struct stat     st;
         /* Who would have thought it was this fiddly to open a directory
            and get the files inside?  fstatat() works with relative
            directory paths, and stat() requires using the absolute path.
-           realpath works as follows for files and directories:
+           realpath() works as follows for files and directories:
             * If the file or directory exists, realpath returns its path;
               else it returns NULL.
-            * If the second arg to realpath is passed in, the canonical path
-              is returned there.  Use a buffer of sufficient size.
-              We pass in a buffer for the second arg, and check that the
-              canonical directory path was made.  The existence of the
-              directory is checked later, after its actual path is returned by
-              genPathname().
-              With GNU libc or Posix 2001, if the second arg is NULL, the path
-              is malloc'd and returned if the file or directory exists.
-           */
-#if _POSIX_VERSION >= 200112 || defined(__GLIBC__)
-    dir = realpath(dirname, NULL);
-    if (dir == NULL)
-        return (SARRAY *)ERROR_PTR("dir not made", __func__, NULL);
-#else
-    dir[0] = '\0';  /* init empty in case realpath() fails to write it */
-    ignore = realpath(dirname, dir);
-    if (dir[0] == '\0')
-        return (SARRAY *)ERROR_PTR("dir not made", __func__, NULL);
-#endif
-    realdir = genPathname(dir, NULL);
-#if _POSIX_VERSION >= 200112 || defined(__GLIBC__)
-    LEPT_FREE(dir);
-#endif
+            * For realpath() we use the POSIX 2008 implementation, where
+              the second arg is NULL and the path is malloc'd and returned
+              if the file or directory exists.  All versions of glibc
+              support this.  */
+    gendir = genPathname(dirname, NULL);
+    realdir = realpath(gendir, NULL);
+    LEPT_FREE(gendir);
+    if (realdir == NULL)
+        return (SARRAY *)ERROR_PTR("realdir not made", __func__, NULL);
     if ((pdir = opendir(realdir)) == NULL) {
+        L_ERROR("directory %s not opened\n", __func__, realdir);
         LEPT_FREE(realdir);
-        return (SARRAY *)ERROR_PTR("pdir not opened", __func__, NULL);
+        return NULL;
     }
     safiles = sarrayCreate(0);
     while ((pdirentry = readdir(pdir))) {
@@ -1937,12 +1922,6 @@ struct stat     st;
         stat_ret = fstatat(dfd, pdirentry->d_name, &st, 0);
 #else
         size = strlen(realdir) + strlen(pdirentry->d_name) + 2;
-#if _POSIX_VERSION < 200112 && !defined(__GLIBC__)
-        if (size > PATH_MAX) {
-            L_ERROR("size = %zu too large; skipping\n", __func__, size);
-            continue;
-        }
-#endif
         stat_path = (char *)LEPT_CALLOC(size, 1);
         snprintf(stat_path, size, "%s/%s", realdir, pdirentry->d_name);
         stat_ret = stat(stat_path, &st);
