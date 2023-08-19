@@ -134,10 +134,10 @@
  *  This is important:
  *  (1) With the exception of splitPathAtDirectory(), splitPathAtExtension()
   *     and genPathname(), all input pathnames must have unix separators.
- *  (2) On Windows, when you specify a read or write to "/tmp/...",
- *      the filename is rewritten to use the Windows temp directory:
- *         /tmp  ==>   [Temp]...    (Windows)
- *  (3) This filename rewrite, along with the conversion from unix
+ *  (2) On macos & Windows, when you specify a read or write to "/tmp/...",
+ *      the filename is rewritten to use the platform temp directory:
+ *         /tmp  ==>   [Temp]...
+ *  (3) This filename rewrite, along with the conversion from Unix
  *      to Windows pathnames, happens in genPathname().
  *  (4) Use fopenReadStream() and fopenWriteStream() to open files,
  *      because these use genPathname() to find the platform-dependent
@@ -154,18 +154,17 @@
  *      files to default places, both for generating debugging output
  *      and for supporting regression tests.  Applications also need
  *      this ability for debugging.
- *  (8) Why do the pathname rewrite on Windows?
+ *  (8) Why do the pathname rewrite on macOS / Windows?
  *      The goal is to have the library, and programs using the library,
  *      run on multiple platforms without changes.  The location of
  *      temporary files depends on the platform as well as the user's
- *      configuration.  Temp files on Windows are in some directory
- *      not known a priori.  To make everything work seamlessly on
- *      Windows, every time you open a file for reading or writing,
- *      use a special function such as fopenReadStream() or
- *      fopenWriteStream(); these call genPathname() to ensure that
- *      if it is a temp file, the correct path is used.  To indicate
- *      that this is a temp file, the application is written with the
- *      root directory of the path in a canonical form: "/tmp".
+ *      name and/or configuration.  Temp files on are in some directory not
+ *      known a priori.  So in order to make everything work seamlessly,
+ *      every time you open a file for reading or writing, use a special
+ *      function such as fopenReadStream() or fopenWriteStream(); these
+ *      call genPathname() to ensure that if it is a temp file, the correct
+ *      path is used.  To indicate that this is a temp file, the code is
+ *      written with the root of the path in canonical form: "/tmp".
  *  (9) Why is it that multi-platform directory functions like lept_mkdir()
  *      and lept_rmdir(), as well as associated file functions like
  *      lept_rm(), lept_mv() and lept_cp(), only work in the temp dir?
@@ -203,6 +202,7 @@
 #ifdef __APPLE__
 #include <unistd.h>
 #include <errno.h>
+#include <sys/syslimits.h> /* MAX_PATH */
 #endif
 
 #include <string.h>
@@ -3075,6 +3075,7 @@ char *
 genPathname(const char  *dir,
             const char  *fname)
 {
+l_int32  is_macos = FALSE;
 l_int32  is_win32 = FALSE;
 char    *cdir, *pathout;
 l_int32  dirlen, namelen;
@@ -3108,6 +3109,9 @@ size_t   size;
         return (char *)ERROR_PTR("pathout not made", __func__, NULL);
     }
 
+#ifdef __APPLE__
+    is_macos = TRUE;
+#endif  /* __APPLE__ */
 #ifdef _WIN32
     is_win32 = TRUE;
 #endif  /* _WIN32 */
@@ -3116,11 +3120,24 @@ size_t   size;
          * There is no path rewriting on unix, and on win32, we do not
          * rewrite unless the specified directory is /tmp or
          * a subdirectory of /tmp */
-    if (!is_win32 || dirlen < 4 ||
+    if ((!is_macos && !is_win32) || dirlen < 4 ||
         (dirlen == 4 && strncmp(cdir, "/tmp", 4) != 0) ||  /* not in "/tmp" */
         (dirlen > 4 && strncmp(cdir, "/tmp/", 5) != 0)) {  /* not in "/tmp/" */
         stringCopy(pathout, cdir, dirlen);
-    } else {  /* Rewrite for win32 with "/tmp" specified for the directory. */
+    } else if (is_macos) {  /* Rewrite for macOS with "/tmp" specified for the directory. */
+#ifdef __APPLE__
+        char tmpdir[PATH_MAX];
+        size_t tmpdirlen = confstr(_CS_DARWIN_USER_TEMP_DIR, tmpdir, PATH_MAX);
+        if (tmpdirlen == 0 || tmpdirlen >= PATH_MAX) {
+            LEPT_FREE(cdir);
+            return (char *)ERROR_PTR("failed to get _CS_DARWIN_USER_TEMP_DIR", __func__, NULL);
+        }
+        stringCopy(pathout, tmpdir, tmpdirlen);
+            /* Add the rest of cdir */
+        if (dirlen > 4)
+            stringCat(pathout, size, cdir + 4);
+#endif  /* __APPLE__ */
+    } else if (is_win32) {  /* Rewrite for win32 with "/tmp" specified for the directory. */
 #ifdef _WIN32
         l_int32 tmpdirlen;
         char tmpdir[MAX_PATH];
@@ -3131,7 +3148,6 @@ size_t   size;
         }
         tmpdirlen = strlen(tmpdir);
         stringCopy(pathout, tmpdir, tmpdirlen);
-
             /* Add the rest of cdir */
         if (dirlen > 4)
             stringCat(pathout, size, cdir + 4);
@@ -3195,26 +3211,8 @@ size_t   pathlen;
 
     memset(result, 0, nbytes);
 
-#ifdef __APPLE__
-    {
-        size_t n = confstr(_CS_DARWIN_USER_TEMP_DIR, result, nbytes);
-        if (n == 0) {
-            L_ERROR("failed to find tmp dir, %s\n", __func__, strerror(errno));
-            return 1;
-        } else if (n > nbytes) {
-            return ERROR_INT("result array too small for path\n", __func__, 1);
-        }
-        dir = pathJoin(result, subdir);
-    }
-#else
     dir = pathJoin("/tmp", subdir);
-#endif /*  ~ __APPLE__ */
-
-#ifndef _WIN32
-    path = stringNew(dir);
-#else
     path = genPathname(dir, NULL);
-#endif  /*  ~ _WIN32 */
     pathlen = strlen(path);
     if (pathlen < nbytes - 1) {
         stringCopy(result, path, nbytes);
