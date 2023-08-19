@@ -269,8 +269,8 @@ char       sequence[32];
 char      *fname;
 l_int32    n, i;
 PIX       *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pix6;
-PIXA      *pixa1;
-PIXAC     *pixac1;
+PIXA      *pixa1 = NULL;
+PIXAC     *pixac1 = NULL;
 
     if (!sa)
         return ERROR_INT("sa not defined", __func__, 1);
