@@ -761,7 +761,7 @@ gplotSimplePix1(NUMA        *na,
                 const char  *title)
 {
 char            buf[64];
-static l_int32  index;
+static l_atomic index;
 GPLOT          *gplot;
 PIX            *pix;
 
@@ -803,7 +803,7 @@ gplotSimplePix2(NUMA        *na1,
                 const char  *title)
 {
 char            buf[64];
-static l_int32  index;
+static l_atomic index;
 GPLOT          *gplot;
 PIX            *pix;
 
@@ -844,7 +844,7 @@ gplotSimplePixN(NUMAA       *naa,
                 const char  *title)
 {
 char            buf[64];
-static l_int32  index;
+static l_atomic index;
 GPLOT          *gplot;
 PIX            *pix;
 
