@@ -291,7 +291,7 @@ pixBackgroundNormSimple(PIX  *pixs,
  *        grayscale version can be used elsewhere.  If the input is RGB
  *        and this is not supplied, it is made internally using only
  *        the green component, and destroyed after use.
- *    (6) The dimensions of the pixel tile (%sx, %sy) give the amount by
+ *    (6) The dimensions of the pixel tile (%sx, %sy) give the amount
  *        by which the map is reduced in size from the input image.
  *    (7) The input image is binarized using %thresh, in order to
  *        locate the foreground components.  If this is set too low,
