@@ -1415,7 +1415,7 @@ NUMA      *nad;
  *
  * <pre>
  * Notes:
- *      (1) For each edge interval, where where the value is less
+ *      (1) For each edge interval, where the value is less
  *          than %thresh1 on one side, greater than %thresh2 on
  *          the other, and between these thresholds throughout the
  *          interval, this records a triplet of values: the
