@@ -1613,6 +1613,7 @@ l_float32  startval, binsize, rankcount, total, sum, fract, val;
     numaGetSum(na, &total);
     rankcount = rank * total;  /* count that corresponds to rank */
     sum = 0.0;
+    val = 0.0;
     for (i = 0; i < n; i++) {
         numaGetFValue(na, i, &val);
         if (sum + val >= rankcount)
