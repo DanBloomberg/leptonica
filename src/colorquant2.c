@@ -228,7 +228,7 @@ static const l_int32  MaxItersAllowed = 5000;  /* prevents infinite looping */
 
     /* Specify fraction of vboxes made that are sorted on population alone.
      * The remaining vboxes are sorted on (population * vbox-volume).  */
-static const l_float32  FractByPopulation = 0.85;
+static const l_float32  FractByPopulation = 0.85f;
 
     /* To get the max value of 'dif' in the dithering color transfer,
      * divide DifCap by 8. */

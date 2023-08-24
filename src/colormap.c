@@ -1657,7 +1657,7 @@ PIXCMAP   *cmapd;
     sum = rwt + gwt + bwt;
     if (sum == 0.0) {
         L_WARNING("all weights zero; setting equal to 1/3\n", __func__);
-        rwt = gwt = bwt = 0.33333;
+        rwt = gwt = bwt = 0.33333f;
         sum = 1.0;
     }
     if (L_ABS(sum - 1.0) > 0.0001) {  /* maintain ratios with sum == 1.0 */
@@ -1986,7 +1986,7 @@ pixcmapToArrays(const PIXCMAP  *cmap,
                 l_int32       **pbmap,
                 l_int32       **pamap)
 {
-l_int32    *rmap, *gmap, *bmap, *amap;
+l_int32    *rmap, *gmap, *bmap, *amap = NULL;
 l_int32     i, ncolors;
 RGBA_QUAD  *cta;
 

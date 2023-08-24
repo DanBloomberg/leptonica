@@ -75,7 +75,7 @@
 #include "pix_internal.h"
 #include "bmfdata.h"
 
-static const l_float32  VertFractSep = 0.3;
+static const l_float32  VertFractSep = 0.3f;
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_BASELINE     0

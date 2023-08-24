@@ -198,9 +198,9 @@ static const l_int32    MaxExamplesInClass = 256;
     /* Default recog parameters that can be changed */
 static const l_int32    DefaultCharsetType = L_ARABIC_NUMERALS;
 static const l_int32    DefaultMinNopad = 1;
-static const l_float32  DefaultMaxWHRatio = 3.0;  /* max allowed w/h
+static const l_float32  DefaultMaxWHRatio = 3.0f;  /* max allowed w/h
                                     ratio for a component to be split  */
-static const l_float32  DefaultMaxHTRatio = 2.6;  /* max allowed ratio of
+static const l_float32  DefaultMaxHTRatio = 2.6f;  /* max allowed ratio of
                                max/min unscaled averaged template heights  */
 static const l_int32    DefaultThreshold = 150;  /* for binarization */
 static const l_int32    DefaultMaxYShift = 1;  /* for identification */

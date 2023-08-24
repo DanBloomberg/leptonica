@@ -128,30 +128,30 @@ PIX       *pixh, *pixv, *pixt, *pixg1, *pixg2, *pixg3, *pixg4;
     pixDestroy(&pixv);
 
     pixg2 = pixg3 = pixg4 = NULL;
-    pi = 3.1415926535;
+    pi = 3.1415926535f;
     if (nangles == 4 || nangles == 8) {
             /* Find min length at +45 and -45 degrees */
-        angle = pi / 4.0;
+        angle = pi / 4.0f;
         pixg2 = pixFindMinRunsOrthogonal(pixt, angle, depth);
     }
 
     if (nangles == 6) {
             /* Find min length at +30 and -60 degrees */
-        angle = pi / 6.0;
+        angle = pi / 6.0f;
         pixg2 = pixFindMinRunsOrthogonal(pixt, angle, depth);
 
             /* Find min length at +60 and -30 degrees */
-        angle = pi / 3.0;
+        angle = pi / 3.0f;
         pixg3 = pixFindMinRunsOrthogonal(pixt, angle, depth);
     }
 
     if (nangles == 8) {
             /* Find min length at +22.5 and -67.5 degrees */
-        angle = pi / 8.0;
+        angle = pi / 8.0f;
         pixg3 = pixFindMinRunsOrthogonal(pixt, angle, depth);
 
             /* Find min length at +67.5 and -22.5 degrees */
-        angle = 3.0 * pi / 8.0;
+        angle = 3.0 * pi / 8.0f;
         pixg4 = pixFindMinRunsOrthogonal(pixt, angle, depth);
     }
     pixDestroy(&pixt);

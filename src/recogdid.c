@@ -173,7 +173,7 @@ static l_int32 recogGetWindowedArea(L_RECOG *recog, l_int32 index,
 static l_int32 recogTransferRchToDid(L_RECOG *recog, l_int32 x, l_int32 y);
 
     /* Parameters for modeling the decoding */
-static const l_float32  SetwidthFraction = 0.95;
+static const l_float32  SetwidthFraction = 0.95f;
 static const l_int32    MaxYShift = 1;
 
     /* Channel parameters.  alpha[0] is the probability that a bg pixel
@@ -616,7 +616,7 @@ recogRescoreDidResult(L_RECOG  *recog,
                       PIX     **ppixdb)
 {
 l_int32    i, n, sample, x, dely, index;
-char      *text;
+char      *text = NULL;
 l_float32  score;
 BOX       *box1;
 PIX       *pixs, *pix1;
@@ -672,7 +672,7 @@ char       textstr[16];
 l_int32    i, j, n, index, xloc, dely;
 l_float32  score;
 L_BMF     *bmf;
-NUMA      *natempl_s, *nasample_s, *nascore_s, *naxloc_s, *nadely_s;
+NUMA      *natempl_s, *nasample_s = NULL, *nascore_s, *naxloc_s, *nadely_s;
 PIX       *pixs, *pix0, *pix1, *pix2, *pix3, *pix4, *pix5;
 L_RDID    *did;
 

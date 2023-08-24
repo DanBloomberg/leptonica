@@ -157,7 +157,7 @@ PIX        *pix1;
     pix1 = pixDistanceFunction(pixs, 8, 8, L_BOUNDARY_BG);
     na1 = pixGetGrayHistogram(pix1, 1);
     pixDestroy(&pix1);
-    numaGetNonzeroRange(na1, 0.1, &first, &last);
+    numaGetNonzeroRange(na1, 0.1f, &first, &last);
     na2 = numaClipToInterval(na1, 0, last);
     numaWriteStderr(na2);
 
@@ -174,11 +174,11 @@ PIX        *pix1;
          * over-correction, so the computed width may be a bit larger
          * than the average width. */
     extra = (i < n - 1) ? fa[i + 1] / fa[1] : 0;
-    width2 = 2.0 * (i - 1.0 + ratio + extra);
+    width2 = 2.0f * (i - 1.0f + ratio + extra);
     lept_stderr("width1 = %5.2f, width2 = %5.2f\n", width1, width2);
 
         /* Average the two results */
-    *pwidth = (width1 + width2) / 2.0;
+    *pwidth = (width1 + width2) / 2.0f;
 
     if (!tab8) LEPT_FREE(tab);
     numaDestroy(&na1);
@@ -266,7 +266,7 @@ PIXA      *pixad;
     if (maxd > 1)
         return (PIXA *)ERROR_PTR("pix not all 1 bpp", __func__, NULL);
 
-    na = pixaFindStrokeWidth(pixas, 0.1, NULL, 0);
+    na = pixaFindStrokeWidth(pixas, 0.1f, NULL, 0);
     n = pixaGetCount(pixas);
     pixad = pixaCreate(n);
     for (i = 0; i < n; i++) {

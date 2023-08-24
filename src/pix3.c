@@ -1300,7 +1300,7 @@ PIX     *pix1, *pixd;
         /* Blur the boundary of the input mask */
     pixInvert(pix1, pix1);
     pixd = pixDistanceFunction(pix1, 8, 8, L_BOUNDARY_FG);
-    pixMultConstantGray(pixd, 256.0 / dist);
+    pixMultConstantGray(pixd, 256.0f / dist);
     pixInvert(pixd, pixd);
     pixDestroy(&pix1);
     return pixd;
@@ -2538,7 +2538,7 @@ NUMA       *na;
     if ((na = numaCreate(bw)) == NULL)
         return (NUMA *)ERROR_PTR("na not made", __func__, NULL);
     numaSetParameters(na, xstart, 1);
-    norm = 1. / (l_float32)bh;
+    norm = 1.f / (l_float32)bh;
     data = pixGetData(pix);
     wpl = pixGetWpl(pix);
     for (j = xstart; j < xend; j++) {
@@ -2606,7 +2606,7 @@ pixAverageInRect(PIX        *pixs,
 {
 l_int32    w, h, d, wpls, wm, hm, dm, wplm, val, count;
 l_int32    i, j, xstart, xend, ystart, yend;
-l_uint32  *datas, *datam, *lines, *linem;
+l_uint32  *datas, *datam = NULL, *lines, *linem = NULL;
 l_float64  sum;
 
     if (!pave)
@@ -2709,7 +2709,7 @@ pixAverageInRectRGB(PIX       *pixs,
 {
 l_int32    w, h, wpls, wm, hm, dm, wplm, i, j, xstart, xend, ystart, yend;
 l_int32    rval, gval, bval, rave, gave, bave, count;
-l_uint32  *datas, *datam, *lines, *linem;
+l_uint32  *datas, *datam = NULL, *lines, *linem = NULL;
 l_uint32   pixel;
 l_float64  rsum, gsum, bsum;
 
@@ -3474,7 +3474,7 @@ PIXA      *pixa;
     nastdev = numaCreate(n);
     for (i = 0; i < n; i++) {
         pix = pixaGetPix(pixa, i, L_CLONE);
-        pixg = pixConvertRGBToGray(pix, 0.33, 0.34, 0.33);
+        pixg = pixConvertRGBToGray(pix, 0.33f, 0.34f, 0.33f);
         pixGetAverageMasked(pixg, NULL, 0, 0, 1, L_MEAN_ABSVAL, &mean);
         pixGetAverageMasked(pixg, NULL, 0, 0, 1, L_STANDARD_DEVIATION, &stdev);
         numaAddNumber(namean, mean);

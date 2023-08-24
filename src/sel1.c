@@ -252,7 +252,7 @@ selaCreate(l_int32  n)
 {
 SELA  *sela;
 
-    if (n <= 0 || n > MaxPtrArraySize)
+    if (n <= 0 || n > (l_int32)MaxPtrArraySize)
         n = InitialPtrArraySize;
 
         /* Make array of sel ptrs */
@@ -508,9 +508,9 @@ create2dIntArray(l_int32  sy,
 l_int32    i;
 l_int32  **array;
 
-    if (sx <= 0 || sx > MaxKernelSize)
+    if (sx <= 0 || sx > (l_int32)MaxKernelSize)
         return (l_int32 **)ERROR_PTR("sx out of bounds", __func__, NULL);
-    if (sy <= 0 || sy > MaxKernelSize)
+    if (sy <= 0 || sy > (l_int32)MaxKernelSize)
         return (l_int32 **)ERROR_PTR("sy out of bounds", __func__, NULL);
 
     array = (l_int32 **)LEPT_CALLOC(sy, sizeof(l_int32 *));
@@ -935,7 +935,7 @@ selaGetCombName(SELA    *sela,
                 l_int32  size,
                 l_int32  direction)
 {
-char    *selname;
+char    *selname = NULL;
 char     combname[256];
 l_int32  i, nsels, sx, sy, found;
 SEL     *sel;

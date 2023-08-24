@@ -277,8 +277,8 @@ l_uint32                      *line, *ppixel;
 JSAMPROW                       rowbuffer;
 PIX                           *pix;
 PIXCMAP                       *cmap;
-struct jpeg_decompress_struct  cinfo;
-struct jpeg_error_mgr          jerr;
+struct jpeg_decompress_struct  cinfo = { 0 };
+struct jpeg_error_mgr          jerr = { 0 };
 jmp_buf                        jmpbuf;  /* must be local to the function */
 
     if (pnwarn) *pnwarn = 0;
@@ -553,8 +553,8 @@ freadHeaderJpeg(FILE     *fp,
                 l_int32  *pcmyk)
 {
 l_int32                        spp, w, h;
-struct jpeg_decompress_struct  cinfo;
-struct jpeg_error_mgr          jerr;
+struct jpeg_decompress_struct  cinfo = { 0 };
+struct jpeg_error_mgr          jerr = { 0 };
 jmp_buf                        jmpbuf;  /* must be local to the function */
 
     if (pw) *pw = 0;
@@ -623,8 +623,8 @@ fgetJpegResolution(FILE     *fp,
                    l_int32  *pxres,
                    l_int32  *pyres)
 {
-struct jpeg_decompress_struct  cinfo;
-struct jpeg_error_mgr          jerr;
+struct jpeg_decompress_struct  cinfo = { 0 };
+struct jpeg_error_mgr          jerr = { 0 };
 jmp_buf                        jmpbuf;  /* must be local to the function */
 
     if (pxres) *pxres = 0;
@@ -680,9 +680,9 @@ l_int32
 fgetJpegComment(FILE      *fp,
                 l_uint8  **pcomment)
 {
-struct jpeg_decompress_struct  cinfo;
-struct jpeg_error_mgr          jerr;
-struct callback_data           cb_data;  /* contains local jmp_buf */
+struct jpeg_decompress_struct  cinfo = { 0 };
+struct jpeg_error_mgr          jerr = { 0 };
+struct callback_data           cb_data = { 0 };  /* contains local jmp_buf */
 
     if (!pcomment)
         return ERROR_INT("&comment not defined", __func__, 1);
@@ -799,8 +799,8 @@ l_int32                      w, h, d, wpl, spp, colorflag, rowsamples;
 l_uint32                    *ppixel, *line, *data;
 JSAMPROW                     rowbuffer;
 PIX                         *pix;
-struct jpeg_compress_struct  cinfo;
-struct jpeg_error_mgr        jerr;
+struct jpeg_compress_struct  cinfo = { 0 };
+struct jpeg_error_mgr        jerr = { 0 };
 char                        *text;
 jmp_buf                      jmpbuf;  /* must be local to the function */
 

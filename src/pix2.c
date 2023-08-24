@@ -2374,7 +2374,7 @@ PIXCMAP   *cmap;
         pix1 = pixCopy(NULL, pixs);
 
         /* Scale if necessary so the output width is not larger than maxw */
-    scalefact = (maxw == 0) ? 1.0 : L_MIN(1.0, (l_float32)(maxw) / w);
+    scalefact = (maxw == 0) ? 1.0f : L_MIN(1.0f, (l_float32)(maxw) / w);
     width = (l_int32)(scalefact * w);
 
     pixa = pixaCreate(3);
@@ -3529,8 +3529,8 @@ void
 l_setAlphaMaskBorder(l_float32  val1,
                      l_float32  val2)
 {
-    val1 = L_MAX(0.0, L_MIN(1.0, val1));
-    val2 = L_MAX(0.0, L_MIN(1.0, val2));
+    val1 = L_MAX(0.0f, L_MIN(1.0f, val1));
+    val2 = L_MAX(0.0f, L_MIN(1.0f, val2));
     AlphaMaskBorderVals[0] = val1;
     AlphaMaskBorderVals[1] = val2;
 }

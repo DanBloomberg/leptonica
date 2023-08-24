@@ -66,8 +66,8 @@
 static const l_int32  MinMazeWidth = 50;
 static const l_int32  MinMazeHeight = 50;
 
-static const l_float32  DefaultWallProbability = 0.65;
-static const l_float32  DefaultAnisotropyRatio = 0.25;
+static const l_float32  DefaultWallProbability = 0.65f;
+static const l_float32  DefaultAnisotropyRatio = 0.25f;
 
 enum {  /* direction from parent to newly created element */
     START_LOC = 0,

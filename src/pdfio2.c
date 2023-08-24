@@ -249,10 +249,10 @@ L_PDF_DATA   *lpd = NULL;
     h = cid->h;
     if (res <= 0.0)
         res = (pixres > 0) ? pixres : DefaultInputRes;
-    xpt = x * 72. / res;
-    ypt = y * 72. / res;
-    wpt = w * 72. / res;
-    hpt = h * 72. / res;
+    xpt = x * 72.f / res;
+    ypt = y * 72.f / res;
+    wpt = w * 72.f / res;
+    hpt = h * 72.f / res;
 
         /* Set up lpd */
     if (!plpd) {  /* single image */
@@ -1624,8 +1624,8 @@ L_PDF_DATA  *lpd = NULL;
     res = cid->res;
     if (res <= 0)
         res = DefaultInputRes;
-    wpt = cid->w * 72. / res;
-    hpt = cid->h * 72. / res;
+    wpt = cid->w * 72.f / res;
+    hpt = cid->h * 72.f / res;
 
         /* Set up the pdf data struct (lpd) */
     if ((lpd = pdfdataCreate(title)) == NULL)
@@ -2941,7 +2941,7 @@ getPdfRendererResolution(const char  *infile,
 {
 char      buf[256];
 char     *tail, *basename, *fname;
-l_int32   ret, res, resmax, medw, medh, medmax, npages, pageno, w, h;
+l_int32   ret, res, medw, medh, medmax, npages, pageno, w, h;
 SARRAY   *sa;
 
     if (!pres)

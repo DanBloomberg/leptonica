@@ -606,8 +606,8 @@ NUMA      *na1;
         return ERROR_INT("invalid threshp", __func__, 1);
     if (threshm < 0.0 || threshm >= 0.5)
         return ERROR_INT("invalid threshm", __func__, 1);
-    if (threshp == 0.0) threshp = 0.02;
-    if (threshm == 0.0) threshm = 0.015;
+    if (threshp == 0.0) threshp = 0.02f;
+    if (threshm == 0.0) threshm = 0.015f;
 
         /* Evaluate pairwise variation */
     n = boxaGetCount(boxas);

@@ -695,7 +695,7 @@ l_float32   minval;
     if (!fpix)
         return ERROR_INT("fpix not defined", __func__, 1);
 
-    minval = +1.0e20;
+    minval = +1.0e20f;
     xminloc = 0;
     yminloc = 0;
     fpixGetDimensions(fpix, &w, &h);
@@ -746,7 +746,7 @@ l_float32   maxval;
     if (!fpix)
         return ERROR_INT("fpix not defined", __func__, 1);
 
-    maxval = -1.0e20;
+    maxval = -1.0e20f;
     xmaxloc = 0;
     ymaxloc = 0;
     fpixGetDimensions(fpix, &w, &h);

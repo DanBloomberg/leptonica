@@ -241,8 +241,7 @@ SARRAY  *sa;
     }
 
     if (pdfout) {
-        snprintf(fname, sizeof(fname), "/tmp/lept/seq_output_%d.pdf",
-                 L_ABS(dispsep));
+        snprintf(fname, sizeof(fname), "/tmp/lept/seq_output_%d.pdf", L_ABS(dispsep));
         pixaConvertToPdf(pixa, 0, 1.0, L_FLATE_ENCODE, 0, fname, fname);
         pixaDestroy(&pixa);
     }
@@ -732,7 +731,7 @@ SARRAY  *sa;
 l_int32
 morphSequenceVerify(SARRAY  *sa)
 {
-char    *rawop, *op;
+char    *rawop, *op = NULL;
 l_int32  nops, i, j, nred, fact, valid, w, h, netred, border;
 l_int32  level[4];
 l_int32  intlogbase2[5] = {1, 2, 3, 0, 4};  /* of arg/4 */

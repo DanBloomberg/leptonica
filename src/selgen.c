@@ -498,7 +498,7 @@ pixGenerateSelBoundary(PIX     *pixs,
 l_int32  ws, hs, w, h, x, y, ix, iy, i, npt;
 PIX     *pixt1, *pixt2, *pixt3, *pixfg, *pixbg;
 SEL     *selh, *selm, *sel_3, *sel;
-PTA     *ptah, *ptam;
+PTA     *ptah = NULL, *ptam = NULL;
 
     if (ppixe) *ppixe = NULL;
     if (!pixs)

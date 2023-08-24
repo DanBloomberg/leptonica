@@ -544,7 +544,7 @@ pixOctreeColorQuant(PIX     *pixs,
     if (colors < 128 || colors > 240)  /* further restricted */
         return (PIX *)ERROR_PTR("colors must be in [128, 240]", __func__, NULL);
 
-    return pixOctreeColorQuantGeneral(pixs, colors, ditherflag, 0.01, 0.01);
+    return pixOctreeColorQuantGeneral(pixs, colors, ditherflag, 0.01f, 0.01f);
 }
 
 
@@ -3284,7 +3284,7 @@ PIXCMAP   *cmap, *cmapd;
     if (darkthresh <= 0) darkthresh = 20;
     if (lightthresh <= 0) lightthresh = 244;
     if (diffthresh <= 0) diffthresh = 20;
-    if (minfract <= 0.0) minfract = 0.05;
+    if (minfract <= 0.0) minfract = 0.05f;
     if (maxspan <= 2) maxspan = 15;
 
         /* Start with a simple fixed octcube quantizer. */

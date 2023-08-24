@@ -93,10 +93,10 @@ static l_int32 pixRenderHorizEndPoints(PIX *pixs, PTA *ptal, PTA *ptar,
 #endif  /* !NO_CONSOLE_IO */
 
     /* Special parameter values for reducing horizontal disparity */
-static const l_float32   MinRatioLinesToHeight = 0.45;
+static const l_float32   MinRatioLinesToHeight = 0.45f;
 static const l_int32     MinLinesForHoriz1 = 10; /* initially */
 static const l_int32     MinLinesForHoriz2 = 3;  /* after, in each half */
-static const l_float32   AllowedWidthFract = 0.05;  /* no bigger */
+static const l_float32   AllowedWidthFract = 0.05f;  /* no bigger */
 
 
 /*----------------------------------------------------------------------*
@@ -194,7 +194,7 @@ PTAA    *ptaa1, *ptaa2;
 
         /* Remove all lines that are not at least 0.8 times the length
          * of the longest line. */
-    ptaa2 = dewarpRemoveShortLines(pixs, ptaa1, 0.8,
+    ptaa2 = dewarpRemoveShortLines(pixs, ptaa1, 0.8f,
                                    debugfile || DEBUG_SHORT_LINES);
     if (debugfile) {
         pix1 = pixConvertTo32(pixs);
@@ -249,12 +249,12 @@ PTAA    *ptaa1, *ptaa2;
         /* Debug output */
     if (debugfile) {
         dewarpPopulateFullRes(dew, NULL, 0, 0);
-        pix1 = fpixRenderContours(dew->fullvdispar, 3.0, 0.15);
+        pix1 = fpixRenderContours(dew->fullvdispar, 3.0f, 0.15f);
         pixWriteDebug("/tmp/lept/dewmod/0060.png", pix1, IFF_PNG);
         pixDisplay(pix1, 1000, 0);
         pixDestroy(&pix1);
         if (ret == 0) {
-            pix1 = fpixRenderContours(dew->fullhdispar, 3.0, 0.15);
+            pix1 = fpixRenderContours(dew->fullhdispar, 3.0f, 0.15f);
             pixWriteDebug("/tmp/lept/dewmod/0070.png", pix1, IFF_PNG);
             pixDisplay(pix1, 1000, 0);
             pixDestroy(&pix1);
@@ -1851,13 +1851,13 @@ PTAA    *ptaa1, *ptaa2;
     if (debugfile) {
         if (dew->vsuccess == 1) {
             dewarpPopulateFullRes(dew, NULL, 0, 0);
-            pix1 = fpixRenderContours(dew->fullvdispar, 3.0, 0.15);
+            pix1 = fpixRenderContours(dew->fullvdispar, 3.0f, 0.15f);
             pixWriteDebug("/tmp/lept/dewline/006.png", pix1, IFF_PNG);
             pixDisplay(pix1, 1000, 0);
             pixDestroy(&pix1);
         }
         if (dew->hsuccess == 1) {
-            pix1 = fpixRenderContours(dew->fullhdispar, 3.0, 0.15);
+            pix1 = fpixRenderContours(dew->fullhdispar, 3.0f, 0.15f);
             pixWriteDebug("/tmp/lept/dewline/007.png", pix1, IFF_PNG);
             pixDisplay(pix1, 1000, 0);
             pixDestroy(&pix1);

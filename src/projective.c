@@ -863,11 +863,11 @@ l_float64  denom;
     if (!vc)
         return ERROR_INT("vc not defined", __func__, 1);
 
-    if ((denom = vc[6] * x + vc[7] * y + 1.0) == 0.0)
+    if ((denom = vc[6] * x + vc[7] * y + 1.0f) == 0.0f)
         return ERROR_INT("denom = 0.0", __func__, 1);
-    factor = 1.0 / denom;
-    *pxp = (l_int32)(factor * (vc[0] * x + vc[1] * y + vc[2]) + 0.5);
-    *pyp = (l_int32)(factor * (vc[3] * x + vc[4] * y + vc[5]) + 0.5);
+    factor = 1.0f / denom;
+    *pxp = (l_int32)(factor * (vc[0] * x + vc[1] * y + vc[2]) + 0.5f);
+    *pyp = (l_int32)(factor * (vc[3] * x + vc[4] * y + vc[5]) + 0.5f);
     return 0;
 }
 
@@ -899,9 +899,9 @@ l_float64  denom;
     if (!vc)
         return ERROR_INT("vc not defined", __func__, 1);
 
-    if ((denom = vc[6] * x + vc[7] * y + 1.0) == 0.0)
+    if ((denom = vc[6] * x + vc[7] * y + 1.0f) == 0.0f)
         return ERROR_INT("denom = 0.0", __func__, 1);
-    factor = 1.0 / denom;
+    factor = 1.0f / denom;
     *pxp = factor * (vc[0] * x + vc[1] * y + vc[2]);
     *pyp = factor * (vc[3] * x + vc[4] * y + vc[5]);
     return 0;

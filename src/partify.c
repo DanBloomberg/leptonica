@@ -160,7 +160,7 @@ PIXAC    **pixaca;
         if (res == 0 || res == 300 || res > 600) {
             pix2 = pixClone(pix1);
         } else {
-            factor = 300.0 / (l_float32)res;
+            factor = 300.0f / (l_float32)res;
             if (factor > 3)
                 L_WARNING("resolution is very low\n", __func__);
             pix2 = pixScale(pix1, factor, factor);

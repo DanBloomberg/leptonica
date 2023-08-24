@@ -61,7 +61,7 @@
 #include "allheaders.h"
 
     /* Shear angle must not get too close to -pi/2 or pi/2 */
-static const l_float32   MinDiffFromHalfPi = 0.04;
+static const l_float32   MinDiffFromHalfPi = 0.04f;
 
 static l_float32 normalizeAngleForShear(l_float32 radang, l_float32 mindif);
 
@@ -815,7 +815,7 @@ normalizeAngleForShear(l_float32  radang,
 l_float32  pi2;
 
        /* Bring angle into range [-pi/2, pi/2] */
-    pi2 = 3.14159265 / 2.0;
+    pi2 = 3.14159265f / 2.0f;
     if (radang < -pi2 || radang > pi2)
         radang = radang - (l_int32)(radang / pi2) * pi2;
 

@@ -1465,7 +1465,7 @@ FPIX       *fpix;
             linef2 = dataf + (i + 1) * wplf;
             lined = datad + i * wpld;
             lines = datas + i * wpls;
-            norm = 1.0 / 9.0;
+            norm = 1.0f / 9.0f;
             for (j = 1; j < w - 1; j++) {
                 val = norm * (linef0[j] + linef1[j] +
                               linef2[j]);         /* L: lowpass filter value */
@@ -1485,7 +1485,7 @@ FPIX       *fpix;
             linef4 = dataf + (i + 2) * wplf;
             lined = datad + i * wpld;
             lines = datas + i * wpls;
-            norm = 1.0 / 25.0;
+            norm = 1.0f / 25.0f;
             for (j = 2; j < w - 2; j++) {
                 val = norm * (linef0[j] + linef1[j] + linef2[j] + linef3[j] +
                               linef4[j]);  /* L: lowpass filter value */
@@ -1818,7 +1818,7 @@ PIXA      *pixa;
         return (PIX *)ERROR_PTR("boff not in [-1.0, 1.0]", __func__, NULL);
     if (delta < 0.0 || delta > 0.1)
         return (PIX *)ERROR_PTR("delta not in [0.0, 0.1]", __func__, NULL);
-    if (delta == 0.0) delta = 0.04;
+    if (delta == 0.0) delta = 0.04f;
     if (nincr < 0 || nincr > 6)
         return (PIX *)ERROR_PTR("nincr not in [0, 6]", __func__, NULL);
     if (nincr == 0) nincr = 2;
