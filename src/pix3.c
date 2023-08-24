@@ -1507,7 +1507,7 @@ pixInvert(PIX  *pixd,
  * <pre>
  * Notes:
  *      (1) This gives the union of two images with equal depth,
- *          aligning them to the the UL corner.  pixs1 and pixs2
+ *          aligning them to the UL corner.  pixs1 and pixs2
  *          need not have the same width and height.
  *      (2) There are 3 cases:
  *            (a) pixd == null,   (src1 | src2) --> new pixd
