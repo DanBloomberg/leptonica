@@ -106,7 +106,7 @@
 static const l_int32   MinCompsForBinSort = 200;
 
     /* Don't rotate any angle smaller than this */
-static const l_float32  MinAngleToRotate = 0.001;  /* radians; ~0.06 deg */
+static const l_float32  MinAngleToRotate = 0.001f;  /* radians; ~0.06 deg */
 
 /*---------------------------------------------------------------------*
  *                                Filters                              *
@@ -2416,7 +2416,7 @@ pixaaFlattenToPixa(PIXAA   *paa,
 {
 l_int32  i, j, m, mb, n;
 BOX     *box;
-NUMA    *naindex;
+NUMA    *naindex = NULL;
 PIX     *pix;
 PIXA    *pixa, *pixat;
 

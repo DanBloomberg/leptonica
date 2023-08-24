@@ -121,7 +121,7 @@ ptaCreate(l_int32  n)
 {
 PTA  *pta;
 
-    if (n <= 0 || n > MaxArraySize)
+    if (n <= 0 || n > (l_int32)MaxArraySize)
         n = InitialArraySize;
 
     pta = (PTA *)LEPT_CALLOC(1, sizeof(PTA));
@@ -366,7 +366,7 @@ size_t  oldsize, newsize;
 
     if (!pta)
         return ERROR_INT("pta not defined", __func__, 1);
-    if (pta->nalloc > MaxArraySize)
+    if (pta->nalloc > (l_int32)MaxArraySize)  /* belt & suspenders */
         return ERROR_INT("pta at maximum size; can't extend", __func__, 1);
     oldsize = 4 * pta->nalloc;
     if (pta->nalloc > MaxArraySize / 2) {
@@ -677,7 +677,7 @@ PTA       *pta;
         return (PTA *)ERROR_PTR("not a pta file", __func__, NULL);
     if (n < 0)
         return (PTA *)ERROR_PTR("num pts <= 0", __func__, NULL);
-    if (n > MaxArraySize)
+    if (n > (l_int32)MaxArraySize)
         return (PTA *)ERROR_PTR("too many pts", __func__, NULL);
     if (n == 0) L_INFO("the pta is empty\n", __func__);
 
@@ -907,7 +907,7 @@ ptaaCreate(l_int32  n)
 {
 PTAA  *ptaa;
 
-    if (n <= 0 || n > MaxPtrArraySize)
+    if (n <= 0 || n > (l_int32)MaxPtrArraySize)
         n = InitialArraySize;
 
     ptaa = (PTAA *)LEPT_CALLOC(1, sizeof(PTAA));
@@ -1314,7 +1314,7 @@ PTAA    *ptaa;
         return (PTAA *)ERROR_PTR("not a ptaa file", __func__, NULL);
     if (n < 0)
         return (PTAA *)ERROR_PTR("num pta ptrs <= 0", __func__, NULL);
-    if (n > MaxPtrArraySize)
+    if (n > (l_int32)MaxPtrArraySize)
         return (PTAA *)ERROR_PTR("too many pta ptrs", __func__, NULL);
     if (n == 0) L_INFO("the ptaa is empty\n", __func__);
 

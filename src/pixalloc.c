@@ -207,7 +207,7 @@ L_PTRAA          *paa;
         smallest += 4 - (smallest % 4);
     pms->smallest = smallest;
     for (i = 0; i < nlevels; i++)
-        sizes[i] = smallest * (1 << i);
+        sizes[i] = smallest * ((size_t)1 << i);
     pms->largest = sizes[nlevels - 1];
 
     alloca = numaGetIArray(numalloc);

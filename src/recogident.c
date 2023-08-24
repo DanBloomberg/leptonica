@@ -105,7 +105,7 @@
 static const l_int32    LeftRightPadding = 32;
 
     /* Parameters for filtering and sorting connected components in splitter */
-static const l_float32  MinFillFactor = 0.10;
+static const l_float32  MinFillFactor = 0.10f;
 static const l_int32  DefaultMinHeight = 15;  /* min unscaled height */
 static const l_int32  MinOverlap1 = 6;  /* in pass 1 of boxaSort2d() */
 static const l_int32  MinOverlap2 = 6;  /* in pass 2 of boxaSort2d() */
@@ -365,7 +365,7 @@ PIXA    *pixa;
          * components are in a flattened 2D sort, we don't need to
          * look far ahead in the array to find all overlapping boxes;
          * 10 boxes is plenty. */
-    boxad = boxaHandleOverlaps(boxa3, L_COMBINE, 10, 0.5, 0.3, NULL);
+    boxad = boxaHandleOverlaps(boxa3, L_COMBINE, 10, 0.5f, 0.3f, NULL);
     boxaDestroy(&boxa3);
 
         /* Extract and save the image pieces from the input image. */
@@ -737,7 +737,7 @@ l_int32     sum, moment, count;
 l_int32    *tab, *area1, *arraysum, *arraymoment;
 l_float32   maxscore, score;
 l_float32  *ycent1;
-FPIX       *fpix;
+FPIX       *fpix = NULL;
 PIX        *pixt, *pixt1, *pixt2;
 
     if (pdelx) *pdelx = 0;
@@ -1607,11 +1607,11 @@ char      *str, *text;
 l_int32    i, n, x1, x2, h_ovl, v_ovl, h_sep, v_sep;
 l_float32  score;
 BOX       *box, *prebox;
-BOXA      *ba;
+BOXA      *ba = NULL;
 BOXAA     *baa;
-NUMA      *nascore, *na;
+NUMA      *nascore, *na = NULL;
 NUMAA     *naa;
-SARRAY    *satext, *sa, *saout;
+SARRAY    *satext, *sa = NULL, *saout;
 
     if (pbaa) *pbaa = NULL;
     if (pnaa) *pnaa = NULL;

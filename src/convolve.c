@@ -332,7 +332,7 @@ l_uint32  *linemina, *linemaxa, *line;
     wmwc = w - wc;
     hmhc = h - hc;
     if (wmwc <= 0 || hmhc <= 0) {
-        L_ERROR("wc >= w || hc >=h\n", __func__);
+        L_ERROR("wc >= w || hc >= h\n", __func__);
         return;
     }
     fwc = 2 * wc + 1;
@@ -1271,7 +1271,7 @@ pixWindowedVariance(PIX    *pixm,
 l_int32     i, j, w, h, ws, hs, ds, wplm, wplms, wplv, wplrv, valm, valms;
 l_float32   var;
 l_uint32   *linem, *linems, *datam, *datams;
-l_float32  *linev, *linerv, *datav, *datarv;
+l_float32  *linev = NULL, *linerv = NULL, *datav = NULL, *datarv = NULL;
 FPIX       *fpixv, *fpixrv;  /* variance and square root of variance */
 
     if (!pfpixv && !pfpixrv)
@@ -1993,8 +1993,8 @@ PIX       *pixt, *pixd;
     xfact = ConvolveSamplingFactX;
     yfact = ConvolveSamplingFactY;
     if (normflag) {
-        kelxn = kernelNormalize(kelx, 1000.0);
-        kelyn = kernelNormalize(kely, 0.001);
+        kelxn = kernelNormalize(kelx, 1000.0f);
+        kelyn = kernelNormalize(kely, 0.001f);
         l_setConvolveSampling(xfact, 1);
         pixt = pixConvolve(pixs, kelxn, 32, 0);
         l_setConvolveSampling(1, yfact);

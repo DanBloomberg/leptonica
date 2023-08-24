@@ -300,8 +300,8 @@ PIX       *pixt, *pixd;
         else if (rank == 1.0)
             return pixDilateGray(pixs, wf, hf);
     }
-    if (rank == 0.0) rank = 0.0001;
-    if (rank == 1.0) rank = 0.9999;
+    if (rank == 0.0) rank = 0.0001f;
+    if (rank == 1.0) rank = 0.9999f;
 
         /* Add wf/2 to each side, and hf/2 to top and bottom of the
          * image, mirroring for accuracy and to avoid special-casing

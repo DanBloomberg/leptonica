@@ -117,7 +117,7 @@ static const l_int32  LetterWidth  = 612;   /* points */
 static const l_int32  LetterHeight = 792;   /* points */
 static const l_int32  A4Width      = 595;   /* points */
 static const l_int32  A4Height     = 842;   /* points */
-static const l_float32  DefaultFillFraction = 0.95;
+static const l_float32  DefaultFillFraction = 0.95f;
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_JPEG       0
@@ -203,9 +203,9 @@ PIX       *pix;
     w = pixGetWidth(pix);
     h = pixGetHeight(pix);
     if (w * 11.0 > h * 8.5)
-        scale = 8.5 * 300. / (l_float32)w;
+        scale = 8.5f * 300.f / (l_float32)w;
     else
-        scale = 11.0 * 300. / (l_float32)h;
+        scale = 11.0f * 300.f / (l_float32)h;
 
     if ((fp = fopenWriteStream(fileout, "wb")) == NULL)
         return ERROR_INT_1("file not opened for write", fileout, __func__, 1);
@@ -583,20 +583,20 @@ l_float32  winch, hinch, xinch, yinch, fres;
     if (!box) {  /* center on page */
         winch = (l_float32)wpix / fres;
         hinch = (l_float32)hpix / fres;
-        xinch = (8.5 - winch) / 2.;
-        yinch = (11.0 - hinch) / 2.;
+        xinch = (8.5f - winch) / 2.f;
+        yinch = (11.0f - hinch) / 2.f;
     } else {
         boxGetGeometry(box, &bx, &by, &bw, &bh);
         if (bw == 0)
             winch = (l_float32)wpix / fres;
         else
-            winch = (l_float32)bw / 1000.;
+            winch = (l_float32)bw / 1000.f;
         if (bh == 0)
             hinch = (l_float32)hpix / fres;
         else
-            hinch = (l_float32)bh / 1000.;
-        xinch = (l_float32)bx / 1000.;
-        yinch = (l_float32)by / 1000.;
+            hinch = (l_float32)bh / 1000.f;
+        xinch = (l_float32)bx / 1000.f;
+        yinch = (l_float32)by / 1000.f;
     }
 
     if (xinch < 0)
@@ -608,10 +608,10 @@ l_float32  winch, hinch, xinch, yinch, fres;
     if (yinch + hinch > 11.0)
         L_WARNING("top edge > 11.0 inch\n", __func__);
 
-    *pwpt = 72. * winch;
-    *phpt = 72. * hinch;
-    *pxpt = 72. * xinch;
-    *pypt = 72. * yinch;
+    *pwpt = 72.f * winch;
+    *phpt = 72.f * hinch;
+    *pxpt = 72.f * xinch;
+    *pypt = 72.f * yinch;
     return;
 }
 
@@ -881,10 +881,10 @@ L_COMP_DATA  *cid;
         /* Get scaled location in pts */
     if (scale == 0.0)
         scale = 1.0;
-    xpt = scale * x * 72. / res;
-    ypt = scale * y * 72. / res;
-    wpt = scale * cid->w * 72. / res;
-    hpt = scale * cid->h * 72. / res;
+    xpt = scale * x * 72.f / res;
+    ypt = scale * y * 72.f / res;
+    wpt = scale * cid->w * 72.f / res;
+    hpt = scale * cid->h * 72.f / res;
 
     if (pageno == 0)
         pageno = 1;
@@ -1262,10 +1262,10 @@ L_COMP_DATA  *cid;
                 res = 600;
         }
     }
-    xpt = scale * x * 72. / res;
-    ypt = scale * y * 72. / res;
-    wpt = scale * cid->w * 72. / res;
-    hpt = scale * cid->h * 72. / res;
+    xpt = scale * x * 72.f / res;
+    ypt = scale * y * 72.f / res;
+    wpt = scale * cid->w * 72.f / res;
+    hpt = scale * cid->h * 72.f / res;
 
     if (pageno == 0)
         pageno = 1;
@@ -1736,10 +1736,10 @@ L_COMP_DATA  *cid;
         else
             res = DefaultInputRes;
     }
-    xpt = scale * x * 72. / res;
-    ypt = scale * y * 72. / res;
-    wpt = scale * cid->w * 72. / res;
-    hpt = scale * cid->h * 72. / res;
+    xpt = scale * x * 72.f / res;
+    ypt = scale * y * 72.f / res;
+    wpt = scale * cid->w * 72.f / res;
+    hpt = scale * cid->h * 72.f / res;
 
     if (pageno == 0)
         pageno = 1;

@@ -1076,7 +1076,7 @@ PIX       *pixmt, *pixt;
 
     pixmt = NULL;
     if (pixm) {
-        scale = 1.0 / (l_float32)factor;
+        scale = 1.0f / (l_float32)factor;
         pixmt = pixScale(pixm, scale, scale);
     }
     if (prval) {
@@ -1820,7 +1820,7 @@ l_float32  *famedian, *famode, *famodecount;
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if (pnamean || pnavar || pnarootvar) {
-        norm = 1. / (l_float32)bw;
+        norm = 1.f / (l_float32)bw;
         famean = (l_float32 *)LEPT_CALLOC(bh, sizeof(l_float32));
         fameansq = (l_float32 *)LEPT_CALLOC(bh, sizeof(l_float32));
         if (pnavar || pnarootvar) {
@@ -1978,7 +1978,7 @@ l_float32  *famedian, *famode, *famodecount;
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     if (pnamean || pnavar || pnarootvar) {
-        norm = 1. / (l_float32)bh;
+        norm = 1.f / (l_float32)bh;
         famean = (l_float32 *)LEPT_CALLOC(bw, sizeof(l_float32));
         fameansq = (l_float32 *)LEPT_CALLOC(bw, sizeof(l_float32));
         if (pnavar || pnarootvar) {

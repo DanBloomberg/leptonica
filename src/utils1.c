@@ -560,7 +560,7 @@ l_uint8  *datain, *dataout;
     if (size <= 0.0)
         return ERROR_INT("size must be > 0.0", __func__, 1);
     if (loc + size > 1.0)
-        size = 1.0 - loc;
+        size = 1.0f - loc;
 
     datain = l_binaryRead(filein, &inbytes);
     locb = (l_int32)(loc * inbytes + 0.5);
@@ -622,7 +622,7 @@ l_uint8  *data;
     if (size <= 0.0)
         return ERROR_INT("size must be > 0.0", __func__, 1);
     if (loc + size > 1.0)
-        size = 1.0 - loc;
+        size = 1.0f - loc;
 
     data = l_binaryRead(filein, &bytes);
     locb = (l_int32)(loc * bytes + 0.5);
@@ -1270,7 +1270,7 @@ ULONGLONG  hnsec;  /* in units of hecto-nanosecond (100 ns) intervals */
     utime_after.LowPart  = user.dwLowDateTime;
     utime_after.HighPart = user.dwHighDateTime;
     hnsec = utime_after.QuadPart - utime_before.QuadPart;
-    return (l_float32)(signed)hnsec / 10000000.0;
+    return (l_float32)(signed)hnsec / 10000000.0f;
 }
 
 L_TIMER
@@ -1306,7 +1306,7 @@ ULONGLONG       hnsec;  /* in units of 100 ns intervals */
     utime_stop.HighPart = user.dwHighDateTime;
     hnsec = utime_stop.QuadPart - ((ULARGE_INTEGER *)utime_start)->QuadPart;
     LEPT_FREE(utime_start);
-    return (l_float32)(signed)hnsec / 10000000.0;
+    return (l_float32)(signed)hnsec / 10000000.0f;
 }
 
 void
@@ -1381,7 +1381,7 @@ L_WALLTIMER  *timer;
     tusec = timer->stop_usec - timer->start_usec;
     LEPT_FREE(timer);
     *ptimer = NULL;
-    return (tsec + ((l_float32)tusec) / 1000000.0);
+    return (tsec + ((l_float32)tusec) / 1000000.0f);
 }
 
 

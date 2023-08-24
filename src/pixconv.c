@@ -781,7 +781,7 @@ PIX  *pix1;
     } else if (type == L_SELECT_MAX) {
         pix1 = pixConvertRGBToGrayMinMax(pixs, L_CHOOSE_MAX);
     } else if (type == L_SELECT_AVERAGE) {
-        pix1 = pixConvertRGBToGray(pixs, 0.34, 0.33, 0.33);
+        pix1 = pixConvertRGBToGray(pixs, 0.34f, 0.33f, 0.33f);
     } else if (type == L_SELECT_HUE) {
         pix1 = pixConvertRGBToHue(pixs);
     } else if (type == L_SELECT_SATURATION) {
@@ -1058,7 +1058,7 @@ PIX        *pixt, *pixd;
     invmax = (l_float32 *)LEPT_CALLOC(256, sizeof(l_float32));
     ratio = (l_float32 *)LEPT_CALLOC(256, sizeof(l_float32));
     for (i = 1; i < 256; i++) {  /* i == 0  --> delta = sval = newval = 0 */
-        invmax[i] = 1.0 / (l_float32)i;
+        invmax[i] = 1.0f / (l_float32)i;
         ratio[i] = (l_float32)i / (l_float32)refval;
     }
     for (i = 0; i < h; i++) {
@@ -3015,7 +3015,7 @@ PIX       *pixt, *pixd;
     if (factor < 1)
         return (PIX *)ERROR_PTR("factor must be >= 1", __func__, NULL);
 
-    scalefactor = 1. / (l_float32)factor;
+    scalefactor = 1.f / (l_float32)factor;
     pixt = pixScaleBySampling(pixs, scalefactor, scalefactor);
     pixd = pixConvertTo1(pixt, threshold);
     pixDestroy(&pixt);
@@ -3133,7 +3133,7 @@ PIX       *pixt, *pixd;
     if (factor < 1)
         return (PIX *)ERROR_PTR("factor must be >= 1", __func__, NULL);
 
-    scalefactor = 1. / (l_float32)factor;
+    scalefactor = 1.f / (l_float32)factor;
     pixt = pixScaleBySampling(pixs, scalefactor, scalefactor);
     pixd = pixConvertTo8(pixt, cmapflag);
 
@@ -3307,7 +3307,7 @@ PIX       *pix1, *pixd;
     if (factor < 1)
         return (PIX *)ERROR_PTR("factor must be >= 1", __func__, NULL);
 
-    scalefactor = 1. / (l_float32)factor;
+    scalefactor = 1.f / (l_float32)factor;
     pix1 = pixScaleBySampling(pixs, scalefactor, scalefactor);
     pixd = pixConvertTo32(pix1);
 
@@ -3992,9 +3992,9 @@ PIXCMAP   *cmap;
         ? L_HORIZ : L_VERT;
     pix1 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
     if (direction == L_HORIZ)
-        pix2 = pixScale(pix1, 3.0 * scalex, scaley);
+        pix2 = pixScale(pix1, 3.0f * scalex, scaley);
     else  /* L_VERT */
-        pix2 = pixScale(pix1, scalex, 3.0 * scaley);
+        pix2 = pixScale(pix1, scalex, 3.0f * scaley);
 
     pixGetDimensions(pix2, &w, &h, NULL);
     wd = (direction == L_HORIZ) ? w / 3 : w;
@@ -4095,9 +4095,9 @@ PIXCMAP   *cmap;
         ? L_HORIZ : L_VERT;
     pix1 = pixRemoveColormap(pixs, REMOVE_CMAP_TO_FULL_COLOR);
     if (direction == L_HORIZ)
-        pix2 = pixScale(pix1, 3.0 * scalex, scaley);
+        pix2 = pixScale(pix1, 3.0f * scalex, scaley);
     else  /* L_VERT */
-        pix2 = pixScale(pix1, scalex, 3.0 * scaley);
+        pix2 = pixScale(pix1, scalex, 3.0f * scaley);
 
     pixGetDimensions(pix2, &w, &h, NULL);
     wd = (direction == L_HORIZ) ? w / 3 : w;

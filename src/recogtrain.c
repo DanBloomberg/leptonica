@@ -181,7 +181,7 @@ static PIX *recogDisplayOutlier(L_RECOG *recog, l_int32 iclass, l_int32 jsamp,
      * is valid.  Values are set to accept most sets of sample templates. */
 static const l_int32    DefaultMinSetSize = 1;  /* minimum number of
                                        samples for a valid class */
-static const l_float32  DefaultMinSetFract = 0.4;  /* minimum fraction
+static const l_float32  DefaultMinSetFract = 0.4f;  /* minimum fraction
                                of classes required for a valid recog */
 
     /* Defaults in pixaRemoveOutliers1() and pixaRemoveOutliers2() */
@@ -1466,7 +1466,7 @@ recogTrainFromBoot(L_RECOG   *recogboot,
 char      *text;
 l_int32    i, n, same, maxd, scaleh, linew;
 l_float32  score;
-PIX       *pix1, *pix2, *pixdb;
+PIX       *pix1, *pix2, *pixdb = NULL;
 PIXA      *pixa1, *pixa2, *pixa3, *pixad;
 
     if (!recogboot)
@@ -1914,9 +1914,9 @@ PIXA  *pixa1, *pixa2, *pixa3;
 
         /* Extend by horizontal scaling */
     na1 = numaCreate(4);
-    numaAddNumber(na1, 0.9);
-    numaAddNumber(na1, 1.1);
-    numaAddNumber(na1, 1.2);
+    numaAddNumber(na1, 0.9f);
+    numaAddNumber(na1, 1.1f);
+    numaAddNumber(na1, 1.2f);
     pixa2 = pixaExtendByScaling(pixa1, na1, L_HORIZ, 1);
 
     pixaDestroy(&pixa1);

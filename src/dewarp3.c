@@ -264,7 +264,7 @@ PIX       *pix1;
          * only apply vertical disparity. */
     if (dewa->useboth && dewa->check_columns) {
         pix1 = pixConvertTo1(pixs, 140);
-        pixCountTextColumns(pix1, 0.3, 0.5, 0.1, &ncols, NULL);
+        pixCountTextColumns(pix1, 0.3f, 0.5f, 0.1f, &ncols, NULL);
         pixDestroy(&pix1);
         if (ncols > 1) {
             L_INFO("found %d columns; not correcting horiz disparity\n",

@@ -180,7 +180,7 @@ l_float32  var, rvar;
 BOX       *box;
 BOXA      *boxa;
 BOXAA     *baa;
-FPIX      *fpixv, *fpixrv;
+FPIX      *fpixv = NULL, *fpixrv = NULL;
 PIX       *pix_mac;  /* copy of mean accumulator */
 DPIX      *dpix_msac;  /* msa clone */
 
@@ -292,7 +292,7 @@ BOX       *boxc;
         return ERROR_INT("no pixels in box", __func__, 1);
 
         /* Use up to 4 points in the accumulator */
-    norm = 1.0 / ((l_float32)(bw) * bh);
+    norm = 1.0f / ((l_float32)(bw) * bh);
     if (bx > 0 && by > 0) {
         pixGetPixel(pixma, bx + bw - 1, by + bh - 1, &val11);
         pixGetPixel(pixma, bx + bw - 1, by - 1, &val10);
@@ -649,7 +649,7 @@ char       buf[256];
 l_int32    nlevels, i, mag, w;
 L_BMF     *bmf;
 FPIX      *fpix;
-PIX       *pixt1, *pixt2, *pixt3, *pixt4, *pixd;
+PIX       *pixt1, *pixt2, *pixt3, *pixt4 = NULL, *pixd;
 PIXA      *pixat;
 
     if (!fpixa)

@@ -466,7 +466,7 @@ boxaCombineOverlaps(BOXA  *boxas,
 l_int32  i, j, w, h, n1, n2, overlap, niters;
 BOX     *box1, *box2, *box3;
 BOXA    *boxa1, *boxa2;
-PIX     *pix1;
+PIX     *pix1 = NULL;
 
     if (!boxas)
         return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);

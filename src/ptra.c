@@ -145,7 +145,7 @@ ptraCreate(l_int32  n)
 {
 L_PTRA  *pa;
 
-    if (n > MaxInitPtraSize) {
+    if (n > (l_int32)MaxInitPtraSize) {
         L_ERROR("n = %d > maxsize = %d\n", __func__, n, MaxInitPtraSize);
         return NULL;
     }

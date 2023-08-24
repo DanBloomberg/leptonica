@@ -484,7 +484,7 @@ pixSauvolaBinarizeTiled(PIX       *pixs,
                         PIX      **ppixd)
 {
 l_int32     i, j, w, h, xrat, yrat;
-PIX        *pixth, *pixd, *tileth, *tiled, *pixt;
+PIX        *pixth = NULL, *pixd = NULL, *tileth = NULL, *tiled = NULL, *pixt;
 PIX       **ptileth, **ptiled;
 PIXTILING  *pt;
 
@@ -610,7 +610,7 @@ pixSauvolaBinarize(PIX       *pixs,
                    PIX      **ppixd)
 {
 l_int32  w, h;
-PIX     *pixg, *pixsc, *pixm, *pixms, *pixth, *pixd;
+PIX     *pixg, *pixsc, *pixm = NULL, *pixms = NULL, *pixth = NULL, *pixd = NULL;
 
     if (ppixm) *ppixm = NULL;
     if (ppixsd) *ppixsd = NULL;
@@ -715,11 +715,11 @@ pixSauvolaGetThreshold(PIX       *pixm,
 {
 l_int32     i, j, w, h, tabsize, wplm, wplms, wplsd, wpld, usetab;
 l_int32     mv, ms, var, thresh;
-l_uint32   *datam, *datams, *datasd, *datad;
-l_uint32   *linem, *linems, *linesd, *lined;
+l_uint32   *datam, *datams, *datasd = NULL, *datad;
+l_uint32   *linem, *linems, *linesd = NULL, *lined;
 l_float32   sd;
-l_float32  *tab;  /* of 2^16 square roots */
-PIX        *pixsd, *pixd;
+l_float32  *tab = NULL;  /* of 2^16 square roots */
+PIX        *pixsd = NULL, *pixd = NULL;
 
     if (ppixsd) *ppixsd = NULL;
     if (!pixm || pixGetDepth(pixm) != 8)
@@ -860,7 +860,7 @@ PIX     *pixg, *pix1, *pixd;
     if (!pixs || (d = pixGetDepth(pixs)) < 8)
         return (PIX *)ERROR_PTR("pixs undefined or d < 8 bpp", __func__, NULL);
     if (d == 32)
-        pixg = pixConvertRGBToGray(pixs, 0.3, 0.4, 0.3);
+        pixg = pixConvertRGBToGray(pixs, 0.3f, 0.4f, 0.3f);
     else
         pixg = pixConvertTo8(pixs, 0);
 
@@ -870,7 +870,7 @@ PIX     *pixg, *pix1, *pixd;
     pixGetDimensions(pix1, &w, &h, NULL);
     nx = L_MAX(1, (w + 125) / 250);
     ny = L_MAX(1, (h + 125) / 250);
-    pixSauvolaBinarizeTiled(pix1, 25, 0.40, nx, ny, ppixth, &pixd);
+    pixSauvolaBinarizeTiled(pix1, 25, 0.40f, nx, ny, ppixth, &pixd);
     pixDestroy(&pixg);
     if (ppixn)
         *ppixn = pix1;
@@ -911,12 +911,12 @@ PIX       *pixg, *pix1, *pixd;
     if (!pixs || (d = pixGetDepth(pixs)) < 8)
         return (PIX *)ERROR_PTR("pixs undefined or d < 8 bpp", __func__, NULL);
     if (d == 32)
-        pixg = pixConvertRGBToGray(pixs, 0.3, 0.4, 0.3);
+        pixg = pixConvertRGBToGray(pixs, 0.3f, 0.4f, 0.3f);
     else
         pixg = pixConvertTo8(pixs, 0);
 
         /* Use the entire image for the estimate; pix1 is 1x1 */
-    pixOtsuAdaptiveThreshold(pixg, 5000, 5000, 0, 0, 0.1, &pix1, NULL);
+    pixOtsuAdaptiveThreshold(pixg, 5000, 5000, 0, 0, 0.1f, &pix1, NULL);
     pixGetPixel(pix1, 0, 0, &val);
     ival = (l_int32)val;
     ival = L_MIN(ival, 110);
@@ -1020,8 +1020,8 @@ PIX       *pix1, *pix2, *pix3;
     if (start <= 0) start = 80;
     if (end <= 0) end = 200;
     if (incr <= 0) incr = 10;
-    if (thresh48 <= 0.0) thresh48 = 0.01;
-    if (threshdiff <= 0.0) threshdiff = 0.01;
+    if (thresh48 <= 0.0) thresh48 = 0.01f;
+    if (threshdiff <= 0.0) threshdiff = 0.01f;
     if (start > end)
         return ERROR_INT("invalid start,end", __func__, 1);
 

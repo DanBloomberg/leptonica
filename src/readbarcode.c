@@ -521,7 +521,7 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pixd;
         return (PIX *)ERROR_PTR("box not defined or 1 bpp", __func__, NULL);
 
         /* Clip out */
-    deg2rad = 3.1415926535 / 180.;
+    deg2rad = 3.1415926535f / 180.f;
     boxGetGeometry(box, &x, &y, &w, &h);
     box2 = boxCreate(x - 25, y - 25, w + 51, h + 51);
     pix1 = pixClipRectangle(pixb, box2, NULL);
@@ -532,9 +532,9 @@ PIX       *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pixd;
     pix3 = pixRotateOrth(pix1, 1);  /* look for vertical bar lines */
     pix4 = pixClone(pix1);   /* look for horizontal bar lines */
     pixFindSkewSweepAndSearchScore(pix3, &angle1, &conf1, &score1,
-                                   1, 1, 0.0, 45.0, 2.5, 0.01);
+                                   1, 1, 0.0f, 45.0f, 2.5f, 0.01f);
     pixFindSkewSweepAndSearchScore(pix4, &angle2, &conf2, &score2,
-                                   1, 1, 0.0, 45.0, 2.5, 0.01);
+                                   1, 1, 0.0f, 45.0f, 2.5f, 0.01f);
     pixDestroy(&pix1);
     pixDestroy(&pix3);
     pixDestroy(&pix4);
@@ -1037,8 +1037,8 @@ NUMA      *na1, *na2, *naedist, *naodist;
     na1 = numaCopy(naedist);
     numaJoin(na1, naodist, 0, -1);  /* use both bars and spaces */
     na2 = numaMakeHistogram(na1, 100, NULL, NULL);
-    numaHistogramGetValFromRank(na2, 0.1, &mindist);
-    numaHistogramGetValFromRank(na2, 0.9, &maxdist);
+    numaHistogramGetValFromRank(na2, 0.1f, &mindist);
+    numaHistogramGetValFromRank(na2, 0.9f, &maxdist);
     numaDestroy(&na1);
     numaDestroy(&na2);
     L_INFO("mindist = %7.3f, maxdist = %7.3f\n", __func__, mindist, maxdist);

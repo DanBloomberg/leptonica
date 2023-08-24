@@ -298,14 +298,14 @@ l_int32    dfwpartb;   /* boolean (1, 0) if first dest word is partial */
 l_int32    dfwpart2b;  /* boolean (1, 0) if first dest word is doubly partial */
 l_uint32   dfwmask;    /* mask for first partial dest word */
 l_int32    dfwbits;    /* first word dest bits in ovrhang */
-l_uint32  *pdfwpart;   /* ptr to first partial dest word */
+l_uint32  *pdfwpart = NULL;   /* ptr to first partial dest word */
 l_int32    dfwfullb;   /* boolean (1, 0) if there exists a full dest word */
 l_int32    dnfullw;    /* number of full words in dest */
-l_uint32  *pdfwfull;   /* ptr to first full dest word */
+l_uint32  *pdfwfull = NULL;   /* ptr to first full dest word */
 l_int32    dlwpartb;   /* boolean (1, 0) if last dest word is partial */
 l_uint32   dlwmask;    /* mask for last partial dest word */
 l_int32    dlwbits;    /* last word dest bits in ovrhang */
-l_uint32  *pdlwpart;   /* ptr to last partial dest word */
+l_uint32  *pdlwpart = NULL;   /* ptr to last partial dest word */
 l_int32    i, j;
 
 
@@ -843,17 +843,17 @@ l_int32    dfwpartb;   /* boolean (1, 0) if first dest word is partial */
 l_int32    dfwpart2b;  /* boolean (1, 0) if first dest word is doubly partial */
 l_uint32   dfwmask;    /* mask for first partial dest word */
 l_int32    dfwbits;    /* first word dest bits in ovrhang */
-l_uint32  *pdfwpart;   /* ptr to first partial dest word */
-l_uint32  *psfwpart;   /* ptr to first partial src word */
+l_uint32  *pdfwpart = NULL;   /* ptr to first partial dest word */
+l_uint32  *psfwpart = NULL;   /* ptr to first partial src word */
 l_int32    dfwfullb;   /* boolean (1, 0) if there exists a full dest word */
 l_int32    dnfullw;    /* number of full words in dest */
-l_uint32  *pdfwfull;   /* ptr to first full dest word */
-l_uint32  *psfwfull;   /* ptr to first full src word */
+l_uint32  *pdfwfull = NULL;   /* ptr to first full dest word */
+l_uint32  *psfwfull = NULL;   /* ptr to first full src word */
 l_int32    dlwpartb;   /* boolean (1, 0) if last dest word is partial */
 l_uint32   dlwmask;    /* mask for last partial dest word */
 l_int32    dlwbits;    /* last word dest bits in ovrhang */
-l_uint32  *pdlwpart;   /* ptr to last partial dest word */
-l_uint32  *pslwpart;   /* ptr to last partial src word */
+l_uint32  *pdlwpart = NULL;   /* ptr to last partial dest word */
+l_uint32  *pslwpart = NULL;   /* ptr to last partial src word */
 l_int32    i, j;
 
 
@@ -1374,17 +1374,17 @@ l_uint32   dfwmask;     /* mask for first partial dest word                  */
 l_int32    dfwbits;     /* first word dest bits in overhang; 0-31            */
 l_int32    dhang;       /* dest overhang in first partial word,              */
                         /* or 0 if dest is word aligned (same as dfwbits)    */
-l_uint32  *pdfwpart;    /* ptr to first partial dest word                    */
-l_uint32  *psfwpart;    /* ptr to first partial src word                     */
+l_uint32  *pdfwpart = NULL;    /* ptr to first partial dest word                    */
+l_uint32  *psfwpart = NULL;    /* ptr to first partial src word                     */
 l_int32    dfwfullb;    /* boolean (1, 0) if there exists a full dest word   */
 l_int32    dnfullw;     /* number of full words in dest                      */
-l_uint32  *pdfwfull;    /* ptr to first full dest word                       */
-l_uint32  *psfwfull;    /* ptr to first full src word                        */
+l_uint32  *pdfwfull = NULL;    /* ptr to first full dest word                       */
+l_uint32  *psfwfull = NULL;    /* ptr to first full src word                        */
 l_int32    dlwpartb;    /* boolean (1, 0) if last dest word is partial       */
 l_uint32   dlwmask;     /* mask for last partial dest word                   */
 l_int32    dlwbits;     /* last word dest bits in ovrhang                    */
-l_uint32  *pdlwpart;    /* ptr to last partial dest word                     */
-l_uint32  *pslwpart;    /* ptr to last partial src word                      */
+l_uint32  *pdlwpart = NULL;    /* ptr to last partial dest word                     */
+l_uint32  *pslwpart = NULL;    /* ptr to last partial src word                      */
 l_uint32   sword;       /* compose src word aligned with the dest words      */
 l_int32    sfwbits;     /* first word src bits in overhang (1-32),           */
                         /* or 32 if src is word aligned                      */
@@ -2183,17 +2183,17 @@ l_int32    fwpartb;    /* boolean (1, 0) if first word is partial */
 l_int32    fwpart2b;   /* boolean (1, 0) if first word is doubly partial */
 l_uint32   fwmask;     /* mask for first partial word */
 l_int32    fwbits;     /* first word bits in ovrhang */
-l_uint32  *pdfwpart;   /* ptr to first partial dest word */
-l_uint32  *psfwpart;   /* ptr to first partial src word */
+l_uint32  *pdfwpart = NULL;   /* ptr to first partial dest word */
+l_uint32  *psfwpart = NULL;   /* ptr to first partial src word */
 l_int32    fwfullb;    /* boolean (1, 0) if there exists a full word */
 l_int32    nfullw;     /* number of full words */
-l_uint32  *pdfwfull;   /* ptr to first full dest word */
-l_uint32  *psfwfull;   /* ptr to first full src word */
+l_uint32  *pdfwfull = NULL;   /* ptr to first full dest word */
+l_uint32  *psfwfull = NULL;   /* ptr to first full src word */
 l_int32    lwpartb;    /* boolean (1, 0) if last word is partial */
 l_uint32   lwmask;     /* mask for last partial word */
 l_int32    lwbits;     /* last word bits in ovrhang */
-l_uint32  *pdlwpart;   /* ptr to last partial dest word */
-l_uint32  *pslwpart;   /* ptr to last partial src word */
+l_uint32  *pdlwpart = NULL;   /* ptr to last partial dest word */
+l_uint32  *pslwpart = NULL;   /* ptr to last partial src word */
 l_int32    dirwpl;     /* directed wpl (-wpl * sign(shift)) */
 l_int32    absshift;   /* absolute value of shift; for use in iterator */
 l_int32    vlimit;     /* vertical limit value for iterations */

@@ -72,16 +72,14 @@ DSImageBitsSize(LPBITMAPINFO pbmi)
                     * CreateDIBSection with this pbmi */
     case BI_RLE4:
         return pbmi->bmiHeader.biSizeImage;
-        break;
-    default:  /* should not have to use "default" */
+
+	default:  /* should not have to use "default" */
     case BI_RGB:
     case BI_BITFIELDS:
         return BYTESPERLINE(pbmi->bmiHeader.biWidth, \
                    pbmi->bmiHeader.biBitCount * pbmi->bmiHeader.biPlanes) *
                pbmi->bmiHeader.biHeight;
-        break;
     }
-    return 0;
 }
 
 /* **********************************************************************
@@ -109,16 +107,14 @@ ImageBitsSize(HBITMAP hBitmap)
                     * CreateDIBSection with this pbmi */
     case BI_RLE4:
         return ds.dsBmih.biSizeImage;
-        break;
-    default:  /* should not have to use "default" */
+
+	default:  /* should not have to use "default" */
     case BI_RGB:
     case BI_BITFIELDS:
         return BYTESPERLINE(ds.dsBmih.biWidth, \
                             ds.dsBmih.biBitCount * ds.dsBmih.biPlanes) *
                             ds.dsBmih.biHeight;
-        break;
     }
-    return 0;
 }
 
 /*!

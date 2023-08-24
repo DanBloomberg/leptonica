@@ -288,7 +288,7 @@ PIXCMAP   *cmap;
 
     data = pixGetData(pixs);
     wpl = pixGetWpl(pixs);
-    factor = 1. / 255.;
+    factor = 1.f / 255.f;
     for (i = y1; i <= y2; i++) {
         if (i < 0 || i >= h)
             continue;
@@ -416,7 +416,7 @@ PIXCMAP   *cmap;
     wpl = pixGetWpl(pixd);
     datam = pixGetData(pixm);
     wplm = pixGetWpl(pixm);
-    factor = 1. / 255.;
+    factor = 1.f / 255.f;
     for (i = 0; i < hmin; i++) {
         line = data + i * wpl;
         linem = datam + i * wplm;

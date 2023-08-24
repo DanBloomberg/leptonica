@@ -428,7 +428,7 @@ char      *id;
 l_int32    w, h, d, pixdata_size, memdata_size, imdata_size, ncolors, valid;
 l_uint32  *imdata;  /* data in pix raster */
 PIX       *pix1, *pixd;
-PIXCMAP   *cmap;
+PIXCMAP   *cmap = NULL;
 
     if (!data)
         return (PIX *)ERROR_PTR("data not defined", __func__, NULL);

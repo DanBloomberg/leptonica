@@ -906,8 +906,8 @@ l_float32  x, y, xmin, ymin, xmax, ymax;
         return 0;
     }
 
-    xmin = ymin = 1.0e20;
-    xmax = ymax = -1.0e20;
+    xmin = ymin = 1.0e20f;
+    xmax = ymax = -1.0e20f;
     for (i = 0; i < n; i++) {
         ptaGetPt(pta, i, &x, &y);
         if (x < xmin) xmin = x;
@@ -1098,7 +1098,7 @@ l_float32  *xa, *ya;
         factor = n * sxx - sx * sx;
         if (factor == 0.0)
             return ERROR_INT("no solution found", __func__, 1);
-        factor = 1. / factor;
+        factor = 1.f / factor;
 
         a = factor * ((l_float32)n * sxy - sx * sy);
         b = factor * (sxx * sy - sx * sxy);

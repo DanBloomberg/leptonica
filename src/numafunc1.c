@@ -1262,14 +1262,14 @@ NUMA       *nad;
         sum = 0.0;
         right = left + binsize;
         ileft = (l_int32)left;
-        lfract = 1.0 - left + ileft;
+        lfract = 1.0f - left + ileft;
         if (lfract >= 1.0)  /* on left bin boundary */
             lfract = 0.0;
         iright = (l_int32)right;
         rfract = right - iright;
         iright = L_MIN(iright, n - 1);
         if (ileft == iright) {  /* both are within the same original sample */
-            sum += (lfract + rfract - 1.0) * array[ileft];
+            sum += (lfract + rfract - 1.0f) * array[ileft];
         } else {
             if (lfract > 0.0001)  /* left fraction */
                 sum += lfract * array[ileft];
@@ -1684,8 +1684,8 @@ l_float32  *fa;
     }
 
         /* Quadratic interpolation */
-    d1 = d3 = 0.5 / (deltax * deltax);
-    d2 = -2. * d1;
+    d1 = d3 = 0.5f / (deltax * deltax);
+    d2 = -2.f * d1;
     if (i == 0) {
         i1 = i;
         i2 = i + 1;
@@ -1856,7 +1856,7 @@ numaInterpolateEqxInterval(l_float32  startx,
 {
 l_int32     i, n;
 l_float32   x, yval, maxx, delx;
-NUMA       *nax, *nay;
+NUMA       *nax = NULL, *nay;
 
     if (pnax) *pnax = NULL;
     if (!pnay)
@@ -1944,7 +1944,7 @@ l_int32     i, im, j, nx, ny, i1, i2, i3, sorted;
 l_int32    *index;
 l_float32   del, xval, yval, excess, fract, minx, maxx, d1, d2, d3;
 l_float32  *fax, *fay;
-NUMA       *nasx, *nasy, *nadx, *nady;
+NUMA       *nasx, *nasy, *nadx = NULL, *nady;
 
     if (pnadx) *pnadx = NULL;
     if (!pnady)
@@ -1992,7 +1992,7 @@ NUMA       *nasx, *nasy, *nadx, *nady;
         numaDestroy(&nasy);
         return ERROR_INT("ind not made", __func__, 1);
     }
-    del = (x1 - x0) / (npts - 1.0);
+    del = (x1 - x0) / (npts - 1.0f);
     for (i = 0, j = 0; j < nx && i < npts; i++) {
         xval = x0 + i * del;
         while (j < nx - 1 && xval > fax[j])
@@ -2237,17 +2237,17 @@ NUMA       *nady, *naiy;
 
     nady = numaCreate(npts);
     *pnady = nady;
-    invdel = 0.5 * ((l_float32)npts - 1.0) / (x1 - x0);
+    invdel = 0.5f * ((l_float32)npts - 1.0f) / (x1 - x0);
     fay = numaGetFArray(naiy, L_NOCOPY);
 
         /* Compute and save derivatives */
-    der = 0.5 * invdel * (fay[1] - fay[0]);
+    der = 0.5f * invdel * (fay[1] - fay[0]);
     numaAddNumber(nady, der);
     for (i = 1; i < npts - 1; i++)  {
         der = invdel * (fay[i + 1] - fay[i - 1]);
         numaAddNumber(nady, der);
     }
-    der = 0.5 * invdel * (fay[npts - 1] - fay[npts - 2]);
+    der = 0.5f * invdel * (fay[npts - 1] - fay[npts - 2]);
     numaAddNumber(nady, der);
 
     numaDestroy(&naiy);
@@ -2314,11 +2314,11 @@ NUMA       *naiy;
                                     npts, NULL, &naiy))
         return ERROR_INT("interpolation failed", __func__, 1);
 
-    del = (x1 - x0) / ((l_float32)npts - 1.0);
+    del = (x1 - x0) / ((l_float32)npts - 1.0f);
     fay = numaGetFArray(naiy, L_NOCOPY);
 
         /* Compute integral (simple trapezoid) */
-    sum = 0.5 * (fay[0] + fay[npts - 1]);
+    sum = 0.5f * (fay[0] + fay[npts - 1]);
     for (i = 1; i < npts - 1; i++)
         sum += fay[i];
     *psum = del * sum;

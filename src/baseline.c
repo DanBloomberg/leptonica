@@ -67,7 +67,7 @@ static const l_int32  DefaultSweepReduction = 2;
 static const l_int32  DefaultBsReduction = 1;
 static const l_float32  DefaultSweepRange = 5.;   /* degrees */
 static const l_float32  DefaultSweepDelta = 1.;   /* degrees */
-static const l_float32  DefaultMinbsDelta = 0.01;   /* degrees */
+static const l_float32  DefaultMinbsDelta = 0.01f;   /* degrees */
 
     /* Overlap slice fraction added to top and bottom of each slice */
 static const l_float32  OverlapFraction = 0.5;
@@ -425,7 +425,7 @@ PTA       *ptas, *ptad;
     if (!naskew)
         return ERROR_INT("naskew not made", __func__, 1);
 
-    deg2rad = 3.14159265 / 180.;
+    deg2rad = 3.14159265f / 180.f;
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     ptas = ptaCreate(4);

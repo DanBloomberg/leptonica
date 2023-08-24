@@ -593,7 +593,7 @@ pixacompCreate(l_int32  n)
 {
 PIXAC  *pixac;
 
-    if (n <= 0 || n > MaxPtrArraySize)
+    if (n <= 0 || n > (l_int32)MaxPtrArraySize)
         n = InitialPtrArraySize;
 
     pixac = (PIXAC *)LEPT_CALLOC(1, sizeof(PIXAC));
@@ -662,7 +662,7 @@ PIX     *pixt;
 PIXC    *pixc;
 PIXAC   *pixac;
 
-    if (n <= 0 || n > MaxPtrArraySize)
+    if (n <= 0 || n > (l_int32)MaxPtrArraySize)
         return (PIXAC *)ERROR_PTR("n out of valid bounds", __func__, NULL);
     if (pix) {
         if (comptype != IFF_DEFAULT && comptype != IFF_TIFF_G4 &&
@@ -982,7 +982,7 @@ size_t  oldsize, newsize;
 
     if (!pixac)
         return ERROR_INT("pixac not defined", __func__, 1);
-    if (pixac->nalloc > MaxPtrArraySize)  /* belt & suspenders */
+    if (pixac->nalloc > (l_int32)MaxPtrArraySize)  /* belt & suspenders */
         return ERROR_INT("pixac has too many ptrs", __func__, 1);
     oldsize = pixac->nalloc * sizeof(PIXC *);
     newsize = 2 * oldsize;
@@ -1654,7 +1654,7 @@ PIXAC    *pixac;
         return (PIXAC *)ERROR_PTR("offset not read", __func__, NULL);
     if (n < 0)
         return (PIXAC *)ERROR_PTR("num pixcomp ptrs < 0", __func__, NULL);
-    if (n > MaxPtrArraySize)
+    if (n > (l_int32)MaxPtrArraySize)
         return (PIXAC *)ERROR_PTR("too many pixcomp ptrs", __func__, NULL);
     if (n == 0) L_INFO("the pixacomp is empty\n", __func__);
 

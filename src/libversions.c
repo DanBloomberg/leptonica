@@ -121,8 +121,8 @@ char    *versionStrP = NULL;
 
 #if HAVE_LIBJPEG
     {
-    struct jpeg_compress_struct  cinfo;
-    struct jpeg_error_mgr        err;
+    struct jpeg_compress_struct  cinfo = { 0 };
+    struct jpeg_error_mgr        err = { 0 };
     char                         buffer[JMSG_LENGTH_MAX];
     cinfo.err = jpeg_std_error(&err);
     err.msg_code = JMSG_VERSION;

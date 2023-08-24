@@ -405,7 +405,7 @@ PIX      *pixt;
     pixXor(pixt, pixt, pixs);
     pixCountPixels(pixt, &nbound, tab8);
     pixGetDimensions(pixs, &w, &h, NULL);
-    *pratio = (0.5 * nbound) / (l_float32)(w + h);
+    *pratio = (0.5f * nbound) / (l_float32)(w + h);
     pixDestroy(&pixt);
 
     if (!tab) LEPT_FREE(tab8);
@@ -1567,10 +1567,10 @@ PIX     *pixd;
     }
 
         /* General case */
-    h1 = 0.5 * hf1 * w;
-    h2 = 0.5 * hf2 * w;
-    v1 = 0.5 * vf1 * h;
-    v2 = 0.5 * vf2 * h;
+    h1 = 0.5f * hf1 * w;
+    h2 = 0.5f * hf2 * w;
+    v1 = 0.5f * vf1 * h;
+    v2 = 0.5f * vf2 * h;
     pixRasterop(pixd, h1, v1, w - 2 * h1, h - 2 * v1, PIX_SET, NULL, 0, 0);
     if (hf2 < 1.0 && vf2 < 1.0)
         pixRasterop(pixd, h2, v2, w - 2 * h2, h - 2 * v2, PIX_CLR, NULL, 0, 0);
@@ -2876,7 +2876,7 @@ PTA        *pta;
     nad = numaCreate(n);
     *pnad = nad;
     numaSetParameters(nad, cmin + size / 2, 1);
-    norm = 1.0 / (l_float32)size;
+    norm = 1.0f / (l_float32)size;
     for (i = 0; i < n - size; i++) {  /* along the line */
         sum1 = sum2 = 0;
         for (j = 0; j < size; j++) {  /* over the window */

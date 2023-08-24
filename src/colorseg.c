@@ -49,7 +49,7 @@
 static const l_int32  MAX_ALLOWED_ITERATIONS = 20;
 
     /* Factor by which max dist is increased on each iteration */
-static const l_float32  DIST_EXPAND_FACT = 1.3;
+static const l_float32  DIST_EXPAND_FACT = 1.3f;
 
     /* Octcube division level for computing nearest colormap color using LUT.
      * Using 4 should suffice for up to 50 - 100 colors, and it is
@@ -416,7 +416,7 @@ l_int32   *cmaptab;
 l_uint32   octindex;
 l_uint32  *rtab, *gtab, *btab;
 l_uint32  *ppixel;
-l_uint32  *datas, *datad, *datam, *lines, *lined, *linem;
+l_uint32  *datas, *datad, *datam = NULL, *lines, *lined, *linem = NULL;
 PIXCMAP   *cmap;
 
     if (!pixd)
