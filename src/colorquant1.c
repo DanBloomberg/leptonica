@@ -3110,7 +3110,8 @@ PIXCMAP   *cmap;
     makeRGBToIndexTables(level, &rtab, &gtab, &btab);
 
         /* The octarray will give a ptr from the octcube to the colorarray */
-    ncubes = numaGetCount(na);
+    if ((ncubes = numaGetCount(na)) == 0)
+        return ERROR_PTR("no slots in pixel occupation histogram", __func__, NULL);
     octarray = (l_int32 *)LEPT_CALLOC(ncubes, sizeof(l_int32));
 
         /* The colorarray will hold the colors of the first pixel
