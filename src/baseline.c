@@ -65,8 +65,8 @@ static const l_int32  ZeroThresholdRatio = 100;
 static const l_int32  DefaultSlices = 10;
 static const l_int32  DefaultSweepReduction = 2;
 static const l_int32  DefaultBsReduction = 1;
-static const l_float32  DefaultSweepRange = 5.;      /* degrees */
-static const l_float32  DefaultSweepDelta = 1.;      /* degrees */
+static const l_float32  DefaultSweepRange = 5.;     /* degrees */
+static const l_float32  DefaultSweepDelta = 1.;     /* degrees */
 static const l_float32  DefaultMinbsDelta = 0.01;   /* degrees */
 
     /* Overlap slice fraction added to top and bottom of each slice */

@@ -346,7 +346,7 @@ boxSetGeometry(BOX     *box,
  * \brief   boxGetSideLocations()
  *
  * \param[in]    box
- * \param[out]   pl, pt, pr, pb     [optional] each can be null
+ * \param[out]   pl, pr, pt, pb     [optional] each can be null
  * \return  0 if OK, 1 on error
  *
  * <pre>
