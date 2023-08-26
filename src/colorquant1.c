@@ -3083,11 +3083,11 @@ pixFewColorsOctcubeQuant2(PIX      *pixs,
 l_int32    w, h, wpls, wpld, i, j, nerrors;
 l_int32    ncubes, depth, cindex, oval;
 l_int32    rval, gval, bval;
-l_int32   *octarray;
+l_int32   *octarray = NULL;
 l_uint32   octindex;
 l_uint32  *rtab, *gtab, *btab;
 l_uint32  *lines, *lined, *datas, *datad, *ppixel;
-l_uint32  *colorarray;
+l_uint32  *colorarray = NULL;
 PIX       *pixd;
 PIXCMAP   *cmap;
 
@@ -3110,8 +3110,10 @@ PIXCMAP   *cmap;
     makeRGBToIndexTables(level, &rtab, &gtab, &btab);
 
         /* The octarray will give a ptr from the octcube to the colorarray */
-    if ((ncubes = numaGetCount(na)) == 0)
-        return ERROR_PTR("no slots in pixel occupation histogram", __func__, NULL);
+    if ((ncubes = numaGetCount(na)) == 0) {
+        L_ERROR("no slots in pixel occupation histogram", __func__);
+        goto cleanup_arrays;
+    }
     octarray = (l_int32 *)LEPT_CALLOC(ncubes, sizeof(l_int32));
 
         /* The colorarray will hold the colors of the first pixel
