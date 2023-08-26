@@ -100,7 +100,7 @@ static l_int32 checkRasteropCrop(l_int32 pixw, l_int32 pixh, l_int32 dx,
  *  Three, PIX_CLR, PIX_SET, and PIX_NOT(PIX_DST) operate only on the dest.
  *  These are handled by the low-level rasteropUniLow().
  *
- *  The other 14 involve the both the src and the dest, and depend on
+ *  The other 14 involve both the src and the dest, and depend on
  *  the bit values of either just the src or the bit values of both
  *  src and dest.  They are handled by rasteropLow():
  *

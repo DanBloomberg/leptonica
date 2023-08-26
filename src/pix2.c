@@ -1465,9 +1465,9 @@ l_uint32  *data, *pword;
 /*!
  * \brief   pixSetOrClearBorder()
  *
- * \param[in]    pixs   all depths
- * \param[in]    left,  right, top, bot amount to set or clear
- * \param[in]    op     operation PIX_SET or PIX_CLR
+ * \param[in]    pixs                     all depths
+ * \param[in]    left, right, top, bot    border region amount to set or clear: these distances are from outside
+ * \param[in]    op                       operation PIX_SET or PIX_CLR
  * \return  0 if OK; 1 on error
  *
  * <pre>
@@ -1511,7 +1511,7 @@ l_int32  w, h;
  * \brief   pixSetBorderVal()
  *
  * \param[in]    pixs                   8, 16 or 32 bpp
- * \param[in]    left, right, top, bot  amount to set
+ * \param[in]    left, right, top, bot  border region amount to set: these distances are from outside
  * \param[in]    val                    value to set at each border pixel
  * \return  0 if OK; 1 on error
  *
@@ -2196,7 +2196,7 @@ PIX     *pixd;
  *
  * <pre>
  * Notes:
- *      (1) This applies mirrored boundary conditions horizontally
+ *      (1) This applies mirrored boundary conditions (b.c.) horizontally
  *          and repeated b.c. vertically.
  *      (2) It is specifically used for avoiding special operations
  *          near boundaries when convolving a hue-saturation histogram
@@ -2408,7 +2408,7 @@ PIXCMAP   *cmap;
  * Notes:
  *      (1) the 4th byte, sometimes called the "alpha channel",
  *          and which is often used for blending between different
- *          images, is left with 0 value.
+ *          images, is left with 0 value (fully opaque).
  *      (2) see Note (4) in pix.h for details on storage of
  *          8-bit samples within each 32-bit word.
  *      (3) This implementation, setting the r, g and b components

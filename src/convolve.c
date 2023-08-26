@@ -296,7 +296,7 @@ PIX       *pixd, *pixt;
  *          for the first wc + 1 and last wc columns in the intermediate
  *          lines.
  *      (5) The caller should verify that wc < w and hc < h.
- *          Under those conditions, illegal reads and writes can occur.
+ *          Failing either condition, illegal reads and writes can occur.
  *      (6) Implementation note: to get the same results in the interior
  *          between this function and pixConvolve(), it is necessary to
  *          add 0.5 for roundoff in the main loop that runs over all pixels.
