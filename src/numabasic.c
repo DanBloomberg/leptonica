@@ -813,7 +813,7 @@ l_int32  *array;
         return (l_int32 *)ERROR_PTR("na not defined", __func__, NULL);
 
     if ((n = numaGetCount(na)) == 0)
-        return ERROR_PTR("array not made (na is empty)", __func__, NULL);
+        return (l_int32 *)ERROR_PTR("na is empty", __func__, NULL);
     if ((array = (l_int32 *)LEPT_CALLOC(n, sizeof(l_int32))) == NULL)
         return (l_int32 *)ERROR_PTR("array not made", __func__, NULL);
     for (i = 0; i < n; i++) {
@@ -861,7 +861,7 @@ l_float32  *array;
         array = na->array;
     } else {  /* copyflag == L_COPY */
         if ((n = numaGetCount(na)) == 0)
-            return ERROR_PTR("array not made (na is empty)", __func__, NULL);
+            return (l_float32 *)ERROR_PTR("na is empty", __func__, NULL);
         if ((array = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32))) == NULL)
             return (l_float32 *)ERROR_PTR("array not made", __func__, NULL);
         for (i = 0; i < n; i++)
