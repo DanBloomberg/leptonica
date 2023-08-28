@@ -231,41 +231,29 @@ PIXAC     *pixac1 = NULL;
  * \brief   cropFilesToPdf()
  *
  * \param[in]    sa            sorted full pathnames of images
- * \param[in]    threshold     set to 1 to enforce 1 bpp tiffg4 encoding
- * \param[in]    lr_clear     set to 1 to enforce 1 bpp tiffg4 encoding
- * \param[in]    tb_clear     if %onebit == 1, set to 1 to save color
- * \param[in]    edgeclean   scaling factor applied to each image; > 0.0
- * \param[in]    lr_add       for jpeg: 0 for default (50; otherwise 25 - 95.
- * \param[in]    tb_add       for jpeg: 0 for default (50; otherwise 25 - 95.
+ * \param[in]    threshold     threshold for binarization
+ * \param[in]    lr_clear      full res pixels cleared at left and right sides
+ * \param[in]    tb_clear      full res pixels cleared at top and bottom sides
+ * \param[in]    edgeclean     parameter for removing edge noise (0-15)
+ *                             default = 0 (no removal);
+ * \param[in]    lr_add        full res expansion of crop box on left and right
+ * \param[in]    tb_add        full res expansion of crop box on top and bottom
  * \param[in]    title         [optional] pdf title; can be null
  * \param[in]    fileout       pdf file of all images
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *    (1) This function is designed to optionally scale and compress a set of
- *        images, wrapping them in a pdf in the order given in the input %sa.
- *    (2) It does the image processing for prog/compresspdf.c.
- *    (3) Images in the output pdf are encoded with either tiffg4 or jpeg (DCT),
- *        or a mixture of them depending on parameters %onebit and %savecolor.
- *    (4) Parameters %onebit and %savecolor work as follows:
- *        %onebit = 0: no depth conversion, default encoding depends on depth
- *        %onebit = 1, %savecolor = 0: all images converted to 1 bpp
- *        %onebit = 1, %savecolor = 1: images without color are converted
- *           to 1 bpp; images with color have the color preserved.
- *    (5) In use, if most of the pages are 1 bpp but some have color that needs
- *        to be preserved, %onebit and %savecolor should both be 1.  This
- *        causes DCT compression of color images and tiffg4 compression
- *        of monochrome images.
- *    (6) The images will be concatenated in the order given in %sa.
- *    (7) The scalefactor is applied to each image before encoding.
- *        If you enter a value <= 0.0, it will be set to 1.0.
- *    (8) Default jpeg quality is 50; otherwise, quality factors between
- *        25 and 95 are enforced.
- *    (9) Page images at 300 ppi are about 8 Mpixels.  RGB(A) rasters are
- *        then about 32 MB (1 bpp images are about 1 MB).  If there are
- *        more than 25 images, store the images after processing as an
- *        array of compressed images (a Pixac); otherwise, use a Pixa.
+ *    (1) This function is designed to optionally remove white space from
+ *        around the page images, and generate a pdf that prints with
+ *        foreground occupying much of the full page.
+ *    (2) It does the image processing for prog/croppdf.c.
+ *    (3) Images in the output pdf are 1 bpp and encoded with tiffg4.
+ *    (4) See documentation in pixCropImage() for details on the processing.
+ *    (5) The images will be concatenated in the order given in %sa.
+ *    (6) Page images at 300 ppi are about 1 Mpixels.  We allow up to 200
+ *        uncompressed rasters to be stored in memory.  If more than 200
+ *        pages, the stored images are compressed with tiffg4.
  * </pre>
  */
 l_ok

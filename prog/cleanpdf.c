@@ -87,6 +87,10 @@
  *
  *    Whenever possible, the images will be deskewed.
  *
+ *    As the first step in processing, images are saved in the ./image
+ *    directory as RGB at 300 ppi in ppm format.  Each image is about 26MB.
+ *    Delete those images after use.
+ *
  *    Some pdf files have oversize media boxes.  PDF is a
  *    resolution-independent format for storing data that can be imaged.
  *    Usually the data is stored in fonts, which are a description of the

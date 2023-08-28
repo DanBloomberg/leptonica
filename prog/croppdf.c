@@ -28,55 +28,28 @@
  * croppdf.c
  *
  *    This program concatenates all pdfs in a directory by rendering them
- *    as images, optionally scaling the images, and generating an output pdf.
- *    The pdfs are taken in lexical order.  Pages are encoded with either
- *    tiffg4 or jpeg (DCT), or a mixture of them depending on input parameters
- *    and page color content.  For DCT encoding, the jpeg quality factor
- *    can be used to trade off the size of the resulting pdf against
- *    the image quality.
+ *    as images, cropping each image to the foreground region with
+ *    options for noise removal and margins, slightly thickens long
+ *    horizontal lines (e.g., of a music staff), and to some extent
+ *    scales the width to fill a printed page.  See documentation for
+ *    pixCropImage() for the parameters.
  *
- *    If the pages are monochrome (black and white), use of the %onebit
- *    flag will achieve better compression with less distortion.
- *    If most of the pages are black and white, but some have color that
- *    needs to be saved, input parameters %onebit and %savecolor should
- *    be both set to 1.  Then the pages with color are compressed with DCT
- *    and the monochrome pages are compressed with tiffg4.
+ *    The pdfs are concatenated in lexical order, and each image
+ *    is encoded with tiffg4.
  *
- *    The first step is to render the images as RGB, using Poppler's pdftoppm.
- *    Compare compresspdf with cleanpdf, which carries out several cleanup
- *    operations, such as deskewing and adaptive thresholding to clean
- *    noisy or dark backgrounds in grayscale or color images, resulting
- *    in high resolution, 1 bpp tiffg4 encoded images in the pdf.
- *
- *      Syntax:
- *       compresspdf basedir scalefactor onebit savecolor quality title fileout
+ *    Syntax:
+ *       croppdf basedir threshold lrclear tbclear edgeclean 
+ *               lradd tbadd title fileout
  *
  *    The %basedir is a directory where the input pdf files are located.
  *    The program will operate on every file in this directory with
  *    the ".pdf" extension.
  *
- *    The %scalefactor is typically used to downscale the image to
- *    reduce the size of the generated pdf.  It should not affect the
- *    pdf display otherwise.  For normal text on images scanned at 300 ppi,
- *    a 2x reduction (%scalefactor = 0.5) may be satisfactory.
- *    We compute an output resolution for that pdf that will cause it
- *    to print 11 inches high, based on the height in pixels of the
- *    first image in the set.
+ *    The %lrclear and %tbclear parameters give the number of background
+ *    pixels to be added to the foreground region.
  *
- *    Images are saved in the ./image directory as RGB in ppm format.
- *    If the %onebit flag is 0, these will be encoded in the output pdf
- *    using DCT.  To force the images to be 1 bpp, with tiffg4 encoding, set
- *    the $onebit flag to 1.
- *
- *    The %savecolor flag is ignored unless %onebit is 1.  In that case,
- *    if %savecolor is 1, the image is tested for color content, and if
- *    even a relatively small amount is found, the image will be encoded
- *    with DCT instead of tiffg4.
- *
- *    The %quality is the jpeg output quality factor for images stored
- *    in the pdf.  Use 0 for the default value (50), which is satisfactory
- *    for many purposes.  Use 75 for standard jpeq quality; 85-95 are very
- *    high quality.  Allowed values are between 25 and 95.
+ *    The %edgeclean parameter is used to remove edge noise, going from
+ *    0 (default, no removal) to 15 (maximally aggressive removal).
  *
  *    The %title is the title given to the pdf.  Use %title == "none"
  *    to omit the title.
@@ -84,14 +57,9 @@
  *    The pdf output is written to %fileout.  It is advisable (but not
  *    required) to have a '.pdf' extension.
  *
- *    The intent is to use pdftoppm to render the images at 150 pixels/inch
- *    for a full page, when scalefactor = 1.0.  The renderer uses the
- *    mediaboxes to decide how big to make the images.  If those boxes
- *    have values that are too large, the intermediate ppm images can
- *    be very large.  To prevent that, we compute the resolution to input
- *    to pdftoppm that results in RGB ppm images representing page images
- *    at about 150 ppi (when scalefactor = 1.0).  These images are about
- *    6MB, but are written quickly because there is no compression.
+ *    As the first step in processing, images are saved in the ./image
+ *    directory as RGB at 300 ppi in ppm format.  Each image is about 26MB.
+ *    Delete those images after use.
  *
  *    N.B.  This requires the Poppler package of pdf utilities, such as
  *          pdfimages and pdftoppm.  For non-unix systems, this requires
@@ -123,21 +91,20 @@ l_int32 main(int    argc,
 char       buf[256];
 char      *basedir, *fname, *tail, *basename, *imagedir, *title, *fileout;
 l_int32    threshold, lrclear, tbclear, edgeclean, lradd, tbadd;
-l_int32    render_res, onebit, savecolor, i, n, ret;
-l_float32  scalefactor;
+l_int32    render_res, i, n, ret;
 SARRAY    *sa;
 
     if (argc != 10)
         return ERROR_INT(
-            "Syntax: croppdf basedir threshold lrclean tbclear edgeclean "
+            "Syntax: croppdf basedir threshold lrclear tbclear edgeclean "
             "lradd tbadd title fileout", __func__, 1);
     basedir = argv[1];
     threshold = atoi(argv[2]);
-    lrclear = atoi(argv[3]);  /* set to 1 to enforce 1 bpp tiffg4 encoding */
-    tbclear = atoi(argv[4]);  /* set to 1 to enforce 1 bpp tiffg4 encoding */
-    edgeclean = atoi(argv[5]);  /* jpeg quality */
-    lradd = atoi(argv[6]);  /* set to 1 to enforce 1 bpp tiffg4 encoding */
-    tbadd = atoi(argv[7]);  /* set to 1 to enforce 1 bpp tiffg4 encoding */
+    lrclear = atoi(argv[3]);
+    tbclear = atoi(argv[4]);
+    edgeclean = atoi(argv[5]);
+    lradd = atoi(argv[6]);
+    tbadd = atoi(argv[7]);
     title = argv[8];
     fileout = argv[9];
     setLeptDebugOK(1);
@@ -184,17 +151,13 @@ SARRAY    *sa;
     }
     sarrayDestroy(&sa);
 
-        /* Optionally binarize, then scale and collect all images in memory.
-         * If n > 100, use pixacomp instead of pixa to store everything
-         * before generating the pdf.
-         * When using the onebit option, It is important to binarize
-         * the images in leptonica.  Do not let 'pdftoppm -mono' do
-         * the binarization, because it will apply error-diffusion
-         * dithering to gray and color images. */
+        /* Process each image and collect all resulting 1 bpp images
+         * in memory.  If n > 200, use pixacomp instead of pixa to
+         * store the images before generating the pdf.  */
     sa = getSortedPathnamesInDirectory(imagedir, NULL, 0, 0);
     lept_free(imagedir);
     sarrayWriteStderr(sa);
-    lept_stderr("compressing ...\n");
+    lept_stderr("croping ...\n");
     cropFilesToPdf(sa, threshold, lrclear, tbclear, edgeclean,
                    lradd, tbadd, title, fileout);
 
