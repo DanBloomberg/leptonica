@@ -44,8 +44,17 @@
 /* ----------------------------------------------------------------------*/
 
 l_ok compressFilesToPdf(SARRAY *sa, l_int32 onebit, l_int32 savecolor,
-                   l_float32 scalefactor, l_int32 quality,
-                   const char *title, const char *fileout)
+                        l_float32 scalefactor, l_int32 quality,
+                        const char *title, const char *fileout)
+{
+    return ERROR_INT("function not present", __func__, 1);
+}
+
+/* ----------------------------------------------------------------------*/
+
+l_ok cropFilesToPdf(SARRAY *sa, l_int32 threshold, l_int32 lr_clear,
+                    l_int32 tb_clear, l_int32 edgeclean, l_int32 lr_add,
+                    l_int32 tb_add, const char *title, const char *fileout)
 {
     return ERROR_INT("function not present", __func__, 1);
 }

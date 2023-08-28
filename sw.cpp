@@ -254,6 +254,7 @@ void build(Solution &s)
             {"converttops", {"converttops.c"}},
             {"cornertest", {"cornertest.c"}},
             {"corrupttest", {"corrupttest.c"}},
+            {"croppdf", {"croppdf.c"}},
             {"croptext", {"croptext.c"}},
             {"deskew_it", {"deskew_it.c"}},
             {"dewarprules", {"dewarprules.c"}},

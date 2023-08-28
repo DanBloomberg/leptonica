@@ -40,6 +40,7 @@
  *        * Show sampled scaling with and without source indexing shift
  *        * Display differences in images with pixDisplayDiff()
  *        * Demonstrate read of cmap+alpha png, and I/O of rgba pnm, bmp, webp
+ *        * Demonstrate image cropping function
  */
 
 #ifdef HAVE_CONFIG_H
@@ -387,7 +388,7 @@ PIXCMAP  *cmap, *cmapg;
     pixDestroy(&pix3);
     pixDestroy(&pix4);
 
-        /* Demonstrate read of cmap+alpha png, and I/O of rgba pnm, bmp, webp */
+        /* Demonstrate read of cmap+alpha png; I/O of rgba pnm, bmp, webp */
     pix1 = pixRead("elephant-cmap-alpha.png");  /* has colormap */
     pixDisplay(pix1, 1300, 800);
     pixWrite("/tmp/lept/misc/e.pnm", pix1, IFF_PNM);
@@ -411,6 +412,13 @@ PIXCMAP  *cmap, *cmapg;
     pixDestroy(&pix2);
   #endif  /* HAVE_LIBWEBP */
     pixDestroy(&pix1);
+
+        /* Page cropping */
+    pix1 = pixRead("tel_3.tif");
+    pix2 = pixCropImage(pix1, 160, 30, 30, 4, 25, 25,
+                        "/tmp/lept/misc/cropdebug.pdf", NULL);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
 
     return 0;
 }
