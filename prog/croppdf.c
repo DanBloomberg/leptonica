@@ -38,8 +38,7 @@
  *    is encoded with tiffg4.
  *
  *    Syntax:
- *       croppdf basedir threshold lrclear tbclear edgeclean 
- *               lradd tbadd title fileout
+ *       croppdf basedir lrclear tbclear edgeclean lradd tbadd title fileout
  *
  *    The %basedir is a directory where the input pdf files are located.
  *    The program will operate on every file in this directory with
@@ -90,23 +89,22 @@ l_int32 main(int    argc,
 {
 char       buf[256];
 char      *basedir, *fname, *tail, *basename, *imagedir, *title, *fileout;
-l_int32    threshold, lrclear, tbclear, edgeclean, lradd, tbadd;
+l_int32    lrclear, tbclear, edgeclean, lradd, tbadd;
 l_int32    render_res, i, n, ret;
 SARRAY    *sa;
 
-    if (argc != 10)
+    if (argc != 9)
         return ERROR_INT(
-            "Syntax: croppdf basedir threshold lrclear tbclear edgeclean "
+            "Syntax: croppdf basedir lrclear tbclear edgeclean "
             "lradd tbadd title fileout", __func__, 1);
     basedir = argv[1];
-    threshold = atoi(argv[2]);
-    lrclear = atoi(argv[3]);
-    tbclear = atoi(argv[4]);
-    edgeclean = atoi(argv[5]);
-    lradd = atoi(argv[6]);
-    tbadd = atoi(argv[7]);
-    title = argv[8];
-    fileout = argv[9];
+    lrclear = atoi(argv[2]);
+    tbclear = atoi(argv[3]);
+    edgeclean = atoi(argv[4]);
+    lradd = atoi(argv[5]);
+    tbadd = atoi(argv[6]);
+    title = argv[7];
+    fileout = argv[8];
     setLeptDebugOK(1);
 
         /* Set up a directory for temp images */
@@ -157,9 +155,9 @@ SARRAY    *sa;
     sa = getSortedPathnamesInDirectory(imagedir, NULL, 0, 0);
     lept_free(imagedir);
     sarrayWriteStderr(sa);
-    lept_stderr("croping ...\n");
-    cropFilesToPdf(sa, threshold, lrclear, tbclear, edgeclean,
-                   lradd, tbadd, title, fileout);
+    lept_stderr("cropping ...\n");
+    cropFilesToPdf(sa, lrclear, tbclear, edgeclean, lradd, tbadd,
+                   title, fileout);
 
     return 0;
 }

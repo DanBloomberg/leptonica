@@ -37,7 +37,7 @@
  *    and concatenate them into a single pdf file of images.
  *
  *    Syntax:
- *       cleanpdf basedir resolution darken rotation opensize title fileout
+ *       cleanpdf basedir resolution contrast rotation opensize title fileout
  *
  *    A typical command is:
  *        cleanpdf . 300 0 0 0 none <name-of-output-pdf-file>
@@ -59,10 +59,10 @@
  *    At 300 ppi, an 8.5 x 11 page would have 2550 x 3300 pixels.
  *    You can also input 0 for the default output resolution of 300 ppi.
  *
- *    The %darken parameter adjusts the binarization to avoid losing input
- *    details that are too light.  It takes on 10 values from 0 to 9, where
- *    0 is the lightest and is the default.  The contrast is increased
- *    as %darken increases.
+ *    The %contrast parameter adjusts the binarization to avoid losing input
+ *    details that are too light.  It takes on 10 values from 1 to 10, where
+ *    1 is the lightest value and it removes noise.  Suggested value is 1
+ *    unless important details are lost on binarization.
  *
  *    The %rotation parameter is an integer that specifies the rotation
  *    to be applied to each image:
@@ -145,28 +145,23 @@
 #include <sys/types.h>
 #include "allheaders.h"
 
-#if 0
-    /* Special version */
-PIX *pixConvertTo8Special(PIX *pix);
-#endif
-
 l_int32 main(int    argc,
              char **argv)
 {
 char     buf[256];
 char    *basedir, *fname, *tail, *basename, *imagedir, *firstfile, *title;
 char    *fileout;
-l_int32  i, n, res, darken, rotation, opensize, render_res, ret;
+l_int32  i, n, res, contrast, rotation, opensize, render_res, ret;
 SARRAY  *sa;
 
     if (argc != 8)
         return ERROR_INT(
             "\n  Syntax: cleanpdf basedir resolution "
-            "darken rotation opensize title fileout",
+            "contrast rotation opensize title fileout",
             __func__, 1);
     basedir = argv[1];
     res = atoi(argv[2]);
-    darken = atoi(argv[3]);
+    contrast = atoi(argv[3]);
     rotation = atoi(argv[4]);
     opensize = atoi(argv[5]);
     title = argv[6];
@@ -178,9 +173,9 @@ SARRAY  *sa;
                 __func__, res);
         return 1;
     }
-    if (darken < 0 || darken > 9) {
-        L_ERROR("invalid darken = %d; darken must be in {0,...,9}\n",
-                __func__, darken);
+    if (contrast < 1 || contrast > 10) {
+        L_ERROR("invalid contrast = %d; contrast must be in {1,...,10}\n",
+                __func__, contrast);
         return 1;
     }
     if (rotation < 0 || rotation > 3) {
@@ -266,6 +261,7 @@ SARRAY  *sa;
     lept_free(imagedir);
     sarrayWriteStderr(sa);
     lept_stderr("cleaning ...\n");
-    cleanTo1bppFilesToPdf(sa, res, darken, rotation, opensize, title, fileout);
+    cleanTo1bppFilesToPdf(sa, res, contrast, rotation, opensize,
+                          title, fileout);
     return 0;
 }

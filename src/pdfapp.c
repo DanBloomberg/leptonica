@@ -59,14 +59,6 @@
  *
  *     Cleanup and binarization of images for prog/cleanpdf
  *          l_int32          cleanTo1bppFilesToPdf()
- *
- *     Static helpers:
- *       Version of pixConvertTo8() that removes cmap and pushes color to black
- *          static PIX      *pixConvertTo8Special()
- *
- *       Adaptive binarization with darkening helper function
- *          static PIX      *pixAdaptTo1bppAndDarken()
- *
  * </pre>
  */
 
@@ -77,9 +69,6 @@
 #include <string.h>
 #include "allheaders.h"
 
-    /* Static helper */
-static PIX *pixConvertTo8Special(PIX *pixs);
-static PIX *pixAdaptTo1bppAndDarken(PIX *pixs, l_int32 darken, l_int32 res);
 
 /* --------------------------------------------*/
 #if  USE_PDFIO   /* defined in environ.h */
@@ -231,7 +220,6 @@ PIXAC     *pixac1 = NULL;
  * \brief   cropFilesToPdf()
  *
  * \param[in]    sa            sorted full pathnames of images
- * \param[in]    threshold     threshold for binarization
  * \param[in]    lr_clear      full res pixels cleared at left and right sides
  * \param[in]    tb_clear      full res pixels cleared at top and bottom sides
  * \param[in]    edgeclean     parameter for removing edge noise (0-15)
@@ -258,7 +246,6 @@ PIXAC     *pixac1 = NULL;
  */
 l_ok
 cropFilesToPdf(SARRAY      *sa,
-               l_int32      threshold,
                l_int32      lr_clear,
                l_int32      tb_clear,
                l_int32      edgeclean,
@@ -292,7 +279,7 @@ PIXAC     *pixac1 = NULL;
             lept_stderr("%d . ", i);
         fname = sarrayGetString(sa, i, L_NOCOPY);
         pixs = pixRead(fname);
-        pix1 = pixCropImage(pixs, threshold, lr_clear, tb_clear, edgeclean,
+        pix1 = pixCropImage(pixs, lr_clear, tb_clear, edgeclean,
                             lr_add, tb_add, NULL, NULL);
         if (n <= maxsmallset)
             pixaAddPix(pixa1, pix1, L_INSERT);
@@ -332,7 +319,8 @@ PIXAC     *pixac1 = NULL;
  *
  * \param[in]    sa            sorted full pathnames of images
  * \param[in]    res           either 300 or 600 ppi for output
- * \param[in]    darken        increase contrast: 0 = none; 9 = max
+ * \param[in]    contrast      vary contrast: 1 = lightest; 10 = darkest;
+ *                             suggest 1 unless light features are being lost
  * \param[in]    rotation      cw by 90 degrees: {0,1,2,3} represent
  *                             0, 90, 180 and 270 degree cw rotations
  * \param[in]    opensize      opening size of structuring element for noise
@@ -354,9 +342,9 @@ PIXAC     *pixac1 = NULL;
  *    (5) The %res parameter can be either 300 or 600 ppi.  If the input
  *        is gray or color and %res = 600, this does an interpolated 2x
  *        expansion before binarizing.
- *    (6) The %darken parameter adjusts the binarization to avoid losing
- *        lighter input pixels.  Contrast is increased as %darken increases
- *        from 0 (no adjustment) to a maximum of 9.
+ *    (6) The %contrast parameter adjusts the binarization to avoid losing
+ *        lighter input pixels.  Contrast is increased as %contrast increases
+ *        from 1 to 10.
  *    (7) The #opensize parameter is the size of a square SEL used with
  *        opening to remove small speckle noise.  Allowed open sizes are 2,3.
  *        If this is to be used, try 2 before 3.
@@ -367,7 +355,7 @@ PIXAC     *pixac1 = NULL;
 l_ok
 cleanTo1bppFilesToPdf(SARRAY      *sa,
                       l_int32      res,
-                      l_int32      darken,
+                      l_int32      contrast,
                       l_int32      rotation,
                       l_int32      opensize,
                       const char  *title,
@@ -375,7 +363,7 @@ cleanTo1bppFilesToPdf(SARRAY      *sa,
 {
 char       sequence[32];
 char      *fname;
-l_int32    n, i;
+l_int32    n, i, scale;
 l_int32    maxsmallset = 200;  /* max num images kept uncompressed in array */
 PIX       *pixs, *pix1, *pix2, *pix3, *pix4, *pix5;
 PIXA      *pixa1 = NULL;
@@ -391,9 +379,9 @@ PIXAC     *pixac1 = NULL;
                 __func__, res);
         return 1;
     }
-    if (darken < 0 || darken > 9) {
-        L_ERROR("invalid darken = %d; darken must be in {0,...,9}\n",
-                __func__, darken);
+    if (contrast < 1 || contrast > 10) {
+        L_ERROR("invalid contrast = %d; contrast must be in [1...10]\n",
+                __func__, contrast);
         return 1;
     }
     if (rotation < 0 || rotation > 3) {
@@ -406,6 +394,7 @@ PIXAC     *pixac1 = NULL;
                 __func__, opensize);
         return 1;
     }
+    scale = (res == 300) ? 1 : 2;
     if ((n = sarrayGetCount(sa)) == 0)
         return ERROR_INT("sa is empty", __func__, 1);
 
@@ -414,15 +403,19 @@ PIXAC     *pixac1 = NULL;
     else
         pixac1 = pixacompCreate(n);
     for (i = 0; i < n; i++) {
+        if (i == 0)
+            lept_stderr("page: ");
+        else if (i % 10 == 0)
+            lept_stderr("%d . ", i);
         fname = sarrayGetString(sa, i, L_NOCOPY);
         pixs = pixRead(fname);
-        pix1 = pixConvertTo8Special(pixs);
+        pix1 = pixConvertTo8MinMax(pixs);
         if (rotation > 0)
             pix2 = pixRotateOrth(pix1, rotation);
         else
             pix2 = pixClone(pix1);
         pix3 = pixFindSkewAndDeskew(pix2, 2, NULL, NULL);
-        pix4 = pixAdaptTo1bppAndDarken(pix3, darken, res);
+        pix4 = pixBackgroundNormTo1MinMax(pix3, contrast, scale);
         if (opensize == 2 || opensize == 3) {
             snprintf(sequence, sizeof(sequence), "o%d.%d", opensize, opensize);
             pix5 = pixMorphSequence(pix4, sequence, 0);
@@ -465,111 +458,6 @@ PIXAC     *pixac1 = NULL;
 
     return 0;
 }
-
-
-    /* ----------------- Static helper functions ----------------- */
-
-/*!
- * \brief   pixConvertTo8Special()
- *
- * \param[in]    pixs       any depth, with or without colormap
- * \return  8 bpp pix if OK; NULL on error
- *
- * <pre>
- * Notes:
- *    (1) This is a special version of pixConvert1To8() that removes any
- *        existing colormap and uses pixConvertRGBToGrayMinMax()
- *        to strongly render color into black.
- * </pre>
- */
-static PIX *
-pixConvertTo8Special(PIX  *pixs)
-{
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
-
-    l_int32 d = pixGetDepth(pixs);
-    if (d == 1) {
-        return pixConvert1To8(NULL, pixs, 255, 0);
-    } else if (d == 2) {
-        return pixConvert2To8(pixs, 0, 85, 170, 255, FALSE);
-    } else if (d == 4) {
-        return pixConvert4To8(pixs, FALSE);
-    } else if (d == 8) {
-        if (pixGetColormap(pixs) != NULL)
-            return pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
-        else
-            return pixCopy(NULL, pixs);
-    } else if (d == 16) {
-        return pixConvert16To8(pixs, L_MS_BYTE);
-    } else if (d == 32) {
-        return pixConvertRGBToGrayMinMax(pixs, L_CHOOSE_MIN);
-    }
-
-    L_ERROR("Invalid depth d = %d\n", __func__, d);
-    return NULL;
-}
-
-
-/*!
- * \brief   pixAdaptTo1bppAndDarken()
- *
- * \param[in]    pixs         8 bpp grayscale
- * \param[in]    darken       increase contrast: 0 = none; 9 = max
- * \param[in]    res          either 300 or 600 ppi for output
- * \return  pixd (1 bpp) if OK, NULL on error
- *
- * <pre>
- * Notes:
- *    (1) This does background normalization with optional contrast
- *        enhancement, and binarizes to either 300 ppi or, with
- *        linear interpolation, to 600 ppi.
- *    (2) The caller must check that darken is in the set {0, ... 9}
- *        and res is in {300, 600}.
- * </pre>
- */
-static PIX *
-pixAdaptTo1bppAndDarken(PIX     *pixs,
-                        l_int32  darken,
-                        l_int32  res)
-{
-PIX  *pix1, *pixd;
-
-    if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
-    pix1 = pixBackgroundNormSimple(pixs, NULL, NULL);
-
-        /* Use a TRC to darken weak images */
-    if (darken == 0)
-        pixGammaTRC(pix1, pix1, 2.0, 50, 220);
-    else if (darken == 1)
-        pixGammaTRC(pix1, pix1, 1.8, 60, 215);
-    else if (darken == 2)
-        pixGammaTRC(pix1, pix1, 1.6, 70, 215);
-    else if (darken == 3)
-        pixGammaTRC(pix1, pix1, 1.4, 80, 210);
-    else if (darken == 4)
-        pixGammaTRC(pix1, pix1, 1.2, 90, 210);
-    else if (darken == 5)
-        pixGammaTRC(pix1, pix1, 1.0, 100, 210);
-    else if (darken == 6)
-        pixGammaTRC(pix1, pix1, 0.85, 110, 205);
-    else if (darken == 7)
-        pixGammaTRC(pix1, pix1, 0.7, 120, 205);
-    else if (darken == 8)
-        pixGammaTRC(pix1, pix1, 0.6, 130, 200);
-    else  /* darken == 9 */
-        pixGammaTRC(pix1, pix1, 0.5, 140, 195);
-
-        /* Binarize the normalized image, using threshold = 180 */
-    if (res == 300)
-        pixd = pixThresholdToBinary(pix1, 180);
-    else  /* res == 600 */
-        pixd = pixScaleGray2xLIThresh(pix1, 180);
-    pixDestroy(&pix1);
-    return pixd;
-}
-
 
 /* --------------------------------------------*/
 #endif  /* USE_PDFIO */

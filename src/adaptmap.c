@@ -91,6 +91,12 @@
  *          static PIX      *pixLinearTRCTiled()
  *          static l_int32  *iaaGetLinearTRC()
  *
+ *      Adaptive normalization with MinMax conversion of RGB to gray,
+ *      contrast enhancement and optional 2x upscale binarization
+ *          PIX             *pixBackgroundNormTo1MinMax()
+ *          PIX             *pixConvertTo8MinMax()
+ *          static l_int32  *pixSelectiveContrastMod()
+ *
  *  Background normalization is done by generating a reduced map (or set
  *  of maps) representing the estimated background value of the
  *  input image, and using this to shift the pixel values so that
@@ -160,6 +166,8 @@ static l_int32 pixSetLowContrast(PIX *pixs1, PIX *pixs2, l_int32 mindiff);
 static PIX *pixLinearTRCTiled(PIX *pixd, PIX *pixs, l_int32 sx, l_int32 sy,
                               PIX *pixmin, PIX *pixmax);
 static l_int32 *iaaGetLinearTRC(l_int32 **iaa, l_int32 diff);
+
+static l_ok pixSelectiveContrastMod(PIX *pixs, l_int32 contrast);
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_GLOBAL    0    /*!< set to 1 to debug pixGlobalNormNoSatRGB() */
@@ -2898,3 +2906,158 @@ l_float32  factor;
 
     return ia;
 }
+
+
+/*------------------------------------------------------------------*
+ *   Adaptive normalization with MinMax conversion of RGB to gray,  *
+ *   contrast enhancement and optional 2x upscale binarization      *
+ *------------------------------------------------------------------*/
+/*!
+ * \brief   pixBackgroundNormTo1MinMax()
+ *
+ * \param[in]    pixs          any depth, with or without colormap
+ * \param[in]    contrast      1 to 10: 1 reduces contrast; 10 is maximum
+ *                             enhancement
+ * \param[in]    scalefactor   1 (no change); 2 (2x upscale)
+ * \return  1 bpp pix if OK; NULL on error
+ *
+ * <pre>
+ * Notes:
+ *    (1) This is a convenience binarization function that does four things:
+ *        * Generates a grayscale image with color enhancement to gray
+ *        * Background normalization
+ *        * Optional contrast enhancement
+ *        * Binarizes either at input resolution or with 2x upscaling
+ *    (2) If the %pixs is 1 bpp, returns a copy.
+ *    (3) The contrast increasing parameter %contrast takes values {1, ... 10}.
+ *        For decent scans, contrast = 1 is recommended.  Use a larger
+ *        value if important details are lost in binarization.
+ *    (4) Valid values of %scalefactor are 1 and 2.
+ * </pre>
+ */
+PIX *
+pixBackgroundNormTo1MinMax(PIX     *pixs,
+                           l_int32  contrast,
+                           l_int32  scalefactor)
+{
+PIX  *pix1, *pix2, *pixd;
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
+    if (contrast < 1 || contrast > 10)
+        return (PIX *)ERROR_PTR("contrast not in [1 ... 10]", __func__, NULL);
+    if (scalefactor != 1 && scalefactor != 2)
+        return (PIX *)ERROR_PTR("scalefactor not 1 or 2", __func__, NULL);
+
+    if (pixGetDepth(pixs) == 1) {
+        pixd = pixCopy(NULL, pixs);
+    } else {
+        pix1 = pixConvertTo8MinMax(pixs);
+        pix2 = pixBackgroundNormSimple(pix1, NULL, NULL);
+        pixSelectiveContrastMod(pix2, contrast);
+        if (scalefactor == 1)
+            pixd = pixThresholdToBinary(pix2, 180);
+        else  /* scalefactor == 2 */
+            pixd = pixScaleGray2xLIThresh(pix2, 180);
+        pixDestroy(&pix1);
+        pixDestroy(&pix2);
+    }
+    return pixd;
+}
+
+
+/*!
+ * \brief   pixConvertTo8MinMax()
+ *
+ * \param[in]    pixs       any depth, with or without colormap
+ * \return  8 bpp pix if OK; NULL on error
+ *
+ * <pre>
+ * Notes:
+ *    (1) This is a special version of pixConvert1To8() that removes any
+ *        existing colormap and uses pixConvertRGBToGrayMinMax()
+ *        to strongly render color into black.
+ * </pre>
+ */
+PIX *
+pixConvertTo8MinMax(PIX  *pixs)
+{
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
+
+    l_int32 d = pixGetDepth(pixs);
+    if (d == 1) {
+        return pixConvert1To8(NULL, pixs, 255, 0);
+    } else if (d == 2) {
+        return pixConvert2To8(pixs, 0, 85, 170, 255, FALSE);
+    } else if (d == 4) {
+        return pixConvert4To8(pixs, FALSE);
+    } else if (d == 8) {
+        if (pixGetColormap(pixs) != NULL)
+            return pixRemoveColormap(pixs, REMOVE_CMAP_TO_GRAYSCALE);
+        else
+            return pixCopy(NULL, pixs);
+    } else if (d == 16) {
+        return pixConvert16To8(pixs, L_MS_BYTE);
+    } else if (d == 32) {
+        return pixConvertRGBToGrayMinMax(pixs, L_CHOOSE_MIN);
+    }
+
+    L_ERROR("Invalid depth d = %d\n", __func__, d);
+    return NULL;
+}
+
+
+/*!
+ * \brief   pixSelectiveContrastMod()
+ *
+ * \param[in]    pixs       8 bpp without colormap
+ * \param[in]    contrast   1 (default value) for some contrast reduction;
+ *                          10 for maximum contrast enhancement.
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *    (1) This does in-place contrast enhancement on 8 bpp grayscale that
+ *        has been background normalized to 200.  Therefore, there should
+ *        be no gray pixels above 200 in %pixs.  For general contrast
+ *        enhancement on gray or color images, see pixContrastTRC().
+ *    (2) Caller restricts %contrast to [1 ... 10].
+ *    (3) Use %contrast = 1 for minimum contrast enhancement (which will
+ *        remove some speckle noise) and %contrast = 10 for maximum
+ *        darkening.
+ *    (4) We use 200 for the white point in all transforms.  Using a
+ *        white point above 200 will darken all grayscale pixels.
+ * </pre>
+ */
+static l_ok
+pixSelectiveContrastMod(PIX     *pixs,
+                        l_int32  contrast)
+{
+    if (!pixs || pixGetDepth(pixs) != 8)
+        return ERROR_INT("pixs not defined or not 8 bpp", __func__, 1);
+
+    if (contrast == 1)
+        pixGammaTRC(pixs, pixs, 2.0, 50, 200);
+    else if (contrast == 2)
+        pixGammaTRC(pixs, pixs, 1.8, 60, 200);
+    else if (contrast == 3)
+        pixGammaTRC(pixs, pixs, 1.6, 70, 200);
+    else if (contrast == 4)
+        pixGammaTRC(pixs, pixs, 1.4, 80, 200);
+    else if (contrast == 5)
+        pixGammaTRC(pixs, pixs, 1.2, 90, 200);
+    else if (contrast == 6)
+        pixGammaTRC(pixs, pixs, 1.0, 100, 200);
+    else if (contrast == 7)
+        pixGammaTRC(pixs, pixs, 0.85, 110, 200);
+    else if (contrast == 8)
+        pixGammaTRC(pixs, pixs, 0.7, 120, 200);
+    else if (contrast == 9)
+        pixGammaTRC(pixs, pixs, 0.6, 130, 200);
+    else  /* contrast == 10 */
+        pixGammaTRC(pixs, pixs, 0.5, 140, 200);
+
+    return 0;
+}
+

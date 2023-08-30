@@ -415,7 +415,7 @@ PIXCMAP  *cmap, *cmapg;
 
         /* Page cropping */
     pix1 = pixRead("tel_3.tif");
-    pix2 = pixCropImage(pix1, 160, 30, 30, 4, 25, 25,
+    pix2 = pixCropImage(pix1, 30, 30, 4, 25, 25,
                         "/tmp/lept/misc/cropdebug.pdf", NULL);
     pixDestroy(&pix1);
     pixDestroy(&pix2);

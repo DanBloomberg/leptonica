@@ -42,7 +42,7 @@
  *      Textblock extraction
  *          PIX      *pixGenTextblockMask()
  *
- *      Location of page foreground
+ *      Location and extraction of page foreground
  *          PIX      *pixCropImage()
  *          BOX      *pixFindPageForeground()
  *
@@ -530,7 +530,6 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  * \brief   pixCropImage()
  *
  * \param[in]    pixs        full resolution (any type or depth)
- * \param[in]    threshold   for binarization; typically about 128
  * \param[in]    lr_clear    full res pixels cleared at left and right sides
  * \param[in]    tb_clear    full res pixels cleared at top and bottom sides
  * \param[in]    edgeclean   parameter for removing edge noise (0-15)
@@ -569,7 +568,6 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  */
 PIX *
 pixCropImage(PIX         *pixs,
-             l_int32      threshold,
              l_int32      lr_clear,
              l_int32      tb_clear,
              l_int32      edgeclean,
@@ -579,7 +577,7 @@ pixCropImage(PIX         *pixs,
              BOX        **pcropbox)
 {
 char       cmd[64];
-l_int32    w, h, lrc, tbc, val;
+l_int32    w, h, d, lrc, tbc, val;
 l_int32    left, right, top, bot, leftfinal, rightfinal, topfinal, botfinal;
 l_float32  hscale;
 PIX       *pix1, *pix2, *pix3;
@@ -594,7 +592,7 @@ BOX       *box1, *box2;
         L_WARNING("edgeclean > 15; setting to 15\n", __func__);
         edgeclean = 15;
     }
-    pixGetDimensions(pixs, &w, &h, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
     if (w < MinWidth || h < MinHeight) {
         L_ERROR("pix too small: w = %d, h = %d\n", __func__, w, h);
         return NULL;
@@ -611,7 +609,8 @@ BOX       *box1, *box2;
     pixa1 = (debugfile) ? pixaCreate(5) : NULL;
     if (pixa1) pixaAddPix(pixa1, pixs, L_COPY);
 
-    pix1 = pixConvertTo1(pixs, threshold);
+        /* Binarize if necessary and 2x reduction */
+    pix1 = pixBackgroundNormTo1MinMax(pixs, 1, 1);
     pix2 = pixReduceRankBinary2(pix1, 2, NULL);
 
         /* Clear out border pixels */
