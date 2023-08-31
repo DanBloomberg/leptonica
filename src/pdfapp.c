@@ -324,7 +324,7 @@ PIXAC     *pixac1 = NULL;
  * \param[in]    rotation      cw by 90 degrees: {0,1,2,3} represent
  *                             0, 90, 180 and 270 degree cw rotations
  * \param[in]    opensize      opening size of structuring element for noise
- *                             removal: {0 to skip; 2, 3}
+ *                             removal: {0 or 1to skip; 2, 3 for opening}
  * \param[in]    title         [optional] pdf title; can be null
  * \param[in]    fileout       pdf file of all images
  * \return  0 if OK, 1 on error
@@ -334,21 +334,20 @@ PIXAC     *pixac1 = NULL;
  *    (1) This deskews, optionally rotates and darkens, cleans background
  *        to white, binarizes and optionally removes small noise, and
  *        put the images into the pdf in the order given in %sa.
- *    (2) It does the image processing for prog/cleanpdf.c.
- *    (3) All images in the pdf are tiffg4 encoded.
- *    (4) For color and grayscale input, local background normalization is
+ *    (2) All images in the pdf are tiffg4 encoded.
+ *    (3) For color and grayscale input, local background normalization is
  *        done to 200, and a threshold of 180 sets the maximum foreground
  *        value in the normalized image.
- *    (5) The %res parameter can be either 300 or 600 ppi.  If the input
+ *    (4) The %res parameter can be either 300 or 600 ppi.  If the input
  *        is gray or color and %res = 600, this does an interpolated 2x
  *        expansion before binarizing.
- *    (6) The %contrast parameter adjusts the binarization to avoid losing
+ *    (5) The %contrast parameter adjusts the binarization to avoid losing
  *        lighter input pixels.  Contrast is increased as %contrast increases
  *        from 1 to 10.
- *    (7) The #opensize parameter is the size of a square SEL used with
+ *    (6) The #opensize parameter is the size of a square SEL used with
  *        opening to remove small speckle noise.  Allowed open sizes are 2,3.
  *        If this is to be used, try 2 before 3.
- *    (8) If there are more than 200 images, store the images after processing
+ *    (7) If there are more than 200 images, store the images after processing
  *        as an array of compressed images (a Pixac); otherwise, use a Pixa.
  * </pre>
  */
@@ -361,11 +360,10 @@ cleanTo1bppFilesToPdf(SARRAY      *sa,
                       const char  *title,
                       const char  *fileout)
 {
-char       sequence[32];
 char      *fname;
 l_int32    n, i, scale;
 l_int32    maxsmallset = 200;  /* max num images kept uncompressed in array */
-PIX       *pixs, *pix1, *pix2, *pix3, *pix4, *pix5;
+PIX       *pixs, *pix1;
 PIXA      *pixa1 = NULL;
 PIXAC     *pixac1 = NULL;
 
@@ -408,31 +406,19 @@ PIXAC     *pixac1 = NULL;
         else if (i % 10 == 0)
             lept_stderr("%d . ", i);
         fname = sarrayGetString(sa, i, L_NOCOPY);
-        pixs = pixRead(fname);
-        pix1 = pixConvertTo8MinMax(pixs);
-        if (rotation > 0)
-            pix2 = pixRotateOrth(pix1, rotation);
-        else
-            pix2 = pixClone(pix1);
-        pix3 = pixFindSkewAndDeskew(pix2, 2, NULL, NULL);
-        pix4 = pixBackgroundNormTo1MinMax(pix3, contrast, scale);
-        if (opensize == 2 || opensize == 3) {
-            snprintf(sequence, sizeof(sequence), "o%d.%d", opensize, opensize);
-            pix5 = pixMorphSequence(pix4, sequence, 0);
-        } else {
-            pix5 = pixClone(pix4);
+        if ((pixs = pixRead(fname)) == NULL) {
+            L_ERROR("pixs not read from %s\n", __func__, fname);
+            continue;
         }
+
+        pix1 = pixCleanImage(pixs, contrast, rotation, scale, opensize);
         if (n <= maxsmallset) {
-            pixaAddPix(pixa1, pix5, L_INSERT);
+            pixaAddPix(pixa1, pix1, L_INSERT);
         } else {
-            pixacompAddPix(pixac1, pix5, IFF_TIFF_G4);
-            pixDestroy(&pix5);
+            pixacompAddPix(pixac1, pix1, IFF_TIFF_G4);
+            pixDestroy(&pix1);
         }
         pixDestroy(&pixs);
-        pixDestroy(&pix1);
-        pixDestroy(&pix2);
-        pixDestroy(&pix3);
-        pixDestroy(&pix4);
     }
 
         /* Generate the pdf.  Compute the actual input resolution from
@@ -455,7 +441,6 @@ PIXAC     *pixac1 = NULL;
         pixacompConvertToPdf(pixac1, res, 1.0, L_G4_ENCODE, 0, title, fileout);
         pixacompDestroy(&pixac1);
     }
-
     return 0;
 }
 

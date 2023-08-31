@@ -1376,6 +1376,7 @@ LEPT_DLL extern PIX * pixGenerateHalftoneMask ( PIX *pixs, PIX **ppixtext, l_int
 LEPT_DLL extern PIX * pixGenTextlineMask ( PIX *pixs, PIX **ppixvws, l_int32 *ptlfound, PIXA *pixadb );
 LEPT_DLL extern PIX * pixGenTextblockMask ( PIX *pixs, PIX *pixvws, PIXA *pixadb );
 LEPT_DLL extern PIX * pixCropImage ( PIX *pixs, l_int32 lr_clear, l_int32 tb_clear, l_int32 edgeclean, l_int32 lr_add, l_int32 tb_add, const char *debugfile, BOX **pcropbox );
+LEPT_DLL extern PIX * pixCleanImage ( PIX *pixs, l_int32 contrast, l_int32 rotation, l_int32 scale, l_int32 opensize );
 LEPT_DLL extern BOX * pixFindPageForeground ( PIX *pixs, l_int32 threshold, l_int32 mindist, l_int32 erasedist, l_int32 showmorph, PIXAC *pixac );
 LEPT_DLL extern l_ok pixSplitIntoCharacters ( PIX *pixs, l_int32 minw, l_int32 minh, BOXA **pboxa, PIXA **ppixa, PIX **ppixdebug );
 LEPT_DLL extern BOXA * pixSplitComponentWithProfile ( PIX *pixs, l_int32 delta, l_int32 mindel, PIX **ppixdebug );

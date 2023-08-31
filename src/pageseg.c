@@ -42,8 +42,9 @@
  *      Textblock extraction
  *          PIX      *pixGenTextblockMask()
  *
- *      Location and extraction of page foreground
+ *      Location and extraction of page foreground; cleaning pages
  *          PIX      *pixCropImage()
+ *          PIX      *pixCleanImage()
  *          BOX      *pixFindPageForeground()
  *
  *      Extraction of characters from image with only text
@@ -524,7 +525,7 @@ PIX     *pix1, *pix2, *pix3, *pixd;
 
 
 /*------------------------------------------------------------------*
- *                    Location of page foreground                   *
+ *    Location and extraction of page foreground; cleaning pages    *
  *------------------------------------------------------------------*/
 /*!
  * \brief   pixCropImage()
@@ -686,6 +687,107 @@ BOX       *box1, *box2;
        pixaDestroy(&pixa1);
     }
     return pix3;
+}
+
+
+/*!
+ * \brief   pixCleanImage()
+ *
+ * \param[in]    pixs        full resolution (any type or depth)
+ * \param[in]    contrast    vary contrast: 1 = lightest; 10 = darkest;
+ *                           suggest 1 unless light features are being lost
+ * \param[in]    rotation    cw by 90 degrees: {0,1,2,3} represent
+ *                           0, 90, 180 and 270 degree cw rotations
+ * \param[in]    scale       1 (no scaling) or 2 (2x upscaling)
+ * \param[in]    opensize    opening size of structuring element for noise
+ *                           removal: {0 or 1 to skip; 2, 3 for opening}
+ * \return  cleaned pix, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *    (1) This deskews, optionally rotates and darkens, cleans background
+ *        to white, binarizes and optionally removes small noise.
+ *    (2) For color and grayscale input, local background normalization is
+ *        done to 200, and a threshold of 180 sets the maximum foreground
+ *        value in the normalized image.
+ *    (3) The %contrast parameter adjusts the binarization to avoid losing
+ *        lighter input pixels.  Contrast is increased as %contrast increases
+ *        from 1 to 10.
+ *    (4) The %scale parameter controls the thresholding to 1 bpp. Two values:
+ *            1 = threshold
+ *            2 = linear interpolated 2x upscaling before threshold.
+ *    (5) The #opensize parameter is the size of a square SEL used with
+ *        opening to remove small speckle noise.  Allowed open sizes are 2,3.
+ *        If this is to be used, try 2 before 3.
+ *    (6) This does the image processing for cleanTo1bppFilesToPdf() and
+ *        prog/cleanpdf.c.
+ * </pre>
+ */
+PIX *
+pixCleanImage(PIX         *pixs,
+              l_int32      contrast,
+              l_int32      rotation,
+              l_int32      scale,
+              l_int32      opensize)
+{
+char  sequence[32];
+PIX  *pix1, *pix2, *pix3, *pix4, *pix5;
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
+    if (rotation < 0 || rotation > 3) {
+        L_ERROR("invalid rotation = %d; rotation must be in  {0,1,2,3}\n",
+                __func__, rotation);
+        return NULL;
+    }
+    if (contrast < 1 || contrast > 10) {
+        L_ERROR("invalid contrast = %d; contrast must be in [1...10]\n",
+                __func__, contrast);
+        return NULL;
+    }
+    if (scale != 1 && scale != 2) {
+        L_ERROR("invalid scale = %d; scale must be 1 or 2\n",
+                __func__, opensize);
+        return NULL;
+    }
+    if (opensize > 3) {
+        L_ERROR("invalid opensize = %d; opensize must be <= 3\n",
+                __func__, opensize);
+        return NULL;
+    }
+
+    if (pixGetDepth(pixs) == 1) {
+        if (rotation > 0)
+            pix1 = pixRotateOrth(pixs, rotation);
+        else
+            pix1 = pixClone(pixs);
+        pix2 = pixFindSkewAndDeskew(pix1, 2, NULL, NULL);
+        if (scale == 2)
+            pix4 = pixExpandBinaryReplicate(pix2, 2, 2);
+        else  /* scale == 1 */
+            pix4 = pixClone(pix2);
+    } else {
+        pix1 = pixConvertTo8MinMax(pixs);
+        if (rotation > 0)
+            pix2 = pixRotateOrth(pix1, rotation);
+        else
+            pix2 = pixClone(pix1);
+        pix3 = pixFindSkewAndDeskew(pix2, 2, NULL, NULL);
+        pix4 = pixBackgroundNormTo1MinMax(pix3, contrast, scale);
+        pixDestroy(&pix3);
+    }
+
+    if (opensize == 2 || opensize == 3) {
+        snprintf(sequence, sizeof(sequence), "o%d.%d", opensize, opensize);
+        pix5 = pixMorphSequence(pix4, sequence, 0);
+    } else {
+        pix5 = pixClone(pix4);
+    }
+
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix4);
+    return pix5;
 }
 
 

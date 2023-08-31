@@ -263,5 +263,6 @@ SARRAY  *sa;
     lept_stderr("cleaning ...\n");
     cleanTo1bppFilesToPdf(sa, res, contrast, rotation, opensize,
                           title, fileout);
+    sarrayDestroy(&sa);
     return 0;
 }
