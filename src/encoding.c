@@ -280,7 +280,7 @@ isBase64(char  c)
  * \brief   genReverseTab64()
  */
 static l_int32 *
-genReverseTab64()
+genReverseTab64(void)
 {
 l_int32   i;
 l_int32  *rtable64;
