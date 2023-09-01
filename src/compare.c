@@ -971,7 +971,7 @@ pixCompareGray(PIX        *pix1,
                PIX       **ppixdiff)
 {
 char            buf[64];
-static l_int32  index = 0;
+static l_atomic index = 0;
 l_int32         d1, d2, same, first, last;
 GPLOT          *gplot;
 NUMA           *na, *nac;
@@ -1078,7 +1078,7 @@ pixCompareRGB(PIX        *pix1,
               PIX       **ppixdiff)
 {
 char            buf[64];
-static l_int32  index = 0;
+static l_atomic index = 0;
 l_int32         rsame, gsame, bsame, same, first, rlast, glast, blast, last;
 l_float32       rdiff, gdiff, bdiff;
 GPLOT          *gplot;

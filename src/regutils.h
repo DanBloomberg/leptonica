@@ -120,7 +120,7 @@ struct L_RegParams
     char    *testname;  /*!< name of test, without '_reg'                     */
     char    *tempfile;  /*!< name of temp file for compare mode output        */
     l_int32  mode;      /*!< generate, compare or display                     */
-    l_int32  index;     /*!< index into saved files for this test; 0-based    */
+    l_atomic index;     /*!< index into saved files for this test; 0-based    */
     l_int32  success;   /*!< overall result of the test                       */
     l_int32  display;   /*!< 1 if in display mode; 0 otherwise                */
     L_TIMER  tstart;    /*!< marks beginning of the reg test                  */
