@@ -56,7 +56,7 @@ jobs:
     - name: Configure
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja -DSW_BUILD=OFF -DBUILD_PROG=OFF -DBUILD_SHARED_LIBS=ON
+      run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja -DSW_BUILD=OFF -DBUILD_PROG=ON -DBUILD_SHARED_LIBS=ON
 
     - name: Build
       run: cmake --build build --config ${{env.BUILD_TYPE}}
