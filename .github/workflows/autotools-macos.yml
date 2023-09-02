@@ -55,7 +55,7 @@ jobs:
 
     - name: Make and install Leptonica
       run: |
-           make
+           make -j
            sudo make install
 
     - name: Make and run unit tests
