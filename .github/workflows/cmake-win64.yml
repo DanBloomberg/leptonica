@@ -102,7 +102,9 @@ jobs:
              cmake -B build -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}}
              cmake --build build --config Release --target install
 
+      # FIXME: skip lzma build (libtiff lzma build failure)
       - name: Build and Install lzma
+        if: false
         run: |
              ${{env.CURL}} https://sourceforge.net/projects/lzmautils/files/xz-5.4.3.tar.zst/download -o xz-5.4.3.tar.zst
              tar xaf xz-5.4.3.tar.zst
@@ -110,11 +112,12 @@ jobs:
              cmake -B build -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -DBUILD_TESTING=OFF
              cmake --build build --config Release --target install
 
+      # FIXME: disable lzma support (build failure)
       - name: Build and Install libtiff
         run: |
              git clone --depth 1 https://gitlab.com/libtiff/libtiff.git
              cd libtiff
-             cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -Dtiff-tools=OFF -Dtiff-tests=OFF -Dtiff-contrib=OFF -Dtiff-docs=OFF
+             cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -Dlzma=OFF -Dtiff-tools=OFF -Dtiff-tests=OFF -Dtiff-contrib=OFF -Dtiff-docs=OFF
              cmake --build build --config Release --target install
 
       - name: Configure
