@@ -189,7 +189,7 @@ jobs:
 
       # FIXME: skip `string_reg` test (libtiff lzma build failure)
       - name: Test
-        run: ctest --test-dir build --build-config Release --output-on-failure --exclude-regex '^string_reg$'
+        run: ctest --test-dir build --build-config Release --output-on-failure --parallel 3 --exclude-regex '^string_reg$'
 
       - name: Install
         run: cmake --build build --config Release --target install

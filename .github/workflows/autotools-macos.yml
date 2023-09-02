@@ -60,4 +60,4 @@ jobs:
 
     - name: Make and run unit tests
       run: |
-           make check
+           make -j check
