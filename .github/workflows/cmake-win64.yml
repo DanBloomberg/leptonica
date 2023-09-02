@@ -34,6 +34,8 @@ jobs:
              mkdir ${{env.ILOC}}
              git_info="$(git describe --tags HEAD)"
              echo "version=${git_info}" >>$GITHUB_OUTPUT
+             echo d:/a/gnuplot/bin >>$GITHUB_PATH
+             echo ${{env.ILOC}}/bin >>$GITHUB_PATH
 
       # Nuke Strawberry Perl's installation as it contains various
       # MinGW headers, libraries and binaries that can get picked up
@@ -44,6 +46,12 @@ jobs:
 
       - name: Install nasm
         uses: ilammy/setup-nasm@v1
+
+      - name: Install gnuplot
+        run: |
+             ${{env.CURL}} https://sourceforge.net/projects/gnuplot/files/gnuplot/5.4.8/gp548-win64-mingw.zip/download -o gp548-win64-mingw.zip
+             unzip -d d:/a -qq gp548-win64-mingw.zip
+             gnuplot --version
 
       - name: Build and Install zlib-ng
         run: |
@@ -62,9 +70,62 @@ jobs:
 
       - name: Build and Install giflib
         run: |
-             git clone --depth 1 https://github.com/xbmc/giflib.git
-             cd giflib
-             cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}}
+             ${{env.CURL}} https://sourceforge.net/projects/giflib/files/giflib-5.2.1.tar.gz/download -o giflib-5.2.1.tar.gz
+             tar xaf giflib-5.2.1.tar.gz
+             cd giflib-5.2.1
+             patch -p1 <<\EOF
+             diff --git c/CMakeLists.txt i/CMakeLists.txt
+             new file mode 100644
+             --- /dev/null
+             +++ i/CMakeLists.txt
+             @@ -0,0 +1,32 @@
+             +cmake_minimum_required(VERSION 3.5)
+             +
+             +project(giflib VERSION 5.2.1 LANGUAGES C)
+             +
+             +if(MSVC)
+             +  set(CMAKE_DEBUG_POSTFIX "d")
+             +endif()
+             +
+             +add_library(giflib
+             +  dgif_lib.c
+             +  egif_lib.c
+             +  gif_err.c
+             +  gif_font.c
+             +  gif_hash.c
+             +  gif_hash.h
+             +  gif_lib.h
+             +  gif_lib_private.h
+             +  gifalloc.c
+             +  openbsd-reallocarray.c
+             +  quantize.c
+             +)
+             +
+             +install(TARGETS giflib EXPORT giflib
+             +  RUNTIME DESTINATION bin
+             +  ARCHIVE DESTINATION lib
+             +  LIBRARY DESTINATION lib
+             +)
+             +
+             +install(FILES
+             +  ${CMAKE_CURRENT_SOURCE_DIR}/gif_lib.h
+             +  DESTINATION include
+             +)
+             diff --git c/gif_hash.h i/gif_hash.h
+             --- c/gif_hash.h
+             +++ i/gif_hash.h
+             @@ -9,7 +9,9 @@ SPDX-License-Identifier: MIT
+              #ifndef _GIF_HASH_H_
+              #define _GIF_HASH_H_
+              
+             +#if !defined(_MSC_VER)
+              #include <unistd.h>
+             +#endif
+              #include <stdint.h>
+              
+              #define HT_SIZE			8192	   /* 12bits = 4096 or twice as big! */
+             EOF
+             cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}}
              cmake --build build --config Release --target install
 
       - name: Build and Install libjpeg
@@ -121,16 +182,20 @@ jobs:
              cmake --build build --config Release --target install
 
       - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -DSW_BUILD=OFF -DBUILD_PROG=ON -DBUILD_SHARED_LIBS=ON
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -DSW_BUILD=OFF -DBUILD_PROG=ON -DBUILD_SHARED_LIBS=ON -DBUILD_TEST=ON
 
       - name: Build
         run: cmake --build build --config Release
+
+      # FIXME: skip `string_reg` test (libtiff lzma build failure)
+      - name: Test
+        run: ctest --test-dir build --build-config Release --output-on-failure --exclude-regex '^string_reg$'
 
       - name: Install
         run: cmake --build build --config Release --target install
 
       - name: Test install
-        run: ${{env.ILOC}}/bin/fileinfo prog/test-rgb.png
+        run: fileinfo prog/test-rgb.png
 
       - name: Remove not needed tools
         run: rm -f ${{env.ILOC}}/bin/*.exe
