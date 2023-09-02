@@ -145,6 +145,7 @@ static const char *tests[] = {
                               "multitype_reg",
                               "numa1_reg",
                               "numa2_reg",
+                              "numa3_reg",
                               "nearline_reg",
                               "newspaper_reg",
                               "overlap_reg",

@@ -2287,8 +2287,8 @@ char    *realdir;
  * Notes:
  *      (1) Always use unix pathname separators.
  *      (2) By calling genPathname(), if the pathname begins with "/tmp"
- *          this does an automatic directory translation on
- *          operating systems which use a different path.
+ *          this does an automatic directory translation for operating
+ *          systems that use a different path for /tmp.
  * </pre>
  */
 void
@@ -2341,8 +2341,8 @@ char  *realdir;
  *          all files in /tmp.
  *      (3) Use unix pathname separators.
  *      (4) By calling genPathname(), if the pathname begins with "/tmp"
- *          this does an automatic directory translation on
- *          operating systems which use a different path.
+ *          this does an automatic directory translation for operating
+ *          systems that use a different path for /tmp.
  *      (5) Error conditions:
  *            * returns -1 if the directory is not found
  *            * returns the number of files (> 0) that it was unable to remove.
@@ -2392,8 +2392,7 @@ SARRAY  *sa;
  * <pre>
  * Notes:
  *      (1) By calling genPathname(), this does an automatic directory
- *          this does an automatic directory translation on
- *          operating systems which use a different path.
+ *          translation on operating systems which use a different path.
  * </pre>
  */
 l_int32
@@ -2432,8 +2431,9 @@ l_int32  ret;
  *      (4) Unlike the other lept_* functions in this section, this can remove
  *          any file -- it is not restricted to files that are in /tmp or a
  *          subdirectory of it.
- *          this does an automatic directory translation on
- *          operating systems which use a different path.
+ *      (5) For files in /tmp or a subdirectory of it, this does an automatic
+ *          directory translation for operating systems that use a different
+ *          path for /tmp.
  * </pre>
  */
 l_int32
@@ -2479,8 +2479,8 @@ l_int32  ret;
  *          be freed by the caller.
  *      (6) Reminders:
  *          (a) specify files using unix pathnames
- *          (b) this does an automatic directory translation on
- *              operating systems which use a different path for /tmp.
+ *          (b) this does an automatic directory translation on operating
+ *              systems that use a different path for /tmp.
  *      (7) Examples:
  *          * newdir = NULL,    newtail = NULL    ==> /tmp/src-tail
  *          * newdir = NULL,    newtail = abc     ==> /tmp/abc
@@ -2574,8 +2574,8 @@ l_int32  ret;
  *          be freed by the caller.
  *      (6) Reminders:
  *          (a) specify files using unix pathnames
- *          (b) this does an automatic directory translation on
- *              operating systems which use a different path for /tmp
+ *          (b) this does an automatic directory translation for operating
+ *              systems that use a different path for /tmp
  *      (7) Examples:
  *          * newdir = NULL,    newtail = NULL    ==> /tmp/src-tail
  *          * newdir = NULL,    newtail = abc     ==> /tmp/abc
@@ -3057,15 +3057,16 @@ size_t   len;
  *              %fname, with %dir == NULL.
  *            * if in a "/tmp" directory and on iOS, macOS or Windows,
  *              the OS specific temp directory is used.
- *      (2) This does an automatic directory translation on
- *          operating systems which use a different path.
+ *      (2) This does an automatic directory translation for operating
+ *          systems that use a different path for /tmp.
  *          That path is determined
  *             * on Windows: by GetTempPath()
  *             * on macOS, iOS: by confstr() (see man page)
  *      (3) On unix, the TMPDIR variable is ignored.  No rewriting
  *          of temp directories is permitted.
  *      (4) There are four cases for the input:
- *          (a) %dir is a directory and %fname is defined: result is a full path
+ *          (a) %dir is a directory and %fname is defined: result is a
+ *              full path
  *          (b) %dir is a directory and %fname is null: result is a directory
  *          (c) %dir is a full path and %fname is null: result is a full path
  *          (d) %dir is null or an empty string: start in the current dir;
