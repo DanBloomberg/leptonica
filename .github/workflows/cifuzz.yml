@@ -1,5 +1,11 @@
 name: CIFuzz
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on: [pull_request]
+
 jobs:
   Fuzzing:
     runs-on: ubuntu-latest

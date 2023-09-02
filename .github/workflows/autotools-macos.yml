@@ -2,6 +2,10 @@ name: autotools-macos
 
 # autotools build and unit tests of Leptonica on macOS Homebrew.
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     branches: [ master ]
