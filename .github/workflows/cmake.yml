@@ -32,6 +32,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
            packages=(
+             gnuplot
              libgif-dev
              libopenjp2-7-dev
              libwebp-dev
@@ -46,6 +47,7 @@ jobs:
       run: |
            packages=(
              giflib
+             gnuplot
              ninja
              openjpeg
              webp
@@ -56,10 +58,17 @@ jobs:
     - name: Configure
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja -DSW_BUILD=OFF -DBUILD_PROG=ON -DBUILD_SHARED_LIBS=ON
+      # Note: `-DCMAKE_FIND_FRAMEWORK=LAST` is used to avoid a mismatch on macOS between
+      # the version of the PNG library linked with / used at runtime (provided by brew)
+      # and the version of the header used at compile time (provided by the system):
+      # libpng warning: Application built with libpng-1.4.12 but running with 1.6.40
+      run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja -DCMAKE_FIND_FRAMEWORK=LAST -DSW_BUILD=OFF -DBUILD_PROG=ON -DBUILD_SHARED_LIBS=ON -DBUILD_TEST=ON
 
     - name: Build
       run: cmake --build build --config ${{env.BUILD_TYPE}}
+
+    - name: Test
+      run: ctest --test-dir build --build-config ${{env.BUILD_TYPE}} --output-on-failure
 
     - name: Install
       run: sudo cmake --build build --config ${{env.BUILD_TYPE}} --target install
