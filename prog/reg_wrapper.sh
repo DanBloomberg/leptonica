@@ -23,16 +23,27 @@
 #  Shell trickery is used to strip off the final parameter and
 #  transform the invocation into this.
 #      path/to/source/config/test-driver <TEST DRIVER ARGS>
-#      -- /bin/sh -c "cd \"path/to/source/prog\" &&
-#      \"path/to/build/prog/\"./foo_reg generate &&
-#      \"path/to/build/prog/\"./foo_reg compare"
+#      -- /bin/sh -c 'cd path/to/source/prog &&
+#      path/to/build/prog/./foo_reg generate &&
+#      path/to/build/prog/./foo_reg compare'
 #
 #  This also allows testing when you build in a different directory
 #  from the install directory, and the logs still get written to
 #  the build directory.
 
-eval TEST=\${${#}}
+if [ $# -eq 0 ]; then
+  exit 1
+fi
 
+# Rotate arguments until the last one is first.
+for n in $(seq $(($#-1))); do
+  a="$1"
+  shift
+  set -- "${@}" "$a"
+done
+
+TEST="$1"
+shift
 TEST_NAME="${TEST##*/}"
 TEST_NAME="${TEST_NAME%_reg*}"
 
@@ -41,8 +52,12 @@ case "${TEST_NAME}" in
         GNUPLOT=$(which gnuplot || which wgnuplot)
 
         if [ -z "${GNUPLOT}" ] || ! "${GNUPLOT}" -e "set terminal png" 2>/dev/null ; then
-            exec ${@%${TEST}} /bin/sh -c "exit 77"
+            exit 77
         fi
 esac
 
-exec ${@%${TEST}} /bin/sh -c "cd \"${srcdir}\" && \"${PWD}/\"${TEST} generate && \"${PWD}/\"${TEST} compare"
+if [ -z "${srcdir}" ]; then
+  srcdir="${0%/*}"
+fi
+
+exec "$@" /bin/sh -c 'cd "$1" && "$2" generate && "$2" compare' -- "${srcdir}" "${PWD}/${TEST}"

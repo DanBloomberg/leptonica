@@ -46,12 +46,15 @@ project(
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+# Testing support
+include(CTest)
 # Standard installation paths
 include(GNUInstallDirs)
 
 set(MINIMUM_WEBPMUX_VERSION 0.5.0)
 
 option(BUILD_PROG "Build utility programs" OFF)
+option(BUILD_TEST "Build tests" OFF)
 if(WIN32)
   option(SW_BUILD "Build with sw" ON)
 else()
@@ -322,6 +325,7 @@ message(STATUS "Install directory: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS)
 message(STATUS "Build with sw [SW_BUILD]: ${SW_BUILD}")
 message(STATUS "Build utility programs [BUILD_PROG]: ${BUILD_PROG}")
+message(STATUS "Build tests [BUILD_TEST]: ${BUILD_TEST}")
 if(NOT SW_BUILD)
   message(STATUS "Used ZLIB library: ${ZLIB_LIBRARIES}")
   message(STATUS "Used PNG library:  ${PNG_LIBRARIES}")
@@ -345,7 +349,7 @@ add_definitions(-DHAVE_CONFIG_H)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/src)
 
-if(BUILD_PROG)
+if(BUILD_PROG OR BUILD_TEST)
   add_subdirectory(prog)
 endif()
 
