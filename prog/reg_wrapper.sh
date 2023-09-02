@@ -60,4 +60,8 @@ if [ -z "${srcdir}" ]; then
   srcdir="${0%/*}"
 fi
 
+if [ -z "${LEPT_TMPDIR}" ]; then
+  export LEPT_TMPDIR="${PWD}/${TEST_NAME}.tmp"
+fi
+
 exec "$@" /bin/sh -c 'cd "$1" && "$2" generate && "$2" compare' -- "${srcdir}" "${PWD}/${TEST}"

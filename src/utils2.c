@@ -209,11 +209,6 @@
 #include <stddef.h>
 #include "allheaders.h"
 
-#if defined(__APPLE__) || defined(_WIN32)
-/* Rewrite paths starting with /tmp for macOS, iOS and Windows. */
-#define REWRITE_TMP
-#endif
-
 /*--------------------------------------------------------------------*
  *                       Safe string operations                       *
  *--------------------------------------------------------------------*/
@@ -3079,12 +3074,8 @@ char *
 genPathname(const char  *dir,
             const char  *fname)
 {
-#if defined(REWRITE_TMP)
-l_int32  rewrite_tmp = TRUE;
-#else
-l_int32  rewrite_tmp = FALSE;
-#endif  /* _WIN32 */
-char    *cdir, *pathout;
+l_int32  rewrite_tmp;
+char    *cdir, *pathout, *tmpdir;
 l_int32  dirlen, namelen;
 size_t   size;
 
@@ -3116,15 +3107,33 @@ size_t   size;
         return (char *)ERROR_PTR("pathout not made", __func__, NULL);
     }
 
-        /* First handle %dir (which may be a full pathname).
-         * There is no path rewriting on unix, and on win32, we do not
-         * rewrite unless the specified directory is /tmp or
-         * a subdirectory of /tmp */
-    if (!rewrite_tmp || dirlen < 4 ||
-        (dirlen == 4 && strncmp(cdir, "/tmp", 4) != 0) ||  /* not in "/tmp" */
-        (dirlen > 4 && strncmp(cdir, "/tmp/", 5) != 0)) {  /* not in "/tmp/" */
+    /* Rewrite paths starting with /tmp, but only only on macOS,
+     * iOS and Windows, or if the `LEPT_TMPDIR` environment
+     * variable is set. */
+    tmpdir = getenv("LEPT_TMPDIR");
+#if defined(__APPLE__) || defined(_WIN32)
+    rewrite_tmp = TRUE;
+#else
+    rewrite_tmp = FALSE;
+#endif
+    rewrite_tmp = rewrite_tmp || tmpdir != NULL;
+    rewrite_tmp =
+        rewrite_tmp &&
+        dirlen >= 4 &&
+        strncmp(cdir, "/tmp", 4) == 0 &&
+        (cdir[4] == '\0' || cdir[4] == '/');
+
+    if (!rewrite_tmp) {
+        /* Keep path as is. */
         stringCopy(pathout, cdir, dirlen);
-    } else {  /* Rewrite with "/tmp" specified for the directory. */
+    } else if (tmpdir != NULL) {
+        /* Rewrite to $LEPT_TMPDIR. */
+        stringCopy(pathout, tmpdir, strlen(tmpdir));
+            /* Add the rest of cdir */
+        if (dirlen > 4)
+            stringCat(pathout, size, cdir + 4);
+    } else {
+        /* Rewrite to OS specific temporary directory. */
 #if defined(__APPLE__)
         size_t n = confstr(_CS_DARWIN_USER_TEMP_DIR, pathout, size);
         if (n == 0 || n > size) {
@@ -3209,11 +3218,7 @@ size_t   pathlen;
 
     dir = pathJoin("/tmp", subdir);
 
-#if defined(REWRITE_TMP)
     path = genPathname(dir, NULL);
-#else
-    path = stringNew(dir);
-#endif  /*  ~ _WIN32 */
     pathlen = strlen(path);
     if (pathlen < nbytes - 1) {
         stringCopy(result, path, nbytes);
