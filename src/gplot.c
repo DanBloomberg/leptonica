@@ -1206,8 +1206,8 @@ GPLOT *
 gplotRead(const char  *filename)
 {
 char     buf[Bufsize];
-char    *rootname, *title, *xlabel, *ylabel, *ignores;
-l_int32  outformat, ret, version, ignore;
+char    *rootname, *title, *xlabel, *ylabel;
+l_int32  outformat, ret, version;
 FILE    *fp;
 GPLOT   *gplot;
 
@@ -1230,16 +1230,16 @@ GPLOT   *gplot;
                                     filename, __func__, NULL);
     }
 
-    ignore = fscanf(fp, "Rootname: %511s\n", buf);  /* Bufsize - 1 */
+    (void)fscanf(fp, "Rootname: %511s\n", buf);  /* Bufsize - 1 */
     rootname = stringNew(buf);
-    ignore = fscanf(fp, "Output format: %d\n", &outformat);
-    ignores = fgets(buf, Bufsize, fp);   /* Title: ... */
+    (void)fscanf(fp, "Output format: %d\n", &outformat);
+    (void)fgets(buf, Bufsize, fp);   /* Title: ... */
     title = stringNew(buf + 7);
     title[strlen(title) - 1] = '\0';
-    ignores = fgets(buf, Bufsize, fp);   /* X axis label: ... */
+    (void)fgets(buf, Bufsize, fp);   /* X axis label: ... */
     xlabel = stringNew(buf + 14);
     xlabel[strlen(xlabel) - 1] = '\0';
-    ignores = fgets(buf, Bufsize, fp);   /* Y axis label: ... */
+    (void)fgets(buf, Bufsize, fp);   /* Y axis label: ... */
     ylabel = stringNew(buf + 14);
     ylabel[strlen(ylabel) - 1] = '\0';
 
@@ -1258,23 +1258,23 @@ GPLOT   *gplot;
     sarrayDestroy(&gplot->plotlabels);
     numaDestroy(&gplot->plotstyles);
 
-    ignore = fscanf(fp, "Commandfile name: %s\n", buf);  /* Bufsize - 1 */
+    (void)fscanf(fp, "Commandfile name: %s\n", buf);  /* Bufsize - 1 */
     stringReplace(&gplot->cmdname, buf);
-    ignore = fscanf(fp, "\nCommandfile data:");
+    (void)fscanf(fp, "\nCommandfile data:");
     gplot->cmddata = sarrayReadStream(fp);
-    ignore = fscanf(fp, "\nDatafile names:");
+    (void)fscanf(fp, "\nDatafile names:");
     gplot->datanames = sarrayReadStream(fp);
-    ignore = fscanf(fp, "\nPlot data:");
+    (void)fscanf(fp, "\nPlot data:");
     gplot->plotdata = sarrayReadStream(fp);
-    ignore = fscanf(fp, "\nPlot titles:");
+    (void)fscanf(fp, "\nPlot titles:");
     gplot->plotlabels = sarrayReadStream(fp);
-    ignore = fscanf(fp, "\nPlot styles:");
+    (void)fscanf(fp, "\nPlot styles:");
     gplot->plotstyles = numaReadStream(fp);
 
-    ignore = fscanf(fp, "Number of plots: %d\n", &gplot->nplots);
-    ignore = fscanf(fp, "Output file name: %s\n", buf);
+    (void)fscanf(fp, "Number of plots: %d\n", &gplot->nplots);
+    (void)fscanf(fp, "Output file name: %s\n", buf);
     stringReplace(&gplot->outname, buf);
-    ignore = fscanf(fp, "Axis scaling: %d\n", &gplot->scaling);
+    (void)fscanf(fp, "Axis scaling: %d\n", &gplot->scaling);
 
     fclose(fp);
     return gplot;
