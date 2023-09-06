@@ -1375,7 +1375,7 @@ LEPT_DLL extern PIX * pixGenHalftoneMask ( PIX *pixs, PIX **ppixtext, l_int32 *p
 LEPT_DLL extern PIX * pixGenerateHalftoneMask ( PIX *pixs, PIX **ppixtext, l_int32 *phtfound, PIXA *pixadb );
 LEPT_DLL extern PIX * pixGenTextlineMask ( PIX *pixs, PIX **ppixvws, l_int32 *ptlfound, PIXA *pixadb );
 LEPT_DLL extern PIX * pixGenTextblockMask ( PIX *pixs, PIX *pixvws, PIXA *pixadb );
-LEPT_DLL extern PIX * pixCropImage ( PIX *pixs, l_int32 lr_clear, l_int32 tb_clear, l_int32 edgeclean, l_int32 lr_add, l_int32 tb_add, const char *debugfile, BOX **pcropbox );
+LEPT_DLL extern PIX * pixCropImage ( PIX *pixs, l_int32 lr_clear, l_int32 tb_clear, l_int32 edgeclean, l_int32 lr_add, l_int32 tb_add, l_float32 maxwiden, const char *debugfile, BOX **pcropbox );
 LEPT_DLL extern PIX * pixCleanImage ( PIX *pixs, l_int32 contrast, l_int32 rotation, l_int32 scale, l_int32 opensize );
 LEPT_DLL extern BOX * pixFindPageForeground ( PIX *pixs, l_int32 threshold, l_int32 mindist, l_int32 erasedist, l_int32 showmorph, PIXAC *pixac );
 LEPT_DLL extern l_ok pixSplitIntoCharacters ( PIX *pixs, l_int32 minw, l_int32 minh, BOXA **pboxa, PIXA **ppixa, PIX **ppixdebug );
@@ -1405,7 +1405,7 @@ LEPT_DLL extern l_ok partifyPixac ( PIXAC *pixac, l_int32 nparts, const char *ou
 LEPT_DLL extern BOXA * boxaGetWhiteblocks ( BOXA *boxas, BOX *box, l_int32 sortflag, l_int32 maxboxes, l_float32 maxoverlap, l_int32 maxperim, l_float32 fract, l_int32 maxpops );
 LEPT_DLL extern BOXA * boxaPruneSortedOnOverlap ( BOXA *boxas, l_float32 maxoverlap );
 LEPT_DLL extern l_ok compressFilesToPdf ( SARRAY *sa, l_int32 onebit, l_int32 savecolor, l_float32 scalefactor, l_int32 quality, const char *title, const char *fileout );
-LEPT_DLL extern l_ok cropFilesToPdf ( SARRAY *sa, l_int32 lr_clear, l_int32 tb_clear, l_int32 edgeclean, l_int32 lr_add, l_int32 tb_add, const char *title, const char *fileout );
+LEPT_DLL extern l_ok cropFilesToPdf ( SARRAY *sa, l_int32 lr_clear, l_int32 tb_clear, l_int32 edgeclean, l_int32 lr_add, l_int32 tb_add, l_float32 maxwiden, const char *title, const char *fileout );
 LEPT_DLL extern l_ok cleanTo1bppFilesToPdf ( SARRAY *sa, l_int32 res, l_int32 contrast, l_int32 rotation, l_int32 opensize, const char *title, const char *fileout );
 LEPT_DLL extern l_ok convertFilesToPdf ( const char *dirname, const char *substr, l_int32 res, l_float32 scalefactor, l_int32 type, l_int32 quality, const char *title, const char *fileout );
 LEPT_DLL extern l_ok saConvertFilesToPdf ( SARRAY *sa, l_int32 res, l_float32 scalefactor, l_int32 type, l_int32 quality, const char *title, const char *fileout );

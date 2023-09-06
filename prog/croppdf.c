@@ -38,7 +38,8 @@
  *    is encoded with tiffg4.
  *
  *    Syntax:
- *       croppdf basedir lrclear tbclear edgeclean lradd tbadd title fileout
+ *       croppdf basedir lrclear tbclear edgeclean lradd tbadd maxwiden
+ *       title fileout
  *
  *    The %basedir is a directory where the input pdf files are located.
  *    The program will operate on every file in this directory with
@@ -49,6 +50,15 @@
  *
  *    The %edgeclean parameter is used to remove edge noise, going from
  *    0 (default, no removal) to 15 (maximally aggressive removal).
+ *
+ *    The suggested value for %lradd and %tbadd is 50.  Laser printers do not
+ *    print foreground pixels very close to the page edges, and using a
+ *    margin of 50 pixels (1/6" at 300 ppi) should allow all foregrounnd
+ *    pixels to be printed.
+ *
+ *    The %maxwiden parameter allows the foreground to better fill an
+ *    8.5 x 11 inch printed page.  It gives the maximum fractional horizontal
+ *    stretching allowed.  Suggested values are between 1.0 and 1.15.
  *
  *    The %title is the title given to the pdf.  Use %title == "none"
  *    to omit the title.
@@ -91,20 +101,22 @@ char       buf[256];
 char      *basedir, *fname, *tail, *basename, *imagedir, *title, *fileout;
 l_int32    lrclear, tbclear, edgeclean, lradd, tbadd;
 l_int32    render_res, i, n, ret;
+l_float32  maxwiden;
 SARRAY    *sa;
 
-    if (argc != 9)
+    if (argc != 10)
         return ERROR_INT(
             "Syntax: croppdf basedir lrclear tbclear edgeclean "
-            "lradd tbadd title fileout", __func__, 1);
+            "lradd tbadd maxwiden title fileout", __func__, 1);
     basedir = argv[1];
     lrclear = atoi(argv[2]);
     tbclear = atoi(argv[3]);
     edgeclean = atoi(argv[4]);
     lradd = atoi(argv[5]);
     tbadd = atoi(argv[6]);
-    title = argv[7];
-    fileout = argv[8];
+    maxwiden = atof(argv[7]);
+    title = argv[8];
+    fileout = argv[9];
     setLeptDebugOK(1);
 
         /* Set up a directory for temp images */
@@ -156,7 +168,7 @@ SARRAY    *sa;
     lept_free(imagedir);
     sarrayWriteStderr(sa);
     lept_stderr("cropping ...\n");
-    cropFilesToPdf(sa, lrclear, tbclear, edgeclean, lradd, tbadd,
+    cropFilesToPdf(sa, lrclear, tbclear, edgeclean, lradd, tbadd, maxwiden,
                    title, fileout);
 
     return 0;

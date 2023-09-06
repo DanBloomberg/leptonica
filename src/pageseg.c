@@ -538,6 +538,7 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  *                           15 is maximally aggressive
  * \param[in]    lr_add      full res expansion of crop box on left and right
  * \param[in]    tb_add      full res expansion of crop box on top and bottom
+ * \param[in]    maxwiden    max fractional horizontal stretch allowed
  * \param[in]   *debugfile   [optional] usually is NULL
  * \param[out]  *pcropbox    [optional] crop box at full resolution
  * \return  cropped pix, or NULL on error
@@ -555,8 +556,9 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  *          (e) 2x expansion of the bounding box to full resolution. 
  *          (f) Crops the binarized image to the bounding box.
  *          (g) Slightly thickens long horizontal lines.
- *          (h) Does anamorphic horizontal upscaling to better fill
- *              an 8.5 x 11 inch printed page.
+ *          (h) Does anamorphic horizontal upscaling by %maxwiden
+ *              to better fill an 8.5 x 11 inch printed page.
+ *              Suggest not to exceed 1.15.
  *          Note that input parameters are given at full resolution and
  *          (a) - (c) are done at 2x reduction for efficiency.
  *      (2) The side clearing must not exceed 1/6 of the dimension on that side.
@@ -574,6 +576,7 @@ pixCropImage(PIX         *pixs,
              l_int32      edgeclean,
              l_int32      lr_add,
              l_int32      tb_add,
+             l_float32    maxwiden,
              const char  *debugfile,
              BOX        **pcropbox)
 {
@@ -607,6 +610,9 @@ BOX       *box1, *box2;
                 __func__, w / 6, h / 6);
         return NULL;
     }
+    if (maxwiden > 1.2)
+        L_WARNING("maxwiden = %f > 1.2; suggest between 1.0 and 1.15\n",
+                  __func__, maxwiden);
     pixa1 = (debugfile) ? pixaCreate(5) : NULL;
     if (pixa1) pixaAddPix(pixa1, pixs, L_COPY);
 
@@ -664,11 +670,11 @@ BOX       *box1, *box2;
     pixDestroy(&pix3);
 
         /* Widen the result to fit the standard page shape (8.5 x 11 inch).
-         * Do not stretch horizontally by more than 15%. */
+         * Do not stretch horizontally by more than %maxwiden. */
     pixGetDimensions(pix2, &w, &h, NULL);
     hscale = (l_float32)h / (1.2941f * (l_float32)w);
-    if (hscale > 1.0) {
-        hscale = L_MIN(hscale, 1.15);
+    if (hscale > 1.0 && maxwiden > 1.0) {
+        hscale = L_MIN(hscale, maxwiden);
         pix3 = pixScale(pix2, hscale, 1.0);
     } else {
         pix3 = pixClone(pix2);

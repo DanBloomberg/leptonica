@@ -226,6 +226,7 @@ PIXAC     *pixac1 = NULL;
  *                             default = 0 (no removal);
  * \param[in]    lr_add        full res expansion of crop box on left and right
  * \param[in]    tb_add        full res expansion of crop box on top and bottom
+ * \param[in]    maxwiden      max fractional horizontal stretch allowed
  * \param[in]    title         [optional] pdf title; can be null
  * \param[in]    fileout       pdf file of all images
  * \return  0 if OK, 1 on error
@@ -251,6 +252,7 @@ cropFilesToPdf(SARRAY      *sa,
                l_int32      edgeclean,
                l_int32      lr_add,
                l_int32      tb_add,
+               l_float32    maxwiden,
                const char  *title,
                const char  *fileout)
 {
@@ -280,7 +282,7 @@ PIXAC     *pixac1 = NULL;
         fname = sarrayGetString(sa, i, L_NOCOPY);
         pixs = pixRead(fname);
         pix1 = pixCropImage(pixs, lr_clear, tb_clear, edgeclean,
-                            lr_add, tb_add, NULL, NULL);
+                            lr_add, tb_add, maxwiden, NULL, NULL);
         if (n <= maxsmallset)
             pixaAddPix(pixa1, pix1, L_INSERT);
         else
