@@ -56,6 +56,8 @@
  *         WEBP      .webp
  *         JP2       .jp2
  *
+ *   If spp == 4 (rgba), the alpha component is removed, using a white backing.
+ *
  *   If the requested output format does not support the image type,
  *   the image is written in png format, with filename extension 'png'.
  */
@@ -73,7 +75,7 @@ int main(int    argc,
 char        *filein, *fileout, *base, *ext;
 const char  *formatstr;
 l_int32      format, d, change;
-PIX         *pixs;
+PIX         *pixs, *pix1;
 
     if (argc != 3 && argc != 4) {
         lept_stderr("Syntax: convertformat filein fileout [format]\n"
@@ -144,6 +146,9 @@ PIX         *pixs;
         L_ERROR("read fail for %s\n", __func__, filein);
         return 1;
     }
+    pix1 = pixRemoveAlpha(pixs);
+    pixDestroy(&pixs);
+    pixs = pix1;
 
         /* Change output format if necessary */
     change = FALSE;
