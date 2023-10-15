@@ -583,6 +583,7 @@ pixCropImage(PIX         *pixs,
 char       cmd[64];
 l_int32    w, h, d, lrc, tbc, val;
 l_int32    left, right, top, bot, leftfinal, rightfinal, topfinal, botfinal;
+static l_int32    first_time = TRUE;
 l_float32  hscale;
 PIX       *pix1, *pix2, *pix3;
 PIXA      *pixa1;
@@ -676,6 +677,10 @@ BOX       *box1, *box2;
     if (hscale > 1.0 && maxwiden > 1.0) {
         hscale = L_MIN(hscale, maxwiden);
         pix3 = pixScale(pix2, hscale, 1.0);
+        if (first_time == TRUE) {
+            lept_stderr("Widening page by factor %5.3f\n", hscale);
+            first_time = FALSE;
+        }
     } else {
         pix3 = pixClone(pix2);
     }

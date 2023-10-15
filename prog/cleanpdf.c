@@ -61,8 +61,9 @@
  *
  *    The %contrast parameter adjusts the binarization to avoid losing input
  *    details that are too light.  It takes on 10 values from 1 to 10, where
- *    1 is the lightest value and it removes noise.  Suggested value is 1
- *    unless important details are lost on binarization.
+ *    1 is the lightest value and it removes noise.  Use of 0 will default
+ *    to 1.  Suggested value is 1 unless important details are lost on
+ *    binarization.
  *
  *    The %rotation parameter is an integer that specifies the rotation
  *    to be applied to each image:
@@ -173,6 +174,7 @@ SARRAY  *sa;
                 __func__, res);
         return 1;
     }
+    if (contrast == 0) contrast = 1;
     if (contrast < 1 || contrast > 10) {
         L_ERROR("invalid contrast = %d; contrast must be in {1,...,10}\n",
                 __func__, contrast);
