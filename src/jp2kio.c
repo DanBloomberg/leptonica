@@ -723,7 +723,6 @@ opj_image_cmptparm_t  cmptparm[4];
     memset(&cmptparm[0], 0, 4 * sizeof(opj_image_cmptparm_t));
     for (i = 0; i < spp; i++) {
         cmptparm[i].prec = 8;
-        cmptparm[i].bpp = 8;
         cmptparm[i].sgnd = 0;
         cmptparm[i].dx = 1;
         cmptparm[i].dy = 1;
