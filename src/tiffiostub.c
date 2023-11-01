@@ -38,9 +38,9 @@
 
 #include "allheaders.h"
 
-/* --------------------------------------------*/
-#if  !HAVE_LIBTIFF   /* defined in environ.h */
-/* --------------------------------------------*/
+/* -----------------------------------------------------------*/
+#if  !HAVE_LIBTIFF || !HAVE_LIBJPEG  /* defined in environ.h  */
+/* -----------------------------------------------------------*/
 
 PIX * pixReadTiff(const char *filename, l_int32 n)
 {
@@ -233,6 +233,6 @@ l_ok pixWriteMemTiffCustom(l_uint8 **pdata, size_t *psize, PIX *pix,
     return ERROR_INT("function not present", __func__, 1);
 }
 
-/* --------------------------------------------*/
-#endif  /* !HAVE_LIBTIFF */
-/* --------------------------------------------*/
+/* -----------------------------------------*/
+#endif  /* !HAVE_LIBTIFF || !HAVE_LIBJPEG   */
+/* -----------------------------------------*/

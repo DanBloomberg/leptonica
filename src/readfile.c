@@ -1358,7 +1358,7 @@ PIXCMAP   *cmap;
 #endif  /* HAVE_LIBPNG */
 
         /* ----------------------- TIFF -------------------------- */
-#if HAVE_LIBTIFF
+#if HAVE_LIBTIFF && HAVE_LIBJPEG
         /* TIFF works for 1, 2, 4, 8, 16 and 32 bpp images.
          * Because 8 bpp tiff always writes 256 entry colormaps, the
          * colormap sizes may be different for 8 bpp images with
@@ -1478,7 +1478,7 @@ PIXCMAP   *cmap;
         }
         pixDestroy(&pix1);
     }
-#endif  /* HAVE_LIBTIFF */
+#endif  /* HAVE_LIBTIFF && HAVE_LIBJPEG */
 
         /* ----------------------- PNM -------------------------- */
 

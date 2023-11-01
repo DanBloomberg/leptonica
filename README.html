@@ -242,7 +242,8 @@ Building leptonica
                              This works even if you build in a different
                              place from the distribution. The -j parameter
                              should not exceed half the number of cores.
-                             If the test fails, just run with 'make check']
+                     NOTE: If the test fails, it's likely due to a race
+                           condition.  Rerun with 'make check']
 
        Configure supports installing in a local directory (e.g., one that
        doesn't require root access).  For example, to install in $HOME/local,
@@ -968,7 +969,9 @@ What's in leptonica?
       text and line art images, but it does quite poorly for halftones.
       It has good and stable support by Leffler's open source library,
       which is clean and small.  Tiff also supports multipage
-      images through a directory structure.  See tiffio.c
+      images through a directory structure.  Note: because jpeg is
+      a supported tiff compression mode, leptonica requires linking
+      both libtiff and libjpeg to read and write tiff.  See tiffio.c
 
     - BMP has (until recently) had no compression.  It is a simple
       format with colormaps that requires no external libraries.
