@@ -168,7 +168,7 @@ pixaWriteMemWebPAnim(l_uint8  **pencdata,
                      l_int32    quality,
                      l_int32    lossless)
 {
-l_int32                 i, n, same, w, h, wpl, ret;
+l_int32                 i, n, same, w, h, wpl, ret, status;
 l_uint8                *data;
 PIX                    *pix1, *pix2;
 WebPAnimEncoder        *enc;
@@ -201,28 +201,39 @@ WebPPicture             frame;
     WebPAnimEncoderOptionsInit(&enc_options);
     enc = WebPAnimEncoderNew(w, h, &enc_options);
 
+    if (!WebPConfigInit(&config)) {
+        return ERROR_INT("cannot initialize WebP config", procName, 1);
+    }
+    config.lossless = lossless;
+    config.quality = quality;
+
     for (i = 0; i < n; i++) {
             /* Make a frame for each image.  Convert the pix to RGBA with
              * an opaque alpha layer, and put the raster data in the frame. */
+        if (!WebPPictureInit(&frame)) {
+            return ERROR_INT("cannot initialize WebP picture", procName, 1);
+        }
         pix1 = pixaGetPix(pixa, i, L_CLONE);
         pix2 = pixConvertTo32(pix1);
         pixSetComponentArbitrary(pix2, L_ALPHA_CHANNEL, 255);
         pixEndianByteSwap(pix2);
         data = (l_uint8 *)pixGetData(pix2);
         wpl = pixGetWpl(pix2);
-        WebPPictureInit(&frame);
         frame.width = w;
         frame.height = h;
-        WebPPictureImportRGBA(&frame, data, 4 * wpl);
+        status = WebPPictureImportRGBA(&frame, data, 4 * wpl);
         pixDestroy(&pix1);
         pixDestroy(&pix2);
+        if (!status) {
+            return ERROR_INT("cannot import RGBA picture", procName, 1);
+        }
 
             /* Add the frame data to the encoder, and clear its memory */
-        WebPConfigInit(&config);
-        config.lossless = lossless;
-        config.quality = quality;
-        WebPAnimEncoderAdd(enc, &frame, duration * i, &config);
+        status = WebPAnimEncoderAdd(enc, &frame, duration * i, &config);
         WebPPictureFree(&frame);
+        if (!status) {
+            return ERROR_INT("cannot add frame to animation", procName, 1);
+        }
     }
     WebPAnimEncoderAdd(enc, NULL, duration * i, NULL);  /* add a blank frame */
     WebPAnimEncoderAssemble(enc, &webp_data);  /* encode the data */
