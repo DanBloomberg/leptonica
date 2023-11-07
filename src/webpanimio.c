@@ -168,7 +168,7 @@ pixaWriteMemWebPAnim(l_uint8  **pencdata,
                      l_int32    quality,
                      l_int32    lossless)
 {
-l_int32                 i, n, same, w, h, wpl, ret;
+l_int32                 i, n, same, w, h, wpl, ret, ret_webp;
 l_uint8                *data;
 PIX                    *pix1, *pix2;
 WebPAnimEncoder        *enc;
@@ -198,35 +198,57 @@ WebPPicture             frame;
         return ERROR_INT("sizes of all pix are not the same", __func__, 1);
 
         /* Set up the encoder */
-    WebPAnimEncoderOptionsInit(&enc_options);
+    if (!WebPAnimEncoderOptionsInit(&enc_options))
+        return ERROR_INT("cannot initialize WebP encoder options", __func__, 1);
+    if (!WebPConfigInit(&config))
+        return ERROR_INT("cannot initialize WebP config", __func__, 1);
+    config.lossless = lossless;
+    config.quality = quality;
     enc = WebPAnimEncoderNew(w, h, &enc_options);
+    if (enc == NULL)
+        return ERROR_INT("cannot create WebP encoder", __func__, 1);
 
     for (i = 0; i < n; i++) {
             /* Make a frame for each image.  Convert the pix to RGBA with
              * an opaque alpha layer, and put the raster data in the frame. */
+        if (!WebPPictureInit(&frame)) {
+            WebPAnimEncoderDelete(enc);
+            return ERROR_INT("cannot initialize WebP picture", __func__, 1);
+        }
         pix1 = pixaGetPix(pixa, i, L_CLONE);
         pix2 = pixConvertTo32(pix1);
         pixSetComponentArbitrary(pix2, L_ALPHA_CHANNEL, 255);
         pixEndianByteSwap(pix2);
         data = (l_uint8 *)pixGetData(pix2);
         wpl = pixGetWpl(pix2);
-        WebPPictureInit(&frame);
         frame.width = w;
         frame.height = h;
-        WebPPictureImportRGBA(&frame, data, 4 * wpl);
+        ret_webp = WebPPictureImportRGBA(&frame, data, 4 * wpl);
         pixDestroy(&pix1);
         pixDestroy(&pix2);
+        if (!ret_webp) {
+            WebPAnimEncoderDelete(enc);
+            return ERROR_INT("cannot import RGBA picture", __func__, 1);
+        }
 
             /* Add the frame data to the encoder, and clear its memory */
-        WebPConfigInit(&config);
-        config.lossless = lossless;
-        config.quality = quality;
-        WebPAnimEncoderAdd(enc, &frame, duration * i, &config);
+        ret_webp = WebPAnimEncoderAdd(enc, &frame, duration * i, &config);
         WebPPictureFree(&frame);
+        if (!ret_webp) {
+            WebPAnimEncoderDelete(enc);
+            return ERROR_INT("cannot add frame to animation", __func__, 1);
+        }
     }
-    WebPAnimEncoderAdd(enc, NULL, duration * i, NULL);  /* add a blank frame */
-    WebPAnimEncoderAssemble(enc, &webp_data);  /* encode the data */
+    /* add a blank frame */
+    if (!WebPAnimEncoderAdd(enc, NULL, duration * i, NULL)) {
+            WebPAnimEncoderDelete(enc);
+            return ERROR_INT("cannot add blank frame to animation", __func__, 1);
+    }
+    /* encode the data */
+    ret_webp = WebPAnimEncoderAssemble(enc, &webp_data);
     WebPAnimEncoderDelete(enc);
+    if (!ret_webp)
+            return ERROR_INT("cannot assemble animation", __func__, 1);
 
         /* Set the loopcount if requested.  Note that when you make a mux,
          * it imports the webp_data that was previously made, including
@@ -249,7 +271,8 @@ WebPPicture             frame;
                     L_ERROR("failed to set loop count\n", __func__);
             }
             WebPDataClear(&webp_data);
-            WebPMuxAssemble(mux, &webp_data);
+            if (WebPMuxAssemble(mux, &webp_data) != WEBP_MUX_OK)
+                L_ERROR("failed to assemble in the WebP muxer\n", __func__);
             WebPMuxDelete(mux);
         }
     }
