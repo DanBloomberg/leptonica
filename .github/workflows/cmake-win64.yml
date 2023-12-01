@@ -45,9 +45,9 @@ jobs:
       - name: Build and Install libpng
         shell: cmd
         run: |
-             curl -sSL https://download.sourceforge.net/libpng/lpng1639.zip -o lpng1639.zip
-             unzip.exe -qq lpng1639.zip
-             cd lpng1639
+             curl -sSL https://download.sourceforge.net/libpng/lpng1639.zip -o lpng1640.zip
+             unzip.exe -qq lpng1640.zip
+             cd lpng1640
              cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -DPNG_TESTS=OFF -DPNG_SHARED=OFF
              cmake --build build --config Release --target install
              cd ..
@@ -109,11 +109,11 @@ jobs:
       - name: Build and Install lzma
         shell: cmd
         run: |
-             curl -sSL https://sourceforge.net/projects/lzmautils/files/xz-5.4.3.tar.zst/download -o xz-5.4.3.tar.zst
-             zstd -d xz-5.4.3.tar.zst
-             tar xf  xz-5.4.3.tar
-             cd xz-5.4.3
-             cmake -Bbuild -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -DBUILD_TESTING=OFF
+             curl -sSL https://sourceforge.net/projects/lzmautils/files/xz-5.4.3.tar.zst/download -o xz-5.4.5.tar.zst
+             zstd -d xz-5.4.5.tar.zst
+             tar xf  xz-5.4.5.tar
+             cd xz-5.4.5
+             cmake -Bbuild -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON
              cmake --build build --config Release --target install
              cd ..
              
