@@ -31,6 +31,16 @@
  *    Image processing operations on multiple images followed by wrapping
  *    them into a pdf.
  *
+ *    There are two possible ways to specify the set of images:
+ *    (1) an array of pathnames
+ *    (2) a directory, typically with an additional pattern for selection.
+ *    We use (1) because it is both simpler and more general.
+ *
+ *    Corresponding to each function here is:
+ *    (1) the image processing function that is carried out on each image
+ *    (2) a program in prog that extracts images from a pdf and calls this
+ *        function with an array of their pathnames.
+ *
  *    |=============================================================|
  *    |                        Important notes                      |
  *    |=============================================================|

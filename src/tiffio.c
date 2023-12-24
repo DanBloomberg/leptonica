@@ -104,15 +104,14 @@
  *          * The exception is the old-style jpeg tiff format (OJPEG), which
  *            is not supported.
  *          * We support two formats requiring external libraries: ZIP and JPEG
- *            Both libz and libjpeg are required.
+ *            All computers should have the zip library.
  *          * At present we do not support WEBP in tiff, which uses
  *            libwebp and was added in tifflib 4.1.0 in 2019.
- *  Note 3: On Windows with 2 bpp or 4 bpp images, the bytes in the
- *          tiff-compressed file depend on the pad bits, but not on the
- *          decoded raster image when read.  Because it is sometimes
- *          convenient to use a golden file with a byte-by-byte check
- *          to verify invariance, we set the pad bits to 0 before writing,
- *          in pixWriteToTiffStream().
+ *  Note 3: We set the pad bits to 0 before writing in pixWriteToTiffStream().
+ *          Although they don't affect the raster image after decompression,
+ *          it is sometimes convenient to use a golden file with a
+ *          byte-by-byte check to verify invariance.  The issue came up
+ *          on Windows for 2 and 4 bpp images.
  * </pre>
  */
 

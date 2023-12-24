@@ -204,8 +204,7 @@ WebPPicture             frame;
         return ERROR_INT("cannot initialize WebP config", __func__, 1);
     config.lossless = lossless;
     config.quality = quality;
-    enc = WebPAnimEncoderNew(w, h, &enc_options);
-    if (enc == NULL)
+    if ((enc = WebPAnimEncoderNew(w, h, &enc_options)) == NULL)
         return ERROR_INT("cannot create WebP encoder", __func__, 1);
 
     for (i = 0; i < n; i++) {
@@ -239,16 +238,17 @@ WebPPicture             frame;
             return ERROR_INT("cannot add frame to animation", __func__, 1);
         }
     }
-    /* add a blank frame */
+        /* Add a blank frame */
     if (!WebPAnimEncoderAdd(enc, NULL, duration * i, NULL)) {
-            WebPAnimEncoderDelete(enc);
-            return ERROR_INT("cannot add blank frame to animation", __func__, 1);
+        WebPAnimEncoderDelete(enc);
+        return ERROR_INT("blank frame not added to animation", __func__, 1);
     }
-    /* encode the data */
+
+        /* Encode the data */
     ret_webp = WebPAnimEncoderAssemble(enc, &webp_data);
     WebPAnimEncoderDelete(enc);
     if (!ret_webp)
-            return ERROR_INT("cannot assemble animation", __func__, 1);
+        return ERROR_INT("cannot assemble animation", __func__, 1);
 
         /* Set the loopcount if requested.  Note that when you make a mux,
          * it imports the webp_data that was previously made, including
