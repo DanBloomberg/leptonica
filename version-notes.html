@@ -89,7 +89,7 @@ They are <i>not</i> a complete listing of the modifications.
 
 <pre>
 
-1.84.0  Jan 7, 2023
+1.84.0  Dec 23, 2023
         * Add getPdfPageCount() to find the number of pages in a pdf file.
         * Add getPdfPageSizes() and getPdfMediaBoxSizes() to find the
           information necessary to render images properly.  Modify cleanpdf.c
@@ -98,6 +98,8 @@ They are <i>not</i> a complete listing of the modifications.
         * Add ability to read and write rgba in bmp format, and
           test in ioformats_reg.
         * Add regression test prog/partition_reg.c
+        * Change the autotools library name from liblept to libleptonica,
+          to be consistent with the cmake library name.  (Apologies to Jeff!)
         * Add tests for 24 bit pix reading and writing in bmp and png in
           ioformats_reg.  Test new pixDisplayDiff() for visualizing diffs.
         * Allow prog/concatpdf to output pdf with tiffg4 encoding and with
