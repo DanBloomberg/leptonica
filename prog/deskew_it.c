@@ -64,7 +64,7 @@ int main(int    argc,
 {
 char      *filein, *fileout;
 l_int32    threshold, tryboth, format;
-l_float32  deg2rad, sweeprange, angle, conf;
+l_float32  sweeprange, angle, conf;
 PIX       *pixs, *pix1, *pix2, *pixd;
 
     if (argc != 6)
@@ -80,7 +80,6 @@ PIX       *pixs, *pix1, *pix2, *pixd;
 
     setLeptDebugOK(1);
     pixd = NULL;
-    deg2rad = 3.1415926535 / 180.;
 
     if ((pixs = pixRead(filein)) == NULL)
         return ERROR_INT("pixs not made", __func__, 1);

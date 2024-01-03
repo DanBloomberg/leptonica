@@ -66,25 +66,10 @@
  *    strings.
  *
  *    N.B.
- *    * This is based on the most recent openjpeg release: 2.1.
- *    * The openjpeg interface was massively changed from 1.X.  The debian
- *      distribution is way back at 1.3.  We have inquired but are unable
- *      to determine if or when a debian distribution will be built for 2.1.
- *    * For version 2.1, the openjpeg.h file is installed in an
- *      openjpeg-2.1 subdirectory, which is hard to support.
- *    * In openjpeg-2.1, reading is slow compared to jpeg or webp,
- *      and writing is very slow compared to jpeg or webp.  This is expected
- *      to improve significantly in future versions.
- *    * Reading and writing jp2k are supported here for 2.1.
- *      The high-level interface to openjpeg continues to change.
- *      From 2.0 to 2.1, the ability to interface to a C file stream
- *      was removed permanently.  Leptonica supports both file stream
- *      and memory buffer interfaces for every image I/O library, and
- *      it requires the libraries to support at least one of these.
- *      However, openjpeg-2.1 provides neither, so we have brought
- *      several static functions over from openjpeg-2.0 in order to
- *      retain the file stream interface.  See our static function
- *      opjCreateStream().
+ *    * Reading and writing jp2k are supported here for releases 2.1 and later.
+ *    * The openjpeg.h file is installed in an openjpeg-2.X subdirectory.
+ *    * In openjpeg-2.X, reading is slow compared to jpeg or webp,
+ *      and writing is very slow compared to jpeg or webp.
  *    * Specifying a quality factor for jpeg2000 requires caution.  Unlike
  *      jpeg and webp, which have a sensible scale that goes from 0 (very poor)
  *      to 100 (nearly lossless), kakadu and openjpeg use idiosyncratic and
@@ -96,6 +81,15 @@
  *      quality to jpeg's default standard of 75.  For document images,
  *      SNR = 25 is very poor, whereas SNR = 45 is nearly lossless.  If you
  *      use the latter, you will pay dearly in the size of the compressed file.
+ *    * The openjpeg interface was massively changed from 1.X to 2.0.
+ *      There were also changes from 2.0 to 2.1.  From 2.0 to 2.1, the
+ *      ability to interface to a C file stream was removed permanently.
+ *      Leptonica supports both file stream and memory buffer interfaces
+ *      for every image I/O library, and it requires the libraries to
+ *      support at least one of these.  However, because openjpeg-2.1+ provides
+ *      neither, we have brought several static functions over from
+ *      openjpeg-2.0 in order to retain the file stream interface.
+ *      See, for example, our static function opjCreateStream().
  * </pre>
  */
 
@@ -110,16 +104,11 @@
 #if  HAVE_LIBJP2K   /* defined in environ.h */
 /* --------------------------------------------*/
 
-    /* Leptonica supports versions 2.0 and newer */
+    /* Leptonica supports versions 2.1 and later */
 #ifdef LIBJP2K_HEADER
 #include LIBJP2K_HEADER
 #else
 #include <openjpeg.h>
-#endif
-
-    /* 2.0 didn't define OPJ_VERSION_MINOR. */
-#ifndef OPJ_VERSION_MINOR
-#define OPJ_VERSION_MINOR 0
 #endif
 
     /* Static generator of opj_stream from file stream.
@@ -259,15 +248,13 @@ PIX               *pix = NULL;
         return (PIX *)ERROR_PTR("fp not defined", __func__, NULL);
 
     opjVersion = opj_version();
-    if (opjVersion[0] != '2') {
-        L_ERROR("version is %s; must be 2.0 or higher\n", __func__, opjVersion);
+    if (!opjVersion || opjVersion[0] == '\0')
+        return (PIX *)ERROR_PTR("opj version not defined", __func__, NULL);
+    if (opjVersion[0] - 0x30 < 2 ||
+        (opjVersion[0] == '2' && opjVersion[2] - 0x30 == 0)) {
+        L_ERROR("version is %s; must be 2.1 or higher\n", __func__, opjVersion);
         return NULL;
     }
-    if ((opjVersion[2] - 0x30) != OPJ_VERSION_MINOR) {
-        L_ERROR("version %s: differs from minor = %d\n",
-                __func__, opjVersion, OPJ_VERSION_MINOR);
-         return NULL;
-     }
 
         /* Get the resolution, bits/sample and codec type */
     rewind(fp);
@@ -323,9 +310,8 @@ PIX               *pix = NULL;
         return NULL;
     }
 
-        /* Open decompression 'stream'.  In 2.0, we could call this:
-         *    opj_stream_create_default_file_stream(fp, 1)
-         * but the file stream interface was removed in 2.1. */
+        /* Open decompression 'stream'.  This uses our version of the
+         * function that was removed in 2.1.  */
     if ((l_stream = opjCreateStream(fp, 1)) == NULL) {
         L_ERROR("failed to open the stream\n", __func__);
         opj_destroy_codec(l_codec);
@@ -563,15 +549,13 @@ opj_image_t       *image = NULL;
         return ERROR_INT("valid codec not identified\n", __func__, 1);
 
     opjVersion = opj_version();
-    if (opjVersion[0] != '2') {
-        L_ERROR("version is %s; must be 2.0 or higher\n", __func__, opjVersion);
+    if (!opjVersion || opjVersion[0] == '\0')
+        return ERROR_INT("opj version not defined", __func__, 1);
+    if (opjVersion[0] - 0x30 < 2 ||
+        (opjVersion[0] == '2' && opjVersion[2] - 0x30 == 0)) {
+        L_ERROR("version is %s; must be 2.1 or higher\n", __func__, opjVersion);
         return 1;
     }
-    if ((opjVersion[2] - 0x30) != OPJ_VERSION_MINOR) {
-        L_ERROR("version %s: differs from minor = %d\n",
-                __func__, opjVersion, OPJ_VERSION_MINOR);
-         return 1;
-     }
 
         /* Remove colormap if it exists; result is 8 or 32 bpp */
     pixGetDimensions(pix, &w, &h, &d);
@@ -645,9 +629,8 @@ opj_image_t       *image = NULL;
 
         /* Set the resolution (TBD) */
 
-        /* Open a compression stream for writing.  In 2.0 we could use this:
-         *     opj_stream_create_default_file_stream(fp, 0)
-         * but the file stream interface was removed in 2.1.  */
+        /* Open compression stream for writing.  This uses our version
+         * of the function that was removed in 2.1.  */
     rewind(fp);
     if ((l_stream = opjCreateStream(fp, 0)) == NULL) {
         opj_destroy_codec(l_codec);
@@ -785,9 +768,8 @@ opj_image_cmptparm_t  cmptparm[4];
  * <pre>
  * Notes:
  *      (1) This crashes when reading through the fmemopen cookie.
- *          Until we can fix this, we use the file-based work-around.
- *          And fixing this may take some time, because the basic
- *          stream interface is no longer supported in openjpeg.
+ *          Until this is fixed, which may take a long time, we use
+ *          the file-based work-around.
  *      (2) See pixReadJp2k() for usage.
  * </pre>
  */
@@ -934,12 +916,8 @@ opj_stream_t  *l_stream;
     if (!l_stream)
         return (opj_stream_t *)ERROR_PTR("stream not made", __func__, NULL);
 
-#if OPJ_VERSION_MINOR == 0
-    opj_stream_set_user_data(l_stream, fp);
-#else
     opj_stream_set_user_data(l_stream, fp,
                              (opj_stream_free_user_data_fn)NULL);
-#endif
     opj_stream_set_user_data_length(l_stream, opj_get_user_data_length(fp));
     opj_stream_set_read_function(l_stream,
                                  (opj_stream_read_fn)opj_read_from_file);

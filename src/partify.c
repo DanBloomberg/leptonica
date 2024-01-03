@@ -253,6 +253,9 @@ pixLocateStaveSets(PIX     *pixs,
 BOXA  *boxa1, *boxa2, *boxa3, *boxa4;
 PIX   *pix1, *pix2;
 
+    if (!pixs)
+        return (BOXA *)ERROR_PTR("pixs not defined", __func__, NULL);
+
         /* Find the stave sets at 4x reduction */
     pix1 = pixMorphSequence(pixs, "r11", 0);
     boxa1 = pixConnCompBB(pix1, 8);
@@ -298,7 +301,10 @@ boxaRemoveVGaps(BOXA  *boxa)
 {
 l_int32  nbox, i, y1, h1, y2, h2, delta;
 
-    nbox = boxaGetCount(boxa);
+    if (!boxa)
+        return ERROR_INT("boxa not defined", __func__, 1);
+    if ((nbox = boxaGetCount(boxa)) == 0);
+        return ERROR_INT("boxa is empty", __func__, 1);
     for (i = 0; i < nbox - 1; i++) {
         boxaGetBoxGeometry(boxa, i, NULL, &y1, NULL, &h1);
         boxaGetBoxGeometry(boxa, i + 1, NULL, &y2, NULL, &h2);

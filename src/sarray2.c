@@ -428,7 +428,6 @@ l_hmapCreateFromSarray(SARRAY  *sa)
 l_int32      i, n;
 l_uint64     key;
 char        *str;
-L_HASHITEM  *hitem;
 L_HASHMAP   *hmap;
 
     if (!sa)
@@ -440,7 +439,7 @@ L_HASHMAP   *hmap;
     for (i = 0; i < n; i++) {
         str = sarrayGetString(sa, i, L_NOCOPY);
         l_hashStringToUint64Fast(str, &key);
-        hitem = l_hmapLookup(hmap, key, i, L_HMAP_CREATE);
+        l_hmapLookup(hmap, key, i, L_HMAP_CREATE);
     }
     return hmap;
 }

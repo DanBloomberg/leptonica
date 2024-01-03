@@ -166,12 +166,11 @@ AddTextAndSave(PIXA        *pixa,
                l_int32      location,
                l_uint32     val)
 {
-l_int32  n, newrow, ovf;
+l_int32  n, ovf;
 PIX     *pix1;
 
     pix1 = pixAddSingleTextblock(pixs, bmf, textstr, val, location, &ovf);
     n = pixaGetCount(pixa);
-    newrow = (n % 4) ? 0 : 1;
     pixaAddPix(pixa, pix1, L_INSERT);
     if (ovf) lept_stderr("Overflow writing text in image %d\n", n + 1);
 }

@@ -361,16 +361,17 @@ stringReplace(char       **pdest,
  * \brief   stringLength()
  *
  * \param[in]    src    string can be null or NULL-terminated string
- * \param[in]    size   size of src buffer
- * \return  length of src in bytes.
+ * \param[in]    size   number of bytes to check; e.g., size of src buffer
+ * \return  length of src in bytes; 0 if no bytes are found;
+ *                                  %size on error when NUL byte is not found.
  *
  * <pre>
  * Notes:
- *      (1) Safe implementation of strlen that only checks size bytes
+ *      (1) Safe implementation of strlen that only checks %size bytes
  *          for trailing NUL.
  *      (2) Valid returned string lengths are between 0 and size - 1.
- *          If size bytes are checked without finding a NUL byte, then
- *          an error is indicated by returning size.
+ *          If %size bytes are checked without finding a NUL byte, then
+ *          an error is indicated by returning %size.
  * </pre>
  */
 l_int32
@@ -380,15 +381,18 @@ stringLength(const char  *src,
 l_int32  i;
 
     if (!src)
-        return ERROR_INT("src not defined", __func__, 0);
-    if (size < 1)
         return 0;
+    if (size < 1)
+        return ERROR_INT("size < 1; too small", __func__, 0);
 
     for (i = 0; i < size; i++) {
         if (src[i] == '\0')
             return i;
     }
-    return size;  /* didn't find a NUL byte */
+
+        /* Didn't find a NUL byte */
+    L_ERROR("NUL byte not found in %d bytes\n", __func__, size);
+    return size;
 }
 
 
@@ -396,7 +400,7 @@ l_int32  i;
  * \brief   stringCat()
  *
  * \param[in]    dest    null-terminated byte buffer
- * \param[in]    size    size of dest
+ * \param[in]    size    size of dest buffer
  * \param[in]    src     string can be null or NULL-terminated string
  * \return  number of bytes added to dest; -1 on error
  *
@@ -433,9 +437,9 @@ l_int32  lendest, lensrc;
         return ERROR_INT("no terminating nul byte", __func__, -1);
     lensrc = stringLength(src, size);
     if (lensrc == 0)
-        return 0;
-    n = (lendest + lensrc > size - 1 ? 0 : lensrc);
-    if (n < 1)
+        return 0;  /* nothing added to dest */
+    n = (lendest + lensrc > size - 1) ? 0 : lensrc;
+    if (n == 0)
         return ERROR_INT("dest too small for append", __func__, -1);
 
     for (i = 0; i < n; i++)

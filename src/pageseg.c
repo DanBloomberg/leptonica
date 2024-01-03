@@ -581,7 +581,7 @@ pixCropImage(PIX         *pixs,
              BOX        **pcropbox)
 {
 char       cmd[64];
-l_int32    w, h, d, lrc, tbc, val;
+l_int32    w, h, d, val;
 l_int32    left, right, top, bot, leftfinal, rightfinal, topfinal, botfinal;
 static l_int32    first_time = TRUE;
 l_float32  hscale;
@@ -632,7 +632,7 @@ BOX       *box1, *box2;
         pixClipToForeground(pix2, NULL, &box1);
     } else {
         val = edgeclean + 1;
-        snprintf(cmd, 32, "c%d.%d + o%d.%d", val, val, val, val);
+        snprintf(cmd, 64, "c%d.%d + o%d.%d", val, val, val, val);
         pix3 = pixMorphSequence(pix2, cmd, 0);
         pixClipToForeground(pix3, NULL, &box1);
         pixDestroy(&pix3);

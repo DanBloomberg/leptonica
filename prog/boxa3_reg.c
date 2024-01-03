@@ -75,7 +75,7 @@ TestBoxa(L_REGPARAMS  *rp,
 l_uint8   *data;
 l_int32    w, h, medw, medh, isame;
 size_t     size;
-l_float32  scalefact, devw, ratiowh, fvarp, fvarm;
+l_float32  scalefact, ratiowh, fvarp, fvarm;
 BOXA      *boxa1, *boxa2, *boxa3;
 PIX       *pix1;
 

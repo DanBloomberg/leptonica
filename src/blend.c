@@ -2208,7 +2208,7 @@ l_uint32  *data, *line;
         range = (l_int32)(distfract * h);
         ymin = 0;
         slope = maxfade / (l_float32)range;
-    } else if (dir == L_FROM_BOT) {
+    } else {  /* dir == L_FROM_BOT */
         range = (l_int32)(distfract * h);
         ymin = h - range;
         slope = maxfade / (l_float32)range;

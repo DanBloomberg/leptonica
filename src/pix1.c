@@ -143,7 +143,7 @@
  *  -----------------------------------------
  *
  *  Memory management of the (image) data field in the pix is
- *  handled differently from that in the colormap or text fields.
+ *  handled differently from that in the colormap and text fields.
  *  For colormap and text, the functions pixSetColormap() and
  *  pixSetText() remove the existing heap data and insert the
  *  new data.  For the image data, pixSetData() just reassigns the
