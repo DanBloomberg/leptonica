@@ -2,7 +2,7 @@
 #
 #  autogen.sh
 
-libtoolize -c -f || glibtoolize -c -f
+libtoolize -c -f 2>/dev/null || glibtoolize -c -f
 aclocal
 autoheader -f
 autoconf
