@@ -1351,7 +1351,7 @@ selReadStream(FILE  *fp)
 {
 char     selname[256];
 char     linebuf[256];
-l_int32  sy, sx, cy, cx, i, j, version, ignore;
+l_int32  sy, sx, cy, cx, i, j, version;
 SEL     *sel;
 
     if (!fp)
@@ -1375,12 +1375,12 @@ SEL     *sel;
     selSetOrigin(sel, cy, cx);
 
     for (i = 0; i < sy; i++) {
-        ignore = fscanf(fp, "    ");
+        (void)fscanf(fp, "    ");
         for (j = 0; j < sx; j++)
-            ignore = fscanf(fp, "%1d", &sel->data[i][j]);
-        ignore = fscanf(fp, "\n");
+            (void)fscanf(fp, "%1d", &sel->data[i][j]);
+        (void)fscanf(fp, "\n");
     }
-    ignore = fscanf(fp, "\n");
+    (void)fscanf(fp, "\n");
 
     return sel;
 }

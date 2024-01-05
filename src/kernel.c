@@ -537,7 +537,7 @@ L_KERNEL  *kel;
 L_KERNEL *
 kernelReadStream(FILE  *fp)
 {
-l_int32    sy, sx, cy, cx, i, j, ret, version, ignore;
+l_int32    sy, sx, cy, cx, i, j, ret, version;
 L_KERNEL  *kel;
 
     if (!fp)
@@ -562,10 +562,10 @@ L_KERNEL  *kel;
 
     for (i = 0; i < sy; i++) {
         for (j = 0; j < sx; j++)
-            ignore = fscanf(fp, "%15f", &kel->data[i][j]);
-        ignore = fscanf(fp, "\n");
+            (void)fscanf(fp, "%15f", &kel->data[i][j]);
+        (void)fscanf(fp, "\n");
     }
-    ignore = fscanf(fp, "\n");
+    (void)fscanf(fp, "\n");
 
     return kel;
 }

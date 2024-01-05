@@ -1327,8 +1327,6 @@ static l_int32
 pnmReadNextAsciiValue(FILE     *fp,
                       l_int32  *pval)
 {
-l_int32  ignore;
-
     if (!pval)
         return ERROR_INT("&val not defined", __func__, 1);
     *pval = 0;

@@ -1787,7 +1787,7 @@ PIXCMAP  *cmap;
 PIXCMAP *
 pixcmapReadStream(FILE  *fp)
 {
-l_int32   rval, gval, bval, aval, ignore;
+l_int32   rval, gval, bval, aval;
 l_int32   i, index, ret, depth, ncolors;
 PIXCMAP  *cmap;
 
@@ -1800,8 +1800,8 @@ PIXCMAP  *cmap;
         (depth != 1 && depth != 2 && depth != 4 && depth != 8) ||
         (ncolors < 2 || ncolors > 256))
         return (PIXCMAP *)ERROR_PTR("invalid cmap size", __func__, NULL);
-    ignore = fscanf(fp, "Color    R-val    G-val    B-val   Alpha\n");
-    ignore = fscanf(fp, "----------------------------------------\n");
+    (void)fscanf(fp, "Color    R-val    G-val    B-val   Alpha\n");
+    (void)fscanf(fp, "----------------------------------------\n");
 
     if ((cmap = pixcmapCreate(depth)) == NULL)
         return (PIXCMAP *)ERROR_PTR("cmap not made", __func__, NULL);
