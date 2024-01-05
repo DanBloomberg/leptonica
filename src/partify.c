@@ -303,7 +303,7 @@ l_int32  nbox, i, y1, h1, y2, h2, delta;
 
     if (!boxa)
         return ERROR_INT("boxa not defined", __func__, 1);
-    if ((nbox = boxaGetCount(boxa)) == 0);
+    if ((nbox = boxaGetCount(boxa)) == 0)
         return ERROR_INT("boxa is empty", __func__, 1);
     for (i = 0; i < nbox - 1; i++) {
         boxaGetBoxGeometry(boxa, i, NULL, &y1, NULL, &h1);

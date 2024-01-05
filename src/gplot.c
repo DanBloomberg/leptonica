@@ -581,8 +581,9 @@ FILE    *fp;
         /* Write command data to file */
     cmdstr = sarrayToString(gplot->cmddata, 1);
     if ((fp = fopenWriteStream(gplot->cmdname, "w")) == NULL) {
+        L_ERROR("stream not opened for command: %s\n", __func__, cmdstr);
         LEPT_FREE(cmdstr);
-        return ERROR_INT_1("cmd stream not opened", cmdstr, __func__, 1);
+        return 1;
     }
     fwrite(cmdstr, 1, strlen(cmdstr), fp);
     fclose(fp);
