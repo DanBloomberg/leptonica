@@ -1,3 +1,6 @@
+
+set(math_progs "dna_reg|extrema_reg|insert_reg|locminmax_reg|numa1_reg|otsutest1|plottest|pta_reg|rotatefastalt|watershed_reg")
+
 ########################################
 # FUNCTION add_prog_target
 ########################################
@@ -12,7 +15,11 @@ function(add_prog_target target)
     if (BUILD_SHARED_LIBS)
         target_compile_definitions  (${target} PRIVATE -DLIBLEPT_IMPORTS)
     endif()
-    target_link_libraries           (${target} leptonica)
+    if(FREEBSD AND HAVE_LIBM AND ${target} MATCHES ${math_progs})
+      target_link_libraries         (${target} leptonica m)
+    else()
+      target_link_libraries         (${target} leptonica)
+    endif()
     set_target_properties           (${target} PROPERTIES FOLDER prog)
 endfunction(add_prog_target)
 ########################################

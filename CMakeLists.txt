@@ -230,7 +230,14 @@ else() # SW_BUILD=ON
     -DHAVE_LIBJP2K=1)
 endif()
 
-set(libs_private "${libs_private} -lm")
+check_library_exists(m sin "" HAVE_LIBM)
+if(HAVE_LIBM)
+  set(libs_private "${libs_private} -lm")
+endif(HAVE_LIBM)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "kFreeBSD.*|DragonFly.*|FreeBSD")
+  set(FREEBSD ON)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "kFreeBSD.*|DragonFly.*|FreeBSD")
 
 # ##############################################################################
 #
