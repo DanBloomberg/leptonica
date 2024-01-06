@@ -43,7 +43,7 @@ project(
   leptonica
   LANGUAGES C
   VERSION 1.84.1)
-set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # Standard installation paths
@@ -61,7 +61,7 @@ if(UNIX OR MINGW)
   option(SYM_LINK "Create symlink leptonica -> lept on UNIX" OFF)
 endif()
 option(STRICT_CONF
-       "Strict configuration - fail when optional library is not found" OFF)
+       "Strict configuration - fail when the optional library is not found" OFF)
 option(ENABLE_ZLIB "Enable ZLIB support" ON)
 option(ENABLE_PNG "Enable PNG support" ON)
 option(ENABLE_GIF "Enable GIF support" ON)
