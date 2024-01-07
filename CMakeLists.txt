@@ -230,6 +230,8 @@ else() # SW_BUILD=ON
     -DHAVE_LIBJP2K=1)
 endif()
 
+include(CheckLibraryExists)
+
 check_library_exists(m sin "" HAVE_LIBM)
 if(HAVE_LIBM)
   set(libs_private "${libs_private} -lm")
