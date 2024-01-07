@@ -18,7 +18,7 @@ jobs:
         os: [ubuntu-20.04, macos-12]
         
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Install dependencies on Linux
       if: runner.os == 'Linux'

@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: ilammy/setup-nasm@v1
       - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
       - run: git fetch --prune --unshallow --tags
@@ -144,7 +144,7 @@ jobs:
              rm -Rf ${{env.ILOC}}/bin/*.exe
              
       - name: Upload Build Results
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@v4
         with:
           name: leptonica-${{ steps.get_version.outputs.version }}-VS2019_win64
           path: ${{env.ILOC}}
