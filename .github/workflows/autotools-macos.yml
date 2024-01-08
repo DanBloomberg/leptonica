@@ -30,7 +30,7 @@ jobs:
           - { os: macos-13, cc: clang }
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Display compiler version and latest Git history
       run: |
