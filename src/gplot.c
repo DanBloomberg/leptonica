@@ -1250,7 +1250,7 @@ GPLOT   *gplot;
     LEPT_FREE(ylabel);
     if (!gplot) {
         fclose(fp);
-        return (GPLOT *)ERROR_PTR("gplot not made", __func__, NULL);
+        return (GPLOT *)ERROR_PTR_1("gplot not made", filename, __func__, NULL);
     }
     sarrayDestroy(&gplot->cmddata);
     sarrayDestroy(&gplot->datanames);

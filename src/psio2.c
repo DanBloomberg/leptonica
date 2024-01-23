@@ -1474,7 +1474,7 @@ FILE      *fp;
 
     for (i = 0; i < npages; i++) {
         if ((pix = pixReadTiff(filein, i)) == NULL)
-            return ERROR_INT("pix not made", __func__, 1);
+            return ERROR_INT_1("pix not made", filein, __func__, 1);
 
         pixGetDimensions(pix, &w, &h, NULL);
         if (w == 1728 && h < w)   /* it's a std res fax */
