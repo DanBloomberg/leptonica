@@ -162,7 +162,7 @@ L_REGPARAMS  *rp;
     psname = genPathname("/tmp/lept/regout", "psioseg.5.ps");
     pdfname = genPathname("/tmp/lept/regout", "psioseg.5.pdf");
     snprintf(buf, sizeof(buf), "ps2pdf %s %s", psname, pdfname);
-    ret = system(buf);  /* ps2pdf */
+    ret = callSystemDebug(buf);  /* ps2pdf */
     lept_free(psname);
     lept_free(pdfname);
     if (!ret)

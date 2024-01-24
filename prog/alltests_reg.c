@@ -252,7 +252,7 @@ SARRAY  *sa;
 #else  /* windows interprets '/' as a commandline flag */
         snprintf(command, sizeof(command) - 2, "%s %s", tests[i], argv[1]);
 #endif  /* ! _WIN32 */
-        ret = system(command);
+        ret = callSystemDebug(command);
         if (ret) {
             snprintf(buf, sizeof(buf), "Failed to complete %s\n", tests[i]);
             if (dotest) {

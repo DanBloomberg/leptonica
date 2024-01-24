@@ -254,7 +254,7 @@ SARRAY  *sa;
         lept_free(tail);
         lept_free(basename);
         lept_stderr("%s\n", buf);
-        ret = system(buf);   /* pdfimages or pdftoppm */
+        callSystemDebug(buf);   /* pdfimages or pdftoppm */
     }
     sarrayDestroy(&sa);
 

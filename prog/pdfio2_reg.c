@@ -314,7 +314,7 @@ L_REGPARAMS  *rp;
     tempfile2 = genPathname("/tmp/lept/pdf2", "cat_pdftk.pdf");
     snprintf(buffer, sizeof(buffer), "pdftk %s output %s",
              tempfile1, tempfile2);
-    ret = system(buffer);  /* pdftk */
+    ret = callSystemDebug(buffer);  /* pdftk */
     lept_free(tempfile1);
     lept_free(tempfile2);
 }

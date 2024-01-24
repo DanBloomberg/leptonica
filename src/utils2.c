@@ -112,7 +112,7 @@
  *           l_int32    lept_cp()
  *
  *       Special debug/test function for calling 'system'
- *           void       callSystemDebug()
+ *           l_int32    callSystemDebug()
  *
  *       General file name operations
  *           l_int32    splitPathAtDirectory()
@@ -2656,7 +2656,7 @@ l_int32  ret;
  * \brief   callSystemDebug()
  *
  * \param[in]    cmd      command to be exec'd
- * \return  void
+ * \return  0 on success
  *
  * <pre>
  * Notes:
@@ -2667,18 +2667,18 @@ l_int32  ret;
  *          generate an error message.
  * </pre>
  */
-void
+l_int32
 callSystemDebug(const char *cmd)
 {
 l_int32  ret;
 
     if (!cmd) {
         L_ERROR("cmd not defined\n", __func__);
-        return;
+        return 1;
     }
     if (LeptDebugOK == FALSE) {
         L_INFO("'system' calls are disabled\n", __func__);
-        return;
+        return 1;
     }
 
 #if defined(__APPLE__)  /* iOS 11 does not support system() */
@@ -2694,6 +2694,8 @@ l_int32  ret;
    ret = system(cmd);
 
 #endif /* __APPLE__ */
+
+   return ret;
 }
 
 

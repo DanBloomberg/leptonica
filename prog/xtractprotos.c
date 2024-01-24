@@ -195,7 +195,7 @@ SARRAY   *sa;
             continue;
         snprintf(buf, L_BUFSIZE, "cpp -ansi -DNO_PROTOS %s %s",
                  filein, tempfile);
-        ret = system(buf);  /* cpp */
+        ret = callSystemDebug(buf);  /* cpp */
         if (ret) {
             lept_stderr("cpp failure for %s; continuing\n", filein);
             continue;

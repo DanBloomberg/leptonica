@@ -159,7 +159,7 @@ SARRAY    *safiles, *sathumbs, *saviews, *sahtml, *salink;
         /* Make the output directory if it doesn't already exist */
 #ifndef _WIN32
     snprintf(buf, sizeof(buf), "mkdir -p %s", dirout);
-    ret = system(buf);
+    ret = callSystemDebug(buf);
 #else
     ret = CreateDirectory(dirout, NULL) ? 0 : 1;
 #endif  /* !_WIN32 */

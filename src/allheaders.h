@@ -2720,7 +2720,7 @@ LEPT_DLL extern l_int32 lept_rm ( const char *subdir, const char *tail );
 LEPT_DLL extern l_int32 lept_rmfile ( const char *filepath );
 LEPT_DLL extern l_int32 lept_mv ( const char *srcfile, const char *newdir, const char *newtail, char **pnewpath );
 LEPT_DLL extern l_int32 lept_cp ( const char *srcfile, const char *newdir, const char *newtail, char **pnewpath );
-LEPT_DLL extern void callSystemDebug ( const char *cmd );
+LEPT_DLL extern l_int32 callSystemDebug ( const char *cmd );
 LEPT_DLL extern l_ok splitPathAtDirectory ( const char *pathname, char **pdir, char **ptail );
 LEPT_DLL extern l_ok splitPathAtExtension ( const char *pathname, char **pbasename, char **pextension );
 LEPT_DLL extern char * pathJoin ( const char *dir, const char *fname );

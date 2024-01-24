@@ -141,11 +141,11 @@ SARRAY    *sa;
         }
         if (!extra) {
             snprintf(buffer, sizeof(buffer), "lpr %s -P%s &", fname, printer);
-            ret = system(buffer);
+            ret = callSystemDebug(buffer);
         } else {
             snprintf(buffer, sizeof(buffer), "lpr %s -P%s %s &",
                      fname, printer, extra);
-            ret = system(buffer);
+            ret = callSystemDebug(buffer);
         }
         lept_free(extra);
     }

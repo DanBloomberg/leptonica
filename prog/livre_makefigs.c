@@ -42,8 +42,7 @@
 int main(int    argc,
          char **argv)
 {
-char     buf[256];
-l_int32  ignore;
+char  buf[256];
 
     if (argc != 1)
         return ERROR_INT(" Syntax:  livre_makefigs", __func__, 1);
@@ -52,53 +51,53 @@ l_int32  ignore;
     lept_mkdir("lept/livre");
 
         /* Generate Figure 1 (page segmentation) */
-    ignore = system("livre_seedgen");
+    callSystemDebug("livre_seedgen");
     snprintf(buf, sizeof(buf),
              "cp /tmp/lept/livre/seedgen.png /tmp/lept/livre/dia_fig1.png");
-    ignore = system(buf);
+    callSystemDebug(buf);
 
         /* Generate Figures 2-5 (page segmentation) */
     snprintf(buf, sizeof(buf), "livre_pageseg pageseg2.tif");
-    ignore = system(buf);
+    callSystemDebug(buf);
     snprintf(buf, sizeof(buf),
              "cp /tmp/lept/livre/segout.1.png /tmp/lept/livre/dia_fig2.png");
-    ignore = system(buf);
+    callSystemDebug(buf);
     snprintf(buf, sizeof(buf),
              "cp /tmp/lept/livre/segout.2.png /tmp/lept/livre/dia_fig3.png");
-    ignore = system(buf);
+    callSystemDebug(buf);
     snprintf(buf, sizeof(buf),
              "cp /tmp/lept/livre/segout.3.png /tmp/lept/livre/dia_fig4.png");
-    ignore = system(buf);
+    callSystemDebug(buf);
     snprintf(buf, sizeof(buf),
              "cp /tmp/lept/livre/segout.4.png /tmp/lept/livre/dia_fig5.png");
-    ignore = system(buf);
+    callSystemDebug(buf);
 
         /* Generate Figure 6 (hmt sels for text orientation) */
-    ignore = system("livre_orient");
+    callSystemDebug("livre_orient");
     snprintf(buf, sizeof(buf),
              "cp /tmp/lept/livre/orient.png /tmp/lept/livre/dia_fig6.png");
-    ignore = system(buf);
+    callSystemDebug(buf);
 
         /* Generate Figure 7 (hmt sel for fancy "Tribune") */
-    ignore = system("livre_hmt 1 8");
+    callSystemDebug("livre_hmt 1 8");
     snprintf(buf, sizeof(buf),
              "cp /tmp/lept/livre/hmt.png /tmp/lept/livre/dia_fig7.png");
-    ignore = system(buf);
+    callSystemDebug(buf);
 
         /* Generate Figure 8 (hmt sel for fancy "T") */
-    ignore = system("livre_hmt 2 4");
+    callSystemDebug("livre_hmt 2 4");
     snprintf(buf, sizeof(buf),
              "cp /tmp/lept/livre/hmt.png /tmp/lept/livre/dia_fig8.png");
-    ignore = system(buf);
+    callSystemDebug(buf);
 
         /* Generate Figure 9 (tophat background cleaning) */
-    ignore = system("livre_tophat");
+    callSystemDebug("livre_tophat");
     snprintf(buf, sizeof(buf),
              "cp /tmp/lept/livre/tophat.jpg /tmp/lept/livre/dia_fig9.jpg");
-    ignore = system(buf);
+    callSystemDebug(buf);
 
         /* Run livre_adapt to generate an expanded version of Figure 9 */
-    ignore = system("livre_adapt");
+    callSystemDebug("livre_adapt");
 
 
     return 0;

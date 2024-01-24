@@ -55,7 +55,7 @@ int main(int    argc,
 {
 char    *filein, *rootname;
 char     outname[512], buffer[1024];
-l_int32  i, n, npages, nfiles, ret, val, start, end;
+l_int32  i, n, npages, nfiles, val, start, end;
 NUMA    *naeach;
 
     if (argc != 4)
@@ -97,7 +97,7 @@ NUMA    *naeach;
         snprintf(buffer, sizeof(buffer),
                  "mutool clean -g -g %s %s %d-%d",
                  filein, outname, start, end);
-        ret = system(buffer);
+        callSystemDebug(buffer);
         start = end + 1;
     }
 
