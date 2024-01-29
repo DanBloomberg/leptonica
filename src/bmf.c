@@ -208,6 +208,8 @@ PIXA    *pixa;
         return NULL;
     if (!bmf)
         return (PIX *)ERROR_PTR("bmf not defined", __func__, NULL);
+    if (index < 32 || index >= 127)
+        return (PIX *)ERROR_PTR("invalid index", __func__, NULL);
 
     i = bmf->fonttab[index];
     if (i == UNDEF) {
@@ -245,6 +247,8 @@ PIXA    *pixa;
         return ERROR_INT("bmf not defined", __func__, 1);
     if ((index = (l_int32)chr) == 10)  /* NL */
         return 0;
+    if (index < 32 || index >= 127)
+        return ERROR_INT("invalid index", __func__, 1);
 
     i = bmf->fonttab[index];
     if (i == UNDEF) {
@@ -281,6 +285,8 @@ l_int32  bl, index;
         return ERROR_INT("bmf not defined", __func__, 1);
     if ((index = (l_int32)chr) == 10)  /* NL */
         return 0;
+    if (index < 32 || index >= 127)
+        return ERROR_INT("invalid index", __func__, 1);
 
     bl = bmf->baselinetab[index];
     if (bl == UNDEF) {
