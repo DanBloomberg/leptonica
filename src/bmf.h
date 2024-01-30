@@ -57,7 +57,6 @@ struct L_Bmf
     l_int32       vertlinesep; /*!< extra vertical space between text lines  */
     l_int32      *fonttab;     /*!< table mapping ascii --> font index       */
     l_int32      *baselinetab; /*!< table mapping ascii --> baseline offset  */
-    l_int32      *widthtab;    /*!< table mapping ascii --> char width       */
 };
 typedef struct L_Bmf L_BMF;
 

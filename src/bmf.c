@@ -181,7 +181,6 @@ L_BMF  *bmf;
     LEPT_FREE(bmf->directory);
     LEPT_FREE(bmf->fonttab);
     LEPT_FREE(bmf->baselinetab);
-    LEPT_FREE(bmf->widthtab);
     LEPT_FREE(bmf);
     *pbmf = NULL;
 }
@@ -761,16 +760,13 @@ NUMA     *na;
  *
  * <pre>
  * Notes:
- *      (1) This makes three tables, each of size 128, as follows:
+ *      (1) This makes two tables, each of size 128, as follows:
  *          ~ fonttab is a table containing the index of the Pix
  *            that corresponds to each input ascii character;
  *            it maps (ascii-index) --> Pixa index
  *          ~ baselinetab is a table containing the baseline offset
  *            for the Pix that corresponds to each input ascii character;
  *            it maps (ascii-index) --> baseline offset
- *          ~ widthtab is a table containing the character width in
- *            pixels for the Pix that corresponds to that character;
- *            it maps (ascii-index) --> bitmap width
  *     (2) This also computes
  *          ~ lineheight (sum of maximum character extensions above and
  *                        below the baseline)
@@ -789,7 +785,7 @@ static l_int32
 bmfMakeAsciiTables(L_BMF  *bmf)
 {
 l_int32   i, maxh, height, charwidth, xwidth, kernwidth;
-l_int32  *fonttab, *baselinetab, *widthtab;
+l_int32  *fonttab, *baselinetab;
 PIX      *pix;
 
     if (!bmf)
@@ -814,16 +810,6 @@ PIX      *pix;
     baselinetab[92] = bmf->baseline1;  /* the '\' char */
     for (i = 93; i < 127; i++)
         baselinetab[i] = bmf->baseline3;
-
-        /* Generate array of character widths; req's fonttab to exist */
-    widthtab = (l_int32 *)LEPT_CALLOC(128, sizeof(l_int32));
-    bmf->widthtab = widthtab;
-    for (i = 0; i < 128; i++)
-        widthtab[i] = UNDEF;
-    for (i = 32; i < 127; i++) {
-        bmfGetWidth(bmf, i, &charwidth);
-        widthtab[i] = charwidth;
-    }
 
         /* Get the line height of text characters, from the highest
          * ascender to the lowest descender; req's fonttab to exist. */
