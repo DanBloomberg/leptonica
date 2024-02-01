@@ -2982,10 +2982,12 @@ PIX  *pix1, *pix2, *pixd;
 PIX *
 pixConvertTo8MinMax(PIX  *pixs)
 {
+l_int32  d;
+
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
 
-    l_int32 d = pixGetDepth(pixs);
+    d = pixGetDepth(pixs);
     if (d == 1) {
         return pixConvert1To8(NULL, pixs, 255, 0);
     } else if (d == 2) {
