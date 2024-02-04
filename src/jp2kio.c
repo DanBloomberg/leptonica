@@ -439,7 +439,7 @@ PIX               *pix = NULL;
  * \param[in]    filename
  * \param[in]    pix        any depth, cmap is OK
  * \param[in]    quality    SNR > 0; 0 for default (34); 100 for lossless
- * \param[in]    nlevels    resolution levels; <= 10; default = 5
+ * \param[in]    nlevels    resolution levels; 6 or 7; use 0 for default (6)
  * \param[in]    hint       a bitwise OR of L_JP2K_* values; 0 for default
  * \param[in]    debug      output callback messages, etc
  * \return  0 if OK; 1 on error
@@ -453,10 +453,17 @@ PIX               *pix = NULL;
  *             SNR = 45  (nearly lossless)
  *          Use 0 for default; 100 for lossless.
  *      (2) The %nlevels parameter is the number of resolution levels
- *          to be written.  For example, with nlevels == 5, images with
- *          reduction factors of 1, 2, 4, 8 and 16 are encoded, and retrieval
- *          is done at the level requested when reading.  For default,
- *          use either 5 or 0.
+ *          to be written.  Except for very small images, we allow 6 or 7.
+ *          For example, with %nlevels == 6, images with reduction factors
+ *          of 1, 2, 4, 8, 16 and 32 are encoded, and retrieval is done at
+ *          the level requested when reading.  For default, use either 0 or 6.
+ *          Small images can constrain %nlevels according to
+ *                 2^(%nlevels - 1) <= Min(w, h)
+ *          and if necessary %nlevels will be reduced to accommodate.
+ *          For example, images with a minimum dimension between 32 and 63
+ *          can support %nlevels = 6, with reductions up to 32x.  An image
+ *          with a minimum dimension smaller than 32 will not support
+ *          6 nlevels (reductions of 1, 2, 4, 8, 16 and 32).
  *      (3) By default, we use the JP2 codec.
  *      (4) The %hint parameter is not yet in use.
  *      (5) For now, we only support 1 "layer" for quality.
@@ -497,7 +504,7 @@ FILE  *fp;
  * \param[in]    fp         file stream
  * \param[in]    pix        any depth, cmap is OK
  * \param[in]    quality    SNR > 0; 0 for default (34); 100 for lossless
- * \param[in]    nlevels    <= 10
+ * \param[in]    nlevels    resolution levels; 6 or 7; use 0 for default (6)
  * \param[in]    codec      L_JP2_CODEC or L_J2K_CODEC
  * \param[in]    hint       a bitwise OR of L_JP2K_* values; 0 for default
  * \param[in]    debug      output callback messages, etc
@@ -516,8 +523,8 @@ pixWriteStreamJp2k(FILE    *fp,
                    l_int32  hint,
                    l_int32  debug)
 {
-l_int32            w, h, d, success;
-l_float32          snr;
+l_int32            i, w, h, d, depth, channels, success;
+l_float64          snr;
 const char        *opjVersion;
 PIX               *pixs;
 opj_cparameters_t  parameters;   /* compression parameters */
@@ -530,21 +537,26 @@ opj_image_t       *image = NULL;
     if (!pix)
         return ERROR_INT("pix not defined", __func__, 1);
 
-    snr = (l_float32)quality;
-    if (snr <= 0) snr = 34.0;   /* default */
-    if (snr < 27)
+    snr = (l_float64)quality;
+    if (snr <= 0.0) snr = 34.0;   /* default */
+    if (snr < 27.0)
         L_WARNING("SNR = %d < 27; very low\n", __func__, (l_int32)snr);
-    if (snr == 100) snr = 0;  /* for lossless */
-    if (snr > 45) {
+    if (snr == 100.0) snr = 0.0;  /* for lossless */
+    if (snr > 45.0) {
         L_WARNING("SNR > 45; using lossless encoding\n", __func__);
-        snr = 0;
+        snr = 0.0;
     }
 
-    if (nlevels <= 0) nlevels = 5;  /* default */
-    if (nlevels > 10) {
-        L_WARNING("nlevels = %d > 10; setting to 10\n", __func__, nlevels);
-        nlevels = 10;
+    if (nlevels == 0) nlevels = 6;  /* default */
+    if (nlevels < 6) {
+        L_WARNING("nlevels = %d < 6; setting to 6\n", __func__, nlevels);
+        nlevels = 6;
     }
+    if (nlevels > 7) {
+        L_WARNING("nlevels = %d > 7; setting to 7\n", __func__, nlevels);
+        nlevels = 7;
+    }
+
     if (codec != L_JP2_CODEC && codec != L_J2K_CODEC)
         return ERROR_INT("valid codec not identified\n", __func__, 1);
 
@@ -570,6 +582,19 @@ opj_image_t       *image = NULL;
                __func__);
         pixs = pixRemoveColormap(pix, REMOVE_CMAP_BASED_ON_SRC);
     }
+    depth = pixGetDepth(pixs);  /* 8 or 32 */
+
+        /* Reduce nlevels if the image has at least one small dimension */
+    for (i = 1; i < 7; i++) {
+        if ((w < (1 << i)) || (h < (1 << i))) {
+            if (i < nlevels) {
+                L_INFO("small image: w = %d, h = %d; setting nlevels to %d\n",
+                       __func__, w, h, i);
+                nlevels = i;
+            }
+            break;
+        }
+    }
 
         /* Convert to opj image format. */
     pixSetPadBits(pixs, 0);
@@ -581,10 +606,11 @@ opj_image_t       *image = NULL;
     opj_set_default_encoder_parameters(&parameters);
     parameters.cp_fixed_quality = 1;
     parameters.cp_disto_alloc = 0;
-    parameters.cp_fixed_alloc =  0;
     parameters.tcp_distoratio[0] = snr;
     parameters.tcp_numlayers = 1;
     parameters.numresolution = nlevels;
+    channels = (depth == 32) ? 3 : 1;
+    parameters.tcp_mct = (channels == 3) ? 1 : 0;
 
         /* Create comment for codestream */
     if (parameters.cp_comment == NULL) {
