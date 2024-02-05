@@ -274,18 +274,10 @@ fgetJp2kResolution(FILE     *fp,
                    l_int32  *pxres,
                    l_int32  *pyres)
 {
-l_uint8    xexp, yexp;
 l_uint8   *data;
-l_uint16   xnum, ynum, xdenom, ydenom;  /* these jp2k fields are 2-byte */
-l_int32    loc, found;
-l_uint8    resc[4] = {0x72, 0x65, 0x73, 0x63};  /* 'resc' */
 size_t     nbytes;
-l_float64  xres, yres, maxres;
+l_ok       ok;
 
-    if (pxres) *pxres = 0;
-    if (pyres) *pyres = 0;
-    if (!pxres || !pyres)
-        return ERROR_INT("&xres and &yres not both defined", __func__, 1);
     if (!fp)
         return ERROR_INT("stream not opened", __func__, 1);
 
@@ -293,16 +285,46 @@ l_float64  xres, yres, maxres;
     data = l_binaryReadStream(fp, &nbytes);
     rewind(fp);
 
+    ok = readResolutionMemJp2k(data, nbytes, pxres, pyres);
+
+    LEPT_FREE(data);
+    return ok;
+}
+
+/*!
+ * \brief   readResolutionMemJp2k()
+ *
+ * \param[in]   data    const; jp2k-encoded
+ * \param[in]   size    of data
+ * \param[out]  pxres   [optional]
+ * \param[out]  pyres   [optional]
+ * \return  0 if OK, 1 on error
+ */
+l_ok
+readResolutionMemJp2k(const l_uint8  *data,
+                      size_t          nbytes,
+                      l_int32        *pxres,
+                      l_int32        *pyres)
+{
+l_uint8    xexp, yexp;
+l_uint16   xnum, ynum, xdenom, ydenom;  /* these jp2k fields are 2-byte */
+l_int32    loc, found;
+l_uint8    resc[4] = {0x72, 0x65, 0x73, 0x63};  /* 'resc' */
+l_float64  xres, yres, maxres;
+
+    if (pxres) *pxres = 0;
+    if (pyres) *pyres = 0;
+    if (!pxres || !pyres)
+        return ERROR_INT("&xres and &yres not both defined", __func__, 1);
+
         /* Search for the start of the first capture resolution box: 'resc' */
     arrayFindSequence(data, nbytes, resc, 4, &loc, &found);
     if (!found) {
         L_WARNING("image resolution not found\n", __func__);
-        LEPT_FREE(data);
         return 1;
     }
     if (nbytes < 80 || loc >= nbytes - 13) {
         L_WARNING("image resolution found without enough space\n", __func__);
-        LEPT_FREE(data);
         return 1;
     }
 
@@ -318,7 +340,6 @@ l_float64  xres, yres, maxres;
     xdenom = convertOnLittleEnd16(xdenom);
     if (ydenom == 0 || xdenom == 0) {
         L_WARNING("bad data: ydenom or xdenom is 0\n", __func__);
-        LEPT_FREE(data);
         return 1;
     }
     yexp = data[loc + 12];
@@ -339,7 +360,6 @@ l_float64  xres, yres, maxres;
         *pxres = (l_int32)(xres + 0.5);
     }
 
-    LEPT_FREE(data);
     return 0;
 }
 

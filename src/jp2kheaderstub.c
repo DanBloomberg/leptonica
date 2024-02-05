@@ -72,5 +72,13 @@ l_int32 fgetJp2kResolution(FILE *fp, l_int32 *pxres, l_int32 *pyres)
     return ERROR_INT("function not present", __func__, 1);
 }
 
+/* ----------------------------------------------------------------------*/
+
+l_ok readResolutionMemJp2k(const l_uint8 *data, size_t size,
+                           l_int32 *pxres, l_int32 *pyres)
+{
+    return ERROR_INT("function not present", __func__, 1);
+}
+
 /* --------------------------------------------*/
 #endif  /* !USE_JP2KHEADER */
