@@ -244,9 +244,9 @@ pixReadStreamJp2k(FILE     *fp,
                   l_int32   hint,
                   l_int32   debug)
 {
-const l_uint8 *data;
-size_t         size;
-PIX           *pix;
+l_uint8 *data;
+size_t   size;
+PIX     *pix;
 
     if (!fp)
         return (PIX *)ERROR_PTR("fp not defined", __func__, NULL);
@@ -1032,12 +1032,8 @@ opj_stream_t  *l_stream;
     if (!l_stream)
         return (opj_stream_t *)ERROR_PTR("stream not made", __func__, NULL);
 
-#if OPJ_VERSION_MINOR == 0
-    opj_stream_set_user_data(l_stream, pbuf);
-#else
     opj_stream_set_user_data(l_stream, pbuf,
                              (opj_stream_free_user_data_fn)NULL);
-#endif
     opj_stream_set_user_data_length(l_stream, pbuf->len);
     opj_stream_set_read_function(l_stream,
                                  (opj_stream_read_fn)opj_read_from_buffer);
