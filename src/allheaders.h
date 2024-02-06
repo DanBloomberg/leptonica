@@ -1070,7 +1070,7 @@ LEPT_DLL extern l_ok readHeaderJp2k ( const char *filename, l_int32 *pw, l_int32
 LEPT_DLL extern l_ok freadHeaderJp2k ( FILE *fp, l_int32 *pw, l_int32 *ph, l_int32 *pbps, l_int32 *pspp, l_int32 *pcodec );
 LEPT_DLL extern l_ok readHeaderMemJp2k ( const l_uint8 *data, size_t size, l_int32 *pw, l_int32 *ph, l_int32 *pbps, l_int32 *pspp, l_int32 *pcodec );
 LEPT_DLL extern l_int32 fgetJp2kResolution ( FILE *fp, l_int32 *pxres, l_int32 *pyres );
-LEPT_DLL extern l_ok readResolutionMemJp2k ( const l_uint8 *data, size_t size, l_int32 *pxres, l_int32 *pyres );
+LEPT_DLL extern l_ok readResolutionMemJp2k ( const l_uint8 *data, size_t nbytes, l_int32 *pxres, l_int32 *pyres );
 LEPT_DLL extern PIX * pixReadJp2k ( const char *filename, l_uint32 reduction, BOX *box, l_int32 hint, l_int32 debug );
 LEPT_DLL extern PIX * pixReadStreamJp2k ( FILE *fp, l_uint32 reduction, BOX *box, l_int32 hint, l_int32 debug );
 LEPT_DLL extern l_ok pixWriteJp2k ( const char *filename, PIX *pix, l_int32 quality, l_int32 nlevels, l_int32 hint, l_int32 debug );

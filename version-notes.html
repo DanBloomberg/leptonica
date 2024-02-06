@@ -93,7 +93,11 @@ They are <i>not</i> a complete listing of the modifications.
         * Use wrapper callSystemDebug() instead of system() in programs.
         * Fixed Issue #730: artifacts and bad compression with pixWriteJp2k.
           Results are now identical with ImageMagick convert (to jp2).
-        * Source files changed: gplot.c, jp2kio.c partify.c, pdfio2.c,
+        * With PR732, atykhyy made pix(Read,Write)MemJp2k work with
+          direct memory access using openjpeg opj_stream functions. This
+          removes need for temp file on Windows when writing to/from memory.
+        * Source files changed: gplot.c, jp2kheader.c,
+          jp2kheaderstub.c, jp2kio.c, partify.c, pdfio2.c,
           psio2.c, utils2.c, writefile.c, allheaders.h, environ.h
         * Prog files changed: libre_makefigs.c, cleanpdf.c croppdf.c,
           compresspdf.c, alltests_reg.c, htmlviewer.c, jp2kio_reg.c,

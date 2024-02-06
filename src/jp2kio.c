@@ -29,21 +29,26 @@
  * <pre>
  *
  *    Read jp2k from file
- *          PIX                *pixReadJp2k()  [special top level]
- *          PIX                *pixReadStreamJp2k()
+ *          PIX                  *pixReadJp2k()  [special top level]
+ *          PIX                  *pixReadStreamJp2k()
+ *          static PIX           *pixReadMemJp2kCore()
  *
  *    Write jp2k to file
- *          l_int32             pixWriteJp2k()  [special top level]
- *          l_int32             pixWriteStreamJp2k()
- *          static opj_image_t *pixConvertToOpjImage()
+ *          l_int32               pixWriteJp2k()  [special top level]
+ *          l_int32               pixWriteStreamJp2k()
+ *          static opj_image_t   *pixConvertToOpjImage()
  *
  *    Read/write to memory
- *          PIX                *pixReadMemJp2k()
- *          l_int32             pixWriteMemJp2k()
+ *          PIX                  *pixReadMemJp2k()
+ *          l_int32               pixWriteMemJp2k()
  *
- *    Static functions from opj 2.0 to retain file stream interface
+ *    Static generator of opj_stream from a memory buffer
+ *          static opj_stream_t  *opjCreateMemoryStream()
+ *          [and other static helpers]
+ *
+ *    Static generator of opj_stream fom a file stream
  *          static opj_stream_t  *opjCreateStream()
- *          [other static helpers]
+ *          [and other static helpers]
  *
  *    Based on the OpenJPEG distribution:
  *        http://www.openjpeg.org/
@@ -52,10 +57,11 @@
  *
  *    Compressing to memory and decompressing from memory
  *    ---------------------------------------------------
- *    On systems like Windows without fmemopen() and open_memstream(),
- *    we write data to a temp file and read it back for operations
- *    between pix and compressed-data, such as pixReadMemJp2k() and
- *    pixWriteMemJp2k().
+ *    In previous versions, for systems like Windows that do not have
+ *    fmemopen() and open_memstream(), we wrote data to a temp file.
+ *    Now we use the opj_stream interface directly for operations to and
+ *    from memory.  The file stream interface for these operations
+ *    is a wrapper around the memory interface.
  *
  *    Pdf can accept jp2k compressed strings directly
  *    -----------------------------------------------
@@ -120,6 +126,10 @@ typedef struct OpjBuffer
     size_t     len;     /*!< length of valid data in the buffer       */
 } OpjBuffer;
 
+    /* Static converter pix --> opj_image.  Used for compressing pix,
+     * because the codec works on data stored in their raster format. */
+static opj_image_t *pixConvertToOpjImage(PIX *pix);
+
     /* Static generator of opj_stream from a memory buffer. */
 static opj_stream_t *opjCreateMemoryStream(OpjBuffer *buf, l_int32 is_read);
 
@@ -131,9 +141,6 @@ static opj_stream_t *opjCreateMemoryStream(OpjBuffer *buf, l_int32 is_read);
      * it is necessary to recreate the stream interface here.  */
 static opj_stream_t *opjCreateStream(FILE *fp, l_int32 is_read);
 
-    /* Static converter pix --> opj_image.  Used for compressing pix,
-     * because the codec works on data stored in their raster format. */
-static opj_image_t *pixConvertToOpjImage(PIX *pix);
 
 /*---------------------------------------------------------------------*
  *                        Callback event handlers                      *
@@ -178,10 +185,11 @@ static void info_callback(const char *msg, void *client_data) {
  *          resolution image.  Use %reduction > 1 to get a reduced image.
  *          The actual values of %reduction that can be used on an image
  *          depend on the number of resolution levels chosen when the
- *          image was compressed.  Typical values might be 1, 2, 4, 8 and 16.
- *          Using a value representing a reduction level that was not
+ *          image was compressed.  We typically encode using six power-of-2
+ *          resolution values: 1, 2, 4, 8, 16 and 32.  Attempting to read
+ *          with a value representing a reduction level that was not
  *          stored when the file was written will fail with the message:
- *          "failed to read the header".
+ *               "failed to read the header".
  *      (3) Use %box to decode only a part of the image.  The box is defined
  *          at full resolution.  It is reduced internally by %reduction,
  *          and clipping to the right and bottom of the image is automatic.
@@ -554,13 +562,13 @@ FILE  *fp;
  * </pre>
  */
 static l_ok
-pixWriteOpjStreamJp2k(opj_stream_t *l_stream,
-                   PIX     *pix,
-                   l_int32  quality,
-                   l_int32  nlevels,
-                   l_int32  codec,
-                   l_int32  hint,
-                   l_int32  debug)
+pixWriteOpjStreamJp2k(opj_stream_t  *l_stream,
+                      PIX           *pix,
+                      l_int32        quality,
+                      l_int32        nlevels,
+                      l_int32        codec,
+                      l_int32        hint,
+                      l_int32        debug)
 {
 l_int32            i, w, h, d, depth, channels, success;
 l_float64          snr;
@@ -693,7 +701,7 @@ opj_image_t       *image = NULL;
 
         /* Set the resolution (TBD) */
 
-        /* Encode the image */
+        /* Encode the image into the l_stream data interface */
     if (!opj_start_compress(l_codec, image, l_stream)) {
         opj_destroy_codec(l_codec);
         opj_image_destroy(image);
@@ -730,9 +738,11 @@ opj_image_t       *image = NULL;
  * \param[in]    hint       a bitwise OR of L_JP2K_* values; 0 for default
  * \param[in]    debug      output callback messages, etc
  * \return  0 if OK, 1 on error
+ *
  * <pre>
  * Notes:
- *      (1) See pixWriteJp2k() for usage.
+ *      (1) This is a wrapper on the memory stream interface.
+ *      (2) See pixWriteJp2k() for usage.
  * </pre>
  */
 l_ok
@@ -744,21 +754,21 @@ pixWriteStreamJp2k(FILE    *fp,
                    l_int32  hint,
                    l_int32  debug)
 {
-l_ok          ok;
-opj_stream_t *l_stream;
+l_ok           ok;
+opj_stream_t  *l_stream;
 
     if (!fp)
         return ERROR_INT("stream not open", __func__, 1);
 
-        /* Open a compression stream for writing.  In 2.0 we could use this:
-         *     opj_stream_create_default_file_stream(fp, 0)
-         * but the file stream interface was removed in 2.1.  */
+        /* Open a compression stream for writing, borrowed from
+         * the 2.0 implementation because the file stream interface
+         * was removed in 2.1.  */
     rewind(fp);
-    if ((l_stream = opjCreateStream(fp, 0)) == NULL) {
+    if ((l_stream = opjCreateStream(fp, 0)) == NULL)
         return ERROR_INT("failed to open l_stream\n", __func__, 1);
-    }
 
-    ok = pixWriteOpjStreamJp2k(l_stream, pix, quality, nlevels, codec, hint, debug);
+    ok = pixWriteOpjStreamJp2k(l_stream, pix, quality, nlevels,
+                               codec, hint, debug);
 
         /* Clean up */
     opj_stream_destroy(l_stream);
@@ -956,7 +966,7 @@ OpjBuffer     buffer;
 
 
 /*---------------------------------------------------------------------*
- *    Static functions for the memory stream interface                 *
+ *           Static functions for the memory stream interface          *
  *---------------------------------------------------------------------*/
 static OPJ_SIZE_T
 opj_read_from_buffer(void *p_buffer, OPJ_SIZE_T p_nb_bytes, OpjBuffer *pbuf) {
@@ -972,7 +982,8 @@ opj_read_from_buffer(void *p_buffer, OPJ_SIZE_T p_nb_bytes, OpjBuffer *pbuf) {
 }
 
 static OPJ_SIZE_T
-opj_write_from_buffer(const void *p_buffer, OPJ_SIZE_T p_nb_bytes, OpjBuffer *pbuf) {
+opj_write_from_buffer(const void *p_buffer, OPJ_SIZE_T p_nb_bytes,
+                      OpjBuffer *pbuf) {
     if (pbuf->pos < 0)
         return 0;
 
@@ -1018,7 +1029,10 @@ opj_seek_from_buffer(OPJ_OFF_T offset, OpjBuffer *pbuf) {
     return 1;
 }
 
-    /* Static generator of opj_stream from memory buffer */
+
+/*---------------------------------------------------------------------*
+ *           Static generator of opj_stream from memory buffer         *
+ *---------------------------------------------------------------------*/
 static opj_stream_t *
 opjCreateMemoryStream(OpjBuffer *pbuf,
                       l_int32    is_read_stream)
@@ -1049,6 +1063,7 @@ opj_stream_t  *l_stream;
                                  (opj_stream_write_fn)opj_write_from_buffer);
     return l_stream;
 }
+
 
 /*---------------------------------------------------------------------*
  *    Static functions from opj 2.0 to retain file stream interface    *
@@ -1090,7 +1105,10 @@ opj_seek_from_file(OPJ_OFF_T offset, FILE *fp) {
     return 1;
 }
 
-    /* Static generator of opj_stream from file stream */
+
+/*---------------------------------------------------------------------*
+ *         Static generator of opj_stream from a file stream           *
+ *---------------------------------------------------------------------*/
 static opj_stream_t *
 opjCreateStream(FILE    *fp,
                 l_int32  is_read_stream)
