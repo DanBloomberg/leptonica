@@ -702,6 +702,8 @@ PIX       *pixd;
  *      (1) This is a simple convenience function for doing adaptive
  *          thresholding on a grayscale image with variable background.
  *          It uses default parameters appropriate for typical text images.
+ *          Other high-level adaptive thresholding functions are
+ *          pixConvertTo1Adaptive() and pixCleanImage().
  *      (2) %pixm is a 1 bpp mask over "image" regions, which are not
  *          expected to have a white background.  The mask inhibits
  *          background finding under the fg pixels of the mask.  For

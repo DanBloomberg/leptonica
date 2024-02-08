@@ -35,6 +35,7 @@
  *     adaptmap.c:    local adaptive; mostly gray-to-gray in preparation
  *                    for binarization
  *     binarize.c:    special binarization methods, locally adaptive.
+ *     pageseg.c:     locally adaptive cleaning operation with several options
  *
  *  -------------------------------------------------------------------
  *
@@ -134,6 +135,15 @@
  *      useful for improving the appearance of pages with very light
  *      foreground or very dark background, and where the local TRC
  *      function doesn't change rapidly with position.
+ *
+ *  Adaptive binarization is done in two steps:
+ *    (1) Background normalization by some method
+ *    (2) Global thresholding with a value appropriate to the normalization.
+ *  There are several high-level functions in leptonica for doing adaptive
+ *  binarization on grayscale and color images, such as:
+ *    * pixAdaptThresholdToBinary()   (in grayquant.c)
+ *    * pixConvertTo1Adaptive()       (in pixconv.c)
+ *    * pixCleanImage()               (in pageseg.c)
  * </pre>
  */
 

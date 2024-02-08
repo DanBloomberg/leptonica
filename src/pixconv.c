@@ -2889,6 +2889,8 @@ PIX       *pixs, *pixd;
  *      (1) This is a top-level function, that uses default values for
  *          adaptive thresholding, if necessary.  Otherwise, it is the same as
  *          pixConvertTo1(), which uses a global threshold for binarization.
+ *      (2) Other high-level adaptive thresholding functions are
+ *          pixAdaptThresholdToBinary() and pixCleanImage().
  * </pre>
  */
 PIX *
