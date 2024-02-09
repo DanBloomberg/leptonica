@@ -177,7 +177,7 @@ L_REGPARAMS  *rp;
     /* --------------------------------------------------------- */
     box1 = boxCreate(0, 0, 1, 1);
     lept_mkdir("lept/overlap");
-    fp = fopenWriteStream("/tmp/lept/overlap/result.dat", "w");
+    fp = lept_fopen("/tmp/lept/overlap/result.dat", "wb");
     for (i = 0; i < 3; i++) {  /* 9 1x1 boxes on a 3x3 square */
         for (j = 0; j < 3; j++) {
             box2 = boxCreate(i, j, 1, 1);
@@ -188,7 +188,7 @@ L_REGPARAMS  *rp;
             boxDestroy(&box2);
         }
     }
-    fclose(fp);
+    lept_fclose(fp);
     data = l_binaryRead("/tmp/lept/overlap/result.dat", &nbytes);
     regTestWriteDataAndCheck(rp, data, nbytes, "dat");  /* 12 */
     lept_free(data);

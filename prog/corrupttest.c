@@ -96,7 +96,7 @@ PIX       *pix;
         } else {  /* mutation */
             fileCorruptByMutation(filein, loc, size, corruptfile);
         }
-        if ((fp = fopenReadStream(corruptfile)) == NULL)
+        if ((fp = lept_fopen(corruptfile, "rb")) == NULL)
             return ERROR_INT_1("stream not opened", corruptfile, __func__, 1);
         if (format == IFF_JFIF_JPEG) {
             if ((pix = pixReadJpeg(corruptfile, 0, 1, &nwarn, hint)) != NULL) {
@@ -130,7 +130,7 @@ PIX       *pix;
             }
             freadHeaderPnm(fp, &w, NULL, NULL, NULL, NULL, NULL);
         }
-        fclose(fp);
+        lept_fclose(fp);
         return 0;
     }
 
@@ -239,7 +239,7 @@ PIX       *pix;
             pixDestroy(&pix);
 
                 /* Attempt to read the header and the resolution */
-            fp = fopenReadStream(corruptfile);
+            fp = lept_fopen(corruptfile, "rb");
             if (format == IFF_JFIF_JPEG) {
                 freadHeaderJpeg(fp, &w, NULL, NULL, NULL, NULL);
                 if (fgetJpegResolution(fp, &xres, &yres) == 0)
@@ -262,7 +262,7 @@ PIX       *pix;
                 if (freadHeaderPnm(fp, &w, NULL, NULL, NULL, NULL, NULL) == 0)
                     lept_stderr("w = %d\n", w);
             }
-            fclose(fp);
+            lept_fclose(fp);
         }
     }
     return 0;

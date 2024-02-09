@@ -1126,17 +1126,17 @@ PIXCMAP  *cmap;
 
     findFileFormat(filename, &format);
     if (format == IFF_JP2) {
-        fpin = lept_fopen(filename, "rb");
+        fpin = fopenReadStream(filename);
         fgetJp2kResolution(fpin, &xres, &yres);
         fclose(fpin);
         fprintf(fpout, "  xres = %d, yres = %d\n", xres, yres);
     } else if (format == IFF_PNG) {
-        fpin = lept_fopen(filename, "rb");
+        fpin = fopenReadStream(filename);
         fgetPngResolution(fpin, &xres, &yres);
         fclose(fpin);
         fprintf(fpout, "  xres = %d, yres = %d\n", xres, yres);
         if (iscmap) {
-            fpin = lept_fopen(filename, "rb");
+            fpin = fopenReadStream(filename);
             fgetPngColormapInfo(fpin, &cmap, &transparency);
             fclose(fpin);
             if (transparency)
@@ -1147,7 +1147,7 @@ PIXCMAP  *cmap;
             pixcmapDestroy(&cmap);
         }
     } else if (format == IFF_JFIF_JPEG) {
-        fpin = lept_fopen(filename, "rb");
+        fpin = fopenReadStream(filename);
         fgetJpegResolution(fpin, &xres, &yres);
         fclose(fpin);
         fprintf(fpout, "  xres = %d, yres = %d\n", xres, yres);
@@ -1200,9 +1200,9 @@ PIXCMAP  *cmap;
     if (format == IFF_TIFF || format == IFF_TIFF_G4 ||
         format == IFF_TIFF_G3 || format == IFF_TIFF_PACKBITS) {
         fprintf(fpout, "  Tiff header information:\n");
-        fpin = lept_fopen(filename, "rb");
+        fpin = fopenReadStream(filename);
         tiffGetCount(fpin, &npages);
-        lept_fclose(fpin);
+        fclose(fpin);
         if (npages == 1)
             fprintf(fpout, "    One page in file\n");
         else

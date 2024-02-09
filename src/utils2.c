@@ -95,7 +95,7 @@
  *           FILE      *fopenWriteWinTempfile()
  *
  *       Multi-platform functions that avoid C-runtime boundary crossing
- *       with Windows DLLs
+ *       with Windows DLLs  (use in programs only)
  *           FILE      *lept_fopen()
  *           l_int32    lept_fclose()
  *           void      *lept_calloc()
@@ -145,10 +145,10 @@
  *  (5) For moving, copying and removing files and directories that are in
  *      subdirectories of /tmp, use the lept_*() file system shell wrappers:
  *         lept_mkdir(), lept_rmdir(), lept_mv(), lept_rm() and lept_cp().
- *  (6) Use the lept_*() C library wrappers.  These work properly on
- *      Windows, where the same DLL must perform complementary operations
- *      on file streams (open/close) and heap memory (malloc/free):
- *         lept_fopen(), lept_fclose(), lept_calloc() and lept_free().
+ *  (6) For programs use the lept_fopen(), lept_fclose(), lept_calloc()
+ *      and lept_free() C library wrappers.  These work properly on Windows,
+ *      where the same DLL must perform complementary operations on
+ *      file streams (open/close) and heap memory (malloc/free).
  *  (7) Why read and write files to temp directories?
  *      The library needs the ability to read and write ephemeral
  *      files to default places, both for generating debugging output

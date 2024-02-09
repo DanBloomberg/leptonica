@@ -59,9 +59,10 @@
  *    ---------------------------------------------------
  *    In previous versions, for systems like Windows that do not have
  *    fmemopen() and open_memstream(), we wrote data to a temp file.
- *    Now we use the opj_stream interface directly for operations to and
- *    from memory.  The file stream interface for these operations
- *    is a wrapper around the memory interface.
+ *    Now thanks to the contribution of Anton Tykhyy, we use the
+ *    opj_stream interface directly for operations to and from memory.
+ *    The file stream interface for these operations is a wrapper
+ *    around the memory interface.
  *
  *    Pdf can accept jp2k compressed strings directly
  *    -----------------------------------------------
