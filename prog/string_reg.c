@@ -227,17 +227,17 @@ L_REGPARAMS  *rp;
     lept_free(str4);
 
         /* String length */
-    lept_stderr("************************************************\n");
-    lept_stderr("* This error message is intentional            *\n");
+    lept_stderr("******************************************************\n");
+    lept_stderr("* This error message is intentional                  *\n");
     n = stringLength("", 0);
-    lept_stderr("************************************************\n");
+    lept_stderr("******************************************************\n");
     regTestCompareValues(rp, 0.0, (l_float32)n, 0.0);   /* 27 */
     n = stringLength("", 4);
     regTestCompareValues(rp, 0, (l_float32)n, 0.0);   /* 28 */
-    lept_stderr("************************************************\n");
-    lept_stderr("* This error message is intentional            *\n");
+    lept_stderr("******************************************************\n");
+    lept_stderr("* This error message is intentional                  *\n");
     n = stringLength("morethan4", 4);
-    lept_stderr("************************************************\n");
+    lept_stderr("******************************************************\n");
     regTestCompareValues(rp, 4, (l_float32)n, 0.0);   /* 29 */
 
         /* String concatenation */
@@ -248,10 +248,10 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 3.0, (l_float32)n, 0.0);   /* 31 */
     n = stringLength(smallbuf, 8);
     regTestCompareValues(rp, 6.0, (l_float32)n, 0.0);   /* 32 */
-    lept_stderr("************************************************\n");
-    lept_stderr("* This error message is intentional            *\n");
+    lept_stderr("******************************************************\n");
+    lept_stderr("* This error message is intentional                  *\n");
     n = stringCat(smallbuf, 8, "gh");
-    lept_stderr("************************************************\n");
+    lept_stderr("******************************************************\n");
     regTestCompareValues(rp, -1.0, (l_float32)n, 0.0);   /* 33 */
     stringCopy(medbuf, smallbuf, 32);
     n = stringCat(medbuf, 32, smallbuf);
@@ -271,10 +271,10 @@ L_REGPARAMS  *rp;
     n = stringLength(smallbuf, 8);
     regTestCompareValues(rp, 6.0, (l_float32)n, 0.0);   /* 39 */
     stringCopy(smallbuf, medbuf, 8);
-    lept_stderr("************************************************\n");
-    lept_stderr("* This error message is intentional            *\n");
+    lept_stderr("******************************************************\n");
+    lept_stderr("* This error message is intentional                  *\n");
     n = stringLength(smallbuf, 8);
-    lept_stderr("************************************************\n");
+    lept_stderr("******************************************************\n");
     regTestCompareValues(rp, 8.0, (l_float32)n, 0.0);   /* 40 */
 
     return regTestCleanup(rp);

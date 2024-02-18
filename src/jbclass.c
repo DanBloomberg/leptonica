@@ -2082,8 +2082,10 @@ jbDataRender(JBDATA  *data,
 l_int32   i, w, h, cellw, cellh, x, y, iclass, ipage;
 l_int32   npages, nclass, ncomp, wp, hp;
 BOX      *box;
+BOXA     *boxa;
+BOXAA    *baa;
 NUMA     *naclass, *napage;
-PIX      *pixt, *pixt2, *pix, *pixd;
+PIX      *pixt, *pix1, *pix2, *pixd;
 PIXA     *pixat;   /* pixa of templates */
 PIXA     *pixad;   /* pixa of output images */
 PIXCMAP  *cmap;
@@ -2106,21 +2108,22 @@ PTA      *ptaul;
 
         /* Reconstruct the original set of images from the templates
          * and the data associated with each component.  First,
-         * generate the output pixa as a set of empty pix. */
+         * generate the output pixa as a set of empty pix.  For debug,
+         * where the bounding boxes of each component will be displayed
+         * in red, use 2 bpp colormapped output pix. */
     if ((pixad = pixaCreate(npages)) == NULL)
         return (PIXA *)ERROR_PTR("pixad not made", __func__, NULL);
     for (i = 0; i < npages; i++) {
         if (debugflag == FALSE) {
-            pix = pixCreate(w, h, 1);
+            pix1 = pixCreate(w, h, 1);
         } else {
-            pix = pixCreate(w, h, 2);
+            pix1 = pixCreate(w, h, 2);
             cmap = pixcmapCreate(2);
             pixcmapAddColor(cmap, 255, 255, 255);
             pixcmapAddColor(cmap, 0, 0, 0);
-            pixcmapAddColor(cmap, 255, 0, 0);  /* for box outlines */
-            pixSetColormap(pix, cmap);
+            pixSetColormap(pix1, cmap);
         }
-        pixaAddPix(pixad, pix, L_INSERT);
+        pixaAddPix(pixad, pix1, L_INSERT);
     }
 
         /* Put the class templates into a pixa. */
@@ -2129,27 +2132,57 @@ PTA      *ptaul;
         return (PIXA *)ERROR_PTR("pixat not made", __func__, NULL);
     }
 
-        /* Place each component in the right location on its page. */
+        /* Place each component in the right location on its page.
+         * For debug, first generate the boxa of component bounding
+         * boxes for each page, and save the results in a boxaa.
+         * Nota bene. In general we cannot use rasterop on colormap
+         * indices with operations like PIX_SRC | PIX_DST.  So we must
+         * do the rasterop of image components first, and then paint
+         * the component bounding boxes later.  We can use rasterop
+         * on the 2 bpp pix here because the colormap has only two
+         * index values, 0 and 1, * so doing a bit-or between pixels
+         * only affects the lower-order bit and does not generate
+         * spurious colormap indices. */
+    if (debugflag == TRUE) {
+        baa = boxaaCreate(npages);
+        boxa = boxaCreate(0);
+        boxaaInitFull(baa, boxa);
+        boxaDestroy(&boxa);
+    }
     for (i = 0; i < ncomp; i++) {
         numaGetIValue(napage, i, &ipage);
         numaGetIValue(naclass, i, &iclass);
-        pix = pixaGetPix(pixat, iclass, L_CLONE);  /* the template */
-        wp = pixGetWidth(pix);
-        hp = pixGetHeight(pix);
+        pix1 = pixaGetPix(pixat, iclass, L_CLONE);  /* the template */
+        wp = pixGetWidth(pix1);
+        hp = pixGetHeight(pix1);
         ptaGetIPt(ptaul, i, &x, &y);
         pixd = pixaGetPix(pixad, ipage, L_CLONE);   /* the output page */
         if (debugflag == FALSE) {
-            pixRasterop(pixd, x, y, wp, hp, PIX_SRC | PIX_DST, pix, 0, 0);
+            pixRasterop(pixd, x, y, wp, hp, PIX_SRC | PIX_DST, pix1, 0, 0);
         } else {
-            pixt2 = pixConvert1To2Cmap(pix);
-            pixRasterop(pixd, x, y, wp, hp, PIX_SRC | PIX_DST, pixt2, 0, 0);
+            pix2 = pixConvert1To2Cmap(pix1);
+            pixRasterop(pixd, x, y, wp, hp, PIX_SRC | PIX_DST, pix2, 0, 0);
+            boxa = boxaaGetBoxa(baa, ipage, L_CLONE);
             box = boxCreate(x, y, wp, hp);
-            pixRenderBoxArb(pixd, box, 1, 255, 0, 0);
-            pixDestroy(&pixt2);
-            boxDestroy(&box);
+            boxaAddBox(boxa, box, L_INSERT);
+            boxaDestroy(&boxa);  /* clone */
+            pixDestroy(&pix2);  /* clone */
         }
-        pixDestroy(&pix);   /* the clone only */
-        pixDestroy(&pixd);  /* the clone only */
+        pixDestroy(&pix1);   /* clone */
+        pixDestroy(&pixd);  /* clone */
+    }
+
+        /* For debug, for each page image, render the box outlines in red.
+         * This adds a red colormap entry to each page. */
+    if (debugflag == TRUE) {
+        for (i = 0; i < npages; i++) {
+            pixd = pixaGetPix(pixad, i, L_CLONE);
+            boxa = boxaaGetBoxa(baa, i, L_CLONE);
+            pixRenderBoxaArb(pixd, boxa, 1, 255, 0, 0);
+            pixDestroy(&pixd);   /* clone */
+            boxaDestroy(&boxa);  /* clone */
+        }
+        boxaaDestroy(&baa);
     }
 
     pixaDestroy(&pixat);
