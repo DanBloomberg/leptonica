@@ -1678,6 +1678,7 @@ LEPT_DLL extern NUMA * pixaFindWidthHeightProduct ( PIXA *pixa );
 LEPT_DLL extern l_ok pixFindOverlapFraction ( PIX *pixs1, PIX *pixs2, l_int32 x2, l_int32 y2, l_int32 *tab, l_float32 *pratio, l_int32 *pnoverlap );
 LEPT_DLL extern BOXA * pixFindRectangleComps ( PIX *pixs, l_int32 dist, l_int32 minw, l_int32 minh );
 LEPT_DLL extern l_ok pixConformsToRectangle ( PIX *pixs, BOX *box, l_int32 dist, l_int32 *pconforms );
+LEPT_DLL extern PIX * pixExtractRectangularRegions ( PIX *pixs, BOXA *boxa );
 LEPT_DLL extern PIXA * pixClipRectangles ( PIX *pixs, BOXA *boxa );
 LEPT_DLL extern PIX * pixClipRectangle ( PIX *pixs, BOX *box, BOX **pboxc );
 LEPT_DLL extern PIX * pixClipRectangleWithBorder ( PIX *pixs, BOX *box, l_int32 maxbord, BOX **pboxn );

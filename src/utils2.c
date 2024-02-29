@@ -1893,7 +1893,8 @@ FILE  *fp;
         return (FILE*)ERROR_PTR_1("tail not found", filename, __func__, NULL);
     fp = fopen(tail, "rb");
     if (!fp)
-        fp = (FILE *)ERROR_PTR_1("file not found", tail, __func__, NULL);
+        L_ERROR("failed to open locally with tail %s for filename %s\n",
+                __func__, tail, filename);
     LEPT_FREE(tail);
     return fp;
 }

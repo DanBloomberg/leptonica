@@ -53,7 +53,8 @@
  *           BOXA       *pixFindRectangleComps()
  *           l_int32     pixConformsToRectangle()
  *
- *    Extract rectangular region
+ *    Extract rectangular regions
+ *           PIX        *pixExtractRectangularRegions()
  *           PIXA       *pixClipRectangles()
  *           PIX        *pixClipRectangle()
  *           PIX        *pixClipRectangleWithBorder()
@@ -911,8 +912,48 @@ PIX     *pix1, *pix2;
 
 
 /*-----------------------------------------------------------------------*
- *                      Extract rectangular region                       *
+ *                      Extract rectangular regions                      *
  *-----------------------------------------------------------------------*/
+/*!
+ * \brief   pixExtractRectangularRegions()
+ *
+ * \param[in]    pixs
+ * \param[in]    boxa  regions to extract
+ * \return  pix  with extracted regions, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *     (1) The returned pix has the rectangular regions clipped from
+ *         the input pixs.
+ *     (2) We could equally well do this operation using a mask of 1's over
+ *         the regions determined by the boxa:
+ *           pix1 = pixCreateTemplate(pixs);
+ *           pixMaskBoxa(pix1, pix1, boxa, L_SET_PIXELS);
+ *           pixAnd(pix1, pix1, pixs);
+ * </pre>
+ */
+PIX *
+pixExtractRectangularRegions(PIX   *pixs,
+                             BOXA  *boxa)
+{
+l_int32  w, h;
+PIX     *pix1;
+PIXA    *pixa1;
+
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
+    if (!boxa)
+        return (PIX *)ERROR_PTR("boxa not defined", __func__, NULL);
+
+    if ((pixa1 = pixClipRectangles(pixs, boxa)) == NULL)
+        return (PIX *)ERROR_PTR("pixa1 not made", __func__, NULL);
+    pixGetDimensions(pixs, &w, &h, NULL);
+    pix1 = pixaDisplay(pixa1, w, h);
+    pixaDestroy(&pixa1);
+    return pix1;
+}
+
+
 /*!
  * \brief   pixClipRectangles()
  *
@@ -922,7 +963,7 @@ PIX     *pix1, *pix2;
  *
  * <pre>
  * Notes:
- *     (1) The returned pixa includes the actual regions clipped out from
+ *     (1) The boxa in the returned pixa has the regions clipped from
  *         the input pixs.
  * </pre>
  */

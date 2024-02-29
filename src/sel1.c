@@ -154,8 +154,8 @@ static const l_int32 InitialPtrArraySize = 50;      /*!< n'importe quoi */
 static const l_uint32  MaxKernelSize = 10000;
 
     /* Bounds on pix template size */
-static const l_uint32  MaxPixTemplateSize = 100;
-static const l_uint32  MaxPixTemplateHits = 1000;
+static const l_uint32  MaxPixTemplateSize = 300;
+static const l_uint32  MaxPixTemplateHits = 3000;
 
     /* Static functions */
 static l_int32 selaExtendArray(SELA *sela);
@@ -1949,11 +1949,15 @@ l_uint32  val;
         L_ERROR("pix template too large (w = %d, h = %d)\n", __func__, w, h);
         return NULL;
     }
+    if (w > MaxPixTemplateSize / 5 || h > MaxPixTemplateSize / 5)
+        L_WARNING("large pix template: w = %d, h = %d\n", __func__, w, h);
     pixCountPixels(pix, &nhits, NULL);
     if (nhits > MaxPixTemplateHits) {
         L_ERROR("too many hits (%d) in pix template\n", __func__, nhits);
         return NULL;
     }
+    if (nhits > MaxPixTemplateHits / 5)
+        L_WARNING("many hits (%d) in pix template\n", __func__, nhits);
 
     sel = selCreate(h, w, name);
     selSetOrigin(sel, cy, cx);
