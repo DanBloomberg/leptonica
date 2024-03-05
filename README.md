@@ -1,6 +1,6 @@
 # Leptonica Library #
 
-![Build status](https://github.com/DanBloomberg/leptonica/workflows/sw/badge.svg)
+[![sw](https://github.com/DanBloomberg/leptonica/actions/workflows/sw.yml/badge.svg)](https://github.com/DanBloomberg/leptonica/actions/workflows/sw.yml)
 
 www.leptonica.org
 
