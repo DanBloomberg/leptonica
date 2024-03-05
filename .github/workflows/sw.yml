@@ -23,7 +23,7 @@ jobs:
     - run: ./sw build -static -shared -config d,r
    
   macos:
-    runs-on: macos-14
+    runs-on: macos-13
     steps:
     - uses: actions/checkout@v4
     - uses: egorpugin/sw-action@master
