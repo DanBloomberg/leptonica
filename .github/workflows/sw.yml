@@ -18,9 +18,9 @@ jobs:
     - name: prepare
       run: |
         sudo dnf -y update
-        sudo dnf -y install cmake which gcc
+        sudo dnf -y install cmake which g++
     - uses: egorpugin/sw-action@master
-    - run: ./sw build -static -shared -config d,r -trace -bt
+    - run: ./sw build -static -shared -config d,r
    
   macos:
     runs-on: macos-13
