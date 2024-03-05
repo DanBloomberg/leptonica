@@ -38,9 +38,11 @@
 #include "allheaders.h"
 
     /* In case libpng is not enabled */
+#if defined(HAVE_LIBPNG)
 static const char fname_png[64] = "/tmp/lept/regout/blend2.14.png";
+#else
 static const char fname_bmp[64] = "/tmp/lept/regout/blend2.14.bmp";
-
+#endif
 
 int main(int    argc,
          char **argv)

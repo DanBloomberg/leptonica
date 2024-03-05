@@ -971,7 +971,7 @@ OpjBuffer     buffer;
  *---------------------------------------------------------------------*/
 static OPJ_SIZE_T
 opj_read_from_buffer(void *p_buffer, OPJ_SIZE_T p_nb_bytes, OpjBuffer *pbuf) {
-    if (pbuf->pos < 0 || pbuf->pos > pbuf->len)
+    if (pbuf->pos > pbuf->len)
         return (OPJ_SIZE_T) - 1;
 
     OPJ_SIZE_T l_nb_read = pbuf->len - pbuf->pos;
@@ -985,9 +985,6 @@ opj_read_from_buffer(void *p_buffer, OPJ_SIZE_T p_nb_bytes, OpjBuffer *pbuf) {
 static OPJ_SIZE_T
 opj_write_from_buffer(const void *p_buffer, OPJ_SIZE_T p_nb_bytes,
                       OpjBuffer *pbuf) {
-    if (pbuf->pos < 0)
-        return 0;
-
     size_t newpos = pbuf->pos + p_nb_bytes;
     if (newpos > pbuf->size) {
         size_t oldsize = pbuf->size;
