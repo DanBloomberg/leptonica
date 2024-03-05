@@ -94,6 +94,8 @@ SELA        *sela;
                     "==========================================\n");
     }
 
+        /* Note that with the choice of width and height, there is
+         * no situation where they are both 1 (a no-op).  */
     for (i = 0; i < 3; i++) {
         w = width[i];
         h = height[i];

@@ -722,6 +722,9 @@ PIXA      *pixa1;
         pixaAddPix(pixa1, pixd, L_INSERT);  /* save diff image */
         pixd = pixaDisplayTiledInColumns(pixa1, 2, 1.0, 30, 2);  /* all 3 */
         pixaDestroy(&pixa1);
+    } else if (d1 != 1) {
+        pixDestroy(&pix3);
+        pixDestroy(&pix4);
     }
     return pixd;
 }

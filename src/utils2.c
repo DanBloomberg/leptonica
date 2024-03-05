@@ -391,7 +391,7 @@ l_int32  i;
     }
 
         /* Didn't find a NUL byte */
-    L_ERROR("NUL byte not found in %d bytes\n", __func__, size);
+    L_ERROR("NUL byte not found in %zu bytes\n", __func__, size);
     return size;
 }
 
@@ -3090,7 +3090,7 @@ genPathname(const char  *dir,
 l_int32  rewrite_tmp = TRUE;
 #else
 l_int32  rewrite_tmp = FALSE;
-#endif  /* _WIN32 */
+#endif  /* REWRITE_TMP */
 char    *cdir, *pathout;
 l_int32  dirlen, namelen;
 size_t   size;

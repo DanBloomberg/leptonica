@@ -99,14 +99,18 @@ They are <i>not</i> a complete listing of the modifications.
         * Achieve consistency with fclose() in library and lept_fclose()
           in progs.  Ditto for lept_free, lept_calloc, lept_fopen(), etc.
         * Fix generation of bad colormap indices in jbcorrelation and jbrankhaus
-        * Source files changed: adaptmap.c gplot.c, grayquant.c, jp2kheader.c,
+        * Fixed coverity scan issues.
+        * Source files changed: adaptmap.c compare.c,
+          gplot.c, grayquant.c, jp2kheader.c,
           jp2kheaderstub.c, jp2kio.c, partify.c, pdfio2.c, pixconv.c,
-          psio2.c, readfile.c, utils2.c, writefile.c, allheaders.h, environ.h
-        * Prog files changed: libre_makefigs.c, cleanpdf.c croppdf.c,
-          compresspdf.c, alltests_reg.c, htmlviewer.c, jp2kio_reg.c,
+          psio2.c, readfile.c, sel1.c, utils2.c, writefile.c,
+          allheaders.h, environ.h
+        * Prog files changed: alltests_reg.c, binmorph3_reg.c,
+          blend2_reg.c, cleanpdf.c, compressedpdf.c, croppdf.c,
+          htmlviewer.c, jp2kio_reg.c, libre_makefigs.c,
           pdfio2_reg.c, printimage.c, printsplitimage.c,
-          printtiff.c, psioseg_reg.c,
-          splitpdf.c, tiffpdftest.c, xtractprotos.c
+          printtiff.c, psioseg_reg.c, splitpdf.c,
+          string_reg.c, tiffpdftest.c, xtractprotos.c
 
 1.84.1  Jan 3, 2024
         * Remove support for openjpeg versions < 2.1.

@@ -1128,17 +1128,17 @@ PIXCMAP  *cmap;
     if (format == IFF_JP2) {
         fpin = fopenReadStream(filename);
         fgetJp2kResolution(fpin, &xres, &yres);
-        fclose(fpin);
+        if (fpin) fclose(fpin);
         fprintf(fpout, "  xres = %d, yres = %d\n", xres, yres);
     } else if (format == IFF_PNG) {
         fpin = fopenReadStream(filename);
         fgetPngResolution(fpin, &xres, &yres);
-        fclose(fpin);
+        if (fpin) fclose(fpin);
         fprintf(fpout, "  xres = %d, yres = %d\n", xres, yres);
         if (iscmap) {
             fpin = fopenReadStream(filename);
             fgetPngColormapInfo(fpin, &cmap, &transparency);
-            fclose(fpin);
+            if (fpin) fclose(fpin);
             if (transparency)
                 fprintf(fpout, "  colormap has transparency\n");
             else
@@ -1149,7 +1149,7 @@ PIXCMAP  *cmap;
     } else if (format == IFF_JFIF_JPEG) {
         fpin = fopenReadStream(filename);
         fgetJpegResolution(fpin, &xres, &yres);
-        fclose(fpin);
+        if (fpin) fclose(fpin);
         fprintf(fpout, "  xres = %d, yres = %d\n", xres, yres);
     }
 
@@ -1202,7 +1202,7 @@ PIXCMAP  *cmap;
         fprintf(fpout, "  Tiff header information:\n");
         fpin = fopenReadStream(filename);
         tiffGetCount(fpin, &npages);
-        fclose(fpin);
+        if (fpin) fclose(fpin);
         if (npages == 1)
             fprintf(fpout, "    One page in file\n");
         else

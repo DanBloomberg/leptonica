@@ -193,7 +193,9 @@ SARRAY  *sa;
     setLeptDebugOK(1);
 
         /* Set up a directory for temp images */
-    imagedir = stringJoin(basedir, "/image");
+    if ((imagedir = stringJoin(basedir, "/image")) == NULL)
+        return ERROR_INT_1("imagedir from basedir not found", basedir,
+                           __func__, 1);
   #ifndef _WIN32
     mkdir(imagedir, 0777);
   #else
