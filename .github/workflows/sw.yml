@@ -20,7 +20,7 @@ jobs:
         sudo dnf -y update
         sudo dnf -y install cmake which gcc
     - uses: egorpugin/sw-action@master
-    - run: ./sw build -static -shared -config d,r
+    - run: ./sw build -static -shared -config d,r -bt
    
   macos:
     runs-on: macos-13
