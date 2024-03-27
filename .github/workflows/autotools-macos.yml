@@ -37,9 +37,15 @@ jobs:
            ${{ matrix.config.cc }} --version
            git log -3 --pretty=format:'%h %ad %s | %an'
 
+    - name: Clean Homebrew installation
+      run: |
+           brew uninstall aws-sam-cli azure-cli bazelisk
+           brew uninstall python@3.11
+           brew uninstall geckodriver firefox google-chrome microsoft-edge
+
     - name: Install dependencies
       run: |
-           brew install autoconf automake gnuplot
+           brew install automake gnuplot || true
 
     - name: Setup Leptonica
       run: |
