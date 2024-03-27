@@ -25,7 +25,7 @@
  *====================================================================*/
 
 /*
- * findpattern_reg.c
+ * findpattern1_reg.c
  *
  *    This uses pixGenerateSelBoundary() to generate hit-miss Sels
  *    that are a good fit for two 1 bpp patterns:

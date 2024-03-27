@@ -109,7 +109,8 @@ static const char *tests[] = {
                               "fhmtauto_reg",
                          /*   "files_reg",  */
                               "findcorners_reg",
-                              "findpattern_reg",
+                              "findpattern1_reg",
+                              "findpattern2_reg",
                               "flipdetect_reg",
                               "fpix1_reg",
                               "fpix2_reg",

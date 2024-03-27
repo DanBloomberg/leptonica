@@ -48,11 +48,12 @@
  *      in any direction from the Sel origin), they can also be used
  *      to auto-generate dwa code (fmorphauto.c).
  *
+ *      In production, use pixGenerateSelBoundary().
  *
  *      Generate a subsampled structuring element
+ *            SEL     *pixGenerateSelBoundary()
  *            SEL     *pixGenerateSelWithRuns()
  *            SEL     *pixGenerateSelRandom()
- *            SEL     *pixGenerateSelBoundary()
  *
  *      Accumulate data on runs along lines
  *            NUMA    *pixGetRunCentersOnLine()
@@ -95,6 +96,162 @@ static const l_int32  MaxSelScalefactor = 31;  /* should be big enough */
 /*-----------------------------------------------------------------*
  *           Generate a subsampled structuring element             *
  *-----------------------------------------------------------------*/
+
+/*!
+ * \brief   pixGenerateSelBoundary()
+ *
+ * \param[in]    pixs        1 bpp, typically small, to be used as a pattern
+ * \param[in]    hitdist     min distance from fg boundary pixel
+ * \param[in]    missdist    min distance from bg boundary pixel
+ * \param[in]    hitskip     number of boundary pixels skipped between hits
+ * \param[in]    missskip    number of boundary pixels skipped between misses
+ * \param[in]    topflag     flag for extra pixels of bg added above
+ * \param[in]    botflag     flag for extra pixels of bg added below
+ * \param[in]    leftflag    flag for extra pixels of bg added to left
+ * \param[in]    rightflag   flag for extra pixels of bg added to right
+ * \param[out]   ppixe       [optional] input pix expanded by extra pixels
+ * \return  sel hit-miss for input pattern, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *    (1) All fg elements selected are exactly hitdist pixels away from
+ *        the nearest fg boundary pixel, and ditto for bg elements.
+ *        Valid inputs of hitdist and missdist are 0, 1, 2, 3 and 4.
+ *        For example, a hitdist of 0 puts the hits at the fg boundary.
+ *        Usually, the distances should be > 0 avoid the effect of
+ *        noise at the boundary.
+ *    (2) Set hitskip < 0 if no hits are to be used.  Ditto for missskip.
+ *        If both hitskip and missskip are < 0, the sel would be empty,
+ *        and NULL is returned.
+ *    (3) The 4 flags determine whether the sel is increased on that side
+ *        to allow bg misses to be placed all along that boundary.
+ *        The increase in sel size on that side is the minimum necessary
+ *        to allow the misses to be placed at mindist.  For text characters,
+ *        the topflag and botflag are typically set to 1, and the leftflag
+ *        and rightflag to 0.
+ *    (4) The input pix, as extended by the extra pixels on selected sides,
+ *        can optionally be returned.  For debugging, call
+ *        pixDisplayHitMissSel() to visualize the hit-miss sel superimposed
+ *        on the generating bitmap.
+ *    (5) This is the best of the three sel generators: it gives the most
+ *        flexibility with the smallest number of hits and misses.
+ *        The other two generators are presented as examples of other
+ *        approaches, but they should not be used in production.
+ * </pre>
+ */
+SEL *
+pixGenerateSelBoundary(PIX     *pixs,
+                       l_int32  hitdist,
+                       l_int32  missdist,
+                       l_int32  hitskip,
+                       l_int32  missskip,
+                       l_int32  topflag,
+                       l_int32  botflag,
+                       l_int32  leftflag,
+                       l_int32  rightflag,
+                       PIX      **ppixe)
+{
+l_int32  ws, hs, w, h, x, y, ix, iy, i, npt;
+PIX     *pixt1, *pixt2, *pixt3, *pixfg, *pixbg;
+SEL     *selh, *selm, *sel_3, *sel;
+PTA     *ptah = NULL, *ptam = NULL;
+
+    if (ppixe) *ppixe = NULL;
+    if (!pixs)
+        return (SEL *)ERROR_PTR("pixs not defined", __func__, NULL);
+    if (pixGetDepth(pixs) != 1)
+        return (SEL *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
+    if (hitdist < 0 || hitdist > 4 || missdist < 0 || missdist > 4)
+        return (SEL *)ERROR_PTR("dist not in {0 .. 4}", __func__, NULL);
+    if (hitskip < 0 && missskip < 0)
+        return (SEL *)ERROR_PTR("no hits or misses", __func__, NULL);
+
+        /* Locate the foreground */
+    pixClipToForeground(pixs, &pixt1, NULL);
+    if (!pixt1)
+        return (SEL *)ERROR_PTR("pixt1 not made", __func__, NULL);
+    ws = pixGetWidth(pixt1);
+    hs = pixGetHeight(pixt1);
+    w = ws;
+    h = hs;
+
+        /* Crop out a region including the foreground, and add pixels
+         * on sides depending on the side flags */
+    if (topflag || botflag || leftflag || rightflag) {
+        x = y = 0;
+        if (topflag) {
+            h += missdist + 1;
+            y = missdist + 1;
+        }
+        if (botflag)
+            h += missdist + 1;
+        if (leftflag) {
+            w += missdist + 1;
+            x = missdist + 1;
+        }
+        if (rightflag)
+            w += missdist + 1;
+        pixt2 = pixCreate(w, h, 1);
+        pixRasterop(pixt2, x, y, ws, hs, PIX_SRC, pixt1, 0, 0);
+    } else {
+        pixt2 = pixClone(pixt1);
+    }
+    if (ppixe)
+        *ppixe = pixClone(pixt2);
+    pixDestroy(&pixt1);
+
+        /* Identify fg and bg pixels that are exactly hitdist and
+         * missdist (rsp) away from the boundary pixels in their set.
+         * Then get a subsampled set of these points. */
+    sel_3 = selCreateBrick(3, 3, 1, 1, SEL_HIT);
+    if (hitskip >= 0) {
+        selh = selCreateBrick(2 * hitdist + 1, 2 * hitdist + 1,
+                              hitdist, hitdist, SEL_HIT);
+        pixt3 = pixErode(NULL, pixt2, selh);
+        pixfg = pixErode(NULL, pixt3, sel_3);
+        pixXor(pixfg, pixfg, pixt3);
+        ptah = pixSubsampleBoundaryPixels(pixfg, hitskip);
+        pixDestroy(&pixt3);
+        pixDestroy(&pixfg);
+        selDestroy(&selh);
+    }
+    if (missskip >= 0) {
+        selm = selCreateBrick(2 * missdist + 1, 2 * missdist + 1,
+                              missdist, missdist, SEL_HIT);
+        pixt3 = pixDilate(NULL, pixt2, selm);
+        pixbg = pixDilate(NULL, pixt3, sel_3);
+        pixXor(pixbg, pixbg, pixt3);
+        ptam = pixSubsampleBoundaryPixels(pixbg, missskip);
+        pixDestroy(&pixt3);
+        pixDestroy(&pixbg);
+        selDestroy(&selm);
+    }
+    selDestroy(&sel_3);
+    pixDestroy(&pixt2);
+
+        /* Generate the hit-miss sel from these point */
+    sel = selCreateBrick(h, w, h / 2, w / 2, SEL_DONT_CARE);
+    if (hitskip >= 0) {
+        npt = ptaGetCount(ptah);
+        for (i = 0; i < npt; i++) {
+            ptaGetIPt(ptah, i, &ix, &iy);
+            selSetElement(sel, iy, ix, SEL_HIT);
+        }
+    }
+    if (missskip >= 0) {
+        npt = ptaGetCount(ptam);
+        for (i = 0; i < npt; i++) {
+            ptaGetIPt(ptam, i, &ix, &iy);
+            selSetElement(sel, iy, ix, SEL_MISS);
+        }
+    }
+
+    ptaDestroy(&ptah);
+    ptaDestroy(&ptam);
+    return sel;
+}
+
+
 /*!
  * \brief   pixGenerateSelWithRuns()
  *
@@ -142,6 +299,7 @@ static const l_int32  MaxSelScalefactor = 31;  /* should be big enough */
  *        can optionally be returned.  For debugging, call
  *        pixDisplayHitMissSel() to visualize the hit-miss sel superimposed
  *        on the generating bitmap.
+ *    (6) This method is inferior to the boundary method.
  * </pre>
  */
 SEL *
@@ -330,6 +488,7 @@ SEL       *seld, *sel;
  *        can optionally be returned.  For debugging, call
  *        pixDisplayHitMissSel() to visualize the hit-miss sel superimposed
  *        on the generating bitmap.
+ *    (5) This method is inferior to both the boundary and run based methods.
  * </pre>
  */
 SEL *
@@ -438,160 +597,6 @@ SEL       *seld, *sel;
 
     pixDestroy(&pixfg);
     pixDestroy(&pixbg);
-    return sel;
-}
-
-
-/*!
- * \brief   pixGenerateSelBoundary()
- *
- * \param[in]    pixs        1 bpp, typically small, to be used as a pattern
- * \param[in]    hitdist     min distance from fg boundary pixel
- * \param[in]    missdist    min distance from bg boundary pixel
- * \param[in]    hitskip     number of boundary pixels skipped between hits
- * \param[in]    missskip    number of boundary pixels skipped between misses
- * \param[in]    topflag     flag for extra pixels of bg added above
- * \param[in]    botflag     flag for extra pixels of bg added below
- * \param[in]    leftflag    flag for extra pixels of bg added to left
- * \param[in]    rightflag   flag for extra pixels of bg added to right
- * \param[out]   ppixe       [optional] input pix expanded by extra pixels
- * \return  sel hit-miss for input pattern, or NULL on error
- *
- * <pre>
- * Notes:
- *    (1) All fg elements selected are exactly hitdist pixels away from
- *        the nearest fg boundary pixel, and ditto for bg elements.
- *        Valid inputs of hitdist and missdist are 0, 1, 2, 3 and 4.
- *        For example, a hitdist of 0 puts the hits at the fg boundary.
- *        Usually, the distances should be > 0 avoid the effect of
- *        noise at the boundary.
- *    (2) Set hitskip < 0 if no hits are to be used.  Ditto for missskip.
- *        If both hitskip and missskip are < 0, the sel would be empty,
- *        and NULL is returned.
- *    (3) The 4 flags determine whether the sel is increased on that side
- *        to allow bg misses to be placed all along that boundary.
- *        The increase in sel size on that side is the minimum necessary
- *        to allow the misses to be placed at mindist.  For text characters,
- *        the topflag and botflag are typically set to 1, and the leftflag
- *        and rightflag to 0.
- *    (4) The input pix, as extended by the extra pixels on selected sides,
- *        can optionally be returned.  For debugging, call
- *        pixDisplayHitMissSel() to visualize the hit-miss sel superimposed
- *        on the generating bitmap.
- *    (5) This is probably the best of the three sel generators, in the
- *        sense that you have the most flexibility with the smallest number
- *        of hits and misses.
- * </pre>
- */
-SEL *
-pixGenerateSelBoundary(PIX     *pixs,
-                       l_int32  hitdist,
-                       l_int32  missdist,
-                       l_int32  hitskip,
-                       l_int32  missskip,
-                       l_int32  topflag,
-                       l_int32  botflag,
-                       l_int32  leftflag,
-                       l_int32  rightflag,
-                       PIX      **ppixe)
-{
-l_int32  ws, hs, w, h, x, y, ix, iy, i, npt;
-PIX     *pixt1, *pixt2, *pixt3, *pixfg, *pixbg;
-SEL     *selh, *selm, *sel_3, *sel;
-PTA     *ptah = NULL, *ptam = NULL;
-
-    if (ppixe) *ppixe = NULL;
-    if (!pixs)
-        return (SEL *)ERROR_PTR("pixs not defined", __func__, NULL);
-    if (pixGetDepth(pixs) != 1)
-        return (SEL *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
-    if (hitdist < 0 || hitdist > 4 || missdist < 0 || missdist > 4)
-        return (SEL *)ERROR_PTR("dist not in {0 .. 4}", __func__, NULL);
-    if (hitskip < 0 && missskip < 0)
-        return (SEL *)ERROR_PTR("no hits or misses", __func__, NULL);
-
-        /* Locate the foreground */
-    pixClipToForeground(pixs, &pixt1, NULL);
-    if (!pixt1)
-        return (SEL *)ERROR_PTR("pixt1 not made", __func__, NULL);
-    ws = pixGetWidth(pixt1);
-    hs = pixGetHeight(pixt1);
-    w = ws;
-    h = hs;
-
-        /* Crop out a region including the foreground, and add pixels
-         * on sides depending on the side flags */
-    if (topflag || botflag || leftflag || rightflag) {
-        x = y = 0;
-        if (topflag) {
-            h += missdist + 1;
-            y = missdist + 1;
-        }
-        if (botflag)
-            h += missdist + 1;
-        if (leftflag) {
-            w += missdist + 1;
-            x = missdist + 1;
-        }
-        if (rightflag)
-            w += missdist + 1;
-        pixt2 = pixCreate(w, h, 1);
-        pixRasterop(pixt2, x, y, ws, hs, PIX_SRC, pixt1, 0, 0);
-    } else {
-        pixt2 = pixClone(pixt1);
-    }
-    if (ppixe)
-        *ppixe = pixClone(pixt2);
-    pixDestroy(&pixt1);
-
-        /* Identify fg and bg pixels that are exactly hitdist and
-         * missdist (rsp) away from the boundary pixels in their set.
-         * Then get a subsampled set of these points. */
-    sel_3 = selCreateBrick(3, 3, 1, 1, SEL_HIT);
-    if (hitskip >= 0) {
-        selh = selCreateBrick(2 * hitdist + 1, 2 * hitdist + 1,
-                              hitdist, hitdist, SEL_HIT);
-        pixt3 = pixErode(NULL, pixt2, selh);
-        pixfg = pixErode(NULL, pixt3, sel_3);
-        pixXor(pixfg, pixfg, pixt3);
-        ptah = pixSubsampleBoundaryPixels(pixfg, hitskip);
-        pixDestroy(&pixt3);
-        pixDestroy(&pixfg);
-        selDestroy(&selh);
-    }
-    if (missskip >= 0) {
-        selm = selCreateBrick(2 * missdist + 1, 2 * missdist + 1,
-                              missdist, missdist, SEL_HIT);
-        pixt3 = pixDilate(NULL, pixt2, selm);
-        pixbg = pixDilate(NULL, pixt3, sel_3);
-        pixXor(pixbg, pixbg, pixt3);
-        ptam = pixSubsampleBoundaryPixels(pixbg, missskip);
-        pixDestroy(&pixt3);
-        pixDestroy(&pixbg);
-        selDestroy(&selm);
-    }
-    selDestroy(&sel_3);
-    pixDestroy(&pixt2);
-
-        /* Generate the hit-miss sel from these point */
-    sel = selCreateBrick(h, w, h / 2, w / 2, SEL_DONT_CARE);
-    if (hitskip >= 0) {
-        npt = ptaGetCount(ptah);
-        for (i = 0; i < npt; i++) {
-            ptaGetIPt(ptah, i, &ix, &iy);
-            selSetElement(sel, iy, ix, SEL_HIT);
-        }
-    }
-    if (missskip >= 0) {
-        npt = ptaGetCount(ptam);
-        for (i = 0; i < npt; i++) {
-            ptaGetIPt(ptam, i, &ix, &iy);
-            selSetElement(sel, iy, ix, SEL_MISS);
-        }
-    }
-
-    ptaDestroy(&ptah);
-    ptaDestroy(&ptam);
     return sel;
 }
 

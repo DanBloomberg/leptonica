@@ -143,7 +143,8 @@ LEPT_DLL const char *ImageFileFormatExtensions[] =
           "default",
           ""};
 
-    /* Local map of image file name extension to output format */
+    /* Local map of image file name extension to output format.
+     * Note that the extension string always includes a '.'  */
 struct ExtensionMap
 {
     char     extension[16];
