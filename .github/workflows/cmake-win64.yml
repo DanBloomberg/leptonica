@@ -109,15 +109,15 @@ jobs:
       - name: Build and Install lzma
         shell: cmd
         run: |
-             ; curl -sSL https://sourceforge.net/projects/lzmautils/files/xz-5.4.3.tar.zst/download -o xz-5.4.5.tar.zst
-             ; zstd -d xz-5.4.5.tar.zst
-             ; tar xf  xz-5.4.5.tar
-             ; cd xz-5.4.5
-             git clone --depth 1 https://github.com/tukaani-project/xz.git
-             cd xz
-             cmake -Bbuild -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON
-             cmake --build build --config Release --target install
-             cd ..
+             curl -sSL https://sourceforge.net/projects/lzmautils/files/xz-5.4.3.tar.zst/download -o xz-5.4.5.tar.zst
+             zstd -d xz-5.4.5.tar.zst
+             tar xf  xz-5.4.5.tar
+             cd xz-5.4.5
+             ; git clone --depth 1 https://github.com/tukaani-project/xz.git
+             ; cd xz
+             ; cmake -Bbuild -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON
+             ; cmake --build build --config Release --target install
+             ; cd ..
              
       - name: Build and Install libtiff
         shell: cmd
