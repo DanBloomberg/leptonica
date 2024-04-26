@@ -878,6 +878,8 @@ l_int32  n, x1, y1, x2, y2, x3, y3, x4, y4, x, y, xmax, ymax;
     if (!pta)
         return (BOX *)ERROR_PTR("pta not defined", __func__, NULL);
     n = ptaGetCount(pta);
+    if (n != 2 && n != 4)
+        return (BOX *)ERROR_PTR("n must be 2 or 4", __func__, NULL);
     ptaGetIPt(pta, 0, &x1, &y1);
     ptaGetIPt(pta, 1, &x2, &y2);
     if (n == 2)

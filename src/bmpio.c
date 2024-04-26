@@ -565,7 +565,8 @@ RGBA_QUAD  *pquad;
     }
 
 #if DEBUG
-    {l_uint8  *pcmptr;
+    if (pixGetColormap(pix) != NULL) {
+        l_uint8  *pcmptr;
         pcmptr = (l_uint8 *)pixGetColormap(pix)->array;
         lept_stderr("Pix colormap[0] = %c%c%c%d\n",
                     pcmptr[0], pcmptr[1], pcmptr[2], pcmptr[3]);
