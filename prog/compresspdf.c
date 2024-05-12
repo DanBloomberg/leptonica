@@ -225,7 +225,7 @@ SARRAY    *sa;
     lept_stderr("compressing ...\n");
     compressFilesToPdf(sa, onebit, savecolor, scalefactor, quality,
                        title, fileout);
-
+    sarrayDestroy(&sa);
     return 0;
 }
 

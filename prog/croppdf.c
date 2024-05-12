@@ -172,7 +172,7 @@ SARRAY    *sa;
     lept_stderr("cropping ...\n");
     cropFilesToPdf(sa, lrclear, tbclear, edgeclean, lradd, tbadd, maxwiden,
                    title, fileout);
-
+    sarrayDestroy(&sa);
     return 0;
 }
 
