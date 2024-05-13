@@ -35,5 +35,5 @@ jobs:
         export PATH="/opt/homebrew/opt/flex/bin:$PATH"
         export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
         export PATH="/opt/homebrew/opt/gcc/bin:$PATH"
-        ./sw build -static -shared -config d,r -compiler gcc-14 --trace
+        ./sw build -static -shared -config d,r -compiler gcc-14 -bt
         
