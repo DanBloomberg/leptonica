@@ -23,17 +23,17 @@ jobs:
     - run: ./sw build -static -shared -config d,r
    
   macos:
-    runs-on: macos-13
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
     - uses: egorpugin/sw-action@master
     - name: install
-      run: brew install flex bison gcc      
-    #- run: sudo xcode-select --switch /Library/Developer/CommandLineTools
+      run: brew install flex bison gcc
     - name: build
-      run: |
-        export PATH="/usr/local/opt/flex/bin:$PATH"
-        export PATH="/usr/local/opt/bison/bin:$PATH"
-        export PATH="/usr/local/opt/gcc/bin:$PATH"
-        ./sw build -static -shared -config d,r -compiler gcc-13
+      run: |      
+        export PATH="/opt/homebrew/opt/bison/bin:$PATH"
+        export PATH="/opt/homebrew/opt/flex/bin:$PATH"
+        export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+        export PATH="/opt/homebrew/opt/gcc/bin:$PATH"
+        ./sw build -static -shared -config d,r -compiler gcc-14
         
