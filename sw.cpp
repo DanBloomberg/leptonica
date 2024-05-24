@@ -304,6 +304,7 @@ void build(Solution &s)
             {"maptest", {"maptest.c"}},
             {"messagetest", {"messagetest.c"}},
             {"misctest1", {"misctest1.c"}},
+            {"misctest2", {"misctest2.c"}},
             {"modifyhuesat", {"modifyhuesat.c"}},
             {"morphseq_reg", {"morphseq_reg.c"}},
             {"morphtest1", {"morphtest1.c"}},

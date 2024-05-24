@@ -43,10 +43,11 @@
  *          PIX      *pixGenTextblockMask()
  *
  *      Location and extraction of page foreground; cleaning pages
- *          PIX      *pixCropImage()
- *          PIX      *pixRescaleForCropping()
- *          PIX      *pixCleanImage()
- *          BOX      *pixFindPageForeground()
+ *          PIX            *pixCropImage()
+ *          static l_int32  pixMaxCompAfterVClosing()
+ *          static PIX     *pixRescaleForCropping()
+ *          PIX            *pixCleanImage()
+ *          BOX            *pixFindPageForeground()
  *
  *      Extraction of characters from image with only text
  *          l_int32   pixSplitIntoCharacters()
@@ -93,6 +94,10 @@
     /* These functions are not intended to work on very low-res images */
 static const l_int32  MinWidth = 100;
 static const l_int32  MinHeight = 100;
+
+static PIX *pixRescaleForCropping(PIX *pixs, l_int32 w, l_int32 h,
+                                  l_int32 lr_border, l_int32 tb_border,
+                                  l_float32 maxwiden, PIX **ppixsc);
 
 /*------------------------------------------------------------------*
  *                     Top level page segmentation                  *
@@ -534,9 +539,10 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  * \param[in]    pixs        full resolution (any type or depth)
  * \param[in]    lr_clear    full res pixels cleared at left and right sides
  * \param[in]    tb_clear    full res pixels cleared at top and bottom sides
- * \param[in]    edgeclean   parameter for removing edge noise (0-15)
+ * \param[in]    edgeclean   parameter for removing edge noise (-1 to 15)
  *                           default = 0 (no removal);
- *                           15 is maximally aggressive
+ *                           15 is maximally aggressive for random noise
+ *                           -1 for aggressively removing side noise
  * \param[in]    lr_border   full res final "added" pixels on left and right
  * \param[in]    tb_border   full res final "added" pixels on top and bottom
  * \param[in]    maxwiden    max fractional horizontal stretch allowed
@@ -551,6 +557,9 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  *          (b) Clears near the border by %lr_clear/2 and %tb_clear/2 pixels
  *          (c) If %edgeclean > 0, it removes isolated sets of pixels,
  *              using a close/open operation of size %edgeclean + 1.
+ *              If %edgeclean < 0, it uses a large vertical morphological
+ *              closing and the extraction of the largest resulting
+ *              connected component to eliminate noise on left and right sides.
  *          (d) Find the bounding box of remaining fg pixels and scales
  *              the box up 2x back to full resolution.
  *          (e) Crops the binarized image to the bounding box.
@@ -566,7 +575,9 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  *      (4) The "clear" parameters act on the input image, whereas the
  *          "border" parameters act to give a white border to the final
  *          image.  They are not literally added, because the input and final
- *          images are the same size.
+ *          images are the same size.  If the resulting images are to be
+ *          printed, it is useful to have border pixel parameters of at
+ *          least 60 at 300 ppi, to avoid losing content at the edges.
  *      (5) This is not intended to work on small thumbnails.  The
  *          dimensions of pixs must be at least MinWidth x MinHeight.
  *      (6) Step (f) above helps with orthographically-produced music notation,
@@ -586,7 +597,7 @@ pixCropImage(PIX         *pixs,
              BOX        **pcropbox)
 {
 char     cmd[64];
-l_int32  w, h, val;
+l_int32  w, h, val, ret;
 BOX     *box1, *box2;
 PIX     *pix1, *pix2, *pix3;
 PIXA    *pixa1;
@@ -594,7 +605,6 @@ PIXA    *pixa1;
     if (pcropbox) *pcropbox = NULL;
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
-    if (edgeclean < 0) edgeclean = 0;
     if (edgeclean > 15) {
         L_WARNING("edgeclean > 15; setting to 15\n", __func__);
         edgeclean = 15;
@@ -628,18 +638,30 @@ PIXA    *pixa1;
                         tb_clear / 2, PIX_CLR);
     if (pixa1) pixaAddPix(pixa1, pixScale(pix2, 2.0, 2.0), L_INSERT);
 
-        /* Optional morphological close/open and find the bounding box
-         * of the foreground pixels. */
+        /* Choose one of three methods for extracting foreground pixels:
+         * (1) Include all foreground pixels
+         * (2) Do a morphological close/open to remove noise throughout
+         *     the image before finding a b.b. for remaining f.g. pixels
+         * (3) Do a large vertical closing and choose the largest (by area)
+         *     component to avoid foreground noise on left and right sides */
     if (edgeclean == 0) {
-        pixClipToForeground(pix2, NULL, &box1);
-    } else {
+        ret = pixClipToForeground(pix2, NULL, &box1);
+    } else if (edgeclean > 0) {
         val = edgeclean + 1;
         snprintf(cmd, 64, "c%d.%d + o%d.%d", val, val, val, val);
         pix3 = pixMorphSequence(pix2, cmd, 0);
-        pixClipToForeground(pix3, NULL, &box1);
+        ret = pixClipToForeground(pix3, NULL, &box1);
         pixDestroy(&pix3);
+    } else {  /* edgeclean < 0) */
+        ret = pixMaxCompAfterVClosing(pix2, &box1);
     }
     pixDestroy(&pix2);
+    if (ret) {
+        L_ERROR("no returned b.b. for foreground\n", __func__);
+        pixDestroy(&pix1);
+        pixaDestroy(&pixa1);
+        return NULL;
+    }
 
         /* Transform to full resolution */
     box2 = boxTransform(box1, 0, 0, 2.0, 2.0);  /* full res */
@@ -684,6 +706,65 @@ PIXA    *pixa1;
 
 
 /*!
+ * \brief   pixMaxCompAfterVClosing()
+ *
+ * \param[in]    pixs        1 bpp (input at 2x reduction)
+ * \param[out]  **pbox       main region at input resolution (2x reduction)
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This removes foreground noise along left and right edges,
+ *          returning a bounding box for the remaining foreground pixels
+ *          at the input resolution.
+ *      (2) The input %pixs should be at a resolution 100 - 150 ppi.
+ *      (3) It does two 2x level1 rank binary reductions, followed
+ *          by a large vertical close/open, and then a 4x expansion
+ *          back to the input resolution.
+ *      (4) It is used as an option to pixCropImage(), when given
+ *          a negative %edgecrop parameter.
+ * </pre>
+ */
+l_int32
+pixMaxCompAfterVClosing(PIX   *pixs,
+                        BOX  **pbox)
+{
+l_int32  w, h, i, n, maxindex, maxarea, empty;
+BOXA    *boxa1;
+PIX     *pix1;
+
+    if (!pbox)
+        return ERROR_INT("pbox not defined", __func__, 1);
+    *pbox = NULL;
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return ERROR_INT("pixs undefined or not 1 bpp", __func__, 1);
+
+        /* Strong vertical closing */
+    pix1 = pixMorphSequence(pixs, "r11 + c1.50 + o1.50 + x4", 0);
+    pixZero(pix1, &empty);
+    if (empty)
+        return ERROR_INT("pix1 is empty", __func__, 1);
+
+        /* Find the c.c. with largest area and return its bounding box */
+    boxa1 = pixConnCompBB(pix1, 8);
+    pixDestroy(&pix1);
+    n = boxaGetCount(boxa1);
+    maxindex = 0;
+    maxarea = 0;
+    for (i = 0; i < n; i++) {
+        boxaGetBoxGeometry(boxa1, i, NULL, NULL, &w, &h);
+        if (w * h > maxarea) {
+            maxarea = w * h;
+            maxindex = i;
+        }
+    }
+    *pbox = boxaGetBox(boxa1, maxindex, L_COPY);
+    boxaDestroy(&boxa1);
+    return 0; 
+}
+
+
+/*!
  * \brief   pixRescaleForCropping()
  *
  * \param[in]    pixs        1 bpp
@@ -711,7 +792,7 @@ PIXA    *pixa1;
  *          unpleasingly distorted; hence the suggestion not to exceed it.
  * </pre>
  */
-PIX *
+static PIX *
 pixRescaleForCropping(PIX       *pixs,
                       l_int32    w,
                       l_int32    h,

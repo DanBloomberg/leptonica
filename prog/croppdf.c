@@ -48,8 +48,10 @@
  *    The %lrclear and %tbclear parameters give the number of background
  *    pixels to be added to the foreground region.
  *
- *    The %edgeclean parameter is used to remove edge noise, going from
- *    0 (default, no removal) to 15 (maximally aggressive removal).
+ *    The %edgeclean parameter is used to remove edge noise:
+ *      -1: aggressively removes left and right side noise
+ *       0: default, no removal
+ *       1-15: removal of random noise, where 15 is maximally aggressive
  *
  *    The suggested value for %lradd and %tbadd is 50.  Laser printers do not
  *    print foreground pixels very close to the page edges, and using a

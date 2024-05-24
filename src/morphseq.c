@@ -241,7 +241,8 @@ SARRAY  *sa;
     }
 
     if (pdfout) {
-        snprintf(fname, sizeof(fname), "/tmp/lept/seq_output_%d.pdf", L_ABS(dispsep));
+        snprintf(fname, sizeof(fname), "/tmp/lept/seq_output_%d.pdf",
+                 L_ABS(dispsep));
         pixaConvertToPdf(pixa, 0, 1.0, L_FLATE_ENCODE, 0, fname, fname);
         pixaDestroy(&pixa);
     }

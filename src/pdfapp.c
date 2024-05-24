@@ -232,8 +232,10 @@ PIXAC     *pixac1 = NULL;
  * \param[in]    sa            sorted full pathnames of images
  * \param[in]    lr_clear      full res pixels cleared at left and right sides
  * \param[in]    tb_clear      full res pixels cleared at top and bottom sides
- * \param[in]    edgeclean     parameter for removing edge noise (0-15)
+ * \param[in]    edgeclean     parameter for removing edge noise (-1 to 15)
  *                             default = 0 (no removal);
+ *                             15 is maximally aggressive for random noise
+ *                             -1 for aggressively removing side noise
  * \param[in]    lr_add        full res expansion of crop box on left and right
  * \param[in]    tb_add        full res expansion of crop box on top and bottom
  * \param[in]    maxwiden      max fractional horizontal stretch allowed

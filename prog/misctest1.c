@@ -40,8 +40,6 @@
  *        * Show sampled scaling with and without source indexing shift
  *        * Display differences in images with pixDisplayDiff()
  *        * Demonstrate read of cmap+alpha png, and I/O of rgba pnm, bmp, webp
- *        * Demonstrate image cropping function
- *        * Demonstrate image cleaning function
  */
 
 #ifdef HAVE_CONFIG_H
@@ -414,35 +412,5 @@ PIXCMAP  *cmap, *cmapg;
   #endif  /* HAVE_LIBWEBP */
     pixDestroy(&pix1);
 
-        /* Page cropping */
-    pix1 = pixRead("tel_3.tif");
-    pix2 = pixCropImage(pix1, 30, 30, 4, 25, 25, 1.15,
-                        "/tmp/lept/misc/cropdebug.pdf", NULL);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
-
-        /* Page cleaning */
-    pixa1 = pixaCreate(3);
-    pix1 = pixRead("tel_3.tif");
-    pix2 = pixRotate(pix1, 0.02, L_ROTATE_SAMPLING, L_BRING_IN_WHITE, 0, 0);
-    pix3 = pixCleanImage(pix2, 1, 0, 1, 0);
-    pixaAddPix(pixa1, pix3, L_INSERT);
-    pixDisplay(pix3, 800, 800);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
-    pix1 = pixRead("w91frag.jpg");
-    pixaAddPix(pixa1, pixScale(pix1, 2.5, 2.5), L_INSERT);
-    pix2 = pixRotate(pix1, 0.02, L_ROTATE_AREA_MAP, L_BRING_IN_WHITE, 0, 0);
-    pix3 = pixCleanImage(pix2, 1, 0, 1, 0);
-    pixaAddPix(pixa1, pixScale(pix3, 2.5, 2.5), L_INSERT);
-    pixDisplay(pix3, 1200, 800);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
-    pixDestroy(&pix3);
-    lept_stderr("Writing /tmp/lept/misc/pageclean.pdf\n");
-    pixaConvertToPdf(pixa1, 0, 1.0, L_DEFAULT_ENCODE, 50, NULL,
-                     "/tmp/lept/misc/pageclean.pdf");
-    pixaDestroy(&pixa1);
-    
     return 0;
 }
