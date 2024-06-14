@@ -159,9 +159,12 @@ static const struct ExtensionMap extension_map[] =
                               { ".tif",      IFF_TIFF      },
                               { ".tiff",     IFF_TIFF      },
                               { ".tiffg4",   IFF_TIFF_G4   },
+                              { ".pbm",      IFF_PNM       },
+                              { ".pgm",      IFF_PNM       },
                               { ".pnm",      IFF_PNM       },
                               { ".gif",      IFF_GIF       },
                               { ".jp2",      IFF_JP2       },
+                              { ".j2k",      IFF_JP2       },
                               { ".ps",       IFF_PS        },
                               { ".pdf",      IFF_LPDF      },
                               { ".webp",     IFF_WEBP      } };
