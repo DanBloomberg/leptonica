@@ -93,6 +93,7 @@ install(TARGETS leptonica EXPORT LeptonicaTargets RUNTIME DESTINATION bin LIBRAR
 install(EXPORT LeptonicaTargets DESTINATION  ${leptonica_INSTALL_CMAKE_DIR})
 install(FILES
     ${hdr}
+    ${CMAKE_BINARY_DIR}/src/endianness.h
     DESTINATION include/leptonica)
 
 ################################################################################
