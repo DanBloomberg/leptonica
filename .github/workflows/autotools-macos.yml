@@ -40,8 +40,8 @@ jobs:
     - name: Clean Homebrew installation
       run: |
            brew uninstall aws-sam-cli azure-cli bazelisk
-           brew uninstall python@3.11
            brew uninstall geckodriver firefox google-chrome microsoft-edge
+           brew info python3
 
     - name: Install dependencies
       run: |
