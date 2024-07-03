@@ -546,6 +546,7 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  * \param[in]    lr_border   full res final "added" pixels on left and right
  * \param[in]    tb_border   full res final "added" pixels on top and bottom
  * \param[in]    maxwiden    max fractional horizontal stretch allowed
+ * \param[in]    printwiden  0 to skip, 1 for 8.5x11, 2 for A4
  * \param[in]   *debugfile   [optional] usually is NULL
  * \param[out]  *pcropbox    [optional] crop box at full resolution
  * \return  cropped pix, or NULL on error
@@ -564,11 +565,14 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  *              the box up 2x back to full resolution.
  *          (e) Crops the binarized image to the bounding box.
  *          (f) Slightly thickens long horizontal lines.
- *          (g) Rescales this image to fit within the original image
+ *          (g) Rescales this image to fit within the original image,
  *              less lr_border on the sides and tb_border above and below.
  *              The rescaling is done isomorphically with a (possible)
  *              optional additional widening.  Suggest the additional
  *              widening factor not exceed 1.15.
+ *          (h) Optionally do additional horizontal stretch if needed to
+ *              better fill a printed page.  Default is 0 to skip; 1 to
+ *              widen for 8.5x11 page, 2 for A4 page.
  *          Note that (b) - (d) are done at 2x reduction for efficiency.
  *      (2) Side clearing must not exceed 1/6 of the dimension on that side.
  *      (3) The clear and border pixel parameters must be >= 0.
@@ -583,6 +587,10 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  *      (6) Step (f) above helps with orthographically-produced music notation,
  *          where the horizontal staff lines can be very thin and thus
  *          subject to printer alias.
+ *      (7) If you are not concerned with printing on paper, use the
+ *          default value 0 for %printwiden.  Widening only takes place
+ *          if the ratio h/w exceeds the specified paper size by 3%,
+ *          and the horizontal scaling factor will not exceed 1.25.
  * </pre>
  */
 PIX *
@@ -593,14 +601,16 @@ pixCropImage(PIX         *pixs,
              l_int32      lr_border,
              l_int32      tb_border,
              l_float32    maxwiden,
+             l_int32      printwiden,
              const char  *debugfile,
              BOX        **pcropbox)
 {
-char     cmd[64];
-l_int32  w, h, val, ret;
-BOX     *box1, *box2;
-PIX     *pix1, *pix2, *pix3;
-PIXA    *pixa1;
+char       cmd[64];
+l_int32    w, h, val, ret;
+l_float32  r1, r2;
+BOX       *box1, *box2;
+PIX       *pix1, *pix2, *pix3, *pix4;
+PIXA      *pixa1;
 
     if (pcropbox) *pcropbox = NULL;
     if (!pixs)
@@ -626,6 +636,7 @@ PIXA    *pixa1;
     if (maxwiden > 1.15)
         L_WARNING("maxwiden = %f > 1.15; suggest between 1.0 and 1.15\n",
                   __func__, maxwiden);
+    if (printwiden < 0 || printwiden > 2) printwiden = 0;
     pixa1 = (debugfile) ? pixaCreate(5) : NULL;
     if (pixa1) pixaAddPix(pixa1, pixs, L_COPY);
 
@@ -682,7 +693,7 @@ PIXA    *pixa1;
     pixOr(pix2, pix2, pix3);
     pixDestroy(&pix3);
 
-        /* Rescale the fg and paste into the final image */
+        /* Rescale the fg and paste into the input-sized image */
     pix3 = pixRescaleForCropping(pix2,  w, h, lr_border, tb_border,
                                  maxwiden, NULL);
     pixDestroy(&pix2);
@@ -691,17 +702,35 @@ PIXA    *pixa1;
         pixaAddPix(pixa1, pix2, L_INSERT);
     }
 
+        /* Optionally widen image if possible, for printing on 8.5 x 11 inch
+         * or A4 paper.  Specifically, widen the image if the h/w asperity
+         * ratio of the input image exceeds that of the selected paper by
+         * more than 3%.  Do not widen by more than 25%.  */
+    r1 = (l_float32)h / (l_float32)w;
+    r2 = 0.0;  /* for default case */
+    if (printwiden == 1)  /* standard */
+        r2 = r1 / 1.294;
+    else if (printwiden == 2)  /* A4 */
+        r2 = r1 / 1.414;
+    if (r2 > 1.03) {
+        lept_stderr("oversize h/w ratio by factor %6.3f\n", r2);
+        pix4 = pixScale(pix3, r2, 1.0);
+    } else {
+        pix4 = pixClone(pix3);
+    }
+    pixDestroy(&pix3);
+
     if (pcropbox)
         *pcropbox = box2;
     else
         boxDestroy(&box2);
     if (pixa1) {
-       pixaAddPix(pixa1, pix3, L_COPY);
+       pixaAddPix(pixa1, pix4, L_COPY);
        lept_stderr("Writing debug file: %s\n", debugfile);
        pixaConvertToPdf(pixa1, 0, 1.0, L_DEFAULT_ENCODE, 0, NULL, debugfile);
        pixaDestroy(&pixa1);
     }
-    return pix3;
+    return pix4;
 }
 
 

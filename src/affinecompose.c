@@ -280,11 +280,11 @@ PTA       *ptad;
  * \param[in]    ptas      for initial points
  * \param[in]    xc, yc    location of center of rotation
  * \param[in]    angle     rotation in radians; clockwise is positive
- * \return  0 if OK; 1 on error
+ * \return  ptad   rotated pta, or NULL on error
  *
  * <pre>
  * Notes;
- *      (1) See createMatrix2dScale() for details of transform.
+ *      (1) See createMatrix2dRotate() for details of transform.
  *      (2) This transform can be thought of as composed of the
  *          sum of two parts:
  *           a) an (x,y)-dependent rotation about the origin:
@@ -399,7 +399,7 @@ BOXA  *boxad;
  * \param[in]    boxas
  * \param[in]    xc, yc    location of center of rotation
  * \param[in]    angle     rotation in radians; clockwise is positive
- * \return  boxad  scaled boxas, or NULL on error
+ * \return  boxad  rotated boxas, or NULL on error
  *
  * Notes:
  *      (1) See createMatrix2dRotate() for details of transform.

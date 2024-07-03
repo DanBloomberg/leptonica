@@ -101,15 +101,15 @@ l_int32 main(int    argc,
 {
 char       buf[256];
 char      *basedir, *fname, *tail, *basename, *imagedir, *title, *fileout;
-l_int32    lrclear, tbclear, edgeclean, lradd, tbadd;
+l_int32    lrclear, tbclear, edgeclean, lradd, tbadd, printwiden;
 l_int32    render_res, i, n, ret;
 l_float32  maxwiden;
 SARRAY    *sa;
 
-    if (argc != 10)
+    if (argc != 11)
         return ERROR_INT(
             "Syntax: croppdf basedir lrclear tbclear edgeclean "
-            "lradd tbadd maxwiden title fileout", __func__, 1);
+            "lradd tbadd maxwiden printwiden title fileout", __func__, 1);
     basedir = argv[1];
     lrclear = atoi(argv[2]);
     tbclear = atoi(argv[3]);
@@ -117,8 +117,9 @@ SARRAY    *sa;
     lradd = atoi(argv[5]);
     tbadd = atoi(argv[6]);
     maxwiden = atof(argv[7]);
-    title = argv[8];
-    fileout = argv[9];
+    printwiden = atoi(argv[8]);
+    title = argv[9];
+    fileout = argv[10];
     setLeptDebugOK(1);
 
         /* Set up a directory for temp images */
@@ -173,7 +174,7 @@ SARRAY    *sa;
     sarrayWriteStderr(sa);
     lept_stderr("cropping ...\n");
     cropFilesToPdf(sa, lrclear, tbclear, edgeclean, lradd, tbadd, maxwiden,
-                   title, fileout);
+                   printwiden, title, fileout);
     sarrayDestroy(&sa);
     return 0;
 }

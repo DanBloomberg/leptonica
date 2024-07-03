@@ -48,21 +48,21 @@ PIXA  *pixa1;
 
         /* Page cropping with light filtering */
     pix1 = pixRead("tel_3.tif");
-    pix2 = pixCropImage(pix1, 30, 30, 4, 25, 25, 1.15,
+    pix2 = pixCropImage(pix1, 30, 30, 4, 25, 25, 1.15, 0,
                         "/tmp/lept/misc/crop_tel3.pdf", NULL);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
 
         /* Page cropping with removal of fg on left and right sides */
     pix1 = pixRead("boismort.1.tif");
-    pix2 = pixCropImage(pix1, 50, 50, -1, 70, 70, 1.1,
+    pix2 = pixCropImage(pix1, 50, 50, -1, 70, 70, 1.1, 0,
                         "/tmp/lept/misc/crop_bois1.pdf", NULL);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
 
         /* Page cropping with removal of fg on left and right sides */
     pix1 = pixRead("boismort.15.tif");
-    pix2 = pixCropImage(pix1, 50, 50, -1, 70, 70, 1.1,
+    pix2 = pixCropImage(pix1, 50, 50, -1, 70, 70, 1.1, 0,
                         "/tmp/lept/misc/crop_bois15.pdf", NULL);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
