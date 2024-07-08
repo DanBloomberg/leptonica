@@ -51,7 +51,7 @@ libleptonica_la_SOURCES = adaptmap.c affine.c                        \
  quadtree.c queue.c rank.c rbtree.c                             \
  readbarcode.c readfile.c                                       \
  recogbasic.c recogdid.c recogident.c                           \
- recogtrain.c regutils.c                                        \
+ recogtrain.c regutils.c renderpdf.c                            \
  rop.c roplow.c                                                 \
  rotate.c rotateam.c rotateorth.c rotateshear.c                 \
  runlength.c sarray1.c sarray2.c                                \

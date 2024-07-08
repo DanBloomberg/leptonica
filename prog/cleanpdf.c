@@ -88,16 +88,16 @@
  *
  *    Whenever possible, the images will be deskewed.
  *
- *    As the first step in processing, images are saved in the ./image
- *    directory as RGB at 300 ppi in ppm format.  Each image is about 26MB.
- *    Delete those images after use.
+ *    As the first step in processing, images are saved in the directory
+ *    /tmp/lept/renderpdf/, as RGB at 300 ppi in ppm format.  Each image
+ *    is about 26MB.
  *
  *    Some pdf files have oversize media boxes.  PDF is a
  *    resolution-independent format for storing data that can be imaged.
  *    Usually the data is stored in fonts, which are a description of the
- *    shape that can be rendered at different image resolutions.  We deal
- *    here with images that are made up of a fixed number of pixels, and
- *    thus are not resolution independent.  It is necessary for image
+ *    shape that can be rendered at different image resolutions.  We often
+ *    deal here with images that are made up of a fixed number of pixels,
+ *    and thus are not resolution independent.  It is necessary for image
  *    specification to include data for the renderer that says how big
  *    (in inches) to display or print the image.  That is done with /MediaBox,
  *    whose 3rd and 4th parameters are the width and height of the output
@@ -119,8 +119,8 @@
  *    * To get an output filename with spaces, use single quotes; e.g.,
  *         cleanpdf dir [...] title 'quoted filename with spaces'
  *
- *    N.B.  This requires the Poppler package of pdf utilities, such as
- *          pdfimages and pdftoppm.  For non-unix systems, this requires
+ *    N.B.  This requires running pdfimages from the Poppler package
+ *          of pdf utilities.  For non-unix systems, this requires
  *          installation of the cygwin Poppler package:
  *       https://cygwin.com/cgi-bin2/package-cat.cgi?file=x86/poppler/
  *              poppler-0.26.5-1
@@ -130,30 +130,14 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
-#ifdef _WIN32
-# if defined(_MSC_VER) || defined(__MINGW32__)
-#  include <direct.h>
-# else
-#  include <io.h>
-# endif  /* _MSC_VER || __MINGW32__ */
-#endif  /* _WIN32 */
-
-    /* Set to 1 to use pdftoppm (recommended); 0 for pdfimages */
-#define   USE_PDFTOPPM     1
-
-#include "string.h"
-#include <sys/stat.h>
-#include <sys/types.h>
 #include "allheaders.h"
 
 l_int32 main(int    argc,
              char **argv)
 {
-char     buf[256];
-char    *basedir, *fname, *tail, *basename, *imagedir, *firstfile, *title;
-char    *fileout;
-l_int32  i, n, res, contrast, rotation, opensize, render_res, ret;
-SARRAY  *sa;
+char    *basedir, *title, *fileout;
+l_int32  res, contrast, rotation, opensize, render_res;
+SARRAY  *safiles;
 
     if (argc != 8)
         return ERROR_INT(
@@ -192,81 +176,15 @@ SARRAY  *sa;
     }
     setLeptDebugOK(1);
 
-        /* Set up a directory for temp images */
-    if ((imagedir = stringJoin(basedir, "/image")) == NULL)
-        return ERROR_INT_1("imagedir from basedir not found", basedir,
+        /* Render all images from pdfs */
+    if (l_pdfRenderFiles(basedir, NULL, 300, &safiles))
+        return ERROR_INT_1("rendering failed from basedir", basedir,
                            __func__, 1);
-  #ifndef _WIN32
-    mkdir(imagedir, 0777);
-  #else
-    _mkdir(imagedir);
-  #endif  /* _WIN32 */
-
-        /* Get the names of the input pdf files */
-    if ((sa = getSortedPathnamesInDirectory(basedir, "pdf", 0, 0)) == NULL)
-        return ERROR_INT("files not found", __func__, 1);
-    sarrayWriteStderr(sa);
-    n = sarrayGetCount(sa);
-
-        /* Figure out the resolution to use with the image renderer.
-           This first checks the media box sizes, which give the output
-           image size in printer points (1/72 inch).  The largest expected
-           output image has a max dimension of about 11 inches, corresponding
-           to 792 points.  At a resolution of 300 ppi, the max image size
-           is then 3300.  For robustness, use the median of media box sizes.
-           If the max dimension of this median is significantly larger than
-           792, reduce the input resolution to the renderer. Specifically:
-            * Calculate the median of the MediaBox widths and heights.
-            * If the max exceeds 850, reduce the resolution so that the max
-              dimension of the rendered image is 3300.  The new resolution
-              input to the renderer is reduced from 300 by the factor:
-                            (792 / medmax)
-           If the media boxes are not found, render a page using a small
-           given resolution (72) and use the max dimension to find the
-           resolution that will produce a 3300 pixel size output.  */
-    firstfile = sarrayGetString(sa, 0, L_NOCOPY);
-    getPdfRendererResolution(firstfile, imagedir, &render_res);
-
-        /* Rasterize: use either
-         *     pdftoppm -r res fname outroot  (-r res renders output at res ppi)
-         * or
-         *     pdfimages -j fname outroot   (-j outputs jpeg if input is dct)
-         * Use of pdftoppm:
-         *    This works on all pdf pages, both wrapped images and pages that
-         *    were made orthographically.  The default output resolution for
-         *    pdftoppm is 150 ppi, but we use 300 ppi.  This makes large
-         *    uncompressed files (e.g., a standard size RGB page image at 300
-         *    ppi is 25 MB), but it is very fast.  This is now preferred over
-         *    using pdfimages.
-         * Use of pdfimages:
-         *    This only works when all pages are pdf wrappers around images.
-         *    In some cases, it scrambles the order of the output pages
-         *    and inserts extra images. */
-    for (i = 0; i < n; i++) {
-        fname = sarrayGetString(sa, i, L_NOCOPY);
-        splitPathAtDirectory(fname, NULL, &tail);
-        splitPathAtExtension(tail, &basename, NULL);
-  #if USE_PDFTOPPM
-        snprintf(buf, sizeof(buf), "pdftoppm -r %d %s %s/%s",
-                 render_res, fname, imagedir, basename);
-  #else
-        snprintf(buf, sizeof(buf), "pdfimages -j %s %s/%s",
-                 fname, imagedir, basename);
-  #endif  /* USE_PDFTOPPM */
-        lept_free(tail);
-        lept_free(basename);
-        lept_stderr("%s\n", buf);
-        callSystemDebug(buf);   /* pdfimages or pdftoppm */
-    }
-    sarrayDestroy(&sa);
 
         /* Clean, deskew and compress */
-    sa = getSortedPathnamesInDirectory(imagedir, NULL, 0, 0);
-    lept_free(imagedir);
-    sarrayWriteStderr(sa);
     lept_stderr("cleaning ...\n");
-    cleanTo1bppFilesToPdf(sa, res, contrast, rotation, opensize,
+    cleanTo1bppFilesToPdf(safiles, res, contrast, rotation, opensize,
                           title, fileout);
-    sarrayDestroy(&sa);
+    sarrayDestroy(&safiles);
     return 0;
 }

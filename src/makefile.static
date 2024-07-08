@@ -217,7 +217,7 @@ LEPTLIB_C =	adaptmap.c affine.c \
 		ptra.c quadtree.c queue.c rank.c rbtree.c \
 		readbarcode.c readfile.c \
 		recogbasic.c recogdid.c recogident.c recogtrain.c \
-		regutils.c rop.c roplow.c \
+		regutils.c renderpdf.c rop.c roplow.c \
 		rotate.c rotateam.c rotateorth.c rotateshear.c \
 		runlength.c sarray1.c sarray2.c \
 		scale1.c scale2.c seedfill.c \

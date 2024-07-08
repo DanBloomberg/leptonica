@@ -104,12 +104,16 @@ They are <i>not</i> a complete listing of the modifications.
         * Added misctest2.c to show crop and clean page functions.
         * Added page crop option for removing noise on left and right sides.
         * Added page crop option to allow printing to full width of paper.
+        * Added renderpdf.c to library, to render pdfs as page images with
+          a specified resolution.
+        * Modified cleanpdf.c to use l_pdfRenderFiles().
         * Source files changed: adaptmap.c affinecompose.c,
           colormap.c, compare.c,
           gplot.c, grayquant.c, jbclass.c, jp2kheader.c,
           jp2kheaderstub.c, jp2kio.c, libversions.c,
           morphseq.c, pageseg.c partify.c, pdfapp.c, pdfio2.c, pixconv.c,
-          psio2.c, readfile.c, sel1.c, utils2.c, writefile.c,
+          psio2.c, readfile.c, renderpdf.c,
+          sel1.c, utils2.c, writefile.c,
           allheaders.h, environ.h
         * Prog files changed: alltests_reg.c, binmorph3_reg.c,
           blend2_reg.c, cleanpdf.c, compressedpdf.c, croppdf.c,
