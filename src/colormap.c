@@ -1948,7 +1948,7 @@ FILE    *fp;
     ret = pixcmapWriteStream(fp, cmap);
     fputc('\0', fp);
     fclose(fp);
-    *psize = *psize - 1;
+    if (*psize > 0) *psize = *psize - 1;
 #else
     L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
   #ifdef _WIN32

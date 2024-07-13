@@ -550,7 +550,7 @@ RGBA_QUAD  *pquad;
             ncolors = 2;
             cta = (l_uint8 *)bwmap;
         } else {   /* d = 2,4,8; use a grayscale output colormap */
-            ncolors = 1 << fdepth;
+            ncolors = 1 << d;
             cmaplen = ncolors * sizeof(RGBA_QUAD);
             heapcm = 1;
             cta = (l_uint8 *)LEPT_CALLOC(cmaplen, 1);

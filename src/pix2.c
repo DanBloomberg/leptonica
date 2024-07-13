@@ -720,7 +720,7 @@ pixGetBlackOrWhiteVal(PIX       *pixs,
                       l_int32    op,
                       l_uint32  *pval)
 {
-l_int32   d, val;
+l_int32   d, index;
 PIXCMAP  *cmap;
 
     if (!pval)
@@ -736,17 +736,17 @@ PIXCMAP  *cmap;
     if (!cmap) {
         if ((d == 1 && op == L_GET_WHITE_VAL) ||
             (d > 1 && op == L_GET_BLACK_VAL)) {  /* min val */
-            val = 0;
+            *pval = 0;
         } else {  /* max val */
-            val = (d == 32) ? 0xffffff00 : (1 << d) - 1;
+            *pval = (d == 32) ? 0xffffff00 : (1 << d) - 1;
         }
     } else {  /* handle colormap */
         if (op == L_GET_BLACK_VAL)
-            pixcmapAddBlackOrWhite(cmap, 0, &val);
+            pixcmapAddBlackOrWhite(cmap, 0, &index);
         else  /* L_GET_WHITE_VAL */
-            pixcmapAddBlackOrWhite(cmap, 1, &val);
+            pixcmapAddBlackOrWhite(cmap, 1, &index);
+        *pval = index;
     }
-    *pval = val;
 
     return 0;
 }
@@ -1164,7 +1164,8 @@ pixSetInRectArbitrary(PIX      *pix,
                       BOX      *box,
                       l_uint32  val)
 {
-l_int32    n, x, y, xstart, xend, ystart, yend, bw, bh, w, h, d, wpl, maxval;
+l_int32    n, x, y, xstart, xend, ystart, yend, bw, bh, w, h, d, wpl;
+l_uint32   maxval;
 l_uint32  *data, *line;
 BOX       *boxc;
 PIXCMAP   *cmap;
@@ -1879,8 +1880,9 @@ pixAddBorderGeneral(PIX      *pixs,
                     l_int32   bot,
                     l_uint32  val)
 {
-l_int32  ws, hs, wd, hd, d, maxval, op;
-PIX     *pixd;
+l_int32   ws, hs, wd, hd, d, op;
+l_uint32  maxval;
+PIX      *pixd;
 
     if (!pixs)
         return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
