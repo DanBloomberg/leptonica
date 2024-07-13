@@ -39,7 +39,7 @@
  *
  *    Syntax:
  *       croppdf basedir lrclear tbclear edgeclean lradd tbadd maxwiden
- *       title fileout
+ *       printwiden title fileout
  *
  *    The %basedir is a directory where the input pdf files are located.
  *    The program will operate on every file in this directory with
@@ -61,6 +61,11 @@
  *    The %maxwiden parameter allows the foreground to better fill an
  *    8.5 x 11 inch printed page.  It gives the maximum fractional horizontal
  *    stretching allowed.  Suggested values are between 1.0 and 1.15.
+ *
+ *    If you are not concerned with printing on paper, use the default
+ *    value 0 for %printwiden to skip; 1 for 8.5 x 11 paper; 2 for A4.
+ *    Widening only takes place if the ratio h/w exceeds the specified paper
+ *    size by 3%, and the horizontal scaling factor will not exceed 1.20.
  *
  *    The %title is the title given to the pdf.  Use %title == "none"
  *    to omit the title.
