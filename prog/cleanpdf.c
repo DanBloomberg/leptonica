@@ -119,7 +119,7 @@
  *    * To get an output filename with spaces, use single quotes; e.g.,
  *         cleanpdf dir [...] title 'quoted filename with spaces'
  *
- *    N.B.  This requires running pdfimages from the Poppler package
+ *    N.B.  This requires running pdftoppm from the Poppler package
  *          of pdf utilities.  For non-unix systems, this requires
  *          installation of the cygwin Poppler package:
  *       https://cygwin.com/cgi-bin2/package-cat.cgi?file=x86/poppler/

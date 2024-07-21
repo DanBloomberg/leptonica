@@ -42,12 +42,6 @@
  *    be both set to 1.  Then the pages with color are compressed with DCT
  *    and the monochrome pages are compressed with tiffg4.
  *
- *    The first step is to render the images as RGB, using Poppler's pdftoppm.
- *    Compare compresspdf with cleanpdf, which carries out several cleanup
- *    operations, such as deskewing and adaptive thresholding to clean
- *    noisy or dark backgrounds in grayscale or color images, resulting
- *    in high resolution, 1 bpp tiffg4 encoded images in the pdf.
- *
  *      Syntax:
  *       compresspdf basedir imres scalefactor onebit savecolor
  *                   quality title fileout
@@ -65,11 +59,11 @@
  *
  *    The %scalefactor is typically used to downscale the image to
  *    reduce the size of the generated pdf.  It should not affect the
- *    pdf display otherwise.  For normal text on images scanned at 300 ppi,
- *    a 2x reduction (%scalefactor = 0.5) may be satisfactory.
- *    We compute an output resolution for that pdf that will cause it
- *    to print 11 inches high, based on the height in pixels of the
- *    first image in the set.
+ *    pdf display otherwise.  The maximum allowed value is 2.0.
+ *    For normal text on images scanned at 300 ppi, a 2x reduction
+ *    (%scalefactor = 0.5) may be satisfactory.  We compute an output
+ *    resolution for that pdf that will cause it to print 11 inches high,
+ *    based on the height in pixels of the first image in the set.
  *
  *    Images are saved in the ./image directory as RGB in ppm format.
  *    If the %onebit flag is 0, these will be encoded in the output pdf
@@ -92,7 +86,11 @@
  *    The pdf output is written to %fileout.  It is advisable (but not
  *    required) to have a '.pdf' extension.
  *
- *    The intent is to use pdftoppm to render the images at 150 pixels/inch
+ *    As the first step in processing, images are saved in the directory
+ *    /tmp/lept/renderpdf/, as RGB at 300 ppi in ppm format.  Each image
+ *    is about 26MB.
+ *
+ *    We use pdftoppm to render the images at (typically) 150 pixels/inch
  *    for a full page, when scalefactor = 1.0.  The renderer uses the
  *    mediaboxes to decide how big to make the images.  If those boxes
  *    have values that are too large, the intermediate ppm images can
@@ -101,8 +99,8 @@
  *    at about 150 ppi (when scalefactor = 1.0).  These images are about
  *    6MB, but are written quickly because there is no compression.
  *
- *    N.B.  This requires the Poppler package of pdf utilities, such as
- *          pdfimages and pdftoppm.  For non-unix systems, this requires
+ *    N.B.  This requires running pdftoppm from the Poppler package
+ *          of pdf utilities  For non-unix systems, this requires
  *          installation of the cygwin Poppler package:
  *       https://cygwin.com/cgi-bin2/package-cat.cgi?file=x86/poppler/
  *              poppler-0.26.5-1
@@ -112,27 +110,16 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
-#ifdef _WIN32
-# if defined(_MSC_VER) || defined(__MINGW32__)
-#  include <direct.h>
-# else
-#  include <io.h>
-# endif  /* _MSC_VER || __MINGW32__ */
-#endif  /* _WIN32 */
-
-#include "string.h"
-#include <sys/stat.h>
-#include <sys/types.h>
 #include "allheaders.h"
 
 l_int32 main(int    argc,
              char **argv)
 {
 char       buf[256];
-char      *basedir, *fname, *tail, *basename, *imagedir, *title, *fileout;
-l_int32    imres, render_res, onebit, savecolor, quality, i, n, ret;
+char      *basedir, *title, *fileout;
+l_int32    imres, render_res, onebit, savecolor, quality;
 l_float32  scalefactor;
-SARRAY    *sa;
+SARRAY    *safiles;
 
     if (argc != 9)
         return ERROR_INT(
@@ -146,12 +133,17 @@ SARRAY    *sa;
     quality = atoi(argv[6]);  /* jpeg quality */
     title = argv[7];
     fileout = argv[8];
-    setLeptDebugOK(1);
-    if (imres == 0) imres = 150;  /* default value */
+    if (imres <= 0) imres = 150;  /* default value */
     if (imres != 150 && imres != 300) {
         L_WARNING("imres = %d must be 150 or 300; setting to 150\n",
                   __func__, imres);
         imres = 150;
+    }
+    if (scalefactor <= 0.0) scalefactor = 1.0;
+    if (scalefactor > 2.0) {
+        L_WARNING("scalefactor %f too big; setting to 2.0\n", __func__, 
+                  scalefactor);
+        scalefactor = 2.0;
     }
     if (quality <= 0) quality = 50;  /* default value */
     if (quality < 25) {
@@ -164,53 +156,12 @@ SARRAY    *sa;
                   __func__, quality);
         quality = 95;
     }
+    setLeptDebugOK(1);
 
-        /* Set up a directory for temp images */
-    if ((imagedir = stringJoin(basedir, "/image")) == NULL)
-        return ERROR_INT_1("imagedir from basedir not found", basedir,
+        /* Render all images from pdfs */
+    if (l_pdfRenderFiles(basedir, NULL, imres, &safiles))
+        return ERROR_INT_1("rendering failed from basedir", basedir,
                            __func__, 1);
-#ifndef _WIN32
-    mkdir(imagedir, 0777);
-#else
-    _mkdir(imagedir);
-#endif  /* _WIN32 */
-
-        /* Get the names of the pdf files */
-    if ((sa = getSortedPathnamesInDirectory(basedir, "pdf", 0, 0)) == NULL)
-        return ERROR_INT("files not found", __func__, 1);
-    sarrayWriteStderr(sa);
-    n = sarrayGetCount(sa);
-
-        /* Use the first pdf file in the directory to estimate the
-         * resolution to use with the image renderer that will generate
-         * page images with a resolution of either about 150 ppi
-         * (which is the default) or about 300 ppi for special cases.
-         * At 150 and 300 ppi, the page images have maximum dimensions
-         * of about 1650 and 3300 pixels, respectively.  These are the
-         * uncompressed images, written to file, from which the compressed
-         * images will be generated.  */
-    fname = sarrayGetString(sa, 0, L_NOCOPY);
-    getPdfRendererResolution(fname, imagedir, &render_res);  /* for 300 ppi */
-    if (imres == 150) render_res /= 2;
-
-        /* Rasterize:
-         *     pdftoppm -r 150 fname outroot   [max dimension about 1650 pixels]
-         *     pdftoppm -r 300 fname outroot   [max dimension about 3300 pixels]
-         * Use of pdftoppm:
-         *    This works on all pdf pages, both wrapped images and pages that
-         *    were made orthographically.  */
-    for (i = 0; i < n; i++) {
-        fname = sarrayGetString(sa, i, L_NOCOPY);
-        splitPathAtDirectory(fname, NULL, &tail);
-        splitPathAtExtension(tail, &basename, NULL);
-        snprintf(buf, sizeof(buf), "pdftoppm -r %d %s %s/%s",
-                 render_res, fname, imagedir, basename);
-        lept_free(tail);
-        lept_free(basename);
-        lept_stderr("%s\n", buf);
-        callSystemDebug(buf);
-    }
-    sarrayDestroy(&sa);
 
         /* Optionally binarize, then scale and collect all images in memory.
          * If n > 100, use pixacomp instead of pixa to store everything
@@ -219,13 +170,10 @@ SARRAY    *sa;
          * the images in leptonica.  Do not let 'pdftoppm -mono' do
          * the binarization, because it will apply error-diffusion
          * dithering to gray and color images. */
-    sa = getSortedPathnamesInDirectory(imagedir, NULL, 0, 0);
-    lept_free(imagedir);
-    sarrayWriteStderr(sa);
     lept_stderr("compressing ...\n");
-    compressFilesToPdf(sa, onebit, savecolor, scalefactor, quality,
+    compressFilesToPdf(safiles, onebit, savecolor, scalefactor, quality,
                        title, fileout);
-    sarrayDestroy(&sa);
+    sarrayDestroy(&safiles);
     return 0;
 }
 

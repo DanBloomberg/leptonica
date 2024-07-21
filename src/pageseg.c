@@ -554,7 +554,8 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  * Notes:
  *      (1) This binarizes and crops a page image.
  *          (a) Binarizes if necessary and does 2x reduction.
- *          (b) Clears near the border by %lr_clear/2 and %tb_clear/2 pixels
+ *          (b) Clears near the border by %lr_clear and %tb_clear full
+ *              resolution pixels.  (This is done at 2x reduction.)
  *          (c) If %edgeclean > 0, it removes isolated sets of pixels,
  *              using a close/open operation of size %edgeclean + 1.
  *              If %edgeclean < 0, it uses a large vertical morphological
@@ -645,7 +646,7 @@ PIXA      *pixa1;
     pix1 = pixBackgroundNormTo1MinMax(pixs, 1, 1);
     pix2 = pixReduceRankBinary2(pix1, 2, NULL);
 
-        /* Clear out border pixels */
+        /* Clear out pixels near the image edges */
     pixSetOrClearBorder(pix2, lr_clear / 2, lr_clear / 2, tb_clear / 2,
                         tb_clear / 2, PIX_CLR);
     if (pixa1) pixaAddPix(pixa1, pixScale(pix2, 2.0, 2.0), L_INSERT);
@@ -670,6 +671,7 @@ PIXA      *pixa1;
     pixDestroy(&pix2);
     if (ret) {
         L_ERROR("no returned b.b. for foreground\n", __func__);
+        boxDestroy(&box1);
         pixDestroy(&pix1);
         pixaDestroy(&pixa1);
         return NULL;
@@ -785,9 +787,8 @@ PIX     *pix1;
     boxa1 = pixConnCompBB(pix1, 8);
     pixDestroy(&pix1);
     boxa2 = boxaSort(boxa1, L_SORT_BY_AREA, L_SORT_DECREASING, NULL);
-    box1 = boxaGetBox(boxa2, 0, L_COPY);
     if ((n = boxaGetCount(boxa2)) == 1) {
-        *pbox = box1;
+        *pbox = boxaGetBox(boxa2, 0, L_COPY);
     } else {  /* 2 or more */
         box1 = boxaGetBox(boxa2, 0, L_COPY);
         box2 = boxaGetBox(boxa2, 1, L_COPY);

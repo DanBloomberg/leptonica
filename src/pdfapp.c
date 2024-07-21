@@ -116,9 +116,10 @@
  *        causes DCT compression of color images and tiffg4 compression
  *        of monochrome images.
  *    (6) The images will be concatenated in the order given in %sa.
- *    (7) The scalefactor is applied to each image before encoding.
- *        If you enter a value <= 0.0, it will be set to 1.0.
- *    (8) Default jpeg quality is 50; otherwise, quality factors between
+ *    (7) Typically, %scalefactor <= 1.0.  It is applied to each image
+ *        before encoding.  If you enter a value <= 0.0, it will be set to 1.0.
+ *        The maximum allowed value is 2.0.
+ *    (8) Default jpeg %quality is 50; otherwise, quality factors between
  *        25 and 95 are enforced.
  *    (9) Page images at 300 ppi are about 8 Mpixels.  RGB(A) rasters are
  *        then about 32 MB (1 bpp images are about 1 MB).  If there are
@@ -148,6 +149,11 @@ PIXAC     *pixac1 = NULL;
     if (!fileout)
         return ERROR_INT("fileout not defined", __func__, 1);
     if (scalefactor <= 0) scalefactor = 1.0;
+    if (scalefactor > 2.0) {
+        L_WARNING("scalefactor %f too big; setting to 2.0\n", __func__,
+                  scalefactor);
+        scalefactor = 2.0;
+    }
     if (quality <= 0) quality = 50;  /* default value */
     if (quality < 25) {
         L_WARNING("quality %d too low; setting to 25\n", __func__, quality);
@@ -236,8 +242,8 @@ PIXAC     *pixac1 = NULL;
  *                             default = 0 (no removal);
  *                             15 is maximally aggressive for random noise
  *                             -1 for aggressively removing side noise
- * \param[in]    lr_add        full res expansion of crop box on left and right
- * \param[in]    tb_add        full res expansion of crop box on top and bottom
+ * \param[in]    lr_border     full res final "added" pixels on left and right
+ * \param[in]    tb_border     full res final "added" pixels on top and bottom
  * \param[in]    maxwiden      max fractional horizontal stretch allowed
  * \param[in]    printwiden    0 to skip, 1 for 8.5x11, 2 for A4
  * \param[in]    title         [optional] pdf title; can be null
@@ -252,10 +258,11 @@ PIXAC     *pixac1 = NULL;
  *    (2) It does the image processing for prog/croppdf.c.
  *    (3) Images in the output pdf are 1 bpp and encoded with tiffg4.
  *    (4) See documentation in pixCropImage() for details on the processing.
- *    (5) The images will be concatenated in the order given in %sa.
- *    (6) Page images at 300 ppi are about 1 Mpixels.  We allow up to 200
- *        uncompressed rasters to be stored in memory.  If more than 200
- *        pages, the stored images are compressed with tiffg4.
+ *    (5) The images will be concatenated in the order given in %safiles.
+ *    (6) Output page images are at 300 ppi and are stored in memory.
+ *        They are about 1 Mpixel when uncompressed.  For up to 200 pages,
+ *        the images are stored uncompressed; otherwise, the stored
+ *        images are compressed with tiffg4.
  * </pre>
  */
 l_ok
@@ -263,8 +270,8 @@ cropFilesToPdf(SARRAY      *sa,
                l_int32      lr_clear,
                l_int32      tb_clear,
                l_int32      edgeclean,
-               l_int32      lr_add,
-               l_int32      tb_add,
+               l_int32      lr_border,
+               l_int32      tb_border,
                l_float32    maxwiden,
                l_int32      printwiden,
                const char  *title,
@@ -296,7 +303,8 @@ PIXAC     *pixac1 = NULL;
         fname = sarrayGetString(sa, i, L_NOCOPY);
         pixs = pixRead(fname);
         pix1 = pixCropImage(pixs, lr_clear, tb_clear, edgeclean,
-                            lr_add, tb_add, maxwiden, printwiden, NULL, NULL);
+                            lr_border, tb_border, maxwiden, printwiden,
+                            NULL, NULL);
         if (n <= maxsmallset)
             pixaAddPix(pixa1, pix1, L_INSERT);
         else
