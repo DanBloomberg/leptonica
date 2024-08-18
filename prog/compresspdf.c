@@ -87,8 +87,8 @@
  *    required) to have a '.pdf' extension.
  *
  *    As the first step in processing, images are saved in the directory
- *    /tmp/lept/renderpdf/, as RGB at 300 ppi in ppm format.  Each image
- *    is about 26MB.
+ *    /tmp/lept/renderpdf/, as RGB at either 150 or 300 ppi in ppm format.
+ *    Each image about 6MB at 150 ppi, or 25MB at 300 ppi.
  *
  *    We use pdftoppm to render the images at (typically) 150 pixels/inch
  *    for a full page, when scalefactor = 1.0.  The renderer uses the

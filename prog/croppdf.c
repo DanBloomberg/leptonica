@@ -78,7 +78,7 @@
  *    The pdf output is written to %fileout.  It is advisable (but not
  *    required) to have a '.pdf' extension.
  *
- *    The first processing step is render images from the pdf as $GB
+ *    The first processing step is render images from the pdf as RGB
  *    at 300 ppi in ppm format, and to seve them in the directory
  *    /tmp/lept/renderpdf/.
  *

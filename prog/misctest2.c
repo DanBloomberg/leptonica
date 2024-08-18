@@ -29,6 +29,8 @@
  *        * Page cropping with light filtering
  *        * Page cropping with removal of fg on left and right sides
  *        * Demonstrate image cleaning function
+ *        * Demonstrat page cropping for 2-column, where one column is
+ *          Kanji, and removing lots of junk on left and right sides.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -40,6 +42,7 @@
 int main(int    argc,
          char **argv)
 {
+char   buf[256];
 PIX   *pix1, *pix2, *pix3;
 PIXA  *pixa1;
 
@@ -66,6 +69,21 @@ PIXA  *pixa1;
                         "/tmp/lept/misc/crop_bois15.pdf", NULL);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
+
+        /* Page cropping for 2 columns with junk on left and right sides,
+         * This is the 2-column introductory material from Bruggen's
+         * transcription of Bach's Cello Suites 1-3.  The right column
+         * is kanji, which is relatively weak for coalescing into
+         * connected blocks.  So it is necessary to include a
+         * horizontal close/open of size 3, and in the algorithm, the
+         * vertical close/open needs to be at least 70 at 4x reduction. */
+    lept_mkdir("lept/2_column");
+    lept_cp("2_column_crop_input.pdf", "lept/2_column", "input.pdf", NULL);
+    snprintf(buf, sizeof(buf),
+        "croppdf /tmp/lept/2_column 50 50 -1 70 70 1.12 0"
+        " none /tmp/lept/misc/2_column_crop_result.pdf");
+    lept_stderr("Writing /tmp/lept/misc/2_column_crop_result.pdf\n");
+    callSystemDebug(buf);
 
         /* Page cleaning */
     pixa1 = pixaCreate(3);
