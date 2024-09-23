@@ -66,7 +66,7 @@
  *
  *    Limitations:
  *
- *    (1) We do not support animated gif.  If the gif has more then one image,
+ *    (1) We do not support animated gif.  If the gif has more than one image,
  *        an error message is returned.
  *
  * </pre>

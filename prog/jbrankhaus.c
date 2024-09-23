@@ -42,7 +42,7 @@
  *               rank = 0.97
  *     (3) The two output files (for templates and c.c. data)
  *         are written with the rootname
- *               /tmp/lept/jb/result
+ *               /tmp/lept/jb_rankhaus/result
  */
 
 #ifdef HAVE_CONFIG_H
@@ -64,7 +64,7 @@
 #define   DISPLAY_DIFFERENCE        1
 #define   DISPLAY_ALL_INSTANCES     0
 
-static const char  rootname[] = "/tmp/lept/jb/result";
+static const char  rootname[] = "/tmp/lept/jb_rankhaus/result";
 
 int main(int    argc,
          char **argv)
@@ -96,9 +96,9 @@ PIXA       *pixa, *pixadb;
     }
 
     setLeptDebugOK(1);
-    lept_mkdir("lept/jb");
+    lept_mkdir("lept/jb_rankhaus");
 
-#if 0
+#if 0   /* Choose library function or detailed steps */
 
     /*--------------------------------------------------------------*/
 
@@ -106,13 +106,12 @@ PIXA       *pixa, *pixadb;
 
     /*--------------------------------------------------------------*/
 
-#else
+#else   
 
     /*--------------------------------------------------------------*/
 
     safiles = getSortedPathnamesInDirectory(dirin, NULL, firstpage, npages);
     nfiles = sarrayGetCount(safiles);
-
 /*    sarrayWriteStderr(safiles); */
 
         /* Classify components on requested pages */
@@ -124,7 +123,8 @@ PIXA       *pixa, *pixadb;
         /* Save and write out the result */
     data = jbDataSave(classer);
     jbDataWrite(rootname, data);
-    lept_stderr("Number of classes: %d\n", classer->nclass);
+    if (classer)
+        lept_stderr("Number of classes: %d\n", classer->nclass);
 
         /* Render the pages from the classifier data.
          * Use debugflag == FALSE to omit outlines of each component. */
@@ -142,7 +142,7 @@ PIXA       *pixa, *pixadb;
         pixDestroy(&pix);
     }
 
-#if  DISPLAY_DIFFERENCE
+  #if  DISPLAY_DIFFERENCE
     {
     char *fname;
     PIX  *pix1, *pix2;
@@ -154,9 +154,9 @@ PIXA       *pixa, *pixadb;
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     }
-#endif  /* DISPLAY_DIFFERENCE */
+  #endif  /* DISPLAY_DIFFERENCE */
 
-#if  DEBUG_TEST_DATA_IO
+  #if  DEBUG_TEST_DATA_IO
     {
     JBDATA  *newdata;
     PIX     *newpix;
@@ -186,9 +186,9 @@ PIXA       *pixa, *pixadb;
     jbDataDestroy(&newdata);
     pixaDestroy(&newpixa);
     }
-#endif  /* DEBUG_TEST_DATA_IO */
+  #endif  /* DEBUG_TEST_DATA_IO */
 
-#if  RENDER_DEBUG
+  #if  RENDER_DEBUG
         /* Use debugflag == TRUE to see outlines of each component. */
     pixadb = jbDataRender(data, TRUE);
         /* Write the debug pages out */
@@ -201,15 +201,15 @@ PIXA       *pixa, *pixadb;
         pixDestroy(&pix);
     }
     pixaDestroy(&pixadb);
-#endif  /* RENDER_DEBUG */
+  #endif  /* RENDER_DEBUG */
 
-#if  DISPLAY_ALL_INSTANCES
+  #if  DISPLAY_ALL_INSTANCES
         /* Display all instances, organized by template
          * The display programs have a lot of trouble with these. */
     pix = pixaaDisplayByPixa(classer->pixaa, 5, 1.0, 10, 0, 0);
     pixWrite("/tmp/lept/jb/output_instances", pix, IFF_PNG);
     pixDestroy(&pix);
-#endif  /* DISPLAY_ALL_INSTANCES */
+  #endif  /* DISPLAY_ALL_INSTANCES */
 
     pixaDestroy(&pixa);
     sarrayDestroy(&safiles);
@@ -218,7 +218,7 @@ PIXA       *pixa, *pixadb;
 
     /*--------------------------------------------------------------*/
 
-#endif
+#endif  /* Choose library function or detailed steps */
 
     return 0;
 }
