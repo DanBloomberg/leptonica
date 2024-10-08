@@ -54,6 +54,7 @@
  *
  *    The %edgeclean parameter is used to remove noise that is typically
  *    near the edges of the image:
+ *      -2: to extract page embedded in black background
  *      -1: aggressively removes left and right side noise
  *       0: default, no removal
  *       1-15: removal of random noise, where 15 is maximally aggressive

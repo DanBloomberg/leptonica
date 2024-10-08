@@ -44,6 +44,7 @@
  *      Location and extraction of page foreground; cleaning pages
  *          PIX            *pixCropImage()
  *          static l_int32  pixMaxCompAfterVClosing()
+ *          static l_int32  pixFindPageInsideBlackBorder()
  *          static PIX     *pixRescaleForCropping()
  *          PIX            *pixCleanImage()
  *          BOX            *pixFindPageForeground()
@@ -94,6 +95,8 @@
 static const l_int32  MinWidth = 100;
 static const l_int32  MinHeight = 100;
 
+static l_ok pixMaxCompAfterVClosing(PIX *pixs, BOX **pbox);
+static l_ok pixFindPageInsideBlackBorder(PIX *pixs, BOX **pbox);
 static PIX *pixRescaleForCropping(PIX *pixs, l_int32 w, l_int32 h,
                                   l_int32 lr_border, l_int32 tb_border,
                                   l_float32 maxwiden, PIX **ppixsc);
@@ -542,6 +545,7 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  *                           default = 0 (no removal);
  *                           15 is maximally aggressive for random noise
  *                           -1 for aggressively removing side noise
+ *                           -2 to extract page embedded in black background
  * \param[in]    lr_border   full res final "added" pixels on left and right
  * \param[in]    tb_border   full res final "added" pixels on top and bottom
  * \param[in]    maxwiden    max fractional horizontal stretch allowed
@@ -558,11 +562,13 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  *              resolution pixels.  (This is done at 2x reduction.)
  *          (c) If %edgeclean > 0, it removes isolated sets of pixels,
  *              using a close/open operation of size %edgeclean + 1.
- *              If %edgeclean < 0, it uses a large vertical morphological
+ *              If %edgeclean == -1, it uses a large vertical morphological
  *              close/open and the extraction of either the largest
  *              resulting connected component (or the largest two components
  *              if the page has 2 columns), to eliminate noise on left
  *              and right sides.
+ *              If %edgeclean == -2, it extracts the page region from a
+ *              possible exterior black surround.
  *          (d) Find the bounding box of remaining fg pixels and scales
  *              the box up 2x back to full resolution.
  *          (e) Crops the binarized image to the bounding box.
@@ -621,6 +627,10 @@ PIXA      *pixa1;
         L_WARNING("edgeclean > 15; setting to 15\n", __func__);
         edgeclean = 15;
     }
+    if (edgeclean < -1) {
+        lept_stderr("Using edgeclean = -2\n");
+        edgeclean = -2;
+    }
     pixGetDimensions(pixs, &w, &h, NULL);
     if (w < MinWidth || h < MinHeight) {
         L_ERROR("pix too small: w = %d, h = %d\n", __func__, w, h);
@@ -665,8 +675,10 @@ PIXA      *pixa1;
         pix3 = pixMorphSequence(pix2, cmd, 0);
         ret = pixClipToForeground(pix3, NULL, &box1);
         pixDestroy(&pix3);
-    } else {  /* edgeclean < 0) */
+    } else if (edgeclean == -1) {
         ret = pixMaxCompAfterVClosing(pix2, &box1);
+    } else {  /* edgeclean == -2 */
+        ret = pixFindPageInsideBlackBorder(pix2, &box1);
     }
     pixDestroy(&pix2);
     if (ret) {
@@ -757,10 +769,10 @@ PIXA      *pixa1;
  *      (4) To work properly with 2-column layout, if the largest and
  *          second-largest regions are comparable in size, both are included.
  *      (5) This is used as an option to pixCropImage(), when given
- *          a negative %edgecrop parameter.
+ *          an %edgecrop parameter of -1.
  * </pre>
  */
-l_int32
+static l_ok
 pixMaxCompAfterVClosing(PIX   *pixs,
                         BOX  **pbox)
 {
@@ -778,8 +790,10 @@ PIX     *pix1;
         /* Strong vertical closing */
     pix1 = pixMorphSequence(pixs, "r11 + c3.80 + o3.80 + x4", 0);
     pixZero(pix1, &empty);
-    if (empty)
+    if (empty) {
+        pixDestroy(&pix1);
         return ERROR_INT("pix1 is empty", __func__, 1);
+    }
 
         /* Find the two c.c. with largest area. If they are not comparable
          * in area, return the bounding box of the largest; otherwise,
@@ -805,6 +819,63 @@ PIX     *pix1;
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);
     return 0; 
+}
+
+
+/*!
+ * \brief   pixFindPageInsideBlackBorder()
+ *
+ * \param[in]    pixs        1 bpp (input at 2x reduction)
+ * \param[out]  **pbox       page region at input resolution (2x reduction)
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This extracts the page region from the image.  It is designed
+ *          to work when the page is within a fairly solid black border.
+ *      (2) It returns a bounding box for the page region at the input res.
+ *      (3) The input %pixs is expected to be at a resolution 100 - 150 ppi.
+ *      (4) This is used as an option to pixCropImage(), when given an
+ *          %edgecrop parameter of -2.
+ * </pre>
+ */
+static l_ok
+pixFindPageInsideBlackBorder(PIX   *pixs,
+                             BOX  **pbox)
+{
+l_int32  empty;
+BOX     *box1;
+BOXA    *boxa1, *boxa2;
+PIX     *pix1, *pix2;
+
+    if (!pbox)
+        return ERROR_INT("pbox not defined", __func__, 1);
+    *pbox = NULL;
+    if (!pixs || pixGetDepth(pixs) != 1)
+        return ERROR_INT("pixs undefined or not 1 bpp", __func__, 1);
+
+        /* Reduce 4x and remove some remaining small foreground */
+    pix1 = pixMorphSequence(pixs, "r22 + c5.5 + o7.7", 0);
+    pixZero(pix1, &empty);
+    if (empty) {
+        pixDestroy(&pix1);
+        return ERROR_INT("pix1 is empty", __func__, 1);
+    }
+
+        /* Photoinvert image and Find the c.c. with largest area. */
+    pixInvert(pix1, pix1);
+    pix2 = pixMorphSequence(pix1, "c11.11 + o11.11", 0);
+    pixDestroy(&pix1);
+    boxa1 = pixConnCompBB(pix2, 8);
+    pixDestroy(&pix2);
+    boxa2 = boxaSort(boxa1, L_SORT_BY_AREA, L_SORT_DECREASING, NULL);
+    box1 = boxaGetBox(boxa2, 0, L_COPY);  /* largest by area */
+    boxAdjustSides(box1, box1, 5, -5, 5, -5);
+    *pbox = boxTransform(box1, 0, 0, 4.0, 4.0);
+    boxaDestroy(&boxa1);
+    boxaDestroy(&boxa2);
+    boxDestroy(&box1);
+    return 0;
 }
 
 

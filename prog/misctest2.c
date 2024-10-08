@@ -31,6 +31,9 @@
  *        * Demonstrate image cleaning function
  *        * Demonstrat page cropping for 2-column, where one column is
  *          Kanji, and removing lots of junk on left and right sides.
+ *        * Demonstrate page cropping wiht edgeclean = -2, for a situation
+ *          where a bad oversized mediabox confuses the pdftoppm renderer,
+ *          which embeds the page image in a larger black image.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -85,6 +88,20 @@ PIXA  *pixa1;
     lept_stderr("Writing /tmp/lept/misc/2_column_crop_result.pdf\n");
     callSystemDebug(buf);
 
+        /* Page cropping for oversize media box that causes the renderer
+         * to embed the page in a larger black image.  So we need to
+         * extract the actual page.  This is now done with croppdf, using
+         * edgeclean = -2.  The bad scan was encoded with jbig2.  It looks
+         * OK when rendering with evince, but pdftoppm is tripped up by the
+         * mediabox.  See the rendered images at the end of this file. */
+    lept_mkdir("lept/bad_mediabox");
+    lept_cp("bad_mediabox_input.pdf", "lept/bad_mediabox", "input.pdf", NULL);
+    snprintf(buf, sizeof(buf),
+        "croppdf /tmp/lept/bad_mediabox 50 50 -2 80 80 1.12 0"
+        " none /tmp/lept/misc/bad_mediabox_crop_result.pdf");
+    lept_stderr("Writing /tmp/lept/misc/bad_mediabox_crop_result.pdf\n");
+    callSystemDebug(buf);
+
         /* Page cleaning */
     pixa1 = pixaCreate(3);
     pix1 = pixRead("tel_3.tif");
@@ -108,5 +125,12 @@ PIXA  *pixa1;
                      "/tmp/lept/misc/pageclean.pdf");
     pixaDestroy(&pixa1);
     
+        /* Input images to bad mediabox example pages; delayed from
+         * above to give system a chance to generate them. */
+    snprintf(buf, sizeof(buf), "displaypix /tmp/lept/renderpdf/input-1.ppm");
+    callSystemDebug(buf);
+    snprintf(buf, sizeof(buf), "displaypix /tmp/lept/renderpdf/input-2.ppm");
+    callSystemDebug(buf);
+
     return 0;
 }

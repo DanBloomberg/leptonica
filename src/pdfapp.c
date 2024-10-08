@@ -242,6 +242,7 @@ PIXAC     *pixac1 = NULL;
  *                             default = 0 (no removal);
  *                             15 is maximally aggressive for random noise
  *                             -1 for aggressively removing side noise
+ *                             -2 to extract page embedded in black background
  * \param[in]    lr_border     full res final "added" pixels on left and right
  * \param[in]    tb_border     full res final "added" pixels on top and bottom
  * \param[in]    maxwiden      max fractional horizontal stretch allowed
@@ -305,11 +306,15 @@ PIXAC     *pixac1 = NULL;
         pix1 = pixCropImage(pixs, lr_clear, tb_clear, edgeclean,
                             lr_border, tb_border, maxwiden, printwiden,
                             NULL, NULL);
+        pixDestroy(&pixs);
+        if (!pix1) {
+            L_ERROR("pix1 not made for i = %d\n", __func__, i);
+            continue;
+        }
         if (n <= maxsmallset)
             pixaAddPix(pixa1, pix1, L_INSERT);
         else
             pixacompAddPix(pixac1, pix1, IFF_TIFF_G4);
-        pixDestroy(&pixs);
     }
 
         /* Generate the pdf.  Compute the actual input resolution from
