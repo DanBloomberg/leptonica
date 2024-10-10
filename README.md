@@ -67,18 +67,18 @@ www.leptonica.org
   * [jbig2enc](https://github.com/agl/jbig2enc) (encodes multipage binary image documents with jbig2 compression)
 
 ## Major contributors to Leptonica ##
-  * Tom Powers: Tom supported the port of Leptonica to Windows for many years.  He made many contributions to code quality and documentation, including the beautiful "unofficial documentation" on the web site.
-  * David Bryan: David has worked for years to support Leptonica on multiple platforms. He designed many nice features in Leptonica, such as the severity-based error messaging system, and has identified and fixed countless bugs. And he has built and tested each distribution many times on cross-compilers.
-  * James Le Cuirot: James has written and supported the autotools scripts on Leptonica distributions for many years, and has helped test every distribution since 1.67.
-  * Jeff Breidenbach: Jeff has built every Debian distribution for Leptonica. He has also made many improvements to formatted image I/O, including tiff, png and pdf. He is a continuous advocate for simplification.
+  * Jeff Breidenbach: Jeff has built every Debian distribution for Leptonica. He has also made many improvements to formatted image I/O, including tiff, png and pdf. He is a continuous and practical advocate for simplification.
+  * David Bryan: David has worked for years to support Leptonica on multiple platforms. He designed many nice features in Leptonica, such as the severity-based error messaging system, and has identified and fixed countless bugs. And he has built and tested many distribution on cross-compilers.
+  * James Le Cuirot: James has written and supported the autotools scripts on Leptonica distributions for many years, and has helped test many recent distributions.
   * Egor Pugin: Egor is co-maintainer of Leptonica on GitHub. He ported everything, including all the old distributions, from Google Code when it shut down. He set Leptonica up for appveyor and travis testing, and has implemented the sw project, which simplifies building executables on Windows.
+  * Stefan Weil: Stefan is a co-maintainer of Leptonica on GitHub. He has worked from the beginning to clean up the Leptonica GitHub distribution, including removing errors in the source code.  Among other things: he suggested and implemented the use of Coverity Scan; made the library thread-safe by implementing atomic operations for reference counting; and helped remove internal struct data from the public interface.
+  * Zdenko Podobny: Zdenko is a co-maintainer of Leptonica on GitHub. He has worked, mostly behind the scenes as a primary maintainer of tesseract, to help with Leptonica builds on all platforms, and coordinate with its use in tesseract.
   * Jürgen Buchmüller: Jürgen wrote text converters to modify Leptonica source code so that it generates documentation using doxygen. He also wrote tiff wrappers for memory I/O.
-  * Stefan Weil: Stefan has worked from the beginning to clean up the Leptonica GitHub distribution, including removing errors in the source code.  He also: suggested and implemented the use of Coverity Scan; implemented atomic ops for ref counting; helped removing internal struct data from the public interface.
-  * Zdenko Podobny: Zdenko has worked, mostly behind the scenes as a primary maintainer of tesseract, to help with leptonica builds on all platforms, and coordinate with its use in tesseract.
-  * Adam Korczynski: Adam is an expert in testing libraries for safety.  He has built most of the open source fuzzers for leptonica in the oss-fuzz project, with significant code coverage.
+  * Adam Korczynski: Adam is an expert in testing libraries for safety.  He has built most of the open source fuzzers for Leptonica in the oss-fuzz project, with significant code coverage.
+  * Tom Powers: Tom supported the port of Leptonica to Windows for many years.  He made many contributions to code quality and documentation.
 
-## Installing leptonica (vcpkg)
-  * You can build and install leptonica using [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:
+## Installing Leptonica (vcpkg)
+  * You can build and install Leptonica using [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:
 
   ``` sh or powershell
       git clone https://github.com/Microsoft/vcpkg.git
@@ -88,4 +88,4 @@ www.leptonica.org
       ./vcpkg install leptonica
   ```
 
-  * The leptonica port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
+  * The Leptonica port in vcpkg is kept up to date by Microsoft team members and community contributors. If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
