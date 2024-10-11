@@ -133,11 +133,12 @@ pixReadMemBmp(const l_uint8  *cdata,
               size_t          size)
 {
 l_uint8    pel[4];
-l_uint8   *cmapBuf, *fdata, *data;
+l_uint8   *cmapBuf, *fdata, *data, *bmpih_b;
 l_int16    bftype, depth, d;
-l_int32    offset, ihbytes, width, height, height_neg, xres, yres, spp;
+l_int32    offset, width, height, height_neg, xres, yres, spp;
 l_int32    compression, imagebytes, fdatabytes, cmapbytes, ncolors, maxcolors;
 l_int32    fdatabpl, extrabytes, filebpp, pixWpl, pixBpl, i, j, k;
+l_uint32   ihbytes;
 l_uint32  *line, *pixdata, *pword;
 l_int64    npixels;
 BMP_FH    *bmpfh;
@@ -177,8 +178,13 @@ PIXCMAP   *cmap;
     offset += (l_uint32)bmpfh->bfOffBits[3] << 24;
 
         /* Read the remaining useful data in the infoheader.
-         * Note that the first 4 bytes give the infoheader size. */
-    ihbytes = convertOnBigEnd32(*(l_uint32 *)(bmpih));
+         * Note that the first 4 bytes give the infoheader size.
+         * The infoheader pointer on sparc64 is not 32-bit aligned. */
+    bmpih_b = (l_uint8 *)bmpih;
+    ihbytes = *bmpih_b + (*(bmpih_b + 1) << 8) +
+               (*(bmpih_b + 2) << 16) + (*(bmpih_b + 3) << 24);
+    ihbytes = convertOnBigEnd32(ihbytes);
+/*    lept_stderr("ihbytes = %d\n", ihbytes); */
     width = convertOnBigEnd32(bmpih->biWidth);
     height = convertOnBigEnd32(bmpih->biHeight);
     depth = convertOnBigEnd16(bmpih->biBitCount);
