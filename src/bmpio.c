@@ -181,10 +181,8 @@ PIXCMAP   *cmap;
          * Note that the first 4 bytes give the infoheader size.
          * The infoheader pointer on sparc64 is not 32-bit aligned. */
     bmpih_b = (l_uint8 *)bmpih;
-    ihbytes = *bmpih_b + (*(bmpih_b + 1) << 8) +
-               (*(bmpih_b + 2) << 16) + (*(bmpih_b + 3) << 24);
-    ihbytes = convertOnBigEnd32(ihbytes);
-/*    lept_stderr("ihbytes = %d\n", ihbytes); */
+    ihbytes = bmpih_b[0] + (bmpih_b[1] << 8) +
+              (bmpih_b[2] << 16) + (bmpih_b[3] << 24);
     width = convertOnBigEnd32(bmpih->biWidth);
     height = convertOnBigEnd32(bmpih->biHeight);
     depth = convertOnBigEnd16(bmpih->biBitCount);
