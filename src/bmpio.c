@@ -431,8 +431,11 @@ size_t    size, nbytes;
     rewind(fp);
     nbytes = fwrite(data, 1, size, fp);
     free(data);
-    if (nbytes != size)
+    if (nbytes != size) {
+        L_ERROR("Truncation: nbytes = %zu, size = %zu\n",
+                __func__,  nbytes, size);
         return ERROR_INT("Write error", __func__, 1);
+    }
     return 0;
 }
 
