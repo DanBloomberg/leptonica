@@ -41,9 +41,9 @@
 
 #include "allheaders.h"
 
-void  TestPartition(L_REGPARAMS *rp, const char *fname, l_int32 sorttype,
-                    l_int32 maxboxes, l_int32 ovlap, const char *fileout,
-                    PIXA  *pixad);
+static void TestPartition(L_REGPARAMS *rp, const char *fname, l_int32 sorttype,
+                          l_int32 maxboxes, l_float32 ovlap,
+                          const char *fileout, PIXA  *pixad);
 
 int main(int    argc,
          char **argv)
@@ -68,13 +68,13 @@ L_REGPARAMS  *rp;
     lept_mkdir("lept/part");
 
     pixad = pixaCreate(4);  /* only for display */
-    TestPartition(rp, "test8.jpg", L_SORT_BY_HEIGHT, 20, 0.0, "test0.pdf",
+    TestPartition(rp, "test8.jpg", L_SORT_BY_HEIGHT, 20, 0.0f, "test0.pdf",
                   pixad);
-    TestPartition(rp, "test8.jpg", L_SORT_BY_AREA, 20, 0.0, "test1.pdf",
+    TestPartition(rp, "test8.jpg", L_SORT_BY_AREA, 20, 0.0f, "test1.pdf",
                   pixad);
-    TestPartition(rp, "test8.jpg", L_SORT_BY_AREA, 20, 0.4, "test2.pdf",
+    TestPartition(rp, "test8.jpg", L_SORT_BY_AREA, 20, 0.4f, "test2.pdf",
                   pixad);
-    TestPartition(rp, "feyn-fract.tif", L_SORT_BY_AREA, 20, 0.0, "test3.pdf",
+    TestPartition(rp, "feyn-fract.tif", L_SORT_BY_AREA, 20, 0.0f, "test3.pdf",
                   pixad);
 
         /* If display requested, make a tiled image of all the results */
@@ -90,9 +90,9 @@ L_REGPARAMS  *rp;
 }
 
 
-void
+static void
 TestPartition(L_REGPARAMS *rp, const char *fname, l_int32 sorttype,
-              l_int32 maxboxes, l_int32 ovlap, const char *fileout,
+              l_int32 maxboxes, l_float32 ovlap, const char *fileout,
               PIXA  *pixad)
 {
 char     pathout[256];
