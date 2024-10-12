@@ -2460,7 +2460,6 @@ PIXCMAP   *cmap;
                 LEPT_FREE(oqca);
                 LEPT_FREE(lut1);
                 return (PIX *)ERROR_PTR("bpp not 4 or 8!", __func__, NULL);
-                break;
             }
             oqca[val]->n += 1.0;
             oqca[val]->rcum += rval;

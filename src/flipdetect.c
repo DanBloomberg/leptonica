@@ -319,27 +319,22 @@ PIX       *pix1;
         L_INFO("text orientation not determined; no rotation\n", __func__);
         if (protation) *protation = 0;
         return pixCopy(NULL, pixs);
-        break;
     case L_TEXT_ORIENT_UP:
         L_INFO("text is oriented up; no rotation\n", __func__);
         if (protation) *protation = 0;
         return pixCopy(NULL, pixs);
-        break;
     case L_TEXT_ORIENT_LEFT:
         L_INFO("landscape; text oriented left; 90 cw rotation\n", __func__);
         if (protation) *protation = 90;
         return pixRotateOrth(pixs, 1);
-        break;
     case L_TEXT_ORIENT_DOWN:
         L_INFO("text oriented down; 180 cw rotation\n", __func__);
         if (protation) *protation = 180;
         return pixRotateOrth(pixs, 2);
-        break;
     case L_TEXT_ORIENT_RIGHT:
         L_INFO("landscape; text oriented right; 270 cw rotation\n", __func__);
         if (protation) *protation = 270;
         return pixRotateOrth(pixs, 3);
-        break;
     default:
         L_ERROR("invalid orient flag!\n", __func__);
         return pixCopy(NULL, pixs);

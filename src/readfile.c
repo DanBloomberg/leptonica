@@ -392,7 +392,6 @@ PIXCMAP  *cmap;
     case IFF_UNKNOWN:
         return (PIX *)ERROR_PTR( "Unknown format: no pix returned",
                 __func__, NULL);
-        break;
     }
 
     if (pix) {
@@ -902,7 +901,6 @@ PIXCMAP  *cmap;
     case IFF_UNKNOWN:
         return (PIX *)ERROR_PTR("Unknown format: no pix returned",
                 __func__, NULL);
-        break;
     }
 
         /* Set the input format.  For tiff reading from memory we lose
@@ -1059,7 +1057,6 @@ PIX     *pix;
 
     case IFF_UNKNOWN:
         return ERROR_INT("unknown format; no data returned", __func__, 1);
-        break;
     }
 
     if (pw) *pw = w;
