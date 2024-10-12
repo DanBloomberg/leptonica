@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 #  This testing wrapper was written by James Le Cuirot.
 #
