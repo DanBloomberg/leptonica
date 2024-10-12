@@ -40,7 +40,7 @@ case "${TEST_NAME}" in
     baseline|boxa[1234]|colormask|colorspace|crop|dna|enhance|extrema|fpix1|hash|italic|kernel|nearline|numa[123]|pixa1|projection|rank|rankbin|rankhisto|wordboxes)
         GNUPLOT=$(which gnuplot || which wgnuplot)
 
-        if [ -z "${GNUPLOT}" ] || ! "${GNUPLOT}" -e "set terminal png" 2>/dev/null ; then
+        if [ -z "${GNUPLOT}" ] || [ -n "$(${GNUPLOT} -e 'set terminal png' 2>&1)" ] ; then
             exec ${@%${TEST}} /bin/sh -c "exit 77"
         fi
 esac
