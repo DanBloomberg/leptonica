@@ -142,12 +142,7 @@ l_uint32   ihbytes;
 l_uint32  *line, *pixdata, *pword;
 l_int64    npixels;
 BMP_FH    *bmpfh;
-#if defined(__GNUC__)
-BMP_HEADER *bmph;
-#define bmpih (&bmph->bmpih)
-#else
-BMP_IH    *bmpih;
-#endif
+BMP_IH    bmpih;
 PIX       *pix, *pix1;
 PIXCMAP   *cmap;
 
@@ -161,12 +156,8 @@ PIXCMAP   *cmap;
     bftype = bmpfh->bfType[0] + ((l_int32)bmpfh->bfType[1] << 8);
     if (bftype != BMP_ID)
         return (PIX *)ERROR_PTR("not bmf format", __func__, NULL);
-#if defined(__GNUC__)
-    bmph = (BMP_HEADER *)bmpfh;
-#else
-    bmpih = (BMP_IH *)(cdata + BMP_FHBYTES);
-#endif
-    compression = convertOnBigEnd32(bmpih->biCompression);
+    memcpy(&bmpih, cdata + BMP_FHBYTES, BMP_IHBYTES);
+    compression = convertOnBigEnd32(bmpih.biCompression);
     if (compression != 0)
         return (PIX *)ERROR_PTR("cannot read compressed BMP files",
                                 __func__, NULL);
@@ -180,15 +171,15 @@ PIXCMAP   *cmap;
         /* Read the remaining useful data in the infoheader.
          * Note that the first 4 bytes give the infoheader size.
          * The infoheader pointer on sparc64 is not 32-bit aligned. */
-    bmpih_b = (l_uint8 *)bmpih;
+    bmpih_b = (l_uint8 *)&bmpih;
     ihbytes = bmpih_b[0] | ((l_int32)bmpih_b[1] << 8) |
               ((l_int32)bmpih_b[2] << 16) | ((l_uint32)bmpih_b[3] << 24);
-    width = convertOnBigEnd32(bmpih->biWidth);
-    height = convertOnBigEnd32(bmpih->biHeight);
-    depth = convertOnBigEnd16(bmpih->biBitCount);
-    imagebytes = convertOnBigEnd32(bmpih->biSizeImage);
-    xres = convertOnBigEnd32(bmpih->biXPelsPerMeter);
-    yres = convertOnBigEnd32(bmpih->biYPelsPerMeter);
+    width = convertOnBigEnd32(bmpih.biWidth);
+    height = convertOnBigEnd32(bmpih.biHeight);
+    depth = convertOnBigEnd16(bmpih.biBitCount);
+    imagebytes = convertOnBigEnd32(bmpih.biSizeImage);
+    xres = convertOnBigEnd32(bmpih.biXPelsPerMeter);
+    yres = convertOnBigEnd32(bmpih.biYPelsPerMeter);
 
         /* Some sanity checking.  We impose limits on the image
          * dimensions, resolution and number of pixels.  We make sure the
@@ -476,12 +467,7 @@ l_uint32    offbytes, fimagebytes;
 l_uint32   *line, *pword;
 size_t      fsize;
 BMP_FH     *bmpfh;
-#if defined(__GNUC__)
-BMP_HEADER *bmph;
-#define bmpih (&bmph->bmpih)
-#else
-BMP_IH     *bmpih;
-#endif
+BMP_IH     bmpih;
 PIX        *pix;
 PIXCMAP    *cmap;
 RGBA_QUAD  *pquad;
@@ -602,21 +588,18 @@ RGBA_QUAD  *pquad;
     bmpfh->bfOffBits[3] = (l_uint8)(offbytes >> 24);
 
         /* Convert to little-endian and write the info header data */
-#if defined(__GNUC__)
-    bmph = (BMP_HEADER *)bmpfh;
-#else
-    bmpih = (BMP_IH *)(fdata + BMP_FHBYTES);
-#endif
-    bmpih->biSize = convertOnBigEnd32(BMP_IHBYTES);
-    bmpih->biWidth = convertOnBigEnd32(w);
-    bmpih->biHeight = convertOnBigEnd32(h);
-    bmpih->biPlanes = convertOnBigEnd16(1);
-    bmpih->biBitCount = convertOnBigEnd16(fdepth);
-    bmpih->biSizeImage = convertOnBigEnd32(fimagebytes);
-    bmpih->biXPelsPerMeter = convertOnBigEnd32(xres);
-    bmpih->biYPelsPerMeter = convertOnBigEnd32(yres);
-    bmpih->biClrUsed = convertOnBigEnd32(ncolors);
-    bmpih->biClrImportant = convertOnBigEnd32(ncolors);
+    bmpih.biSize = convertOnBigEnd32(BMP_IHBYTES);
+    bmpih.biWidth = convertOnBigEnd32(w);
+    bmpih.biHeight = convertOnBigEnd32(h);
+    bmpih.biPlanes = convertOnBigEnd16(1);
+    bmpih.biBitCount = convertOnBigEnd16(fdepth);
+    bmpih.biCompression = 0;
+    bmpih.biSizeImage = convertOnBigEnd32(fimagebytes);
+    bmpih.biXPelsPerMeter = convertOnBigEnd32(xres);
+    bmpih.biYPelsPerMeter = convertOnBigEnd32(yres);
+    bmpih.biClrUsed = convertOnBigEnd32(ncolors);
+    bmpih.biClrImportant = convertOnBigEnd32(ncolors);
+    memcpy(fdata + BMP_FHBYTES, &bmpih, BMP_IHBYTES);
 
         /* Copy the colormap data and free the cta if necessary */
     if (ncolors > 0) {
