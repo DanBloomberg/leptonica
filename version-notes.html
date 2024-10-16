@@ -89,7 +89,7 @@ They are <i>not</i> a complete listing of the modifications.
 
 <pre>
 
-1.84.2  not released
+1.85.0  Oct 16, 2024
         * Use wrapper callSystemDebug() instead of system() in programs.
         * Fixed Issue #730: artifacts and bad compression with pixWriteJp2k.
           Results are now identical with ImageMagick convert (to jp2).
@@ -98,7 +98,8 @@ They are <i>not</i> a complete listing of the modifications.
           removes need for temp file on Windows when writing to/from memory.
         * Achieve consistency with fclose() in library and lept_fclose()
           in progs.  Ditto for lept_free, lept_calloc, lept_fopen(), etc.
-        * Fix generation of bad colormap indices in jbcorrelation and jbrankhaus
+        * Fix generation of bad colormap indices in
+          jbcorrelation and jbrankhaus
         * Fixed coverity scan issues.
         * Added findpattern2_reg.c to show generation of sels and their use.
         * Added misctest2.c to show crop and clean page functions.
@@ -108,6 +109,8 @@ They are <i>not</i> a complete listing of the modifications.
         * Added renderpdf.c to library, to render pdfs as page images with
           a specified resolution.
         * Modified cleanpdf.c to use l_pdfRenderFiles().
+        * Issues #750, #752: problems in bmpio.c with taking address of
+          packed member.
         * Source files changed: adaptmap.c affinecompose.c,
           bmpio.c, boxbasic.c, colormap.c, compare.c,
           dewarp1.c, dnabasic.c, fpix1.c, gifio.c,
