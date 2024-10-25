@@ -5,12 +5,6 @@ EXTRA_DIST = config README.html leptonica-license.txt moller52.jpg version-notes
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = lept.pc
 
-# Cmake configs:
-lept_cmakeconfigdir = $(libdir)/cmake/
-lept_cmakeconfig_DATA = \
-	cmake/templates/LeptonicaConfig.cmake \
-	cmake/templates/LeptonicaConfig-version.cmake
-
 SUBDIRS = src prog
 
 # The fuzzing tests are run by OSS-Fuzz https://oss-fuzz.com/,

@@ -267,8 +267,6 @@ AC_SUBST([VERSION_PATCH], [$(echo "$AX_POINT_VERSION" | $SED 's/^\([[0-9]][[0-9]
 INCLUDE_PATH=`eval echo $includedir`
 AC_SUBST([INCLUDE_DIR], ["${INCLUDE_PATH}/leptonica"])
 AC_SUBST([leptonica_OUTPUT_NAME], ["leptonica"])
-AC_CONFIG_FILES(cmake/templates/LeptonicaConfig.cmake)
-AC_CONFIG_FILES(cmake/templates/LeptonicaConfig-version.cmake)
 
 # Create symlink
 AC_PROG_LN_S
