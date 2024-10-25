@@ -1,5 +1,5 @@
 
-set(math_progs "dna_reg|extrema_reg|insert_reg|locminmax_reg|numa1_reg|otsutest1|plottest|pta_reg|rotatefastalt|watershed_reg")
+set(math_progs "blend4_reg|dna_reg|extrema_reg|insert_reg|locminmax_reg|numa1_reg|otsutest1|pixalloc_reg|plottest|pta_reg|rankhisto_reg|rotatefastalt|watershed_reg")
 
 ########################################
 # FUNCTION add_prog_target
