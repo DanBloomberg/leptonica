@@ -1,10 +1,31 @@
+set (MANUAL_REG_PROGS
+    alltests_reg bilateral1_reg
+    binmorph2_reg binmorph4_reg binmorph5_reg
+    dwamorph2_reg
+    files_reg fmorphauto_reg
+    morphseq_reg pixalloc_reg pixtile_reg
+    smoothedge_reg
+)
 
 set(math_progs "blend4_reg|dna_reg|extrema_reg|insert_reg|locminmax_reg|numa1_reg|otsutest1|pixalloc_reg|plottest|pta_reg|rankhisto_reg|rotatefastalt|watershed_reg")
+
+file(RELATIVE_PATH relative_reg_dir ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 ########################################
 # FUNCTION add_prog_target
 ########################################
 function(add_prog_target target)
+    if(${target} MATCHES "_reg$")
+        if(NOT BUILD_TESTING)
+            return()
+        endif()
+        if(NOT target IN_LIST MANUAL_REG_PROGS)
+            add_test(NAME ${target}
+                     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/reg_wrapper.sh ${relative_reg_dir}/${target}
+                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+            set_tests_properties(${target} PROPERTIES SKIP_RETURN_CODE 78)
+        endif()
+    endif()
     set                             (${target}_src "${ARGN}")
     add_executable                  (${target} ${${target}_src})
     string(FIND ${target} "gif" GIF_TEST_FOUND)
@@ -15,7 +36,7 @@ function(add_prog_target target)
     if (BUILD_SHARED_LIBS)
         target_compile_definitions  (${target} PRIVATE -DLIBLEPT_IMPORTS)
     endif()
-    if(FREEBSD AND HAVE_LIBM AND ${target} MATCHES ${math_progs})
+    if(HAVE_LIBM AND ${target} MATCHES ${math_progs})
       target_link_libraries         (${target} leptonica m)
     else()
       target_link_libraries         (${target} leptonica)
