@@ -43,6 +43,7 @@ project(
   leptonica
   LANGUAGES C
   VERSION 1.85.1)
+include(CTest)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 

@@ -41,7 +41,7 @@ case "${TEST_NAME}" in
         GNUPLOT=$(which gnuplot || which wgnuplot)
 
         if [ -z "${GNUPLOT}" ] || [ -n "$(${GNUPLOT} -e 'set terminal png' 2>&1)" ] ; then
-            exec ${@%${TEST}} /bin/sh -c "exit 77"
+            exec ${@%${TEST}} /bin/sh -c "exit 78"
         fi
 esac
 
