@@ -42,6 +42,13 @@
  *    be both set to 1.  Then the pages with color are compressed with DCT
  *    and the monochrome pages are compressed with tiffg4.
  *
+ *    If the images in the pdf are low-resolution grayscale, they can be
+ *    upscaled 2x and binarized to make a readable and better compressed pdf.
+ *    For example, an Internet Archive book pdf with 8 bpp images at a
+ *    resolution of about 120 ppi, can be converted to 240 ppi, 1 bpp with
+ *    a size reduction of about 40%.  For that, use: %onebit = 1,
+ *    savecolor = 1 (if there are color images), scalefactor = 2.0.
+ *
  *      Syntax:
  *       compresspdf basedir imres scalefactor onebit savecolor
  *                   quality title fileout

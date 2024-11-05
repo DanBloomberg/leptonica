@@ -106,6 +106,8 @@
  *    (2) It does the image processing for prog/compresspdf.c.
  *    (3) Images in the output pdf are encoded with either tiffg4 or jpeg (DCT),
  *        or a mixture of them depending on parameters %onebit and %savecolor.
+ *        If the resulting image is 1 bpp, it is encoded with tiffg4;
+ *        otherwise, DCT (jpeg) encoding is used.
  *    (4) Parameters %onebit and %savecolor work as follows:
  *        %onebit = 0: no depth conversion, default encoding depends on depth
  *        %onebit = 1, %savecolor = 0: all images converted to 1 bpp
@@ -118,7 +120,9 @@
  *    (6) The images will be concatenated in the order given in %sa.
  *    (7) Typically, %scalefactor <= 1.0.  It is applied to each image
  *        before encoding.  If you enter a value <= 0.0, it will be set to 1.0.
- *        The maximum allowed value is 2.0.
+ *        The maximum allowed value is 2.0.  If the pdf is a set of low-res
+ *        (say, 100 ppi) 8 bpp images, set onebit = 1 and use scalefactor = 2.0
+ *        to upscale before binarizing.
  *    (8) Default jpeg %quality is 50; otherwise, quality factors between
  *        25 and 95 are enforced.
  *    (9) Page images at 300 ppi are about 8 Mpixels.  RGB(A) rasters are
@@ -137,10 +141,10 @@ compressFilesToPdf(SARRAY      *sa,
                    const char  *fileout)
 {
 char      *fname;
-l_int32    n, i, res;
+l_int32    n, i, res, processcolor;
 l_int32    maxsmallset = 25;  /* max num images kept uncompressed in array */
 l_float32  colorfract;
-PIX       *pixs, *pix1, *pix2;
+PIX       *pixs, *pix1, *pix2, *pix3, *pix4;
 PIXA      *pixa1 = NULL;
 PIXAC     *pixac1 = NULL;
 
@@ -176,24 +180,37 @@ PIXAC     *pixac1 = NULL;
         else if (i % 10 == 0)
             lept_stderr("%d . ", i);
         fname = sarrayGetString(sa, i, L_NOCOPY);
+        processcolor = FALSE;
         pixs = pixRead(fname);
-        if (onebit) {
-            if (savecolor) {
-                pixColorFraction(pixs, 40, 224, 80, 4, NULL, &colorfract);
-                if (colorfract > 0.01)  /* save the color; DCT encoding */
-                    pix1 = pixClone(pixs);
-                else
-                    pix1 = pixConvertTo1(pixs, 180);
-            } else {  /* do not save any color; tiffg4 encoding */
-                pix1 = pixConvertTo1(pixs, 180);
-            }
-        } else {  /* default encoding: tiffg4 for 1 bpp; DCT for all else */
-            pix1 = pixClone(pixs);
-        }
-        if (scalefactor == 1.0)
-            pix2 = pixClone(pix1);
-        else
+        pix1 = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
+        if (!onebit) {  /* scale and save the input image */
             pix2 = pixScale(pix1, scalefactor, scalefactor);
+            processcolor = TRUE;
+        } else if (onebit && savecolor) {
+            pixColorFraction(pix1, 40, 224, 80, 4, NULL, &colorfract);
+            if (colorfract > 0.01) { /* save the color; use DCT encoding */
+                processcolor = TRUE;
+                pix2 = pixScale(pix1, scalefactor, scalefactor);
+            }
+        }
+        if (!processcolor) {  /* scale, binarize and use tiffg4 encoding */
+            if (pixGetDepth(pix1) != 1) {
+                pix3 = pixConvertTo8(pix1, FALSE);
+                if (scalefactor < 1.0 ||
+                   (scalefactor > 1.0 && scalefactor < 2.0)) {
+                    pix4 = pixScale(pix3, scalefactor, scalefactor);
+                    pix2 = pixConvertTo1(pix4, 180);
+                    pixDestroy(&pix4);
+                } else if (scalefactor == 1.0) {
+                    pix2 = pixConvertTo1(pix3, 180);
+                } else {  /* scalefactor == 2.0 */
+                    pix2 = pixScaleGray2xLIThresh(pix3, 180);
+                }
+                pixDestroy(&pix3);
+            } else {  /* pix1 is 1 bpp */
+                pix2 = pixScale(pix1, scalefactor, scalefactor);
+            }
+        }
         if (n <= maxsmallset) {
             pixaAddPix(pixa1, pix2, L_INSERT);
         } else {
