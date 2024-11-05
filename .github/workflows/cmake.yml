@@ -33,11 +33,10 @@ jobs:
     - name: Install dependencies on macOS
       if: runner.os == 'macOS'
       run: |
-           # is already installed and up-to-date?
-           # brew install ninja
-           # brew install giflib
-           # brew install openjpeg
-           # brew install webp
+           brew install ninja
+           brew install giflib
+           brew install openjpeg
+           brew install webp
            cmake --version
 
 
