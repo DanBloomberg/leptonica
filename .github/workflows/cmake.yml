@@ -34,7 +34,6 @@ jobs:
       if: runner.os == 'macOS'
       run: |
            brew install ninja
-           brew install giflib
            brew install openjpeg
            brew install webp
            cmake --version
