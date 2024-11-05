@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-12]
+        os: [ubuntu-20.04, macos-latest]
         
     steps:
     - uses: actions/checkout@v4
@@ -33,10 +33,11 @@ jobs:
     - name: Install dependencies on macOS
       if: runner.os == 'macOS'
       run: |
-           brew install ninja
-           brew install giflib
-           brew install openjpeg
-           brew install webp
+           # is already installed and up-to-date?
+           # brew install ninja
+           # brew install giflib
+           # brew install openjpeg
+           # brew install webp
            cmake --version
 
 
