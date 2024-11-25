@@ -31,7 +31,7 @@
  *        * Demonstrate image cleaning function
  *        * Demonstrat page cropping for 2-column, where one column is
  *          Kanji, and removing lots of junk on left and right sides.
- *        * Demonstrate page cropping wiht edgeclean = -2, for a situation
+ *        * Demonstrate page cropping with edgeclean = -2, for a situation
  *          where a bad oversized mediabox confuses the pdftoppm renderer,
  *          which embeds the page image in a larger black image.
  */

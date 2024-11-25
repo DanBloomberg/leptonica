@@ -84,6 +84,7 @@ SARRAY    *sa;
         /* Write the output files */
     makeTempDirname(dirname, 256, subdirout);
     lept_stderr("dirname: %s\n", dirname);
+    lept_rmdir(subdirout);
     lept_mkdir(subdirout);
     for (i = 0; i < n; i++) {
         fname = sarrayGetString(sa, i, L_NOCOPY);
