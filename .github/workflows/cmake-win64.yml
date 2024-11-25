@@ -3,6 +3,8 @@ name: cmake-win64
 on:
   push:
     branches: [ "master" ]
+    paths-ignore:
+      - '.github/*'
   pull_request:
     branches: [ "master" ]
   workflow_dispatch:
