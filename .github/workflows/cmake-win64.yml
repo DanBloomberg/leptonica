@@ -49,7 +49,7 @@ jobs:
         run: |
              curl -sSL https://download.sourceforge.net/libpng/lpng1644.zip -o lpng1644.zip
              unzip.exe -qq lpng1644.zip
-             cd lpng1643
+             cd lpng1644
              cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -DPNG_TESTS=OFF -DPNG_SHARED=OFF
              cmake --build build --config Release --target install
              cd ..
