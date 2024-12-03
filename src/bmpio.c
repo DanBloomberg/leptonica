@@ -421,7 +421,7 @@ size_t    size, nbytes;
     pixWriteMemBmp(&data, &size, pix);
     rewind(fp);
     nbytes = fwrite(data, 1, size, fp);
-    free(data);
+    LEPT_FREE(data);
     if (nbytes != size) {
         L_ERROR("Truncation: nbytes = %zu, size = %zu\n",
                 __func__,  nbytes, size);

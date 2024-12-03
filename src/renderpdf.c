@@ -232,8 +232,8 @@ SARRAY  *sa;
         splitPathAtExtension(tail, &basename, NULL);
         snprintf(buf, sizeof(buf), "pdftoppm -r %d %s %s/%s",
                  render_res, fname, imagedir, basename);
-        lept_free(tail);
-        lept_free(basename);
+        LEPT_FREE(tail);
+        LEPT_FREE(basename);
         lept_stderr("%s\n", buf);
         callSystemDebug(buf);   /* pdftoppm */
     }
@@ -241,7 +241,7 @@ SARRAY  *sa;
 
         /* Generate the output array of image file names */
     *psaout = getSortedPathnamesInDirectory(imagedir, NULL, 0, 0);
-    lept_free(imagedir);
+    LEPT_FREE(imagedir);
     return 0;
 }
 
