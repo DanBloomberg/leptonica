@@ -1,6 +1,19 @@
 name: sw
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**/CMakeLists.txt'
+      - '.github/*'
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - '**/CMakeLists.txt'
+      - '.github/*'
+  workflow_dispatch:
 
 jobs:
   windows:

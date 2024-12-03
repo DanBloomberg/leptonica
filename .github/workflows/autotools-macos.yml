@@ -14,6 +14,11 @@ on:
       - 'configure.ac'
 
   push:
+    branches:
+      - master
+    paths-ignore:
+      - '**/CMakeLists.txt'
+      - '.github/*'
 
   # Trigger workflow in GitHub web frontend or from API.
   workflow_dispatch:
@@ -27,7 +32,7 @@ jobs:
       matrix:
         config:
           - { os: macos-13, cc: clang }
-          - { os: macos-14, cc: clang }
+          - { os: macos-latest, cc: clang }
 
     steps:
     - uses: actions/checkout@v4

@@ -3,13 +3,15 @@ name: cmake-win64
 on:
   push:
     branches: [ "master" ]
+    paths-ignore:
+      - '.github/*'
   pull_request:
     branches: [ "master" ]
   workflow_dispatch:
 
 env:
   ILOC: d:/a/local
-  
+
 jobs:
   build:
     name: cmake-win64
@@ -45,9 +47,9 @@ jobs:
       - name: Build and Install libpng
         shell: cmd
         run: |
-             curl -sSL https://download.sourceforge.net/libpng/lpng1643.zip -o lpng1643.zip
-             unzip.exe -qq lpng1643.zip
-             cd lpng1643
+             curl -sSL https://download.sourceforge.net/libpng/lpng1644.zip -o lpng1644.zip
+             unzip.exe -qq lpng1644.zip
+             cd lpng1644
              cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -DPNG_TESTS=OFF -DPNG_SHARED=OFF
              cmake --build build --config Release --target install
              cd ..
@@ -57,7 +59,7 @@ jobs:
         run: |
              git clone --depth 1 https://github.com/xbmc/giflib.git
              cd giflib
-             cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}}
+             cmake -Bbuild -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}}
              cmake --build build --config Release --target install
              cd ..
              
@@ -84,7 +86,7 @@ jobs:
         run: |
              git clone --depth 1 https://chromium.googlesource.com/webm/libwebp
              cd libwebp
-             cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -DWEBP_BUILD_WEBP_JS=OFF -DWEBP_BUILD_ANIM_UTILS=OFF -DWEBP_BUILD_CWEBP=OFF -DWEBP_BUILD_DWEBP=OFF -DWEBP_BUILD_GIF2WEBP=OFF -DWEBP_BUILD_IMG2WEBP=OFF -DWEBP_BUILD_VWEBP=OFF -DWEBP_BUILD_WEBPMUX=OFF -DWEBP_BUILD_EXTRAS=OFF -DWEBP_BUILD_WEBP_JS=OFF
+             cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -DBUILD_SHARED_LIBS=ON -DWEBP_BUILD_WEBP_JS=OFF -DWEBP_BUILD_ANIM_UTILS=OFF -DWEBP_BUILD_CWEBP=OFF -DWEBP_BUILD_DWEBP=OFF -DWEBP_BUILD_GIF2WEBP=OFF -DWEBP_BUILD_IMG2WEBP=OFF -DWEBP_BUILD_VWEBP=OFF -DWEBP_BUILD_WEBPMUX=OFF -DWEBP_BUILD_EXTRAS=OFF -DWEBP_BUILD_WEBP_JS=OFF
              cmake --build build --config Release --target install
              cd ..
 
@@ -104,28 +106,46 @@ jobs:
              cd zstd\build\cmake
              cmake -Bbuild -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}}
              cmake --build build --config Release --target install
-             cd ..
+             cd ../../..
 
       - name: Build and Install lzma
         shell: cmd
         run: |
-             curl -sSL https://sourceforge.net/projects/lzmautils/files/xz-5.4.3.tar.zst/download -o xz-5.4.5.tar.zst
-             zstd -d xz-5.4.5.tar.zst
-             tar xf  xz-5.4.5.tar
-             cd xz-5.4.5
-             ; git clone --depth 1 https://github.com/tukaani-project/xz.git
-             ; cd xz
-             ; cmake -Bbuild -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON
-             ; cmake --build build --config Release --target install
-             ; cd ..
-             
+             ; curl -sSL https://sourceforge.net/projects/lzmautils/files/xz-5.4.3.tar.zst/download -o xz-5.4.5.tar.zst
+             ; zstd -d xz-5.4.5.tar.zst
+             ; tar xf  xz-5.4.5.tar
+             ; cd xz-5.4.5
+             git clone --depth 1 https://github.com/tukaani-project/xz.git
+             cd xz
+             cmake -Bbuild -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON
+             cmake --build build --config Release --target install
+             cd ..
+
+      - name: Build and Install libdeflate
+        shell: cmd
+        run: |
+             git clone --depth 1 https://github.com/ebiggers/libdeflate.git
+             cd libdeflate
+             cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}}
+             cmake --build build --config Release --target install
+             cd ..
+
+      - name: Build and Install lerc
+        shell: cmd
+        run: |
+             git clone --depth 1 https://github.com/Esri/lerc.git
+             cd lerc
+             cmake -Bbuild -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}}
+             cmake --build build --config Release --target install
+             cd ..
+
       - name: Build and Install libtiff
         shell: cmd
         run: |
              git clone --depth 1 https://gitlab.com/libtiff/libtiff.git
              cd libtiff
-             cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -Dtiff-tools=OFF -Dtiff-tests=OFF -Dtiff-contrib=OFF -Dtiff-docs=OFF
-             cmake --build build --config Release --target install
+             cmake -Bbuild_cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=${{env.ILOC}} -DCMAKE_INSTALL_PREFIX=${{env.ILOC}} -Dtiff-tools=OFF -Dtiff-tests=OFF -Dtiff-contrib=OFF -Dtiff-docs=OFF
+             cmake --build build_cmake --config Release --target install
              cd ..
 
       - name: Build and Install leptonica
@@ -138,7 +158,7 @@ jobs:
         shell: cmd
         run: |
           echo "Testing leptonica..."
-          ${{env.ILOC}}/bin/fileinfo prog/test-rgb.png
+          ${{env.ILOC}}/bin/fileinfo ${GITHUB_WORKSPACE}/prog/test-rgb.png
 
       - name: Remove not needed tools
         shell: cmd
