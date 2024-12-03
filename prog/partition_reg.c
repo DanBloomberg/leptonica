@@ -79,7 +79,7 @@ L_REGPARAMS  *rp;
 
         /* If display requested, make a tiled image of all the results */
     if (rp->display) {
-        pix1 = pixaDisplayTiledInRows(pixad, 32, 2000, 0.7, 0, 30, 3);
+        pix1 = pixaDisplayTiledInRows(pixad, 32, 2000, 0.7f, 0, 30, 3);
         pixDisplay(pix1, 100, 100);
         pixWrite("/tmp/lept/part/tiled_result.png", pix1, IFF_PNG);
         pixDestroy(&pix1);
@@ -118,7 +118,7 @@ PIXA    *pixa;
     pix2 = pixCopyWithBoxa(pix1, boxa2, L_SET_WHITE);
     pixaAddPix(pixa, pix2, L_COPY);
     boxa3 = boxaGetWhiteblocks(boxa2, box, sorttype, maxboxes, ovlap,
-                               200, 0.15, 20000);
+                               200, 0.15f, 20000);
 
         /* Display box outlines in random colors in a cmapped image */
     pix3 = pixDrawBoxaRandom(pix2, boxa3, 7);
@@ -131,12 +131,12 @@ PIXA    *pixa;
         /* Make and check the output pdf file */
     snprintf(pathout, sizeof(pathout), "/tmp/lept/part/%s", fileout);
     lept_stderr("Writing to: %s\n", pathout);
-    pixaConvertToPdf(pixa, 300, 1.0, L_FLATE_ENCODE, 0, fileout, pathout);
+    pixaConvertToPdf(pixa, 300, 1.0f, L_FLATE_ENCODE, 0, fileout, pathout);
     regTestCheckFile(rp, pathout);
 
         /* Display in a column */
     if (rp->display) {
-        pix4 = pixaDisplayTiledInColumns(pixa, 1, 0.7, 20, 2);
+        pix4 = pixaDisplayTiledInColumns(pixa, 1, 0.7f, 20, 2);
         pixaAddPix(pixad, pix4, L_INSERT);
     }
 

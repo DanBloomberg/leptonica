@@ -602,9 +602,8 @@ recogGetCharsetSize(l_int32  type)
         return 26;
     default:
         L_ERROR("invalid charset_type %d\n", __func__, type);
-        return 0;
     }
-    return 0;  /* shouldn't happen */
+    return 0;
 }
 
 
