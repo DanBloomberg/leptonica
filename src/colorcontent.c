@@ -446,7 +446,7 @@ PIX       *pix1, *pixd;
  *                             considered in the statistics; typ. 244
  * \param[in]    diffthresh    thresh for the maximum difference between
  *                             component values; below this the pixel is not
- *                             considered to have sufficient color
+ *                             considered to have sufficient color; typ. 60.
  * \param[in]    factor        subsampling factor
  * \param[out]   ppixfract     [optional] fraction of pixels in intermediate
  *                             brightness range that were considered

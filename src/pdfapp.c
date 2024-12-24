@@ -187,7 +187,7 @@ PIXAC     *pixac1 = NULL;
             pix2 = pixScale(pix1, scalefactor, scalefactor);
             processcolor = TRUE;
         } else if (onebit && savecolor) {
-            pixColorFraction(pix1, 40, 224, 80, 4, NULL, &colorfract);
+            pixColorFraction(pix1, 40, 224, 60, 4, NULL, &colorfract);
             if (colorfract > 0.01) { /* save the color; use DCT encoding */
                 processcolor = TRUE;
                 pix2 = pixScale(pix1, scalefactor, scalefactor);
