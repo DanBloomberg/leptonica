@@ -390,9 +390,11 @@ Building leptonica
 4. Building and running oss-fuzz programs
 
    The oss-fuzz programs are in prog/fuzzing/.  They are run by oss-fuzz
-   on a continual basis with random inputs.  clang-10, which is required
-   to build these programs, can be installed using the command
-       sudo apt-get install clang-10
+   on a continual basis with random inputs.  They can also be built and
+   run locally.  On ubuntu 24.04, clang-18 is required to build these
+   programs. It can be installed using
+       sudo apt-get install clang-18
+   On 22.04, use clang-14.
 
    Stefan Weil has provided this method for building the fuzzing programs.
    From your github root:
@@ -401,21 +403,21 @@ Building leptonica
        cd bin/fuzzer
    Run configure to generate the Makefiles:
      address sanitizer issue:
-       ../../configure CC=clang-10 CXX=clang++-10 CFLAGS="-g -O2 \
+       ../../configure CC=clang-18 CXX=clang++-18 CFLAGS="-g -O2 \
        -D_GLIBCXX_DEBUG -fsanitize=fuzzer-no-link,address,undefined" \
        CXXFLAGS="-g -O2 -D_GLIBCXX_DEBUG \
        -fsanitize=fuzzer-no-link,address,undefined"
      memory sanitizer issue:
-       ../../configure CC=clang-10 CXX=clang++-10 CFLAGS="-g -O2 \
+       ../../configure CC=clang-18 CXX=clang++-18 CFLAGS="-g -O2 \
        -D_GLIBCXX_DEBUG -fsanitize=fuzzer-no-link,memory,undefined" \
        CXXFLAGS="-g -O2 -D_GLIBCXX_DEBUG \
        -fsanitize=fuzzer-no-link,memory,undefined"
    Build:
      address sanitizer issue:
-       make fuzzers CXX=clang++-10 CXXFLAGS="-g -O2 -D_GLIBCXX_DEBUG \
+       make fuzzers CXX=clang++-18 CXXFLAGS="-g -O2 -D_GLIBCXX_DEBUG \
        -fsanitize=fuzzer,address,undefined"
      memory sanitizer issue:
-       make fuzzers CXX=clang++-10 CXXFLAGS="-g -O2 -D_GLIBCXX_DEBUG \
+       make fuzzers CXX=clang++-18 CXXFLAGS="-g -O2 -D_GLIBCXX_DEBUG \
        -fsanitize=fuzzer,memory,undefined"
 
    When an oss-fuzz issue has been created, download the Reproducer
