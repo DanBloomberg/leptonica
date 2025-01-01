@@ -37,13 +37,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   leptSetStdNullHandler();
 
   // Don't do pnm format (which can cause timeouts) or
-  // jpeg format (which can have uninitialized variables.
-  // The format checker requires at least 12 bytes.
+  // jpeg format (which can have uninitialized variables).
+  // tiff and png can also take too much memory in this test,
+  // but not in applications because they abort quickly after
+  // reading the header and computing the size of the data.
+  // Note that the format checker requires at least 12 bytes.
   if (size < 12) return EXIT_SUCCESS;
   int format;
   findFileFormatBuffer(data, &format);
   if (format == IFF_PNM || format == IFF_JFIF_JPEG ||
-      format == IFF_TIFF) return EXIT_SUCCESS;
+      format == IFF_TIFF || format == IFF_PNG) return EXIT_SUCCESS;
 
   Pix* pix = pixReadMem(reinterpret_cast<const unsigned char*>(data), size);
   if (pix == nullptr) {
