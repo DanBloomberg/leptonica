@@ -798,7 +798,7 @@ l_int32      resb, resc, endpage, maskop, ret;
  *          a bounding box, from any input image file.
  *      (2) Do the best job of compression given the specified level.
  *          %level=3 does flate compression on anything that is not
- *          tiffg4 (1 bpp) or jpeg (8 bpp or rgb).
+ *          tiffg4 (1 bpp), jpeg (8 bpp or rgb), or webp.
  *      (3) If %level=2 and the file is not tiffg4 or jpeg, it will
  *          first be written to file as jpeg with quality = 75.
  *          This will remove the colormap and cause some degradation
@@ -813,7 +813,7 @@ convertToPSEmbed(const char  *filein,
                  const char  *fileout,
                  l_int32      level)
 {
-char    *tname;
+char    *tname, *tmpfile, *basename;
 l_int32  d, format;
 PIX     *pix, *pixs;
 
@@ -842,6 +842,21 @@ PIX     *pix, *pixs;
     } else if (format == IFF_UNKNOWN) {
         L_ERROR("format of %s not known\n", __func__, filein);
         return 1;
+    }
+
+        /* If level 3 and in webp format, convert to jpeg
+         * and use dct encoding */
+    if (level == 3 && format == IFF_WEBP) {
+        pix = pixRead(filein);
+        splitPathAtExtension(filein, &basename, NULL);
+        tmpfile = stringJoin(basename, ".tmpjpg");
+        pixWrite(tmpfile, pix, IFF_JFIF_JPEG);
+        convertJpegToPSEmbed(tmpfile, fileout);
+        pixDestroy(&pix);
+        lept_rmfile(tmpfile);
+        LEPT_FREE(tmpfile);
+        LEPT_FREE(basename);
+        return 0;
     }
 
         /* If level 3, flate encode. */
