@@ -219,7 +219,7 @@ PTA       *pta;
         /* Generate an approximate profile of text line width.
          * First, filter the boxes of text, where there may be
          * more than one box for a given textline. */
-    pix2 = pixMorphSequence(pix1, "r11 + c20.1 + o30.1 +c1.3", 0);
+    pix2 = pixMorphSequence(pix1, "r11 + c20.1 + o30.1", 0);
     if (pixadb) pixaAddPix(pixadb, pix2, L_COPY);
     boxa1 = pixConnComp(pix2, NULL, 4);
     pixDestroy(&pix1);

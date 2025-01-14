@@ -82,18 +82,19 @@ L_REGPARAMS  *rp;
         /* Test baseline finder */
     pixadb = pixaCreate(6);
     na = pixFindBaselines(pix1, &pta, pixadb);
+    regTestCompareValues(rp, 23, numaGetCount(na), 0);  /* 3 */
     pix2 = pixRead("/tmp/lept/baseline/diff.png");
     pix3 = pixRead("/tmp/lept/baseline/loc.png");
     pix4 = pixRead("/tmp/lept/baseline/baselines.png");
-    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 3 */
-    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 4 */
-    regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 5 */
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 4 */
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 6 */
+    regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 6 */
     pixDisplayWithTitle(pix2, 0, 0, NULL, rp->display);
     pixDisplayWithTitle(pix3, 700, 0, NULL, rp->display);
     pixDisplayWithTitle(pix4, 1350, 0, NULL, rp->display);
     pix5 = pixaDisplayTiledInRows(pixadb, 32, 1500, 1.0, 0, 30, 2);
     pixDisplayWithTitle(pix5, 0, 500, NULL, rp->display);
-    regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 6 */
+    regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 7 */
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
@@ -112,7 +113,7 @@ L_REGPARAMS  *rp;
     pix3 = pixScale(pix2, 4.0, 4.0);   /* scale up to 300 ppi */
     pix4 = pixCleanBackgroundToWhite(pix3, NULL, NULL, 1.0, 70, 170);
     pix5 = pixThresholdToBinary(pix4, 170);
-    regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 7 */
+    regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 8 */
     pixaAddPix(pixadb, pixScale(pix5, 0.25, 0.25), L_INSERT);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
@@ -120,8 +121,9 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix4);
     pix1 = pixDeskew(pix5, 2);
     na = pixFindBaselines(pix1, &pta, pixadb);
+    regTestCompareValues(rp, 35, numaGetCount(na), 0);  /* 9 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 1500, 1.0, 0, 30, 2);
-    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 8 */
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 10 */
     pixDisplayWithTitle(pix2, 800, 500, NULL, rp->display);
     pixaDestroy(&pixadb);
     pixDestroy(&pixs);
