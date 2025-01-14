@@ -90,11 +90,15 @@ They are <i>not</i> a complete listing of the modifications.
 <pre>
 
 1.86.0  Not released
+        * Modify pixFindBaselines() to avoid joining textboxes and to
+          ignore bogus textboxes when listing baseline end points.
+        * Modify convertToPSEmbed() to efficiently encode webp input images.
         * Modify compressFilesToPdf() to allow upscale interpolation for
           low resolution pdfs.
-        * Source files changed: pageseg.c, pdfapp.c
-        * Prog files changed: binarizefiles.c, compresspdf.c, croppdf.c,
-          misctest2.c
+        * Source files changed: baseline.c, pageseg.c, pdfapp.c, psio1.c
+        * Prog files changed: baseline_reg.c, binarizefiles.c,
+          compresspdf.c, croppdf.c, misctest2.c,
+        * Prog files added: baseline2.png
 
 1.85.0  Oct 16, 2024
         * Use wrapper callSystemDebug() instead of system() in programs.

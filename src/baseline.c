@@ -242,19 +242,27 @@ PTA       *pta;
         *ppta = pta;
     }
     if (pta) {
-      nloc = numaGetCount(naloc);
-      nbox = boxaGetCount(boxa3);
-      for (i = 0; i < nbox; i++) {
-          boxaGetBoxGeometry(boxa3, i, &bx, &by, &bw, &bh);
-          for (j = 0; j < nloc; j++) {
-              numaGetIValue(naloc, j, &locval);
-              if (L_ABS(locval - (by + bh)) > 25)
-                  continue;
-              ptaAddPt(pta, bx, locval);
-              ptaAddPt(pta, bx + bw, locval);
-              break;
-          }
-      }
+        nloc = numaGetCount(naloc);
+        nbox = boxaGetCount(boxa3);
+            /* For each textbox, find the corresponding baseline.
+             * There may be more than one textbox to a baseline.
+             * Bogus textboxes of very small height may have been
+             * generated, and these are removed.  Bogus textboxes can
+             * also be eliminated if the bottom is too far from any of
+             * the baselines.  Note that the boxes are an expansion from
+             * 4x reduction, so box parameters are multiples of 4. */
+        for (i = 0; i < nbox; i++) {
+            boxaGetBoxGeometry(boxa3, i, &bx, &by, &bw, &bh);
+            if (bh <= 8) continue;
+            for (j = 0; j < nloc; j++) {
+                numaGetIValue(naloc, j, &locval);
+                if (L_ABS(locval - (by + bh)) > 24)
+                    continue;
+                ptaAddPt(pta, bx, locval);
+                ptaAddPt(pta, bx + bw, locval);
+                break;
+            }
+        }
     }
     boxaDestroy(&boxa3);
 

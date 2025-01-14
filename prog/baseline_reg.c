@@ -133,5 +133,19 @@ L_REGPARAMS  *rp;
     numaDestroy(&na);
     ptaDestroy(&pta);
 
+        /* Another test for baselines, with bogus short 'textblock' */
+    pixadb = pixaCreate(6);
+    pix1 = pixRead("baseline2.png");
+    na = pixFindBaselines(pix1, &pta, pixadb);
+    regTestCompareValues(rp, 3, numaGetCount(na), 0);  /* 11 */
+    pix2 = pixaDisplayTiledInRows(pixadb, 32, 1500, 1.0, 0, 30, 2);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 12 */
+    pixDisplayWithTitle(pix2, 1400, 500, NULL, rp->display);
+    pixaDestroy(&pixadb);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    numaDestroy(&na);
+    ptaDestroy(&pta);
+
     return regTestCleanup(rp);
 }
