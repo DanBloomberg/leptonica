@@ -121,7 +121,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix4);
     pix1 = pixDeskew(pix5, 2);
     na = pixFindBaselines(pix1, &pta, pixadb);
-    regTestCompareValues(rp, 35, numaGetCount(na), 0);  /* 9 */
+    regTestCompareValues(rp, 33, numaGetCount(na), 0);  /* 9 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 1500, 1.0, 0, 30, 2);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 10 */
     pixDisplayWithTitle(pix2, 800, 500, NULL, rp->display);
@@ -133,13 +133,27 @@ L_REGPARAMS  *rp;
     numaDestroy(&na);
     ptaDestroy(&pta);
 
-        /* Another test for baselines, with bogus short 'textblock' */
+        /* Another test for baselines: very short textblock is removed */
+    pixadb = pixaCreate(6);
+    pix1 = pixRead("baseline1.png");
+    na = pixFindBaselines(pix1, &pta, pixadb);
+    regTestCompareValues(rp, 1, numaGetCount(na), 0);  /* 11 */
+    pix2 = pixaDisplayTiledInRows(pixadb, 32, 1500, 1.0, 0, 30, 2);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 12 */
+    pixDisplayWithTitle(pix2, 1400, 500, NULL, rp->display);
+    pixaDestroy(&pixadb);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    numaDestroy(&na);
+    ptaDestroy(&pta);
+
+        /* Another test for baselines: bogus short-height 'textblock' */
     pixadb = pixaCreate(6);
     pix1 = pixRead("baseline2.png");
     na = pixFindBaselines(pix1, &pta, pixadb);
-    regTestCompareValues(rp, 3, numaGetCount(na), 0);  /* 11 */
+    regTestCompareValues(rp, 3, numaGetCount(na), 0);  /* 13 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 1500, 1.0, 0, 30, 2);
-    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 12 */
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 14 */
     pixDisplayWithTitle(pix2, 1400, 500, NULL, rp->display);
     pixaDestroy(&pixadb);
     pixDestroy(&pix1);

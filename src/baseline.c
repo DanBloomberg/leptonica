@@ -120,7 +120,7 @@ pixFindBaselines(PIX   *pixs,
 {
 l_int32    h, i, j, nbox, val1, val2, ndiff, bx, by, bw, bh;
 l_int32    imaxloc, peakthresh, zerothresh, inpeak;
-l_int32    mintosearch, max, maxloc, nloc, locval;
+l_int32    mintosearch, max, maxloc, nloc, locval, found, nremoved;
 l_int32   *array;
 l_float32  maxval;
 BOXA      *boxa1, *boxa2, *boxa3;
@@ -217,8 +217,9 @@ PTA       *pta;
     numaDestroy(&naval);
 
         /* Generate an approximate profile of text line width.
-         * First, filter the boxes of text, where there may be
-         * more than one box for a given textline. */
+         * First, consolidate and filter the boxes of text.
+         * The horizontal opening 'o30.1' removes lines of width
+         * less than 120 pixels at full resolution. */
     pix2 = pixMorphSequence(pix1, "r11 + c20.1 + o30.1", 0);
     if (pixadb) pixaAddPix(pixadb, pix2, L_COPY);
     boxa1 = pixConnComp(pix2, NULL, 4);
@@ -235,37 +236,45 @@ PTA       *pta;
     boxaDestroy(&boxa1);
     boxaDestroy(&boxa2);
 
-        /* Optionally, find the baseline segments */
-    pta = NULL;
-    if (ppta) {
-        pta = ptaCreate(0);
-        *ppta = pta;
-    }
-    if (pta) {
-        nloc = numaGetCount(naloc);
-        nbox = boxaGetCount(boxa3);
-            /* For each textbox, find the corresponding baseline.
-             * There may be more than one textbox to a baseline.
-             * Bogus textboxes of very small height may have been
-             * generated, and these are removed.  Bogus textboxes can
-             * also be eliminated if the bottom is too far from any of
-             * the baselines.  Note that the boxes are an expansion from
-             * 4x reduction, so box parameters are multiples of 4. */
-        for (i = 0; i < nbox; i++) {
-            boxaGetBoxGeometry(boxa3, i, &bx, &by, &bw, &bh);
-            if (bh <= 8) continue;
-            for (j = 0; j < nloc; j++) {
-                numaGetIValue(naloc, j, &locval);
-                if (L_ABS(locval - (by + bh)) > 24)
-                    continue;
+        /* For each baseline, find the corresponding textboxes.
+         * There may be more than one textbox to a baseline.
+         * Bogus textboxes of very small height may have been
+         * generated, and these are removed.  Bogus textboxes can
+         * also be eliminated if the bottom is too far from any of
+         * the baselines.  If there are no valid textboxes for a
+         * baseline, that baseline is removed.
+         * Note that the boxes have been expanded from 4x reduction,
+         * so box parameters are multiples of 4. */
+    pta = ptaCreate(0);
+    nloc = numaGetCount(naloc);
+    nbox = boxaGetCount(boxa3);
+    nremoved = 0;  /* keeps track of baselines removed */
+    for (i = 0; i < nloc; i++) {
+        numaGetIValue(naloc, i, &locval);
+        found = FALSE;
+        for (j = 0; j < nbox; j++) {
+            boxaGetBoxGeometry(boxa3, j, &bx, &by, &bw, &bh);
+            if (bh > 8 && L_ABS(locval - (by + bh)) <= 24) {
                 ptaAddPt(pta, bx, locval);
                 ptaAddPt(pta, bx + bw, locval);
-                break;
+                found = TRUE;
             }
+        }
+        if (!found) {  /* no textbox corresponding to this baseline */
+            L_INFO("short baseline %d at y = %d removed\n", __func__,
+                    i + nremoved, locval);
+            numaRemoveNumber(naloc, i);
+            nremoved++;
+            i--;
+            nloc--;
         }
     }
     boxaDestroy(&boxa3);
 
+    if (ppta)
+        *ppta = pta;
+    else
+        ptaDestroy(&pta);
     if (pixadb && pta) {  /* display baselines */
         l_int32  npts, x1, y1, x2, y2;
         pix1 = pixConvertTo32(pixs);
