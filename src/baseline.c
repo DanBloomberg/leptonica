@@ -30,6 +30,7 @@
  *
  *      Locate text baselines in an image
  *           NUMA     *pixFindBaselines()
+ *           NUMA     *pixFindBaselinesGen()
  *
  *      Projective transform to remove local skew
  *           PIX      *pixDeskewLocal()
@@ -54,11 +55,17 @@
 #include <math.h>
 #include "allheaders.h"
 
-    /* Minimum distance to travel after finding max before abandoning peak */
-static const l_int32  MinDistInPeak = 35;
+    /* Default minimum textblock width */
+static const l_int32  DefaultMinBlockWidth = 80;
 
-    /* Thresholds for peaks and zeros, relative to the max peak */
-static const l_int32  PeakThresholdRatio = 20;
+    /* Minimum distance to travel after finding max before abandoning peak.
+     * If MinDistFromPeak < 25, this risks bogus lines at the xheight. */
+static const l_int32  MinDistFromPeak = 30;
+
+    /* Thresholds for peaks and zeros, relative to the max peak.
+     * If PeakThresholdRatio < 40, this risks not identifying lines.
+     * Results appear insensitive to the value of ZeroThresholdRatio.  */
+static const l_int32  PeakThresholdRatio = 80;
 static const l_int32  ZeroThresholdRatio = 100;
 
     /* Default values for determining local skew */
@@ -90,27 +97,8 @@ static const l_float32  MinAllowedConfidence = 3.0;
  *
  * <pre>
  * Notes:
- *      (1) Input binary image must have text lines already aligned
- *          horizontally.  This can be done by either rotating the
- *          image with pixDeskew(), or, if a projective transform
- *          is required, by doing pixDeskewLocal() first.
- *      (2) Input null for &pta if you don't want this returned.
- *          The pta will come in pairs of points (left and right end
- *          of each baseline).
- *      (3) Caution: this will not work properly on text with multiple
- *          columns, where the lines are not aligned between columns.
- *          If there are multiple columns, they should be extracted
- *          separately before finding the baselines.
- *      (4) This function constructs different types of output
- *          for baselines; namely, a set of raster line values and
- *          a set of end points of each baseline.
- *      (5) This function was designed to handle short and long text lines
- *          without using dangerous thresholds on the peak heights.  It does
- *          this by combining the differential signal with a morphological
- *          analysis of the locations of the text lines.  One can also
- *          combine this data to normalize the peak heights, by weighting
- *          the differential signal in the region of each baseline
- *          by the inverse of the width of the text line found there.
+ *      (1) This is a simplified interface to pixFindBaselinesGen().
+ *          See Notes there.
  * </pre>
  */
 NUMA *
@@ -118,6 +106,60 @@ pixFindBaselines(PIX   *pixs,
                  PTA  **ppta,
                  PIXA  *pixadb)
 {
+NUMA  *na;
+
+    if ((na = pixFindBaselinesGen(pixs, DefaultMinBlockWidth,
+                                  ppta, pixadb)) == NULL)
+        return (NUMA *)ERROR_PTR("na not returned", __func__, NULL);
+
+    return na;
+}
+
+/*!
+ * \brief   pixFindBaselinesGen()
+ *
+ * \param[in]    pixs     1 bpp, 300 ppi
+ * \param[in]    minw     approx min block width returned baselines, in pixels
+ * \param[out]   ppta     [optional] pairs of pts corresponding to
+ *                        approx. ends of each text line
+ * \param[in]    pixadb   for debug output; use NULL to skip
+ * \return  na of baseline y values, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Input binary image must have text lines already aligned
+ *          horizontally.  This can be done by either rotating the
+ *          image with pixDeskew(), or, if a projective transform
+ *          is required, by doing pixDeskewLocal() first.
+ *      (2) Input null for &pta if you don't want this returned.
+ *          The pta will come in pairs of points (left and right end
+ *          of each baseline).
+ *      (3) Very short text blocks are ignored.  Use the parameter %minw
+ *          to specify the (approx.) minimum size baseline for a text block
+ *          that is returned.  Default value (use 0) is 80 pixels.
+ *      (4) This function returns the locations of baselines for which
+ *          the end points of the the text are found.  Return of those
+ *          end points is optional.
+ *      (5) This function was designed to identify short and long text lines
+ *          without using dangerous thresholds on the peak heights.  It does
+ *          this by combining the differential signal with a morphological
+ *          analysis of the locations of the text lines.  One can also
+ *          combine this data to normalize the peak heights, by weighting
+ *          the differential signal in the region of each baseline
+ *          by the inverse of the width of the text line found there.
+ *      (6) Caution: this will not work properly on text with multiple
+ *          columns, where the lines are not aligned between columns.
+ *          If there are multiple columns, they should be extracted
+ *          separately before finding the baselines.
+ * </pre>
+ */
+NUMA *
+pixFindBaselinesGen(PIX     *pixs,
+                    l_int32  minw,
+                    PTA    **ppta,
+                    PIXA    *pixadb)
+{
+char       cmd[64];
 l_int32    h, i, j, nbox, val1, val2, ndiff, bx, by, bw, bh;
 l_int32    imaxloc, peakthresh, zerothresh, inpeak;
 l_int32    mintosearch, max, maxloc, nloc, locval, found, nremoved;
@@ -132,6 +174,9 @@ PTA       *pta;
     if (ppta) *ppta = NULL;
     if (!pixs || pixGetDepth(pixs) != 1)
         return (NUMA *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
+
+    if (minw <= 0) minw = 80;  /* default */
+    if (minw < 6) minw = 6;
 
         /* Close up the text characters, removing noise */
     pix1 = pixMorphSequence(pixs, "c25.1 + e15.1", 0);
@@ -180,8 +225,8 @@ PTA       *pta;
         if (inpeak == FALSE) {
             if (array[i] > peakthresh) {  /* transition to in-peak */
                 inpeak = TRUE;
-                mintosearch = i + MinDistInPeak; /* accept no zeros
-                                               * between i and mintosearch */
+                mintosearch = i + MinDistFromPeak; /* accept no zeros
+                                                 * between i and mintosearch */
                 max = array[i];
                 maxloc = i;
             }
@@ -189,8 +234,9 @@ PTA       *pta;
             if (array[i] > max) {
                 max = array[i];
                 maxloc = i;
-                mintosearch = i + MinDistInPeak;
-            } else if (i > mintosearch && array[i] <= zerothresh) {  /* leave */
+                mintosearch = i + MinDistFromPeak;
+            } else if (i >= mintosearch && array[i] <= zerothresh) {
+                                     /* leave and store previous peak */
                 inpeak = FALSE;
                 numaAddNumber(naval, max);
                 numaAddNumber(naloc, maxloc);
@@ -220,7 +266,8 @@ PTA       *pta;
          * First, consolidate and filter the boxes of text.
          * The horizontal opening 'o30.1' removes lines of width
          * less than 120 pixels at full resolution. */
-    pix2 = pixMorphSequence(pix1, "r11 + c20.1 + o30.1", 0);
+    snprintf(cmd, sizeof(cmd), "r11 + c20.1 + o%d.1", minw / 6);
+    pix2 = pixMorphSequence(pix1, cmd, 0);
     if (pixadb) pixaAddPix(pixadb, pix2, L_COPY);
     boxa1 = pixConnComp(pix2, NULL, 4);
     pixDestroy(&pix1);

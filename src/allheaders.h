@@ -119,6 +119,7 @@ LEPT_DLL extern void l_setDataFourBytes ( void *line, l_int32 n, l_int32 val );
 LEPT_DLL extern char * barcodeDispatchDecoder ( char *barstr, l_int32 format, l_int32 debugflag );
 LEPT_DLL extern l_int32 barcodeFormatIsSupported ( l_int32 format );
 LEPT_DLL extern NUMA * pixFindBaselines ( PIX *pixs, PTA **ppta, PIXA *pixadb );
+LEPT_DLL extern NUMA * pixFindBaselinesGen ( PIX *pixs, l_int32 minw, PTA **ppta, PIXA *pixadb );
 LEPT_DLL extern PIX * pixDeskewLocal ( PIX *pixs, l_int32 nslices, l_int32 redsweep, l_int32 redsearch, l_float32 sweeprange, l_float32 sweepdelta, l_float32 minbsdelta );
 LEPT_DLL extern l_ok pixGetLocalSkewTransform ( PIX *pixs, l_int32 nslices, l_int32 redsweep, l_int32 redsearch, l_float32 sweeprange, l_float32 sweepdelta, l_float32 minbsdelta, PTA **pptas, PTA **pptad );
 LEPT_DLL extern NUMA * pixGetLocalSkewAngles ( PIX *pixs, l_int32 nslices, l_int32 redsweep, l_int32 redsearch, l_float32 sweeprange, l_float32 sweepdelta, l_float32 minbsdelta, l_float32 *pa, l_float32 *pb, l_int32 debug );

@@ -25,7 +25,7 @@
  *====================================================================*/
 
 /*
- * baselinetest.c
+ * baseline_reg.c
  *
  *   This tests two things:
  *   (1) The ability to find a projective transform that will deskew
@@ -87,7 +87,7 @@ L_REGPARAMS  *rp;
     pix3 = pixRead("/tmp/lept/baseline/loc.png");
     pix4 = pixRead("/tmp/lept/baseline/baselines.png");
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 4 */
-    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 6 */
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 5 */
     regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 6 */
     pixDisplayWithTitle(pix2, 0, 0, NULL, rp->display);
     pixDisplayWithTitle(pix3, 700, 0, NULL, rp->display);
@@ -121,7 +121,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix4);
     pix1 = pixDeskew(pix5, 2);
     na = pixFindBaselines(pix1, &pta, pixadb);
-    regTestCompareValues(rp, 33, numaGetCount(na), 0);  /* 9 */
+    regTestCompareValues(rp, 35, numaGetCount(na), 0);  /* 9 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 1500, 1.0, 0, 30, 2);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 10 */
     pixDisplayWithTitle(pix2, 800, 500, NULL, rp->display);
@@ -137,7 +137,7 @@ L_REGPARAMS  *rp;
     pixadb = pixaCreate(6);
     pix1 = pixRead("baseline1.png");
     na = pixFindBaselines(pix1, &pta, pixadb);
-    regTestCompareValues(rp, 1, numaGetCount(na), 0);  /* 11 */
+    regTestCompareValues(rp, 2, numaGetCount(na), 0);  /* 11 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 1500, 1.0, 0, 30, 2);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 12 */
     pixDisplayWithTitle(pix2, 1400, 500, NULL, rp->display);
@@ -147,13 +147,27 @@ L_REGPARAMS  *rp;
     numaDestroy(&na);
     ptaDestroy(&pta);
 
-        /* Another test for baselines: bogus short-height 'textblock' */
+        /* Another test for baselines: some very short lines */
     pixadb = pixaCreate(6);
-    pix1 = pixRead("baseline2.png");
-    na = pixFindBaselines(pix1, &pta, pixadb);
-    regTestCompareValues(rp, 3, numaGetCount(na), 0);  /* 13 */
+    pix1 = pixRead("baseline2.tif");
+    na = pixFindBaselinesGen(pix1, 30, &pta, pixadb);
+    regTestCompareValues(rp, 29, numaGetCount(na), 0);  /* 13 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 1500, 1.0, 0, 30, 2);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 14 */
+    pixDisplayWithTitle(pix2, 1400, 500, NULL, rp->display);
+    pixaDestroy(&pixadb);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    numaDestroy(&na);
+    ptaDestroy(&pta);
+
+        /* Another test for baselines: more short lines' */
+    pixadb = pixaCreate(6);
+    pix1 = pixRead("baseline3.tif");
+    na = pixFindBaselinesGen(pix1, 30, &pta, pixadb);
+    regTestCompareValues(rp, 40, numaGetCount(na), 0);  /* 15 */
+    pix2 = pixaDisplayTiledInRows(pixadb, 32, 1500, 1.0, 0, 30, 2);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 16 */
     pixDisplayWithTitle(pix2, 1400, 500, NULL, rp->display);
     pixaDestroy(&pixadb);
     pixDestroy(&pix1);
