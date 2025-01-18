@@ -301,7 +301,7 @@ PTA       *pta;
         found = FALSE;
         for (j = 0; j < nbox; j++) {
             boxaGetBoxGeometry(boxa3, j, &bx, &by, &bw, &bh);
-            if (bh > 8 && L_ABS(locval - (by + bh)) <= 24) {
+            if (bh > 12 && L_ABS(locval - (by + bh)) <= 24) {
                 ptaAddPt(pta, bx, locval);
                 ptaAddPt(pta, bx + bw, locval);
                 found = TRUE;

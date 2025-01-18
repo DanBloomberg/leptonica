@@ -104,7 +104,8 @@ L_REGPARAMS  *rp;
     numaDestroy(&na);
     ptaDestroy(&pta);
 
-        /* Another test for baselines, with dark image */
+        /* Another test for baselines, with dark image.
+         * With minw = 60, the number at the top of the page is skipped. */
     pixadb = pixaCreate(6);
     pixs = pixRead("pedante.079.jpg");  /* 75 ppi */
     pix1 = pixRemoveBorder(pixs, 30);
@@ -120,7 +121,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix3);
     pixDestroy(&pix4);
     pix1 = pixDeskew(pix5, 2);
-    na = pixFindBaselines(pix1, &pta, pixadb);
+    na = pixFindBaselinesGen(pix1, 50, &pta, pixadb);
     regTestCompareValues(rp, 35, numaGetCount(na), 0);  /* 9 */
     pix2 = pixaDisplayTiledInRows(pixadb, 32, 1500, 1.0, 0, 30, 2);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 10 */
