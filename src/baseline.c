@@ -135,8 +135,9 @@ NUMA  *na;
  *          The pta will come in pairs of points (left and right end
  *          of each baseline).
  *      (3) Very short text blocks are ignored.  Use the parameter %minw
- *          to specify the (approx.) minimum size baseline for a text block
- *          that is returned.  Default value (use 0) is 80 pixels.
+ *          to specify the (approx.) minimum length baseline for a text block
+ *          that is returned.  Suggest using minw = 80 pixels to skip small
+ *          text blocks consisting of up to 3 characters.
  *      (4) This function returns the locations of baselines for which
  *          the end points of the the text are found.  Return of those
  *          end points is optional.
@@ -175,7 +176,7 @@ PTA       *pta;
     if (!pixs || pixGetDepth(pixs) != 1)
         return (NUMA *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
 
-    if (minw <= 0) minw = 80;  /* default */
+        /* minw / 6 must be >= 1 */
     if (minw < 6) minw = 6;
 
         /* Close up the text characters, removing noise */
@@ -264,8 +265,8 @@ PTA       *pta;
 
         /* Generate an approximate profile of text line width.
          * First, consolidate and filter the boxes of text.
-         * The horizontal opening 'o30.1' removes lines of width
-         * less than 120 pixels at full resolution. */
+         * The horizontal opening removes text blocks with width
+         * less than about 'minw' pixels at full resolution. */
     snprintf(cmd, sizeof(cmd), "r11 + c20.1 + o%d.1", minw / 6);
     pix2 = pixMorphSequence(pix1, cmd, 0);
     if (pixadb) pixaAddPix(pixadb, pix2, L_COPY);
