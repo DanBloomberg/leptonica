@@ -919,9 +919,11 @@ PIX       *pixd, *piximi, *pixb, *pixf, *pixims;
             fgpixels = 1;
     }
 
-        /* Generate the foreground mask, pixf, which is at
-         * full resolution.  These pixels will be ignored when
-         * computing the background values. */
+        /* Generate the foreground mask, pixf, which is at full resolution.
+         * mask has a value 0 for pixels in pixs that are likely to be
+         * in the background, which is the condition for including
+         * those source pixels when taking an average of the background
+         * values for each tile.  */
     pixb = pixThresholdToBinary(pixs, thresh);
     pixf = pixMorphSequence(pixb, "d7.1 + d1.7", 0);
     pixDestroy(&pixb);
@@ -930,16 +932,25 @@ PIX       *pixd, *piximi, *pixb, *pixf, *pixims;
 
 
     /* ------------- Set up the output map pixd --------------- */
-        /* Generate pixd, which is reduced by the factors (sx, sy). */
+        /* In pixd, each 8 bit pixel represents a tile of size (sx, sy)
+         * in pixs.  Each pixel in pixd will be filled with the average
+         * background value of that tile in pixs.  */
     w = pixGetWidth(pixs);
     h = pixGetHeight(pixs);
     wd = (w + sx - 1) / sx;
     hd = (h + sy - 1) / sy;
     pixd = pixCreate(wd, hd, 8);
 
-        /* Note: we only compute map values in tiles that are complete.
-         * In general, tiles at right and bottom edges will not be
-         * complete, and we must fill them in later. */
+        /* Here we only compute map values in pixd for tiles that
+         * are complete.  In general, the extreme right and bottom
+         * tiles in pixs, which correspond to the rightmost column
+         * and bottom row of pixd, are not complete.  These will
+         * be filled in later.
+         *
+         * Use the full resolution mask pixf to decide which pixels
+         * are used in each tile to estimate the background value.
+         * After this operation, pixels in the background map pixd
+         * that have not been set must be filled using adjacent pixels. */
     nx = w / sx;
     ny = h / sy;
     wpls = pixGetWpl(pixs);
@@ -975,7 +986,8 @@ PIX       *pixd, *piximi, *pixb, *pixf, *pixims;
         /* If there is an optional mask with fg pixels, erase the previous
          * calculation for the corresponding map pixels, setting the
          * map values to 0.   Then, when all the map holes are filled,
-         * these erased pixels will be set by the surrounding map values.
+         * these erased pixels will be set by the surrounding map values,
+         * along with the ones not set above using the background values.
          *
          * The calculation here is relatively efficient: for each pixel
          * in pixd (which corresponds to a tile of mask pixels in pixim)
@@ -1003,10 +1015,13 @@ PIX       *pixd, *piximi, *pixb, *pixf, *pixims;
         }
     }
 
-        /* Fill all the holes in the map. */
+        /* Fill all the holes in the map.
+         * Note that (nx,ny) represent the numbers of complete tiles
+         * in the x and y directions of pixs, whereas the dimensions
+         * of pixd are usually larger by 1. */
     if (pixFillMapHoles(pixd, nx, ny, L_FILL_BLACK)) {
         pixDestroy(&pixd);
-        L_WARNING("can't make the map\n", __func__);
+        L_WARNING("can't fill holes and make the map\n", __func__);
         return 1;
     }
 
@@ -1483,6 +1498,7 @@ pixFillMapHoles(PIX     *pix,
                 l_int32  filltype)
 {
 l_int32   w, h, y, nmiss, goodcol, i, j, found, ival, valtest;
+l_int32   ret;  // remove
 l_uint32  val, lastval;
 NUMA     *na;  /* indicates if there is any data in the column */
 
@@ -1496,6 +1512,10 @@ NUMA     *na;  /* indicates if there is any data in the column */
     na = numaCreate(0);  /* holds flag for which columns have data */
     nmiss = 0;
     valtest = (filltype == L_FILL_WHITE) ? 255 : 0;
+
+        /* For columns that have at least one valid pixel, fill in the
+         * holes in that column, and enter 1 in the array na.  Otherwise,
+         * enter 0 in the array. */
     for (j = 0; j < nx; j++) {  /* do it by columns */
         found = FALSE;
         for (i = 0; i < ny; i++) {
@@ -1509,8 +1529,7 @@ NUMA     *na;  /* indicates if there is any data in the column */
         if (found == FALSE) {
             numaAddNumber(na, 0);  /* no data in the column */
             nmiss++;
-        }
-        else {
+        } else {
             numaAddNumber(na, 1);  /* data in the column */
             for (i = y - 1; i >= 0; i--)  /* replicate upwards to top */
                 pixSetPixel(pix, j, i, val);
@@ -1535,21 +1554,22 @@ NUMA     *na;  /* indicates if there is any data in the column */
     if (nmiss > 0) {  /* replicate columns */
             /* Find the first good column */
         goodcol = 0;
-        for (j = 0; j < w; j++) {
+        for (j = 0; j < nx; j++) {
             numaGetIValue(na, j, &ival);
             if (ival == 1) {
                 goodcol = j;
                 break;
             }
         }
-        if (goodcol > 0) {  /* copy cols backward */
+            /* Copy the columns backward to column 0 */
+        if (goodcol > 0) {
             for (j = goodcol - 1; j >= 0; j--)
                 pixRasterop(pix, j, 0, 1, h, PIX_SRC, pix, j + 1, 0);
         }
-        for (j = goodcol + 1; j < w; j++) {   /* copy cols forward */
+            /* Copy the columns forward to column nx - 1 */
+        for (j = goodcol + 1; j < nx; j++) {
             numaGetIValue(na, j, &ival);
-            if (ival == 0) {
-                    /* Copy the column to the left of j */
+            if (ival == 0) {  /* empty; copy from column to the left of j */
                 pixRasterop(pix, j, 0, 1, h, PIX_SRC, pix, j - 1, 0);
             }
         }

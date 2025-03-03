@@ -42,6 +42,13 @@
  *    be both set to 1.  Then the pages with color are compressed with DCT
  *    and the monochrome pages are compressed with tiffg4.
  *
+ *    Scaling of the pdf pages (which are often images) is done in two
+ *    steps.  In the first, the pdf is converted to a set of rasterized
+ *    images, where the resolution of the rasters %imres can be either
+ *    150 ppi or 300 ppi.  In the second step, %scalefactor is used to
+ *    scale each of these images down or up, with a maximum upscaling
+ *    of 2.0.
+ *
  *    If the images in the pdf are low-resolution grayscale, they can be
  *    upscaled 2x and binarized to make a readable and better compressed pdf.
  *    For example, an Internet Archive book pdf with 8 bpp images at a
@@ -64,28 +71,33 @@
  *    We limit the maximum resolution to 300 ppi because these images are
  *    RGB uncompressed and are large: 6.3 MB for 150 ppi and 25 MB for 300 ppi.
  *
- *    The %scalefactor is typically used to downscale the image to
- *    reduce the size of the generated pdf.  It should not affect the
- *    pdf display otherwise.  The maximum allowed value is 2.0.
- *    For normal text on images scanned at 300 ppi, a 2x reduction
- *    (%scalefactor = 0.5) may be satisfactory.  We compute an output
- *    resolution for that pdf that will cause it to print 11 inches high,
- *    based on the height in pixels of the first image in the set.
+ *    The %scalefactor is the scaling applied to the rasterized images, in
+ *    order to produce the images stored in the output pdf.  To reduce
+ *    the size of the generated pdf, a %scalefactor < 1.0 can be used to
+ *    downscale the rasterized image.  If %scalefactor = 0.0, the default
+ *    value of 1.0 will be used.  The maximum allowed value for %scalefactor
+ *    is 2.0.  For normal text on images scanned at 300 ppi, a 2x reduction
+ *    (%scalefactor = 0.5) may be satisfactory.  Internally, we compute
+ *    an output resolution for the pdf that will cause it to print
+ *    11 inches high, based on the height in pixels of the first image
+ *    in the set.
  *
- *    Images are saved in the ./image directory as RGB in ppm format.
- *    If the %onebit flag is 0, these will be encoded in the output pdf
- *    using DCT.  To force the images to be 1 bpp, with tiffg4 encoding, set
- *    the $onebit flag to 1.
+ *    As the first step in processing, images are saved in the directory
+ *    /tmp/lept/renderpdf/, as RGB in ppm format, and at the resolution
+ *    specified by %imres.  If the %onebit flag is 0, these will be
+ *    encoded in the output pdf using DCT.  To force the images to be
+ *    1 bpp with tiffg4 encoding, use %onebit = 1.
  *
  *    The %savecolor flag is ignored unless %onebit is 1.  In that case,
- *    if %savecolor is 1, the image is tested for color content, and if
+ *    if %savecolor is 1, each image is tested for color content, and if
  *    even a relatively small amount is found, the image will be encoded
  *    with DCT instead of tiffg4.
  *
  *    The %quality is the jpeg output quality factor for images stored
- *    in the pdf.  Use 0 for the default value (50), which is satisfactory
- *    for many purposes.  Use 75 for standard jpeq quality; 85-95 are very
- *    high quality.  Allowed values are between 25 and 95.
+ *    with DCT encoding in the pdf.  Use 0 for the default value (50),
+ *    which is satisfactory for many purposes.  Use 75 for standard
+ *    jpeq quality; 85-95 is very high quality.  Allowed values are
+ *    between 25 and 95.
  *
  *    The %title is the title given to the pdf.  Use %title == "none"
  *    to omit the title.
@@ -174,7 +186,7 @@ SARRAY    *safiles;
          * If n > 100, use pixacomp instead of pixa to store everything
          * before generating the pdf.
          * When using the onebit option, It is important to binarize
-         * the images in leptonica.  Do not let 'pdftoppm -mono' do
+         * the images in leptonica.  We do not let 'pdftoppm -mono' do
          * the binarization, because it will apply error-diffusion
          * dithering to gray and color images. */
     lept_stderr("compressing ...\n");

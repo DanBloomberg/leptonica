@@ -95,7 +95,9 @@ They are <i>not</i> a complete listing of the modifications.
         * Modify convertToPSEmbed() to efficiently encode webp input images.
         * Modify compressFilesToPdf() to allow upscale interpolation for
           low resolution pdfs.
-        * Source files changed: baseline.c, pageseg.c, pdfapp.c, psio1.c
+        * Fix innocuous indexing error in pixFillMapHoles().
+        * Source files changed: adaptmap.c, baseline.c, pageseg.c,
+          pdfapp.c, psio1.c
         * Prog files changed: baseline_reg.c, binarizefiles.c,
           compresspdf.c, croppdf.c, misctest2.c,
         * Prog files added: baseline1.png, baseline2.png

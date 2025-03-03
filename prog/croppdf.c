@@ -34,8 +34,8 @@
  *    scales the width to fill a printed page.  See documentation for
  *    pixCropImage() for the parameters.
  *
- *    The pdfs are concatenated in lexical order.  Each image is 1 bpp
- *    and is encoded with tiffg4.
+ *    The pdfs are concatenated in lexical order.  Each image is 1 bpp,
+ *    rendered at 300 ppi, and encoded with tiffg4.
  *
  *    Syntax:
  *       croppdf basedir lrclear tbclear edgeclean lrborder tbborder
