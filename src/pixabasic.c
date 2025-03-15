@@ -142,7 +142,7 @@
     /* Bounds on array sizes */
 static const size_t  MaxInitPtrArraySize = 100000;
 static const size_t  MaxPixaPtrArraySize = 5000000;
-static const size_t  MaxPixaaPtrArraySize = 1000000;
+static const size_t  MaxPixaaPtrArraySize = 5000000;
 static const size_t  InitialPtrArraySize = 20;      /*!< n'importe quoi */
 
     /* Static functions */
@@ -1939,7 +1939,10 @@ PIXA    *pixac;
  *
  * <pre>
  * Notes:
- *      (1) The max number of pixa ptrs is 1M.
+ *      (1) The max number of pixa ptrs is 5M.  The reason it is so large
+ *          is that some applications, like jbig2enc, can create a very
+ *          large array of Pixa, each representing a character class
+ *          that contains one or a few tiny bitmaps.
  * </pre>
  */
 static l_int32
@@ -1953,9 +1956,10 @@ size_t  oldsize, newsize;
         return ERROR_INT("paa has too many ptrs", __func__, 1);
     oldsize = paa->nalloc * sizeof(PIXA *);
     newsize = 2 * oldsize;
-    if (newsize > 8 * MaxPixaaPtrArraySize)
-        return ERROR_INT("newsize > 8 MB; too large", __func__, 1);
-
+    if (newsize > 8 * MaxPixaaPtrArraySize) {
+        L_ERROR("newsize = %d > 40 MB; too large\n", __func__, newsize);
+        return 1;
+    }
     if ((paa->pixa = (PIXA **)reallocNew((void **)&paa->pixa,
                                          oldsize, newsize)) == NULL)
         return ERROR_INT("new ptr array not returned", __func__, 1);
