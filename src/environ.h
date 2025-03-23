@@ -249,7 +249,13 @@ typedef unsigned long long      l_uint64;   /*!< unsigned 64-bit value */
  * of LeptDebugOK is 0, and it is set in writefile.c.  This value can be   *
  * over-ridden, for development and debugging, by setLeptDebugOK().        *
  *-------------------------------------------------------------------------*/
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
 LEPT_DLL extern l_int32  LeptDebugOK;  /* default is 0 */
+#ifdef __cplusplus
+}
+#endif  /* __cplusplus */
 
 
 /*------------------------------------------------------------------------*
@@ -486,7 +492,14 @@ enum {
 
 
 /*!  The run-time message severity threshold is defined in utils1.c.  */
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
 LEPT_DLL extern l_int32  LeptMsgSeverity;
+#ifdef __cplusplus
+}
+#endif  /* __cplusplus */
+
 
 /*
  * <pre>
