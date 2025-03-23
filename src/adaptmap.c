@@ -1498,7 +1498,6 @@ pixFillMapHoles(PIX     *pix,
                 l_int32  filltype)
 {
 l_int32   w, h, y, nmiss, goodcol, i, j, found, ival, valtest;
-l_int32   ret;  // remove
 l_uint32  val, lastval;
 NUMA     *na;  /* indicates if there is any data in the column */
 
