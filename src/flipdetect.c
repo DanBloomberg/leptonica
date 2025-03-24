@@ -110,6 +110,16 @@
  *  those with descenders ('g', p, q).  The letters 't' and 'g'
  *  will respond variably to the filter, depending on the type face.
  *
+ *  Note that for Cyrillic text, the ascender/descender signal is
+ *  opposite (more descenders than ascenders) and weaker (a smaller
+ *  expected ratio as a fraction of the total number of ascenders
+ *  and descenders).  Therefore, when used on Cyrillic text, the
+ *  decision of rightside-up or upside-down will be wrong and if any
+ *  interpretation is to be made, it should be interpreted oppositely.
+ *  For horizontal Cyrillic text, the left-right detector will work
+ *  correctly, giving very low confidence because no signal for
+ *  90/270 degree text was detected.
+ *
  *  What about the mirror image situations?  These aren't common
  *  unless you're dealing with film, for example.
  *  But you can reliably test if the image has undergone a
