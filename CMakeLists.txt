@@ -76,32 +76,30 @@ set(leptonica_INSTALL_CMAKE_DIR
 
 if(NOT SW_BUILD)
   find_package(PkgConfig QUIET)
-  if(ENABLE_ZLIB)
-    find_package(ZLIB)
-    if(ZLIB_FOUND)
-      set(pkgs_private "${pkgs_private} zlib")
-    else()
-      if(STRICT_CONF)
-        message(
-          FATAL_ERROR
-            "Could not find ZLIB libs.\n Use -DENABLE_ZLIB=OFF to disable ZLIB support."
-        )
-      endif(STRICT_CONF)
-    endif(ZLIB_FOUND)
-  endif(ENABLE_ZLIB)
-  if(ENABLE_PNG)
-    find_package(PNG)
-    if(PNG_FOUND)
-      set(pkgs_private "${pkgs_private} libpng")
-    else()
-      if(STRICT_CONF)
-        message(
-          FATAL_ERROR
-            "Could not find PNG libs.\n Use -DENABLE_PNG=OFF to disable PNG support."
-        )
-      endif(STRICT_CONF)
-    endif(PNG_FOUND)
-  endif(ENABLE_PNG)
+  set(pkgs_private "")
+  set(libs_private "")
+
+  function(find_and_handle_library LIB_NAME ENABLE_OPTION PKG_CONFIG_NAME)
+    if(${ENABLE_OPTION})
+      find_package(${PKG_CONFIG_NAME})
+      if(${PKG_CONFIG_NAME}_FOUND)
+        set(pkgs_private "${pkgs_private} ${PKG_CONFIG_NAME}")
+      else()
+        if(STRICT_CONF)
+          message(
+            FATAL_ERROR
+              "Could not find ${PKG_CONFIG_NAME} libs. Use -D${ENABLE_OPTION}=OFF to disable ${PKG_CONFIG_NAME} support."
+          )
+        endif()
+      endif()
+    endif()
+  endfunction()
+
+  find_and_handle_library(ZLIB ENABLE_ZLIB ZLIB)
+  find_and_handle_library(PNG ENABLE_PNG PNG)
+  find_and_handle_library(JPEG ENABLE_JPEG JPEG)
+  find_and_handle_library(TIFF ENABLE_TIFF TIFF)
+
   if(ENABLE_GIF)
     find_package(GIF 5)
     if(GIF_FOUND)
@@ -110,37 +108,12 @@ if(NOT SW_BUILD)
       if(STRICT_CONF)
         message(
           FATAL_ERROR
-            "Could not find GIF 5 libs.\n Use -DENABLE_GIF=OFF to disable GIF support."
+            "Could not find GIF 5 libs. Use -DENABLE_GIF=OFF to disable GIF support."
         )
-      endif(STRICT_CONF)
-    endif(GIF_FOUND)
-  endif(ENABLE_GIF)
-  if(ENABLE_JPEG)
-    find_package(JPEG)
-    if(JPEG_FOUND)
-      set(pkgs_private "${pkgs_private} libjpeg")
-    else()
-      if(STRICT_CONF)
-        message(
-          FATAL_ERROR
-            "Could not find JPEG libs.\n Use -DENABLE_JPEG=OFF to disable JPEG support."
-        )
-      endif(STRICT_CONF)
-    endif(JPEG_FOUND)
-  endif(ENABLE_JPEG)
-  if(ENABLE_TIFF)
-    find_package(TIFF)
-    if(TIFF_FOUND)
-      set(pkgs_private "${pkgs_private} libtiff-4")
-    else()
-      if(STRICT_CONF)
-        message(
-          FATAL_ERROR
-            "Could not find TIFF libs.\n Use -DENABLE_TIFF=OFF to disable TIFF support."
-        )
-      endif(STRICT_CONF)
-    endif(TIFF_FOUND)
-  endif(ENABLE_TIFF)
+      endif()
+    endif()
+  endif()
+
   if(ENABLE_WEBP)
     find_package(WebP ${MINIMUM_WEBPMUX_VERSION} CONFIG)
     set(pkgs_private "${pkgs_private} libwebp libwebpmux")
@@ -322,7 +295,7 @@ set(INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include"
 #
 # ##############################################################################
 message(STATUS)
-message(STATUS "General configuration for Leptonica ${VERSION_PLAIN}")
+message(STATUS "General configuration for Leptonica ${PROJECT_VERSION}")
 message(STATUS "--------------------------------------------------------")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Compiler: ${CMAKE_C_COMPILER_ID}")
