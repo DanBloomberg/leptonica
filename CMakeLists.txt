@@ -76,32 +76,30 @@ set(leptonica_INSTALL_CMAKE_DIR
 
 if(NOT SW_BUILD)
   find_package(PkgConfig QUIET)
-  if(ENABLE_ZLIB)
-    find_package(ZLIB)
-    if(ZLIB_FOUND)
-      set(pkgs_private "${pkgs_private} zlib")
-    else()
-      if(STRICT_CONF)
-        message(
-          FATAL_ERROR
-            "Could not find ZLIB libs.\n Use -DENABLE_ZLIB=OFF to disable ZLIB support."
-        )
-      endif(STRICT_CONF)
-    endif(ZLIB_FOUND)
-  endif(ENABLE_ZLIB)
-  if(ENABLE_PNG)
-    find_package(PNG)
-    if(PNG_FOUND)
-      set(pkgs_private "${pkgs_private} libpng")
-    else()
-      if(STRICT_CONF)
-        message(
-          FATAL_ERROR
-            "Could not find PNG libs.\n Use -DENABLE_PNG=OFF to disable PNG support."
-        )
-      endif(STRICT_CONF)
-    endif(PNG_FOUND)
-  endif(ENABLE_PNG)
+  set(pkgs_private "")
+  set(libs_private "")
+
+  function(find_and_handle_library LIB_NAME ENABLE_OPTION PKG_CONFIG_NAME)
+    if(${ENABLE_OPTION})
+      find_package(${PKG_CONFIG_NAME})
+      if(${PKG_CONFIG_NAME}_FOUND)
+        set(pkgs_private "${pkgs_private} ${PKG_CONFIG_NAME}")
+      else()
+        if(STRICT_CONF)
+          message(
+            FATAL_ERROR
+              "Could not find ${PKG_CONFIG_NAME} libs. Use -D${ENABLE_OPTION}=OFF to disable ${PKG_CONFIG_NAME} support."
+          )
+        endif()
+      endif()
+    endif()
+  endfunction()
+
+  find_and_handle_library(ZLIB ENABLE_ZLIB ZLIB)
+  find_and_handle_library(PNG ENABLE_PNG PNG)
+  find_and_handle_library(JPEG ENABLE_JPEG JPEG)
+  find_and_handle_library(TIFF ENABLE_TIFF TIFF)
+
   if(ENABLE_GIF)
     find_package(GIF 5)
     if(GIF_FOUND)
@@ -110,42 +108,17 @@ if(NOT SW_BUILD)
       if(STRICT_CONF)
         message(
           FATAL_ERROR
-            "Could not find GIF 5 libs.\n Use -DENABLE_GIF=OFF to disable GIF support."
+            "Could not find GIF 5 libs. Use -DENABLE_GIF=OFF to disable GIF support."
         )
-      endif(STRICT_CONF)
-    endif(GIF_FOUND)
-  endif(ENABLE_GIF)
-  if(ENABLE_JPEG)
-    find_package(JPEG)
-    if(JPEG_FOUND)
-      set(pkgs_private "${pkgs_private} libjpeg")
-    else()
-      if(STRICT_CONF)
-        message(
-          FATAL_ERROR
-            "Could not find JPEG libs.\n Use -DENABLE_JPEG=OFF to disable JPEG support."
-        )
-      endif(STRICT_CONF)
-    endif(JPEG_FOUND)
-  endif(ENABLE_JPEG)
-  if(ENABLE_TIFF)
-    find_package(TIFF)
-    if(TIFF_FOUND)
-      set(pkgs_private "${pkgs_private} libtiff-4")
-    else()
-      if(STRICT_CONF)
-        message(
-          FATAL_ERROR
-            "Could not find TIFF libs.\n Use -DENABLE_TIFF=OFF to disable TIFF support."
-        )
-      endif(STRICT_CONF)
-    endif(TIFF_FOUND)
-  endif(ENABLE_TIFF)
+      endif()
+    endif()
+  endif()
+
   if(ENABLE_WEBP)
     find_package(WebP ${MINIMUM_WEBPMUX_VERSION} CONFIG)
     set(pkgs_private "${pkgs_private} libwebp libwebpmux")
     if(NOT TARGET WebP::webp)
-      find_path(WebP_INCLUDE_DIR  NAMES webp/decode.h)
+      find_path(WebP_INCLUDE_DIR NAMES webp/decode.h)
       find_path(WebP_MUX_INCLUDE_DIR NAMES webp/mux.h)
       find_library(WebP_LIBRARY NAMES webp)
       find_library(WebP_MUX_LIBRARY NAMES webpmux)
@@ -153,66 +126,66 @@ if(NOT SW_BUILD)
          AND WebP_MUX_INCLUDE_DIR
          AND WebP_LIBRARY)
         message(STATUS "Found non-cmake WebP: ${WebP_LIBRARY}")
-        set(WebP_INCLUDE_DIR S "${WebP_INCLUDE_DIR};${WebP_MUX_INCLUDE_DIR}")
+        set(WebP_INCLUDE_DIR "${WebP_INCLUDE_DIR};${WebP_MUX_INCLUDE_DIR}")
         set(WebP_LIBRARIES "${WebP_LIBRARY}")
         if(WebP_MUX_LIBRARY)
           list(APPEND WebP_LIBRARIES "${WebP_MUX_LIBRARY}")
         else()
           message(STATUS "Library webpmux not found!")
-        endif(WebP_MUX_LIBRARY)
+        endif()
         set(WebP_FOUND 1)
-      endif()  # WebP_INCLUDE_DIR
-    endif(NOT TARGET WebP::webp)
+      endif()
+    endif()
     if(WebP_FOUND)
       set(HAVE_LIBWEBP 1)
       set(HAVE_LIBWEBP_ANIM 1)
       include_directories(${WebP_INCLUDE_DIR})
       include_directories(${WebP_MUX_INCLUDE_DIR})
-       message(STATUS "Found WebP: ${WebP_LIBRARIES} (${WebP_VERSION})")
-      else()
-        message(
-          STATUS
-            "WebP_INCLUDE_DIR : ${WebP_INCLUDE_DIR}\nWebP_MUX_INCLUDE_DIR: ${WebP_MUX_INCLUDE_DIR}\nWebP_LIBRARY: ${WebP_LIBRARY}\nWebP_MUX_LIBRARY: ${WebP_MUX_LIBRARY}"
-        )
-        if(STRICT_CONF)
-          message(
-            FATAL_ERROR
-              "Could not find WebP libs.\n Use -DENABLE_WEBP=OFF to disable WebP support."
-          )
-        endif(STRICT_CONF)
-    endif(WebP_FOUND)
-  endif(ENABLE_WEBP)
-  if(ENABLE_OPENJPEG)
-    find_package(OpenJPEG CONFIG)
-    if(OpenJPEG_FOUND)
-      set(OPENJPEG_VERSION ${OPENJPEG_MAJOR_VERSION}.${OPENJPEG_MINOR_VERSION})
-        if(${OPENJPEG_VERSION} LESS "2.1")
-          message (STATUS "Your libopenjp version is too old ${OPENJPEG_VERSION}")
-          set(HAVE_LIBJP2K 0)
-        else(${OPENJPEG_VERSION} LESS "2.1")
-          set(pkgs_private "${pkgs_private} libopenjp2")
-          set(HAVE_LIBJP2K 1)
-          include_directories(${OPENJPEG_INCLUDE_DIRS})
-          if(WIN32)
-            if(BUILD_SHARED_LIBS)
-              add_definitions(-DOPJ_EXPORTS)
-            else()
-              add_definitions(-DOPJ_STATIC)
-            endif()
-          endif(WIN32)
-          message(STATUS
-          "Found OpenJPEG: ${OPENJPEG_LIBRARIES} (${OPENJPEG_VERSION}.${OPENJPEG_BUILD_VERSION})")
-        endif(${OPENJPEG_VERSION} LESS "2.1")
+      message(STATUS "Found WebP: ${WebP_LIBRARIES} (${WebP_VERSION})")
     else()
       if(STRICT_CONF)
         message(
           FATAL_ERROR
-          "Could not find OpenJPEG libs.\n Use -DENABLE_OPENJPEG=OFF to disable OpenJPEG support."
+            "Could not find WebP libs. Use -DENABLE_WEBP=OFF to disable WebP support."
         )
-      endif(STRICT_CONF)
-    endif(OpenJPEG_FOUND)
-  endif(ENABLE_OPENJPEG)
-else() # SW_BUILD=ON
+      endif()
+    endif()
+  endif()
+
+  if(ENABLE_OPENJPEG)
+    find_package(OpenJPEG CONFIG)
+    if(OpenJPEG_FOUND)
+      set(OPENJPEG_VERSION
+          "${OPENJPEG_MAJOR_VERSION}.${OPENJPEG_MINOR_VERSION}")
+      if(${OPENJPEG_VERSION} VERSION_LESS "2.1")
+        message(STATUS "Your libopenjp version is too old ${OPENJPEG_VERSION}")
+        set(HAVE_LIBJP2K 0)
+      else()
+        set(pkgs_private "${pkgs_private} libopenjp2")
+        set(HAVE_LIBJP2K 1)
+        include_directories(${OPENJPEG_INCLUDE_DIRS})
+        if(WIN32)
+          if(BUILD_SHARED_LIBS)
+            add_definitions(-DOPJ_EXPORTS)
+          else()
+            add_definitions(-DOPJ_STATIC)
+          endif()
+        endif()
+        message(
+          STATUS
+            "Found OpenJPEG: ${OPENJPEG_LIBRARIES} (${OPENJPEG_VERSION}.${OPENJPEG_BUILD_VERSION})"
+        )
+      endif()
+    else()
+      if(STRICT_CONF)
+        message(
+          FATAL_ERROR
+            "Could not find OpenJPEG libs. Use -DENABLE_OPENJPEG=OFF to disable OpenJPEG support."
+        )
+      endif()
+    endif()
+  endif()
+else()
   find_package(SW REQUIRED)
   sw_add_package(
     org.sw.demo.gif org.sw.demo.jpeg org.sw.demo.glennrp.png org.sw.demo.tiff
@@ -231,7 +204,6 @@ else() # SW_BUILD=ON
 endif()
 
 include(CheckLibraryExists)
-
 check_library_exists(m sin "" HAVE_LIBM)
 if(HAVE_LIBM)
   set(libs_private "${libs_private} -lm")
@@ -251,7 +223,6 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(CLANG 1)
 endif()
 
-# Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE)
   message(STATUS "Setting build type to 'Release' as none was specified.")
   set(CMAKE_BUILD_TYPE
@@ -264,7 +235,6 @@ endif()
 
 include(CheckCCompilerFlag)
 
-# Check for valid compiler flags
 macro(CHECK_CCXX_COMPILER_FLAG flag_ result_)
   check_c_compiler_flag(${flag_} C_HAS${result_})
 endmacro()
@@ -278,18 +248,13 @@ if(MSVC)
   endif()
 else()
   if(CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]")
-    # Enable warnings and Optimize for Debugging
-    foreach(
-      flag_
-      -Wall
-      -Wextra
-      -Werror=format-security
-      -pedantic
-      -Og
-      -g3
-      "-fdebug-prefix-map=${CMAKE_SOURCE_DIR}=.")
+    set(debug_flags -Wall -Wextra -Werror=format-security -pedantic -Og -g3)
+    list(APPEND debug_flags
+         "-fdebug-prefix-map=${CMAKE_SOURCE_DIR}=${CMAKE_BINARY_DIR}")
+
+    foreach(flag_ IN LISTS debug_flags)
       string(REGEX REPLACE "[^A-Za-z0-9]" "_" flag_var "${flag_}")
-      check_ccxx_compiler_flag(${flag_} ${flag_var})
+      check_c_compiler_flag(${flag_} ${flag_var})
       if(C_HAS${flag_var})
         set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${flag_}")
       endif()
@@ -326,14 +291,17 @@ set(INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include"
 #
 # ##############################################################################
 message(STATUS)
-message(STATUS "General configuration for Leptonica ${VERSION_PLAIN}")
+message(STATUS "General configuration for Leptonica ${PROJECT_VERSION}")
 message(STATUS "--------------------------------------------------------")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Compiler: ${CMAKE_C_COMPILER_ID}")
-message(STATUS "C compiler options:
-  ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE_UP}} ${CMAKE_C_FLAGS}")
-message(STATUS "Linker options: ${CMAKE_EXE_LINKER_FLAGS}
-  ${CMAKE_EXE_LINKER_FLAGS_${CMAKE_BUILD_TYPE_UP}}")
+message(
+  STATUS
+    "C compiler options: ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}}")
+message(
+  STATUS
+    "Linker options: ${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS_${CMAKE_BUILD_TYPE}}"
+)
 message(STATUS "Install directory: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS)
 message(STATUS "Build with sw [SW_BUILD]: ${SW_BUILD}")
@@ -376,9 +344,11 @@ set(pkg_conf_name lept.pc)
 if(WIN32)
   set(pkg_conf_name lept_$<CONFIG>.pc)
 endif(WIN32)
-file(GENERATE
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${pkg_conf_name}
-    INPUT ${CMAKE_CURRENT_BINARY_DIR}/lept.pc.in)
+
+file(
+  GENERATE
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${pkg_conf_name}
+  INPUT ${CMAKE_CURRENT_BINARY_DIR}/lept.pc.in)
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/LeptonicaConfig-version.cmake.in
@@ -405,5 +375,4 @@ if(NOT TARGET uninstall)
     uninstall COMMAND ${CMAKE_COMMAND} -P
                       ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 endif()
-
 # ##############################################################################
