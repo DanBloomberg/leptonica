@@ -1,28 +1,29 @@
+set(math_progs
+    "blend4_reg|dna_reg|extrema_reg|insert_reg|locminmax_reg|numa1_reg|otsutest1|pixalloc_reg|plottest|pta_reg|rankhisto_reg|rotatefastalt|watershed_reg"
+)
 
-set(math_progs "blend4_reg|dna_reg|extrema_reg|insert_reg|locminmax_reg|numa1_reg|otsutest1|pixalloc_reg|plottest|pta_reg|rankhisto_reg|rotatefastalt|watershed_reg")
-
-########################################
+# ##############################################################################
 # FUNCTION add_prog_target
-########################################
+# ##############################################################################
 function(add_prog_target target)
-    set                             (${target}_src "${ARGN}")
-    add_executable                  (${target} ${${target}_src})
-    string(FIND ${target} "gif" GIF_TEST_FOUND)
-    if (GIF_TEST_FOUND EQUAL 0)
-        # gif_lib.h is not found on Windows
-        target_include_directories  (${target} PRIVATE ${GIF_INCLUDE_DIR})
-    endif()
-    if (BUILD_SHARED_LIBS)
-        target_compile_definitions  (${target} PRIVATE -DLIBLEPT_IMPORTS)
-    endif()
-    if (HAVE_LIBM AND ${target} MATCHES ${math_progs})
-      target_link_libraries         (${target} leptonica m)
-    else()
-      target_link_libraries         (${target} leptonica)
-    endif()
-    set_target_properties           (${target} PROPERTIES FOLDER prog)
+  set(${target}_src "${ARGN}")
+  add_executable(${target} ${${target}_src})
+  string(FIND ${target} "gif" GIF_TEST_FOUND)
+  if(GIF_TEST_FOUND EQUAL 0)
+    # gif_lib.h is not found on Windows
+    target_include_directories(${target} PRIVATE ${GIF_INCLUDE_DIR})
+  endif()
+  if(BUILD_SHARED_LIBS)
+    target_compile_definitions(${target} PRIVATE -DLIBLEPT_IMPORTS)
+  endif()
+  if(HAVE_LIBM AND ${target} MATCHES ${math_progs})
+    target_link_libraries(${target} leptonica m)
+  else()
+    target_link_libraries(${target} leptonica)
+  endif()
+  set_target_properties(${target} PROPERTIES FOLDER prog)
 endfunction(add_prog_target)
-########################################
+# ##############################################################################
 
 add_prog_target(adaptmap_reg adaptmap_reg.c)
 add_prog_target(adaptnorm_reg adaptnorm_reg.c)
@@ -327,12 +328,22 @@ add_prog_target(writemtiff writemtiff.c)
 add_prog_target(xtractprotos xtractprotos.c)
 add_prog_target(yuvtest yuvtest.c)
 
-set (INSTALL_PROGS
-    convertfilestopdf convertfilestops
-    convertformat convertsegfilestopdf convertsegfilestops
-    converttopdf converttops fileinfo imagetops xtractprotos
-)
+set(INSTALL_PROGS
+    convertfilestopdf
+    convertfilestops
+    convertformat
+    convertsegfilestopdf
+    convertsegfilestops
+    converttopdf
+    converttops
+    fileinfo
+    imagetops
+    xtractprotos)
 
 foreach(make_install ${INSTALL_PROGS})
-    install(TARGETS ${make_install} RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+  install(
+    TARGETS ${make_install}
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib)
 endforeach()
