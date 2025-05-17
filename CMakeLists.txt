@@ -279,17 +279,13 @@ if(MSVC)
 else()
   if(CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]")
     # Enable warnings and Optimize for Debugging
-    foreach(
-      flag_
-      -Wall
-      -Wextra
-      -Werror=format-security
-      -pedantic
-      -Og
-      -g3
-      "-fdebug-prefix-map=${CMAKE_SOURCE_DIR}=.")
+    set(debug_flags -Wall -Wextra -Werror=format-security -pedantic -Og -g3)
+    list(APPEND debug_flags
+         "-fdebug-prefix-map=${CMAKE_SOURCE_DIR}=${CMAKE_BINARY_DIR}")
+
+    foreach(flag_ IN LISTS debug_flags)
       string(REGEX REPLACE "[^A-Za-z0-9]" "_" flag_var "${flag_}")
-      check_ccxx_compiler_flag(${flag_} ${flag_var})
+      check_c_compiler_flag(${flag_} ${flag_var})
       if(C_HAS${flag_var})
         set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${flag_}")
       endif()
