@@ -130,8 +130,10 @@ static const l_int32  MinValidMaxscore = 10000;
      *  (height * width^2) */
 static const l_float32  MinscoreThreshFactor = 0.000002f;
 
-    /* Default binarization threshold value */
-static const l_int32  DefaultBinaryThreshold = 130;
+    /* Default binarization threshold value.
+     * This is set deliberately above 130 to capture light foreground
+     * with poor printing or images that are out of focus.  */
+static const l_int32  DefaultBinaryThreshold = 160;
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_PRINT_SCORES     0
