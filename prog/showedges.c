@@ -63,7 +63,6 @@ PIX     *pixs, *pixgr, *pixb;
                                         SMOOTH_WIDTH_2, SMOOTH_WIDTH_2);
     pixb = pixThresholdToBinary(pixgr, THRESHOLD);
     pixInvert(pixb, pixb);
-/*    pixWrite("junkpixgr", pixgr, IFF_JFIF_JPEG); */
     pixWrite(outfile, pixb, IFF_PNG);
     return 0;
 }

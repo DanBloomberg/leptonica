@@ -110,10 +110,11 @@ PIX     *pixmask4, *pixseed4, *pixsf4, *pixd4, *pixd;
     pixDisplayWithTitle(pixb, 1000, 100, "non-halftone", DFLAG);
 
 #if 1
-    pixWrite("junkseed", pixseed4, IFF_TIFF_G4);
-    pixWrite("junkmask", pixmask4, IFF_TIFF_G4);
-    pixWrite("junkfill", pixd4, IFF_TIFF_G4);
-    pixWrite("junktext", pixb, IFF_TIFF_G4);
+    lept_mkdir("lept/pageseg");
+    pixWrite("/tmp/lept/pageseg/seed2", pixseed4, IFF_TIFF_G4);
+    pixWrite("/tmp/lept/pageseg/mask2", pixmask4, IFF_TIFF_G4);
+    pixWrite("/tmp/lept/pageseg/fill2", pixd4, IFF_TIFF_G4);
+    pixWrite("/tmp/lept/pageseg/text2", pixb, IFF_TIFF_G4);
 #endif
 
     pixDestroy(&pixs);
