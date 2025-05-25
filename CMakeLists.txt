@@ -74,26 +74,12 @@ set(leptonica_INSTALL_CMAKE_DIR
     "lib/cmake/leptonica"
     CACHE STRING "Install destination for CMake package files")
 
+include(LeptonicaFunc)
+
 if(NOT SW_BUILD)
   find_package(PkgConfig QUIET)
   set(pkgs_private "")
   set(libs_private "")
-
-  function(find_and_handle_library LIB_NAME ENABLE_OPTION PKG_CONFIG_NAME)
-    if(${ENABLE_OPTION})
-      find_package(${PKG_CONFIG_NAME})
-      if(${PKG_CONFIG_NAME}_FOUND)
-        set(pkgs_private "${pkgs_private} ${PKG_CONFIG_NAME}")
-      else()
-        if(STRICT_CONF)
-          message(
-            FATAL_ERROR
-              "Could not find ${PKG_CONFIG_NAME} libs. Use -D${ENABLE_OPTION}=OFF to disable ${PKG_CONFIG_NAME} support."
-          )
-        endif()
-      endif()
-    endif()
-  endfunction()
 
   find_and_handle_library(ZLIB ENABLE_ZLIB ZLIB)
   find_and_handle_library(PNG ENABLE_PNG PNG)
