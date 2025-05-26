@@ -1957,7 +1957,7 @@ size_t  oldsize, newsize;
     oldsize = paa->nalloc * sizeof(PIXA *);
     newsize = 2 * oldsize;
     if (newsize > 8 * MaxPixaaPtrArraySize) {
-        L_ERROR("newsize = %d > 40 MB; too large\n", __func__, newsize);
+        L_ERROR("newsize = %zu > 40 MB; too large\n", __func__, newsize);
         return 1;
     }
     if ((paa->pixa = (PIXA **)reallocNew((void **)&paa->pixa,

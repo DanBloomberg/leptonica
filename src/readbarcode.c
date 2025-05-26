@@ -1161,7 +1161,7 @@ NUMA      *nad;
             cent += j * val;
             sum += val;
         }
-        numaAddNumber(nad, cent / sum);
+        if (sum > 0) numaAddNumber(nad, cent / sum);
     }
 
     return nad;

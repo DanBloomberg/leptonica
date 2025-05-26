@@ -2174,9 +2174,11 @@ l_uint32  attributes;
     sarraySplitString(sa, subdir, "/");
     n = sarrayGetCount(sa);
     dir = genPathname("/tmp", NULL);
+    ret = 0;   /* don't check ret values with unix because if a directory
+                * exists, mkdir() returns -1  */
        /* Make sure the tmp directory exists */
 #ifndef _WIN32
-    ret = mkdir(dir, 0777);
+    mkdir(dir, 0777);
 #else
     attributes = GetFileAttributesA(dir);
     if (attributes == INVALID_FILE_ATTRIBUTES)
@@ -2186,7 +2188,7 @@ l_uint32  attributes;
     for (i = 0; i < n; i++) {
         tmpdir = pathJoin(dir, sarrayGetString(sa, i, L_NOCOPY));
 #ifndef _WIN32
-        ret += mkdir(tmpdir, 0777);
+        mkdir(tmpdir, 0777);
 #else
         if (CreateDirectoryA(tmpdir, NULL) == 0)
             ret += (GetLastError() != ERROR_ALREADY_EXISTS);
