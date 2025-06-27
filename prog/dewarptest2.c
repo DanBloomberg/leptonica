@@ -105,6 +105,7 @@ PIX        *pixs, *pixn, *pixg, *pixb, *pixd;
 #endif
 
             /* Run the basic functions */
+        pixWrite("/tmp/lept/dewarp/pixb.tif", pixb, IFF_TIFF_G4);
         dew1 = dewarpCreate(pixb, pageno);
         dewarpaInsertDewarp(dewa, dew1);
         dewarpBuildPageModel(dew1, "/tmp/lept/dewarp/test2_model.pdf");

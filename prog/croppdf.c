@@ -42,7 +42,7 @@
  *       maxwiden printwiden title fileout
  *
  *    Typical parameters for an invocation are:
- *       croppdf . 50 50 5 70 70 1.12 1.1 none <output-file-name>
+ *       croppdf . 50 50 0 70 70 1.12 1 none <output-file-name>
  *
  *    Parameter %basedir is a directory where the input pdf files are located.
  *    The program will operate on every file in this directory with
@@ -56,7 +56,7 @@
  *    near the edges of the image:
  *      -2: to extract page embedded in black background
  *      -1: aggressively removes left and right side noise
- *       0: default, no removal
+ *       0: default, no removal; use for orthographically produced images
  *       1-15: removal of random noise, where 15 is maximally aggressive
  *
  *    The suggested value for %lrborder and %tbborder is 70.

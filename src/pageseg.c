@@ -595,7 +595,10 @@ PIX     *pix1, *pix2, *pix3, *pixd;
  *      (6) Step (f) above helps with orthographically-produced music notation,
  *          where the horizontal staff lines can be very thin and thus
  *          subject to printer alias.
- *      (7) If you are not concerned with printing on paper, use the
+ *      (7) With orthographically-produced (as opposed to scanned) images,
+ *          there is no scan noise, so you should skip noise removal
+ *          by setting %edgeclean = 0.
+ *      (8) If you are not concerned with printing on paper, use the
  *          default value 0 for %printwiden.  Widening only takes place
  *          if the ratio h/w exceeds the specified paper size by 3%,
  *          and the horizontal scaling factor will not exceed 1.25.
@@ -954,7 +957,7 @@ PIX            *pix1, *pixd;
     wmax = w - 2 * lr_border;
     hmax = h - 2 * tb_border;
     ratio = (l_float32)(wmax * hi) / (l_float32)(hmax * wi);
-    if (ratio >= 1) {  /* width can be widened after isotropic scaling */
+    if (ratio >= 1.0) {  /* width can be widened after isotropic scaling */
         scaleh = (l_float32)hmax / (l_float32)hi;
         wn = scaleh * wi;  /* scaled but not widened */
         scalewid = L_MIN(maxwiden, (l_float32)wmax / (l_float32)wn);
