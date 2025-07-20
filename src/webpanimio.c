@@ -32,6 +32,19 @@
  *          l_int32          pixaWriteWebPAnim()
  *          l_int32          pixaWriteStreamWebPAnim()
  *          l_int32          pixaWriteMemWebPAnim()
+ *
+ * This shim was written in 2013, shortly after Google introduced animated webp.
+ * However, even though animated webp is better than gifanim by every
+ * technical measure (e.g., flexibility, compression), animated webp
+ * is still not well supported, even with Google apps like gmail!
+ *
+ * To convert from gifanim to animated webp:
+ *  (1) use ImageMagick to make a set of png files:
+ *      convert infile.gif -coalesce outroot_%03d.png
+ *  (2) read these files into a pixa, using
+ *      pixaReadFiles()
+ *  (3) write out the animated webp, selecting the duration and using
+ *      pixaWriteWebPAnim()
  * </pre>
  */
 
