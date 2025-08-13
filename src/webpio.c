@@ -125,7 +125,10 @@ WebPBitstreamFeatures  features;
     has_alpha = features.has_alpha;
 
         /* Write from compressed Y,U,V arrays to pix raster data */
-    pix = pixCreate(w, h, 32);
+    if ((pix = pixCreate(w, h, 32)) == NULL) {
+        lept_stderr("Allocation failure for pix: w = %d, h = %d\n", w, h);
+        return (PIX *)ERROR_PTR("pix not made", __func__, NULL);
+    }
     pixSetInputFormat(pix, IFF_WEBP);
     if (has_alpha) pixSetSpp(pix, 4);
     data = pixGetData(pix);
