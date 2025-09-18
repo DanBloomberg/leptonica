@@ -3,32 +3,32 @@
 # ##############################################################################
 # FUNCTION find_and_handle_library
 # ##############################################################################
-function(find_and_handle_library LIB_NAME ENABLE_OPTION PKG_CONFIG_NAME)
+function(find_and_handle_library PACKAGE_NAME ENABLE_OPTION PKG_CONFIG_NAME)
   if(${ENABLE_OPTION})
-    find_package(${PKG_CONFIG_NAME})
-    if(${PKG_CONFIG_NAME}_FOUND)
+    find_package(${PACKAGE_NAME})
+    if(${PACKAGE_NAME}_FOUND)
       set(pkgs_private
           "${pkgs_private} ${PKG_CONFIG_NAME}"
           PARENT_SCOPE)
       # Propagate found variables to parent scope
-      set(${PKG_CONFIG_NAME}_FOUND
-          ${${PKG_CONFIG_NAME}_FOUND}
+      set(${PACKAGE_NAME}_FOUND
+          ${${PACKAGE_NAME}_FOUND}
           PARENT_SCOPE)
-      if(DEFINED ${PKG_CONFIG_NAME}_LIBRARIES)
-        set(${PKG_CONFIG_NAME}_LIBRARIES
-            ${${PKG_CONFIG_NAME}_LIBRARIES}
+      if(DEFINED ${PACKAGE_NAME}_LIBRARIES)
+        set(${PACKAGE_NAME}_LIBRARIES
+            ${${PACKAGE_NAME}_LIBRARIES}
             PARENT_SCOPE)
       endif()
-      if(DEFINED ${PKG_CONFIG_NAME}_INCLUDE_DIRS)
-        set(${PKG_CONFIG_NAME}_INCLUDE_DIRS
-            ${${PKG_CONFIG_NAME}_INCLUDE_DIRS}
+      if(DEFINED ${PACKAGE_NAME}_INCLUDE_DIRS)
+        set(${PACKAGE_NAME}_INCLUDE_DIRS
+            ${${PACKAGE_NAME}_INCLUDE_DIRS}
             PARENT_SCOPE)
       endif()
     else()
       if(STRICT_CONF)
         message(
           FATAL_ERROR
-            "Could not find ${PKG_CONFIG_NAME} libs. Use -D${ENABLE_OPTION}=OFF to disable ${PKG_CONFIG_NAME} support."
+          "Could not find ${PACKAGE_NAME} libs. Use -D${ENABLE_OPTION}=OFF to disable ${PACKAGE_NAME} support."
         )
       endif()
     endif()
