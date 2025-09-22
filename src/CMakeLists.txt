@@ -78,7 +78,7 @@ if(UNIX)
       ${old_target}
       DEPENDS ${PROJECT_NAME}
       COMMENT "Creating lept symlink")
-    install(FILES ${CMAKE_BINARY_DIR}/src/${old_target} DESTINATION lib)
+    install(FILES ${CMAKE_BINARY_DIR}/src/${old_target} DESTINATION ${CMAKE_INSTALL_LIBDIR})
   endif(SYM_LINK)
 endif()
 
@@ -105,9 +105,9 @@ endif()
 install(
   TARGETS leptonica
   EXPORT LeptonicaTargets
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(EXPORT LeptonicaTargets DESTINATION ${leptonica_INSTALL_CMAKE_DIR})
 install(FILES ${hdr} ${CMAKE_BINARY_DIR}/src/endianness.h
         DESTINATION include/leptonica)
