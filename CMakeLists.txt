@@ -71,7 +71,7 @@ option(ENABLE_WEBP "Enable WebP support" ON)
 option(ENABLE_OPENJPEG "Enable OpenJPEG support" ON)
 
 set(leptonica_INSTALL_CMAKE_DIR
-    "lib/cmake/leptonica"
+    "${CMAKE_INSTALL_LIBDIR}/cmake/leptonica"
     CACHE STRING "Install destination for CMake package files")
 
 include(LeptonicaFunc)
@@ -344,7 +344,7 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig.cmake @ONLY)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${pkg_conf_name}
-        DESTINATION lib/pkgconfig)
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig.cmake
               ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig-version.cmake
         DESTINATION ${leptonica_INSTALL_CMAKE_DIR})
