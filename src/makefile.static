@@ -155,8 +155,8 @@ LIBRARIAN_SHARED =	gcc -shared
 #  Links are created among the files <libname>.X.Y,
 #  <libname>.X, and <libname>, where Y is the minor revision number.
 MAJOR_REV = 1
-MINOR_REV = 86
-PATCH_REV = 1
+MINOR_REV = 87
+PATCH_REV = 0
 
 #########################################################
 
