@@ -70,6 +70,7 @@ option(ENABLE_TIFF "Enable TIFF support" ON)
 option(ENABLE_WEBP "Enable WebP support" ON)
 option(ENABLE_OPENJPEG "Enable OpenJPEG support" ON)
 
+option(INSTALL_CMAKE_CONFIG "Install CMake configuration files" ON)
 set(leptonica_INSTALL_CMAKE_DIR
     "${CMAKE_INSTALL_LIBDIR}/cmake/leptonica"
     CACHE STRING "Install destination for CMake package files")
@@ -335,19 +336,21 @@ file(
   GENERATE
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${pkg_conf_name}
   INPUT ${CMAKE_CURRENT_BINARY_DIR}/lept.pc.in)
-
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/LeptonicaConfig-version.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig-version.cmake @ONLY)
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/LeptonicaConfig.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig.cmake @ONLY)
-
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${pkg_conf_name}
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig.cmake
-              ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig-version.cmake
-        DESTINATION ${leptonica_INSTALL_CMAKE_DIR})
+
+if(INSTALL_CMAKE_CONFIG)
+    configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/LeptonicaConfig-version.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig-version.cmake @ONLY)
+    configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/LeptonicaConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig.cmake @ONLY)
+
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig.cmake
+                ${CMAKE_CURRENT_BINARY_DIR}/LeptonicaConfig-version.cmake
+            DESTINATION ${leptonica_INSTALL_CMAKE_DIR})
+endif()
 
 # ##############################################################################
 # uninstall target
