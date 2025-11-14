@@ -955,7 +955,7 @@ FILE         *fp;
                                           fname, __func__, NULL);
 
         /* Optionally, encode the compressed data */
-    if (ascii85flag == 1) {
+    if (ascii85flag) {
         data85 = encodeAscii85(data, nbytes, &nbytes85);
         LEPT_FREE(data);
         if (!data85)
@@ -966,7 +966,7 @@ FILE         *fp;
     }
 
     cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA));
-    if (ascii85flag == 0) {
+    if (!ascii85flag) {
         cid->datacomp = data;
     } else {  /* ascii85 */
         cid->data85 = data85;
