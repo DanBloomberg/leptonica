@@ -34,6 +34,8 @@
  *        * Demonstrate page cropping with edgeclean = -2, for a situation
  *          where a bad oversized mediabox confuses the pdftoppm renderer,
  *          which embeds the page image in a larger black image.
+ *        * Show how iterative distortion in jpeg write/read cycles gets
+ *          less with iterations but typically does not go to zero.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -46,8 +48,14 @@ int main(int    argc,
          char **argv)
 {
 char   buf[256];
-PIX   *pix1, *pix2, *pix3;
-PIXA  *pixa1;
+l_int32    i, qual, equal;
+size_t     size;
+l_float32  olddiff, rmsdiff;
+l_uint8   *data;
+GPLOT     *gplot1, *gplot2;
+NUMA      *na1, *na2;
+PIX       *pix0, *pix1, *pix2, *pix3, *pix4;
+PIXA      *pixa1;
 
     setLeptDebugOK(1);
     lept_mkdir("lept/misc");
@@ -132,5 +140,55 @@ PIXA  *pixa1;
     snprintf(buf, sizeof(buf), "displaypix /tmp/lept/renderpdf/input-2.ppm");
     callSystemDebug(buf);
 
+        /* Show iterative distortion in jpeg write/read cycles.
+         * Note that changes go to zero for quality = 72  */
+    pix0 = pixRead("wyom.jpg");
+    pixWriteMemJpeg(&data, &size, pix0, 75, 0);
+    pixDestroy(&pix0);
+    pix1 = pixReadMemJpeg(data, size, 0, 1, NULL, 0);
+    LEPT_FREE(data);
+    olddiff = -1.0;
+    na1 = numaCreate(0);
+    na2 = numaCreate(0);
+    for (i = 0; i < 26; i++) {
+        qual = 75 - i / 5;  /* goes from 75 down to 70 */
+        pixWriteMemJpeg(&data, &size, pix1, qual, 0);
+        pix2 = pixReadMemJpeg(data, size, 0, 1, NULL, 0);
+        LEPT_FREE(data);
+        pixCompareRGB(pix1, pix2, L_COMPARE_ABS_DIFF, 0, NULL, NULL,
+                      &rmsdiff, NULL);
+        numaAddNumber(na1, rmsdiff);
+        pixEqual(pix1, pix2, &equal);
+        if (equal)
+            lept_stderr("iter %d: qual = %d, same\n", i, qual);
+        else
+            lept_stderr("iter %d: qual = %d, diff = %6.3f\n", i, qual, rmsdiff);
+        pixDestroy(&pix1);
+        pix1 = pix2;
+        if (olddiff == -1.0)
+            numaAddNumber(na2, 0);  /* n'importe quoi */
+        else
+            numaAddNumber(na2, L_ABS(rmsdiff - olddiff));
+        olddiff = rmsdiff;
+    }
+    gplot1 = gplotCreate("/tmp/lept/misc/gplot1", GPLOT_PNG,
+                         "RMS Diff from original", "iteration", "diff");
+    gplot2 = gplotCreate("/tmp/lept/misc/gplot2", GPLOT_PNG,
+                         "Successive RMS differences", "iteration", "diff");
+    gplotAddPlot(gplot1, NULL, na1, GPLOT_POINTS, NULL);
+    gplotAddPlot(gplot2, NULL, na2, GPLOT_LINES, NULL);
+    pix3 = gplotMakeOutputPix(gplot1);
+    pix4 = gplotMakeOutputPix(gplot2);
+    pixWrite("/tmp/lept/misc/plot1.png", pix3, IFF_PNG);
+    pixWrite("/tmp/lept/misc/plot2.png", pix4, IFF_PNG);
+    pixDisplay(pix3, 150, 0);
+    pixDisplay(pix4, 800, 0);
+    numaDestroy(&na1);
+    numaDestroy(&na2);
+    gplotDestroy(&gplot1);
+    gplotDestroy(&gplot2);
+    pixDestroy(&pix1);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
     return 0;
 }
