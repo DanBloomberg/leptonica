@@ -2714,6 +2714,7 @@ TIFF     *tif;
  * <pre>
  * Notes:
  *      (1) This is an O(n) read-from-memory version of pixaReadMultipageTiff().
+ *      (2) Failure to read any page results in NULL return.
  * </pre>
  */
 PIXA *
@@ -2730,7 +2731,11 @@ PIXA   *pixa;
     offset = 0;
     pixa = pixaCreate(0);
     do {
-        pix = pixReadMemFromMultipageTiff(data, size, &offset);
+        if ((pix = pixReadMemFromMultipageTiff(data, size, &offset)) == NULL) {
+            L_ERROR("reading tiff fails at offset %zu\n", __func__, offset);
+            pixaDestroy(&pixa);
+            return NULL;
+        }
         pixaAddPix(pixa, pix, L_INSERT);
     } while (offset != 0);
     return pixa;
