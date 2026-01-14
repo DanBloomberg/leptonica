@@ -42,7 +42,8 @@
  *          l_int32          pixWriteMemPnm()
  *          l_int32          pixWriteMemPam()
  *
- *      Local helpers
+ *      Static helpers
+ *          static Pix      *freadDataPnm()
  *          static l_int32   pnmReadNextAsciiValue();
  *          static l_int32   pnmReadNextNumber();
  *          static l_int32   pnmReadNextString();
@@ -127,6 +128,8 @@
 #if  USE_PNMIO   /* defined in environ.h */
 /* --------------------------------------------*/
 
+static PIX *freadDataPnm(FILE *fp, l_int32 w, l_int32 h, l_int32 d,
+                         l_int32 type, l_int32 bps, l_int32 spp, l_int32 skip);
 static l_int32 pnmReadNextAsciiValue(FILE  *fp, l_int32 *pval);
 static l_int32 pnmReadNextNumber(FILE *fp, l_int32 *pval);
 static l_int32 pnmReadNextString(FILE *fp, char *buff, l_int32 size);
@@ -149,13 +152,8 @@ static const l_int32  MAX_PNM_HEIGHT = 100000;
 PIX *
 pixReadStreamPnm(FILE  *fp)
 {
-l_uint8    val8, rval8, gval8, bval8, aval8, mask8;
-l_uint16   val16, rval16, gval16, bval16, aval16;
-l_int32    w, h, d, bps, spp, bpl, wpl, i, j, type;
-l_int32    val, rval, gval, bval;
-l_uint32   rgbval;
-l_uint32  *line, *data;
-PIX       *pix;
+l_int32  w, h, d, bps, spp, type;
+PIX     *pix;
 
     if (!fp)
         return (PIX *)ERROR_PTR("fp not defined", __func__, NULL);
@@ -166,338 +164,9 @@ PIX       *pix;
         return (PIX *)ERROR_PTR("invalid bps", __func__, NULL);
     if (spp < 1 || spp > 4)
         return (PIX *)ERROR_PTR("invalid spp", __func__, NULL);
-    if ((pix = pixCreate(w, h, d)) == NULL)
-        return (PIX *)ERROR_PTR("pix not made", __func__, NULL);
-    pixSetInputFormat(pix, IFF_PNM);
-    data = pixGetData(pix);
-    wpl = pixGetWpl(pix);
 
-        /* If type == 6 and bps == 16, we use the code in type 7
-         * to read 6 bytes/pixel from the input file. */
-    if (type == 6 && bps == 16)
-        type = 7;
-
-    switch (type) {
-    case 1:
-    case 2:
-        /* Old "ASCII" binary or gray format */
-        for (i = 0; i < h; i++) {
-            for (j = 0; j < w; j++) {
-                if (pnmReadNextAsciiValue(fp, &val)) {
-                    pixDestroy(&pix);
-                    return (PIX *)ERROR_PTR("read abend", __func__, NULL);
-                }
-                pixSetPixel(pix, j, i, val);
-            }
-        }
-        break;
-
-    case 3:
-        /* Old "ASCII" rgb format */
-        for (i = 0; i < h; i++) {
-            for (j = 0; j < w; j++) {
-                if (pnmReadNextAsciiValue(fp, &rval)) {
-                    pixDestroy(&pix);
-                    return (PIX *)ERROR_PTR("read abend", __func__, NULL);
-                }
-                if (pnmReadNextAsciiValue(fp, &gval)) {
-                    pixDestroy(&pix);
-                    return (PIX *)ERROR_PTR("read abend", __func__, NULL);
-                }
-                if (pnmReadNextAsciiValue(fp, &bval)) {
-                    pixDestroy(&pix);
-                    return (PIX *)ERROR_PTR("read abend", __func__, NULL);
-                }
-                composeRGBPixel(rval, gval, bval, &rgbval);
-                pixSetPixel(pix, j, i, rgbval);
-            }
-        }
-        break;
-
-    case 4:
-        /* "raw" format for 1 bpp */
-        bpl = (d * w + 7) / 8;
-        for (i = 0; i < h; i++) {
-            line = data + i * wpl;
-            for (j = 0; j < bpl; j++) {
-                if (fread(&val8, 1, 1, fp) != 1) {
-                    pixDestroy(&pix);
-                    return (PIX *)ERROR_PTR("read error in 4", __func__, NULL);
-                }
-                SET_DATA_BYTE(line, j, val8);
-            }
-        }
-        break;
-
-    case 5:
-        /* "raw" format for grayscale */
-        for (i = 0; i < h; i++) {
-            line = data + i * wpl;
-            if (d != 16) {
-                for (j = 0; j < w; j++) {
-                    if (fread(&val8, 1, 1, fp) != 1) {
-                        pixDestroy(&pix);
-                        return (PIX *)ERROR_PTR("error in 5", __func__, NULL);
-                    }
-                    if (d == 2)
-                        SET_DATA_DIBIT(line, j, val8);
-                    else if (d == 4)
-                        SET_DATA_QBIT(line, j, val8);
-                    else  /* d == 8 */
-                        SET_DATA_BYTE(line, j, val8);
-                }
-            } else {  /* d == 16 */
-                for (j = 0; j < w; j++) {
-                    if (fread(&val16, 2, 1, fp) != 1) {
-                        pixDestroy(&pix);
-                        return (PIX *)ERROR_PTR("16 bpp error", __func__, NULL);
-                    }
-                    SET_DATA_TWO_BYTES(line, j, val16);
-                }
-            }
-        }
-        break;
-
-    case 6:
-        /* "raw" format, type == 6; 8 bps, rgb */
-        for (i = 0; i < h; i++) {
-            line = data + i * wpl;
-            for (j = 0; j < wpl; j++) {
-                if (fread(&rval8, 1, 1, fp) != 1) {
-                    pixDestroy(&pix);
-                    return (PIX *)ERROR_PTR("read error type 6",
-                                            __func__, NULL);
-                }
-                if (fread(&gval8, 1, 1, fp) != 1) {
-                    pixDestroy(&pix);
-                    return (PIX *)ERROR_PTR("read error type 6",
-                                            __func__, NULL);
-                }
-                if (fread(&bval8, 1, 1, fp) != 1) {
-                    pixDestroy(&pix);
-                    return (PIX *)ERROR_PTR("read error type 6",
-                                            __func__, NULL);
-                }
-                composeRGBPixel(rval8, gval8, bval8, &rgbval);
-                line[j] = rgbval;
-            }
-        }
-        break;
-
-    case 7:
-        /* "arbitrary" format; type == 7; */
-        if (bps != 16) {
-            mask8 = (1 << bps) - 1;
-            switch (spp) {
-            case 1: /* 1, 2, 4, 8 bpp grayscale */
-                for (i = 0; i < h; i++) {
-                    for (j = 0; j < w; j++) {
-                        if (fread(&val8, 1, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        val8 = val8 & mask8;
-                        if (bps == 1) val8 ^= 1;  /* white-is-1 photometry */
-                        pixSetPixel(pix, j, i, val8);
-                    }
-                }
-                break;
-
-            case 2: /* 1, 2, 4, 8 bpp grayscale + alpha */
-                for (i = 0; i < h; i++) {
-                    for (j = 0; j < w; j++) {
-                        if (fread(&val8, 1, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        if (fread(&aval8, 1, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        val8 = val8 & mask8;
-                        aval8 = aval8 & mask8;
-                        composeRGBAPixel(val8, val8, val8, aval8, &rgbval);
-                        pixSetPixel(pix, j, i, rgbval);
-                    }
-                }
-                pixSetSpp(pix, 4);
-                break;
-
-            case 3: /* rgb */
-                for (i = 0; i < h; i++) {
-                    line = data + i * wpl;
-                    for (j = 0; j < wpl; j++) {
-                        if (fread(&rval8, 1, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        if (fread(&gval8, 1, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        if (fread(&bval8, 1, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        rval8 = rval8 & mask8;
-                        gval8 = gval8 & mask8;
-                        bval8 = bval8 & mask8;
-                        composeRGBPixel(rval8, gval8, bval8, &rgbval);
-                        line[j] = rgbval;
-                    }
-                }
-                break;
-
-            case 4: /* rgba */
-                for (i = 0; i < h; i++) {
-                    line = data + i * wpl;
-                    for (j = 0; j < wpl; j++) {
-                        if (fread(&rval8, 1, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        if (fread(&gval8, 1, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        if (fread(&bval8, 1, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        if (fread(&aval8, 1, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        rval8 = rval8 & mask8;
-                        gval8 = gval8 & mask8;
-                        bval8 = bval8 & mask8;
-                        aval8 = aval8 & mask8;
-                        composeRGBAPixel(rval8, gval8, bval8, aval8, &rgbval);
-                        line[j] = rgbval;
-                    }
-                }
-                pixSetSpp(pix, 4);
-                break;
-            }
-        } else {  /* bps == 16 */
-                /* I have only seen one example that is type 6, 16 bps.
-                 * It was 3 spp (rgb), and the 8 bps of real data was stored
-                 * in the second byte.  In the following, I make the wild
-                 * assumption that for all 16 bpp pnm/pam files, we can
-                 * take the second byte. */
-            switch (spp) {
-            case 1: /* 16 bps grayscale */
-                for (i = 0; i < h; i++) {
-                    for (j = 0; j < w; j++) {
-                        if (fread(&val16, 2, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        val8 = val16 & 0xff;
-                        pixSetPixel(pix, j, i, val8);
-                    }
-                }
-                break;
-
-            case 2: /* 16 bps grayscale + alpha */
-                for (i = 0; i < h; i++) {
-                    for (j = 0; j < w; j++) {
-                        if (fread(&val16, 2, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        if (fread(&aval16, 2, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        val8 = val16 & 0xff;
-                        aval8 = aval16 & 0xff;
-                        composeRGBAPixel(val8, val8, val8, aval8, &rgbval);
-                        pixSetPixel(pix, j, i, rgbval);
-                    }
-                }
-                pixSetSpp(pix, 4);
-                break;
-
-            case 3: /* 16bps rgb */
-                for (i = 0; i < h; i++) {
-                    line = data + i * wpl;
-                    for (j = 0; j < wpl; j++) {
-                        if (fread(&rval16, 2, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        if (fread(&gval16, 2, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        if (fread(&bval16, 2, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        rval8 = rval16 & 0xff;
-                        gval8 = gval16 & 0xff;
-                        bval8 = bval16 & 0xff;
-                        composeRGBPixel(rval8, gval8, bval8, &rgbval);
-                        line[j] = rgbval;
-                    }
-                }
-                break;
-
-            case 4: /* 16bps rgba */
-                for (i = 0; i < h; i++) {
-                    line = data + i * wpl;
-                    for (j = 0; j < wpl; j++) {
-                        if (fread(&rval16, 2, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        if (fread(&gval16, 2, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        if (fread(&bval16, 2, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        if (fread(&aval16, 2, 1, fp) != 1) {
-                            pixDestroy(&pix);
-                            return (PIX *)ERROR_PTR("read error type 7",
-                                                    __func__, NULL);
-                        }
-                        rval8 = rval16 & 0xff;
-                        gval8 = gval16 & 0xff;
-                        bval8 = bval16 & 0xff;
-                        aval8 = aval16 & 0xff;
-                        composeRGBAPixel(rval8, gval8, bval8, aval8, &rgbval);
-                        line[j] = rgbval;
-                    }
-                }
-                pixSetSpp(pix, 4);
-                break;
-            }
-        }
-        break;
-    }
+    if ((pix = freadDataPnm(fp, w, h, d, type, bps, spp, FALSE)) == NULL)
+        return (PIX *)ERROR_PTR("read data fails", __func__, NULL);
     return pix;
 }
 
@@ -1315,6 +984,390 @@ FILE    *fp;
 /*--------------------------------------------------------------------*
  *                          Static helpers                            *
  *--------------------------------------------------------------------*/
+/*!
+ * \brief   freadDataPnm()
+ *
+ * \param[in]    fp    file stream opened for read
+ * \param[out]   w      width
+ * \param[out]   h      height
+ * \param[out]   d      depth
+ * \param[out]   type   pnm type
+ * \param[out]   bps    bits/sample
+ * \param[out]   spp    samples/pixel
+ * \param[in]    skip   flag to skip first byte (default is FALSE)
+ * \return  pix, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The file stream initially points to the byte after the newline
+ *          that ends the header.  The pnm spec says that this is the first
+ *          byte of image data.  Set %skip == FALSE.
+ *      (2) xpdf programs like pdfimages sometimes mistakenly write an
+ *          extra newline after the header, causing the read to fail.
+ *          Setting %skip == TRUE will skip reading the first data byte.
+ *      (3) Reading must happen through the fscanf functions; no seeks
+ *          or rewinds are allowed.
+ * </pre>
+ */
+static PIX *
+freadDataPnm(FILE    *fp,
+             l_int32  w,
+             l_int32  h,
+             l_int32  d,
+             l_int32  type,
+             l_int32  bps,
+             l_int32  spp,
+             l_int32  skip)
+{
+l_uint8    val8, rval8, gval8, bval8, aval8, mask8;
+l_uint16   val16, rval16, gval16, bval16, aval16;
+l_int32    bpl, wpl, i, j, ignore;
+l_int32    val, rval, gval, bval;
+l_uint32   rgbval;
+l_uint32  *line, *data;
+PIX       *pix;
+
+    if (!fp)
+        return (PIX *)ERROR_PTR("fp not defined", __func__, NULL);
+    if ((pix = pixCreate(w, h, d)) == NULL)
+        return (PIX *)ERROR_PTR("pix not made", __func__, NULL);
+    pixSetInputFormat(pix, IFF_PNM);
+    data = pixGetData(pix);
+    wpl = pixGetWpl(pix);
+
+    if (skip)  /* only for badly written pbm files */
+        ignore = fgetc(fp);
+
+        /* If type == 6 and bps == 16, we use the code in type 7
+         * to read 6 bytes/pixel from the input file. */
+    if (type == 6 && bps == 16)
+        type = 7;
+
+    switch (type) {
+    case 1:
+    case 2:
+        /* Old "ASCII" binary or gray format */
+        for (i = 0; i < h; i++) {
+            for (j = 0; j < w; j++) {
+                if (pnmReadNextAsciiValue(fp, &val)) {
+                    pixDestroy(&pix);
+                    return (PIX *)ERROR_PTR("read abend", __func__, NULL);
+                }
+                pixSetPixel(pix, j, i, val);
+            }
+        }
+        break;
+
+    case 3:
+        /* Old "ASCII" rgb format */
+        for (i = 0; i < h; i++) {
+            for (j = 0; j < w; j++) {
+                if (pnmReadNextAsciiValue(fp, &rval)) {
+                    pixDestroy(&pix);
+                    return (PIX *)ERROR_PTR("read abend", __func__, NULL);
+                }
+                if (pnmReadNextAsciiValue(fp, &gval)) {
+                    pixDestroy(&pix);
+                    return (PIX *)ERROR_PTR("read abend", __func__, NULL);
+                }
+                if (pnmReadNextAsciiValue(fp, &bval)) {
+                    pixDestroy(&pix);
+                    return (PIX *)ERROR_PTR("read abend", __func__, NULL);
+                }
+                composeRGBPixel(rval, gval, bval, &rgbval);
+                pixSetPixel(pix, j, i, rgbval);
+            }
+        }
+        break;
+
+    case 4:
+        /* "raw" format for 1 bpp */
+        bpl = (d * w + 7) / 8;
+        for (i = 0; i < h; i++) {
+            line = data + i * wpl;
+            for (j = 0; j < bpl; j++) {
+                if (fread(&val8, 1, 1, fp) != 1) {
+                    pixDestroy(&pix);
+                    return (PIX *)ERROR_PTR("read error in 4", __func__, NULL);
+                }
+                SET_DATA_BYTE(line, j, val8);
+            }
+        }
+        break;
+
+    case 5:
+        /* "raw" format for grayscale */
+        for (i = 0; i < h; i++) {
+            line = data + i * wpl;
+            if (d != 16) {
+                for (j = 0; j < w; j++) {
+                    if (fread(&val8, 1, 1, fp) != 1) {
+                        pixDestroy(&pix);
+                        return (PIX *)ERROR_PTR("error in 5", __func__, NULL);
+                    }
+                    if (d == 2)
+                        SET_DATA_DIBIT(line, j, val8);
+                    else if (d == 4)
+                        SET_DATA_QBIT(line, j, val8);
+                    else  /* d == 8 */
+                        SET_DATA_BYTE(line, j, val8);
+                }
+            } else {  /* d == 16 */
+                for (j = 0; j < w; j++) {
+                    if (fread(&val16, 2, 1, fp) != 1) {
+                        pixDestroy(&pix);
+                        return (PIX *)ERROR_PTR("16 bpp error", __func__, NULL);
+                    }
+                    SET_DATA_TWO_BYTES(line, j, val16);
+                }
+            }
+        }
+        break;
+
+    case 6:
+        /* "raw" format, type == 6; 8 bps, rgb */
+        for (i = 0; i < h; i++) {
+            line = data + i * wpl;
+            for (j = 0; j < wpl; j++) {
+                if (fread(&rval8, 1, 1, fp) != 1) {
+                    pixDestroy(&pix);
+                    return (PIX *)ERROR_PTR("read error type 6",
+                                            __func__, NULL);
+                }
+                if (fread(&gval8, 1, 1, fp) != 1) {
+                    pixDestroy(&pix);
+                    return (PIX *)ERROR_PTR("read error type 6",
+                                            __func__, NULL);
+                }
+                if (fread(&bval8, 1, 1, fp) != 1) {
+                    pixDestroy(&pix);
+                    return (PIX *)ERROR_PTR("read error type 6",
+                                            __func__, NULL);
+                }
+                composeRGBPixel(rval8, gval8, bval8, &rgbval);
+                line[j] = rgbval;
+            }
+        }
+        break;
+
+    case 7:
+        /* "arbitrary" format; type == 7; */
+        if (bps != 16) {
+            mask8 = (1 << bps) - 1;
+            switch (spp) {
+            case 1: /* 1, 2, 4, 8 bpp grayscale */
+                for (i = 0; i < h; i++) {
+                    for (j = 0; j < w; j++) {
+                        if (fread(&val8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        val8 = val8 & mask8;
+                        if (bps == 1) val8 ^= 1;  /* white-is-1 photometry */
+                        pixSetPixel(pix, j, i, val8);
+                    }
+                }
+                break;
+
+            case 2: /* 1, 2, 4, 8 bpp grayscale + alpha */
+                for (i = 0; i < h; i++) {
+                    for (j = 0; j < w; j++) {
+                        if (fread(&val8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        if (fread(&aval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        val8 = val8 & mask8;
+                        aval8 = aval8 & mask8;
+                        composeRGBAPixel(val8, val8, val8, aval8, &rgbval);
+                        pixSetPixel(pix, j, i, rgbval);
+                    }
+                }
+                pixSetSpp(pix, 4);
+                break;
+
+            case 3: /* rgb */
+                for (i = 0; i < h; i++) {
+                    line = data + i * wpl;
+                    for (j = 0; j < wpl; j++) {
+                        if (fread(&rval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        if (fread(&gval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        if (fread(&bval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        rval8 = rval8 & mask8;
+                        gval8 = gval8 & mask8;
+                        bval8 = bval8 & mask8;
+                        composeRGBPixel(rval8, gval8, bval8, &rgbval);
+                        line[j] = rgbval;
+                    }
+                }
+                break;
+
+            case 4: /* rgba */
+                for (i = 0; i < h; i++) {
+                    line = data + i * wpl;
+                    for (j = 0; j < wpl; j++) {
+                        if (fread(&rval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        if (fread(&gval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        if (fread(&bval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        if (fread(&aval8, 1, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        rval8 = rval8 & mask8;
+                        gval8 = gval8 & mask8;
+                        bval8 = bval8 & mask8;
+                        aval8 = aval8 & mask8;
+                        composeRGBAPixel(rval8, gval8, bval8, aval8, &rgbval);
+                        line[j] = rgbval;
+                    }
+                }
+                pixSetSpp(pix, 4);
+                break;
+            }
+        } else {  /* bps == 16 */
+                /* I have only seen one example that is type 6, 16 bps.
+                 * It was 3 spp (rgb), and the 8 bps of real data was stored
+                 * in the second byte.  In the following, I make the wild
+                 * assumption that for all 16 bpp pnm/pam files, we can
+                 * take the second byte. */
+            switch (spp) {
+            case 1: /* 16 bps grayscale */
+                for (i = 0; i < h; i++) {
+                    for (j = 0; j < w; j++) {
+                        if (fread(&val16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        val8 = val16 & 0xff;
+                        pixSetPixel(pix, j, i, val8);
+                    }
+                }
+                break;
+
+            case 2: /* 16 bps grayscale + alpha */
+                for (i = 0; i < h; i++) {
+                    for (j = 0; j < w; j++) {
+                        if (fread(&val16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        if (fread(&aval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        val8 = val16 & 0xff;
+                        aval8 = aval16 & 0xff;
+                        composeRGBAPixel(val8, val8, val8, aval8, &rgbval);
+                        pixSetPixel(pix, j, i, rgbval);
+                    }
+                }
+                pixSetSpp(pix, 4);
+                break;
+
+            case 3: /* 16bps rgb */
+                for (i = 0; i < h; i++) {
+                    line = data + i * wpl;
+                    for (j = 0; j < wpl; j++) {
+                        if (fread(&rval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        if (fread(&gval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        if (fread(&bval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        rval8 = rval16 & 0xff;
+                        gval8 = gval16 & 0xff;
+                        bval8 = bval16 & 0xff;
+                        composeRGBPixel(rval8, gval8, bval8, &rgbval);
+                        line[j] = rgbval;
+                    }
+                }
+                break;
+
+            case 4: /* 16bps rgba */
+                for (i = 0; i < h; i++) {
+                    line = data + i * wpl;
+                    for (j = 0; j < wpl; j++) {
+                        if (fread(&rval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        if (fread(&gval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        if (fread(&bval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        if (fread(&aval16, 2, 1, fp) != 1) {
+                            pixDestroy(&pix);
+                            return (PIX *)ERROR_PTR("read error type 7",
+                                                    __func__, NULL);
+                        }
+                        rval8 = rval16 & 0xff;
+                        gval8 = gval16 & 0xff;
+                        bval8 = bval16 & 0xff;
+                        aval8 = aval16 & 0xff;
+                        composeRGBAPixel(rval8, gval8, bval8, aval8, &rgbval);
+                        line[j] = rgbval;
+                    }
+                }
+                pixSetSpp(pix, 4);
+                break;
+            }
+        }
+        break;
+    }
+    return pix;
+}
+
+
 /*!
  * \brief   pnmReadNextAsciiValue()
  *
