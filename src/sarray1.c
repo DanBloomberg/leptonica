@@ -752,7 +752,8 @@ sarrayToStringRange(SARRAY  *sa,
                     l_int32  addnlflag)
 {
 char    *dest, *src, *str;
-l_int32  n, i, last, size, index, len;
+l_int32  n, i, last;
+size_t   size, index, len;
 
     if (!sa)
         return (char *)ERROR_PTR("sa not defined", __func__, NULL);

@@ -333,8 +333,8 @@ strcodeFinalize(L_STRCODE  **pstrcode,
 {
 char        buf[256];
 char       *filestr, *casestr, *descr, *datastr, *realoutdir;
-l_int32     actstart, end, newstart, fileno, nbytes;
-size_t      size;
+l_int32     actstart, end, newstart, fileno;
+size_t      size, nbytes;
 L_STRCODE  *strcode;
 SARRAY     *sa1, *sa2, *sa3;
 
@@ -476,7 +476,8 @@ SARRAY     *sa1, *sa2, *sa3;
 
         /* Insert serialized data strings */
     datastr = sarrayToString(strcode->data, 1);
-    datastr[strlen(datastr) - 1] = '\0';
+    nbytes = strlen(datastr);
+    datastr[nbytes - 1] = '\0';
     sarrayAddString(sa3, datastr, L_INSERT);
 
         /* End header protection */
