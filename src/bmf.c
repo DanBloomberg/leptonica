@@ -421,8 +421,8 @@ PIXA    *pixa;
  *
  *  Typically, use pixaGetFont() to generate the character bitmaps
  *  in memory for a bmf.  This will simply access the bitmap files
- *  in a serialized pixa that were produced in prog/genfonts.c using
- *  this function.
+ *  in a serialized pixa that were produced in prog/genfonts_reg.c
+ *  using this function.
  */
 static PIXA *
 pixaGenerateFontFromFile(const char  *dir,

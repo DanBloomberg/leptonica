@@ -27,7 +27,10 @@
 /*
  * renderfonts.c
  *
- *     This tests the font rendering functions
+ *     This tests the font rendering functions in bmf.c.
+ *     The directory in bmfCreate() can either be specified here
+ *     as "./fonts", or NULL.  In the latter situation, the fonts
+ *     are built from string representatins of the pixa in bmfdata.h.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -44,7 +47,7 @@ int main(int    argc,
 char    *textstr;
 l_int32  width, wtext, overflow;
 L_BMF   *bmf;
-PIX     *pixs, *pix;
+PIX     *pixs, *pix, *pix1;
 
     if (argc != 1)
         return ERROR_INT("Syntax: renderfonts", __func__, 1);
@@ -53,14 +56,18 @@ PIX     *pixs, *pix;
     lept_mkdir("lept/render");
 
         /* Render a character of text */
-    bmf = bmfCreate(DIRECTORY, 20);
+    bmf = bmfCreate(NULL, 20);
+    pix1 = pixaDisplayTiledInColumns(bmf->pixa, 20, 1., 10, 1);
+    pixDisplay(pix1, 700, 0);
     pixs = pixRead("dreyfus8.png");
     lept_stderr("n = %d\n", pixaGetCount(bmf->pixa));
     pix = pixaGetPix(bmf->pixa, 6, L_CLONE);
-    pixSetMaskedGeneral(pixs, pix, 0x45, 140, 165);
+    pixDisplay(pix, 500, 300);
+    pixSetMaskedGeneral(pixs, pix, 12, 20, 30);
     pixWrite("/tmp/lept/render/char.png", pixs, IFF_PNG);
     pixDisplay(pixs, 0, 0);
     pixDestroy(&pix);
+    pixDestroy(&pix1);
     pixDestroy(&pixs);
     bmfDestroy(&bmf);
 
@@ -73,7 +80,7 @@ PIX     *pixs, *pix;
     pixSetTextline(pixs, bmf, "This is a funny cat!", 0x4080ff00, 50, 250,
                    &width, &overflow);
     pixWrite("/tmp/lept/render/line.png", pixs, IFF_JFIF_JPEG);
-    pixDisplay(pixs, 450, 0);
+    pixDisplay(pixs, 0, 500);
     lept_stderr("Text width = %d\n", width);
     if (overflow)
         lept_stderr("Text overflow beyond image boundary\n");
@@ -91,12 +98,13 @@ PIX     *pixs, *pix;
     pixSetTextblock(pixs, bmf, textstr, 0x90804000, 50, 50, wtext,
                     1, &overflow);
     pixWrite("/tmp/lept/render/block.png", pixs, IFF_JFIF_JPEG);
-    pixDisplay(pixs, 0, 500);
+    pixDisplay(pixs, 700, 500);
     if (overflow)
         lept_stderr("Text overflow beyond image boundary\n");
     lept_free(textstr);
     pixDestroy(&pixs);
     bmfDestroy(&bmf);
+
     return 0;
 }
 
