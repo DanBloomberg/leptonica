@@ -775,7 +775,7 @@ pixClearAll(PIX  *pix)
     if (!pix)
         return ERROR_INT("pix not defined", __func__, 1);
 
-    memset(pix->data, 0, 4LL * pix->wpl * pix->h);
+    memset(pix->data, 0, (size_t)4 * pix->wpl * pix->h);
     return 0;
 }
 
@@ -809,7 +809,7 @@ PIXCMAP  *cmap;
             return ERROR_INT("cmap entry does not exist", __func__, 1);
     }
 
-    memset(pix->data, 0xff, 4LL * pix->wpl * pix->h);
+    memset(pix->data, 0xff, (size_t)4 * pix->wpl * pix->h);
     return 0;
 }
 
