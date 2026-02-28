@@ -86,7 +86,7 @@ if(MSVC)
   target_link_libraries(leptonica PRIVATE user32.lib gdi32.lib)
 endif()
 
-if(NOT SW_BUILD)
+if(NOT SW_BUILD AND INSTALL_CMAKE_CONFIG)
   export(TARGETS leptonica FILE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake)
 else()
   target_link_libraries(
@@ -94,21 +94,25 @@ else()
     PRIVATE org.sw.demo.gif org.sw.demo.jpeg org.sw.demo.glennrp.png
             org.sw.demo.tiff org.sw.demo.webmproject.webp
             org.sw.demo.uclouvain.openjpeg.openjp2)
-  file(WRITE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake
-       "include(${CMAKE_BINARY_DIR}/cppan.cmake)\n")
-  export(
-    TARGETS leptonica
-    APPEND
-    FILE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake)
+    if(INSTALL_CMAKE_CONFIG)
+        file(WRITE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake
+            "include(${CMAKE_BINARY_DIR}/cppan.cmake)\n")
+        export(
+            TARGETS leptonica
+            APPEND
+            FILE ${CMAKE_BINARY_DIR}/LeptonicaTargets.cmake)
+    endif()
 endif()
 
-install(
-  TARGETS leptonica
-  EXPORT LeptonicaTargets
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-install(EXPORT LeptonicaTargets DESTINATION ${leptonica_INSTALL_CMAKE_DIR})
+if(INSTALL_CMAKE_CONFIG)
+    install(
+    TARGETS leptonica
+    EXPORT LeptonicaTargets
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    install(EXPORT LeptonicaTargets DESTINATION ${leptonica_INSTALL_CMAKE_DIR})
+endif()
 install(FILES ${hdr} ${CMAKE_BINARY_DIR}/src/endianness.h
         DESTINATION include/leptonica)
 
