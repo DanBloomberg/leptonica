@@ -1875,11 +1875,15 @@ SARRAY   *sa;
 FILE *
 fopenReadStream(const char  *filename)
 {
-char  *fname, *tail;
-FILE  *fp;
+char   *stripped_name, *fname, *tail;
+size_t  len;
+FILE   *fp;
 
     if (!filename)
         return (FILE *)ERROR_PTR("filename not defined", __func__, NULL);
+    if ((len = strlen(filename)) == 0)
+        return (FILE *)ERROR_PTR_1("filename length 0", filename, __func__,
+                                   NULL);
 
         /* Try input filename */
     fname = genPathname(filename, NULL);
@@ -1889,14 +1893,33 @@ FILE  *fp;
 
         /* Else, strip directory and try locally */
     splitPathAtDirectory(filename, NULL, &tail);
-    if (!tail)
-        return (FILE*)ERROR_PTR_1("tail not found", filename, __func__, NULL);
-    fp = fopen(tail, "rb");
-    if (!fp)
-        L_ERROR("failed to open locally with tail %s for filename %s\n",
-                __func__, tail, filename);
-    LEPT_FREE(tail);
-    return fp;
+    if (tail) {
+        fp = fopen(tail, "rb");
+        if (!fp)
+            L_INFO("failed to open locally with tail %s for filename %s\n",
+                 __func__, tail, filename);
+        LEPT_FREE(tail);
+        if (fp) return fp;
+    }
+
+#ifdef WIN32
+        /* On Windows, if the file wasn't found, check if the name is
+           wrapped in double quotes and try again.  This supports
+           "Copy as path", which wraps paths in double quotes. */
+    if (len > 2 && filename[0] == '"' && filename[len - 1] == '"') {
+        stripped_name = (char *)LEPT_CALLOC(len, sizeof(char));
+        if (!stripped_name) {
+            L_ERROR("stripped name not alloc'd\n", __func__);
+        } else {
+            memcpy(stripped_name, filename + 1, len - 2);
+            fp = fopenReadStream(stripped_name);  /* recursive call */
+            LEPT_FREE(stripped_name);
+            if (fp) return fp;
+        }
+    }
+#endif  /* WIN32 */
+
+    return (FILE *)ERROR_PTR_1("file not found", filename, __func__, NULL);
 }
 
 
