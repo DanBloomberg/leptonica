@@ -1414,7 +1414,8 @@ SARRAY  *sa;
 
     for (i = 0; i < n; i++) {
             /* Get the size of the stored string */
-        if ((fscanf(fp, "%d[%d]:", &index, &size) != 2) || (size > (1 << 30))) {
+        if ((fscanf(fp, "%d[%d]:", &index, &size) != 2) ||
+            (size < 0) || (size > (1 << 30))) {
             success = FALSE;
             L_ERROR("error on string size\n", __func__);
             goto cleanup;
