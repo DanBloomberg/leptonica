@@ -1154,6 +1154,11 @@ NUMA      *nad;
     for (i = 0; i < nr; i++) {
         numaGetIValue(narange, 2 * i, &low);
         numaGetIValue(narange, 2 * i + 1, &high);
+        if (low > high) {
+            L_ERROR("bad vals: low = %d > high = %d\n", __func__, low, high);
+            numaDestroy(&nad);
+            return (NUMA *)ERROR_PTR("invalid narange values", __func__, NULL);
+        }
         cent = 0.0;
         sum = 0.0;
         for (j = low; j <= high; j++) {
