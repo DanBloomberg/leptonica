@@ -497,7 +497,10 @@ BOXA    *boxac;
             boxc = boxaGetBox(boxa, i, L_COPY);
         else   /* copy-clone */
             boxc = boxaGetBox(boxa, i, L_CLONE);
-        boxaAddBox(boxac, boxc, L_INSERT);
+        if (boxaAddBox(boxac, boxc, L_INSERT)) {  /* failure */
+            boxDestroy(&boxc);
+            L_ERROR("box %d not added to boxac\n", __func__, i);
+        }
     }
     return boxac;
 }
@@ -548,6 +551,13 @@ BOXA    *boxa;
  * \param[in]    box         to be added
  * \param[in]    copyflag    L_INSERT, L_COPY, L_CLONE
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) When using L_INSERT, if this function returns an error,
+ *          the caller will be responsible for destroying the input box.
+ *          So the caller must check the return value.
+ * </pre>
  */
 l_ok
 boxaAddBox(BOXA    *boxa,
@@ -575,7 +585,7 @@ BOX     *boxc;
 
     n = boxaGetCount(boxa);
     if (n >= boxa->nalloc) {
-        if (boxaExtendArray(boxa)) {
+        if (boxaExtendArray(boxa)) {  /* failure */
             if (copyflag != L_INSERT)
                 boxDestroy(&boxc);
             return ERROR_INT("extension failed", __func__, 1);
@@ -905,6 +915,9 @@ boxaReplaceBox(BOXA    *boxa,
  *      (3) To append to the array, it's easier to use boxaAddBox().
  *      (4) This should not be used repeatedly to insert into large arrays,
  *          because the function is O(n).
+ *      (5) If this function returns an error, the box was not inserted
+ *          and caller will be responsible for destroying the input box.
+ *          So the caller must check the return value.
  * </pre>
  */
 l_ok
@@ -1035,8 +1048,12 @@ BOXA    *boxad;
     n = boxaGetCount(boxas);
     boxad = boxaCreate(n);
     for (i = 0; i < n; i++) {
-        if ((box = boxaGetValidBox(boxas, i, copyflag)) != NULL)
-            boxaAddBox(boxad, box, L_INSERT);
+        if (box = boxaGetValidBox(boxas, i, copyflag)) {
+            if (boxaAddBox(boxad, box, L_INSERT)) {  /* failure */
+                boxDestroy(&box);
+                L_ERROR("valid box %d not added to boxa\n", __func__, i);
+            }
+        }
     }
 
     return boxad;
@@ -1661,6 +1678,7 @@ BOXA   **array;
  * <pre>
  * Notes:
  *      (1) Adds to an existing boxa only.
+ *      (2) On error and with L_INSERT, caller needs to destroy input box.
  * </pre>
  */
 l_ok
@@ -1669,7 +1687,7 @@ boxaaAddBox(BOXAA   *baa,
             BOX     *box,
             l_int32  accessflag)
 {
-l_int32  n;
+l_int32  n, ret;
 BOXA    *boxa;
     if (!baa)
         return ERROR_INT("baa not defined", __func__, 1);
@@ -1680,9 +1698,11 @@ BOXA    *boxa;
         return ERROR_INT("invalid accessflag", __func__, 1);
 
     boxa = boxaaGetBoxa(baa, index, L_CLONE);
-    boxaAddBox(boxa, box, accessflag);
+    ret = boxaAddBox(boxa, box, accessflag);
     boxaDestroy(&boxa);
-    return 0;
+    if (ret)
+        L_ERROR("box not added to boxaa\n", __func__);
+    return ret;
 }
 
 
@@ -2046,7 +2066,10 @@ BOXA    *boxa;
             return (BOXA *)ERROR_PTR("box descr not valid", __func__, NULL);
         }
         box = boxCreate(x, y, w, h);
-        boxaAddBox(boxa, box, L_INSERT);
+        if (boxaAddBox(boxa, box, L_INSERT)) {  /* failure */
+            boxDestroy(&box);
+            L_ERROR("box %d not added to boxa\n", __func__, i);
+        }
     }
     return boxa;
 }
