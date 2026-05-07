@@ -86,33 +86,35 @@ configure_file(
     ${PROJECT_BINARY_DIR}/src/endianness.h
     @ONLY)
 
-if (GIF_FOUND)
+if(NOT SW_BUILD)
+  if(ENABLE_GIF AND GIF_FOUND)
     set(HAVE_LIBGIF 1)
-endif()
+  endif()
 
-if (JPEG_FOUND)
+  if(ENABLE_JPEG AND JPEG_FOUND)
     set(HAVE_LIBJPEG 1)
-endif()
+  endif()
 
-if (OPENJPEG_SUPPORT)
+  if(ENABLE_OPENJPEG AND HAVE_LIBJP2K)
     set(HAVE_LIBJP2K 1)
-endif()
+  endif()
 
-if (PNG_FOUND)
+  if(ENABLE_PNG AND PNG_FOUND)
     set(HAVE_LIBPNG 1)
-endif()
+  endif()
 
-if (TIFF_FOUND)
+  if(ENABLE_TIFF AND TIFF_FOUND)
     set(HAVE_LIBTIFF 1)
-endif()
+  endif()
 
-if (LIBWEBP_SUPPORT)
+  if(ENABLE_WEBP AND WebP_FOUND)
     set(HAVE_LIBWEBP 1)
     set(HAVE_LIBWEBP_ANIM 1)
-endif()
+  endif()
 
-if (ZLIB_FOUND)
+  if(ENABLE_ZLIB AND ZLIB_FOUND)
     set(HAVE_LIBZ 1)
+  endif()
 endif()
 
 file(APPEND ${AUTOCONFIG_SRC} "
