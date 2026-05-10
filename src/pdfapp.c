@@ -74,7 +74,7 @@
  *          l_int32          rotateorthFilesToPdf()
  *
  *     Static helpers
- *          NUMA            *parseRotationString()
+ *          static NUMA     *parseRotationString()
  * </pre>
  */
 
@@ -528,13 +528,15 @@ PIXAC     *pixac1 = NULL;
  *        mode 3: a 5, followed by parenthesized comma-separated pairs
  *                of numbers: (page, rotation).
  *        Note that page numbers are 0-based (e.g., the first page is page 0)
- *    (4) Images in the output pdf are encoded with jpeg (DCT).
+ *    (4) Images in the output pdf are encoded with a practical default
+ *        encoding.  For RGB images, we use jpeg (DCT).  For 1 bpp images,
+ *        use ccitt-g4.
  *    (5) Typically, %scalefactor <= 1.0.  It is applied to each image
  *        before encoding.  If you enter a value <= 0.0, it will be set to 1.0.
  *        The maximum allowed value is 2.0.  Using a value < 1.0 results in
  *        lower resolution in the images in the output pdf.
- *    (6) Default jpeg %quality is 75; otherwise, quality factors between
- *        25 and 95 are enforced.
+ *    (6) Default jpeg %quality is 75; quality factors between 25 and 95
+ *        are allowed.
  * </pre>
  */
 l_ok

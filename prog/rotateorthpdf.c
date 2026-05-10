@@ -39,13 +39,6 @@
  *       rotateorthpdf filein imres rotstring scalefactor quality
  *                     title fileout
  *
- *    The %imres is the desired resolution of the rasterization from the
- *    pdf page to a page image.  Two choices are allowed: 150 and 300 ppi.
- *    Use 0 for default (150 ppi).  The actual resolution used by the
- *    renderer depends on the page image size and is computed internally.
- *    We limit the maximum resolution to 300 ppi because these images are
- *    RGB uncompressed and are large: 6.3 MB for 150 ppi and 25 MB for 300 ppi.
- *
  *    The %rotstring flag determines which, if any, images are rotated cw by
  *    multiples of 90 degrees.  There are 3 modes, and here are examples:
  *    Mode 1: "00201".  The third image is rotated by 180 degrees and
@@ -70,19 +63,18 @@
  *    The pdf output is written to %fileout.  It is advisable (but not
  *    required) to have a '.pdf' extension.
  *
- *    As the first step in processing, images are saved in the directory
- *    /tmp/lept/renderpdf/, as RGB in ppm format, and at the resolution
- *    specified by %imres, either 150 or 300 ppi.  Page-sized images will
- *    rendered at 150 ppi will be about 6MB; at 300 ppi they will be 25 MB.
+ *    A typical application is to generate a pdf from a set of images in
+ *    a directory.  As a preprocessing step, put the images into a pdf with
+ *        converttopdf dir fileout
+ *    and check the output file to see which images need to be rotated.
+ *    Then run rotateorthpdf with a rotation string.
  *
- *    We use pdftoppm to render the images at (typically) 150 pixels/inch.
- *    The renderer uses the mediaboxes to decide how big to make the
- *    images.  If those boxes have values that are too large, the
- *    intermediate ppm images can be very large.  To prevent that,
- *    we compute the resolution to input to pdftoppm that results in
- *    page images at the requested resolution.
+ *    As the first step in processing, extracted images are saved, in
+ *    their original compressed pdf encodings, in the directory
+ *    /tmp/lept/renderpdf/.  We use pdfimages to do the rendering
+ *    without scaling or transcoding.
  *
- *    N.B.  This requires running pdftoppm from the Poppler package
+ *    N.B.  This requires running pdfimages from the Poppler package
  *          of pdf utilities  For non-unix systems, this requires
  *          installation of the cygwin Poppler package:
  *       https://cygwin.com/cgi-bin2/package-cat.cgi?file=x86/poppler/
@@ -100,27 +92,20 @@ l_int32 main(int    argc,
 {
 char       buf[256];
 char      *rotstring, *filein, *title, *fileout;
-l_int32    imres, render_res, quality;
+l_int32    quality;
 l_float32  scalefactor;
 SARRAY    *safiles;
 
-    if (argc != 8)
+    if (argc != 7)
         return ERROR_INT(
-            "Syntax: rotateorthpdf filein imres rotstring"
+            "Syntax: rotateorthpdf filein rotstring"
                     " scalefactor quality title fileout", __func__, 1);
     filein = argv[1];
-    imres = atoi(argv[2]);
-    rotstring = argv[3];
-    scalefactor = atof(argv[4]);
-    quality = atoi(argv[5]);  /* jpeg quality */
-    title = argv[6];
-    fileout = argv[7];
-    if (imres <= 0) imres = 150;  /* default value */
-    if (imres != 150 && imres != 300) {
-        L_WARNING("imres = %d must be 150 or 300; setting to 150\n",
-                  __func__, imres);
-        imres = 150;
-    }
+    rotstring = argv[2];
+    scalefactor = atof(argv[3]);
+    quality = atoi(argv[4]);  /* jpeg quality */
+    title = argv[5];
+    fileout = argv[6];
     if (scalefactor <= 0.0) scalefactor = 1.0;
     if (scalefactor > 2.0) {
         L_WARNING("scalefactor %f too big; setting to 2.0\n", __func__, 
@@ -140,8 +125,16 @@ SARRAY    *safiles;
     }
     setLeptDebugOK(1);
 
-        /* Render all images from the pdf file */
-    if (l_pdfRenderFile(filein, imres, &safiles))
+        /* Render all images from the pdf file.
+         * We could call:
+         *      l_pdfRenderFile(filein, 300, &safiles);
+         * This renders the images in ppm format at approximately (but
+         * not exactly) the same pixel dimensions as in their encoded
+         * form within the pdf.  However, by calling
+         *      l_pdfRenderUnscaledFile(filein, &safiles);
+         * the images are extracted from the pdf in their originally
+         * encoded form.  */
+    if (l_pdfRenderUnscaledFile(filein, &safiles))
         return ERROR_INT_1("rendering failed from filein", filein,
                            __func__, 1);
 

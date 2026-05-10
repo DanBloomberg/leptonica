@@ -93,10 +93,12 @@ They are <i>not</i> a complete listing of the modifications.
         * Split out a static data reading part of pnm stream reader.
         * Fixed integer overflow in sarray to string conversion.
         * New program for selective orthogonal rotation of images in a pdf.
+        * Use of pdfimages for operations on pdfs that are not necessarily
+          page images (e.g., photos).
         * Source files changed: bmf.c, boxbasic,c, pix1.c, pix2.c,
-                                pnmio.c, pdfapp.c, readbarcode.c,
+                                pnmio.c, pdfapp.c, readbarcode.c, renderpdf.c,
                                 sarray1.c, stringcode.c, tiffio.c, utils2.c
-        * Prog files changed: renderfonts.c
+        * Prog files changed: renderfonts.c, compresspdf.c, rotateorthpdf.c
         * New prog files: rotateorthpdf.c
 
 1.87.0  Dec 24, 2025

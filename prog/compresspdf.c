@@ -27,8 +27,12 @@
 /*
  * compresspdf.c
  *
- *    This program concatenates all pdfs in a directory by rendering them
- *    as images, optionally scaling the images, and generating an output pdf.
+ *    This program is primarily intended to compress pdf documents that
+ *    are composed of page images (as opposed to random jpeg photos,
+ *    for example).
+ *
+ *    It concatenates all pdfs in a directory by rendering them as images,
+ *    optionally scaling the images, and generating an output pdf.
  *    The pdfs are taken in lexical order.  Pages are encoded with either
  *    tiffg4 or jpeg (DCT), or a mixture of them depending on input parameters
  *    and page color content.  For DCT encoding, the jpeg quality factor
@@ -66,10 +70,14 @@
  *
  *    The %imres is the desired resolution of the rasterization from the
  *    pdf page to a page image.  Two choices are allowed: 150 and 300 ppi.
- *    Use 0 for default (150 ppi).  The actual resolution used by the
- *    renderer depends on the page image size and is computed internally.
- *    We limit the maximum resolution to 300 ppi because these images are
- *    RGB uncompressed and are large: 6.3 MB for 150 ppi and 25 MB for 300 ppi.
+ *    Use 0 for default (150 ppi).  We use 150 ppi as default because this
+ *    program is biased to compress files, and for most page images, an
+ *    underlying resolution of 150 ppi is acceptable.
+ *
+ *    The actual resolution used by the renderer depends on the page
+ *    image size and is computed internally.  We limit the maximum
+ *    resolution to 300 ppi because these images are RGB uncompressed in
+ *    pnm format and are large: 6.3 MB for 150 ppi and 25 MB for 300 ppi.
  *
  *    The %scalefactor is the scaling applied to the rasterized images, in
  *    order to produce the images stored in the output pdf.  To reduce
@@ -81,6 +89,14 @@
  *    an output resolution for the pdf that will cause it to print
  *    11 inches high, based on the height in pixels of the first image
  *    in the set.
+ *
+ *    Note carefully the relation between %imres and %scalefactor.
+ *    Use of %imres = 150 will downscale all pdf pages that are composed
+ *    of wrapped images by 2x as they are rendered.  Thus the expected
+ *    net downscaling from wrapped images in the input pdf is the product:
+ *          (%imres / 300) * %scalefactor
+ *    So, for example, if you want a net dowscaling > 0.5, you must use
+ *    %imres = 300 and use %scalefactor to downscale from there.
  *
  *    As the first step in processing, images are saved in the directory
  *    /tmp/lept/renderpdf/, as RGB in ppm format, and at the resolution
@@ -110,13 +126,13 @@
  *    Full page images are about 6MB at 150 ppi, or 25MB at 300 ppi.
  *
  *    We use pdftoppm to render the images at (typically) 150 pixels/inch
- *    for a full page, when scalefactor = 1.0.  The renderer uses the
- *    mediaboxes to decide how big to make the images.  If those boxes
- *    have values that are too large, the intermediate ppm images can
- *    be very large.  To prevent that, we compute the resolution to input
- *    to pdftoppm that results in RGB ppm images representing page images
- *    at about 150 ppi (when scalefactor = 1.0).  These images are about
- *    6MB, but are written quickly because there is no compression.
+ *    for a full page. The renderer uses the mediaboxes to decide how
+ *    big to make the images.  If those boxes have values that are
+ *    too large, the intermediate ppm images can be very large.
+ *    To prevent that, we compute the resolution to input to pdftoppm
+ *    that results in RGB ppm images representing page images at about
+ *    150 ppi or 300 ppi.  These images are large (6MB and 25MB),
+ *    but are written quickly because there is no compression.
  *
  *    N.B.  This requires running pdftoppm from the Poppler package
  *          of pdf utilities  For non-unix systems, this requires
@@ -163,6 +179,11 @@ SARRAY    *safiles;
         L_WARNING("scalefactor %f too big; setting to 2.0\n", __func__, 
                   scalefactor);
         scalefactor = 2.0;
+    }
+    if (imres == 150 && scalefactor > 0.5) {
+        L_WARNING("imres %d and scalefactor %5.2f will unnecessarily degrade "
+                  "image quality; consider using imres = 300 with a "
+                  "scalefactor reduced by 2x\n", __func__, imres, scalefactor);
     }
     if (quality <= 0) quality = 50;  /* default value */
     if (quality < 25) {

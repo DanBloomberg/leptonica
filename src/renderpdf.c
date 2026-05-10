@@ -28,35 +28,50 @@
  * \file renderpdf.c
  * <pre>
  *
- *   Rendering pdf files using an external library
+ *   These functions render pdf files using an external library
+ *
+ *   Rendering page files with scaling to page size
  *        l_int32     l_pdfRenderFile()
  *        l_int32     l_pdfRenderFiles()
  *
- *   Utility for rendering a set of pdf files as page images.
- *   The images are rendered for full page images at a specified
- *   resolution between 50 and 300 ppi, in the directory
+ *   Rendering files of pdf-wrapped images without scaling
+ *        l_int32     l_pdfRenderUnscaledFile()
+ *        l_int32     l_pdfRenderUnscaledFiles()
+ *
+ *   The first set does scaled rendering of full page images at a
+ *   specified resolution between 50 and 300 ppi.  It is used by
+ *   programs such as cleanpdf, compresspdf and croppdf.
+ *
+ *   The second set writes the images unscaled and compressed in the
+ *   original format, without transcoding.  It is used by rotateorthpdf.
+ *
+ *   In all cases, the rendered images are written in the directory
  *       /tmp/lept/renderpdf/
+ *   after the directory has been cleared.
  *
  *   An application like cleanpdf performs a sequence of:
  *   (1) rendering the pdfs into a set of images,
  *   (2) doing image processing on each image to generate new images, and
  *   (3) wrapping the new images up in a single pdf file.
- *   Typically, the processed images made by step (2) are stored compressed
- *   in memory in a PixaComp, before wrapping them up in step (3).
+ *   When there are many pages, the processed images made by step (2) are
+ *   stored compressed in memory in a PixaComp, before wrapping them up
+ *   in step (3).
  *
- *   This requires the Poppler package of pdf utilities, in particular
- *   the program pdftoppm.  For non-unix systems, this requires
- *   installation of the cygwin Poppler package:
+ *   The extraction of images from pdf files requires the Poppler package
+ *   of pdf utilities, in particular the programs pdftoppm and pdfimages.
+ *   For non-unix systems, this requires installation of the cygwin
+ *   Poppler package:
  *      https://cygwin.com/cgi-bin2/package-cat.cgi?file=x86/poppler/
  *            poppler-0.26.5-1
  *
- *   For the rasterizer, use pdftoppm:
+ *   For scaled page rasterization, use pdftoppm:
  *      pdftoppm -r res fname outroot  ('-r res' renders output at res ppi)
  *   This works on all pdf pages, both wrapped images and pages that
  *   were made orthographically.  The default output resolution for
  *   pdftoppm is 150 ppi, but we typically use 300 ppi.  This makes large
  *   uncompressed RGB image files (e.g., a standard size RGB page image
- *   at 300 ppi is 25 MB), but it is very fast.
+ *   at 300 ppi is 25 MB), but it is very fast.  To extract all page
+ *   images without scaling, use an output resolution of 300 ppi.
  *
  *   The size of the resulting images does not depend on the resolution
  *   of the images stored in the input pdf.  We compute the value of the
@@ -64,15 +79,17 @@
  *   will generate a page-size image (612 x 792 pts) at the requested
  *   output resolution.
  *
- *   We do NOT use pdfimages:
- *      pdfimages -j fname outroot   (-j outputs jpeg if input is dct)
- *   pdfimages only works when all pages are pdf wrappers around images.
- *   Further, in some cases, it scrambles the order of the output pages
- *   and inserts extra images.
+ *   For unscaled rasterization, for example for pdfs with only photos,
+ *   we use pdfimages:
+ *      pdfimages -all fname outroot   (-all outputs in native format
+ *                                      such as jpg, png, tiffg4)
+ *   Note that pdfimages should only be used when all pages are pdf
+ *   wrappers around images.  We have seen instances when it scrambles
+ *   the order of the output pages and inserts extra images.
 
- *   By default, this function will not run, because it makes a call
- *   to system(1).  To render pdfs as a set of images in a directory,
- *   three things are required:
+ *   By default, these functions will not run, because they call system(1).
+ *   To render pdfs as a set of images in a directory, three things
+ *   are required:
  *   (1) To have poppler installed.
  *   (2) To enable debug operations using setLeptDebugOK(1).
  *   (3) To link the functions that generate pdf files in the library
@@ -91,7 +108,7 @@
 /* --------------------------------------------*/
 
 /*-----------------------------------------------------------------*
- *          Rendering pdf files using an external library          *
+ *       Rendering pdf page files with scaling to page size        *
  *-----------------------------------------------------------------*/
 /*!
  * \brief   l_pdfRenderFile()
@@ -246,10 +263,128 @@ SARRAY  *sa;
 }
 
 
+/*-----------------------------------------------------------------*
+ *      Rendering files of pdf-wrapped images without scaling      *
+ *-----------------------------------------------------------------*/
+/*!
+ * \brief   l_pdfRenderUnscaledFile()
+ *
+ * \param[in]    filename    input pdf file
+ * \param[out]   psaout      sarray of filenames of rasterized images
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Wrapper to l_padfRenderUnscaledFiles() for a single input pdf file.
+ * </pre>
+ */
+l_ok
+l_pdfRenderUnscaledFile(const char  *filename,
+                        SARRAY     **psaout)
+{
+l_int32  ret;
+SARRAY  *sain;
+
+    if (!psaout)
+        return ERROR_INT("&saout not defined", __func__, 1);
+    *psaout = NULL;
+    if (!filename)
+        return ERROR_INT("filename not defined", __func__, 1);
+
+    sain = sarrayCreate(1);
+    sarrayAddString(sain, filename, L_COPY);
+    ret = l_pdfRenderUnscaledFiles(NULL, sain, psaout);
+    sarrayDestroy(&sain);
+    return ret;
+}
+
+
+/*!
+ * \brief   l_pdfRenderUnscaledFiles()
+ *
+ * \param[in]    dir         directory of input pdf files
+ * \param[in]    sain        sarray of input pdf filenames
+ * \param[out]   psaout      sarray of output filenames of rendered images
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Because this uses the "system" call, it is disabled by default
+ *          on all platforms.  It is not supported and therefor3 disabled
+ *          on iOS 11.
+ *      (2) Input pdf file(s) are specified either by an input directory
+ *          or an sarray with the paths.  Use the sarray if it is given;
+ *          otherwise, use all files in the directory with extention "pdf",
+ *          and name the rendered images in lexical order of the filenames.
+ *      (3) All images are extracted in their native pdf format, without
+ *          scaling or transcoding, in directory /tmp/lept/renderpdf,
+ *          and named in lexical order of the input filenames.
+ *      (4) This requires pdfimages from the Poppler package of pdf utilities.
+ * </pre>
+ */
+l_ok
+l_pdfRenderUnscaledFiles(const char  *dir,
+                         SARRAY      *sain,
+                         SARRAY     **psaout)
+{
+char     buf[256];
+char    *imagedir, *fname, *basename, *tail;
+l_int32  i, nfiles;
+SARRAY  *sa;
+
+    if (!LeptDebugOK) {
+        L_INFO("running pdfimages is disabled; "
+               "use setLeptDebugOK(1) to enable\n", __func__);
+        return 0;
+    }
+
+  #ifdef OS_IOS /* iOS 11 does not support system() */
+    return ERROR_INT("iOS 11 does not support system()", __func__, 0);
+  #endif /* OS_IOS */
+
+    if (!psaout)
+        return ERROR_INT("&saout not defined", __func__, 1);
+    *psaout = NULL;
+    if (!dir && !sain)
+        return ERROR_INT("neither dir or sain are defined", __func__, 1);
+    if (sain) {
+        sa = sarrayCopy(sain);
+    } else {
+        sa = getSortedPathnamesInDirectory(dir, "pdf", 0, 0);
+        if (!sa)
+            return ERROR_INT("no files found in dir", __func__, 1);
+    }
+    nfiles = sarrayGetCount(sa);
+
+        /* Set up directory for rendered page images. */
+    lept_rmdir("lept/renderpdf");
+    lept_mkdir("lept/renderpdf");
+    imagedir = genPathname("/tmp/lept/renderpdf", NULL);
+
+        /* Rasterize: pdfimages -all fname outroot   */
+    for (i = 0; i < nfiles; i++) {
+        fname = sarrayGetString(sa, i, L_NOCOPY);
+        splitPathAtDirectory(fname, NULL, &tail);
+        splitPathAtExtension(tail, &basename, NULL);
+        snprintf(buf, sizeof(buf), "pdfimages -all %s %s/%s",
+                 fname, imagedir, basename);
+        LEPT_FREE(tail);
+        LEPT_FREE(basename);
+        lept_stderr("%s\n", buf);
+        callSystemDebug(buf);   /* pdfimages */
+    }
+    sarrayDestroy(&sa);
+
+        /* Generate the output array of image file names */
+    *psaout = getSortedPathnamesInDirectory(imagedir, NULL, 0, 0);
+    LEPT_FREE(imagedir);
+    return 0;
+}
+
+
 /* --------------------------------------------*/
 #endif  /* USE_PDFIO  */
 /* --------------------------------------------*/
-
 
 
 /* ------------------------------------------------------------------------- *
@@ -269,6 +404,20 @@ l_ok l_pdfRenderFile(const char *filename, l_int32 res, SARRAY **psaout)
 
 l_ok l_pdfRenderFiles(const char *dir, SARRAY *sain, l_int32 res,
                       SARRAY **psaout)
+{
+    return ERROR_INT("function not present", __func__, 1);
+}
+
+/* -----------------------------------------------------------*/
+
+l_ok l_pdfRenderUnscaledFile(const char *filename, SARRAY **psaout)
+{
+    return ERROR_INT("function not present", __func__, 1);
+}
+
+/* -----------------------------------------------------------*/
+
+l_ok l_pdfRenderUnscaledFiles(const char *dir, SARRAY *sain, SARRAY **psaout)
 {
     return ERROR_INT("function not present", __func__, 1);
 }

@@ -2323,6 +2323,8 @@ LEPT_DLL extern l_ok regTestWriteDataAndCheck ( L_REGPARAMS *rp, void *data, siz
 LEPT_DLL extern char * regTestGenLocalFilename ( L_REGPARAMS *rp, l_int32 index, l_int32 format );
 LEPT_DLL extern l_ok l_pdfRenderFile ( const char *filename, l_int32 res, SARRAY **psaout );
 LEPT_DLL extern l_ok l_pdfRenderFiles ( const char *dir, SARRAY *sain, l_int32 res, SARRAY **psaout );
+LEPT_DLL extern l_ok l_pdfRenderUnscaledFile ( const char *filename, SARRAY **psaout );
+LEPT_DLL extern l_ok l_pdfRenderUnscaledFiles ( const char *dir, SARRAY *sain, SARRAY **psaout );
 LEPT_DLL extern l_ok pixRasterop ( PIX *pixd, l_int32 dx, l_int32 dy, l_int32 dw, l_int32 dh, l_int32 op, PIX *pixs, l_int32 sx, l_int32 sy );
 LEPT_DLL extern l_ok pixRasteropVip ( PIX *pixd, l_int32 bx, l_int32 bw, l_int32 vshift, l_int32 incolor );
 LEPT_DLL extern l_ok pixRasteropHip ( PIX *pixd, l_int32 by, l_int32 bh, l_int32 hshift, l_int32 incolor );
