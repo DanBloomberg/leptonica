@@ -1388,6 +1388,7 @@ fpixReadStream(FILE  *fp)
 {
 char        buf[256];
 l_int32     w, h, nbytes, xres, yres, version;
+l_uint64    expected;
 l_float32  *data;
 FPIX       *fpix;
 
@@ -1400,6 +1401,15 @@ FPIX       *fpix;
         return (FPIX *)ERROR_PTR("invalid fpix version", __func__, NULL);
     if (fscanf(fp, "w = %d, h = %d, nbytes = %d\n", &w, &h, &nbytes) != 3)
         return (FPIX *)ERROR_PTR("read fail for data size", __func__, NULL);
+    if (w <= 0 || h <= 0 || nbytes < 0)
+        return (FPIX *)ERROR_PTR("invalid fpix data size", __func__, NULL);
+    expected = (l_uint64)w * (l_uint64)h * sizeof(l_float32);
+    if (expected != (l_uint64)nbytes) {
+        L_ERROR("nbytes = %llu inconsistent with w = %llu, h = %llu, and "
+                "expected = 4 * w * h = %llu\n",
+                __func__, nbytes, w, h, expected);
+        return NULL;
+    }
 
         /* Use fgets() and sscanf(); not fscanf(), for the last
          * bit of header data before the float data.  The reason is
@@ -1677,6 +1687,7 @@ dpixReadStream(FILE  *fp)
 {
 char        buf[256];
 l_int32     w, h, nbytes, version, xres, yres;
+l_uint64    expected;
 l_float64  *data;
 DPIX       *dpix;
 
@@ -1689,6 +1700,15 @@ DPIX       *dpix;
         return (DPIX *)ERROR_PTR("invalid dpix version", __func__, NULL);
     if (fscanf(fp, "w = %d, h = %d, nbytes = %d\n", &w, &h, &nbytes) != 3)
         return (DPIX *)ERROR_PTR("read fail for data size", __func__, NULL);
+    if (w <= 0 || h <= 0 || nbytes < 0)
+        return (DPIX *)ERROR_PTR("invalid fpix data size", __func__, NULL);
+    expected = (l_uint64)w * (l_uint64)h * sizeof(l_float64);
+    if (expected != (l_uint64)nbytes) {
+        L_ERROR("nbytes = %llu inconsistent with w = %llu, h = %llu, and "
+                "expected = 8 * w * h = %llu\n", __func__,
+                nbytes, w, h, expected);
+        return NULL;
+    }
 
         /* Use fgets() and sscanf(); not fscanf(), for the last
          * bit of header data before the float data.  The reason is
