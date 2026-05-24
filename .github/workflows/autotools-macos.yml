@@ -31,7 +31,8 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - { os: macos-13, cc: clang }
+          # Job hangs  with: Waiting for a runner to pick up this job...
+          # - { os: macos-13, cc: clang }
           - { os: macos-latest, cc: clang }
 
     steps:
