@@ -1,5 +1,8 @@
 # Leptonica Library #
 
+[![CMake](https://github.com/DanBloomberg/leptonica/actions/workflows/cmake.yml/badge.svg)](https://github.com/DanBloomberg/leptonica/actions/workflows/cmake.yml)
+[![cmake-win64](https://github.com/DanBloomberg/leptonica/actions/workflows/cmake-win64.yml/badge.svg)](https://github.com/DanBloomberg/leptonica/actions/workflows/cmake-win64.yml)
+[![autotools-macos](https://github.com/DanBloomberg/leptonica/actions/workflows/autotools-macos.yml/badge.svg)](https://github.com/DanBloomberg/leptonica/actions/workflows/autotools-macos.yml)
 [![sw](https://github.com/DanBloomberg/leptonica/actions/workflows/sw.yml/badge.svg)](https://github.com/DanBloomberg/leptonica/actions/workflows/sw.yml)
 
 www.leptonica.org
