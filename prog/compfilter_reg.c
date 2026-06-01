@@ -31,6 +31,10 @@
  *     based on size, using logical combinations of indicator arrays.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static void Count_pieces(L_REGPARAMS *rp, PIX  *pix, l_int32 nexp);
@@ -210,7 +214,7 @@ L_REGPARAMS  *rp;
 
             /* Compare the two methods */
         if (sum != sumi)
-            fprintf(stderr, "WRONG: sum = %d, sumi = %d\n", sum, sumi);
+            lept_stderr("WRONG: sum = %d, sumi = %d\n", sum, sumi);
 
             /* Reconstruct the image, band by band. */
         numaLogicalOp(nat, nat, na4, L_UNION);
@@ -226,8 +230,7 @@ L_REGPARAMS  *rp;
 
             /* Remove band successively from full image */
         pixRemoveWithIndicator(pix1, pixa1, na4);
-        pixSaveTiled(pix1, pixa3, 0.25, 1 - i % 2, 25, 8);
-
+        pixaAddPix(pixa3, pix1, L_COPY);
         numaDestroy(&na2);
         numaDestroy(&na3);
         numaDestroy(&na4);
@@ -240,7 +243,7 @@ L_REGPARAMS  *rp;
     pixZero(pix1, &empty);
     regTestCompareValues(rp, 1, empty, 0.0);
     if (!empty)
-        fprintf(stderr, "\nWRONG: not all pixels removed from pix1\n");
+        lept_stderr("\nWRONG: not all pixels removed from pix1\n");
 
     pixDestroy(&pixs);
     pixDestroy(&pix1);
@@ -268,8 +271,7 @@ L_REGPARAMS  *rp;
     numaInvert(na2, na2);  /* get components to be removed */
     pixRemoveWithIndicator(pixs, pixa1, na2);
     regTestWritePixAndCheck(rp, pixs, IFF_PNG);  /* 86 */
-    pixSaveTiled(pixs, pixa3, 0.25, 1, 25, 8);
-    pixDestroy(&pixs);
+    pixaAddPix(pixa3, pixs, L_INSERT);
     boxaDestroy(&boxa1);
     pixaDestroy(&pixa1);
     numaDestroy(&naw);
@@ -281,7 +283,7 @@ L_REGPARAMS  *rp;
     numaDestroy(&na5);
 
     if (rp->display) {
-        pix1 = pixaDisplay(pixa3, 0, 0);
+        pix1 = pixaDisplayTiledInColumns(pixa3, 2, 0.25, 25, 2);
         pixDisplay(pix1, 100, 100);
         pixWrite("/tmp/lept/filter/result.png", pix1, IFF_PNG);
         pixDestroy(&pix1);
@@ -306,7 +308,7 @@ BOXA    *boxa;
     n = boxaGetCount(boxa);
     regTestCompareValues(rp, nexp, n, 0.0);
     if (n != nexp)
-        fprintf(stderr, "WRONG!: Num. comps = %d; expected = %d\n", n, nexp);
+        lept_stderr("WRONG!: Num. comps = %d; expected = %d\n", n, nexp);
     boxaDestroy(&boxa);
     pixDestroy(&pix);
 }
@@ -319,7 +321,7 @@ l_int32  n;
     n = boxaGetCount(boxa);
     regTestCompareValues(rp, nexp, n, 0.0);
     if (n != nexp)
-        fprintf(stderr, "WRONG!: Num. boxes = %d; expected = %d\n", n, nexp);
+        lept_stderr("WRONG!: Num. boxes = %d; expected = %d\n", n, nexp);
     boxaDestroy(&boxa);
 }
 
@@ -338,7 +340,7 @@ l_int32  i, n, val, sum;
     if (!name) return sum;
     regTestCompareValues(rp, nexp, sum, 0.0);
     if (nexp != sum)
-        fprintf(stderr, "WRONG! %s[%d]: num. ones = %d; expected = %d\n",
+        lept_stderr("WRONG! %s[%d]: num. ones = %d; expected = %d\n",
                 name, index, sum, nexp);
     return 0;
 }

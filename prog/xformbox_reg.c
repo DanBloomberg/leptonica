@@ -31,6 +31,10 @@
  *      Also tests the various box hashing graphics operations.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Consts for second set */
@@ -162,8 +166,7 @@ L_REGPARAMS  *rp;
         RenderTransformedBoxa(pixt, boxat, i);
         boxaDestroy(&boxat);
     }
-    pixSaveTiled(pixt, pixa, 1.0, 1, 30, 32);
-    pixDestroy(&pixt);
+    pixaAddPix(pixa, pixt, L_INSERT);
 
     pixt = pixConvertTo32(pixs);
     for (i = 0; i < 3; i++) {
@@ -178,8 +181,7 @@ L_REGPARAMS  *rp;
         RenderTransformedBoxa(pixt, boxat, i + 4);
         boxaDestroy(&boxat);
     }
-    pixSaveTiled(pixt, pixa, 1.0, 1, 30, 0);
-    pixDestroy(&pixt);
+    pixaAddPix(pixa, pixt, L_INSERT);
 
     pixt = pixConvertTo32(pixs);
     for (i = 0; i < 3; i++) {
@@ -194,8 +196,7 @@ L_REGPARAMS  *rp;
         RenderTransformedBoxa(pixt, boxat, i + 8);
         boxaDestroy(&boxat);
     }
-    pixSaveTiled(pixt, pixa, 1.0, 1, 30, 0);
-    pixDestroy(&pixt);
+    pixaAddPix(pixa, pixt, L_INSERT);
 
     pixt = pixConvertTo32(pixs);
     for (i = 0; i < 3; i++) {
@@ -210,10 +211,9 @@ L_REGPARAMS  *rp;
         RenderTransformedBoxa(pixt, boxat, i + 12);
         boxaDestroy(&boxat);
     }
-    pixSaveTiled(pixt, pixa, 1.0, 1, 30, 0);
-    pixDestroy(&pixt);
+    pixaAddPix(pixa, pixt, L_INSERT);
 
-    pixt = pixaDisplay(pixa, 0, 0);
+    pixt = pixaDisplayTiledInColumns(pixa, 1, 0.5, 20, 0);
     regTestWritePixAndCheck(rp, pixt, IFF_PNG);  /* 4 */
     pixDisplayWithTitle(pixt, 1000, 0, NULL, rp->display);
     pixDestroy(&pixt);
@@ -236,9 +236,8 @@ L_REGPARAMS  *rp;
     pixs = pixConvertTo32(pix);
     pixc = pixCopy(NULL, pixs);
     RenderTransformedBoxa(pixc, boxa, 113);
-    pixSaveTiled(pixc, pixa, 0.5, 1, 30, 32);
+    pixaAddPix(pixa, pixc, L_INSERT);
     pixDestroy(&pix);
-    pixDestroy(&pixc);
     pixDestroy(&pixt);
 
         /* (a) Do successive discrete operations: shift, scale, rotate */
@@ -246,23 +245,20 @@ L_REGPARAMS  *rp;
     boxa1 = boxaTranslate(boxa, SHIFTX_3, SHIFTY_3);
     pixc = pixCopy(NULL, pix1);
     RenderTransformedBoxa(pixc, boxa1, 213);
-    pixSaveTiled(pixc, pixa, 0.5, 0, 30, 32);
-    pixDestroy(&pixc);
+    pixaAddPix(pixa, pixc, L_INSERT);
 
     pix2 = pixScale(pix1, SCALEX_3, SCALEY_3);
     boxa2 = boxaScale(boxa1, SCALEX_3, SCALEY_3);
     pixc = pixCopy(NULL, pix2);
     RenderTransformedBoxa(pixc, boxa2, 313);
-    pixSaveTiled(pixc, pixa, 0.5, 1, 30, 32);
-    pixDestroy(&pixc);
+    pixaAddPix(pixa, pixc, L_INSERT);
 
     pixGetDimensions(pix2, &w, &h, NULL);
     pix3 = pixRotateAM(pix2, ROTATION_3, L_BRING_IN_WHITE);
     boxa3 = boxaRotate(boxa2, w / 2, h / 2, ROTATION_3);
     pixc = pixCopy(NULL, pix3);
     RenderTransformedBoxa(pixc, boxa3, 413);
-    pixSaveTiled(pixc, pixa, 0.5, 0, 30, 32);
-    pixDestroy(&pixc);
+    pixaAddPix(pixa, pixc, L_INSERT);
 
         /* (b) Set up and use the composite transform */
     mat1 = createMatrix2dTranslate(SHIFTX_3, SHIFTY_3);
@@ -272,8 +268,7 @@ L_REGPARAMS  *rp;
     boxa4 = boxaAffineTransform(boxa, matd);
     pixc = pixCopy(NULL, pix3);
     RenderTransformedBoxa(pixc, boxa4, 513);
-    pixSaveTiled(pixc, pixa, 0.5, 1, 30, 32);
-    pixDestroy(&pixc);
+    pixaAddPix(pixa, pixc, L_INSERT);
 
         /* (c) Use the special 'ordered' function */
     pixGetDimensions(pixs, &ws, &hs, NULL);
@@ -282,8 +277,7 @@ L_REGPARAMS  *rp;
                                  ws / 2, hs / 2, ROTATION_3, L_TR_SC_RO);
     pixc = pixCopy(NULL, pix3);
     RenderTransformedBoxa(pixc, boxa5, 613);
-    pixSaveTiled(pixc, pixa, 0.5, 0, 30, 32);
-    pixDestroy(&pixc);
+    pixaAddPix(pixa, pixc, L_INSERT);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
@@ -296,7 +290,7 @@ L_REGPARAMS  *rp;
     lept_free(mat2);
     lept_free(mat3);
 
-    pixt = pixaDisplay(pixa, 0, 0);
+    pixt = pixaDisplayTiledInColumns(pixa, 2, 0.5, 20, 0);
     regTestWritePixAndCheck(rp, pixt, IFF_PNG);  /* 5 */
     pixDisplayWithTitle(pixt, 1000, 300, NULL, rp->display);
     pixDestroy(&pixt);

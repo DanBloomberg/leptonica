@@ -129,12 +129,15 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_SEL_LOOKUP   0
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /*-----------------------------------------------------------------*
  *           Binary morphological (dwa) ops with brick Sels        *
@@ -182,14 +185,12 @@ char    *selnameh, *selnamev;
 SELA    *sela;
 PIX     *pixt1, *pixt2, *pixt3;
 
-    PROCNAME("pixDilateBrickDwa");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -207,7 +208,7 @@ PIX     *pixt1, *pixt2, *pixt3;
     }
     selaDestroy(&sela);
     if (!found) {
-        L_INFO("Calling the decomposable dwa function\n", procName);
+        L_INFO("Calling the decomposable dwa function\n", __func__);
         if (selnameh) LEPT_FREE(selnameh);
         if (selnamev) LEPT_FREE(selnamev);
         return pixDilateCompBrickDwa(pixd, pixs, hsize, vsize);
@@ -284,14 +285,12 @@ char    *selnameh, *selnamev;
 SELA    *sela;
 PIX     *pixt1, *pixt2, *pixt3;
 
-    PROCNAME("pixErodeBrickDwa");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -309,7 +308,7 @@ PIX     *pixt1, *pixt2, *pixt3;
     }
     selaDestroy(&sela);
     if (!found) {
-        L_INFO("Calling the decomposable dwa function\n", procName);
+        L_INFO("Calling the decomposable dwa function\n", __func__);
         if (selnameh) LEPT_FREE(selnameh);
         if (selnamev) LEPT_FREE(selnamev);
         return pixErodeCompBrickDwa(pixd, pixs, hsize, vsize);
@@ -386,14 +385,12 @@ char    *selnameh, *selnamev;
 SELA    *sela;
 PIX     *pixt1, *pixt2, *pixt3;
 
-    PROCNAME("pixOpenBrickDwa");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -411,7 +408,7 @@ PIX     *pixt1, *pixt2, *pixt3;
     }
     selaDestroy(&sela);
     if (!found) {
-        L_INFO("Calling the decomposable dwa function\n", procName);
+        L_INFO("Calling the decomposable dwa function\n", __func__);
         if (selnameh) LEPT_FREE(selnameh);
         if (selnamev) LEPT_FREE(selnamev);
         return pixOpenCompBrickDwa(pixd, pixs, hsize, vsize);
@@ -493,14 +490,12 @@ char    *selnameh, *selnamev;
 SELA    *sela;
 PIX     *pixt1, *pixt2, *pixt3;
 
-    PROCNAME("pixCloseBrickDwa");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -518,7 +513,7 @@ PIX     *pixt1, *pixt2, *pixt3;
     }
     selaDestroy(&sela);
     if (!found) {
-        L_INFO("Calling the decomposable dwa function\n", procName);
+        L_INFO("Calling the decomposable dwa function\n", __func__);
         if (selnameh) LEPT_FREE(selnameh);
         if (selnamev) LEPT_FREE(selnamev);
         return pixCloseCompBrickDwa(pixd, pixs, hsize, vsize);
@@ -619,14 +614,12 @@ char    *selnameh1, *selnameh2, *selnamev1, *selnamev2;
 l_int32  hsize1, hsize2, vsize1, vsize2;
 PIX     *pixt1, *pixt2, *pixt3;
 
-    PROCNAME("pixDilateCompBrickDwa");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
     if (hsize > 63 || vsize > 63)
         return pixDilateCompBrickExtendDwa(pixd, pixs, hsize, vsize);
 
@@ -643,10 +636,10 @@ PIX     *pixt1, *pixt2, *pixt3;
                                &selnamev1, &selnamev2);
 
 #if DEBUG_SEL_LOOKUP
-    fprintf(stderr, "nameh1=%s, nameh2=%s, namev1=%s, namev2=%s\n",
-            selnameh1, selnameh2, selnamev1, selnamev2);
-    fprintf(stderr, "hsize1=%d, hsize2=%d, vsize1=%d, vsize2=%d\n",
-            hsize1, hsize2, vsize1, vsize2);
+    lept_stderr("nameh1=%s, nameh2=%s, namev1=%s, namev2=%s\n",
+                selnameh1, selnameh2, selnamev1, selnamev2);
+    lept_stderr("hsize1=%d, hsize2=%d, vsize1=%d, vsize2=%d\n",
+                hsize1, hsize2, vsize1, vsize2);
 #endif  /* DEBUG_SEL_LOOKUP */
 
     pixt1 = pixAddBorder(pixs, 64, 0);
@@ -752,14 +745,12 @@ char    *selnameh1, *selnameh2, *selnamev1, *selnamev2;
 l_int32  hsize1, hsize2, vsize1, vsize2, bordercolor;
 PIX     *pixt1, *pixt2, *pixt3;
 
-    PROCNAME("pixErodeCompBrickDwa");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
     if (hsize > 63 || vsize > 63)
         return pixErodeCompBrickExtendDwa(pixd, pixs, hsize, vsize);
 
@@ -881,14 +872,12 @@ char    *selnameh1, *selnameh2, *selnamev1, *selnamev2;
 l_int32  hsize1, hsize2, vsize1, vsize2, bordercolor;
 PIX     *pixt1, *pixt2, *pixt3;
 
-    PROCNAME("pixOpenCompBrickDwa");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
     if (hsize > 63 || vsize > 63)
         return pixOpenCompBrickExtendDwa(pixd, pixs, hsize, vsize);
 
@@ -1048,14 +1037,12 @@ char    *selnameh1, *selnameh2, *selnamev1, *selnamev2;
 l_int32  hsize1, hsize2, vsize1, vsize2, setborder;
 PIX     *pixt1, *pixt2, *pixt3;
 
-    PROCNAME("pixCloseCompBrickDwa");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
     if (hsize > 63 || vsize > 63)
         return pixCloseCompBrickExtendDwa(pixd, pixs, hsize, vsize);
 
@@ -1197,14 +1184,12 @@ pixDilateCompBrickExtendDwa(PIX     *pixd,
 l_int32  i, nops, nh, extrah, nv, extrav;
 PIX     *pixt1, *pixt2, *pixt3;
 
-    PROCNAME("pixDilateCompBrickExtendDwa");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize < 64 && vsize < 64)
         return pixDilateCompBrickDwa(pixd, pixs, hsize, vsize);
@@ -1317,14 +1302,12 @@ pixErodeCompBrickExtendDwa(PIX     *pixd,
 l_int32  i, nops, nh, extrah, nv, extrav;
 PIX     *pixt1, *pixt2, *pixt3;
 
-    PROCNAME("pixErodeCompBrickExtendDwa");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize < 64 && vsize < 64)
         return pixErodeCompBrickDwa(pixd, pixs, hsize, vsize);
@@ -1439,14 +1422,12 @@ pixOpenCompBrickExtendDwa(PIX     *pixd,
 {
 PIX     *pixt;
 
-    PROCNAME("pixOpenCompBrickExtendDwa");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     pixt = pixErodeCompBrickExtendDwa(NULL, pixs, hsize, vsize);
     pixd = pixDilateCompBrickExtendDwa(pixd, pixt, hsize, vsize);
@@ -1484,14 +1465,12 @@ pixCloseCompBrickExtendDwa(PIX     *pixd,
 l_int32  bordercolor, borderx, bordery;
 PIX     *pixt1, *pixt2, *pixt3;
 
-    PROCNAME("pixCloseCompBrickExtendDwa");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
         /* For "safe closing" with ASYMMETRIC_MORPH_BC, we always need
          * an extra 32 OFF pixels around the image (in addition to
@@ -1572,10 +1551,8 @@ getExtendedCompositeParameters(l_int32   size,
 {
 l_int32  n, extra, fact1, fact2;
 
-    PROCNAME("getExtendedCompositeParameters");
-
     if (!pn || !pextra)
-        return ERROR_INT("&n and &extra not both defined", procName, 1);
+        return ERROR_INT("&n and &extra not both defined", __func__, 1);
 
     if (size <= 63) {
         n = 0;

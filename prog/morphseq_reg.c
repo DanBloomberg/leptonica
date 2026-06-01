@@ -31,6 +31,10 @@
  *    showing display mode and rejection of invalid sequence components.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define  SEQUENCE1    "O1.3 + C3.1 + R22 + D2.2 + X4"
@@ -45,11 +49,10 @@
 int main(int    argc,
          char **argv)
 {
-PIX         *pixs, *pixg, *pixc, *pixd;
-static char  mainName[] = "morphseq_reg";
+PIX  *pixs, *pixg, *pixc, *pixd;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax:  morphseq_reg", mainName, 1);
+        return ERROR_INT(" Syntax:  morphseq_reg", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept");
@@ -68,9 +71,9 @@ static char  mainName[] = "morphseq_reg";
     pixWrite("/tmp/lept/morphseq2.png", pixd, IFF_PNG);
     pixDestroy(&pixd);
 
-    fprintf(stderr, "\n ------------------ Error messages -----------------\n");
-    fprintf(stderr, " ------------  DWA v23 Sel doesn't exist -----------\n");
-    fprintf(stderr, " ---------------------------------------------------\n");
+    lept_stderr("\n ------------------ Error messages -----------------\n");
+    lept_stderr(" ------------  DWA v23 Sel doesn't exist -----------\n");
+    lept_stderr(" ---------------------------------------------------\n");
     pixd = pixMorphSequenceDwa(pixs, SEQUENCE2, -3);
     pixDestroy(&pixd);
     pixd = pixMorphSequenceDwa(pixs, SEQUENCE2, DISPLAY_SEPARATION);
@@ -105,9 +108,9 @@ static char  mainName[] = "morphseq_reg";
     pixDestroy(&pixd);
 
         /* Syntax error handling */
-    fprintf(stderr, "\n ----------------- Error messages ------------------\n");
-    fprintf(stderr, " ---------------- Invalid sequence -----------------\n");
-    fprintf(stderr, " ---------------------------------------------------\n");
+    lept_stderr("\n ----------------- Error messages ------------------\n");
+    lept_stderr(" ---------------- Invalid sequence -----------------\n");
+    lept_stderr(" ---------------------------------------------------\n");
     pixd = pixMorphSequence(pixs, BAD_SEQUENCE, 50);  /* fails; returns null */
     pixd = pixGrayMorphSequence(pixg, BAD_SEQUENCE, 50, 0);  /* this fails */
 

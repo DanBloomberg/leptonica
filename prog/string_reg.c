@@ -31,7 +31,14 @@
  *      * search/replace for strings and arrays
  *      * sarray generation and flattening
  *      * sarray serialization
+ *      * file splitting
+ *      * sarray splitting
+ *      * string length and string cancatenation
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
 #include <string.h>
 #include "allheaders.h"
@@ -43,12 +50,13 @@ char  substr2[4] = "00";
 int main(int    argc,
          char **argv)
 {
-l_int32       loc, count;
+l_int32       i, loc, count, n;
 size_t        size1, size2;
 char         *str0, *str1, *str2, *str3, *str4, *str5, *str6;
+char          fname[128], smallbuf[8], medbuf[32];
 l_uint8      *data1, *data2;
 L_DNA        *da;
-SARRAY       *sa1, *sa2, *sa3;
+SARRAY       *sa1, *sa2, *sa3, *sa4, *sa5;
 L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &rp))
@@ -86,7 +94,7 @@ L_REGPARAMS  *rp;
     str1 = (char *)l_binaryRead("kernel_reg.c", &size1);
     da = arrayFindEachSequence((l_uint8 *)str1, size1,
                                (l_uint8 *)"Destroy", 7);
-    regTestCompareValues(rp, 55, l_dnaGetCount(da), 0.0);  /* 7 */
+    regTestCompareValues(rp, 35, l_dnaGetCount(da), 0.0);  /* 7 */
     l_dnaDestroy(&da);
     lept_free(str1);
 
@@ -97,13 +105,13 @@ L_REGPARAMS  *rp;
                                      (l_uint8 *)"####", 4, &size2, &count);
     l_binaryWrite("/tmp/lept/string/string1.txt", "w", data1, size2);
     regTestCheckFile(rp, "/tmp/lept/string/string1.txt");  /* 8 */
-    regTestCompareValues(rp, 55, count, 0.0);  /* 9 */
+    regTestCompareValues(rp, 35, count, 0.0);  /* 9 */
     data2 = arrayReplaceEachSequence((l_uint8 *)str1, size1,
                                      (l_uint8 *)"Destroy", 7,
                                      NULL, 0, &size2, &count);
     l_binaryWrite("/tmp/lept/string/string2.txt", "w", data2, size2);
     regTestCheckFile(rp, "/tmp/lept/string/string2.txt");  /* 10 */
-    regTestCompareValues(rp, 55, count, 0.0);  /* 11 */
+    regTestCompareValues(rp, 35, count, 0.0);  /* 11 */
     lept_free(data1);
     lept_free(data2);
     lept_free(str1);
@@ -171,10 +179,103 @@ L_REGPARAMS  *rp;
                      strlen(str2), "/tmp/lept/string/junk3.txt");
     str3 = (char *)l_binaryRead("/tmp/lept/string/junk3.txt", &size2);
     regTestCompareStrings(rp, (l_uint8 *)str1, size1, (l_uint8 *)str3, size2);
+                                                                /* 22 */
     lept_free(str1);
     lept_free(str2);
     lept_free(str3);
 
+        /* File splitting by lines */
+    str1 = (char *)l_binaryRead("kernel_reg.c", &size1);
+    fileSplitLinesUniform("kernel_reg.c", 3, 1, "/tmp/lept/string/split",
+                          ".txt");
+    str2 = NULL;
+    for (i = 0; i < 3; i++) {  /* put the pieces back together */
+        snprintf(fname, sizeof(fname), "/tmp/lept/string/split_%d.txt", i);
+        str3 = (char *)l_binaryRead(fname, &size2);
+        stringJoinIP(&str2, str3);
+        lept_free(str3);
+    }
+    regTestCompareStrings(rp, (l_uint8 *)str1, size1,
+                          (l_uint8 *)str2, strlen(str2));  /* 23 */
+    lept_free(str1);
+    lept_free(str2);
+
+        /* Sarray splitting by lines */
+    str1 = (char *)l_binaryRead("kernel_reg.c", &size1);
+    sa1 = sarrayCreateLinesFromString(str1, 0);
+    sa2 = sarrayConcatUniformly(sa1, 6, 0);  /* into 6 strings */
+    sa3 = sarrayCreate(0);
+    for (i = 0; i < 6; i++) {
+        str2 = sarrayGetString(sa2, i, L_NOCOPY);
+        sa4 = sarrayCreateLinesFromString(str2, 0);
+        sarrayJoin(sa3, sa4);
+        sarrayDestroy(&sa4);
+    }
+    sa5 = sarrayConcatUniformly(sa3, 6, 0);  /* same as sa2 ? */
+    sarrayWriteMem((l_uint8 **)&str3, &size1, sa2);
+    sarrayWriteMem((l_uint8 **)&str4, &size2, sa5);
+    regTestWriteDataAndCheck(rp, str3, size1, ".sa");  /* 24 */
+    regTestWriteDataAndCheck(rp, str4, size2, ".sa");  /* 25 */
+    regTestCompareFiles(rp, 24, 25);  /* 26 */
+    sarrayDestroy(&sa1);
+    sarrayDestroy(&sa2);
+    sarrayDestroy(&sa3);
+    sarrayDestroy(&sa4);
+    sarrayDestroy(&sa5);
+    lept_free(str1);
+    lept_free(str3);
+    lept_free(str4);
+
+        /* String length */
+    lept_stderr("******************************************************\n");
+    lept_stderr("* This error message is intentional                  *\n");
+    n = stringLength("", 0);
+    lept_stderr("******************************************************\n");
+    regTestCompareValues(rp, 0.0, (l_float32)n, 0.0);   /* 27 */
+    n = stringLength("", 4);
+    regTestCompareValues(rp, 0, (l_float32)n, 0.0);   /* 28 */
+    lept_stderr("******************************************************\n");
+    lept_stderr("* This error message is intentional                  *\n");
+    n = stringLength("morethan4", 4);
+    lept_stderr("******************************************************\n");
+    regTestCompareValues(rp, 4, (l_float32)n, 0.0);   /* 29 */
+
+        /* String concatenation */
+    smallbuf[0] = '\0';
+    n = stringCat(smallbuf, 8, "abc");
+    regTestCompareValues(rp, 3.0, (l_float32)n, 0.0);   /* 30 */
+    n = stringCat(smallbuf, 8, "def");
+    regTestCompareValues(rp, 3.0, (l_float32)n, 0.0);   /* 31 */
+    n = stringLength(smallbuf, 8);
+    regTestCompareValues(rp, 6.0, (l_float32)n, 0.0);   /* 32 */
+    lept_stderr("******************************************************\n");
+    lept_stderr("* This error message is intentional                  *\n");
+    n = stringCat(smallbuf, 8, "gh");
+    lept_stderr("******************************************************\n");
+    regTestCompareValues(rp, -1.0, (l_float32)n, 0.0);   /* 33 */
+    stringCopy(medbuf, smallbuf, 32);
+    n = stringCat(medbuf, 32, smallbuf);
+    regTestCompareValues(rp, 6.0, (l_float32)n, 0.0);   /* 34 */
+    n = stringLength(medbuf, 32);
+    regTestCompareValues(rp, 12.0, (l_float32)n, 0.0);   /* 35 */
+    n = stringCat(medbuf, 32, medbuf);
+    regTestCompareValues(rp, 12.0, (l_float32)n, 0.0);   /* 36 */
+    medbuf[23] = '\0';   /* shorten by 1 byte */
+    n = stringLength(medbuf, 32);
+    regTestCompareValues(rp, 23.0, (l_float32)n, 0.0);   /* 37 */
+    str1 = stringConcatNew(medbuf, "jkl", NULL);
+    n = stringLength(str1, 32);
+    lept_free(str1);
+    regTestCompareValues(rp, 26.0, (l_float32)n, 0.0);   /* 38 */
+    stringCopy(smallbuf, medbuf, 6);
+    n = stringLength(smallbuf, 8);
+    regTestCompareValues(rp, 6.0, (l_float32)n, 0.0);   /* 39 */
+    stringCopy(smallbuf, medbuf, 8);
+    lept_stderr("******************************************************\n");
+    lept_stderr("* This error message is intentional                  *\n");
+    n = stringLength(smallbuf, 8);
+    lept_stderr("******************************************************\n");
+    regTestCompareValues(rp, 8.0, (l_float32)n, 0.0);   /* 40 */
+
     return regTestCleanup(rp);
 }
-

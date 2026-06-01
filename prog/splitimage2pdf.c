@@ -36,26 +36,29 @@
  *   To print the tiles, one page per tile, use printsplitimage.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_int32      nx, ny;
-PIX         *pixs;
-PIXA        *pixa;
-static char  mainName[] = "splitimage2pdf";
+char    *filein, *fileout;
+l_int32  nx, ny;
+PIX     *pixs;
+PIXA    *pixa;
 
     if (argc != 5)
         return ERROR_INT(" Syntax:  splitimage2pdf filein nx ny fileout",
-                         mainName, 1);
+                         __func__, 1);
     filein = argv[1];
     nx = atoi(argv[2]);
     ny = atoi(argv[3]);
     fileout = argv[4];
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
     pixa = pixaSplitPix(pixs, nx, ny, 0, 0);
     pixaConvertToPdf(pixa, 300, 1.0, 0, 0, NULL, fileout);

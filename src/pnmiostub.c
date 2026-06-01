@@ -32,6 +32,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 /* --------------------------------------------*/
@@ -40,7 +44,7 @@
 
 PIX * pixReadStreamPnm(FILE *fp)
 {
-    return (PIX * )ERROR_PTR("function not present", "pixReadStreamPnm", NULL);
+    return (PIX * )ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -49,7 +53,7 @@ l_ok readHeaderPnm(const char *filename, l_int32 *pw, l_int32 *ph,
                    l_int32 *pd, l_int32 *ptype, l_int32 *pbps,
                    l_int32 *pspp)
 {
-    return ERROR_INT("function not present", "readHeaderPnm", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -57,35 +61,35 @@ l_ok readHeaderPnm(const char *filename, l_int32 *pw, l_int32 *ph,
 l_ok freadHeaderPnm(FILE *fp, l_int32 *pw, l_int32 *ph, l_int32 *pd,
                     l_int32 *ptype, l_int32 *pbps, l_int32 *pspp)
 {
-    return ERROR_INT("function not present", "freadHeaderPnm", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok pixWriteStreamPnm(FILE *fp, PIX *pix)
 {
-    return ERROR_INT("function not present", "pixWriteStreamPnm", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok pixWriteStreamAsciiPnm(FILE *fp, PIX *pix)
 {
-    return ERROR_INT("function not present", "pixWriteStreamAsciiPnm", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok pixWriteStreamPam(FILE *fp, PIX *pix)
 {
-    return ERROR_INT("function not present", "pixWriteStreamPam", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 PIX * pixReadMemPnm(const l_uint8 *cdata, size_t size)
 {
-    return (PIX * )ERROR_PTR("function not present", "pixReadMemPnm", NULL);
+    return (PIX * )ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -94,20 +98,20 @@ l_ok readHeaderMemPnm(const l_uint8 *cdata, size_t size, l_int32 *pw,
                       l_int32 *ph, l_int32 *pd, l_int32 *ptype,
                       l_int32 *pbps, l_int32 *pspp)
 {
-    return ERROR_INT("function not present", "readHeaderMemPnm", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok pixWriteMemPnm(l_uint8 **pdata, size_t *psize, PIX *pix)
 {
-    return ERROR_INT("function not present", "pixWriteMemPnm", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 /* ----------------------------------------------------------------------*/
 
 l_ok pixWriteMemPam(l_uint8 **pdata, size_t *psize, PIX *pix)
 {
-    return ERROR_INT("function not present", "pixWriteMemPam", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 

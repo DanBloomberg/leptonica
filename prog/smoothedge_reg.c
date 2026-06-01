@@ -30,6 +30,10 @@
  *   Analyzes edges of a 1 bpp (connected component) image for smoothness.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static l_int32 MIN_JUMP = 2;
@@ -85,8 +89,8 @@ PIX       *pixt1, *pixt2;
 
     pixMeasureEdgeSmoothness(pixs, side, minjump, minreversal, &jpl,
                              &jspl, &rpl, "/tmp/junkedge.png");
-    fprintf(stderr, "side = %d: jpl = %6.3f, jspl = %6.3f, rpl = %6.3f\n",
-            side, jpl, jspl, rpl);
+    lept_stderr("side = %d: jpl = %6.3f, jspl = %6.3f, rpl = %6.3f\n",
+                side, jpl, jspl, rpl);
     pixt1 = pixRead("/tmp/junkedge.png");
     pixt2 = pixAddBorder(pixt1, 10, 0);  /* 10 pixel white border */
     pixaAddPix(pixa, pixt2, L_INSERT);

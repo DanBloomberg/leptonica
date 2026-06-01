@@ -43,6 +43,10 @@
  *   (Turn off logging to get a fair comparison).
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -84,7 +88,7 @@ PIXA    *pixa, *pixas;
     startTimer();
     for (i = 0; i < ntimes; i++)
         CopyStoreClean(pixas, nlevels, ncopies);
-    fprintf(stderr, "Time (big pix; custom) = %7.3f sec\n", stopTimer());
+    lept_stderr("Time (big pix; custom) = %7.3f sec\n", stopTimer());
 
         /* Clean up */
     numaDestroy(&nas);
@@ -100,7 +104,7 @@ PIXA    *pixa, *pixas;
     pixas = GenerateSetOfMargePix();
     for (i = 0; i < ntimes; i++)
         CopyStoreClean(pixas, nlevels, ncopies);
-    fprintf(stderr, "Time (big pix; standard) = %7.3f sec\n", stopTimer());
+    lept_stderr("Time (big pix; standard) = %7.3f sec\n", stopTimer());
     pixaDestroy(&pixas);
 
 
@@ -131,7 +135,7 @@ PIXA    *pixa, *pixas;
     numaDestroy(&nab);
     pixDestroy(&pixs);
     pmsDestroy();
-    fprintf(stderr, "Time (custom) = %7.3f sec\n", stopTimer());
+    lept_stderr("Time (custom) = %7.3f sec\n", stopTimer());
 
 
     /* ----------------- Standard with many small pix -----------------*/
@@ -145,7 +149,7 @@ PIXA    *pixa, *pixas;
         pixaDestroy(&pixa);
     }
     pixDestroy(&pixs);
-    fprintf(stderr, "Time (standard) = %7.3f sec\n", stopTimer());
+    lept_stderr("Time (standard) = %7.3f sec\n", stopTimer());
     return 0;
 }
 

@@ -29,26 +29,31 @@
  *
  *   Tests grayscale rank functions:
  *      (1) pixGetRankColorArray()
- *      (2) numaDiscretizeRankAndIntensity()
+ *      (2) numaDiscretizeHistoInBins()
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
 #include <math.h>
 #include "allheaders.h"
 
-static PIXA *PixSavePlots1(void);
-static PIXA *PixSavePlots2(void);
-
 int main(int    argc,
          char **argv)
 {
-char          fname[256];
 l_int32       i, w, h, nbins, factor;
 l_int32       spike;
 l_uint32     *array, *marray;
-NUMA         *na, *nan, *nai, *narbin;
-PIX          *pixs, *pixt, *pixd;
+NUMA         *na, *nabinval, *narank;
+PIX          *pixs, *pix1, *pix2;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
+
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "rankhisto_reg");
+    exit(77);
+#endif
 
     if (regTestSetup(argc, argv, &rp))
         return 1;
@@ -58,16 +63,21 @@ L_REGPARAMS  *rp;
     pixGetDimensions(pixs, &w, &h, NULL);
     factor = L_MAX(1, (l_int32)sqrt((l_float64)(w * h / 20000.0)));
     nbins = 10;
-    pixGetRankColorArray(pixs, nbins, L_SELECT_MIN, factor, &array, 2, 6);
+    pixa = pixaCreate(0);
+    pixGetRankColorArray(pixs, nbins, L_SELECT_MIN, factor, &array, pixa, 6);
     if (!array)
         return ERROR_INT("\n\n\nFAILURE!\n\n\n", rp->testname, 1);
+    pix1 = pixaDisplayTiledInColumns(pixa, 3, 1.0, 20, 0);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
+    pixDisplayWithTitle(pix1, 1000, 100, NULL, rp->display);
+    pixaDestroy(&pixa);
+    pixDestroy(&pix1);
     for (i = 0; i < nbins; i++)
-        fprintf(stderr, "%d: %x\n", i, array[i]);
-    pixd = pixDisplayColorArray(array, nbins, 200, 5, 6);
-    pixWrite("/tmp/lept/regout/rankhisto.0.png", pixd, IFF_PNG);
-    regTestCheckFile(rp, "/tmp/lept/regout/rankhisto.0.png");  /* 0 */
-    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
-    pixDestroy(&pixd);
+        lept_stderr("%d: %x\n", i, array[i]);
+    pix1 = pixDisplayColorArray(array, nbins, 200, 5, 6);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 1 */
+    pixDisplayWithTitle(pix1, 0, 100, NULL, rp->display);
+    pixDestroy(&pix1);
 
         /* Modify the rank bin colors by mapping them such
          * that the lightest color is mapped to white */
@@ -75,138 +85,51 @@ L_REGPARAMS  *rp;
     for (i = 0; i < nbins; i++)
         pixelLinearMapToTargetColor(array[i], array[nbins - 1],
                                     0xffffff00, &marray[i]);
-    pixd = pixDisplayColorArray(marray, nbins, 200, 5, 6);
-    pixWrite("/tmp/lept/regout/rankhisto.1.png", pixd, IFF_PNG);
-    regTestCheckFile(rp, "/tmp/lept/regout/rankhisto.1.png");  /* 1 */
-    pixDisplayWithTitle(pixd, 100, 600, NULL, rp->display);
-    pixDestroy(&pixd);
+    pix1 = pixDisplayColorArray(marray, nbins, 200, 5, 6);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 2 */
+    pixDisplayWithTitle(pix1, 0, 600, NULL, rp->display);
+    pixDestroy(&pix1);
     lept_free(marray);
 
-        /* Save the histogram plots */
-    pixa = PixSavePlots1();
-    pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("/tmp/lept/regout/rankhisto.2.png", pixd, IFF_PNG);
-    regTestCheckFile(rp, "/tmp/lept/regout/rankhisto.2.png");  /* 2 */
-    pixDisplayWithTitle(pixd, 100, 600, NULL, rp->display);
-    pixaDestroy(&pixa);
-    pixDestroy(&pixd);
-
         /* Map to the lightest bin; then do TRC adjustment */
-    pixt = pixLinearMapToTargetColor(NULL, pixs, array[nbins - 1], 0xffffff00);
-    pixd = pixGammaTRC(NULL, pixt, 1.0, 0, 240);
-    pixWrite("/tmp/lept/regout/rankhisto.3.png", pixd, IFF_PNG);
-    regTestCheckFile(rp, "/tmp/lept/regout/rankhisto.3.png");  /* 3 */
-    pixDisplayWithTitle(pixd, 600, 100, NULL, rp->display);
-    pixDestroy(&pixt);
-    pixDestroy(&pixd);
+    pix1 = pixLinearMapToTargetColor(NULL, pixs, array[nbins - 1], 0xffffff00);
+    pix2 = pixGammaTRC(NULL, pix1, 1.0, 0, 240);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 3 */
+    pixDisplayWithTitle(pix2, 1000, 100, NULL, rp->display);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
 
-        /* Now test the edge cases for the histogram and rank LUT,
-         * where all the histo data is piled up at one place.
-         * We only require that the result be sensible. */
+        /* Now test the edge case where all the histo data is piled up
+         * at one place.  We only require that the result be sensible. */
+    pixa = pixaCreate(0);
     for (i = 0; i < 3; i++) {
         if (i == 0)
-            spike = 0;
+            spike = 1;
         else if (i == 1)
             spike = 50;
         else
             spike = 99;
         na = numaMakeConstant(0, 100);
         numaReplaceNumber(na, spike, 200.0);
-        nan = numaNormalizeHistogram(na, 1.0);
-        numaDiscretizeRankAndIntensity(nan, 10, &narbin, &nai, NULL, NULL);
-        snprintf(fname, sizeof(fname), "/tmp/lept/regout/rtnan%d", i + 1);
-        gplotSimple1(nan, GPLOT_PNG, fname, "Normalized Histogram");
-        snprintf(fname, sizeof(fname), "/tmp/lept/regout/rtnai%d", i + 1);
-        gplotSimple1(nai, GPLOT_PNG, fname, "Intensity vs. rank bin");
-        snprintf(fname, sizeof(fname), "/tmp/lept/regout/rtnarbin%d", i + 1);
-        gplotSimple1(narbin, GPLOT_PNG, fname, "LUT: rank bin vs. Intensity");
+        numaDiscretizeHistoInBins(na, 10, &nabinval, &narank);
+        pix1 = gplotSimplePix1(na, "Histogram");
+        pixaAddPix(pixa, pix1, L_INSERT);
+        pix1 = gplotSimplePix1(nabinval, "Gray value vs rank bin");
+        pixaAddPix(pixa, pix1, L_INSERT);
+        pix1 = gplotSimplePix1(narank, "rank value vs. gray value");
+        pixaAddPix(pixa, pix1, L_INSERT);
         numaDestroy(&na);
-        numaDestroy(&nan);
-        numaDestroy(&narbin);
-        numaDestroy(&nai);
+        numaDestroy(&nabinval);
+        numaDestroy(&narank);
     }
-
-    pixa = PixSavePlots2();
-    pixd = pixaDisplay(pixa, 0, 0);
-    pixWrite("/tmp/lept/regout/rankhisto.4.png", pixd, IFF_PNG);
-    regTestCheckFile(rp, "/tmp/lept/regout/rankhisto.4.png");  /* 4 */
-    pixDisplayWithTitle(pixd, 500, 600, NULL, rp->display);
+    pix1 = pixaDisplayTiledInColumns(pixa, 3, 1.0, 20, 0);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 4 */
+    pixDisplayWithTitle(pix1, 1000, 800, NULL, rp->display);
     pixaDestroy(&pixa);
-    pixDestroy(&pixd);
+    pixDestroy(&pix1);
 
     pixDestroy(&pixs);
     lept_free(array);
     return regTestCleanup(rp);
 }
 
-
-static PIXA *
-PixSavePlots1(void)
-{
-PIX    *pixt;
-PIXA   *pixa;
-
-    pixa = pixaCreate(8);
-    pixt = pixRead("/tmp/lept/regout/rtnan.png");
-    pixSaveTiled(pixt, pixa, 1.0, 1, 20, 8);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/rtnar.png");
-    pixSaveTiled(pixt, pixa, 1.0, 0, 20, 8);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/rtnai.png");
-    pixSaveTiled(pixt, pixa, 1.0, 0, 20, 8);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/rtnarbin.png");
-    pixSaveTiled(pixt, pixa, 1.0, 1, 20, 8);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/rtnabb.png");
-    pixSaveTiled(pixt, pixa, 1.0, 0, 20, 8);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/rtnared.png");
-    pixSaveTiled(pixt, pixa, 1.0, 1, 20, 8);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/rtnagreen.png");
-    pixSaveTiled(pixt, pixa, 1.0, 0, 20, 8);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/rtnablue.png");
-    pixSaveTiled(pixt, pixa, 1.0, 0, 20, 8);
-    pixDestroy(&pixt);
-    return pixa;
-}
-
-static PIXA *
-PixSavePlots2(void)
-{
-PIX    *pixt;
-PIXA   *pixa;
-
-    pixa = pixaCreate(9);
-    pixt = pixRead("/tmp/lept/regout/rtnan1.png");
-    pixSaveTiled(pixt, pixa, 1.0, 1, 20, 8);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/rtnai1.png");
-    pixSaveTiled(pixt, pixa, 1.0, 0, 20, 8);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/rtnarbin1.png");
-    pixSaveTiled(pixt, pixa, 1.0, 0, 20, 8);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/rtnan2.png");
-    pixSaveTiled(pixt, pixa, 1.0, 1, 20, 8);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/rtnai2.png");
-    pixSaveTiled(pixt, pixa, 1.0, 0, 20, 8);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/rtnarbin2.png");
-    pixSaveTiled(pixt, pixa, 1.0, 0, 20, 8);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/rtnan3.png");
-    pixSaveTiled(pixt, pixa, 1.0, 1, 20, 8);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/rtnai3.png");
-    pixSaveTiled(pixt, pixa, 1.0, 0, 20, 8);
-    pixDestroy(&pixt);
-    pixt = pixRead("/tmp/lept/regout/rtnarbin3.png");
-    pixSaveTiled(pixt, pixa, 1.0, 0, 20, 8);
-    pixDestroy(&pixt);
-    return pixa;
-}

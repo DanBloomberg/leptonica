@@ -30,6 +30,10 @@
  *     Tests gray thresholding to 1, 2 and 4 bpp, with and without colormaps
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const l_int32  THRESHOLD = 130;
@@ -374,7 +378,7 @@ L_REGPARAMS  *rp;
         pixs = pixRead("test8.jpg");
         startTimer();
         pix1 = pixScaleGray2xLIThresh(pixs, THRESHOLD);
-        fprintf(stderr, " time for scale/dither = %7.3f sec\n", stopTimer());
+        lept_stderr(" time for scale/dither = %7.3f sec\n", stopTimer());
         pixWrite("/tmp/lept/gquant/upscale1.png", pix1, IFF_PNG);
         pixDisplay(pix1, 0, 500);
         pixDestroy(&pix1);
@@ -382,7 +386,7 @@ L_REGPARAMS  *rp;
             /* Upscale 4x and threshold to 1 bpp */
         startTimer();
         pix1 = pixScaleGray4xLIThresh(pixs, THRESHOLD);
-        fprintf(stderr, " time for scale/dither = %7.3f sec\n", stopTimer());
+        lept_stderr(" time for scale/dither = %7.3f sec\n", stopTimer());
         pixWrite("/tmp/lept/gquant/upscale2.png", pix1, IFF_PNG);
         pixDisplay(pix1, 700, 500);
         pixDestroy(&pix1);

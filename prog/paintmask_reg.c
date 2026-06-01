@@ -51,6 +51,10 @@
  *    If you run 'paintmask_reg display', a pdf of the results is made.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,

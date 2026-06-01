@@ -41,6 +41,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -50,7 +54,6 @@ static l_uint32 * makeExpandTab4x(void);
 static l_uint32 * makeExpandTab8x(void);
 static  l_uint32 expandtab16[] = {
               0x00000000, 0x0000ffff, 0xffff0000, 0xffffffff};
-
 
 /*------------------------------------------------------------------*
  *              Replicated expansion (integer scaling)              *
@@ -72,15 +75,13 @@ l_int32    w, h, d, wd, hd, wpls, wpld, i, j, k, start;
 l_uint32  *datas, *datad, *lines, *lined;
 PIX       *pixd;
 
-    PROCNAME("pixExpandBinaryReplicate");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1)
-        return (PIX *)ERROR_PTR("pixs not binary", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not binary", __func__, NULL);
     if (xfact <= 0 || yfact <= 0)
-        return (PIX *)ERROR_PTR("invalid scale factor: <= 0", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid scale factor: <= 0", __func__, NULL);
 
     if (xfact == yfact) {
         if (xfact == 1)
@@ -94,7 +95,7 @@ PIX       *pixd;
     wd = xfact * w;
     hd = yfact * h;
     if ((pixd = pixCreate(wd, hd, 1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, (l_float32)xfact, (l_float32)yfact);
     wpld = pixGetWpl(pixd);
@@ -138,24 +139,22 @@ l_int32    i, j, k, w, h, d, wd, hd, wpls, wpld, sdibits, sqbits, sbytes;
 l_uint32  *datas, *datad, *lines, *lined, *tab4, *tab8;
 PIX       *pixd;
 
-    PROCNAME("pixExpandBinaryPower2");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1)
-        return (PIX *)ERROR_PTR("pixs not binary", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not binary", __func__, NULL);
     if (factor == 1)
         return pixCopy(NULL, pixs);
     if (factor != 2 && factor != 4 && factor != 8 && factor != 16)
-        return (PIX *)ERROR_PTR("factor must be in {2,4,8,16}", procName, NULL);
+        return (PIX *)ERROR_PTR("factor must be in {2,4,8,16}", __func__, NULL);
 
     wpls = pixGetWpl(pixs);
     datas = pixGetData(pixs);
     wd = factor * w;
     hd = factor * h;
     if ((pixd = pixCreate(wd, hd, 1)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyResolution(pixd, pixs);
     pixScaleResolution(pixd, (l_float32)factor, (l_float32)factor);
     wpld = pixGetWpl(pixd);
@@ -195,8 +194,6 @@ PIX       *pixd;
             lined = datad + 8 * i * wpld;
             for (j = 0; j < sqbits; j++) {
                 sval = GET_DATA_QBIT(lines, j);
-                if (sval > 15)
-                    L_WARNING("sval = %d; should be < 16\n", procName, sval);
                 lined[j] = tab8[sval];
             }
             for (k = 1; k < 8; k++)

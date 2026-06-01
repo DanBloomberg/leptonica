@@ -34,6 +34,10 @@
  *     We use it on an image with FG extending to the edges.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
@@ -83,11 +87,9 @@ L_REGPARAMS  *rp;
 
 	    pixEqual(pixd1, pixd2, &same);
             regTestCompareValues(rp, 1, same, 0.0);  /* 0 - 62 */
-	    if (same == 0) {
-		fprintf(stderr,
-                        "Results differ for SE (width,height) = (%d,%d)\n",
-                        width, height);
-            }
+	    if (same == 0)
+		lept_stderr("Results differ for SE (width,height) = (%d,%d)\n",
+                            width, height);
 
 	    pixDestroy(&pixse);
 	    pixDestroy(&pixd1);

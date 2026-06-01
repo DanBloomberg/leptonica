@@ -28,6 +28,10 @@
  * gammatest.c
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -37,18 +41,17 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-char         buf[512];
-l_int32      iplot, same;
-l_float32    gam;
-l_float64    gamma[] = {.5, 1.0, 1.5, 2.0, 2.5, -1.0};
-GPLOT       *gplot;
-NUMA        *na, *nax;
-PIX         *pixs, *pixd;
-static char  mainName[] = "gammatest";
+char      *filein, *fileout;
+char       buf[512];
+l_int32    iplot, same;
+l_float32  gam;
+l_float64  gamma[] = {.5, 1.0, 1.5, 2.0, 2.5, -1.0};
+GPLOT     *gplot;
+NUMA      *na, *nax;
+PIX       *pixs, *pixd;
 
     if (argc != 4)
-        return ERROR_INT(" Syntax:  gammatest filein gam fileout", mainName, 1);
+        return ERROR_INT(" Syntax:  gammatest filein gam fileout", __func__, 1);
     filein = argv[1];
     gam = atof(argv[2]);
     fileout = argv[3];
@@ -57,15 +60,15 @@ static char  mainName[] = "gammatest";
     lept_mkdir("lept/gamma");
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
     startTimer();
     pixd = pixGammaTRC(NULL, pixs, gam, MINVAL, MAXVAL);
-    fprintf(stderr, "Time for gamma: %7.3f sec\n", stopTimer());
+    lept_stderr("Time for gamma: %7.3f sec\n", stopTimer());
     pixGammaTRC(pixs, pixs, gam, MINVAL, MAXVAL);
     pixEqual(pixs, pixd, &same);
     if (!same)
-        fprintf(stderr, "Error in pixGammaTRC!\n");
+        lept_stderr("Error in pixGammaTRC!\n");
     pixWrite(fileout, pixs, IFF_JFIF_JPEG);
     pixDestroy(&pixs);
 

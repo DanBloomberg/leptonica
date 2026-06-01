@@ -29,20 +29,23 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
           char **argv)
 {
-char        *filein;
-char        *fileout = NULL;
-l_int32      d, same;
-PIX         *pixs, *pixd, *pix1, *pix2, *pix3, *pix4;
-static char  mainName[] = "converttogray";
+char    *filein;
+char    *fileout = NULL;
+l_int32  d, same;
+PIX     *pixs, *pixd, *pix1, *pix2, *pix3, *pix4;
 
     if (argc != 2 && argc != 3)
         return ERROR_INT(" Syntax:  converttogray filein [fileout]",
-                         mainName, 1);
+                         __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/gray");
@@ -50,7 +53,7 @@ static char  mainName[] = "converttogray";
     filein = argv[1];
     if (argc == 3) fileout = argv[2];
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
     if (fileout) {
         pixd = pixConvertRGBToGray(pixs, 0.33, 0.34, 0.33);
@@ -66,9 +69,9 @@ static char  mainName[] = "converttogray";
         pix2 = pixConvert2To8(pixs, 0x00, 0x55, 0xaa, 0xff, FALSE);
         pixEqual(pix1, pix2, &same);
         if (same)
-            fprintf(stderr, "images are the same\n");
+            lept_stderr("images are the same\n");
         else
-            fprintf(stderr, "images are different!\n");
+            lept_stderr("images are different!\n");
         pixWrite("/tmp/lept/gray/pix1.png", pix1, IFF_PNG);
         pixWrite("/tmp/lept/gray/pix2.png", pix2, IFF_PNG);
         pixDestroy(&pix1);
@@ -78,9 +81,9 @@ static char  mainName[] = "converttogray";
         pix4 = pixConvert2To8(pixs, 0x00, 0x55, 0xaa, 0xff, FALSE);
         pixEqual(pix3, pix4, &same);
         if (same)
-            fprintf(stderr, "images are the same\n");
+            lept_stderr("images are the same\n");
         else
-            fprintf(stderr, "images are different!\n");
+            lept_stderr("images are different!\n");
         pixWrite("/tmp/lept/gray/pix3.png", pix3, IFF_PNG);
         pixWrite("/tmp/lept/gray/pix4.png", pix4, IFF_PNG);
         pixDestroy(&pix3);
@@ -90,9 +93,9 @@ static char  mainName[] = "converttogray";
         pix2 = pixConvert4To8(pixs, FALSE);
         pixEqual(pix1, pix2, &same);
         if (same)
-            fprintf(stderr, "images are the same\n");
+            lept_stderr("images are the same\n");
         else
-            fprintf(stderr, "images are different!\n");
+            lept_stderr("images are different!\n");
         pixWrite("/tmp/lept/gray/pix1.png", pix1, IFF_PNG);
         pixWrite("/tmp/lept/gray/pix2.png", pix2, IFF_PNG);
         pixDestroy(&pix1);
@@ -102,15 +105,15 @@ static char  mainName[] = "converttogray";
         pix4 = pixConvert4To8(pixs, FALSE);
         pixEqual(pix3, pix4, &same);
         if (same)
-            fprintf(stderr, "images are the same\n");
+            lept_stderr("images are the same\n");
         else
-            fprintf(stderr, "images are different!\n");
+            lept_stderr("images are different!\n");
         pixWrite("/tmp/lept/gray/pix3.png", pix3, IFF_PNG);
         pixWrite("/tmp/lept/gray/pix4.png", pix4, IFF_PNG);
         pixDestroy(&pix3);
         pixDestroy(&pix4);
     } else {
-        L_INFO("only converts 2 and 4 bpp; d = %d\n", mainName, d);
+        L_INFO("only converts 2 and 4 bpp; d = %d\n", __func__, d);
     }
 
     pixDestroy(&pixs);

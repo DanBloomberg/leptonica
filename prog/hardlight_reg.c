@@ -29,125 +29,112 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
-static PIXA *TestHardlight(const char *file1, const char *file2,
-                            L_REGPARAMS *rp);
+static void TestHardlight(const char *file1, const char *file2,
+                          L_REGPARAMS *rp);
 
 int main(int    argc,
          char **argv)
 {
-PIX          *pix;
-PIXA         *pixa;
 L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
-    pixa = TestHardlight("hardlight1_1.jpg", "hardlight1_2.jpg", rp);
-    pix = pixaDisplay(pixa, 0, 0);
-    regTestWritePixAndCheck(rp, pix, IFF_PNG);
-    pixDisplayWithTitle(pix, 0, 0, NULL, rp->display);
-    pixaDestroy(&pixa);
-    pixDestroy(&pix);
-
-    pixa = TestHardlight("hardlight2_1.jpg", "hardlight2_2.jpg", rp);
-    pix = pixaDisplay(pixa, 0, 500);
-    regTestWritePixAndCheck(rp, pix, IFF_PNG);
-    pixDisplayWithTitle(pix, 0, 0, NULL, rp->display);
-    pixaDestroy(&pixa);
-    pixDestroy(&pix);
-
+    TestHardlight("hardlight1_1.jpg", "hardlight1_2.jpg", rp);
+    TestHardlight("hardlight2_1.jpg", "hardlight2_2.jpg", rp);
     return regTestCleanup(rp);
 }
 
-static PIXA *
+void
 TestHardlight(const char   *file1,
               const char   *file2,
               L_REGPARAMS  *rp)
 {
-PIX   *pixs1, *pixs2, *pixt1, *pixt2, *pixd;
-PIXA  *pixa;
-
-    PROCNAME("TestHardlight");
+PIX    *pixs1, *pixs2, *pix1, *pix2, *pixd;
+PIXA   *pixa;
+PIXAA  *paa;
 
         /* Read in images */
     pixs1 = pixRead(file1);
     pixs2 = pixRead(file2);
-    if (!pixs1)
-        return (PIXA *)ERROR_PTR("pixs1 not read", procName, NULL);
-    if (!pixs2)
-        return (PIXA *)ERROR_PTR("pixs2 not read", procName, NULL);
-
-    pixa = pixaCreate(0);
+    paa = pixaaCreate(0);
 
         /* ---------- Test not-in-place; no colormaps ----------- */
-    pixSaveTiled(pixs1, pixa, 1.0, 1, 20, 32);
-    pixSaveTiled(pixs2, pixa, 1.0, 0, 20, 0);
+    pixa = pixaCreate(0);
+    pixaAddPix(pixa, pixs1, L_COPY);
+    pixaAddPix(pixa, pixs2, L_COPY);
+    pixaaAddPixa(paa, pixa, L_INSERT);
     pixd = pixBlendHardLight(NULL, pixs1, pixs2, 0, 0, 1.0);
-    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
-    pixSaveTiled(pixd, pixa, 1.0, 1, 20, 0);
-    pixDestroy(&pixd);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 0, 9 */
+    pixa = pixaCreate(0);
+    pixaAddPix(pixa, pixd, L_INSERT);
 
-    pixt2 = pixConvertTo32(pixs2);
-    pixd = pixBlendHardLight(NULL, pixs1, pixt2, 0, 0, 1.0);
-    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
-    pixSaveTiled(pixd, pixa, 1.0, 0, 20, 0);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixd);
+    pix2 = pixConvertTo32(pixs2);
+    pixd = pixBlendHardLight(NULL, pixs1, pix2, 0, 0, 1.0);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 1, 10 */
+    pixaAddPix(pixa, pixd, L_INSERT);
+    pixDestroy(&pix2);
 
     pixd = pixBlendHardLight(NULL, pixs2, pixs1, 0, 0, 1.0);
-    pixSaveTiled(pixd, pixa, 1.0, 0, 20, 0);
-    pixDestroy(&pixd);
+    pixaAddPix(pixa, pixd, L_INSERT);
+    pixaaAddPixa(paa, pixa, L_INSERT);
 
         /* ---------- Test not-in-place; colormaps ----------- */
-    pixt1 = pixMedianCutQuant(pixs1, 0);
+    pixa = pixaCreate(0);
+    pix1 = pixMedianCutQuant(pixs1, 0);
     if (pixGetDepth(pixs2) == 8)
-        pixt2 = pixConvertGrayToColormap8(pixs2, 8);
+        pix2 = pixConvertGrayToColormap8(pixs2, 8);
     else
-/*        pixt2 = pixConvertTo8(pixs2, 1); */
-        pixt2 = pixMedianCutQuant(pixs2, 0);
-    pixSaveTiled(pixt1, pixa, 1.0, 1, 20, 0);
-    pixSaveTiled(pixt2, pixa, 1.0, 0, 20, 0);
+        pix2 = pixMedianCutQuant(pixs2, 0);
+    pixaAddPix(pixa, pix1, L_COPY);
+    pixaAddPix(pixa, pix2, L_COPY);
+    pixaaAddPixa(paa, pixa, L_INSERT);
 
-    pixd = pixBlendHardLight(NULL, pixt1, pixs2, 0, 0, 1.0);
-    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
-    pixSaveTiled(pixd, pixa, 1.0, 1, 20, 0);
-    pixDestroy(&pixd);
+    pixa = pixaCreate(0);
+    pixd = pixBlendHardLight(NULL, pix1, pixs2, 0, 0, 1.0);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 2, 11 */
+    pixaAddPix(pixa, pixd, L_INSERT);
 
-    pixd = pixBlendHardLight(NULL, pixt1, pixt2, 0, 0, 1.0);
-    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
-    pixSaveTiled(pixd, pixa, 1.0, 0, 20, 0);
-    pixDestroy(&pixd);
+    pixd = pixBlendHardLight(NULL, pix1, pix2, 0, 0, 1.0);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 3, 12 */
+    pixaAddPix(pixa, pixd, L_INSERT);
 
-    pixd = pixBlendHardLight(NULL, pixt2, pixt1, 0, 0, 1.0);
-    regTestWritePixAndCheck(rp, pixd, IFF_PNG);
-    pixSaveTiled(pixd, pixa, 1.0, 0, 20, 0);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixd);
+    pixd = pixBlendHardLight(NULL, pix2, pix1, 0, 0, 1.0);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 4, 13 */
+    pixaAddPix(pixa, pixd, L_INSERT);
+    pixaaAddPixa(paa, pixa, L_INSERT);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
 
         /* ---------- Test in-place; no colormaps ----------- */
+    pixa = pixaCreate(0);
     pixBlendHardLight(pixs1, pixs1, pixs2, 0, 0, 1.0);
-    regTestWritePixAndCheck(rp, pixs1, IFF_PNG);
-    pixSaveTiled(pixs1, pixa, 1.0, 1, 20, 0);
-    pixDestroy(&pixs1);
+    regTestWritePixAndCheck(rp, pixs1, IFF_PNG);  /* 5, 14 */
+    pixaAddPix(pixa, pixs1, L_INSERT);
 
     pixs1 = pixRead(file1);
-    pixt2 = pixConvertTo32(pixs2);
-    pixBlendHardLight(pixs1, pixs1, pixt2, 0, 0, 1.0);
-    regTestWritePixAndCheck(rp, pixs1, IFF_PNG);
-    pixSaveTiled(pixs1, pixa, 1.0, 0, 20, 0);
-    pixDestroy(&pixt2);
-    pixDestroy(&pixs1);
+    pix2 = pixConvertTo32(pixs2);
+    pixBlendHardLight(pixs1, pixs1, pix2, 0, 0, 1.0);
+    regTestWritePixAndCheck(rp, pixs1, IFF_PNG);  /* 6, 15 */
+    pixaAddPix(pixa, pixs1, L_INSERT);
+    pixDestroy(&pix2);
 
     pixs1 = pixRead(file1);
     pixBlendHardLight(pixs2, pixs2, pixs1, 0, 0, 1.0);
-    regTestWritePixAndCheck(rp, pixs2, IFF_PNG);
-    pixSaveTiled(pixs2, pixa, 1.0, 0, 20, 0);
-    pixDestroy(&pixs2);
-
+    regTestWritePixAndCheck(rp, pixs2, IFF_PNG);  /* 7, 16 */
+    pixaAddPix(pixa, pixs2, L_INSERT);
+    pixaaAddPixa(paa, pixa, L_INSERT);
     pixDestroy(&pixs1);
-    pixDestroy(&pixs2);
-    return pixa;
+
+    pixd = pixaaDisplayByPixa(paa, 4, 1.0, 20, 20, 0);
+    regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 8, 17 */
+    pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
+    pixDestroy(&pixd);
+    pixaaDestroy(&paa);
 }

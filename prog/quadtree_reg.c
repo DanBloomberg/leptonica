@@ -30,6 +30,10 @@
  *     This tests quadtree statistical functions
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
@@ -45,6 +49,11 @@ FPIXA        *fpixam, *fpixav, *fpixarv;
 BOXAA        *baa;
 L_REGPARAMS  *rp;
 
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "quadtree_reg");
+    exit(77);
+#endif
+
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
@@ -56,12 +65,12 @@ L_REGPARAMS  *rp;
     regTestWriteDataAndCheck(rp, data, size, "baa");  /* 0 */
     if (rp->display) boxaaWriteStream(stderr, baa);
     boxaaDestroy(&baa);
-    LEPT_FREE(data);
+    lept_free(data);
     baa = boxaaQuadtreeRegions(1001, 501, 3);
     boxaaWriteMem(&data, &size, baa);
     regTestWriteDataAndCheck(rp, data, size, "baa");  /* 1 */
     boxaaDestroy(&baa);
-    LEPT_FREE(data);
+    lept_free(data);
 
         /* Test quadtree stats generation */
     pixs = pixRead("rabi.png");

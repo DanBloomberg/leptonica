@@ -30,6 +30,10 @@
  *    Uses computation of half edge function, along with thresholding.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   SMOOTH_WIDTH_1       2  /* must be smaller */
@@ -40,13 +44,12 @@
 int main(int    argc,
          char **argv)
 {
-char        *infile, *outfile;
-l_int32      d;
-PIX         *pixs, *pixgr, *pixb;
-static char  mainName[] = "showedges";
+char    *infile, *outfile;
+l_int32  d;
+PIX     *pixs, *pixgr, *pixb;
 
     if (argc != 3)
-        return ERROR_INT(" Syntax: showedges infile outfile", mainName, 1);
+        return ERROR_INT(" Syntax: showedges infile outfile", __func__, 1);
     infile = argv[1];
     outfile = argv[2];
     setLeptDebugOK(1);
@@ -54,13 +57,12 @@ static char  mainName[] = "showedges";
     pixs = pixRead(infile);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
-        return ERROR_INT("d not 8 or 32 bpp", mainName, 1);
+        return ERROR_INT("d not 8 or 32 bpp", __func__, 1);
 
     pixgr = pixHalfEdgeByBandpass(pixs, SMOOTH_WIDTH_1, SMOOTH_WIDTH_1,
                                         SMOOTH_WIDTH_2, SMOOTH_WIDTH_2);
     pixb = pixThresholdToBinary(pixgr, THRESHOLD);
     pixInvert(pixb, pixb);
-/*    pixWrite("junkpixgr", pixgr, IFF_JFIF_JPEG); */
     pixWrite(outfile, pixb, IFF_PNG);
     return 0;
 }

@@ -33,9 +33,12 @@
  *   (2) only slightly different in content
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "string.h"
 #include "allheaders.h"
-
 
 l_int32 main(int    argc,
              char **argv)
@@ -46,9 +49,13 @@ l_float32     cx1, cy1, cx2, cy2, score, fract;
 PIX          *pix0, *pix1, *pix2, *pix3, *pix4, *pix5;
 L_REGPARAMS  *rp;
 
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "compare_reg");
+    exit(77);
+#endif
+
     if (regTestSetup(argc, argv, &rp))
         return 1;
-
 
     /* ------------ Test of pixBestCorrelation() --------------- */
     pix0 = pixRead("harmoniam100-11.png");
@@ -70,15 +77,13 @@ L_REGPARAMS  *rp;
     pixCentroid(pix2, ctab, stab, &cx2, &cy2);
     etransx = lept_roundftoi(cx1 - cx2);
     etransy = lept_roundftoi(cy1 - cy2);
-    fprintf(stderr, "delta cx = %d, delta cy = %d\n",
-            etransx, etransy);
+    lept_stderr("delta cx = %d, delta cy = %d\n", etransx, etransy);
 
         /* Get the best correlation, searching around the translation
          * where the centroids coincide */
     pixBestCorrelation(pix1, pix2, area1, area2, etransx, etransy,
                        4, stab, &delx, &dely, &score, 5);
-    fprintf(stderr, "delx = %d, dely = %d, score = %7.4f\n",
-            delx, dely, score);
+    lept_stderr("delx = %d, dely = %d, score = %7.4f\n", delx, dely, score);
     regTestCompareValues(rp, 32, delx, 0);   /* 0 */
     regTestCompareValues(rp, 12, dely, 0);   /* 1 */
     lept_mv("/tmp/lept/comp/correl_5.png", "lept/regout", NULL, NULL);
@@ -100,7 +105,7 @@ L_REGPARAMS  *rp;
     pixCompareWithTranslation(pix1, pix2, 160, &delx, &dely, &score, 1);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    fprintf(stderr, "delx = %d, dely = %d\n", delx, dely);
+    lept_stderr("delx = %d, dely = %d\n", delx, dely);
     regTestCompareValues(rp, 45, delx, 0);   /* 3 */
     regTestCompareValues(rp, -25, dely, 0);   /* 4 */
     lept_mv("/tmp/lept/comp/correl.pdf", "lept/regout", NULL, NULL);
@@ -113,7 +118,7 @@ L_REGPARAMS  *rp;
     pix1 = pixRead("redcover.jpg");  /* pre-scaled to the same size */
         /* Apply directly to the color images */
     pixGetPerceptualDiff(pix0, pix1, 1, 3, 20, &fract, &pix2, &pix3);
-    fprintf(stderr, "Fraction of color pixels = %f\n", fract);
+    lept_stderr("Fraction of color pixels = %f\n", fract);
     regTestCompareValues(rp, 0.061252, fract, 0.01);  /* 7 */
     regTestWritePixAndCheck(rp, pix2, IFF_JFIF_JPEG);  /* 8 */
     regTestWritePixAndCheck(rp, pix3, IFF_TIFF_G4);  /* 9 */
@@ -123,7 +128,7 @@ L_REGPARAMS  *rp;
     pix2 = pixConvertTo8(pix0, 0);
     pix3 = pixConvertTo8(pix1, 0);
     pixGetPerceptualDiff(pix2, pix3, 1, 3, 20, &fract, &pix4, &pix5);
-    fprintf(stderr, "Fraction of grayscale pixels = %f\n", fract);
+    lept_stderr("Fraction of grayscale pixels = %f\n", fract);
     regTestCompareValues(rp, 0.046928, fract, 0.0002);  /* 10 */
     regTestWritePixAndCheck(rp, pix4, IFF_JFIF_JPEG);  /* 11 */
     regTestWritePixAndCheck(rp, pix5, IFF_TIFF_G4);  /* 12 */

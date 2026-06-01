@@ -51,6 +51,10 @@
  *     displayboxes_on_pixa showboxes.pac showboxes2.baa 4 2 /tmp/result.pa 1
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
@@ -63,7 +67,7 @@ PIX     *pix1;
 PIXA    *pixa1, *pixa2;
 
     if (argc != 7) {
-        fprintf(stderr, "Syntax error:"
+        lept_stderr("Syntax error:"
            " displaybaa_on_pixa pixain boxaain type width pixaout display\n");
         return 1;
     }

@@ -31,6 +31,10 @@
  *    noise, followed by attempts to remove some of the speckle.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* HMT (with just misses) for speckle up to 2x2 */

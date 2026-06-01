@@ -55,9 +55,12 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
-
 
 /*-------------------------------------------------------------*
  *                Composable coordinate transforms             *
@@ -219,14 +222,12 @@ l_int32    i, npts;
 l_float32  x, y;
 PTA       *ptad;
 
-    PROCNAME("ptaTranslate");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
 
     npts = ptaGetCount(ptas);
     if ((ptad = ptaCreate(npts)) == NULL)
-        return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptad not made", __func__, NULL);
     for (i = 0; i < npts; i++) {
         ptaGetPt(ptas, i, &x, &y);
         ptaAddPt(ptad, x + transx, y + transy);
@@ -258,14 +259,12 @@ l_int32    i, npts;
 l_float32  x, y;
 PTA       *ptad;
 
-    PROCNAME("ptaScale");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
 
     npts = ptaGetCount(ptas);
     if ((ptad = ptaCreate(npts)) == NULL)
-        return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptad not made", __func__, NULL);
     for (i = 0; i < npts; i++) {
         ptaGetPt(ptas, i, &x, &y);
         ptaAddPt(ptad, scalex * x, scaley * y);
@@ -281,11 +280,11 @@ PTA       *ptad;
  * \param[in]    ptas      for initial points
  * \param[in]    xc, yc    location of center of rotation
  * \param[in]    angle     rotation in radians; clockwise is positive
- * \return  0 if OK; 1 on error
+ * \return  ptad   rotated pta, or NULL on error
  *
  * <pre>
  * Notes;
- *      (1) See createMatrix2dScale() for details of transform.
+ *      (1) See createMatrix2dRotate() for details of transform.
  *      (2) This transform can be thought of as composed of the
  *          sum of two parts:
  *           a) an (x,y)-dependent rotation about the origin:
@@ -310,14 +309,12 @@ l_int32    i, npts;
 l_float32  x, y, xp, yp, sina, cosa;
 PTA       *ptad;
 
-    PROCNAME("ptaRotate");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
 
     npts = ptaGetCount(ptas);
     if ((ptad = ptaCreate(npts)) == NULL)
-        return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptad not made", __func__, NULL);
     sina = sin(angle);
     cosa = cos(angle);
     for (i = 0; i < npts; i++) {
@@ -353,10 +350,8 @@ boxaTranslate(BOXA       *boxas,
 PTA   *ptas, *ptad;
 BOXA  *boxad;
 
-    PROCNAME("boxaTranslate");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
 
     ptas = boxaConvertToPta(boxas, 4);
     ptad = ptaTranslate(ptas, transx, transy);
@@ -386,10 +381,8 @@ boxaScale(BOXA      *boxas,
 PTA   *ptas, *ptad;
 BOXA  *boxad;
 
-    PROCNAME("boxaScale");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
 
     ptas = boxaConvertToPta(boxas, 4);
     ptad = ptaScale(ptas, scalex, scaley);
@@ -406,7 +399,7 @@ BOXA  *boxad;
  * \param[in]    boxas
  * \param[in]    xc, yc    location of center of rotation
  * \param[in]    angle     rotation in radians; clockwise is positive
- * \return  boxad  scaled boxas, or NULL on error
+ * \return  boxad  rotated boxas, or NULL on error
  *
  * Notes:
  *      (1) See createMatrix2dRotate() for details of transform.
@@ -420,10 +413,8 @@ boxaRotate(BOXA      *boxas,
 PTA   *ptas, *ptad;
 BOXA  *boxad;
 
-    PROCNAME("boxaRotate");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
 
     ptas = boxaConvertToPta(boxas, 4);
     ptad = ptaRotate(ptas, xc, yc, angle);
@@ -452,17 +443,15 @@ l_int32    i, npts;
 l_float32  vecs[3], vecd[3];
 PTA       *ptad;
 
-    PROCNAME("ptaAffineTransform");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
     if (!mat)
-        return (PTA *)ERROR_PTR("transform not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("transform not defined", __func__, NULL);
 
     vecs[2] = 1;
     npts = ptaGetCount(ptas);
     if ((ptad = ptaCreate(npts)) == NULL)
-        return (PTA *)ERROR_PTR("ptad not made", procName, NULL);
+        return (PTA *)ERROR_PTR("ptad not made", __func__, NULL);
     for (i = 0; i < npts; i++) {
         ptaGetPt(ptas, i, &vecs[0], &vecs[1]);
         l_productMatVec(mat, vecs, vecd, 3);
@@ -487,12 +476,10 @@ boxaAffineTransform(BOXA       *boxas,
 PTA   *ptas, *ptad;
 BOXA  *boxad;
 
-    PROCNAME("boxaAffineTransform");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
     if (!mat)
-        return (BOXA *)ERROR_PTR("transform not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("transform not defined", __func__, NULL);
 
     ptas = boxaConvertToPta(boxas, 4);
     ptad = ptaAffineTransform(ptas, mat);
@@ -523,14 +510,12 @@ l_productMatVec(l_float32  *mat,
 {
 l_int32  i, j;
 
-    PROCNAME("l_productMatVec");
-
     if (!mat)
-        return ERROR_INT("matrix not defined", procName, 1);
+        return ERROR_INT("matrix not defined", __func__, 1);
     if (!vecs)
-        return ERROR_INT("input vector not defined", procName, 1);
+        return ERROR_INT("input vector not defined", __func__, 1);
     if (!vecd)
-        return ERROR_INT("result vector not defined", procName, 1);
+        return ERROR_INT("result vector not defined", __func__, 1);
 
     for (i = 0; i < size; i++) {
         vecd[i] = 0;
@@ -559,14 +544,12 @@ l_productMat2(l_float32  *mat1,
 {
 l_int32  i, j, k, index;
 
-    PROCNAME("l_productMat2");
-
     if (!mat1)
-        return ERROR_INT("matrix 1 not defined", procName, 1);
+        return ERROR_INT("matrix 1 not defined", __func__, 1);
     if (!mat2)
-        return ERROR_INT("matrix 2 not defined", procName, 1);
+        return ERROR_INT("matrix 2 not defined", __func__, 1);
     if (!matd)
-        return ERROR_INT("result matrix not defined", procName, 1);
+        return ERROR_INT("result matrix not defined", __func__, 1);
 
     for (i = 0; i < size; i++) {
         for (j = 0; j < size; j++) {
@@ -599,20 +582,18 @@ l_productMat3(l_float32  *mat1,
 {
 l_float32  *matt;
 
-    PROCNAME("l_productMat3");
-
     if (!mat1)
-        return ERROR_INT("matrix 1 not defined", procName, 1);
+        return ERROR_INT("matrix 1 not defined", __func__, 1);
     if (!mat2)
-        return ERROR_INT("matrix 2 not defined", procName, 1);
+        return ERROR_INT("matrix 2 not defined", __func__, 1);
     if (!mat3)
-        return ERROR_INT("matrix 3 not defined", procName, 1);
+        return ERROR_INT("matrix 3 not defined", __func__, 1);
     if (!matd)
-        return ERROR_INT("result matrix not defined", procName, 1);
+        return ERROR_INT("result matrix not defined", __func__, 1);
 
     if ((matt = (l_float32 *)LEPT_CALLOC((size_t)size * size,
                                          sizeof(l_float32))) == NULL)
-        return ERROR_INT("matt not made", procName, 1);
+        return ERROR_INT("matt not made", __func__, 1);
     l_productMat2(mat1, mat2, matt, size);
     l_productMat2(matt, mat3, matd, size);
     LEPT_FREE(matt);
@@ -641,20 +622,18 @@ l_productMat4(l_float32  *mat1,
 {
 l_float32  *matt;
 
-    PROCNAME("l_productMat4");
-
     if (!mat1)
-        return ERROR_INT("matrix 1 not defined", procName, 1);
+        return ERROR_INT("matrix 1 not defined", __func__, 1);
     if (!mat2)
-        return ERROR_INT("matrix 2 not defined", procName, 1);
+        return ERROR_INT("matrix 2 not defined", __func__, 1);
     if (!mat3)
-        return ERROR_INT("matrix 3 not defined", procName, 1);
+        return ERROR_INT("matrix 3 not defined", __func__, 1);
     if (!matd)
-        return ERROR_INT("result matrix not defined", procName, 1);
+        return ERROR_INT("result matrix not defined", __func__, 1);
 
     if ((matt = (l_float32 *)LEPT_CALLOC((size_t)size * size,
                                          sizeof(l_float32))) == NULL)
-        return ERROR_INT("matt not made", procName, 1);
+        return ERROR_INT("matt not made", __func__, 1);
     l_productMat3(mat1, mat2, mat3, matt, size);
     l_productMat2(matt, mat4, matd, size);
     LEPT_FREE(matt);

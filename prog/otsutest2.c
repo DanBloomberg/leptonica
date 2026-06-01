@@ -44,6 +44,10 @@
  */
 
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 
@@ -67,29 +71,32 @@ PIXA      *pixa1, *pixad;
     for (i = 0; i < 3; i++) {
         pixa1 = pixaCreate(2);
         scorefract = 0.1 * i;
+
             /* Get a 1 bpp version; use a single tile */
         pixOtsuAdaptiveThreshold(pixg, 2000, 2000, 0, 0, scorefract,
                                  NULL, &pixb);
-        pixSaveTiledOutline(pixb, pixa1, 0.5, 1, 20, 2, 32);
+        pixaAddPix(pixa1, pixg, L_COPY);
+        pixaAddPix(pixa1, pixb, L_INSERT);
+
             /* Show the histogram of gray values and the split location */
         pixSplitDistributionFgBg(pixg, scorefract, 1,
                                  &thresh, &fgval, &bgval, &pixp);
-        fprintf(stderr, "thresh = %d, fgval = %d, bgval = %d\n", thresh, fgval,
-                 bgval);
-        pixSaveTiled(pixp, pixa1, 1.0, 0, 20, 1);
+        lept_stderr("thresh = %d, fgval = %d, bgval = %d\n",
+                    thresh, fgval, bgval);
+        pixaAddPix(pixa1, pixp, L_INSERT);
+
             /* Join these together and add some text */
-        pix1 = pixaDisplay(pixa1, 0, 0);
+        pix1 = pixaDisplayTiledInColumns(pixa1, 3, 1.0, 20, 2);
         snprintf(textstr, sizeof(textstr),
              "Scorefract = %3.1f ........... Thresh = %d", scorefract, thresh);
         pix2 = pixAddSingleTextblock(pix1, bmf, textstr, 0x00ff0000,
-                                      L_ADD_BELOW, NULL);
+                                     L_ADD_BELOW, NULL);
+
             /* Save and display the result */
         pixaAddPix(pixad, pix2, L_INSERT);
         snprintf(textstr, sizeof(textstr), "/tmp/lept/otsu/%03d.png", i);
         pixWrite(textstr, pix2, IFF_PNG);
         pixDisplay(pix2, 100, 100);
-        pixDestroy(&pixb);
-        pixDestroy(&pixp);
         pixDestroy(&pix1);
         pixaDestroy(&pixa1);
     }
@@ -111,7 +118,7 @@ PIXA      *pixa1, *pixad;
         pixDestroy(&pix2);
     }
 
-    fprintf(stderr, "Writing to: /tmp/lept/otsu/result1.pdf\n");
+    lept_stderr("Writing to: /tmp/lept/otsu/result1.pdf\n");
     pixaConvertToPdf(pixad, 75, 1.0, 0, 0, "Otsu thresholding",
                      "/tmp/lept/otsu/result1.pdf");
     bmfDestroy(&bmf);

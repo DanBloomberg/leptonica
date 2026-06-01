@@ -33,7 +33,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config_auto.h"
+#include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
@@ -42,16 +42,16 @@
 #if  !HAVE_LIBZ   /* defined in environ.h */
 /* --------------------------------------------*/
 
-l_uint8 * zlibCompress(l_uint8 *datain, size_t nin, size_t *pnout)
+l_uint8 * zlibCompress(const l_uint8 *datain, size_t nin, size_t *pnout)
 {
-    return (l_uint8 *)ERROR_PTR("function not present", "zlibCompress", NULL);
+    return (l_uint8 *)ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
 
-l_uint8 * zlibUncompress(l_uint8 *datain, size_t nin, size_t *pnout)
+l_uint8 * zlibUncompress(const l_uint8 *datain, size_t nin, size_t *pnout)
 {
-    return (l_uint8 *)ERROR_PTR("function not present", "zlibUncompress", NULL);
+    return (l_uint8 *)ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* --------------------------------------------*/

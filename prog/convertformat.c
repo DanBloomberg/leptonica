@@ -56,9 +56,15 @@
  *         WEBP      .webp
  *         JP2       .jp2
  *
+ *   If spp == 4 (rgba), the alpha component is removed, using a white backing.
+ *
  *   If the requested output format does not support the image type,
  *   the image is written in png format, with filename extension 'png'.
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
 #include <string.h>
 #include "allheaders.h"
@@ -69,15 +75,14 @@ int main(int    argc,
 char        *filein, *fileout, *base, *ext;
 const char  *formatstr;
 l_int32      format, d, change;
-PIX         *pixs;
-static char  mainName[] = "convertformat";
+PIX         *pixs, *pix1;
 
     if (argc != 3 && argc != 4) {
-        fprintf(stderr, "Syntax: convertformat filein fileout [format]\n"
-                        "Either specify a format from one of these:\n"
-                        "  BMP, JPEG, PNG, TIFF, TIFFG4, PNM, GIF, WEBP, JP2\n"
-                        "Or specify the extensions to the output file:\n"
-                        "  bmp, jpg, png, tif, pnm, gif, webp, jp2\n");
+        lept_stderr("Syntax: convertformat filein fileout [format]\n"
+                    "Either specify a format from one of these:\n"
+                    "  BMP, JPEG, PNG, TIFF, TIFFG4, PNM, GIF, WEBP, JP2\n"
+                    "Or specify the extensions to the output file:\n"
+                    "  bmp, jpg, png, tif, pnm, gif, webp, jp2\n");
         return 1;
     }
     filein = argv[1];
@@ -104,7 +109,7 @@ static char  mainName[] = "convertformat";
         else {
             return ERROR_INT(
                 "Valid extensions: bmp, jpg, png, tif, pnm, gif, webp, jp2",
-                mainName, 1);
+                __func__, 1);
         }
         lept_free(ext);
     }
@@ -132,36 +137,39 @@ static char  mainName[] = "convertformat";
             return ERROR_INT(
                 "Valid formats: BMP, JPEG, PNG, TIFF, TIFFG4, PNM, "
                 "GIF, WEBP, JP2",
-                mainName, 1);
+                __func__, 1);
         }
     }
 
     setLeptDebugOK(1);
     if ((pixs = pixRead(filein)) == NULL) {
-        L_ERROR("read fail for %s\n", mainName, filein);
+        L_ERROR("read fail for %s\n", __func__, filein);
         return 1;
     }
+    pix1 = pixRemoveAlpha(pixs);
+    pixDestroy(&pixs);
+    pixs = pix1;
 
         /* Change output format if necessary */
     change = FALSE;
     d = pixGetDepth(pixs);
     if (d != 1 && format == IFF_TIFF_G4) {
-        L_WARNING("can't convert to tiff_g4; converting to png\n", mainName);
+        L_WARNING("can't convert to tiff_g4; converting to png\n", __func__);
         change = TRUE;
     }
     if (d < 8) {
         switch(format)
         {
         case IFF_JFIF_JPEG:
-            L_WARNING("can't convert to jpeg; converting to png\n", mainName);
+            L_WARNING("can't convert to jpeg; converting to png\n", __func__);
             change = TRUE;
             break;
         case IFF_WEBP:
-            L_WARNING("can't convert to webp; converting to png\n", mainName);
+            L_WARNING("can't convert to webp; converting to png\n", __func__);
             change = TRUE;
             break;
         case IFF_JP2:
-            L_WARNING("can't convert to jp2; converting to png\n", mainName);
+            L_WARNING("can't convert to jp2; converting to png\n", __func__);
             change = TRUE;
             break;
         }

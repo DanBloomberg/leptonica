@@ -30,6 +30,10 @@
  *    Tests various functions against a set of the different image types.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const char *fnames[10] = {"feyn-fract.tif", "speckle2.png",
@@ -238,7 +242,7 @@ L_REGPARAMS  *rp;
     pixaDestroy(&pixa);
 #endif
 
-#if DO_ALL 
+#if DO_ALL
         /* Rotation by 3-shear; with embedding */
     pixa = pixaCreate(n);
     for (i = 0; i < n; i++) {

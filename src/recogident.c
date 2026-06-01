@@ -46,9 +46,9 @@
  *
  *      Operations for handling identification results
  *         static L_RCHA      *rchaCreate()
- *         l_int32            *rchaDestroy()
+ *         void                rchaDestroy()
  *         static L_RCH       *rchCreate()
- *         l_int32            *rchDestroy()
+ *         void                rchDestroy()
  *         l_int32             rchaExtract()
  *         l_int32             rchExtract()
  *         static l_int32      transferRchToRcha()
@@ -89,8 +89,13 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
+#include "array_internal.h"
 
     /* There are two methods for splitting characters: DID and greedy.
      * The default method is DID.  */
@@ -100,7 +105,7 @@
 static const l_int32    LeftRightPadding = 32;
 
     /* Parameters for filtering and sorting connected components in splitter */
-static const l_float32  MinFillFactor = 0.10;
+static const l_float32  MinFillFactor = 0.10f;
 static const l_int32  DefaultMinHeight = 15;  /* min unscaled height */
 static const l_int32  MinOverlap1 = 6;  /* in pass 1 of boxaSort2d() */
 static const l_int32  MinOverlap2 = 6;  /* in pass 2 of boxaSort2d() */
@@ -169,17 +174,15 @@ BOXA    *boxa;
 PIX     *pixb;
 PIXA    *pixa;
 
-    PROCNAME("recogIdentifyMultiple");
-
     if (pboxa) *pboxa = NULL;
     if (ppixa) *ppixa = NULL;
     if (ppixdb) *ppixdb = NULL;
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 2);
+        return ERROR_INT("recog not defined", __func__, 2);
     if (!recog->train_done)
-        return ERROR_INT("training not finished", procName, 2);
+        return ERROR_INT("training not finished", __func__, 2);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 2);
+        return ERROR_INT("pixs not defined", __func__, 2);
 
         /* Binarize if necessary */
     if (pixGetDepth(pixs) > 1)
@@ -194,7 +197,7 @@ PIXA    *pixa;
     if (!pixa || (n = pixaGetCount(pixa)) == 0) {
         pixaDestroy(&pixa);
         boxaDestroy(&boxa);
-        L_WARNING("nothing found\n", procName);
+        L_WARNING("nothing found\n", __func__);
         return 1;
     }
 
@@ -260,20 +263,18 @@ BOXAA   *baa;
 PIX     *pix, *pix1, *pix2, *pix3;
 PIXA    *pixa;
 
-    PROCNAME("recogSplitIntoCharacters");
-
     lept_mkdir("lept/recog");
 
     if (pboxa) *pboxa = NULL;
     if (ppixa) *ppixa = NULL;
     if (!pboxa || !ppixa)
-        return ERROR_INT("&boxa and &pixa not defined", procName, 1);
+        return ERROR_INT("&boxa and &pixa not defined", __func__, 1);
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
     if (!recog->train_done)
-        return ERROR_INT("training not finished", procName, 1);
+        return ERROR_INT("training not finished", __func__, 1);
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
     if (minh <= 0) minh = DefaultMinHeight;
     pixZero(pixs, &empty);
     if (empty) return 1;
@@ -292,7 +293,7 @@ PIXA    *pixa;
     ncomp = boxaGetCount(boxa1);
     if (ncomp == 0) {
         boxaDestroy(&boxa1);
-        L_WARNING("all components removed\n", procName);
+        L_WARNING("all components removed\n", __func__);
         return 1;
     }
 
@@ -329,7 +330,7 @@ PIXA    *pixa;
             pixDestroy(&pix);
             boxDestroy(&box);
             if (!boxa3) {
-                L_ERROR("boxa3 not found for component %d\n", procName, i);
+                L_ERROR("boxa3 not found for component %d\n", __func__, i);
             } else {
                 boxa4 = boxaTransform(boxa3, xoff, yoff, 1.0, 1.0);
                 boxaJoin(boxa2, boxa4, 0, -1);
@@ -364,7 +365,7 @@ PIXA    *pixa;
          * components are in a flattened 2D sort, we don't need to
          * look far ahead in the array to find all overlapping boxes;
          * 10 boxes is plenty. */
-    boxad = boxaHandleOverlaps(boxa3, L_COMBINE, 10, 0.5, 0.3, NULL);
+    boxad = boxaHandleOverlaps(boxa3, L_COMBINE, 10, 0.5f, 0.3f, NULL);
     boxaDestroy(&boxa3);
 
         /* Extract and save the image pieces from the input image. */
@@ -418,22 +419,20 @@ SARRAY    *sachart;
 
 l_int32    iter;
 
-    PROCNAME("recogCorrelationBestRow");
-
     if (pnascore) *pnascore = NULL;
     if (pnaindex) *pnaindex = NULL;
     if (psachar) *psachar = NULL;
     if (!pboxa)
-        return ERROR_INT("&boxa not defined", procName, 1);
+        return ERROR_INT("&boxa not defined", __func__, 1);
     *pboxa = NULL;
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
     if (pixGetWidth(pixs) < recog->minwidth_u - 4)
-        return ERROR_INT("pixs too narrow", procName, 1);
+        return ERROR_INT("pixs too narrow", __func__, 1);
     if (!recog->train_done)
-        return ERROR_INT("training not finished", procName, 1);
+        return ERROR_INT("training not finished", __func__, 1);
 
         /* Binarize and crop to foreground if necessary */
     pixb = recogProcessToIdentify(recog, pixs, 0);
@@ -461,7 +460,7 @@ l_int32    iter;
         if (pixaGetCount(pixar) == 0)
             break;
         if (iter == 10) {
-            L_WARNING("more than 10 chars; ending search\n", procName);
+            L_WARNING("more than 10 chars; ending search\n", __func__);
             break;
         }
 
@@ -472,7 +471,7 @@ l_int32    iter;
             /* This is a single component; if noise, remove it */
         recogSplittingFilter(recog, pixc, 0, MinFillFactor, &remove, debug);
         if (debug)
-            fprintf(stderr, "iter = %d, removed = %d\n", iter, remove);
+            lept_stderr("iter = %d, removed = %d\n", iter, remove);
         if (remove) {
             pixDestroy(&pixc);
             boxDestroy(&boxc);
@@ -504,9 +503,9 @@ l_int32    iter;
         w2 = bw;
         w3 = bwc - bx - bw;
         if (debug)
-            fprintf(stderr, " w1 = %d, w2 = %d, w3 = %d\n", w1, w2, w3);
+            lept_stderr(" w1 = %d, w2 = %d, w3 = %d\n", w1, w2, w3);
         if (w1 < recog->minwidth_u - 4) {
-            if (debug) L_INFO("discarding width %d on left\n", procName, w1);
+            if (debug) L_INFO("discarding width %d on left\n", __func__, w1);
         } else {  /* extract and save left region */
             boxl = boxCreate(0, 0, bx + 1, h);
             pixl = pixClipRectangle(pixc, boxl, NULL);
@@ -516,7 +515,7 @@ l_int32    iter;
             boxDestroy(&boxl);
         }
         if (w3 < recog->minwidth_u - 4) {
-            if (debug) L_INFO("discarding width %d on right\n", procName, w3);
+            if (debug) L_INFO("discarding width %d on right\n", __func__, w3);
         } else {  /* extract and save left region */
             boxr = boxCreate(bx + bw - 1, 0, w3 + 1, h);
             pixr = pixClipRectangle(pixc, boxr, NULL);
@@ -596,21 +595,19 @@ BOXA      *boxa;
 NUMA      *nasum, *namoment;
 PIX       *pix1, *pix2;
 
-    PROCNAME("recogCorrelationBestChar");
-
     if (pindex) *pindex = 0;
     if (pcharstr) *pcharstr = NULL;
     if (ppixdb) *ppixdb = NULL;
     if (pbox) *pbox = NULL;
     if (pscore) *pscore = 0.0;
     if (!pbox || !pscore)
-        return ERROR_INT("&box and &score not both defined", procName, 1);
+        return ERROR_INT("&box and &score not both defined", __func__, 1);
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
     if (!recog->train_done)
-        return ERROR_INT("training not finished", procName, 1);
+        return ERROR_INT("training not finished", __func__, 1);
 
         /* Binarize and crop to foreground if necessary.  Add padding
          * to both the left and right side; this is compensated for
@@ -639,7 +636,7 @@ PIX       *pix1, *pix2;
                                     recog->maxyshift, recog->sumtab, &delx,
                                     &dely, &score, 1);
             if (ppixdb) {
-                fprintf(stderr,
+                lept_stderr(
                     "Best match template %d: (x,y) = (%d,%d), score = %5.3f\n",
                     i, delx, dely, score);
             }
@@ -654,8 +651,7 @@ PIX       *pix1, *pix2;
         } else {
             box = boxCreate(0, 0, 1, 1);  /* placeholder */
             if (ppixdb)
-                fprintf(stderr, "Component too thin: w1 = %d, w2 = %d\n",
-                        w1, w2);
+                lept_stderr("Component too thin: w1 = %d, w2 = %d\n", w1, w2);
         }
         boxaAddBox(boxa, box, L_INSERT);
         pixDestroy(&pix2);
@@ -669,7 +665,7 @@ PIX       *pix1, *pix2;
 
     if (ppixdb) {
         L_INFO("Best match: class %d; shifts (%d, %d)\n",
-               procName, bestindex, bestdelx, bestdely);
+               __func__, bestindex, bestdelx, bestdely);
         pix2 = pixaGetPix(recog->pixa_u, bestindex, L_CLONE);
         *ppixdb = recogShowMatch(recog, pix1, pix2, NULL, -1, 0.0);
         pixDestroy(&pix2);
@@ -741,22 +737,20 @@ l_int32     sum, moment, count;
 l_int32    *tab, *area1, *arraysum, *arraymoment;
 l_float32   maxscore, score;
 l_float32  *ycent1;
-FPIX       *fpix;
+FPIX       *fpix = NULL;
 PIX        *pixt, *pixt1, *pixt2;
-
-    PROCNAME("pixCorrelationBestShift");
 
     if (pdelx) *pdelx = 0;
     if (pdely) *pdely = 0;
     if (pscore) *pscore = 0.0;
     if (!pix1 || pixGetDepth(pix1) != 1)
-        return ERROR_INT("pix1 not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pix1 not defined or not 1 bpp", __func__, 1);
     if (!pix2 || pixGetDepth(pix2) != 1)
-        return ERROR_INT("pix2 not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pix2 not defined or not 1 bpp", __func__, 1);
     if (!nasum1 || !namoment1)
-        return ERROR_INT("nasum1 and namoment1 not both defined", procName, 1);
+        return ERROR_INT("nasum1 and namoment1 not both defined", __func__, 1);
     if (area2 <= 0 || ycent2 <= 0)
-        return ERROR_INT("area2 and ycent2 must be > 0", procName, 1);
+        return ERROR_INT("area2 and ycent2 must be > 0", __func__, 1);
 
        /* If pix1 (the unknown image) is narrower than pix2,
         * don't bother to try the match.  pix1 is already padded with
@@ -766,7 +760,7 @@ PIX        *pixt, *pixt1, *pixt2;
     if (w1 < w2) {
         if (debugflag > 0) {
             L_INFO("skipping match with w1 = %d and w2 = %d\n",
-                   procName, w1, w2);
+                   __func__, w1, w2);
         }
         return 0;
     }
@@ -830,8 +824,8 @@ PIX        *pixt, *pixt1, *pixt2;
     }
 
     if (debugflag > 0) {
-        lept_mkdir("lept/recog");
         char  buf[128];
+        lept_mkdir("lept/recog");
         pixt1 = fpixDisplayMaxDynamicRange(fpix);
         pixt2 = pixExpandReplicate(pixt1, 5);
         snprintf(buf, sizeof(buf), "/tmp/lept/recog/junkbs_%d.png", debugflag);
@@ -887,13 +881,11 @@ PIX       *pix1, *pix2, *pix3;
 PIXA      *pixa1;
 L_RCH     *rch;
 
-    PROCNAME("recogIdentifyPixa");
-
     if (ppixdb) *ppixdb = NULL;
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
 
         /* Run the recognizer on the set of images.  This writes
          * the text string into each pix in pixa. */
@@ -913,7 +905,7 @@ L_RCH     *rch;
         if (fail)
             recogSkipIdentify(recog);
         if ((rch = recog->rch) == NULL) {
-            L_ERROR("rch not found for char %d\n", procName, i);
+            L_ERROR("rch not found for char %d\n", __func__, i);
             pixDestroy(&pix1);
             pixDestroy(&pix2);
             continue;
@@ -974,7 +966,7 @@ recogIdentifyPix(L_RECOG  *recog,
                  PIX     **ppixdb)
 {
 char      *text;
-l_int32    i, j, n, bestindex, bestsample, area1, area2;
+l_int32    i, j, n, bestindex, bestsample, area1, area2, ret;
 l_int32    shiftx, shifty, bestdelx, bestdely, bestwidth, maxyshift;
 l_float32  x1, y1, x2, y2, delx, dely, score, maxscore;
 NUMA      *numa;
@@ -982,30 +974,28 @@ PIX       *pix0, *pix1, *pix2;
 PIXA      *pixa;
 PTA       *pta;
 
-    PROCNAME("recogIdentifyPix");
-
     if (ppixdb) *ppixdb = NULL;
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
 
         /* Do the averaging if required and not yet done. */
     if (recog->templ_use == L_USE_AVERAGE_TEMPLATES && !recog->ave_done) {
-        recogAverageSamples(&recog, 0);
-        if (!recog)
-            return ERROR_INT("averaging failed", procName, 1);
+        ret = recogAverageSamples(recog, 0);
+        if (ret)
+            return ERROR_INT("averaging failed", __func__, 1);
     }
 
         /* Binarize and crop to foreground if necessary */
     if ((pix0 = recogProcessToIdentify(recog, pixs, 0)) == NULL)
-        return ERROR_INT("no fg pixels in pix0", procName, 1);
+        return ERROR_INT("no fg pixels in pix0", __func__, 1);
 
         /* Optionally scale and/or convert to fixed stroke width */
     pix1 = recogModifyTemplate(recog, pix0);
     pixDestroy(&pix0);
     if (!pix1)
-        return ERROR_INT("no fg pixels in pix1", procName, 1);
+        return ERROR_INT("no fg pixels in pix1", __func__, 1);
 
         /* Do correlation at all positions within +-maxyshift of
          * the nominal centroid alignment. */
@@ -1085,14 +1075,14 @@ PTA       *pta;
     if (ppixdb) {
         if (recog->templ_use == L_USE_AVERAGE_TEMPLATES) {
             L_INFO("Best match: str %s; class %d; sh (%d, %d); score %5.3f\n",
-                   procName, text, bestindex, bestdelx, bestdely, maxscore);
+                   __func__, text, bestindex, bestdelx, bestdely, maxscore);
             pix2 = pixaGetPix(recog->pixa, bestindex, L_CLONE);
         } else {  /* L_USE_ALL_TEMPLATES */
             L_INFO("Best match: str %s; sample %d in class %d; score %5.3f\n",
-                   procName, text, bestsample, bestindex, maxscore);
+                   __func__, text, bestsample, bestindex, maxscore);
             if (maxyshift > 0 && (L_ABS(bestdelx) > 0 || L_ABS(bestdely) > 0)) {
                 L_INFO("  Best shift: (%d, %d)\n",
-                       procName, bestdelx, bestdely);
+                       __func__, bestdelx, bestdely);
             }
             pix2 = pixaaGetPix(recog->pixaa, bestindex, bestsample, L_CLONE);
         }
@@ -1120,10 +1110,8 @@ PTA       *pta;
 l_ok
 recogSkipIdentify(L_RECOG  *recog)
 {
-    PROCNAME("recogSkipIdentify");
-
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
 
         /* Package up placeholder results */
     rchDestroy(&recog->rch);
@@ -1170,10 +1158,8 @@ rchaDestroy(L_RCHA  **prcha)
 {
 L_RCHA  *rcha;
 
-    PROCNAME("rchaDestroy");
-
     if (prcha == NULL) {
-        L_WARNING("&rcha is null!\n", procName);
+        L_WARNING("&rcha is null!\n", __func__);
         return;
     }
     if ((rcha = *prcha) == NULL)
@@ -1188,7 +1174,6 @@ L_RCHA  *rcha;
     numaDestroy(&rcha->nawidth);
     LEPT_FREE(rcha);
     *prcha = NULL;
-    return;
 }
 
 
@@ -1244,10 +1229,8 @@ rchDestroy(L_RCH  **prch)
 {
 L_RCH  *rch;
 
-    PROCNAME("rchDestroy");
-
     if (prch == NULL) {
-        L_WARNING("&rch is null!\n", procName);
+        L_WARNING("&rch is null!\n", __func__);
         return;
     }
     if ((rch = *prch) == NULL)
@@ -1255,7 +1238,6 @@ L_RCH  *rch;
     LEPT_FREE(rch->text);
     LEPT_FREE(rch);
     *prch = NULL;
-    return;
 }
 
 
@@ -1288,8 +1270,6 @@ rchaExtract(L_RCHA   *rcha,
             NUMA    **pnayloc,
             NUMA    **pnawidth)
 {
-    PROCNAME("rchaExtract");
-
     if (pnaindex) *pnaindex = NULL;
     if (pnascore) *pnascore = NULL;
     if (psatext) *psatext = NULL;
@@ -1298,7 +1278,7 @@ rchaExtract(L_RCHA   *rcha,
     if (pnayloc) *pnayloc = NULL;
     if (pnawidth) *pnawidth = NULL;
     if (!rcha)
-        return ERROR_INT("rcha not defined", procName, 1);
+        return ERROR_INT("rcha not defined", __func__, 1);
 
     if (pnaindex) *pnaindex = numaClone(rcha->naindex);
     if (pnascore) *pnascore = numaClone(rcha->nascore);
@@ -1334,8 +1314,6 @@ rchExtract(L_RCH      *rch,
            l_int32    *pyloc,
            l_int32    *pwidth)
 {
-    PROCNAME("rchExtract");
-
     if (pindex) *pindex = 0;
     if (pscore) *pscore = 0.0;
     if (ptext) *ptext = NULL;
@@ -1344,7 +1322,7 @@ rchExtract(L_RCH      *rch,
     if (pyloc) *pyloc = 0;
     if (pwidth) *pwidth = 0;
     if (!rch)
-        return ERROR_INT("rch not defined", procName, 1);
+        return ERROR_INT("rch not defined", __func__, 1);
 
     if (pindex) *pindex = rch->index;
     if (pscore) *pscore = rch->score;
@@ -1375,12 +1353,10 @@ transferRchToRcha(L_RCH   *rch,
                   L_RCHA  *rcha)
 {
 
-    PROCNAME("transferRchToRcha");
-
     if (!rch)
-        return ERROR_INT("rch not defined", procName, 1);
+        return ERROR_INT("rch not defined", __func__, 1);
     if (!rcha)
-        return ERROR_INT("rcha not defined", procName, 1);
+        return ERROR_INT("rcha not defined", __func__, 1);
 
     numaAddNumber(rcha->naindex, rch->index);
     numaAddNumber(rcha->nascore, rch->score);
@@ -1420,12 +1396,10 @@ recogProcessToIdentify(L_RECOG  *recog,
 l_int32  canclip;
 PIX     *pix1, *pix2, *pixd;
 
-    PROCNAME("recogProcessToIdentify");
-
     if (!recog)
-        return (PIX *)ERROR_PTR("recog not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("recog not defined", __func__, NULL);
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
 
     if (pixGetDepth(pixs) != 1)
         pix1 = pixThresholdToBinary(pixs, recog->threshold);
@@ -1438,7 +1412,7 @@ PIX     *pix1, *pix2, *pixd;
         pix2 = pixClone(pix1);
     pixDestroy(&pix1);
     if (!pix2)
-        return (PIX *)ERROR_PTR("no foreground pixels", procName, NULL);
+        return (PIX *)ERROR_PTR("no foreground pixels", __func__, NULL);
 
     pixd = pixAddBorderGeneral(pix2, pad, pad, 0, 0, 0);
     pixDestroy(&pix2);
@@ -1469,12 +1443,10 @@ NUMA    *naw, *nah, *na1, *na1c, *na2, *na3, *na4, *na5, *na6, *na7;
 PIX     *pixd;
 PIXA    *pixas;
 
-    PROCNAME("recogPreSplittingFilter");
-
     if (!recog)
-        return (PIX *)ERROR_PTR("recog not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("recog not defined", __func__, NULL);
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
 
         /* If there is scaling, do not remove components based on the
          * values of min_splitw and max_splith. */
@@ -1544,15 +1516,13 @@ recogSplittingFilter(L_RECOG   *recog,
 l_int32    w, h;
 l_float32  aspratio, fract;
 
-    PROCNAME("recogSplittingFilter");
-
     if (!premove)
-        return ERROR_INT("&remove not defined", procName, 1);
+        return ERROR_INT("&remove not defined", __func__, 1);
     *premove = 0;
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (minh <= 0) minh = DefaultMinHeight;
 
         /* Remove from further consideration:
@@ -1561,25 +1531,25 @@ l_float32  aspratio, fract;
          *    components with small area fill fraction */
     pixGetDimensions(pixs, &w, &h, NULL);
     if (w < recog->min_splitw) {
-        if (debug) L_INFO("w = %d < %d\n", procName, w, recog->min_splitw);
+        if (debug) L_INFO("w = %d < %d\n", __func__, w, recog->min_splitw);
         *premove = 1;
         return 0;
     }
     if (h < minh) {
-        if (debug) L_INFO("h = %d < %d\n", procName, h, minh);
+        if (debug) L_INFO("h = %d < %d\n", __func__, h, minh);
         *premove = 1;
         return 0;
     }
     aspratio = (l_float32)w / (l_float32)h;
     if (aspratio > recog->max_wh_ratio) {
-        if (debug) L_INFO("w/h = %5.3f too large\n", procName, aspratio);
+        if (debug) L_INFO("w/h = %5.3f too large\n", __func__, aspratio);
         *premove = 1;
         return 0;
     }
     pixFindAreaFraction(pixs, recog->sumtab, &fract);
     if (fract < minaf) {
         if (debug) L_INFO("area fill fract %5.3f < %5.3f\n",
-                          procName, fract, minaf);
+                          __func__, fract, minaf);
         *premove = 1;
         return 0;
     }
@@ -1637,21 +1607,19 @@ char      *str, *text;
 l_int32    i, n, x1, x2, h_ovl, v_ovl, h_sep, v_sep;
 l_float32  score;
 BOX       *box, *prebox;
-BOXA      *ba;
+BOXA      *ba = NULL;
 BOXAA     *baa;
-NUMA      *nascore, *na;
+NUMA      *nascore, *na = NULL;
 NUMAA     *naa;
-SARRAY    *satext, *sa, *saout;
-
-    PROCNAME("recogExtractNumbers");
+SARRAY    *satext, *sa = NULL, *saout;
 
     if (pbaa) *pbaa = NULL;
     if (pnaa) *pnaa = NULL;
     if (!recog || !recog->rcha)
         return (SARRAY *)ERROR_PTR("recog and rcha not both defined",
-                                   procName, NULL);
+                                   __func__, NULL);
     if (!boxas)
-        return (SARRAY *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (SARRAY *)ERROR_PTR("boxas not defined", __func__, NULL);
 
     if (spacethresh < 0)
         spacethresh = L_MAX(recog->maxheight_u, 20);
@@ -1660,7 +1628,7 @@ SARRAY    *satext, *sa, *saout;
         numaDestroy(&nascore);
         sarrayDestroy(&satext);
         return (SARRAY *)ERROR_PTR("nascore and satext not both returned",
-                                   procName, NULL);
+                                   __func__, NULL);
     }
 
     saout = sarrayCreate(0);
@@ -1727,7 +1695,7 @@ SARRAY    *satext, *sa, *saout;
         sarrayDestroy(&saout);
         boxaaDestroy(&baa);
         numaaDestroy(&naa);
-        L_INFO("saout has no identified text\n", procName);
+        L_INFO("saout has no identified text\n", __func__);
         return NULL;
     }
 
@@ -1778,17 +1746,15 @@ NUMA      *na;
 PIX       *pix1, *pix2, *pix3, *pix4;
 PIXA      *pixa;
 
-    PROCNAME("showExtractNumbers");
-
     if (ppixdb) *ppixdb = NULL;
     if (!pixs)
-        return (PIXA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (!sa)
-        return (PIXA *)ERROR_PTR("sa not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("sa not defined", __func__, NULL);
     if (!baa)
-        return (PIXA *)ERROR_PTR("baa not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("baa not defined", __func__, NULL);
     if (!naa)
-        return (PIXA *)ERROR_PTR("naa not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("naa not defined", __func__, NULL);
 
     n = sarrayGetCount(sa);
     pixa = pixaCreate(n);
@@ -1858,25 +1824,25 @@ l_showIndicatorSplitValues(NUMA  *na1,
 l_int32  i, n;
 
     n = numaGetCount(na1);
-    fprintf(stderr, "================================================\n");
-    fprintf(stderr, "lt minw:    ");
+    lept_stderr("================================================\n");
+    lept_stderr("lt minw:    ");
     for (i = 0; i < n; i++)
-        fprintf(stderr, "%4d ", (l_int32)na1->array[i]);
-    fprintf(stderr, "\nlt minh:    ");
+        lept_stderr("%4d ", (l_int32)na1->array[i]);
+    lept_stderr("\nlt minh:    ");
     for (i = 0; i < n; i++)
-        fprintf(stderr, "%4d ", (l_int32)na2->array[i]);
-    fprintf(stderr, "\ngt maxh:    ");
+        lept_stderr("%4d ", (l_int32)na2->array[i]);
+    lept_stderr("\ngt maxh:    ");
     for (i = 0; i < n; i++)
-        fprintf(stderr, "%4d ", (l_int32)na3->array[i]);
-    fprintf(stderr, "\ngt maxasp:  ");
+        lept_stderr("%4d ", (l_int32)na3->array[i]);
+    lept_stderr("\ngt maxasp:  ");
     for (i = 0; i < n; i++)
-        fprintf(stderr, "%4d ", (l_int32)na4->array[i]);
-    fprintf(stderr, "\nlt minaf:   ");
+        lept_stderr("%4d ", (l_int32)na4->array[i]);
+    lept_stderr("\nlt minaf:   ");
     for (i = 0; i < n; i++)
-        fprintf(stderr, "%4d ", (l_int32)na5->array[i]);
-    fprintf(stderr, "\n------------------------------------------------");
-    fprintf(stderr, "\nresult:     ");
+        lept_stderr("%4d ", (l_int32)na5->array[i]);
+    lept_stderr("\n------------------------------------------------");
+    lept_stderr("\nresult:     ");
     for (i = 0; i < n; i++)
-        fprintf(stderr, "%4d ", (l_int32)na6->array[i]);
-    fprintf(stderr, "\n================================================\n");
+        lept_stderr("%4d ", (l_int32)na6->array[i]);
+    lept_stderr("\n================================================\n");
 }

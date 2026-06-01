@@ -41,6 +41,10 @@
  *    It also demonstrates a few display modes.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define  NTIMES             2
@@ -48,35 +52,34 @@
 l_int32 main(l_int32  argc,
              char   **argv)
 {
-char        *filein;
-l_int32      i, n, count;
-BOX         *box;
-BOXA        *boxa;
-PIX         *pixs, *pixd;
-PIXA        *pixa;
-PIXCMAP     *cmap;
-static char  mainName[] = "cctest1";
+char     *filein;
+l_int32   i, n, count;
+BOX      *box;
+BOXA     *boxa;
+PIX      *pixs, *pixd;
+PIXA     *pixa;
+PIXCMAP  *cmap;
 
     if (argc != 2)
-        return ERROR_INT(" Syntax:  cctest1 filein", mainName, 1);
+        return ERROR_INT(" Syntax:  cctest1 filein", __func__, 1);
     filein = argv[1];
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
     if (pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not 1 bpp", mainName, 1);
+        return ERROR_INT("pixs not 1 bpp", __func__, 1);
 
         /* Test speed of pixCountConnComp() */
     startTimer();
     for (i = 0; i < NTIMES; i++)
         pixCountConnComp(pixs, 4, &count);
-    fprintf(stderr, "Time to compute 4-cc: %6.3f sec\n", stopTimer()/NTIMES);
-    fprintf(stderr, "Number of 4-cc: %d\n", count);
+    lept_stderr("Time to compute 4-cc: %6.3f sec\n", stopTimer()/NTIMES);
+    lept_stderr("Number of 4-cc: %d\n", count);
     startTimer();
     for (i = 0; i < NTIMES; i++)
         pixCountConnComp(pixs, 8, &count);
-    fprintf(stderr, "Time to compute 8-cc: %6.3f sec\n", stopTimer()/NTIMES);
-    fprintf(stderr, "Number of 8-cc: %d\n", count);
+    lept_stderr("Time to compute 8-cc: %6.3f sec\n", stopTimer()/NTIMES);
+    lept_stderr("Number of 8-cc: %d\n", count);
 
         /* Test speed of pixConnComp(), with only boxa output  */
     startTimer();
@@ -84,18 +87,18 @@ static char  mainName[] = "cctest1";
         boxa = pixConnComp(pixs, NULL, 4);
         boxaDestroy(&boxa);
     }
-    fprintf(stderr, "Time to compute 4-cc: %6.3f sec\n", stopTimer()/NTIMES);
+    lept_stderr("Time to compute 4-cc: %6.3f sec\n", stopTimer()/NTIMES);
     startTimer();
     for (i = 0; i < NTIMES; i++) {
         boxa = pixConnComp(pixs, NULL, 8);
         boxaDestroy(&boxa);
     }
-    fprintf(stderr, "Time to compute 8-cc: %6.3f sec\n", stopTimer()/NTIMES);
+    lept_stderr("Time to compute 8-cc: %6.3f sec\n", stopTimer()/NTIMES);
 
         /* Draw outline of each c.c. box */
     boxa = pixConnComp(pixs, NULL, 4);
     n = boxaGetCount(boxa);
-    fprintf(stderr, "Num 4-cc boxes: %d\n", n);
+    lept_stderr("Num 4-cc boxes: %d\n", n);
     for (i = 0; i < n; i++) {
         box = boxaGetBox(boxa, i, L_CLONE);
         pixRenderBox(pixs, box, 3, L_FLIP_PIXELS);

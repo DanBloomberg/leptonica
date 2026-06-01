@@ -50,13 +50,16 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
 static l_uint8 *makeReverseByteTab1(void);
 static l_uint8 *makeReverseByteTab2(void);
 static l_uint8 *makeReverseByteTab4(void);
-
 
 /*------------------------------------------------------------------*
  *           Top-level rotation by multiples of 90 degrees          *
@@ -72,12 +75,10 @@ PIX *
 pixRotateOrth(PIX     *pixs,
               l_int32  quads)
 {
-    PROCNAME("pixRotateOrth");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (quads < 0 || quads > 3)
-        return (PIX *)ERROR_PTR("quads not in {0,1,2,3}", procName, NULL);
+        return (PIX *)ERROR_PTR("quads not in {0,1,2,3}", __func__, NULL);
 
     if (quads == 0)
         return pixCopy(NULL, pixs);
@@ -123,18 +124,16 @@ pixRotate180(PIX  *pixd,
 {
 l_int32  d;
 
-    PROCNAME("pixRotate180");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     d = pixGetDepth(pixs);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
         return (PIX *)ERROR_PTR("pixs not in {1,2,4,8,16,32} bpp",
-                                procName, NULL);
+                                __func__, NULL);
 
         /* Prepare pixd for in-place operation */
     if ((pixd = pixCopy(pixd, pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
 
     pixFlipLR(pixd, pixd);
     pixFlipTB(pixd, pixd);
@@ -169,19 +168,17 @@ l_uint32   val, word;
 l_uint32  *lines, *datas, *lined, *datad;
 PIX       *pixd;
 
-    PROCNAME("pixRotate90");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &hd, &wd, &d);  /* note: reversed */
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
         return (PIX *)ERROR_PTR("pixs not in {1,2,4,8,16,32} bpp",
-                                procName, NULL);
+                                __func__, NULL);
     if (direction != 1 && direction != -1)
-        return (PIX *)ERROR_PTR("invalid direction", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid direction", __func__, NULL);
 
     if ((pixd = pixCreate(wd, hd, d)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyColormap(pixd, pixs);
     pixCopyResolution(pixd, pixs);
     pixCopyInputFormat(pixd, pixs);
@@ -277,7 +274,7 @@ PIX       *pixd;
                 break;
             default:
                 pixDestroy(&pixd);
-                L_ERROR("illegal depth: %d\n", procName, d);
+                L_ERROR("illegal depth: %d\n", __func__, d);
                 break;
         }
     } else  {     /* direction counter-clockwise */
@@ -365,7 +362,7 @@ PIX       *pixd;
                 break;
             default:
                 pixDestroy(&pixd);
-                L_ERROR("illegal depth: %d\n", procName, d);
+                L_ERROR("illegal depth: %d\n", __func__, d);
                 break;
         }
     }
@@ -430,18 +427,16 @@ l_int32    extra, shift, databpl, bpl, i, j;
 l_uint32   val;
 l_uint32  *line, *data, *buffer;
 
-    PROCNAME("pixFlipLR");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
         return (PIX *)ERROR_PTR("pixs not in {1,2,4,8,16,32} bpp",
-                                procName, NULL);
+                                __func__, NULL);
 
         /* Prepare pixd for in-place operation */
     if ((pixd = pixCopy(pixd, pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
 
     data = pixGetData(pixd);
     wpl = pixGetWpl(pixd);
@@ -464,7 +459,7 @@ l_uint32  *line, *data, *buffer;
         /* Possibly inplace assigning return val, so on failure return pixd */
     if ((buffer = (l_uint32 *)LEPT_CALLOC(wpl, sizeof(l_uint32))) == NULL) {
         if (tab) LEPT_FREE(tab);
-        return (PIX *)ERROR_PTR("buffer not made", procName, pixd);
+        return (PIX *)ERROR_PTR("buffer not made", __func__, pixd);
     }
 
     bpl = 4 * wpl;
@@ -557,7 +552,7 @@ l_uint32  *line, *data, *buffer;
             break;
         default:
             pixDestroy(&pixd);
-            L_ERROR("illegal depth: %d\n", procName, d);
+            L_ERROR("illegal depth: %d\n", __func__, d);
             break;
     }
 
@@ -606,23 +601,21 @@ l_int32    h, d, wpl, i, k, h2, bpl;
 l_uint32  *linet, *lineb;
 l_uint32  *data, *buffer;
 
-    PROCNAME("pixFlipTB");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, NULL, &h, &d);
     if (d != 1 && d != 2 && d != 4 && d != 8 && d != 16 && d != 32)
         return (PIX *)ERROR_PTR("pixs not in {1,2,4,8,16,32} bpp",
-                                procName, NULL);
+                                __func__, NULL);
 
         /* Prepare pixd for in-place operation */
     if ((pixd = pixCopy(pixd, pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
 
     data = pixGetData(pixd);
     wpl = pixGetWpl(pixd);
     if ((buffer = (l_uint32 *)LEPT_CALLOC(wpl, sizeof(l_uint32))) == NULL)
-        return (PIX *)ERROR_PTR("buffer not made", procName, pixd);
+        return (PIX *)ERROR_PTR("buffer not made", __func__, pixd);
 
     h2 = h / 2;
     bpl = 4 * wpl;

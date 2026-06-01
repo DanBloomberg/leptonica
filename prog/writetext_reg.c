@@ -32,6 +32,10 @@
  *   Output is written to /tmp/lept/regout/pixd[1,2,3,4].png
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 void AddTextAndSave(PIXA *pixa, PIX *pixs, L_BMF *bmf, const char *textstr,
@@ -71,6 +75,11 @@ PIXA         *pixa;
 L_REGPARAMS  *rp;
 SARRAY       *sa;
 
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "writetext_reg");
+    exit(77);
+#endif
+
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
@@ -96,7 +105,7 @@ SARRAY       *sa;
         AddTextAndSave(pixa, pix6, bmf, textstr[5], loc[i], 0xff000000);
         AddTextAndSave(pixa, pix7, bmf, textstr[6], loc[i], 800);
         AddTextAndSave(pixa, pix8, bmf, textstr[7], loc[i], 800);
-        pixt = pixaDisplay(pixa, 0, 0);
+        pixt = pixaDisplayTiledInColumns(pixa, 4, 1.0, 30, 2);
         pixd = pixAddSingleTextblock(pixt, bmftop, topstr[i],
                                      0xff00ff00, L_ADD_ABOVE, NULL);
         regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /*  0 - 4 */
@@ -157,14 +166,11 @@ AddTextAndSave(PIXA        *pixa,
                l_int32      location,
                l_uint32     val)
 {
-l_int32  n, newrow, ovf;
-PIX     *pixt;
+l_int32  n, ovf;
+PIX     *pix1;
 
-    pixt = pixAddSingleTextblock(pixs, bmf, textstr, val, location, &ovf);
+    pix1 = pixAddSingleTextblock(pixs, bmf, textstr, val, location, &ovf);
     n = pixaGetCount(pixa);
-    newrow = (n % 4) ? 0 : 1;
-    pixSaveTiledOutline(pixt, pixa, 1, newrow, 30, 2, 32);
-    if (ovf) fprintf(stderr, "Overflow writing text in image %d\n", n + 1);
-    pixDestroy(&pixt);
-    return;
+    pixaAddPix(pixa, pix1, L_INSERT);
+    if (ovf) lept_stderr("Overflow writing text in image %d\n", n + 1);
 }

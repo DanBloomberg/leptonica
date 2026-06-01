@@ -34,6 +34,10 @@
  *     in the alltests_reg set.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static void DoTestsOnImage(PIX *pixs, L_REGPARAMS *rp, l_int32 width);

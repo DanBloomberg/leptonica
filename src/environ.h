@@ -65,20 +65,36 @@ typedef unsigned int uintptr_t;
 
 #endif /* _MSC_VER */
 
-/* Windows specifics */
-#ifdef _WIN32
-  /* DLL EXPORTS and IMPORTS */
-  #if defined(LIBLEPT_EXPORTS)
-    #define LEPT_DLL __declspec(dllexport)
-  #elif defined(LIBLEPT_IMPORTS)
-    #define LEPT_DLL __declspec(dllimport)
-  #else
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L) && !defined(__STDC_NO_ATOMICS__)
+#include <stdatomic.h>
+typedef atomic_int l_atomic;
+#else
+typedef int l_atomic;
+#endif
+
+#ifndef LEPT_DLL
+  /* Windows specifics */
+  #ifdef _WIN32
+    /* DLL EXPORTS and IMPORTS */
+    #if defined(LIBLEPT_EXPORTS)
+      #define LEPT_DLL __declspec(dllexport)
+    #elif defined(LIBLEPT_IMPORTS)
+      #define LEPT_DLL __declspec(dllimport)
+    #else
+      #define LEPT_DLL
+    #endif
+  #else  /* non-Windows specifics */
     #define LEPT_DLL
-  #endif
-#else  /* non-Windows specifics */
+  #endif  /* _WIN32 */
+#endif  /* LEPT_DLL */
+
+#ifndef _WIN32  /* non-Windows specifics */
   #include <stdint.h>
-  #define LEPT_DLL
 #endif  /* _WIN32 */
+
+#ifdef __APPLE__
+  #include <Availability.h>
+#endif /* __APPLE__ */
 
 typedef intptr_t l_intptr_t;
 typedef uintptr_t l_uintptr_t;
@@ -126,12 +142,13 @@ typedef uintptr_t l_uintptr_t;
   #define  HAVE_LIBJP2K       0
   #endif
 
+
   /*-----------------------------------------------------------------------*
-   * Leptonica supports OpenJPEG 2.0+.  If you have a version of openjpeg  *
-   * (HAVE_LIBJP2K == 1) that is >= 2.0, set the path to the openjpeg.h    *
+   * Leptonica supports OpenJPEG 2.1+.  If you have a version of openjpeg  *
+   * (HAVE_LIBJP2K == 1) that is >= 2.1, set the path to the openjpeg.h    *
    * header in angle brackets here.                                        *
    *-----------------------------------------------------------------------*/
-  #define  LIBJP2K_HEADER   <openjpeg-2.3/openjpeg.h>
+  #define  LIBJP2K_HEADER   <openjpeg-2.5/openjpeg.h>
 
 #endif  /* ! HAVE_CONFIG_H etc. */
 
@@ -156,16 +173,25 @@ typedef uintptr_t l_uintptr_t;
 
 
 /*-------------------------------------------------------------------------*
- * On linux systems, you can do I/O between Pix and memory.  Specifically,
- * you can compress (write compressed data to memory from a Pix) and
- * uncompress (read from compressed data in memory to a Pix).
- * For jpeg, png, jp2k, gif, pnm and bmp, these use the non-posix GNU
- * functions fmemopen() and open_memstream().  These functions are not
- * available on other systems.
- * To use these functions in linux, you must define HAVE_FMEMOPEN to 1.
- * To use them on MacOS, which does not support these functions, set it to 0.
+ * On linux, BSD, macOS (> 10.12), android (sdk >= 23) and iOS(>= 11.0),
+ * you can redirect writing data from a filestream to memory using
+ * open_memstream() and redirect reading data from a filestream to
+ * reading from memory using fmemopen().
+ * Specifically, you can compress (write compressed data to memory
+ * from raster data in a Pix) and uncompress (read from compressed data
+ * in memory to raster data in a Pix).
+ * For png, tiff and webp, data is compressed and uncompressed directly
+ * to memory without the use of the POSIX.1 (2008) functions fmemopen()
+ * and open_memstream().
+ * For jpeg, jp2k, gif, pnm and bmp, these functions are used on systems
+ * that support them, and for those we define HAVE_FMEMOPEN to 1.
  *-------------------------------------------------------------------------*/
-#if !defined(HAVE_CONFIG_H) && !defined(ANDROID_BUILD) && !defined(OS_IOS) && \
+#if !defined(HAVE_CONFIG_H) && \
+    (!defined(ANDROID_BUILD) || __ANDROID_API__ >= 23) && \
+    (!defined(__IPHONE_OS_VERSION_MIN_REQUIRED) || \
+              __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000) && \
+    (!defined(__MAC_OS_X_VERSION_MIN_REQUIRED) || \
+              __MAC_OS_X_VERSION_MIN_REQUIRED > 101200) && \
     !defined(_WIN32)
 #define  HAVE_FMEMOPEN    1
 #endif  /* ! HAVE_CONFIG_H etc. */
@@ -173,10 +199,12 @@ typedef uintptr_t l_uintptr_t;
 /*-------------------------------------------------------------------------*
  * fstatat() is defined by POSIX, but some systems do not support it.      *
  * One example is older macOS systems (pre-10.10).                         *
- * Play it safe and set the default value to 0.                            *
+ * Also, dirfd() is required by fstatat().                                 *
+ * Play it safe and set the default values to 0.                           *
  *-------------------------------------------------------------------------*/
 #if !defined(HAVE_CONFIG_H)
 #define  HAVE_FSTATAT     0
+#define  HAVE_DIRFD       0
 #endif /* ! HAVE_CONFIG_H */
 
 /*--------------------------------------------------------------------*
@@ -192,7 +220,7 @@ typedef uintptr_t l_uintptr_t;
 /*--------------------------------------------------------------------*
  *                          Built-in types                            *
  *--------------------------------------------------------------------*/
-typedef int                     l_ok;    /*!< return type 0 if OK, 1 on error */
+typedef int                     l_ok;       /*!< return 0 if OK, 1 on error */
 typedef signed char             l_int8;     /*!< signed 8-bit value */
 typedef unsigned char           l_uint8;    /*!< unsigned 8-bit value */
 typedef short                   l_int16;    /*!< signed 16-bit value */
@@ -221,7 +249,13 @@ typedef unsigned long long      l_uint64;   /*!< unsigned 64-bit value */
  * of LeptDebugOK is 0, and it is set in writefile.c.  This value can be   *
  * over-ridden, for development and debugging, by setLeptDebugOK().        *
  *-------------------------------------------------------------------------*/
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
 LEPT_DLL extern l_int32  LeptDebugOK;  /* default is 0 */
+#ifdef __cplusplus
+}
+#endif  /* __cplusplus */
 
 
 /*------------------------------------------------------------------------*
@@ -320,18 +354,44 @@ typedef struct L_WallTimer  L_WALLTIMER;
 /*------------------------------------------------------------------------*
  *                      Standard memory allocation                        *
  *                                                                        *
- *  These specify the memory management functions that are used           *
- *  on all heap data except for Pix.  Memory management for Pix           *
- *  also defaults to malloc and free.  See pix1.c for details.            *
+ *  All default heap allocation is through the system malloc and free.    *
+ *                                                                        *
+ *  Leptonica also provides non-default allocation in two situations:     *
+ *                                                                        *
+ *  (1) A special allocator/deallocator pair can be provided for the      *
+ *      pix image data array.  This might be useful to prevent memory     *
+ *      fragmentation when large images are repeatedly allocated and      *
+ *      freed.  See the PixMemoryManager in pix1.c for details,           *
+ *      where the default is defined.                                     *
+ *                                                                        *
+ *  (2) Special allocator/deallocators can be provided for ALL heap       *
+ *      allocation if required, for example, for embedded systems.        *
+ *      For such builds, define LEPTONICA_INTERCEPT_ALLOC, and provide    *
+ *      custom leptonica_{malloc, calloc, realloc, free} functions.       *
  *------------------------------------------------------------------------*/
-#define LEPT_MALLOC(blocksize)           malloc(blocksize)
-#define LEPT_CALLOC(numelem, elemsize)   calloc(numelem, elemsize)
-#define LEPT_REALLOC(ptr, blocksize)     realloc(ptr, blocksize)
-#define LEPT_FREE(ptr)                   free(ptr)
-
+#ifdef LEPTONICA_INTERCEPT_ALLOC
+  #define LEPT_MALLOC(blocksize)           leptonica_malloc(blocksize)
+  #define LEPT_CALLOC(numelem, elemsize)   leptonica_calloc(numelem, elemsize)
+  #define LEPT_REALLOC(ptr, blocksize)     leptonica_realloc(ptr, blocksize)
+  #define LEPT_FREE(ptr)                   leptonica_free(ptr)
+  void *leptonica_malloc(size_t blocksize);
+  void *leptonica_calloc(size_t numelem, size_t elemsize);
+  void *leptonica_realloc(void *ptr, size_t blocksize);
+  void leptonica_free(void *ptr);
+#else
+  #define LEPT_MALLOC(blocksize)           malloc(blocksize)
+  #define LEPT_CALLOC(numelem, elemsize)   calloc(numelem, elemsize)
+  #define LEPT_REALLOC(ptr, blocksize)     realloc(ptr, blocksize)
+  #define LEPT_FREE(ptr)                   free(ptr)
+#endif   /* LEPTONICA_INTERCEPT_ALLOC */
 
 /*------------------------------------------------------------------------*
  *         Control printing of error, warning, and info messages          *
+ *                                                                        *
+ *  Leptonica never sends output to stdout.  By default, all messages     *
+ *  go to stderr.  However, we provide a mechanism for runtime            *
+ *  redirection of output, using a custom stderr handler defined          *
+ *  by the user.  See utils1.c for details and examples.                  *
  *                                                                        *
  *  To omit all messages to stderr, simply define NO_CONSOLE_IO on the    *
  *  command line.  For finer grained control, we have a mechanism         *
@@ -431,26 +491,44 @@ enum {
 #endif
 
 
-/*!  The run-time message severity threshold is defined in utils.c.  */
+/*!  The run-time message severity threshold is defined in utils1.c.  */
+#ifdef __cplusplus
+extern "C" {
+#endif  /* __cplusplus */
 LEPT_DLL extern l_int32  LeptMsgSeverity;
+#ifdef __cplusplus
+}
+#endif  /* __cplusplus */
+
 
 /*
  * <pre>
  *  Usage
  *  =====
- *  Messages are of two types.
+ *  Messages are of three types.
  *
  *  (1) The messages
  *      ERROR_INT(a,b,c)       : returns l_int32
  *      ERROR_FLOAT(a,b,c)     : returns l_float32
  *      ERROR_PTR(a,b,c)       : returns void*
- *  are used to return from functions and take a fixed set of parameters:
+ *  are used to return from functions and take three parameters:
  *      a : <message string>
- *      b : procName
+ *      b : __func__   (the procedure name)
  *      c : <return value from function>
- *  where procName is the name of the local variable naming the function.
+ *  A newline is added by the function after the message.
  *
- *  (2) The purely informational L_* messages
+ *  (2) The messages
+ *      ERROR_INT_1(a,f,b,c)     : returns l_int32
+ *      ERROR_FLOAT_1(a,f,b,c)   : returns l_float32
+ *      ERROR_PTR_1(a,f,b,c)     : returns void*
+ *  are used to return from functions and take four parameters:
+ *      a : <message string>
+ *      f : <second message string> (typically, a filename for an fopen()))
+ *      b : __func__   (the procedure name)
+ *      c : <return value from function>
+ *  A newline is added by the function after the message.
+ *
+ *  (3) The purely informational L_* messages
  *      L_ERROR(a,...)
  *      L_WARNING(a,...)
  *      L_INFO(a,...)
@@ -458,6 +536,8 @@ LEPT_DLL extern l_int32  LeptMsgSeverity;
  *      a  :  <message string> with optional format conversions
  *      v1 : procName    (this must be included as the first vararg)
  *      v2, ... :  optional varargs to match format converters in the message
+ *  Unlike the messages that return a value in (2) and (3) above,
+ *  here a newline needs to be included at the end of the message string.
  *
  *  To return an error from a function that returns void, use:
  *      L_ERROR(<message string>, procName, [...])
@@ -492,6 +572,9 @@ LEPT_DLL extern l_int32  LeptMsgSeverity;
   #define ERROR_INT(a, b, c)            ((l_int32)(c))
   #define ERROR_FLOAT(a, b, c)          ((l_float32)(c))
   #define ERROR_PTR(a, b, c)            ((void *)(c))
+  #define ERROR_INT_1(a, f, b, c)       ((l_int32)(c))
+  #define ERROR_FLOAT_1(a, f, b, c)     ((l_float32)(c))
+  #define ERROR_PTR_1(a, f, b, c)       ((void *)(c))
   #define L_ERROR(a, ...)
   #define L_WARNING(a, ...)
   #define L_INFO(a, ...)
@@ -509,34 +592,44 @@ LEPT_DLL extern l_int32  LeptMsgSeverity;
   #define ERROR_PTR(a, b, c) \
       IF_SEV(L_SEVERITY_ERROR, returnErrorPtr((a), (b), (c)), (void *)(c))
 
+  #define ERROR_INT_1(a, f, b, c) \
+      IF_SEV(L_SEVERITY_ERROR, returnErrorInt1((a), (f), (b), (c)), \
+             (l_int32)(c))
+  #define ERROR_FLOAT_1(a, f, b, c) \
+      IF_SEV(L_SEVERITY_ERROR, returnErrorFloat1((a), (f), (b), (c)), \
+             (l_float32)(c))
+  #define ERROR_PTR_1(a, f, b, c) \
+      IF_SEV(L_SEVERITY_ERROR, returnErrorPtr1((a), (f), (b), (c)), \
+             (void *)(c))
+
   #define L_ERROR(a, ...) \
       IF_SEV(L_SEVERITY_ERROR, \
-             (void)fprintf(stderr, "Error in %s: " a, __VA_ARGS__), \
+             (void)lept_stderr("Error in %s: " a, __VA_ARGS__), \
              (void)0)
   #define L_WARNING(a, ...) \
       IF_SEV(L_SEVERITY_WARNING, \
-             (void)fprintf(stderr, "Warning in %s: " a, __VA_ARGS__), \
+             (void)lept_stderr("Warning in %s: " a, __VA_ARGS__), \
              (void)0)
   #define L_INFO(a, ...) \
       IF_SEV(L_SEVERITY_INFO, \
-             (void)fprintf(stderr, "Info in %s: " a, __VA_ARGS__), \
+             (void)lept_stderr("Info in %s: " a, __VA_ARGS__), \
              (void)0)
 
 #if 0  /* Alternative method for controlling L_* message output */
   #define L_ERROR(a, ...) \
     { if (L_SEVERITY_ERROR >= MINIMUM_SEVERITY && \
           L_SEVERITY_ERROR >= LeptMsgSeverity) \
-          fprintf(stderr, "Error in %s: " a, __VA_ARGS__) \
+          lept_stderr("Error in %s: " a, __VA_ARGS__) \
     }
   #define L_WARNING(a, ...) \
     { if (L_SEVERITY_WARNING >= MINIMUM_SEVERITY && \
           L_SEVERITY_WARNING >= LeptMsgSeverity) \
-          fprintf(stderr, "Warning in %s: " a, __VA_ARGS__) \
+          lept_stderr("Warning in %s: " a, __VA_ARGS__) \
     }
   #define L_INFO(a, ...) \
     { if (L_SEVERITY_INFO >= MINIMUM_SEVERITY && \
           L_SEVERITY_INFO >= LeptMsgSeverity) \
-             fprintf(stderr, "Info in %s: " a, __VA_ARGS__) \
+          lept_stderr("Info in %s: " a, __VA_ARGS__) \
     }
 #endif
 

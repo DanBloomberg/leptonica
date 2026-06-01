@@ -32,6 +32,10 @@
  *     the plot commands and data required for input to gnuplot.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 
@@ -57,16 +61,15 @@
 int main(int    argc,
          char **argv)
 {
-char        *str1, *str2, *pngname;
-l_int32      i;
-size_t       size1, size2;
-l_float32    x, y1, y2, pi;
-GPLOT       *gplot1, *gplot2, *gplot3, *gplot4, *gplot5;
-NUMA        *nax, *nay1, *nay2;
-static char  mainName[] = "plottest";
+char      *str1, *str2, *pngname;
+l_int32    i;
+size_t     size1, size2;
+l_float32  x, y1, y2, pi;
+GPLOT     *gplot1, *gplot2, *gplot3, *gplot4, *gplot5;
+NUMA      *nax, *nay1, *nay2;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax:  plottest", mainName, 1);
+        return ERROR_INT(" Syntax:  plottest", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/plot");
@@ -103,21 +106,21 @@ static char  mainName[] = "plottest";
         /* Test gplot serialization */
     gplotWrite("/tmp/lept/plot/plot1.gp", gplot1);
     if ((gplot2 = gplotRead("/tmp/lept/plot/plot1.gp")) == NULL)
-        return ERROR_INT("gplotRead failure!", mainName, 1);
+        return ERROR_INT("gplotRead failure!", __func__, 1);
     gplotWrite("/tmp/lept/plot/plot2.gp", gplot2);
 
         /* Are the two written gplot files the same? */
     str1 = (char *)l_binaryRead("/tmp/lept/plot/plot1.gp", &size1);
     str2 = (char *)l_binaryRead("/tmp/lept/plot/plot2.gp", &size2);
     if (size1 != size2)
-        fprintf(stderr, "Error: size1 = %lu, size2 = %lu\n",
-                (unsigned long)size1, (unsigned long)size2);
+        lept_stderr("Error: size1 = %lu, size2 = %lu\n",
+                    (unsigned long)size1, (unsigned long)size2);
     else
-        fprintf(stderr, "Correct: size1 = size2 = %lu\n", (unsigned long)size1);
+        lept_stderr("Correct: size1 = size2 = %lu\n", (unsigned long)size1);
     if (strcmp(str1, str2) != 0)
-        fprintf(stderr, "Error: str1 != str2\n");
+        lept_stderr("Error: str1 != str2\n");
     else
-        fprintf(stderr, "Correct: str1 == str2\n");
+        lept_stderr("Correct: str1 == str2\n");
     lept_free(str1);
     lept_free(str2);
 
@@ -136,7 +139,7 @@ static char  mainName[] = "plottest";
         /* Write, read back, and generate the plot */
     gplotWrite("/tmp/lept/plot/plot4.gp", gplot4);
     if ((gplot5 = gplotRead("/tmp/lept/plot/plot4.gp")) == NULL)
-        return ERROR_INT("gplotRead failure!", mainName, 1);
+        return ERROR_INT("gplotRead failure!", __func__, 1);
     gplotMakeOutput(gplot5);
     l_fileDisplay("/tmp/lept/plot/set2.png", 750, 100, 1.0);
 

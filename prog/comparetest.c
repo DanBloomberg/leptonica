@@ -52,22 +52,25 @@
  *    the change?  Answer:  75 (!)
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
          char **argv)
 {
-l_int32      type, comptype, d1, d2, same, first, last;
-l_float32    fract, diff, rmsdiff;
-char        *filein1, *filein2, *fileout;
-GPLOT       *gplot;
-NUMA        *na1, *na2;
-PIX         *pixs1, *pixs2, *pixd;
-static char  mainName[] = "comparetest";
+l_int32    type, comptype, d1, d2, same, first, last;
+l_float32  fract, diff, rmsdiff;
+char      *filein1, *filein2, *fileout;
+GPLOT     *gplot;
+NUMA      *na1, *na2;
+PIX       *pixs1, *pixs2, *pixd;
 
     if (argc != 5)
         return ERROR_INT(" Syntax:  comparetest filein1 filein2 type fileout",
-                         mainName, 1);
+                         __func__, 1);
     filein1 = argv[1];
     filein2 = argv[2];
     type = atoi(argv[3]);
@@ -80,16 +83,16 @@ static char  mainName[] = "comparetest";
     l_pngSetReadStrip16To8(0);
 
     if ((pixs1 = pixRead(filein1)) == NULL)
-        return ERROR_INT("pixs1 not made", mainName, 1);
+        return ERROR_INT("pixs1 not made", __func__, 1);
     if ((pixs2 = pixRead(filein2)) == NULL)
-        return ERROR_INT("pixs2 not made", mainName, 1);
+        return ERROR_INT("pixs2 not made", __func__, 1);
     d1 = pixGetDepth(pixs1);
     d2 = pixGetDepth(pixs2);
 
     if (d1 == 1 && d2 == 1) {
         pixEqual(pixs1, pixs2, &same);
         if (same) {
-            fprintf(stderr, "Images are identical\n");
+            lept_stderr("Images are identical\n");
             pixd = pixCreateTemplate(pixs1);  /* write empty pix for diff */
         } else {
             if (type == 0)
@@ -97,7 +100,7 @@ static char  mainName[] = "comparetest";
             else
                 comptype = L_COMPARE_SUBTRACT;
             pixCompareBinary(pixs1, pixs2, comptype, &fract, &pixd);
-            fprintf(stderr, "Fraction of different pixels: %10.6f\n", fract);
+            lept_stderr("Fraction of different pixels: %10.6f\n", fract);
         }
         pixWrite(fileout, pixd, IFF_PNG);
     } else {
@@ -108,19 +111,19 @@ static char  mainName[] = "comparetest";
         pixCompareGrayOrRGB(pixs1, pixs2, comptype, GPLOT_PNG, &same, &diff,
                             &rmsdiff, &pixd);
         if (type == 0) {
-            if (same)
-                fprintf(stderr, "Images are identical\n");
-            else {
-                fprintf(stderr, "Images differ: <diff> = %10.6f\n", diff);
-                fprintf(stderr, "               <rmsdiff> = %10.6f\n", rmsdiff);
+            if (same) {
+                lept_stderr("Images are identical\n");
+            } else {
+                lept_stderr("Images differ: <diff> = %10.6f\n", diff);
+                lept_stderr("               <rmsdiff> = %10.6f\n", rmsdiff);
             }
         }
         else {  /* subtraction */
-            if (same)
-                fprintf(stderr, "pixs2 strictly greater than pixs1\n");
-            else {
-                fprintf(stderr, "Images differ: <diff> = %10.6f\n", diff);
-                fprintf(stderr, "               <rmsdiff> = %10.6f\n", rmsdiff);
+            if (same) {
+                lept_stderr("pixs2 strictly greater than pixs1\n");
+            } else {
+                lept_stderr("Images differ: <diff> = %10.6f\n", diff);
+                lept_stderr("               <rmsdiff> = %10.6f\n", rmsdiff);
             }
         }
         if (d1 != 16)
@@ -132,8 +135,8 @@ static char  mainName[] = "comparetest";
             na1 = pixCompareRankDifference(pixs1, pixs2, 1);
             if (na1) {
                 numaGetNonzeroRange(na1, 0.00005, &first, &last);
-                fprintf(stderr, "Nonzero diff range: first = %d, last = %d\n",
-                        first, last);
+                lept_stderr("Nonzero diff range: first = %d, last = %d\n",
+                             first, last);
                 na2 = numaClipToInterval(na1, first, last);
                 gplot = gplotCreate("/tmp/lept/comp/rank", GPLOT_PNG,
                                     "Pixel Rank Difference",

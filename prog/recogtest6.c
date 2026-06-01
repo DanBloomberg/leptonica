@@ -37,6 +37,10 @@
  *     5x faster than greedy splitting, DID is the default that is used.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "string.h"
 #include "allheaders.h"
 
@@ -55,7 +59,7 @@ PIXA     *pixa1, *pixa2;
 L_RECOG  *recog;
 
     if (argc != 1) {
-        fprintf(stderr, " Syntax: recogtest6\n");
+        lept_stderr(" Syntax: recogtest6\n");
         return 1;
     }
 
@@ -65,10 +69,10 @@ L_RECOG  *recog;
         /* Generate the recognizer */
     pixa1 = pixaRead("recog/sets/train01.pa");
     recog = recogCreateFromPixa(pixa1, 0, 0, 0, 128, 1);
-    recogAverageSamples(&recog, 0);
+    recogAverageSamples(recog, 0);
 
         /* Show the templates */
-    recogDebugAverages(&recog, 1);
+    recogDebugAverages(recog, 1);
     recogShowMatchesInRange(recog, recog->pixa_tr, 0.0, 1.0, 1);
 
         /* Get a set of problem images to decode */
@@ -87,14 +91,14 @@ L_RECOG  *recog;
             rchaExtract(recog->rcha, NULL, &nascore, NULL, NULL,
                         NULL, NULL, NULL);
             pixDisplay(pixdb, 300, 500);
-            boxaWriteStream(stderr, boxa);
-            numaWriteStream(stderr, nascore);
+            boxaWriteStderr(boxa);
+            numaWriteStderr(nascore);
             numaDestroy(&nascore);
             pixDestroy(&pixdb);
         } else {  /* just get the timing */
             startTimer();
             recogIdentifyMultiple(recog, pix2, 0, 0, &boxa, NULL, NULL, 0);
-            fprintf(stderr, "Time: %5.3f\n", stopTimer());
+            lept_stderr("Time: %5.3f\n", stopTimer());
         }
         pixDestroy(&pix1);
         pixDestroy(&pix2);

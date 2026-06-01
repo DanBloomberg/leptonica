@@ -30,6 +30,10 @@
  *  This tests removal and insertion operations in numa, boxa and pixa.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -44,6 +48,11 @@ NUMA         *na1, *na2;
 PIX          *pix, *pix1, *pix2;
 PIXA         *pixa1, *pixa2, *pixa3, *pixa4;
 L_REGPARAMS  *rp;
+
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "insert_reg");
+    exit(77);
+#endif
 
     if (regTestSetup(argc, argv, &rp))
         return 1;

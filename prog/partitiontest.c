@@ -49,47 +49,50 @@
  *    - as an rgb or colormapped image.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
          char **argv)
 {
-char        *filename;
-l_int32      w, h, type, maxboxes;
-l_float32    ovlap;
-BOX         *box;
-BOXA        *boxa, *boxat, *boxad;
-PIX         *pix, *pixs, *pix1, *pix2;
-PIXA        *pixa;
-static char  mainName[] = "partitiontest";
+char      *filename;
+l_int32    w, h, type, maxboxes;
+l_float32  ovlap;
+BOX       *box;
+BOXA      *boxa, *boxat, *boxad;
+PIX       *pix, *pixs, *pix0, *pix1, *pix2;
+PIXA      *pixa;
 
     if (argc != 3 && argc != 5)
         return ERROR_INT("syntax: partitiontest <fname> type [maxboxes ovlap]",
-                         mainName, 1);
+                         __func__, 1);
     filename = argv[1];
     type = atoi(argv[2]);
 
-    if (type == L_SORT_BY_WIDTH)
-        fprintf(stderr, "Sorting by width:\n");
-    else if (type == L_SORT_BY_HEIGHT)
-        fprintf(stderr, "Sorting by height:\n");
-    else if (type == L_SORT_BY_MAX_DIMENSION)
-        fprintf(stderr, "Sorting by maximum dimension:\n");
-    else if (type == L_SORT_BY_MIN_DIMENSION)
-        fprintf(stderr, "Sorting by minimum dimension:\n");
-    else if (type == L_SORT_BY_PERIMETER)
-        fprintf(stderr, "Sorting by perimeter:\n");
-    else if (type == L_SORT_BY_AREA)
-        fprintf(stderr, "Sorting by area:\n");
-    else {
-        fprintf(stderr, "Use one of the following for 'type':\n"
-               "     5:   L_SORT_BY_WIDTH\n"
-               "     6:   L_SORT_BY_HEIGHT\n"
-               "     7:   L_SORT_BY_MIN_DIMENSION\n"
-               "     8:   L_SORT_BY_MAX_DIMENSION\n"
-               "     9:   L_SORT_BY_PERIMETER\n"
-               "    10:   L_SORT_BY_AREA\n");
-        return ERROR_INT("invalid type: see source", mainName, 1);
+    if (type == L_SORT_BY_WIDTH) {
+        lept_stderr("Sorting by width:\n");
+    } else if (type == L_SORT_BY_HEIGHT) {
+        lept_stderr("Sorting by height:\n");
+    } else if (type == L_SORT_BY_MAX_DIMENSION) {
+        lept_stderr("Sorting by maximum dimension:\n");
+    } else if (type == L_SORT_BY_MIN_DIMENSION) {
+        lept_stderr("Sorting by minimum dimension:\n");
+    } else if (type == L_SORT_BY_PERIMETER) {
+        lept_stderr("Sorting by perimeter:\n");
+    } else if (type == L_SORT_BY_AREA) {
+        lept_stderr("Sorting by area:\n");
+    } else {
+        lept_stderr("Use one of the following for 'type':\n"
+                    "     5:   L_SORT_BY_WIDTH\n"
+                    "     6:   L_SORT_BY_HEIGHT\n"
+                    "     7:   L_SORT_BY_MIN_DIMENSION\n"
+                    "     8:   L_SORT_BY_MAX_DIMENSION\n"
+                    "     9:   L_SORT_BY_PERIMETER\n"
+                    "    10:   L_SORT_BY_AREA\n");
+        return ERROR_INT("invalid type: see source", __func__, 1);
     }
     if (argc == 5) {
         maxboxes = atoi(argv[3]);
@@ -102,6 +105,7 @@ static char  mainName[] = "partitiontest";
     setLeptDebugOK(1);
     pixa = pixaCreate(0);
     pix = pixRead(filename);
+    pixaAddPix(pixa, pix, L_COPY);
     pixs = pixConvertTo1(pix, 128);
     pixDilateBrick(pixs, pixs, 5, 5);
     pixaAddPix(pixa, pixs, L_COPY);
@@ -112,52 +116,54 @@ static char  mainName[] = "partitiontest";
     boxaPermuteRandom(boxa, boxa);
     boxat = boxaSelectBySize(boxa, 500, 500, L_SELECT_IF_BOTH,
                              L_SELECT_IF_LT, NULL);
+    pix0 = pixCopyWithBoxa(pixs, boxat, L_SET_WHITE);
+    pixaAddPix(pixa, pix0, L_COPY);
     boxad = boxaGetWhiteblocks(boxat, box, type, maxboxes, ovlap,
                                200, 0.15, 20000);
-    fprintf(stderr, "Time: %7.3f sec\n", stopTimer());
-/*    boxaWriteStream(stderr, boxad); */
+    lept_stderr("Time: %7.3f sec\n", stopTimer());
+/*    boxaWriteStderr(boxad); */
 
         /* Display box outlines in a single color in a cmapped image */
-    pix1 = pixDrawBoxa(pixs, boxad, 7, 0xe0708000);
+    pix1 = pixDrawBoxa(pix0, boxad, 7, 0xe0708000);
     pixaAddPix(pixa, pix1, L_INSERT);
 
         /* Display box outlines in a single color in an RGB image */
-    pix1 = pixConvertTo8(pixs, FALSE);
+    pix1 = pixConvertTo8(pix0, FALSE);
     pix2 = pixDrawBoxa(pix1, boxad, 7, 0x40a0c000);
     pixaAddPix(pixa, pix2, L_INSERT);
     pixDestroy(&pix1);
 
         /* Display box outlines with random colors in a cmapped image */
-    pix1 = pixDrawBoxaRandom(pixs, boxad, 7);
+    pix1 = pixDrawBoxaRandom(pix0, boxad, 7);
     pixaAddPix(pixa, pix1, L_INSERT);
 
         /* Display box outlines with random colors in an RGB image */
-    pix1 = pixConvertTo8(pixs, FALSE);
+    pix1 = pixConvertTo8(pix0, FALSE);
     pix2 = pixDrawBoxaRandom(pix1, boxad, 7);
     pixaAddPix(pixa, pix2, L_INSERT);
     pixDestroy(&pix1);
 
         /* Display boxes in the same color in a cmapped image */
-    pix1 = pixPaintBoxa(pixs, boxad, 0x60e0a000);
+    pix1 = pixPaintBoxa(pix0, boxad, 0x60e0a000);
     pixaAddPix(pixa, pix1, L_INSERT);
 
         /* Display boxes in the same color in an RGB image */
-    pix1 = pixConvertTo8(pixs, FALSE);
+    pix1 = pixConvertTo8(pix0, FALSE);
     pix2 = pixPaintBoxa(pix2, boxad, 0xc030a000);
     pixaAddPix(pixa, pix2, L_INSERT);
     pixDestroy(&pix1);
 
         /* Display boxes in random colors in a cmapped image */
-    pix1 = pixPaintBoxaRandom(pixs, boxad);
+    pix1 = pixPaintBoxaRandom(pix0, boxad);
     pixaAddPix(pixa, pix1, L_INSERT);
 
         /* Display boxes in random colors in an RGB image */
-    pix1 = pixConvertTo8(pixs, FALSE);
+    pix1 = pixConvertTo8(pix0, FALSE);
     pix2 = pixPaintBoxaRandom(pix1, boxad);
     pixaAddPix(pixa, pix2, L_INSERT);
     pixDestroy(&pix1);
 
-    fprintf(stderr, "Writing to: /tmp/lept/part/partition.pdf\n");
+    lept_stderr("Writing to: /tmp/lept/part/partition.pdf\n");
     lept_mkdir("lept/part");
     pixaConvertToPdf(pixa, 300, 1.0, L_FLATE_ENCODE, 0, "Partition test",
                      "/tmp/lept/part/partition.pdf");
@@ -165,6 +171,7 @@ static char  mainName[] = "partitiontest";
 
     pixDestroy(&pix);
     pixDestroy(&pixs);
+    pixDestroy(&pix0);
     boxDestroy(&box);
     boxaDestroy(&boxa);
     boxaDestroy(&boxat);

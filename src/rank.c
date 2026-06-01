@@ -118,6 +118,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 /*----------------------------------------------------------------------*
@@ -151,19 +155,17 @@ pixRankFilter(PIX       *pixs,
 {
 l_int32  d;
 
-    PROCNAME("pixRankFilter");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetColormap(pixs) != NULL)
-        return (PIX *)ERROR_PTR("pixs has colormap", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs has colormap", __func__, NULL);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", __func__, NULL);
     if (wf < 1 || hf < 1)
-        return (PIX *)ERROR_PTR("wf < 1 || hf < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("wf < 1 || hf < 1", __func__, NULL);
     if (rank < 0.0 || rank > 1.0)
-        return (PIX *)ERROR_PTR("rank must be in [0.0, 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("rank must be in [0.0, 1.0]", __func__, NULL);
     if (wf == 1 && hf == 1)   /* no-op */
         return pixCopy(NULL, pixs);
 
@@ -203,16 +205,14 @@ pixRankFilterRGB(PIX       *pixs,
 {
 PIX  *pixr, *pixg, *pixb, *pixrf, *pixgf, *pixbf, *pixd;
 
-    PROCNAME("pixRankFilterRGB");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (wf < 1 || hf < 1)
-        return (PIX *)ERROR_PTR("wf < 1 || hf < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("wf < 1 || hf < 1", __func__, NULL);
     if (rank < 0.0 || rank > 1.0)
-        return (PIX *)ERROR_PTR("rank must be in [0.0, 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("rank must be in [0.0, 1.0]", __func__, NULL);
     if (wf == 1 && hf == 1)   /* no-op */
         return pixCopy(NULL, pixs);
 
@@ -274,19 +274,17 @@ l_int32   *histo, *histo16;
 l_uint32  *datat, *linet, *datad, *lined;
 PIX       *pixt, *pixd;
 
-    PROCNAME("pixRankFilterGray");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetColormap(pixs) != NULL)
-        return (PIX *)ERROR_PTR("pixs has colormap", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs has colormap", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (wf < 1 || hf < 1)
-        return (PIX *)ERROR_PTR("wf < 1 || hf < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("wf < 1 || hf < 1", __func__, NULL);
     if (rank < 0.0 || rank > 1.0)
-        return (PIX *)ERROR_PTR("rank must be in [0.0, 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("rank must be in [0.0, 1.0]", __func__, NULL);
     if (wf == 1 && hf == 1)   /* no-op */
         return pixCopy(NULL, pixs);
 
@@ -302,15 +300,15 @@ PIX       *pixt, *pixd;
         else if (rank == 1.0)
             return pixDilateGray(pixs, wf, hf);
     }
-    if (rank == 0.0) rank = 0.0001;
-    if (rank == 1.0) rank = 0.9999;
+    if (rank == 0.0) rank = 0.0001f;
+    if (rank == 1.0) rank = 0.9999f;
 
         /* Add wf/2 to each side, and hf/2 to top and bottom of the
          * image, mirroring for accuracy and to avoid special-casing
          * the boundary. */
     if ((pixt = pixAddMirroredBorder(pixs, wf / 2, wf / 2, hf / 2, hf / 2))
         == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
 
         /* Set up the two histogram arrays. */
     histo = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
@@ -373,7 +371,7 @@ PIX       *pixt, *pixd;
                     }
                 }
                 if (n == 16) {  /* avoid accessing out of bounds */
-                    L_WARNING("n = 16; reducing\n", procName);
+                    L_WARNING("n = 16; reducing\n", __func__);
                     n = 15;
                     sum -= histo16[n];
                 }
@@ -429,7 +427,7 @@ PIX       *pixt, *pixd;
                     }
                 }
                 if (n == 16) {  /* avoid accessing out of bounds */
-                    L_WARNING("n = 16; reducing\n", procName);
+                    L_WARNING("n = 16; reducing\n", __func__);
                     n = 15;
                     sum -= histo16[n];
                 }
@@ -468,10 +466,8 @@ pixMedianFilter(PIX     *pixs,
                 l_int32  wf,
                 l_int32  hf)
 {
-    PROCNAME("pixMedianFilter");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     return pixRankFilter(pixs, wf, hf, 0.5);
 }
 
@@ -508,23 +504,21 @@ pixRankFilterWithScaling(PIX       *pixs,
 l_int32  w, h, d, wfs, hfs;
 PIX     *pix1, *pix2, *pixd;
 
-    PROCNAME("pixRankFilterWithScaling");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetColormap(pixs) != NULL)
-        return (PIX *)ERROR_PTR("pixs has colormap", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs has colormap", __func__, NULL);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", __func__, NULL);
     if (wf < 1 || hf < 1)
-        return (PIX *)ERROR_PTR("wf < 1 || hf < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("wf < 1 || hf < 1", __func__, NULL);
     if (rank < 0.0 || rank > 1.0)
-        return (PIX *)ERROR_PTR("rank must be in [0.0, 1.0]", procName, NULL);
+        return (PIX *)ERROR_PTR("rank must be in [0.0, 1.0]", __func__, NULL);
     if (wf == 1 && hf == 1)   /* no-op */
         return pixCopy(NULL, pixs);
     if (scalefactor < 0.2 || scalefactor > 0.7) {
-        L_ERROR("invalid scale factor; no scaling used\n", procName);
+        L_ERROR("invalid scale factor; no scaling used\n", __func__);
         return pixRankFilter(pixs, wf, hf, rank);
     }
 

@@ -40,7 +40,6 @@
  *    Use webpinfo to inspect the contents of an animated webp file.
  */
 
-    /* Needed for HAVE_LIBWEBP, HAVE_LIBWEBP_ANIM and HAVE_LIBJPEG */
 #ifdef HAVE_CONFIG_H
 #include <config_auto.h>
 #endif /* HAVE_CONFIG_H */
@@ -59,25 +58,25 @@ L_REGPARAMS  *rp;
         return 1;
 
 #if !HAVE_LIBJPEG
-    fprintf(stderr, "libjpeg is required for webpanimio_reg\n\n");
+    lept_stderr("libjpeg is required for webpanimio_reg\n\n");
     regTestCleanup(rp);
     return 0;
 #endif  /* abort */
 
 #if !HAVE_LIBWEBP || !HAVE_LIBWEBP_ANIM
-    fprintf(stderr, "webp and webpanim are not enabled\n"
-            "See environ.h:\n"
-            "    #define HAVE_LIBWEBP\n"
-            "    #define HAVE_LIBWEBP_ANIM\n"
-            "See prog/Makefile:\n"
-            "    link in -lwebp\n"
-            "    link in -lwebpmux\n\n");
+    lept_stderr("webp and webpanim are not enabled\n"
+                "See environ.h:\n"
+                "    #define HAVE_LIBWEBP\n"
+                "    #define HAVE_LIBWEBP_ANIM\n"
+                "See prog/Makefile:\n"
+                "    link in -lwebp\n"
+                "    link in -lwebpmux\n\n");
     regTestCleanup(rp);
     return 0;
 #endif  /* abort */
 
-    lept_rmdir("lept/webp");
-    lept_mkdir("lept/webp");
+    lept_rmdir("lept/webpanim");
+    lept_mkdir("lept/webpanim");
 
     niters = 5;
     duration = 250;   /* ms */
@@ -86,9 +85,9 @@ L_REGPARAMS  *rp;
     pixa = pixaCreate(6);
     pixaAddPix(pixa, pix1, L_COPY);
     pixaAddPix(pixa, pix2, L_COPY);
-    pixaWriteWebPAnim("/tmp/lept/webp/margeanim.webp", pixa, niters,
+    pixaWriteWebPAnim("/tmp/lept/webpanim/margeanim.webp", pixa, niters,
                       duration, 80, 0);
-    regTestCheckFile(rp, "/tmp/lept/webp/margeanim.webp");
+    regTestCheckFile(rp, "/tmp/lept/webpanim/margeanim.webp");
     pixaDestroy(&pixa);
     pixDestroy(&pix1);
     pixDestroy(&pix2);

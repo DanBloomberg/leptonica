@@ -31,6 +31,10 @@
  *   pix with 1, 2, 4, 8 and 32 bpp.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 l_int32 main(l_int32  argc,
@@ -46,8 +50,8 @@ L_REGPARAMS  *rp;
         return 1;
 
 #if !USE_PNMIO
-    fprintf(stderr, "pnm/pam writing is not enabled\n"
-            "See environ.h: #define USE_PNMIO 1\n\n");
+    lept_stderr("pnm/pam writing is not enabled\n"
+                "See environ.h: #define USE_PNMIO 1\n\n");
 
     regTestCleanup(rp);
     return 0;

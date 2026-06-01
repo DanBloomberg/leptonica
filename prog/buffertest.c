@@ -30,6 +30,10 @@
  *   Tests the bbuffer operations
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   NBLOCKS     11
@@ -37,23 +41,22 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_uint8     *array1, *array2, *dataout, *dataout2;
-l_int32      i, blocksize, same;
-size_t       nbytes, nout, nout2;
-L_BBUFFER   *bb, *bb2;
-FILE        *fp;
-static char  mainName[] = "buffertest";
+char       *filein, *fileout;
+l_uint8    *array1, *array2, *dataout, *dataout2;
+l_int32     i, blocksize, same;
+size_t      nbytes, nout, nout2;
+L_BBUFFER  *bb, *bb2;
+FILE       *fp;
 
     if (argc != 3)
-        return ERROR_INT(" Syntax:  buffertest filein fileout", mainName, 1);
+        return ERROR_INT(" Syntax:  buffertest filein fileout", __func__, 1);
     filein = argv[1];
     fileout = argv[2];
     setLeptDebugOK(1);
 
     if ((array1 = l_binaryRead(filein, &nbytes)) == NULL)
-        return ERROR_INT("array not made", mainName, 1);
-    fprintf(stderr, "Bytes read from file: %lu\n", (unsigned long)nbytes);
+        return ERROR_INT("array not made", __func__, 1);
+    lept_stderr("Bytes read from file: %lu\n", (unsigned long)nbytes);
 
         /* Application of byte buffer ops: compress/decompress in memory */
 #if 1
@@ -65,12 +68,11 @@ static char  mainName[] = "buffertest";
 
     filesAreIdentical(filein, "/tmp/dataout2", &same);
     if (same)
-        fprintf(stderr, "Correct: data is the same\n");
+        lept_stderr("Correct: data is the same\n");
     else
-        fprintf(stderr, "Error: data is different\n");
+        lept_stderr("Error: data is different\n");
 
-    fprintf(stderr,
-            "nbytes in = %lu, nbytes comp = %lu, nbytes uncomp = %lu\n",
+    lept_stderr("nbytes in = %lu, nbytes comp = %lu, nbytes uncomp = %lu\n",
             (unsigned long)nbytes, (unsigned long)nout, (unsigned long)nout2);
     lept_free(dataout);
     lept_free(dataout2);
@@ -83,23 +85,22 @@ static char  mainName[] = "buffertest";
 
     array2 = (l_uint8 *)lept_calloc(2 * nbytes, sizeof(l_uint8));
 
-    fprintf(stderr, " Bytes initially in buffer: %d\n", bb->n);
+    lept_stderr(" Bytes initially in buffer: %d\n", bb->n);
 
     blocksize = (2 * nbytes) / NBLOCKS;
     for (i = 0; i <= NBLOCKS; i++) {
         bbufferWrite(bb, array2, blocksize, &nout);
-        fprintf(stderr, " block %d: wrote %lu bytes\n", i + 1,
+        lept_stderr(" block %d: wrote %lu bytes\n", i + 1,
                 (unsigned long)nout);
     }
 
-    fprintf(stderr, " Bytes left in buffer: %d\n", bb->n);
+    lept_stderr(" Bytes left in buffer: %d\n", bb->n);
 
     bb2 = bbufferCreate(NULL, 0);
     bbufferRead(bb2, array1, nbytes);
     fp = lept_fopen(fileout, "wb");
     bbufferWriteStream(bb2, fp, nbytes, &nout);
-    fprintf(stderr, " bytes written out to fileout: %lu\n",
-            (unsigned long)nout);
+    lept_stderr(" bytes written out to fileout: %lu\n", (unsigned long)nout);
     lept_fclose(fp);
 
     bbufferDestroy(&bb);

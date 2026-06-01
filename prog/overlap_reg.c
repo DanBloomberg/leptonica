@@ -33,6 +33,10 @@
  *    Also tests the overlap and separation distance between boxes.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Determines maximum size of randomly-generated boxes.  Note the
@@ -89,9 +93,9 @@ L_REGPARAMS  *rp;
         pix3 = pixaDisplayTiledInRows(pixa1, 1, 1500, 1.0, 0, 50, 2);
         pixDisplayWithTitle(pix3, 100, 100 + 100 * k, NULL, rp->display);
         regTestWritePixAndCheck(rp, pix3, IFF_PNG);   /* 0 - 6 */
-        fprintf(stderr, "Test %d, maxsize = %d: n_init = %d, n_final = %d\n",
-                k + 1, (l_int32)maxsize[k] + 1,
-                boxaGetCount(boxa1), boxaGetCount(boxa2));
+        lept_stderr("Test %d, maxsize = %d: n_init = %d, n_final = %d\n",
+                    k + 1, (l_int32)maxsize[k] + 1,
+                    boxaGetCount(boxa1), boxaGetCount(boxa2));
         pixDestroy(&pix3);
         boxaDestroy(&boxa1);
         boxaDestroy(&boxa2);
@@ -173,7 +177,7 @@ L_REGPARAMS  *rp;
     /* --------------------------------------------------------- */
     box1 = boxCreate(0, 0, 1, 1);
     lept_mkdir("lept/overlap");
-    fp = fopenWriteStream("/tmp/lept/overlap/result.dat", "w");
+    fp = lept_fopen("/tmp/lept/overlap/result.dat", "wb");
     for (i = 0; i < 3; i++) {  /* 9 1x1 boxes on a 3x3 square */
         for (j = 0; j < 3; j++) {
             box2 = boxCreate(i, j, 1, 1);
@@ -184,7 +188,7 @@ L_REGPARAMS  *rp;
             boxDestroy(&box2);
         }
     }
-    fclose(fp);
+    lept_fclose(fp);
     data = l_binaryRead("/tmp/lept/overlap/result.dat", &nbytes);
     regTestWriteDataAndCheck(rp, data, nbytes, "dat");  /* 12 */
     lept_free(data);
@@ -203,10 +207,8 @@ l_int32  i, j, n1, n2, inter, interfound, niters;
 BOX     *box1, *box2, *box3;
 BOXA    *boxa1, *boxa2;
 
-    PROCNAME("boxaCombineOverlapsAlt");
-
     if (!boxas)
-        return (BOXA *)ERROR_PTR("boxas not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxas not defined", __func__, NULL);
 
     boxa1 = boxaCopy(boxas, L_COPY);
     n1 = boxaGetCount(boxa1);

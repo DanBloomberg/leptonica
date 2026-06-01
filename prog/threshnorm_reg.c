@@ -30,6 +30,10 @@
  *      Regression test for adaptive threshold normalization.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -51,7 +55,6 @@ L_REGPARAMS  *rp;
 
     pixs = pixRead("stampede2.jpg");
     pixa = pixaCreate(0);
-    pixSaveTiled(pixs, pixa, 1.0, 1, 20, 8);
 
     AddTestSet(pixa, pixs, L_SOBEL_EDGE, 18, 40, 40, 0.7, -25, 280, 128);
     AddTestSet(pixa, pixs, L_TWO_SIDED_EDGE, 18, 40, 40, 0.7, -25, 280, 128);
@@ -61,7 +64,7 @@ L_REGPARAMS  *rp;
     AddTestSet(pixa, pixs, L_TWO_SIDED_EDGE, 15, 40, 40, 0.6, -45, 285, 158);
 
     pixDestroy(&pixs);
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 6, 1.0, 20, 0);
     regTestWritePixAndCheck(rp, pixd, IFF_JFIF_JPEG);  /* 0 */
     pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
 
@@ -83,26 +86,20 @@ AddTestSet(PIXA      *pixa,
            l_int32    maxval,
            l_int32    targetthresh)
 {
-PIX  *pixb, *pixd, *pixth;
+PIX  *pix1, *pix2, *pix3;
 
     pixThresholdSpreadNorm(pixs, filtertype, edgethresh,
                            smoothx, smoothy, gamma, minval,
-                           maxval, targetthresh, &pixth, NULL, &pixd);
-    pixSaveTiled(pixth, pixa, 1.0, 1, 20, 0);
-    pixSaveTiled(pixd, pixa, 1.0, 0, 20, 0);
-    pixb = pixThresholdToBinary(pixd, targetthresh - 20);
-    pixSaveTiled(pixb, pixa, 1.0, 0, 20, 0);
-    pixDestroy(&pixb);
-    pixb = pixThresholdToBinary(pixd, targetthresh);
-    pixSaveTiled(pixb, pixa, 1.0, 0, 20, 0);
-    pixDestroy(&pixb);
-    pixb = pixThresholdToBinary(pixd, targetthresh + 20);
-    pixSaveTiled(pixb, pixa, 1.0, 0, 20, 0);
-    pixDestroy(&pixb);
-    pixb = pixThresholdToBinary(pixd, targetthresh + 40);
-    pixSaveTiled(pixb, pixa, 1.0, 0, 20, 0);
-    pixDestroy(&pixb);
-    pixDestroy(&pixth);
-    pixDestroy(&pixd);
+                           maxval, targetthresh, &pix1, NULL, &pix2);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pixaAddPix(pixa, pix2, L_INSERT);
+    pix3 = pixThresholdToBinary(pix2, targetthresh - 20);
+    pixaAddPix(pixa, pix3, L_INSERT);
+    pix3 = pixThresholdToBinary(pix2, targetthresh);
+    pixaAddPix(pixa, pix3, L_INSERT);
+    pix3 = pixThresholdToBinary(pix2, targetthresh + 20);
+    pixaAddPix(pixa, pix3, L_INSERT);
+    pix3 = pixThresholdToBinary(pix2, targetthresh + 40);
+    pixaAddPix(pixa, pix3, L_INSERT);
     return;
 }

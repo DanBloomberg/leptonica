@@ -42,8 +42,12 @@
  *               rank = 0.97
  *     (3) The two output files (for templates and c.c. data)
  *         are written with the rootname
- *               /tmp/lept/jb/result
+ *               /tmp/lept/jb_rankhaus/result
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
 
@@ -60,31 +64,25 @@
 #define   DISPLAY_DIFFERENCE        1
 #define   DISPLAY_ALL_INSTANCES     0
 
-    /* for display output of all instances, sorted by class */
-#define   X_SPACING                10
-#define   Y_SPACING                15
-#define   MAX_OUTPUT_WIDTH         400
-
-static const char  rootname[] = "/tmp/lept/jb/result";
+static const char  rootname[] = "/tmp/lept/jb_rankhaus/result";
 
 int main(int    argc,
          char **argv)
 {
-char         filename[BUF_SIZE];
-char        *dirin, *fname;
-l_int32      i, size, firstpage, npages, nfiles;
-l_float32    rank;
-JBDATA      *data;
-JBCLASSER   *classer;
-SARRAY      *safiles;
-PIX         *pix, *pixt;
-PIXA        *pixa, *pixadb;
-static char  mainName[] = "jbrankhaus";
+char        filename[BUF_SIZE];
+char       *dirin;
+l_int32     i, size, firstpage, npages, nfiles;
+l_float32   rank;
+JBDATA     *data;
+JBCLASSER  *classer;
+SARRAY     *safiles;
+PIX        *pix;
+PIXA       *pixa, *pixadb;
 
     if (argc != 4 && argc != 6)
         return ERROR_INT(
              " Syntax: jbrankhaus dirin size rank [firstpage, npages]",
-             mainName, 1);
+             __func__, 1);
     dirin = argv[1];
     size = atoi(argv[2]);
     rank = atof(argv[3]);
@@ -98,9 +96,9 @@ static char  mainName[] = "jbrankhaus";
     }
 
     setLeptDebugOK(1);
-    lept_mkdir("lept/jb");
+    lept_mkdir("lept/jb_rankhaus");
 
-#if 0
+#if 0   /* Choose library function or detailed steps */
 
     /*--------------------------------------------------------------*/
 
@@ -108,24 +106,25 @@ static char  mainName[] = "jbrankhaus";
 
     /*--------------------------------------------------------------*/
 
-#else
+#else   
 
     /*--------------------------------------------------------------*/
 
     safiles = getSortedPathnamesInDirectory(dirin, NULL, firstpage, npages);
     nfiles = sarrayGetCount(safiles);
-
-/*    sarrayWriteStream(stderr, safiles); */
+/*    sarrayWriteStderr(safiles); */
 
         /* Classify components on requested pages */
     startTimer();
     classer = jbRankHausInit(COMPONENTS, 0, 0, size, rank);
     jbAddPages(classer, safiles);
-    fprintf(stderr, "Time to classify components: %6.3f sec\n", stopTimer());
+    lept_stderr("Time to classify components: %6.3f sec\n", stopTimer());
 
         /* Save and write out the result */
     data = jbDataSave(classer);
     jbDataWrite(rootname, data);
+    if (classer)
+        lept_stderr("Number of classes: %d\n", classer->nclass);
 
         /* Render the pages from the classifier data.
          * Use debugflag == FALSE to omit outlines of each component. */
@@ -134,17 +133,16 @@ static char  mainName[] = "jbrankhaus";
         /* Write the pages out */
     npages = pixaGetCount(pixa);
     if (npages != nfiles)
-        fprintf(stderr, "npages = %d, nfiles = %d, not equal!\n",
-                npages, nfiles);
+        lept_stderr("npages = %d, nfiles = %d, not equal!\n", npages, nfiles);
     for (i = 0; i < npages; i++) {
         pix = pixaGetPix(pixa, i, L_CLONE);
         snprintf(filename, BUF_SIZE, "%s.%03d", rootname, i);
-        fprintf(stderr, "filename: %s\n", filename);
+        lept_stderr("filename: %s\n", filename);
         pixWrite(filename, pix, IFF_PNG);
         pixDestroy(&pix);
     }
 
-#if  DISPLAY_DIFFERENCE
+  #if  DISPLAY_DIFFERENCE
     {
     char *fname;
     PIX  *pix1, *pix2;
@@ -156,9 +154,9 @@ static char  mainName[] = "jbrankhaus";
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     }
-#endif  /* DISPLAY_DIFFERENCE */
+  #endif  /* DISPLAY_DIFFERENCE */
 
-#if  DEBUG_TEST_DATA_IO
+  #if  DEBUG_TEST_DATA_IO
     {
     JBDATA  *newdata;
     PIX     *newpix;
@@ -175,22 +173,22 @@ static char  mainName[] = "jbrankhaus";
         pixEqual(pix, newpix, &same);
         if (!same) {
             iofail = TRUE;
-            fprintf(stderr, "pix on page %d are unequal!\n", i);
+            lept_stderr("pix on page %d are unequal!\n", i);
         }
         pixDestroy(&pix);
         pixDestroy(&newpix);
 
     }
     if (iofail)
-        fprintf(stderr, "read/write for jbdata fails\n");
+        lept_stderr("read/write for jbdata fails\n");
     else
-        fprintf(stderr, "read/write for jbdata succeeds\n");
+        lept_stderr("read/write for jbdata succeeds\n");
     jbDataDestroy(&newdata);
     pixaDestroy(&newpixa);
     }
-#endif  /* DEBUG_TEST_DATA_IO */
+  #endif  /* DEBUG_TEST_DATA_IO */
 
-#if  RENDER_DEBUG
+  #if  RENDER_DEBUG
         /* Use debugflag == TRUE to see outlines of each component. */
     pixadb = jbDataRender(data, TRUE);
         /* Write the debug pages out */
@@ -198,20 +196,20 @@ static char  mainName[] = "jbrankhaus";
     for (i = 0; i < npages; i++) {
         pix = pixaGetPix(pixadb, i, L_CLONE);
         snprintf(filename, BUF_SIZE, "%s.db.%04d", rootname, i);
-        fprintf(stderr, "filename: %s\n", filename);
+        lept_stderr("filename: %s\n", filename);
         pixWrite(filename, pix, IFF_PNG);
         pixDestroy(&pix);
     }
     pixaDestroy(&pixadb);
-#endif  /* RENDER_DEBUG */
+  #endif  /* RENDER_DEBUG */
 
-#if  DISPLAY_ALL_INSTANCES
-        /* display all instances, organized by template */
-    pix = pixaaDisplayByPixa(classer->pixaa,
-                             X_SPACING, Y_SPACING, MAX_OUTPUT_WIDTH);
+  #if  DISPLAY_ALL_INSTANCES
+        /* Display all instances, organized by template
+         * The display programs have a lot of trouble with these. */
+    pix = pixaaDisplayByPixa(classer->pixaa, 5, 1.0, 10, 0, 0);
     pixWrite("/tmp/lept/jb/output_instances", pix, IFF_PNG);
     pixDestroy(&pix);
-#endif  /* DISPLAY_ALL_INSTANCES */
+  #endif  /* DISPLAY_ALL_INSTANCES */
 
     pixaDestroy(&pixa);
     sarrayDestroy(&safiles);
@@ -220,7 +218,7 @@ static char  mainName[] = "jbrankhaus";
 
     /*--------------------------------------------------------------*/
 
-#endif
+#endif  /* Choose library function or detailed steps */
 
     return 0;
 }

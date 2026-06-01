@@ -36,16 +36,18 @@
  *         writemtiff <dirin> <pattern> <fileout>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
          char **argv)
 {
-static char  mainName[] = "writemtiff";
-
     if (argc != 3 && argc != 4)
         return ERROR_INT(" Syntax:  writemtiff dirin [pattern] fileout",
-                         mainName, 1);
+                         __func__, 1);
 
     setLeptDebugOK(1);
     if (argc == 3)

@@ -29,11 +29,16 @@
  *
  *   Regression test for this function:
  *       pixAddAlphaToBlend()
- *
  *   Blending is done using pixBlendWithGrayMask()
+ *
+ *   Also, show blending of two color images using an alpha mask that
+ *   varies linearly with radius from the center (which is transparent).
  */
 
 #include "allheaders.h"
+#include <math.h>
+
+static PIX *AlphaRectangle(l_int32 w, l_int32 h, l_float32 fract);
 
 static const char *blenders[] =
             {"feyn-word.tif", "weasel4.16c.png", "karen8.jpg"};
@@ -42,7 +47,7 @@ int main(int    argc,
          char **argv)
 {
 l_int32       i, w, h;
-PIX          *pix0, *pix1, *pix2, *pix3, *pix4, *pix5;
+PIX          *pix0, *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
 
@@ -89,6 +94,31 @@ L_REGPARAMS  *rp;
         pixDestroy(&pix3);
         pixDestroy(&pix4);
     }
+    pixDestroy(&pix0);
+    pixDestroy(&pix1);
+
+        /* Blending of two color images using special mask */
+    pix1 = pixRead("fish24.jpg");
+    pix2 = pixRead("wyom.jpg");
+    pixGetDimensions(pix2, &w, &h, NULL);
+    pix3 = pixRotateOrth(pix1, 1);
+    pix4 = pixScaleToSize(pix3, w, h);   /* same size as wyom.jpg */
+    pix5 = AlphaRectangle(w, h, 1.0);
+    pix6 = pixBlendWithGrayMask(pix4, pix2, pix5, 0, 0);
+    pix7 = pixBlendWithGrayMask(pix2, pix4, pix5, 0, 0);
+    pixDisplayWithTitle(pix6, 1000, 0, NULL, rp->display);
+    pixDisplayWithTitle(pix7, 1000, 500, NULL, rp->display);
+    regTestWritePixAndCheck(rp, pix4, IFF_JFIF_JPEG);  /* 5 */
+    regTestWritePixAndCheck(rp, pix5, IFF_JFIF_JPEG);  /* 6 */
+    regTestWritePixAndCheck(rp, pix6, IFF_JFIF_JPEG);  /* 7 */
+    regTestWritePixAndCheck(rp, pix7, IFF_JFIF_JPEG);  /* 8 */
+    pixaAddPix(pixa, pix2, L_INSERT);
+    pixaAddPix(pixa, pix4, L_INSERT);
+    pixaAddPix(pixa, pix5, L_INSERT);
+    pixaAddPix(pixa, pix6, L_INSERT);
+    pixaAddPix(pixa, pix7, L_INSERT);
+    pixDestroy(&pix1);
+    pixDestroy(&pix3);
 
     pixaConvertToPdf(pixa, 100, 1.0, L_JPEG_ENCODE, 0,
                      "Blendings: blend4_reg", "/tmp/lept/regout/blend.pdf");
@@ -98,5 +128,35 @@ L_REGPARAMS  *rp;
     pixaDestroy(&pixa);
 
     return regTestCleanup(rp);
+}
+
+
+    /* Rectangular mask: opaque at center, linear change towards
+     * transparency with distance from the center */
+PIX *
+AlphaRectangle(l_int32 w, l_int32 h, l_float32 fract)
+{
+l_int32    i, j, wpl, w2, h2, val;
+l_float32  frdist;
+l_uint32  *data, *line;
+PIX       *pixd;
+
+    pixd = pixCreate(w, h, 8);
+    data = pixGetData(pixd);
+    wpl = pixGetWpl(pixd);
+    w2 = w / 2;
+    h2 = h / 2;
+    for (i = 0; i < h; i++) {
+        line = data + i * wpl;
+        for (j = 0; j < w; j++) {
+            frdist = sqrt((h2 - i) * (h2 - i) + (w2 - j) * (w2 - j)) /
+                     sqrt(w2 * w2 + h2 * h2);
+            val = (l_int32)(255. * (1.0 - frdist * fract));
+            SET_DATA_BYTE(line, j, val);
+        }
+    }
+
+    return pixd;
+
 }
 

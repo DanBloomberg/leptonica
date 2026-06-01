@@ -29,6 +29,10 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const l_int32  NX = 4;
@@ -94,7 +98,7 @@ PIXCMAP  *cmap;
     pixaAddPix(pixa, pix2, L_COPY);
     cmap = pixGetColormap(pix2);
     pixcmapWriteStream(stderr, cmap);
-    fprintf(stderr, "Writing to: /tmp/lept/blend/blendcmap.pdf\n");
+    lept_stderr("Writing to: /tmp/lept/blend/blendcmap.pdf\n");
     pixaConvertToPdf(pixa, 0, 1.0, L_FLATE_ENCODE, 0, "cmap-blendtest",
                      "/tmp/lept/blend/blendcmap.pdf");
 

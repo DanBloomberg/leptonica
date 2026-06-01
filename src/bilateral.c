@@ -73,6 +73,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 #include "bilateral.h"
@@ -87,7 +91,6 @@ static void bilateralDestroy(L_BILATERAL **pbil);
 #ifndef  NO_CONSOLE_IO
 #define  DEBUG_BILATERAL    0
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /*--------------------------------------------------------------------------*
  *  Top level approximate separable grayscale or color bilateral filtering  *
@@ -145,6 +148,9 @@ static void bilateralDestroy(L_BILATERAL **pbil);
  *          range_stdev = 60, ncomps = 6, and spatial_dev = {10, 30, 50}.
  *          As spatial_dev gets larger, we get the counter-intuitive
  *          result that the body of the red fish becomes less blurry.
+ *      (8) The image must be sufficiently big to get reasonable results.
+ *          This requires the dimensions to be at least twice the filter size.
+ *          Otherwise, return a copy of the input with warning.
  * </pre>
  */
 PIX *
@@ -154,28 +160,32 @@ pixBilateral(PIX       *pixs,
              l_int32    ncomps,
              l_int32    reduction)
 {
-l_int32       d;
+l_int32       w, h, d, filtersize;
 l_float32     sstdev;  /* scaled spatial stdev */
 PIX          *pixt, *pixr, *pixg, *pixb, *pixd;
 
-    PROCNAME("pixBilateral");
-
     if (!pixs || pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pixs not defined or cmapped", procName, NULL);
-    d = pixGetDepth(pixs);
+        return (PIX *)ERROR_PTR("pixs not defined or cmapped", __func__, NULL);
+    pixGetDimensions(pixs, &w, &h, &d);
     if (d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", __func__, NULL);
     if (reduction != 1 && reduction != 2 && reduction != 4)
-        return (PIX *)ERROR_PTR("reduction invalid", procName, NULL);
+        return (PIX *)ERROR_PTR("reduction invalid", __func__, NULL);
+    filtersize = (l_int32)(2.0 * spatial_stdev + 1.0 + 0.5);
+    if (w < 2 * filtersize || h < 2 * filtersize) {
+        L_WARNING("w = %d, h = %d; w or h < 2 * filtersize = %d; "
+                  "returning copy\n", __func__, w, h, 2 * filtersize);
+        return pixCopy(NULL, pixs);
+    }
     sstdev = spatial_stdev / (l_float32)reduction;  /* reduced spat. stdev */
     if (sstdev < 0.5)
-        return (PIX *)ERROR_PTR("sstdev < 0.5", procName, NULL);
+        return (PIX *)ERROR_PTR("sstdev < 0.5", __func__, NULL);
     if (range_stdev <= 5.0)
-        return (PIX *)ERROR_PTR("range_stdev <= 5.0", procName, NULL);
+        return (PIX *)ERROR_PTR("range_stdev <= 5.0", __func__, NULL);
     if (ncomps < 4 || ncomps > 30)
-        return (PIX *)ERROR_PTR("ncomps not in [4 ... 30]", procName, NULL);
+        return (PIX *)ERROR_PTR("ncomps not in [4 ... 30]", __func__, NULL);
     if (ncomps * range_stdev < 100.0)
-        return (PIX *)ERROR_PTR("ncomps * range_stdev < 100.0", procName, NULL);
+        return (PIX *)ERROR_PTR("ncomps * range_stdev < 100.0", __func__, NULL);
 
     if (d == 8)
         return pixBilateralGray(pixs, spatial_stdev, range_stdev,
@@ -229,26 +239,24 @@ l_float32     sstdev;  /* scaled spatial stdev */
 PIX          *pixd;
 L_BILATERAL  *bil;
 
-    PROCNAME("pixBilateralGray");
-
     if (!pixs || pixGetColormap(pixs))
-        return (PIX *)ERROR_PTR("pixs not defined or cmapped", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined or cmapped", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs not 8 bpp gray", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 bpp gray", __func__, NULL);
     if (reduction != 1 && reduction != 2 && reduction != 4)
-        return (PIX *)ERROR_PTR("reduction invalid", procName, NULL);
+        return (PIX *)ERROR_PTR("reduction invalid", __func__, NULL);
     sstdev = spatial_stdev / (l_float32)reduction;  /* reduced spat. stdev */
     if (sstdev < 0.5)
-        return (PIX *)ERROR_PTR("sstdev < 0.5", procName, NULL);
+        return (PIX *)ERROR_PTR("sstdev < 0.5", __func__, NULL);
     if (range_stdev <= 5.0)
-        return (PIX *)ERROR_PTR("range_stdev <= 5.0", procName, NULL);
+        return (PIX *)ERROR_PTR("range_stdev <= 5.0", __func__, NULL);
     if (ncomps < 4 || ncomps > 30)
-        return (PIX *)ERROR_PTR("ncomps not in [4 ... 30]", procName, NULL);
+        return (PIX *)ERROR_PTR("ncomps not in [4 ... 30]", __func__, NULL);
     if (ncomps * range_stdev < 100.0)
-        return (PIX *)ERROR_PTR("ncomps * range_stdev < 100.0", procName, NULL);
+        return (PIX *)ERROR_PTR("ncomps * range_stdev < 100.0", __func__, NULL);
 
     bil = bilateralCreate(pixs, spatial_stdev, range_stdev, ncomps, reduction);
-    if (!bil) return (PIX *)ERROR_PTR("bil not made", procName, NULL);
+    if (!bil) return (PIX *)ERROR_PTR("bil not made", __func__, NULL);
     pixd = bilateralApply(bil);
     bilateralDestroy(&bil);
     return pixd;
@@ -294,40 +302,39 @@ l_int32      *nc, *kindex;
 l_float32    *kfract, *range, *spatial;
 l_uint32     *datas, *datat, *datad, *lines, *linet, *lined;
 L_BILATERAL  *bil;
-PIX          *pixt, *pixt2, *pixsc, *pixd;
+PIX          *pix1, *pix2, *pixt, *pixsc, *pixd;
 PIXA         *pixac;
 
-    PROCNAME("bilateralCreate");
+    if (reduction == 1) {
+        pix1 = pixClone(pixs);
+    } else if (reduction == 2) {
+        pix1 = pixScaleAreaMap2(pixs);
+    } else {  /* reduction == 4) */
+        pix2 = pixScaleAreaMap2(pixs);
+        pix1 = pixScaleAreaMap2(pix2);
+        pixDestroy(&pix2);
+    }
+    if (!pix1)
+        return (L_BILATERAL *)ERROR_PTR("pix1 not made", __func__, NULL);
 
     sstdev = spatial_stdev / (l_float32)reduction;  /* reduced spat. stdev */
-    if ((bil = (L_BILATERAL *)LEPT_CALLOC(1, sizeof(L_BILATERAL))) == NULL)
-        return (L_BILATERAL *)ERROR_PTR("bil not made", procName, NULL);
+    border = (l_int32)(2 * sstdev + 1);
+    pixsc = pixAddMirroredBorder(pix1, border, border, border, border);
+    pixGetExtremeValue(pix1, 1, L_SELECT_MIN, NULL, NULL, NULL, &minval);
+    pixGetExtremeValue(pix1, 1, L_SELECT_MAX, NULL, NULL, NULL, &maxval);
+    pixDestroy(&pix1);
+    if (!pixsc)
+        return (L_BILATERAL *)ERROR_PTR("pixsc not made", __func__, NULL);
+
+    bil = (L_BILATERAL *)LEPT_CALLOC(1, sizeof(L_BILATERAL));
     bil->spatial_stdev = sstdev;
     bil->range_stdev = range_stdev;
     bil->reduction = reduction;
     bil->ncomps = ncomps;
-
-    if (reduction == 1) {
-        pixt = pixClone(pixs);
-    } else if (reduction == 2) {
-        pixt = pixScaleAreaMap2(pixs);
-    } else {  /* reduction == 4) */
-        pixt2 = pixScaleAreaMap2(pixs);
-        pixt = pixScaleAreaMap2(pixt2);
-        pixDestroy(&pixt2);
-    }
-
-    pixGetExtremeValue(pixt, 1, L_SELECT_MIN, NULL, NULL, NULL, &minval);
-    pixGetExtremeValue(pixt, 1, L_SELECT_MAX, NULL, NULL, NULL, &maxval);
     bil->minval = minval;
     bil->maxval = maxval;
-
-    border = (l_int32)(2 * sstdev + 1);
-    pixsc = pixAddMirroredBorder(pixt, border, border, border, border);
     bil->pixsc = pixsc;
-    pixDestroy(&pixt);
     bil->pixs = pixClone(pixs);
-
 
     /* -------------------------------------------------------------------- *
      * Generate arrays for interpolation of J(k,x):
@@ -368,17 +375,16 @@ PIXA         *pixac;
 
 #if  DEBUG_BILATERAL
     for (i = minval; i <= maxval; i++)
-      fprintf(stderr, "kindex[%d] = %d; kfract[%d] = %5.3f\n",
-              i, kindex[i], i, kfract[i]);
+      lept_stderr("kindex[%d] = %d; kfract[%d] = %5.3f\n",
+                  i, kindex[i], i, kfract[i]);
     for (i = 0; i < ncomps; i++)
-      fprintf(stderr, "nc[%d] = %d\n", i, nc[i]);
+      lept_stderr("nc[%d] = %d\n", i, nc[i]);
 #endif  /* DEBUG_BILATERAL */
-
 
     /* -------------------------------------------------------------------- *
      *             Generate 1-D kernel arrays (spatial and range)           *
      * -------------------------------------------------------------------- */
-    spatial_size = 2 * sstdev + 1;
+    spatial_size = 2 * sstdev + 1;  /* same as the added border */
     spatial = (l_float32 *)LEPT_CALLOC(spatial_size, sizeof(l_float32));
     denom = 2. * sstdev * sstdev;
     for (i = 0; i < spatial_size; i++)
@@ -390,7 +396,6 @@ PIXA         *pixac;
     for (i = 0; i < 256; i++)
         range[i] = expf(-(l_float32)(i * i) / denom);
     bil->range = range;
-
 
     /* -------------------------------------------------------------------- *
      *            Generate principal bilateral component images             *
@@ -421,8 +426,10 @@ PIXA         *pixac;
                     sum += kern * nval;
                     norm += kern;
                 }
-                dval = (l_int32)((sum / norm) + 0.5);
-                SET_DATA_BYTE(linet, border + j, dval);
+                if (norm > 0.0) {
+                    dval = (l_int32)((sum / norm) + 0.5);
+                    SET_DATA_BYTE(linet, border + j, dval);
+                }
             }
         }
             /* Vertical convolution */
@@ -441,7 +448,10 @@ PIXA         *pixac;
                     sum += kern * nval;
                     norm += kern;
                 }
-                dval = (l_int32)((sum / norm) + 0.5);
+                if (norm > 0.0)
+                    dval = (l_int32)((sum / norm) + 0.5);
+                else
+                    dval = GET_DATA_BYTE(linet, border + j);
                 SET_DATA_BYTE(lined, j, dval);
             }
         }
@@ -450,7 +460,6 @@ PIXA         *pixac;
     }
     bil->pixac = pixac;
     bil->lineset = (l_uint32 ***)pixaGetLinePtrs(pixac, NULL);
-
     return bil;
 }
 
@@ -474,10 +483,8 @@ l_uint32  ***lineset = NULL;  /* for set of PBC */
 PIX         *pixs, *pixd;
 PIXA        *pixac;
 
-    PROCNAME("bilateralApply");
-
     if (!bil)
-        return (PIX *)ERROR_PTR("bil not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("bil not defined", __func__, NULL);
     pixs = bil->pixs;
     ncomps = bil->ncomps;
     kindex = bil->kindex;
@@ -486,10 +493,10 @@ PIXA        *pixac;
     pixac = bil->pixac;
     lineset = bil->lineset;
     if (pixaGetCount(pixac) != ncomps)
-        return (PIX *)ERROR_PTR("PBC images do not exist", procName, NULL);
+        return (PIX *)ERROR_PTR("PBC images do not exist", __func__, NULL);
 
     if ((pixd = pixCreateTemplate(pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
     datad = pixGetData(pixd);
@@ -526,10 +533,8 @@ bilateralDestroy(L_BILATERAL  **pbil)
 l_int32       i;
 L_BILATERAL  *bil;
 
-    PROCNAME("bilateralDestroy");
-
     if (pbil == NULL) {
-        L_WARNING("ptr address is null!\n", procName);
+        L_WARNING("ptr address is null!\n", __func__);
         return;
     }
 
@@ -549,7 +554,6 @@ L_BILATERAL  *bil;
     LEPT_FREE(bil->lineset);
     LEPT_FREE(bil);
     *pbil = NULL;
-    return;
 }
 
 
@@ -587,16 +591,15 @@ pixBilateralExact(PIX       *pixs,
 l_int32  d;
 PIX     *pixt, *pixr, *pixg, *pixb, *pixd;
 
-    PROCNAME("pixBilateralExact");
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetColormap(pixs) != NULL)
-        return (PIX *)ERROR_PTR("pixs is cmapped", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs is cmapped", __func__, NULL);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", __func__, NULL);
     if (!spatial_kel)
-        return (PIX *)ERROR_PTR("spatial_ke not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("spatial_ke not defined", __func__, NULL);
 
     if (d == 8) {
         return pixBilateralGrayExact(pixs, spatial_kel, range_kel);
@@ -645,26 +648,29 @@ l_float32  sum, weight_sum, weight;
 L_KERNEL  *keli;
 PIX       *pixt, *pixd;
 
-    PROCNAME("pixBilateralGrayExact");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("pixs must be gray", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs must be gray", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (!spatial_kel)
-        return (PIX *)ERROR_PTR("spatial kel not defined", procName, NULL);
-
+        return (PIX *)ERROR_PTR("spatial kel not defined", __func__, NULL);
+    kernelGetParameters(spatial_kel, &sy, &sx, NULL, NULL);
+    if (w < 2 * sx + 1 || h < 2 * sy + 1) {
+        L_WARNING("w = %d < 2 * sx + 1 = %d, or h = %d < 2 * sy + 1 = %d; "
+                  "returning copy\n", __func__, w, 2 * sx + 1, h, 2 * sy + 1);
+        return pixCopy(NULL, pixs);
+    }
     if (!range_kel)
-      return pixConvolve(pixs, spatial_kel, 8, 1);
+        return pixConvolve(pixs, spatial_kel, 8, 1);
     if (range_kel->sx != 256 || range_kel->sy != 1)
-        return (PIX *)ERROR_PTR("range kel not {256 x 1", procName, NULL);
+        return (PIX *)ERROR_PTR("range kel not {256 x 1", __func__, NULL);
 
     keli = kernelInvert(spatial_kel);
     kernelGetParameters(keli, &sy, &sx, &cy, &cx);
     if ((pixt = pixAddMirroredBorder(pixs, cx, sx - cx, cy, sy - cy)) == NULL) {
         kernelDestroy(&keli);
-        return (PIX *)ERROR_PTR("pixt not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixt not made", __func__, NULL);
     }
 
     pixd = pixCreate(w, h, 8);
@@ -743,19 +749,17 @@ l_int32    d, halfwidth;
 L_KERNEL  *spatial_kel, *range_kel;
 PIX       *pixd;
 
-    PROCNAME("pixBlockBilateralExact");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
-        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", __func__, NULL);
     if (pixGetColormap(pixs) != NULL)
-        return (PIX *)ERROR_PTR("pixs is cmapped", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs is cmapped", __func__, NULL);
     if (spatial_stdev <= 0.0)
-        return (PIX *)ERROR_PTR("invalid spatial stdev", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid spatial stdev", __func__, NULL);
     if (range_stdev <= 0.0)
-        return (PIX *)ERROR_PTR("invalid range stdev", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid range stdev", __func__, NULL);
 
     halfwidth = 2 * spatial_stdev;
     spatial_kel = makeGaussianKernel(halfwidth, halfwidth, spatial_stdev, 1.0);
@@ -793,14 +797,12 @@ l_int32    x;
 l_float32  val, denom;
 L_KERNEL  *kel;
 
-    PROCNAME("makeRangeKernel");
-
     if (range_stdev <= 0.0)
-        return (L_KERNEL *)ERROR_PTR("invalid stdev <= 0", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("invalid stdev <= 0", __func__, NULL);
 
     denom = 2. * range_stdev * range_stdev;
     if ((kel = kernelCreate(1, 256)) == NULL)
-        return (L_KERNEL *)ERROR_PTR("kel not made", procName, NULL);
+        return (L_KERNEL *)ERROR_PTR("kel not made", __func__, NULL);
     kernelSetOrigin(kel, 0, 0);
     for (x = 0; x < 256; x++) {
         val = expf(-(l_float32)(x * x) / denom);

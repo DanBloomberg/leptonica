@@ -53,6 +53,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 /*-----------------------------------------------------------------*
@@ -80,13 +84,11 @@ l_int32   n;
 l_int32  *tab;
 PIX      *pix1;
 
-    PROCNAME("pixFindStrokeLength");
-
     if (!plength)
-        return ERROR_INT("&length not defined", procName, 1);
+        return ERROR_INT("&length not defined", __func__, 1);
     *plength = 0;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
 
     pix1 = pixExtractBoundary(pixs, 1);
     tab = (tab8) ? tab8 : makePixelSumTab8();
@@ -133,13 +135,11 @@ l_float32  *fa;
 NUMA       *na1, *na2;
 PIX        *pix1;
 
-    PROCNAME("pixFindStrokeWidth");
-
     if (!pwidth)
-        return ERROR_INT("&width not defined", procName, 1);
+        return ERROR_INT("&width not defined", __func__, 1);
     *pwidth = 0;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
 
     tab = (tab8) ? tab8 : makePixelSumTab8();
 
@@ -157,9 +157,9 @@ PIX        *pix1;
     pix1 = pixDistanceFunction(pixs, 8, 8, L_BOUNDARY_BG);
     na1 = pixGetGrayHistogram(pix1, 1);
     pixDestroy(&pix1);
-    numaGetNonzeroRange(na1, 0.1, &first, &last);
+    numaGetNonzeroRange(na1, 0.1f, &first, &last);
     na2 = numaClipToInterval(na1, 0, last);
-    numaWriteStream(stderr, na2);
+    numaWriteStderr(na2);
 
         /* Find the bucket with the largest distance whose contents
          * exceed the threshold. */
@@ -174,11 +174,11 @@ PIX        *pix1;
          * over-correction, so the computed width may be a bit larger
          * than the average width. */
     extra = (i < n - 1) ? fa[i + 1] / fa[1] : 0;
-    width2 = 2.0 * (i - 1.0 + ratio + extra);
-    fprintf(stderr, "width1 = %5.2f, width2 = %5.2f\n", width1, width2);
+    width2 = 2.0f * (i - 1.0f + ratio + extra);
+    lept_stderr("width1 = %5.2f, width2 = %5.2f\n", width1, width2);
 
         /* Average the two results */
-    *pwidth = (width1 + width2) / 2.0;
+    *pwidth = (width1 + width2) / 2.0f;
 
     if (!tab8) LEPT_FREE(tab);
     numaDestroy(&na1);
@@ -216,13 +216,11 @@ l_float32  width;
 NUMA      *na;
 PIX       *pix;
 
-    PROCNAME("pixaFindStrokeWidth");
-
     if (!pixa)
-        return (NUMA *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("pixa not defined", __func__, NULL);
     pixaVerifyDepth(pixa, &same, &maxd);
     if (maxd > 1)
-        return (NUMA *)ERROR_PTR("pix not all 1 bpp", procName, NULL);
+        return (NUMA *)ERROR_PTR("pix not all 1 bpp", __func__, NULL);
 
     tab = (tab8) ? tab8 : makePixelSumTab8();
 
@@ -260,17 +258,15 @@ NUMA      *na;
 PIX       *pix1, *pix2;
 PIXA      *pixad;
 
-    PROCNAME("pixaModifyStrokeWidth");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (targetw < 1)
-        return (PIXA *)ERROR_PTR("target width < 1", procName, NULL);
+        return (PIXA *)ERROR_PTR("target width < 1", __func__, NULL);
     pixaVerifyDepth(pixas, &same, &maxd);
     if (maxd > 1)
-        return (PIXA *)ERROR_PTR("pix not all 1 bpp", procName, NULL);
+        return (PIXA *)ERROR_PTR("pix not all 1 bpp", __func__, NULL);
 
-    na = pixaFindStrokeWidth(pixas, 0.1, NULL, 0);
+    na = pixaFindStrokeWidth(pixas, 0.1f, NULL, 0);
     n = pixaGetCount(pixas);
     pixad = pixaCreate(n);
     for (i = 0; i < n; i++) {
@@ -302,12 +298,10 @@ pixModifyStrokeWidth(PIX       *pixs,
 char     buf[32];
 l_int32  diff, size;
 
-    PROCNAME("pixModifyStrokeWidth");
-
     if (!pixs || (pixGetDepth(pixs) != 1))
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (targetw < 1)
-        return (PIX *)ERROR_PTR("target width < 1", procName, NULL);
+        return (PIX *)ERROR_PTR("target width < 1", __func__, NULL);
 
     diff = lept_roundftoi(targetw - width);
     if (diff == 0) return pixCopy(NULL, pixs);
@@ -351,17 +345,15 @@ l_int32  i, n, maxd, same;
 PIX     *pix1, *pix2;
 PIXA    *pixad;
 
-    PROCNAME("pixaSetStrokeWidth");
-
     if (!pixas)
-        return (PIXA *)ERROR_PTR("pixas not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixas not defined", __func__, NULL);
     if (width < 1 || width > 100)
-        return (PIXA *)ERROR_PTR("width not in [1 ... 100]", procName, NULL);
+        return (PIXA *)ERROR_PTR("width not in [1 ... 100]", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIXA *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIXA *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
     pixaVerifyDepth(pixas, &same, &maxd);
     if (maxd > 1)
-        return (PIXA *)ERROR_PTR("pix are not all 1 bpp", procName, NULL);
+        return (PIXA *)ERROR_PTR("pix are not all 1 bpp", __func__, NULL);
 
     n = pixaGetCount(pixas);
     pixad = pixaCreate(n);
@@ -403,14 +395,12 @@ char     buf[16];
 l_int32  border;
 PIX     *pix1, *pix2, *pixd;
 
-    PROCNAME("pixSetStrokeWidth");
-
     if (!pixs || (pixGetDepth(pixs) != 1))
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (width < 1 || width > 100)
-        return (PIX *)ERROR_PTR("width not in [1 ... 100]", procName, NULL);
+        return (PIX *)ERROR_PTR("width not in [1 ... 100]", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
 
     if (!thinfirst && width == 1)  /* nothing to do */
         return pixCopy(NULL, pixs);

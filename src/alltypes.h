@@ -39,6 +39,7 @@
     /* Generic and non-image-specific containers */
 #include "array.h"
 #include "bbuffer.h"
+#include "hashmap.h"
 #include "heap.h"
 #include "list.h"
 #include "ptra.h"
@@ -50,6 +51,7 @@
 #include "arrayaccess.h"
 #include "bmf.h"
 #include "ccbord.h"
+#include "colorfill.h"
 #include "dewarp.h"
 #include "gplot.h"
 #include "imageio.h"

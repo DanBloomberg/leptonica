@@ -54,8 +54,6 @@
  *          l_int32      l_dnaShiftValue()
  *          l_int32     *l_dnaGetIArray()
  *          l_float64   *l_dnaGetDArray()
- *          l_int32      l_dnaGetRefcount()
- *          l_int32      l_dnaChangeRefcount()
  *          l_int32      l_dnaGetParameters()
  *          l_int32      l_dnaSetParameters()
  *          l_int32      l_dnaCopyParameters()
@@ -63,8 +61,11 @@
  *      Serialize Dna for I/O
  *          L_DNA       *l_dnaRead()
  *          L_DNA       *l_dnaReadStream()
+ *          L_DNA       *l_dnaReadMem()
  *          l_int32      l_dnaWrite()
  *          l_int32      l_dnaWriteStream()
+ *          l_int32      l_dnaWriteStderr()
+ *          l_int32      l_dnaWriteMem()
  *
  *      Dnaa creation, destruction
  *          L_DNAA      *l_dnaaCreate()
@@ -88,8 +89,10 @@
  *      Serialize Dnaa for I/O
  *          L_DNAA      *l_dnaaRead()
  *          L_DNAA      *l_dnaaReadStream()
+ *          L_DNAA      *l_dnaaReadMem()
  *          l_int32      l_dnaaWrite()
  *          l_int32      l_dnaaWriteStream()
+ *          l_int32      l_dnaaWriteMem()
  *
  *    (1) The Dna is a struct holding an array of doubles.  It can also
  *        be used to store l_int32 values, up to the full precision
@@ -145,19 +148,23 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
+#include "array_internal.h"
 
     /* Bounds on initial array size */
-static const l_uint32  MaxArraySize = 100000000;  /* dna */
-static const l_uint32  MaxPtrArraySize = 10000;   /* dnaa */
+static const l_uint32  MaxDoubleArraySize = 100000000;   /* for dna */
+static const l_uint32  MaxPtrArraySize = 1000000;   /* for dnaa */
 static const l_int32  InitialArraySize = 50;      /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 l_dnaExtendArray(L_DNA *da);
 static l_int32 l_dnaaExtendArray(L_DNAA *daa);
-
 
 /*--------------------------------------------------------------------------*
  *                 Dna creation, destruction, copy, clone, etc.             *
@@ -173,15 +180,13 @@ l_dnaCreate(l_int32  n)
 {
 L_DNA  *da;
 
-    PROCNAME("l_dnaCreate");
-
-    if (n <= 0 || n > MaxArraySize)
+    if (n <= 0 || n > MaxDoubleArraySize)
         n = InitialArraySize;
 
     da = (L_DNA *)LEPT_CALLOC(1, sizeof(L_DNA));
     if ((da->array = (l_float64 *)LEPT_CALLOC(n, sizeof(l_float64))) == NULL) {
         l_dnaDestroy(&da);
-        return (L_DNA *)ERROR_PTR("double array not made", procName, NULL);
+        return (L_DNA *)ERROR_PTR("double array not made", __func__, NULL);
     }
 
     da->nalloc = n;
@@ -216,12 +221,10 @@ l_dnaCreateFromIArray(l_int32  *iarray,
 l_int32  i;
 L_DNA   *da;
 
-    PROCNAME("l_dnaCreateFromIArray");
-
     if (!iarray)
-        return (L_DNA *)ERROR_PTR("iarray not defined", procName, NULL);
+        return (L_DNA *)ERROR_PTR("iarray not defined", __func__, NULL);
     if (size <= 0)
-        return (L_DNA *)ERROR_PTR("size must be > 0", procName, NULL);
+        return (L_DNA *)ERROR_PTR("size must be > 0", __func__, NULL);
 
     da = l_dnaCreate(size);
     for (i = 0; i < size; i++)
@@ -254,14 +257,12 @@ l_dnaCreateFromDArray(l_float64  *darray,
 l_int32  i;
 L_DNA   *da;
 
-    PROCNAME("l_dnaCreateFromDArray");
-
     if (!darray)
-        return (L_DNA *)ERROR_PTR("darray not defined", procName, NULL);
+        return (L_DNA *)ERROR_PTR("darray not defined", __func__, NULL);
     if (size <= 0)
-        return (L_DNA *)ERROR_PTR("size must be > 0", procName, NULL);
+        return (L_DNA *)ERROR_PTR("size must be > 0", __func__, NULL);
     if (copyflag != L_INSERT && copyflag != L_COPY)
-        return (L_DNA *)ERROR_PTR("invalid copyflag", procName, NULL);
+        return (L_DNA *)ERROR_PTR("invalid copyflag", __func__, NULL);
 
     da = l_dnaCreate(size);
     if (copyflag == L_INSERT) {
@@ -294,10 +295,8 @@ l_int32    i;
 l_float64  val;
 L_DNA     *da;
 
-    PROCNAME("l_dnaMakeSequence");
-
     if ((da = l_dnaCreate(size)) == NULL)
-        return (L_DNA *)ERROR_PTR("da not made", procName, NULL);
+        return (L_DNA *)ERROR_PTR("da not made", __func__, NULL);
 
     for (i = 0; i < size; i++) {
         val = startval + i * increment;
@@ -325,10 +324,8 @@ l_dnaDestroy(L_DNA  **pda)
 {
 L_DNA  *da;
 
-    PROCNAME("l_dnaDestroy");
-
     if (pda == NULL) {
-        L_WARNING("ptr address is NULL\n", procName);
+        L_WARNING("ptr address is NULL\n", __func__);
         return;
     }
 
@@ -336,15 +333,12 @@ L_DNA  *da;
         return;
 
         /* Decrement the ref count.  If it is 0, destroy the l_dna. */
-    l_dnaChangeRefcount(da, -1);
-    if (l_dnaGetRefcount(da) <= 0) {
+    if (--da->refcount == 0) {
         if (da->array)
             LEPT_FREE(da->array);
         LEPT_FREE(da);
     }
-
     *pda = NULL;
-    return;
 }
 
 
@@ -365,13 +359,11 @@ l_dnaCopy(L_DNA  *da)
 l_int32  i;
 L_DNA   *dac;
 
-    PROCNAME("l_dnaCopy");
-
     if (!da)
-        return (L_DNA *)ERROR_PTR("da not defined", procName, NULL);
+        return (L_DNA *)ERROR_PTR("da not defined", __func__, NULL);
 
     if ((dac = l_dnaCreate(da->n)) == NULL)
-        return (L_DNA *)ERROR_PTR("dac not made", procName, NULL);
+        return (L_DNA *)ERROR_PTR("dac not made", __func__, NULL);
     dac->startx = da->startx;
     dac->delx = da->delx;
 
@@ -391,12 +383,10 @@ L_DNA   *dac;
 L_DNA *
 l_dnaClone(L_DNA  *da)
 {
-    PROCNAME("l_dnaClone");
-
     if (!da)
-        return (L_DNA *)ERROR_PTR("da not defined", procName, NULL);
+        return (L_DNA *)ERROR_PTR("da not defined", __func__, NULL);
 
-    l_dnaChangeRefcount(da, 1);
+    ++da->refcount;
     return da;
 }
 
@@ -417,10 +407,8 @@ l_dnaClone(L_DNA  *da)
 l_ok
 l_dnaEmpty(L_DNA  *da)
 {
-    PROCNAME("l_dnaEmpty");
-
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
 
     da->n = 0;
     return 0;
@@ -444,14 +432,14 @@ l_dnaAddNumber(L_DNA     *da,
 {
 l_int32  n;
 
-    PROCNAME("l_dnaAddNumber");
-
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
 
     n = l_dnaGetCount(da);
-    if (n >= da->nalloc)
-        l_dnaExtendArray(da);
+    if (n >= da->nalloc) {
+        if (l_dnaExtendArray(da))
+            return ERROR_INT("extension failed", __func__, 1);
+    }
     da->array[n] = val;
     da->n++;
     return 0;
@@ -463,21 +451,34 @@ l_int32  n;
  *
  * \param[in]    da
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Doubles the size of the array.
+ *      (2) The max number of doubles is 100M.
+ * </pre>
  */
 static l_int32
 l_dnaExtendArray(L_DNA  *da)
 {
-    PROCNAME("l_dnaExtendArray");
+size_t  oldsize, newsize;
 
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
-
+        return ERROR_INT("da not defined", __func__, 1);
+    if (da->nalloc > MaxDoubleArraySize)
+        return ERROR_INT("da at maximum size; can't extend", __func__, 1);
+    oldsize = da->nalloc * sizeof(l_float64);
+    if (da->nalloc > MaxDoubleArraySize / 2) {
+        newsize = MaxDoubleArraySize * sizeof(l_float64);
+        da->nalloc = MaxDoubleArraySize;
+    } else {
+        newsize = 2 * oldsize;
+        da->nalloc *= 2;
+    }
     if ((da->array = (l_float64 *)reallocNew((void **)&da->array,
-                                sizeof(l_float64) * da->nalloc,
-                                2 * sizeof(l_float64) * da->nalloc)) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
+                                             oldsize, newsize)) == NULL)
+        return ERROR_INT("new ptr array not returned", __func__, 1);
 
-    da->nalloc *= 2;
     return 0;
 }
 
@@ -506,16 +507,18 @@ l_dnaInsertNumber(L_DNA      *da,
 {
 l_int32  i, n;
 
-    PROCNAME("l_dnaInsertNumber");
-
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
     n = l_dnaGetCount(da);
-    if (index < 0 || index > n)
-        return ERROR_INT("index not in {0...n}", procName, 1);
+    if (index < 0 || index > n) {
+        L_ERROR("index %d not in [0,...,%d]\n", __func__, index, n);
+        return 1;
+    }
 
-    if (n >= da->nalloc)
-        l_dnaExtendArray(da);
+    if (n >= da->nalloc) {
+        if (l_dnaExtendArray(da))
+            return ERROR_INT("extension failed", __func__, 1);
+    }
     for (i = n; i > index; i--)
         da->array[i] = da->array[i - 1];
     da->array[index] = val;
@@ -544,13 +547,13 @@ l_dnaRemoveNumber(L_DNA   *da,
 {
 l_int32  i, n;
 
-    PROCNAME("l_dnaRemoveNumber");
-
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
     n = l_dnaGetCount(da);
-    if (index < 0 || index >= n)
-        return ERROR_INT("index not in {0...n - 1}", procName, 1);
+    if (index < 0 || index >= n) {
+        L_ERROR("index %d not in [0,...,%d]\n", __func__, index, n - 1);
+        return 1;
+    }
 
     for (i = index + 1; i < n; i++)
         da->array[i - 1] = da->array[i];
@@ -574,13 +577,13 @@ l_dnaReplaceNumber(L_DNA     *da,
 {
 l_int32  n;
 
-    PROCNAME("l_dnaReplaceNumber");
-
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
     n = l_dnaGetCount(da);
-    if (index < 0 || index >= n)
-        return ERROR_INT("index not in {0...n - 1}", procName, 1);
+    if (index < 0 || index >= n) {
+        L_ERROR("index %d not in [0,...,%d]\n", __func__, index, n - 1);
+        return 1;
+    }
 
     da->array[index] = val;
     return 0;
@@ -599,10 +602,8 @@ l_int32  n;
 l_int32
 l_dnaGetCount(L_DNA  *da)
 {
-    PROCNAME("l_dnaGetCount");
-
     if (!da)
-        return ERROR_INT("da not defined", procName, 0);
+        return ERROR_INT("da not defined", __func__, 0);
     return da->n;
 }
 
@@ -627,15 +628,13 @@ l_ok
 l_dnaSetCount(L_DNA   *da,
               l_int32  newcount)
 {
-    PROCNAME("l_dnaSetCount");
-
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
     if (newcount > da->nalloc) {
         if ((da->array = (l_float64 *)reallocNew((void **)&da->array,
                          sizeof(l_float64) * da->nalloc,
                          sizeof(l_float64) * newcount)) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
+            return ERROR_INT("new ptr array not returned", __func__, 1);
         da->nalloc = newcount;
     }
     da->n = newcount;
@@ -662,16 +661,14 @@ l_dnaGetDValue(L_DNA      *da,
                l_int32     index,
                l_float64  *pval)
 {
-    PROCNAME("l_dnaGetDValue");
-
     if (!pval)
-        return ERROR_INT("&val not defined", procName, 1);
+        return ERROR_INT("&val not defined", __func__, 1);
     *pval = 0.0;
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
 
     if (index < 0 || index >= da->n)
-        return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("index not valid", __func__, 1);
 
     *pval = da->array[index];
     return 0;
@@ -699,16 +696,14 @@ l_dnaGetIValue(L_DNA    *da,
 {
 l_float64  val;
 
-    PROCNAME("l_dnaGetIValue");
-
     if (!pival)
-        return ERROR_INT("&ival not defined", procName, 1);
+        return ERROR_INT("&ival not defined", __func__, 1);
     *pival = 0;
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
 
     if (index < 0 || index >= da->n)
-        return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("index not valid", __func__, 1);
 
     val = da->array[index];
     *pival = (l_int32)(val + L_SIGN(val) * 0.5);
@@ -729,12 +724,10 @@ l_dnaSetValue(L_DNA     *da,
               l_int32    index,
               l_float64  val)
 {
-    PROCNAME("l_dnaSetValue");
-
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
     if (index < 0 || index >= da->n)
-        return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("index not valid", __func__, 1);
 
     da->array[index] = val;
     return 0;
@@ -754,12 +747,10 @@ l_dnaShiftValue(L_DNA     *da,
                 l_int32    index,
                 l_float64  diff)
 {
-    PROCNAME("l_dnaShiftValue");
-
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
     if (index < 0 || index >= da->n)
-        return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("index not valid", __func__, 1);
 
     da->array[index] += diff;
     return 0;
@@ -791,14 +782,12 @@ l_dnaGetIArray(L_DNA  *da)
 l_int32   i, n, ival;
 l_int32  *array;
 
-    PROCNAME("l_dnaGetIArray");
-
     if (!da)
-        return (l_int32 *)ERROR_PTR("da not defined", procName, NULL);
+        return (l_int32 *)ERROR_PTR("da not defined", __func__, NULL);
 
     n = l_dnaGetCount(da);
     if ((array = (l_int32 *)LEPT_CALLOC(n, sizeof(l_int32))) == NULL)
-        return (l_int32 *)ERROR_PTR("array not made", procName, NULL);
+        return (l_int32 *)ERROR_PTR("array not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         l_dnaGetIValue(da, i, &ival);
         array[i] = ival;
@@ -836,59 +825,20 @@ l_dnaGetDArray(L_DNA   *da,
 l_int32     i, n;
 l_float64  *array;
 
-    PROCNAME("l_dnaGetDArray");
-
     if (!da)
-        return (l_float64 *)ERROR_PTR("da not defined", procName, NULL);
+        return (l_float64 *)ERROR_PTR("da not defined", __func__, NULL);
 
     if (copyflag == L_NOCOPY) {
         array = da->array;
     } else {  /* copyflag == L_COPY */
         n = l_dnaGetCount(da);
         if ((array = (l_float64 *)LEPT_CALLOC(n, sizeof(l_float64))) == NULL)
-            return (l_float64 *)ERROR_PTR("array not made", procName, NULL);
+            return (l_float64 *)ERROR_PTR("array not made", __func__, NULL);
         for (i = 0; i < n; i++)
             array[i] = da->array[i];
     }
 
     return array;
-}
-
-
-/*!
- * \brief   l_dnaGetRefCount()
- *
- * \param[in]    da
- * \return  refcount, or UNDEF on error
- */
-l_int32
-l_dnaGetRefcount(L_DNA  *da)
-{
-    PROCNAME("l_dnaGetRefcount");
-
-    if (!da)
-        return ERROR_INT("da not defined", procName, UNDEF);
-    return da->refcount;
-}
-
-
-/*!
- * \brief   l_dnaChangeRefCount()
- *
- * \param[in]    da
- * \param[in]    delta    change to be applied
- * \return  0 if OK, 1 on error
- */
-l_ok
-l_dnaChangeRefcount(L_DNA   *da,
-                    l_int32  delta)
-{
-    PROCNAME("l_dnaChangeRefcount");
-
-    if (!da)
-        return ERROR_INT("da not defined", procName, 1);
-    da->refcount += delta;
-    return 0;
 }
 
 
@@ -905,14 +855,12 @@ l_dnaGetParameters(L_DNA     *da,
                    l_float64  *pstartx,
                    l_float64  *pdelx)
 {
-    PROCNAME("l_dnaGetParameters");
-
     if (pstartx) *pstartx = 0.0;
     if (pdelx) *pdelx = 1.0;
     if (!pstartx && !pdelx)
-        return ERROR_INT("neither &startx nor &delx are defined", procName, 1);
+        return ERROR_INT("neither &startx nor &delx are defined", __func__, 1);
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
 
     if (pstartx) *pstartx = da->startx;
     if (pdelx) *pdelx = da->delx;
@@ -926,7 +874,7 @@ l_dnaGetParameters(L_DNA     *da,
  * \param[in]    da
  * \param[in]    startx   x value corresponding to da[0]
  * \param[in]    delx     difference in x values for the situation where the
- *                        elements of da correspond to the evaulation of a
+ *                        elements of da correspond to the evaluation of a
  *                        function at equal intervals of size %delx
  * \return  0 if OK, 1 on error
  */
@@ -935,10 +883,8 @@ l_dnaSetParameters(L_DNA     *da,
                    l_float64  startx,
                    l_float64  delx)
 {
-    PROCNAME("l_dnaSetParameters");
-
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
 
     da->startx = startx;
     da->delx = delx;
@@ -959,10 +905,8 @@ l_dnaCopyParameters(L_DNA  *dad,
 {
 l_float64  start, binsize;
 
-    PROCNAME("l_dnaCopyParameters");
-
     if (!das || !dad)
-        return ERROR_INT("das and dad not both defined", procName, 1);
+        return ERROR_INT("das and dad not both defined", __func__, 1);
 
     l_dnaGetParameters(das, &start, &binsize);
     l_dnaSetParameters(dad, start, binsize);
@@ -985,17 +929,17 @@ l_dnaRead(const char  *filename)
 FILE   *fp;
 L_DNA  *da;
 
-    PROCNAME("l_dnaRead");
-
     if (!filename)
-        return (L_DNA *)ERROR_PTR("filename not defined", procName, NULL);
+        return (L_DNA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (L_DNA *)ERROR_PTR("stream not opened", procName, NULL);
+        return (L_DNA *)ERROR_PTR_1("stream not opened",
+                                    filename, __func__, NULL);
     da = l_dnaReadStream(fp);
     fclose(fp);
     if (!da)
-        return (L_DNA *)ERROR_PTR("da not read", procName, NULL);
+        return (L_DNA *)ERROR_PTR_1("da not read",
+                                    filename, __func__, NULL);
     return da;
 }
 
@@ -1009,6 +953,7 @@ L_DNA  *da;
  * <pre>
  * Notes:
  *      (1) fscanf takes %lf to read a double; fprintf takes %f to write it.
+ *      (2) It is OK for the dna to be empty.
  * </pre>
  */
 L_DNA *
@@ -1018,29 +963,28 @@ l_int32    i, n, index, ret, version;
 l_float64  val, startx, delx;
 L_DNA     *da;
 
-    PROCNAME("l_dnaReadStream");
-
     if (!fp)
-        return (L_DNA *)ERROR_PTR("stream not defined", procName, NULL);
+        return (L_DNA *)ERROR_PTR("stream not defined", __func__, NULL);
 
     ret = fscanf(fp, "\nL_Dna Version %d\n", &version);
     if (ret != 1)
-        return (L_DNA *)ERROR_PTR("not a l_dna file", procName, NULL);
+        return (L_DNA *)ERROR_PTR("not a l_dna file", __func__, NULL);
     if (version != DNA_VERSION_NUMBER)
-        return (L_DNA *)ERROR_PTR("invalid l_dna version", procName, NULL);
+        return (L_DNA *)ERROR_PTR("invalid l_dna version", __func__, NULL);
     if (fscanf(fp, "Number of numbers = %d\n", &n) != 1)
-        return (L_DNA *)ERROR_PTR("invalid number of numbers", procName, NULL);
+        return (L_DNA *)ERROR_PTR("invalid number of numbers", __func__, NULL);
+    if (n < 0)
+        return (L_DNA *)ERROR_PTR("num doubles < 0", __func__, NULL);
+    if (n > MaxDoubleArraySize)
+        return (L_DNA *)ERROR_PTR("too many doubles", __func__, NULL);
+    if (n == 0) L_INFO("the dna is empty\n", __func__);
 
-    if (n > MaxArraySize) {
-        L_ERROR("n = %d > %d\n", procName, n, MaxArraySize);
-        return NULL;
-    }
     if ((da = l_dnaCreate(n)) == NULL)
-        return (L_DNA *)ERROR_PTR("da not made", procName, NULL);
+        return (L_DNA *)ERROR_PTR("da not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         if (fscanf(fp, "  [%d] = %lf\n", &index, &val) != 2) {
             l_dnaDestroy(&da);
-            return (L_DNA *)ERROR_PTR("bad input data", procName, NULL);
+            return (L_DNA *)ERROR_PTR("bad input data", __func__, NULL);
         }
         l_dnaAddNumber(da, val);
     }
@@ -1048,6 +992,32 @@ L_DNA     *da;
         /* Optional data */
     if (fscanf(fp, "startx = %lf, delx = %lf\n", &startx, &delx) == 2)
         l_dnaSetParameters(da, startx, delx);
+    return da;
+}
+
+
+/*!
+ * \brief   l_dnaReadMem()
+ *
+ * \param[in]    data    dna serialization; in ascii
+ * \param[in]    size    of data; can use strlen to get it
+ * \return  da, or NULL on error
+ */
+L_DNA *
+l_dnaReadMem(const l_uint8  *data,
+             size_t          size)
+{
+FILE   *fp;
+L_DNA  *da;
+
+    if (!data)
+        return (L_DNA *)ERROR_PTR("data not defined", __func__, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (L_DNA *)ERROR_PTR("stream not opened", __func__, NULL);
+
+    da = l_dnaReadStream(fp);
+    fclose(fp);
+    if (!da) L_ERROR("dna not read\n", __func__);
     return da;
 }
 
@@ -1066,19 +1036,17 @@ l_dnaWrite(const char  *filename,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("l_dnaWrite");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     ret = l_dnaWriteStream(fp, da);
     fclose(fp);
     if (ret)
-        return ERROR_INT("da not written to stream", procName, 1);
+        return ERROR_INT_1("da not written to stream", filename, __func__, 1);
     return 0;
 }
 
@@ -1086,7 +1054,7 @@ FILE    *fp;
 /*!
  * \brief   l_dnaWriteStream()
  *
- * \param[in]    fp    file stream
+ * \param[in]    fp    file stream; use NULL to write to stderr
  * \param[in]    da
  * \return  0 if OK, 1 on error
  */
@@ -1097,12 +1065,10 @@ l_dnaWriteStream(FILE   *fp,
 l_int32    i, n;
 l_float64  startx, delx;
 
-    PROCNAME("l_dnaWriteStream");
-
-    if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
+    if (!fp)
+        return l_dnaWriteStderr(da);
 
     n = l_dnaGetCount(da);
     fprintf(fp, "\nL_Dna Version %d\n", DNA_VERSION_NUMBER);
@@ -1117,6 +1083,92 @@ l_float64  startx, delx;
         fprintf(fp, "startx = %f, delx = %f\n", startx, delx);
 
     return 0;
+}
+
+
+/*!
+ * \brief   l_dnaWriteStrderr()
+ *
+ * \param[in]    da
+ * \return  0 if OK, 1 on error
+ */
+l_ok
+l_dnaWriteStderr(L_DNA  *da)
+{
+l_int32    i, n;
+l_float64  startx, delx;
+
+    if (!da)
+        return ERROR_INT("da not defined", __func__, 1);
+
+    n = l_dnaGetCount(da);
+    lept_stderr("\nL_Dna Version %d\n", DNA_VERSION_NUMBER);
+    lept_stderr("Number of numbers = %d\n", n);
+    for (i = 0; i < n; i++)
+        lept_stderr("  [%d] = %f\n", i, da->array[i]);
+    lept_stderr("\n");
+
+        /* Optional data */
+    l_dnaGetParameters(da, &startx, &delx);
+    if (startx != 0.0 || delx != 1.0)
+        lept_stderr("startx = %f, delx = %f\n", startx, delx);
+
+    return 0;
+}
+
+
+/*!
+ * \brief   l_dnaWriteMem()
+ *
+ * \param[out]   pdata    data of serialized dna; ascii
+ * \param[out]   psize    size of returned data
+ * \param[in]    da
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Serializes a dna in memory and puts the result in a buffer.
+ * </pre>
+ */
+l_ok
+l_dnaWriteMem(l_uint8  **pdata,
+              size_t    *psize,
+              L_DNA     *da)
+{
+l_int32  ret;
+FILE    *fp;
+
+    if (pdata) *pdata = NULL;
+    if (psize) *psize = 0;
+    if (!pdata)
+        return ERROR_INT("&data not defined", __func__, 1);
+    if (!psize)
+        return ERROR_INT("&size not defined", __func__, 1);
+    if (!da)
+        return ERROR_INT("da not defined", __func__, 1);
+
+#if HAVE_FMEMOPEN
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
+        return ERROR_INT("stream not opened", __func__, 1);
+    ret = l_dnaWriteStream(fp, da);
+    fputc('\0', fp);
+    fclose(fp);
+    if (*psize > 0) *psize = *psize - 1;
+#else
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
+  #else
+    if ((fp = tmpfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
+  #endif  /* _WIN32 */
+    ret = l_dnaWriteStream(fp, da);
+    rewind(fp);
+    *pdata = l_binaryReadStream(fp, psize);
+    fclose(fp);
+#endif  /* HAVE_FMEMOPEN */
+    return ret;
 }
 
 
@@ -1135,15 +1187,13 @@ l_dnaaCreate(l_int32  n)
 {
 L_DNAA  *daa;
 
-    PROCNAME("l_dnaaCreate");
-
     if (n <= 0 || n > MaxPtrArraySize)
         n = InitialArraySize;
 
     daa = (L_DNAA *)LEPT_CALLOC(1, sizeof(L_DNAA));
     if ((daa->dna = (L_DNA **)LEPT_CALLOC(n, sizeof(L_DNA *))) == NULL) {
         l_dnaaDestroy(&daa);
-        return (L_DNAA *)ERROR_PTR("l_dna ptr array not made", procName, NULL);
+        return (L_DNAA *)ERROR_PTR("l_dna ptr array not made", __func__, NULL);
     }
     daa->nalloc = n;
     daa->n = 0;
@@ -1203,10 +1253,8 @@ l_dnaaTruncate(L_DNAA  *daa)
 l_int32  i, n, nn;
 L_DNA   *da;
 
-    PROCNAME("l_dnaaTruncate");
-
     if (!daa)
-        return ERROR_INT("daa not defined", procName, 1);
+        return ERROR_INT("daa not defined", __func__, 1);
 
     n = l_dnaaGetCount(daa);
     for (i = n - 1; i >= 0; i--) {
@@ -1237,10 +1285,8 @@ l_dnaaDestroy(L_DNAA  **pdaa)
 l_int32  i;
 L_DNAA  *daa;
 
-    PROCNAME("l_dnaaDestroy");
-
     if (pdaa == NULL) {
-        L_WARNING("ptr address is NULL!\n", procName);
+        L_WARNING("ptr address is NULL!\n", __func__);
         return;
     }
 
@@ -1252,8 +1298,6 @@ L_DNAA  *daa;
     LEPT_FREE(daa->dna);
     LEPT_FREE(daa);
     *pdaa = NULL;
-
-    return;
 }
 
 
@@ -1276,27 +1320,30 @@ l_dnaaAddDna(L_DNAA  *daa,
 l_int32  n;
 L_DNA   *dac;
 
-    PROCNAME("l_dnaaAddDna");
-
     if (!daa)
-        return ERROR_INT("daa not defined", procName, 1);
+        return ERROR_INT("daa not defined", __func__, 1);
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
 
     if (copyflag == L_INSERT) {
         dac = da;
     } else if (copyflag == L_COPY) {
         if ((dac = l_dnaCopy(da)) == NULL)
-            return ERROR_INT("dac not made", procName, 1);
+            return ERROR_INT("dac not made", __func__, 1);
     } else if (copyflag == L_CLONE) {
         dac = l_dnaClone(da);
     } else {
-        return ERROR_INT("invalid copyflag", procName, 1);
+        return ERROR_INT("invalid copyflag", __func__, 1);
     }
 
     n = l_dnaaGetCount(daa);
-    if (n >= daa->nalloc)
-        l_dnaaExtendArray(daa);
+    if (n >= daa->nalloc) {
+        if (l_dnaaExtendArray(daa)) {
+            if (copyflag != L_INSERT)
+                l_dnaDestroy(&dac);
+            return ERROR_INT("extension failed", __func__, 1);
+        }
+    }
     daa->dna[n] = dac;
     daa->n++;
     return 0;
@@ -1308,19 +1355,30 @@ L_DNA   *dac;
  *
  * \param[in]    daa
  * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Doubles the number of dna ptrs.
+ *      (2) The max size of the dna array is 1M ptrs.
+ * </pre>
  */
 static l_int32
 l_dnaaExtendArray(L_DNAA  *daa)
 {
-    PROCNAME("l_dnaaExtendArray");
+size_t  oldsize, newsize;
 
     if (!daa)
-        return ERROR_INT("daa not defined", procName, 1);
+        return ERROR_INT("daa not defined", __func__, 1);
+    if (daa->nalloc > MaxPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("daa has too many ptrs", __func__, 1);
+    oldsize = daa->nalloc * sizeof(L_DNA *);
+    newsize = 2 * oldsize;
+    if (newsize > 8 * MaxPtrArraySize)
+        return ERROR_INT("newsize > 8 MB; too large", __func__, 1);
 
     if ((daa->dna = (L_DNA **)reallocNew((void **)&daa->dna,
-                              sizeof(L_DNA *) * daa->nalloc,
-                              2 * sizeof(L_DNA *) * daa->nalloc)) == NULL)
-            return ERROR_INT("new ptr array not returned", procName, 1);
+                                         oldsize, newsize)) == NULL)
+        return ERROR_INT("new ptr array not returned", __func__, 1);
 
     daa->nalloc *= 2;
     return 0;
@@ -1339,10 +1397,8 @@ l_dnaaExtendArray(L_DNAA  *daa)
 l_int32
 l_dnaaGetCount(L_DNAA  *daa)
 {
-    PROCNAME("l_dnaaGetCount");
-
     if (!daa)
-        return ERROR_INT("daa not defined", procName, 0);
+        return ERROR_INT("daa not defined", __func__, 0);
     return daa->n;
 }
 
@@ -1358,12 +1414,10 @@ l_int32
 l_dnaaGetDnaCount(L_DNAA   *daa,
                     l_int32  index)
 {
-    PROCNAME("l_dnaaGetDnaCount");
-
     if (!daa)
-        return ERROR_INT("daa not defined", procName, 0);
+        return ERROR_INT("daa not defined", __func__, 0);
     if (index < 0 || index >= daa->n)
-        return ERROR_INT("invalid index into daa", procName, 0);
+        return ERROR_INT("invalid index into daa", __func__, 0);
     return l_dnaGetCount(daa->dna[index]);
 }
 
@@ -1381,10 +1435,8 @@ l_dnaaGetNumberCount(L_DNAA  *daa)
 L_DNA   *da;
 l_int32  n, sum, i;
 
-    PROCNAME("l_dnaaGetNumberCount");
-
     if (!daa)
-        return ERROR_INT("daa not defined", procName, 0);
+        return ERROR_INT("daa not defined", __func__, 0);
 
     n = l_dnaaGetCount(daa);
     for (sum = 0, i = 0; i < n; i++) {
@@ -1410,19 +1462,17 @@ l_dnaaGetDna(L_DNAA  *daa,
              l_int32  index,
              l_int32  accessflag)
 {
-    PROCNAME("l_dnaaGetDna");
-
     if (!daa)
-        return (L_DNA *)ERROR_PTR("daa not defined", procName, NULL);
+        return (L_DNA *)ERROR_PTR("daa not defined", __func__, NULL);
     if (index < 0 || index >= daa->n)
-        return (L_DNA *)ERROR_PTR("index not valid", procName, NULL);
+        return (L_DNA *)ERROR_PTR("index not valid", __func__, NULL);
 
     if (accessflag == L_COPY)
         return l_dnaCopy(daa->dna[index]);
     else if (accessflag == L_CLONE)
         return l_dnaClone(daa->dna[index]);
     else
-        return (L_DNA *)ERROR_PTR("invalid accessflag", procName, NULL);
+        return (L_DNA *)ERROR_PTR("invalid accessflag", __func__, NULL);
 }
 
 
@@ -1448,15 +1498,13 @@ l_dnaaReplaceDna(L_DNAA  *daa,
 {
 l_int32  n;
 
-    PROCNAME("l_dnaaReplaceDna");
-
     if (!daa)
-        return ERROR_INT("daa not defined", procName, 1);
+        return ERROR_INT("daa not defined", __func__, 1);
     if (!da)
-        return ERROR_INT("da not defined", procName, 1);
+        return ERROR_INT("da not defined", __func__, 1);
     n = l_dnaaGetCount(daa);
     if (index < 0 || index >= n)
-        return ERROR_INT("index not valid", procName, 1);
+        return ERROR_INT("index not valid", __func__, 1);
 
     l_dnaDestroy(&daa->dna[index]);
     daa->dna[index] = da;
@@ -1482,19 +1530,17 @@ l_dnaaGetValue(L_DNAA     *daa,
 l_int32  n;
 L_DNA   *da;
 
-    PROCNAME("l_dnaaGetValue");
-
     if (!pval)
-        return ERROR_INT("&val not defined", procName, 1);
+        return ERROR_INT("&val not defined", __func__, 1);
     *pval = 0.0;
     if (!daa)
-        return ERROR_INT("daa not defined", procName, 1);
+        return ERROR_INT("daa not defined", __func__, 1);
     n = l_dnaaGetCount(daa);
     if (i < 0 || i >= n)
-        return ERROR_INT("invalid index into daa", procName, 1);
+        return ERROR_INT("invalid index into daa", __func__, 1);
     da = daa->dna[i];
     if (j < 0 || j >= da->n)
-        return ERROR_INT("invalid index into da", procName, 1);
+        return ERROR_INT("invalid index into da", __func__, 1);
     *pval = da->array[j];
     return 0;
 }
@@ -1521,13 +1567,11 @@ l_dnaaAddNumber(L_DNAA    *daa,
 l_int32  n;
 L_DNA   *da;
 
-    PROCNAME("l_dnaaAddNumber");
-
     if (!daa)
-        return ERROR_INT("daa not defined", procName, 1);
+        return ERROR_INT("daa not defined", __func__, 1);
     n = l_dnaaGetCount(daa);
     if (index < 0 || index >= n)
-        return ERROR_INT("invalid index in daa", procName, 1);
+        return ERROR_INT("invalid index in daa", __func__, 1);
 
     da = l_dnaaGetDna(daa, index, L_CLONE);
     l_dnaAddNumber(da, val);
@@ -1551,17 +1595,17 @@ l_dnaaRead(const char  *filename)
 FILE    *fp;
 L_DNAA  *daa;
 
-    PROCNAME("l_dnaaRead");
-
     if (!filename)
-        return (L_DNAA *)ERROR_PTR("filename not defined", procName, NULL);
+        return (L_DNAA *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (L_DNAA *)ERROR_PTR("stream not opened", procName, NULL);
+        return (L_DNAA *)ERROR_PTR_1("stream not opened",
+                                     filename, __func__, NULL);
     daa = l_dnaaReadStream(fp);
     fclose(fp);
     if (!daa)
-        return (L_DNAA *)ERROR_PTR("daa not read", procName, NULL);
+        return (L_DNAA *)ERROR_PTR_1("daa not read",
+                                     filename, __func__, NULL);
     return daa;
 }
 
@@ -1571,6 +1615,11 @@ L_DNAA  *daa;
  *
  * \param[in]    fp   file stream
  * \return  daa, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) It is OK for the dnaa to be empty.
+ * </pre>
  */
 L_DNAA *
 l_dnaaReadStream(FILE  *fp)
@@ -1579,38 +1628,62 @@ l_int32    i, n, index, ret, version;
 L_DNA     *da;
 L_DNAA    *daa;
 
-    PROCNAME("l_dnaaReadStream");
-
     if (!fp)
-        return (L_DNAA *)ERROR_PTR("stream not defined", procName, NULL);
+        return (L_DNAA *)ERROR_PTR("stream not defined", __func__, NULL);
 
     ret = fscanf(fp, "\nL_Dnaa Version %d\n", &version);
     if (ret != 1)
-        return (L_DNAA *)ERROR_PTR("not a l_dna file", procName, NULL);
+        return (L_DNAA *)ERROR_PTR("not a l_dna file", __func__, NULL);
     if (version != DNA_VERSION_NUMBER)
-        return (L_DNAA *)ERROR_PTR("invalid l_dnaa version", procName, NULL);
+        return (L_DNAA *)ERROR_PTR("invalid l_dnaa version", __func__, NULL);
     if (fscanf(fp, "Number of L_Dna = %d\n\n", &n) != 1)
-        return (L_DNAA *)ERROR_PTR("invalid number of l_dna", procName, NULL);
+        return (L_DNAA *)ERROR_PTR("invalid number of l_dna", __func__, NULL);
+    if (n < 0)
+        return (L_DNAA *)ERROR_PTR("num l_dna <= 0", __func__, NULL);
+    if (n > MaxPtrArraySize)
+        return (L_DNAA *)ERROR_PTR("too many l_dna", __func__, NULL);
+    if (n == 0) L_INFO("the dnaa is empty\n", __func__);
 
-    if (n > MaxPtrArraySize) {
-        L_ERROR("n = %d > %d\n", procName, n, MaxPtrArraySize);
-        return NULL;
-    }
     if ((daa = l_dnaaCreate(n)) == NULL)
-        return (L_DNAA *)ERROR_PTR("daa not made", procName, NULL);
-
+        return (L_DNAA *)ERROR_PTR("daa not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         if (fscanf(fp, "L_Dna[%d]:", &index) != 1) {
             l_dnaaDestroy(&daa);
-            return (L_DNAA *)ERROR_PTR("invalid l_dna header", procName, NULL);
+            return (L_DNAA *)ERROR_PTR("invalid l_dna header", __func__, NULL);
         }
         if ((da = l_dnaReadStream(fp)) == NULL) {
             l_dnaaDestroy(&daa);
-            return (L_DNAA *)ERROR_PTR("da not made", procName, NULL);
+            return (L_DNAA *)ERROR_PTR("da not made", __func__, NULL);
         }
         l_dnaaAddDna(daa, da, L_INSERT);
     }
 
+    return daa;
+}
+
+
+/*!
+ * \brief   l_dnaaReadMem()
+ *
+ * \param[in]    data     dnaa serialization; in ascii
+ * \param[in]    size     of data; can use strlen to get it
+ * \return  daa, or NULL on error
+ */
+L_DNAA *
+l_dnaaReadMem(const l_uint8  *data,
+              size_t          size)
+{
+FILE    *fp;
+L_DNAA  *daa;
+
+    if (!data)
+        return (L_DNAA *)ERROR_PTR("data not defined", __func__, NULL);
+    if ((fp = fopenReadFromMemory(data, size)) == NULL)
+        return (L_DNAA *)ERROR_PTR("stream not opened", __func__, NULL);
+
+    daa = l_dnaaReadStream(fp);
+    fclose(fp);
+    if (!daa) L_ERROR("daa not read\n", __func__);
     return daa;
 }
 
@@ -1629,19 +1702,17 @@ l_dnaaWrite(const char  *filename,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("l_dnaaWrite");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
     if (!daa)
-        return ERROR_INT("daa not defined", procName, 1);
+        return ERROR_INT("daa not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     ret = l_dnaaWriteStream(fp, daa);
     fclose(fp);
     if (ret)
-        return ERROR_INT("daa not written to stream", procName, 1);
+        return ERROR_INT_1("daa not written to stream", filename, __func__, 1);
     return 0;
 }
 
@@ -1660,19 +1731,17 @@ l_dnaaWriteStream(FILE    *fp,
 l_int32  i, n;
 L_DNA   *da;
 
-    PROCNAME("l_dnaaWriteStream");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
     if (!daa)
-        return ERROR_INT("daa not defined", procName, 1);
+        return ERROR_INT("daa not defined", __func__, 1);
 
     n = l_dnaaGetCount(daa);
     fprintf(fp, "\nL_Dnaa Version %d\n", DNA_VERSION_NUMBER);
     fprintf(fp, "Number of L_Dna = %d\n\n", n);
     for (i = 0; i < n; i++) {
         if ((da = l_dnaaGetDna(daa, i, L_CLONE)) == NULL)
-            return ERROR_INT("da not found", procName, 1);
+            return ERROR_INT("da not found", __func__, 1);
         fprintf(fp, "L_Dna[%d]:", i);
         l_dnaWriteStream(fp, da);
         l_dnaDestroy(&da);
@@ -1680,3 +1749,59 @@ L_DNA   *da;
 
     return 0;
 }
+
+
+/*!
+ * \brief   l_dnaaWriteMem()
+ *
+ * \param[out]   pdata    data of serialized dnaa; ascii
+ * \param[out]   psize    size of returned data
+ * \param[in]    daa
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Serializes a dnaa in memory and puts the result in a buffer.
+ * </pre>
+ */
+l_ok
+l_dnaaWriteMem(l_uint8  **pdata,
+               size_t    *psize,
+               L_DNAA    *daa)
+{
+l_int32  ret;
+FILE    *fp;
+
+    if (pdata) *pdata = NULL;
+    if (psize) *psize = 0;
+    if (!pdata)
+        return ERROR_INT("&data not defined", __func__, 1);
+    if (!psize)
+        return ERROR_INT("&size not defined", __func__, 1);
+    if (!daa)
+        return ERROR_INT("daa not defined", __func__, 1);
+
+#if HAVE_FMEMOPEN
+    if ((fp = open_memstream((char **)pdata, psize)) == NULL)
+        return ERROR_INT("stream not opened", __func__, 1);
+    ret = l_dnaaWriteStream(fp, daa);
+    fputc('\0', fp);
+    fclose(fp);
+    if (*psize > 0) *psize = *psize - 1;
+#else
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
+  #ifdef _WIN32
+    if ((fp = fopenWriteWinTempfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
+  #else
+    if ((fp = tmpfile()) == NULL)
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
+  #endif  /* _WIN32 */
+    ret = l_dnaaWriteStream(fp, daa);
+    rewind(fp);
+    *pdata = l_binaryReadStream(fp, psize);
+    fclose(fp);
+#endif  /* HAVE_FMEMOPEN */
+    return ret;
+}
+

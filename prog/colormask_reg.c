@@ -32,6 +32,10 @@
  *   peaks in HS.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
@@ -46,6 +50,11 @@ PIX          *pix1, *pix2, *pix3;
 PIXA         *pixa, *pixapk;
 PTA          *ptapk;
 L_REGPARAMS  *rp;
+
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "colormask_reg");
+    exit(77);
+#endif
 
     if (regTestSetup(argc, argv, &rp))
         return 1;
@@ -105,7 +114,7 @@ L_REGPARAMS  *rp;
         /* Find all the peaks */
     pixFindHistoPeaksHSV(pixh, L_HS_HISTO, 20, 20, 6, 2.0,
                          &ptapk, &napk, &pixapk);
-    numaWriteStream(stderr, napk);
+    numaWriteStderr(napk);
     ptaWriteStream(stderr, ptapk, 1);
     pixd = pixaDisplayTiledInRows(pixapk, 32, 1400, 1.0, 0, 30, 2);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 4 */

@@ -52,6 +52,10 @@
  *   ***************************************************************
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   TEMP_PS       "print_tiff.ps"   /* in the temp directory */
@@ -60,18 +64,16 @@
 int main(int    argc,
          char **argv)
 {
-l_int32      ret;
-char        *filein, *tempfile, *printer;
-char         buf[512];
-static char  mainName[] = "printtiff";
+char  *filein, *tempfile, *printer;
+char   buf[512];
 
     if (argc != 2 && argc != 3)
-        return ERROR_INT(" Syntax:  printtiff filein [printer]", mainName, 1);
+        return ERROR_INT(" Syntax:  printtiff filein [printer]", __func__, 1);
     filein = argv[1];
     if (argc == 3)
         printer = argv[2];
 
-    fprintf(stderr,
+    lept_stderr(
          "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
          "   Warning: this program should only be used for testing,\n"
          "     and not in a production environment, because of a\n"
@@ -85,7 +87,7 @@ static char  mainName[] = "printtiff";
 
     if (argc == 3) {
         snprintf(buf, sizeof(buf), "lpr -P%s %s &", printer, tempfile);
-        ret = system(buf);
+        callSystemDebug(buf);
     }
 
     lept_free(tempfile);

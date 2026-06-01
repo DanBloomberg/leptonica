@@ -32,6 +32,10 @@
  *   - Use of thinning and thickening in stroke width normalization
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
@@ -44,6 +48,11 @@ PIXA         *pixa1, *pixa2, *pixa3, *pixa4, *pixa5;
 PIXAA        *paa;
 L_REGPARAMS  *rp;
 SELA         *sela;
+
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "ccthin_reg");
+    exit(77);
+#endif
 
     if (regTestSetup(argc, argv, &rp))
         return 1;
@@ -133,7 +142,7 @@ SELA         *sela;
     if (rp->display) {
         lept_mkdir("lept/thin");
         pixDisplayWithTitle(pix1, 0, 0, NULL, rp->display);
-        fprintf(stderr, "Writing to: /tmp/lept/thin/ccthin2-1.pdf");
+        lept_stderr("Writing to: /tmp/lept/thin/ccthin2-1.pdf");
         pixaConvertToPdf(pixa1, 0, 1.0, 0, 0, "Thin 2 Results",
                          "/tmp/lept/thin/ccthin2-1.pdf");
     }
@@ -168,7 +177,7 @@ SELA         *sela;
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 18 */
     if (rp->display) {
         pixDisplayWithTitle(pix1, 0, 0, NULL, rp->display);
-        fprintf(stderr, "Writing to: /tmp/lept/thin/ccthin2-2.pdf");
+        lept_stderr("Writing to: /tmp/lept/thin/ccthin2-2.pdf");
         pixaConvertToPdf(pixa5, 0, 1.0, 0, 0, "Thin strokes",
                          "/tmp/lept/thin/ccthin2-2.pdf");
     }

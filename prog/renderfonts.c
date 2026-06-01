@@ -27,8 +27,15 @@
 /*
  * renderfonts.c
  *
- *     This tests the font rendering functions
+ *     This tests the font rendering functions in bmf.c.
+ *     The directory in bmfCreate() can either be specified here
+ *     as "./fonts", or NULL.  In the latter situation, the fonts
+ *     are built from string representatins of the pixa in bmfdata.h.
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
 
@@ -37,27 +44,30 @@
 int main(int    argc,
          char **argv)
 {
-char        *textstr;
-l_int32      width, wtext, overflow;
-L_BMF       *bmf;
-PIX         *pixs, *pix;
-static char  mainName[] = "renderfonts";
+char    *textstr;
+l_int32  width, wtext, overflow;
+L_BMF   *bmf;
+PIX     *pixs, *pix, *pix1;
 
     if (argc != 1)
-        return ERROR_INT("Syntax: renderfonts", mainName, 1);
+        return ERROR_INT("Syntax: renderfonts", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/render");
 
         /* Render a character of text */
-    bmf = bmfCreate(DIRECTORY, 20);
+    bmf = bmfCreate(NULL, 20);
+    pix1 = pixaDisplayTiledInColumns(bmf->pixa, 20, 1., 10, 1);
+    pixDisplay(pix1, 700, 0);
     pixs = pixRead("dreyfus8.png");
-    fprintf(stderr, "n = %d\n", pixaGetCount(bmf->pixa));
+    lept_stderr("n = %d\n", pixaGetCount(bmf->pixa));
     pix = pixaGetPix(bmf->pixa, 6, L_CLONE);
-    pixSetMaskedGeneral(pixs, pix, 0x45, 140, 165);
+    pixDisplay(pix, 500, 300);
+    pixSetMaskedGeneral(pixs, pix, 12, 20, 30);
     pixWrite("/tmp/lept/render/char.png", pixs, IFF_PNG);
     pixDisplay(pixs, 0, 0);
     pixDestroy(&pix);
+    pixDestroy(&pix1);
     pixDestroy(&pixs);
     bmfDestroy(&bmf);
 
@@ -65,15 +75,15 @@ static char  mainName[] = "renderfonts";
     bmf = bmfCreate(DIRECTORY, 8);
     pixs = pixRead("marge.jpg");
     bmfGetStringWidth(bmf, "This is a funny cat!", &width);
-    fprintf(stderr, "String width: %d pixels\n", width);
+    lept_stderr("String width: %d pixels\n", width);
 
     pixSetTextline(pixs, bmf, "This is a funny cat!", 0x4080ff00, 50, 250,
                    &width, &overflow);
     pixWrite("/tmp/lept/render/line.png", pixs, IFF_JFIF_JPEG);
-    pixDisplay(pixs, 450, 0);
-    fprintf(stderr, "Text width = %d\n", width);
+    pixDisplay(pixs, 0, 500);
+    lept_stderr("Text width = %d\n", width);
     if (overflow)
-        fprintf(stderr, "Text overflow beyond image boundary\n");
+        lept_stderr("Text overflow beyond image boundary\n");
     pixDestroy(&pixs);
     bmfDestroy(&bmf);
 
@@ -88,12 +98,13 @@ static char  mainName[] = "renderfonts";
     pixSetTextblock(pixs, bmf, textstr, 0x90804000, 50, 50, wtext,
                     1, &overflow);
     pixWrite("/tmp/lept/render/block.png", pixs, IFF_JFIF_JPEG);
-    pixDisplay(pixs, 0, 500);
+    pixDisplay(pixs, 700, 500);
     if (overflow)
-        fprintf(stderr, "Text overflow beyond image boundary\n");
+        lept_stderr("Text overflow beyond image boundary\n");
     lept_free(textstr);
     pixDestroy(&pixs);
     bmfDestroy(&bmf);
+
     return 0;
 }
 

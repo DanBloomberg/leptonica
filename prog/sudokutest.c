@@ -30,6 +30,10 @@
  *   Tests sudoku solver and generator.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const char *startsol = "3 8 7 2 6 4 1 9 5 "
@@ -45,13 +49,12 @@ static const char *startsol = "3 8 7 2 6 4 1 9 5 "
 int main(int    argc,
          char **argv)
 {
-l_int32      unique;
-l_int32     *array;
-L_SUDOKU    *sud;
-static char  mainName[] = "sudokutest";
+l_int32    unique;
+l_int32   *array;
+L_SUDOKU  *sud;
 
     if (argc != 1 && argc != 2)
-	return ERROR_INT(" Syntax: sudokutest [filein]", mainName, 1);
+	return ERROR_INT(" Syntax: sudokutest [filein]", __func__, 1);
 
     setLeptDebugOK(1);
     if (argc == 1) {
@@ -65,22 +68,22 @@ static char  mainName[] = "sudokutest";
 
         /* Solve the input sudoku */
     if ((array = sudokuReadFile(argv[1])) == NULL)
-        return ERROR_INT("invalid input", mainName, 1);
+        return ERROR_INT("invalid input", __func__, 1);
     if ((sud = sudokuCreate(array)) == NULL)
-        return ERROR_INT("sud not made", mainName, 1);
+        return ERROR_INT("sud not made", __func__, 1);
     sudokuOutput(sud, L_SUDOKU_INIT);
     startTimer();
     sudokuSolve(sud);
-    fprintf(stderr, "Time: %7.3f sec\n", stopTimer());
+    lept_stderr("Time: %7.3f sec\n", stopTimer());
     sudokuOutput(sud, L_SUDOKU_STATE);
     sudokuDestroy(&sud);
 
         /* Test for uniqueness */
     sudokuTestUniqueness(array, &unique);
     if (unique)
-        fprintf(stderr, "Sudoku is unique\n");
+        lept_stderr("Sudoku is unique\n");
     else
-        fprintf(stderr, "Sudoku is NOT unique\n");
+        lept_stderr("Sudoku is NOT unique\n");
     lept_free(array);
 
     return 0;

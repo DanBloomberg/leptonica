@@ -44,6 +44,10 @@
  *    (3) luminance only reading
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -64,9 +68,9 @@ int main(int    argc,
 L_REGPARAMS  *rp;
 
 #if !HAVE_LIBJPEG
-    fprintf(stderr, "jpegio is not enabled\n"
-            "See environ.h: #define HAVE_LIBJPEG\n"
-            "See prog/Makefile: link in -ljpeg\n\n");
+    lept_stderr("jpegio is not enabled\n"
+                "See environ.h: #define HAVE_LIBJPEG\n"
+                "See prog/Makefile: link in -ljpeg\n\n");
     return 0;
 #endif  /* abort */
 
@@ -215,8 +219,8 @@ PIX      *pixs;
     regTestCompareValues(rp, bps1, bps2, 0.0);
     regTestCompareValues(rp, bps1, 8, 0.0);
     regTestCompareValues(rp, spp1, spp2, 0.0);
-    fprintf(stderr, "w = %d, h = %d, bps = %d, spp = %d, format = %d\n",
-            w1, h1, bps1, spp1, format1);
+    lept_stderr("w = %d, h = %d, bps = %d, spp = %d, format = %d\n",
+                w1, h1, bps1, spp1, format1);
 
     pixDestroy(&pixs);
     lept_free(data);
@@ -251,8 +255,7 @@ PIX     *pixs;
     regTestCompareValues(rp, yres, 137, 0.0);
     regTestCompareStrings(rp, (l_uint8 *)comment1, strlen(comment1),
                           comment2, strlen((char *)comment2));
-    fprintf(stderr, "xres = %d, yres = %d, comment = %s\n",
-            xres, yres, comment1);
+    lept_stderr("xres = %d, yres = %d, comment = %s\n", xres, yres, comment1);
 
     lept_free(comment2);
     pixDestroy(&pixs);

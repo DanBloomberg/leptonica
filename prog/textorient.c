@@ -50,9 +50,13 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
-static const l_int32  BUF_SIZE = 512;
+#define BUF_SIZE 512
 
 LEPT_DLL extern const char *ImageFileFormatExtensions[];
 
@@ -64,12 +68,11 @@ const char  *filein, *fileout;
 l_int32      pixformat;
 l_float32    minupconf, minratio;
 PIX         *pixs, *pixd;
-static char  mainName[] = "textorient";
 
     if (argc != 5) {
         return ERROR_INT(
             "Syntax:  textorient filein minupconf minratio, fileout",
-             mainName, 1);
+             __func__, 1);
     }
     filein = argv[1];
     minupconf = atof(argv[2]);

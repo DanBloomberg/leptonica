@@ -39,6 +39,10 @@
  *   Others are 1555.007.jpg, shearer.148.tif, lapide.052.100.jpg, etc.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define  NORMALIZE     1
@@ -46,15 +50,14 @@
 l_int32 main(int    argc,
              char **argv)
 {
-l_int32      d, method, pageno;
-L_DEWARP    *dew1;
-L_DEWARPA   *dewa;
-PIX         *pixs, *pixn, *pixg, *pixb, *pixd;
-static char  mainName[] = "dewarptest2";
+l_int32     d, method, pageno;
+L_DEWARP   *dew1;
+L_DEWARPA  *dewa;
+PIX        *pixs, *pixn, *pixg, *pixb, *pixd;
 
     if (argc != 2 && argc != 4)
         return ERROR_INT("Syntax: dewarptest2 method [image pageno]",
-                         mainName, 1);
+                         __func__, 1);
     if (argc == 2) {
         pixs = pixRead("cat.035.jpg");
         pageno = 35;
@@ -64,7 +67,7 @@ static char  mainName[] = "dewarptest2";
         pageno = atoi(argv[3]);
     }
     if (!pixs)
-        return ERROR_INT("image not read", mainName, 1);
+        return ERROR_INT("image not read", __func__, 1);
     method = atoi(argv[1]);
 
     setLeptDebugOK(1);
@@ -102,6 +105,7 @@ static char  mainName[] = "dewarptest2";
 #endif
 
             /* Run the basic functions */
+        pixWrite("/tmp/lept/dewarp/pixb.tif", pixb, IFF_TIFF_G4);
         dew1 = dewarpCreate(pixb, pageno);
         dewarpaInsertDewarp(dewa, dew1);
         dewarpBuildPageModel(dew1, "/tmp/lept/dewarp/test2_model.pdf");

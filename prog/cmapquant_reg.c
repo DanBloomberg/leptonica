@@ -34,6 +34,10 @@
  *   re-quantizing back to the original colormap.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define  LEVEL       3
@@ -74,7 +78,7 @@ L_REGPARAMS  *rp;
     cmap = pixGetColormap(pix1);
     pix3 = pixOctcubeQuantFromCmap(pix2, cmap, MIN_DEPTH,
                                    LEVEL, L_EUCLIDEAN_DISTANCE);
-    fprintf(stderr, "Time to re-quantize to cmap = %7.3f sec\n", stopTimer());
+    lept_stderr("Time to re-quantize to cmap = %7.3f sec\n", stopTimer());
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 2 */
     pixDisplayWithTitle(pix3, 0, 0, NULL, rp->display);
 
@@ -94,14 +98,14 @@ L_REGPARAMS  *rp;
         /* Octcube quantize mixed with gray */
     startTimer();
     pix7 = pixOctcubeQuantMixedWithGray(pix2, 4, 5, 5);
-    fprintf(stderr, "Time to re-quantize mixed = %7.3f sec\n", stopTimer());
+    lept_stderr("Time to re-quantize mixed = %7.3f sec\n", stopTimer());
     regTestWritePixAndCheck(rp, pix7, IFF_PNG);  /* 5 */
     pixDisplayWithTitle(pix7, 0, 0, NULL, rp->display);
 
         /* Fixed octcube quantization */
     startTimer();
     pix8 = pixFixedOctcubeQuant256(pix2, 0);
-    fprintf(stderr, "Time to re-quantize 256 = %7.3f sec\n", stopTimer());
+    lept_stderr("Time to re-quantize 256 = %7.3f sec\n", stopTimer());
     regTestWritePixAndCheck(rp, pix8, IFF_PNG);  /* 6 */
     pixDisplayWithTitle(pix8, 0, 0, NULL, rp->display);
 
@@ -109,7 +113,7 @@ L_REGPARAMS  *rp;
     startTimer();
     pix9 = pixCopy(NULL, pix8);
     pixRemoveUnusedColors(pix9);
-    fprintf(stderr, "Time to remove unused colors = %7.3f sec\n", stopTimer());
+    lept_stderr("Time to remove unused colors = %7.3f sec\n", stopTimer());
     regTestWritePixAndCheck(rp, pix9, IFF_PNG);  /* 7 */
     pixDisplayWithTitle(pix8, 0, 0, NULL, rp->display);
 

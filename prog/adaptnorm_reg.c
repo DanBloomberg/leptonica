@@ -32,6 +32,10 @@
  *       * good contrast but fast varying background
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
@@ -58,7 +62,7 @@ L_REGPARAMS  *rp;
     startTimer();
     pix1 = pixContrastNorm(NULL, pixs, 10, 10, 40, 2, 2);
     mps = 0.000001 * w * h / stopTimer();
-    fprintf(stderr, "Time: Contrast norm: %7.3f Mpix/sec\n", mps);
+    lept_stderr("Time: Contrast norm: %7.3f Mpix/sec\n", mps);
     pixaAddPix(pixa1, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 1 */
 
@@ -102,7 +106,7 @@ L_REGPARAMS  *rp;
     startTimer();
     pix1 = pixBackgroundNormFlex(pixs, 7, 7, 1, 1, 10);
     mps = 0.000001 * w * h / stopTimer();
-    fprintf(stderr, "Time: Flexible bg norm: %7.3f Mpix/sec\n", mps);
+    lept_stderr("Time: Flexible bg norm: %7.3f Mpix/sec\n", mps);
     pixaAddPix(pixa1, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 9 */
 

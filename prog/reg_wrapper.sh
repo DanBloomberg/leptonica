@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 #  This testing wrapper was written by James Le Cuirot.
 #
@@ -8,8 +8,14 @@
 #      alltests_reg generate
 #      alltests_reg compare
 #
-#  A few of the tests require gnuplot.  These tests, listed below,
-#  are skipped if gnuplot is not available.
+#  Some of the tests require gnuplot.  These tests, listed below,
+#  are skipped if gnuplot is not available.  You can determine if a
+#  test requires gnuplot, if any of these situations is true:
+#   * a function starting with "gplot" is called
+#   * a function starting with "boxaPlot" is called
+#   * a function starting with "pixCompare" is called
+#   * the function pixItalicWords() is called
+#   * the function pixWordMaskByDilation() is called
 #
 #  The wrapper receives several parameters in this form:
 #      path/to/source/config/test-driver <TEST DRIVER ARGS> -- ./foo_reg
@@ -31,10 +37,10 @@ TEST_NAME="${TEST##*/}"
 TEST_NAME="${TEST_NAME%_reg*}"
 
 case "${TEST_NAME}" in
-    baseline|boxa[1234]|colormask|colorspace|dna|enhance|extrema|fpix1|italic|kernel|nearline|numa[12]|projection|rankbin|rankhisto|wordboxes)
-        GNUPLOT=$(type -P gnuplot || type -P wgnuplot)
+    baseline|boxa[1234]|colormask|colorspace|crop|dna|enhance|extrema|fpix1|hash|italic|kernel|nearline|numa[123]|pixa1|projection|rank|rankbin|rankhisto|wordboxes)
+        GNUPLOT=$(which gnuplot || which wgnuplot)
 
-        if [ -z "${GNUPLOT}" ] || ! "${GNUPLOT}" -e "set terminal png" 2>/dev/null ; then
+        if [ -z "${GNUPLOT}" ] || [ -n "$(${GNUPLOT} -e 'set terminal png' 2>&1)" ] ; then
             exec ${@%${TEST}} /bin/sh -c "exit 77"
         fi
 esac

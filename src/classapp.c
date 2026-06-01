@@ -49,10 +49,14 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32 L_BUF_SIZE = 512;        /*!< size of filename buffer    */
+#define L_BUF_SIZE 512                        /*!< size of filename buffer    */
 static const l_int32 JB_WORDS_MIN_WIDTH = 5;  /*!< min. word width in pixels  */
 static const l_int32 JB_WORDS_MIN_HEIGHT = 3; /*!< min. word height in pixels */
 
@@ -66,7 +70,6 @@ static l_int32 countAlignedMatches(NUMA *nai1, NUMA *nai2, NUMA *nasx,
                                    l_int32 debugflag);
 static void printRowIndices(l_int32 *index1, l_int32 n1,
                             l_int32 *index2, l_int32 n2);
-
 
 /*------------------------------------------------------------------*
  *          Top-level jb2 correlation and rank-hausdorff            *
@@ -110,15 +113,13 @@ PIX        *pix;
 PIXA       *pixa;
 SARRAY     *safiles;
 
-    PROCNAME("jbCorrelation");
-
     if (!dirin)
-        return ERROR_INT("dirin not defined", procName, 1);
+        return ERROR_INT("dirin not defined", __func__, 1);
     if (!rootname)
-        return ERROR_INT("rootname not defined", procName, 1);
+        return ERROR_INT("rootname not defined", __func__, 1);
     if (components != JB_CONN_COMPS && components != JB_CHARACTERS &&
         components != JB_WORDS)
-        return ERROR_INT("components invalid", procName, 1);
+        return ERROR_INT("components invalid", __func__, 1);
 
     safiles = getSortedPathnamesInDirectory(dirin, NULL, firstpage, npages);
     nfiles = sarrayGetCount(safiles);
@@ -136,12 +137,12 @@ SARRAY     *safiles;
         pixa = jbDataRender(data, FALSE);
         numpages = pixaGetCount(pixa);
         if (numpages != nfiles)
-            fprintf(stderr, "numpages = %d, nfiles = %d, not equal!\n",
-                    numpages, nfiles);
+            lept_stderr("numpages = %d, nfiles = %d, not equal!\n",
+                        numpages, nfiles);
         for (i = 0; i < numpages; i++) {
             pix = pixaGetPix(pixa, i, L_CLONE);
             snprintf(filename, L_BUF_SIZE, "%s.%04d", rootname, i);
-            fprintf(stderr, "filename: %s\n", filename);
+            lept_stderr("filename: %s\n", filename);
             pixWrite(filename, pix, IFF_PNG);
             pixDestroy(&pix);
         }
@@ -192,15 +193,13 @@ PIX        *pix;
 PIXA       *pixa;
 SARRAY     *safiles;
 
-    PROCNAME("jbRankHaus");
-
     if (!dirin)
-        return ERROR_INT("dirin not defined", procName, 1);
+        return ERROR_INT("dirin not defined", __func__, 1);
     if (!rootname)
-        return ERROR_INT("rootname not defined", procName, 1);
+        return ERROR_INT("rootname not defined", __func__, 1);
     if (components != JB_CONN_COMPS && components != JB_CHARACTERS &&
         components != JB_WORDS)
-        return ERROR_INT("components invalid", procName, 1);
+        return ERROR_INT("components invalid", __func__, 1);
 
     safiles = getSortedPathnamesInDirectory(dirin, NULL, firstpage, npages);
     nfiles = sarrayGetCount(safiles);
@@ -218,12 +217,12 @@ SARRAY     *safiles;
         pixa = jbDataRender(data, FALSE);
         numpages = pixaGetCount(pixa);
         if (numpages != nfiles)
-            fprintf(stderr, "numpages = %d, nfiles = %d, not equal!\n",
-                    numpages, nfiles);
+            lept_stderr("numpages = %d, nfiles = %d, not equal!\n",
+                        numpages, nfiles);
         for (i = 0; i < numpages; i++) {
             pix = pixaGetPix(pixa, i, L_CLONE);
             snprintf(filename, L_BUF_SIZE, "%s.%04d", rootname, i);
-            fprintf(stderr, "filename: %s\n", filename);
+            lept_stderr("filename: %s\n", filename);
             pixWrite(filename, pix, IFF_PNG);
             pixDestroy(&pix);
         }
@@ -282,15 +281,13 @@ PIX        *pix1, *pix2;
 PIXA       *pixa;
 SARRAY     *safiles;
 
-    PROCNAME("jbWordsInTextlines");
-
     if (!pnatl)
-        return (JBCLASSER *)ERROR_PTR("&natl not defined", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("&natl not defined", __func__, NULL);
     *pnatl = NULL;
     if (!dirin)
-        return (JBCLASSER *)ERROR_PTR("dirin not defined", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("dirin not defined", __func__, NULL);
     if (reduction != 1 && reduction != 2)
-        return (JBCLASSER *)ERROR_PTR("reduction not in {1,2}", procName, NULL);
+        return (JBCLASSER *)ERROR_PTR("reduction not in {1,2}", __func__, NULL);
 
     safiles = getSortedPathnamesInDirectory(dirin, NULL, firstpage, npages);
     nfiles = sarrayGetCount(safiles);
@@ -303,7 +300,7 @@ SARRAY     *safiles;
     for (i = 0; i < nfiles; i++) {
         fname = sarrayGetString(safiles, i, L_NOCOPY);
         if ((pix1 = pixRead(fname)) == NULL) {
-            L_WARNING("image file %d not read\n", procName, i);
+            L_WARNING("image file %d not read\n", __func__, i);
             continue;
         }
         if (reduction == 1)
@@ -393,15 +390,13 @@ NUMAA   *naa;
 PIXA    *pixa1, *pixad;
 PIXAA   *paa;
 
-    PROCNAME("pixGetWordsInTextlines");
-
     if (!pboxad || !ppixad || !pnai)
-        return ERROR_INT("&boxad, &pixad, &nai not all defined", procName, 1);
+        return ERROR_INT("&boxad, &pixad, &nai not all defined", __func__, 1);
     *pboxad = NULL;
     *ppixad = NULL;
     *pnai = NULL;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
 
         /* Get the bounding boxes of the words from the word mask. */
     pixWordBoxesByDilation(pixs, minwidth, minheight, maxwidth, maxheight,
@@ -466,14 +461,12 @@ BOXA    *boxa1;
 BOXAA   *baa;
 NUMA    *nai;
 
-    PROCNAME("pixGetWordBoxesInTextlines");
-
     if (pnai) *pnai = NULL;
     if (!pboxad)
-        return ERROR_INT("&boxad and &nai not both defined", procName, 1);
+        return ERROR_INT("&boxad and &nai not both defined", __func__, 1);
     *pboxad = NULL;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
 
         /* Get the bounding boxes of the words from the word mask. */
     pixWordBoxesByDilation(pixs, minwidth, minheight, maxwidth, maxheight,
@@ -535,20 +528,18 @@ BOXA      *boxa1, *boxa1a, *boxa2, *boxa3, *boxa4, *boxa5, *boxaw;
 BOXAA     *boxaac;
 PIX       *pix1, *pix2, *pix3, *pix3a, *pix4, *pix5;
 
-    PROCNAME("pixFindWordAndCharacterBoxes");
-
     if (pboxaw) *pboxaw = NULL;
     if (pboxaac) *pboxaac = NULL;
     if (!pboxaw || !pboxaac)
-        return ERROR_INT("&boxaw and &boxaac not defined", procName, 1);
+        return ERROR_INT("&boxaw and &boxaac not defined", __func__, 1);
     if (!pixs || pixGetDepth(pixs) == 1)
-        return ERROR_INT("pixs not defined or 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or 1 bpp", __func__, 1);
     if (thresh > 150)
-        L_WARNING("threshold is %d; may be too high\n", procName, thresh);
+        L_WARNING("threshold is %d; may be too high\n", __func__, thresh);
 
     if (boxs) {
         if ((pix1 = pixClipRectangle(pixs, boxs, NULL)) == NULL)
-            return ERROR_INT("pix1 not made", procName, 1);
+            return ERROR_INT("pix1 not made", __func__, 1);
         boxGetGeometry(boxs, &xs, &ys, NULL, NULL);
     } else {
         pix1 = pixClone(pixs);
@@ -669,15 +660,13 @@ boxaExtractSortedPattern(BOXA  *boxa,
 {
 l_int32  index, nbox, row, prevrow, x, y, w, h;
 BOX     *box;
-NUMA    *nad;
+NUMA    *nad = NULL;
 NUMAA   *naa;
 
-    PROCNAME("boxaExtractSortedPattern");
-
     if (!boxa)
-        return (NUMAA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (NUMAA *)ERROR_PTR("boxa not defined", __func__, NULL);
     if (!na)
-        return (NUMAA *)ERROR_PTR("na not defined", procName, NULL);
+        return (NUMAA *)ERROR_PTR("na not defined", __func__, NULL);
 
     naa = numaaCreate(0);
     nbox = boxaGetCount(boxa);
@@ -770,19 +759,17 @@ l_int32  *yloc1, *yloc2;  /* arrays of y value for first box in a line */
 l_int32  *xleft1, *xleft2;  /* arrays of x value for left side of first box */
 NUMA     *na1, *na2, *nai1, *nai2, *nasx, *nasy;
 
-    PROCNAME("numaaCompareImagesByBoxes");
-
     if (!psame)
-        return ERROR_INT("&same not defined", procName, 1);
+        return ERROR_INT("&same not defined", __func__, 1);
     *psame = 0;
     if (!naa1)
-        return ERROR_INT("naa1 not defined", procName, 1);
+        return ERROR_INT("naa1 not defined", __func__, 1);
     if (!naa2)
-        return ERROR_INT("naa2 not defined", procName, 1);
+        return ERROR_INT("naa2 not defined", __func__, 1);
     if (nperline < 1)
-        return ERROR_INT("nperline < 1", procName, 1);
+        return ERROR_INT("nperline < 1", __func__, 1);
     if (nreq < 1)
-        return ERROR_INT("nreq < 1", procName, 1);
+        return ERROR_INT("nreq < 1", __func__, 1);
 
     n1 = numaaGetCount(naa1);
     n2 = numaaGetCount(naa2);
@@ -798,8 +785,15 @@ NUMA     *na1, *na2, *nai1, *nai2, *nasx, *nasy;
     yloc2 = (l_int32 *)LEPT_CALLOC(n2, sizeof(l_int32));
     xleft1 = (l_int32 *)LEPT_CALLOC(n1, sizeof(l_int32));
     xleft2 = (l_int32 *)LEPT_CALLOC(n2, sizeof(l_int32));
-    if (!line1 || !line2 || !yloc1 || !yloc2 || !xleft1 || !xleft2)
-        return ERROR_INT("callof failure for an array", procName, 1);
+    if (!line1 || !line2 || !yloc1 || !yloc2 || !xleft1 || !xleft2) {
+        LEPT_FREE(line1);
+        LEPT_FREE(line2);
+        LEPT_FREE(yloc1);
+        LEPT_FREE(yloc2);
+        LEPT_FREE(xleft1);
+        LEPT_FREE(xleft2);
+        return ERROR_INT("calloc failure for an array", __func__, 1);
+    }
     for (i = 0; i < n1; i++) {
         na1 = numaaGetNuma(naa1, i, L_CLONE);
         numaGetIValue(na1, 0, yloc1 + i);
@@ -888,12 +882,10 @@ testLineAlignmentX(NUMA    *na1,
 {
 l_int32  i, xl1, xr1, xl2, xr2, diffl, diffr;
 
-    PROCNAME("testLineAlignmentX");
-
     if (!na1)
-        return ERROR_INT("na1 not defined", procName, 1);
+        return ERROR_INT("na1 not defined", __func__, 1);
     if (!na2)
-        return ERROR_INT("na2 not defined", procName, 1);
+        return ERROR_INT("na2 not defined", __func__, 1);
 
     for (i = 0; i < nperline; i++) {
         numaGetIValue(na1, i + 1, &xl1);
@@ -947,12 +939,10 @@ countAlignedMatches(NUMA     *nai1,
 l_int32   i, j, nm, shiftx, shifty, nmatch, diffx, diffy;
 l_int32  *ia1, *ia2, *iasx, *iasy, *index1, *index2;
 
-    PROCNAME("countAlignedMatches");
-
     if (!nai1 || !nai2 || !nasx || !nasy)
-        return ERROR_INT("4 input numas not defined", procName, 1);
+        return ERROR_INT("4 input numas not defined", __func__, 1);
     if (!psame)
-        return ERROR_INT("&same not defined", procName, 1);
+        return ERROR_INT("&same not defined", __func__, 1);
     *psame = 0;
 
         /* Check for sufficient aligned matches, doing a double iteration
@@ -972,7 +962,7 @@ l_int32  *ia1, *ia2, *iasx, *iasy, *index1, *index2;
     index1 = (l_int32 *)LEPT_CALLOC(n1, sizeof(l_int32));  /* watch rows */
     index2 = (l_int32 *)LEPT_CALLOC(n2, sizeof(l_int32));
     if (!index1 || !index2)
-        return ERROR_INT("calloc fail for array", procName, 1);
+        return ERROR_INT("calloc fail for array", __func__, 1);
     for (i = 0; i < nm; i++) {
         if (*psame == 1)
             break;
@@ -1028,20 +1018,20 @@ printRowIndices(l_int32  *index1,
 {
 l_int32  i;
 
-    fprintf(stderr, "Index1: ");
+    lept_stderr("Index1: ");
     for (i = 0; i < n1; i++) {
         if (i && (i % 20 == 0))
-            fprintf(stderr, "\n        ");
-        fprintf(stderr, "%3d", index1[i]);
+            lept_stderr("\n        ");
+        lept_stderr("%3d", index1[i]);
     }
-    fprintf(stderr, "\n");
+    lept_stderr("\n");
 
-    fprintf(stderr, "Index2: ");
+    lept_stderr("Index2: ");
     for (i = 0; i < n2; i++) {
         if (i && (i % 20 == 0))
-            fprintf(stderr, "\n        ");
-        fprintf(stderr, "%3d", index2[i]);
+            lept_stderr("\n        ");
+        lept_stderr("%3d", index2[i]);
     }
-    fprintf(stderr, "\n");
+    lept_stderr("\n");
     return;
 }

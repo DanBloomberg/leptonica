@@ -27,12 +27,21 @@
 /*
  *  binarize_reg.c
  *
- *     Tests Sauvola local binarization and variants
+ *     Tests several methods of binarization:
+ *     (1) Composite operations, including
+ *         - contrast normalization and Sauvola binarization
+ *         - contrast normalization followed by background normalization
+ *           and thresholding.
+ *     (2) Sauvola binarization with and without tiling
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
 
-PIX *PixTest1(PIX *pixs, l_int32 size, l_float32 factor, L_REGPARAMS  *rp);
+PIX *PixTest1(PIX *pixs, l_int32 size, l_float32 factor, L_REGPARAMS *rp);
 PIX *PixTest2(PIX *pixs, l_int32 size, l_float32 factor, l_int32 nx,
               l_int32 ny, L_REGPARAMS *rp);
 void PixTest3(PIX *pixs, l_int32 size, l_float32 factor,
@@ -41,7 +50,8 @@ void PixTest3(PIX *pixs, l_int32 size, l_float32 factor,
 int main(int    argc,
          char **argv)
 {
-PIX          *pixs, *pixt1, *pixt2;
+PIX          *pixs, *pix1, *pix2;
+PIXA         *pixa;
 L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &rp))
@@ -49,41 +59,50 @@ L_REGPARAMS  *rp;
 
     pixs = pixRead("w91frag.jpg");
 
-    PixTest3(pixs, 3, 0.20, 2, 3, 0, rp);
-    PixTest3(pixs, 6, 0.20, 100, 100, 1, rp);
-    PixTest3(pixs, 10, 0.40, 10, 10, 2, rp);
-    PixTest3(pixs, 10, 0.40, 20, 20, 3, rp);
-    PixTest3(pixs, 20, 0.34, 30, 30, 4, rp);
+        /* Compare Sauvola binarization with and without tiles */
+    pix1 = PixTest1(pixs, 7, 0.34, rp);  /* 0, 1 */
+    pix2 = PixTest2(pixs, 7, 0.34, 4, 4, rp);  /* 2, 3 */
+    regTestComparePix(rp, pix1, pix2);  /* 4 */
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
 
-    pixt1 = PixTest1(pixs, 7, 0.34, rp);
-    pixt2 = PixTest2(pixs, 7, 0.34, 4, 4, rp);
-    regTestComparePix(rp, pixt1, pixt2);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
+        /* More comparisons of Sauvola with and without tiles. */
+    PixTest3(pixs, 3, 0.20, 2, 3, 0, rp);  /* 5 - 9 */
+    PixTest3(pixs, 6, 0.20, 100, 100, 1, rp);  /* 10 - 14 */
+    PixTest3(pixs, 10, 0.40, 10, 10, 2, rp);  /* 15 - 19 */
+    PixTest3(pixs, 10, 0.40, 20, 20, 3, rp);  /* 20 - 24 */
+    PixTest3(pixs, 20, 0.34, 30, 30, 4, rp);  /* 25 - 29 */
 
-        /* Do combination of contrast norm and sauvola */
-    pixt1 = pixContrastNorm(NULL, pixs, 100, 100, 55, 1, 1);
-    pixSauvolaBinarizeTiled(pixt1, 8, 0.34, 1, 1, NULL, &pixt2);
-    regTestWritePixAndCheck(rp, pixt1, IFF_PNG);
-    regTestWritePixAndCheck(rp, pixt2, IFF_PNG);
-    pixDisplayWithTitle(pixt1, 100, 500, NULL, rp->display);
-    pixDisplayWithTitle(pixt2, 700, 500, NULL, rp->display);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
+        /* Contrast normalization followed by Sauvola */
+    pixa = pixaCreate(0);
+    pix1 = pixSauvolaOnContrastNorm(pixs, 130, NULL, NULL);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 30 */
+    pixDisplayWithTitle(pix1, 0, 0, NULL, rp->display);
+    pixaAddPix(pixa, pix1, L_INSERT);
+
+       /* Contrast normalization followed by background normalization
+        * and thresholding. */
+    pix1 = pixThreshOnDoubleNorm(pixs, 130);
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 31 */
+    pixDisplayWithTitle(pix1, 850, 0, NULL, rp->display);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix2 = pixaDisplayTiledInColumns(pixa, 2, 0.5, 30, 2);
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 32 */
+    pixDisplayWithTitle(pix2, 0, 600, NULL, rp->display);
+    pixaDestroy(&pixa);
+    pixDestroy(&pix2);
 
     pixDestroy(&pixs);
     return regTestCleanup(rp);
 }
 
-
-PIX *
-PixTest1(PIX          *pixs,
-         l_int32       size,
-         l_float32     factor,
-         L_REGPARAMS  *rp)
+PIX *PixTest1(PIX          *pixs,
+              l_int32       size,
+              l_float32     factor,
+              L_REGPARAMS  *rp)
 {
 l_int32  w, h;
-PIX     *pixm, *pixsd, *pixth, *pixd, *pixt;
+PIX     *pixm, *pixsd, *pixth, *pixd, *pix1;
 PIXA    *pixa;
 
     pixm = pixsd = pixth = pixd = NULL;
@@ -92,42 +111,37 @@ PIXA    *pixa;
         /* Get speed */
     startTimer();
     pixSauvolaBinarize(pixs, size, factor, 1, NULL, NULL, NULL, &pixd);
-    fprintf(stderr, "\nSpeed: 1 tile,  %7.3f Mpix/sec\n",
-            (w * h / 1000000.) / stopTimer());
+    lept_stderr("\nSpeed: 1 tile,  %7.3f Mpix/sec\n",
+                (w * h / 1000000.) / stopTimer());
     pixDestroy(&pixd);
 
-        /* Get results */
+        /* Get results witout tiling */
     pixSauvolaBinarize(pixs, size, factor, 1, &pixm, &pixsd, &pixth, &pixd);
     pixa = pixaCreate(0);
-    pixSaveTiled(pixm, pixa, 1.0, 1, 30, 8);
-    pixSaveTiled(pixsd, pixa, 1.0, 0, 30, 8);
-    pixSaveTiled(pixth, pixa, 1.0, 1, 30, 8);
-    pixSaveTiled(pixd, pixa, 1.0, 0, 30, 8);
-    pixt = pixaDisplay(pixa, 0, 0);
-    regTestWritePixAndCheck(rp, pixt, IFF_JFIF_JPEG);
-    if (rp->index < 5)
-        pixDisplayWithTitle(pixt, 100, 100, NULL, rp->display);
+    pixaAddPix(pixa, pixm, L_INSERT);
+    pixaAddPix(pixa, pixsd, L_INSERT);
+    pixaAddPix(pixa, pixth, L_INSERT);
+    pixaAddPix(pixa, pixd, L_COPY);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);
+    pix1 = pixaDisplayTiledInColumns(pixa, 2, 1.0, 30, 2);
+    regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);
+    if (rp->index < 5)
+        pixDisplayWithTitle(pix1, 600, 600, NULL, rp->display);
 
     pixaDestroy(&pixa);
-    pixDestroy(&pixm);
-    pixDestroy(&pixsd);
-    pixDestroy(&pixth);
-    pixDestroy(&pixt);
+    pixDestroy(&pix1);
     return pixd;
 }
 
-
-PIX *
-PixTest2(PIX          *pixs,
-         l_int32       size,
-         l_float32     factor,
-         l_int32       nx,
-         l_int32       ny,
-         L_REGPARAMS  *rp)
+PIX *PixTest2(PIX          *pixs,
+              l_int32       size,
+              l_float32     factor,
+              l_int32       nx,
+              l_int32       ny,
+              L_REGPARAMS  *rp)
 {
 l_int32  w, h;
-PIX     *pixth, *pixd, *pixt;
+PIX     *pixth, *pixd, *pix1;
 PIXA    *pixa;
 
     pixth = pixd = NULL;
@@ -136,21 +150,21 @@ PIXA    *pixa;
         /* Get speed */
     startTimer();
     pixSauvolaBinarizeTiled(pixs, size, factor, nx, ny, NULL, &pixd);
-    fprintf(stderr, "Speed: %d x %d tiles,  %7.3f Mpix/sec\n",
-            nx, ny, (w * h / 1000000.) / stopTimer());
+    lept_stderr("Speed: %d x %d tiles,  %7.3f Mpix/sec\n",
+                nx, ny, (w * h / 1000000.) / stopTimer());
     pixDestroy(&pixd);
 
-        /* Get results */
+        /* Get results with tiling */
     pixSauvolaBinarizeTiled(pixs, size, factor, nx, ny, &pixth, &pixd);
     regTestWritePixAndCheck(rp, pixth, IFF_JFIF_JPEG);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);
-    if (rp->index < 5 && rp->display) {
+    if (rp->index < 7 && rp->display) {
         pixa = pixaCreate(0);
-        pixSaveTiled(pixth, pixa, 1.0, 1, 30, 8);
-        pixSaveTiled(pixd, pixa, 1.0, 0, 30, 8);
-        pixt = pixaDisplay(pixa, 0, 0);
-        pixDisplayWithTitle(pixt, 100, 400, NULL, rp->display);
-        pixDestroy(&pixt);
+        pixaAddPix(pixa, pixth, L_COPY);
+        pixaAddPix(pixa, pixd, L_COPY);
+        pix1 = pixaDisplayTiledInColumns(pixa, 2, 1.0, 30, 2);
+        pixDisplayWithTitle(pix1, 600, 600, NULL, rp->display);
+        pixDestroy(&pix1);
         pixaDestroy(&pixa);
     }
 
@@ -158,22 +172,21 @@ PIXA    *pixa;
     return pixd;
 }
 
-
-void
-PixTest3(PIX          *pixs,
-         l_int32       size,
-         l_float32     factor,
-         l_int32       nx,
-         l_int32       ny,
-         l_int32       paircount,
-         L_REGPARAMS  *rp)
+void PixTest3(PIX          *pixs,
+              l_int32       size,
+              l_float32     factor,
+              l_int32       nx,
+              l_int32       ny,
+              l_int32       paircount,
+              L_REGPARAMS  *rp)
 {
-PIX  *pixt1, *pixt2;
+PIX  *pix1, *pix2;
 
-    pixt1 = PixTest1(pixs, size, factor, rp);
-    pixt2 = PixTest2(pixs, size, factor, nx, ny, rp);
-    regTestComparePix(rp, pixt1, pixt2);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
+        /* Compare with and without tiling */
+    pix1 = PixTest1(pixs, size, factor, rp);
+    pix2 = PixTest2(pixs, size, factor, nx, ny, rp);
+    regTestComparePix(rp, pix1, pix2);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
     return;
 }

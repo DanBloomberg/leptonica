@@ -40,7 +40,12 @@
  *    image of the Sel superimposed on the "c" bitmap.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
+#include "pix_internal.h"
 
     /* for pixGenerateSelWithRuns() */
 static const l_int32  NumHorLines = 11;
@@ -55,18 +60,17 @@ static const l_uint32  MissColor = 0x00ff8800;
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout, *patternfile;
-l_int32      w, h, i, n;
-BOX         *box, *boxe;
-BOXA        *boxa1, *boxa2;
-PIX         *pixs, *pixp, *pixpe, *pix1, *pix2, *pix3, *pix4, *pixhmt;
-PIXCMAP     *cmap;
-SEL         *sel_2h, *sel;
-static char  mainName[] = "findpattern1";
+char     *filein, *fileout, *patternfile;
+l_int32   w, h, i, n;
+BOX      *box, *boxe;
+BOXA     *boxa1, *boxa2;
+PIX      *pixs, *pixp, *pixpe, *pix1, *pix2, *pix3, *pix4, *pixhmt;
+PIXCMAP  *cmap;
+SEL      *sel_2h, *sel;
 
     if (argc != 4)
         return ERROR_INT(" Syntax:  findpattern1 filein patternfile fileout",
-                         mainName, 1);
+                         __func__, 1);
     filein = argv[1];
     patternfile = argv[2];
     fileout = argv[3];
@@ -75,9 +79,9 @@ static char  mainName[] = "findpattern1";
     lept_mkdir("lept/hmt");
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
     if ((pixp = pixRead(patternfile)) == NULL)
-        return ERROR_INT("pixp not made", mainName, 1);
+        return ERROR_INT("pixp not made", __func__, 1);
     pixGetDimensions(pixp, &w, &h, NULL);
 
         /* Generate the hit-miss Sel with runs */
@@ -93,7 +97,7 @@ static char  mainName[] = "findpattern1";
         /* Use the Sel to find all instances in the page */
     startTimer();
     pixhmt = pixHMT(NULL, pixs, sel);
-    fprintf(stderr, "Time to find patterns = %7.3f\n", stopTimer());
+    lept_stderr("Time to find patterns = %7.3f\n", stopTimer());
 
         /* Small erosion to remove noise; typically not necessary if
          * there are enough elements in the Sel */
@@ -122,7 +126,7 @@ static char  mainName[] = "findpattern1";
         boxDestroy(&box);
     }
     pixWrite("/tmp/lept/hmt/outline.png", pix4, IFF_PNG);
-    boxaWriteStream(stderr, boxa2);
+    boxaWriteStderr(boxa2);
 
     pixDestroy(&pixs);
     pixDestroy(&pixp);

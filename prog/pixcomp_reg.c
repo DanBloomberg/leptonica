@@ -33,8 +33,13 @@
  *    We also show some other ways to accumulate and display pixa.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
+#include "pix_internal.h"
 
 static const char *fnames[] = {"weasel32.png", "weasel2.4c.png",
                                "weasel4.16c.png", "weasel4.8g.png",
@@ -72,11 +77,10 @@ SARRAY       *sa;
     pixc2 = pixcompCreateFromPix(pix2, IFF_JFIF_JPEG);
     pix3 = pixCreateFromPixcomp(pixc2);
     regTestWritePixAndCheck(rp, pix3, IFF_JFIF_JPEG);  /* 0 */
-    pixSaveTiledOutline(pix3, pixa, 1.0, 1, 30, 2, 32);
+    pixaAddPix(pixa, pix3, L_INSERT);
     pixacompAddPix(pixac, pix1, IFF_DEFAULT);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    pixDestroy(&pix3);
     pixcompDestroy(&pixc1);
     pixcompDestroy(&pixc2);
 
@@ -87,11 +91,10 @@ SARRAY       *sa;
     pixc2 = pixcompCreateFromPix(pix2, IFF_JFIF_JPEG);
     pix3 = pixCreateFromPixcomp(pixc2);
     regTestWritePixAndCheck(rp, pix3, IFF_JFIF_JPEG);  /* 1 */
-    pixSaveTiledOutline(pix3, pixa, 1.0, 1, 30, 2, 32);
+    pixaAddPix(pixa, pix3, L_INSERT);
     pixacompAddPix(pixac, pix1, IFF_DEFAULT);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    pixDestroy(&pix3);
     pixcompDestroy(&pixc1);
     pixcompDestroy(&pixc2);
 
@@ -102,13 +105,12 @@ SARRAY       *sa;
     pixc2 = pixcompCreateFromPix(pix2, IFF_TIFF_G4);
     pix3 = pixCreateFromPixcomp(pixc2);
     regTestWritePixAndCheck(rp, pix3, IFF_TIFF_G4);  /* 2 */
-    pixSaveTiledOutline(pix3, pixa, 1.0, 0, 30, 2, 32);
+    pixaAddPix(pixa, pix3, L_INSERT);
     pixacompAddPix(pixac, pix1, IFF_DEFAULT);
     boxDestroy(&box);
     pixDestroy(&pix);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    pixDestroy(&pix3);
     pixcompDestroy(&pixc1);
     pixcompDestroy(&pixc2);
 
@@ -118,11 +120,10 @@ SARRAY       *sa;
     pixc2 = pixcompCreateFromPix(pix2, IFF_PNG);
     pix3 = pixCreateFromPixcomp(pixc2);
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 3 */
-    pixSaveTiledOutline(pix3, pixa, 1.0, 0, 30, 2, 32);
+    pixaAddPix(pixa, pix3, L_INSERT);
     pixacompAddPix(pixac, pix1, IFF_DEFAULT);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
-    pixDestroy(&pix3);
     pixcompDestroy(&pixc1);
     pixcompDestroy(&pixc2);
 
@@ -224,14 +225,13 @@ l_int32  ret, format, w, h, d, bps, spp, iscmap;
     d = bps * spp;
     if (d == 24) d = 32;
     if (ret)
-        fprintf(stderr, "Error: couldn't read data: size = %d\n",
-                (l_int32)size);
+        lept_stderr("Error: couldn't read data: size = %d\n", (l_int32)size);
     else
-        fprintf(stderr, "Format data for image %d:\n"
-                "  format: %s, size (w, h, d) = (%d, %d, %d)\n"
-                "  bps = %d, spp = %d, iscmap = %d\n",
-                i, ImageFileFormatExtensions[format], w, h, d,
-                bps, spp, iscmap);
+        lept_stderr("Format data for image %d:\n"
+                    "  format: %s, size (w, h, d) = (%d, %d, %d)\n"
+                    "  bps = %d, spp = %d, iscmap = %d\n",
+                    i, ImageFileFormatExtensions[format], w, h, d,
+                    bps, spp, iscmap);
     return;
 }
 

@@ -32,6 +32,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 /* --------------------------------------------*/
@@ -40,7 +44,7 @@
 
 l_ok pixWritePSEmbed(const char *filein, const char *fileout)
 {
-    return ERROR_INT("function not present", "pixWritePSEmbed", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -48,14 +52,14 @@ l_ok pixWritePSEmbed(const char *filein, const char *fileout)
 l_ok pixWriteStreamPS(FILE *fp, PIX *pix, BOX *box, l_int32 res,
                          l_float32 scale)
 {
-    return ERROR_INT("function not present", "pixWriteStreamPS", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 char * pixWriteStringPS(PIX *pixs, BOX *box, l_int32 res, l_float32 scale)
 {
-    return (char *)ERROR_PTR("function not present", "pixWriteStringPS", NULL);
+    return (char *)ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -65,15 +69,14 @@ char * generateUncompressedPS(char *hexdata, l_int32 w, l_int32 h, l_int32 d,
                               l_float32 ypt, l_float32 wpt, l_float32 hpt,
                               l_int32 boxflag)
 {
-    return (char *)ERROR_PTR("function not present",
-                             "generateUncompressedPS", NULL);
+    return (char *)ERROR_PTR("function not present", __func__, NULL);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok convertJpegToPSEmbed(const char *filein, const char *fileout)
 {
-    return ERROR_INT("function not present", "convertJpegToPSEmbed", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -83,14 +86,14 @@ l_ok convertJpegToPS(const char *filein, const char *fileout,
                      l_int32 res, l_float32 scale, l_int32 pageno,
                      l_int32 endpage)
 {
-    return ERROR_INT("function not present", "convertJpegToPS", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok convertG4ToPSEmbed(const char *filein, const char *fileout)
 {
-    return ERROR_INT("function not present", "convertG4ToPSEmbed", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -100,7 +103,7 @@ l_ok convertG4ToPS(const char *filein, const char *fileout,
                    l_int32 res, l_float32 scale, l_int32 pageno,
                    l_int32 maskflag, l_int32 endpage)
 {
-    return ERROR_INT("function not present", "convertG4ToPS", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -108,14 +111,14 @@ l_ok convertG4ToPS(const char *filein, const char *fileout,
 l_ok convertTiffMultipageToPS(const char *filein, const char *fileout,
                               l_float32 fillfract)
 {
-    return ERROR_INT("function not present", "convertTiffMultipageToPS", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok convertFlateToPSEmbed(const char *filein, const char *fileout)
 {
-    return ERROR_INT("function not present", "convertFlateToPSEmbed", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -125,7 +128,7 @@ l_ok convertFlateToPS(const char *filein, const char *fileout,
                       l_int32 res, l_float32 scale, l_int32 pageno,
                       l_int32 endpage)
 {
-    return ERROR_INT("function not present", "convertFlateToPS", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -133,21 +136,21 @@ l_ok convertFlateToPS(const char *filein, const char *fileout,
 l_ok pixWriteMemPS(l_uint8 **pdata, size_t *psize, PIX *pix, BOX *box,
                    l_int32 res, l_float32 scale)
 {
-    return ERROR_INT("function not present", "pixWriteMemPS", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_int32 getResLetterPage(l_int32 w, l_int32 h, l_float32 fillfract)
 {
-    return ERROR_INT("function not present", "getResLetterPage", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 void l_psWriteBoundingBox(l_int32 flag)
 {
-    L_ERROR("function not present\n", "l_psWriteBoundingBox");
+    L_ERROR("function not present\n", __func__);
     return;
 }
 

@@ -30,6 +30,10 @@
  *    Regression test for shear, both IP and to new pix.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   BINARY_IMAGE              "test1.png"
@@ -57,7 +61,7 @@ L_REGPARAMS  *rp;
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
-    fprintf(stderr, "Test binary image:\n");
+    lept_stderr("Test binary image:\n");
     pixs = pixRead(BINARY_IMAGE);
     pixd = shearTest1(pixs, 1.0);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 0 */
@@ -68,7 +72,7 @@ L_REGPARAMS  *rp;
         /* We change the black to dark red so that we can see
          * that the IP shear does brings in that color.  It
          * can't bring in black because the cmap is filled. */
-    fprintf(stderr, "Test 2 bpp cmapped image with filled cmap:\n");
+    lept_stderr("Test 2 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(TWO_BPP_IMAGE);
     cmap = pixGetColormap(pixs);
     pixcmapGetIndex(cmap, 40, 44, 40, &index);
@@ -79,7 +83,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
-    fprintf(stderr, "Test 4 bpp cmapped image with unfilled cmap:\n");
+    lept_stderr("Test 4 bpp cmapped image with unfilled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE1);
     pixd = shearTest1(pixs, 1.0);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 2 */
@@ -87,7 +91,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
-    fprintf(stderr, "Test 4 bpp cmapped image with filled cmap:\n");
+    lept_stderr("Test 4 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE2);
     pixd = shearTest1(pixs, 1.0);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 3 */
@@ -95,7 +99,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
-    fprintf(stderr, "Test 8 bpp grayscale image:\n");
+    lept_stderr("Test 8 bpp grayscale image:\n");
     pixs = pixRead(EIGHT_BPP_IMAGE);
     pix1 = pixScale(pixs, 0.5, 0.5);
     pixd = shearTest1(pixs, 1.0);
@@ -105,7 +109,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix1);
     pixDestroy(&pixd);
 
-    fprintf(stderr, "Test 8 bpp grayscale cmap image:\n");
+    lept_stderr("Test 8 bpp grayscale cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE1);
     pixd = shearTest1(pixs, 1.0);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 5 */
@@ -113,7 +117,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
-    fprintf(stderr, "Test 8 bpp color cmap image:\n");
+    lept_stderr("Test 8 bpp color cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE2);
     pix1 = pixScale(pixs, 0.3, 0.3);
     pixd = pixOctreeColorQuant(pix1, 200, 0);
@@ -125,7 +129,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pixd);
     pixDestroy(&pixc);
 
-    fprintf(stderr, "Test rgb image:\n");
+    lept_stderr("Test rgb image:\n");
     pixs = pixRead(RGB_IMAGE);
     pix1 = pixScale(pixs, 0.3, 0.3);
     pixd = shearTest1(pix1, 1.0);
@@ -135,13 +139,15 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix1);
     pixDestroy(&pixd);
 
-    fprintf(stderr, "Test in-place shear on 4 bpp cmapped image:\n");
+#if 1
+    lept_stderr("Test in-place shear on 4 bpp cmapped image:\n");
     pixs = pixRead(FOUR_BPP_IMAGE1);
     pixd = shearTest2(pixs, rp);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 12 */
     pixDisplayWithTitle(pixd, 800, 100, NULL, rp->display);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
+#endif
 
     return regTestCleanup(rp);
 }
@@ -152,107 +158,83 @@ shearTest1(PIX       *pixs,
            l_float32  scale)
 {
 l_int32  w, h, d;
-PIX     *pixt1, *pixt2, *pixd;
+PIX     *pix1, *pix2, *pixd;
 PIXA    *pixa;
 
     pixa = pixaCreate(0);
     pixGetDimensions(pixs, &w, &h, &d);
 
-    pixt1 = pixHShear(NULL, pixs, 0, ANGLE1, L_BRING_IN_WHITE);
-    pixSaveTiled(pixt1, pixa, scale, 1, 20, 32);
-    pixt2 = pixHShear(NULL, pixs, h / 2, ANGLE1, L_BRING_IN_WHITE);
-    pixSaveTiled(pixt2, pixa, scale, 0, 20, 0);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixt1 = pixHShear(NULL, pixs, 0, ANGLE1, L_BRING_IN_BLACK);
-    pixSaveTiled(pixt1, pixa, scale, 0, 20, 0);
-    pixt2 = pixHShear(NULL, pixs, h / 2, ANGLE1, L_BRING_IN_BLACK);
-    pixSaveTiled(pixt2, pixa, scale, 0, 20, 0);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
+    pix1 = pixHShear(NULL, pixs, 0, ANGLE1, L_BRING_IN_WHITE);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix2 = pixHShear(NULL, pixs, h / 2, ANGLE1, L_BRING_IN_WHITE);
+    pixaAddPix(pixa, pix2, L_INSERT);
+    pix1 = pixHShear(NULL, pixs, 0, ANGLE1, L_BRING_IN_BLACK);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix2 = pixHShear(NULL, pixs, h / 2, ANGLE1, L_BRING_IN_BLACK);
+    pixaAddPix(pixa, pix2, L_INSERT);
 
     if (!pixGetColormap(pixs)) {
-        pixt1 = pixCopy(NULL, pixs);
-        pixHShearIP(pixt1, 0, ANGLE1, L_BRING_IN_WHITE);
-        pixSaveTiled(pixt1, pixa, scale, 1, 20, 0);
-        pixt2 = pixCopy(NULL, pixs);
-        pixHShearIP(pixt2, h / 2, ANGLE1, L_BRING_IN_WHITE);
-        pixSaveTiled(pixt2, pixa, scale, 0, 20, 0);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
-        pixt1 = pixCopy(NULL, pixs);
-        pixHShearIP(pixt1, 0, ANGLE1, L_BRING_IN_BLACK);
-        pixSaveTiled(pixt1, pixa, scale, 0, 20, 0);
-        pixt2 = pixCopy(NULL, pixs);
-        pixHShearIP(pixt2, h / 2, ANGLE1, L_BRING_IN_BLACK);
-        pixSaveTiled(pixt2, pixa, scale, 0, 20, 32);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
+        pix1 = pixCopy(NULL, pixs);
+        pixHShearIP(pix1, 0, ANGLE1, L_BRING_IN_WHITE);
+        pixaAddPix(pixa, pix1, L_INSERT);
+        pix2 = pixCopy(NULL, pixs);
+        pixHShearIP(pix2, h / 2, ANGLE1, L_BRING_IN_WHITE);
+        pixaAddPix(pixa, pix2, L_INSERT);
+        pix1 = pixCopy(NULL, pixs);
+        pixHShearIP(pix1, 0, ANGLE1, L_BRING_IN_BLACK);
+        pixaAddPix(pixa, pix1, L_INSERT);
+        pix2 = pixCopy(NULL, pixs);
+        pixHShearIP(pix2, h / 2, ANGLE1, L_BRING_IN_BLACK);
+        pixaAddPix(pixa, pix2, L_INSERT);
     }
 
     if (d == 8 || d == 32 || pixGetColormap(pixs)) {
-        pixt1 = pixHShearLI(pixs, 0, ANGLE1, L_BRING_IN_WHITE);
-        pixSaveTiled(pixt1, pixa, scale, 1, 20, 0);
-        pixt2 = pixHShearLI(pixs, w / 2, ANGLE1, L_BRING_IN_WHITE);
-        pixSaveTiled(pixt2, pixa, scale, 0, 20, 0);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
-        pixt1 = pixHShearLI(pixs, 0, ANGLE1, L_BRING_IN_BLACK);
-        pixSaveTiled(pixt1, pixa, scale, 0, 20, 0);
-        pixt2 = pixHShearLI(pixs, w / 2, ANGLE1, L_BRING_IN_BLACK);
-        pixSaveTiled(pixt2, pixa, scale, 0, 20, 0);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
+        pix1 = pixHShearLI(pixs, 0, ANGLE1, L_BRING_IN_WHITE);
+        pixaAddPix(pixa, pix1, L_INSERT);
+        pix2 = pixHShearLI(pixs, w / 2, ANGLE1, L_BRING_IN_WHITE);
+        pixaAddPix(pixa, pix2, L_INSERT);
+        pix1 = pixHShearLI(pixs, 0, ANGLE1, L_BRING_IN_BLACK);
+        pixaAddPix(pixa, pix1, L_INSERT);
+        pix2 = pixHShearLI(pixs, w / 2, ANGLE1, L_BRING_IN_BLACK);
+        pixaAddPix(pixa, pix2, L_INSERT);
     }
 
-    pixt1 = pixVShear(NULL, pixs, 0, ANGLE1, L_BRING_IN_WHITE);
-    pixSaveTiled(pixt1, pixa, scale, 1, 20, 0);
-    pixt2 = pixVShear(NULL, pixs, w / 2, ANGLE1, L_BRING_IN_WHITE);
-    pixSaveTiled(pixt2, pixa, scale, 0, 20, 0);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
-    pixt1 = pixVShear(NULL, pixs, 0, ANGLE1, L_BRING_IN_BLACK);
-    pixSaveTiled(pixt1, pixa, scale, 0, 20, 0);
-    pixt2 = pixVShear(NULL, pixs, w / 2, ANGLE1, L_BRING_IN_BLACK);
-    pixSaveTiled(pixt2, pixa, scale, 0, 20, 0);
-    pixDestroy(&pixt1);
-    pixDestroy(&pixt2);
+    pix1 = pixVShear(NULL, pixs, 0, ANGLE1, L_BRING_IN_WHITE);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix2 = pixVShear(NULL, pixs, w / 2, ANGLE1, L_BRING_IN_WHITE);
+    pixaAddPix(pixa, pix2, L_INSERT);
+    pix1 = pixVShear(NULL, pixs, 0, ANGLE1, L_BRING_IN_BLACK);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pix2 = pixVShear(NULL, pixs, w / 2, ANGLE1, L_BRING_IN_BLACK);
+    pixaAddPix(pixa, pix2, L_INSERT);
 
     if (!pixGetColormap(pixs)) {
-        pixt1 = pixCopy(NULL, pixs);
-        pixVShearIP(pixt1, 0, ANGLE1, L_BRING_IN_WHITE);
-        pixSaveTiled(pixt1, pixa, scale, 1, 20, 0);
-        pixt2 = pixCopy(NULL, pixs);
-        pixVShearIP(pixt2, w / 2, ANGLE1, L_BRING_IN_WHITE);
-        pixSaveTiled(pixt2, pixa, scale, 0, 20, 0);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
-        pixt1 = pixCopy(NULL, pixs);
-        pixVShearIP(pixt1, 0, ANGLE1, L_BRING_IN_BLACK);
-        pixSaveTiled(pixt1, pixa, scale, 0, 20, 0);
-        pixt2 = pixCopy(NULL, pixs);
-        pixVShearIP(pixt2, w / 2, ANGLE1, L_BRING_IN_BLACK);
-        pixSaveTiled(pixt2, pixa, scale, 0, 20, 32);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
+        pix1 = pixCopy(NULL, pixs);
+        pixVShearIP(pix1, 0, ANGLE1, L_BRING_IN_WHITE);
+        pixaAddPix(pixa, pix1, L_INSERT);
+        pix2 = pixCopy(NULL, pixs);
+        pixVShearIP(pix2, w / 2, ANGLE1, L_BRING_IN_WHITE);
+        pixaAddPix(pixa, pix2, L_INSERT);
+        pix1 = pixCopy(NULL, pixs);
+        pixVShearIP(pix1, 0, ANGLE1, L_BRING_IN_BLACK);
+        pixaAddPix(pixa, pix1, L_INSERT);
+        pix2 = pixCopy(NULL, pixs);
+        pixVShearIP(pix2, w / 2, ANGLE1, L_BRING_IN_BLACK);
+        pixaAddPix(pixa, pix2, L_INSERT);
     }
 
     if (d == 8 || d == 32 || pixGetColormap(pixs)) {
-        pixt1 = pixVShearLI(pixs, 0, ANGLE1, L_BRING_IN_WHITE);
-        pixSaveTiled(pixt1, pixa, scale, 1, 20, 0);
-        pixt2 = pixVShearLI(pixs, w / 2, ANGLE1, L_BRING_IN_WHITE);
-        pixSaveTiled(pixt2, pixa, scale, 0, 20, 0);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
-        pixt1 = pixVShearLI(pixs, 0, ANGLE1, L_BRING_IN_BLACK);
-        pixSaveTiled(pixt1, pixa, scale, 0, 20, 0);
-        pixt2 = pixVShearLI(pixs, w / 2, ANGLE1, L_BRING_IN_BLACK);
-        pixSaveTiled(pixt2, pixa, scale, 0, 20, 0);
-        pixDestroy(&pixt1);
-        pixDestroy(&pixt2);
+        pix1 = pixVShearLI(pixs, 0, ANGLE1, L_BRING_IN_WHITE);
+        pixaAddPix(pixa, pix1, L_INSERT);
+        pix2 = pixVShearLI(pixs, w / 2, ANGLE1, L_BRING_IN_WHITE);
+        pixaAddPix(pixa, pix2, L_INSERT);
+        pix1 = pixVShearLI(pixs, 0, ANGLE1, L_BRING_IN_BLACK);
+        pixaAddPix(pixa, pix1, L_INSERT);
+        pix2 = pixVShearLI(pixs, w / 2, ANGLE1, L_BRING_IN_BLACK);
+        pixaAddPix(pixa, pix2, L_INSERT);
     }
 
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 4, scale, 20, 0);
     pixaDestroy(&pixa);
     return pixd;
 }
@@ -270,40 +252,32 @@ PIXA    *pixa;
     pixGetDimensions(pixs, &w, &h, NULL);
 
     pix1 = pixHShear(NULL, pixs, h / 2, ANGLE1, L_BRING_IN_WHITE);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 32);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixCopy(NULL, pixs);
     pixHShear(pix2, pix2, h / 2, ANGLE1, L_BRING_IN_WHITE);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 0);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 8 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
     pix1 = pixHShear(NULL, pixs, h / 2, ANGLE1, L_BRING_IN_BLACK);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 32);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixCopy(NULL, pixs);
     pixHShear(pix2, pix2, h / 2, ANGLE1, L_BRING_IN_BLACK);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 0);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 9 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
 
     pix1 = pixVShear(NULL, pixs, w / 2, ANGLE1, L_BRING_IN_WHITE);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 32);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixCopy(NULL, pixs);
     pixVShear(pix2, pix2, w / 2, ANGLE1, L_BRING_IN_WHITE);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 0);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 10 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
     pix1 = pixVShear(NULL, pixs, w / 2, ANGLE1, L_BRING_IN_BLACK);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 32);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixCopy(NULL, pixs);
     pixVShear(pix2, pix2, w / 2, ANGLE1, L_BRING_IN_BLACK);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 0);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 11 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
 
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 2, 1.0, 20, 0);
     pixaDestroy(&pixa);
     return pixd;
 }

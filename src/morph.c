@@ -162,6 +162,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -213,10 +217,8 @@ pixDilate(PIX  *pixd,
 l_int32  i, j, w, h, sx, sy, cx, cy, seldata;
 PIX     *pixt;
 
-    PROCNAME("pixDilate");
-
     if ((pixd = processMorphArgs1(pixd, pixs, sel, &pixt)) == NULL)
-        return (PIX *)ERROR_PTR("processMorphArgs1 failed", procName, pixd);
+        return (PIX *)ERROR_PTR("processMorphArgs1 failed", __func__, pixd);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     selGetParameters(sel, &sy, &sx, &cy, &cx);
@@ -268,10 +270,8 @@ l_int32  i, j, w, h, sx, sy, cx, cy, seldata;
 l_int32  xp, yp, xn, yn;
 PIX     *pixt;
 
-    PROCNAME("pixErode");
-
     if ((pixd = processMorphArgs1(pixd, pixs, sel, &pixt)) == NULL)
-        return (PIX *)ERROR_PTR("processMorphArgs1 failed", procName, pixd);
+        return (PIX *)ERROR_PTR("processMorphArgs1 failed", __func__, pixd);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     selGetParameters(sel, &sy, &sx, &cy, &cx);
@@ -343,10 +343,8 @@ l_int32  i, j, w, h, sx, sy, cx, cy, firstrasterop, seldata;
 l_int32  xp, yp, xn, yn;
 PIX     *pixt;
 
-    PROCNAME("pixHMT");
-
     if ((pixd = processMorphArgs1(pixd, pixs, sel, &pixt)) == NULL)
-        return (PIX *)ERROR_PTR("processMorphArgs1 failed", procName, pixd);
+        return (PIX *)ERROR_PTR("processMorphArgs1 failed", __func__, pixd);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     selGetParameters(sel, &sy, &sx, &cy, &cx);
@@ -425,13 +423,11 @@ pixOpen(PIX  *pixd,
 {
 PIX  *pixt;
 
-    PROCNAME("pixOpen");
-
     if ((pixd = processMorphArgs2(pixd, pixs, sel)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not returned", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not returned", __func__, pixd);
 
     if ((pixt = pixErode(NULL, pixs, sel)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixt not made", __func__, pixd);
     pixDilate(pixd, pixt, sel);
     pixDestroy(&pixt);
 
@@ -472,13 +468,11 @@ pixClose(PIX  *pixd,
 {
 PIX  *pixt;
 
-    PROCNAME("pixClose");
-
     if ((pixd = processMorphArgs2(pixd, pixs, sel)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not returned", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not returned", __func__, pixd);
 
     if ((pixt = pixDilate(NULL, pixs, sel)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixt not made", __func__, pixd);
     pixErode(pixd, pixt, sel);
     pixDestroy(&pixt);
 
@@ -524,14 +518,12 @@ pixCloseSafe(PIX  *pixd,
 l_int32  xp, yp, xn, yn, xmax, xbord;
 PIX     *pixt1, *pixt2;
 
-    PROCNAME("pixCloseSafe");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (!sel)
-        return (PIX *)ERROR_PTR("sel not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("sel not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
 
         /* Symmetric b.c. handles correctly without added pixels */
     if (MORPH_BC == SYMMETRIC_MORPH_BC)
@@ -542,10 +534,10 @@ PIX     *pixt1, *pixt2;
     xbord = 32 * ((xmax + 31) / 32);  /* full 32 bit words */
 
     if ((pixt1 = pixAddBorderGeneral(pixs, xbord, xbord, yp, yn, 0)) == NULL)
-        return (PIX *)ERROR_PTR("pixt1 not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixt1 not made", __func__, pixd);
     pixClose(pixt1, pixt1, sel);
     if ((pixt2 = pixRemoveBorderGeneral(pixt1, xbord, xbord, yp, yn)) == NULL)
-        return (PIX *)ERROR_PTR("pixt2 not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixt2 not made", __func__, pixd);
     pixDestroy(&pixt1);
 
     if (!pixd)
@@ -590,13 +582,11 @@ pixOpenGeneralized(PIX  *pixd,
 {
 PIX  *pixt;
 
-    PROCNAME("pixOpenGeneralized");
-
     if ((pixd = processMorphArgs2(pixd, pixs, sel)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not returned", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not returned", __func__, pixd);
 
     if ((pixt = pixHMT(NULL, pixs, sel)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixt not made", __func__, pixd);
     pixDilate(pixd, pixt, sel);
     pixDestroy(&pixt);
     return pixd;
@@ -637,13 +627,11 @@ pixCloseGeneralized(PIX  *pixd,
 {
 PIX  *pixt;
 
-    PROCNAME("pixCloseGeneralized");
-
     if ((pixd = processMorphArgs2(pixd, pixs, sel)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not returned", procName, pixd);
+        return (PIX *)ERROR_PTR("pixd not returned", __func__, pixd);
 
     if ((pixt = pixDilate(NULL, pixs, sel)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixt not made", __func__, pixd);
     pixHMT(pixd, pixt, sel);
     pixDestroy(&pixt);
 
@@ -689,24 +677,28 @@ pixDilateBrick(PIX     *pixd,
 PIX  *pixt;
 SEL  *sel, *selh, *selv;
 
-    PROCNAME("pixDilateBrick");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
     if (hsize == 1 || vsize == 1) {  /* no intermediate result */
         sel = selCreateBrick(vsize, hsize, vsize / 2, hsize / 2, SEL_HIT);
+        if (!sel)
+            return (PIX *)ERROR_PTR("sel not made", __func__, pixd);
         pixd = pixDilate(pixd, pixs, sel);
         selDestroy(&sel);
     } else {
-        selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
-        selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
+        if ((selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT)) == NULL)
+            return (PIX *)ERROR_PTR("selh not made", __func__, pixd);
+        if ((selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT)) == NULL) {
+            selDestroy(&selh);
+            return (PIX *)ERROR_PTR("selv not made", __func__, pixd);
+        }
         pixt = pixDilate(NULL, pixs, selh);
         pixd = pixDilate(pixd, pixt, selv);
         pixDestroy(&pixt);
@@ -753,24 +745,28 @@ pixErodeBrick(PIX     *pixd,
 PIX  *pixt;
 SEL  *sel, *selh, *selv;
 
-    PROCNAME("pixErodeBrick");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
     if (hsize == 1 || vsize == 1) {  /* no intermediate result */
         sel = selCreateBrick(vsize, hsize, vsize / 2, hsize / 2, SEL_HIT);
+        if (!sel)
+            return (PIX *)ERROR_PTR("sel not made", __func__, pixd);
         pixd = pixErode(pixd, pixs, sel);
         selDestroy(&sel);
     } else {
-        selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
-        selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
+        if ((selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT)) == NULL)
+            return (PIX *)ERROR_PTR("selh not made", __func__, pixd);
+        if ((selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT)) == NULL) {
+            selDestroy(&selh);
+            return (PIX *)ERROR_PTR("selv not made", __func__, pixd);
+        }
         pixt = pixErode(NULL, pixs, selh);
         pixd = pixErode(pixd, pixt, selv);
         pixDestroy(&pixt);
@@ -817,24 +813,28 @@ pixOpenBrick(PIX     *pixd,
 PIX  *pixt;
 SEL  *sel, *selh, *selv;
 
-    PROCNAME("pixOpenBrick");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
     if (hsize == 1 || vsize == 1) {  /* no intermediate result */
         sel = selCreateBrick(vsize, hsize, vsize / 2, hsize / 2, SEL_HIT);
+        if (!sel)
+            return (PIX *)ERROR_PTR("sel not made", __func__, pixd);
         pixd = pixOpen(pixd, pixs, sel);
         selDestroy(&sel);
     } else {  /* do separably */
-        selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
-        selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
+        if ((selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT)) == NULL)
+            return (PIX *)ERROR_PTR("selh not made", __func__, pixd);
+        if ((selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT)) == NULL) {
+            selDestroy(&selh);
+            return (PIX *)ERROR_PTR("selv not made", __func__, pixd);
+        }
         pixt = pixErode(NULL, pixs, selh);
         pixd = pixErode(pixd, pixt, selv);
         pixDilate(pixt, pixd, selh);
@@ -883,24 +883,28 @@ pixCloseBrick(PIX     *pixd,
 PIX  *pixt;
 SEL  *sel, *selh, *selv;
 
-    PROCNAME("pixCloseBrick");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
     if (hsize == 1 || vsize == 1) {  /* no intermediate result */
         sel = selCreateBrick(vsize, hsize, vsize / 2, hsize / 2, SEL_HIT);
+        if (!sel)
+            return (PIX *)ERROR_PTR("sel not made", __func__, pixd);
         pixd = pixClose(pixd, pixs, sel);
         selDestroy(&sel);
     } else {  /* do separably */
-        selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
-        selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
+        if ((selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT)) == NULL)
+            return (PIX *)ERROR_PTR("selh not made", __func__, pixd);
+        if ((selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT)) == NULL) {
+            selDestroy(&selh);
+            return (PIX *)ERROR_PTR("selv not made", __func__, pixd);
+        }
         pixt = pixDilate(NULL, pixs, selh);
         pixd = pixDilate(pixd, pixt, selv);
         pixErode(pixt, pixd, selh);
@@ -955,14 +959,12 @@ l_int32  maxtrans, bordsize;
 PIX     *pixsb, *pixt, *pixdb;
 SEL     *sel, *selh, *selv;
 
-    PROCNAME("pixCloseSafeBrick");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -977,11 +979,22 @@ SEL     *sel, *selh, *selv;
 
     if (hsize == 1 || vsize == 1) {  /* no intermediate result */
         sel = selCreateBrick(vsize, hsize, vsize / 2, hsize / 2, SEL_HIT);
+        if (!sel) {
+            pixDestroy(&pixsb);
+            return (PIX *)ERROR_PTR("sel not made", __func__, pixd);
+        }
         pixdb = pixClose(NULL, pixsb, sel);
         selDestroy(&sel);
     } else {  /* do separably */
         selh = selCreateBrick(1, hsize, 0, hsize / 2, SEL_HIT);
         selv = selCreateBrick(vsize, 1, vsize / 2, 0, SEL_HIT);
+        if (!selh || !selv) {
+            selDestroy(&selh);
+            selDestroy(&selv);
+            pixDestroy(&pixsb);
+            return (PIX *)ERROR_PTR("selh and selv not both made",
+                                    __func__, pixd);
+        }
         pixt = pixDilate(NULL, pixsb, selh);
         pixdb = pixDilate(NULL, pixt, selv);
         pixErode(pixt, pixdb, selh);
@@ -1001,7 +1014,6 @@ SEL     *sel, *selh, *selv;
         pixCopy(pixd, pixt);
         pixDestroy(&pixt);
     }
-
     return pixd;
 }
 
@@ -1043,19 +1055,17 @@ selectComposableSels(l_int32  size,
 {
 l_int32  factor1, factor2;
 
-    PROCNAME("selectComposableSels");
-
     if (!psel1 && !psel2)
-        return ERROR_INT("neither &sel1 nor &sel2 are defined", procName, 1);
+        return ERROR_INT("neither &sel1 nor &sel2 are defined", __func__, 1);
     if (psel1) *psel1 = NULL;
     if (psel2) *psel2 = NULL;
-    if (size < 1 || size > 250 * 250)
-        return ERROR_INT("size < 1", procName, 1);
+    if (size < 1 || size > 10000)
+        return ERROR_INT("size < 1 or size > 10000", __func__, 1);
     if (direction != L_HORIZ && direction != L_VERT)
-        return ERROR_INT("invalid direction", procName, 1);
+        return ERROR_INT("invalid direction", __func__, 1);
 
     if (selectComposableSizes(size, &factor1, &factor2))
-        return ERROR_INT("factors not found", procName, 1);
+        return ERROR_INT("factors not found", __func__, 1);
 
     if (psel1) {
         if (direction == L_HORIZ)
@@ -1079,7 +1089,7 @@ l_int32  factor1, factor2;
  *
  * <pre>
  * Notes:
- *      (1) This works for Sel sizes up to 62500, which seems sufficient.
+ *      (1) This works for Sel sizes up to 10000, which seems sufficient.
  *      (2) The composable sel size is typically within +- 1 of
  *          the requested size.  Up to size = 300, the maximum difference
  *          is +- 2.
@@ -1103,12 +1113,10 @@ l_int32  hival[256];
 l_int32  rastcost[256];  /* excess in sum of sizes (extra rasterops) */
 l_int32  diff[256];  /* diff between product (sel size) and input size */
 
-    PROCNAME("selectComposableSizes");
-
-    if (size < 1 || size > 250 * 250)
-        return ERROR_INT("size < 1", procName, 1);
+    if (size < 1 || size > 10000)
+        return ERROR_INT("size < 1 or size > 10000", __func__, 1);
     if (!pfactor1 || !pfactor2)
-        return ERROR_INT("&factor1 or &factor2 not defined", procName, 1);
+        return ERROR_INT("&factor1 or &factor2 not defined", __func__, 1);
 
     midval = (l_int32)(sqrt((l_float64)size) + 0.001);
     if (midval * midval == size) {
@@ -1209,23 +1217,36 @@ pixDilateCompBrick(PIX     *pixd,
                    l_int32  vsize)
 {
 PIX  *pix1, *pix2, *pix3;
-SEL  *selh1, *selh2, *selv1, *selv2;
-
-    PROCNAME("pixDilateCompBrick");
+SEL  *selh1 = NULL;
+SEL  *selh2 = NULL;
+SEL  *selv1 = NULL;
+SEL  *selv2 = NULL;
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
-    if (hsize > 1)
-        selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
-    if (vsize > 1)
-        selectComposableSels(vsize, L_VERT, &selv1, &selv2);
+    if (hsize > 1) {
+        if (selectComposableSels(hsize, L_HORIZ, &selh1, &selh2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            return (PIX *)ERROR_PTR("horiz sels not made", __func__, pixd);
+        }
+    }
+    if (vsize > 1) {
+        if (selectComposableSels(vsize, L_VERT, &selv1, &selv2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            selDestroy(&selv1);
+            selDestroy(&selv2);
+            return (PIX *)ERROR_PTR("vert sels not made", __func__, pixd);
+        }
+    }
 
     pix1 = pixAddBorder(pixs, 32, 0);
     if (vsize == 1) {
@@ -1243,14 +1264,10 @@ SEL  *selh1, *selh2, *selv1, *selv2;
     pixDestroy(&pix1);
     pixDestroy(&pix2);
 
-    if (hsize > 1) {
-        selDestroy(&selh1);
-        selDestroy(&selh2);
-    }
-    if (vsize > 1) {
-        selDestroy(&selv1);
-        selDestroy(&selv2);
-    }
+    selDestroy(&selh1);
+    selDestroy(&selh2);
+    selDestroy(&selv1);
+    selDestroy(&selv2);
 
     pix1 = pixRemoveBorder(pix3, 32);
     pixDestroy(&pix3);
@@ -1309,23 +1326,37 @@ pixErodeCompBrick(PIX     *pixd,
                   l_int32  vsize)
 {
 PIX  *pixt;
-SEL  *selh1, *selh2, *selv1, *selv2;
-
-    PROCNAME("pixErodeCompBrick");
+SEL  *selh1 = NULL;
+SEL  *selh2 = NULL;
+SEL  *selv1 = NULL;
+SEL  *selv2 = NULL;
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
-    if (hsize > 1)
-        selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
-    if (vsize > 1)
-        selectComposableSels(vsize, L_VERT, &selv1, &selv2);
+    if (hsize > 1) {
+        if (selectComposableSels(hsize, L_HORIZ, &selh1, &selh2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            return (PIX *)ERROR_PTR("horiz sels not made", __func__, pixd);
+        }
+    }
+    if (vsize > 1) {
+        if (selectComposableSels(vsize, L_VERT, &selv1, &selv2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            selDestroy(&selv1);
+            selDestroy(&selv2);
+            return (PIX *)ERROR_PTR("vert sels not made", __func__, pixd);
+        }
+    }
+
     if (vsize == 1) {
         pixt = pixErode(NULL, pixs, selh1);
         pixd = pixErode(pixd, pixt, selh2);
@@ -1340,15 +1371,10 @@ SEL  *selh1, *selh2, *selv1, *selv2;
     }
     pixDestroy(&pixt);
 
-    if (hsize > 1) {
-        selDestroy(&selh1);
-        selDestroy(&selh2);
-    }
-    if (vsize > 1) {
-        selDestroy(&selv1);
-        selDestroy(&selv2);
-    }
-
+    selDestroy(&selh1);
+    selDestroy(&selh2);
+    selDestroy(&selv1);
+    selDestroy(&selv2);
     return pixd;
 }
 
@@ -1400,23 +1426,37 @@ pixOpenCompBrick(PIX     *pixd,
                  l_int32  vsize)
 {
 PIX  *pixt;
-SEL  *selh1, *selh2, *selv1, *selv2;
-
-    PROCNAME("pixOpenCompBrick");
+SEL  *selh1 = NULL;
+SEL  *selh2 = NULL;
+SEL  *selv1 = NULL;
+SEL  *selv2 = NULL;
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
-    if (hsize > 1)
-        selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
-    if (vsize > 1)
-        selectComposableSels(vsize, L_VERT, &selv1, &selv2);
+    if (hsize > 1) {
+        if (selectComposableSels(hsize, L_HORIZ, &selh1, &selh2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            return (PIX *)ERROR_PTR("horiz sels not made", __func__, pixd);
+        }
+    }
+    if (vsize > 1) {
+        if (selectComposableSels(vsize, L_VERT, &selv1, &selv2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            selDestroy(&selv1);
+            selDestroy(&selv2);
+            return (PIX *)ERROR_PTR("vert sels not made", __func__, pixd);
+        }
+    }
+
     if (vsize == 1) {
         pixt = pixErode(NULL, pixs, selh1);
         pixd = pixErode(pixd, pixt, selh2);
@@ -1439,15 +1479,10 @@ SEL  *selh1, *selh2, *selv1, *selv2;
     }
     pixDestroy(&pixt);
 
-    if (hsize > 1) {
-        selDestroy(&selh1);
-        selDestroy(&selh2);
-    }
-    if (vsize > 1) {
-        selDestroy(&selv1);
-        selDestroy(&selv2);
-    }
-
+    selDestroy(&selh1);
+    selDestroy(&selh2);
+    selDestroy(&selv1);
+    selDestroy(&selv2);
     return pixd;
 }
 
@@ -1499,23 +1534,37 @@ pixCloseCompBrick(PIX     *pixd,
                   l_int32  vsize)
 {
 PIX  *pixt;
-SEL  *selh1, *selh2, *selv1, *selv2;
-
-    PROCNAME("pixCloseCompBrick");
+SEL  *selh1 = NULL;
+SEL  *selh2 = NULL;
+SEL  *selv1 = NULL;
+SEL  *selv2 = NULL;
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
-    if (hsize > 1)
-        selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
-    if (vsize > 1)
-        selectComposableSels(vsize, L_VERT, &selv1, &selv2);
+    if (hsize > 1) {
+        if (selectComposableSels(hsize, L_HORIZ, &selh1, &selh2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            return (PIX *)ERROR_PTR("horiz sels not made", __func__, pixd);
+        }
+    }
+    if (vsize > 1) {
+        if (selectComposableSels(vsize, L_VERT, &selv1, &selv2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            selDestroy(&selv1);
+            selDestroy(&selv2);
+            return (PIX *)ERROR_PTR("vert sels not made", __func__, pixd);
+        }
+    }
+
     if (vsize == 1) {
         pixt = pixDilate(NULL, pixs, selh1);
         pixd = pixDilate(pixd, pixt, selh2);
@@ -1538,15 +1587,10 @@ SEL  *selh1, *selh2, *selv1, *selv2;
     }
     pixDestroy(&pixt);
 
-    if (hsize > 1) {
-        selDestroy(&selh1);
-        selDestroy(&selh2);
-    }
-    if (vsize > 1) {
-        selDestroy(&selv1);
-        selDestroy(&selv2);
-    }
-
+    selDestroy(&selh1);
+    selDestroy(&selh2);
+    selDestroy(&selv1);
+    selDestroy(&selv2);
     return pixd;
 }
 
@@ -1604,16 +1648,17 @@ pixCloseSafeCompBrick(PIX     *pixd,
 {
 l_int32  maxtrans, bordsize;
 PIX     *pixsb, *pixt, *pixdb;
-SEL     *selh1, *selh2, *selv1, *selv2;
-
-    PROCNAME("pixCloseSafeCompBrick");
+SEL     *selh1 = NULL;
+SEL     *selh2 = NULL;
+SEL     *selv1 = NULL;
+SEL     *selv2 = NULL;
 
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
     if (hsize < 1 || vsize < 1)
-        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", procName, pixd);
+        return (PIX *)ERROR_PTR("hsize and vsize not >= 1", __func__, pixd);
 
     if (hsize == 1 && vsize == 1)
         return pixCopy(pixd, pixs);
@@ -1622,14 +1667,27 @@ SEL     *selh1, *selh2, *selv1, *selv2;
     if (MORPH_BC == SYMMETRIC_MORPH_BC)
         return pixCloseCompBrick(pixd, pixs, hsize, vsize);
 
+    if (hsize > 1) {
+        if (selectComposableSels(hsize, L_HORIZ, &selh1, &selh2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            return (PIX *)ERROR_PTR("horiz sels not made", __func__, pixd);
+        }
+    }
+    if (vsize > 1) {
+        if (selectComposableSels(vsize, L_VERT, &selv1, &selv2)) {
+            selDestroy(&selh1);
+            selDestroy(&selh2);
+            selDestroy(&selv1);
+            selDestroy(&selv2);
+            return (PIX *)ERROR_PTR("vert sels not made", __func__, pixd);
+        }
+    }
+
     maxtrans = L_MAX(hsize / 2, vsize / 2);
     bordsize = 32 * ((maxtrans + 31) / 32);  /* full 32 bit words */
     pixsb = pixAddBorder(pixs, bordsize, 0);
 
-    if (hsize > 1)
-        selectComposableSels(hsize, L_HORIZ, &selh1, &selh2);
-    if (vsize > 1)
-        selectComposableSels(vsize, L_VERT, &selv1, &selv2);
     if (vsize == 1) {
         pixt = pixDilate(NULL, pixsb, selh1);
         pixdb = pixDilate(NULL, pixt, selh2);
@@ -1663,15 +1721,10 @@ SEL     *selh1, *selh2, *selv1, *selv2;
         pixDestroy(&pixt);
     }
 
-    if (hsize > 1) {
-        selDestroy(&selh1);
-        selDestroy(&selh2);
-    }
-    if (vsize > 1) {
-        selDestroy(&selv1);
-        selDestroy(&selv2);
-    }
-
+    selDestroy(&selh1);
+    selDestroy(&selh2);
+    selDestroy(&selv1);
+    selDestroy(&selv2);
     return pixd;
 }
 
@@ -1688,10 +1741,8 @@ SEL     *selh1, *selh2, *selv1, *selv2;
 void
 resetMorphBoundaryCondition(l_int32  bc)
 {
-    PROCNAME("resetMorphBoundaryCondition");
-
     if (bc != SYMMETRIC_MORPH_BC && bc != ASYMMETRIC_MORPH_BC) {
-        L_WARNING("invalid bc; using asymmetric\n", procName);
+        L_WARNING("invalid bc; using asymmetric\n", __func__);
         bc = ASYMMETRIC_MORPH_BC;
     }
     MORPH_BC = bc;
@@ -1710,13 +1761,11 @@ l_uint32
 getMorphBorderPixelColor(l_int32  type,
                          l_int32  depth)
 {
-    PROCNAME("getMorphBorderPixelColor");
-
     if (type != L_MORPH_DILATE && type != L_MORPH_ERODE)
-        return ERROR_INT("invalid type", procName, 0);
+        return ERROR_INT("invalid type", __func__, 0);
     if (depth != 1 && depth != 2 && depth != 4 && depth != 8 &&
         depth != 16 && depth != 32)
-        return ERROR_INT("invalid depth", procName, 0);
+        return ERROR_INT("invalid depth", __func__, 0);
 
     if (MORPH_BC == ASYMMETRIC_MORPH_BC || type == L_MORPH_DILATE)
         return 0;
@@ -1755,33 +1804,31 @@ processMorphArgs1(PIX   *pixd,
 {
 l_int32  sx, sy;
 
-    PROCNAME("processMorphArgs1");
-
     if (!ppixt)
-        return (PIX *)ERROR_PTR("&pixt not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("&pixt not defined", __func__, pixd);
     *ppixt = NULL;
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (!sel)
-        return (PIX *)ERROR_PTR("sel not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("sel not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
 
     selGetParameters(sel, &sx, &sy, NULL, NULL);
     if (sx == 0 || sy == 0)
-        return (PIX *)ERROR_PTR("sel of size 0", procName, pixd);
+        return (PIX *)ERROR_PTR("sel of size 0", __func__, pixd);
 
         /* We require pixd to exist and to be the same size as pixs.
          * Further, pixt must be a copy (or clone) of pixs.  */
     if (!pixd) {
         if ((pixd = pixCreateTemplate(pixs)) == NULL)
-            return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+            return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
         *ppixt = pixClone(pixs);
     } else {
         pixResizeImageData(pixd, pixs);
         if (pixd == pixs) {  /* in-place; must make a copy of pixs */
             if ((*ppixt = pixCopy(NULL, pixs)) == NULL)
-                return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+                return (PIX *)ERROR_PTR("pixt not made", __func__, pixd);
         } else {
             *ppixt = pixClone(pixs);
         }
@@ -1802,18 +1849,16 @@ processMorphArgs2(PIX   *pixd,
 {
 l_int32  sx, sy;
 
-    PROCNAME("processMorphArgs2");
-
     if (!pixs)
-        return (PIX *)ERROR_PTR("pixs not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, pixd);
     if (!sel)
-        return (PIX *)ERROR_PTR("sel not defined", procName, pixd);
+        return (PIX *)ERROR_PTR("sel not defined", __func__, pixd);
     if (pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs not 1 bpp", __func__, pixd);
 
     selGetParameters(sel, &sx, &sy, NULL, NULL);
     if (sx == 0 || sy == 0)
-        return (PIX *)ERROR_PTR("sel of size 0", procName, pixd);
+        return (PIX *)ERROR_PTR("sel of size 0", __func__, pixd);
 
     if (!pixd)
         return pixCreateTemplate(pixs);

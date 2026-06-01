@@ -148,15 +148,20 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
+#include "pix_internal.h"
 
-    /* Bounds on initial array size */
+    /* Bounds on pixacomp array size */
 static const l_uint32  MaxPtrArraySize = 1000000;
 static const l_int32  InitialPtrArraySize = 20;      /*!< n'importe quoi */
 
-    /* Bound on data size */
-static const size_t  MaxDataSize = 1000000000;
+    /* Bound on size for a compressed data string */
+static const size_t  MaxDataSize = 1000000000;   /* 1 GB */
 
     /* These two globals are defined in writefile.c */
 extern l_int32  NumImageFileFormatExtensions;
@@ -196,13 +201,11 @@ l_int32   ret, format;
 l_uint8  *data;
 PIXC     *pixc;
 
-    PROCNAME("pixcompCreateFromPix");
-
     if (!pix)
-        return (PIXC *)ERROR_PTR("pix not defined", procName, NULL);
+        return (PIXC *)ERROR_PTR("pix not defined", __func__, NULL);
     if (comptype != IFF_DEFAULT && comptype != IFF_TIFF_G4 &&
         comptype != IFF_PNG && comptype != IFF_JFIF_JPEG)
-        return (PIXC *)ERROR_PTR("invalid comptype", procName, NULL);
+        return (PIXC *)ERROR_PTR("invalid comptype", __func__, NULL);
 
     pixc = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC));
     pixGetDimensions(pix, &pixc->w, &pixc->h, &pixc->d);
@@ -216,7 +219,7 @@ PIXC     *pixc;
     pixc->comptype = format;
     ret = pixWriteMem(&data, &size, pix, format);
     if (ret) {
-        L_ERROR("write to memory failed\n", procName);
+        L_ERROR("write to memory failed\n", __func__);
         pixcompDestroy(&pixc);
         return NULL;
     }
@@ -250,15 +253,13 @@ pixcompCreateFromString(l_uint8  *data,
 l_int32  format, w, h, d, bps, spp, iscmap;
 PIXC    *pixc;
 
-    PROCNAME("pixcompCreateFromString");
-
     if (!data)
-        return (PIXC *)ERROR_PTR("data not defined", procName, NULL);
+        return (PIXC *)ERROR_PTR("data not defined", __func__, NULL);
     if (copyflag != L_INSERT && copyflag != L_COPY)
-        return (PIXC *)ERROR_PTR("invalid copyflag", procName, NULL);
+        return (PIXC *)ERROR_PTR("invalid copyflag", __func__, NULL);
 
     if (pixReadHeaderMem(data, size, &format, &w, &h, &bps, &spp, &iscmap) == 1)
-        return (PIXC *)ERROR_PTR("header data not read", procName, NULL);
+        return (PIXC *)ERROR_PTR("header data not read", __func__, NULL);
     pixc = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC));
     d = (spp == 3) ? 32 : bps * spp;
     pixc->w = w;
@@ -300,17 +301,15 @@ l_uint8  *data;
 PIX      *pix;
 PIXC     *pixc;
 
-    PROCNAME("pixcompCreateFromFile");
-
     if (!filename)
-        return (PIXC *)ERROR_PTR("filename not defined", procName, NULL);
+        return (PIXC *)ERROR_PTR("filename not defined", __func__, NULL);
     if (comptype != IFF_DEFAULT && comptype != IFF_TIFF_G4 &&
         comptype != IFF_PNG && comptype != IFF_JFIF_JPEG)
-        return (PIXC *)ERROR_PTR("invalid comptype", procName, NULL);
+        return (PIXC *)ERROR_PTR("invalid comptype", __func__, NULL);
 
     findFileFormat(filename, &format);
     if (format == IFF_UNKNOWN) {
-        L_ERROR("unreadable file: %s\n", procName, filename);
+        L_ERROR("unreadable file: %s\n", __func__, filename);
         return NULL;
     }
 
@@ -325,17 +324,17 @@ PIXC     *pixc;
         data = l_binaryRead(filename, &nbytes);
         if ((pixc = pixcompCreateFromString(data, nbytes, L_INSERT)) == NULL) {
             LEPT_FREE(data);
-            return (PIXC *)ERROR_PTR("pixc not made (string)", procName, NULL);
+            return (PIXC *)ERROR_PTR("pixc not made (string)", __func__, NULL);
         }
         return pixc;
     }
 
         /* Need to recompress in the default format */
     if ((pix = pixRead(filename)) == NULL)
-        return (PIXC *)ERROR_PTR("pix not read", procName, NULL);
+        return (PIXC *)ERROR_PTR("pix not read", __func__, NULL);
     if ((pixc = pixcompCreateFromPix(pix, comptype)) == NULL) {
         pixDestroy(&pix);
-        return (PIXC *)ERROR_PTR("pixc not made", procName, NULL);
+        return (PIXC *)ERROR_PTR("pixc not made", __func__, NULL);
     }
     pixDestroy(&pix);
     return pixc;
@@ -358,10 +357,8 @@ pixcompDestroy(PIXC  **ppixc)
 {
 PIXC  *pixc;
 
-    PROCNAME("pixcompDestroy");
-
     if (!ppixc) {
-        L_WARNING("ptr address is null!\n", procName);
+        L_WARNING("ptr address is null!\n", __func__);
         return;
     }
 
@@ -373,7 +370,6 @@ PIXC  *pixc;
         LEPT_FREE(pixc->text);
     LEPT_FREE(pixc);
     *ppixc = NULL;
-    return;
 }
 
 
@@ -382,6 +378,11 @@ PIXC  *pixc;
  *
  * \param[in]    pixcs
  * \return  pixcd, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) Limit the size of the compressed pix to 500 MB.
+ * </pre>
  */
 PIXC *
 pixcompCopy(PIXC  *pixcs)
@@ -390,10 +391,11 @@ size_t    size;
 l_uint8  *datas, *datad;
 PIXC     *pixcd;
 
-    PROCNAME("pixcompCopy");
-
     if (!pixcs)
-        return (PIXC *)ERROR_PTR("pixcs not defined", procName, NULL);
+        return (PIXC *)ERROR_PTR("pixcs not defined", __func__, NULL);
+    size = pixcs->size;
+    if (size > MaxDataSize)
+        return (PIXC *)ERROR_PTR("size > 1 GB; too big", __func__, NULL);
 
     pixcd = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC));
     pixcd->w = pixcs->w;
@@ -407,11 +409,10 @@ PIXC     *pixcd;
     pixcd->cmapflag = pixcs->cmapflag;
 
         /* Copy image data */
-    size = pixcs->size;
     datas = pixcs->data;
     if ((datad = (l_uint8 *)LEPT_CALLOC(size, sizeof(l_int8))) == NULL) {
         pixcompDestroy(&pixcd);
-        return (PIXC *)ERROR_PTR("pixcd not made", procName, NULL);
+        return (PIXC *)ERROR_PTR("pixcd not made", __func__, NULL);
     }
     memcpy(datad, datas, size);
     pixcd->data = datad;
@@ -436,10 +437,8 @@ pixcompGetDimensions(PIXC     *pixc,
                      l_int32  *ph,
                      l_int32  *pd)
 {
-    PROCNAME("pixcompGetDimensions");
-
     if (!pixc)
-        return ERROR_INT("pixc not defined", procName, 1);
+        return ERROR_INT("pixc not defined", __func__, 1);
     if (pw) *pw = pixc->w;
     if (ph) *ph = pixc->h;
     if (pd) *pd = pixc->d;
@@ -461,10 +460,8 @@ pixcompGetParameters(PIXC     *pixc,
                      l_int32  *pcomptype,
                      l_int32  *pcmapflag)
 {
-    PROCNAME("pixcompGetParameters");
-
     if (!pixc)
-        return ERROR_INT("pixc not defined", procName, 1);
+        return ERROR_INT("pixc not defined", __func__, 1);
     if (pxres) *pxres = pixc->xres;
     if (pyres) *pyres = pixc->yres;
     if (pcomptype) *pcomptype = pixc->comptype;
@@ -507,14 +504,12 @@ pixcompDetermineFormat(l_int32   comptype,
                        l_int32  *pformat)
 {
 
-    PROCNAME("pixcompDetermineFormat");
-
     if (!pformat)
-        return ERROR_INT("&format not defined", procName, 1);
+        return ERROR_INT("&format not defined", __func__, 1);
     *pformat = IFF_PNG;  /* init value and default */
     if (comptype != IFF_DEFAULT && comptype != IFF_TIFF_G4 &&
         comptype != IFF_PNG && comptype != IFF_JFIF_JPEG)
-        return ERROR_INT("invalid comptype", procName, 1);
+        return ERROR_INT("invalid comptype", __func__, 1);
 
     if (comptype == IFF_DEFAULT) {
         if (d == 1)
@@ -548,13 +543,11 @@ pixCreateFromPixcomp(PIXC  *pixc)
 l_int32  w, h, d, cmapinpix, format;
 PIX     *pix;
 
-    PROCNAME("pixCreateFromPixcomp");
-
     if (!pixc)
-        return (PIX *)ERROR_PTR("pixc not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixc not defined", __func__, NULL);
 
     if ((pix = pixReadMem(pixc->data, pixc->size)) == NULL)
-        return (PIX *)ERROR_PTR("pix not read", procName, NULL);
+        return (PIX *)ERROR_PTR("pix not read", __func__, NULL);
     pixSetResolution(pix, pixc->xres, pixc->yres);
     if (pixc->text)
         pixSetText(pix, pixc->text);
@@ -562,24 +555,24 @@ PIX     *pix;
         /* Check fields for consistency */
     pixGetDimensions(pix, &w, &h, &d);
     if (pixc->w != w) {
-        L_INFO("pix width %d != pixc width %d\n", procName, w, pixc->w);
-        L_ERROR("pix width %d != pixc width\n", procName, w);
+        L_INFO("pix width %d != pixc width %d\n", __func__, w, pixc->w);
+        L_ERROR("pix width %d != pixc width\n", __func__, w);
     }
     if (pixc->h != h)
-        L_ERROR("pix height %d != pixc height\n", procName, h);
+        L_ERROR("pix height %d != pixc height\n", __func__, h);
     if (pixc->d != d) {
         if (pixc->d == 16)  /* we strip 16 --> 8 bpp by default */
-            L_WARNING("pix depth %d != pixc depth 16\n", procName, d);
+            L_WARNING("pix depth %d != pixc depth 16\n", __func__, d);
         else
-            L_ERROR("pix depth %d != pixc depth\n", procName, d);
+            L_ERROR("pix depth %d != pixc depth\n", __func__, d);
     }
     cmapinpix = (pixGetColormap(pix) != NULL);
     if ((cmapinpix && !pixc->cmapflag) || (!cmapinpix && pixc->cmapflag))
-        L_ERROR("pix cmap flag inconsistent\n", procName);
+        L_ERROR("pix cmap flag inconsistent\n", __func__);
     format = pixGetInputFormat(pix);
     if (format != pixc->comptype) {
         L_ERROR("pix comptype %d not equal to pixc comptype\n",
-                    procName, format);
+                    __func__, format);
     }
 
     return pix;
@@ -600,9 +593,7 @@ pixacompCreate(l_int32  n)
 {
 PIXAC  *pixac;
 
-    PROCNAME("pixacompCreate");
-
-    if (n <= 0 || n > MaxPtrArraySize)
+    if (n <= 0 || n > (l_int32)MaxPtrArraySize)
         n = InitialPtrArraySize;
 
     pixac = (PIXAC *)LEPT_CALLOC(1, sizeof(PIXAC));
@@ -611,11 +602,11 @@ PIXAC  *pixac;
     pixac->offset = 0;
     if ((pixac->pixc = (PIXC **)LEPT_CALLOC(n, sizeof(PIXC *))) == NULL) {
         pixacompDestroy(&pixac);
-        return (PIXAC *)ERROR_PTR("pixc ptrs not made", procName, NULL);
+        return (PIXAC *)ERROR_PTR("pixc ptrs not made", __func__, NULL);
     }
     if ((pixac->boxa = boxaCreate(n)) == NULL) {
         pixacompDestroy(&pixac);
-        return (PIXAC *)ERROR_PTR("boxa not made", procName, NULL);
+        return (PIXAC *)ERROR_PTR("boxa not made", __func__, NULL);
     }
 
     return pixac;
@@ -671,24 +662,22 @@ PIX     *pixt;
 PIXC    *pixc;
 PIXAC   *pixac;
 
-    PROCNAME("pixacompCreateWithInit");
-
-    if (n <= 0 || n > MaxPtrArraySize)
-        return (PIXAC *)ERROR_PTR("n out of valid bounds", procName, NULL);
+    if (n <= 0 || n > (l_int32)MaxPtrArraySize)
+        return (PIXAC *)ERROR_PTR("n out of valid bounds", __func__, NULL);
     if (pix) {
         if (comptype != IFF_DEFAULT && comptype != IFF_TIFF_G4 &&
             comptype != IFF_PNG && comptype != IFF_JFIF_JPEG)
-            return (PIXAC *)ERROR_PTR("invalid comptype", procName, NULL);
+            return (PIXAC *)ERROR_PTR("invalid comptype", __func__, NULL);
     } else {
         comptype = IFF_TIFF_G4;
     }
     if (offset < 0) {
-        L_WARNING("offset < 0; setting to 0\n", procName);
+        L_WARNING("offset < 0; setting to 0\n", __func__);
         offset = 0;
     }
 
     if ((pixac = pixacompCreate(n)) == NULL)
-        return (PIXAC *)ERROR_PTR("pixac not made", procName, NULL);
+        return (PIXAC *)ERROR_PTR("pixac not made", __func__, NULL);
     pixacompSetOffset(pixac, offset);
     if (pix)
         pixt = pixClone(pix);
@@ -734,20 +723,18 @@ BOXA    *boxa;
 PIX     *pix;
 PIXAC   *pixac;
 
-    PROCNAME("pixacompCreateFromPixa");
-
     if (!pixa)
-        return (PIXAC *)ERROR_PTR("pixa not defined", procName, NULL);
+        return (PIXAC *)ERROR_PTR("pixa not defined", __func__, NULL);
     if (comptype != IFF_DEFAULT && comptype != IFF_TIFF_G4 &&
         comptype != IFF_PNG && comptype != IFF_JFIF_JPEG)
-        return (PIXAC *)ERROR_PTR("invalid comptype", procName, NULL);
+        return (PIXAC *)ERROR_PTR("invalid comptype", __func__, NULL);
     if (accesstype != L_COPY && accesstype != L_CLONE &&
         accesstype != L_COPY_CLONE)
-        return (PIXAC *)ERROR_PTR("invalid accesstype", procName, NULL);
+        return (PIXAC *)ERROR_PTR("invalid accesstype", __func__, NULL);
 
     n = pixaGetCount(pixa);
     if ((pixac = pixacompCreate(n)) == NULL)
-        return (PIXAC *)ERROR_PTR("pixac not made", procName, NULL);
+        return (PIXAC *)ERROR_PTR("pixac not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         pix = pixaGetPix(pixa, i, L_CLONE);
         pixacompAddPix(pixac, pix, comptype);
@@ -791,16 +778,14 @@ pixacompCreateFromFiles(const char  *dirname,
 PIXAC    *pixac;
 SARRAY   *sa;
 
-    PROCNAME("pixacompCreateFromFiles");
-
     if (!dirname)
-        return (PIXAC *)ERROR_PTR("dirname not defined", procName, NULL);
+        return (PIXAC *)ERROR_PTR("dirname not defined", __func__, NULL);
     if (comptype != IFF_DEFAULT && comptype != IFF_TIFF_G4 &&
         comptype != IFF_PNG && comptype != IFF_JFIF_JPEG)
-        return (PIXAC *)ERROR_PTR("invalid comptype", procName, NULL);
+        return (PIXAC *)ERROR_PTR("invalid comptype", __func__, NULL);
 
     if ((sa = getSortedPathnamesInDirectory(dirname, substr, 0, 0)) == NULL)
-        return (PIXAC *)ERROR_PTR("sa not made", procName, NULL);
+        return (PIXAC *)ERROR_PTR("sa not made", __func__, NULL);
     pixac = pixacompCreateFromSA(sa, comptype);
     sarrayDestroy(&sa);
     return pixac;
@@ -831,20 +816,18 @@ l_int32  i, n;
 PIXC    *pixc;
 PIXAC   *pixac;
 
-    PROCNAME("pixacompCreateFromSA");
-
     if (!sa)
-        return (PIXAC *)ERROR_PTR("sarray not defined", procName, NULL);
+        return (PIXAC *)ERROR_PTR("sarray not defined", __func__, NULL);
     if (comptype != IFF_DEFAULT && comptype != IFF_TIFF_G4 &&
         comptype != IFF_PNG && comptype != IFF_JFIF_JPEG)
-        return (PIXAC *)ERROR_PTR("invalid comptype", procName, NULL);
+        return (PIXAC *)ERROR_PTR("invalid comptype", __func__, NULL);
 
     n = sarrayGetCount(sa);
     pixac = pixacompCreate(n);
     for (i = 0; i < n; i++) {
         str = sarrayGetString(sa, i, L_NOCOPY);
         if ((pixc = pixcompCreateFromFile(str, comptype)) == NULL) {
-            L_ERROR("pixc not read from file: %s\n", procName, str);
+            L_ERROR("pixc not read from file: %s\n", __func__, str);
             continue;
         }
         pixacompAddPixcomp(pixac, pixc, L_INSERT);
@@ -870,10 +853,8 @@ pixacompDestroy(PIXAC  **ppixac)
 l_int32  i;
 PIXAC   *pixac;
 
-    PROCNAME("pixacompDestroy");
-
     if (ppixac == NULL) {
-        L_WARNING("ptr address is NULL!\n", procName);
+        L_WARNING("ptr address is NULL!\n", __func__);
         return;
     }
 
@@ -885,9 +866,7 @@ PIXAC   *pixac;
     LEPT_FREE(pixac->pixc);
     boxaDestroy(&pixac->boxa);
     LEPT_FREE(pixac);
-
     *ppixac = NULL;
-    return;
 }
 
 
@@ -919,20 +898,18 @@ pixacompAddPix(PIXAC   *pixac,
 l_int32  cmapflag, format;
 PIXC    *pixc;
 
-    PROCNAME("pixacompAddPix");
-
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 1);
+        return ERROR_INT("pixac not defined", __func__, 1);
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (comptype != IFF_DEFAULT && comptype != IFF_TIFF_G4 &&
         comptype != IFF_PNG && comptype != IFF_JFIF_JPEG)
-        return ERROR_INT("invalid format", procName, 1);
+        return ERROR_INT("invalid format", __func__, 1);
 
     cmapflag = pixGetColormap(pix) ? 1 : 0;
     pixcompDetermineFormat(comptype, pixGetDepth(pix), cmapflag, &format);
     if ((pixc = pixcompCreateFromPix(pix, format)) == NULL)
-        return ERROR_INT("pixc not made", procName, 1);
+        return ERROR_INT("pixc not made", __func__, 1);
     pixacompAddPixcomp(pixac, pixc, L_INSERT);
     return 0;
 }
@@ -960,18 +937,19 @@ pixacompAddPixcomp(PIXAC   *pixac,
 {
 l_int32  n;
 
-    PROCNAME("pixacompAddPixcomp");
-
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 1);
+        return ERROR_INT("pixac not defined", __func__, 1);
     if (!pixc)
-        return ERROR_INT("pixc not defined", procName, 1);
+        return ERROR_INT("pixc not defined", __func__, 1);
     if (copyflag != L_INSERT && copyflag != L_COPY)
-        return ERROR_INT("invalid copyflag", procName, 1);
+        return ERROR_INT("invalid copyflag", __func__, 1);
 
     n = pixac->n;
-    if (n >= pixac->nalloc)
-        pixacompExtendArray(pixac);
+    if (n >= pixac->nalloc) {
+        if (pixacompExtendArray(pixac))
+            return ERROR_INT("extension failed", __func__, 1);
+    }
+
     if (copyflag == L_INSERT)
         pixac->pixc[n] = pixc;
     else  /* L_COPY */
@@ -994,21 +972,27 @@ l_int32  n;
  *          necessary in case we are NOT adding boxes simultaneously
  *          with adding pixc.  We always want the sizes of the
  *          pixac and boxa ptr arrays to be equal.
+ *      (2) The max number of pixcomp ptrs is 1M.
  * </pre>
  */
 static l_int32
 pixacompExtendArray(PIXAC  *pixac)
 {
-    PROCNAME("pixacompExtendArray");
+size_t  oldsize, newsize;
 
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 1);
+        return ERROR_INT("pixac not defined", __func__, 1);
+    if (pixac->nalloc > (l_int32)MaxPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("pixac has too many ptrs", __func__, 1);
+    oldsize = pixac->nalloc * sizeof(PIXC *);
+    newsize = 2 * oldsize;
+    if (newsize > 8 * MaxPtrArraySize)  /* ptrs for 1M pixcomp */
+        return ERROR_INT("newsize > 8 MB; too large", __func__, 1);
 
     if ((pixac->pixc = (PIXC **)reallocNew((void **)&pixac->pixc,
-                            sizeof(PIXC *) * pixac->nalloc,
-                            2 * sizeof(PIXC *) * pixac->nalloc)) == NULL)
-        return ERROR_INT("new ptr array not returned", procName, 1);
-    pixac->nalloc = 2 * pixac->nalloc;
+                                           oldsize, newsize)) == NULL)
+        return ERROR_INT("new ptr array not returned", __func__, 1);
+    pixac->nalloc *= 2;
     boxaExtendArray(pixac->boxa);
     return 0;
 }
@@ -1040,19 +1024,17 @@ pixacompReplacePix(PIXAC   *pixac,
 l_int32  n, aindex;
 PIXC    *pixc;
 
-    PROCNAME("pixacompReplacePix");
-
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 1);
+        return ERROR_INT("pixac not defined", __func__, 1);
     n = pixacompGetCount(pixac);
     aindex = index - pixac->offset;
     if (aindex < 0 || aindex >= n)
-        return ERROR_INT("array index out of bounds", procName, 1);
+        return ERROR_INT("array index out of bounds", __func__, 1);
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (comptype != IFF_DEFAULT && comptype != IFF_TIFF_G4 &&
         comptype != IFF_PNG && comptype != IFF_JFIF_JPEG)
-        return ERROR_INT("invalid format", procName, 1);
+        return ERROR_INT("invalid format", __func__, 1);
 
     pixc = pixcompCreateFromPix(pix, comptype);
     pixacompReplacePixcomp(pixac, index, pixc);
@@ -1084,16 +1066,14 @@ pixacompReplacePixcomp(PIXAC   *pixac,
 l_int32  n, aindex;
 PIXC    *pixct;
 
-    PROCNAME("pixacompReplacePixcomp");
-
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 1);
+        return ERROR_INT("pixac not defined", __func__, 1);
     n = pixacompGetCount(pixac);
     aindex = index - pixac->offset;
     if (aindex < 0 || aindex >= n)
-        return ERROR_INT("array index out of bounds", procName, 1);
+        return ERROR_INT("array index out of bounds", __func__, 1);
     if (!pixc)
-        return ERROR_INT("pixc not defined", procName, 1);
+        return ERROR_INT("pixc not defined", __func__, 1);
 
     pixct = pixacompGetPixcomp(pixac, index, L_NOCOPY);  /* use %index */
     pixcompDestroy(&pixct);
@@ -1116,14 +1096,12 @@ pixacompAddBox(PIXAC   *pixac,
                BOX     *box,
                l_int32  copyflag)
 {
-    PROCNAME("pixacompAddBox");
-
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 1);
+        return ERROR_INT("pixac not defined", __func__, 1);
     if (!box)
-        return ERROR_INT("box not defined", procName, 1);
+        return ERROR_INT("box not defined", __func__, 1);
     if (copyflag != L_INSERT && copyflag != L_COPY)
-        return ERROR_INT("invalid copyflag", procName, 1);
+        return ERROR_INT("invalid copyflag", __func__, 1);
 
     boxaAddBox(pixac->boxa, box, copyflag);
     return 0;
@@ -1142,10 +1120,8 @@ pixacompAddBox(PIXAC   *pixac,
 l_int32
 pixacompGetCount(PIXAC  *pixac)
 {
-    PROCNAME("pixacompGetCount");
-
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 0);
+        return ERROR_INT("pixac not defined", __func__, 0);
 
     return pixac->n;
 }
@@ -1174,15 +1150,13 @@ pixacompGetPixcomp(PIXAC   *pixac,
 {
 l_int32  aindex;
 
-    PROCNAME("pixacompGetPixcomp");
-
     if (!pixac)
-        return (PIXC *)ERROR_PTR("pixac not defined", procName, NULL);
+        return (PIXC *)ERROR_PTR("pixac not defined", __func__, NULL);
     if (copyflag != L_NOCOPY && copyflag != L_COPY)
-        return (PIXC *)ERROR_PTR("invalid copyflag", procName, NULL);
+        return (PIXC *)ERROR_PTR("invalid copyflag", __func__, NULL);
     aindex = index - pixac->offset;
     if (aindex < 0 || aindex >= pixac->n)
-        return (PIXC *)ERROR_PTR("array index not valid", procName, NULL);
+        return (PIXC *)ERROR_PTR("array index not valid", __func__, NULL);
 
     if (copyflag == L_NOCOPY)
         return pixac->pixc[aindex];
@@ -1211,13 +1185,11 @@ pixacompGetPix(PIXAC   *pixac,
 l_int32  aindex;
 PIXC    *pixc;
 
-    PROCNAME("pixacompGetPix");
-
     if (!pixac)
-        return (PIX *)ERROR_PTR("pixac not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixac not defined", __func__, NULL);
     aindex = index - pixac->offset;
     if (aindex < 0 || aindex >= pixac->n)
-        return (PIX *)ERROR_PTR("array index not valid", procName, NULL);
+        return (PIX *)ERROR_PTR("array index not valid", __func__, NULL);
 
     pixc = pixacompGetPixcomp(pixac, index, L_NOCOPY);
     return pixCreateFromPixcomp(pixc);
@@ -1249,16 +1221,14 @@ pixacompGetPixDimensions(PIXAC    *pixac,
 l_int32  aindex;
 PIXC    *pixc;
 
-    PROCNAME("pixacompGetPixDimensions");
-
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 1);
+        return ERROR_INT("pixac not defined", __func__, 1);
     aindex = index - pixac->offset;
     if (aindex < 0 || aindex >= pixac->n)
-        return ERROR_INT("array index not valid", procName, 1);
+        return ERROR_INT("array index not valid", __func__, 1);
 
     if ((pixc = pixac->pixc[aindex]) == NULL)
-        return ERROR_INT("pixc not found!", procName, 1);
+        return ERROR_INT("pixc not found!", __func__, 1);
     pixcompGetDimensions(pixc, pw, ph, pd);
     return 0;
 }
@@ -1275,15 +1245,13 @@ BOXA *
 pixacompGetBoxa(PIXAC   *pixac,
                 l_int32  accesstype)
 {
-    PROCNAME("pixacompGetBoxa");
-
     if (!pixac)
-        return (BOXA *)ERROR_PTR("pixac not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("pixac not defined", __func__, NULL);
     if (!pixac->boxa)
-        return (BOXA *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("boxa not defined", __func__, NULL);
     if (accesstype != L_COPY && accesstype != L_CLONE &&
         accesstype != L_COPY_CLONE)
-        return (BOXA *)ERROR_PTR("invalid accesstype", procName, NULL);
+        return (BOXA *)ERROR_PTR("invalid accesstype", __func__, NULL);
 
     return boxaCopy(pixac->boxa, accesstype);
 }
@@ -1298,10 +1266,8 @@ pixacompGetBoxa(PIXAC   *pixac,
 l_int32
 pixacompGetBoxaCount(PIXAC  *pixac)
 {
-    PROCNAME("pixacompGetBoxaCount");
-
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 0);
+        return ERROR_INT("pixac not defined", __func__, 0);
 
     return boxaGetCount(pixac->boxa);
 }
@@ -1338,17 +1304,15 @@ pixacompGetBox(PIXAC    *pixac,
 l_int32  aindex;
 BOX     *box;
 
-    PROCNAME("pixacompGetBox");
-
     if (!pixac)
-        return (BOX *)ERROR_PTR("pixac not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("pixac not defined", __func__, NULL);
     if (!pixac->boxa)
-        return (BOX *)ERROR_PTR("boxa not defined", procName, NULL);
+        return (BOX *)ERROR_PTR("boxa not defined", __func__, NULL);
     aindex = index - pixac->offset;
     if (aindex < 0 || aindex >= pixac->boxa->n)
-        return (BOX *)ERROR_PTR("array index not valid", procName, NULL);
+        return (BOX *)ERROR_PTR("array index not valid", __func__, NULL);
     if (accesstype != L_COPY && accesstype != L_CLONE)
-        return (BOX *)ERROR_PTR("invalid accesstype", procName, NULL);
+        return (BOX *)ERROR_PTR("invalid accesstype", __func__, NULL);
 
     box = pixac->boxa->box[aindex];
     if (box) {
@@ -1388,16 +1352,14 @@ pixacompGetBoxGeometry(PIXAC    *pixac,
 l_int32  aindex;
 BOX     *box;
 
-    PROCNAME("pixacompGetBoxGeometry");
-
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 1);
+        return ERROR_INT("pixac not defined", __func__, 1);
     aindex = index - pixac->offset;
     if (aindex < 0 || aindex >= pixac->n)
-        return ERROR_INT("array index not valid", procName, 1);
+        return ERROR_INT("array index not valid", __func__, 1);
 
     if ((box = pixacompGetBox(pixac, aindex, L_CLONE)) == NULL)
-        return ERROR_INT("box not found!", procName, 1);
+        return ERROR_INT("box not found!", __func__, 1);
     boxGetGeometry(box, px, py, pw, ph);
     boxDestroy(&box);
     return 0;
@@ -1420,10 +1382,8 @@ BOX     *box;
 l_int32
 pixacompGetOffset(PIXAC   *pixac)
 {
-    PROCNAME("pixacompGetOffset");
-
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 0);
+        return ERROR_INT("pixac not defined", __func__, 0);
     return pixac->offset;
 }
 
@@ -1446,10 +1406,8 @@ l_ok
 pixacompSetOffset(PIXAC   *pixac,
                   l_int32  offset)
 {
-    PROCNAME("pixacompSetOffset");
-
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 1);
+        return ERROR_INT("pixac not defined", __func__, 1);
     pixac->offset = L_MAX(0, offset);
     return 0;
 }
@@ -1480,22 +1438,20 @@ l_int32  i, n, offset;
 PIX     *pix;
 PIXA    *pixa;
 
-    PROCNAME("pixaCreateFromPixacomp");
-
     if (!pixac)
-        return (PIXA *)ERROR_PTR("pixac not defined", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixac not defined", __func__, NULL);
     if (accesstype != L_COPY && accesstype != L_CLONE &&
         accesstype != L_COPY_CLONE)
-        return (PIXA *)ERROR_PTR("invalid accesstype", procName, NULL);
+        return (PIXA *)ERROR_PTR("invalid accesstype", __func__, NULL);
 
     n = pixacompGetCount(pixac);
     offset = pixacompGetOffset(pixac);
     pixacompSetOffset(pixac, 0);
     if ((pixa = pixaCreate(n)) == NULL)
-        return (PIXA *)ERROR_PTR("pixa not made", procName, NULL);
+        return (PIXA *)ERROR_PTR("pixa not made", __func__, NULL);
     for (i = 0; i < n; i++) {
         if ((pix = pixacompGetPix(pixac, i)) == NULL) {
-            L_WARNING("pix %d not made\n", procName, i);
+            L_WARNING("pix %d not made\n", __func__, i);
             continue;
         }
         pixaAddPix(pixa, pix, L_INSERT);
@@ -1540,10 +1496,8 @@ l_int32  i, n, nb;
 BOXA    *boxas, *boxad;
 PIXC    *pixc;
 
-    PROCNAME("pixacompJoin");
-
     if (!pixacd)
-        return ERROR_INT("pixacd not defined", procName, 1);
+        return ERROR_INT("pixacd not defined", __func__, 1);
     if (!pixacs || ((n = pixacompGetCount(pixacs)) == 0))
         return 0;
 
@@ -1552,7 +1506,7 @@ PIXC    *pixc;
     if (iend < 0 || iend >= n)
         iend = n - 1;
     if (istart > iend)
-        return ERROR_INT("istart > iend; nothing to add", procName, 1);
+        return ERROR_INT("istart > iend; nothing to add", __func__, 1);
 
     for (i = istart; i <= iend; i++) {
         pixc = pixacompGetPixcomp(pixacs, i, L_NOCOPY);
@@ -1592,20 +1546,18 @@ BOX     *box;
 PIXC    *pixc1, *pixc2;
 PIXAC   *pixacd;
 
-    PROCNAME("pixacompInterleave");
-
     if (!pixac1)
-        return (PIXAC *)ERROR_PTR("pixac1 not defined", procName, NULL);
+        return (PIXAC *)ERROR_PTR("pixac1 not defined", __func__, NULL);
     if (!pixac2)
-        return (PIXAC *)ERROR_PTR("pixac2 not defined", procName, NULL);
+        return (PIXAC *)ERROR_PTR("pixac2 not defined", __func__, NULL);
     n1 = pixacompGetCount(pixac1);
     n2 = pixacompGetCount(pixac2);
     n = L_MIN(n1, n2);
     if (n == 0)
         return (PIXAC *)ERROR_PTR("at least one input pixac is empty",
-                                   procName, NULL);
+                                   __func__, NULL);
     if (n1 != n2)
-        L_WARNING("counts differ: %d != %d\n", procName, n1, n2);
+        L_WARNING("counts differ: %d != %d\n", __func__, n1, n2);
 
     pixacd = pixacompCreate(2 * n);
     nb1 = pixacompGetBoxaCount(pixac1);
@@ -1651,17 +1603,17 @@ pixacompRead(const char  *filename)
 FILE   *fp;
 PIXAC  *pixac;
 
-    PROCNAME("pixacompRead");
-
     if (!filename)
-        return (PIXAC *)ERROR_PTR("filename not defined", procName, NULL);
+        return (PIXAC *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIXAC *)ERROR_PTR("stream not opened", procName, NULL);
+        return (PIXAC *)ERROR_PTR_1("stream not opened",
+                                    filename, __func__, NULL);
     pixac = pixacompReadStream(fp);
     fclose(fp);
     if (!pixac)
-        return (PIXAC *)ERROR_PTR("pixac not read", procName, NULL);
+        return (PIXAC *)ERROR_PTR_1("pixac not read",
+                                    filename, __func__, NULL);
     return pixac;
 }
 
@@ -1671,6 +1623,11 @@ PIXAC  *pixac;
  *
  * \param[in]    fp   file stream
  * \return  pixac, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) It is OK for the pixacomp to be empty.
+ * </pre>
  */
 PIXAC *
 pixacompReadStream(FILE  *fp)
@@ -1684,25 +1641,28 @@ BOXA     *boxa;
 PIXC     *pixc;
 PIXAC    *pixac;
 
-    PROCNAME("pixacompReadStream");
-
     if (!fp)
-        return (PIXAC *)ERROR_PTR("stream not defined", procName, NULL);
+        return (PIXAC *)ERROR_PTR("stream not defined", __func__, NULL);
 
     if (fscanf(fp, "\nPixacomp Version %d\n", &version) != 1)
-        return (PIXAC *)ERROR_PTR("not a pixacomp file", procName, NULL);
+        return (PIXAC *)ERROR_PTR("not a pixacomp file", __func__, NULL);
     if (version != PIXACOMP_VERSION_NUMBER)
-        return (PIXAC *)ERROR_PTR("invalid pixacomp version", procName, NULL);
+        return (PIXAC *)ERROR_PTR("invalid pixacomp version", __func__, NULL);
     if (fscanf(fp, "Number of pixcomp = %d\n", &n) != 1)
-        return (PIXAC *)ERROR_PTR("not a pixacomp file", procName, NULL);
+        return (PIXAC *)ERROR_PTR("not a pixacomp file", __func__, NULL);
     if (fscanf(fp, "Offset of index into array = %d", &offset) != 1)
-        return (PIXAC *)ERROR_PTR("offset not read", procName, NULL);
+        return (PIXAC *)ERROR_PTR("offset not read", __func__, NULL);
+    if (n < 0)
+        return (PIXAC *)ERROR_PTR("num pixcomp ptrs < 0", __func__, NULL);
+    if (n > (l_int32)MaxPtrArraySize)
+        return (PIXAC *)ERROR_PTR("too many pixcomp ptrs", __func__, NULL);
+    if (n == 0) L_INFO("the pixacomp is empty\n", __func__);
 
     if ((pixac = pixacompCreate(n)) == NULL)
-        return (PIXAC *)ERROR_PTR("pixac not made", procName, NULL);
+        return (PIXAC *)ERROR_PTR("pixac not made", __func__, NULL);
     if ((boxa = boxaReadStream(fp)) == NULL) {
         pixacompDestroy(&pixac);
-        return (PIXAC *)ERROR_PTR("boxa not made", procName, NULL);
+        return (PIXAC *)ERROR_PTR("boxa not made", __func__, NULL);
     }
     boxaDestroy(&pixac->boxa);  /* empty */
     pixac->boxa = boxa;
@@ -1712,16 +1672,16 @@ PIXAC    *pixac;
         if (fscanf(fp, "\nPixcomp[%d]: w = %d, h = %d, d = %d\n",
                    &ignore, &w, &h, &d) != 4) {
             pixacompDestroy(&pixac);
-            return (PIXAC *)ERROR_PTR("dimension reading", procName, NULL);
+            return (PIXAC *)ERROR_PTR("dimension reading", __func__, NULL);
         }
         if (fscanf(fp, "  comptype = %d, size = %zu, cmapflag = %d\n",
                    &comptype, &size, &cmapflag) != 3) {
             pixacompDestroy(&pixac);
-            return (PIXAC *)ERROR_PTR("comptype/size reading", procName, NULL);
+            return (PIXAC *)ERROR_PTR("comptype/size reading", __func__, NULL);
         }
         if (size > MaxDataSize) {
             pixacompDestroy(&pixac);
-            L_ERROR("data size = %zu is too big", procName, size);
+            L_ERROR("data size = %zu is too big", __func__, size);
             return NULL;
         }
 
@@ -1732,20 +1692,20 @@ PIXAC    *pixac;
              * space, it will swallow them and all will be lost!  */
         if (fgets(buf, sizeof(buf), fp) == NULL) {
             pixacompDestroy(&pixac);
-            return (PIXAC *)ERROR_PTR("fgets read fail", procName, NULL);
+            return (PIXAC *)ERROR_PTR("fgets read fail", __func__, NULL);
         }
         if (sscanf(buf, "  xres = %d, yres = %d\n", &xres, &yres) != 2) {
             pixacompDestroy(&pixac);
-            return (PIXAC *)ERROR_PTR("read fail for res", procName, NULL);
+            return (PIXAC *)ERROR_PTR("read fail for res", __func__, NULL);
         }
         if ((data = (l_uint8 *)LEPT_CALLOC(1, size)) == NULL) {
             pixacompDestroy(&pixac);
-            return (PIXAC *)ERROR_PTR("calloc fail for data", procName, NULL);
+            return (PIXAC *)ERROR_PTR("calloc fail for data", __func__, NULL);
         }
         if (fread(data, 1, size, fp) != size) {
             pixacompDestroy(&pixac);
             LEPT_FREE(data);
-            return (PIXAC *)ERROR_PTR("error reading data", procName, NULL);
+            return (PIXAC *)ERROR_PTR("error reading data", __func__, NULL);
         }
         fgetc(fp);  /* swallow the ending nl */
         pixc = (PIXC *)LEPT_CALLOC(1, sizeof(PIXC));
@@ -1783,16 +1743,14 @@ pixacompReadMem(const l_uint8  *data,
 FILE   *fp;
 PIXAC  *pixac;
 
-    PROCNAME("pixacompReadMem");
-
     if (!data)
-        return (PIXAC *)ERROR_PTR("data not defined", procName, NULL);
+        return (PIXAC *)ERROR_PTR("data not defined", __func__, NULL);
     if ((fp = fopenReadFromMemory(data, size)) == NULL)
-        return (PIXAC *)ERROR_PTR("stream not opened", procName, NULL);
+        return (PIXAC *)ERROR_PTR("stream not opened", __func__, NULL);
 
     pixac = pixacompReadStream(fp);
     fclose(fp);
-    if (!pixac) L_ERROR("pixac not read\n", procName);
+    if (!pixac) L_ERROR("pixac not read\n", __func__);
     return pixac;
 }
 
@@ -1818,19 +1776,18 @@ pixacompWrite(const char  *filename,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("pixacompWrite");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
     if (!pixac)
-        return ERROR_INT("pixacomp not defined", procName, 1);
+        return ERROR_INT("pixacomp not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "wb")) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     ret = pixacompWriteStream(fp, pixac);
     fclose(fp);
     if (ret)
-        return ERROR_INT("pixacomp not written to stream", procName, 1);
+        return ERROR_INT_1("pixacomp not written to stream",
+                           filename, __func__, 1);
     return 0;
 }
 
@@ -1849,12 +1806,10 @@ pixacompWriteStream(FILE   *fp,
 l_int32  n, i;
 PIXC    *pixc;
 
-    PROCNAME("pixacompWriteStream");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 1);
+        return ERROR_INT("pixac not defined", __func__, 1);
 
     n = pixacompGetCount(pixac);
     fprintf(fp, "\nPixacomp Version %d\n", PIXACOMP_VERSION_NUMBER);
@@ -1864,7 +1819,7 @@ PIXC    *pixc;
     for (i = 0; i < n; i++) {
         if ((pixc = pixacompGetPixcomp(pixac, pixac->offset + i, L_NOCOPY))
                 == NULL)
-            return ERROR_INT("pixc not found", procName, 1);
+            return ERROR_INT("pixc not found", __func__, 1);
         fprintf(fp, "\nPixcomp[%d]: w = %d, h = %d, d = %d\n",
                 i, pixc->w, pixc->h, pixc->d);
         fprintf(fp, "  comptype = %d, size = %zu, cmapflag = %d\n",
@@ -1898,35 +1853,36 @@ pixacompWriteMem(l_uint8  **pdata,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("pixacompWriteMem");
-
     if (pdata) *pdata = NULL;
     if (psize) *psize = 0;
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     if (!psize)
-        return ERROR_INT("&size not defined", procName, 1);
+        return ERROR_INT("&size not defined", __func__, 1);
     if (!pixac)
-        return ERROR_INT("&pixac not defined", procName, 1);
+        return ERROR_INT("&pixac not defined", __func__, 1);
 
 #if HAVE_FMEMOPEN
     if ((fp = open_memstream((char **)pdata, psize)) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ret = pixacompWriteStream(fp, pixac);
+    fputc('\0', fp);
+    fclose(fp);
+    if (*psize > 0) *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", procName);
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #else
     if ((fp = tmpfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #endif  /* _WIN32 */
     ret = pixacompWriteStream(fp, pixac);
     rewind(fp);
     *pdata = l_binaryReadStream(fp, psize);
-#endif  /* HAVE_FMEMOPEN */
     fclose(fp);
+#endif  /* HAVE_FMEMOPEN */
     return ret;
 }
 
@@ -1979,22 +1935,20 @@ l_uint8  *data;
 l_int32   ret;
 size_t    nbytes;
 
-    PROCNAME("pixacompConvertToPdf");
-
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 1);
+        return ERROR_INT("pixac not defined", __func__, 1);
 
     ret = pixacompConvertToPdfData(pixac, res, scalefactor, type, quality,
                                    title, &data, &nbytes);
     if (ret) {
         LEPT_FREE(data);
-        return ERROR_INT("conversion to pdf failed", procName, 1);
+        return ERROR_INT("conversion to pdf failed", __func__, 1);
     }
 
     ret = l_binaryWrite(fileout, "w", data, nbytes);
     LEPT_FREE(data);
     if (ret)
-        L_ERROR("pdf data not written to file\n", procName);
+        L_ERROR("pdf data not written to file\n", __func__);
     return ret;
 }
 
@@ -2036,22 +1990,20 @@ L_BYTEA  *ba;
 PIX      *pixs, *pix;
 L_PTRA   *pa_data;
 
-    PROCNAME("pixacompConvertToPdfData");
-
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     *pdata = NULL;
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *pnbytes = 0;
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 1);
+        return ERROR_INT("pixac not defined", __func__, 1);
     if (scalefactor <= 0.0) scalefactor = 1.0;
     if (type != L_DEFAULT_ENCODE && type != L_JPEG_ENCODE &&
         type != L_G4_ENCODE && type != L_FLATE_ENCODE &&
         type != L_JP2K_ENCODE) {
         L_WARNING("invalid compression type; using per-page default\n",
-                  procName);
+                  __func__);
         type = L_DEFAULT_ENCODE;
     }
 
@@ -2061,11 +2013,11 @@ L_PTRA   *pa_data;
     for (i = 0; i < n; i++) {
         if ((pixs =
              pixacompGetPix(pixac, pixacompGetOffset(pixac) + i)) == NULL) {
-            L_ERROR("pix[%d] not retrieved\n", procName, i);
+            L_ERROR("pix[%d] not retrieved\n", __func__, i);
             continue;
         }
         if (pixGetWidth(pixs) == 1) {  /* used sometimes as placeholders */
-            L_INFO("placeholder image[%d] has w = 1\n", procName, i);
+            L_INFO("placeholder image[%d] has w = 1\n", __func__, i);
             pixDestroy(&pixs);
             continue;
         }
@@ -2081,7 +2033,7 @@ L_PTRA   *pa_data;
             pagetype = type;
         } else if (selectDefaultPdfEncoding(pix, &pagetype) != 0) {
             L_ERROR("encoding type selection failed for pix[%d]\n",
-                    procName, i);
+                    __func__, i);
             pixDestroy(&pix);
             continue;
         }
@@ -2090,7 +2042,7 @@ L_PTRA   *pa_data;
                                   0, 0, scaledres, title, NULL, 0);
         pixDestroy(&pix);
         if (ret) {
-            L_ERROR("pdf encoding failed for pix[%d]\n", procName, i);
+            L_ERROR("pdf encoding failed for pix[%d]\n", __func__, i);
             continue;
         }
         ba = l_byteaInitFromMem(imdata, imbytes);
@@ -2099,7 +2051,7 @@ L_PTRA   *pa_data;
     }
     ptraGetActualCount(pa_data, &n);
     if (n == 0) {
-        L_ERROR("no pdf files made\n", procName);
+        L_ERROR("no pdf files made\n", __func__);
         ptraDestroy(&pa_data, FALSE, FALSE);
         return 1;
     }
@@ -2148,33 +2100,31 @@ L_BYTEA  *ba;
 PIXC     *pixc;
 L_PTRA   *pa_data;
 
-    PROCNAME("pixacompFastConvertToPdfData");
-
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     *pdata = NULL;
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *pnbytes = 0;
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 1);
+        return ERROR_INT("pixac not defined", __func__, 1);
 
         /* Generate all the encoded pdf strings */
     n = pixacompGetCount(pixac);
     pa_data = ptraCreate(n);
     for (i = 0; i < n; i++) {
         if ((pixc = pixacompGetPixcomp(pixac, i, L_NOCOPY)) == NULL) {
-            L_ERROR("pixc[%d] not retrieved\n", procName, i);
+            L_ERROR("pixc[%d] not retrieved\n", __func__, i);
             continue;
         }
         pixcompGetParameters(pixc, NULL, NULL, &comptype, NULL);
         if (comptype != IFF_JFIF_JPEG) {
-            L_ERROR("pixc[%d] not jpeg compressed\n", procName, i);
+            L_ERROR("pixc[%d] not jpeg compressed\n", __func__, i);
             continue;
         }
         ret = pixcompFastConvertToPdfData(pixc, title, &imdata, &imbytes);
         if (ret) {
-            L_ERROR("pdf encoding failed for pixc[%d]\n", procName, i);
+            L_ERROR("pdf encoding failed for pixc[%d]\n", __func__, i);
             continue;
         }
         ba = l_byteaInitFromMem(imdata, imbytes);
@@ -2183,7 +2133,7 @@ L_PTRA   *pa_data;
     }
     ptraGetActualCount(pa_data, &n);
     if (n == 0) {
-        L_ERROR("no pdf files made\n", procName);
+        L_ERROR("no pdf files made\n", __func__);
         ptraDestroy(&pa_data, FALSE, FALSE);
         return 1;
     }
@@ -2229,16 +2179,14 @@ pixcompFastConvertToPdfData(PIXC        *pixc,
 l_uint8      *data;
 L_COMP_DATA  *cid;
 
-    PROCNAME("pixacompFastConvertToPdfData");
-
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     *pdata = NULL;
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *pnbytes = 0;
     if (!pixc)
-        return ERROR_INT("pixc not defined", procName, 1);
+        return ERROR_INT("pixc not defined", __func__, 1);
 
         /* Make a copy of the data */
     data = l_binaryCopy(pixc->data, pixc->size);
@@ -2268,12 +2216,10 @@ pixacompWriteStreamInfo(FILE        *fp,
 l_int32  i, n, nboxes;
 PIXC    *pixc;
 
-    PROCNAME("pixacompWriteStreamInfo");
-
     if (!fp)
-        return ERROR_INT("fp not defined", procName, 1);
+        return ERROR_INT("fp not defined", __func__, 1);
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 1);
+        return ERROR_INT("pixac not defined", __func__, 1);
 
     if (text)
         fprintf(fp, "Pixacomp Info for %s:\n", text);
@@ -2309,12 +2255,10 @@ pixcompWriteStreamInfo(FILE        *fp,
                        PIXC        *pixc,
                        const char  *text)
 {
-    PROCNAME("pixcompWriteStreamInfo");
-
     if (!fp)
-        return ERROR_INT("fp not defined", procName, 1);
+        return ERROR_INT("fp not defined", __func__, 1);
     if (!pixc)
-        return ERROR_INT("pixc not defined", procName, 1);
+        return ERROR_INT("pixc not defined", __func__, 1);
 
     if (text)
         fprintf(fp, "  Pixcomp Info for %s:", text);
@@ -2372,13 +2316,11 @@ pixacompDisplayTiledAndScaled(PIXAC   *pixac,
 PIX   *pixd;
 PIXA  *pixa;
 
-    PROCNAME("pixacompDisplayTiledAndScaled");
-
     if (!pixac)
-        return (PIX *)ERROR_PTR("pixac not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("pixac not defined", __func__, NULL);
 
     if ((pixa = pixaCreateFromPixacomp(pixac, L_COPY)) == NULL)
-        return (PIX *)ERROR_PTR("pixa not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixa not made", __func__, NULL);
 
     pixd = pixaDisplayTiledAndScaled(pixa, outdepth, tilewidth, ncols,
                                      background, spacing, border);
@@ -2402,13 +2344,11 @@ char     buf[128];
 l_int32  i, n;
 PIXC    *pixc;
 
-    PROCNAME("pixacompWriteFiles");
-
     if (!pixac)
-        return ERROR_INT("pixac not defined", procName, 1);
+        return ERROR_INT("pixac not defined", __func__, 1);
 
     if (lept_mkdir(subdir) > 0)
-        return ERROR_INT("invalid subdir", procName, 1);
+        return ERROR_INT("invalid subdir", __func__, 1);
 
     n = pixacompGetCount(pixac);
     for (i = 0; i < n; i++) {
@@ -2440,10 +2380,8 @@ pixcompWriteFile(const char  *rootname,
 {
 char   buf[128];
 
-    PROCNAME("pixcompWriteFile");
-
     if (!pixc)
-        return ERROR_INT("pixc not defined", procName, 1);
+        return ERROR_INT("pixc not defined", __func__, 1);
 
     snprintf(buf, sizeof(buf), "%s.%s", rootname,
              ImageFileFormatExtensions[pixc->comptype]);

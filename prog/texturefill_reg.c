@@ -43,6 +43,10 @@
  *  texture through a mask.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
    /* Designed to work with amoris.2.150.jpg  */

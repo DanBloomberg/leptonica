@@ -153,6 +153,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -169,7 +173,7 @@ static l_int32 recogGetWindowedArea(L_RECOG *recog, l_int32 index,
 static l_int32 recogTransferRchToDid(L_RECOG *recog, l_int32 x, l_int32 y);
 
     /* Parameters for modeling the decoding */
-static const l_float32  SetwidthFraction = 0.95;
+static const l_float32  SetwidthFraction = 0.95f;
 static const l_int32    MaxYShift = 1;
 
     /* Channel parameters.  alpha[0] is the probability that a bg pixel
@@ -221,21 +225,19 @@ l_int32  debug;
 PIX     *pix1;
 PIXA    *pixa;
 
-    PROCNAME("recogDecode");
-
     if (ppixdb) *ppixdb = NULL;
     if (!recog)
-        return (BOXA *)ERROR_PTR("recog not defined", procName, NULL);
+        return (BOXA *)ERROR_PTR("recog not defined", __func__, NULL);
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (BOXA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (BOXA *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (!recog->train_done)
-        return (BOXA *)ERROR_PTR("training not finished", procName, NULL);
+        return (BOXA *)ERROR_PTR("training not finished", __func__, NULL);
     if (nlevels != 2)
-        return (BOXA *)ERROR_PTR("nlevels != 2 (for now)", procName, NULL);
+        return (BOXA *)ERROR_PTR("nlevels != 2 (for now)", __func__, NULL);
 
     debug = (ppixdb) ? 1 : 0;
     if (recogPrepareForDecoding(recog, pixs, debug))
-        return (BOXA *)ERROR_PTR("error making arrays", procName, NULL);
+        return (BOXA *)ERROR_PTR("error making arrays", __func__, NULL);
     recogSetChannelParams(recog, nlevels);
 
         /* Normal path; just run Viterbi */
@@ -243,17 +245,17 @@ PIXA    *pixa;
         if (recogRunViterbi(recog, NULL) == 0)
             return boxaCopy(recog->did->boxa, L_COPY);
         else
-            return (BOXA *)ERROR_PTR("error in Viterbi", procName, NULL);
+            return (BOXA *)ERROR_PTR("error in Viterbi", __func__, NULL);
     }
 
         /* Debug path */
     if (recogRunViterbi(recog, &pix1))
-        return (BOXA *)ERROR_PTR("error in viterbi", procName, NULL);
+        return (BOXA *)ERROR_PTR("error in viterbi", __func__, NULL);
     pixa = pixaCreate(2);
     pixaAddPix(pixa, pix1, L_INSERT);
     if (recogRescoreDidResult(recog, &pix1)) {
         pixaDestroy(&pixa);
-        return (BOXA *)ERROR_PTR("error in rescoring", procName, NULL);
+        return (BOXA *)ERROR_PTR("error in rescoring", __func__, NULL);
     }
     pixaAddPix(pixa, pix1, L_INSERT);
     *ppixdb = pixaDisplayTiledInRows(pixa, 32, 2 * pixGetWidth(pix1) + 100,
@@ -292,31 +294,32 @@ recogPrepareForDecoding(L_RECOG  *recog,
                         PIX      *pixs,
                         l_int32   debug)
 {
-l_int32  i;
+l_int32  i, ret;
 PIX     *pix1;
 L_RDID  *did;
 
-    PROCNAME("recogPrepareForDecoding");
-
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
     if (!pixs || pixGetDepth(pixs) != 1)
-        return ERROR_INT("pixs not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 1 bpp", __func__, 1);
     if (!recog->train_done)
-        return ERROR_INT("training not finished", procName, 1);
+        return ERROR_INT("training not finished", __func__, 1);
 
-    if (!recog->ave_done)
-        recogAverageSamples(&recog, 0);
+    if (!recog->ave_done) {
+        ret = recogAverageSamples(recog, 0);
+        if (!ret)
+            return ERROR_INT("averaging of samples failed", __func__, 1);
+    }
 
         /* Binarize and crop to foreground if necessary */
     if ((pix1 = recogProcessToIdentify(recog, pixs, 0)) == NULL)
-        return ERROR_INT("pix1 not made", procName, 1);
+        return ERROR_INT("pix1 not made", __func__, 1);
 
         /* Remove any existing RecogDID and set up a new one */
     recogDestroyDid(recog);
     if (recogCreateDid(recog, pix1)) {
         pixDestroy(&pix1);
-        return ERROR_INT("decoder not made", procName, 1);
+        return ERROR_INT("decoder not made", __func__, 1);
     }
 
         /* Compute vertical sum and first moment arrays */
@@ -360,14 +363,12 @@ NUMA     *nasum, *namoment;
 PIX      *pix1, *pix2, *pix3;
 L_RDID   *did;
 
-    PROCNAME("recogMakeDecodingArray");
-
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
     if ((did = recogGetDid(recog)) == NULL)
-        return ERROR_INT("did not defined", procName, 1);
+        return ERROR_INT("did not defined", __func__, 1);
     if (index < 0 || index >= did->narray)
-        return ERROR_INT("invalid index", procName, 1);
+        return ERROR_INT("invalid index", __func__, 1);
 
         /* Check that pix1 is large enough for this template. */
     pix1 = did->pixs;  /* owned by did; do not destroy */
@@ -375,7 +376,7 @@ L_RDID   *did;
     pix2 = pixaGetPix(recog->pixa_u, index, L_CLONE);
     pixGetDimensions(pix2, &w2, &h2, NULL);
     if (w1 < w2) {
-        L_INFO("w1 = %d < w2 = %d for index %d\n", procName, w1, w2, index);
+        L_INFO("w1 = %d < w2 = %d for index %d\n", __func__, w1, w2, index);
         pixDestroy(&pix2);
         return 0;
     }
@@ -488,15 +489,13 @@ BOX        *box;
 PIX        *pix1;
 L_RDID     *did;
 
-    PROCNAME("recogRunViterbi");
-
     if (ppixdb) *ppixdb = NULL;
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
     if ((did = recogGetDid(recog)) == NULL)
-        return ERROR_INT("did not defined", procName, 1);
+        return ERROR_INT("did not defined", __func__, 1);
     if (did->fullarrays == 0)
-        return ERROR_INT("did full arrays not made", procName, 1);
+        return ERROR_INT("did full arrays not made", __func__, 1);
 
         /* Compute the minimum setwidth. Bad templates with very small
          * width can cause havoc because the setwidth is too small. */
@@ -510,7 +509,7 @@ L_RDID     *did;
             minsetw = setw[i];
     }
     if (minsetw <= 2)
-        return ERROR_INT("minsetw <= 2; bad templates", procName, 1);
+        return ERROR_INT("minsetw <= 2; bad templates", __func__, 1);
 
         /* The score array is initialized to 0.0.  As we proceed to
          * the left, the log likelihood for the partial paths goes
@@ -585,12 +584,12 @@ L_RDID     *did;
     }
 
     if (ppixdb) {
-        numaWriteStream(stderr, did->natempl);
-        numaWriteStream(stderr, did->naxloc);
-        numaWriteStream(stderr, did->nadely);
-        numaWriteStream(stderr, did->nawidth);
-        numaWriteStream(stderr, did->nascore);
-        boxaWriteStream(stderr, did->boxa);
+        numaWriteStderr(did->natempl);
+        numaWriteStderr(did->naxloc);
+        numaWriteStderr(did->nadely);
+        numaWriteStderr(did->nawidth);
+        numaWriteStderr(did->nascore);
+        boxaWriteStderr(did->boxa);
         *ppixdb = recogShowPath(recog, 0);
     }
 
@@ -617,23 +616,21 @@ recogRescoreDidResult(L_RECOG  *recog,
                       PIX     **ppixdb)
 {
 l_int32    i, n, sample, x, dely, index;
-char      *text;
+char      *text = NULL;
 l_float32  score;
 BOX       *box1;
 PIX       *pixs, *pix1;
 L_RDID    *did;
 
-    PROCNAME("recogRescoreDidResult");
-
     if (ppixdb) *ppixdb = NULL;
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
     if ((did = recogGetDid(recog)) == NULL)
-        return ERROR_INT("did not defined", procName, 1);
+        return ERROR_INT("did not defined", __func__, 1);
     if (did->fullarrays == 0)
-        return ERROR_INT("did full arrays not made", procName, 1);
+        return ERROR_INT("did full arrays not made", __func__, 1);
     if ((n = numaGetCount(did->naxloc)) == 0)
-        return ERROR_INT("no elements in path", procName, 1);
+        return ERROR_INT("no elements in path", __func__, 1);
 
     pixs = did->pixs;
     for (i = 0; i < n; i++) {
@@ -645,8 +642,8 @@ L_RDID    *did;
         if (ppixdb) {
             rchExtract(recog->rch, &index, &score, &text,
                        &sample, NULL, NULL, NULL);
-            fprintf(stderr, "text = %s, index = %d, sample = %d,"
-                    " score = %5.3f\n", text, index, sample, score);
+            lept_stderr("text = %s, index = %d, sample = %d,"
+                        " score = %5.3f\n", text, index, sample, score);
         }
         pixDestroy(&pix1);
         boxDestroy(&box1);
@@ -675,16 +672,14 @@ char       textstr[16];
 l_int32    i, j, n, index, xloc, dely;
 l_float32  score;
 L_BMF     *bmf;
-NUMA      *natempl_s, *nasample_s, *nascore_s, *naxloc_s, *nadely_s;
+NUMA      *natempl_s, *nasample_s = NULL, *nascore_s, *naxloc_s, *nadely_s;
 PIX       *pixs, *pix0, *pix1, *pix2, *pix3, *pix4, *pix5;
 L_RDID    *did;
 
-    PROCNAME("recogShowPath");
-
     if (!recog)
-        return (PIX *)ERROR_PTR("recog not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("recog not defined", __func__, NULL);
     if ((did = recogGetDid(recog)) == NULL)
-        return (PIX *)ERROR_PTR("did not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("did not defined", __func__, NULL);
 
     bmf = bmfCreate(NULL, 8);
     pixs = pixScale(did->pixs, 4.0, 4.0);
@@ -751,12 +746,10 @@ l_int32  i;
 PIX     *pix1;
 L_RDID  *did;
 
-    PROCNAME("recogCreateDid");
-
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
 
     recogDestroyDid(recog);
 
@@ -820,14 +813,12 @@ recogDestroyDid(L_RECOG  *recog)
 l_int32  i;
 L_RDID  *did;
 
-    PROCNAME("recogDestroyDid");
-
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
 
     if ((did = recog->did) == NULL) return 0;
     if (!did->counta || !did->delya)
-        return ERROR_INT("ptr array is null; shouldn't happen!", procName, 1);
+        return ERROR_INT("ptr array is null; shouldn't happen!", __func__, 1);
 
     for (i = 0; i < did->narray; i++) {
         LEPT_FREE(did->counta[i]);
@@ -873,10 +864,8 @@ L_RDID  *did;
 l_int32
 recogDidExists(L_RECOG  *recog)
 {
-    PROCNAME("recogDidExists");
-
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 0);
+        return ERROR_INT("recog not defined", __func__, 0);
     return (recog->did) ? 1 : 0;
 }
 
@@ -898,19 +887,17 @@ recogGetDid(L_RECOG  *recog)
 l_int32  i;
 L_RDID  *did;
 
-    PROCNAME("recogGetDid");
-
     if (!recog)
-        return (L_RDID *)ERROR_PTR("recog not defined", procName, NULL);
+        return (L_RDID *)ERROR_PTR("recog not defined", __func__, NULL);
     if ((did = recog->did) == NULL)
-        return (L_RDID *)ERROR_PTR("did not defined", procName, NULL);
+        return (L_RDID *)ERROR_PTR("did not defined", __func__, NULL);
     if (!did->counta || !did->delya)
         return (L_RDID *)ERROR_PTR("did array ptrs not defined",
-                                   procName, NULL);
+                                   __func__, NULL);
     for (i = 0; i < did->narray; i++) {
         if (!did->counta[i] || !did->delya[i])
             return (L_RDID *)ERROR_PTR("did arrays not defined",
-                                       procName, NULL);
+                                       __func__, NULL);
     }
 
     return did;
@@ -948,27 +935,25 @@ l_int32  w1, h1, w2, h2;
 PIX     *pix1, *pix2, *pixt;
 L_RDID  *did;
 
-    PROCNAME("recogGetWindowedArea");
-
     if (pdely) *pdely = 0;
     if (pwsum) *pwsum = 0;
     if (!pdely || !pwsum)
-        return ERROR_INT("&dely and &wsum not both defined", procName, 1);
+        return ERROR_INT("&dely and &wsum not both defined", __func__, 1);
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
     if ((did = recogGetDid(recog)) == NULL)
-        return ERROR_INT("did not defined", procName, 1);
+        return ERROR_INT("did not defined", __func__, 1);
     if (index < 0 || index >= did->narray)
-        return ERROR_INT("invalid index", procName, 1);
+        return ERROR_INT("invalid index", __func__, 1);
     pix1 = did->pixs;
     pixGetDimensions(pix1, &w1, &h1, NULL);
     if (x >= w1)
-        return ERROR_INT("invalid x position", procName, 1);
+        return ERROR_INT("invalid x position", __func__, 1);
 
     pix2 = pixaGetPix(recog->pixa_u, index, L_CLONE);
     pixGetDimensions(pix2, &w2, &h2, NULL);
     if (w1 < w2) {
-        L_INFO("template %d too small\n", procName, index);
+        L_INFO("template %d too small\n", __func__, index);
         pixDestroy(&pix2);
         return 0;
     }
@@ -1009,24 +994,22 @@ l_int32           i;
 const l_float32  *da;
 L_RDID           *did;
 
-    PROCNAME("recogSetChannelParams");
-
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
     if ((did = recogGetDid(recog)) == NULL)
-        return ERROR_INT("did not defined", procName, 1);
+        return ERROR_INT("did not defined", __func__, 1);
     if (nlevels == 2)
         da = DefaultAlpha2;
     else if (nlevels == 4)
         da = DefaultAlpha4;
     else
-        return ERROR_INT("nlevels not 2 or 4", procName, 1);
+        return ERROR_INT("nlevels not 2 or 4", __func__, 1);
 
     for (i = 1; i < nlevels; i++) {
         did->beta[i] = log((1.0 - da[i]) / da[0]);
         did->gamma[i] = log(da[0] * da[i] / ((1.0 - da[0]) * (1.0 - da[i])));
-/*        fprintf(stderr, "beta[%d] = %7.3f, gamma[%d] = %7.3f\n",
-                i, did->beta[i], i, did->gamma[i]);  */
+/*        lept_stderr("beta[%d] = %7.3f, gamma[%d] = %7.3f\n",
+                      i, did->beta[i], i, did->gamma[i]);  */
     }
 
     return 0;
@@ -1055,14 +1038,12 @@ recogTransferRchToDid(L_RECOG  *recog,
 L_RDID  *did;
 L_RCH   *rch;
 
-    PROCNAME("recogTransferRchToDid");
-
     if (!recog)
-        return ERROR_INT("recog not defined", procName, 1);
+        return ERROR_INT("recog not defined", __func__, 1);
     if ((did = recogGetDid(recog)) == NULL)
-        return ERROR_INT("did not defined", procName, 1);
+        return ERROR_INT("did not defined", __func__, 1);
     if ((rch = recog->rch) == NULL)
-        return ERROR_INT("rch not defined", procName, 1);
+        return ERROR_INT("rch not defined", __func__, 1);
 
     numaAddNumber(did->natempl_r, rch->index);
     numaAddNumber(did->nasample_r, rch->sample);

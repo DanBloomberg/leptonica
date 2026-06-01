@@ -32,6 +32,10 @@
  *     - the function that finds the nearest box to a given box in a boxa
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 void MakeWordBoxes1(PIX *pixs, l_float32 scalefact, l_int32 thresh,

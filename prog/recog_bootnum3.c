@@ -41,6 +41,10 @@
  *     it are auto-generated with the stringcode utility.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 l_int32 main(int    argc,
@@ -53,7 +57,7 @@ PIXA       *pixa1, *pixa2;
 L_STRCODE  *strc;
 
     if (argc != 1) {
-        fprintf(stderr, " Syntax: recog_bootnum3\n");
+        lept_stderr(" Syntax: recog_bootnum3\n");
         return 1;
     }
 

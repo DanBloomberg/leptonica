@@ -29,8 +29,8 @@
  * <pre>
  *
  *    Higher-level operations for generating pdf from images.
- *    Use poppler's pdfimages to invert the process, extracting
- *    raster images from pdf.
+ *    Use poppler's pdftoppm or pdfimages to invert the process,
+ *    extracting raster images from pdf.
  *
  *    |=============================================================|
  *    |                        Important notes                      |
@@ -58,14 +58,14 @@
  *     or an array of bytes in memory.
  *
  *     Set 2. These functions are a special case of set 1, where
- *     no scaling or change in quality is required.  For jpeg and jp2k
- *     images, the bytes in each file can be directly incorporated
+ *     no scaling or change in quality is required.  For jpeg, jp2k and
+ *     tiffg4 images, the bytes in each file can be directly incorporated
  *     into the output pdf, and the wrapping up of multiple image
  *     files is very fast.  For non-interlaced png, the data bytes
  *     including the predictors can also be written directly into the
- *     flate pdf data.  For other image formats (e.g., tiff-g4),
- *     transcoding is required, where the image data is first decompressed
- *     and then the G4 or Flate (gzip) encodings are generated.
+ *     flate pdf data.  For other image formats transcoding is required,
+ *     where the image data is first decompressed and then flate (gzip),
+ *     DCT (jpeg) or tiffg4 (1 bpp) encodings are generated.
  *
  *     Set 3. These functions convert a set of images in memory
  *     to a multi-page pdf, with one image on each page.  The pdf
@@ -197,6 +197,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -208,7 +212,6 @@
     /* Typical scan resolution in ppi (pixels/inch) */
 static const l_int32  DefaultInputRes = 300;
 
-
 /*---------------------------------------------------------------------*
  *    Convert specified image files to pdf (one image file per page)   *
  *---------------------------------------------------------------------*/
@@ -217,7 +220,7 @@ static const l_int32  DefaultInputRes = 300;
  *
  * \param[in]    dirname       directory name containing images
  * \param[in]    substr        [optional] substring filter on filenames;
- *                             can be NULL
+ *                             can be null
  * \param[in]    res           input resolution of all images
  * \param[in]    scalefactor   scaling factor applied to each image; > 0.0
  * \param[in]    type          encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
@@ -225,8 +228,7 @@ static const l_int32  DefaultInputRes = 300;
  *                             L_DEFAULT_ENCODE for default)
  * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
  *                             for jp2k: 27-45; 0 for default (34)
- * \param[in]    title         [optional] pdf title; if null, taken from
- *                             the first image filename
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[in]    fileout       pdf file of all images
  * \return  0 if OK, 1 on error
  *
@@ -259,15 +261,13 @@ convertFilesToPdf(const char  *dirname,
 l_int32  ret;
 SARRAY  *sa;
 
-    PROCNAME("convertFilesToPdf");
-
     if (!dirname)
-        return ERROR_INT("dirname not defined", procName, 1);
+        return ERROR_INT("dirname not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
 
     if ((sa = getSortedPathnamesInDirectory(dirname, substr, 0, 0)) == NULL)
-        return ERROR_INT("sa not made", procName, 1);
+        return ERROR_INT("sa not made", __func__, 1);
     ret = saConvertFilesToPdf(sa, res, scalefactor, type, quality,
                               title, fileout);
     sarrayDestroy(&sa);
@@ -286,8 +286,7 @@ SARRAY  *sa;
  *                             L_DEFAULT_ENCODE for default)
  * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
  *                             for jp2k: 27-45; 0 for default (34)
- * \param[in]    title         [optional] pdf title; if null, taken from
- *                             the first image filename
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[in]    fileout       pdf file of all images
  * \return  0 if OK, 1 on error
  *
@@ -309,22 +308,20 @@ l_uint8  *data;
 l_int32   ret;
 size_t    nbytes;
 
-    PROCNAME("saConvertFilesToPdf");
-
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
 
     ret = saConvertFilesToPdfData(sa, res, scalefactor, type, quality,
                                   title, &data, &nbytes);
     if (ret) {
         if (data) LEPT_FREE(data);
-        return ERROR_INT("pdf data not made", procName, 1);
+        return ERROR_INT("pdf data not made", __func__, 1);
     }
 
     ret = l_binaryWrite(fileout, "w", data, nbytes);
     LEPT_FREE(data);
     if (ret)
-        L_ERROR("pdf data not written to file\n", procName);
+        L_ERROR("pdf data not written to file\n", __func__);
     return ret;
 }
 
@@ -340,8 +337,7 @@ size_t    nbytes;
  *                             L_DEFAULT_ENCODE for default)
  * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
  *                             for jp2k: 27-45; 0 for default (34)
- * \param[in]    title         [optional] pdf title; if null, taken from
- *                             the first image filename
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[out]   pdata         output pdf data (of all images
  * \param[out]   pnbytes       size of output pdf data
  * \return  0 if OK, 1 on error
@@ -361,25 +357,22 @@ saConvertFilesToPdfData(SARRAY      *sa,
                         l_uint8    **pdata,
                         size_t      *pnbytes)
 {
-char        *fname;
-const char  *pdftitle;
-l_uint8     *imdata;
-l_int32      i, n, ret, pagetype, npages, scaledres;
-size_t       imbytes;
-L_BYTEA     *ba;
-PIX         *pixs, *pix;
-L_PTRA      *pa_data;
-
-    PROCNAME("saConvertFilesToPdfData");
+char     *fname;
+l_uint8  *imdata;
+l_int32   i, n, ret, pagetype, npages, scaledres;
+size_t    imbytes;
+L_BYTEA  *ba;
+PIX      *pixs, *pix;
+L_PTRA   *pa_data;
 
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     *pdata = NULL;
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *pnbytes = 0;
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
     if (scalefactor <= 0.0) scalefactor = 1.0;
     if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
         type != L_FLATE_ENCODE && type != L_JP2K_ENCODE) {
@@ -389,16 +382,13 @@ L_PTRA      *pa_data;
         /* Generate all the encoded pdf strings */
     n = sarrayGetCount(sa);
     pa_data = ptraCreate(n);
-    pdftitle = NULL;
     for (i = 0; i < n; i++) {
-        if (i && (i % 10 == 0)) fprintf(stderr, ".. %d ", i);
+        if (i && (i % 10 == 0)) lept_stderr(".. %d ", i);
         fname = sarrayGetString(sa, i, L_NOCOPY);
         if ((pixs = pixRead(fname)) == NULL) {
-            L_ERROR("image not readable from file %s\n", procName, fname);
+            L_ERROR("image not readable from file %s\n", __func__, fname);
             continue;
         }
-        if (!pdftitle)
-            pdftitle = (title) ? title : fname;
         if (scalefactor != 1.0)
             pix = pixScale(pixs, scalefactor, scalefactor);
         else
@@ -412,16 +402,16 @@ L_PTRA      *pa_data;
         } else if (selectDefaultPdfEncoding(pix, &pagetype) != 0) {
             pixDestroy(&pix);
             L_ERROR("encoding type selection failed for file %s\n",
-                    procName, fname);
+                    __func__, fname);
             continue;
         }
 
         ret = pixConvertToPdfData(pix, pagetype, quality, &imdata, &imbytes,
-                                  0, 0, scaledres, pdftitle, NULL, 0);
+                                  0, 0, scaledres, title, NULL, 0);
         pixDestroy(&pix);
         if (ret) {
             LEPT_FREE(imdata);
-            L_ERROR("pdf encoding failed for %s\n", procName, fname);
+            L_ERROR("pdf encoding failed for %s\n", __func__, fname);
             continue;
         }
         ba = l_byteaInitFromMem(imdata, imbytes);
@@ -430,15 +420,15 @@ L_PTRA      *pa_data;
     }
     ptraGetActualCount(pa_data, &npages);
     if (npages == 0) {
-        L_ERROR("no pdf files made\n", procName);
+        L_ERROR("no pdf files made\n", __func__);
         ptraDestroy(&pa_data, FALSE, FALSE);
         return 1;
     }
 
         /* Concatenate them */
-    fprintf(stderr, "\nconcatenating ... ");
+    lept_stderr("\nconcatenating ... ");
     ret = ptraConcatenatePdfToData(pa_data, NULL, pdata, pnbytes);
-    fprintf(stderr, "done\n");
+    lept_stderr("done\n");
 
     ptraGetActualCount(pa_data, &npages);  /* recalculate in case it changes */
     for (i = 0; i < npages; i++) {
@@ -468,6 +458,9 @@ L_PTRA      *pa_data;
  *          as a jpeg (dct).  For example, an image made by pixScaleToGray3()
  *          will have 10 colors, and flate encoding will give about
  *          twice the compression as jpeg with quality = 75.
+ *      (2) We could have used L_JP2K_ENCODE instead of L_JPEG_ENCODE.
+ *          However, the jp2k compression is not much better than jpeg, and
+ *          the jpeg library is more commonly available than the jp2k library.
  * </pre>
  */
 l_ok
@@ -477,13 +470,11 @@ selectDefaultPdfEncoding(PIX      *pix,
 l_int32   w, h, d, factor, ncolors;
 PIXCMAP  *cmap;
 
-    PROCNAME("selectDefaultPdfEncoding");
-
     if (!ptype)
-        return ERROR_INT("&type not defined", procName, 1);
+        return ERROR_INT("&type not defined", __func__, 1);
     *ptype = L_FLATE_ENCODE;  /* default universal encoding */
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     pixGetDimensions(pix, &w, &h, &d);
     cmap = pixGetColormap(pix);
     if (d == 8 && !cmap) {
@@ -499,8 +490,10 @@ PIXCMAP  *cmap;
         *ptype = L_FLATE_ENCODE;
     } else if (d == 8 || d == 32) {
         *ptype = L_JPEG_ENCODE;
+    } else if (d == 16) {
+        *ptype = L_FLATE_ENCODE;
     } else {
-        return ERROR_INT("type selection failure", procName, 1);
+        return ERROR_INT("type selection failure", __func__, 1);
     }
 
     return 0;
@@ -514,9 +507,9 @@ PIXCMAP  *cmap;
  * \brief   convertUnscaledFilesToPdf()
  *
  * \param[in]    dirname   directory name containing images
- * \param[in]    substr    [optional] substring filter on filenames; can be NULL
- * \param[in]    title     [optional] pdf title; if null, taken from the first
- *                         image filename
+ * \param[in]    substr    [optional] substring filter on filenames;
+ *                         can be null
+ * \param[in]    title     [optional] pdf title; can be null
  * \param[in]    fileout   pdf file of all images
  * \return  0 if OK, 1 on error
  *
@@ -528,9 +521,9 @@ PIXCMAP  *cmap;
  *      (2) The files in the directory, after optional filtering by
  *          the substring, are lexically sorted in increasing order
  *          before concatenation.
- *      (3) This is very fast for jpeg, jp2k and some png files, because
- *          the compressed data is wrapped up and concatenated.  For tiffg4
- *          and other types of png, the images must be read and recompressed.
+ *      (3) This is very fast for jpeg, jp2k and some png files,
+ *          because the compressed data is wrapped up and concatenated.
+ *          For other types of png, the images must be read and recompressed.
  * </pre>
  */
 l_ok
@@ -542,15 +535,13 @@ convertUnscaledFilesToPdf(const char  *dirname,
 l_int32  ret;
 SARRAY  *sa;
 
-    PROCNAME("convertUnscaledFilesToPdf");
-
     if (!dirname)
-        return ERROR_INT("dirname not defined", procName, 1);
+        return ERROR_INT("dirname not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
 
     if ((sa = getSortedPathnamesInDirectory(dirname, substr, 0, 0)) == NULL)
-        return ERROR_INT("sa not made", procName, 1);
+        return ERROR_INT("sa not made", __func__, 1);
     ret = saConvertUnscaledFilesToPdf(sa, title, fileout);
     sarrayDestroy(&sa);
     return ret;
@@ -561,8 +552,7 @@ SARRAY  *sa;
  * \brief   saConvertUnscaledFilesToPdf()
  *
  * \param[in]    sa        string array of pathnames for images
- * \param[in]    title     [optional] pdf title; if null, taken from the first
- *                         image filename
+ * \param[in]    title     [optional] pdf title; can be null
  * \param[in]    fileout   pdf file of all images
  * \return  0 if OK, 1 on error
  *
@@ -580,21 +570,19 @@ l_uint8  *data;
 l_int32   ret;
 size_t    nbytes;
 
-    PROCNAME("saConvertUnscaledFilesToPdf");
-
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
 
     ret = saConvertUnscaledFilesToPdfData(sa, title, &data, &nbytes);
     if (ret) {
         if (data) LEPT_FREE(data);
-        return ERROR_INT("pdf data not made", procName, 1);
+        return ERROR_INT("pdf data not made", __func__, 1);
     }
 
     ret = l_binaryWrite(fileout, "w", data, nbytes);
     LEPT_FREE(data);
     if (ret)
-        L_ERROR("pdf data not written to file\n", procName);
+        L_ERROR("pdf data not written to file\n", __func__);
     return ret;
 }
 
@@ -603,17 +591,16 @@ size_t    nbytes;
  * \brief   saConvertUnscaledFilesToPdfData()
  *
  * \param[in]    sa        string array of pathnames for image files
- * \param[in]    title     [optional] pdf title; if null, taken from the first
- *                         image filename
+ * \param[in]    title     [optional] pdf title; can be null
  * \param[out]   pdata     output pdf data (of all images)
  * \param[out]   pnbytes   size of output pdf data
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This is very fast for jpeg, jp2k and some png files, because
- *          the compressed data is wrapped up and concatenated.  For tiffg4
- *          and other types of png, the images must be read and recompressed.
+ *      (1) This is very fast for jpeg, jp2k and some png files,
+ *          because the compressed data is wrapped up and concatenated.
+ *          For other types of png, the images must be read and recompressed.
  * </pre>
  */
 l_ok
@@ -629,22 +616,20 @@ size_t        imbytes;
 L_BYTEA      *ba;
 L_PTRA       *pa_data;
 
-    PROCNAME("saConvertUnscaledFilesToPdfData");
-
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     *pdata = NULL;
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *pnbytes = 0;
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
 
         /* Generate all the encoded pdf strings */
     n = sarrayGetCount(sa);
     pa_data = ptraCreate(n);
     for (i = 0; i < n; i++) {
-        if (i && (i % 10 == 0)) fprintf(stderr, ".. %d ", i);
+        if (i && (i % 10 == 0)) lept_stderr(".. %d ", i);
         fname = sarrayGetString(sa, i, L_NOCOPY);
 
             /* Generate the pdf data */
@@ -658,15 +643,15 @@ L_PTRA       *pa_data;
     }
     ptraGetActualCount(pa_data, &npages);
     if (npages == 0) {
-        L_ERROR("no pdf files made\n", procName);
+        L_ERROR("no pdf files made\n", __func__);
         ptraDestroy(&pa_data, FALSE, FALSE);
         return 1;
     }
 
         /* Concatenate to generate a multipage pdf */
-    fprintf(stderr, "\nconcatenating ... ");
+    lept_stderr("\nconcatenating ... ");
     ret = ptraConcatenatePdfToData(pa_data, NULL, pdata, pnbytes);
-    fprintf(stderr, "done\n");
+    lept_stderr("done\n");
 
         /* Clean up */
     ptraGetActualCount(pa_data, &npages);  /* maybe failed to read some files */
@@ -683,16 +668,16 @@ L_PTRA       *pa_data;
  * \brief   convertUnscaledToPdfData()
  *
  * \param[in]    fname      of image file in all formats
- * \param[in]    title      [optional] pdf title; can be NULL
+ * \param[in]    title      [optional] pdf title; can be null
  * \param[out]   pdata      output pdf data for image
  * \param[out]   pnbytes    size of output pdf data
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This is very fast for jpeg, jp2k and some png files, because
- *          the compressed data is wrapped up and concatenated.  For tiffg4
- *          and other types of png, the images must be read and recompressed.
+ *      (1) This is very fast for jpeg, jp2k and some png files,
+ *          because the compressed data is wrapped up and concatenated.
+ *          For other types of png, the images must be read and recompressed.
  * </pre>
  */
 l_ok
@@ -701,53 +686,40 @@ convertUnscaledToPdfData(const char  *fname,
                          l_uint8    **pdata,
                          size_t      *pnbytes)
 {
-const char   *pdftitle = NULL;
-char         *tail = NULL;
 l_int32       format;
 L_COMP_DATA  *cid;
 
-    PROCNAME("convertUnscaledToPdfData");
-
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     *pdata = NULL;
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *pnbytes = 0;
     if (!fname)
-        return ERROR_INT("fname not defined", procName, 1);
+        return ERROR_INT("fname not defined", __func__, 1);
 
     findFileFormat(fname, &format);
     if (format == IFF_UNKNOWN) {
-        L_WARNING("file %s format is unknown; skip\n", procName, fname);
+        L_WARNING("file %s format is unknown; skip\n", __func__, fname);
         return 1;
     }
     if (format == IFF_PS || format == IFF_LPDF) {
-        L_WARNING("file %s format is %d; skip\n", procName, fname, format);
+        L_WARNING("file %s format is %d; skip\n", __func__, fname, format);
         return 1;
     }
 
         /* Generate the image data required for pdf generation, always
-         * in binary (not ascii85) coding.  Note that jpeg, jp2k and
-         * some png files are not transcoded.  */
+         * in binary (not ascii85) coding.  Note that jpeg, jp2k and some
+         * png files are not transcoded.  */
     l_generateCIDataForPdf(fname, NULL, 0, &cid);
     if (!cid) {
-        L_ERROR("file %s format is %d; unreadable\n", procName, fname, format);
+        L_ERROR("file %s format is %d; unreadable\n", __func__, fname, format);
         return 1;
-    }
-
-        /* If %title == NULL, use the tail of %fname. */
-    if (title) {
-        pdftitle = title;
-    } else {
-        splitPathAtDirectory(fname, NULL, &tail);
-        pdftitle = tail;
     }
 
         /* Generate the pdf string for this page (image).  This destroys
          * the cid by attaching it to an lpd and destroying the lpd. */
-    cidConvertToPdfData(cid, pdftitle, pdata, pnbytes);
-    LEPT_FREE(tail);
+    cidConvertToPdfData(cid, title, pdata, pnbytes);
     return 0;
 }
 
@@ -768,7 +740,7 @@ L_COMP_DATA  *cid;
  *                             L_DEFAULT_ENCODE for default)
  * \param[in]    quality       for jpeg: 1-100; 0 for default (75)
  *                             for jp2k: 27-45; 0 for default (34)
- * \param[in]    title         [optional] pdf title
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[in]    fileout       pdf file of all images
  * \return  0 if OK, 1 on error
  *
@@ -796,22 +768,20 @@ l_uint8  *data;
 l_int32   ret;
 size_t    nbytes;
 
-    PROCNAME("pixaConvertToPdf");
-
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
 
     ret = pixaConvertToPdfData(pixa, res, scalefactor, type, quality,
                                title, &data, &nbytes);
     if (ret) {
         LEPT_FREE(data);
-        return ERROR_INT("conversion to pdf failed", procName, 1);
+        return ERROR_INT("conversion to pdf failed", __func__, 1);
     }
 
     ret = l_binaryWrite(fileout, "w", data, nbytes);
     LEPT_FREE(data);
     if (ret)
-        L_ERROR("pdf data not written to file\n", procName);
+        L_ERROR("pdf data not written to file\n", __func__);
     return ret;
 }
 
@@ -821,13 +791,13 @@ size_t    nbytes;
  *
  * \param[in]    pixa           containing images all at the same resolution
  * \param[in]    res            input resolution of all images
- * \param[in]    scalefactor    scaling factor applied to each image; > 0.0
+ * \param[in]    scalefactor    scaling factor applied to each image; > 0.0; <50
  * \param[in]    type           encoding type (L_JPEG_ENCODE, L_G4_ENCODE,
  *                              L_FLATE_ENCODE, L_JP2K_ENCODE, or
  *                              L_DEFAULT_ENCODE for default)
  * \param[in]    quality        for jpeg: 1-100; 0 for default (75)
  *                              for jp2k: 27-45; 0 for default (34)
- * \param[in]    title          [optional] pdf title
+ * \param[in]    title          [optional] pdf title; can be null
  * \param[out]   pdata          output pdf data of all images
  * \param[out]   pnbytes        size of output pdf data
  * \return  0 if OK, 1 on error
@@ -854,31 +824,33 @@ L_BYTEA  *ba;
 PIX      *pixs, *pix;
 L_PTRA   *pa_data;
 
-    PROCNAME("pixaConvertToPdfData");
-
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     *pdata = NULL;
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *pnbytes = 0;
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
     if (scalefactor <= 0.0) scalefactor = 1.0;
+    if (scalefactor >= 50.0)
+        return ERROR_INT("scalefactor too large", __func__, 1);
     if (type != L_DEFAULT_ENCODE && type != L_JPEG_ENCODE &&
         type != L_G4_ENCODE && type != L_FLATE_ENCODE &&
         type != L_JP2K_ENCODE) {
         L_WARNING("invalid compression type; using per-page default\n",
-                  procName);
+                  __func__);
         type = L_DEFAULT_ENCODE;
     }
+    if (quality < 0 || quality > 100)
+        return ERROR_INT("invalid quality", __func__, 1);
 
         /* Generate all the encoded pdf strings */
     n = pixaGetCount(pixa);
     pa_data = ptraCreate(n);
     for (i = 0; i < n; i++) {
         if ((pixs = pixaGetPix(pixa, i, L_CLONE)) == NULL) {
-            L_ERROR("pix[%d] not retrieved\n", procName, i);
+            L_ERROR("pixs[%d] not retrieved\n", __func__, i);
             continue;
         }
         if (scalefactor != 1.0)
@@ -886,6 +858,10 @@ L_PTRA   *pa_data;
         else
             pix = pixClone(pixs);
         pixDestroy(&pixs);
+        if (!pix) {
+            L_ERROR("pix[%d] not made\n", __func__, i);
+            continue;
+        }
         scaledres = (l_int32)(res * scalefactor);
 
             /* Select the encoding type */
@@ -893,7 +869,7 @@ L_PTRA   *pa_data;
             pagetype = type;
         } else if (selectDefaultPdfEncoding(pix, &pagetype) != 0) {
             L_ERROR("encoding type selection failed for pix[%d]\n",
-                        procName, i);
+                        __func__, i);
             pixDestroy(&pix);
             continue;
         }
@@ -903,7 +879,7 @@ L_PTRA   *pa_data;
         pixDestroy(&pix);
         if (ret) {
             LEPT_FREE(imdata);
-            L_ERROR("pdf encoding failed for pix[%d]\n", procName, i);
+            L_ERROR("pdf encoding failed for pix[%d]\n", __func__, i);
             continue;
         }
         ba = l_byteaInitFromMem(imdata, imbytes);
@@ -912,7 +888,7 @@ L_PTRA   *pa_data;
     }
     ptraGetActualCount(pa_data, &n);
     if (n == 0) {
-        L_ERROR("no pdf files made\n", procName);
+        L_ERROR("no pdf files made\n", __func__);
         ptraDestroy(&pa_data, FALSE, FALSE);
         return 1;
     }
@@ -949,7 +925,7 @@ L_PTRA   *pa_data;
  * \param[in]      res          override the resolution of the input image,
  *                              in ppi; use 0 to respect the resolution
  *                              embedded in the input images
- * \param[in]      title        [optional] pdf title; if null, taken from filein
+ * \param[in]      title        [optional] pdf title; can be null
  * \param[in,out]  plpd         ptr to lpd, which is created on the first
  *                              invocation and returned until last image is
  *                              processed, at which time it is destroyed
@@ -1008,24 +984,22 @@ l_uint8  *data;
 l_int32   ret;
 size_t    nbytes;
 
-    PROCNAME("convertToPdf");
-
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
     if (!plpd || (position == L_LAST_IMAGE)) {
         if (!fileout)
-            return ERROR_INT("fileout not defined", procName, 1);
+            return ERROR_INT("fileout not defined", __func__, 1);
     }
 
     if (convertToPdfData(filein, type, quality, &data, &nbytes, x, y,
                          res, title, plpd, position))
-        return ERROR_INT("pdf data not made", procName, 1);
+        return ERROR_INT("pdf data not made", __func__, 1);
 
     if (!plpd || (position == L_LAST_IMAGE)) {
         ret = l_binaryWrite(fileout, "w", data, nbytes);
         LEPT_FREE(data);
         if (ret)
-            return ERROR_INT("pdf data not written to file", procName, 1);
+            return ERROR_INT("pdf data not written to file", __func__, 1);
     }
 
     return 0;
@@ -1049,7 +1023,7 @@ size_t    nbytes;
  * \param[in]      res          override the resolution of the input image,
  *                              in ppi; use 0 to respect the resolution
  *                              embedded in the input images
- * \param[in]      title        [optional] pdf title
+ * \param[in]      title        [optional] pdf title; can be null
  * \param[in,out]  plpd         ptr to lpd, which is created on the first
  *                              invocation and returned until last image is
  *                              processed, at which time it is destroyed
@@ -1080,17 +1054,15 @@ convertImageDataToPdf(l_uint8      *imdata,
 l_int32  ret;
 PIX     *pix;
 
-    PROCNAME("convertImageDataToPdf");
-
     if (!imdata)
-        return ERROR_INT("image data not defined", procName, 1);
+        return ERROR_INT("image data not defined", __func__, 1);
     if (!plpd || (position == L_LAST_IMAGE)) {
         if (!fileout)
-            return ERROR_INT("fileout not defined", procName, 1);
+            return ERROR_INT("fileout not defined", __func__, 1);
     }
 
     if ((pix = pixReadMem(imdata, size)) == NULL)
-        return ERROR_INT("pix not read", procName, 1);
+        return ERROR_INT("pix not read", __func__, 1);
     if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
         type != L_FLATE_ENCODE && type != L_JP2K_ENCODE) {
         selectDefaultPdfEncoding(pix, &type);
@@ -1118,7 +1090,7 @@ PIX     *pix;
  * \param[in]      res          override the resolution of the input image,
  *                              in ppi; use 0 to respect the resolution
  *                              embedded in the input images
- * \param[in]      title        [optional] pdf title; if null, use filein
+ * \param[in]      title        [optional] pdf title; can be null
  * \param[in,out]  plpd         ptr to lpd, which is created on the first
  *                              invocation and returned until last image is
  *                              processed, at which time it is destroyed
@@ -1148,22 +1120,20 @@ convertToPdfData(const char   *filein,
 {
 PIX  *pix;
 
-    PROCNAME("convertToPdfData");
-
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     *pdata = NULL;
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *pnbytes = 0;
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
 
     if ((pix = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not made", procName, 1);
+        return ERROR_INT("pix not made", __func__, 1);
 
     pixConvertToPdfData(pix, type, quality, pdata, pnbytes,
-                        x, y, res, (title) ? title : filein, plpd, position);
+                        x, y, res, title, plpd, position);
     pixDestroy(&pix);
     return 0;
 }
@@ -1186,7 +1156,7 @@ PIX  *pix;
  * \param[in]    res          override the resolution of the input image,
  *                            in ppi; use 0 to respect the resolution
  *                            embedded in the input images
- * \param[in]    title        [optional] pdf title
+ * \param[in]    title        [optional] pdf title; can be null
  * \param[out]   plpd         ptr to lpd, which is created on the first
  *                            invocation and returned until last image is
  *                            processed, at which time it is destroyed
@@ -1218,23 +1188,21 @@ convertImageDataToPdfData(l_uint8      *imdata,
 l_int32  ret;
 PIX     *pix;
 
-    PROCNAME("convertImageDataToPdfData");
-
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     *pdata = NULL;
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *pnbytes = 0;
     if (!imdata)
-        return ERROR_INT("image data not defined", procName, 1);
+        return ERROR_INT("image data not defined", __func__, 1);
     if (plpd) {  /* part of multi-page invocation */
         if (position == L_FIRST_IMAGE)
             *plpd = NULL;
     }
 
     if ((pix = pixReadMem(imdata, size)) == NULL)
-        return ERROR_INT("pix not read", procName, 1);
+        return ERROR_INT("pix not read", __func__, 1);
     if (type != L_JPEG_ENCODE && type != L_G4_ENCODE &&
         type != L_FLATE_ENCODE && type != L_JP2K_ENCODE) {
         selectDefaultPdfEncoding(pix, &type);
@@ -1262,7 +1230,7 @@ PIX     *pix;
  * \param[in]      res          override the resolution of the input image,
  *                              in ppi; use 0 to respect the resolution
  *                              embedded in the input images
- * \param[in]      title        [optional] pdf title
+ * \param[in]      title        [optional] pdf title; can be null
  * \param[in,out]  plpd         ptr to lpd, which is created on the first
  *                              invocation and returned until last image is
  *                              processed, at which time it is destroyed
@@ -1295,26 +1263,24 @@ l_uint8  *data;
 l_int32   ret;
 size_t    nbytes;
 
-    PROCNAME("pixConvertToPdf");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!plpd || (position == L_LAST_IMAGE)) {
         if (!fileout)
-            return ERROR_INT("fileout not defined", procName, 1);
+            return ERROR_INT("fileout not defined", __func__, 1);
     }
 
     if (pixConvertToPdfData(pix, type, quality, &data, &nbytes,
                             x, y, res, title, plpd, position)) {
         LEPT_FREE(data);
-        return ERROR_INT("pdf data not made", procName, 1);
+        return ERROR_INT("pdf data not made", __func__, 1);
     }
 
     if (!plpd || (position == L_LAST_IMAGE)) {
         ret = l_binaryWrite(fileout, "w", data, nbytes);
         LEPT_FREE(data);
         if (ret)
-            return ERROR_INT("pdf data not written to file", procName, 1);
+            return ERROR_INT("pdf data not written to file", __func__, 1);
     }
     return 0;
 }
@@ -1327,8 +1293,7 @@ size_t    nbytes;
  * \param[in]    pix      all depths, cmap OK
  * \param[in]    res      override the resolution of the input image, in ppi;
  *                        use 0 to respect the resolution embedded in the input
- * \param[in]    title    [optional] pdf title; taken from the first image
- *                        placed on a page; e.g., an input image filename
+ * \param[in]    title    [optional] pdf title; can be null
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1348,22 +1313,20 @@ pixWriteStreamPdf(FILE        *fp,
 l_uint8  *data;
 size_t    nbytes, nbytes_written;
 
-    PROCNAME("pixWriteStreamPdf");
-
     if (!fp)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
 
     if (pixWriteMemPdf(&data, &nbytes, pix, res, title) != 0) {
         LEPT_FREE(data);
-        return ERROR_INT("pdf data not made", procName, 1);
+        return ERROR_INT("pdf data not made", __func__, 1);
     }
 
     nbytes_written = fwrite(data, 1, nbytes, fp);
     LEPT_FREE(data);
     if (nbytes != nbytes_written)
-        return ERROR_INT("failure writing pdf data to stream", procName, 1);
+        return ERROR_INT("failure writing pdf data to stream", __func__, 1);
     return 0;
 }
 
@@ -1376,8 +1339,7 @@ size_t    nbytes, nbytes_written;
  * \param[in]    pix        all depths, cmap OK
  * \param[in]    res        override the resolution of the input image, in ppi;
  *                          use 0 to respect the res embedded in the input
- * \param[in]    title      [optional] pdf title; taken from the first image
- *                          placed on a page; e.g., an input image filename
+ * \param[in]    title      [optional] pdf title; can be null
  * \return  0 if OK, 1 on error
  *
  * <pre>
@@ -1397,20 +1359,18 @@ pixWriteMemPdf(l_uint8    **pdata,
 {
 l_int32  ret, type;
 
-    PROCNAME("pixWriteMemPdf");
-
     if (pdata) *pdata = NULL;
     if (pnbytes) *pnbytes = 0;
     if (!pdata || !pnbytes)
-        return ERROR_INT("&data or &nbytes not defined", procName, 1);
+        return ERROR_INT("&data or &nbytes not defined", __func__, 1);
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
 
     selectDefaultPdfEncoding(pix, &type);
     ret = pixConvertToPdfData(pix, type, 75, pdata, pnbytes,
                               0, 0, res, title, NULL, 0);
     if (ret)
-        return ERROR_INT("pdf data not made", procName, 1);
+        return ERROR_INT("pdf data not made", __func__, 1);
     return 0;
 }
 
@@ -1423,7 +1383,7 @@ l_int32  ret, type;
  *
  * \param[in]    dirname       directory name containing images
  * \param[in]    substr        [optional] substring filter on filenames;
- *                             can be NULL
+ *                             can be null
  * \param[in]    res           input resolution of all images
  * \param[in]    type          compression type for non-image regions; the
  *                             image regions are always compressed with
@@ -1433,8 +1393,7 @@ l_int32  ret, type;
  * \param[in]    baa           [optional] boxaa of image regions
  * \param[in]    quality       used for JPEG only; 0 for default (75)
  * \param[in]    scalefactor   scaling factor applied to each image region
- * \param[in]    title         [optional] pdf title; if null, taken from
- *                             the first image filename
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[in]    fileout       pdf file of all images
  * \return  0 if OK, 1 on error
  *
@@ -1483,16 +1442,14 @@ L_BYTEA  *ba;
 L_PTRA   *pa_data;
 SARRAY   *sa;
 
-    PROCNAME("convertSegmentedFilesToPdf");
-
     if (!dirname)
-        return ERROR_INT("dirname not defined", procName, 1);
+        return ERROR_INT("dirname not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
 
     if ((sa = getNumberedPathnamesInDirectory(dirname, substr, 0, 0, 10000))
             == NULL)
-        return ERROR_INT("sa not made", procName, 1);
+        return ERROR_INT("sa not made", __func__, 1);
 
     npages = sarrayGetCount(sa);
         /* If necessary, extend the boxaa, which is page-aligned with
@@ -1523,7 +1480,7 @@ SARRAY   *sa;
                                         &imdata, &imbytes);
         boxaDestroy(&boxa);  /* safe; in case nboxes > 0 */
         if (ret) {
-            L_ERROR("pdf encoding failed for %s\n", procName, fname);
+            L_ERROR("pdf encoding failed for %s\n", __func__, fname);
             continue;
         }
         ba = l_byteaInitFromMem(imdata, imbytes);
@@ -1534,7 +1491,7 @@ SARRAY   *sa;
 
     ptraGetActualCount(pa_data, &npages);
     if (npages == 0) {
-        L_ERROR("no pdf files made\n", procName);
+        L_ERROR("no pdf files made\n", __func__);
         ptraDestroy(&pa_data, FALSE, FALSE);
         return 1;
     }
@@ -1552,13 +1509,13 @@ SARRAY   *sa;
 
     if (ret) {
         if (data) LEPT_FREE(data);
-        return ERROR_INT("pdf data not made", procName, 1);
+        return ERROR_INT("pdf data not made", __func__, 1);
     }
 
     ret = l_binaryWrite(fileout, "w", data, databytes);
     LEPT_FREE(data);
     if (ret)
-        L_ERROR("pdf data not written to file\n", procName);
+        L_ERROR("pdf data not written to file\n", __func__);
     return ret;
 }
 
@@ -1567,10 +1524,11 @@ SARRAY   *sa;
  * \brief   convertNumberedMasksToBoxaa()
  *
  * \param[in]    dirname   directory name containing mask images
- * \param[in]    substr    [optional] substring filter on filenames; can be NULL
+ * \param[in]    substr    [optional] substring filter on filenames;
+ *                         can be null 
  * \param[in]    numpre    number of characters in name before number
- * \param[in]    numpost   number of characters in name after number, up
- *                         to a dot before an extension
+ * \param[in]    numpost   number of characters in name after number,
+ *                         up to a dot before an extension
  * \return  boxaa of mask regions, or NULL on error
  *
  * <pre>
@@ -1594,14 +1552,12 @@ BOXAA   *baa;
 PIX     *pix;
 SARRAY  *sa;
 
-    PROCNAME("convertNumberedMasksToBoxaa");
-
     if (!dirname)
-        return (BOXAA *)ERROR_PTR("dirname not defined", procName, NULL);
+        return (BOXAA *)ERROR_PTR("dirname not defined", __func__, NULL);
 
     if ((sa = getNumberedPathnamesInDirectory(dirname, substr, numpre,
                                               numpost, 10000)) == NULL)
-        return (BOXAA *)ERROR_PTR("sa not made", procName, NULL);
+        return (BOXAA *)ERROR_PTR("sa not made", __func__, NULL);
 
         /* Generate and save all the encoded pdf strings */
     n = sarrayGetCount(sa);
@@ -1613,7 +1569,7 @@ SARRAY  *sa;
         fname = sarrayGetString(sa, i, L_NOCOPY);
         if (!strcmp(fname, "")) continue;
         if ((pix = pixRead(fname)) == NULL) {
-            L_WARNING("invalid image on page %d\n", procName, i);
+            L_WARNING("invalid image on page %d\n", __func__, i);
             continue;
         }
         boxa = pixConnComp(pix, NULL, 8);
@@ -1641,8 +1597,7 @@ SARRAY  *sa;
  * \param[in]    boxa          [optional] of image regions; can be null
  * \param[in]    quality       used for jpeg image regions; 0 for default
  * \param[in]    scalefactor   used for jpeg regions; must be <= 1.0
- * \param[in]    title         [optional] pdf title; typically taken from the
- *                             input file for the pix
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[in]    fileout       output pdf file
  * \return  0 if OK, 1 on error
  *
@@ -1705,26 +1660,23 @@ convertToPdfSegmented(const char  *filein,
 l_int32  ret;
 PIX     *pixs;
 
-    PROCNAME("convertToPdfSegmented");
-
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
     if (type != L_G4_ENCODE && type != L_JPEG_ENCODE &&
         type != L_FLATE_ENCODE)
-        return ERROR_INT("invalid conversion type", procName, 1);
+        return ERROR_INT("invalid conversion type", __func__, 1);
     if (boxa && scalefactor > 1.0) {
-        L_WARNING("setting scalefactor to 1.0\n", procName);
+        L_WARNING("setting scalefactor to 1.0\n", __func__);
         scalefactor = 1.0;
     }
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", procName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
     ret = pixConvertToPdfSegmented(pixs, res, type, thresh, boxa, quality,
-                                   scalefactor, (title) ? title : filein,
-                                   fileout);
+                                   scalefactor, title, fileout);
     pixDestroy(&pixs);
     return ret;
 }
@@ -1742,8 +1694,7 @@ PIX     *pixs;
  * \param[in]    boxa          [optional] of image regions; can be null
  * \param[in]    quality       used for jpeg image regions; 0 for default
  * \param[in]    scalefactor   used for jpeg regions; must be <= 1.0
- * \param[in]    title         [optional] pdf title; typically taken from the
- *                             input file for the pix
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[in]    fileout       output pdf file
  * \return  0 if OK, 1 on error
  *
@@ -1767,24 +1718,22 @@ l_uint8  *data;
 l_int32   ret;
 size_t    nbytes;
 
-    PROCNAME("pixConvertToPdfSegmented");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
     if (type != L_G4_ENCODE && type != L_JPEG_ENCODE &&
         type != L_FLATE_ENCODE)
-        return ERROR_INT("invalid conversion type", procName, 1);
+        return ERROR_INT("invalid conversion type", __func__, 1);
     if (boxa && scalefactor > 1.0) {
-        L_WARNING("setting scalefactor to 1.0\n", procName);
+        L_WARNING("setting scalefactor to 1.0\n", __func__);
         scalefactor = 1.0;
     }
 
     ret = pixConvertToPdfDataSegmented(pixs, res, type, thresh, boxa, quality,
                                        scalefactor, title, &data, &nbytes);
     if (ret)
-        return ERROR_INT("pdf generation failure", procName, 1);
+        return ERROR_INT("pdf generation failure", __func__, 1);
 
     ret = l_binaryWrite(fileout, "w", data, nbytes);
     if (data) LEPT_FREE(data);
@@ -1804,7 +1753,7 @@ size_t    nbytes;
  * \param[in]    boxa          [optional] image regions; can be null
  * \param[in]    quality       used for jpeg image regions; 0 for default
  * \param[in]    scalefactor   used for jpeg regions; must be <= 1.0
- * \param[in]    title         [optional] pdf title; if null, uses filein
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[out]   pdata         pdf data in memory
  * \param[out]   pnbytes       number of bytes in pdf data
  * \return  0 if OK, 1 on error
@@ -1831,30 +1780,27 @@ convertToPdfDataSegmented(const char  *filein,
 l_int32  ret;
 PIX     *pixs;
 
-    PROCNAME("convertToPdfDataSegmented");
-
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     *pdata = NULL;
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *pnbytes = 0;
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
     if (type != L_G4_ENCODE && type != L_JPEG_ENCODE &&
         type != L_FLATE_ENCODE)
-        return ERROR_INT("invalid conversion type", procName, 1);
+        return ERROR_INT("invalid conversion type", __func__, 1);
     if (boxa && scalefactor > 1.0) {
-        L_WARNING("setting scalefactor to 1.0\n", procName);
+        L_WARNING("setting scalefactor to 1.0\n", __func__);
         scalefactor = 1.0;
     }
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", procName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
     ret = pixConvertToPdfDataSegmented(pixs, res, type, thresh, boxa,
-                                       quality, scalefactor,
-                                       (title) ? title : filein,
+                                       quality, scalefactor, title,
                                        pdata, pnbytes);
     pixDestroy(&pixs);
     return ret;
@@ -1873,8 +1819,7 @@ PIX     *pixs;
  * \param[in]    boxa          [optional] of image regions; can be null
  * \param[in]    quality       used for jpeg image regions; 0 for default
  * \param[in]    scalefactor   used for jpeg regions; must be <= 1.0
- * \param[in]    title         [optional] pdf title; typically taken from the
- *                             input file for the pix
+ * \param[in]    title         [optional] pdf title; can be null
  * \param[out]   pdata         pdf data in memory
  * \param[out]   pnbytes       number of bytes in pdf data
  * \return  0 if OK, 1 on error
@@ -1903,21 +1848,19 @@ PIX         *pix, *pixt1, *pixt2, *pixt3, *pixt4, *pixt5, *pixt6;
 PIXCMAP     *cmap;
 L_PDF_DATA  *lpd;
 
-    PROCNAME("pixConvertToPdfDataSegmented");
-
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     *pdata = NULL;
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *pnbytes = 0;
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (type != L_G4_ENCODE && type != L_JPEG_ENCODE &&
         type != L_FLATE_ENCODE)
-        return ERROR_INT("invalid conversion type", procName, 1);
+        return ERROR_INT("invalid conversion type", __func__, 1);
     if (boxa && (scalefactor <= 0.0 || scalefactor > 1.0)) {
-        L_WARNING("setting scalefactor to 1.0\n", procName);
+        L_WARNING("setting scalefactor to 1.0\n", __func__);
         scalefactor = 1.0;
     }
 
@@ -2033,7 +1976,8 @@ L_PDF_DATA  *lpd;
  * \brief   concatenatePdf()
  *
  * \param[in]    dirname   directory name containing single-page pdf files
- * \param[in]    substr    [optional] substring filter on filenames; can be NULL
+ * \param[in]    substr    [optional] substring filter on filenames;
+ *                         can be null
  * \param[in]    fileout   concatenated pdf file
  * \return  0 if OK, 1 on error
  *
@@ -2056,15 +2000,13 @@ concatenatePdf(const char  *dirname,
 l_int32  ret;
 SARRAY  *sa;
 
-    PROCNAME("concatenatePdf");
-
     if (!dirname)
-        return ERROR_INT("dirname not defined", procName, 1);
+        return ERROR_INT("dirname not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
 
     if ((sa = getSortedPathnamesInDirectory(dirname, substr, 0, 0)) == NULL)
-        return ERROR_INT("sa not made", procName, 1);
+        return ERROR_INT("sa not made", __func__, 1);
     ret = saConcatenatePdf(sa, fileout);
     sarrayDestroy(&sa);
     return ret;
@@ -2091,16 +2033,14 @@ l_uint8  *data;
 l_int32   ret;
 size_t    nbytes;
 
-    PROCNAME("saConcatenatePdf");
-
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
 
     ret = saConcatenatePdfToData(sa, &data, &nbytes);
     if (ret)
-        return ERROR_INT("pdf data not made", procName, 1);
+        return ERROR_INT("pdf data not made", __func__, 1);
     ret = l_binaryWrite(fileout, "w", data, nbytes);
     LEPT_FREE(data);
     return ret;
@@ -2127,16 +2067,14 @@ l_uint8  *data;
 l_int32   ret;
 size_t    nbytes;
 
-    PROCNAME("ptraConcatenatePdf");
-
     if (!pa)
-        return ERROR_INT("pa not defined", procName, 1);
+        return ERROR_INT("pa not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
 
     ret = ptraConcatenatePdfToData(pa, NULL, &data, &nbytes);
     if (ret)
-        return ERROR_INT("pdf data not made", procName, 1);
+        return ERROR_INT("pdf data not made", __func__, 1);
     ret = l_binaryWrite(fileout, "w", data, nbytes);
     LEPT_FREE(data);
     return ret;
@@ -2147,7 +2085,8 @@ size_t    nbytes;
  * \brief   concatenatePdfToData()
  *
  * \param[in]    dirname   directory name containing single-page pdf files
- * \param[in]    substr    [optional] substring filter on filenames; can be NULL
+ * \param[in]    substr    [optional] substring filter on filenames;
+ *                         can be null
  * \param[out]   pdata     concatenated pdf data in memory
  * \param[out]   pnbytes   number of bytes in pdf data
  * \return  0 if OK, 1 on error
@@ -2172,19 +2111,17 @@ concatenatePdfToData(const char  *dirname,
 l_int32  ret;
 SARRAY  *sa;
 
-    PROCNAME("concatenatePdfToData");
-
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     *pdata = NULL;
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *pnbytes = 0;
     if (!dirname)
-        return ERROR_INT("dirname not defined", procName, 1);
+        return ERROR_INT("dirname not defined", __func__, 1);
 
     if ((sa = getSortedPathnamesInDirectory(dirname, substr, 0, 0)) == NULL)
-        return ERROR_INT("sa not made", procName, 1);
+        return ERROR_INT("sa not made", __func__, 1);
     ret = saConcatenatePdfToData(sa, pdata, pnbytes);
     sarrayDestroy(&sa);
     return ret;
@@ -2214,20 +2151,18 @@ l_int32   i, npages, ret;
 L_BYTEA  *bas;
 L_PTRA   *pa_data;  /* input pdf data for each page */
 
-    PROCNAME("saConcatenatePdfToData");
-
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     *pdata = NULL;
     if (!pnbytes)
-        return ERROR_INT("&nbytes not defined", procName, 1);
+        return ERROR_INT("&nbytes not defined", __func__, 1);
     *pnbytes = 0;
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
 
         /* Read the pdf files into memory */
     if ((npages = sarrayGetCount(sa)) == 0)
-        return ERROR_INT("no filenames found", procName, 1);
+        return ERROR_INT("no filenames found", __func__, 1);
     pa_data = ptraCreate(npages);
     for (i = 0; i < npages; i++) {
         fname = sarrayGetString(sa, i, L_NOCOPY);

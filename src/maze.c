@@ -52,6 +52,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #ifdef _WIN32
 #include <stdlib.h>
@@ -62,8 +66,8 @@
 static const l_int32  MinMazeWidth = 50;
 static const l_int32  MinMazeHeight = 50;
 
-static const l_float32  DefaultWallProbability = 0.65;
-static const l_float32  DefaultAnisotropyRatio = 0.25;
+static const l_float32  DefaultWallProbability = 0.65f;
+static const l_float32  DefaultAnisotropyRatio = 0.25f;
 
 enum {  /* direction from parent to newly created element */
     START_LOC = 0,
@@ -91,7 +95,6 @@ static l_int32 localSearchForBackground(PIX  *pix, l_int32  *px,
 #define  DEBUG_PATH    0
 #define  DEBUG_MAZE    0
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /*---------------------------------------------------------------------*
  *             Binary maze generation as cellular automaton            *
@@ -177,9 +180,9 @@ L_QUEUE   *lq;
     wallpf = wallps * ranis;
 
 #if  DEBUG_MAZE
-    fprintf(stderr, "(w, h) = (%d, %d), (xi, yi) = (%d, %d)\n", w, h, xi, yi);
-    fprintf(stderr, "Using: prob(wall) = %7.4f, anisotropy factor = %7.4f\n",
-            wallps, ranis);
+    lept_stderr("(w, h) = (%d, %d), (xi, yi) = (%d, %d)\n", w, h, xi, yi);
+    lept_stderr("Using: prob(wall) = %7.4f, anisotropy factor = %7.4f\n",
+                wallps, ranis);
 #endif  /* DEBUG_MAZE */
 
         /* These are initialized to OFF */
@@ -353,21 +356,19 @@ PIX       *pixp;  /* for bookkeeping, to indicate direction to parent */
 L_QUEUE   *lq;
 PTA       *pta;
 
-    PROCNAME("pixSearchBinaryMaze");
-
     if (ppixd) *ppixd = NULL;
     if (!pixs)
-        return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1)
-        return (PTA *)ERROR_PTR("pixs not 1 bpp", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not 1 bpp", __func__, NULL);
     if (xi <= 0 || xi >= w)
-        return (PTA *)ERROR_PTR("xi not valid", procName, NULL);
+        return (PTA *)ERROR_PTR("xi not valid", __func__, NULL);
     if (yi <= 0 || yi >= h)
-        return (PTA *)ERROR_PTR("yi not valid", procName, NULL);
+        return (PTA *)ERROR_PTR("yi not valid", __func__, NULL);
     pixGetPixel(pixs, xi, yi, &val);
     if (val != 0)
-        return (PTA *)ERROR_PTR("(xi,yi) not bg pixel", procName, NULL);
+        return (PTA *)ERROR_PTR("(xi,yi) not bg pixel", __func__, NULL);
     pixd = NULL;
     pta = NULL;
 
@@ -375,8 +376,8 @@ PTA       *pta;
     localSearchForBackground(pixs, &xf, &yf, 5);
 
 #if  DEBUG_MAZE
-    fprintf(stderr, "(xi, yi) = (%d, %d), (xf, yf) = (%d, %d)\n",
-            xi, yi, xf, yf);
+    lept_stderr("(xi, yi) = (%d, %d), (xf, yf) = (%d, %d)\n",
+                xi, yi, xf, yf);
 #endif  /* DEBUG_MAZE */
 
     pixm = pixCreate(w, h, 1);  /* initialized to OFF */
@@ -469,7 +470,7 @@ PTA       *pta;
     composeRGBPixel(0, 0, 255, &bpixel);  /* end point */
 
     if (found) {
-        L_INFO(" Path found\n", procName);
+        L_INFO(" Path found\n", __func__);
         pta = ptaCreate(0);
         x = xf;
         y = yf;
@@ -490,7 +491,7 @@ PTA       *pta;
                 x--;
         }
     } else {
-        L_INFO(" No path found\n", procName);
+        L_INFO(" No path found\n", __func__);
         if (pixd) {  /* paint all visited locations */
             lined32 = pixGetLinePtrs(pixd, NULL);
             for (i = 0; i < h; i++) {
@@ -569,16 +570,16 @@ l_uint32  val;
 /*!
  * \brief   pixSearchGrayMaze()
  *
- * \param[in]    pixs 1 bpp, maze
- * \param[in]    xi, yi  beginning point; use same initial point
- *                       that was used to generate the maze
- * \param[in]    xf, yf  end point, or close to it
- * \param[out]   ppixd [optional] maze with path illustrated, or
- *                     if no path possible, the part of the maze
- *                     that was searched
- * \return  pta shortest path, or NULL if either no path
- *              exists or on error
+ * \param[in]    pixs     1 bpp maze; w and h must be >= 50
+ * \param[in]    xi, yi   beginning point; use same initial point
+ *                        that was used to generate the maze
+ * \param[in]    xf, yf   end point, or close to it
+ * \param[out]   ppixd    [optional] maze with path illustrated, or
+ *                        if no path possible, the part of the maze
+ *                        that was searched
+ * \return  pta   shortest path, or NULL if either no path exists or on error
  *
+ * <pre>
  *  Commentary:
  *      Consider first a slight generalization of the binary maze
  *      search problem.  Suppose that you can go through walls,
@@ -718,6 +719,7 @@ l_uint32  val;
  *      after all the pixels of the path have been visited and placed
  *      on the queue, multiple times for many of them.  So that's the
  *      price for not ordering the queue!
+ * </pre>
  */
 PTA *
 pixSearchGrayMaze(PIX     *pixs,
@@ -739,18 +741,18 @@ PIX      *pixp;  /* for bookkeeping, to indicate direction to parent */
 L_HEAP   *lh;
 PTA      *pta;
 
-    PROCNAME("pixSearchGrayMaze");
-
     if (ppixd) *ppixd = NULL;
     if (!pixs)
-        return (PTA *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not defined", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, &d);
+    if (w < 50 || h < 50)
+        return (PTA *)ERROR_PTR("too small: w and h not >= 50", __func__, NULL);
     if (d != 8)
-        return (PTA *)ERROR_PTR("pixs not 8 bpp", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (xi <= 0 || xi >= w)
-        return (PTA *)ERROR_PTR("xi not valid", procName, NULL);
+        return (PTA *)ERROR_PTR("xi not valid", __func__, NULL);
     if (yi <= 0 || yi >= h)
-        return (PTA *)ERROR_PTR("yi not valid", procName, NULL);
+        return (PTA *)ERROR_PTR("yi not valid", __func__, NULL);
     pixd = NULL;
     pta = NULL;
 
@@ -779,7 +781,7 @@ PTA      *pta;
     while (lheapGetCount(lh) > 0) {
         elp = (MAZEEL *)lheapRemove(lh);
         if (!elp) {
-            L_ERROR("heap broken!!\n", procName);
+            L_ERROR("heap broken!!\n", __func__);
             goto cleanup_stuff;
         }
         x = elp->x;
@@ -886,7 +888,7 @@ PTA      *pta;
         pixGetPixel(pixr, x, y, &val);
 
 #if  DEBUG_PATH
-        fprintf(stderr, "(x,y) = (%d, %d); dist = %d\n", x, y, val);
+        lept_stderr("(x,y) = (%d, %d); dist = %d\n", x, y, val);
 #endif  /* DEBUG_PATH */
 
     }

@@ -31,6 +31,10 @@
  *    Displays results when images are rotated sequentially multiple times.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   BINARY_IMAGE              "test1.png"
@@ -60,44 +64,44 @@ L_REGPARAMS  *rp;
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
-    fprintf(stderr, "Test binary image:\n");
+    lept_stderr("Test binary image:\n");
     pixs = pixRead(BINARY_IMAGE);
     RotateTest(pixs, 1.0, rp);
     pixDestroy(&pixs);
 
-    fprintf(stderr, "Test 2 bpp cmapped image with filled cmap:\n");
+    lept_stderr("Test 2 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(TWO_BPP_IMAGE);
     RotateTest(pixs, 1.0, rp);
     pixDestroy(&pixs);
 
-    fprintf(stderr, "Test 4 bpp cmapped image with unfilled cmap:\n");
+    lept_stderr("Test 4 bpp cmapped image with unfilled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE1);
     RotateTest(pixs, 1.0, rp);
     pixDestroy(&pixs);
 
-    fprintf(stderr, "Test 4 bpp cmapped image with filled cmap:\n");
+    lept_stderr("Test 4 bpp cmapped image with filled cmap:\n");
     pixs = pixRead(FOUR_BPP_IMAGE2);
     RotateTest(pixs, 1.0, rp);
     pixDestroy(&pixs);
 
-    fprintf(stderr, "Test 8 bpp grayscale image:\n");
+    lept_stderr("Test 8 bpp grayscale image:\n");
     pixs = pixRead(EIGHT_BPP_IMAGE);
     RotateTest(pixs, 1.0, rp);
     pixDestroy(&pixs);
 
-    fprintf(stderr, "Test 8 bpp grayscale cmap image:\n");
+    lept_stderr("Test 8 bpp grayscale cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE1);
     RotateTest(pixs, 1.0, rp);
     pixDestroy(&pixs);
 
-    fprintf(stderr, "Test 8 bpp color cmap image:\n");
+    lept_stderr("Test 8 bpp color cmap image:\n");
     pixs = pixRead(EIGHT_BPP_CMAP_IMAGE2);
     pixd = pixOctreeColorQuant(pixs, 200, 0);
     RotateTest(pixs, 0.25, rp);
     pixDestroy(&pixs);
     pixDestroy(&pixd);
 
-    fprintf(stderr, "Test rgb image:\n");
+    lept_stderr("Test rgb image:\n");
     pixs = pixRead(RGB_IMAGE);
     RotateTest(pixs, 1.0, rp);
     pixDestroy(&pixs);
@@ -121,13 +125,8 @@ PIXA     *pixa;
     pixd = pixRotate(pixs, ANGLE1, L_ROTATE_SHEAR, L_BRING_IN_WHITE, w, h);
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
-            if (i == MODSIZE) {
-                pixSaveTiled(pixd, pixa, scale, 1, 20, 32);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            } else {
-                pixSaveTiled(pixd, pixa, scale, 0, 20, 32);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            }
+            pixaAddPix(pixa, pixd, L_COPY);
+            regTestWritePixAndCheck(rp, pixd, outformat);
         }
         pixt = pixRotate(pixd, ANGLE1, L_ROTATE_SHEAR,
                          L_BRING_IN_WHITE, w, h);
@@ -139,13 +138,8 @@ PIXA     *pixa;
     pixd = pixRotate(pixs, ANGLE1, L_ROTATE_SAMPLING, L_BRING_IN_WHITE, w, h);
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
-            if (i == MODSIZE) {
-                pixSaveTiled(pixd, pixa, scale, 1, 20, 32);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            } else {
-                pixSaveTiled(pixd, pixa, scale, 0, 20, 32);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            }
+            pixaAddPix(pixa, pixd, L_COPY);
+            regTestWritePixAndCheck(rp, pixd, outformat);
         }
         pixt = pixRotate(pixd, ANGLE1, L_ROTATE_SAMPLING,
                          L_BRING_IN_WHITE, w, h);
@@ -157,13 +151,8 @@ PIXA     *pixa;
     pixd = pixRotate(pixs, ANGLE1, L_ROTATE_AREA_MAP, L_BRING_IN_WHITE, w, h);
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
-            if (i == MODSIZE) {
-                pixSaveTiled(pixd, pixa, scale, 1, 20, 32);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            } else {
-                pixSaveTiled(pixd, pixa, scale, 0, 20, 32);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            }
+            pixaAddPix(pixa, pixd, L_COPY);
+            regTestWritePixAndCheck(rp, pixd, outformat);
         }
         pixt = pixRotate(pixd, ANGLE1, L_ROTATE_AREA_MAP,
                          L_BRING_IN_WHITE, w, h);
@@ -175,13 +164,8 @@ PIXA     *pixa;
     pixd = pixRotateAMCorner(pixs, ANGLE2, L_BRING_IN_WHITE);
     for (i = 1; i < NTIMES; i++) {
         if ((i % MODSIZE) == 0) {
-            if (i == MODSIZE) {
-                pixSaveTiled(pixd, pixa, scale, 1, 20, 32);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            } else {
-                pixSaveTiled(pixd, pixa, scale, 0, 20, 32);
-                regTestWritePixAndCheck(rp, pixd, outformat);
-            }
+            pixaAddPix(pixa, pixd, L_COPY);
+            regTestWritePixAndCheck(rp, pixd, outformat);
         }
         pixt = pixRotateAMCorner(pixd, ANGLE2, L_BRING_IN_WHITE);
         pixDestroy(&pixd);
@@ -193,13 +177,8 @@ PIXA     *pixa;
         pixd = pixRotateAMColorFast(pixs, ANGLE1, 0xb0ffb000);
         for (i = 1; i < NTIMES; i++) {
             if ((i % MODSIZE) == 0) {
-                if (i == MODSIZE) {
-                    pixSaveTiled(pixd, pixa, scale, 1, 20, 32);
-                    regTestWritePixAndCheck(rp, pixd, outformat);
-                } else {
-                    pixSaveTiled(pixd, pixa, scale, 0, 20, 32);
-                    regTestWritePixAndCheck(rp, pixd, outformat);
-                }
+                pixaAddPix(pixa, pixd, L_COPY);
+                regTestWritePixAndCheck(rp, pixd, outformat);
             }
             pixt = pixRotateAMColorFast(pixd, ANGLE1, 0xb0ffb000);
             pixDestroy(&pixd);
@@ -208,7 +187,7 @@ PIXA     *pixa;
     }
     pixDestroy(&pixd);
 
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 2, scale, 20, 0);
     pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);

@@ -38,21 +38,24 @@
  *     If dirout is the same as dirin, you overwrite the input files.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
          char **argv)
 {
-char        *dirin, *dirout, *infile, *outfile, *tail;
-l_int32      i, nfiles, border, x, y, w, h, xb, yb, wb, hb;
-BOX         *box1, *box2;
-BOXA        *boxa1, *boxa2;
-PIX         *pixs, *pixt1, *pixd;
-SARRAY      *safiles;
-static char  mainName[] = "croptext";
+char    *dirin, *dirout, *infile, *outfile, *tail;
+l_int32  i, nfiles, border, x, y, w, h, xb, yb, wb, hb;
+BOX     *box1, *box2;
+BOXA    *boxa1, *boxa2;
+PIX     *pixs, *pixt1, *pixd;
+SARRAY  *safiles;
 
     if (argc != 4)
-        return ERROR_INT("Syntax: croptext dirin border dirout", mainName, 1);
+        return ERROR_INT("Syntax: croptext dirin border dirout", __func__, 1);
     dirin = argv[1];
     border = atoi(argv[2]);
     dirout = argv[3];
@@ -69,7 +72,7 @@ static char  mainName[] = "croptext";
         pixt1 = pixMorphSequence(pixs, "r11 + c10.40 + o5.5 + x4", 0);
         boxa1 = pixConnComp(pixt1, NULL, 8);
         if (boxaGetCount(boxa1) == 0) {
-            fprintf(stderr, "Warning: no components on page %s\n", tail);
+            lept_stderr("Warning: no components on page %s\n", tail);
             continue;
         }
         boxa2 = boxaSort(boxa1, L_SORT_BY_AREA, L_SORT_DECREASING, NULL);

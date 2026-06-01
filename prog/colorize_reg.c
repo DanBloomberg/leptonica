@@ -34,6 +34,10 @@
  *  The input image is rgb.  Other examples are breviar.32 and amoris.2.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 PIX *TestForRedColor(L_REGPARAMS *rp, const char *fname,
@@ -52,6 +56,11 @@ PIX          *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;
 PIX          *pix8, *pix9, *pix10, *pix11, *pix12, *pix13, *pix14, *pix15;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
+
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "colorize_reg");
+    exit(77);
+#endif
 
     if (regTestSetup(argc, argv, &rp))
               return 1;
@@ -154,7 +163,7 @@ L_REGPARAMS  *rp;
     irval = lept_roundftoi(fract * rval);
     igval = lept_roundftoi(fract * gval / 2.0);
     ibval = lept_roundftoi(fract * bval / 2.0);
-    fprintf(stderr, "(r,g,b) = (%d,%d,%d)\n", irval, igval, ibval);
+    lept_stderr("(r,g,b) = (%d,%d,%d)\n", irval, igval, ibval);
 
         /* Test mask-based colorization on gray and cmapped gray */
     pix10 = pixColorGrayMasked(pix2, pix9, L_PAINT_DARK, 225,

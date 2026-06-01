@@ -168,6 +168,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include <math.h>
 #include "allheaders.h"
@@ -224,7 +228,7 @@ static const l_int32  MaxItersAllowed = 5000;  /* prevents infinite looping */
 
     /* Specify fraction of vboxes made that are sorted on population alone.
      * The remaining vboxes are sorted on (population * vbox-volume).  */
-static const l_float32  FractByPopulation = 0.85;
+static const l_float32  FractByPopulation = 0.85f;
 
     /* To get the max value of 'dif' in the dithering color transfer,
      * divide DifCap by 8. */
@@ -235,7 +239,6 @@ static const l_int32  DifCap = 100;
 #define   DEBUG_MC_COLORS       0
 #define   DEBUG_SPLIT_AXES      0
 #endif   /* ~NO_CONSOLE_IO */
-
 
 /*------------------------------------------------------------------------*
  *                                 High level                             *
@@ -296,7 +299,13 @@ pixMedianCutQuant(PIX     *pixs,
  *          maximum subsampling to be allowed, where the actual subsampling
  *          will be the minimum of this value and the internally
  *          determined default value.
- *      (6) If the image appears gray because either most of the pixels
+ *      (6) %sigbits can be 5 or 6.  There are 2^24 colors in the color space.
+ *              sigbits     # of volume elems    # of colors in a volume elem
+ *              --------------------------------------------------------------
+ *                 5              2^15                  2^9 = 512
+ *                 6              2^18                  2^6 = 64
+ *          Volume in color space is measured in the number of volume elements.
+ *      (7) If the image appears gray because either most of the pixels
  *          are gray or most of the pixels are essentially black or white,
  *          the image is trivially quantized with a grayscale colormap.  The
  *          reason is that median cut divides the color space into rectangular
@@ -316,27 +325,25 @@ pixMedianCutQuantGeneral(PIX     *pixs,
 l_int32    i, subsample, histosize, smalln, ncolors, niters, popcolors;
 l_int32    w, h, minside, factor, index, rval, gval, bval;
 l_int32   *histo;
-l_float32  pixfract, colorfract;
+l_float32  maxprod, prod, norm, pixfract, colorfract;
 L_BOX3D   *vbox, *vbox1, *vbox2;
 L_HEAP    *lh, *lhs;
 PIX       *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixMedianCutQuantGeneral");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", __func__, NULL);
     if (maxcolors < 2 || maxcolors > 256)
-        return (PIX *)ERROR_PTR("maxcolors not in [2...256]", procName, NULL);
+        return (PIX *)ERROR_PTR("maxcolors not in [2...256]", __func__, NULL);
     if (outdepth != 0 && outdepth != 1 && outdepth != 2 && outdepth != 4 &&
         outdepth != 8)
-        return (PIX *)ERROR_PTR("outdepth not in {0,1,2,4,8}", procName, NULL);
+        return (PIX *)ERROR_PTR("outdepth not in {0,1,2,4,8}", __func__, NULL);
     if (outdepth > 0 && (maxcolors > (1 << outdepth)))
-        return (PIX *)ERROR_PTR("maxcolors > 2^(outdepth)", procName, NULL);
+        return (PIX *)ERROR_PTR("maxcolors > 2^(outdepth)", __func__, NULL);
     if (sigbits == 0)
         sigbits = DefaultSigBits;
     else if (sigbits < 5 || sigbits > 6)
-        return (PIX *)ERROR_PTR("sigbits not 5 or 6", procName, NULL);
+        return (PIX *)ERROR_PTR("sigbits not 5 or 6", __func__, NULL);
     if (maxsub <= 0)
         maxsub = 10;  /* default will prevail for 10^7 pixels or less */
 
@@ -354,13 +361,13 @@ PIXCMAP   *cmap;
             L_INFO("\n  Pixel fraction neither white nor black = %6.3f"
                    "\n  Color fraction of those pixels = %6.3f"
                    "\n  Quantizing in gray\n",
-                   procName, pixfract, colorfract);
+                   __func__, pixfract, colorfract);
             return pixConvertTo8(pixs, 1);
         }
     }
 
         /* Compute the color space histogram.  Default sampling
-         * is about 10^5 pixels.  */
+         * is about 10^5 sampled pixels.  */
     if (maxsub == 1) {
         subsample = 1;
     } else {
@@ -426,7 +433,7 @@ PIXCMAP   *cmap;
         }
         medianCutApply(histo, sigbits, vbox, &vbox1, &vbox2);
         if (!vbox1) {
-            L_WARNING("vbox1 not defined; shouldn't happen!\n", procName);
+            L_WARNING("vbox1 not defined; shouldn't happen!\n", __func__);
             break;
         }
         if (vbox1->vol > 1)
@@ -442,16 +449,25 @@ PIXCMAP   *cmap;
         if (ncolors >= popcolors)
             break;
         if (niters++ > MaxItersAllowed) {
-            L_WARNING("infinite loop; perhaps too few pixels!\n", procName);
+            L_WARNING("infinite loop; perhaps too few pixels!\n", __func__);
             break;
         }
     }
 
         /* Re-sort by the product of pixel occupancy times the size
-         * in color space. */
+         * in color space.  Normalize to the largest product to avoid
+         * integer overflow. */
+    maxprod = 0.0;
+    for (i = 0; i < lh->n; i++) {
+        if ((vbox = (L_BOX3D *)lheapGetElement(lh, i)) == NULL)
+            continue;
+        prod = (l_float32)vbox->npix * (l_float32)vbox->vol;
+        if (prod > maxprod) maxprod = prod;
+    }
+    norm = (maxprod == 0) ? 1.0 : 1000000.0 / maxprod;
     lhs = lheapCreate(0, L_SORT_DECREASING);
     while ((vbox = (L_BOX3D *)lheapRemove(lh))) {
-        vbox->sortparam = vbox->npix * vbox->vol;
+        vbox->sortparam = norm * vbox->npix * vbox->vol;
         lheapAdd(lhs, vbox);
     }
     lheapDestroy(&lh, TRUE);
@@ -466,23 +482,23 @@ PIXCMAP   *cmap;
         }
         medianCutApply(histo, sigbits, vbox, &vbox1, &vbox2);
         if (!vbox1) {
-            L_WARNING("vbox1 not defined; shouldn't happen!\n", procName);
+            L_WARNING("vbox1 not defined; shouldn't happen!\n", __func__);
             break;
         }
         if (vbox1->vol > 1)
-            vbox1->sortparam = vbox1->npix * vbox1->vol;
+            vbox1->sortparam = norm * vbox1->npix * vbox1->vol;
         LEPT_FREE(vbox);
         lheapAdd(lhs, vbox1);
         if (vbox2) {  /* vbox2 can be NULL */
             if (vbox2->vol > 1)
-                vbox2->sortparam = vbox2->npix * vbox2->vol;
+                vbox2->sortparam = norm * vbox2->npix * vbox2->vol;
             lheapAdd(lhs, vbox2);
             ncolors++;
         }
         if (ncolors >= maxcolors)
             break;
         if (niters++ > MaxItersAllowed) {
-            L_WARNING("infinite loop; perhaps too few pixels!\n", procName);
+            L_WARNING("infinite loop; perhaps too few pixels!\n", __func__);
             break;
         }
     }
@@ -591,14 +607,12 @@ l_uint32  *datac, *datag, *datad, *linec, *lineg, *lined;
 PIX       *pixc, *pixg, *pixd;
 PIXCMAP   *cmap;
 
-    PROCNAME("pixMedianCutQuantMixed");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", __func__, NULL);
     if (ngray < 2)
-        return (PIX *)ERROR_PTR("ngray < 2", procName, NULL);
+        return (PIX *)ERROR_PTR("ngray < 2", __func__, NULL);
     if (ncolor + ngray > 255)
-        return (PIX *)ERROR_PTR("ncolor + ngray > 255", procName, NULL);
+        return (PIX *)ERROR_PTR("ncolor + ngray > 255", __func__, NULL);
     if (darkthresh <= 0) darkthresh = 20;
     if (lightthresh <= 0) lightthresh = 244;
     if (diffthresh <= 0) diffthresh = 20;
@@ -616,7 +630,7 @@ PIXCMAP   *cmap;
         L_INFO("\n  Pixel fraction neither white nor black = %6.3f"
                       "\n  Color fraction of those pixels = %6.3f"
                       "\n  Quantizing in gray\n",
-                      procName, pixfract, colorfract);
+                      __func__, pixfract, colorfract);
         pixg = pixConvertTo8(pixs, 0);
         pixd = pixThresholdOn8bpp(pixg, ngray, 1);
         pixDestroy(&pixg);
@@ -668,9 +682,9 @@ PIXCMAP   *cmap;
     nc = pixcmapGetCount(cmap);
     unused = ncolor  + 1 - nc;
     if (unused < 0)
-        L_ERROR("Too many colors: extra = %d\n", procName, -unused);
+        L_ERROR("Too many colors: extra = %d\n", __func__, -unused);
     if (unused > 0) {  /* fill in with black; these won't be used */
-        L_INFO("%d unused colors\n", procName, unused);
+        L_INFO("%d unused colors\n", __func__, unused);
         for (i = 0; i < unused; i++)
             pixcmapAddColor(cmap, 0, 0, 0);
     }
@@ -761,20 +775,18 @@ pixFewColorsMedianCutQuantMixed(PIX       *pixs,
 l_int32  ncolors, iscolor;
 PIX     *pixg, *pixd;
 
-    PROCNAME("pixFewColorsMedianCutQuantMixed");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 32 bpp", __func__, NULL);
     if (maxncolors <= 0) maxncolors = 20;
     if (darkthresh <= 0) darkthresh = 20;
     if (lightthresh <= 0) lightthresh = 244;
     if (diffthresh <= 0) diffthresh = 15;
     if (ncolor < maxncolors) {
-        L_WARNING("ncolor too small; setting to %d\n", procName, maxncolors);
+        L_WARNING("ncolor too small; setting to %d\n", __func__, maxncolors);
         ncolor = maxncolors;
     }
     if (ngray < maxncolors) {
-        L_WARNING("ngray too small; setting to %d\n", procName, maxncolors);
+        L_WARNING("ngray too small; setting to %d\n", __func__, maxncolors);
         ngray = maxncolors;
     }
 
@@ -784,7 +796,7 @@ PIX     *pixg, *pixd;
         /* Note that maxncolors applies to all colors required to quantize,
          * both gray and colorful */
     if (ncolors > maxncolors)
-        return (PIX *)ERROR_PTR("too many colors", procName, NULL);
+        return (PIX *)ERROR_PTR("too many colors", __func__, NULL);
 
         /* If no color, return quantized gray pix */
     if (!iscolor) {
@@ -831,20 +843,18 @@ l_int32   *histo;
 l_uint32   mask, pixel;
 l_uint32  *data, *line;
 
-    PROCNAME("pixMedianCutHisto");
-
     if (!pixs)
-        return (l_int32 *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (l_int32 *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (l_int32 *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (l_int32 *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (sigbits < 5 || sigbits > 6)
-        return (l_int32 *)ERROR_PTR("sigbits not 5 or 6", procName, NULL);
+        return (l_int32 *)ERROR_PTR("sigbits not 5 or 6", __func__, NULL);
     if (subsample <= 0)
-        return (l_int32 *)ERROR_PTR("subsample not > 0", procName, NULL);
+        return (l_int32 *)ERROR_PTR("subsample not > 0", __func__, NULL);
 
     histosize = 1 << (3 * sigbits);
     if ((histo = (l_int32 *)LEPT_CALLOC(histosize, sizeof(l_int32))) == NULL)
-        return (l_int32 *)ERROR_PTR("histo not made", procName, NULL);
+        return (l_int32 *)ERROR_PTR("histo not made", __func__, NULL);
 
     rshift = 8 - sigbits;
     mask = 0xff >> rshift;
@@ -896,14 +906,12 @@ l_int32   i, index, shift, rval, gval, bval;
 l_uint32  mask;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixcmapGenerateFromHisto");
-
     if (!pixs)
-        return (PIXCMAP *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
-        return (PIXCMAP *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (!histo)
-        return (PIXCMAP *)ERROR_PTR("histo not defined", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("histo not defined", __func__, NULL);
 
         /* Capture the rgb values of each occupied cube in the histo,
          * and re-label the histo value with the colormap index. */
@@ -962,14 +970,12 @@ l_uint32  *datas, *datad, *lines, *lined;
 l_uint32   mask, pixel;
 PIX       *pixd;
 
-    PROCNAME("pixQuantizeWithColormap");
-
     if (!pixs || pixGetDepth(pixs) != 32)
-        return (PIX *)ERROR_PTR("pixs not 32 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
     if (!cmap)
-        return (PIX *)ERROR_PTR("cmap not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("cmap not defined", __func__, NULL);
     if (!indexmap)
-        return (PIX *)ERROR_PTR("indexmap not defined", procName, NULL);
+        return (PIX *)ERROR_PTR("indexmap not defined", __func__, NULL);
     if (ditherflag)
         outdepth = 8;
 
@@ -1035,7 +1041,7 @@ PIX       *pixd;
         buf2b = (l_int32 *)LEPT_CALLOC(w, sizeof(l_int32));
         if (!bufu8r || !bufu8g || !bufu8b || !buf1r || !buf1g ||
             !buf1b || !buf2r || !buf2g || !buf2b) {
-            L_ERROR("buffer not made\n", procName);
+            L_ERROR("buffer not made\n", __func__);
             success = FALSE;
             goto buffer_cleanup;
         }
@@ -1222,10 +1228,8 @@ l_int32    w, h, wpl, i, j, rshift;
 l_uint32   mask, pixel;
 l_uint32  *data, *line;
 
-    PROCNAME("pixGetColorRegion");
-
     if (!pixs)
-        return (L_BOX3D *)ERROR_PTR("pixs not defined", procName, NULL);
+        return (L_BOX3D *)ERROR_PTR("pixs not defined", __func__, NULL);
 
     rmin = gmin = bmin = 1000000;
     rmax = gmax = bmax = 0;
@@ -1281,19 +1285,17 @@ l_int32   total, left, right;
 l_int32   partialsum[128];
 L_BOX3D  *vbox1, *vbox2;
 
-    PROCNAME("medianCutApply");
-
     if (pvbox1) *pvbox1 = NULL;
     if (pvbox2) *pvbox2 = NULL;
     if (!histo)
-        return ERROR_INT("histo not defined", procName, 1);
+        return ERROR_INT("histo not defined", __func__, 1);
     if (!vbox)
-        return ERROR_INT("vbox not defined", procName, 1);
+        return ERROR_INT("vbox not defined", __func__, 1);
     if (!pvbox1 || !pvbox2)
-        return ERROR_INT("&vbox1 and &vbox2 not both defined", procName, 1);
+        return ERROR_INT("&vbox1 and &vbox2 not both defined", __func__, 1);
 
     if (vboxGetCount(vbox, histo, sigbits) == 0)
-        return ERROR_INT("no pixels in vbox", procName, 1);
+        return ERROR_INT("no pixels in vbox", __func__, 1);
 
         /* If the vbox occupies just one element in color space, it can't
          * be split.  Leave the 'sortparam' field at 0, so that it goes to
@@ -1313,11 +1315,11 @@ L_BOX3D  *vbox1, *vbox2;
     maxw = L_MAX(maxw, bw);
 #if  DEBUG_SPLIT_AXES
     if (rw == maxw)
-        fprintf(stderr, "red split\n");
+        lept_stderr("red split\n");
     else if (gw == maxw)
-        fprintf(stderr, "green split\n");
+        lept_stderr("green split\n");
     else
-        fprintf(stderr, "blue split\n");
+        lept_stderr("blue split\n");
 #endif  /* DEBUG_SPLIT_AXES */
 
         /* Find the partial sum arrays along the selected axis. */
@@ -1419,9 +1421,9 @@ L_BOX3D  *vbox1, *vbox2;
     *pvbox1 = vbox1;
     *pvbox2 = vbox2;
     if (!vbox1)
-        return ERROR_INT("vbox1 not made; shouldn't happen", procName, 1);
+        return ERROR_INT("vbox1 not made; shouldn't happen", __func__, 1);
     if (!vbox2)
-        return ERROR_INT("vbox2 not made; shouldn't happen", procName, 1);
+        return ERROR_INT("vbox2 not made; shouldn't happen", __func__, 1);
     vbox1->npix = vboxGetCount(vbox1, histo, sigbits);
     vbox2->npix = vboxGetCount(vbox2, histo, sigbits);
     vbox1->vol = vboxGetVolume(vbox1);
@@ -1458,12 +1460,10 @@ l_int32   index, rval, gval, bval;
 L_BOX3D  *vbox;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixcmapGenerateFromMedianCuts");
-
     if (!lh)
-        return (PIXCMAP *)ERROR_PTR("lh not defined", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("lh not defined", __func__, NULL);
     if (!histo)
-        return (PIXCMAP *)ERROR_PTR("histo not defined", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("histo not defined", __func__, NULL);
 
     rval = gval = bval = 0;  /* make compiler happy */
     cmap = pixcmapCreate(8);
@@ -1516,14 +1516,12 @@ vboxGetAverageColor(L_BOX3D  *vbox,
 {
 l_int32  i, j, k, ntot, mult, histoindex, rsum, gsum, bsum;
 
-    PROCNAME("vboxGetAverageColor");
-
     if (!vbox)
-        return ERROR_INT("vbox not defined", procName, 1);
+        return ERROR_INT("vbox not defined", __func__, 1);
     if (!histo)
-        return ERROR_INT("histo not defined", procName, 1);
+        return ERROR_INT("histo not defined", __func__, 1);
     if (!prval || !pgval || !pbval)
-        return ERROR_INT("&p*val not all defined", procName, 1);
+        return ERROR_INT("&p*val not all defined", __func__, 1);
 
     *prval = *pgval = *pbval = 0;
     ntot = 0;
@@ -1554,10 +1552,10 @@ l_int32  i, j, k, ntot, mult, histoindex, rsum, gsum, bsum;
     }
 
 #if  DEBUG_MC_COLORS
-    fprintf(stderr, "ntot[%d] = %d: [%d, %d, %d], (%d, %d, %d)\n",
-            index, ntot, vbox->r2 - vbox->r1 + 1,
-            vbox->g2 - vbox->g1 + 1, vbox->b2 - vbox->b1 + 1,
-            *prval, *pgval, *pbval);
+    lept_stderr("ntot[%d] = %d: [%d, %d, %d], (%d, %d, %d)\n",
+                index, ntot, vbox->r2 - vbox->r1 + 1,
+                vbox->g2 - vbox->g1 + 1, vbox->b2 - vbox->b1 + 1,
+                *prval, *pgval, *pbval);
 #endif  /* DEBUG_MC_COLORS */
 
     return 0;
@@ -1579,12 +1577,10 @@ vboxGetCount(L_BOX3D  *vbox,
 {
 l_int32  i, j, k, npix, index;
 
-    PROCNAME("vboxGetCount");
-
     if (!vbox)
-        return ERROR_INT("vbox not defined", procName, 0);
+        return ERROR_INT("vbox not defined", __func__, 0);
     if (!histo)
-        return ERROR_INT("histo not defined", procName, 0);
+        return ERROR_INT("histo not defined", __func__, 0);
 
     npix = 0;
     for (i = vbox->r1; i <= vbox->r2; i++) {
@@ -1609,10 +1605,8 @@ l_int32  i, j, k, npix, index;
 static l_int32
 vboxGetVolume(L_BOX3D  *vbox)
 {
-    PROCNAME("vboxGetVolume");
-
     if (!vbox)
-        return ERROR_INT("vbox not defined", procName, 0);
+        return ERROR_INT("vbox not defined", __func__, 0);
 
     return ((vbox->r2 - vbox->r1 + 1) * (vbox->g2 - vbox->g1 + 1) *
             (vbox->b2 - vbox->b1 + 1));
@@ -1661,10 +1655,8 @@ box3dCopy(L_BOX3D  *vbox)
 {
 L_BOX3D  *vboxc;
 
-    PROCNAME("box3dCopy");
-
     if (!vbox)
-        return (L_BOX3D *)ERROR_PTR("vbox not defined", procName, NULL);
+        return (L_BOX3D *)ERROR_PTR("vbox not defined", __func__, NULL);
 
     vboxc = box3dCreate(vbox->r1, vbox->r2, vbox->g1, vbox->g2,
                         vbox->b1, vbox->b2);

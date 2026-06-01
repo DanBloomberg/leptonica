@@ -31,23 +31,26 @@
  *                   pageseg1.tif, pageseg2.tif, pageseg3.tif, pageseg4.tif
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
          char **argv)
 {
-PIX         *pixs, *pixhm, *pixtm, *pixtb, *pixd;
-PIXA        *pixadb;
-char        *filein;
-static char  mainName[] = "pagesegtest1";
+PIX   *pixs, *pixhm, *pixtm, *pixtb, *pixd;
+PIXA  *pixadb;
+char  *filein;
 
     if (argc != 2)
-        return ERROR_INT(" Syntax:  pagesegtest1 filein", mainName, 1);
+        return ERROR_INT(" Syntax:  pagesegtest1 filein", __func__, 1);
     filein = argv[1];
     setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
     pixadb = pixaCreate(0);
     pixGetRegionsBinary(pixs, &pixhm, &pixtm, &pixtb, pixadb);

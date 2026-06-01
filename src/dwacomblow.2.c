@@ -35,6 +35,10 @@
  *             void       ferode_2_*()
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static void  fdilate_2_0(l_uint32 *, l_int32, l_int32, l_int32, l_uint32 *, l_int32);

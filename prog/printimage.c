@@ -69,6 +69,10 @@
  *   ***************************************************************
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define  USE_COMPRESSED    1
@@ -78,23 +82,22 @@ static const l_float32  FILL_FACTOR = 0.95;   /* fill factor on 8.5 x 11 page */
 int main(int    argc,
          char **argv)
 {
-char        *filein, *printer, *extra, *fname;
-char         buffer[512];
-l_int32      i, w, h, ret, index;
-l_float32    scale;
-FILE        *fp;
-PIX         *pixs, *pix1;
-SARRAY      *sa;
-static char  mainName[] = "printimage";
+char      *filein, *printer, *extra, *fname;
+char       buffer[512];
+l_int32    i, w, h, ret, index;
+l_float32  scale;
+FILE      *fp;
+PIX       *pixs, *pix1;
+SARRAY    *sa;
 
     if (argc < 2)
         return ERROR_INT(
             " Syntax:  printimage <filein> [printer, other lpr args]",
-            mainName, 1);
+            __func__, 1);
     filein = argv[1];
     printer = (argc > 2) ? argv[2] : NULL;
 
-    fprintf(stderr,
+    lept_stderr(
          "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
          "   Warning: this program should only be used for testing,\n"
          "     and not in a production environment, because of a\n"
@@ -105,7 +108,7 @@ static char  mainName[] = "printimage";
     (void)lept_rm(NULL, "print_image.ps");
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if (w > h) {
@@ -138,11 +141,11 @@ static char  mainName[] = "printimage";
         }
         if (!extra) {
             snprintf(buffer, sizeof(buffer), "lpr %s -P%s &", fname, printer);
-            ret = system(buffer);
+            ret = callSystemDebug(buffer);
         } else {
             snprintf(buffer, sizeof(buffer), "lpr %s -P%s %s &",
                      fname, printer, extra);
-            ret = system(buffer);
+            ret = callSystemDebug(buffer);
         }
         lept_free(extra);
     }

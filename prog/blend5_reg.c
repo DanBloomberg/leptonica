@@ -33,6 +33,10 @@
  *      -  pixLinearEdgeFade()
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const l_uint32   LEPTONICA_YELLOW = 0xffffe400;
@@ -52,68 +56,58 @@ L_REGPARAMS  *rp;
 
         /* First, snap the color directly on the input rgb image. */
     pixs = pixRead("Leptonica.jpg");
-    pixSaveTiledOutline(pixs, pixa, 1.0, 1, 25, 2, 32);
+    pixaAddPix(pixa, pixs, L_COPY);
     pixDisplayWithTitle(pixs, 0, 0, NULL, rp->display);
     pix1 = pixSnapColor(NULL, pixs, 0xffffff00, LEPTONICA_YELLOW, 30);
-    pixSaveTiledOutline(pix1, pixa, 1.0, 0, 25, 2, 32);
+    pixaAddPix(pixa, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 0 */
     pixDisplayWithTitle(pix1, 480, 0, NULL, rp->display);
-    pixDestroy(&pix1);
 
         /* Then make a colormapped version and snap the color */
     pix1 = pixOctreeQuantNumColors(pixs, 250, 0);
-    pixSaveTiledOutline(pix1, pixa, 1.0, 1, 25, 2, 32);
+    pixaAddPix(pixa, pix1, L_COPY);
     pixSnapColor(pix1, pix1, 0xffffff00, LEPTONICA_YELLOW, 30);
-    pixSaveTiledOutline(pix1, pixa, 1.0, 0, 25, 2, 32);
+    pixaAddPix(pixa, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 1 */
     pixDisplayWithTitle(pix1, 880, 0, NULL, rp->display);
-    pixDestroy(&pix1);
     pixDestroy(&pixs);
 
         /* Set the background of the google searchbox to yellow.
          * The input image is colormapped with all 256 colors used. */
     pixs = pixRead("google-searchbox.png");
-    pixSaveTiledOutline(pixs, pixa, 1.0, 1, 25, 2, 32);
+    pixaAddPix(pixa, pixs, L_INSERT);
     pixDisplayWithTitle(pixs, 0, 200, NULL, rp->display);
     pix1 = pixSnapColor(NULL, pixs, 0xffffff00, LEPTONICA_YELLOW, 30);
-    pixSaveTiledOutline(pix1, pixa, 1.0, 0, 25, 2, 32);
+    pixaAddPix(pixa, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 2 */
     pixDisplayWithTitle(pix1, 220, 200, NULL, rp->display);
-    pixDestroy(&pix1);
-    pixDestroy(&pixs);
 
         /* A couple of more, setting pixels near white to strange colors */
     pixs = pixRead("weasel4.11c.png");
-    pixSaveTiledOutline(pixs, pixa, 1.0, 1, 25, 2, 32);
+    pixaAddPix(pixa, pixs, L_INSERT);
     pixDisplayWithTitle(pixs, 0, 300, NULL, rp->display);
     pix1 = pixSnapColor(NULL, pixs, 0xfefefe00, 0x80800000, 50);
-    pixSaveTiledOutline(pix1, pixa, 1.0, 0, 25, 2, 32);
+    pixaAddPix(pixa, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 3 */
     pixDisplayWithTitle(pix1, 200, 300, NULL, rp->display);
-    pixDestroy(&pix1);
-    pixDestroy(&pixs);
 
     pixs = pixRead("wyom.jpg");
     pix1 = pixFixedOctcubeQuant256(pixs, 0);
-    pixSaveTiledOutline(pix1, pixa, 1.0, 1, 25, 2, 32);
+    pixaAddPix(pixa, pix1, L_INSERT);
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 4 */
     pixDisplayWithTitle(pix1, 0, 450, NULL, rp->display);
     pix2 = pixSnapColor(NULL, pix1, 0xf0f0f000, 0x80008000, 100);
-    pixSaveTiledOutline(pix2, pixa, 1.0, 0, 25, 2, 32);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 5 */
     pixDisplayWithTitle(pix2, 900, 450, NULL, rp->display);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
     pixDestroy(&pixs);
 
         /* --- Display results --- */
-    pix1 = pixaDisplay(pixa, 0, 0);
+    pix1 = pixaDisplayTiledInColumns(pixa, 2, 1.0, 25, 2);
     regTestWritePixAndCheck(rp, pix1, IFF_JFIF_JPEG);  /* 6 */
     pixDisplayWithTitle(pix1, 500, 0, NULL, rp->display);
     pixDestroy(&pix1);
     pixaDestroy(&pixa);
-
-    pixa = pixaCreate(0);
 
         /* Test linear fade to black */
     composeRGBPixel(90, 170, 145, &val32);
@@ -183,8 +177,6 @@ L_REGPARAMS  *rp;
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 14 */
     pixDisplayWithTitle(pix1, 1950, 380, NULL, rp->display);
     pixDestroy(&pix1);
-    pixaDestroy(&pixa);
 
     return regTestCleanup(rp);
 }
-

@@ -24,12 +24,17 @@
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
+
 /*
  *  italic_reg.c
  *
  *     This demonstrates binary reconstruction for finding italic text.
  *     It also tests debug output of word masking.
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
 
@@ -43,6 +48,11 @@ PIX          *pixs, *pixm, *pix1;
 PIXA         *pixadb;
 L_REGPARAMS  *rp;
 
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "italic_reg");
+    exit(77);
+#endif
+
     if (regTestSetup(argc, argv, &rp))
         return 1;
 
@@ -53,8 +63,8 @@ L_REGPARAMS  *rp;
     pixItalicWords(pixs, NULL, NULL, &boxa1, 1);
     boxaWrite("/tmp/lept/ital/ital1.ba", boxa1);
     regTestCheckFile(rp, "/tmp/lept/ital/ital1.ba");  /* 0 */
-    regTestCheckFile(rp, "/tmp/lept/ital/ital.pdf");  /* 1 */
-    pix1 = pixRead("/tmp/lept/ital/ital.png");
+    regTestCheckFile(rp, "/tmp/lept/ital/ital.3.pdf");  /* 1 */
+    pix1 = pixRead("/tmp/lept/ital/ital.3.png");
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 2 */
     pixDisplayWithTitle(pix1, 0, 0, "Intermediate steps", rp->display);
     pixDestroy(&pix1);

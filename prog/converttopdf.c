@@ -30,6 +30,8 @@
  *    Bundles all image files that are in the designated directory, with
  *    optional matching substring, into a pdf.
  *
+ *    Syntax:  converttopdf dir [substring] fileout
+ *
  *    The encoding type depends on the input file format:
  *      jpeg     ==>  DCT (not transcoded)
  *      jp2k     ==>  JPX (not transcoded)
@@ -48,6 +50,10 @@
  *    If you want something more general, use convertfilestopdf.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -58,7 +64,7 @@ l_int32  ret;
 char    *dirin, *substr, *fileout;
 
     if (argc != 3 && argc != 4) {
-        fprintf(stderr,
+        lept_stderr(
             " Syntax: converttopdf dir [substr] fileout\n"
             "         substr:  Leave this out to bundle all files\n"
             "         fileout:  Output pdf file\n");

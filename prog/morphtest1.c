@@ -31,6 +31,10 @@
  *   - Example repository of binary morph operations
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   NTIMES         100
@@ -42,22 +46,21 @@
 int main(int    argc,
          char **argv)
 {
-l_int32      i, index;
-l_float32    cputime, epo;
-char        *filein, *fileout;
-PIX         *pixs, *pixd;
-SEL         *sel;
-SELA        *sela;
-static char  mainName[] = "morphtest1";
+l_int32    i, index;
+l_float32  cputime, epo;
+char      *filein, *fileout;
+PIX       *pixs, *pixd;
+SEL       *sel;
+SELA      *sela;
 
     if (argc != 3)
-        return ERROR_INT(" Syntax:  morphtest1 filein fileout", mainName, 1);
+        return ERROR_INT(" Syntax:  morphtest1 filein fileout", __func__, 1);
     filein = argv[1];
     fileout = argv[2];
     setLeptDebugOK(1);
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pix not made", mainName, 1);
+        return ERROR_INT("pix not made", __func__, 1);
     sela = selaAddBasic(NULL);
 
     /* ------------------------   Timing  -------------------------------*/
@@ -69,14 +72,14 @@ static char  mainName[] = "morphtest1";
     startTimer();
     for (i = 0; i < NTIMES; i++)  {
         pixDilate(pixd, pixs, sel);
-/*        if ((i % 10) == 0) fprintf(stderr, "%d iters\n", i); */
+/*        if ((i % 10) == 0) lept_stderr("%d iters\n", i); */
     }
     cputime = stopTimer();
         /* Get the elementary pixel operations/sec */
     epo = BASIC_OPS * SEL_SIZE * NTIMES * IMAGE_SIZE /(cputime * CPU_SPEED);
 
-    fprintf(stderr, "Time: %7.3f sec\n", cputime);
-    fprintf(stderr, "Speed: %7.3f epo/cycle\n", epo);
+    lept_stderr("Time: %7.3f sec\n", cputime);
+    lept_stderr("Speed: %7.3f epo/cycle\n", epo);
     pixWrite(fileout, pixd, IFF_PNG);
     pixDestroy(&pixd);
 #endif

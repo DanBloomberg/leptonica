@@ -31,6 +31,10 @@
  *   against the general case.  Require exact equality.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
@@ -47,132 +51,103 @@ L_REGPARAMS  *rp;
 
         /* Dilation */
     pixa = pixaCreate(0);
-    pixSaveTiled(pixs, pixa, 1.0, 1, 20, 8);
     pix1 = pixDilateGray3(pixs, 3, 1);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 8);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixDilateGray(pixs, 3, 1);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 8);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 0 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
 
     pix1 = pixDilateGray3(pixs, 1, 3);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 8);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixDilateGray(pixs, 1, 3);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 8);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 1 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
 
     pix1 = pixDilateGray3(pixs, 3, 3);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 8);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixDilateGray(pixs, 3, 3);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 8);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 2 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
 
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 2, 1.0, 20, 2);
     pixDisplayWithTitle(pixd, 0, 100, "Dilation", rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 
         /* Erosion */
     pixa = pixaCreate(0);
-    pixSaveTiled(pixs, pixa, 1.0, 1, 20, 8);
     pix1 = pixErodeGray3(pixs, 3, 1);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 8);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixErodeGray(pixs, 3, 1);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 8);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 3 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
 
     pix1 = pixErodeGray3(pixs, 1, 3);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 8);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixErodeGray(pixs, 1, 3);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 8);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 4 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
 
     pix1 = pixErodeGray3(pixs, 3, 3);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 8);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixErodeGray(pixs, 3, 3);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 8);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 5 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
 
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 2, 1.0, 20, 2);
     pixDisplayWithTitle(pixd, 250, 100, "Erosion", rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 
         /* Opening */
     pixa = pixaCreate(0);
-    pixSaveTiled(pixs, pixa, 1.0, 1, 20, 8);
     pix1 = pixOpenGray3(pixs, 3, 1);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 8);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixOpenGray(pixs, 3, 1);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 8);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 6 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
 
     pix1 = pixOpenGray3(pixs, 1, 3);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 8);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixOpenGray(pixs, 1, 3);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 8);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 7 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
 
     pix1 = pixOpenGray3(pixs, 3, 3);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 8);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixOpenGray(pixs, 3, 3);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 8);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 8 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
 
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 2, 1.0, 20, 2);
     pixDisplayWithTitle(pixd, 500, 100, "Opening", rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
 
         /* Closing */
     pixa = pixaCreate(0);
-    pixSaveTiled(pixs, pixa, 1.0, 1, 20, 8);
     pix1 = pixCloseGray3(pixs, 3, 1);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 8);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixCloseGray(pixs, 3, 1);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 8);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 9 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
 
     pix1 = pixCloseGray3(pixs, 1, 3);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 8);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixCloseGray(pixs, 1, 3);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 8);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 10 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
 
     pix1 = pixCloseGray3(pixs, 3, 3);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 20, 8);
+    pixaAddPix(pixa, pix1, L_INSERT);
     pix2 = pixCloseGray(pixs, 3, 3);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 20, 8);
+    pixaAddPix(pixa, pix2, L_INSERT);
     regTestComparePix(rp, pix1, pix2);  /* 11 */
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
 
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 2, 1.0, 20, 2);
     pixDisplayWithTitle(pixd, 750, 100, "Closing", rp->display);
     pixDestroy(&pixd);
     pixaDestroy(&pixa);
-
     pixDestroy(&pixs);
     return regTestCleanup(rp);
 }

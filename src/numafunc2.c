@@ -67,8 +67,10 @@
  *          l_int32      numaMakeRankFromHistogram()
  *          l_int32      numaHistogramGetRankFromVal()
  *          l_int32      numaHistogramGetValFromRank()
- *          l_int32      numaDiscretizeRankAndIntensity()
+ *          l_int32      numaDiscretizeSortedInBins()
+ *          l_int32      numaDiscretizeHistoInBins()
  *          l_int32      numaGetRankBinValues()
+ *          NUMA        *numaGetUniformBinSizes()
  *
  *      Splitting a distribution
  *          l_int32      numaSplitDistribution()
@@ -81,6 +83,7 @@
  *      Extrema finding
  *          NUMA        *numaFindPeaks()
  *          NUMA        *numaFindExtrema()
+ *          NUMA        *numaFindLocForThreshold()
  *          l_int32     *numaCountReversals()
  *
  *      Threshold crossings and frequency analysis
@@ -131,6 +134,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -147,7 +154,6 @@ static const l_int32 NBinSizes = 24;
 #define  DEBUG_CROSSINGS    0
 #define  DEBUG_FREQUENCY    0
 #endif  /* ~NO_CONSOLE_IO */
-
 
 /*----------------------------------------------------------------------*
  *                     Morphological operations                         *
@@ -182,14 +188,12 @@ l_float32   minval;
 l_float32  *fa, *fas, *fad;
 NUMA       *nad;
 
-    PROCNAME("numaErode");
-
     if (!nas)
-        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("nas not defined", __func__, NULL);
     if (size <= 0)
-        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
+        return (NUMA *)ERROR_PTR("size must be > 0", __func__, NULL);
     if ((size & 1) == 0 ) {
-        L_WARNING("sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("sel size must be odd; increasing by 1\n", __func__);
         size++;
     }
 
@@ -204,11 +208,11 @@ NUMA       *nad;
     hsize = size / 2;
     len = n + 2 * hsize;
     if ((fas = (l_float32 *)LEPT_CALLOC(len, sizeof(l_float32))) == NULL)
-        return (NUMA *)ERROR_PTR("fas not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("fas not made", __func__, NULL);
     for (i = 0; i < hsize; i++)
-         fas[i] = 1.0e37;
+         fas[i] = 1.0e37f;
     for (i = hsize + n; i < len; i++)
-         fas[i] = 1.0e37;
+         fas[i] = 1.0e37f;
     fa = numaGetFArray(nas, L_NOCOPY);
     for (i = 0; i < n; i++)
          fas[hsize + i] = fa[i];
@@ -217,7 +221,7 @@ NUMA       *nad;
     numaCopyParameters(nad, nas);
     fad = numaGetFArray(nad, L_NOCOPY);
     for (i = 0; i < n; i++) {
-        minval = 1.0e37;  /* start big */
+        minval = 1.0e37f;  /* start big */
         for (j = 0; j < size; j++)
             minval = L_MIN(minval, fas[i + j]);
         fad[i] = minval;
@@ -251,14 +255,12 @@ l_float32   maxval;
 l_float32  *fa, *fas, *fad;
 NUMA       *nad;
 
-    PROCNAME("numaDilate");
-
     if (!nas)
-        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("nas not defined", __func__, NULL);
     if (size <= 0)
-        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
+        return (NUMA *)ERROR_PTR("size must be > 0", __func__, NULL);
     if ((size & 1) == 0 ) {
-        L_WARNING("sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("sel size must be odd; increasing by 1\n", __func__);
         size++;
     }
 
@@ -273,11 +275,11 @@ NUMA       *nad;
     hsize = size / 2;
     len = n + 2 * hsize;
     if ((fas = (l_float32 *)LEPT_CALLOC(len, sizeof(l_float32))) == NULL)
-        return (NUMA *)ERROR_PTR("fas not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("fas not made", __func__, NULL);
     for (i = 0; i < hsize; i++)
-         fas[i] = -1.0e37;
+         fas[i] = -1.0e37f;
     for (i = hsize + n; i < len; i++)
-         fas[i] = -1.0e37;
+         fas[i] = -1.0e37f;
     fa = numaGetFArray(nas, L_NOCOPY);
     for (i = 0; i < n; i++)
          fas[hsize + i] = fa[i];
@@ -286,7 +288,7 @@ NUMA       *nad;
     numaCopyParameters(nad, nas);
     fad = numaGetFArray(nad, L_NOCOPY);
     for (i = 0; i < n; i++) {
-        maxval = -1.0e37;  /* start small */
+        maxval = -1.0e37f;  /* start small */
         for (j = 0; j < size; j++)
             maxval = L_MAX(maxval, fas[i + j]);
         fad[i] = maxval;
@@ -317,14 +319,12 @@ numaOpen(NUMA    *nas,
 {
 NUMA  *nat, *nad;
 
-    PROCNAME("numaOpen");
-
     if (!nas)
-        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("nas not defined", __func__, NULL);
     if (size <= 0)
-        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
+        return (NUMA *)ERROR_PTR("size must be > 0", __func__, NULL);
     if ((size & 1) == 0 ) {
-        L_WARNING("sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("sel size must be odd; increasing by 1\n", __func__);
         size++;
     }
 
@@ -364,14 +364,12 @@ numaClose(NUMA    *nas,
 {
 NUMA  *nab, *nat1, *nat2, *nad;
 
-    PROCNAME("numaClose");
-
     if (!nas)
-        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("nas not defined", __func__, NULL);
     if (size <= 0)
-        return (NUMA *)ERROR_PTR("size must be > 0", procName, NULL);
+        return (NUMA *)ERROR_PTR("size must be > 0", __func__, NULL);
     if ((size & 1) == 0 ) {
-        L_WARNING("sel size must be odd; increasing by 1\n", procName);
+        L_WARNING("sel size must be odd; increasing by 1\n", __func__);
         size++;
     }
 
@@ -414,13 +412,11 @@ l_int32    i, n;
 l_float32  val;
 NUMA      *nad;
 
-    PROCNAME("numaTransform");
-
     if (!nas)
-        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("nas not defined", __func__, NULL);
     n = numaGetCount(nas);
     if ((nad = numaCreate(n)) == NULL)
-        return (NUMA *)ERROR_PTR("nad not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("nad not made", __func__, NULL);
     numaCopyParameters(nad, nas);
     for (i = 0; i < n; i++) {
         numaGetFValue(nas, i, &val);
@@ -453,28 +449,26 @@ numaSimpleStats(NUMA       *na,
 l_int32    i, n, ni;
 l_float32  sum, sumsq, val, mean, var;
 
-    PROCNAME("numaSimpleStats");
-
     if (pmean) *pmean = 0.0;
     if (pvar) *pvar = 0.0;
     if (prvar) *prvar = 0.0;
     if (!pmean && !pvar && !prvar)
-        return ERROR_INT("nothing requested", procName, 1);
+        return ERROR_INT("nothing requested", __func__, 1);
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     if ((n = numaGetCount(na)) == 0)
-        return ERROR_INT("na is empty", procName, 1);
+        return ERROR_INT("na is empty", __func__, 1);
     first = L_MAX(0, first);
     if (last < 0) last = n - 1;
     if (first >= n)
-        return ERROR_INT("invalid first", procName, 1);
+        return ERROR_INT("invalid first", __func__, 1);
     if (last >= n) {
         L_WARNING("last = %d is beyond max index = %d; adjusting\n",
-                  procName, last, n - 1);
+                  __func__, last, n - 1);
         last = n - 1;
     }
     if (first > last)
-        return ERROR_INT("first > last\n", procName, 1);
+        return ERROR_INT("first > last\n", __func__, 1);
     ni = last - first + 1;
     sum = sumsq = 0.0;
     for (i = first; i <= last; i++) {
@@ -537,12 +531,10 @@ numaWindowedStats(NUMA    *nas,
 {
 NUMA  *nam, *nams;
 
-    PROCNAME("numaWindowedStats");
-
     if (!nas)
-        return ERROR_INT("nas not defined", procName, 1);
+        return ERROR_INT("nas not defined", __func__, 1);
     if (2 * wc + 1 > numaGetCount(nas))
-        L_WARNING("filter wider than input array!\n", procName);
+        L_WARNING("filter wider than input array!\n", __func__);
 
     if (!pnav && !pnarv) {
         if (pnam) *pnam = numaWindowedMean(nas, wc);
@@ -587,14 +579,12 @@ l_float32   sum, norm;
 l_float32  *fa1, *fad, *suma;
 NUMA       *na1, *nad;
 
-    PROCNAME("numaWindowedMean");
-
     if (!nas)
-        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("nas not defined", __func__, NULL);
     n = numaGetCount(nas);
     width = 2 * wc + 1;  /* filter width */
     if (width > n)
-        L_WARNING("filter wider than input array!\n", procName);
+        L_WARNING("filter wider than input array!\n", __func__);
 
     na1 = numaAddSpecifiedBorder(nas, wc, wc, L_MIRRORED_BORDER);
     n1 = n + 2 * wc;
@@ -606,7 +596,7 @@ NUMA       *na1, *nad;
     if ((suma = (l_float32 *)LEPT_CALLOC(n1 + 1, sizeof(l_float32))) == NULL) {
         numaDestroy(&na1);
         numaDestroy(&nad);
-        return (NUMA *)ERROR_PTR("suma not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("suma not made", __func__, NULL);
     }
     sum = 0.0;
     suma[0] = 0.0;
@@ -615,7 +605,7 @@ NUMA       *na1, *nad;
         suma[i + 1] = sum;
     }
 
-    norm = 1. / (2 * wc + 1);
+    norm = 1.f / (2 * wc + 1);
     for (i = 0; i < n; i++)
         fad[i] = norm * (suma[width + i] - suma[i]);
 
@@ -647,14 +637,12 @@ l_float32   sum, norm;
 l_float32  *fa1, *fad, *suma;
 NUMA       *na1, *nad;
 
-    PROCNAME("numaWindowedMeanSquare");
-
     if (!nas)
-        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("nas not defined", __func__, NULL);
     n = numaGetCount(nas);
     width = 2 * wc + 1;  /* filter width */
     if (width > n)
-        L_WARNING("filter wider than input array!\n", procName);
+        L_WARNING("filter wider than input array!\n", __func__);
 
     na1 = numaAddSpecifiedBorder(nas, wc, wc, L_MIRRORED_BORDER);
     n1 = n + 2 * wc;
@@ -666,7 +654,7 @@ NUMA       *na1, *nad;
     if ((suma = (l_float32 *)LEPT_CALLOC(n1 + 1, sizeof(l_float32))) == NULL) {
         numaDestroy(&na1);
         numaDestroy(&nad);
-        return (NUMA *)ERROR_PTR("suma not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("suma not made", __func__, NULL);
     }
     sum = 0.0;
     suma[0] = 0.0;
@@ -675,7 +663,7 @@ NUMA       *na1, *nad;
         suma[i + 1] = sum;
     }
 
-    norm = 1. / (2 * wc + 1);
+    norm = 1.f / (2 * wc + 1);
     for (i = 0; i < n; i++)
         fad[i] = norm * (suma[width + i] - suma[i]);
 
@@ -714,23 +702,21 @@ numaWindowedVariance(NUMA   *nam,
 {
 l_int32     i, nm, nms;
 l_float32   var;
-l_float32  *fam, *fams, *fav, *farv;
+l_float32  *fam, *fams, *fav = NULL, *farv = NULL;
 NUMA       *nav, *narv;  /* variance and square root of variance */
-
-    PROCNAME("numaWindowedVariance");
 
     if (pnav) *pnav = NULL;
     if (pnarv) *pnarv = NULL;
     if (!pnav && !pnarv)
-        return ERROR_INT("neither &nav nor &narv are defined", procName, 1);
+        return ERROR_INT("neither &nav nor &narv are defined", __func__, 1);
     if (!nam)
-        return ERROR_INT("nam not defined", procName, 1);
+        return ERROR_INT("nam not defined", __func__, 1);
     if (!nams)
-        return ERROR_INT("nams not defined", procName, 1);
+        return ERROR_INT("nams not defined", __func__, 1);
     nm = numaGetCount(nam);
     nms = numaGetCount(nams);
     if (nm != nms)
-        return ERROR_INT("sizes of nam and nams differ", procName, 1);
+        return ERROR_INT("sizes of nam and nams differ", __func__, 1);
 
     if (pnav) {
         nav = numaMakeConstant(0, nm);
@@ -782,20 +768,18 @@ l_int32    i, n;
 l_float32  medval;
 NUMA      *na1, *na2, *nad;
 
-    PROCNAME("numaWindowedMedian");
-
     if (!nas)
-        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("nas not defined", __func__, NULL);
     if ((n = numaGetCount(nas)) < 3)
         return numaCopy(nas);
     if (halfwin <= 0) {
-        L_ERROR("filter too small; returning a copy\n", procName);
+        L_ERROR("filter too small; returning a copy\n", __func__);
         return numaCopy(nas);
     }
 
     if (halfwin > (n - 1) / 2) {
         halfwin = (n - 1) / 2;
-        L_INFO("reducing filter to halfwin = %d\n", procName, halfwin);
+        L_INFO("reducing filter to halfwin = %d\n", __func__, halfwin);
     }
 
         /* Add a border to both ends */
@@ -829,14 +813,12 @@ numaConvertToInt(NUMA  *nas)
 l_int32  i, n, ival;
 NUMA    *nad;
 
-    PROCNAME("numaConvertToInt");
-
     if (!nas)
-        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("nas not defined", __func__, NULL);
 
     n = numaGetCount(nas);
     if ((nad = numaCreate(n)) == NULL)
-        return (NUMA *)ERROR_PTR("nad not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("nad not made", __func__, NULL);
     numaCopyParameters(nad, nas);
     for (i = 0; i < n; i++) {
         numaGetIValue(nas, i, &ival);
@@ -854,7 +836,7 @@ NUMA    *nad;
  *
  * \param[in]    na
  * \param[in]    maxbins    max number of histogram bins
- * \param[out]   pbinsize   size of histogram bins
+ * \param[out]   pbinsize   [optional] size of histogram bins
  * \param[out]   pbinstart  [optional] start val of minimum bin;
  *                          input NULL to force start at 0
  * \return  na consisiting of histogram of integerized values,
@@ -867,7 +849,7 @@ NUMA    *nad;
  *          so the results on float data will not have high precision.
  *      (2) Specify the max number of input bins.   Then %binsize,
  *          the size of bins necessary to accommodate the input data,
- *          is returned.  It is one of the sequence:
+ *          is returned.  It is optionally returned and one of the sequence:
  *                {1, 2, 5, 10, 20, 50, ...}.
  *      (3) If &binstart is given, all values are accommodated,
  *          and the min value of the starting bin is returned.
@@ -886,12 +868,12 @@ l_int32    iminval, imaxval, range, binsize, nbins, ibin;
 l_float32  val, ratio;
 NUMA      *nai, *nahist;
 
-    PROCNAME("numaMakeHistogram");
-
+    if (pbinsize) *pbinsize = 0;
+    if (pbinstart) *pbinstart = 0;
     if (!na)
-        return (NUMA *)ERROR_PTR("na not defined", procName, NULL);
-    if (!pbinsize)
-        return (NUMA *)ERROR_PTR("&binsize not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not defined", __func__, NULL);
+    if (maxbins < 1)
+        return (NUMA *)ERROR_PTR("maxbins < 1", __func__, NULL);
 
         /* Determine input range */
     numaGetMin(na, &val, NULL);
@@ -901,13 +883,13 @@ NUMA      *nai, *nahist;
     if (pbinstart == NULL) {  /* clip negative vals; start from 0 */
         iminval = 0;
         if (imaxval < 0)
-            return (NUMA *)ERROR_PTR("all values < 0", procName, NULL);
+            return (NUMA *)ERROR_PTR("all values < 0", __func__, NULL);
     }
 
         /* Determine binsize */
     range = imaxval - iminval + 1;
     if (range > maxbins - 1) {
-        ratio = (l_float64)range / (l_float64)maxbins;
+        ratio = (l_float32)range / (l_float32)maxbins;
         binsize = 0;
         for (i = 0; i < NBinSizes; i++) {
             if (ratio < BinSizeArray[i]) {
@@ -916,11 +898,11 @@ NUMA      *nai, *nahist;
             }
         }
         if (binsize == 0)
-            return (NUMA *)ERROR_PTR("numbers too large", procName, NULL);
+            return (NUMA *)ERROR_PTR("numbers too large", __func__, NULL);
     } else {
         binsize = 1;
     }
-    *pbinsize = binsize;
+    if (pbinsize) *pbinsize = binsize;
     nbins = 1 + range / binsize;  /* +1 seems to be sufficient */
 
         /* Redetermine iminval */
@@ -930,24 +912,23 @@ NUMA      *nai, *nahist;
         else
             iminval = binsize * ((iminval - binsize + 1) / binsize);
     }
-    if (pbinstart)
-        *pbinstart = iminval;
+    if (pbinstart) *pbinstart = iminval;
 
 #if  DEBUG_HISTO
-    fprintf(stderr, " imaxval = %d, range = %d, nbins = %d\n",
-            imaxval, range, nbins);
+    lept_stderr(" imaxval = %d, range = %d, nbins = %d\n",
+                imaxval, range, nbins);
 #endif  /* DEBUG_HISTO */
 
         /* Use integerized data for input */
     if ((nai = numaConvertToInt(na)) == NULL)
-        return (NUMA *)ERROR_PTR("nai not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("nai not made", __func__, NULL);
     n = numaGetCount(nai);
 
         /* Make histogram, converting value in input array
          * into a bin number for this histogram array. */
     if ((nahist = numaCreate(nbins)) == NULL) {
         numaDestroy(&nai);
-        return (NUMA *)ERROR_PTR("nahist not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("nahist not made", __func__, NULL);
     }
     numaSetCount(nahist, nbins);
     numaSetParameters(nahist, iminval, binsize);
@@ -956,7 +937,7 @@ NUMA      *nai, *nahist;
         ibin = (ival - iminval) / binsize;
         if (ibin >= 0 && ibin < nbins) {
             numaGetIValue(nahist, ibin, &hval);
-            numaSetValue(nahist, ibin, hval + 1.0);
+            numaSetValue(nahist, ibin, hval + 1.0f);
         }
     }
 
@@ -995,10 +976,8 @@ l_int32    i, n, imin, imax, irange, ibin, ival, allints;
 l_float32  minval, maxval, range, binsize, fval;
 NUMA      *nah;
 
-    PROCNAME("numaMakeHistogramAuto");
-
     if (!na)
-        return (NUMA *)ERROR_PTR("na not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not defined", __func__, NULL);
     maxbins = L_MAX(1, maxbins);
 
         /* Determine input range */
@@ -1007,7 +986,7 @@ NUMA      *nah;
 
         /* Determine if values are all integers */
     n = numaGetCount(na);
-    numaHasOnlyIntegers(na, maxbins, &allints);
+    numaHasOnlyIntegers(na, &allints);
 
         /* Do simple integer binning if possible */
     if (allints && (maxval - minval < maxbins)) {
@@ -1021,7 +1000,7 @@ NUMA      *nah;
             numaGetIValue(na, i, &ival);
             ibin = ival - imin;
             numaGetIValue(nah, ibin, &ival);
-            numaSetValue(nah, ibin, ival + 1.0);
+            numaSetValue(nah, ibin, ival + 1.0f);
         }
 
         return nah;
@@ -1044,7 +1023,7 @@ NUMA      *nah;
         ibin = (l_int32)((fval - minval) / binsize);
         ibin = L_MIN(ibin, maxbins - 1);  /* "edge" case; stay in bounds */
         numaGetIValue(nah, ibin, &ival);
-        numaSetValue(nah, ibin, ival + 1.0);
+        numaSetValue(nah, ibin, ival + 1.0f);
     }
 
     return nah;
@@ -1080,12 +1059,10 @@ l_int32    i, n, nbins, ival, ibin;
 l_float32  val, maxval;
 NUMA      *nad;
 
-    PROCNAME("numaMakeHistogramClipped");
-
     if (!na)
-        return (NUMA *)ERROR_PTR("na not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not defined", __func__, NULL);
     if (binsize <= 0.0)
-        return (NUMA *)ERROR_PTR("binsize must be > 0.0", procName, NULL);
+        return (NUMA *)ERROR_PTR("binsize must be > 0.0", __func__, NULL);
     if (binsize > maxsize)
         binsize = maxsize;  /* just one bin */
 
@@ -1094,10 +1071,10 @@ NUMA      *nad;
     maxsize = L_MIN(maxsize, maxval);
     nbins = (l_int32)(maxsize / binsize) + 1;
 
-/*    fprintf(stderr, "maxsize = %7.3f, nbins = %d\n", maxsize, nbins); */
+/*    lept_stderr("maxsize = %7.3f, nbins = %d\n", maxsize, nbins); */
 
     if ((nad = numaCreate(nbins)) == NULL)
-        return (NUMA *)ERROR_PTR("nad not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("nad not made", __func__, NULL);
     numaSetParameters(nad, 0.0, binsize);
     numaSetCount(nad, nbins);  /* interpret zeroes in bins as data */
     for (i = 0; i < n; i++) {
@@ -1105,7 +1082,7 @@ NUMA      *nad;
         ibin = (l_int32)(val / binsize);
         if (ibin >= 0 && ibin < nbins) {
             numaGetIValue(nad, ibin, &ival);
-            numaSetValue(nad, ibin, ival + 1.0);
+            numaSetValue(nad, ibin, ival + 1.0f);
         }
     }
 
@@ -1128,18 +1105,16 @@ l_int32    i, j, ns, nd, index, count, val;
 l_float32  start, oldsize;
 NUMA      *nad;
 
-    PROCNAME("numaRebinHistogram");
-
     if (!nas)
-        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("nas not defined", __func__, NULL);
     if (newsize <= 1)
-        return (NUMA *)ERROR_PTR("newsize must be > 1", procName, NULL);
+        return (NUMA *)ERROR_PTR("newsize must be > 1", __func__, NULL);
     if ((ns = numaGetCount(nas)) == 0)
-        return (NUMA *)ERROR_PTR("no bins in nas", procName, NULL);
+        return (NUMA *)ERROR_PTR("no bins in nas", __func__, NULL);
 
     nd = (ns + newsize - 1) / newsize;
     if ((nad = numaCreate(nd)) == NULL)
-        return (NUMA *)ERROR_PTR("nad not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("nad not made", __func__, NULL);
     numaGetParameters(nad, &start, &oldsize);
     numaSetParameters(nad, start, oldsize * newsize);
 
@@ -1176,20 +1151,18 @@ l_int32    i, ns;
 l_float32  sum, factor, fval;
 NUMA      *nad;
 
-    PROCNAME("numaNormalizeHistogram");
-
     if (!nas)
-        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("nas not defined", __func__, NULL);
     if (tsum <= 0.0)
-        return (NUMA *)ERROR_PTR("tsum must be > 0.0", procName, NULL);
+        return (NUMA *)ERROR_PTR("tsum must be > 0.0", __func__, NULL);
     if ((ns = numaGetCount(nas)) == 0)
-        return (NUMA *)ERROR_PTR("no bins in nas", procName, NULL);
+        return (NUMA *)ERROR_PTR("no bins in nas", __func__, NULL);
 
     numaGetSum(nas, &sum);
     factor = tsum / sum;
 
     if ((nad = numaCreate(ns)) == NULL)
-        return (NUMA *)ERROR_PTR("nad not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("nad not made", __func__, NULL);
     numaCopyParameters(nad, nas);
 
     for (i = 0; i < ns; i++) {
@@ -1266,8 +1239,6 @@ l_int32    i, n;
 l_float32  minval, maxval, fval, mean, sum;
 NUMA      *nah;
 
-    PROCNAME("numaGetStatsUsingHistogram");
-
     if (pmin) *pmin = 0.0;
     if (pmax) *pmax = 0.0;
     if (pmean) *pmean = 0.0;
@@ -1276,9 +1247,9 @@ NUMA      *nah;
     if (prval) *prval = 0.0;
     if (phisto) *phisto = NULL;
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     if ((n = numaGetCount(na)) == 0)
-        return ERROR_INT("numa is empty", procName, 1);
+        return ERROR_INT("numa is empty", __func__, 1);
 
     numaGetMin(na, &minval, NULL);
     numaGetMax(na, &maxval, NULL);
@@ -1350,14 +1321,12 @@ numaGetHistogramStats(NUMA       *nahisto,
                       l_float32  *pxmode,
                       l_float32  *pxvariance)
 {
-    PROCNAME("numaGetHistogramStats");
-
     if (pxmean) *pxmean = 0.0;
     if (pxmedian) *pxmedian = 0.0;
     if (pxmode) *pxmode = 0.0;
     if (pxvariance) *pxvariance = 0.0;
     if (!nahisto)
-        return ERROR_INT("nahisto not defined", procName, 1);
+        return ERROR_INT("nahisto not defined", __func__, 1);
 
     return numaGetHistogramStatsOnInterval(nahisto, startx, deltax, 0, -1,
                                            pxmean, pxmedian, pxmode,
@@ -1404,29 +1373,27 @@ numaGetHistogramStatsOnInterval(NUMA       *nahisto,
 l_int32    i, n, imax;
 l_float32  sum, sumval, halfsum, moment, var, x, y, ymax;
 
-    PROCNAME("numaGetHistogramStatsOnInterval");
-
     if (pxmean) *pxmean = 0.0;
     if (pxmedian) *pxmedian = 0.0;
     if (pxmode) *pxmode = 0.0;
     if (pxvariance) *pxvariance = 0.0;
     if (!nahisto)
-        return ERROR_INT("nahisto not defined", procName, 1);
+        return ERROR_INT("nahisto not defined", __func__, 1);
     if (!pxmean && !pxmedian && !pxmode && !pxvariance)
-        return ERROR_INT("nothing to compute", procName, 1);
+        return ERROR_INT("nothing to compute", __func__, 1);
 
     n = numaGetCount(nahisto);
     ifirst = L_MAX(0, ifirst);
     if (ilast < 0) ilast = n - 1;
     if (ifirst >= n)
-        return ERROR_INT("invalid ifirst", procName, 1);
+        return ERROR_INT("invalid ifirst", __func__, 1);
     if (ilast >= n) {
         L_WARNING("ilast = %d is beyond max index = %d; adjusting\n",
-                  procName, ilast, n - 1);
+                  __func__, ilast, n - 1);
         ilast = n - 1;
     }
     if (ifirst > ilast)
-        return ERROR_INT("ifirst > ilast", procName, 1);
+        return ERROR_INT("ifirst > ilast", __func__, 1);
     for (sum = 0.0, moment = 0.0, var = 0.0, i = ifirst; i <= ilast ; i++) {
         x = startx + i * deltax;
         numaGetFValue(nahisto, i, &y);
@@ -1435,7 +1402,7 @@ l_float32  sum, sumval, halfsum, moment, var, x, y, ymax;
         var += x * x * y;
     }
     if (sum == 0.0) {
-        L_INFO("sum is 0\n", procName);
+        L_INFO("sum is 0\n", __func__);
         return 0;
     }
 
@@ -1445,7 +1412,7 @@ l_float32  sum, sumval, halfsum, moment, var, x, y, ymax;
         *pxvariance = var / sum - moment * moment / (sum * sum);
 
     if (pxmedian) {
-        halfsum = sum / 2.0;
+        halfsum = sum / 2.0f;
         for (sumval = 0.0, i = ifirst; i <= ilast; i++) {
             numaGetFValue(nahisto, i, &y);
             sumval += y;
@@ -1496,16 +1463,14 @@ l_int32    i, n;
 l_float32  sum, fval;
 NUMA      *nan, *nar;
 
-    PROCNAME("numaMakeRankFromHistogram");
-
     if (pnax) *pnax = NULL;
     if (!pnay)
-        return ERROR_INT("&nay not defined", procName, 1);
+        return ERROR_INT("&nay not defined", __func__, 1);
     *pnay = NULL;
     if (!nasy)
-        return ERROR_INT("nasy not defined", procName, 1);
+        return ERROR_INT("nasy not defined", __func__, 1);
     if ((n = numaGetCount(nasy)) == 0)
-        return ERROR_INT("no bins in nas", procName, 1);
+        return ERROR_INT("no bins in nas", __func__, 1);
 
         /* Normalize and generate the rank array corresponding to
          * the binned histogram. */
@@ -1560,13 +1525,11 @@ numaHistogramGetRankFromVal(NUMA       *na,
 l_int32    i, ibinval, n;
 l_float32  startval, binsize, binval, maxval, fractval, total, sum, val;
 
-    PROCNAME("numaHistogramGetRankFromVal");
-
     if (!prank)
-        return ERROR_INT("prank not defined", procName, 1);
+        return ERROR_INT("prank not defined", __func__, 1);
     *prank = 0.0;
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     numaGetParameters(na, &startval, &binsize);
     n = numaGetCount(na);
     if (rval < startval)
@@ -1595,7 +1558,7 @@ l_float32  startval, binsize, binval, maxval, fractval, total, sum, val;
     numaGetSum(na, &total);
     *prank = sum / total;
 
-/*    fprintf(stderr, "binval = %7.3f, rank = %7.3f\n", binval, *prank); */
+/*    lept_stderr("binval = %7.3f, rank = %7.3f\n", binval, *prank); */
 
     return 0;
 }
@@ -1631,19 +1594,17 @@ numaHistogramGetValFromRank(NUMA       *na,
 l_int32    i, n;
 l_float32  startval, binsize, rankcount, total, sum, fract, val;
 
-    PROCNAME("numaHistogramGetValFromRank");
-
     if (!prval)
-        return ERROR_INT("prval not defined", procName, 1);
+        return ERROR_INT("prval not defined", __func__, 1);
     *prval = 0.0;
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     if (rank < 0.0) {
-        L_WARNING("rank < 0; setting to 0.0\n", procName);
+        L_WARNING("rank < 0; setting to 0.0\n", __func__);
         rank = 0.0;
     }
     if (rank > 1.0) {
-        L_WARNING("rank > 1.0; setting to 1.0\n", procName);
+        L_WARNING("rank > 1.0; setting to 1.0\n", __func__);
         rank = 1.0;
     }
 
@@ -1652,6 +1613,7 @@ l_float32  startval, binsize, rankcount, total, sum, fract, val;
     numaGetSum(na, &total);
     rankcount = rank * total;  /* count that corresponds to rank */
     sum = 0.0;
+    val = 0.0;
     for (i = 0; i < n; i++) {
         numaGetFValue(na, i, &val);
         if (sum + val >= rankcount)
@@ -1667,168 +1629,173 @@ l_float32  startval, binsize, rankcount, total, sum, fract, val;
      * for the histogram value at the given rank. */
     *prval = startval + binsize * ((l_float32)i + fract);
 
-/*    fprintf(stderr, "rank = %7.3f, val = %7.3f\n", rank, *prval); */
+/*    lept_stderr("rank = %7.3f, val = %7.3f\n", rank, *prval); */
 
     return 0;
 }
 
 
 /*!
- * \brief   numaDiscretizeRankAndIntensity()
+ * \brief   numaDiscretizeSortedInBins()
  *
- * \param[in]    na       normalized histo of probability density vs intensity
- * \param[in]    nbins    number of bins at which the rank is divided
- * \param[out]   pnarbin  [optional] rank bin value vs intensity
- * \param[out]   pnam     [optional] median intensity in a bin vs rank bin
- *                        value, with %nbins of discretized rank values
- * \param[out]   pnar     [optional] rank vs intensity; this is
- *                        a cumulative norm histogram
- * \param[out]   pnabb    [optional] intensity at the right bin boundary
- *                        vs rank bin
+ * \param[in]    na          sorted
+ * \param[in]    nbins       number of equal population bins (> 1)
+ * \param[out]   pnabinval   average "gray" values in each bin
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) We are inverting the rank(intensity) function to get
- *          the intensity(rank) function at %nbins equally spaced
- *          values of rank between 0.0 and 1.0.  We save integer values
- *          for the intensity.
- *      (2) We are using the word "intensity" to describe the type of
- *          array values, but any array of non-negative numbers will work.
- *      (3) The output arrays give the following mappings, where the
- *          input is a normalized histogram of array values:
- *             array values     -->  rank bin number  (narbin)
- *             rank bin number  -->  median array value in bin (nam)
- *             array values     -->  cumulative norm = rank  (nar)
- *             rank bin number  -->  array value at right bin edge (nabb)
+ *      (1) The input %na is sorted in increasing value.
+ *      (2) The output array has the following mapping:
+ *             bin number  -->  average array value in bin (nabinval)
+ *      (3) With %nbins == 100, nabinval is the average gray value in
+ *          each of the 100 equally populated bins.  It is the function
+ *                gray[100 * rank].
+ *          Thus it is the inverse of
+ *                rank[gray]
+ *      (4) Contast with numaDiscretizeHistoInBins(), where the input %na
+ *          is a histogram.
  * </pre>
  */
 l_ok
-numaDiscretizeRankAndIntensity(NUMA    *na,
-                               l_int32  nbins,
-                               NUMA   **pnarbin,
-                               NUMA   **pnam,
-                               NUMA   **pnar,
-                               NUMA   **pnabb)
+numaDiscretizeSortedInBins(NUMA    *na,
+                           l_int32  nbins,
+                           NUMA   **pnabinval)
 {
-NUMA      *nar;  /* rank value as function of intensity */
-NUMA      *nam;  /* median intensity in the rank bins */
-NUMA      *nabb;  /* rank bin right boundaries (in intensity) */
-NUMA      *narbin;  /* binned rank value as a function of intensity */
-l_int32    i, j, npts, start, midfound, mcount, rightedge;
-l_float32  sum, midrank, endrank, val;
+NUMA      *nabinval;  /* average gray value in the bins */
+NUMA      *naeach;
+l_int32    i, ntot, bincount, binindex, binsize;
+l_float32  sum, val, ave;
 
-    PROCNAME("numaDiscretizeRankAndIntensity");
-
-    if (pnarbin) *pnarbin = NULL;
-    if (pnam) *pnam = NULL;
-    if (pnar) *pnar = NULL;
-    if (pnabb) *pnabb = NULL;
-    if (!pnarbin && !pnam && !pnar && !pnabb)
-        return ERROR_INT("no output requested", procName, 1);
+    if (!pnabinval)
+        return ERROR_INT("&nabinval not defined", __func__, 1);
+    *pnabinval = NULL;
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     if (nbins < 2)
-        return ERROR_INT("nbins must be > 1", procName, 1);
+        return ERROR_INT("nbins must be > 1", __func__, 1);
 
-        /* Get cumulative normalized histogram (rank vs intensity value).
-         * For a normalized histogram from an 8 bpp grayscale image
-         * as input, we have 256 bins and 257 points in the
-         * cumulative (rank) histogram. */
-    npts = numaGetCount(na);
-    if ((nar = numaCreate(npts + 1)) == NULL)
-        return ERROR_INT("nar not made", procName, 1);
+        /* Get the number of items in each bin */
+    ntot = numaGetCount(na);
+    if ((naeach = numaGetUniformBinSizes(ntot, nbins)) == NULL)
+        return ERROR_INT("naeach not made", __func__, 1);
+
+        /* Get the average value in each bin */
     sum = 0.0;
-    numaAddNumber(nar, sum);  /* left side of first bin */
-    for (i = 0; i < npts; i++) {
+    bincount = 0;
+    binindex = 0;
+    numaGetIValue(naeach, 0, &binsize);
+    nabinval = numaCreate(nbins);
+    for (i = 0; i < ntot; i++) {
         numaGetFValue(na, i, &val);
+        bincount++;
         sum += val;
-        numaAddNumber(nar, sum);
-    }
-
-    nam = numaCreate(nbins);
-    narbin = numaCreate(npts);
-    nabb = numaCreate(nbins);
-    if (!nam || !narbin || !nabb) {
-        numaDestroy(&nar);
-        numaDestroy(&nam);
-        numaDestroy(&narbin);
-        numaDestroy(&nabb);
-        return ERROR_INT("numa not made", procName, 1);
-    }
-
-        /* We find the intensity value at the right edge of each of
-         * the rank bins.  We also find the median intensity in the bin,
-         * where approximately half the samples are lower and half are
-         * higher.  This can be considered as a simple approximation
-         * for the average intensity in the bin. */
-    start = 0;  /* index in nar */
-    mcount = 0;  /* count of median values in rank bins; not to exceed nbins */
-    for (i = 0; i < nbins; i++) {
-        midrank = (l_float32)(i + 0.5) / (l_float32)(nbins);
-        endrank = (l_float32)(i + 1.0) / (l_float32)(nbins);
-        endrank = L_MAX(0.0, L_MIN(endrank - 0.001, 1.0));
-        midfound = FALSE;
-        for (j = start; j < npts; j++) {  /* scan up for each bin value */
-            numaGetFValue(nar, j, &val);
-                /* Use (j == npts - 1) tests in case all weight is at top end */
-            if ((!midfound && val >= midrank) ||
-                (mcount < nbins && j == npts - 1)) {
-                midfound = TRUE;
-                numaAddNumber(nam, j);
-                mcount++;
-            }
-            if ((val >= endrank) || (j == npts - 1)) {
-                numaAddNumber(nabb, j);
-                if (val == endrank)
-                    start = j;
-                else
-                    start = j - 1;
-                break;
-            }
+        if (bincount == binsize) {  /* add bin entry */
+            ave = sum / binsize;
+            numaAddNumber(nabinval, ave);
+            sum = 0.0;
+            bincount = 0;
+            binindex++;
+            if (binindex == nbins) break;
+            numaGetIValue(naeach, binindex, &binsize);
         }
     }
-    numaSetValue(nabb, nbins - 1, npts - 1);  /* extend to max */
+    *pnabinval = nabinval;
 
-        /* Error checking: did we get data in all bins? */
-    if (mcount != nbins)
-        L_WARNING("found data for %d bins; should be %d\n",
-                  procName, mcount, nbins);
+    numaDestroy(&naeach);
+    return 0;
+}
 
-        /* Generate LUT that maps from intensity to bin number */
-    start = 0;
-    for (i = 0; i < nbins; i++) {
-        numaGetIValue(nabb, i, &rightedge);
-        for (j = start; j < npts; j++) {
-            if (j <= rightedge)
-                numaAddNumber(narbin, i);
-            if (j > rightedge) {
-                start = j;
-                break;
-            }
-            if (j == npts - 1) {  /* we're done */
-                start = j + 1;
-                break;
+
+/*!
+ * \brief   numaDiscretizeHistoInBins()
+ *
+ * \param[in]    na          histogram
+ * \param[in]    nbins       number of equal population bins (> 1)
+ * \param[out]   pnabinval   average "gray" values in each bin
+ * \param[out]   pnarank     [optional] rank value of input histogram;
+ *                           this is a cumulative norm histogram.
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) With %nbins == 100, nabinval is the average gray value in
+ *          each of the 100 equally populated bins.  It is the function
+ *                gray[100 * rank].
+ *          Thus it is the inverse of
+ *                rank[gray]
+ *          which is optionally returned in narank.
+ *      (2) The "gray value" is the index into the input histogram.
+ *      (3) The two output arrays give the following mappings, where the
+ *          input is an un-normalized histogram of array values:
+ *             bin number  -->  average array value in bin (nabinval)
+ *             array values     -->  cumulative normalized histogram (narank)
+ * </pre>
+ */
+l_ok
+numaDiscretizeHistoInBins(NUMA    *na,
+                          l_int32  nbins,
+                          NUMA   **pnabinval,
+                          NUMA   **pnarank)
+{
+NUMA      *nabinval;  /* average gray value in the bins */
+NUMA      *naeach, *nan;
+l_int32    i, j, nxvals, occup, count, bincount, binindex, binsize;
+l_float32  sum, ave, ntot;
+
+    if (pnarank) *pnarank = NULL;
+    if (!pnabinval)
+        return ERROR_INT("&nabinval not defined", __func__, 1);
+    *pnabinval = NULL;
+    if (!na)
+        return ERROR_INT("na not defined", __func__, 1);
+    if (nbins < 2)
+        return ERROR_INT("nbins must be > 1", __func__, 1);
+
+    nxvals = numaGetCount(na);
+    numaGetSum(na, &ntot);
+    occup = ntot / nxvals;
+    if (occup < 1) L_INFO("average occupancy %d < 1\n", __func__, occup);
+
+        /* Get the number of items in each bin */
+    if ((naeach = numaGetUniformBinSizes(ntot, nbins)) == NULL)
+        return ERROR_INT("naeach not made", __func__, 1);
+
+        /* Get the average value in each bin */
+    sum = 0.0;
+    bincount = 0;
+    binindex = 0;
+    numaGetIValue(naeach, 0, &binsize);
+    nabinval = numaCreate(nbins);
+    for (i = 0; i < nxvals; i++) {
+        numaGetIValue(na, i, &count);
+        for (j = 0; j < count; j++) {
+            bincount++;
+            sum += i;
+            if (bincount == binsize) {  /* add bin entry */
+                ave = sum / binsize;
+                numaAddNumber(nabinval, ave);
+                sum = 0.0;
+                bincount = 0;
+                binindex++;
+                if (binindex == nbins) break;
+                numaGetIValue(naeach, binindex, &binsize);
             }
         }
+        if (binindex == nbins) break;
     }
+    *pnabinval = nabinval;
+    if (binindex != nbins)
+        L_ERROR("binindex = %d != nbins = %d\n", __func__, binindex, nbins);
 
-    if (pnarbin)
-        *pnarbin = narbin;
-    else
-        numaDestroy(&narbin);
-    if (pnam)
-        *pnam = nam;
-    else
-        numaDestroy(&nam);
-    if (pnar)
-        *pnar = nar;
-    else
-        numaDestroy(&nar);
-    if (pnabb)
-        *pnabb = nabb;
-    else
-        numaDestroy(&nabb);
+        /* Get cumulative normalized histogram (rank[gray value]).
+         * This is the partial sum operating on the normalized histogram. */
+    if (pnarank) {
+        nan = numaNormalizeHistogram(na, 1.0);
+        *pnarank = numaGetPartialSums(nan);
+        numaDestroy(&nan);
+    }
+    numaDestroy(&naeach);
     return 0;
 }
 
@@ -1838,59 +1805,116 @@ l_float32  sum, midrank, endrank, val;
  *
  * \param[in]    na       an array of values
  * \param[in]    nbins    number of bins at which the rank is divided
- * \param[out]   pnarbin  [optional] rank bin value vs array value
- * \param[out]   pnam     [optional] median intensity in a bin vs rank bin
- *                        value, with %nbins of discretized rank values
+ * \param[out]   pnam     mean intensity in a bin vs rank bin value,
+ *                        with %nbins of discretized rank values
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
  *      (1) Simple interface for getting a binned rank representation
- *          of an input array of values.  This returns two mappings:
- *             array value     -->  rank bin number  (narbin)
- *             rank bin number -->  median array value in each rank bin (nam)
+ *          of an input array of values.  This returns:
+ *             rank bin number -->  average array value in each rank bin (nam)
+ *      (2) Uses bins either a sorted array or a histogram, depending on
+ *          the values in the array and the size of the array.
  * </pre>
  */
 l_ok
 numaGetRankBinValues(NUMA    *na,
                      l_int32  nbins,
-                     NUMA   **pnarbin,
                      NUMA   **pnam)
 {
-NUMA      *nah, *nan;  /* histo and normalized histo */
-l_int32    maxbins, discardval;
+NUMA      *na1;
+l_int32    maxbins, type;
 l_float32  maxval, delx;
 
-    PROCNAME("numaGetRankBinValues");
-
-    if (pnarbin) *pnarbin = NULL;
-    if (pnam) *pnam = NULL;
-    if (!pnarbin && !pnam)
-        return ERROR_INT("no output requested", procName, 1);
+    if (!pnam)
+        return ERROR_INT("&pnam not defined", __func__, 1);
+    *pnam = NULL;
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
     if (numaGetCount(na) == 0)
-        return ERROR_INT("na is empty", procName, 1);
+        return ERROR_INT("na is empty", __func__, 1);
     if (nbins < 2)
-        return ERROR_INT("nbins must be > 1", procName, 1);
+        return ERROR_INT("nbins must be > 1", __func__, 1);
 
-        /* Get normalized histogram  */
+        /* Choose between sorted array and a histogram.
+         * If the input array is has a small number of numbers with
+         * a large maximum, we will sort it.  At the other extreme, if
+         * the array has many numbers with a small maximum, such as the
+         * values of pixels in an 8 bpp grayscale image, generate a histogram.
+         * If type comes back as L_BIN_SORT, use a histogram. */
+    type = numaChooseSortType(na);
+    if (type == L_SHELL_SORT) {  /* sort the array */
+        L_INFO("sort the array: input size = %d\n", __func__, numaGetCount(na));
+        na1 = numaSort(NULL, na, L_SORT_INCREASING);
+        numaDiscretizeSortedInBins(na1, nbins, pnam);
+        numaDestroy(&na1);
+        return 0;
+    }
+
+        /* Make the histogram.  Assuming there are no negative values
+         * in the array, if the max value in the array does not exceed
+         * about 100000, the bin size for generating the histogram will
+         * be 1; maxbins refers to the number of entries in the histogram. */
+    L_INFO("use a histogram: input size = %d\n", __func__, numaGetCount(na));
     numaGetMax(na, &maxval, NULL);
     maxbins = L_MIN(100002, (l_int32)maxval + 2);
-    nah = numaMakeHistogram(na, maxbins, &discardval, NULL);
-    nan = numaNormalizeHistogram(nah, 1.0);
+    na1 = numaMakeHistogram(na, maxbins, NULL, NULL);
 
         /* Warn if there is a scale change.  This shouldn't happen
          * unless the max value is above 100000.  */
-    numaGetParameters(nan, NULL, &delx);
+    numaGetParameters(na1, NULL, &delx);
     if (delx > 1.0)
-        L_WARNING("scale change: delx = %6.2f\n", procName, delx);
+        L_WARNING("scale change: delx = %6.2f\n", __func__, delx);
 
         /* Rank bin the results */
-    numaDiscretizeRankAndIntensity(nan, nbins, pnarbin, pnam, NULL, NULL);
-    numaDestroy(&nah);
-    numaDestroy(&nan);
+    numaDiscretizeHistoInBins(na1, nbins, pnam, NULL);
+    numaDestroy(&na1);
     return 0;
+}
+
+
+/*!
+ * \brief   numaGetUniformBinSizes()
+ *
+ * \param[in]    ntotal   number of values to be split up
+ * \param[in]    nbins    number of bins
+ * \return  naeach   number of values to go in each bin, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) The numbers in the bins can differ by 1.  The sum of
+ *          bin numbers in %naeach is %ntotal.
+ * </pre>
+ */
+NUMA *
+numaGetUniformBinSizes(l_int32  ntotal,
+                       l_int32  nbins)
+{
+l_int32  i, start, end;
+NUMA    *naeach;
+
+    if (ntotal <= 0)
+        return (NUMA *)ERROR_PTR("ntotal <= 0", __func__, NULL);
+    if (nbins <= 0)
+        return (NUMA *)ERROR_PTR("nbins <= 0", __func__, NULL);
+
+    if ((naeach = numaCreate(nbins)) == NULL)
+        return (NUMA *)ERROR_PTR("naeach not made", __func__, NULL);
+
+    if (ntotal < nbins) {  /* put 1 in each of %ntotal bins */
+        for (i = 0; i < ntotal; i++)
+            numaAddNumber(naeach, 1);
+        return naeach;
+    }
+
+    start = 0;
+    for (i = 0; i < nbins; i++) {
+        end = ntotal * (i + 1) / nbins;
+        numaAddNumber(naeach, end - start);
+        start = end;
+    }
+    return naeach;
 }
 
 
@@ -1963,8 +1987,6 @@ l_float32  val, minval, sum, fract1;
 l_float32  norm, score, minscore, maxscore;
 NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
 
-    PROCNAME("numaSplitDistribution");
-
     if (psplitindex) *psplitindex = 0;
     if (pave1) *pave1 = 0.0;
     if (pave2) *pave2 = 0.0;
@@ -1972,15 +1994,15 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
     if (pnum2) *pnum2 = 0.0;
     if (pnascore) *pnascore = NULL;
     if (!na)
-        return ERROR_INT("na not defined", procName, 1);
+        return ERROR_INT("na not defined", __func__, 1);
 
     n = numaGetCount(na);
     if (n <= 1)
-        return ERROR_INT("n = 1 in histogram", procName, 1);
+        return ERROR_INT("n = 1 in histogram", __func__, 1);
     numaGetSum(na, &sum);
     if (sum <= 0.0)
-        return ERROR_INT("sum <= 0.0", procName, 1);
-    norm = 4.0 / ((l_float32)(n - 1) * (n - 1));
+        return ERROR_INT("sum <= 0.0", __func__, 1);
+    norm = 4.0f / ((l_float32)(n - 1) * (n - 1));
     ave1prev = 0.0;
     numaGetHistogramStats(na, 0.0, 1.0, &ave2prev, NULL, NULL, NULL);
     num1prev = 0.0;
@@ -1991,7 +2013,7 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
          * and [i+1 ... n-1] in upper part.  First, compute an otsu
          * score for each possible splitting.  */
     if ((nascore = numaCreate(n)) == NULL)
-        return ERROR_INT("nascore not made", procName, 1);
+        return ERROR_INT("nascore not made", __func__, 1);
     naave1 = (pave1) ? numaCreate(n) : NULL;
     naave2 = (pave2) ? numaCreate(n) : NULL;
     nanum1 = (pnum1) ? numaCreate(n) : NULL;
@@ -2029,7 +2051,7 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
         /* Next, for all contiguous scores within a specified fraction
          * of the max, choose the split point as the value with the
          * minimum in the histogram. */
-    minscore = (1. - scorefract) * maxscore;
+    minscore = (1.f - scorefract) * maxscore;
     for (i = maxindex - 1; i >= 0; i--) {
         numaGetFValue(nascore, i, &val);
         if (val < minscore)
@@ -2064,8 +2086,8 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
     if (pnum2) numaGetFValue(nanum2, bestsplit, pnum2);
 
     if (pnascore) {  /* debug mode */
-        fprintf(stderr, "minrange = %d, maxrange = %d\n", minrange, maxrange);
-        fprintf(stderr, "minval = %10.0f\n", minval);
+        lept_stderr("minrange = %d, maxrange = %d\n", minrange, maxrange);
+        lept_stderr("minval = %10.0f\n", minval);
         gplotSimple1(nascore, GPLOT_PNG, "/tmp/lept/nascore",
                      "Score for split distribution");
         *pnascore = nascore;
@@ -2117,21 +2139,19 @@ l_int32     i, n, nt;
 l_float32   dist;
 NUMA       *na1, *na2, *nad;
 
-    PROCNAME("grayHistogramsToEMD");
-
     if (!pnad)
-        return ERROR_INT("&nad not defined", procName, 1);
+        return ERROR_INT("&nad not defined", __func__, 1);
     *pnad = NULL;
     if (!naa1 || !naa2)
-        return ERROR_INT("na1 and na2 not both defined", procName, 1);
+        return ERROR_INT("na1 and na2 not both defined", __func__, 1);
     n = numaaGetCount(naa1);
     if (n != numaaGetCount(naa2))
-        return ERROR_INT("naa1 and naa2 numa counts differ", procName, 1);
+        return ERROR_INT("naa1 and naa2 numa counts differ", __func__, 1);
     nt = numaaGetNumberCount(naa1);
     if (nt != numaaGetNumberCount(naa2))
-        return ERROR_INT("naa1 and naa2 number counts differ", procName, 1);
+        return ERROR_INT("naa1 and naa2 number counts differ", __func__, 1);
     if (256 * n != nt)  /* good enough check */
-        return ERROR_INT("na sizes must be 256", procName, 1);
+        return ERROR_INT("na sizes must be 256", __func__, 1);
 
     nad = numaCreate(n);
     *pnad = nad;
@@ -2139,7 +2159,7 @@ NUMA       *na1, *na2, *nad;
         na1 = numaaGetNuma(naa1, i, L_CLONE);
         na2 = numaaGetNuma(naa2, i, L_CLONE);
         numaEarthMoverDistance(na1, na2, &dist);
-        numaAddNumber(nad, dist / 255.);  /* normalize to [0.0 - 1.0] */
+        numaAddNumber(nad, dist / 255.f);  /* normalize to [0.0 - 1.0] */
         numaDestroy(&na1);
         numaDestroy(&na2);
     }
@@ -2184,16 +2204,14 @@ l_float32   sum1, sum2, diff, total;
 l_float32  *array1, *array3;
 NUMA       *na3;
 
-    PROCNAME("numaEarthMoverDistance");
-
     if (!pdist)
-        return ERROR_INT("&dist not defined", procName, 1);
+        return ERROR_INT("&dist not defined", __func__, 1);
     *pdist = 0.0;
     if (!na1 || !na2)
-        return ERROR_INT("na1 and na2 not both defined", procName, 1);
+        return ERROR_INT("na1 and na2 not both defined", __func__, 1);
     n = numaGetCount(na1);
     if (n != numaGetCount(na2))
-        return ERROR_INT("na1 and na2 have different size", procName, 1);
+        return ERROR_INT("na1 and na2 have different size", __func__, 1);
 
         /* Generate na3; normalize to na1 if necessary */
     numaGetSum(na1, &sum1);
@@ -2278,21 +2296,19 @@ l_float32  **arrays;
 l_float32    mean, var, rvar;
 NUMA        *na1, *na2, *na3, *na4;
 
-    PROCNAME("grayInterHistogramStats");
-
     if (pnam) *pnam = NULL;
     if (pnams) *pnams = NULL;
     if (pnav) *pnav = NULL;
     if (pnarv) *pnarv = NULL;
     if (!pnam && !pnams && !pnav && !pnarv)
-        return ERROR_INT("nothing requested", procName, 1);
+        return ERROR_INT("nothing requested", __func__, 1);
     if (!naa)
-        return ERROR_INT("naa not defined", procName, 1);
+        return ERROR_INT("naa not defined", __func__, 1);
     n = numaaGetCount(naa);
     for (i = 0; i < n; i++) {
         nn = numaaGetNumaCount(naa, i);
         if (nn != 256) {
-            L_ERROR("%d numbers in numa[%d]\n", procName, nn, i);
+            L_ERROR("%d numbers in numa[%d]\n", __func__, nn, i);
             return 1;
         }
     }
@@ -2366,19 +2382,17 @@ l_float32  fmaxval, sum, total, newtotal, val, lastval;
 l_float32  peakfract;
 NUMA      *na, *napeak;
 
-    PROCNAME("numaFindPeaks");
-
     if (!nas)
-        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("nas not defined", __func__, NULL);
     n = numaGetCount(nas);
     numaGetSum(nas, &total);
 
         /* We munge this copy */
     if ((na = numaCopy(nas)) == NULL)
-        return (NUMA *)ERROR_PTR("na not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("na not made", __func__, NULL);
     if ((napeak = numaCreate(4 * nmax)) == NULL) {
         numaDestroy(&na);
-        return (NUMA *)ERROR_PTR("napeak not made", procName, NULL);
+        return (NUMA *)ERROR_PTR("napeak not made", __func__, NULL);
     }
 
     for (k = 0; k < nmax; k++) {
@@ -2461,13 +2475,16 @@ NUMA      *na, *napeak;
  *          those 'bumps' to be actual peaks?  The answer: if the
  *          bump is separated from the peak by a saddle that is at
  *          least 500 feet below the bump.
- *      (3) Operationally, suppose we are looking for a peak.
- *          We are keeping the largest value we've seen since the
- *          last valley, and are looking for a value that is delta
- *          BELOW our current peak.  When we find such a value,
- *          we label the peak, use the current value to label the
- *          valley, and then do the same operation in reverse (looking
- *          for a valley).
+ *      (3) Operationally, suppose we are trying to identify a peak.
+ *          We have a previous valley, and also the largest value that
+ *          we have seen since that valley.  We can identify this as
+ *          a peak if we find a value that is delta BELOW it.  When
+ *          we find such a value, label the peak, use the current
+ *          value to label the starting point for the search for
+ *          a valley, and do the same operation in reverse.  Namely,
+ *          keep track of the lowest point seen, and look for a value
+ *          that is delta ABOVE it.  Once found, the lowest point is
+ *          labeled the valley, and continue, looking for the next peak.
  * </pre>
  */
 NUMA *
@@ -2479,13 +2496,11 @@ l_int32    i, n, found, loc, direction;
 l_float32  startval, val, maxval, minval;
 NUMA      *nav, *nad;
 
-    PROCNAME("numaFindExtrema");
-
     if (pnav) *pnav = NULL;
     if (!nas)
-        return (NUMA *)ERROR_PTR("nas not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("nas not defined", __func__, NULL);
     if (delta < 0.0)
-        return (NUMA *)ERROR_PTR("delta < 0", procName, NULL);
+        return (NUMA *)ERROR_PTR("delta < 0", __func__, NULL);
 
     n = numaGetCount(nas);
     nad = numaCreate(0);
@@ -2553,6 +2568,123 @@ NUMA      *nav, *nad;
 
 
 /*!
+ * \brief   numaFindLocForThreshold()
+ *
+ * \param[in]    nas       input histogram
+ * \param[in]    skip      look-ahead distance to avoid false mininma;
+ *                         use 0 for default
+ * \param[out]   pthresh   threshold value
+ * \param[out]   pfract    [optional] fraction below or at threshold
+ * \return  0 if OK, 1 on error or if no threshold can be found
+ *
+ * <pre>
+ * Notes:
+ *      (1) This finds a good place to set a threshold for a histogram
+ *          of values that has two peaks.  The peaks can differ greatly
+ *          in area underneath them.  The number of buckets in the
+ *          histogram is expected to be 256 (e.g, from an 8 bpp gray image).
+ *      (2) The input histogram should have been smoothed with a window
+ *          to avoid false peak and valley detection due to noise.  For
+ *          example, see pixThresholdByHisto().
+ *      (3) A skip value can be input to determine the look-ahead distance
+ *          to ignore a false peak on the rise or descent from the first peak.
+ *          Input 0 to use the default value (it assumes a histo size of 256).
+ *      (4) Optionally, the fractional area under the first peak can
+ *          be returned.
+ * </pre>
+ */
+l_ok
+numaFindLocForThreshold(NUMA       *na,
+                        l_int32     skip,
+                        l_int32    *pthresh,
+                        l_float32  *pfract)
+{
+l_int32     i, n, start, index, minloc, found;
+l_float32   val, pval, jval, minval, maxval, sum, partsum;
+l_float32  *fa;
+
+    if (pfract) *pfract = 0.0;
+    if (!pthresh)
+        return ERROR_INT("&thresh not defined", __func__, 1);
+    *pthresh = 0;
+    if (!na)
+        return ERROR_INT("na not defined", __func__, 1);
+    if (skip <= 0) skip = 20;
+
+        /* Test for constant value */
+    numaGetMin(na, &minval, NULL);
+    numaGetMax(na, &maxval, NULL);
+    if (minval == maxval)
+       return ERROR_INT("all array values are the same", __func__, 1);
+
+        /* Look for the top of the first peak */
+    n = numaGetCount(na);
+    if (n < 256)
+        L_WARNING("array size %d < 256\n", __func__, n);
+    fa = numaGetFArray(na, L_NOCOPY);
+    pval = fa[0];
+    for (i = 1; i < n; i++) {
+        val = fa[i];
+        index = L_MIN(i + skip, n - 1);
+        jval = fa[index];
+        if (val < pval && jval < pval)  /* near the top if not there */
+            break;
+        pval = val;
+    }
+
+    if (i > n - 5)  /* just an increasing function */
+       return ERROR_INT("top of first peak not found", __func__, 1);
+
+        /* Look for the low point in the valley */
+    found = FALSE;
+    start = i;
+    pval = fa[start];
+    for (i = start + 1; i < n; i++) {
+        val = fa[i];
+        if (val <= pval) {  /* appears to be going down */
+            pval = val;
+        } else {  /* appears to be going up */
+            index = L_MIN(i + skip, n - 1);
+            jval = fa[index];  /* junp ahead by 'skip' */
+            if (val > jval) {  /* still going down; jump ahead */
+                pval = jval;
+                i = index;
+            } else {  /* really going up; passed the min */
+                found = TRUE;
+                break;
+            }
+        }
+    }
+    if (!found)
+       return ERROR_INT("no minimum found", __func__, 1);
+
+        /* Find the location of the minimum in the interval */
+    minloc = index;  /* likely passed the min; look backward */
+    minval = fa[index];
+    for (i = index - 1; i > index - skip; i--) {
+        if (fa[i] < minval) {
+            minval = fa[i];
+            minloc = i;
+        }
+    }
+
+        /* Is the minimum very near the end of the array? */
+    if (minloc > n - 10)
+       return ERROR_INT("minimum at end of array; invalid", __func__, 1);
+    *pthresh = minloc;
+
+        /* Find the fraction under the first peak */
+    if (pfract) {
+        numaGetSumOnInterval(na, 0, minloc, &partsum);
+        numaGetSum(na, &sum);
+        if (sum > 0.0)
+           *pfract = partsum / sum;
+    }
+    return 0;
+}
+
+
+/*!
  * \brief   numaCountReversals()
  *
  * \param[in]    nas          input values
@@ -2584,20 +2716,18 @@ l_int32   *ia;
 l_float32  fval, delx, len;
 NUMA      *nat;
 
-    PROCNAME("numaCountReversals");
-
     if (pnr) *pnr = 0;
     if (prd) *prd = 0.0;
     if (!pnr && !prd)
-        return ERROR_INT("neither &nr nor &rd are defined", procName, 1);
+        return ERROR_INT("neither &nr nor &rd are defined", __func__, 1);
     if (!nas)
-        return ERROR_INT("nas not defined", procName, 1);
+        return ERROR_INT("nas not defined", __func__, 1);
     if ((n = numaGetCount(nas)) == 0) {
-        L_INFO("nas is empty\n", procName);
+        L_INFO("nas is empty\n", __func__);
         return 0;
     }
     if (minreversal < 0.0)
-        return ERROR_INT("minreversal < 0", procName, 1);
+        return ERROR_INT("minreversal < 0", __func__, 1);
 
         /* Decide if the only values are 0 and 1 */
     binvals = TRUE;
@@ -2612,7 +2742,7 @@ NUMA      *nat;
     nr = 0;
     if (binvals) {
         if (minreversal > 1.0) {
-            L_WARNING("binary values but minreversal > 1\n", procName);
+            L_WARNING("binary values but minreversal > 1\n", __func__);
         } else {
             ia = numaGetIArray(nas);
             ival = ia[0];
@@ -2651,7 +2781,7 @@ NUMA      *nat;
  * \param[in]    estthresh    estimated pixel threshold for crossing:
  *                            e.g., for images, white <--> black; typ. ~120
  * \param[out]   pbestthresh  robust estimate of threshold to use
- * \return  0 if OK, 1 on error
+ * \return  0 if OK, 1 on error or warning
  *
  * <pre>
  * Notes:
@@ -2666,6 +2796,7 @@ NUMA      *nat;
  *         in the center of this stable plateau of crossings.
  *         This can then be used with numaCrossingsByThreshold()
  *         to get a good estimate of crossing locations.
+ *     (3) If the count of nay is less than 2, a warning is issued.
  * </pre>
  */
 l_ok
@@ -2679,18 +2810,20 @@ l_int32    val, maxval, nmax, count;
 l_float32  thresh, fmaxval, fmodeval;
 NUMA      *nat, *nac;
 
-    PROCNAME("numaSelectCrossingThreshold");
-
     if (!pbestthresh)
-        return ERROR_INT("&bestthresh not defined", procName, 1);
+        return ERROR_INT("&bestthresh not defined", __func__, 1);
     *pbestthresh = 0.0;
     if (!nay)
-        return ERROR_INT("nay not defined", procName, 1);
+        return ERROR_INT("nay not defined", __func__, 1);
+    if (numaGetCount(nay) < 2) {
+        L_WARNING("nay count < 2; no threshold crossing\n", __func__);
+        return 1;
+    }
 
         /* Compute the number of crossings for different thresholds */
     nat = numaCreate(41);
     for (i = 0; i < 41; i++) {
-        thresh = estthresh - 80.0 + 4.0 * i;
+        thresh = estthresh - 80.0f + 4.0f * i;
         nac = numaCrossingsByThreshold(nax, nay, thresh);
         numaAddNumber(nat, numaGetCount(nac));
         numaDestroy(&nac);
@@ -2744,16 +2877,16 @@ NUMA      *nat, *nac;
         }
     }
 
-    *pbestthresh = estthresh - 80.0 + 2.0 * (l_float32)(maxstart + maxend);
+    *pbestthresh = estthresh - 80.0f + 2.0f * (l_float32)(maxstart + maxend);
 
 #if  DEBUG_CROSSINGS
-    fprintf(stderr, "\nCrossings attain a maximum at %d thresholds, between:\n"
-                    "  thresh[%d] = %5.1f and thresh[%d] = %5.1f\n",
-                    nmax, maxstart, estthresh - 80.0 + 4.0 * maxstart,
-                    maxend, estthresh - 80.0 + 4.0 * maxend);
-    fprintf(stderr, "The best choice: %5.1f\n", *pbestthresh);
-    fprintf(stderr, "Number of crossings at the 41 thresholds:");
-    numaWriteStream(stderr, nat);
+    lept_stderr("\nCrossings attain a maximum at %d thresholds, between:\n"
+                "  thresh[%d] = %5.1f and thresh[%d] = %5.1f\n",
+                nmax, maxstart, estthresh - 80.0 + 4.0 * maxstart,
+                maxend, estthresh - 80.0 + 4.0 * maxend);
+    lept_stderr("The best choice: %5.1f\n", *pbestthresh);
+    lept_stderr("Number of crossings at the 41 thresholds:");
+    numaWriteStderr(nat);
 #endif  /* DEBUG_CROSSINGS */
 
     numaDestroy(&nat);
@@ -2785,16 +2918,15 @@ l_float32  startx, delx;
 l_float32  xval1, xval2, yval1, yval2, delta1, delta2, crossval, fract;
 NUMA      *nad;
 
-    PROCNAME("numaCrossingsByThreshold");
-
     if (!nay)
-        return (NUMA *)ERROR_PTR("nay not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("nay not defined", __func__, NULL);
     n = numaGetCount(nay);
 
     if (nax && (numaGetCount(nax) != n))
-        return (NUMA *)ERROR_PTR("nax and nay sizes differ", procName, NULL);
+        return (NUMA *)ERROR_PTR("nax and nay sizes differ", __func__, NULL);
 
     nad = numaCreate(0);
+    if (n < 2) return nad;
     numaGetFValue(nay, 0, &yval1);
     numaGetParameters(nay, &startx, &delx);
     if (nax)
@@ -2851,14 +2983,12 @@ l_float32  xval1, xval2, yval1, yval2, delta1, delta2;
 l_float32  prevval, curval, thresh, crossval, fract;
 NUMA      *nap, *nad;
 
-    PROCNAME("numaCrossingsByPeaks");
-
     if (!nay)
-        return (NUMA *)ERROR_PTR("nay not defined", procName, NULL);
+        return (NUMA *)ERROR_PTR("nay not defined", __func__, NULL);
 
     n = numaGetCount(nay);
     if (nax && (numaGetCount(nax) != n))
-        return (NUMA *)ERROR_PTR("nax and nay sizes differ", procName, NULL);
+        return (NUMA *)ERROR_PTR("nax and nay sizes differ", __func__, NULL);
 
         /* Find the extrema.  Also add last point in nay to get
          * the last transition (from the last peak to the end).
@@ -2866,7 +2996,7 @@ NUMA      *nap, *nad;
     nap = numaFindExtrema(nay, delta, NULL);
     numaAddNumber(nap, n - 1);
     np = numaGetCount(nap);
-    L_INFO("Number of crossings: %d\n", procName, np);
+    L_INFO("Number of crossings: %d\n", __func__, np);
 
         /* Do all computation in index units of nax or the delx of nay */
     nad = numaCreate(np);  /* output crossing locations, in nax units */
@@ -2876,7 +3006,7 @@ NUMA      *nap, *nad;
     for (i = 0; i < np; i++) {
         numaGetIValue(nap, i, &curindex);
         numaGetFValue(nay, curindex, &curval);
-        thresh = (prevval + curval) / 2.0;
+        thresh = (prevval + curval) / 2.0f;
         if (nax)
             numaGetFValue(nax, previndex, &xval1);
         else
@@ -2966,18 +3096,16 @@ l_int32    i, j;
 l_float32  delwidth, delshift, width, shift, score;
 l_float32  bestwidth, bestshift, bestscore;
 
-    PROCNAME("numaEvalBestHaarParameters");
-
     if (pbestscore) *pbestscore = 0.0;
     if (pbestwidth) *pbestwidth = 0.0;
     if (pbestshift) *pbestshift = 0.0;
     if (!pbestwidth || !pbestshift)
-        return ERROR_INT("&bestwidth and &bestshift not defined", procName, 1);
+        return ERROR_INT("&bestwidth and &bestshift not defined", __func__, 1);
     if (!nas)
-        return ERROR_INT("nas not defined", procName, 1);
+        return ERROR_INT("nas not defined", __func__, 1);
 
     bestscore = bestwidth = bestshift = 0.0;
-    delwidth = (maxwidth - minwidth) / (nwidth - 1.0);
+    delwidth = (maxwidth - minwidth) / (nwidth - 1.0f);
     for (i = 0; i < nwidth; i++) {
         width = minwidth + delwidth * i;
         delshift = width / (l_float32)(nshift);
@@ -2989,8 +3117,8 @@ l_float32  bestwidth, bestshift, bestscore;
                 bestwidth = width;
                 bestshift = shift;
 #if  DEBUG_FREQUENCY
-                fprintf(stderr, "width = %7.3f, shift = %7.3f, score = %7.3f\n",
-                        width, shift, score);
+                lept_stderr("width = %7.3f, shift = %7.3f, score = %7.3f\n",
+                            width, shift, score);
 #endif  /* DEBUG_FREQUENCY */
             }
         }
@@ -3046,26 +3174,24 @@ numaEvalHaarSum(NUMA       *nas,
 l_int32    i, n, nsamp, index;
 l_float32  score, weight, val;
 
-    PROCNAME("numaEvalHaarSum");
-
     if (!pscore)
-        return ERROR_INT("&score not defined", procName, 1);
+        return ERROR_INT("&score not defined", __func__, 1);
     *pscore = 0.0;
     if (!nas)
-        return ERROR_INT("nas not defined", procName, 1);
+        return ERROR_INT("nas not defined", __func__, 1);
     if ((n = numaGetCount(nas)) < 2 * width)
-        return ERROR_INT("nas size too small", procName, 1);
+        return ERROR_INT("nas size too small", __func__, 1);
 
     score = 0.0;
     nsamp = (l_int32)((n - shift) / width);
     for (i = 0; i < nsamp; i++) {
         index = (l_int32)(shift + i * width);
-        weight = (i % 2) ? 1.0 : -1.0 * relweight;
+        weight = (i % 2) ? 1.0f : -1.0f * relweight;
         numaGetFValue(nas, index, &val);
         score += weight * val;
     }
 
-    *pscore = 2.0 * width * score / (l_float32)n;
+    *pscore = 2.0f * width * score / (l_float32)n;
     return 0;
 }
 
@@ -3103,19 +3229,17 @@ l_int32    i, nsets, val;
 l_float32  delta;
 NUMA      *na;
 
-    PROCNAME("genConstrainedNumaInRange");
-
     first = L_MAX(0, first);
     if (last < first)
-        return (NUMA *)ERROR_PTR("last < first!", procName, NULL);
+        return (NUMA *)ERROR_PTR("last < first!", __func__, NULL);
     if (nmax < 1)
-        return (NUMA *)ERROR_PTR("nmax < 1!", procName, NULL);
+        return (NUMA *)ERROR_PTR("nmax < 1!", __func__, NULL);
 
     nsets = L_MIN(nmax, last - first + 1);
     if (use_pairs == 1)
         nsets = nsets / 2;
     if (nsets == 0)
-        return (NUMA *)ERROR_PTR("nsets == 0", procName, NULL);
+        return (NUMA *)ERROR_PTR("nsets == 0", __func__, NULL);
 
         /* Select delta so that selection covers the full range if possible */
     if (nsets == 1) {

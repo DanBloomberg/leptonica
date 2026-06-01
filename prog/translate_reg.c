@@ -30,6 +30,10 @@
  *    Regression test for in-place translation
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   BINARY_IMAGE        "test1.png"
@@ -77,7 +81,7 @@ L_REGPARAMS  *rp;
     TranslateAndSave1(pixa, 32, pix1, 35, 20);
     TranslateAndSave1(pixa, 32, pix2, 20, 35);
     TranslateAndSave1(pixa, 32, pix3, 20, 35);
-    pixd = pixaDisplayOnColor(pixa, 0, 0, 0x44aaaa00);
+    pixd = pixaDisplayTiledInColumns(pixa, 4, 1.0, 30, 3);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 0 */
     pixDisplayWithTitle(pixd, 0, 0, "trans0", rp->display);
     pixDestroy(&pixd);
@@ -86,7 +90,7 @@ L_REGPARAMS  *rp;
     pixa = pixaCreate(0);
     TranslateAndSave1(pixa, 8, pix1, 35, 20);
     TranslateAndSave1(pixa, 8, pix4, 35, 20);
-    pixd = pixaDisplayOnColor(pixa, 0, 0, 0x44);
+    pixd = pixaDisplayTiledInColumns(pixa, 4, 1.0, 30, 3);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 1 */
     pixDisplayWithTitle(pixd, 250, 0, "trans1", rp->display);
     pixDestroy(&pixd);
@@ -101,7 +105,7 @@ L_REGPARAMS  *rp;
     TranslateAndSave2(pixa, pix5, 25, 25);
     TranslateAndSave2(pixa, pix6, 25, 25);
     TranslateAndSave2(pixa, pix7, 25, 25);
-    pixd = pixaDisplayTiledInRows(pixa, 32, 1200, 1.0, 0, 30, 3);
+    pixd = pixaDisplayTiledInColumns(pixa, 4, 1.0, 30, 3);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);  /* 2 */
     pixDisplayWithTitle(pixd, 500, 0, "trans2", rp->display);
     pixDestroy(&pixd);
@@ -132,14 +136,10 @@ PIX  *pix1, *pix2, *pix3, *pix4;
     pix2 = pixTranslate(NULL, pix, xshift, yshift, L_BRING_IN_BLACK);
     pix3 = pixTranslate(NULL, pix, -xshift, -yshift, L_BRING_IN_WHITE);
     pix4 = pixTranslate(NULL, pix, -xshift, -yshift, L_BRING_IN_BLACK);
-    pixSaveTiled(pix1, pixa, 1.0, 1, 25, depth);
-    pixSaveTiled(pix2, pixa, 1.0, 0, 25, depth);
-    pixSaveTiled(pix3, pixa, 1.0, 0, 25, depth);
-    pixSaveTiled(pix4, pixa, 1.0, 0, 25, depth);
-    pixDestroy(&pix1);
-    pixDestroy(&pix2);
-    pixDestroy(&pix3);
-    pixDestroy(&pix4);
+    pixaAddPix(pixa, pix1, L_INSERT);
+    pixaAddPix(pixa, pix2, L_INSERT);
+    pixaAddPix(pixa, pix3, L_INSERT);
+    pixaAddPix(pixa, pix4, L_INSERT);
     return;
 }
 

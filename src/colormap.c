@@ -58,6 +58,7 @@
  *           l_int32     pixcmapGetIndex()
  *           l_int32     pixcmapHasColor()
  *           l_int32     pixcmapIsOpaque()
+ *           l_int32     pixcmapNonOpaqueColorsInfo()
  *           l_int32     pixcmapIsBlackAndWhite()
  *           l_int32     pixcmapCountGrayColors()
  *           l_int32     pixcmapGetRankIntensity()
@@ -67,6 +68,7 @@
  *           l_int32     pixcmapGetRangeValues()
  *
  *      Colormap conversion
+ *           PIXCMAP    *pixcmapGrayToFalseColor()
  *           PIXCMAP    *pixcmapGrayToColor()
  *           PIXCMAP    *pixcmapColorToGray()
  *           PIXCMAP    *pixcmapConvertTo4()
@@ -98,12 +100,18 @@
  *      (2) nalloc, the allocated size of the palette array, is related
  *          to the depth d of the pixels by:
  *                 nalloc = 2^(d)
- *       
+ *
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
+#include <math.h>
 #include <string.h>
 #include "allheaders.h"
+#include "pix_internal.h"
 
 /*-------------------------------------------------------------*
  *                Colormap creation and addition               *
@@ -120,10 +128,8 @@ pixcmapCreate(l_int32  depth)
 RGBA_QUAD  *cta;
 PIXCMAP    *cmap;
 
-    PROCNAME("pixcmapCreate");
-
     if (depth != 1 && depth != 2 && depth !=4 && depth != 8)
-        return (PIXCMAP *)ERROR_PTR("depth not in {1,2,4,8}", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("depth not in {1,2,4,8}", __func__, NULL);
 
     cmap = (PIXCMAP *)LEPT_CALLOC(1, sizeof(PIXCMAP));
     cmap->depth = depth;
@@ -170,10 +176,8 @@ l_int32   ncolors, i;
 l_int32   red[256], green[256], blue[256];
 PIXCMAP  *cmap;
 
-    PROCNAME("pixcmapCreateRandom");
-
     if (depth != 2 && depth != 4 && depth != 8)
-        return (PIXCMAP *)ERROR_PTR("depth not in {2, 4, 8}", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("depth not in {2, 4, 8}", __func__, NULL);
     if (hasblack != 0) hasblack = 1;
     if (haswhite != 0) haswhite = 1;
 
@@ -214,13 +218,11 @@ pixcmapCreateLinear(l_int32  d,
 l_int32   maxlevels, i, val;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixcmapCreateLinear");
-
     if (d != 1 && d != 2 && d !=4 && d != 8)
-        return (PIXCMAP *)ERROR_PTR("d not in {1, 2, 4, 8}", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("d not in {1, 2, 4, 8}", __func__, NULL);
     maxlevels = 1 << d;
     if (nlevels < 2 || nlevels > maxlevels)
-        return (PIXCMAP *)ERROR_PTR("invalid nlevels", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("invalid nlevels", __func__, NULL);
 
     cmap = pixcmapCreate(d);
     for (i = 0; i < nlevels; i++) {
@@ -243,13 +245,11 @@ pixcmapCopy(const PIXCMAP  *cmaps)
 l_int32   nbytes, valid;
 PIXCMAP  *cmapd;
 
-    PROCNAME("pixcmapCopy");
-
     if (!cmaps)
-        return (PIXCMAP *)ERROR_PTR("cmaps not defined", procName, NULL);
-    pixcmapIsValid(cmaps, &valid);
+        return (PIXCMAP *)ERROR_PTR("cmaps not defined", __func__, NULL);
+    pixcmapIsValid(cmaps, NULL, &valid);
     if (!valid)
-        return (PIXCMAP *)ERROR_PTR("invalid cmap", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("invalid cmap", __func__, NULL);
 
     cmapd = (PIXCMAP *)LEPT_CALLOC(1, sizeof(PIXCMAP));
     nbytes = cmaps->nalloc * sizeof(RGBA_QUAD);
@@ -273,10 +273,8 @@ pixcmapDestroy(PIXCMAP  **pcmap)
 {
 PIXCMAP  *cmap;
 
-    PROCNAME("pixcmapDestroy");
-
     if (pcmap == NULL) {
-        L_WARNING("ptr address is null!\n", procName);
+        L_WARNING("ptr address is null!\n", __func__);
         return;
     }
 
@@ -286,45 +284,103 @@ PIXCMAP  *cmap;
     LEPT_FREE(cmap->array);
     LEPT_FREE(cmap);
     *pcmap = NULL;
-    return;
 }
 
 /*!
  * \brief   pixcmapIsValid()
  *
  * \param[in]    cmap
+ * \param[in]    pix        optional; can be NULL
  * \param[out]   pvalid     return 1 if valid; 0 if not
  * \return  0 if OK, 1 on error or if cmap is not valid
+ *
+ * <pre>
+ * Notes:
+ *      (1) If %pix is input, this will verify that pixel values cannot
+ *          overflow the colormap.  This is a relatively expensive operation
+ *          that may need to check all the pixel values.
+ *      (2) If %pix is input, there must be at least one color in the
+ *          colormap if it is to be valid with any pix, even if the
+ *          pixels are all 0.
+ * </pre>
  */
 l_ok
 pixcmapIsValid(const PIXCMAP  *cmap,
+               PIX            *pix,
                l_int32        *pvalid)
 {
-l_int32  d;
-
-    PROCNAME("pixcmapIsValid");
+l_int32  d, depth, nalloc, maxindex, maxcolors;
 
     if (!pvalid)
-        return ERROR_INT("&valid not defined", procName, 1);
+        return ERROR_INT("&valid not defined", __func__, 1);
     *pvalid = 0;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     if (!cmap->array)
-        return ERROR_INT("cmap array not defined", procName, 1);
+        return ERROR_INT("cmap array not defined", __func__, 1);
     d = cmap->depth;
-    if (d !=1 && d != 2 && d != 4 && d != 8) {
-        L_ERROR("invalid cmap depth: %d\n", procName, d);
+    if (d != 1 && d != 2 && d != 4 && d != 8) {
+        L_ERROR("invalid cmap depth: %d\n", __func__, d);
         return 1;
     }
-    if (cmap->nalloc < 2 || cmap->nalloc > 256) {
-        L_ERROR("invalid cmap nalloc: %d\n", procName, cmap->nalloc);
+    nalloc = cmap->nalloc;
+    if (nalloc != (1 << d)) {
+        L_ERROR("invalid cmap nalloc = %d; d = %d\n", __func__, nalloc, d);
         return 1;
     }
-    if (cmap->n < 0 || cmap->n > 256 || cmap->n > cmap->nalloc) {
-        L_ERROR("invalid cmap n: %d (nalloc = %d)\n", procName,
-                cmap->n, cmap->nalloc);
+    if (cmap->n < 0 || cmap->n > nalloc) {
+        L_ERROR("invalid cmap n: %d; nalloc = %d\n", __func__, cmap->n, nalloc);
         return 1;
     }
+
+        /* If a pix is given, it must have a depth no larger than 8 */
+    if (pix) {
+        depth = pixGetDepth(pix);
+        if (depth > 8) {
+            L_ERROR("pix depth %d > 8\n", __func__, depth);
+            return 1;
+        }
+        maxcolors = 1 << depth;
+    }
+
+        /* To prevent indexing overflow into the cmap, the pix depth
+         * must not exceed the cmap depth.  Do not require depth equality,
+         * because some functions such as median cut quantizers allow
+         * the cmap depth to be bigger than the pix depth. */
+    if (pix && (depth > d)) {
+        L_ERROR("(pix depth = %d) > (cmap depth = %d)\n", __func__, depth, d);
+        return 1;
+    }
+    if (pix && cmap->n < 1) {
+        L_ERROR("cmap array is empty; invalid with any pix\n", __func__);
+        return 1;
+    }
+
+        /* Do not let the colormap have more colors than the pixels
+         * can address.  The png encoder considers this to be an
+         * "invalid palette length".  For example, for 1 bpp, the
+         * colormap may have a depth > 1, but it must not have more
+         * than 2 colors. */
+    if (pix && (cmap->n > maxcolors)) {
+        L_ERROR("cmap entries = %d > max colors for pix = %d\n", __func__,
+                cmap->n, maxcolors);
+        return 1;
+    }
+
+        /* Where the colormap or the pix may have been corrupted, and
+         * in particular when reading or writing image files, it should
+         * be verified that the largest colormap index value in the image
+         * is less than the number of entries in the colormap array.  */
+    if (pix) {
+        pixGetMaxColorIndex(pix, &maxindex);
+        if (maxindex >= cmap->n) {
+            L_ERROR("(max index in image = %d) >= "
+                    "(number entries in colormap = %d)\n", __func__,
+                    maxindex, cmap->n);
+            return 1;
+        }
+    }
+
     *pvalid = 1;
     return 0;
 }
@@ -352,12 +408,10 @@ pixcmapAddColor(PIXCMAP  *cmap,
 {
 RGBA_QUAD  *cta;
 
-    PROCNAME("pixcmapAddColor");
-
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     if (cmap->n >= cmap->nalloc)
-        return ERROR_INT("no free color entries", procName, 1);
+        return ERROR_INT("no free color entries", __func__, 1);
 
     cta = (RGBA_QUAD *)cmap->array;
     cta[cmap->n].red = rval;
@@ -391,12 +445,10 @@ pixcmapAddRGBA(PIXCMAP  *cmap,
 {
 RGBA_QUAD  *cta;
 
-    PROCNAME("pixcmapAddRGBA");
-
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     if (cmap->n >= cmap->nalloc)
-        return ERROR_INT("no free color entries", procName, 1);
+        return ERROR_INT("no free color entries", __func__, 1);
 
     cta = (RGBA_QUAD *)cmap->array;
     cta[cmap->n].red = rval;
@@ -433,13 +485,11 @@ pixcmapAddNewColor(PIXCMAP  *cmap,
                    l_int32   bval,
                    l_int32  *pindex)
 {
-    PROCNAME("pixcmapAddNewColor");
-
     if (!pindex)
-        return ERROR_INT("&index not defined", procName, 1);
+        return ERROR_INT("&index not defined", __func__, 1);
     *pindex = 0;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
         /* Check if the color is already present. */
     if (!pixcmapGetIndex(cmap, rval, gval, bval, pindex))  /* found */
@@ -447,7 +497,7 @@ pixcmapAddNewColor(PIXCMAP  *cmap,
 
         /* We need to add the color.  Is there room? */
     if (cmap->n >= cmap->nalloc) {
-        L_WARNING("no free color entries\n", procName);
+        L_WARNING("no free color entries\n", __func__);
         return 2;
     }
 
@@ -482,13 +532,11 @@ pixcmapAddNearestColor(PIXCMAP  *cmap,
                        l_int32   bval,
                        l_int32  *pindex)
 {
-    PROCNAME("pixcmapAddNearestColor");
-
     if (!pindex)
-        return ERROR_INT("&index not defined", procName, 1);
+        return ERROR_INT("&index not defined", __func__, 1);
     *pindex = 0;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
         /* Check if the color is already present. */
     if (!pixcmapGetIndex(cmap, rval, gval, bval, pindex))  /* found */
@@ -531,13 +579,11 @@ pixcmapUsableColor(PIXCMAP  *cmap,
 {
 l_int32  index;
 
-    PROCNAME("pixcmapUsableColor");
-
     if (!pusable)
-        return ERROR_INT("&usable not defined", procName, 1);
+        return ERROR_INT("&usable not defined", __func__, 1);
     *pusable = 0;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
         /* Is there room to add it? */
     if (cmap->n < cmap->nalloc) {
@@ -576,11 +622,9 @@ pixcmapAddBlackOrWhite(PIXCMAP  *cmap,
 {
 l_int32  index;
 
-    PROCNAME("pixcmapAddBlackOrWhite");
-
     if (pindex) *pindex = 0;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
     if (color == 0) {  /* black */
         if (pixcmapGetFreeCount(cmap) > 0)
@@ -615,10 +659,8 @@ pixcmapSetBlackAndWhite(PIXCMAP  *cmap,
 {
 l_int32  index;
 
-    PROCNAME("pixcmapSetBlackAndWhite");
-
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
     if (setblack) {
         pixcmapGetRankIntensity(cmap, 0.0, &index);
@@ -641,10 +683,8 @@ l_int32  index;
 l_int32
 pixcmapGetCount(const PIXCMAP  *cmap)
 {
-    PROCNAME("pixcmapGetCount");
-
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 0);
+        return ERROR_INT("cmap not defined", __func__, 0);
     return cmap->n;
 }
 
@@ -658,10 +698,8 @@ pixcmapGetCount(const PIXCMAP  *cmap)
 l_int32
 pixcmapGetFreeCount(PIXCMAP  *cmap)
 {
-    PROCNAME("pixcmapGetFreeCount");
-
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 0);
+        return ERROR_INT("cmap not defined", __func__, 0);
     return (cmap->nalloc - cmap->n);
 }
 
@@ -675,10 +713,8 @@ pixcmapGetFreeCount(PIXCMAP  *cmap)
 l_int32
 pixcmapGetDepth(PIXCMAP  *cmap)
 {
-    PROCNAME("pixcmapGetDepth");
-
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 0);
+        return ERROR_INT("cmap not defined", __func__, 0);
     return cmap->depth;
 }
 
@@ -701,13 +737,11 @@ pixcmapGetMinDepth(PIXCMAP  *cmap,
 {
 l_int32  ncolors;
 
-    PROCNAME("pixcmapGetMinDepth");
-
     if (!pmindepth)
-        return ERROR_INT("&mindepth not defined", procName, 1);
+        return ERROR_INT("&mindepth not defined", __func__, 1);
     *pmindepth = 0;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
     ncolors = pixcmapGetCount(cmap);
     if (ncolors <= 4)
@@ -734,10 +768,8 @@ l_int32  ncolors;
 l_ok
 pixcmapClear(PIXCMAP  *cmap)
 {
-    PROCNAME("pixcmapClear");
-
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     cmap->n = 0;
     return 0;
 }
@@ -763,15 +795,13 @@ pixcmapGetColor(PIXCMAP  *cmap,
 {
 RGBA_QUAD  *cta;
 
-    PROCNAME("pixcmapGetColor");
-
     if (!prval || !pgval || !pbval)
-        return ERROR_INT("&rval, &gval, &bval not all defined", procName, 1);
+        return ERROR_INT("&rval, &gval, &bval not all defined", __func__, 1);
     *prval = *pgval = *pbval = 0;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     if (index < 0 || index >= cmap->n)
-        return ERROR_INT("index out of bounds", procName, 1);
+        return ERROR_INT("index out of bounds", __func__, 1);
 
     cta = (RGBA_QUAD *)cmap->array;
     *prval = cta[index].red;
@@ -801,14 +831,12 @@ pixcmapGetColor32(PIXCMAP   *cmap,
 {
 l_int32  rval, gval, bval;
 
-    PROCNAME("pixcmapGetColor32");
-
     if (!pval32)
-        return ERROR_INT("&val32 not defined", procName, 1);
+        return ERROR_INT("&val32 not defined", __func__, 1);
     *pval32 = 0;
 
     if (pixcmapGetColor(cmap, index, &rval, &gval, &bval) != 0)
-        return ERROR_INT("rgb values not found", procName, 1);
+        return ERROR_INT("rgb values not found", __func__, 1);
     composeRGBAPixel(rval, gval, bval, 255, pval32);
     return 0;
 }
@@ -832,16 +860,14 @@ pixcmapGetRGBA(PIXCMAP  *cmap,
 {
 RGBA_QUAD  *cta;
 
-    PROCNAME("pixcmapGetRGBA");
-
     if (!prval || !pgval || !pbval || !paval)
         return ERROR_INT("&rval, &gval, &bval, &aval not all defined",
-                procName, 1);
+                __func__, 1);
     *prval = *pgval = *pbval = *paval = 0;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     if (index < 0 || index >= cmap->n)
-        return ERROR_INT("index out of bounds", procName, 1);
+        return ERROR_INT("index out of bounds", __func__, 1);
 
     cta = (RGBA_QUAD *)cmap->array;
     *prval = cta[index].red;
@@ -867,14 +893,12 @@ pixcmapGetRGBA32(PIXCMAP   *cmap,
 {
 l_int32  rval, gval, bval, aval;
 
-    PROCNAME("pixcmapGetRGBA32");
-
     if (!pval32)
-        return ERROR_INT("&val32 not defined", procName, 1);
+        return ERROR_INT("&val32 not defined", __func__, 1);
     *pval32 = 0;
 
     if (pixcmapGetRGBA(cmap, index, &rval, &gval, &bval, &aval) != 0)
-        return ERROR_INT("rgba values not found", procName, 1);
+        return ERROR_INT("rgba values not found", __func__, 1);
     composeRGBAPixel(rval, gval, bval, aval, pval32);
     return 0;
 }
@@ -905,12 +929,10 @@ pixcmapResetColor(PIXCMAP  *cmap,
 {
 RGBA_QUAD  *cta;
 
-    PROCNAME("pixcmapResetColor");
-
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     if (index < 0 || index >= cmap->n)
-        return ERROR_INT("index out of bounds", procName, 1);
+        return ERROR_INT("index out of bounds", __func__, 1);
 
     cta = (RGBA_QUAD *)cmap->array;
     cta[index].red = rval;
@@ -944,12 +966,10 @@ pixcmapSetAlpha(PIXCMAP  *cmap,
 {
 RGBA_QUAD  *cta;
 
-    PROCNAME("pixcmapSetAlpha");
-
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     if (index < 0 || index >= cmap->n)
-        return ERROR_INT("index out of bounds", procName, 1);
+        return ERROR_INT("index out of bounds", __func__, 1);
 
     cta = (RGBA_QUAD *)cmap->array;
     cta[index].alpha = aval;
@@ -976,13 +996,11 @@ pixcmapGetIndex(PIXCMAP  *cmap,
 l_int32     n, i;
 RGBA_QUAD  *cta;
 
-    PROCNAME("pixcmapGetIndex");
-
     if (!pindex)
-        return ERROR_INT("&index not defined", procName, 1);
+        return ERROR_INT("&index not defined", __func__, 1);
     *pindex = 0;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     n = pixcmapGetCount(cmap);
 
     cta = (RGBA_QUAD *)cmap->array;
@@ -1012,16 +1030,14 @@ pixcmapHasColor(PIXCMAP  *cmap,
 l_int32   n, i;
 l_int32  *rmap, *gmap, *bmap;
 
-    PROCNAME("pixcmapHasColor");
-
     if (!pcolor)
-        return ERROR_INT("&color not defined", procName, 1);
+        return ERROR_INT("&color not defined", __func__, 1);
     *pcolor = FALSE;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
     if (pixcmapToArrays(cmap, &rmap, &gmap, &bmap, NULL))
-        return ERROR_INT("colormap arrays not made", procName, 1);
+        return ERROR_INT("colormap arrays not made", __func__, 1);
     n = pixcmapGetCount(cmap);
     for (i = 0; i < n; i++) {
         if ((rmap[i] != gmap[i]) || (rmap[i] != bmap[i])) {
@@ -1051,13 +1067,11 @@ pixcmapIsOpaque(PIXCMAP  *cmap,
 l_int32     i, n;
 RGBA_QUAD  *cta;
 
-    PROCNAME("pixcmapIsOpaque");
-
     if (!popaque)
-        return ERROR_INT("&opaque not defined", procName, 1);
+        return ERROR_INT("&opaque not defined", __func__, 1);
     *popaque = TRUE;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
     n = pixcmapGetCount(cmap);
     cta = (RGBA_QUAD *)cmap->array;
@@ -1067,6 +1081,75 @@ RGBA_QUAD  *cta;
             break;
         }
     }
+    return 0;
+}
+
+
+/*!
+ * \brief   pixcmapNonOpaqueColorsInfo()
+ *
+ * \param[in]    cmap
+ * \param[out]   pntrans         [optional] number of transparent alpha
+ *                                          entries; <= 256
+ * \param[out]   pmax_trans      [optional] max index of transparent alpha
+ * \param[out]   pmin_opaque     [optional] min index of opaque < 256
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is used, for clarity, when writing the png tRNS palette.
+ *          According to the spec, http://www.w3.org/TR/PNG/#11tRNS,
+ *          if the tRNS palette is of size ntrans, the palette uses the first
+ *          ntrans alpha entries in the cmap, and the remaining alpha values
+ *          are assumed to be 255 (opaque), regardless of cmap alpha value.
+ *      (2) Ordinarily, the non-opaque colors come first in the cmap, so
+ *               min_opaque > max_trans
+ *          and
+ *               ntrans = max_trans + 1 = min_opaque.
+ *          But this does not happen in general.  In trans-2bpp-palette.png,
+ *          for example, only the third of four entries is not opaque, so
+ *               ntrans = 1
+ *               max_trans = 2 (index is 0-based)
+ *               min_opaque = 0
+ *          The tRNS palette must extend to the third entry to cover the
+ *          color with transparency: use 3 as the fourth arg to png_set_tRNS().
+ *      (3) If all entries are opaque, max_trans = -1.
+ *          If all entries are transparent, min_opaque = size of cmap.
+ * </pre>
+ */
+l_ok
+pixcmapNonOpaqueColorsInfo(PIXCMAP  *cmap,
+                           l_int32  *pntrans,
+                           l_int32  *pmax_trans,
+                           l_int32  *pmin_opaque)
+{
+l_int32     i, n, ntrans, max_trans, min_opaque, opaque_found;
+RGBA_QUAD  *cta;
+
+    if (pntrans) *pntrans = 0;
+    if (pmax_trans) *pmax_trans = -1;
+    if (pmin_opaque) *pmin_opaque = 256;
+    if (!cmap)
+        return ERROR_INT("cmap not defined", __func__, 1);
+
+    n = pixcmapGetCount(cmap);
+    ntrans = 0;
+    max_trans = -1;
+    min_opaque = n;
+    cta = (RGBA_QUAD *)cmap->array;
+    opaque_found = FALSE;
+    for (i = 0; i < n; i++) {
+        if (cta[i].alpha != 255) {
+            ntrans++;
+            max_trans = i;
+        } else if (opaque_found == FALSE) {
+            opaque_found = TRUE;
+            min_opaque = i;
+        }
+    }
+    if (pntrans) *pntrans = ntrans;
+    if (pmax_trans) *pmax_trans = max_trans;
+    if (pmin_opaque) *pmin_opaque = min_opaque;
     return 0;
 }
 
@@ -1086,13 +1169,11 @@ pixcmapIsBlackAndWhite(PIXCMAP  *cmap,
 l_int32     val0, val1, hascolor;
 RGBA_QUAD  *cta;
 
-    PROCNAME("pixcmapIsBlackAndWhite");
-
     if (!pblackwhite)
-        return ERROR_INT("&blackwhite not defined", procName, 1);
+        return ERROR_INT("&blackwhite not defined", __func__, 1);
     *pblackwhite = FALSE;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     if (pixcmapGetCount(cmap) != 2)
         return 0;
 
@@ -1127,13 +1208,11 @@ pixcmapCountGrayColors(PIXCMAP  *cmap,
 l_int32   n, i, rval, gval, bval, count;
 l_int32  *array;
 
-    PROCNAME("pixcmapCountGrayColors");
-
     if (!pngray)
-        return ERROR_INT("&ngray not defined", procName, 1);
+        return ERROR_INT("&ngray not defined", __func__, 1);
     *pngray = 0;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
     array = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     n = pixcmapGetCount(cmap);
@@ -1169,15 +1248,13 @@ pixcmapGetRankIntensity(PIXCMAP    *cmap,
 l_int32  n, i, rval, gval, bval, rankindex;
 NUMA    *na, *nasort;
 
-    PROCNAME("pixcmapGetRankIntensity");
-
     if (!pindex)
-        return ERROR_INT("&index not defined", procName, 1);
+        return ERROR_INT("&index not defined", __func__, 1);
     *pindex = 0;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     if (rankval < 0.0 || rankval > 1.0)
-        return ERROR_INT("rankval not in [0.0 ... 1.0]", procName, 1);
+        return ERROR_INT("rankval not in [0.0 ... 1.0]", __func__, 1);
 
     n = pixcmapGetCount(cmap);
     na = numaCreate(n);
@@ -1222,16 +1299,14 @@ pixcmapGetNearestIndex(PIXCMAP  *cmap,
 l_int32     i, n, delta, dist, mindist;
 RGBA_QUAD  *cta;
 
-    PROCNAME("pixcmapGetNearestIndex");
-
     if (!pindex)
-        return ERROR_INT("&index not defined", procName, 1);
+        return ERROR_INT("&index not defined", __func__, 1);
     *pindex = UNDEF;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
     if ((cta = (RGBA_QUAD *)cmap->array) == NULL)
-        return ERROR_INT("cta not defined(!)", procName, 1);
+        return ERROR_INT("cta not defined(!)", __func__, 1);
     n = pixcmapGetCount(cmap);
 
     mindist = 3 * 255 * 255 + 1;
@@ -1278,18 +1353,16 @@ pixcmapGetNearestGrayIndex(PIXCMAP  *cmap,
 l_int32     i, n, dist, mindist;
 RGBA_QUAD  *cta;
 
-    PROCNAME("pixcmapGetNearestGrayIndex");
-
     if (!pindex)
-        return ERROR_INT("&index not defined", procName, 1);
+        return ERROR_INT("&index not defined", __func__, 1);
     *pindex = 0;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     if (val < 0 || val > 255)
-        return ERROR_INT("val not in [0 ... 255]", procName, 1);
+        return ERROR_INT("val not in [0 ... 255]", __func__, 1);
 
     if ((cta = (RGBA_QUAD *)cmap->array) == NULL)
-        return ERROR_INT("cta not defined(!)", procName, 1);
+        return ERROR_INT("cta not defined(!)", __func__, 1);
     n = pixcmapGetCount(cmap);
 
     mindist = 256;
@@ -1334,19 +1407,17 @@ pixcmapGetDistanceToColor(PIXCMAP  *cmap,
 l_int32     n, delta, dist;
 RGBA_QUAD  *cta;
 
-    PROCNAME("pixcmapGetDistanceToColor");
-
     if (!pdist)
-        return ERROR_INT("&dist not defined", procName, 1);
+        return ERROR_INT("&dist not defined", __func__, 1);
     *pdist = UNDEF;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     n = pixcmapGetCount(cmap);
     if (index >= n)
-        return ERROR_INT("invalid index", procName, 1);
+        return ERROR_INT("invalid index", __func__, 1);
 
     if ((cta = (RGBA_QUAD *)cmap->array) == NULL)
-        return ERROR_INT("cta not defined(!)", procName, 1);
+        return ERROR_INT("cta not defined(!)", __func__, 1);
 
     delta = cta[index].red - rval;
     dist = delta * delta;
@@ -1389,16 +1460,14 @@ pixcmapGetRangeValues(PIXCMAP  *cmap,
 {
 l_int32  i, n, imin, imax, minval, maxval, rval, gval, bval, aveval;
 
-    PROCNAME("pixcmapGetRangeValues");
-
     if (pminval) *pminval = UNDEF;
     if (pmaxval) *pmaxval = UNDEF;
     if (pminindex) *pminindex = UNDEF;
     if (pmaxindex) *pmaxindex = UNDEF;
     if (!pminval && !pmaxval && !pminindex && !pmaxindex)
-        return ERROR_INT("no result requested", procName, 1);
+        return ERROR_INT("no result requested", __func__, 1);
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
     imin = UNDEF;
     imax = UNDEF;
@@ -1445,7 +1514,7 @@ l_int32  i, n, imin, imax, minval, maxval, rval, gval, bval, aveval;
                 imax = i;
             }
         } else {
-            return ERROR_INT("invalid selection", procName, 1);
+            return ERROR_INT("invalid selection", __func__, 1);
         }
     }
 
@@ -1460,6 +1529,68 @@ l_int32  i, n, imin, imax, minval, maxval, rval, gval, bval, aveval;
 /*-------------------------------------------------------------*
  *                       Colormap conversion                   *
  *-------------------------------------------------------------*/
+/*!
+ * \brief   pixcmapGrayToFalseColor()
+ *
+ * \param[in]    gamma   (factor) 0.0 or 1.0 for default; > 1.0 for brighter;
+ *                       2.0 is quite nice
+ * \return  cmap, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This creates a colormap that maps from gray to false colors.
+ *          The colormap is modeled after the Matlap "jet" configuration.
+ * </pre>
+ */
+PIXCMAP *
+pixcmapGrayToFalseColor(l_float32 gamma)
+{
+l_int32    i, rval, gval, bval;
+l_int32   *curve;
+l_float32  invgamma, x;
+PIXCMAP   *cmap;
+
+    if (gamma <= 0.0) gamma = 1.0;
+
+        /* Generate curve for transition part of color map */
+    curve = (l_int32 *)LEPT_CALLOC(64, sizeof(l_int32));
+    invgamma = 1. / gamma;
+    for (i = 0; i < 64; i++) {
+        x = (l_float32)i / 64.;
+        curve[i] = (l_int32)(255. * powf(x, invgamma) + 0.5);
+    }
+
+    cmap = pixcmapCreate(8);
+    for (i = 0; i < 256; i++) {
+        if (i < 32) {
+            rval = 0;
+            gval = 0;
+            bval = curve[i + 32];
+        } else if (i < 96) {   /* 32 - 95 */
+            rval = 0;
+            gval = curve[i - 32];
+            bval = 255;
+        } else if (i < 160) {  /* 96 - 159 */
+            rval = curve[i - 96];
+            gval = 255;
+            bval = curve[159 - i];
+        } else if (i < 224) {  /* 160 - 223 */
+            rval = 255;
+            gval = curve[223 - i];
+            bval = 0;
+        } else {  /* 224 - 255 */
+            rval = curve[287 - i];
+            gval = 0;
+            bval = 0;
+        }
+        pixcmapAddColor(cmap, rval, gval, bval);
+    }
+
+    LEPT_FREE(curve);
+    return cmap;
+}
+
+
 /*!
  * \brief   pixcmapGrayToColor()
  *
@@ -1517,30 +1648,28 @@ l_int32    i, n, rval, gval, bval, val;
 l_float32  sum;
 PIXCMAP   *cmapd;
 
-    PROCNAME("pixcmapColorToGray");
-
     if (!cmaps)
-        return (PIXCMAP *)ERROR_PTR("cmaps not defined", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("cmaps not defined", __func__, NULL);
     if (rwt < 0.0 || gwt < 0.0 || bwt < 0.0)
-        return (PIXCMAP *)ERROR_PTR("weights not all >= 0.0", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("weights not all >= 0.0", __func__, NULL);
 
         /* Make sure the sum of weights is 1.0; otherwise, you can get
          * overflow in the gray value. */
     sum = rwt + gwt + bwt;
     if (sum == 0.0) {
-        L_WARNING("all weights zero; setting equal to 1/3\n", procName);
-        rwt = gwt = bwt = 0.33333;
+        L_WARNING("all weights zero; setting equal to 1/3\n", __func__);
+        rwt = gwt = bwt = 0.33333f;
         sum = 1.0;
     }
     if (L_ABS(sum - 1.0) > 0.0001) {  /* maintain ratios with sum == 1.0 */
-        L_WARNING("weights don't sum to 1; maintaining ratios\n", procName);
+        L_WARNING("weights don't sum to 1; maintaining ratios\n", __func__);
         rwt = rwt / sum;
         gwt = gwt / sum;
         bwt = bwt / sum;
     }
 
     if ((cmapd = pixcmapCopy(cmaps)) == NULL)
-        return (PIXCMAP *)ERROR_PTR("cmapd not made", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("cmapd not made", __func__, NULL);
     n = pixcmapGetCount(cmapd);
     for (i = 0; i < n; i++) {
         pixcmapGetColor(cmapd, i, &rval, &gval, &bval);
@@ -1570,12 +1699,10 @@ pixcmapConvertTo4(PIXCMAP  *cmaps)
 l_int32   i, n, rval, gval, bval;
 PIXCMAP  *cmapd;
 
-    PROCNAME("pixcmapConvertTo4");
-
     if (!cmaps)
-        return (PIXCMAP *)ERROR_PTR("cmaps not defined", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("cmaps not defined", __func__, NULL);
     if (pixcmapGetDepth(cmaps) != 2)
-        return (PIXCMAP *)ERROR_PTR("cmaps not for 2 bpp pix", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("cmaps not for 2 bpp pix", __func__, NULL);
 
     cmapd = pixcmapCreate(4);
     n = pixcmapGetCount(cmaps);
@@ -1605,14 +1732,12 @@ pixcmapConvertTo8(PIXCMAP  *cmaps)
 l_int32   i, n, depth, rval, gval, bval;
 PIXCMAP  *cmapd;
 
-    PROCNAME("pixcmapConvertTo8");
-
     if (!cmaps)
-        return (PIXCMAP *)ERROR_PTR("cmaps not defined", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("cmaps not defined", __func__, NULL);
     depth = pixcmapGetDepth(cmaps);
     if (depth == 8) return pixcmapCopy(cmaps);
     if (depth != 2 && depth != 4)
-        return (PIXCMAP *)ERROR_PTR("cmaps not 2 or 4 bpp", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("cmaps not 2 or 4 bpp", __func__, NULL);
 
     cmapd = pixcmapCreate(8);
     n = pixcmapGetCount(cmaps);
@@ -1639,17 +1764,17 @@ pixcmapRead(const char  *filename)
 FILE     *fp;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixcmapRead");
-
     if (!filename)
-        return (PIXCMAP *)ERROR_PTR("filename not defined", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("filename not defined", __func__, NULL);
 
     if ((fp = fopenReadStream(filename)) == NULL)
-        return (PIXCMAP *)ERROR_PTR("stream not opened", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR_1("stream not opened",
+                                      filename, __func__, NULL);
     cmap = pixcmapReadStream(fp);
     fclose(fp);
     if (!cmap)
-        return (PIXCMAP *)ERROR_PTR("cmap not read", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR_1("cmap not read",
+                                     filename, __func__, NULL);
     return cmap;
 }
 
@@ -1667,26 +1792,25 @@ l_int32   rval, gval, bval, aval, ignore;
 l_int32   i, index, ret, depth, ncolors;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixcmapReadStream");
-
     if (!fp)
-        return (PIXCMAP *)ERROR_PTR("stream not defined", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("stream not defined", __func__, NULL);
 
     ret = fscanf(fp, "\nPixcmap: depth = %d bpp; %d colors\n",
                  &depth, &ncolors);
     if (ret != 2 ||
         (depth != 1 && depth != 2 && depth != 4 && depth != 8) ||
         (ncolors < 2 || ncolors > 256))
-        return (PIXCMAP *)ERROR_PTR("invalid cmap size", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("invalid cmap size", __func__, NULL);
     ignore = fscanf(fp, "Color    R-val    G-val    B-val   Alpha\n");
     ignore = fscanf(fp, "----------------------------------------\n");
 
-    cmap = pixcmapCreate(depth);
+    if ((cmap = pixcmapCreate(depth)) == NULL)
+        return (PIXCMAP *)ERROR_PTR("cmap not made", __func__, NULL);
     for (i = 0; i < ncolors; i++) {
         if (fscanf(fp, "%3d       %3d      %3d      %3d      %3d\n",
                         &index, &rval, &gval, &bval, &aval) != 5) {
             pixcmapDestroy(&cmap);
-            return (PIXCMAP *)ERROR_PTR("invalid entry", procName, NULL);
+            return (PIXCMAP *)ERROR_PTR("invalid entry", __func__, NULL);
         }
         pixcmapAddRGBA(cmap, rval, gval, bval, aval);
     }
@@ -1708,16 +1832,14 @@ pixcmapReadMem(const l_uint8  *data,
 FILE     *fp;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixcmapReadMem");
-
     if (!data)
-        return (PIXCMAP *)ERROR_PTR("data not defined", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("data not defined", __func__, NULL);
     if ((fp = fopenReadFromMemory(data, size)) == NULL)
-        return (PIXCMAP *)ERROR_PTR("stream not opened", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("stream not opened", __func__, NULL);
 
     cmap = pixcmapReadStream(fp);
     fclose(fp);
-    if (!cmap) L_ERROR("cmap not read\n", procName);
+    if (!cmap) L_ERROR("cmap not read\n", __func__);
     return cmap;
 }
 
@@ -1736,19 +1858,17 @@ pixcmapWrite(const char     *filename,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("pixcmapWrite");
-
     if (!filename)
-        return ERROR_INT("filename not defined", procName, 1);
+        return ERROR_INT("filename not defined", __func__, 1);
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
     if ((fp = fopenWriteStream(filename, "w")) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT_1("stream not opened", filename, __func__, 1);
     ret = pixcmapWriteStream(fp, cmap);
     fclose(fp);
     if (ret)
-        return ERROR_INT("cmap not written to stream", procName, 1);
+        return ERROR_INT_1("cmap not written to stream", filename, __func__, 1);
     return 0;
 }
 
@@ -1768,15 +1888,13 @@ pixcmapWriteStream(FILE           *fp,
 l_int32  *rmap, *gmap, *bmap, *amap;
 l_int32   i;
 
-    PROCNAME("pixcmapWriteStream");
-
     if (!fp)
-        return ERROR_INT("stream not defined", procName, 1);
+        return ERROR_INT("stream not defined", __func__, 1);
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
     if (pixcmapToArrays(cmap, &rmap, &gmap, &bmap, &amap))
-        return ERROR_INT("colormap arrays not made", procName, 1);
+        return ERROR_INT("colormap arrays not made", __func__, 1);
 
     fprintf(fp, "\nPixcmap: depth = %d bpp; %d colors\n", cmap->depth, cmap->n);
     fprintf(fp, "Color    R-val    G-val    B-val   Alpha\n");
@@ -1815,35 +1933,36 @@ pixcmapWriteMem(l_uint8        **pdata,
 l_int32  ret;
 FILE    *fp;
 
-    PROCNAME("pixcmapWriteMem");
-
     if (pdata) *pdata = NULL;
     if (psize) *psize = 0;
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     if (!psize)
-        return ERROR_INT("&size not defined", procName, 1);
+        return ERROR_INT("&size not defined", __func__, 1);
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
 #if HAVE_FMEMOPEN
     if ((fp = open_memstream((char **)pdata, psize)) == NULL)
-        return ERROR_INT("stream not opened", procName, 1);
+        return ERROR_INT("stream not opened", __func__, 1);
     ret = pixcmapWriteStream(fp, cmap);
+    fputc('\0', fp);
+    fclose(fp);
+    if (*psize > 0) *psize = *psize - 1;
 #else
-    L_INFO("work-around: writing to a temp file\n", procName);
+    L_INFO("no fmemopen API --> work-around: write to temp file\n", __func__);
   #ifdef _WIN32
     if ((fp = fopenWriteWinTempfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #else
     if ((fp = tmpfile()) == NULL)
-        return ERROR_INT("tmpfile stream not opened", procName, 1);
+        return ERROR_INT("tmpfile stream not opened", __func__, 1);
   #endif  /* _WIN32 */
     ret = pixcmapWriteStream(fp, cmap);
     rewind(fp);
     *pdata = l_binaryReadStream(fp, psize);
-#endif  /* HAVE_FMEMOPEN */
     fclose(fp);
+#endif  /* HAVE_FMEMOPEN */
     return ret;
 }
 
@@ -1855,8 +1974,10 @@ FILE    *fp;
  * \brief   pixcmapToArrays()
  *
  * \param[in]    cmap     colormap
- * \param[out]   prmap,   pgmap, pbmap colormap arrays
- * \param[out]   pamap    [optional] alpha array
+ * \param[out]   prmap    array of red values
+ * \param[out]   pgmap    array of green values
+ * \param[out]   pbmap    array of blue values
+ * \param[out]   pamap    [optional] array of alpha (transparency) values
  * \return  0 if OK; 1 on error
  */
 l_ok
@@ -1866,18 +1987,16 @@ pixcmapToArrays(const PIXCMAP  *cmap,
                 l_int32       **pbmap,
                 l_int32       **pamap)
 {
-l_int32    *rmap, *gmap, *bmap, *amap;
+l_int32    *rmap, *gmap, *bmap, *amap = NULL;
 l_int32     i, ncolors;
 RGBA_QUAD  *cta;
 
-    PROCNAME("pixcmapToArrays");
-
     if (!prmap || !pgmap || !pbmap)
-        return ERROR_INT("&rmap, &gmap, &bmap not all defined", procName, 1);
+        return ERROR_INT("&rmap, &gmap, &bmap not all defined", __func__, 1);
     *prmap = *pgmap = *pbmap = NULL;
     if (pamap) *pamap = NULL;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
     ncolors = pixcmapGetCount(cmap);
     rmap = (l_int32 *)LEPT_CALLOC(ncolors, sizeof(l_int32));
@@ -1920,13 +2039,11 @@ pixcmapToRGBTable(PIXCMAP    *cmap,
 l_int32    i, ncolors, rval, gval, bval, aval;
 l_uint32  *tab;
 
-    PROCNAME("pixcmapToRGBTable");
-
     if (!ptab)
-        return ERROR_INT("&tab not defined", procName, 1);
+        return ERROR_INT("&tab not defined", __func__, 1);
     *ptab = NULL;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
     ncolors = pixcmapGetCount(cmap);
     if (pncolors) *pncolors = ncolors;
@@ -1964,18 +2081,16 @@ pixcmapSerializeToMemory(PIXCMAP   *cmap,
 l_int32   i, ncolors, rval, gval, bval, aval;
 l_uint8  *data;
 
-    PROCNAME("pixcmapSerializeToMemory");
-
     if (!pdata)
-        return ERROR_INT("&data not defined", procName, 1);
+        return ERROR_INT("&data not defined", __func__, 1);
     *pdata = NULL;
     if (!pncolors)
-        return ERROR_INT("&ncolors not defined", procName, 1);
+        return ERROR_INT("&ncolors not defined", __func__, 1);
     *pncolors = 0;
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     if (cpc != 3 && cpc != 4)
-        return ERROR_INT("cpc not 3 or 4", procName, 1);
+        return ERROR_INT("cpc not 3 or 4", __func__, 1);
 
     ncolors = pixcmapGetCount(cmap);
     *pncolors = ncolors;
@@ -1999,7 +2114,7 @@ l_uint8  *data;
  *
  * \param[in]    data      binary string, 3 or 4 bytes per color
  * \param[in]    cpc       components/color: 3 for rgb, 4 for rgba
- * \param[in]    ncolors
+ * \param[in]    ncolors   > 0
  * \return  cmap, or NULL on error
  */
 PIXCMAP *
@@ -2010,16 +2125,14 @@ pixcmapDeserializeFromMemory(l_uint8  *data,
 l_int32   i, d, rval, gval, bval, aval;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixcmapDeserializeFromMemory");
-
     if (!data)
-        return (PIXCMAP *)ERROR_PTR("data not defined", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("data not defined", __func__, NULL);
     if (cpc != 3 && cpc != 4)
-        return (PIXCMAP *)ERROR_PTR("cpc not 3 or 4", procName, NULL);
-    if (ncolors == 0)
-        return (PIXCMAP *)ERROR_PTR("no entries", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("cpc not 3 or 4", __func__, NULL);
+    if (ncolors <= 0)
+        return (PIXCMAP *)ERROR_PTR("no entries", __func__, NULL);
     if (ncolors > 256)
-        return (PIXCMAP *)ERROR_PTR("ncolors > 256", procName, NULL);
+        return (PIXCMAP *)ERROR_PTR("ncolors > 256", __func__, NULL);
 
     if (ncolors > 16)
         d = 8;
@@ -2071,12 +2184,10 @@ l_int32  i, j, hexbytes;
 char    *hexdata = NULL;
 char     buf[4];
 
-    PROCNAME("pixcmapConvertToHex");
-
     if (!data)
-        return (char *)ERROR_PTR("data not defined", procName, NULL);
+        return (char *)ERROR_PTR("data not defined", __func__, NULL);
     if (ncolors < 1)
-        return (char *)ERROR_PTR("no colors", procName, NULL);
+        return (char *)ERROR_PTR("no colors", __func__, NULL);
 
     hexbytes = 2 + (2 * 3 + 1) * ncolors + 2;
     hexdata = (char *)LEPT_CALLOC(hexbytes, sizeof(char));
@@ -2130,22 +2241,20 @@ pixcmapGammaTRC(PIXCMAP   *cmap,
 l_int32  rval, gval, bval, trval, tgval, tbval, i, ncolors;
 NUMA    *nag;
 
-    PROCNAME("pixcmapGammaTRC");
-
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     if (gamma <= 0.0) {
-        L_WARNING("gamma must be > 0.0; setting to 1.0\n", procName);
+        L_WARNING("gamma must be > 0.0; setting to 1.0\n", __func__);
         gamma = 1.0;
     }
     if (minval >= maxval)
-        return ERROR_INT("minval not < maxval", procName, 1);
+        return ERROR_INT("minval not < maxval", __func__, 1);
 
     if (gamma == 1.0 && minval == 0 && maxval == 255)  /* no-op */
         return 0;
 
     if ((nag = numaGammaTRC(gamma, minval, maxval)) == NULL)
-        return ERROR_INT("nag not made", procName, 1);
+        return ERROR_INT("nag not made", __func__, 1);
 
     ncolors = pixcmapGetCount(cmap);
     for (i = 0; i < ncolors; i++) {
@@ -2183,17 +2292,15 @@ pixcmapContrastTRC(PIXCMAP   *cmap,
 l_int32  i, ncolors, rval, gval, bval, trval, tgval, tbval;
 NUMA    *nac;
 
-    PROCNAME("pixcmapContrastTRC");
-
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     if (factor < 0.0) {
-        L_WARNING("factor must be >= 0.0; setting to 0.0\n", procName);
+        L_WARNING("factor must be >= 0.0; setting to 0.0\n", __func__);
         factor = 0.0;
     }
 
     if ((nac = numaContrastTRC(factor)) == NULL)
-        return ERROR_INT("nac not made", procName, 1);
+        return ERROR_INT("nac not made", __func__, 1);
 
     ncolors = pixcmapGetCount(cmap);
     for (i = 0; i < ncolors; i++) {
@@ -2234,12 +2341,10 @@ pixcmapShiftIntensity(PIXCMAP   *cmap,
 {
 l_int32  i, ncolors, rval, gval, bval;
 
-    PROCNAME("pixcmapShiftIntensity");
-
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
     if (fraction < -1.0 || fraction > 1.0)
-        return ERROR_INT("fraction not in [-1.0, 1.0]", procName, 1);
+        return ERROR_INT("fraction not in [-1.0, 1.0]", __func__, 1);
 
     ncolors = pixcmapGetCount(cmap);
     for (i = 0; i < ncolors; i++) {
@@ -2286,10 +2391,8 @@ pixcmapShiftByComponent(PIXCMAP  *cmap,
 l_int32   i, ncolors, rval, gval, bval;
 l_uint32  newval;
 
-    PROCNAME("pixcmapShiftByComponent");
-
     if (!cmap)
-        return ERROR_INT("cmap not defined", procName, 1);
+        return ERROR_INT("cmap not defined", __func__, 1);
 
     ncolors = pixcmapGetCount(cmap);
     for (i = 0; i < ncolors; i++) {

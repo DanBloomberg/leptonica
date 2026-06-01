@@ -32,6 +32,10 @@
  *     (bootnumgen4.c).
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "string.h"
 #include "allheaders.h"
 
@@ -48,10 +52,8 @@ PIX      *pix1, *pix2, *pix3;
 PIXA     *pixa1, *pixa2, *pixa3;
 L_RECOG  *recog1, *recog2;
 
-    PROCNAME("recogtest7");
-
     if (argc != 1) {
-        fprintf(stderr, " Syntax: recogtest7\n");
+        lept_stderr(" Syntax: recogtest7\n");
         return 1;
     }
 
@@ -65,13 +67,13 @@ L_RECOG  *recog1, *recog2;
     pixa2 = pixaMakeFromTiledPixa(pixa1, 0, 0, 100);
     pixa3 = l_bootnum_gen4(100);
     pixaEqual(pixa2, pixa3, 0, NULL, &same);
-    if (!same) L_ERROR("Bad!  The pixa differ!\n", procName);
+    if (!same) L_ERROR("Bad!  The pixa differ!\n", __func__);
     pix1 = pixaDisplayTiledWithText(pixa1, 1400, 1.0, 10, 2, 6, 0xff000000);
     pixDisplay(pix1, 100, 100);
     pix2 = pixaDisplayTiledWithText(pixa2, 1400, 1.0, 10, 2, 6, 0xff000000);
     pix3 = pixaDisplayTiledWithText(pixa3, 1400, 1.0, 10, 2, 6, 0xff000000);
     pixEqual(pix2, pix3, &same);
-    if (!same) L_ERROR("Bad! The displayed pix differ!\n", procName);
+    if (!same) L_ERROR("Bad! The displayed pix differ!\n", __func__);
     pixWrite("/tmp/lept/digits/pix1.png", pix1, IFF_PNG);
     pixWrite("/tmp/lept/digits/bootnum4.png", pix1, IFF_PNG);
     pixaDestroy(&pixa1);
@@ -82,15 +84,15 @@ L_RECOG  *recog1, *recog2;
 #endif
 
 #if 1
-    fprintf(stderr, "Show recog content\n");
+    lept_stderr("Show recog content\n");
     recog1 = recogCreateFromPixa(pixa3, scaledw, scaledh, 0, 120, 1);
     recogShowContent(stderr, recog1, 1, 1);
     pixaDestroy(&pixa3);
 #endif
 
 #if 1
-    fprintf(stderr, "\nShow averaged samples\n");
-    recogAverageSamples(&recog1, 1);
+    lept_stderr("\nShow averaged samples\n");
+    recogAverageSamples(recog1, 1);
     recogShowAverageTemplates(recog1);
     pix1 = pixaGetPix(recog1->pixadb_ave, 0, L_CLONE);
     pixWrite("/tmp/lept/digits/unscaled_ave.png", pix1, IFF_PNG);
@@ -108,30 +110,30 @@ L_RECOG  *recog1, *recog2;
     pixDisplay(pix1, 1000, 100);
     pixDestroy(&pix1);
     recog1 = recogCreateFromPixa(pixa1, scaledw, scaledh, 0, 120, 1);
-    fprintf(stderr, "\nShow matches against all inputs for given range\n");
-    recogDebugAverages(&recog1, 0);
+    lept_stderr("\nShow matches against all inputs for given range\n");
+    recogDebugAverages(recog1, 0);
     recogShowMatchesInRange(recog1, recog1->pixa_tr, 0.85, 1.00, 1);
     pixWrite("/tmp/lept/digits/match_input.png", recog1->pixdb_range, IFF_PNG);
-    fprintf(stderr, "\nShow best match against average template\n");
+    lept_stderr("\nShow best match against average template\n");
     recogShowMatchesInRange(recog1, recog1->pixa_u, 0.65, 1.00, 1);
     pixWrite("/tmp/lept/digits/match_ave.png", recog1->pixdb_range, IFF_PNG);
     pixaDestroy(&pixa1);
 #endif
 
 #if 1
-    fprintf(stderr, "\nContents of recog before write/read:\n");
+    lept_stderr("\nContents of recog before write/read:\n");
     recogShowContent(stderr, recog1, 2, 1);
 
-    fprintf(stderr, "\nTest serialization\n");
+    lept_stderr("\nTest serialization\n");
     recogWrite("/tmp/lept/digits/rec1.rec", recog1);
     recog2 = recogRead("/tmp/lept/digits/rec1.rec");
-    fprintf(stderr, "Contents of recog after write/read:\n");
+    lept_stderr("Contents of recog after write/read:\n");
     recogShowContent(stderr, recog2, 3, 1);
     recogWrite("/tmp/lept/digits/rec2.rec", recog2);
     filesAreIdentical("/tmp/lept/digits/rec1.rec",
                       "/tmp/lept/digits/rec2.rec", &same);
     if (!same)
-        fprintf(stderr, "Error in serialization!\n");
+        lept_stderr("Error in serialization!\n");
     recogDestroy(&recog1);
     recogDestroy(&recog2);
 #endif

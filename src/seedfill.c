@@ -164,6 +164,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -250,22 +254,22 @@ l_int32    hd, hm, wpld, wplm;
 l_uint32  *datad, *datam;
 PIX       *pixt;
 
-    PROCNAME("pixSeedfillBinary");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, pixd);
     if (!pixm || pixGetDepth(pixm) != 1)
-        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", __func__, pixd);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not in {4,8}", procName, pixd);
+        return (PIX *)ERROR_PTR("connectivity not in {4,8}", __func__, pixd);
 
         /* Prepare pixd as a copy of pixs if not identical */
     if ((pixd = pixCopy(pixd, pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
+    pixSetPadBits(pixd, 0);  /* be safe: */
+    pixSetPadBits(pixm, 0);  /* avoid using uninitialized memory */
 
         /* pixt is used to test for completion */
     if ((pixt = pixCreateTemplate(pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixt not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pixt not made", __func__, pixd);
 
     hd = pixGetHeight(pixd);
     hm = pixGetHeight(pixm);  /* included so seedfillBinaryLow() can clip */
@@ -274,7 +278,6 @@ PIX       *pixt;
     wpld = pixGetWpl(pixd);
     wplm = pixGetWpl(pixm);
 
-    pixSetPadBits(pixm, 0);
 
     for (i = 0; i < MaxIters; i++) {
         pixCopy(pixt, pixd);
@@ -282,7 +285,7 @@ PIX       *pixt;
         pixEqual(pixd, pixt, &boolval);
         if (boolval == 1) {
 #if DEBUG_PRINT_ITERS
-            fprintf(stderr, "Binary seed fill converged: %d iters\n", i + 1);
+            lept_stderr("Binary seed fill converged: %d iters\n", i + 1);
 #endif  /* DEBUG_PRINT_ITERS */
             break;
         }
@@ -337,24 +340,22 @@ pixSeedfillBinaryRestricted(PIX     *pixd,
 l_int32  w, h;
 PIX     *pix1, *pix2;
 
-    PROCNAME("pixSeedfillBinaryRestricted");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, pixd);
     if (!pixm || pixGetDepth(pixm) != 1)
-        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", __func__, pixd);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not in {4,8}", procName, pixd);
+        return (PIX *)ERROR_PTR("connectivity not in {4,8}", __func__, pixd);
     if (xmax == 0 && ymax == 0)  /* no filling permitted */
         return pixClone(pixs);
     if (xmax < 0 || ymax < 0) {
-        L_ERROR("xmax and ymax must be non-negative", procName);
+        L_ERROR("xmax and ymax must be non-negative", __func__);
         return pixClone(pixs);
     }
 
         /* Full fill from the seed into the mask. */
     if ((pix1 = pixSeedfillBinary(NULL, pixs, pixm, connectivity)) == NULL)
-        return (PIX *)ERROR_PTR("pix1 not made", procName, pixd);
+        return (PIX *)ERROR_PTR("pix1 not made", __func__, pixd);
 
         /* Dilate the seed.  This gives the maximal region where changes
          * are permitted.  Invert to get the region where pixs is
@@ -408,8 +409,6 @@ l_uint32   word, mask;
 l_uint32   wordabove, wordleft, wordbelow, wordright;
 l_uint32   wordprev;  /* test against this in previous iteration */
 l_uint32  *lines, *linem;
-
-    PROCNAME("seedfillBinaryLow");
 
     h = L_MIN(hs, hm);
     wpl = L_MIN(wpls, wplm);
@@ -573,8 +572,7 @@ l_uint32  *lines, *linem;
         break;
 
     default:
-        L_ERROR("connectivity must be 4 or 8\n", procName);
-        return;
+        L_ERROR("connectivity must be 4 or 8\n", __func__);
     }
 }
 
@@ -607,18 +605,16 @@ pixHolesByFilling(PIX     *pixs,
 {
 PIX  *pixsi, *pixd;
 
-    PROCNAME("pixHolesByFilling");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
 
     if ((pixd = pixCreateTemplate(pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     if ((pixsi = pixInvert(NULL, pixs)) == NULL) {
         pixDestroy(&pixd);
-        return (PIX *)ERROR_PTR("pixsi not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixsi not made", __func__, NULL);
     }
 
     pixSetOrClearBorder(pixd, 1, 1, 1, 1, PIX_SET);
@@ -658,20 +654,18 @@ pixFillClosedBorders(PIX     *pixs,
 {
 PIX  *pixsi, *pixd;
 
-    PROCNAME("pixFillClosedBorders");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
 
     if ((pixd = pixCreateTemplate(pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixSetOrClearBorder(pixd, 1, 1, 1, 1, PIX_SET);
     pixSubtract(pixd, pixd, pixs);
     if ((pixsi = pixInvert(NULL, pixs)) == NULL) {
         pixDestroy(&pixd);
-        return (PIX *)ERROR_PTR("pixsi not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixsi not made", __func__, NULL);
     }
 
     pixSeedfillBinary(pixd, pixd, pixsi, connectivity);
@@ -696,16 +690,14 @@ pixExtractBorderConnComps(PIX     *pixs,
 {
 PIX  *pixd;
 
-    PROCNAME("pixExtractBorderConnComps");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
 
         /* Start with 1 pixel wide black border as seed in pixd */
     if ((pixd = pixCreateTemplate(pixs)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixSetOrClearBorder(pixd, 1, 1, 1, 1, PIX_SET);
 
        /* Fill in pixd from the seed, using pixs as the filling mask.
@@ -735,12 +727,10 @@ pixRemoveBorderConnComps(PIX     *pixs,
 {
 PIX  *pixd;
 
-    PROCNAME("pixRemoveBorderConnComps");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
 
        /* Fill from a 1 pixel wide seed at the border into all components
         * in pixs (the filling mask) that are touching the border */
@@ -785,12 +775,10 @@ pixFillBgFromBorder(PIX     *pixs,
 {
 PIX  *pixd;
 
-    PROCNAME("pixFillBgFromBorder");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
 
        /* Invert to turn bg touching the border to a fg component.
         * Extract this by filling from a 1 pixel wide seed at the border. */
@@ -820,21 +808,23 @@ PIX  *pixd;
  * <pre>
  * Notes:
  *      (1) This does not fill holes that are smaller in area than 'minsize'.
+ *          Use %minsize = 0 and %maxhfract = 1.0 to fill all holes.
  *      (2) This does not fill holes with an area larger than
- *          'maxhfract' times the fg area of the c.c.
+ *          %maxhfract times the fg area of the c.c.
+ *          Use 1.0 to fill all holes.
  *      (3) This does not expand the fg of the c.c. to bounding rect if
- *          the fg area is less than 'minfgfract' times the area of the
- *          bounding rect.
+ *          the fg area is less than %minfgfract times the area of the
+ *          bounding rect.  Use 1.0 to skip expanding to the bounding rect.
  *      (4) The decisions are made as follows:
  *           ~ Decide if we are filling the holes; if so, when using
  *             the fg area, include the filled holes.
  *           ~ Decide based on the fg area if we are filling to a bounding rect.
  *             If so, do it.
  *             If not, fill the holes if the condition is satisfied.
- *      (5) The choice of minsize depends on the resolution.
+ *      (5) The choice of %minsize depends on the resolution.
  *      (6) For solidifying image mask regions on printed materials,
- *          which tend to be rectangular, values for maxhfract
- *          and minfgfract around 0.5 are reasonable.
+ *          which tend to be rectangular, values for %maxhfract
+ *          and %minfgfract around 0.5 are reasonable.
  * </pre>
  */
 PIX *
@@ -851,10 +841,10 @@ BOXA      *boxa;
 PIX       *pixd, *pixfg, *pixh;
 PIXA      *pixa;
 
-    PROCNAME("pixFillHolesToBoundingRect");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
+    maxhfract = L_MIN(L_MAX(maxhfract, 0.0), 1.0);
+    minfgfract = L_MIN(L_MAX(minfgfract, 0.0), 1.0);
 
     pixd = pixCopy(NULL, pixs);
     boxa = pixConnComp(pixd, &pixa, 8);
@@ -886,7 +876,6 @@ PIXA      *pixa;
     boxaDestroy(&boxa);
     pixaDestroy(&pixa);
     LEPT_FREE(tab);
-
     return pixd;
 }
 
@@ -926,18 +915,16 @@ pixSeedfillGray(PIX     *pixs,
 l_int32    h, w, wpls, wplm;
 l_uint32  *datas, *datam;
 
-    PROCNAME("pixSeedfillGray");
-
     if (!pixs || pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 8 bpp", __func__, 1);
     if (!pixm || pixGetDepth(pixm) != 8)
-        return ERROR_INT("pixm not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixm not defined or not 8 bpp", __func__, 1);
     if (connectivity != 4 && connectivity != 8)
-        return ERROR_INT("connectivity not in {4,8}", procName, 1);
+        return ERROR_INT("connectivity not in {4,8}", __func__, 1);
 
         /* Make sure the sizes of seed and mask images are the same */
     if (pixSizesEqual(pixs, pixm) == 0)
-        return ERROR_INT("pixs and pixm sizes differ", procName, 1);
+        return ERROR_INT("pixs and pixm sizes differ", __func__, 1);
 
     datas = pixGetData(pixs);
     datam = pixGetData(pixm);
@@ -985,18 +972,16 @@ pixSeedfillGrayInv(PIX     *pixs,
 l_int32    h, w, wpls, wplm;
 l_uint32  *datas, *datam;
 
-    PROCNAME("pixSeedfillGrayInv");
-
     if (!pixs || pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 8 bpp", __func__, 1);
     if (!pixm || pixGetDepth(pixm) != 8)
-        return ERROR_INT("pixm not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixm not defined or not 8 bpp", __func__, 1);
     if (connectivity != 4 && connectivity != 8)
-        return ERROR_INT("connectivity not in {4,8}", procName, 1);
+        return ERROR_INT("connectivity not in {4,8}", __func__, 1);
 
         /* Make sure the sizes of seed and mask images are the same */
     if (pixSizesEqual(pixs, pixm) == 0)
-        return ERROR_INT("pixs and pixm sizes differ", procName, 1);
+        return ERROR_INT("pixs and pixm sizes differ", __func__, 1);
 
     datas = pixGetData(pixs);
     datam = pixGetData(pixm);
@@ -1070,10 +1055,8 @@ l_uint32  *lines, *linem;
 L_PIXEL *pixel;
 L_QUEUE  *lq_pixel;
 
-    PROCNAME("seedfillGrayLow");
-
     if (connectivity != 4 && connectivity != 8) {
-        L_ERROR("connectivity must be 4 or 8\n", procName);
+        L_ERROR("connectivity must be 4 or 8\n", __func__);
         return;
     }
 
@@ -1235,7 +1218,6 @@ L_QUEUE  *lq_pixel;
 
             queue_size = lqueueGetCount(lq_pixel);
         }
-
         break;
 
     case 8:
@@ -1466,8 +1448,7 @@ L_QUEUE  *lq_pixel;
         break;
 
     default:
-        L_ERROR("shouldn't get here!\n", procName);
-        break;
+        L_ERROR("shouldn't get here!\n", __func__);
     }
 
     lqueueDestroy(&lq_pixel, TRUE);
@@ -1523,10 +1504,8 @@ l_uint32  *lines, *linem;
 L_PIXEL *pixel;
 L_QUEUE  *lq_pixel;
 
-    PROCNAME("seedfillGrayInvLow");
-
     if (connectivity != 4 && connectivity != 8) {
-        L_ERROR("connectivity must be 4 or 8\n", procName);
+        L_ERROR("connectivity must be 4 or 8\n", __func__);
         return;
     }
 
@@ -1695,7 +1674,6 @@ L_QUEUE  *lq_pixel;
 
             queue_size = lqueueGetCount(lq_pixel);
         }
-
         break;
 
     case 8:
@@ -1929,8 +1907,7 @@ L_QUEUE  *lq_pixel;
         break;
 
     default:
-        L_ERROR("shouldn't get here!\n", procName);
-        break;
+        L_ERROR("shouldn't get here!\n", __func__);
     }
 
     lqueueDestroy(&lq_pixel, TRUE);
@@ -1973,22 +1950,20 @@ l_int32    i, h, w, wpls, wplm, boolval;
 l_uint32  *datas, *datam;
 PIX       *pixt;
 
-    PROCNAME("pixSeedfillGraySimple");
-
     if (!pixs || pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 8 bpp", __func__, 1);
     if (!pixm || pixGetDepth(pixm) != 8)
-        return ERROR_INT("pixm not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixm not defined or not 8 bpp", __func__, 1);
     if (connectivity != 4 && connectivity != 8)
-        return ERROR_INT("connectivity not in {4,8}", procName, 1);
+        return ERROR_INT("connectivity not in {4,8}", __func__, 1);
 
         /* Make sure the sizes of seed and mask images are the same */
     if (pixSizesEqual(pixs, pixm) == 0)
-        return ERROR_INT("pixs and pixm sizes differ", procName, 1);
+        return ERROR_INT("pixs and pixm sizes differ", __func__, 1);
 
         /* This is used to test for completion */
     if ((pixt = pixCreateTemplate(pixs)) == NULL)
-        return ERROR_INT("pixt not made", procName, 1);
+        return ERROR_INT("pixt not made", __func__, 1);
 
     datas = pixGetData(pixs);
     datam = pixGetData(pixm);
@@ -2001,7 +1976,7 @@ PIX       *pixt;
         pixEqual(pixs, pixt, &boolval);
         if (boolval == 1) {
 #if DEBUG_PRINT_ITERS
-            L_INFO("Gray seed fill converged: %d iters\n", procName, i + 1);
+            L_INFO("Gray seed fill converged: %d iters\n", __func__, i + 1);
 #endif  /* DEBUG_PRINT_ITERS */
             break;
         }
@@ -2044,22 +2019,20 @@ l_int32    i, h, w, wpls, wplm, boolval;
 l_uint32  *datas, *datam;
 PIX       *pixt;
 
-    PROCNAME("pixSeedfillGrayInvSimple");
-
     if (!pixs || pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 8 bpp", __func__, 1);
     if (!pixm || pixGetDepth(pixm) != 8)
-        return ERROR_INT("pixm not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixm not defined or not 8 bpp", __func__, 1);
     if (connectivity != 4 && connectivity != 8)
-        return ERROR_INT("connectivity not in {4,8}", procName, 1);
+        return ERROR_INT("connectivity not in {4,8}", __func__, 1);
 
         /* Make sure the sizes of seed and mask images are the same */
     if (pixSizesEqual(pixs, pixm) == 0)
-        return ERROR_INT("pixs and pixm sizes differ", procName, 1);
+        return ERROR_INT("pixs and pixm sizes differ", __func__, 1);
 
         /* This is used to test for completion */
     if ((pixt = pixCreateTemplate(pixs)) == NULL)
-        return ERROR_INT("pixt not made", procName, 1);
+        return ERROR_INT("pixt not made", __func__, 1);
 
     datas = pixGetData(pixs);
     datam = pixGetData(pixm);
@@ -2072,7 +2045,7 @@ PIX       *pixt;
         pixEqual(pixs, pixt, &boolval);
         if (boolval == 1) {
 #if DEBUG_PRINT_ITERS
-            L_INFO("Gray seed fill converged: %d iters\n", procName, i + 1);
+            L_INFO("Gray seed fill converged: %d iters\n", __func__, i + 1);
 #endif  /* DEBUG_PRINT_ITERS */
             break;
         }
@@ -2129,8 +2102,6 @@ l_uint8    val2, val3, val4, val5, val7, val8;
 l_uint8    val, maxval, maskval;
 l_int32    i, j, imax, jmax;
 l_uint32  *lines, *linem;
-
-    PROCNAME("seedfillGrayLowSimple");
 
     imax = h - 1;
     jmax = w - 1;
@@ -2242,7 +2213,7 @@ l_uint32  *lines, *linem;
         break;
 
     default:
-        L_ERROR("connectivity must be 4 or 8\n", procName);
+        L_ERROR("connectivity must be 4 or 8\n", __func__);
     }
 }
 
@@ -2285,8 +2256,6 @@ l_uint8    val1, val2, val3, val4, val5, val6, val7, val8;
 l_uint8    maxval, maskval;
 l_int32    i, j, imax, jmax;
 l_uint32  *lines, *linem;
-
-    PROCNAME("seedfillGrayInvLowSimple");
 
     imax = h - 1;
     jmax = w - 1;
@@ -2398,7 +2367,7 @@ l_uint32  *lines, *linem;
         break;
 
     default:
-        L_ERROR("connectivity must be 4 or 8\n", procName);
+        L_ERROR("connectivity must be 4 or 8\n", __func__);
     }
 }
 
@@ -2445,17 +2414,15 @@ pixSeedfillGrayBasin(PIX     *pixb,
 {
 PIX  *pixbi, *pixmi, *pixsd;
 
-    PROCNAME("pixSeedfillGrayBasin");
-
     if (!pixb || pixGetDepth(pixb) != 1)
-        return (PIX *)ERROR_PTR("pixb undefined or not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixb undefined or not 1 bpp", __func__, NULL);
     if (!pixm || pixGetDepth(pixm) != 8)
-        return (PIX *)ERROR_PTR("pixm undefined or not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixm undefined or not 8 bpp", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not in {4,8}", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not in {4,8}", __func__, NULL);
 
     if (delta <= 0) {
-        L_WARNING("delta <= 0; returning a copy of pixm\n", procName);
+        L_WARNING("delta <= 0; returning a copy of pixm\n", __func__);
         return pixCopy(NULL, pixm);
     }
 
@@ -2538,20 +2505,18 @@ l_int32    w, h, wpld;
 l_uint32  *datad;
 PIX       *pixd;
 
-    PROCNAME("pixDistanceFunction");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("!pixs or pixs not 1 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("!pixs or pixs not 1 bpp", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
     if (outdepth != 8 && outdepth != 16)
-        return (PIX *)ERROR_PTR("outdepth not 8 or 16 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("outdepth not 8 or 16 bpp", __func__, NULL);
     if (boundcond != L_BOUNDARY_BG && boundcond != L_BOUNDARY_FG)
-        return (PIX *)ERROR_PTR("invalid boundcond", procName, NULL);
+        return (PIX *)ERROR_PTR("invalid boundcond", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     if ((pixd = pixCreate(w, h, outdepth)) == NULL)
-        return (PIX *)ERROR_PTR("pixd not made", procName, NULL);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
 
@@ -2590,8 +2555,6 @@ distanceFunctionLow(l_uint32  *datad,
 l_int32    val1, val2, val3, val4, val5, val6, val7, val8, minval, val;
 l_int32    i, j, imax, jmax;
 l_uint32  *lined;
-
-    PROCNAME("distanceFunctionLow");
 
         /* One raster scan followed by one anti-raster scan.
          * This does not re-set the 1-boundary of pixels that
@@ -2737,8 +2700,7 @@ l_uint32  *lined;
         break;
 
     default:
-        L_ERROR("connectivity must be 4 or 8\n", procName);
-        break;
+        L_ERROR("connectivity must be 4 or 8\n", __func__);
     }
 }
 
@@ -2794,12 +2756,10 @@ l_int32    w, h, wplt, wplg;
 l_uint32  *datat, *datag;
 PIX       *pixm, *pixt, *pixg, *pixd;
 
-    PROCNAME("pixSeedspread");
-
     if (!pixs || pixGetDepth(pixs) != 8)
-        return (PIX *)ERROR_PTR("!pixs or pixs not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("!pixs or pixs not 8 bpp", __func__, NULL);
     if (connectivity != 4 && connectivity != 8)
-        return (PIX *)ERROR_PTR("connectivity not 4 or 8", procName, NULL);
+        return (PIX *)ERROR_PTR("connectivity not 4 or 8", __func__, NULL);
 
         /* Add a 4 byte border to pixs.  This simplifies the computation. */
     pixg = pixAddBorder(pixs, 4, 0);
@@ -2852,8 +2812,6 @@ seedspreadLow(l_uint32  *datad,
 l_int32    val1t, val2t, val3t, val4t, val5t, val6t, val7t, val8t;
 l_int32    i, j, imax, jmax, minval, valt, vald;
 l_uint32  *linet, *lined;
-
-    PROCNAME("seedspreadLow");
 
         /* One raster scan followed by one anti-raster scan.
          * pixt is initialized to have 0 on pixels where the
@@ -2967,7 +2925,7 @@ l_uint32  *linet, *lined;
         }
         break;
     default:
-        L_ERROR("connectivity must be 4 or 8\n", procName);
+        L_ERROR("connectivity must be 4 or 8\n", __func__);
         break;
     }
 }
@@ -3022,12 +2980,10 @@ pixLocalExtrema(PIX     *pixs,
 {
 PIX  *pixmin, *pixmax, *pixt1, *pixt2;
 
-    PROCNAME("pixLocalExtrema");
-
     if (!pixs || pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 8 bpp", __func__, 1);
     if (!ppixmin && !ppixmax)
-        return ERROR_INT("neither &pixmin, &pixmax are defined", procName, 1);
+        return ERROR_INT("neither &pixmin, &pixmax are defined", __func__, 1);
     if (maxmin <= 0) maxmin = 254;
     if (minmax <= 0) minmax = 1;
 
@@ -3090,12 +3046,10 @@ BOXA      *boxa;
 PIX       *pix1, *pix2, *pix3;
 PIXA      *pixa;
 
-    PROCNAME("pixQualifyLocalMinima");
-
     if (!pixs || pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 8 bpp", __func__, 1);
     if (!pixm || pixGetDepth(pixm) != 1)
-        return ERROR_INT("pixm not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixm not defined or not 1 bpp", __func__, 1);
     if (maxval <= 0) maxval = 254;
 
     pixGetDimensions(pixs, &w, &h, NULL);
@@ -3193,12 +3147,10 @@ pixSelectedLocalExtrema(PIX     *pixs,
 {
 PIX  *pixmin, *pixmax, *pixt, *pixtmin, *pixtmax;
 
-    PROCNAME("pixSelectedLocalExtrema");
-
     if (!pixs || pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs not defined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixs not defined or not 8 bpp", __func__, 1);
     if (!ppixmin || !ppixmax)
-        return ERROR_INT("&pixmin and &pixmax not both defined", procName, 1);
+        return ERROR_INT("&pixmin and &pixmax not both defined", __func__, 1);
 
     pixt = pixErodeGray(pixs, 3, 3);
     pixmin = pixFindEqualValues(pixs, pixt);
@@ -3254,12 +3206,10 @@ l_int32    i, j, val1, val2, wpls1, wpls2, wpld;
 l_uint32  *datas1, *datas2, *datad, *lines1, *lines2, *lined;
 PIX       *pixd;
 
-    PROCNAME("pixFindEqualValues");
-
     if (!pixs1 || pixGetDepth(pixs1) != 8)
-        return (PIX *)ERROR_PTR("pixs1 undefined or not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs1 undefined or not 8 bpp", __func__, NULL);
     if (!pixs2 || pixGetDepth(pixs2) != 8)
-        return (PIX *)ERROR_PTR("pixs2 undefined or not 8 bpp", procName, NULL);
+        return (PIX *)ERROR_PTR("pixs2 undefined or not 8 bpp", __func__, NULL);
     pixGetDimensions(pixs1, &w1, &h1, NULL);
     pixGetDimensions(pixs2, &w2, &h2, NULL);
     w = L_MIN(w1, w2);
@@ -3327,22 +3277,20 @@ PIX       *pixt, *pixs2, *pixm2;
 PIXA      *pixa;
 PTA       *pta;
 
-    PROCNAME("pixSelectMinInConnComp");
-
     if (!ppta)
-        return ERROR_INT("&pta not defined", procName, 1);
+        return ERROR_INT("&pta not defined", __func__, 1);
     *ppta = NULL;
     if (pnav) *pnav = NULL;
     if (!pixs || pixGetDepth(pixs) != 8)
-        return ERROR_INT("pixs undefined or not 8 bpp", procName, 1);
+        return ERROR_INT("pixs undefined or not 8 bpp", __func__, 1);
     if (!pixm || pixGetDepth(pixm) != 1)
-        return ERROR_INT("pixm undefined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixm undefined or not 1 bpp", __func__, 1);
 
         /* Crop to the min size if necessary */
     if (pixCropToMatch(pixs, pixm, &pixs2, &pixm2)) {
         pixDestroy(&pixs2);
         pixDestroy(&pixm2);
-        return ERROR_INT("cropping failure", procName, 1);
+        return ERROR_INT("cropping failure", __func__, 1);
     }
 
         /* Find value and location of min value pixel in each component */
@@ -3434,14 +3382,12 @@ pixRemoveSeededComponents(PIX     *pixd,
 {
 PIX  *pixt;
 
-    PROCNAME("pixRemoveSeededComponents");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, pixd);
     if (!pixm || pixGetDepth(pixm) != 1)
-        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", procName, pixd);
+        return (PIX *)ERROR_PTR("pixm undefined or not 1 bpp", __func__, pixd);
     if (pixd && pixd != pixm)
-        return (PIX *)ERROR_PTR("operation not inplace", procName, pixd);
+        return (PIX *)ERROR_PTR("operation not inplace", __func__, pixd);
 
     pixt = pixCopy(NULL, pixs);
     pixSeedfillBinary(pixt, pixt, pixm, connectivity);

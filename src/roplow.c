@@ -47,6 +47,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -261,7 +265,7 @@ l_int32    i, j;
         }
         break;
     default:
-        fprintf(stderr, "Operation %d not permitted here!\n", op);
+        lept_stderr("Operation %d not permitted here!\n", op);
     }
 }
 
@@ -294,14 +298,14 @@ l_int32    dfwpartb;   /* boolean (1, 0) if first dest word is partial */
 l_int32    dfwpart2b;  /* boolean (1, 0) if first dest word is doubly partial */
 l_uint32   dfwmask;    /* mask for first partial dest word */
 l_int32    dfwbits;    /* first word dest bits in ovrhang */
-l_uint32  *pdfwpart;   /* ptr to first partial dest word */
+l_uint32  *pdfwpart = NULL;   /* ptr to first partial dest word */
 l_int32    dfwfullb;   /* boolean (1, 0) if there exists a full dest word */
 l_int32    dnfullw;    /* number of full words in dest */
-l_uint32  *pdfwfull;   /* ptr to first full dest word */
+l_uint32  *pdfwfull = NULL;   /* ptr to first full dest word */
 l_int32    dlwpartb;   /* boolean (1, 0) if last dest word is partial */
 l_uint32   dlwmask;    /* mask for last partial dest word */
 l_int32    dlwbits;    /* last word dest bits in ovrhang */
-l_uint32  *pdlwpart;   /* ptr to last partial dest word */
+l_uint32  *pdlwpart = NULL;   /* ptr to last partial dest word */
 l_int32    i, j;
 
 
@@ -443,7 +447,7 @@ l_int32    i, j;
         }
         break;
     default:
-        fprintf(stderr, "Operation %d not permitted here!\n", op);
+        lept_stderr("Operation %d not permitted here!\n", op);
     }
 }
 
@@ -472,7 +476,7 @@ l_int32    i, j;
  * \param[in]    sy     y val of UL corner of src rectangle
  * \return  void
  *
- *  Action: Scales width, performs clipping, checks alignment, and
+ *  Action: Scales width, performs clipping, checks alignment and
  *          dispatches for the rasterop.
  *
  *  Warning: the two images must have equal depth.  This is not checked.
@@ -498,7 +502,7 @@ rasteropLow(l_uint32  *datad,
 l_int32  dhangw, shangw, dhangh, shangh;
 
    /* -------------------------------------------------------*
-    *            scale horizontal dimensions by depth
+    *            Scale horizontal dimensions by depth        *
     * -------------------------------------------------------*/
     if (depth != 1) {
         dpixw *= depth;
@@ -508,11 +512,10 @@ l_int32  dhangw, shangw, dhangh, shangh;
         sx *= depth;
     }
 
-
    /* -------------------------------------------------------*
-    *      clip to max rectangle within both src and dest
+    *      Clip to max rectangle within both src and dest    *
     * -------------------------------------------------------*/
-       /* first, clip horizontally (sx, dx, dw) */
+       /* Clip horizontally (sx, dx, dw) */
     if (dx < 0) {
         sx -= dx;  /* increase sx */
         dw += dx;  /* reduce dw */
@@ -530,7 +533,7 @@ l_int32  dhangw, shangw, dhangh, shangh;
     if (shangw > 0)
         dw -= shangw;  /* reduce dw */
 
-       /* then, clip vertically (sy, dy, dh) */
+       /* Clip vertically (sy, dy, dh) */
     if (dy < 0) {
         sy -= dy;  /* increase sy */
         dh += dy;  /* reduce dh */
@@ -548,12 +551,17 @@ l_int32  dhangw, shangw, dhangh, shangh;
     if (shangh > 0)
         dh -= shangh;  /* reduce dh */
 
-        /* if clipped entirely, quit */
+        /* If clipped entirely, quit */
     if ((dw <= 0) || (dh <= 0))
         return;
 
+#if 0
+    lept_stderr("dx = %d, dy = %d, dw = %d, dh = %d, sx = %d, sy = %d\n",
+                dx, dy, dw, dh, sx, sy);
+#endif
+
    /* -------------------------------------------------------*
-    *       dispatch to aligned or non-aligned blitters
+    *       Dispatch to aligned or non-aligned blitters      *
     * -------------------------------------------------------*/
     if (((dx & 31) == 0) && ((sx & 31) == 0))
         rasteropWordAlignedLow(datad, dwpl, dx, dy, dw, dh, op,
@@ -789,7 +797,7 @@ l_int32    i, j;
         }
         break;
     default:
-        fprintf(stderr, "Operation %d invalid\n", op);
+        lept_stderr("Operation %d invalid\n", op);
     }
 }
 
@@ -835,17 +843,17 @@ l_int32    dfwpartb;   /* boolean (1, 0) if first dest word is partial */
 l_int32    dfwpart2b;  /* boolean (1, 0) if first dest word is doubly partial */
 l_uint32   dfwmask;    /* mask for first partial dest word */
 l_int32    dfwbits;    /* first word dest bits in ovrhang */
-l_uint32  *pdfwpart;   /* ptr to first partial dest word */
-l_uint32  *psfwpart;   /* ptr to first partial src word */
+l_uint32  *pdfwpart = NULL;   /* ptr to first partial dest word */
+l_uint32  *psfwpart = NULL;   /* ptr to first partial src word */
 l_int32    dfwfullb;   /* boolean (1, 0) if there exists a full dest word */
 l_int32    dnfullw;    /* number of full words in dest */
-l_uint32  *pdfwfull;   /* ptr to first full dest word */
-l_uint32  *psfwfull;   /* ptr to first full src word */
+l_uint32  *pdfwfull = NULL;   /* ptr to first full dest word */
+l_uint32  *psfwfull = NULL;   /* ptr to first full src word */
 l_int32    dlwpartb;   /* boolean (1, 0) if last dest word is partial */
 l_uint32   dlwmask;    /* mask for last partial dest word */
 l_int32    dlwbits;    /* last word dest bits in ovrhang */
-l_uint32  *pdlwpart;   /* ptr to last partial dest word */
-l_uint32  *pslwpart;   /* ptr to last partial src word */
+l_uint32  *pdlwpart = NULL;   /* ptr to last partial dest word */
+l_uint32  *pslwpart = NULL;   /* ptr to last partial src word */
 l_int32    i, j;
 
 
@@ -1285,7 +1293,7 @@ l_int32    i, j;
         }
         break;
     default:
-        fprintf(stderr, "Operation %x invalid\n", op);
+        lept_stderr("Operation %x invalid\n", op);
     }
 }
 
@@ -1326,15 +1334,26 @@ l_int32    i, j;
  *  two separate cases, depending on whether the src pixels
  *  are shifted left or right.  If the src overhang is
  *  larger than the dest overhang, the src is shifted to
- *  the right, a number of pixels equal to the shift are
+ *  the right, and a number of pixels equal to the shift are
  *  left over for filling the next dest word, if necessary.
- *  But if the dest overhang is larger than the src,
- *  the src is shifted to the left, and it may also be
- *  necessary to shift an equal number of pixels in from
- *  the next src word.  However, in both cases, after
- *  the first partial or complete dest word has been
- *  filled, the next src pixels will come from a left
- *  shift that exhausts the pixels in the src word.
+ *
+ *  But if the dest overhang is larger than the src overhang,
+ *  the src is shifted to the left, and depending on the width of
+ *  transferred pixels, it may also be necessary to shift pixels
+ *  in from the next src word, in order to fill the dest word.
+ *  An interesting case is where the src overhang equals the width,
+ *  dw, of the block.  Then all the pixels necessary to fill the first
+ *  dest word can be taken from the first src word, up to the last
+ *  src pixel in the word, and no pixels from the next src word are
+ *  required.  Consider this simple example, where a single pixel from
+ *  the src is transferred to the dest:
+ *     pix1 = pixCreate(32, 1, 1);
+ *     pix2 = pixCreate(32, 1, 1);
+ *     pixRasterop(pix1, 30, 0, 1, 1, PIX_SRC, pix2, 31, 0);
+ *  Here, the pixel at the right end of the src image (sx = 31)
+ *  is shifted one bit to the left (to dx = 30).  The width (1) equals
+ *  the src overhang (1), and no pixels from the next word are required.
+ *  (This must be true because there is only one src word.)
  */
 static void
 rasteropGeneralLow(l_uint32  *datad,
@@ -1355,17 +1374,17 @@ l_uint32   dfwmask;     /* mask for first partial dest word                  */
 l_int32    dfwbits;     /* first word dest bits in overhang; 0-31            */
 l_int32    dhang;       /* dest overhang in first partial word,              */
                         /* or 0 if dest is word aligned (same as dfwbits)    */
-l_uint32  *pdfwpart;    /* ptr to first partial dest word                    */
-l_uint32  *psfwpart;    /* ptr to first partial src word                     */
+l_uint32  *pdfwpart = NULL;    /* ptr to first partial dest word                    */
+l_uint32  *psfwpart = NULL;    /* ptr to first partial src word                     */
 l_int32    dfwfullb;    /* boolean (1, 0) if there exists a full dest word   */
 l_int32    dnfullw;     /* number of full words in dest                      */
-l_uint32  *pdfwfull;    /* ptr to first full dest word                       */
-l_uint32  *psfwfull;    /* ptr to first full src word                        */
+l_uint32  *pdfwfull = NULL;    /* ptr to first full dest word                       */
+l_uint32  *psfwfull = NULL;    /* ptr to first full src word                        */
 l_int32    dlwpartb;    /* boolean (1, 0) if last dest word is partial       */
 l_uint32   dlwmask;     /* mask for last partial dest word                   */
 l_int32    dlwbits;     /* last word dest bits in ovrhang                    */
-l_uint32  *pdlwpart;    /* ptr to last partial dest word                     */
-l_uint32  *pslwpart;    /* ptr to last partial src word                      */
+l_uint32  *pdlwpart = NULL;    /* ptr to last partial dest word                     */
+l_uint32  *pslwpart = NULL;    /* ptr to last partial src word                      */
 l_uint32   sword;       /* compose src word aligned with the dest words      */
 l_int32    sfwbits;     /* first word src bits in overhang (1-32),           */
                         /* or 32 if src is word aligned                      */
@@ -1403,6 +1422,9 @@ l_int32    i, j;
         dhang = 0;
     else
         dhang = 32 - (dx & 31);
+#if 0
+    lept_stderr("shang = %d, dhang = %d\n", shang, dhang);
+#endif
 
     if (shang == 0 && dhang == 0) {  /* this should be treated by an
                                         aligned operation, not by
@@ -1419,7 +1441,11 @@ l_int32    i, j;
         srightmask = rmask32[sleftshift];
     }
 
-        /* is the first dest word partial? */
+#if 0
+    lept_stderr("sleftshift = %d, srightshift = %d\n", sleftshift, srightshift);
+#endif
+
+        /* Is the first dest word partial? */
     dfwmask = 0;
     if ((dx & 31) == 0) {  /* if not */
         dfwpartb = 0;
@@ -1432,17 +1458,18 @@ l_int32    i, j;
         psfwpart = datas + swpl * sy + (sx >> 5);
         sfwbits = 32 - (sx & 31);
         if (dfwbits > sfwbits) {
-            sfwshiftdir = SHIFT_LEFT;  /* and shift by sleftshift */
-            if (dw < shang)
-                sfwaddb = 0;
+            sfwshiftdir = SHIFT_LEFT;  /* shift by sleftshift */
+                /* Do we have enough bits from the current src word? */
+            if (dw <= shang)
+                sfwaddb = 0;  /* yes: we have enough bits */
             else
-                sfwaddb = 1;   /* and rshift in next src word by srightshift */
+                sfwaddb = 1;  /* no: rshift in next src word by srightshift */
         } else {
-            sfwshiftdir = SHIFT_RIGHT;  /* and shift by srightshift */
+            sfwshiftdir = SHIFT_RIGHT;  /* shift by srightshift */
         }
     }
 
-        /* is the first dest word doubly partial? */
+        /* Is the first dest word doubly partial? */
     if (dw >= dfwbits) {  /* if not */
         dfwpart2b = 0;
     } else {  /* if so */
@@ -1450,7 +1477,7 @@ l_int32    i, j;
         dfwmask &= lmask32[32 - dfwbits + dw];
     }
 
-        /* is there a full dest word? */
+        /* Is there a full dest word? */
     if (dfwpart2b == 1) {  /* not */
         dfwfullb = 0;
         dnfullw = 0;
@@ -1465,7 +1492,7 @@ l_int32    i, j;
         }
     }
 
-        /* is the last dest word partial? */
+        /* Is the last dest word partial? */
     dlwbits = (dx + dw) & 31;
     if (dfwpart2b == 1 || dlwbits == 0) {  /* if not */
         dlwpartb = 0;
@@ -1477,7 +1504,7 @@ l_int32    i, j;
         if (dlwbits <= srightshift)   /* must be <= here !!! */
             slwaddb = 0;  /* we got enough bits from current src word */
         else
-            slwaddb = 1;   /* must rshift in next src word by srightshift */
+            slwaddb = 1;  /* must rshift in next src word by srightshift */
     }
 
 
@@ -2108,7 +2135,7 @@ l_int32    i, j;
         }
         break;
     default:
-        fprintf(stderr, "Operation %x invalid\n", op);
+        lept_stderr("Operation %x invalid\n", op);
     }
 }
 
@@ -2156,17 +2183,17 @@ l_int32    fwpartb;    /* boolean (1, 0) if first word is partial */
 l_int32    fwpart2b;   /* boolean (1, 0) if first word is doubly partial */
 l_uint32   fwmask;     /* mask for first partial word */
 l_int32    fwbits;     /* first word bits in ovrhang */
-l_uint32  *pdfwpart;   /* ptr to first partial dest word */
-l_uint32  *psfwpart;   /* ptr to first partial src word */
+l_uint32  *pdfwpart = NULL;   /* ptr to first partial dest word */
+l_uint32  *psfwpart = NULL;   /* ptr to first partial src word */
 l_int32    fwfullb;    /* boolean (1, 0) if there exists a full word */
 l_int32    nfullw;     /* number of full words */
-l_uint32  *pdfwfull;   /* ptr to first full dest word */
-l_uint32  *psfwfull;   /* ptr to first full src word */
+l_uint32  *pdfwfull = NULL;   /* ptr to first full dest word */
+l_uint32  *psfwfull = NULL;   /* ptr to first full src word */
 l_int32    lwpartb;    /* boolean (1, 0) if last word is partial */
 l_uint32   lwmask;     /* mask for last partial word */
 l_int32    lwbits;     /* last word bits in ovrhang */
-l_uint32  *pdlwpart;   /* ptr to last partial dest word */
-l_uint32  *pslwpart;   /* ptr to last partial src word */
+l_uint32  *pdlwpart = NULL;   /* ptr to last partial dest word */
+l_uint32  *pslwpart = NULL;   /* ptr to last partial src word */
 l_int32    dirwpl;     /* directed wpl (-wpl * sign(shift)) */
 l_int32    absshift;   /* absolute value of shift; for use in iterator */
 l_int32    vlimit;     /* vertical limit value for iterations */

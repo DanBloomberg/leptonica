@@ -41,26 +41,29 @@
  *   No scaling is done if @scalefact == 0.0 or @scalefact == 1.0.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
 int main(int    argc,
          char **argv)
 {
-char         buf[32];
-char        *fileout, *textstr;
-l_int32      n, i, same, maxd, ntext, border, lossless, display, showtext;
-l_float32    scalefact;
-L_BMF       *bmf;
-PIX         *pix1, *pix2, *pix3, *pix4, *pixd;
-PIXA        *pixa, *pixad;
-static char  mainName[] = "displaypixa";
+char       buf[32];
+char      *fileout, *textstr;
+l_int32    n, i, same, maxd, ntext, border, lossless, display, showtext;
+l_float32  scalefact;
+L_BMF     *bmf;
+PIX       *pix1, *pix2, *pix3, *pix4, *pixd;
+PIXA      *pixa, *pixad;
 
     if (argc != 4 && argc != 8) {
-        fprintf(stderr, "Syntax error in displaypixa:\n"
-           "   displaypixa filein fileout showtext\n"
-           "   displaypixa filein scalefact border"
-                 " lossless disp fileout showtext\n");
+        lept_stderr("Syntax error in displaypixa:\n"
+                    "   displaypixa filein fileout showtext\n"
+                    "   displaypixa filein scalefact border"
+                    " lossless disp fileout showtext\n");
          return 1;
     }
     setLeptDebugOK(1);
@@ -132,7 +135,7 @@ static char  mainName[] = "displaypixa";
     fileout = argv[6];
     showtext = atoi(argv[7]);
     if (showtext && ntext == 0)
-        L_INFO("No text found in any of the pix\n", mainName);
+        L_INFO("No text found in any of the pix\n", __func__);
     bmf = (showtext && ntext > 0) ?  bmfCreate(NULL, 10) : NULL;
     n = pixaGetCount(pixa);
     pixad = pixaCreate(n);

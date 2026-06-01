@@ -35,20 +35,23 @@
  *   Downscaling uses area mapping to avoid moire.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
          char **argv)
 {
-PIX         *pixs;
-char        *filein;
-static char  mainName[] = "displaypix";
+PIX   *pixs;
+char  *filein;
 
     if (argc != 2)
-        return ERROR_INT(" Syntax: displaypix filein", mainName, 1);
+        return ERROR_INT(" Syntax: displaypix filein", __func__, 1);
     filein = argv[1];
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
     setLeptDebugOK(1);
     pixDisplay(pixs, 20, 20);

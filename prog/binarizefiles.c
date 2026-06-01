@@ -32,6 +32,10 @@
  *    The resolution is preserved.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "string.h"
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -40,16 +44,15 @@
 l_int32 main(int    argc,
              char **argv)
 {
-char         buf[256], dirname[256];
-char        *dirin, *pattern, *subdirout, *fname, *tail, *basename;
-l_int32      thresh, i, n;
-l_float32    scalefactor;
-PIX         *pix1, *pix2, *pix3, *pix4;
-SARRAY      *sa;
-static char  mainName[] = "binarizefiles.c";
+char       buf[512], dirname[256];
+char      *dirin, *pattern, *subdirout, *fname, *tail, *basename;
+l_int32    thresh, i, n;
+l_float32  scalefactor;
+PIX       *pix1, *pix2, *pix3, *pix4;
+SARRAY    *sa;
 
     if (argc != 6) {
-        fprintf(stderr,
+        lept_stderr(
             "Syntax: binarizefiles dirin pattern thresh scalefact dirout\n"
             "      dirin: input directory for image files\n"
             "      pattern: use 'allfiles' to convert all files\n"
@@ -67,7 +70,7 @@ static char  mainName[] = "binarizefiles.c";
     if (!strcmp(pattern, "allfiles"))
               pattern = NULL;
     if (scalefactor <= 0.0 || scalefactor > 4.0) {
-        L_WARNING("invalid scalefactor: setting to 1.0\n", mainName);
+        L_WARNING("invalid scalefactor: setting to 1.0\n", __func__);
         scalefactor = 1.0;
     }
 
@@ -75,17 +78,18 @@ static char  mainName[] = "binarizefiles.c";
 
         /* Get the input filenames */
     sa = getSortedPathnamesInDirectory(dirin, pattern, 0, 0);
-    sarrayWriteStream(stderr, sa);
+    sarrayWriteStderr(sa);
     n = sarrayGetCount(sa);
 
         /* Write the output files */
     makeTempDirname(dirname, 256, subdirout);
-    fprintf(stderr, "dirname: %s\n", dirname);
+    lept_stderr("dirname: %s\n", dirname);
+    lept_rmdir(subdirout);
     lept_mkdir(subdirout);
     for (i = 0; i < n; i++) {
         fname = sarrayGetString(sa, i, L_NOCOPY);
         if ((pix1 = pixRead(fname)) == NULL) {
-            L_ERROR("file %s not read as image", mainName, fname);
+            L_ERROR("file %s not read as image", __func__, fname);
             continue;
         }
         splitPathAtDirectory(fname, NULL, &tail);
@@ -93,7 +97,7 @@ static char  mainName[] = "binarizefiles.c";
         snprintf(buf, sizeof(buf), "%s/%s.tif", dirname, basename);
         lept_free(tail);
         lept_free(basename);
-        fprintf(stderr, "fileout: %s\n", buf);
+        lept_stderr("fileout: %s\n", buf);
         if (scalefactor != 1.0)
             pix2 = pixScale(pix1, scalefactor, scalefactor);
         else

@@ -32,11 +32,19 @@
  *   in the process.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   DO_QUAD     1
 #define   DO_CUBIC    0
 #define   DO_QUARTIC  0
+
+    /* Default LSF is quadratic on left and right edges.
+     * Set to 1 for linear LSF. */
+#define   LINEAR_FIT_ON_EDGES    0
 
 l_int32 main(int    argc,
              char **argv)
@@ -48,6 +56,8 @@ PIX        *pixs2, *pixn2, *pixg2, *pixb2, *pixd2;
 
     setLeptDebugOK(1);
     lept_mkdir("lept/model");
+    lept_rmdir("lept/dewmod");
+    lept_mkdir("lept/dewmod");
 
 /*    pixs = pixRead("1555.007.jpg"); */
     pixs = pixRead("cat.035.jpg");
@@ -60,6 +70,8 @@ PIX        *pixs2, *pixn2, *pixg2, *pixb2, *pixd2;
 
         /* Run the basic functions */
     dewa = dewarpaCreate(2, 30, 1, 10, 30);
+    if (LINEAR_FIT_ON_EDGES)
+        dewarpaSetCurvatures(dewa, -1, -1, -1, 0, -1, -1);
     dewarpaUseBothArrays(dewa, 1);
     dew1 = dewarpCreate(pixb, 35);
     dewarpaInsertDewarp(dewa, dew1);
@@ -154,10 +166,8 @@ PIX        *pixs2, *pixn2, *pixg2, *pixb2, *pixd2;
         /* Generate the big pdf file */
     convertFilesToPdf("/tmp/lept/dewtest", NULL, 135, 1.0, 0, 0, "Dewarp Test",
                       "/tmp/lept/dewarptest1.pdf");
-    fprintf(stderr, "pdf file made: /tmp/lept/model/dewarptest1.pdf\n");
+    lept_stderr("pdf file made: /tmp/lept/model/dewarptest1.pdf\n");
 
-    lept_rmdir("lept/dewmod");
-    lept_rmdir("lept/dewtest");
     pixDestroy(&pixs);
     pixDestroy(&pixn);
     pixDestroy(&pixg);

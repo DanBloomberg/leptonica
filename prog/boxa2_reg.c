@@ -35,6 +35,10 @@
  *  separating them into subsets of different parity.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 l_int32 main(int    argc,
@@ -87,8 +91,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 210, median_w_diff, 0.0);  /* 0 */
     regTestCompareValues(rp, 15, median_h_diff, 0.0);  /* 1 */
     if (rp->display) {
-        fprintf(stderr, "diff of e/o median widths = %d\n", median_w_diff);
-        fprintf(stderr, "diff of e/o median heights = %d\n", median_h_diff);
+        lept_stderr("diff of e/o median widths = %d\n", median_w_diff);
+        lept_stderr("diff of e/o median heights = %d\n", median_h_diff);
     }
 
         /* Find the differences of box width and height from the median */
@@ -129,8 +133,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 24, noutw, 0.0);  /* 2 */
     regTestCompareValues(rp, 0, nouth, 0.0);  /* 3 */
     if (rp->display)
-        fprintf(stderr, "num width outliers = %d, num height outliers = %d\n",
-                noutw, nouth);
+        lept_stderr("num width outliers = %d, num height outliers = %d\n",
+                    noutw, nouth);
     numaDestroy(&nadiffw);
     numaDestroy(&nadiffh);
     numaDestroy(&naiw);
@@ -138,10 +142,10 @@ L_REGPARAMS  *rp;
 
         /* Find the rank bins for width and height */
     nbins = L_MAX(5, ne / 50);  // up to 50 pages/bin
-    numaGetRankBinValues(nawe, nbins, NULL, &narbwe);
-    numaGetRankBinValues(nawo, nbins, NULL, &narbwo);
-    numaGetRankBinValues(nahe, nbins, NULL, &narbhe);
-    numaGetRankBinValues(naho, nbins, NULL, &narbho);
+    numaGetRankBinValues(nawe, nbins, &narbwe);
+    numaGetRankBinValues(nawo, nbins, &narbwo);
+    numaGetRankBinValues(nahe, nbins, &narbhe);
+    numaGetRankBinValues(naho, nbins, &narbho);
     numaDestroy(&nawe);
     numaDestroy(&nawo);
     numaDestroy(&nahe);
@@ -167,10 +171,10 @@ L_REGPARAMS  *rp;
     numaDestroy(&narbwo);
     numaDestroy(&narbho);
     regTestCompareValues(rp, 409, w_diff, 0.0);  /* 4 */
-    regTestCompareValues(rp, 49, h_diff, 0.0);  /* 5 */
+    regTestCompareValues(rp, 54, h_diff, 0.0);  /* 5 */
     if (rp->display)
-        fprintf(stderr, "Binned rank results: w_diff = %d, h_diff = %d\n",
-                w_diff, h_diff);
+        lept_stderr("Binned rank results: w_diff = %d, h_diff = %d\n",
+                    w_diff, h_diff);
 
         /* Plot the results */
     if (noutw > 0 || nouth > 0) {

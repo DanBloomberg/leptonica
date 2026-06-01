@@ -68,27 +68,33 @@
  *        Makefile, regnerate the prototypes, and recompile
  *        the libraries.  Look at the Makefile to see how I've
  *        included fhmtgen.1.c and fhmtgenlow.1.c.  These files
- *        provide the high-level interfaces for the hmt, and
- *        the low-level interfaces to do the actual work.
+ *        provide the single high-level interface for the hmt, and
+ *        the lower-level functions to do the actual work.
  *
  *    (4) In an application, you now use this interface.  Again
  *        for the example files generated, using integer "1":
  *
  *           PIX   *pixHMTDwa_1(PIX *pixd, PIX *pixs, const char *selname);
  *
- *              or
- *
- *           PIX   *pixFHMTGen_1(PIX *pixd, PIX *pixs, const char *selname);
- *
  *        where the selname is one of the set that were defined
  *        as the name field of sels.  This set is listed at the
  *        beginning of the file fhmtgen.1.c.
- *        As an example, see the file prog/fmtauto_reg.c, which
+ *
+ *        N.B. Although pixFHMTGen_1() is global, you must NOT
+ *        use it, because it assumes that 32 or 64 border pixels
+ *        have been added to each side, and it will crash without those
+ *        added pixels.
+ *
+ *        As an example, see the file prog/fhmtauto_reg.c, which
  *        verifies the correctness of the implementation by
  *        comparing the dwa result with that of full-image
  *        rasterops.
  * </pre>
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
 #include <string.h>
 #include "allheaders.h"
@@ -99,7 +105,7 @@
 
 #define   PROTOARGS   "(l_uint32 *, l_int32, l_int32, l_int32, l_uint32 *, l_int32);"
 
-static const l_int32  L_BUF_SIZE = 512;
+#define L_BUF_SIZE 512
 
 static char * makeBarrelshiftString(l_int32 delx, l_int32 dely, l_int32 type);
 static SARRAY * sarrayMakeInnerLoopDWACode(SEL *sel, l_int32 nhits, l_int32 nmisses);
@@ -210,14 +216,12 @@ fhmtautogen(SELA        *sela,
 {
 l_int32  ret1, ret2;
 
-    PROCNAME("fhmtautogen");
-
     if (!sela)
-        return ERROR_INT("sela not defined", procName, 1);
+        return ERROR_INT("sela not defined", __func__, 1);
     ret1 = fhmtautogen1(sela, fileindex, filename);
     ret2 = fhmtautogen2(sela, fileindex, filename);
     if (ret1 || ret2)
-        return ERROR_INT("code generation problem", procName, 1);
+        return ERROR_INT("code generation problem", __func__, 1);
     return 0;
 }
 
@@ -260,22 +264,20 @@ l_int32  i, nsels, nbytes, actstart, end, newstart;
 size_t   size;
 SARRAY  *sa1, *sa2, *sa3;
 
-    PROCNAME("fhmtautogen1");
-
     if (!sela)
-        return ERROR_INT("sela not defined", procName, 1);
+        return ERROR_INT("sela not defined", __func__, 1);
     if (fileindex < 0)
         fileindex = 0;
     if ((nsels = selaGetCount(sela)) == 0)
-        return ERROR_INT("no sels in sela", procName, 1);
+        return ERROR_INT("no sels in sela", __func__, 1);
 
         /* Make array of textlines from from hmttemplate1.txt */
     if ((filestr = (char *)l_binaryRead(TEMPLATE1, &size)) == NULL)
-        return ERROR_INT("filestr not made", procName, 1);
+        return ERROR_INT("filestr not made", __func__, 1);
     sa2 = sarrayCreateLinesFromString(filestr, 1);
     LEPT_FREE(filestr);
     if (!sa2)
-        return ERROR_INT("sa2 not made", procName, 1);
+        return ERROR_INT("sa2 not made", __func__, 1);
 
         /* Make array of sel names */
     sa1 = selaGetSelnames(sela);
@@ -444,27 +446,25 @@ size_t   size;
 SARRAY  *sa1, *sa2, *sa3, *sa4, *sa5, *sa6;
 SEL     *sel;
 
-    PROCNAME("fhmtautogen2");
-
     if (!sela)
-        return ERROR_INT("sela not defined", procName, 1);
+        return ERROR_INT("sela not defined", __func__, 1);
     if (fileindex < 0)
         fileindex = 0;
     if ((nsels = selaGetCount(sela)) == 0)
-        return ERROR_INT("no sels in sela", procName, 1);
+        return ERROR_INT("no sels in sela", __func__, 1);
 
         /* Make the array of textlines from hmttemplate2.txt */
     if ((filestr = (char *)l_binaryRead(TEMPLATE2, &size)) == NULL)
-        return ERROR_INT("filestr not made", procName, 1);
+        return ERROR_INT("filestr not made", __func__, 1);
     sa1 = sarrayCreateLinesFromString(filestr, 1);
     LEPT_FREE(filestr);
     if (!sa1)
-        return ERROR_INT("sa1 not made", procName, 1);
+        return ERROR_INT("sa1 not made", __func__, 1);
 
         /* Make the array of static function names */
     if ((sa2 = sarrayCreate(nsels)) == NULL) {
         sarrayDestroy(&sa1);
-        return ERROR_INT("sa2 not made", procName, 1);
+        return ERROR_INT("sa2 not made", __func__, 1);
     }
     for (i = 0; i < nsels; i++) {
         sprintf(bigbuf, "fhmt_%d_%d", fileindex, i);
@@ -508,7 +508,7 @@ SEL     *sel;
             sarrayDestroy(&sa2);
             sarrayDestroy(&sa3);
             sarrayDestroy(&sa4);
-            return ERROR_INT("linestr not retrieved", procName, 1);
+            return ERROR_INT("linestr not retrieved", __func__, 1);
         }
         sarrayAddString(sa4, linestr, L_INSERT);
     }
@@ -567,7 +567,7 @@ SEL     *sel;
             sarrayDestroy(&sa2);
             sarrayDestroy(&sa3);
             sarrayDestroy(&sa4);
-            return ERROR_INT("sel not returned", procName, 1);
+            return ERROR_INT("sel not returned", __func__, 1);
         }
         sa5 = sarrayMakeWplsCode(sel);
         sarrayJoin(sa4, sa5);
@@ -585,7 +585,8 @@ SEL     *sel;
             }
         }
         if (nhits == 0) {
-            linestr = stringNew("    fprintf(stderr, \"Error in HMT: no hits in sel!\\n\");\n}\n\n");
+            linestr = stringNew("    "
+                "lept_stderr(\"Error in HMT: no hits in sel!\\n\");\n}\n\n");
             sarrayAddString(sa4, linestr, L_INSERT);
             continue;
         }
@@ -599,7 +600,7 @@ SEL     *sel;
             sarrayDestroy(&sa2);
             sarrayDestroy(&sa3);
             sarrayDestroy(&sa4);
-            return ERROR_INT("sa6 not made", procName, 1);
+            return ERROR_INT("sa6 not made", __func__, 1);
         }
         sarrayJoin(sa4, sa6);
         sarrayDestroy(&sa6);
@@ -639,10 +640,8 @@ char     emptystring[] = "";
 l_int32  i, j, ymax, dely;
 SARRAY  *sa;
 
-    PROCNAME("sarrayMakeWplsCode");
-
     if (!sel)
-        return (SARRAY *)ERROR_PTR("sel not defined", procName, NULL);
+        return (SARRAY *)ERROR_PTR("sel not defined", __func__, NULL);
 
     ymax = 0;
     for (i = 0; i < sel->sy; i++) {
@@ -654,7 +653,7 @@ SARRAY  *sa;
         }
     }
     if (ymax > 31) {
-        L_WARNING("ymax > 31; truncating to 31\n", procName);
+        L_WARNING("ymax > 31; truncating to 31\n", __func__);
         ymax = 31;
     }
 
@@ -702,10 +701,8 @@ char     bigbuf[L_BUF_SIZE];
 l_int32  i, j, ntot, nfound, type, delx, dely;
 SARRAY  *sa;
 
-    PROCNAME("sarrayMakeInnerLoopDWACode");
-
     if (!sel)
-        return (SARRAY *)ERROR_PTR("sel not defined", procName, NULL);
+        return (SARRAY *)ERROR_PTR("sel not defined", __func__, NULL);
 
     sa = sarrayCreate(0);
     ntot = nhits + nmisses;
@@ -719,7 +716,7 @@ SARRAY  *sa;
                 delx = j - sel->cx;
                 if ((string = makeBarrelshiftString(delx, dely, type))
                         == NULL) {
-                    L_WARNING("barrel shift string not made\n", procName);
+                    L_WARNING("barrel shift string not made\n", __func__);
                     continue;
                 }
                 if (ntot == 1)  /* just one item */
@@ -751,12 +748,10 @@ makeBarrelshiftString(l_int32  delx,    /* j - cx */
 l_int32  absx, absy;
 char     bigbuf[L_BUF_SIZE];
 
-    PROCNAME("makeBarrelshiftString");
-
     if (delx < -31 || delx > 31)
-        return (char *)ERROR_PTR("delx out of bounds", procName, NULL);
+        return (char *)ERROR_PTR("delx out of bounds", __func__, NULL);
     if (dely < -31 || dely > 31)
-        return (char *)ERROR_PTR("dely out of bounds", procName, NULL);
+        return (char *)ERROR_PTR("dely out of bounds", __func__, NULL);
     absx = L_ABS(delx);
     absy = L_ABS(dely);
 

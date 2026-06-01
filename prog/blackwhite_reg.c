@@ -30,6 +30,10 @@
  *   Tests functions that handle black and white pixels in an image.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 const char *fnames[11] = {"test1.png", "speckle2.png", "weasel2.4g.png",
@@ -59,7 +63,7 @@ L_REGPARAMS  *rp;
         spp = pixGetSpp(pixs);
         pixGetBlackOrWhiteVal(pixs, L_GET_WHITE_VAL, &wval);
         pixGetBlackOrWhiteVal(pixs, L_GET_BLACK_VAL, &bval);
-        fprintf(stderr, "d = %d, spp = %d, bval = %x, wval = %x\n",
+        lept_stderr("d = %d, spp = %d, bval = %x, wval = %x\n",
                 pixGetDepth(pixs), spp, bval, wval);
         if (spp == 4)  /* remove alpha, using white background */
             pix1 = pixAlphaBlendUniform(pixs, wval);
@@ -86,7 +90,7 @@ L_REGPARAMS  *rp;
         spp = pixGetSpp(pixs);
         pixGetBlackOrWhiteVal(pixs, L_GET_WHITE_VAL, &wval);
         pixGetBlackOrWhiteVal(pixs, L_GET_BLACK_VAL, &bval);
-        fprintf(stderr, "d = %d, spp = %d, bval = %x, wval = %x\n",
+        lept_stderr("d = %d, spp = %d, bval = %x, wval = %x\n",
                 pixGetDepth(pixs), spp, bval, wval);
         if (spp == 4)  /* remove alpha, using white background */
             pix1 = pixAlphaBlendUniform(pixs, wval);

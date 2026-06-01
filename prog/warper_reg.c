@@ -28,6 +28,10 @@
  *   warper_reg.c
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -67,7 +71,7 @@ L_REGPARAMS  *rp;
             newline = (i % 10 == 0) ? 1 : 0;
             DisplayResult(pixac, &pixd, newline);
         }
-        pixd = pixaDisplay(pixac, 0, 0);
+        pixd = pixaDisplayTiledInColumns(pixac, 10, 1.0, 20, 0);
         regTestWritePixAndCheck(rp, pixd, IFF_PNG);
         pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
         pixaDestroy(&pixac);
@@ -83,7 +87,7 @@ L_REGPARAMS  *rp;
             newline = (i % 10 == 0) ? 1 : 0;
             DisplayCaptcha(pixac, pixs, k, 7 * i, newline);
         }
-        pixd = pixaDisplay(pixac, 0, 0);
+        pixd = pixaDisplayTiledInColumns(pixac, 10, 1.0, 20, 0);
         regTestWritePixAndCheck(rp, pixd, IFF_PNG);
         pixDisplayWithTitle(pixd, 100, 100, NULL, rp->display);
         pixaDestroy(&pixac);
@@ -108,8 +112,7 @@ PIX      *pix1;
             ((rand() >> 16) & 0xff) << L_GREEN_SHIFT |
             ((rand() >> 16) & 0xff) << L_BLUE_SHIFT;
     pix1 = pixColorizeGray(*ppixd, color, 0);
-    pixSaveTiled(pix1, pixac, 1.0, newline, 20, 32);
-    pixDestroy(&pix1);
+    pixaAddPix(pixac, pix1, L_INSERT);
     pixDestroy(ppixd);
     return;
 }
@@ -130,7 +133,6 @@ PIX      *pixd;
             ((rand() >> 16) & 0xff) << L_GREEN_SHIFT |
             ((rand() >> 16) & 0xff) << L_BLUE_SHIFT;
     pixd = pixSimpleCaptcha(pixs, 25, nterms, seed, color, 0);
-    pixSaveTiled(pixd, pixac, 1.0, newline, 20, 32);
-    pixDestroy(&pixd);
+    pixaAddPix(pixac, pixd, L_INSERT);
     return;
 }

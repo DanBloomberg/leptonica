@@ -111,11 +111,16 @@ enum {
     IFF_SPIX           = 19
 };
 
+/* Convenient macro for checking requested tiff output */
+#define  L_FORMAT_IS_TIFF(f)  ((f) == IFF_TIFF || (f) == IFF_TIFF_PACKBITS || \
+                               (f) == IFF_TIFF_RLE || (f) == IFF_TIFF_G3 || \
+                               (f) == IFF_TIFF_G4 || (f) == IFF_TIFF_LZW || \
+                               (f) == IFF_TIFF_ZIP || (f) == IFF_TIFF_JPEG)
+
 
 /* --------------------------------------------------------------- *
  *                         Format header ids                       *
  * --------------------------------------------------------------- */
-
 /*! Header Ids */
 enum {
     BMP_ID             = 0x4d42,     /*!< BM - for bitmaps    */
@@ -127,18 +132,27 @@ enum {
 /* --------------------------------------------------------------- *
  *                Hinting bit flags in jpeg reader                 *
  * --------------------------------------------------------------- */
-
 /*! Jpeg Hints */
+/* The default behavior is now to fail on data corruption. */
 enum {
-    L_JPEG_READ_LUMINANCE = 1,   /*!< only want luminance data; no chroma */
-    L_JPEG_FAIL_ON_BAD_DATA = 2  /*!< don't return possibly damaged pix */
+    L_JPEG_READ_LUMINANCE = 1,    /*!< only want luminance data; no chroma */
+    L_JPEG_CONTINUE_WITH_BAD_DATA = 2  /*!< return possibly damaged pix */
+};
+
+
+/* --------------------------------------------------------------- *
+ *                            Jp2k codecs                          *
+ * --------------------------------------------------------------- */
+/*! Jp2k Codecs */
+enum {
+    L_J2K_CODEC = 1,    /*!< codestream                 */
+    L_JP2_CODEC = 2     /*!< file format with 'ihdr'    */
 };
 
 
 /* --------------------------------------------------------------- *
  *                    Pdf formatted encoding types                 *
  * --------------------------------------------------------------- */
-
 /*! Pdf Encoding */
 enum {
     L_DEFAULT_ENCODE  = 0,  /*!< use default encoding based on image        */
@@ -189,7 +203,6 @@ typedef struct L_Compressed_Data  L_COMP_DATA;
 /* ------------------------------------------------------------------------- *
  *                           Pdf multi image flags                           *
  * ------------------------------------------------------------------------- */
-
 /*! Pdf MultiImage */
 enum {
     L_FIRST_IMAGE   = 1,    /*!< first image to be used                      */
@@ -233,6 +246,5 @@ struct L_Pdf_Data
     l_int32            xrefloc;      /*!< location of xref                    */
 };
 typedef struct L_Pdf_Data  L_PDF_DATA;
-
 
 #endif  /* LEPTONICA_IMAGEIO_H */

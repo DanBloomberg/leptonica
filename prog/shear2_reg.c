@@ -30,6 +30,10 @@
  *    Regression test for quadratic shear, both sampled and interpolated.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 void PixSave(PIX **ppixs, PIXA *pixa, l_int32 newrow,
@@ -43,6 +47,11 @@ L_BMF        *bmf;
 PIX          *pixs1, *pixs2, *pixg, *pixt, *pixd;
 PIXA         *pixa;
 L_REGPARAMS  *rp;
+
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "shear2_reg");
+    exit(77);
+#endif
 
     if (regTestSetup(argc, argv, &rp))
         return 1;
@@ -79,7 +88,7 @@ L_REGPARAMS  *rp;
     pixt = pixQuadraticVShear(pixs1, L_WARP_TO_RIGHT,
                                    60, -20, L_INTERPOLATED, L_BRING_IN_WHITE);
     PixSave(&pixt, pixa, 0, bmf, "interpolated-right");
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 2, 1.0, 20, 0);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);
     pixDisplayWithTitle(pixd, 50, 50, NULL, rp->display);
     pixDestroy(&pixd);
@@ -100,7 +109,7 @@ L_REGPARAMS  *rp;
     pixt = pixQuadraticVShear(pixg, L_WARP_TO_RIGHT,
                                    60, -20, L_INTERPOLATED, L_BRING_IN_WHITE);
     PixSave(&pixt, pixa, 0, bmf, "interpolated-right");
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 2, 1.0, 20, 0);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);
     pixDisplayWithTitle(pixd, 250, 50, NULL, rp->display);
     pixDestroy(&pixg);
@@ -121,7 +130,7 @@ L_REGPARAMS  *rp;
     pixt = pixQuadraticVShear(pixs2, L_WARP_TO_RIGHT,
                               120, -40, L_INTERPOLATED, L_BRING_IN_WHITE);
     PixSave(&pixt, pixa, 0, bmf, "interpolated-right");
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 2, 1.0, 20, 0);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);
     pixDisplayWithTitle(pixd, 550, 50, NULL, rp->display);
     pixDestroy(&pixd);
@@ -142,7 +151,7 @@ L_REGPARAMS  *rp;
     pixt = pixQuadraticVShear(pixg, L_WARP_TO_RIGHT,
                               60, -20, L_INTERPOLATED, L_BRING_IN_WHITE);
     PixSave(&pixt, pixa, 0, bmf, "interpolated-right");
-    pixd = pixaDisplay(pixa, 0, 0);
+    pixd = pixaDisplayTiledInColumns(pixa, 2, 1.0, 20, 0);
     regTestWritePixAndCheck(rp, pixd, IFF_PNG);
     pixDisplayWithTitle(pixd, 850, 50, NULL, rp->display);
     pixDestroy(&pixg);
@@ -163,15 +172,14 @@ PixSave(PIX        **ppixs,
         L_BMF       *bmf,
         const char  *textstr)
 {
-    PROCNAME("PixSave");
-    if (!ppixs || !(*ppixs)) {
-        L_ERROR("pixs not defined\n", procName);
-        return;
-    }
+PIX  *pix1, *pix2, *pix3;
 
-        /* Scaling is done after adding border pixels.  Therefore, to
-         * avoid rescaling, add twice the border pixels to the target width */
-    pixSaveTiledWithText(*ppixs, pixa, pixGetWidth(*ppixs) + 6,
-                         newrow, 20, 3, bmf, textstr, 0xff000000, L_ADD_BELOW);
+    pix1 = pixConvertTo32(*ppixs);
+    pix2 = pixAddBorder(pix1, 3, 0);
+    pix3 = pixAddSingleTextblock(pix2, bmf, textstr, 0xff000000, L_ADD_BELOW,
+                                 NULL);
+    pixaAddPix(pixa, pix3, L_INSERT);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
     pixDestroy(ppixs);
 }

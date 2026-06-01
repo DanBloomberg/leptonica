@@ -31,6 +31,7 @@
  *       ------------------------------------------
  *       This file has these utilities:
  *         - error, warning and info messages
+ *         - redirection of stderr
  *         - low-level endian conversions
  *         - file corruption operations
  *         - random and prime number operations
@@ -46,6 +47,13 @@
  *           l_int32    returnErrorInt()
  *           l_float32  returnErrorFloat()
  *           void      *returnErrorPtr()
+ *           l_int32    returnErrorInt1()
+ *           l_float32  returnErrorFloat1()
+ *           void      *returnErrorPtr1()
+ *
+ *       Runtime redirection of stderr
+ *           void leptSetStderrHandler()
+ *           void lept_stderr()
  *
  *       Test files for equivalence
  *           l_int32    filesAreIdentical()
@@ -61,14 +69,17 @@
  *           l_int32    fileCorruptByMutation()
  *           l_int32    fileReplaceBytes()
  *
- *       Generate random integer in given range
- *           l_int32    genRandomIntegerInRange()
+ *       Generate random integer in given interval
+ *           l_int32    genRandomIntOnInterval()
  *
- *       Simple math function
+ *       Simple math functions
  *           l_int32    lept_roundftoi()
+ *           l_int32    lept_floor()
+ *           l_int32    lept_ceiling()
  *
  *       64-bit hash functions
  *           l_int32    l_hashStringToUint64()
+ *           l_int32    l_hashStringToUint64Fast()
  *           l_int32    l_hashPtToUint64()
  *           l_int32    l_hashFloat64ToUint64()
  *
@@ -98,7 +109,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config_auto.h"
+#include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
 #ifdef _WIN32
@@ -166,11 +177,15 @@ char    *envsev;
 
 /*----------------------------------------------------------------------*
  *                Error return functions, invoked by macros             *
+ *----------------------------------------------------------------------*
  *                                                                      *
  *    (1) These error functions print messages to stderr and allow      *
  *        exit from the function that called them.                      *
- *    (2) They must be invoked only by the macros ERROR_INT,            *
- *        ERROR_FLOAT and ERROR_PTR, which are in environ.h             *
+ *    (2) They must be invoked only by the three argument macros        *
+ *           ERROR_INT, ERROR_FLOAT, ERROR_PTR                          *
+ *        or the four argument macros                                   *
+ *           ERROR_INT_1, ERROR_FLOAT_1, ERROR_PTR_1                    *
+ *        which are in environ.h.                                       *
  *    (3) The print output can be disabled at compile time, either      *
  *        by using -DNO_CONSOLE_IO or by setting LeptMsgSeverity.       *
  *----------------------------------------------------------------------*/
@@ -178,16 +193,16 @@ char    *envsev;
  * \brief   returnErrorInt()
  *
  * \param[in]    msg        error message
- * \param[in]    procname
- * \param[in]    ival       return error val
- * \return  ival typically 1 for an error return
+ * \param[in]    procname   use __func__
+ * \param[in]    ival       return error val (typically 1 for an error)  
+ * \return  ival
  */
 l_int32
 returnErrorInt(const char  *msg,
                const char  *procname,
                l_int32      ival)
 {
-    fprintf(stderr, "Error in %s: %s\n", procname, msg);
+    lept_stderr("Error in %s: %s\n", procname, msg);
     return ival;
 }
 
@@ -196,8 +211,8 @@ returnErrorInt(const char  *msg,
  * \brief   returnErrorFloat()
  *
  * \param[in]    msg        error message
- * \param[in]    procname
- * \param[in]    fval       return error val
+ * \param[in]    procname   use __func__
+ * \param[in]    fval       return float error val
  * \return  fval
  */
 l_float32
@@ -205,7 +220,7 @@ returnErrorFloat(const char  *msg,
                  const char  *procname,
                  l_float32    fval)
 {
-    fprintf(stderr, "Error in %s: %s\n", procname, msg);
+    lept_stderr("Error in %s: %s\n", procname, msg);
     return fval;
 }
 
@@ -214,22 +229,168 @@ returnErrorFloat(const char  *msg,
  * \brief   returnErrorPtr()
  *
  * \param[in]    msg        error message
- * \param[in]    procname
- * \param[in]    pval       return error val
- * \return  pval  typically null for an error return
+ * \param[in]    procname   use __func__
+ * \param[in]    pval       return error val (typically null for an error)
+ * \return  pval
  */
 void *
 returnErrorPtr(const char  *msg,
                const char  *procname,
                void        *pval)
 {
-    fprintf(stderr, "Error in %s: %s\n", procname, msg);
+    lept_stderr("Error in %s: %s\n", procname, msg);
     return pval;
 }
 
 
+/*!
+ * \brief   returnErrorInt1()
+ *
+ * \param[in]    msg        error message
+ * \param[in]    arg        additional error message argument
+ *                          (will be appended to the error message)
+ * \param[in]    procname   use __func__
+ * \param[in]    ival       return error val; typically 1 for an error return
+ * \return  ival   typically 1 for an error return
+ */
+l_int32
+returnErrorInt1(const char  *msg,
+                const char  *arg,
+                const char  *procname,
+                l_int32      ival)
+{
+    lept_stderr("Leptonica Error in %s: %s: %s\n", procname, msg, arg);
+    return ival;
+}
+
+
+/*!
+ * \brief   returnErrorFloat1()
+ *
+ * \param[in]    msg        error message
+ * \param[in]    arg        additional error message argument
+ *                          (will be appended to the error message)
+ * \param[in]    procname   use __func__
+ * \param[in]    fval       return float error val
+ * \return  fval
+ */
+l_float32
+returnErrorFloat1(const char  *msg,
+                  const char  *arg,
+                  const char  *procname,
+                  l_float32    fval)
+{
+    lept_stderr("Leptonica Error in %s: %s: %s\n", procname, msg, arg);
+    return fval;
+}
+
+
+/*!
+ * \brief   returnErrorPtr1()
+ *
+ * \param[in]    msg        error message
+ * \param[in]    arg        additional error message argument
+ *                          (will be appended to the error message)
+ * \param[in]    procname   use __func__
+ * \param[in]    pval       return error val (typically null for an error)
+ * \return  pval
+ */
+void *
+returnErrorPtr1(const char  *msg,
+                const char  *arg,
+                const char  *procname,
+                void        *pval)
+{
+    lept_stderr("Leptonica Error in %s: %s: %s\n", procname, msg, arg);
+    return pval;
+}
+
+
+/*------------------------------------------------------------------------*
+ *                   Runtime redirection of stderr                        *
+ *------------------------------------------------------------------------*
+ *                                                                        *
+ *  The user can provide a callback function to redirect messages         *
+ *  that would otherwise go to stderr.  Here are two examples:            *
+ *  (1) to stop all messages:                                             *
+ *      void send_to_devnull(const char *msg) {}                          *
+ *  (2) to write to the system logger:                                    *
+ *      void send_to_syslog(const char *msg) {                            *
+ *           syslog(1, msg);                                              *
+ *      }                                                                 *
+ *  These would then be registered using                                  *
+ *      leptSetStderrHandler(send_to_devnull);                            *
+ *  and                                                                   *
+ *      leptSetStderrHandler(send_to_syslog);                             *
+ *------------------------------------------------------------------------*/
+    /* By default, all messages go to stderr */
+static void lept_default_stderr_handler(const char *formatted_msg)
+{
+    if (formatted_msg)
+        fputs(formatted_msg, stderr);
+}
+
+    /* The stderr callback handler is private to leptonica.
+     * By default it writes to stderr.  */
+void (*stderr_handler)(const char *) = lept_default_stderr_handler;
+
+
+/*!
+ * \brief   leptSetStderrHandler()
+ *
+ * \param[in]    handler   callback function for lept_stderr output
+ * \return  void
+ *
+ * <pre>
+ * Notes:
+ *      (1) This registers a handler for redirection of output to stderr
+ *          at runtime.
+ *      (2) If called with NULL, the output goes to stderr.
+ * </pre>
+ */
+void leptSetStderrHandler(void (*handler)(const char *))
+{
+    if (handler)
+        stderr_handler = handler;
+    else
+        stderr_handler = lept_default_stderr_handler;
+}
+
+
+#define MAX_DEBUG_MESSAGE   2000
+/*!
+ * \brief   lept_stderr()
+ *
+ * \param[in]    fmt      format string
+ * \param[in]    ...      varargs
+ * \return  void
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is a replacement for fprintf(), to allow redirection
+ *          of output.  All calls to fprintf(stderr, ...) are replaced
+ *          with calls to lept_stderr(...).
+ *      (2) The message size is limited to 2K bytes.
+        (3) This utility was provided by jbarlow83.
+ * </pre>
+ */
+void lept_stderr(const char *fmt, ...)
+{
+va_list  args;
+char     msg[MAX_DEBUG_MESSAGE];
+l_int32  n;
+
+    va_start(args, fmt);
+    n = vsnprintf(msg, sizeof(msg), fmt, args);
+    va_end(args);
+    if (n < 0)
+        return;
+    (*stderr_handler)(msg);
+}
+
+
 /*--------------------------------------------------------------------*
- *                      Test files for equivalence                    *
+ *                    Test files for equivalence                      *
  *--------------------------------------------------------------------*/
 /*!
  * \brief   filesAreIdentical()
@@ -248,13 +409,11 @@ l_int32   i, same;
 size_t    nbytes1, nbytes2;
 l_uint8  *array1, *array2;
 
-    PROCNAME("filesAreIdentical");
-
     if (!psame)
-        return ERROR_INT("&same not defined", procName, 1);
+        return ERROR_INT("&same not defined", __func__, 1);
     *psame = 0;
     if (!fname1 || !fname2)
-        return ERROR_INT("both names not defined", procName, 1);
+        return ERROR_INT("both names not defined", __func__, 1);
 
     nbytes1 = nbytesInFile(fname1);
     nbytes2 = nbytesInFile(fname2);
@@ -262,10 +421,10 @@ l_uint8  *array1, *array2;
         return 0;
 
     if ((array1 = l_binaryRead(fname1, &nbytes1)) == NULL)
-        return ERROR_INT("array1 not read", procName, 1);
+        return ERROR_INT("array1 not read", __func__, 1);
     if ((array2 = l_binaryRead(fname2, &nbytes2)) == NULL) {
         LEPT_FREE(array1);
-        return ERROR_INT("array2 not read", procName, 1);
+        return ERROR_INT("array2 not read", __func__, 1);
     }
     same = 1;
     for (i = 0; i < nbytes1; i++) {
@@ -284,6 +443,7 @@ l_uint8  *array1, *array2;
 
 /*--------------------------------------------------------------------------*
  *   16 and 32 bit byte-swapping on big endian and little  endian machines  *
+ *--------------------------------------------------------------------------*
  *                                                                          *
  *   These are typically used for I/O conversions:                          *
  *      (1) endian conversion for data that was read from a file            *
@@ -393,16 +553,14 @@ l_int32   i, locb, sizeb, rembytes;
 size_t    inbytes, outbytes;
 l_uint8  *datain, *dataout;
 
-    PROCNAME("fileCorruptByDeletion");
-
     if (!filein || !fileout)
-        return ERROR_INT("filein and fileout not both specified", procName, 1);
+        return ERROR_INT("filein and fileout not both specified", __func__, 1);
     if (loc < 0.0 || loc >= 1.0)
-        return ERROR_INT("loc must be in [0.0 ... 1.0)", procName, 1);
+        return ERROR_INT("loc must be in [0.0 ... 1.0)", __func__, 1);
     if (size <= 0.0)
-        return ERROR_INT("size must be > 0.0", procName, 1);
+        return ERROR_INT("size must be > 0.0", __func__, 1);
     if (loc + size > 1.0)
-        size = 1.0 - loc;
+        size = 1.0f - loc;
 
     datain = l_binaryRead(filein, &inbytes);
     locb = (l_int32)(loc * inbytes + 0.5);
@@ -410,7 +568,7 @@ l_uint8  *datain, *dataout;
     sizeb = (l_int32)(size * inbytes + 0.5);
     sizeb = L_MAX(1, sizeb);
     sizeb = L_MIN(sizeb, inbytes - locb);  /* >= 1 */
-    L_INFO("Removed %d bytes at location %d\n", procName, sizeb, locb);
+    L_INFO("Removed %d bytes at location %d\n", __func__, sizeb, locb);
     rembytes = inbytes - locb - sizeb;  /* >= 0; to be copied, after excision */
 
     outbytes = inbytes - sizeb;
@@ -457,16 +615,14 @@ l_int32   i, locb, sizeb;
 size_t    bytes;
 l_uint8  *data;
 
-    PROCNAME("fileCorruptByMutation");
-
     if (!filein || !fileout)
-        return ERROR_INT("filein and fileout not both specified", procName, 1);
+        return ERROR_INT("filein and fileout not both specified", __func__, 1);
     if (loc < 0.0 || loc >= 1.0)
-        return ERROR_INT("loc must be in [0.0 ... 1.0)", procName, 1);
+        return ERROR_INT("loc must be in [0.0 ... 1.0)", __func__, 1);
     if (size <= 0.0)
-        return ERROR_INT("size must be > 0.0", procName, 1);
+        return ERROR_INT("size must be > 0.0", __func__, 1);
     if (loc + size > 1.0)
-        size = 1.0 - loc;
+        size = 1.0f - loc;
 
     data = l_binaryRead(filein, &bytes);
     locb = (l_int32)(loc * bytes + 0.5);
@@ -474,7 +630,7 @@ l_uint8  *data;
     sizeb = (l_int32)(size * bytes + 0.5);
     sizeb = L_MAX(1, sizeb);
     sizeb = L_MIN(sizeb, bytes - locb);  /* >= 1 */
-    L_INFO("Randomizing %d bytes at location %d\n", procName, sizeb, locb);
+    L_INFO("Randomizing %d bytes at location %d\n", __func__, sizeb, locb);
 
         /* Make an array of random bytes and do the substitution */
     for (i = 0; i < sizeb; i++) {
@@ -520,20 +676,18 @@ l_int32   i, index;
 size_t    inbytes, outbytes;
 l_uint8  *datain, *dataout;
 
-    PROCNAME("fileReplaceBytes");
-
     if (!filein || !fileout)
-        return ERROR_INT("filein and fileout not both specified", procName, 1);
+        return ERROR_INT("filein and fileout not both specified", __func__, 1);
 
     datain = l_binaryRead(filein, &inbytes);
     if (start + nbytes > inbytes)
-        L_WARNING("start + nbytes > length(filein) = %zu\n", procName, inbytes);
+        L_WARNING("start + nbytes > length(filein) = %zu\n", __func__, inbytes);
 
     if (!newdata) newsize = 0;
     outbytes = inbytes - nbytes + newsize;
     if ((dataout = (l_uint8 *)LEPT_CALLOC(outbytes, 1)) == NULL) {
         LEPT_FREE(datain);
-        return ERROR_INT("calloc fail for dataout", procName, 1);
+        return ERROR_INT("calloc fail for dataout", __func__, 1);
     }
 
     for (i = 0; i < start; i++)
@@ -553,50 +707,47 @@ l_uint8  *datain, *dataout;
 
 
 /*---------------------------------------------------------------------*
- *                Generate random integer in given range               *
+ *              Generate random integer in given interval              *
  *---------------------------------------------------------------------*/
 /*!
- * \brief   genRandomIntegerInRange()
+ * \brief   genRandomIntOnInterval()
  *
- * \param[in]    range     size of range; must be >= 2
+ * \param[in]    start     beginning of interval; can be < 0
+ * \param[in]    end       end of interval; must be >= start
  * \param[in]    seed      use 0 to skip; otherwise call srand
- * \param[out]   pval      random integer in range {0 ... range-1}
+ * \param[out]   pval      random integer in interval [start ... end]
  * \return  0 if OK, 1 on error
- *
- * <pre>
- * Notes:
- *      (1) For example, to choose a rand integer between 0 and 99,
- *          use %range = 100.
- * </pre>
  */
 l_ok
-genRandomIntegerInRange(l_int32   range,
-                        l_int32   seed,
-                        l_int32  *pval)
+genRandomIntOnInterval(l_int32   start,
+                       l_int32   end,
+                       l_int32   seed,
+                       l_int32  *pval)
 {
-    PROCNAME("genRandomIntegerInRange");
+l_float64  range;
 
     if (!pval)
-        return ERROR_INT("&val not defined", procName, 1);
+        return ERROR_INT("&val not defined", __func__, 1);
     *pval = 0;
-    if (range < 2)
-        return ERROR_INT("range must be >= 2", procName, 1);
+    if (end < start)
+        return ERROR_INT("invalid range", __func__, 1);
 
     if (seed > 0) srand(seed);
-    *pval = (l_int32)((l_float64)range *
+    range = (l_float64)(end - start + 1);
+    *pval = start + (l_int32)((l_float64)range *
                        ((l_float64)rand() / (l_float64)RAND_MAX));
     return 0;
 }
 
 
 /*---------------------------------------------------------------------*
- *                         Simple math function                        *
+ *                        Simple math functions                        *
  *---------------------------------------------------------------------*/
 /*!
  * \brief   lept_roundftoi()
  *
  * \param[in]    fval
- * \return  value rounded to int
+ * \return  value rounded to the nearest integer
  *
  * <pre>
  * Notes:
@@ -610,6 +761,41 @@ l_int32
 lept_roundftoi(l_float32  fval)
 {
     return (fval >= 0.0) ? (l_int32)(fval + 0.5) : (l_int32)(fval - 0.5);
+}
+
+
+/*!
+ * \brief   lept_floor()
+ *
+ * \param[in]    fval
+ * \return  largest integer that is not greater than %fval
+ */
+l_int32
+lept_floor(l_float32  fval)
+{
+    return (fval >= 0.0) ? (l_int32)(fval) : -(l_int32)(-fval);
+}
+
+
+/*!
+ * \brief   lept_ceiling()
+ *
+ * \param[in]    fval
+ * \return  smallest integer that is not less than %fval
+ *
+ * <pre>
+ * Notes:
+ *      (1) If fval is equal to its interger value, return that.
+ *          Otherwise:
+ *            For fval > 0, fval --> 1 + floor(fval)
+ *            For fval < 0, fval --> -(1 + floor(-fval))
+ * </pre>
+ */
+l_int32
+lept_ceiling(l_float32  fval)
+{
+    return (fval == (l_int32)fval ? (l_int32)fval :
+            fval > 0.0 ? 1 + (l_int32)(fval) : -(1 + (l_int32)(-fval)));
 }
 
 
@@ -644,13 +830,11 @@ l_hashStringToUint64(const char  *str,
 {
 l_uint64  hash, mulp;
 
-    PROCNAME("l_hashStringToUint64");
-
     if (phash) *phash = 0;
     if (!str || (str[0] == '\0'))
-        return ERROR_INT("str not defined or empty", procName, 1);
+        return ERROR_INT("str not defined or empty", __func__, 1);
     if (!phash)
-        return ERROR_INT("&hash not defined", procName, 1);
+        return ERROR_INT("&hash not defined", __func__, 1);
 
     mulp = 26544357894361247;  /* prime, about 1/700 of the max uint64 */
     hash = 104395301;
@@ -658,6 +842,42 @@ l_uint64  hash, mulp;
         hash += (*str++ * mulp) ^ (hash >> 7);   /* shift [1...23] are ok */
     }
     *phash = hash ^ (hash << 37);
+    return 0;
+}
+
+
+/*!
+ * \brief   l_hashStringToUint64Fast()
+ *
+ * \param[in]    str
+ * \param[out]   phash    hash value
+ * \return  0 if OK, 1 on error
+ *
+ * <pre>
+ * Notes:
+ *     (1) This very simple hash algorithm is described in "The Practice
+ *         of Programming" by Kernighan and Pike, p. 57 (1999).
+ *     (2) The returned hash value would then be hashed into an index into
+ *         the hashtable, using the mod operator with the hashtable size.
+ * </pre>
+ */
+l_ok
+l_hashStringToUint64Fast(const char  *str,
+                         l_uint64    *phash)
+{
+l_uint64  h;
+l_uint8  *p;
+
+    if (phash) *phash = 0;
+    if (!str || (str[0] == '\0'))
+        return ERROR_INT("str not defined or empty", __func__, 1);
+    if (!phash)
+        return ERROR_INT("&hash not defined", __func__, 1);
+
+    h = 0;
+    for (p = (l_uint8 *)str; *p != '\0'; p++)
+        h = 37 * h + *p;  /* 37 is good prime number for this */
+    *phash = h;
     return 0;
 }
 
@@ -673,15 +893,6 @@ l_uint64  hash, mulp;
  * Notes:
  *      (1) This simple hash function has no collisions for
  *          any of 400 million points with x and y up to 20000.
- *      (2) Previously used a much more complicated and slower function:
- *            mulp = 26544357894361;
- *            hash = 104395301;
- *            hash += (x * mulp) ^ (hash >> 5);
- *            hash ^= (hash << 7);
- *            hash += (y * mulp) ^ (hash >> 7);
- *            hash = hash ^ (hash << 11);
- *          Such logical gymnastics to get coverage over the 2^64
- *          values are not required.
  * </pre>
  */
 l_ok
@@ -689,10 +900,8 @@ l_hashPtToUint64(l_int32    x,
                  l_int32    y,
                  l_uint64  *phash)
 {
-    PROCNAME("l_hashPtToUint64");
-
     if (!phash)
-        return ERROR_INT("&hash not defined", procName, 1);
+        return ERROR_INT("&hash not defined", __func__, 1);
 
     *phash = (l_uint64)(2173249142.3849 * x + 3763193258.6227 * y);
     return 0;
@@ -702,38 +911,26 @@ l_hashPtToUint64(l_int32    x,
 /*!
  * \brief   l_hashFloat64ToUint64()
  *
- * \param[in]    nbuckets
  * \param[in]    val
- * \param[out]   phash      hash value
+ * \param[out]   phash      hash key
  * \return  0 if OK, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) Simple, fast hash for using dnaHash with 64-bit data
- *          (e.g., sets and histograms).
- *      (2) The resulting hash is called a "key" in a lookup
- *          operation.  The bucket for %val in a dnaHash is simply
- *          found by taking the mod of the hash with the number of
- *          buckets (which is prime).  What gets stored in the
- *          dna in that bucket could depend on use, but for the most
- *          flexibility, we store an index into the associated dna.
- *          This is all that is required for generating either a hash set
- *          or a histogram (an example of a hash map).
- *      (3) For example, to generate a histogram, the histogram dna,
- *          a histogram of unique values aligned with the histogram dna,
- *          and a dnahash hashmap are built.  See l_dnaMakeHistoByHash().
+ *      (1) This is a simple hash for using hashmaps with 64-bit float data.
+ *      (2) The resulting hash is called a "key" in a lookup operation.
+ *          The bucket for %val in a hashmap is then found by taking the mod
+ *          of the hash key with the number of buckets (which is prime).
  * </pre>
  */
 l_ok
-l_hashFloat64ToUint64(l_int32    nbuckets,
-                      l_float64  val,
+l_hashFloat64ToUint64(l_float64  val,
                       l_uint64  *phash)
 {
-    PROCNAME("l_hashFloatToUint64");
-
     if (!phash)
-        return ERROR_INT("&hash not defined", procName, 1);
-    *phash = (l_uint64)((21.732491 * nbuckets) * val);
+        return ERROR_INT("&hash not defined", __func__, 1);
+    val = (val >= 0.0) ? 847019.66701 * val : -217324.91613 * val;
+    *phash = (l_uint64)val;
     return 0;
 }
 
@@ -754,13 +951,11 @@ findNextLargerPrime(l_int32    start,
 {
 l_int32  i, is_prime;
 
-    PROCNAME("findNextLargerPrime");
-
     if (!pprime)
-        return ERROR_INT("&prime not defined", procName, 1);
+        return ERROR_INT("&prime not defined", __func__, 1);
     *pprime = 0;
     if (start <= 0)
-        return ERROR_INT("start must be > 0", procName, 1);
+        return ERROR_INT("start must be > 0", __func__, 1);
 
     for (i = start + 1; ; i++) {
         lept_isPrime(i, &is_prime, NULL);
@@ -770,7 +965,7 @@ l_int32  i, is_prime;
         }
     }
 
-    return ERROR_INT("prime not found!", procName, 1);
+    return ERROR_INT("prime not found!", __func__, 1);
 }
 
 
@@ -791,14 +986,12 @@ lept_isPrime(l_uint64   n,
 l_uint32  div;
 l_uint64  limit, ratio;
 
-    PROCNAME("lept_isPrime");
-
     if (pis_prime) *pis_prime = 0;
     if (pfactor) *pfactor = 0;
     if (!pis_prime)
-        return ERROR_INT("&is_prime not defined", procName, 1);
+        return ERROR_INT("&is_prime not defined", __func__, 1);
     if (n <= 0)
-        return ERROR_INT("n must be > 0", procName, 1);
+        return ERROR_INT("n must be > 0", __func__, 1);
 
     if (n % 2 == 0) {
         if (pfactor) *pfactor = 2;
@@ -870,7 +1063,7 @@ l_uint32  shift;
  *      (1) The caller has responsibility to free the memory.
  */
 char *
-getLeptonicaVersion()
+getLeptonicaVersion(void)
 {
 size_t  bufsize = 100;
 
@@ -926,7 +1119,7 @@ static struct rusage rusage_after;
  *      (1) These measure the cpu time elapsed between the two calls:
  *            startTimer();
  *            ....
- *            fprintf(stderr, "Elapsed time = %7.3f sec\n", stopTimer());
+ *            lept_stderr( "Elapsed time = %7.3f sec\n", stopTimer());
  */
 void
 startTimer(void)
@@ -956,9 +1149,9 @@ l_int32  tsec, tusec;
  *      ....
  *      L_TIMER  t2 = startTimerNested();
  *      ....
- *      fprintf(stderr, "Elapsed time 2 = %7.3f sec\n", stopTimerNested(t2));
+ *      lept_stderr( "Elapsed time 2 = %7.3f sec\n", stopTimerNested(t2));
  *      ....
- *      fprintf(stderr, "Elapsed time 1 = %7.3f sec\n", stopTimerNested(t1));
+ *      lept_stderr( "Elapsed time 1 = %7.3f sec\n", stopTimerNested(t1));
  */
 L_TIMER
 startTimerNested(void)
@@ -1003,7 +1196,6 @@ struct timeval tv;
     gettimeofday(&tv, NULL);
     if (sec) *sec = (l_int32)tv.tv_sec;
     if (usec) *usec = (l_int32)tv.tv_usec;
-    return;
 }
 
 #elif defined(__Fuchsia__) /* resource.h not implemented on Fuchsia. */
@@ -1012,7 +1204,6 @@ struct timeval tv;
      * are stubbed out.  If they are needed in the future, they
      * can be implemented in Fuchsia using the zircon syscall
      * zx_object_get_info() in ZX_INFOR_THREAD_STATS mode.  */
-
 void
 startTimer(void)
 {
@@ -1079,7 +1270,7 @@ ULONGLONG  hnsec;  /* in units of hecto-nanosecond (100 ns) intervals */
     utime_after.LowPart  = user.dwLowDateTime;
     utime_after.HighPart = user.dwHighDateTime;
     hnsec = utime_after.QuadPart - utime_before.QuadPart;
-    return (l_float32)(signed)hnsec / 10000000.0;
+    return (l_float32)(signed)hnsec / 10000000.0f;
 }
 
 L_TIMER
@@ -1115,7 +1306,7 @@ ULONGLONG       hnsec;  /* in units of 100 ns intervals */
     utime_stop.HighPart = user.dwHighDateTime;
     hnsec = utime_stop.QuadPart - ((ULARGE_INTEGER *)utime_start)->QuadPart;
     LEPT_FREE(utime_start);
-    return (l_float32)(signed)hnsec / 10000000.0;
+    return (l_float32)(signed)hnsec / 10000000.0f;
 }
 
 void
@@ -1138,7 +1329,6 @@ LONGLONG        usecs;
 
     if (sec) *sec = (l_int32) (usecs / 1000000);
     if (usec) *usec = (l_int32) (usecs % 1000000);
-    return;
 }
 
 #endif
@@ -1154,7 +1344,7 @@ LONGLONG        usecs;
  *      (1) These measure the wall clock time  elapsed between the two calls:
  *            L_WALLTIMER *timer = startWallTimer();
  *            ....
- *            fprintf(stderr, "Elapsed time = %f sec\n", stopWallTimer(&timer);
+ *            lept_stderr( "Elapsed time = %f sec\n", stopWallTimer(&timer);
  *      (2) Note that the timer object is destroyed by stopWallTimer().
  * </pre>
  */
@@ -1180,20 +1370,18 @@ stopWallTimer(L_WALLTIMER  **ptimer)
 l_int32       tsec, tusec;
 L_WALLTIMER  *timer;
 
-    PROCNAME("stopWallTimer");
-
     if (!ptimer)
-        return (l_float32)ERROR_FLOAT("&timer not defined", procName, 0.0);
+        return (l_float32)ERROR_FLOAT("&timer not defined", __func__, 0.0);
     timer = *ptimer;
     if (!timer)
-        return (l_float32)ERROR_FLOAT("timer not defined", procName, 0.0);
+        return (l_float32)ERROR_FLOAT("timer not defined", __func__, 0.0);
 
     l_getCurrentTime(&timer->stop_sec, &timer->stop_usec);
     tsec = timer->stop_sec - timer->start_sec;
     tusec = timer->stop_usec - timer->start_usec;
     LEPT_FREE(timer);
     *ptimer = NULL;
-    return (tsec + ((l_float32)tusec) / 1000000.0);
+    return (tsec + ((l_float32)tusec) / 1000000.0f);
 }
 
 
@@ -1210,7 +1398,7 @@ L_WALLTIMER  *timer;
  * </pre>
  */
 char *
-l_getFormattedDate()
+l_getFormattedDate(void)
 {
 char        buf[128] = "", sep = 'Z';
 l_int32     gmt_offset, relh, relm;

@@ -49,19 +49,22 @@
  *      require lossless, but this is very expensive and not recommended.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
 int main(int    argc,
          char **argv)
 {
-char        *dirin, *substr, *title, *fileout;
-l_int32      ret, res, type, quality;
-l_float32    scalefactor;
-static char  mainName[] = "convertfilestopdf";
+char      *dirin, *substr, *title, *fileout;
+l_int32    ret, res, type, quality;
+l_float32  scalefactor;
 
     if (argc != 9) {
-        fprintf(stderr,
+        lept_stderr(
             " Syntax: convertfilestopdf dirin substr res"
             " scalefactor encoding_type quality title fileout\n"
             "         dirin:  input directory for image files\n"
@@ -71,10 +74,11 @@ static char  mainName[] = "convertfilestopdf";
             "               assumed to all be the same\n"
             "         scalefactor:  Use to scale all images\n"
             "         encoding_type:\n"
+            "              L_DEFAULT_ENCODE = 0  (based on the image)\n"
             "              L_JPEG_ENCODE = 1\n"
             "              L_G4_ENCODE = 2\n"
             "              L_FLATE_ENCODE = 3\n"
-            "              L_JP2K_ENCODE = 4, or 0 for per-page default)\n"
+            "              L_JP2K_ENCODE = 4\n"
             "         quality:  used for jpeg; 1-100, 0 for default (75);\n"
             "                   used for jp2k: 27-45, 0 for default (34)\n"
             "         title:  Use 'none' to omit\n"
@@ -92,7 +96,7 @@ static char  mainName[] = "convertfilestopdf";
     if (!strcmp(substr, "allfiles"))
         substr = NULL;
     if (scalefactor <= 0.0 || scalefactor > 2.0) {
-        L_WARNING("invalid scalefactor: setting to 1.0\n", mainName);
+        L_WARNING("invalid scalefactor: setting to 1.0\n", __func__);
         scalefactor = 1.0;
     }
     if (!strcmp(title, "none"))

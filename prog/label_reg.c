@@ -33,6 +33,10 @@
  *         Color coded transform of 1 bpp images
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 void FindEMD(PIX *pix1, PIX *pix2, l_float32 *pdistr, l_float32 *pdistg,
@@ -50,7 +54,7 @@ L_REGPARAMS  *rp;
         return 1;
 
         /* Test earthmover distance: extreme example */
-    fprintf(stderr, "Test earthmover distance\n");
+    lept_stderr("Test earthmover distance\n");
     na1 = numaMakeConstant(0, 201);
     na2 = numaMakeConstant(0, 201);
     numaSetValue(na1, 0, 100);
@@ -61,7 +65,7 @@ L_REGPARAMS  *rp;
     numaDestroy(&na2);
 
         /* Test connected component labelling */
-    fprintf(stderr, "Test c.c. labelling\n");
+    lept_stderr("Test c.c. labelling\n");
     pix1 = pixRead("feyn-fract.tif");
     pix2 = pixConnCompTransform(pix1, 8, 8);
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 1 */
@@ -79,7 +83,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix6);
 
         /* Test connected component area labelling */
-    fprintf(stderr, "Test c.c. area labelling\n");
+    lept_stderr("Test c.c. area labelling\n");
     pix2 = pixConnCompAreaTransform(pix1, 8);
     pix3 = pixConvert32To8(pix2, L_LS_TWO_BYTES, L_CLIP_TO_FF);
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 4 */
@@ -94,7 +98,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix4);
 
         /* Test color transform: 4-fold symmetry */
-    fprintf(stderr, "Test color transform: 4-fold symmetry\n");
+    lept_stderr("Test color transform: 4-fold symmetry\n");
     pix1 = pixRead("form1.tif");
     pix2 = pixRotateOrth(pix1, 1);
     pix3 = pixRotateOrth(pix1, 2);
@@ -107,8 +111,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 0.12, distr, 0.01);  /* 8 */
     regTestCompareValues(rp, 0.00, distg, 0.01);  /* 9 */
     regTestCompareValues(rp, 0.00, distb, 0.01);  /* 10 */
-    fprintf(stderr, "90 deg rotation: dist (r,g,b) = (%5.2f, %5.2f, %5.2f)\n",
-            distr, distg, distb);
+    lept_stderr("90 deg rotation: dist (r,g,b) = (%5.2f, %5.2f, %5.2f)\n",
+                distr, distg, distb);
     pixDestroy(&pix6);
     pix6 = pixLocToColorTransform(pix3);
     regTestWritePixAndCheck(rp, pix6, IFF_PNG);  /* 11 */
@@ -116,8 +120,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 0.12, distr, 0.01);  /* 12 */
     regTestCompareValues(rp, 0.09, distg, 0.01);  /* 13 */
     regTestCompareValues(rp, 0.00, distb, 0.01);  /* 14 */
-    fprintf(stderr, "180 deg rotation: dist (r,g,b) = (%5.2f, %5.2f, %5.2f)\n",
-            distr, distg, distb);
+    lept_stderr("180 deg rotation: dist (r,g,b) = (%5.2f, %5.2f, %5.2f)\n",
+                distr, distg, distb);
     pixDestroy(&pix6);
     pix6 = pixLocToColorTransform(pix4);
     regTestWritePixAndCheck(rp, pix6, IFF_PNG);  /* 15 */
@@ -125,8 +129,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 0.00, distr, 0.01);  /* 16 */
     regTestCompareValues(rp, 0.09, distg, 0.01);  /* 17 */
     regTestCompareValues(rp, 0.00, distb, 0.01);  /* 18 */
-    fprintf(stderr, "270 deg rotation: dist (r,g,b) = (%5.2f, %5.2f, %5.2f)\n",
-            distr, distg, distb);
+    lept_stderr("270 deg rotation: dist (r,g,b) = (%5.2f, %5.2f, %5.2f)\n",
+                distr, distg, distb);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
@@ -135,7 +139,7 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix6);
 
         /* Test color transform: same form with translation */
-    fprintf(stderr, "Test color transform with translation\n");
+    lept_stderr("Test color transform with translation\n");
     pix1 = pixRead("form1.tif");
     pix2 = pixLocToColorTransform(pix1);
     pixDisplayWithTitle(pix2, 0, 0, NULL, rp->display);
@@ -147,14 +151,14 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 1.76, distr, 0.01);  /* 20 */
     regTestCompareValues(rp, 2.65, distg, 0.01);  /* 21 */
     regTestCompareValues(rp, 2.03, distb, 0.01);  /* 22 */
-    fprintf(stderr, "Translation dist (r,g,b) = (%5.2f, %5.2f, %5.2f)\n",
-            distr, distg, distb);
+    lept_stderr("Translation dist (r,g,b) = (%5.2f, %5.2f, %5.2f)\n",
+                distr, distg, distb);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
 
         /* Test color transform: same form with small rotation */
-    fprintf(stderr, "Test color transform with small rotation\n");
+    lept_stderr("Test color transform with small rotation\n");
     pix1 = pixRead("form1.tif");
     pix2 = pixLocToColorTransform(pix1);
     pixRotateShearCenterIP(pix1, 0.1, L_BRING_IN_WHITE);
@@ -165,14 +169,14 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 1.50, distr, 0.01);  /* 24 */
     regTestCompareValues(rp, 1.71, distg, 0.01);  /* 25 */
     regTestCompareValues(rp, 1.42, distb, 0.01);  /* 26 */
-    fprintf(stderr, "Rotation dist (r,g,b) = (%5.2f, %5.2f, %5.2f)\n",
-            distr, distg, distb);
+    lept_stderr("Rotation dist (r,g,b) = (%5.2f, %5.2f, %5.2f)\n",
+                distr, distg, distb);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);
 
         /* Test color transform: 2 different forms */
-    fprintf(stderr, "Test color transform (2 forms)\n");
+    lept_stderr("Test color transform (2 forms)\n");
     pix1 = pixRead("form1.tif");
     pix2 = pixLocToColorTransform(pix1);
     pixDisplayWithTitle(pix2, 0, 600, NULL, rp->display);
@@ -184,8 +188,8 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp, 6.10, distr, 0.02);  /* 28 */
     regTestCompareValues(rp, 11.13, distg, 0.01);  /* 29 */
     regTestCompareValues(rp, 10.53, distb, 0.01);  /* 30 */
-    fprintf(stderr, "Different forms: dist (r,g,b) = (%5.2f, %5.2f, %5.2f)\n",
-            distr, distg, distb);
+    lept_stderr("Different forms: dist (r,g,b) = (%5.2f, %5.2f, %5.2f)\n",
+                distr, distg, distb);
     pixDestroy(&pix1);
     pixDestroy(&pix2);
     pixDestroy(&pix3);

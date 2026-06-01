@@ -45,6 +45,10 @@
  *    at the bottom.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -55,7 +59,7 @@ char    *dirin, *substr, *fileout;
 l_int32  res;
 
     if (argc != 5) {
-        fprintf(stderr,
+        lept_stderr(
             " Syntax: convertfilestops dirin substr res fileout\n"
             "     where\n"
             "         dirin:  input directory for image files\n"

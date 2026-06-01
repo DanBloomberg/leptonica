@@ -31,12 +31,16 @@
  *   have low saturation (i.e., are essentially gray).
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 int main(int    argc,
          char **argv)
 {
-l_int32       i, j, w, h, wpl, val;
+l_int32       i, j, wpl, val;
 l_uint32      gray32;
 l_uint32     *data, *line;
 PIX          *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7;

@@ -39,6 +39,10 @@
  *     a single source and bootstrap templates from many sources.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "string.h"
 #include "allheaders.h"
 
@@ -57,7 +61,7 @@ PIXA     *pixa1, *pixa2;
 L_RECOG  *recog;
 
     if (argc != 1) {
-        fprintf(stderr, " Syntax: recogtest4\n");
+        lept_stderr(" Syntax: recogtest4\n");
         return 1;
     }
 
@@ -71,13 +75,12 @@ L_RECOG  *recog;
 #else   /* no scaling */
     recog = recogCreateFromPixa(pixa1, 0, 0, 0, 128, 1);
 #endif
-    recogAverageSamples(&recog, 1);
+    recogAverageSamples(recog, 1);
     recogWrite("/tmp/lept/recog/rec1.rec", recog);
 
         /* Show the templates */
-    recogDebugAverages(&recog, 1);
-    if (!recog) {
-        fprintf(stderr, "Averaging failed!!\n");
+    if (recogDebugAverages(recog, 1) != 0) {
+        lept_stderr("Averaging failed!!\n");
         return 1;
     }
     recogShowMatchesInRange(recog, recog->pixa_tr, 0.0, 1.0, 1);

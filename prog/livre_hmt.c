@@ -40,6 +40,10 @@
  *           fig 8:  livre_hmt 2 4
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* for pixDisplayHitMissSel() */
@@ -56,24 +60,23 @@ static const char *patname[3] = {
 int main(int    argc,
          char **argv)
 {
-l_int32      patno, reduction, width, cols, cx, cy;
-PIX         *pixs, *pixt, *pix, *pixr, *pixp, *pixsel, *pixhmt;
-PIX         *pixd1, *pixd2, *pixd3, *pixd;
-PIXA        *pixa;
-SEL         *selhm;
-static char  mainName[] = "livre_hmt";
+l_int32  patno, reduction, width, cols, cx, cy;
+PIX     *pixs, *pixt, *pix, *pixr, *pixp, *pixsel, *pixhmt;
+PIX     *pixd1, *pixd2, *pixd3, *pixd;
+PIXA    *pixa;
+SEL     *selhm;
 
     if (argc != 3)
-        return ERROR_INT(" Syntax:  livre_hmt pattern reduction", mainName, 1);
+        return ERROR_INT(" Syntax:  livre_hmt pattern reduction", __func__, 1);
     patno = atoi(argv[1]);
     reduction = atoi(argv[2]);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/livre");
     if ((pixs = pixRead(patname[patno])) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
     if (reduction != 4 && reduction != 8 && reduction != 16)
-        return ERROR_INT("reduction not 4, 8 or 16", mainName, 1);
+        return ERROR_INT("reduction not 4, 8 or 16", __func__, 1);
 
     if (reduction == 4)
         pixt = pixReduceRankBinaryCascade(pixs, 4, 4, 0, 0);
@@ -106,7 +109,7 @@ static char  mainName[] = "livre_hmt";
 
     startTimer();
     pixhmt = pixHMT(NULL, pixr, selhm);
-    fprintf(stderr, "Time to find patterns = %7.3f\n", stopTimer());
+    lept_stderr("Time to find patterns = %7.3f\n", stopTimer());
 
         /* Color each instance at full res */
     selGetParameters(selhm, NULL, NULL, &cy, &cx);

@@ -32,6 +32,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 /* --------------------------------------------*/
@@ -41,14 +45,14 @@
 l_ok convertFilesToPS(const char *dirin, const char *substr,
                       l_int32 res, const char *fileout)
 {
-    return ERROR_INT("function not present", "convertFilesToPS", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok sarrayConvertFilesToPS(SARRAY *sa, l_int32 res, const char *fileout)
 {
-    return ERROR_INT("function not present", "sarrayConvertFilesToPS", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -57,7 +61,7 @@ l_ok convertFilesFittedToPS(const char *dirin, const char *substr,
                             l_float32 xpts, l_float32 ypts,
                             const char *fileout)
 {
-    return ERROR_INT("function not present", "convertFilesFittedToPS", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -65,7 +69,7 @@ l_ok convertFilesFittedToPS(const char *dirin, const char *substr,
 l_ok sarrayConvertFilesFittedToPS(SARRAY *sa, l_float32 xpts,
                                   l_float32 ypts, const char *fileout)
 {
-    return ERROR_INT("function not present", "sarrayConvertFilesFittedToPS", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -73,7 +77,7 @@ l_ok sarrayConvertFilesFittedToPS(SARRAY *sa, l_float32 xpts,
 l_ok writeImageCompressedToPSFile(const char *filein, const char *fileout,
                                   l_int32 res, l_int32 *pindex)
 {
-    return ERROR_INT("function not present", "writeImageCompressedToPSFile", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -85,7 +89,7 @@ l_ok convertSegmentedPagesToPS(const char *pagedir, const char *pagestr,
                                l_float32 textscale, l_float32 imagescale,
                                l_int32 threshold, const char *fileout)
 {
-    return ERROR_INT("function not present", "convertSegmentedPagesToPS", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -94,7 +98,7 @@ l_ok pixWriteSegmentedPageToPS(PIX *pixs, PIX *pixm, l_float32 textscale,
                                l_float32 imagescale, l_int32 threshold,
                                l_int32 pageno, const char *fileout)
 {
-    return ERROR_INT("function not present", "pixWriteSegmentedPagesToPS", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -102,14 +106,14 @@ l_ok pixWriteSegmentedPageToPS(PIX *pixs, PIX *pixm, l_float32 textscale,
 l_ok pixWriteMixedToPS(PIX *pixb, PIX *pixc, l_float32 scale,
                        l_int32 pageno, const char *fileout)
 {
-    return ERROR_INT("function not present", "pixWriteMixedToPS", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
 
 l_ok convertToPSEmbed(const char *filein, const char *fileout, l_int32 level)
 {
-    return ERROR_INT("function not present", "convertToPSEmbed", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -117,7 +121,7 @@ l_ok convertToPSEmbed(const char *filein, const char *fileout, l_int32 level)
 l_ok pixaWriteCompressedToPS(PIXA *pixa, const char *fileout,
                              l_int32 res, l_int32 level)
 {
-    return ERROR_INT("function not present", "pixaWriteCompressedtoPS", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -125,7 +129,7 @@ l_ok pixaWriteCompressedToPS(PIXA *pixa, const char *fileout,
 l_ok pixWriteCompressedToPS(PIX *pix, const char *fileout, l_int32 res,
                             l_int32 level, l_int32 *pindex)
 {
-    return ERROR_INT("function not present", "pixWriteCompressedtoPS", 1);
+    return ERROR_INT("function not present", __func__, 1);
 }
 
 /* --------------------------------------------*/

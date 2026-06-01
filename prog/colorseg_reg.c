@@ -43,6 +43,10 @@
  *   be most influential in determining the actual number of colors.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const l_int32  MaxColors[] = {4, 8, 16};
@@ -66,19 +70,17 @@ L_REGPARAMS  *rp;
         maxcolors = MaxColors[k];
         finalcolors = FinalColors[k];
         pixa = pixaCreate(0);
-        pixSaveTiled(pixs, pixa, 1.0, 1, 15, 32);
         for (i = 1; i <= 9; i++) {
             maxdist = 20 * i;
             for (j = 0; j <= 6; j++) {
                 selsize = j;
                 pix1 = pixColorSegment(pixs, maxdist, maxcolors, selsize,
                                        finalcolors, 0);
-                pixSaveTiled(pix1, pixa, 1.0, j == 0 ? 1 : 0, 15, 32);
-                pixDestroy(&pix1);
+                pixaAddPix(pixa, pix1, L_INSERT);
             }
         }
 
-        pix2 = pixaDisplay(pixa, 0, 0);
+        pix2 = pixaDisplayTiledInColumns(pixa, 7, 1.0, 15, 2);
         regTestWritePixAndCheck(rp, pix2, IFF_JFIF_JPEG);  /* 0, 1, 2 */
         pixDisplayWithTitle(pix2, 100, k * 300, "colorseg", rp->display);
         pixDestroy(&pix2);

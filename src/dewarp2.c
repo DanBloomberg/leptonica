@@ -41,6 +41,7 @@
  *          static l_int32     dewarpFilterLineEndPoints()
  *          static PTA        *dewarpRemoveBadEndPoints()
  *          static l_int32     dewarpIsLineCoverageValid()
+ *          static l_int32     dewarpLinearLSF()
  *          static l_int32     dewarpQuadraticLSF()
  *
  *      Build disparity model for slope near binding
@@ -58,6 +59,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <math.h>
 #include "allheaders.h"
 
@@ -70,6 +75,8 @@ static PTA *dewarpRemoveBadEndPoints(l_int32 w, PTA *ptas);
 static l_int32 dewarpIsLineCoverageValid(PTAA *ptaa2, l_int32 h,
                                          l_int32 *pntop, l_int32 *pnbot,
                                          l_int32 *pytop, l_int32 *pybot);
+static l_int32 dewarpLinearLSF(PTA *ptad, l_float32 *pa, l_float32 *pb,
+                               l_float32 *pmederr);
 static l_int32 dewarpQuadraticLSF(PTA *ptad, l_float32 *pa, l_float32 *pb,
                                   l_float32 *pc, l_float32 *pmederr);
 static l_int32 pixRenderMidYs(PIX *pixs, NUMA *namidys, l_int32 linew);
@@ -86,10 +93,10 @@ static l_int32 pixRenderHorizEndPoints(PIX *pixs, PTA *ptal, PTA *ptar,
 #endif  /* !NO_CONSOLE_IO */
 
     /* Special parameter values for reducing horizontal disparity */
-static const l_float32   MinRatioLinesToHeight = 0.45;
+static const l_float32   MinRatioLinesToHeight = 0.45f;
 static const l_int32     MinLinesForHoriz1 = 10; /* initially */
 static const l_int32     MinLinesForHoriz2 = 3;  /* after, in each half */
-static const l_float32   AllowedWidthFract = 0.05;  /* no bigger */
+static const l_float32   AllowedWidthFract = 0.05f;  /* no bigger */
 
 
 /*----------------------------------------------------------------------*
@@ -154,10 +161,8 @@ PIX     *pixs, *pix1, *pix2, *pix3;
 PTA     *pta;
 PTAA    *ptaa1, *ptaa2;
 
-    PROCNAME("dewarpBuildPageModel");
-
     if (!dew)
-        return ERROR_INT("dew not defined", procName, 1);
+        return ERROR_INT("dew not defined", __func__, 1);
 
     dew->debug = (debugfile) ? 1 : 0;
     dew->vsuccess = dew->hsuccess = 0;
@@ -172,7 +177,7 @@ PTAA    *ptaa1, *ptaa2;
         /* Make initial estimate of centers of textlines */
     ptaa1 = dewarpGetTextlineCenters(pixs, debugfile || DEBUG_TEXTLINE_CENTERS);
     if (!ptaa1) {
-        L_WARNING("textline centers not found; model not built\n", procName);
+        L_WARNING("textline centers not found; model not built\n", __func__);
         return 1;
     }
     if (debugfile) {
@@ -189,7 +194,7 @@ PTAA    *ptaa1, *ptaa2;
 
         /* Remove all lines that are not at least 0.8 times the length
          * of the longest line. */
-    ptaa2 = dewarpRemoveShortLines(pixs, ptaa1, 0.8,
+    ptaa2 = dewarpRemoveShortLines(pixs, ptaa1, 0.8f,
                                    debugfile || DEBUG_SHORT_LINES);
     if (debugfile) {
         pix1 = pixConvertTo32(pixs);
@@ -209,7 +214,7 @@ PTAA    *ptaa1, *ptaa2;
     if (linecount < dew->minlines) {
         ptaaDestroy(&ptaa2);
         L_WARNING("linecount %d < min req'd number of lines (%d) for model\n",
-                  procName, linecount, dew->minlines);
+                  __func__, linecount, dew->minlines);
         return 1;
     }
 
@@ -219,7 +224,7 @@ PTAA    *ptaa1, *ptaa2;
                                   &ntop, &nbot, &ytop, &ybot) == FALSE) {
         ptaaDestroy(&ptaa2);
         L_WARNING("invalid line coverage: ntop = %d, nbot = %d;"
-                  " spanning [%d ... %d] in height %d\n", procName,
+                  " spanning [%d ... %d] in height %d\n", __func__,
                   ntop, nbot, ytop, ybot, pixGetHeight(pixs));
         return 1;
     }
@@ -228,7 +233,7 @@ PTAA    *ptaa1, *ptaa2;
          * The disparity array will push pixels vertically so that each
          * textline is flat and centered at the y-position of the mid-point. */
     if (dewarpFindVertDisparity(dew, ptaa2, 0) != 0) {
-        L_WARNING("vertical disparity not built\n", procName);
+        L_WARNING("vertical disparity not built\n", __func__);
         ptaaDestroy(&ptaa2);
         return 1;
     }
@@ -239,24 +244,24 @@ PTAA    *ptaa1, *ptaa2;
          * Do this even if useboth == 0; we still calculate it even
          * if we don't plan to use it. */
     if ((ret = dewarpFindHorizDisparity(dew, ptaa2)) == 0)
-        L_INFO("hsuccess = 1\n", procName);
+        L_INFO("hsuccess = 1\n", __func__);
 
         /* Debug output */
     if (debugfile) {
         dewarpPopulateFullRes(dew, NULL, 0, 0);
-        pix1 = fpixRenderContours(dew->fullvdispar, 3.0, 0.15);
+        pix1 = fpixRenderContours(dew->fullvdispar, 3.0f, 0.15f);
         pixWriteDebug("/tmp/lept/dewmod/0060.png", pix1, IFF_PNG);
         pixDisplay(pix1, 1000, 0);
         pixDestroy(&pix1);
         if (ret == 0) {
-            pix1 = fpixRenderContours(dew->fullhdispar, 3.0, 0.15);
+            pix1 = fpixRenderContours(dew->fullhdispar, 3.0f, 0.15f);
             pixWriteDebug("/tmp/lept/dewmod/0070.png", pix1, IFF_PNG);
             pixDisplay(pix1, 1000, 0);
             pixDestroy(&pix1);
         }
         convertFilesToPdf("/tmp/lept/dewmod", NULL, 135, 1.0, 0, 0,
                           "Dewarp Build Model", debugfile);
-        fprintf(stderr, "pdf file: %s\n", debugfile);
+        lept_stderr("pdf file: %s\n", debugfile);
     }
 
     ptaaDestroy(&ptaa2);
@@ -307,15 +312,13 @@ PTA        *pta, *ptad, *ptacirc;
 PTAA       *ptaa0, *ptaa1, *ptaa2, *ptaa3, *ptaa4, *ptaa5, *ptaat;
 FPIX       *fpix;
 
-    PROCNAME("dewarpFindVertDisparity");
-
     if (!dew)
-        return ERROR_INT("dew not defined", procName, 1);
+        return ERROR_INT("dew not defined", __func__, 1);
     dew->vsuccess = 0;
     if (!ptaa)
-        return ERROR_INT("ptaa not defined", procName, 1);
+        return ERROR_INT("ptaa not defined", __func__, 1);
 
-    if (dew->debug) L_INFO("finding vertical disparity\n", procName);
+    if (dew->debug) L_INFO("finding vertical disparity\n", __func__);
 
         /* Do quadratic fit to smooth each line.  A single quadratic
          * over the entire width of the line appears to be sufficient.
@@ -377,9 +380,9 @@ FPIX       *fpix;
          * the magnitude of the curvature.  That is done when constraints
          * are applied for valid models. */
     numaGetMedianDevFromMedian(nacurve0, &medval, &meddev);
-    L_INFO("\nPage %d\n", procName, dew->pageno);
+    L_INFO("\nPage %d\n", __func__, dew->pageno);
     L_INFO("Pass 1: Curvature: medval = %f, meddev = %f\n",
-           procName, medval, meddev);
+           __func__, medval, meddev);
     ptaa1 = ptaaCreate(nlines);
     nacurve1 = numaCreate(nlines);
     for (i = 0; i < nlines; i++) {  /* for each line */
@@ -398,7 +401,7 @@ FPIX       *fpix;
     numaGetMax(nacurve1, &maxval, NULL);
     dew->mincurv = lept_roundftoi(1000000. * minval);
     dew->maxcurv = lept_roundftoi(1000000. * maxval);
-    L_INFO("Pass 2: Min/max curvature = (%d, %d)\n", procName,
+    L_INFO("Pass 2: Min/max curvature = (%d, %d)\n", __func__,
            dew->mincurv, dew->maxcurv);
 
         /* Find and save the y values at the mid-points in each curve.
@@ -511,7 +514,7 @@ FPIX       *fpix;
         convertFilesToPdf("/tmp/lept/dewmod", "004", 135, 1.0, 0, 0,
                           "Dewarp Vert Disparity",
                           "/tmp/lept/dewarp/vert_disparity.pdf");
-        fprintf(stderr, "pdf file: /tmp/lept/dewarp/vert_disparity.pdf\n");
+        lept_stderr("pdf file: /tmp/lept/dewarp/vert_disparity.pdf\n");
     }
 
         /* Save the result in a fpix at the specified subsampling  */
@@ -560,7 +563,7 @@ l_ok
 dewarpFindHorizDisparity(L_DEWARP  *dew,
                          PTAA      *ptaa)
 {
-l_int32    i, j, h, nx, ny, sampling, ret;
+l_int32    i, j, h, nx, ny, sampling, ret, linear_edgefit;
 l_float32  c0, c1, cl0, cl1, cl2, cr0, cr1, cr2;
 l_float32  x, y, refl, refr;
 l_float32  val, mederr;
@@ -573,21 +576,19 @@ PTA       *pta, *ptat, *pta1, *pta2;
 PTAA      *ptaah;
 FPIX      *fpix;
 
-    PROCNAME("dewarpFindHorizDisparity");
-
     if (!dew)
-        return ERROR_INT("dew not defined", procName, 1);
+        return ERROR_INT("dew not defined", __func__, 1);
     dew->hsuccess = 0;
     if (!ptaa)
-        return ERROR_INT("ptaa not defined", procName, 1);
+        return ERROR_INT("ptaa not defined", __func__, 1);
 
-    if (dew->debug) L_INFO("finding horizontal disparity\n", procName);
+    if (dew->debug) L_INFO("finding horizontal disparity\n", __func__);
 
         /* Get the endpoints of the lines, and sort from top to bottom */
     h = pixGetHeight(dew->pixs);
     ret = dewarpGetLineEndPoints(h, ptaa, &ptal1, &ptar1);
     if (ret) {
-        L_INFO("Horiz disparity not built\n", procName);
+        L_INFO("Horiz disparity not built\n", __func__);
         return 1;
     }
     if (dew->debug) {
@@ -609,49 +610,79 @@ FPIX      *fpix;
     ptaDestroy(&ptal1);
     ptaDestroy(&ptar1);
     if (ret) {
-        L_INFO("Not enough filtered end points\n", procName);
+        L_INFO("Not enough filtered end points\n", __func__);
         return 1;
     }
 
-        /* Do a quadratic fit to the left and right endpoints of the
-         * longest lines.  Each line is represented by 3 coefficients:
+        /* Do either a linear or a quadratic fit to the left and right
+         * endpoints of the longest lines.  It is not necessary to use
+         * the noisy LSF fit function, because we've removed outlier
+         * end points by selecting the long lines.
+         * For the linear fit, each line is represented by 2 coefficients:
+         *     x(y) = c1 * y + c0.
+         * For the quadratic fit, each line is represented by 3 coefficients:
          *     x(y) = c2 * y^2 + c1 * y + c0.
-         * Using the coefficients, sample each fitted curve uniformly
+         * Then using the coefficients, sample each fitted curve uniformly
          * along the full height of the image. */
     sampling = dew->sampling;
     nx = dew->nx;
     ny = dew->ny;
+    linear_edgefit = (dew->dewa->max_edgecurv == 0) ? TRUE : FALSE;
 
-        /* Fit the left side, using quadratic LSF on the set of long
-         * lines.  It is not necessary to use the noisy LSF fit
-         * function, because we've removed outlier end points by
-         * selecting the long lines.  Then uniformly sample along
-         * this fitted curve. */
-    dewarpQuadraticLSF(ptal2, &cl2, &cl1, &cl0, &mederr);
-    dew->leftslope = lept_roundftoi(1000. * cl1);  /* milli-units */
-    dew->leftcurv = lept_roundftoi(1000000. * cl2);  /* micro-units */
-    L_INFO("Left quad LSF median error = %5.2f\n", procName,  mederr);
-    L_INFO("Left edge slope = %d\n", procName, dew->leftslope);
-    L_INFO("Left edge curvature = %d\n", procName, dew->leftcurv);
-    ptal3 = ptaCreate(ny);
-    for (i = 0; i < ny; i++) {  /* uniformly sampled in y */
-        y = i * sampling;
-        applyQuadraticFit(cl2, cl1, cl0, y, &x);
-        ptaAddPt(ptal3, x, y);
-    }
+    if (linear_edgefit) {
+            /* Fit the left side, using linear LSF on the set of long lines. */
+        dewarpLinearLSF(ptal2, &cl1, &cl0, &mederr);
+        dew->leftslope = lept_roundftoi(1000. * cl1);  /* milli-units */
+        dew->leftcurv = 0;  /* micro-units */
+        L_INFO("Left linear LSF median error = %5.2f\n", __func__,  mederr);
+        L_INFO("Left edge slope = %d\n", __func__, dew->leftslope);
+        ptal3 = ptaCreate(ny);
+        for (i = 0; i < ny; i++) {  /* uniformly sample in y */
+            y = i * sampling;
+            applyLinearFit(cl1, cl0, y, &x);
+            ptaAddPt(ptal3, x, y);
+        }
 
-        /* Fit the right side in the same way. */
-    dewarpQuadraticLSF(ptar2, &cr2, &cr1, &cr0, &mederr);
-    dew->rightslope = lept_roundftoi(1000.0 * cr1);  /* milli-units */
-    dew->rightcurv = lept_roundftoi(1000000. * cr2);  /* micro-units */
-    L_INFO("Right quad LSF median error = %5.2f\n", procName,  mederr);
-    L_INFO("Right edge slope = %d\n", procName, dew->rightslope);
-    L_INFO("Right edge curvature = %d\n", procName, dew->rightcurv);
-    ptar3 = ptaCreate(ny);
-    for (i = 0; i < ny; i++) {  /* uniformly sampled in y */
-        y = i * sampling;
-        applyQuadraticFit(cr2, cr1, cr0, y, &x);
-        ptaAddPt(ptar3, x, y);
+            /* Do a linear LSF on the right side. */
+        dewarpLinearLSF(ptar2, &cr1, &cr0, &mederr);
+        dew->rightslope = lept_roundftoi(1000.0 * cr1);  /* milli-units */
+        dew->rightcurv = 0;  /* micro-units */
+        L_INFO("Right linear LSF median error = %5.2f\n", __func__,  mederr);
+        L_INFO("Right edge slope = %d\n", __func__, dew->rightslope);
+        ptar3 = ptaCreate(ny);
+        for (i = 0; i < ny; i++) {  /* uniformly sample in y */
+            y = i * sampling;
+            applyLinearFit(cr1, cr0, y, &x);
+            ptaAddPt(ptar3, x, y);
+        }
+    } else {  /* quadratic edge fit */
+            /* Fit the left side, using quadratic LSF on the long lines. */
+        dewarpQuadraticLSF(ptal2, &cl2, &cl1, &cl0, &mederr);
+        dew->leftslope = lept_roundftoi(1000. * cl1);  /* milli-units */
+        dew->leftcurv = lept_roundftoi(1000000. * cl2);  /* micro-units */
+        L_INFO("Left quad LSF median error = %5.2f\n", __func__,  mederr);
+        L_INFO("Left edge slope = %d\n", __func__, dew->leftslope);
+        L_INFO("Left edge curvature = %d\n", __func__, dew->leftcurv);
+        ptal3 = ptaCreate(ny);
+        for (i = 0; i < ny; i++) {  /* uniformly sample in y */
+            y = i * sampling;
+            applyQuadraticFit(cl2, cl1, cl0, y, &x);
+            ptaAddPt(ptal3, x, y);
+        }
+
+            /* Do a quadratic LSF on the right side. */
+        dewarpQuadraticLSF(ptar2, &cr2, &cr1, &cr0, &mederr);
+        dew->rightslope = lept_roundftoi(1000.0 * cr1);  /* milli-units */
+        dew->rightcurv = lept_roundftoi(1000000. * cr2);  /* micro-units */
+        L_INFO("Right quad LSF median error = %5.2f\n", __func__,  mederr);
+        L_INFO("Right edge slope = %d\n", __func__, dew->rightslope);
+        L_INFO("Right edge curvature = %d\n", __func__, dew->rightcurv);
+        ptar3 = ptaCreate(ny);
+        for (i = 0; i < ny; i++) {  /* uniformly sample in y */
+            y = i * sampling;
+            applyQuadraticFit(cr2, cr1, cr0, y, &x);
+            ptaAddPt(ptar3, x, y);
+        }
     }
 
     if (dew->debug) {
@@ -659,11 +690,20 @@ FPIX      *fpix;
         h = pixGetHeight(dew->pixs);
         pta1 = ptaCreate(h);
         pta2 = ptaCreate(h);
-        for (i = 0; i < h; i++) {
-            applyQuadraticFit(cl2, cl1, cl0, i, &x);
-            ptaAddPt(pta1, x, i);
-            applyQuadraticFit(cr2, cr1, cr0, i, &x);
-            ptaAddPt(pta2, x, i);
+        if (linear_edgefit) {
+            for (i = 0; i < h; i++) {
+                applyLinearFit(cl1, cl0, i, &x);
+                ptaAddPt(pta1, x, i);
+                applyLinearFit(cr1, cr0, i, &x);
+                ptaAddPt(pta2, x, i);
+            }
+        } else {  /* quadratic edge fit */
+            for (i = 0; i < h; i++) {
+                applyQuadraticFit(cl2, cl1, cl0, i, &x);
+                ptaAddPt(pta1, x, i);
+                applyQuadraticFit(cr2, cr1, cr0, i, &x);
+                ptaAddPt(pta2, x, i);
+            }
         }
         pix1 = pixDisplayPta(NULL, dew->pixs, pta1);
         pixDisplayPta(pix1, pix1, pta2);
@@ -682,7 +722,7 @@ FPIX      *fpix;
         convertFilesToPdf("/tmp/lept/dewmod", "005", 135, 1.0, 0, 0,
                           "Dewarp Horiz Disparity",
                           "/tmp/lept/dewarp/horiz_disparity.pdf");
-        fprintf(stderr, "pdf file: /tmp/lept/dewarp/horiz_disparity.pdf\n");
+        lept_stderr("pdf file: /tmp/lept/dewarp/horiz_disparity.pdf\n");
         pixDestroy(&pix1);
         ptaDestroy(&pta1);
         ptaDestroy(&pta2);
@@ -776,13 +816,11 @@ PIXA     *pixa1, *pixa2;
 PTA      *pta;
 PTAA     *ptaa;
 
-    PROCNAME("dewarpGetTextlineCenters");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PTAA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PTAA *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     pixGetDimensions(pixs, &w, &h, NULL);
 
-    if (debugflag) L_INFO("finding text line centers\n", procName);
+    if (debugflag) L_INFO("finding text line centers\n", __func__);
 
         /* Filter to solidify the text lines within the x-height region,
          * and to remove most of the ascenders and descenders.
@@ -881,10 +919,8 @@ l_int32    w, h, i, j, wpl, sum, count;
 l_uint32  *line, *data;
 PTA       *pta;
 
-    PROCNAME("pixGetMeanVerticals");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PTA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PTA *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     pta = ptaCreate(w);
@@ -931,12 +967,10 @@ PIX       *pix1, *pix2;
 PTA       *pta;
 PTAA      *ptaad;
 
-    PROCNAME("dewarpRemoveShortLines");
-
     if (!pixs || pixGetDepth(pixs) != 1)
-        return (PTAA *)ERROR_PTR("pixs undefined or not 1 bpp", procName, NULL);
+        return (PTAA *)ERROR_PTR("pixs undefined or not 1 bpp", __func__, NULL);
     if (!ptaas)
-        return (PTAA *)ERROR_PTR("ptaas undefined", procName, NULL);
+        return (PTAA *)ERROR_PTR("ptaas undefined", __func__, NULL);
 
     pixGetDimensions(pixs, &w, NULL, NULL);
     n = ptaaGetCount(ptaas);
@@ -954,7 +988,7 @@ PTAA      *ptaad;
     numaGetIValue(naindex, 0, &index);
     numaGetIValue(na, index, &maxlen);
     if (maxlen < 0.5 * w)
-        L_WARNING("lines are relatively short\n", procName);
+        L_WARNING("lines are relatively short\n", __func__);
     pta = ptaaGetPta(ptaas, index, L_CLONE);
     ptaaAddPta(ptaad, pta, L_INSERT);
     for (i = 1; i < n; i++) {
@@ -1011,18 +1045,16 @@ l_int32    i, n, npt, x, y;
 l_float32  miny, maxy, ratio;
 PTA       *pta, *ptal1, *ptar1;
 
-    PROCNAME("dewarpGetLineEndPoints");
-
     if (!pptal || !pptar)
-        return ERROR_INT("&ptal and &ptar not both defined", procName, 1);
+        return ERROR_INT("&ptal and &ptar not both defined", __func__, 1);
     *pptal = *pptar = NULL;
     if (!ptaa)
-        return ERROR_INT("ptaa undefined", procName, 1);
+        return ERROR_INT("ptaa undefined", __func__, 1);
 
         /* Are there at least 10 lines? */
     n = ptaaGetCount(ptaa);
     if (n < MinLinesForHoriz1) {
-        L_INFO("only %d lines; too few\n", procName, n);
+        L_INFO("only %d lines; too few\n", __func__, n);
         return 1;
     }
 
@@ -1043,7 +1075,7 @@ PTA       *pta, *ptal1, *ptar1;
     ptaGetRange(ptal1, &miny, &maxy, NULL, NULL);
     ratio = (maxy - miny) / (l_float32)h;
     if (ratio < MinRatioLinesToHeight) {
-        L_INFO("ratio lines to height, %f, too small\n", procName, ratio);
+        L_INFO("ratio lines to height, %f, too small\n", __func__, ratio);
         ptaDestroy(&ptal1);
         ptaDestroy(&ptar1);
         return 1;
@@ -1091,9 +1123,8 @@ l_int32    w, i, n;
 l_float32  ymin, ymax, xvall, xvalr, yvall, yvalr;
 PTA       *ptal1, *ptar1, *ptal2, *ptar2;
 
-    PROCNAME("dewarpFilterLineEndPoints");
     if (!ptal || !ptar)
-        return ERROR_INT("ptal or ptar not defined", procName, 1);
+        return ERROR_INT("ptal or ptar not defined", __func__, 1);
     *pptalf = *pptarf = NULL;
 
         /* First filter for lines near left and right margins */
@@ -1121,7 +1152,7 @@ PTA       *ptal1, *ptar1, *ptal2, *ptar2;
     if (n < MinLinesForHoriz1 - 2) {
         ptaDestroy(&ptal1);
         ptaDestroy(&ptar1);
-        L_INFO("First filter: only %d endpoints; needed 8\n", procName, n);
+        L_INFO("First filter: only %d endpoints; needed 8\n", __func__, n);
         return 1;
     }
 
@@ -1134,7 +1165,7 @@ PTA       *ptal1, *ptar1, *ptal2, *ptar2;
         ptaDestroy(&ptal2);
         ptaDestroy(&ptar2);
         L_INFO("Second filter: too few endpoints left after outliers removed\n",
-                procName);
+                __func__);
         return 1;
     }
     if (dew->debug) {
@@ -1174,10 +1205,8 @@ l_int32    i, n, nu, nd;
 l_float32  rval, xval, yval, delta;
 PTA       *ptau1, *ptau2, *ptad1, *ptad2;
 
-    PROCNAME("dewarpRemoveBadEndPoints");
-
     if (!ptas)
-        return (PTA *)ERROR_PTR("ptas not defined", procName, NULL);
+        return (PTA *)ERROR_PTR("ptas not defined", __func__, NULL);
 
     delta = AllowedWidthFract * w;
     n = ptaGetCount(ptas);  /* will be at least 8 */
@@ -1196,7 +1225,7 @@ PTA       *ptau1, *ptau2, *ptad1, *ptad2;
     if (ptaGetCount(ptau2) < MinLinesForHoriz2) {
         ptaDestroy(&ptau2);
         L_INFO("Second filter: upper set is too small after outliers removed\n",
-               procName);
+               __func__);
         return NULL;
     }
 
@@ -1215,7 +1244,7 @@ PTA       *ptau1, *ptau2, *ptad1, *ptad2;
         ptaDestroy(&ptau2);
         ptaDestroy(&ptad2);
         L_INFO("Second filter: lower set is too small after outliers removed\n",
-               procName);
+               __func__);
         return NULL;
     }
 
@@ -1256,18 +1285,16 @@ l_int32    i, n, iy, both_halves, ntop, nbot, ytop, ybot, nmin;
 l_float32  y, fraction;
 NUMA      *na;
 
-    PROCNAME("dewarpIsLineCoverageValid");
-
     if (!ptaa)
-        return ERROR_INT("ptaa not defined", procName, 0);
+        return ERROR_INT("ptaa not defined", __func__, 0);
     if ((n = ptaaGetCount(ptaa)) == 0)
-        return ERROR_INT("ptaa empty", procName, 0);
+        return ERROR_INT("ptaa empty", __func__, 0);
     if (h <= 0)
-        return ERROR_INT("invalid h", procName, 0);
+        return ERROR_INT("invalid h", __func__, 0);
     if (!pntop || !pnbot)
-        return ERROR_INT("&ntop and &nbot not defined", procName, 0);
+        return ERROR_INT("&ntop and &nbot not defined", __func__, 0);
     if (!pytop || !pybot)
-        return ERROR_INT("&ytop and &ybot not defined", procName, 0);
+        return ERROR_INT("&ytop and &ybot not defined", __func__, 0);
 
     na = numaCreate(n);
     for (i = 0; i < n; i++) {
@@ -1298,6 +1325,61 @@ NUMA      *na;
 
 
 /*!
+ * \brief   dewarpLinearLSF()
+ *
+ * \param[in]    ptad      left or right end points of longest lines
+ * \param[out]   pa        coeff a of LSF: y = ax + b
+ * \param[out]   pb        coeff b of LSF: y = ax + b
+ * \param[out]   pmederr   [optional] median error
+ * \return  0 if OK, 1 on error.
+ *
+ * <pre>
+ * Notes:
+ *      (1) This is used for finding the left or right sides of the text
+ *          block, computed as a best-fit line.  Only the longest lines
+ *          are input, so there are no outlier line ends.
+ *      (2) The ptas for the end points all have x and y swapped.
+ * </pre>
+ */
+static l_int32
+dewarpLinearLSF(PTA        *ptad,
+                l_float32  *pa,
+                l_float32  *pb,
+                l_float32  *pmederr)
+{
+l_int32    i, n;
+l_float32  x, y, xp, c0, c1;
+NUMA      *naerr;
+
+    if (pmederr) *pmederr = 0.0;
+    if (!pa || !pb)
+        return ERROR_INT("not all ptrs are defined", __func__, 1);
+    *pa = *pb = 0.0;
+    if (!ptad)
+        return ERROR_INT("ptad not defined", __func__, 1);
+
+        /* Fit to the longest lines */
+    ptaGetLinearLSF(ptad, &c1, &c0, NULL);
+    *pa = c1;
+    *pb = c0;
+
+        /* Optionally, find the median error */
+    if (pmederr) {
+        n = ptaGetCount(ptad);
+        naerr = numaCreate(n);
+        for (i = 0; i < n; i++) {
+            ptaGetPt(ptad, i, &y, &xp);
+            applyLinearFit(c1, c0, y, &x);
+            numaAddNumber(naerr, L_ABS(x - xp));
+        }
+        numaGetMedian(naerr, pmederr);
+        numaDestroy(&naerr);
+    }
+    return 0;
+}
+
+
+/*!
  * \brief   dewarpQuadraticLSF()
  *
  * \param[in]    ptad      left or right end points of longest lines
@@ -1309,10 +1391,9 @@ NUMA      *na;
  *
  * <pre>
  * Notes:
- *      (1) This is used for finding the left or right sides of
- *          the text block, computed as a quadratic curve.
- *          Only the longest lines are input, so there are
- *          no outliers.
+ *      (1) This is used for finding the left or right sides of the text
+ *          block, computed as a best-fit quadratic curve.  Only the
+ *          longest lines are input, so there are no outlier line ends.
  *      (2) The ptas for the end points all have x and y swapped.
  * </pre>
  */
@@ -1327,14 +1408,12 @@ l_int32    i, n;
 l_float32  x, y, xp, c0, c1, c2;
 NUMA      *naerr;
 
-    PROCNAME("dewarpQuadraticLSF");
-
     if (pmederr) *pmederr = 0.0;
     if (!pa || !pb || !pc)
-        return ERROR_INT("not all ptrs are defined", procName, 1);
+        return ERROR_INT("not all ptrs are defined", __func__, 1);
     *pa = *pb = *pc = 0.0;
     if (!ptad)
-        return ERROR_INT("ptad not defined", procName, 1);
+        return ERROR_INT("ptad not defined", __func__, 1);
 
         /* Fit to the longest lines */
     ptaGetQuadraticLSF(ptad, &c2, &c1, &c0, NULL);
@@ -1356,6 +1435,7 @@ NUMA      *naerr;
     }
     return 0;
 }
+
 
 /*----------------------------------------------------------------------*
  *              Build disparity model for slope near binding            *
@@ -1410,21 +1490,20 @@ l_float32  fract, delta, sum, aveval, fval, del, denom;
 l_float32  ca, cb, cc, cd, ce, y;
 BOX       *box;
 BOXA      *boxa1, *boxa2;
+GPLOT     *gplot;
 NUMA      *na1, *na2, *na3, *na4, *nasum;
 PIX       *pix1;
 PTA       *pta1;
 FPIX      *fpix;
 
-    PROCNAME("dewarpFindHorizSlopeDisparity");
-
     if (!dew)
-        return ERROR_INT("dew not defined", procName, 1);
+        return ERROR_INT("dew not defined", __func__, 1);
     if (!dew->vvalid || !dew->hvalid)
-        return ERROR_INT("invalid vert or horiz disparity model", procName, 1);
+        return ERROR_INT("invalid vert or horiz disparity model", __func__, 1);
     if (!pixb || pixGetDepth(pixb) != 1)
-        return ERROR_INT("pixb not defined or not 1 bpp", procName, 1);
+        return ERROR_INT("pixb not defined or not 1 bpp", __func__, 1);
 
-    if (dew->debug) L_INFO("finding slope horizontal disparity\n", procName);
+    if (dew->debug) L_INFO("finding slope horizontal disparity\n", __func__);
 
         /* Find the bounding boxes of the vertical strokes; remove noise */
     pix1 = pixMorphSequence(pixb, "o1.10", 0);
@@ -1433,7 +1512,7 @@ FPIX      *fpix;
     boxa2 = boxaSelectBySize(boxa1, 0, 5, L_SELECT_HEIGHT, L_SELECT_IF_GT,
                              NULL);
     nb = boxaGetCount(boxa2);
-    fprintf(stderr, "number of components: %d\n", nb);
+    lept_stderr("number of components: %d\n", nb);
     boxaDestroy(&boxa1);
 
         /* Estimate the horizontal density of vertical strokes */
@@ -1494,13 +1573,13 @@ FPIX      *fpix;
     fract = (l_float32)delta / denom;
     if (dew->debug) {
         L_INFO("Slope-disparity: first = %d, last = %d, fract = %7.3f\n",
-               procName, first, last, fract);
+               __func__, first, last, fract);
         gplotSimple1(na2, GPLOT_PNG, "/tmp/lept/dew/0092", NULL);
         lept_mv("/tmp/lept/dew/0092.png", "lept/dewmod", NULL, NULL);
     }
     if (fract < fractthresh) {
         L_INFO("Small slope-disparity: first = %d, last = %d, fract = %7.3f\n",
-               procName, first, last, fract);
+               __func__, first, last, fract);
         numaDestroy(&na2);
         return 0;
     }
@@ -1517,7 +1596,7 @@ FPIX      *fpix;
     numaArithOp(na2, na2, na3, L_ARITH_DIVIDE);
     numaDestroy(&na3);
     if (dew->debug) {
-        L_INFO("Average background density: %5.1f\n", procName, aveval);
+        L_INFO("Average background density: %5.1f\n", __func__, aveval);
         gplotSimple1(na2, GPLOT_PNG, "/tmp/lept/dew/0093", NULL);
         lept_mv("/tmp/lept/dew/0093.png", "lept/dewmod", NULL, NULL);
     }
@@ -1529,8 +1608,9 @@ FPIX      *fpix;
     ptaGetQuarticLSF(pta1, &ca, &cb, &cc, &cd, &ce, &na3);
     ptaGetArrays(pta1, &na4, NULL);
     if (dew->debug) {
-        gplotSimpleXY1(na4, na3, GPLOT_LINES, GPLOT_PNG,
-                       "/tmp/lept/dew/0094", NULL);
+        gplot = gplotSimpleXY1(na4, na3, GPLOT_LINES, GPLOT_PNG,
+                              "/tmp/lept/dew/0094", NULL);
+        gplotDestroy(&gplot);
         lept_mv("/tmp/lept/dew/0094.png", "lept/dewmod", NULL, NULL);
     }
     ptaDestroy(&pta1);
@@ -1639,12 +1719,10 @@ PIXA    *pixa1, *pixa2;
 PTA     *pta;
 PTAA    *ptaa1, *ptaa2;
 
-    PROCNAME("dewarpBuildLineModel");
-
     if (!dew)
-        return ERROR_INT("dew not defined", procName, 1);
+        return ERROR_INT("dew not defined", __func__, 1);
     if (opensize < 3) {
-        L_WARNING("opensize should be >= 3; setting to 8\n", procName);
+        L_WARNING("opensize should be >= 3; setting to 8\n", __func__);
         opensize = 8;  /* default */
     }
 
@@ -1692,7 +1770,7 @@ PTAA    *ptaa1, *ptaa2;
         nlines = boxaGetCount(boxa);
         boxaDestroy(&boxa);
         if (nlines < dew->minlines) {
-            L_WARNING("only found %d lines\n", procName, nlines);
+            L_WARNING("only found %d lines\n", __func__, nlines);
             pixDestroy(&pix);
             pixaDestroy(&pixa1);
             continue;
@@ -1733,7 +1811,7 @@ PTAA    *ptaa1, *ptaa2;
         if (nlines < dew->minlines) {
             pixDestroy(&pix);
             ptaaDestroy(&ptaa2);
-            L_WARNING("%d lines: too few to build model\n", procName, nlines);
+            L_WARNING("%d lines: too few to build model\n", __func__, nlines);
             continue;
         }
 
@@ -1747,9 +1825,9 @@ PTAA    *ptaa1, *ptaa2;
              * rotating it back by -90 degrees. */
         if (i == 0) {  /* horizontal disparity, really */
             if (ret) {
-                L_WARNING("horizontal disparity not built\n", procName);
+                L_WARNING("horizontal disparity not built\n", __func__);
             } else {
-                L_INFO("hsuccess = 1\n", procName);
+                L_INFO("hsuccess = 1\n", __func__);
                 dew->samphdispar = fpixRotateOrth(dew->sampvdispar, 3);
                 fpixDestroy(&dew->sampvdispar);
                 if (debugfile)
@@ -1760,9 +1838,9 @@ PTAA    *ptaa1, *ptaa2;
             dew->vsuccess = 0;
         } else {  /* i == 1 */
             if (ret)
-                L_WARNING("vertical disparity not built\n", procName);
+                L_WARNING("vertical disparity not built\n", __func__);
             else
-                L_INFO("vsuccess = 1\n", procName);
+                L_INFO("vsuccess = 1\n", __func__);
         }
         ptaaDestroy(&ptaa2);
         pixDestroy(&pix);
@@ -1773,20 +1851,20 @@ PTAA    *ptaa1, *ptaa2;
     if (debugfile) {
         if (dew->vsuccess == 1) {
             dewarpPopulateFullRes(dew, NULL, 0, 0);
-            pix1 = fpixRenderContours(dew->fullvdispar, 3.0, 0.15);
+            pix1 = fpixRenderContours(dew->fullvdispar, 3.0f, 0.15f);
             pixWriteDebug("/tmp/lept/dewline/006.png", pix1, IFF_PNG);
             pixDisplay(pix1, 1000, 0);
             pixDestroy(&pix1);
         }
         if (dew->hsuccess == 1) {
-            pix1 = fpixRenderContours(dew->fullhdispar, 3.0, 0.15);
+            pix1 = fpixRenderContours(dew->fullhdispar, 3.0f, 0.15f);
             pixWriteDebug("/tmp/lept/dewline/007.png", pix1, IFF_PNG);
             pixDisplay(pix1, 1000, 0);
             pixDestroy(&pix1);
         }
         convertFilesToPdf("/tmp/lept/dewline", NULL, 135, 1.0, 0, 0,
                           "Dewarp Build Line Model", debugfile);
-        fprintf(stderr, "pdf file: %s\n", debugfile);
+        lept_stderr("pdf file: %s\n", debugfile);
     }
 
     return 0;
@@ -1818,15 +1896,13 @@ dewarpaModelStatus(L_DEWARPA  *dewa,
 {
 L_DEWARP  *dew;
 
-    PROCNAME("dewarpaModelStatus");
-
     if (pvsuccess) *pvsuccess = 0;
     if (phsuccess) *phsuccess = 0;
     if (!dewa)
-        return ERROR_INT("dewa not defined", procName, 1);
+        return ERROR_INT("dewa not defined", __func__, 1);
 
     if ((dew = dewarpaGetDewarp(dewa, pageno)) == NULL)
-        return ERROR_INT("dew not retrieved", procName, 1);
+        return ERROR_INT("dew not retrieved", __func__, 1);
     if (pvsuccess) *pvsuccess = dew->vsuccess;
     if (phsuccess) *phsuccess = dew->hsuccess;
     return 0;
@@ -1852,12 +1928,10 @@ pixRenderMidYs(PIX     *pixs,
 l_int32   i, n, w, yval, rval, gval, bval;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixRenderMidYs");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (!namidys)
-        return ERROR_INT("namidys not defined", procName, 1);
+        return ERROR_INT("namidys not defined", __func__, 1);
 
     w = pixGetWidth(pixs);
     n = numaGetCount(namidys);
@@ -1890,12 +1964,10 @@ pixRenderHorizEndPoints(PIX      *pixs,
 PIX      *pixcirc;
 PTA      *ptalt, *ptart, *ptacirc;
 
-    PROCNAME("pixRenderHorizEndPoints");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (!ptal || !ptar)
-        return ERROR_INT("ptal and ptar not both defined", procName, 1);
+        return ERROR_INT("ptal and ptar not both defined", __func__, 1);
 
     ptacirc = generatePtaFilledCircle(5);
     pixcirc = pixGenerateFromPta(ptacirc, 11, 11);

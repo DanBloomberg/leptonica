@@ -38,6 +38,10 @@
  *    (2) We do the same with the word "Caltech".
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* for pixDisplayHitMissSel() */
@@ -48,14 +52,13 @@ static const l_uint32  MissColor = 0xaa44bb00;
 int main(int    argc,
          char **argv)
 {
-BOX         *box;
-PIX         *pixs, *pixc, *pixp, *pixsel, *pixhmt;
-PIX         *pixd1, *pixd2, *pixd3;
-SEL         *selhm;
-static char  mainName[] = "findpattern2";
+BOX  *box;
+PIX  *pixs, *pixc, *pixp, *pixsel, *pixhmt;
+PIX  *pixd1, *pixd2, *pixd3;
+SEL  *selhm;
 
     if (argc != 1)
-        return ERROR_INT(" Syntax:  findpattern2", mainName, 1);
+        return ERROR_INT(" Syntax:  findpattern2", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/hmt");
@@ -78,7 +81,7 @@ static char  mainName[] = "findpattern2";
         /* Use the Sel to find all instances in the page */
     startTimer();
     pixhmt = pixHMT(NULL, pixs, selhm);
-    fprintf(stderr, "Time to find patterns = %7.3f\n", stopTimer());
+    lept_stderr("Time to find patterns = %7.3f\n", stopTimer());
 
         /* Color each instance at full res */
     pixd1 = pixDisplayMatchedPattern(pixs, pixp, pixhmt, selhm->cx,
@@ -124,7 +127,7 @@ static char  mainName[] = "findpattern2";
         /* Use the Sel to find all instances in the page */
     startTimer();
     pixhmt = pixHMT(NULL, pixs, selhm);
-    fprintf(stderr, "Time to find word patterns = %7.3f\n", stopTimer());
+    lept_stderr("Time to find word patterns = %7.3f\n", stopTimer());
 
         /* Color each instance at full res */
     pixd1 = pixDisplayMatchedPattern(pixs, pixp, pixhmt, selhm->cx,

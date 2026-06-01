@@ -57,6 +57,10 @@
  *   ***************************************************************
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define  USE_COMPRESSED    1
@@ -69,23 +73,22 @@ int main(int    argc,
 {
 char        *filein, *fname, *printer;
 char         buf[512];
-l_int32      nx, ny, i, w, h, ws, hs, n, ignore, index;
+l_int32      nx, ny, i, w, h, ws, hs, n, index;
 l_float32    scale;
 FILE        *fp;
 PIX         *pixs, *pixt, *pixr;
 PIXA        *pixa;
 SARRAY      *sa;
-static char  mainName[] = "printsplitimage";
 
     if (argc != 4 && argc != 5)
         return ERROR_INT(" Syntax:  printsplitimage filein nx ny [printer]",
-                         mainName, 1);
+                         __func__, 1);
     filein = argv[1];
     nx = atoi(argv[2]);
     ny = atoi(argv[3]);
     printer = (argc == 5) ? argv[4] : NULL;
 
-    fprintf(stderr,
+    lept_stderr(
          "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
          "   Warning: this program should only be used for testing,\n"
          "     and not in a production environment, because of a\n"
@@ -97,7 +100,7 @@ static char  mainName[] = "printsplitimage";
     lept_mkdir("lept/split");
 
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
     pixGetDimensions(pixs, &ws, &hs, NULL);
     if (ny * ws > nx * hs) {
         pixr = pixRotate90(pixs, 1);
@@ -116,7 +119,7 @@ static char  mainName[] = "printsplitimage";
         scale = L_MIN(FILL_FACTOR * 2550 / w, FILL_FACTOR * 3300 / h);
         snprintf(buf, sizeof(buf), "image%d.ps", i);
         fname = genPathname("/tmp/lept/split", buf);
-        fprintf(stderr, "fname: %s\n", fname);
+        lept_stderr("fname: %s\n", fname);
         sarrayAddString(sa, fname, L_INSERT);
 #if USE_COMPRESSED
         index = 0;
@@ -134,7 +137,7 @@ static char  mainName[] = "printsplitimage";
         for (i = 0; i < n; i++) {
             fname = sarrayGetString(sa, i, L_NOCOPY);
             snprintf(buf, sizeof(buf), "lpr -P%s %s &", printer, fname);
-            ignore = system(buf);
+            callSystemDebug(buf);
         }
     }
 

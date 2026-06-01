@@ -30,19 +30,26 @@
  *    Regression test for FPix:
  *       - rotation by multiples of 90 degrees
  *       - adding borders of various types
+ *       - conversion between pix and fpix/dpix; read/write of fpix & dpix
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
 
 int main(int    argc,
          char **argv)
 {
+DPIX         *dpix1, *dpix2;
 FPIX         *fpix1, *fpix2, *fpix3, *fpix4;
 PIX          *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
 L_REGPARAMS  *rp;
 
     if (regTestSetup(argc, argv, &rp))
         return 1;
+    lept_mkdir("lept/fpix");
 
         /* Test orthogonal rotations */
     pix1 = pixRead("marge.jpg");
@@ -107,6 +114,42 @@ L_REGPARAMS  *rp;
     fpixDestroy(&fpix1);
     fpixDestroy(&fpix2);
     fpixDestroy(&fpix3);
+
+        /* Test conversion between pix and fpix, and read/write of fpix.
+         * When converting fpix back to pix, one would normally save to 8 bpp,
+         * but for fun we ave to 16 bpp and then extract the 8 bits.  */
+    pix1 = pixRead("wyom.jpg");
+    fpix1 = pixConvertToFPix(pix1, 3);  /* only saves one 8-bit component */
+    fpixWrite("/tmp/lept/fpix/fpix1.fpix", fpix1);
+    regTestCheckFile(rp, "/tmp/lept/fpix/fpix1.fpix");  /* 5 */
+    fpix2 = fpixRead("/tmp/lept/fpix/fpix1.fpix");
+    pix2 = fpixConvertToPix(fpix2, 16, L_TAKE_ABSVAL, 1);  /* save to 16 bpp */
+    pix3 = pixConvert16To8(pix2, L_AUTO_BYTE);     /* convert to 8 bpp */
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 6 */
+    pixDisplayWithTitle(pix3, 0, 600, NULL, rp->display);
+
+        /* Test conversion between pix and dpix, and read/write of dpix.
+         * When converting dpix back to pix, one would normally save to 8 bpp,
+         * but for fun we save to 32 bpp and then extract the 8 bits.  */
+    dpix1 = pixConvertToDPix(pix1, 3);  /* only saves one 8-bit component */
+    dpixWrite("/tmp/lept/fpix/dpix1.dpix", dpix1);
+    regTestCheckFile(rp, "/tmp/lept/fpix/dpix1.dpix");  /* 7 */
+    dpix2 = dpixRead("/tmp/lept/fpix/dpix1.dpix");
+    pix4 = dpixConvertToPix(dpix2, 32, L_CLIP_TO_ZERO, 0);  /* save to 32 bpp */
+    pix5 = pixConvert32To8(pix4, L_LS_TWO_BYTES, L_LS_BYTE);  /* convert to 8 */
+    regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 8 */
+    pixDisplayWithTitle(pix5, 600, 600, NULL, rp->display);
+    regTestComparePix(rp, pix3, pix5);  /* 9 */
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    pixDestroy(&pix4);
+    pixDestroy(&pix5);
+    fpixDestroy(&fpix1);
+    fpixDestroy(&fpix2);
+    dpixDestroy(&dpix1);
+    dpixDestroy(&dpix2);
+
     return regTestCleanup(rp);
 }
 

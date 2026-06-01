@@ -33,6 +33,10 @@
  *    visualizing the difference between sampling and interpolation.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static const char  *opstr[3] = {"", "interpolated", "sampled"};
@@ -55,10 +59,9 @@ BOX       *box;
 L_BMF     *bmf;
 PIX       *pixs, *pix1, *pix2, *pixd;
 PIXA      *pixa;
-static char  mainName[] = "warpertest";
 
     if (argc != 1)
-        return ERROR_INT("syntax: warpertest", mainName, 1);
+        return ERROR_INT("syntax: warpertest", __func__, 1);
 
     setLeptDebugOK(1);
     lept_mkdir("lept/warp");

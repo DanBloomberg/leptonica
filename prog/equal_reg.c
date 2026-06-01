@@ -34,6 +34,10 @@
  *    the colormap to either RGB or grayscale.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* use this set */

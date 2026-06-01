@@ -75,12 +75,12 @@ This work is licensed under a <a rel="license" href="http://creativecommons.org/
  -  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *====================================================================*/
 
-README (version 1.78.0)
-File update: 21 Mar 2019
----------------------------
+README (version 1.87.0)
+File update: Dec 24, 2025
+-------------------------
 
-gunzip leptonica-1.78.0.tar.gz
-tar -xvf leptonica-1.78.0.tar
+gunzip leptonica-1.87.0.tar.gz
+tar -xvf leptonica-1.87.0.tar
 
 </pre>
 
@@ -117,20 +117,26 @@ Building leptonica
   Libraries, executables and prototypes are easily made, as described below.
 
   When you extract from the archive, all files are put in a
-  subdirectory 'leptonica-1.78.0'.  In that directory you will
+  subdirectory 'leptonica-1.87.0'.  In that directory you will
   find a src directory containing the source files for the library,
   and a prog directory containing source files for various
   testing and example programs.
 
 2. Building on Linux/Unix/MacOS
 
+  The software can be downloaded from either a release tar file or
+  from the current head of the source.  For the latter, go to a directory
+  and clone the tree into it (note the '.' at the end):
+     cd [some directory]
+     git clone https://github.com/DanBloomberg/leptonica.git .
+
   There are three ways to build the library:
 
     (1) By customization:  Use the existing static makefile,
         src/makefile.static and customize the build by setting flags
-        in src/environ.h.  See src/environ.h and src/makefile for details.
-        Note: if you are going to develop with leptonica, I encourage
-        you to use the static makefiles.
+        in src/environ.h.  See details below.
+        Note: if you are going to develop with leptonica, the static
+        makefiles are useful.
 
     (2) Using autoconf (supported by James Le Cuirot).
         Run ./configure in this directory to
@@ -159,7 +165,7 @@ Building leptonica
         To clean out the current build, just remove everything in
         the build subdirectory.
 
-  In more detail:
+  In more detail for these three methods:
 
     (1) Customization using the static makefiles:
 
@@ -173,11 +179,16 @@ Building leptonica
           back to makefile.static.]
 
        * You can customize for:
-         (a) Including Leptonica I/O functions that depend on external
-             libraries [use flags in src/environ.h]
-         (b) Adding functions for redirecting formatted image stream
-             I/O to memory [use flag in src/environ.h]
-         (c) Specifying the location of the object code.  By default it
+         (a) Including Leptonica image I/O functions that depend on external
+             libraries, such as libpng.  Use environment variables in
+             src/environ.h, such as HAVE_LIBPNG.
+         (b) Disabling the GNU functions for redirecting formatted stream I/O
+             to memory.  By default, HAVE_FMEMOPEN is enabled in src/environ.h.
+         (c) Using special memory allocators (see src/environ.h).
+         (d) Changing compile and runtime defaults for messages to stderr.
+             The default in src/environ.h is to output info, warning and
+             error messages.
+         (e) Specifying the location of the object code.  By default it
              goes into a tree whose root is also the parent of the src
              and prog directories.  This can be changed using the
              ROOT_DIR variable in makefile.
@@ -194,35 +205,31 @@ Building leptonica
                make xtractprotos
 
        * To use shared libraries, you need to include the location of
-         the shared libraries in your LD_LIBRARY_PATH.
+         the shared libraries in your LD_LIBRARY_PATH.  For example,
+         after you have built programs with 'make SHARED=yes' in the
+         prog directory, you need to tell the programs where the shared
+         libraries are:
+             export LD_LIBRARY_PATH=../lib/shared:$LD_LIBRARY_PATH
 
-       * To make the programs in the prog directory, first make liblept
-         in src.  Then in prog you can customize the makefile for linking
-         the external libraries:
-         Finally, do 'make' in the prog directory.
-
-       VERY IMPORTANT: the 270+ programs in the prog directory are
-       an integral part of this package.  These can be divided into
-       four groups:
-         (1) Programs that are useful applications for running on the
-             command line.  They can be installed from autoconf builds
-             using 'make install'.  Examples of these are the PostScript
-             and pdf conversion programs: converttopdf, converttops,
-             convertfilestopdf, convertfilestops, convertsegfilestopdf,
-             convertsegfilestops, imagetops, printimage and printsplitimage.
-         (2) Programs that are used as regression tests in alltests_reg.
-             These are named *_reg, and 100 of them are invoked together
-             (alltests_reg).  The regression test framework has been
-             standardized, and regresstion tests are relatively easy
-             to write.  See regutils.h for details.
-         (3) Other regression tests, some of which have not (yet) been
-             put into the framework.  They are also named *_reg.
-         (4) Programs that were used to test library functions or
-             auto-generate library code.  These are useful for testing
-             the behavior of small sets of functions, and for
-             providing example code.
+       * Make the programs in prog/ (after you have make liblept):
+         - Customize the makefile by setting ALL_LIBS to link the
+           external image I/O libraries.  By default, ALL_LIBS assumes that
+           libtiff, libjpeg and libpng are available.
+         - To make an optimized version of all programs (in prog):
+               make
+         - To make a debug version of all programs (in prog):
+               make DEBUG=yes
+         - To make a shared library version of all programs (in prog):
+               make SHARED=yes
+         - To run the programs, be sure to set
+             export LD_LIBRARY_PATH=../lib/shared:$LD_LIBRARY_PATH
 
     (2) Building using autoconf  (Thanks to James Le Cuirot)
+
+       * If you downloaded from a release tar, it will be "configure ready".
+       * If you cloned from the git master tree, you need to make the
+         configure executable.  To do this, run
+            autogen.sh.
 
        Use the standard incantation, in the root directory (the
        directory with configure):
@@ -235,7 +242,8 @@ Building leptonica
                              This works even if you build in a different
                              place from the distribution. The -j parameter
                              should not exceed half the number of cores.
-                             If the test fails, just run with 'make check']
+                     NOTE: If the test fails, it's likely due to a race
+                           condition.  Rerun with 'make check']
 
        Configure supports installing in a local directory (e.g., one that
        doesn't require root access).  For example, to install in $HOME/local,
@@ -252,7 +260,7 @@ Building leptonica
             make install
 
        Configure also supports building in a separate directory from the
-       source.  Run "/(path-to)/leptonica-1.78.0/configure" and then "make"
+       source.  Run "/(path-to)/leptonica-1.87.0/configure" and then "make"
        from the desired build directory.
 
        Configure has a number of useful options; run "configure --help" for
@@ -288,48 +296,56 @@ Building leptonica
             mkdir build
             cd build
 
-       Then, there are two useful flags you can use on the cmake line to
-       determine what is built.
-
-       * By default, cmake builds a shared library.  To make a static
-         library: 
-            cmake .. -DSTATIC=1
+       The default build (shared libraries, no debug, only the library)
+       is made with
+            cmake ..
+       For other options, you can use these flags on the cmake line:
+       * To make a static library:
+            cmake .. -DBUILD_SHARED_LIBS=OFF
             make
-
-       * By default, cmake only builds the library, not the programs.
-         To make both the library and the programs:
+       * To make a dynamic library (default) and STATIC (or builtin) dependencies:
+            cmake .. -DSW_BUILD_SHARED_LIBS=0
+            make
+       * To build with debug:
+            cmake .. -DCMAKE_BUILD_TYPE=Debug
+            make
+       * To make both the library and the programs:
             cmake .. -DBUILD_PROG=1
             make
-         The programs are put in build/bin/
-         To run these (e.g., for testing), move them to the prog
-         directory and run them from there:
-            cd bin
-            mv * ../../prog/
-            cd ../../prog
-            alltests_reg generate
-            alltests_reg compare
+
+       The programs are put in build/bin/
+       To run these (e.g., for testing), move them to the prog
+       directory and run them from there:
+          cd bin
+          mv * ../../prog/
+          cd ../../prog
+          alltests_reg generate
+          alltests_reg compare
 
        To build the library directly from the root directory instead of
        the build subdirectory:
-            mkdir build
-            cmake -H . -Bbuild   (-H means the source directory,
-                                  -B means the directory for the build
-            make
+          mkdir build
+          cmake -H . -Bbuild   (-H means the source directory,
+                                -B means the directory for the build
+          make
 
 3. Building on Windows
 
    (a) Building with Visual Studio
 
-       1. Download the latest CPPAN (C++ Archive Network https://cppan.org/)
-          client from https://cppan.org/client/
-       2. Run:
+       1. Download the latest SW
+              (Software Network https://software-network.org/)
+          client from https://software-network.org/client/
+       2. Unpack it, add to PATH.
+       3. Run once to perform cmake integration:
+          sw setup
+       4. Run:
           git clone https://github.com/danbloomberg/leptonica
           cd leptonica
-          cppan
           mkdir build
           cd build
           cmake ..
-       3. Build a solution (leptonica.sin) in your Visual Studio version.
+       5. Build a solution (leptonica.sin) in your Visual Studio version.
 
    (b) Building for mingw32 with <a href="http://www.mingw.org/">MSYS</a>
        (Thanks to David Bryan)
@@ -370,8 +386,78 @@ Building leptonica
 
        Only the static library may be built this way; the autoconf method must
        be used if a shared (DLL) library is desired.
-</pre>
 
+4. Building and running oss-fuzz programs
+
+   The oss-fuzz programs are in prog/fuzzing/.  They are run by oss-fuzz
+   on a continual basis with random inputs.  They can also be built and
+   run locally.  On ubuntu 24.04, clang-18 is required to build these
+   programs. It can be installed using
+       sudo apt-get install clang-18
+   On 22.04, use clang-14.
+
+   Stefan Weil has provided this method for building the fuzzing programs.
+   From your github root:
+       ./autogen.sh    (to make configure)
+       mkdir -p bin/fuzzer
+       cd bin/fuzzer
+   Run configure to generate the Makefiles:
+     address sanitizer issue:
+       ../../configure CC=clang-18 CXX=clang++-18 CFLAGS="-g -O2 \
+       -D_GLIBCXX_DEBUG -fsanitize=fuzzer-no-link,address,undefined" \
+       CXXFLAGS="-g -O2 -D_GLIBCXX_DEBUG \
+       -fsanitize=fuzzer-no-link,address,undefined"
+     memory sanitizer issue:
+       ../../configure CC=clang-18 CXX=clang++-18 CFLAGS="-g -O2 \
+       -D_GLIBCXX_DEBUG -fsanitize=fuzzer-no-link,memory,undefined" \
+       CXXFLAGS="-g -O2 -D_GLIBCXX_DEBUG \
+       -fsanitize=fuzzer-no-link,memory,undefined"
+   Build:
+     address sanitizer issue:
+       make fuzzers CXX=clang++-18 CXXFLAGS="-g -O2 -D_GLIBCXX_DEBUG \
+       -fsanitize=fuzzer,address,undefined"
+     memory sanitizer issue:
+       make fuzzers CXX=clang++-18 CXXFLAGS="-g -O2 -D_GLIBCXX_DEBUG \
+       -fsanitize=fuzzer,memory,undefined"
+
+   When an oss-fuzz issue has been created, download the Reproducer
+   Testcase file (e.g, name it "/tmp/payload").  To run one of the
+   fuzzing executables in bin/fuzzer, e.g., pix4_fuzzer:
+       cd ../../prog/fuzzing
+       ../../bin/fuzzer/pix4_fuzzer /tmp/payload
+
+5. The 270+ programs in the prog directory are an integral part of this
+   package.  They can be divided into four groups:
+
+   (1) Programs that are useful applications for running on the
+       command line.  They can be installed from autoconf builds
+       using 'make install'.  Examples of these are the PostScript
+       and pdf conversion programs: converttopdf, converttops,
+       convertfilestopdf, convertfilestops, convertsegfilestopdf,
+       convertsegfilestops, imagetops, printimage and printsplitimage.
+
+   (2) Programs that are used as regression tests in alltests_reg.
+       These are named *_reg, and 100 of them are invoked together
+       (alltests_reg).  The regression test framework has been
+       standardized, and regresstion tests are relatively easy
+       to write.  See regutils.h for details.
+
+   (3) Other regression tests, some of which have not (yet) been
+       put into the framework.  They are also named *_reg.
+
+   (4) Programs that were used to test library functions or auto-generate
+       library code.  These are useful for testing the behavior of small
+       sets of functions and for providing example code.
+
+6. Sanitizers can be used on all the regression tests in alltests_reg.c.
+
+   First run autogen.sh to generate the configure script
+     autogen.sh
+   Then run configure to generate the Makefile with the address sanitizer
+     ./configure '--disable-shared' '--enable-debug' 'CFLAGS=-D_GLIBCXX_DEBUG -DDEBUG=1 -Wall -pedantic -g -O0 -fsanitize=address,undefined -fstack-protector-strong -ftrapv'
+   Make and run all the regression tests
+      make check
+</pre>
 
 <h2> <A NAME="DEPENDENCIES">
 I/O libraries leptonica is dependent on
@@ -505,7 +591,7 @@ that you are using the static makefiles and customizing environ.h.
          in Linux.  The tar file is available at:
              www.leptonica.com/source/xtractlib-1.5.tar.gz
 
-2. Global parameter to enable development and testing
+2. Global parameter LeptDebugOK is used to enable development and testing
 
    For security reasons, with the exception of the regression utility
    (regutils.c), leptonica as shipped (starting with 1.77) does not allow:
@@ -515,8 +601,8 @@ that you are using the static makefiles and customizing environ.h.
    the screen.  
 
    This is enforced with a global parameter, LeptDebugOK, initialized to 0.
-   It can be overridden either by changing the initialization (in writefile.c)
-   and recompiling, or by resetting, using setLeptDebugOK() in a program.
+   It can be overridden either at compile time by changing the initialization
+   (in writefile.c), or at runtime, using setLeptDebugOK().
    The programs in the prog directory, which mostly test functions in
    the library, are not subject to this restriction.
 
@@ -589,16 +675,20 @@ that you are using the static makefiles and customizing environ.h.
    necessary we use the typedefs in stdint.h to specify the pointer
    size (either 4 or 8 byte).
 
-6. Compile-time control over stderr output (see environ.h)
+6. Compile and runtime control over stderr output (see environ.h and utils1.c)
 
    Leptonica provides both compile-time and run-time control over
    messages and debug output (thanks to Dave Bryan).  Both compile-time
-   and run-time severity thresholds can be set.  The run-time threshold
+   and run-time severity thresholds can be set.  The runtime threshold
    can also be set by an environmental variable.  Messages are
    vararg-formatted and of 3 types: error, warning, informational.
    These are all macros, and can be further suppressed when
    NO_CONSOLE_IO is defined on the compile line.  For production code
    where no output is to go to stderr, compile with -DNO_CONSOLE_IO.
+
+   Runtime redirection of stderr output is also possible, using a
+   callback mechanism.  The callback function is registered using
+   leptSetStderrHandler().   See utils1.c for details.
 
 7. In-memory raster format (Pix)
 
@@ -881,7 +971,9 @@ What's in leptonica?
       text and line art images, but it does quite poorly for halftones.
       It has good and stable support by Leffler's open source library,
       which is clean and small.  Tiff also supports multipage
-      images through a directory structure.  See tiffio.c
+      images through a directory structure.  Note: because jpeg is
+      a supported tiff compression mode, leptonica requires linking
+      both libtiff and libjpeg to read and write tiff.  See tiffio.c
 
     - BMP has (until recently) had no compression.  It is a simple
       format with colormaps that requires no external libraries.
@@ -1119,9 +1211,9 @@ What's in leptonica?
    http://code.google.com/p/leptonica, as well as all versions after 1.60.
    These have now been transferred by Egor Pugin to github:
        github.com/danbloomberg/leptonica
-   where all releases (1.42 - 1.78.0) are available; e.g.,
-       https://github.com/DanBloomberg/leptonica/releases/tag/1.78.0
-   Many recent releases from 1.71 are also available at
+   where all releases (1.42 - 1.87.0) are available; e.g.,
+       https://github.com/DanBloomberg/leptonica/releases/tag/1.87.0
+   The more recent releases, from 1.80, are also available at
        leptonica.org/download.html
    Note that if you are downloading from github, the releases are more
    likely to be stable than the master.  Also, if you download from
@@ -1141,6 +1233,17 @@ What's in leptonica?
         1.74 : 5.1.0
         1.75 : 5.2.0
         1.76 : 5.3.0
+        1.77 : 5.3.0
+        1.78 : 5.3.0
+        1.79 : 5.4.0
+        1.80 : 5.4.0
+        1.81 : 5.4.0
+        1.82 : 5.4.0
+        1.83 : 6.0.0
+        1.84 : 6.0.0
+        1.85 : 6.0.0
+        1.86 : 6.0.0
+        1.87 : 6.0.0
 
    A brief version chronology is maintained in version-notes.html.
    Starting with gcc 4.3.3, error warnings (-Werror) are given for

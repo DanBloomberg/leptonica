@@ -30,6 +30,10 @@
  *   e.g., use on witten.png
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 #define   LINE_SIZE   29
@@ -38,21 +42,20 @@
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_int32      x, y, n, i;
-PIX         *pixs;
-PTA         *pta;
-PTAA        *ptaa, *ptaa2, *ptaa3;
-static char  mainName[] = "cornertest";
+char    *filein, *fileout;
+l_int32  x, y, n, i;
+PIX     *pixs;
+PTA     *pta;
+PTAA    *ptaa, *ptaa2, *ptaa3;
 
     if (argc != 3)
-        return ERROR_INT(" Syntax:  cornertest filein fileout", mainName, 1);
+        return ERROR_INT(" Syntax:  cornertest filein fileout", __func__, 1);
     filein = argv[1];
     fileout = argv[2];
 
     setLeptDebugOK(1);
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
 
         /* Clean noise in LR corner of witten.tif */
     pixSetPixel(pixs, 2252, 3051, 0);

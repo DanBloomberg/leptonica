@@ -42,8 +42,6 @@
  *    large number of images will be displayed on the screen.
  */
 
-    /* Needed for: HAVE_LIBJP2K, HAVE_LIBGIF,
-     *             HAVE_LIBWEBP and HAVE_LIBWEBP_ANIM  */
 #ifdef HAVE_CONFIG_H
 #include <config_auto.h>
 #endif /* HAVE_CONFIG_H */
@@ -63,6 +61,7 @@ static const char *tests[] = {
                               "binarize_reg",
                               "binmorph1_reg",
                               "binmorph3_reg",
+                              "binmorph6_reg",
                               "blackwhite_reg",
                               "blend1_reg",
                               "blend2_reg",
@@ -74,10 +73,14 @@ static const char *tests[] = {
                               "boxa3_reg",
                               "boxa4_reg",
                               "bytea_reg",
+                              "ccbord_reg",
                               "ccthin1_reg",
                               "ccthin2_reg",
+                              "checkerboard_reg",
+                              "circle_reg",
                               "cmapquant_reg",
                               "colorcontent_reg",
+                              "colorfill_reg",
                               "coloring_reg",
                               "colorize_reg",
                               "colormask_reg",
@@ -90,12 +93,14 @@ static const char *tests[] = {
                               "conncomp_reg",
                               "conversion_reg",
                               "convolve_reg",
+                              "crop_reg",
                               "dewarp_reg",
                               "distance_reg",
                               "dither_reg",
                               "dna_reg",
                               "dwamorph1_reg",
                               "edge_reg",
+                              "encoding_reg",
                               "enhance_reg",
                               "equal_reg",
                               "expand_reg",
@@ -104,7 +109,9 @@ static const char *tests[] = {
                               "fhmtauto_reg",
                          /*   "files_reg",  */
                               "findcorners_reg",
-                              "findpattern_reg",
+                              "findpattern1_reg",
+                              "findpattern2_reg",
+                              "flipdetect_reg",
                               "fpix1_reg",
                               "fpix2_reg",
                               "genfonts_reg",
@@ -116,6 +123,7 @@ static const char *tests[] = {
                               "graymorph2_reg",
                               "grayquant_reg",
                               "hardlight_reg",
+                              "hash_reg",
                               "heap_reg",
                               "insert_reg",
                               "ioformats_reg",
@@ -138,13 +146,18 @@ static const char *tests[] = {
                               "multitype_reg",
                               "numa1_reg",
                               "numa2_reg",
+                              "numa3_reg",
                               "nearline_reg",
                               "newspaper_reg",
                               "overlap_reg",
                               "pageseg_reg",
                               "paint_reg",
                               "paintmask_reg",
+                              "partition_reg",
+                              "pdfio1_reg",
+                              "pdfio2_reg",
                               "pdfseg_reg",
+                              "pixa1_reg",
                               "pixa2_reg",
                               "pixadisp_reg",
                               "pixcomp_reg",
@@ -175,6 +188,7 @@ static const char *tests[] = {
                               "shear1_reg",
                               "shear2_reg",
                               "skew_reg",
+                              "smallpix_reg",
                               "speckle_reg",
                               "splitcomp_reg",
                               "string_reg",
@@ -202,21 +216,20 @@ static const char *header = {"\n=======================\n"
 int main(int    argc,
          char **argv)
 {
-char        *str, *results_file;
-char         command[256], buf[256];
-l_int32      i, ntests, dotest, nfail, ret, start, stop;
-SARRAY      *sa;
-static char  mainName[] = "alltests_reg";
+char    *str, *results_file;
+char     command[256], buf[256];
+l_int32  i, ntests, dotest, nfail, ret, start, stop;
+SARRAY  *sa;
 
     if (argc != 2)
         return ERROR_INT(" Syntax alltests_reg [generate | compare | display]",
-                         mainName, 1);
+                         __func__, 1);
 
     setLeptDebugOK(1);  /* required for testing */
     l_getCurrentTime(&start, NULL);
     ntests = sizeof(tests) / sizeof(char *);
-    fprintf(stderr, "Running alltests_reg:\n"
-            "This currently tests %d of the 132 regression test\n"
+    lept_stderr("Running alltests_reg:\n"
+            "This currently tests %d regression test\n"
             "programs in the /prog directory.\n", ntests);
 
         /* Clear the output file if we're doing the set of reg tests */
@@ -240,7 +253,7 @@ static char  mainName[] = "alltests_reg";
 #else  /* windows interprets '/' as a commandline flag */
         snprintf(command, sizeof(command) - 2, "%s %s", tests[i], argv[1]);
 #endif  /* ! _WIN32 */
-        ret = system(command);
+        ret = callSystemDebug(command);
         if (ret) {
             snprintf(buf, sizeof(buf), "Failed to complete %s\n", tests[i]);
             if (dotest) {
@@ -249,7 +262,7 @@ static char  mainName[] = "alltests_reg";
                 nfail++;
             }
             else
-                fprintf(stderr, "%s", buf);
+                lept_stderr("%s", buf);
         }
     }
 
@@ -261,11 +274,11 @@ static char  mainName[] = "alltests_reg";
 #endif  /* !_WIN32 */
         lept_free(results_file);
         ret = system(command);
-        fprintf(stderr, "Success in %d of %d *_reg programs (output matches"
+        lept_stderr("Success in %d of %d *_reg programs (output matches"
                 " the \"golden\" files)\n", ntests - nfail, ntests);
     }
 
     l_getCurrentTime(&stop, NULL);
-    fprintf(stderr, "Time for all regression tests: %d sec\n", stop - start);
+    lept_stderr("Time for all regression tests: %d sec\n", stop - start);
     return 0;
 }

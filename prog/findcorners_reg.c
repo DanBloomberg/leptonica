@@ -47,6 +47,10 @@
  *        /tmp/lept/regout/tickets.pdf  (deskewed result for the set of tickets)
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
 static BOXA *LocateBarcodes(PIX *pixs, PIX **ppixd, l_int32 flag);
@@ -86,7 +90,7 @@ L_REGPARAMS  *rp;
     flag = (rp->display) ? -1 : 0;
     boxa = LocateBarcodes(pixs, &pixd, flag);
     regTestWritePixAndCheck(rp, pixd, IFF_TIFF_G4);  /* 0 */
-    if (rp->display) boxaWriteStream(stderr, boxa);
+    if (rp->display) boxaWriteStderr(boxa);
     n = boxaGetCount(boxa);
     deg2rad = 3.14159265 / 180.;
     pixa = pixaCreate(9);

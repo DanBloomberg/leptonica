@@ -34,7 +34,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config_auto.h"
+#include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
@@ -71,11 +71,11 @@
 #endif
 
 #if HAVE_LIBJP2K
-#ifdef LIBJP2K_HEADER
-#include LIBJP2K_HEADER
-#else
-#include <openjpeg.h>
-#endif
+  #ifdef LIBJP2K_HEADER
+    #include LIBJP2K_HEADER
+  #else
+    #include <openjpeg.h>
+  #endif
 #endif
 
 
@@ -88,18 +88,18 @@
  * <pre>
  * Notes:
  *      (1) This returns a string of version numbers; e.g.,
- *            libgif 5.0.3
- *            libjpeg 8b (libjpeg-turbo 1.3.0)
- *            libpng 1.4.3
- *            libtiff 3.9.5
- *            zlib 1.2.5
- *            libwebp 0.3.0
- *            libopenjp2 2.1.0
+ *            libgif 5.1.4
+ *            libjpeg 8b (libjpeg-turbo 2.0.3)
+ *            libpng 1.6.37
+ *            libtiff 4.1.0
+ *            zlib 1.2.11
+ *            libwebp 0.6.1
+ *            libopenjp2 2.5.0
  *      (2) The caller must free the memory.
  * </pre>
  */
 char *
-getImagelibVersions()
+getImagelibVersions(void)
 {
 char     buf[128];
 l_int32  first = TRUE;
@@ -121,8 +121,8 @@ char    *versionStrP = NULL;
 
 #if HAVE_LIBJPEG
     {
-    struct jpeg_compress_struct  cinfo;
-    struct jpeg_error_mgr        err;
+    struct jpeg_compress_struct  cinfo = { 0 };
+    struct jpeg_error_mgr        err = { 0 };
     char                         buffer[JMSG_LENGTH_MAX];
     cinfo.err = jpeg_std_error(&err);
     err.msg_code = JMSG_VERSION;
@@ -139,8 +139,8 @@ char    *versionStrP = NULL;
         /* To stringify the result of expansion of a macro argument,
          * you must use two levels of macros.  See:
          *   https://gcc.gnu.org/onlinedocs/cpp/Stringification.html  */
-  #define l_xstr(s) l_str(s)
-  #define l_str(s) #s
+    #define l_xstr(s) l_str(s)
+    #define l_str(s) #s
     snprintf(buf, sizeof(buf), " (libjpeg-turbo %s)",
              l_xstr(LIBJPEG_TURBO_VERSION));
     stringJoinIP(&versionStrP, buf);
@@ -172,7 +172,7 @@ char    *versionStrP = NULL;
     if (!first) stringJoinIP(&versionStrP, " : ");
     first = FALSE;
     stringJoinIP(&versionStrP, "zlib ");
-    stringJoinIP(&versionStrP, zlibVersion());
+    stringJoinIP(&versionStrP, ZLIB_VERSION);
 #endif  /* HAVE_LIBZ */
 
 #if HAVE_LIBWEBP

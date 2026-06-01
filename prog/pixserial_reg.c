@@ -31,6 +31,10 @@
  *    in memory and the deserialization back to a pix.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Use this set */
@@ -114,7 +118,7 @@ L_REGPARAMS  *rp;
             if (rp->fp)
                 fprintf(rp->fp, "Failure comparing data");
             else
-                fprintf(stderr, "Failure comparing data");
+                lept_stderr("Failure comparing data");
         }
         pixDestroy(&pixs);
         lept_free(data);
@@ -127,7 +131,7 @@ L_REGPARAMS  *rp;
         startTimer();
         pixSerializeToMemory(pixs, &data32, &size);
         pixd = pixDeserializeFromMemory(data32, size);
-        fprintf(stderr, "Time for %s: %7.3f sec\n", filename[i], stopTimer());
+        lept_stderr("Time for %s: %7.3f sec\n", filename[i], stopTimer());
         lept_free(data32);
         pixDestroy(&pixs);
         pixDestroy(&pixd);

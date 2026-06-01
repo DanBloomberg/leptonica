@@ -107,6 +107,10 @@
  * </pre>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -163,18 +167,16 @@ convertFilesToPS(const char  *dirin,
 {
 SARRAY  *sa;
 
-    PROCNAME("convertFilesToPS");
-
     if (!dirin)
-        return ERROR_INT("dirin not defined", procName, 1);
+        return ERROR_INT("dirin not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
     if (res <= 0) {
-        L_INFO("setting res to 300 ppi\n", procName);
+        L_INFO("setting res to 300 ppi\n", __func__);
         res = 300;
     }
     if (res < 10 || res > 4000)
-        L_WARNING("res is typically in the range 300-600 ppi\n", procName);
+        L_WARNING("res is typically in the range 300-600 ppi\n", __func__);
 
         /* Get all filtered and sorted full pathnames. */
     sa = getSortedPathnamesInDirectory(dirin, substr, 0, 0);
@@ -210,18 +212,16 @@ sarrayConvertFilesToPS(SARRAY      *sa,
 char    *fname;
 l_int32  i, nfiles, index, ret, format;
 
-    PROCNAME("sarrayConvertFilesToPS");
-
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
     if (res <= 0) {
-        L_INFO("setting res to 300 ppi\n", procName);
+        L_INFO("setting res to 300 ppi\n", __func__);
         res = 300;
     }
     if (res < 10 || res > 4000)
-        L_WARNING("res is typically in the range 300-600 ppi\n", procName);
+        L_WARNING("res is typically in the range 300-600 ppi\n", __func__);
 
     nfiles = sarrayGetCount(sa);
     for (i = 0, index = 0; i < nfiles; i++) {
@@ -278,22 +278,20 @@ convertFilesFittedToPS(const char  *dirin,
 {
 SARRAY  *sa;
 
-    PROCNAME("convertFilesFittedToPS");
-
     if (!dirin)
-        return ERROR_INT("dirin not defined", procName, 1);
+        return ERROR_INT("dirin not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
     if (xpts <= 0.0) {
-        L_INFO("setting xpts to 612.0 ppi\n", procName);
+        L_INFO("setting xpts to 612.0 ppi\n", __func__);
         xpts = 612.0;
     }
     if (ypts <= 0.0) {
-        L_INFO("setting ypts to 792.0 ppi\n", procName);
+        L_INFO("setting ypts to 792.0 ppi\n", __func__);
         ypts = 792.0;
     }
     if (xpts < 100.0 || xpts > 2000.0 || ypts < 100.0 || ypts > 2000.0)
-        L_WARNING("xpts,ypts are typically in the range 500-800\n", procName);
+        L_WARNING("xpts,ypts are typically in the range 500-800\n", __func__);
 
         /* Get all filtered and sorted full pathnames. */
     sa = getSortedPathnamesInDirectory(dirin, substr, 0, 0);
@@ -330,22 +328,20 @@ sarrayConvertFilesFittedToPS(SARRAY      *sa,
 char    *fname;
 l_int32  ret, i, w, h, nfiles, index, format, res;
 
-    PROCNAME("sarrayConvertFilesFittedToPS");
-
     if (!sa)
-        return ERROR_INT("sa not defined", procName, 1);
+        return ERROR_INT("sa not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
     if (xpts <= 0.0) {
-        L_INFO("setting xpts to 612.0\n", procName);
+        L_INFO("setting xpts to 612.0\n", __func__);
         xpts = 612.0;
     }
     if (ypts <= 0.0) {
-        L_INFO("setting ypts to 792.0\n", procName);
+        L_INFO("setting ypts to 792.0\n", __func__);
         ypts = 792.0;
     }
     if (xpts < 100.0 || xpts > 2000.0 || ypts < 100.0 || ypts > 2000.0)
-        L_WARNING("xpts,ypts are typically in the range 500-800\n", procName);
+        L_WARNING("xpts,ypts are typically in the range 500-800\n", __func__);
 
     nfiles = sarrayGetCount(sa);
     for (i = 0, index = 0; i < nfiles; i++) {
@@ -398,14 +394,12 @@ writeImageCompressedToPSFile(const char  *filein,
 const char  *op;
 l_int32      format, retval;
 
-    PROCNAME("writeImageCompressedToPSFile");
-
     if (!pindex)
-        return ERROR_INT("&index not defined", procName, 1);
+        return ERROR_INT("&index not defined", __func__, 1);
 
     findFileFormat(filein, &format);
     if (format == IFF_UNKNOWN) {
-        L_ERROR("format of %s not known\n", procName, filein);
+        L_ERROR("format of %s not known\n", __func__, filein);
         return 1;
     }
 
@@ -502,16 +496,14 @@ l_int32  pageno, i, npages;
 PIX     *pixs, *pixm;
 SARRAY  *sapage, *samask;
 
-    PROCNAME("convertSegmentedPagesToPS");
-
     if (!pagedir)
-        return ERROR_INT("pagedir not defined", procName, 1);
+        return ERROR_INT("pagedir not defined", __func__, 1);
     if (!maskdir)
-        return ERROR_INT("maskdir not defined", procName, 1);
+        return ERROR_INT("maskdir not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
     if (threshold <= 0) {
-        L_INFO("setting threshold to 190\n", procName);
+        L_INFO("setting threshold to 190\n", __func__);
         threshold = 190;
     }
 
@@ -524,7 +516,7 @@ SARRAY  *sapage, *samask;
     if ((npages = sarrayGetCount(sapage)) == 0) {
         sarrayDestroy(&sapage);
         sarrayDestroy(&samask);
-        return ERROR_INT("no matching pages found", procName, 1);
+        return ERROR_INT("no matching pages found", __func__, 1);
     }
 
         /* Generate the PS file */
@@ -596,14 +588,12 @@ l_uint32   val;
 l_float32  scaleratio;
 PIX       *pixmi, *pixmis, *pixt, *pixg, *pixsc, *pixb, *pixc;
 
-    PROCNAME("pixWriteSegmentedPageToPS");
-
     if (!pixs)
-        return ERROR_INT("pixs not defined", procName, 1);
+        return ERROR_INT("pixs not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
     if (imagescale <= 0.0 || textscale <= 0.0)
-        return ERROR_INT("relative scales must be > 0.0", procName, 1);
+        return ERROR_INT("relative scales must be > 0.0", __func__, 1);
 
         /* Analyze the page.  Determine the ratio by which the
          * binary text mask is scaled relative to the image part.
@@ -744,12 +734,10 @@ char        *tname;
 const char  *op;
 l_int32      resb, resc, endpage, maskop, ret;
 
-    PROCNAME("pixWriteMixedToPS");
-
     if (!pixb && !pixc)
-        return ERROR_INT("pixb and pixc both undefined", procName, 1);
+        return ERROR_INT("pixb and pixc both undefined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
 
         /* Compute the resolution that fills a letter-size page. */
     if (!pixc) {
@@ -771,7 +759,7 @@ l_int32      resb, resc, endpage, maskop, ret;
         lept_rmfile(tname);
         LEPT_FREE(tname);
         if (ret)
-            return ERROR_INT("jpeg data not written", procName, 1);
+            return ERROR_INT("jpeg data not written", __func__, 1);
     }
 
         /* Write the binary data, either directly or, if there is
@@ -786,7 +774,7 @@ l_int32      resb, resc, endpage, maskop, ret;
         lept_rmfile(tname);
         LEPT_FREE(tname);
         if (ret)
-            return ERROR_INT("tiff data not written", procName, 1);
+            return ERROR_INT("tiff data not written", __func__, 1);
     }
 
     return 0;
@@ -810,7 +798,7 @@ l_int32      resb, resc, endpage, maskop, ret;
  *          a bounding box, from any input image file.
  *      (2) Do the best job of compression given the specified level.
  *          %level=3 does flate compression on anything that is not
- *          tiffg4 (1 bpp) or jpeg (8 bpp or rgb).
+ *          tiffg4 (1 bpp), jpeg (8 bpp or rgb), or webp.
  *      (3) If %level=2 and the file is not tiffg4 or jpeg, it will
  *          first be written to file as jpeg with quality = 75.
  *          This will remove the colormap and cause some degradation
@@ -825,18 +813,16 @@ convertToPSEmbed(const char  *filein,
                  const char  *fileout,
                  l_int32      level)
 {
-char    *tname;
+char    *tname, *tmpfile, *basename;
 l_int32  d, format;
 PIX     *pix, *pixs;
 
-    PROCNAME("convertToPSEmbed");
-
     if (!filein)
-        return ERROR_INT("filein not defined", procName, 1);
+        return ERROR_INT("filein not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
     if (level != 1 && level != 2 && level != 3) {
-        L_ERROR("invalid level specified; using level 2\n", procName);
+        L_ERROR("invalid level specified; using level 2\n", __func__);
         level = 2;
     }
 
@@ -854,8 +840,23 @@ PIX     *pix, *pixs;
         convertG4ToPSEmbed(filein, fileout);
         return 0;
     } else if (format == IFF_UNKNOWN) {
-        L_ERROR("format of %s not known\n", procName, filein);
+        L_ERROR("format of %s not known\n", __func__, filein);
         return 1;
+    }
+
+        /* If level 3 and in webp format, convert to jpeg
+         * and use dct encoding */
+    if (level == 3 && format == IFF_WEBP) {
+        pix = pixRead(filein);
+        splitPathAtExtension(filein, &basename, NULL);
+        tmpfile = stringJoin(basename, ".tmpjpg");
+        pixWrite(tmpfile, pix, IFF_JFIF_JPEG);
+        convertJpegToPSEmbed(tmpfile, fileout);
+        pixDestroy(&pix);
+        lept_rmfile(tmpfile);
+        LEPT_FREE(tmpfile);
+        LEPT_FREE(basename);
+        return 0;
     }
 
         /* If level 3, flate encode. */
@@ -866,7 +867,7 @@ PIX     *pix, *pixs;
 
         /* OK, it's level 2, so we must convert to jpeg or tiff g4 */
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("image not read from file", procName, 1);
+        return ERROR_INT("image not read from file", __func__, 1);
     d = pixGetDepth(pixs);
     if ((d == 2 || d == 4) && !pixGetColormap(pixs))
         pix = pixConvertTo8(pixs, 0);
@@ -876,7 +877,7 @@ PIX     *pix, *pixs;
         pix = pixRemoveColormap(pixs, REMOVE_CMAP_BASED_ON_SRC);
     pixDestroy(&pixs);
     if (!pix)
-        return ERROR_INT("converted pix not made", procName, 1);
+        return ERROR_INT("converted pix not made", __func__, 1);
 
     d = pixGetDepth(pix);
     tname = l_makeTempFilename();
@@ -884,14 +885,14 @@ PIX     *pix, *pixs;
         if (pixWrite(tname, pix, IFF_TIFF_G4)) {
             LEPT_FREE(tname);
             pixDestroy(&pix);
-            return ERROR_INT("g4 tiff not written", procName, 1);
+            return ERROR_INT("g4 tiff not written", __func__, 1);
         }
         convertG4ToPSEmbed(tname, fileout);
     } else {
         if (pixWrite(tname, pix, IFF_JFIF_JPEG)) {
             LEPT_FREE(tname);
             pixDestroy(&pix);
-            return ERROR_INT("jpeg not written", procName, 1);
+            return ERROR_INT("jpeg not written", __func__, 1);
         }
         convertJpegToPSEmbed(tname, fileout);
     }
@@ -933,14 +934,12 @@ pixaWriteCompressedToPS(PIXA        *pixa,
 l_int32  i, n, index, ret;
 PIX     *pix;
 
-    PROCNAME("pixaWriteCompressedToPS");
-
     if (!pixa)
-        return ERROR_INT("pixa not defined", procName, 1);
+        return ERROR_INT("pixa not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
     if (level != 2 && level != 3) {
-        L_ERROR("only levels 2 and 3 permitted; using level 2\n", procName);
+        L_ERROR("only levels 2 and 3 permitted; using level 2\n", __func__);
         level = 2;
     }
 
@@ -949,7 +948,7 @@ PIX     *pix;
     for (i = 0; i < n; i++) {
         pix = pixaGetPix(pixa, i, L_CLONE);
         ret = pixWriteCompressedToPS(pix, fileout, res, level, &index);
-        if (ret) L_ERROR("PS string not written for image %d\n", procName, i);
+        if (ret) L_ERROR("PS string not written for image %d\n", __func__, i);
         pixDestroy(&pix);
     }
     return 0;
@@ -1010,18 +1009,16 @@ l_int32   writeout, d;
 PIX      *pixt;
 PIXCMAP  *cmap;
 
-    PROCNAME("pixWriteCompressedToPS");
-
     if (!pix)
-        return ERROR_INT("pix not defined", procName, 1);
+        return ERROR_INT("pix not defined", __func__, 1);
     if (!fileout)
-        return ERROR_INT("fileout not defined", procName, 1);
+        return ERROR_INT("fileout not defined", __func__, 1);
     if (level != 2 && level != 3) {
-        L_ERROR("only levels 2 and 3 permitted; using level 2\n", procName);
+        L_ERROR("only levels 2 and 3 permitted; using level 2\n", __func__);
         level = 2;
     }
     if (!pindex)
-        return ERROR_INT("&index not defined", procName, 1);
+        return ERROR_INT("&index not defined", __func__, 1);
 
     tname = l_makeTempFilename();
     writeout = TRUE;
@@ -1040,7 +1037,7 @@ PIXCMAP  *cmap;
                 writeout = FALSE;
             pixDestroy(&pixt);
         } else if (d == 16) {
-            L_WARNING("d = 16; converting to 8 bpp for jpeg\n", procName);
+            L_WARNING("d = 16; converting to 8 bpp for jpeg\n", __func__);
             pixt = pixConvert16To8(pix, L_MS_BYTE);
             if (pixWrite(tname, pixt, IFF_JFIF_JPEG))
                 writeout = FALSE;
@@ -1054,7 +1051,7 @@ PIXCMAP  *cmap;
             if (pixWrite(tname, pix, IFF_JFIF_JPEG))
                 writeout = FALSE;
         } else {  /* shouldn't happen */
-            L_ERROR("invalid depth with level 2: %d\n", procName, d);
+            L_ERROR("invalid depth with level 2: %d\n", __func__, d);
             writeout = FALSE;
         }
     }
@@ -1063,7 +1060,7 @@ PIXCMAP  *cmap;
         writeImageCompressedToPSFile(tname, fileout, res, pindex);
 
     if (lept_rmfile(tname) != 0)
-        L_ERROR("temp file %s was not deleted\n", procName, tname);
+        L_ERROR("temp file %s was not deleted\n", __func__, tname);
     LEPT_FREE(tname);
     return (writeout) ? 0 : 1;
 }

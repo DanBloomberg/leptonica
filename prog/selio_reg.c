@@ -31,6 +31,10 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include <string.h>
 #include "allheaders.h"
 
@@ -115,13 +119,15 @@ L_REGPARAMS  *rp;
     selaDestroy(&sela2);
 
         /* Attempt to create sels from invalid strings (0 or 2 origins) */
-    fprintf(stderr, "Ignore the following two error messages\n");
+    lept_stderr("******************************************************\n");
+    lept_stderr("* The next 2 error messages are intentional          *\n");
     sel = selCreateFromString(textsel5, 5, 6, "textsel5");
     val = (sel) ? 1.0 : 0.0;
     regTestCompareValues(rp, val, 0.0, 0.0);  /* 6 */
     sel = selCreateFromString(textsel6, 5, 6, "textsel6");
     val = (sel) ? 1.0 : 0.0;
     regTestCompareValues(rp, val, 0.0, 0.0);  /* 7 */
+    lept_stderr("******************************************************\n");
 
     return regTestCleanup(rp);
 }

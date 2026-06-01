@@ -32,6 +32,10 @@
  *       jbRankhaus
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Choose one of these */
@@ -87,7 +91,7 @@ L_REGPARAMS  *rp;
         /* Save and write out the result */
     data = jbDataSave(classer);
     jbDataWrite("/tmp/lept/class/corr", data);
-    fprintf(stderr, "Number of classes: %d\n", classer->nclass);
+    lept_stderr("Number of classes: %d\n", classer->nclass);
 
     pix1 = pixRead("/tmp/lept/class/corr.templates.png");
     regTestWritePixAndCheck(rp, pix1, IFF_TIFF_G4);  /* 0 */
@@ -127,7 +131,7 @@ L_REGPARAMS  *rp;
         /* Save and write out the result */
     data = jbDataSave(classer);
     jbDataWrite("/tmp/lept/class2/haus", data);
-    fprintf(stderr, "Number of classes: %d\n", classer->nclass);
+    lept_stderr("Number of classes: %d\n", classer->nclass);
 
     pix1 = pixRead("/tmp/lept/class2/haus.templates.png");
     regTestWritePixAndCheck(rp, pix1, IFF_TIFF_G4);  /* 4 */

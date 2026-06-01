@@ -31,9 +31,11 @@
  *     * histograms
  *     * interpolation
  *     * integration/differentiation
- *     * rank extraction
- *     * numa-morphology
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
 
 #include <math.h>
 #include "allheaders.h"
@@ -41,15 +43,20 @@
 int main(int    argc,
          char **argv)
 {
-l_int32      i, n, binsize, binstart, nbins;
-l_float32    pi, val, angle, xval, yval, x0, y0, startval, fbinsize;
-l_float32    minval, maxval, meanval, median, variance, rankval, rank, rmsdev;
-GPLOT       *gplot;
-NUMA        *na, *nahisto, *nax, *nay, *nap, *nasx, *nasy;
-NUMA        *nadx, *nady, *nafx, *nafy, *na1, *na2, *na3, *na4;
-PIX         *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pixd;
-PIXA        *pixa;
+l_int32       i, n, binsize, binstart, nbins;
+l_float32     pi, val, angle, xval, yval, x0, y0, startval, fbinsize;
+l_float32     minval, maxval, meanval, median, variance, rankval, rank, rmsdev;
+GPLOT        *gplot;
+NUMA         *na, *nahisto, *nax, *nay, *nasx, *nasy;
+NUMA         *nadx, *nady, *nafx, *nafy;
+PIX          *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pixd;
+PIXA         *pixa;
 L_REGPARAMS  *rp;
+
+#if !defined(HAVE_LIBPNG)
+    L_ERROR("This test requires libpng to run.\n", "numa1_reg");
+    exit(77);
+#endif
 
     if (regTestSetup(argc, argv, &rp))
         return 1;
@@ -70,35 +77,26 @@ L_REGPARAMS  *rp;
     nahisto = numaMakeHistogramClipped(na, 6, 2000);
     nbins = numaGetCount(nahisto);
     nax = numaMakeSequence(0, 1, nbins);
-    gplot = gplotCreate("/tmp/lept/numa1/histo1", GPLOT_PNG, "example histo 1",
-                        "i", "histo[i]");
-    gplotAddPlot(gplot, nax, nahisto, GPLOT_LINES, "sine");
-    gplotMakeOutput(gplot);
-    gplotDestroy(&gplot);
+    pix1 = gplotGeneralPix2(nax, nahisto, GPLOT_LINES, "/tmp/lept/numa1/histo1",
+                            "example histo 1", "i", "histo[i]");
     numaDestroy(&nax);
     numaDestroy(&nahisto);
 
     nahisto = numaMakeHistogram(na, 1000, &binsize, &binstart);
     nbins = numaGetCount(nahisto);
     nax = numaMakeSequence(binstart, binsize, nbins);
-    fprintf(stderr, " binsize = %d, binstart = %d\n", binsize, binstart);
-    gplot = gplotCreate("/tmp/lept/numa1/histo2", GPLOT_PNG, "example histo 2",
-                        "i", "histo[i]");
-    gplotAddPlot(gplot, nax, nahisto, GPLOT_LINES, "sine");
-    gplotMakeOutput(gplot);
-    gplotDestroy(&gplot);
+    lept_stderr(" binsize = %d, binstart = %d\n", binsize, binstart);
+    pix2 = gplotGeneralPix2(nax, nahisto, GPLOT_LINES, "/tmp/lept/numa1/histo2",
+                            "example histo 2", "i", "histo[i]");
     numaDestroy(&nax);
     numaDestroy(&nahisto);
 
     nahisto = numaMakeHistogram(na, 1000, &binsize, NULL);
     nbins = numaGetCount(nahisto);
     nax = numaMakeSequence(0, binsize, nbins);
-    fprintf(stderr, " binsize = %d, binstart = %d\n", binsize, 0);
-    gplot = gplotCreate("/tmp/lept/numa1/histo3", GPLOT_PNG, "example histo 3",
-                        "i", "histo[i]");
-    gplotAddPlot(gplot, nax, nahisto, GPLOT_LINES, "sine");
-    gplotMakeOutput(gplot);
-    gplotDestroy(&gplot);
+    lept_stderr(" binsize = %d, binstart = %d\n", binsize, 0);
+    pix3 = gplotGeneralPix2(nax, nahisto, GPLOT_LINES, "/tmp/lept/numa1/histo3",
+                            "example histo 3", "i", "histo[i]");
     numaDestroy(&nax);
     numaDestroy(&nahisto);
 
@@ -106,17 +104,9 @@ L_REGPARAMS  *rp;
     nbins = numaGetCount(nahisto);
     numaGetParameters(nahisto, &startval, &fbinsize);
     nax = numaMakeSequence(startval, fbinsize, nbins);
-    fprintf(stderr, " binsize = %7.4f, binstart = %8.3f\n",
-            fbinsize, startval);
-    gplot = gplotCreate("/tmp/lept/numa1/histo4", GPLOT_PNG, "example histo 4",
-                        "i", "histo[i]");
-    gplotAddPlot(gplot, nax, nahisto, GPLOT_LINES, "sine");
-    gplotMakeOutput(gplot);
-    gplotDestroy(&gplot);
-    pix1 = pixRead("/tmp/lept/numa1/histo1.png");
-    pix2 = pixRead("/tmp/lept/numa1/histo2.png");
-    pix3 = pixRead("/tmp/lept/numa1/histo3.png");
-    pix4 = pixRead("/tmp/lept/numa1/histo4.png");
+    lept_stderr(" binsize = %7.4f, binstart = %8.3f\n", fbinsize, startval);
+    pix4 = gplotGeneralPix2(nax, nahisto, GPLOT_LINES, "/tmp/lept/numa1/histo4",
+                            "example histo 4", "i", "histo[i]");
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 0 */
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 1 */
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 2 */
@@ -147,15 +137,15 @@ L_REGPARAMS  *rp;
     regTestCompareValues(rp,  808.15, rankval, 0.1);    /* 9 */
     regTestCompareValues(rp,  0.800,  rank,    0.01);   /* 10 */
     if (rp->display) {
-        fprintf(stderr, "Sin histogram: \n"
-                  "  min val  = %7.3f    -- should be -999.00\n"
-                  "  max val  = %7.3f    -- should be  999.00\n"
-                  "  mean val = %7.3f    -- should be    0.055\n"
-                  "  median   = %7.3f    -- should be    0.30\n"
-                  "  rmsdev   = %7.3f    -- should be  706.41\n"
-                  "  rank val = %7.3f    -- should be  808.152\n"
-                  "  rank     = %7.3f    -- should be    0.800\n",
-                minval, maxval, meanval, median, rmsdev, rankval, rank);
+        lept_stderr("Sin histogram: \n"
+                    "  min val  = %7.3f    -- should be -999.00\n"
+                    "  max val  = %7.3f    -- should be  999.00\n"
+                    "  mean val = %7.3f    -- should be    0.055\n"
+                    "  median   = %7.3f    -- should be    0.30\n"
+                    "  rmsdev   = %7.3f    -- should be  706.41\n"
+                    "  rank val = %7.3f    -- should be  808.152\n"
+                    "  rank     = %7.3f    -- should be    0.800\n",
+                    minval, maxval, meanval, median, rmsdev, rankval, rank);
     }
     numaDestroy(&nahisto);
     numaDestroy(&na);
@@ -167,15 +157,14 @@ L_REGPARAMS  *rp;
     pixs = pixRead("test8.jpg");
     na = pixGetGrayHistogramMasked(pixs, NULL, 0, 0, 1);
     nasy = numaGetPartialSums(na);
-    gplotSimple1(nasy, GPLOT_PNG, "/tmp/lept/numa1/int1", "partial sums");
-    gplotSimple1(na, GPLOT_PNG, "/tmp/lept/numa1/int2", "simple test");
+    pix1 = gplotGeneralPix1(nasy, GPLOT_LINES, "/tmp/lept/numa1/int1",
+                            "partial sums", NULL, NULL);
+    pix2 = gplotGeneralPix1(na, GPLOT_LINES, "/tmp/lept/numa1/int2",
+                            "simple test", NULL, NULL);
     numaInterpolateEqxInterval(0.0, 1.0, na, L_LINEAR_INTERP,
                                0.0, 255.0, 15, &nax, &nay);
-    gplot = gplotCreate("/tmp/lept/numa1/int3", GPLOT_PNG, "test interpolation",
-                        "pix val", "num pix");
-    gplotAddPlot(gplot, nax, nay, GPLOT_LINES, "plot 1");
-    gplotMakeOutput(gplot);
-    gplotDestroy(&gplot);
+    pix3 = gplotGeneralPix2(nax, nay, GPLOT_LINES, "/tmp/lept/numa1/int3",
+                            "test interpolation", "pix val", "num pix");
     numaDestroy(&na);
     numaDestroy(&nasy);
     numaDestroy(&nax);
@@ -190,11 +179,8 @@ L_REGPARAMS  *rp;
     nasx = numaMakeSequence(0.0, 1.0, 257);
     numaInterpolateArbxInterval(nasx, nasy, L_LINEAR_INTERP,
                                 10.0, 250.0, 23, &nax, &nay);
-    gplot = gplotCreate("/tmp/lept/numa1/int4", GPLOT_PNG, "arbx interpolation",
-                        "pix val", "cum num pix");
-    gplotAddPlot(gplot, nax, nay, GPLOT_LINES, "plot 1");
-    gplotMakeOutput(gplot);
-    gplotDestroy(&gplot);
+    pix4 = gplotGeneralPix2(nax, nay, GPLOT_LINES, "/tmp/lept/numa1/int4",
+                            "arbx interpolation", "pix val", "cum num pix");
     numaDestroy(&na);
     numaDestroy(&nasx);
     numaDestroy(&nasy);
@@ -216,11 +202,8 @@ L_REGPARAMS  *rp;
         numaInterpolateArbxVal(nasx, nasy, L_QUADRATIC_INTERP, xval, &yval);
         numaAddNumber(nay, yval);
     }
-    gplot = gplotCreate("/tmp/lept/numa1/int5", GPLOT_PNG, "arbx interpolation",
-                        "pix val", "cum num pix");
-    gplotAddPlot(gplot, nax, nay, GPLOT_LINES, "plot 1");
-    gplotMakeOutput(gplot);
-    gplotDestroy(&gplot);
+    pix5 = gplotGeneralPix2(nax, nay, GPLOT_LINES, "/tmp/lept/numa1/int5",
+                            "arbx interpolation", "pix val", "cum num pix");
     numaDestroy(&na);
     numaDestroy(&nasx);
     numaDestroy(&nasy);
@@ -243,25 +226,18 @@ L_REGPARAMS  *rp;
     gplotAddPlot(gplot, nax, nay, GPLOT_LINES, "quadratic");
     numaDestroy(&nax);
     numaDestroy(&nay);
-    gplotMakeOutput(gplot);
+    pix6 = gplotMakeOutputPix(gplot);
     gplotDestroy(&gplot);
     gplot = gplotCreate("/tmp/lept/numa1/int7", GPLOT_PNG, "arbx interpolation",
                         "angle", "score");
     numaInterpolateArbxInterval(nasx, nasy, L_LINEAR_INTERP,
                                 -1.2, -0.8, 50, &nax, &nay);
     gplotAddPlot(gplot, nax, nay, GPLOT_LINES, "quadratic");
-    gplotMakeOutput(gplot);
+    pix7 = gplotMakeOutputPix(gplot);
     gplotDestroy(&gplot);
     numaFitMax(nay, &yval, nax, &xval);
-    if (rp->display) fprintf(stderr, "max = %f at loc = %f\n", yval, xval);
+    if (rp->display) lept_stderr("max = %f at loc = %f\n", yval, xval);
     pixa = pixaCreate(7);
-    pix1 = pixRead("/tmp/lept/numa1/int1.png");
-    pix2 = pixRead("/tmp/lept/numa1/int2.png");
-    pix3 = pixRead("/tmp/lept/numa1/int3.png");
-    pix4 = pixRead("/tmp/lept/numa1/int4.png");
-    pix5 = pixRead("/tmp/lept/numa1/int5.png");
-    pix6 = pixRead("/tmp/lept/numa1/int6.png");
-    pix7 = pixRead("/tmp/lept/numa1/int7.png");
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 11 */
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 12 */
     regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 13 */
@@ -295,11 +271,8 @@ L_REGPARAMS  *rp;
     nasy = numaRead("testscore.na");
         /* ---------- Plot the derivative ---------- */
     numaDifferentiateInterval(nasx, nasy, -2.0, 0.0, 50, &nadx, &nady);
-    gplot = gplotCreate("/tmp/lept/numa1/diff1", GPLOT_PNG, "derivative",
-                        "angle", "slope");
-    gplotAddPlot(gplot, nadx, nady, GPLOT_LINES, "derivative");
-    gplotMakeOutput(gplot);
-    gplotDestroy(&gplot);
+    pix1 = gplotGeneralPix2(nadx, nady, GPLOT_LINES, "/tmp/lept/numa1/diff1",
+                            "derivative", "angle", "slope");
         /*  ---------- Plot the original function ----------- */
         /*  and the integral of the derivative; the two       */
         /*  should be approximately the same.                 */
@@ -315,18 +288,18 @@ L_REGPARAMS  *rp;
         /* (Note: this tests robustness of the integrator: we go from
          * i = 0, and choose to have only 1 point in the interpolation
          * there, which is too small and causes the function to bomb out.) */
-    fprintf(stderr, "We must get a 'npts < 2' error here:\n");
+    lept_stderr("******************************************************\n");
+    lept_stderr("* Testing error checking: ignore 'npts < 2' error    *\n");
     for (i = 0; i < n; i++) {
         numaGetFValue(nadx, i, &xval);
         numaIntegrateInterval(nadx, nady, x0, xval, 2 * i + 1, &yval);
         numaAddNumber(nay, y0 + yval);
     }
+    lept_stderr("******************************************************\n");
     gplotAddPlot(gplot, nafx, nay, GPLOT_LINES, "anti-derivative");
-    gplotMakeOutput(gplot);
+    pix2 = gplotMakeOutputPix(gplot);
     gplotDestroy(&gplot);
     pixa = pixaCreate(2);
-    pix1 = pixRead("/tmp/lept/numa1/diff1.png");
-    pix2 = pixRead("/tmp/lept/numa1/diff2.png");
     regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 18 */
     regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 19 */
     pixaAddPix(pixa, pix1, L_INSERT);
@@ -344,92 +317,5 @@ L_REGPARAMS  *rp;
     numaDestroy(&nadx);
     numaDestroy(&nady);
     numaDestroy(&nay);
-
-    /* -------------------------------------------------------------------*
-     *                             Rank extraction                        *
-     * -------------------------------------------------------------------*/
-        /* Rank extraction with interpolation */
-    pixs = pixRead("test8.jpg");
-    nasy= pixGetGrayHistogramMasked(pixs, NULL, 0, 0, 1);
-    numaMakeRankFromHistogram(0.0, 1.0, nasy, 350, &nax, &nay);
-    gplot = gplotCreate("/tmp/lept/numa1/rank1", GPLOT_PNG,
-                        "test rank extractor", "pix val", "rank val");
-    gplotAddPlot(gplot, nax, nay, GPLOT_LINES, "plot 1");
-    gplotMakeOutput(gplot);
-    gplotDestroy(&gplot);
-    numaDestroy(&nasy);
-    numaDestroy(&nax);
-    numaDestroy(&nay);
-    pixDestroy(&pixs);
-
-        /* Rank extraction, point by point */
-    pixs = pixRead("test8.jpg");
-    nap = numaCreate(200);
-    pixGetRankValueMasked(pixs, NULL, 0, 0, 2, 0.0, &val, &na);
-    for (i = 0; i < 101; i++) {
-      rank = 0.01 * i;
-      numaHistogramGetValFromRank(na, rank, &val);
-      numaAddNumber(nap, val);
-    }
-    gplotSimple1(nap, GPLOT_PNG, "/tmp/lept/numa1/rank2", "rank value");
-    pixa = pixaCreate(2);
-    pix1 = pixRead("/tmp/lept/numa1/rank1.png");
-    pix2 = pixRead("/tmp/lept/numa1/rank2.png");
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 20 */
-    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 21 */
-    pixaAddPix(pixa, pix1, L_INSERT);
-    pixaAddPix(pixa, pix2, L_INSERT);
-    if (rp->display) {
-        pixd = pixaDisplayTiledInRows(pixa, 32, 1500, 1.0, 0, 20, 2);
-        pixDisplayWithTitle(pixd, 900, 0, NULL, 1);
-        pixDestroy(&pixd);
-    }
-    pixaDestroy(&pixa);
-    numaDestroy(&na);
-    numaDestroy(&nap);
-    pixDestroy(&pixs);
-
-    /* -------------------------------------------------------------------*
-     *                           Numa-morphology                          *
-     * -------------------------------------------------------------------*/
-    na = numaRead("lyra.5.na");
-    gplotSimple1(na, GPLOT_PNG, "/tmp/lept/numa1/lyra1", "Original");
-    na1 = numaErode(na, 21);
-    gplotSimple1(na1, GPLOT_PNG, "/tmp/lept/numa1/lyra2", "Erosion");
-    na2 = numaDilate(na, 21);
-    gplotSimple1(na2, GPLOT_PNG, "/tmp/lept/numa1/lyra3", "Dilation");
-    na3 = numaOpen(na, 21);
-    gplotSimple1(na3, GPLOT_PNG, "/tmp/lept/numa1/lyra4", "Opening");
-    na4 = numaClose(na, 21);
-    gplotSimple1(na4, GPLOT_PNG, "/tmp/lept/numa1/lyra5", "Closing");
-    pixa = pixaCreate(2);
-    pix1 = pixRead("/tmp/lept/numa1/lyra1.png");
-    pix2 = pixRead("/tmp/lept/numa1/lyra2.png");
-    pix3 = pixRead("/tmp/lept/numa1/lyra3.png");
-    pix4 = pixRead("/tmp/lept/numa1/lyra4.png");
-    pix5 = pixRead("/tmp/lept/numa1/lyra5.png");
-    pixaAddPix(pixa, pix1, L_INSERT);
-    pixaAddPix(pixa, pix2, L_INSERT);
-    pixaAddPix(pixa, pix3, L_INSERT);
-    pixaAddPix(pixa, pix4, L_INSERT);
-    pixaAddPix(pixa, pix5, L_INSERT);
-    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 22 */
-    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 23 */
-    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 24 */
-    regTestWritePixAndCheck(rp, pix4, IFF_PNG);  /* 25 */
-    regTestWritePixAndCheck(rp, pix5, IFF_PNG);  /* 26 */
-    if (rp->display) {
-        pixd = pixaDisplayTiledInRows(pixa, 32, 1500, 1.0, 0, 20, 2);
-        pixDisplayWithTitle(pixd, 1200, 0, NULL, 1);
-        pixDestroy(&pixd);
-    }
-    pixaDestroy(&pixa);
-    numaDestroy(&na);
-    numaDestroy(&na1);
-    numaDestroy(&na2);
-    numaDestroy(&na3);
-    numaDestroy(&na4);
-    pixaDestroy(&pixa);
-
     return regTestCleanup(rp);
 }

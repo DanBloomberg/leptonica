@@ -49,7 +49,6 @@
  *      grayscale morphology selection flags
  *      distance function b.c. flags
  *      image comparison flags
- *      color content flags
  * </pre>
  */
 
@@ -104,7 +103,6 @@ typedef struct L_Kernel  L_KERNEL;
  *  The global variable MORPH_BC takes on one of these two values.         *
  *  See notes in morph.c for usage.                                        *
  *-------------------------------------------------------------------------*/
-
 /*! Morph Boundary */
 enum {
     SYMMETRIC_MORPH_BC = 0,
@@ -114,7 +112,6 @@ enum {
 /*-------------------------------------------------------------------------*
  *                        Structuring element vals                         *
  *-------------------------------------------------------------------------*/
-
 /*! SEL Vals */
 enum {
     SEL_DONT_CARE  = 0,
@@ -125,7 +122,6 @@ enum {
 /*-------------------------------------------------------------------------*
  *                  Runlength flags for granulometry                       *
  *-------------------------------------------------------------------------*/
-
 /*! Runlength Polarity */
 enum {
     L_RUN_OFF = 0,
@@ -136,7 +132,6 @@ enum {
  *         Direction flags for grayscale morphology, granulometry,         *
  *                 composable Sels, convolution, etc.                      *
  *-------------------------------------------------------------------------*/
-
 /*! Direction Flags */
 enum {
     L_HORIZ            = 1,
@@ -147,7 +142,6 @@ enum {
 /*-------------------------------------------------------------------------*
  *                   Morphological operation flags                         *
  *-------------------------------------------------------------------------*/
-
 /*! Morph Operator */
 enum {
     L_MORPH_DILATE    = 1,
@@ -160,7 +154,6 @@ enum {
 /*-------------------------------------------------------------------------*
  *                    Grayscale intensity scaling flags                    *
  *-------------------------------------------------------------------------*/
-
 /*! Pixel Value Scaling */
 enum {
     L_LINEAR_SCALE  = 1,
@@ -170,7 +163,6 @@ enum {
 /*-------------------------------------------------------------------------*
  *                      Morphological tophat flags                         *
  *-------------------------------------------------------------------------*/
-
 /*! Morph Tophat */
 enum {
     L_TOPHAT_WHITE = 0,
@@ -181,7 +173,6 @@ enum {
  *                Arithmetic and logical operator flags                    *
  *                 (use on grayscale images and Numas)                     *
  *-------------------------------------------------------------------------*/
-
 /*! ArithLogical Ops */
 enum {
     L_ARITH_ADD       = 1,
@@ -197,7 +188,6 @@ enum {
 /*-------------------------------------------------------------------------*
  *                        Min/max selection flags                          *
  *-------------------------------------------------------------------------*/
-
 /*! MinMax Selection */
 enum {
     L_CHOOSE_MIN = 1,         /* useful in a downscaling "erosion"       */
@@ -210,7 +200,6 @@ enum {
 /*-------------------------------------------------------------------------*
  *            Exterior value b.c. for distance function flags              *
  *-------------------------------------------------------------------------*/
-
 /*! Exterior Value */
 enum {
     L_BOUNDARY_BG = 1,  /* assume bg outside image */
@@ -220,23 +209,11 @@ enum {
 /*-------------------------------------------------------------------------*
  *                         Image comparison flags                          *
  *-------------------------------------------------------------------------*/
-
 /*! Image Comparison */
 enum {
     L_COMPARE_XOR = 1,
     L_COMPARE_SUBTRACT = 2,
     L_COMPARE_ABS_DIFF = 3
-};
-
-/*-------------------------------------------------------------------------*
- *                          Color content flags                            *
- *-------------------------------------------------------------------------*/
-
-/*! Color Content */
-enum {
-    L_MAX_DIFF_FROM_AVERAGE_2 = 1,
-    L_MAX_MIN_DIFF_FROM_2 = 2,
-    L_MAX_DIFF = 3
 };
 
 /*-------------------------------------------------------------------------*

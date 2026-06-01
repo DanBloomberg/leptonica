@@ -47,6 +47,10 @@
  *   about 600 ppi.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config_auto.h>
+#endif  /* HAVE_CONFIG_H */
+
 #include "allheaders.h"
 
     /* Mask at 4x reduction */
@@ -62,15 +66,14 @@ static const char *dilation_sequence = "d3.3";
 int main(int    argc,
          char **argv)
 {
-char        *filein, *fileout;
-l_int32      thresh;
-PIX         *pixs, *pixg, *pixb;
-PIX         *pixmask4, *pixseed4, *pixsf4, *pixd4, *pixd;
-static char  mainName[] = "pagesegtest2";
+char    *filein, *fileout;
+l_int32  thresh;
+PIX     *pixs, *pixg, *pixb;
+PIX     *pixmask4, *pixseed4, *pixsf4, *pixd4, *pixd;
 
     if (argc != 4)
         return ERROR_INT(" Syntax:  pagesegtest2 filein thresh fileout",
-                         mainName, 1);
+                         __func__, 1);
     filein = argv[1];
     thresh = atoi(argv[2]);
     fileout = argv[3];
@@ -78,7 +81,7 @@ static char  mainName[] = "pagesegtest2";
 
         /* Get a 1 bpp version of the page */
     if ((pixs = pixRead(filein)) == NULL)
-        return ERROR_INT("pixs not made", mainName, 1);
+        return ERROR_INT("pixs not made", __func__, 1);
     if (pixGetDepth(pixs) == 32)
         pixg = pixConvertRGBToGrayFast(pixs);
     else
@@ -107,10 +110,11 @@ static char  mainName[] = "pagesegtest2";
     pixDisplayWithTitle(pixb, 1000, 100, "non-halftone", DFLAG);
 
 #if 1
-    pixWrite("junkseed", pixseed4, IFF_TIFF_G4);
-    pixWrite("junkmask", pixmask4, IFF_TIFF_G4);
-    pixWrite("junkfill", pixd4, IFF_TIFF_G4);
-    pixWrite("junktext", pixb, IFF_TIFF_G4);
+    lept_mkdir("lept/pageseg");
+    pixWrite("/tmp/lept/pageseg/seed2", pixseed4, IFF_TIFF_G4);
+    pixWrite("/tmp/lept/pageseg/mask2", pixmask4, IFF_TIFF_G4);
+    pixWrite("/tmp/lept/pageseg/fill2", pixd4, IFF_TIFF_G4);
+    pixWrite("/tmp/lept/pageseg/text2", pixb, IFF_TIFF_G4);
 #endif
 
     pixDestroy(&pixs);
