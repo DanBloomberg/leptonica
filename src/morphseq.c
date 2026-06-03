@@ -842,7 +842,7 @@ l_int32  intlogbase2[5] = {1, 2, 3, 0, 4};  /* of arg/4 */
     }
 
     if (border != 0 && netred != 0) {
-        lept_stderr("*** op = %s; border added but net reduction not 0\n", op);
+        lept_stderr("*** border added but net reduction not 0\n");
         valid = FALSE;
     }
     return valid;
