@@ -1406,8 +1406,8 @@ FPIX       *fpix;
     expected = (l_uint64)w * (l_uint64)h * sizeof(l_float32);
     if (expected != (l_uint64)nbytes) {
         L_ERROR("nbytes = %llu inconsistent with w = %llu, h = %llu, and "
-                "expected = 4 * w * h = %llu\n",
-                __func__, nbytes, w, h, expected);
+                "expected = 4 * w * h = %llu\n", __func__,
+               (l_uint64)nbytes, (l_uint64)w, (l_uint64)h, expected);
         return NULL;
     }
 
@@ -1701,12 +1701,12 @@ DPIX       *dpix;
     if (fscanf(fp, "w = %d, h = %d, nbytes = %d\n", &w, &h, &nbytes) != 3)
         return (DPIX *)ERROR_PTR("read fail for data size", __func__, NULL);
     if (w <= 0 || h <= 0 || nbytes < 0)
-        return (DPIX *)ERROR_PTR("invalid fpix data size", __func__, NULL);
+        return (DPIX *)ERROR_PTR("invalid dpix data size", __func__, NULL);
     expected = (l_uint64)w * (l_uint64)h * sizeof(l_float64);
     if (expected != (l_uint64)nbytes) {
         L_ERROR("nbytes = %llu inconsistent with w = %llu, h = %llu, and "
                 "expected = 8 * w * h = %llu\n", __func__,
-                nbytes, w, h, expected);
+                (l_uint64)nbytes, (l_uint64)w, (l_uint64)h, expected);
         return NULL;
     }
 
