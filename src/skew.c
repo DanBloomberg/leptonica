@@ -32,6 +32,7 @@
  *          PIX       *pixDeskewBoth()
  *          PIX       *pixDeskew()
  *          PIX       *pixFindSkewAndDeskew()
+ *          PIX       *pixFindSkewAdaptAndDeskew()
  *          PIX       *pixDeskewGeneral()
  *
  *      Top-level angle-finding interface
@@ -234,9 +235,13 @@ pixDeskew(PIX     *pixs,
  *
  * <pre>
  * Notes:
- *      (1) This binarizes if necessary and finds the skew angle.  If the
- *          angle is large enough and there is sufficient confidence,
- *          it returns a deskewed image; otherwise, it returns a clone.
+ *      (1) This binarizes if necessary and finds the skew angle.
+ *          This can be used instead of pixFindSkewAdaptAndDeskew()
+ *          if the background of the grayscale image is fairly light
+ *          (say, above 170).
+ *      (2) If the  angle is large enough and there is sufficient
+ *          confidence, it returns a deskewed image; otherwise,
+ *          it returns a clone.
  * </pre>
  */
 PIX *
@@ -257,6 +262,46 @@ pixFindSkewAndDeskew(PIX        *pixs,
 
 
 /*!
+ * \brief   pixFindSkewAdaptAndDeskew()
+ *
+ * \param[in]    pixs        any depth
+ * \param[in]    redsearch   for binary search: reduction factor = 1, 2 or 4;
+ *                           use 0 for default
+ * \param[out]   pangle      [optional] angle required to deskew,
+ *                           in degrees; use NULL to skip
+ * \param[out]   pconf       [optional] conf value is ratio
+ *                           of max/min scores; use NULL to skip
+ * \return  pixd deskewed pix, or NULL on error
+ *
+ * <pre>
+ * Notes:
+ *      (1) This uses adaptive binarization if necessary, and finds
+ *          the skew angle.  This should be used instead of
+ *          pixfindSkewAndDeskew() if the background is somewhat
+ *          dark (say, less than 170).
+ *      (2) If the angle is large enough and there  is sufficient
+ *          confidence, it returns a deskewed image; otherwise,
+ *          it returns a clone.
+ * </pre>
+ */
+PIX *
+pixFindSkewAdaptAndDeskew(PIX        *pixs,
+                          l_int32     redsearch,
+                          l_float32  *pangle,
+                          l_float32  *pconf)
+{
+    if (!pixs)
+        return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
+    if (redsearch == 0)
+        redsearch = DefaultBsReduction;
+    else if (redsearch != 1 && redsearch != 2 && redsearch != 4)
+        return (PIX *)ERROR_PTR("redsearch not in {1,2,4}", __func__, NULL);
+
+    return pixDeskewGeneral(pixs, 0, 0.0, 0.0, redsearch, -1, pangle, pconf);
+}
+
+
+/*!
  * \brief   pixDeskewGeneral()
  *
  * \param[in]    pixs         any depth
@@ -267,7 +312,9 @@ pixFindSkewAndDeskew(PIX        *pixs,
  * \param[in]    sweepdelta   in degrees; use 0.0 for default
  * \param[in]    redsearch    for binary search: reduction factor = 1, 2 or 4;
  *                            use 0 for default;
- * \param[in]    thresh       for binarizing the image; use 0 for default
+ * \param[in]    thresh       for binarizing the image
+ *                            use 0 for default threshold
+ *                            use -1 for adaptive thresholding
  * \param[out]   pangle       [optional] angle required to deskew,
  *                            in degrees; use NULL to skip
  * \param[out]   pconf        [optional] conf value is ratio
@@ -293,7 +340,7 @@ pixDeskewGeneral(PIX        *pixs,
 {
 l_int32    ret, depth;
 l_float32  angle, conf, deg2rad;
-PIX       *pixb, *pixd;
+PIX       *pixb, *pixg, *pixd;
 
     if (pangle) *pangle = 0.0;
     if (pconf) *pconf = 0.0;
@@ -320,8 +367,15 @@ PIX       *pixb, *pixd;
     depth = pixGetDepth(pixs);
     if (depth == 1)
         pixb = pixClone(pixs);
-    else
-        pixb = pixConvertTo1(pixs, thresh);
+    else {
+        if (thresh > 0) {
+            pixb = pixConvertTo1(pixs, thresh);
+        } else {  /* adaptive */
+            pixg = pixBackgroundNormSimple(pixs, NULL, NULL);
+            pixb = pixConvertTo1(pixg, DefaultBinaryThreshold);
+            pixDestroy(&pixg);
+        }
+    }
 
         /* Use the 1 bpp image to find the skew */
     ret = pixFindSkewSweepAndSearch(pixb, &angle, &conf, redsweep, redsearch,

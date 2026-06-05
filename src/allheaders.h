@@ -2559,6 +2559,7 @@ LEPT_DLL extern PIX * pixVShearLI ( PIX *pixs, l_int32 xloc, l_float32 radang, l
 LEPT_DLL extern PIX * pixDeskewBoth ( PIX *pixs, l_int32 redsearch );
 LEPT_DLL extern PIX * pixDeskew ( PIX *pixs, l_int32 redsearch );
 LEPT_DLL extern PIX * pixFindSkewAndDeskew ( PIX *pixs, l_int32 redsearch, l_float32 *pangle, l_float32 *pconf );
+LEPT_DLL extern PIX * pixFindSkewAdaptAndDeskew ( PIX *pixs, l_int32 redsearch, l_float32 *pangle, l_float32 *pconf );
 LEPT_DLL extern PIX * pixDeskewGeneral ( PIX *pixs, l_int32 redsweep, l_float32 sweeprange, l_float32 sweepdelta, l_int32 redsearch, l_int32 thresh, l_float32 *pangle, l_float32 *pconf );
 LEPT_DLL extern l_ok pixFindSkew ( PIX *pixs, l_float32 *pangle, l_float32 *pconf );
 LEPT_DLL extern l_ok pixFindSkewSweep ( PIX *pixs, l_float32 *pangle, l_int32 reduction, l_float32 sweeprange, l_float32 sweepdelta );

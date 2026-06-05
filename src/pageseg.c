@@ -1057,6 +1057,12 @@ PIX  *pix1, *pix2, *pix3, *pix4, *pix5;
         return NULL;
     }
 
+        /* Optionally rotate by multiple of 90 degrees.
+         * Then if 8 or 32 bpp, use adaptive thresholding when
+           measuring skew and deskewing, because use of a fixed
+           threshold with skew detection can fail if the background
+           is dark.  This is followed by a final background
+           normalized thresholding to 1 bpp. */
     if (pixGetDepth(pixs) == 1) {
         if (rotation > 0)
             pix1 = pixRotateOrth(pixs, rotation);
@@ -1073,7 +1079,7 @@ PIX  *pix1, *pix2, *pix3, *pix4, *pix5;
             pix2 = pixRotateOrth(pix1, rotation);
         else
             pix2 = pixClone(pix1);
-        pix3 = pixFindSkewAndDeskew(pix2, 2, NULL, NULL);
+        pix3 = pixFindSkewAdaptAndDeskew(pix2, 2, NULL, NULL);
         pix4 = pixBackgroundNormTo1MinMax(pix3, contrast, scale);
         pixDestroy(&pix3);
     }
