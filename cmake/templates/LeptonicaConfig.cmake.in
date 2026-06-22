@@ -44,7 +44,10 @@ SET(Leptonica_VERSION_PATCH     @leptonica_VERSION_PATCH@)
 # ======================================================
 
 # Provide the include directories to the caller
-set(Leptonica_INCLUDE_DIRS      "@INCLUDE_DIR@")
+get_filename_component(_IMPORTED_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
+set(INCLUDE_DIR "${_IMPORTED_ROOT}/include" "${_IMPORTED_ROOT}/include/leptonica")
+
+set(Leptonica_INCLUDE_DIRS ${INCLUDE_DIR})
 
 # ====================================================================
 # Link libraries:
