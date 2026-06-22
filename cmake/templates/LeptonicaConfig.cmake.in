@@ -44,7 +44,30 @@ SET(Leptonica_VERSION_PATCH     @leptonica_VERSION_PATCH@)
 # ======================================================
 
 # Provide the include directories to the caller
-set(Leptonica_INCLUDE_DIRS      "@INCLUDE_DIR@")
+# Recover install prefix from the location of this file (supports multi-arch libdirs).
+file(TO_CMAKE_PATH "${CMAKE_CURRENT_LIST_DIR}" _lept_cfg_dir)
+file(TO_CMAKE_PATH "@leptonica_INSTALL_CMAKE_DIR@" _lept_rel_cmake_dir)
+string(REGEX REPLACE "/$" "" _lept_cfg_dir "${_lept_cfg_dir}")
+string(REGEX REPLACE "/$" "" _lept_rel_cmake_dir "${_lept_rel_cmake_dir}")
+
+set(_lept_suffix "/${_lept_rel_cmake_dir}")
+string(LENGTH "${_lept_cfg_dir}" _lept_cfg_len)
+string(LENGTH "${_lept_suffix}" _lept_suffix_len)
+
+unset(_lept_tail)
+if(_lept_cfg_len GREATER _lept_suffix_len)
+  math(EXPR _lept_prefix_len "${_lept_cfg_len} - ${_lept_suffix_len}")
+  string(SUBSTRING "${_lept_cfg_dir}" ${_lept_prefix_len} ${_lept_suffix_len} _lept_tail)
+endif()
+
+if(DEFINED _lept_tail AND _lept_tail STREQUAL "${_lept_suffix}")
+  string(SUBSTRING "${_lept_cfg_dir}" 0 ${_lept_prefix_len} _IMPORTED_ROOT)
+else()
+  # Fallback to the configured prefix if the expected suffix doesn't match.
+  set(_IMPORTED_ROOT "@CMAKE_INSTALL_PREFIX@")
+endif()
+
+set(Leptonica_INCLUDE_DIRS "${_IMPORTED_ROOT}/include" "${_IMPORTED_ROOT}/include/leptonica")
 
 # ====================================================================
 # Link libraries:
