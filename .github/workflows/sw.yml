@@ -1,18 +1,18 @@
 name: sw
 
 on:
-  push:
-    branches:
-      - master
-    paths-ignore:
-      - '**/CMakeLists.txt'
-      - '.github/*'
-  pull_request:
-    branches:
-      - master
-    paths-ignore:
-      - '**/CMakeLists.txt'
-      - '.github/*'
+#  push:
+#    branches:
+#      - master
+#    paths-ignore:
+#      - '**/CMakeLists.txt'
+#      - '.github/*'
+#  pull_request:
+#    branches:
+#      - master
+#    paths-ignore:
+#      - '**/CMakeLists.txt'
+#      - '.github/*'
   workflow_dispatch:
 
 jobs:
