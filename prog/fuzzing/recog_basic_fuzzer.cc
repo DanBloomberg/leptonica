@@ -9,7 +9,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     L_RECOG  *recog;
     char filename[256];
-    sprintf(filename, "/tmp/libfuzzer.%d", getppid());
+    snprintf(filename, sizeof(filename), "/tmp/libfuzzer.%d", getppid());
 
     FILE *fp = fopen(filename, "wb");
     if (!fp)
