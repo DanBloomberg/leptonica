@@ -19,7 +19,7 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: egorpugin/sw-action@master
     - run: ./sw build -static -shared -config d,r
     
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-22.04
     container: fedora:latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: prepare
       run: |
         sudo dnf -y update
@@ -38,7 +38,7 @@ jobs:
   macos:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - uses: egorpugin/sw-action@master
     - name: install
       run: |
