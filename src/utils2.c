@@ -945,8 +945,8 @@ l_int32      nsrc, nsub1, nsub2, len, npre, loc;
         return (char *)ERROR_PTR("dest not made", __func__, NULL);
     npre = ptr - src;
     memcpy(dest, src, npre);
-    strcpy(dest + npre, sub2);
-    strcpy(dest + npre + nsub2, ptr + nsub1);
+    memcpy(dest + npre, sub2, nsub2);
+    memcpy(dest + npre + nsub2, ptr + nsub1, nsrc - npre - nsub1);
     if (ploc) *ploc = npre + nsub2;
     return dest;
 }
