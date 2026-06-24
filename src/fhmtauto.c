@@ -283,41 +283,41 @@ SARRAY  *sa1, *sa2, *sa3;
     sa1 = selaGetSelnames(sela);
 
         /* Make strings containing function call names */
-    sprintf(bigbuf, "PIX *pixHMTDwa_%d(PIX *pixd, PIX *pixs, "
+    snprintf(bigbuf, L_BUF_SIZE, "PIX *pixHMTDwa_%d(PIX *pixd, PIX *pixs, "
                     "const char *selname);", fileindex);
     str_proto1 = stringNew(bigbuf);
-    sprintf(bigbuf, "PIX *pixFHMTGen_%d(PIX *pixd, PIX *pixs, "
+    snprintf(bigbuf, L_BUF_SIZE, "PIX *pixFHMTGen_%d(PIX *pixd, PIX *pixs, "
                     "const char *selname);", fileindex);
     str_proto2 = stringNew(bigbuf);
-    sprintf(bigbuf, "l_int32 fhmtgen_low_%d(l_uint32 *datad, l_int32 w,\n"
+    snprintf(bigbuf, L_BUF_SIZE, "l_int32 fhmtgen_low_%d(l_uint32 *datad, l_int32 w,\n"
             "                      l_int32 h, l_int32 wpld,\n"
             "                      l_uint32 *datas, l_int32 wpls,\n"
             "                      l_int32 index);", fileindex);
     str_proto3 = stringNew(bigbuf);
-    sprintf(bigbuf, " *             PIX     *pixHMTDwa_%d()", fileindex);
+    snprintf(bigbuf, L_BUF_SIZE, " *             PIX     *pixHMTDwa_%d()", fileindex);
     str_doc1 = stringNew(bigbuf);
-    sprintf(bigbuf, " *             PIX     *pixFHMTGen_%d()", fileindex);
+    snprintf(bigbuf, L_BUF_SIZE, " *             PIX     *pixFHMTGen_%d()", fileindex);
     str_doc2 = stringNew(bigbuf);
-    sprintf(bigbuf, " * \\brief  pixHMTDwa_%d()", fileindex);
+    snprintf(bigbuf, L_BUF_SIZE, " * \\brief  pixHMTDwa_%d()", fileindex);
     str_doc3 = stringNew(bigbuf);
-    sprintf(bigbuf, " * \\brief  pixFHMTGen_%d()", fileindex);
+    snprintf(bigbuf, L_BUF_SIZE, " * \\brief  pixFHMTGen_%d()", fileindex);
     str_doc4 = stringNew(bigbuf);
-    sprintf(bigbuf, "pixHMTDwa_%d(PIX         *pixd,", fileindex);
+    snprintf(bigbuf, L_BUF_SIZE, "pixHMTDwa_%d(PIX         *pixd,", fileindex);
     str_def1 = stringNew(bigbuf);
-    sprintf(bigbuf, "pixFHMTGen_%d(PIX         *pixd,", fileindex);
+    snprintf(bigbuf, L_BUF_SIZE, "pixFHMTGen_%d(PIX         *pixd,", fileindex);
     str_def2 = stringNew(bigbuf);
-    sprintf(bigbuf, "    PROCNAME(\"pixHMTDwa_%d\");", fileindex);
+    snprintf(bigbuf, L_BUF_SIZE, "    PROCNAME(\"pixHMTDwa_%d\");", fileindex);
     str_proc1 = stringNew(bigbuf);
-    sprintf(bigbuf, "    PROCNAME(\"pixFHMTGen_%d\");", fileindex);
+    snprintf(bigbuf, L_BUF_SIZE, "    PROCNAME(\"pixFHMTGen_%d\");", fileindex);
     str_proc2 = stringNew(bigbuf);
-    sprintf(bigbuf, "    pixt2 = pixFHMTGen_%d(NULL, pixt1, selname);",
+    snprintf(bigbuf, L_BUF_SIZE, "    pixt2 = pixFHMTGen_%d(NULL, pixt1, selname);",
             fileindex);
     str_dwa1 = stringNew(bigbuf);
-    sprintf(bigbuf,
+    snprintf(bigbuf, L_BUF_SIZE,
             "        fhmtgen_low_%d(datad, w, h, wpld, datat, wpls, index);",
             fileindex);
     str_low_dt = stringNew(bigbuf);
-    sprintf(bigbuf,
+    snprintf(bigbuf, L_BUF_SIZE,
             "        fhmtgen_low_%d(datad, w, h, wpld, datas, wpls, index);",
             fileindex);
     str_low_ds = stringNew(bigbuf);
@@ -343,16 +343,16 @@ SARRAY  *sa1, *sa2, *sa3;
     sarrayAddString(sa3, str_proto3, L_INSERT);
 
         /* Add static globals */
-    sprintf(bigbuf, "\nstatic l_int32   NUM_SELS_GENERATED = %d;", nsels);
+    snprintf(bigbuf, L_BUF_SIZE, "\nstatic l_int32   NUM_SELS_GENERATED = %d;", nsels);
     sarrayAddString(sa3, bigbuf, L_COPY);
-    sprintf(bigbuf, "static char  SEL_NAMES[][80] = {");
+    snprintf(bigbuf, L_BUF_SIZE, "static char  SEL_NAMES[][80] = {");
     sarrayAddString(sa3, bigbuf, L_COPY);
     for (i = 0; i < nsels - 1; i++) {
-        sprintf(bigbuf, "                             \"%s\",",
+        snprintf(bigbuf, L_BUF_SIZE, "                             \"%s\",",
                 sarrayGetString(sa1, i, L_NOCOPY));
         sarrayAddString(sa3, bigbuf, L_COPY);
     }
-    sprintf(bigbuf, "                             \"%s\"};",
+    snprintf(bigbuf, L_BUF_SIZE, "                             \"%s\"};",
             sarrayGetString(sa1, i, L_NOCOPY));
     sarrayAddString(sa3, bigbuf, L_COPY);
 
@@ -398,7 +398,7 @@ SARRAY  *sa1, *sa2, *sa3;
     if (filename)
         snprintf(bigbuf, L_BUF_SIZE, "%s.%d.c", filename, fileindex);
     else
-        sprintf(bigbuf, "%s.%d.c", OUTROOT, fileindex);
+        snprintf(bigbuf, L_BUF_SIZE, "%s.%d.c", OUTROOT, fileindex);
     l_binaryWrite(bigbuf, "w", filestr, nbytes);
     sarrayDestroy(&sa1);
     sarrayDestroy(&sa2);
@@ -467,7 +467,7 @@ SEL     *sel;
         return ERROR_INT("sa2 not made", __func__, 1);
     }
     for (i = 0; i < nsels; i++) {
-        sprintf(bigbuf, "fhmt_%d_%d", fileindex, i);
+        snprintf(bigbuf, L_BUF_SIZE, "fhmt_%d_%d", fileindex, i);
         sarrayAddString(sa2, bigbuf, L_COPY);
     }
 
@@ -475,15 +475,15 @@ SEL     *sel;
     sa3 = sarrayCreate(2 * nsels);  /* should be ok */
     for (i = 0; i < nsels; i++) {
         fname = sarrayGetString(sa2, i, L_NOCOPY);
-        sprintf(bigbuf, "static void  %s%s", fname, PROTOARGS);
+        snprintf(bigbuf, L_BUF_SIZE, "static void  %s%s", fname, PROTOARGS);
         sarrayAddString(sa3, bigbuf, L_COPY);
     }
 
         /* Make strings containing function names */
-    sprintf(bigbuf, " *             l_int32    fhmtgen_low_%d()",
+    snprintf(bigbuf, L_BUF_SIZE, " *             l_int32    fhmtgen_low_%d()",
             fileindex);
     str_doc1 = stringNew(bigbuf);
-    sprintf(bigbuf, " *             void       fhmt_%d_*()", fileindex);
+    snprintf(bigbuf, L_BUF_SIZE, " *             void       fhmt_%d_*()", fileindex);
     str_doc2 = stringNew(bigbuf);
 
         /* Output to this sa */
@@ -514,9 +514,9 @@ SEL     *sel;
     }
 
         /* Make more strings containing function names */
-    sprintf(bigbuf, " *  fhmtgen_low_%d()", fileindex);
+    snprintf(bigbuf, L_BUF_SIZE, " *  fhmtgen_low_%d()", fileindex);
     str_doc3 = stringNew(bigbuf);
-    sprintf(bigbuf, "fhmtgen_low_%d(l_uint32  *datad,", fileindex);
+    snprintf(bigbuf, L_BUF_SIZE, "fhmtgen_low_%d(l_uint32  *datad,", fileindex);
     str_def1 = stringNew(bigbuf);
 
         /* Insert function header */
@@ -531,9 +531,9 @@ SEL     *sel;
 
         /* Generate and insert the dispatcher code */
     for (i = 0; i < nsels; i++) {
-        sprintf(bigbuf, "    case %d:", i);
+        snprintf(bigbuf, L_BUF_SIZE, "    case %d:", i);
         sarrayAddString(sa4, bigbuf, L_COPY);
-        sprintf(bigbuf, "        %s(datad, w, h, wpld, datas, wpls);",
+        snprintf(bigbuf, L_BUF_SIZE, "        %s(datad, w, h, wpld, datas, wpls);",
                sarrayGetString(sa2, i, L_NOCOPY));
         sarrayAddString(sa4, bigbuf, L_COPY);
         sarrayAddString(sa4, breakstring, L_COPY);
@@ -557,7 +557,7 @@ SEL     *sel;
             /* Generate the function header and add the common args */
         sarrayAddString(sa4, staticstring, L_COPY);
         fname = sarrayGetString(sa2, i, L_NOCOPY);
-        sprintf(bigbuf, "%s(l_uint32  *datad,", fname);
+        snprintf(bigbuf, L_BUF_SIZE, "%s(l_uint32  *datad,", fname);
         sarrayAddString(sa4, bigbuf, L_COPY);
         sarrayAppendRange(sa4, sa1, argstart, argend);
 
@@ -615,7 +615,7 @@ SEL     *sel;
     if (filename)
         snprintf(bigbuf, L_BUF_SIZE, "%slow.%d.c", filename, fileindex);
     else
-        sprintf(bigbuf, "%slow.%d.c", OUTROOT, fileindex);
+        snprintf(bigbuf, L_BUF_SIZE, "%slow.%d.c", OUTROOT, fileindex);
     l_binaryWrite(bigbuf, "w", filestr, nbytes);
     sarrayDestroy(&sa1);
     sarrayDestroy(&sa2);
@@ -720,13 +720,13 @@ SARRAY  *sa;
                     continue;
                 }
                 if (ntot == 1)  /* just one item */
-                    sprintf(bigbuf, "            *dptr = %s;", string);
+                    snprintf(bigbuf, L_BUF_SIZE, "            *dptr = %s;", string);
                 else if (nfound == 1)
-                    sprintf(bigbuf, "            *dptr = %s %s", string, land);
+                    snprintf(bigbuf, L_BUF_SIZE, "            *dptr = %s %s", string, land);
                 else if (nfound < ntot)
-                    sprintf(bigbuf, "                    %s %s", string, land);
+                    snprintf(bigbuf, L_BUF_SIZE, "                    %s %s", string, land);
                 else  /* nfound == ntot */
-                    sprintf(bigbuf, "                    %s;", string);
+                    snprintf(bigbuf, L_BUF_SIZE, "                    %s;", string);
                 sarrayAddString(sa, bigbuf, L_COPY);
                 LEPT_FREE(string);
             }
@@ -757,53 +757,53 @@ char     bigbuf[L_BUF_SIZE];
 
     if (type == SEL_HIT) {
         if ((delx == 0) && (dely == 0))
-            sprintf(bigbuf, "(*sptr)");
+            snprintf(bigbuf, L_BUF_SIZE, "(*sptr)");
         else if ((delx == 0) && (dely < 0))
-            sprintf(bigbuf, "(*(sptr %s))", wplstrm[absy - 1]);
+            snprintf(bigbuf, L_BUF_SIZE, "(*(sptr %s))", wplstrm[absy - 1]);
         else if ((delx == 0) && (dely > 0))
-            sprintf(bigbuf, "(*(sptr %s))", wplstrp[absy - 1]);
+            snprintf(bigbuf, L_BUF_SIZE, "(*(sptr %s))", wplstrp[absy - 1]);
         else if ((delx < 0) && (dely == 0))
-            sprintf(bigbuf, "((*(sptr) >> %d) | (*(sptr - 1) << %d))",
+            snprintf(bigbuf, L_BUF_SIZE, "((*(sptr) >> %d) | (*(sptr - 1) << %d))",
                   absx, 32 - absx);
         else if ((delx > 0) && (dely == 0))
-            sprintf(bigbuf, "((*(sptr) << %d) | (*(sptr + 1) >> %d))",
+            snprintf(bigbuf, L_BUF_SIZE, "((*(sptr) << %d) | (*(sptr + 1) >> %d))",
                   absx, 32 - absx);
         else if ((delx < 0) && (dely < 0))
-            sprintf(bigbuf, "((*(sptr %s) >> %d) | (*(sptr %s - 1) << %d))",
+            snprintf(bigbuf, L_BUF_SIZE, "((*(sptr %s) >> %d) | (*(sptr %s - 1) << %d))",
                   wplstrm[absy - 1], absx, wplstrm[absy - 1], 32 - absx);
         else if ((delx > 0) && (dely < 0))
-            sprintf(bigbuf, "((*(sptr %s) << %d) | (*(sptr %s + 1) >> %d))",
+            snprintf(bigbuf, L_BUF_SIZE, "((*(sptr %s) << %d) | (*(sptr %s + 1) >> %d))",
                   wplstrm[absy - 1], absx, wplstrm[absy - 1], 32 - absx);
         else if ((delx < 0) && (dely > 0))
-            sprintf(bigbuf, "((*(sptr %s) >> %d) | (*(sptr %s - 1) << %d))",
+            snprintf(bigbuf, L_BUF_SIZE, "((*(sptr %s) >> %d) | (*(sptr %s - 1) << %d))",
                   wplstrp[absy - 1], absx, wplstrp[absy - 1], 32 - absx);
         else  /*  ((delx > 0) && (dely > 0))  */
-            sprintf(bigbuf, "((*(sptr %s) << %d) | (*(sptr %s + 1) >> %d))",
+            snprintf(bigbuf, L_BUF_SIZE, "((*(sptr %s) << %d) | (*(sptr %s + 1) >> %d))",
                   wplstrp[absy - 1], absx, wplstrp[absy - 1], 32 - absx);
     } else {  /* type == SEL_MISS */
         if ((delx == 0) && (dely == 0))
-            sprintf(bigbuf, "(~*sptr)");
+            snprintf(bigbuf, L_BUF_SIZE, "(~*sptr)");
         else if ((delx == 0) && (dely < 0))
-            sprintf(bigbuf, "(~*(sptr %s))", wplstrm[absy - 1]);
+            snprintf(bigbuf, L_BUF_SIZE, "(~*(sptr %s))", wplstrm[absy - 1]);
         else if ((delx == 0) && (dely > 0))
-            sprintf(bigbuf, "(~*(sptr %s))", wplstrp[absy - 1]);
+            snprintf(bigbuf, L_BUF_SIZE, "(~*(sptr %s))", wplstrp[absy - 1]);
         else if ((delx < 0) && (dely == 0))
-            sprintf(bigbuf, "((~*(sptr) >> %d) | (~*(sptr - 1) << %d))",
+            snprintf(bigbuf, L_BUF_SIZE, "((~*(sptr) >> %d) | (~*(sptr - 1) << %d))",
                   absx, 32 - absx);
         else if ((delx > 0) && (dely == 0))
-            sprintf(bigbuf, "((~*(sptr) << %d) | (~*(sptr + 1) >> %d))",
+            snprintf(bigbuf, L_BUF_SIZE, "((~*(sptr) << %d) | (~*(sptr + 1) >> %d))",
                   absx, 32 - absx);
         else if ((delx < 0) && (dely < 0))
-            sprintf(bigbuf, "((~*(sptr %s) >> %d) | (~*(sptr %s - 1) << %d))",
+            snprintf(bigbuf, L_BUF_SIZE, "((~*(sptr %s) >> %d) | (~*(sptr %s - 1) << %d))",
                   wplstrm[absy - 1], absx, wplstrm[absy - 1], 32 - absx);
         else if ((delx > 0) && (dely < 0))
-            sprintf(bigbuf, "((~*(sptr %s) << %d) | (~*(sptr %s + 1) >> %d))",
+            snprintf(bigbuf, L_BUF_SIZE, "((~*(sptr %s) << %d) | (~*(sptr %s + 1) >> %d))",
                   wplstrm[absy - 1], absx, wplstrm[absy - 1], 32 - absx);
         else if ((delx < 0) && (dely > 0))
-            sprintf(bigbuf, "((~*(sptr %s) >> %d) | (~*(sptr %s - 1) << %d))",
+            snprintf(bigbuf, L_BUF_SIZE, "((~*(sptr %s) >> %d) | (~*(sptr %s - 1) << %d))",
                   wplstrp[absy - 1], absx, wplstrp[absy - 1], 32 - absx);
         else  /*  ((delx > 0) && (dely > 0))  */
-            sprintf(bigbuf, "((~*(sptr %s) << %d) | (~*(sptr %s + 1) >> %d))",
+            snprintf(bigbuf, L_BUF_SIZE, "((~*(sptr %s) << %d) | (~*(sptr %s + 1) >> %d))",
                   wplstrp[absy - 1], absx, wplstrp[absy - 1], 32 - absx);
     }
 
