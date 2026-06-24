@@ -11,7 +11,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
         leptSetStdNullHandler();
 
         char filename[256];
-        sprintf(filename, "/tmp/libfuzzer.pa");
+        snprintf(filename, sizeof(filename), "/tmp/libfuzzer.pa");
         FILE *fp = fopen(filename, "wb");
         if (!fp) return 0;
         fwrite(data, size, 1, fp);
