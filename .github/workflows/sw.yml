@@ -23,7 +23,7 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v7
-    - uses: egorpugin/sw-action@0261dc5095b3c7688d7ad1a429ea53d9b239ad6f  # master
+    - uses: egorpugin/sw-action@master
     - run: ./sw build -static -shared -config d,r
     
   linux:
@@ -35,14 +35,14 @@ jobs:
       run: |
         sudo dnf -y update
         sudo dnf -y install cmake which g++ clang clang-tools-extra lld
-    - uses: egorpugin/sw-action@0261dc5095b3c7688d7ad1a429ea53d9b239ad6f  # master
+    - uses: egorpugin/sw-action@master
     - run: ./sw build -static -shared -config d,r
    
   macos:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v7
-    - uses: egorpugin/sw-action@0261dc5095b3c7688d7ad1a429ea53d9b239ad6f  # master
+    - uses: egorpugin/sw-action@master
     - name: install
       run: |
         brew update
