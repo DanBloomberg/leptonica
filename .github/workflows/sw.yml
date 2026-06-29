@@ -15,6 +15,9 @@ on:
 #      - '.github/*'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   windows:
     runs-on: windows-latest

@@ -23,6 +23,9 @@ on:
   # Trigger workflow in GitHub web frontend or from API.
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
 
   brew:
