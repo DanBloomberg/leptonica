@@ -20,7 +20,6 @@ jobs:
     name: cmake-win64
     runs-on: windows-latest
     steps:
-      - uses: ilammy/setup-nasm@72793074d3c8cdda771dba85f6deafe00623038b  # v1
       - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
         uses: actions/checkout@v7
         with:
