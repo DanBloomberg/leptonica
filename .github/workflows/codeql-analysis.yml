@@ -43,7 +43,7 @@ jobs:
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v4
+      uses: github/codeql-action/init@v4.37.4
       with:
         languages: ${{ matrix.language }}
         build-mode: none  # Below are the steps on how to build this project
@@ -75,4 +75,4 @@ jobs:
     #   make release
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v4
+      uses: github/codeql-action/analyze@v4.37.4
