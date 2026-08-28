@@ -125,6 +125,8 @@ PTA  *pta;
         n = InitialArraySize;
 
     pta = (PTA *)LEPT_CALLOC(1, sizeof(PTA));
+    if (!pta)
+        return (PTA *)ERROR_PTR("pta not made", __func__, NULL);
     pta->n = 0;
     pta->nalloc = n;
     pta->refcount = 1;

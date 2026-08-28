@@ -387,6 +387,8 @@ PTAA    *local;
         return (CCBORD *)ERROR_PTR("pixs defined and not 1bpp", __func__, NULL);
 
     ccb = (CCBORD *)LEPT_CALLOC(1, sizeof(CCBORD));
+    if (!ccb)
+        return (CCBORD *)ERROR_PTR("ccb not made", __func__, NULL);
     ccb->refcount = 1;
     if (pixs)
         ccb->pix = pixClone(pixs);

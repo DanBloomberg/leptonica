@@ -169,6 +169,8 @@ FPIX       *fpixd;
     }
 
     fpixd = (FPIX *)LEPT_CALLOC(1, sizeof(FPIX));
+    if (!fpixd)
+        return (FPIX *)ERROR_PTR("fpixd not made", __func__, NULL);
     fpixSetDimensions(fpixd, width, height);
     fpixSetWpl(fpixd, width);  /* 4-byte words */
     fpixd->refcount = 1;
@@ -561,10 +563,16 @@ FPIXA  *fpixa;
         n = InitialPtrArraySize;
 
     fpixa = (FPIXA *)LEPT_CALLOC(1, sizeof(FPIXA));
+    if (!fpixa)
+        return (FPIXA *)ERROR_PTR("fpixa not made", __func__, NULL);
     fpixa->n = 0;
     fpixa->nalloc = n;
     fpixa->refcount = 1;
     fpixa->fpix = (FPIX **)LEPT_CALLOC(n, sizeof(FPIX *));
+    if (!fpixa->fpix) {
+        fpixaDestroy(&fpixa);
+        return (FPIXA *)ERROR_PTR("fpix ptrs not made", __func__, NULL);
+    }
     return fpixa;
 }
 
@@ -976,6 +984,8 @@ DPIX       *dpix;
     }
 
     dpix = (DPIX *)LEPT_CALLOC(1, sizeof(DPIX));
+    if (!dpix)
+        return (DPIX *)ERROR_PTR("dpix not made", __func__, NULL);
     dpixSetDimensions(dpix, width, height);
     dpixSetWpl(dpix, width);  /* 8 byte words */
     dpix->refcount = 1;

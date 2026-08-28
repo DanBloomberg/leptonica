@@ -191,6 +191,8 @@ BOX  *box;
     }
 
     box = (BOX *)LEPT_CALLOC(1, sizeof(BOX));
+    if (!box)
+        return (BOX *)ERROR_PTR("box not made", __func__, NULL);
     boxSetGeometry(box, x, y, w, h);
     box->refcount = 1;
     return box;
@@ -447,6 +449,8 @@ BOXA  *boxa;
         n = InitialPtrArraySize;
 
     boxa = (BOXA *)LEPT_CALLOC(1, sizeof(BOXA));
+    if (!boxa)
+        return (BOXA *)ERROR_PTR("boxa not made", __func__, NULL);
     boxa->n = 0;
     boxa->nalloc = n;
     boxa->refcount = 1;

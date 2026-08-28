@@ -174,6 +174,8 @@ SARRAY  *sa;
         n = InitialPtrArraySize;
 
     sa = (SARRAY *)LEPT_CALLOC(1, sizeof(SARRAY));
+    if (!sa)
+        return (SARRAY *)ERROR_PTR("sarray not made", __func__, NULL);
     if ((sa->array = (char **)LEPT_CALLOC(n, sizeof(char *))) == NULL) {
         sarrayDestroy(&sa);
         return (SARRAY *)ERROR_PTR("ptr array not made", __func__, NULL);

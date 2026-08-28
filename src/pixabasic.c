@@ -172,6 +172,8 @@ PIXA  *pixa;
         n = InitialPtrArraySize;
 
     pixa = (PIXA *)LEPT_CALLOC(1, sizeof(PIXA));
+    if (!pixa)
+        return (PIXA *)ERROR_PTR("pixa not made", __func__, NULL);
     pixa->n = 0;
     pixa->nalloc = n;
     pixa->refcount = 1;
