@@ -102,6 +102,8 @@ L_BYTEA  *ba;
     if (nbytes <= 0 || nbytes > MaxArraySize)
         nbytes = InitialArraySize;
     ba = (L_BYTEA *)LEPT_CALLOC(1, sizeof(L_BYTEA));
+    if (!ba)
+        return (L_BYTEA *)ERROR_PTR("bytea not made", __func__, NULL);
     ba->data = (l_uint8 *)LEPT_CALLOC(nbytes + 1, sizeof(l_uint8));
     if (!ba->data) {
         l_byteaDestroy(&ba);

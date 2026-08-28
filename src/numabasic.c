@@ -198,6 +198,8 @@ NUMA  *na;
         n = InitialArraySize;
 
     na = (NUMA *)LEPT_CALLOC(1, sizeof(NUMA));
+    if (!na)
+        return (NUMA *)ERROR_PTR("numa not made", __func__, NULL);
     if ((na->array = (l_float32 *)LEPT_CALLOC(n, sizeof(l_float32))) == NULL) {
         numaDestroy(&na);
         return (NUMA *)ERROR_PTR("number array not made", __func__, NULL);

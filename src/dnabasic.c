@@ -184,6 +184,8 @@ L_DNA  *da;
         n = InitialArraySize;
 
     da = (L_DNA *)LEPT_CALLOC(1, sizeof(L_DNA));
+    if (!da)
+        return (L_DNA *)ERROR_PTR("dna not made", __func__, NULL);
     if ((da->array = (l_float64 *)LEPT_CALLOC(n, sizeof(l_float64))) == NULL) {
         l_dnaDestroy(&da);
         return (L_DNA *)ERROR_PTR("double array not made", __func__, NULL);
