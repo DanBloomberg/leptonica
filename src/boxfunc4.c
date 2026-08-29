@@ -778,8 +778,8 @@ PTA     *pta, *pta1;
  * </pre>
  */
 BOXA *
-ptaConvertToBoxa(PTA     *pta,
-                 l_int32  ncorners)
+ptaConvertToBoxa(const PTA  *pta,
+                 l_int32     ncorners)
 {
 l_int32  i, n, nbox, x1, y1, x2, y2, x3, y3, x4, y4, x, y, xmax, ymax;
 BOX     *box;
@@ -871,7 +871,7 @@ PTA     *pta;
  * </pre>
  */
 BOX *
-ptaConvertToBox(PTA  *pta)
+ptaConvertToBox(const PTA  *pta)
 {
 l_int32  n, x1, y1, x2, y2, x3, y3, x4, y4, x, y, xmax, ymax;
 

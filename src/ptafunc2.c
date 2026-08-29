@@ -94,10 +94,10 @@
  * \return  ptad sorted version of ptas, or NULL on error
  */
 PTA *
-ptaSort(PTA     *ptas,
-        l_int32  sorttype,
-        l_int32  sortorder,
-        NUMA   **pnaindex)
+ptaSort(const PTA  *ptas,
+        l_int32     sorttype,
+        l_int32     sortorder,
+        NUMA      **pnaindex)
 {
 PTA   *ptad;
 NUMA  *naindex;
@@ -134,10 +134,10 @@ NUMA  *naindex;
  * \return  0 if OK, 1 on error
  */
 l_ok
-ptaGetSortIndex(PTA     *ptas,
-                l_int32  sorttype,
-                l_int32  sortorder,
-                NUMA   **pnaindex)
+ptaGetSortIndex(const PTA  *ptas,
+                l_int32     sorttype,
+                l_int32     sortorder,
+                NUMA      **pnaindex)
 {
 l_int32    i, n;
 l_float32  x, y;
@@ -183,8 +183,8 @@ NUMA      *na, *nai;
  * \return  ptad sorted, or NULL on  error
  */
 PTA *
-ptaSortByIndex(PTA   *ptas,
-               NUMA  *naindex)
+ptaSortByIndex(const PTA   *ptas,
+               const NUMA  *naindex)
 {
 l_int32    i, index, n;
 l_float32  x, y;
@@ -254,7 +254,7 @@ PTAA    *ptaad;
  * \return  0 if OK, 1 on error
  */
 l_ok
-ptaGetRankValue(PTA        *pta,
+ptaGetRankValue(const PTA  *pta,
                 l_float32   fract,
                 PTA        *ptasort,
                 l_int32     sorttype,
@@ -304,7 +304,7 @@ PTA     *ptas;
  * </pre>
  */
 PTA *
-ptaSort2d(PTA  *pta)
+ptaSort2d(const PTA  *pta)
 {
 l_int32    index, i, j, n, nx, ny, start, end;
 l_float32  x, y, yp, val;
@@ -384,9 +384,9 @@ PTA       *pta1, *ptad;
  * </pre>
  */
 l_ok
-ptaEqual(PTA      *pta1,
-         PTA      *pta2,
-         l_int32  *psame)
+ptaEqual(const PTA  *pta1,
+         const PTA  *pta2,
+         l_int32    *psame)
 {
 l_int32    i, n1, n2;
 l_float32  x1, y1, x2, y2;

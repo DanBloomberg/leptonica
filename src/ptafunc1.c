@@ -375,9 +375,9 @@ PTA     *ptad;
  * \return  ptad, or NULL on error
  */
 PTA *
-ptaSelectRange(PTA     *ptas,
-               l_int32  first,
-               l_int32  last)
+ptaSelectRange(const PTA  *ptas,
+               l_int32     first,
+               l_int32     last)
 {
 l_int32    n, npt, i;
 l_float32  x, y;
@@ -428,7 +428,7 @@ PTA       *ptad;
  * </pre>
  */
 BOX *
-ptaGetBoundingRegion(PTA  *pta)
+ptaGetBoundingRegion(const PTA  *pta)
 {
 l_int32  n, i, x, y, minx, maxx, miny, maxy;
 
@@ -470,7 +470,7 @@ l_int32  n, i, x, y, minx, maxx, miny, maxy;
  * </pre>
  */
 l_ok
-ptaGetRange(PTA        *pta,
+ptaGetRange(const PTA  *pta,
             l_float32  *pminx,
             l_float32  *pmaxx,
             l_float32  *pminy,
@@ -518,8 +518,8 @@ l_float32  x, y, minx, maxx, miny, maxy;
  * \return  ptad of pts in ptas that are inside the box, or NULL on error
  */
 PTA *
-ptaGetInsideBox(PTA  *ptas,
-                BOX  *box)
+ptaGetInsideBox(const PTA  *ptas,
+                BOX        *box)
 {
 PTA       *ptad;
 l_int32    n, i, contains;
@@ -646,9 +646,9 @@ PTA       *pta;
  * \return  1 if contained, 0 otherwise or on error
  */
 l_int32
-ptaContainsPt(PTA     *pta,
-              l_int32  x,
-              l_int32  y)
+ptaContainsPt(const PTA  *pta,
+              l_int32     x,
+              l_int32     y)
 {
 l_int32  i, n, ix, iy;
 
@@ -673,8 +673,8 @@ l_int32  i, n, ix, iy;
  *              0 otherwise or on error.
  */
 l_int32
-ptaTestIntersection(PTA  *pta1,
-                    PTA  *pta2)
+ptaTestIntersection(const PTA  *pta1,
+                    const PTA  *pta2)
 {
 l_int32  i, j, n1, n2, x1, y1, x2, y2;
 
@@ -750,10 +750,10 @@ PTA     *ptad;
  *  The sign will be positive if traversed cw and negative if ccw.
  */
 l_int32
-ptaPtInsidePolygon(PTA       *pta,
-                   l_float32  x,
-                   l_float32  y,
-                   l_int32   *pinside)
+ptaPtInsidePolygon(const PTA  *pta,
+                   l_float32   x,
+                   l_float32   y,
+                   l_int32    *pinside)
 {
 l_int32    i, n;
 l_float32  sum, x1, y1, x2, y2, xp1, yp1, xp2, yp2;
@@ -835,8 +835,8 @@ l_float64  ang;
  * </pre>
  */
 l_int32
-ptaPolygonIsConvex(PTA      *pta,
-                   l_int32  *pisconvex)
+ptaPolygonIsConvex(const PTA  *pta,
+                   l_int32    *pisconvex)
 {
 l_int32    i, n;
 l_float32  x0, y0, x1, y1, x2, y2;
@@ -884,7 +884,7 @@ l_float64  cprod;
  *              values are returned as -1.0.
  */
 l_ok
-ptaGetMinMax(PTA        *pta,
+ptaGetMinMax(const PTA  *pta,
              l_float32  *pxmin,
              l_float32  *pymin,
              l_float32  *pxmax,
@@ -2297,9 +2297,9 @@ PTA       *pta;
  * \return  0 if OK, 1 on error
  */
 l_ok
-ptaConvertToNuma(PTA    *pta,
-                 NUMA  **pnax,
-                 NUMA  **pnay)
+ptaConvertToNuma(const PTA  *pta,
+                 NUMA      **pnax,
+                 NUMA      **pnay)
 {
 l_int32    i, n;
 l_float32  valx, valy;
