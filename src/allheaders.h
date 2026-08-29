@@ -2378,11 +2378,11 @@ LEPT_DLL extern l_ok sarrayAddString ( SARRAY *sa, const char *string, l_int32 c
 LEPT_DLL extern char * sarrayRemoveString ( SARRAY *sa, l_int32 index );
 LEPT_DLL extern l_ok sarrayReplaceString ( SARRAY *sa, l_int32 index, char *newstr, l_int32 copyflag );
 LEPT_DLL extern l_ok sarrayClear ( SARRAY *sa );
-LEPT_DLL extern l_int32 sarrayGetCount ( SARRAY *sa );
-LEPT_DLL extern char ** sarrayGetArray ( SARRAY *sa, l_int32 *pnalloc, l_int32 *pn );
-LEPT_DLL extern char * sarrayGetString ( SARRAY *sa, l_int32 index, l_int32 copyflag );
-LEPT_DLL extern char * sarrayToString ( SARRAY *sa, l_int32 addnlflag );
-LEPT_DLL extern char * sarrayToStringRange ( SARRAY *sa, l_int32 first, l_int32 nstrings, l_int32 addnlflag );
+LEPT_DLL extern l_int32 sarrayGetCount ( const SARRAY *sa );
+LEPT_DLL extern char ** sarrayGetArray ( const SARRAY *sa, l_int32 *pnalloc, l_int32 *pn );
+LEPT_DLL extern char * sarrayGetString ( const SARRAY *sa, l_int32 index, l_int32 copyflag );
+LEPT_DLL extern char * sarrayToString ( const SARRAY *sa, l_int32 addnlflag );
+LEPT_DLL extern char * sarrayToStringRange ( const SARRAY *sa, l_int32 first, l_int32 nstrings, l_int32 addnlflag );
 LEPT_DLL extern SARRAY * sarrayConcatUniformly ( SARRAY *sa, l_int32 n, l_int32 addnlflag );
 LEPT_DLL extern l_ok sarrayJoin ( SARRAY *sa1, SARRAY *sa2 );
 LEPT_DLL extern l_ok sarrayAppendRange ( SARRAY *sa1, SARRAY *sa2, l_int32 start, l_int32 end );
