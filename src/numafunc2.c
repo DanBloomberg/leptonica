@@ -439,12 +439,12 @@ NUMA      *nad;
  * \return  0 if OK, 1 on error
  */
 l_ok
-numaSimpleStats(NUMA       *na,
-                l_int32     first,
-                l_int32     last,
-                l_float32  *pmean,
-                l_float32  *pvar,
-                l_float32  *prvar)
+numaSimpleStats(const NUMA  *na,
+                l_int32      first,
+                l_int32      last,
+                l_float32   *pmean,
+                l_float32   *pvar,
+                l_float32   *prvar)
 {
 l_int32    i, n, ni;
 l_float32  sum, sumsq, val, mean, var;
@@ -808,7 +808,7 @@ NUMA      *na1, *na2, *nad;
  *              NULL on error
  */
 NUMA *
-numaConvertToInt(NUMA  *nas)
+numaConvertToInt(const NUMA  *nas)
 {
 l_int32  i, n, ival;
 NUMA    *nad;
@@ -858,10 +858,10 @@ NUMA    *nad;
  * </pre>
  */
 NUMA *
-numaMakeHistogram(NUMA     *na,
-                  l_int32   maxbins,
-                  l_int32  *pbinsize,
-                  l_int32  *pbinstart)
+numaMakeHistogram(const NUMA  *na,
+                  l_int32      maxbins,
+                  l_int32     *pbinsize,
+                  l_int32     *pbinstart)
 {
 l_int32    i, n, ival, hval;
 l_int32    iminval, imaxval, range, binsize, nbins, ibin;
@@ -969,8 +969,8 @@ NUMA      *nai, *nahist;
  * </pre>
  */
 NUMA *
-numaMakeHistogramAuto(NUMA    *na,
-                      l_int32  maxbins)
+numaMakeHistogramAuto(const NUMA  *na,
+                      l_int32      maxbins)
 {
 l_int32    i, n, imin, imax, irange, ibin, ival, allints;
 l_float32  minval, maxval, range, binsize, fval;
@@ -1224,16 +1224,16 @@ NUMA      *nad;
  * </pre>
  */
 l_ok
-numaGetStatsUsingHistogram(NUMA       *na,
-                           l_int32     maxbins,
-                           l_float32  *pmin,
-                           l_float32  *pmax,
-                           l_float32  *pmean,
-                           l_float32  *pvariance,
-                           l_float32  *pmedian,
-                           l_float32   rank,
-                           l_float32  *prval,
-                           NUMA      **phisto)
+numaGetStatsUsingHistogram(const NUMA  *na,
+                           l_int32      maxbins,
+                           l_float32   *pmin,
+                           l_float32   *pmax,
+                           l_float32   *pmean,
+                           l_float32   *pvariance,
+                           l_float32   *pmedian,
+                           l_float32    rank,
+                           l_float32   *prval,
+                           NUMA       **phisto)
 {
 l_int32    i, n;
 l_float32  minval, maxval, fval, mean, sum;
@@ -1518,9 +1518,9 @@ NUMA      *nan, *nar;
  * </pre>
  */
 l_ok
-numaHistogramGetRankFromVal(NUMA       *na,
-                            l_float32   rval,
-                            l_float32  *prank)
+numaHistogramGetRankFromVal(const NUMA  *na,
+                            l_float32    rval,
+                            l_float32   *prank)
 {
 l_int32    i, ibinval, n;
 l_float32  startval, binsize, binval, maxval, fractval, total, sum, val;
@@ -1819,9 +1819,9 @@ l_float32  sum, ave, ntot;
  * </pre>
  */
 l_ok
-numaGetRankBinValues(NUMA    *na,
-                     l_int32  nbins,
-                     NUMA   **pnam)
+numaGetRankBinValues(const NUMA  *na,
+                     l_int32      nbins,
+                     NUMA       **pnam)
 {
 NUMA      *na1;
 l_int32    maxbins, type;
@@ -2372,10 +2372,10 @@ NUMA        *na1, *na2, *na3, *na4;
  * </pre>
  */
 NUMA *
-numaFindPeaks(NUMA      *nas,
-              l_int32    nmax,
-              l_float32  fract1,
-              l_float32  fract2)
+numaFindPeaks(const NUMA  *nas,
+              l_int32      nmax,
+              l_float32    fract1,
+              l_float32    fract2)
 {
 l_int32    i, k, n, maxloc, lloc, rloc;
 l_float32  fmaxval, sum, total, newtotal, val, lastval;
@@ -2488,9 +2488,9 @@ NUMA      *na, *napeak;
  * </pre>
  */
 NUMA *
-numaFindExtrema(NUMA      *nas,
-                l_float32  delta,
-                NUMA     **pnav)
+numaFindExtrema(const NUMA  *nas,
+                l_float32    delta,
+                NUMA       **pnav)
 {
 l_int32    i, n, found, loc, direction;
 l_float32  startval, val, maxval, minval;
@@ -2706,10 +2706,10 @@ l_float32  *fa;
  * </pre>
  */
 l_ok
-numaCountReversals(NUMA       *nas,
-                   l_float32   minreversal,
-                   l_int32    *pnr,
-                   l_float32  *prd)
+numaCountReversals(const NUMA  *nas,
+                   l_float32    minreversal,
+                   l_int32     *pnr,
+                   l_float32   *prd)
 {
 l_int32    i, n, nr, ival, binvals;
 l_int32   *ia;
