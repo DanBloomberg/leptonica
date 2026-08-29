@@ -1052,7 +1052,8 @@ BOXA    *boxad;
     n = boxaGetCount(boxas);
     boxad = boxaCreate(n);
     for (i = 0; i < n; i++) {
-        if (box = boxaGetValidBox(boxas, i, copyflag)) {
+        box = boxaGetValidBox(boxas, i, copyflag);
+        if (box) {
             if (boxaAddBox(boxad, box, L_INSERT)) {  /* failure */
                 boxDestroy(&box);
                 L_ERROR("valid box %d not added to boxa\n", __func__, i);
