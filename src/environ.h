@@ -57,12 +57,6 @@ typedef int intptr_t;
 typedef unsigned int uintptr_t;
 #endif
 
-/* VC++6 doesn't seem to have powf, expf. */
-#if (_MSC_VER < 1400)
-#define powf(x, y) (float)pow((double)(x), (double)(y))
-#define expf(x) (float)exp((double)(x))
-#endif
-
 #endif /* _MSC_VER */
 
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L) && !defined(__STDC_NO_ATOMICS__)
