@@ -104,9 +104,9 @@ static l_int32 boxGetDistanceInXorY(l_int32 c1, l_int32 s1, l_int32 c2,
  * \return  0 if OK, 1 on error
  */
 l_ok
-boxContains(BOX     *box1,
-            BOX     *box2,
-            l_int32 *presult)
+boxContains(const BOX  *box1,
+            const BOX  *box2,
+            l_int32    *presult)
 {
 l_int32  x1, y1, w1, h1, x2, y2, w2, h2, valid1, valid2;
 
@@ -137,9 +137,9 @@ l_int32  x1, y1, w1, h1, x2, y2, w2, h2, valid1, valid2;
  * \return  0 if OK, 1 on error
  */
 l_ok
-boxIntersects(BOX      *box1,
-              BOX      *box2,
-              l_int32  *presult)
+boxIntersects(const BOX  *box1,
+              const BOX  *box2,
+              l_int32    *presult)
 {
 l_int32  l1, l2, r1, r2, t1, t2, b1, b2, w1, h1, w2, h2, valid1, valid2;
 
@@ -182,8 +182,8 @@ l_int32  l1, l2, r1, r2, t1, t2, b1, b2, w1, h1, w2, h2, valid1, valid2;
  * </pre>
  */
 BOXA *
-boxaContainedInBox(BOXA  *boxas,
-                   BOX   *box)
+boxaContainedInBox(const BOXA  *boxas,
+                   const BOX   *box)
 {
 l_int32  i, n, val, valid;
 BOX     *box1;
@@ -226,9 +226,9 @@ BOXA    *boxad;
  * </pre>
  */
 l_ok
-boxaContainedInBoxCount(BOXA     *boxa,
-                        BOX      *box,
-                        l_int32  *pcount)
+boxaContainedInBoxCount(const BOXA  *boxa,
+                        const BOX   *box,
+                        l_int32     *pcount)
 {
 l_int32  i, n, val, valid;
 BOX     *box1;
@@ -266,9 +266,9 @@ BOX     *box1;
  * \return  0 if OK, 1 on error
  */
 l_ok
-boxaContainedInBoxa(BOXA     *boxa1,
-                    BOXA     *boxa2,
-                    l_int32  *pcontained)
+boxaContainedInBoxa(const BOXA  *boxa1,
+                    const BOXA  *boxa2,
+                    l_int32     *pcontained)
 {
 l_int32  i, j, n1, n2, cont, result;
 BOX     *box1, *box2;
@@ -319,8 +319,8 @@ BOX     *box1, *box2;
  * </pre>
  */
 BOXA *
-boxaIntersectsBox(BOXA  *boxas,
-                  BOX   *box)
+boxaIntersectsBox(const BOXA  *boxas,
+                  const BOX   *box)
 {
 l_int32  i, n, val, valid;
 BOX     *box1;
@@ -358,9 +358,9 @@ BOXA    *boxad;
  * \return  0 if OK, 1 on error
  */
 l_ok
-boxaIntersectsBoxCount(BOXA     *boxa,
-                       BOX      *box,
-                       l_int32  *pcount)
+boxaIntersectsBoxCount(const BOXA  *boxa,
+                       const BOX   *box,
+                       l_int32     *pcount)
 {
 l_int32  i, n, val, valid;
 BOX     *box1;
@@ -403,8 +403,8 @@ BOX     *box1;
  * </pre>
  */
 BOXA *
-boxaClipToBox(BOXA  *boxas,
-              BOX   *box)
+boxaClipToBox(const BOXA  *boxas,
+              const BOX   *box)
 {
 l_int32  i, n, valid;
 BOX     *box1, *boxo;
@@ -688,8 +688,8 @@ PIX     *pix1;
  * </pre>
  */
 BOX *
-boxOverlapRegion(BOX  *box1,
-                 BOX  *box2)
+boxOverlapRegion(const BOX  *box1,
+                 const BOX  *box2)
 {
 l_int32  l1, l2, r1, r2, t1, t2, b1, b2, w1, h1, w2, h2, ld, td, rd, bd;
 l_int32  valid1, valid2;
@@ -736,8 +736,8 @@ l_int32  valid1, valid2;
  * </pre>
  */
 BOX *
-boxBoundingRegion(BOX  *box1,
-                  BOX  *box2)
+boxBoundingRegion(const BOX  *box1,
+                  const BOX  *box2)
 {
 l_int32  l1, l2, r1, r2, t1, t2, b1, b2, w1, h1, w2, h2, ld, td, rd, bd;
 l_int32  valid1, valid2;
@@ -784,8 +784,8 @@ l_int32  valid1, valid2;
  * </pre>
  */
 l_ok
-boxOverlapFraction(BOX        *box1,
-                   BOX        *box2,
+boxOverlapFraction(const BOX  *box1,
+                   const BOX  *box2,
                    l_float32  *pfract)
 {
 l_int32  w2, h2, w, h, valid1, valid2;
@@ -822,9 +822,9 @@ BOX     *boxo;
  * \return  0 if OK, 1 on error.
  */
 l_ok
-boxOverlapArea(BOX      *box1,
-               BOX      *box2,
-               l_int32  *parea)
+boxOverlapArea(const BOX  *box1,
+               const BOX  *box2,
+               l_int32    *parea)
 {
 l_int32  w, h, valid1, valid2;
 BOX     *box;
@@ -1012,10 +1012,10 @@ NUMA      *namap;
  * </pre>
  */
 l_ok
-boxOverlapDistance(BOX      *box1,
-                   BOX      *box2,
-                   l_int32  *ph_ovl,
-                   l_int32  *pv_ovl)
+boxOverlapDistance(const BOX  *box1,
+                   const BOX  *box2,
+                   l_int32    *ph_ovl,
+                   l_int32    *pv_ovl)
 {
 l_int32  l1, t1, w1, h1, r1, b1, l2, t2, w2, h2, r2, b2, valid1, valid2;
 
@@ -1083,10 +1083,10 @@ l_int32  l1, t1, w1, h1, r1, b1, l2, t2, w2, h2, r2, b2, valid1, valid2;
  * </pre>
  */
 l_ok
-boxSeparationDistance(BOX      *box1,
-                      BOX      *box2,
-                      l_int32  *ph_sep,
-                      l_int32  *pv_sep)
+boxSeparationDistance(const BOX  *box1,
+                      const BOX  *box2,
+                      l_int32    *ph_sep,
+                      l_int32    *pv_sep)
 {
 l_int32  h_ovl, v_ovl, valid1, valid2;
 
@@ -1126,10 +1126,10 @@ l_int32  h_ovl, v_ovl, valid1, valid2;
  * </pre>
  */
 l_ok
-boxCompareSize(BOX      *box1,
-               BOX      *box2,
-               l_int32   type,
-               l_int32  *prel)
+boxCompareSize(const BOX  *box1,
+               const BOX  *box2,
+               l_int32     type,
+               l_int32    *prel)
 {
 l_int32  w1, h1, w2, h2, size1, size2, valid1, valid2;
 
@@ -1179,10 +1179,10 @@ l_int32  w1, h1, w2, h2, size1, size2, valid1, valid2;
  * \return  0 if OK, 1 on error.
  */
 l_ok
-boxContainsPt(BOX       *box,
-              l_float32  x,
-              l_float32  y,
-              l_int32   *pcontains)
+boxContainsPt(const BOX  *box,
+              l_float32   x,
+              l_float32   y,
+              l_int32    *pcontains)
 {
 l_int32  bx, by, bw, bh;
 
@@ -1212,9 +1212,9 @@ l_int32  bx, by, bw, bh;
  * </pre>
  */
 BOX *
-boxaGetNearestToPt(BOXA    *boxa,
-                   l_int32  x,
-                   l_int32  y)
+boxaGetNearestToPt(const BOXA  *boxa,
+                   l_int32      x,
+                   l_int32      y)
 {
 l_int32    i, n, minindex;
 l_float32  delx, dely, dist, mindist, cx, cy;
@@ -1263,9 +1263,9 @@ BOX       *box;
  * </pre>
  */
 BOX *
-boxaGetNearestToLine(BOXA    *boxa,
-                     l_int32  x,
-                     l_int32  y)
+boxaGetNearestToLine(const BOXA  *boxa,
+                     l_int32      x,
+                     l_int32      y)
 {
 l_int32    i, n, minindex;
 l_float32  dist, mindist, cx, cy;
@@ -1319,11 +1319,11 @@ BOX       *box;
  * </pre>
  */
 l_ok
-boxaFindNearestBoxes(BOXA     *boxa,
-                     l_int32   dist_select,
-                     l_int32   range,
-                     NUMAA   **pnaaindex,
-                     NUMAA   **pnaadist)
+boxaFindNearestBoxes(const BOXA  *boxa,
+                     l_int32      dist_select,
+                     l_int32      range,
+                     NUMAA      **pnaaindex,
+                     NUMAA      **pnaadist)
 {
 l_int32  i, n, index, dist;
 NUMA    *nai, *nad;
@@ -1398,13 +1398,13 @@ NUMAA   *naai, *naad;
  * </pre>
  */
 l_ok
-boxaGetNearestByDirection(BOXA     *boxa,
-                          l_int32   i,
-                          l_int32   dir,
-                          l_int32   dist_select,
-                          l_int32   range,
-                          l_int32  *pindex,
-                          l_int32  *pdist)
+boxaGetNearestByDirection(const BOXA  *boxa,
+                          l_int32      i,
+                          l_int32      dir,
+                          l_int32      dist_select,
+                          l_int32      range,
+                          l_int32     *pindex,
+                          l_int32     *pdist)
 {
 l_int32  j, jmin, jmax, n, mindist, dist, index;
 l_int32  x, y, w, h, bx, by, bw, bh;

@@ -658,7 +658,7 @@ selaGetSel(SELA    *sela,
  * \return  sel name not copied, or NULL if no name or on error
  */
 char *
-selGetName(SEL  *sel)
+selGetName(const SEL  *sel)
 {
     if (!sel)
         return (char *)ERROR_PTR("sel not defined", __func__, NULL);
@@ -748,10 +748,10 @@ SEL     *sel;
  * \return  0 if OK; 1 on error
  */
 l_ok
-selGetElement(SEL      *sel,
-              l_int32   row,
-              l_int32   col,
-              l_int32  *ptype)
+selGetElement(const SEL  *sel,
+              l_int32     row,
+              l_int32     col,
+              l_int32    *ptype)
 {
     if (!ptype)
         return ERROR_INT("&type not defined", __func__, 1);
@@ -813,11 +813,11 @@ selSetElement(SEL     *sel,
  * \return  0 if OK, 1 on error
  */
 l_ok
-selGetParameters(SEL      *sel,
-                 l_int32  *psy,
-                 l_int32  *psx,
-                 l_int32  *pcy,
-                 l_int32  *pcx)
+selGetParameters(const SEL  *sel,
+                 l_int32    *psy,
+                 l_int32    *psx,
+                 l_int32    *pcy,
+                 l_int32    *pcx)
 {
     if (psy) *psy = 0;
     if (psx) *psx = 0;
@@ -861,8 +861,8 @@ selSetOrigin(SEL     *sel,
  * \return  0 if OK; 1 on error or if origin is not found
  */
 l_ok
-selGetTypeAtOrigin(SEL      *sel,
-                   l_int32  *ptype)
+selGetTypeAtOrigin(const SEL  *sel,
+                   l_int32    *ptype)
 {
 l_int32  sx, sy, cx, cy, i, j;
 
@@ -1141,11 +1141,11 @@ SARRAY  *sa;
  * </pre>
  */
 l_ok
-selFindMaxTranslations(SEL      *sel,
-                       l_int32  *pxp,
-                       l_int32  *pyp,
-                       l_int32  *pxn,
-                       l_int32  *pyn)
+selFindMaxTranslations(const SEL  *sel,
+                       l_int32    *pxp,
+                       l_int32    *pyp,
+                       l_int32    *pxn,
+                       l_int32    *pyn)
 {
 l_int32  sx, sy, cx, cy, i, j;
 l_int32  maxxp, maxyp, maxxn, maxyn;
@@ -1627,7 +1627,7 @@ char     ch;
  * </pre>
  */
 char *
-selPrintToString(SEL  *sel)
+selPrintToString(const SEL  *sel)
 {
 char     is_center;
 char    *str, *strptr;

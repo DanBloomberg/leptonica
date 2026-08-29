@@ -386,7 +386,7 @@ NUMA  *na;
  * \return  copy of numa, or NULL on error
  */
 NUMA *
-numaCopy(NUMA  *na)
+numaCopy(const NUMA  *na)
 {
 l_int32  i;
 NUMA    *cna;
@@ -629,7 +629,7 @@ l_int32  n;
  * \return  count, or 0 if no numbers or on error
  */
 l_int32
-numaGetCount(NUMA  *na)
+numaGetCount(const NUMA  *na)
 {
     if (!na)
         return ERROR_INT("na not defined", __func__, 0);
@@ -686,9 +686,9 @@ numaSetCount(NUMA    *na,
  * </pre>
  */
 l_ok
-numaGetFValue(NUMA       *na,
-              l_int32     index,
-              l_float32  *pval)
+numaGetFValue(const NUMA  *na,
+              l_int32      index,
+              l_float32   *pval)
 {
     if (!pval)
         return ERROR_INT("&val not defined", __func__, 1);
@@ -719,9 +719,9 @@ numaGetFValue(NUMA       *na,
  * </pre>
  */
 l_ok
-numaGetIValue(NUMA     *na,
-              l_int32   index,
-              l_int32  *pival)
+numaGetIValue(const NUMA  *na,
+              l_int32      index,
+              l_int32     *pival)
 {
 l_float32  val;
 
@@ -806,7 +806,7 @@ numaShiftValue(NUMA      *na,
  * </pre>
  */
 l_int32 *
-numaGetIArray(NUMA  *na)
+numaGetIArray(const NUMA  *na)
 {
 l_int32   i, n, ival;
 l_int32  *array;
@@ -850,8 +850,8 @@ l_int32  *array;
  * </pre>
  */
 l_float32 *
-numaGetFArray(NUMA    *na,
-              l_int32  copyflag)
+numaGetFArray(const NUMA  *na,
+              l_int32      copyflag)
 {
 l_int32     i, n;
 l_float32  *array;
@@ -883,9 +883,9 @@ l_float32  *array;
  * \return  0 if OK, 1 on error
  */
 l_ok
-numaGetParameters(NUMA       *na,
-                  l_float32  *pstartx,
-                  l_float32  *pdelx)
+numaGetParameters(const NUMA  *na,
+                  l_float32   *pstartx,
+                  l_float32   *pdelx)
 {
     if (!pdelx && !pstartx)
         return ERROR_INT("no return val requested", __func__, 1);
@@ -932,8 +932,8 @@ numaSetParameters(NUMA      *na,
  * \return  0 if OK, 1 on error
  */
 l_ok
-numaCopyParameters(NUMA  *nad,
-                   NUMA  *nas)
+numaCopyParameters(NUMA        *nad,
+                   const NUMA  *nas)
 {
 l_float32  start, binsize;
 

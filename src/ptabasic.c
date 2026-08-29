@@ -218,7 +218,7 @@ PTA  *pta;
  * \return  copy of pta, or NULL on error
  */
 PTA *
-ptaCopy(PTA  *pta)
+ptaCopy(const PTA  *pta)
 {
 l_int32    i;
 l_float32  x, y;
@@ -479,7 +479,7 @@ l_int32  i, n;
  * \return  count, or 0 if no pta
  */
 l_int32
-ptaGetCount(PTA  *pta)
+ptaGetCount(const PTA  *pta)
 {
     if (!pta)
         return ERROR_INT("pta not defined", __func__, 0);
@@ -498,7 +498,7 @@ ptaGetCount(PTA  *pta)
  * \return  0 if OK; 1 on error
  */
 l_ok
-ptaGetPt(PTA        *pta,
+ptaGetPt(const PTA  *pta,
          l_int32     index,
          l_float32  *px,
          l_float32  *py)
@@ -526,10 +526,10 @@ ptaGetPt(PTA        *pta,
  * \return  0 if OK; 1 on error
  */
 l_ok
-ptaGetIPt(PTA      *pta,
-          l_int32   index,
-          l_int32  *px,
-          l_int32  *py)
+ptaGetIPt(const PTA  *pta,
+          l_int32     index,
+          l_int32    *px,
+          l_int32    *py)
 {
     if (px) *px = 0;
     if (py) *py = 0;
@@ -583,9 +583,9 @@ ptaSetPt(PTA       *pta,
  * </pre>
  */
 l_ok
-ptaGetArrays(PTA    *pta,
-             NUMA  **pnax,
-             NUMA  **pnay)
+ptaGetArrays(const PTA  *pta,
+             NUMA      **pnax,
+             NUMA      **pnay)
 {
 l_int32  i, n;
 NUMA    *nax, *nay;

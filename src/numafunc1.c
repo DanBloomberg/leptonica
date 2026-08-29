@@ -362,10 +362,10 @@ l_int32  i, n, val;
  * </pre>
 */
 l_int32
-numaSimilar(NUMA      *na1,
-            NUMA      *na2,
-            l_float32  maxdiff,
-            l_int32   *psimilar)
+numaSimilar(const NUMA  *na1,
+            const NUMA  *na2,
+            l_float32    maxdiff,
+            l_int32     *psimilar)
 {
 l_int32    i, n;
 l_float32  val1, val2;
@@ -441,9 +441,9 @@ l_int32  n;
  * \return  0 if OK; 1 on error
  */
 l_ok
-numaGetMin(NUMA       *na,
-           l_float32  *pminval,
-           l_int32    *piminloc)
+numaGetMin(const NUMA  *na,
+           l_float32   *pminval,
+           l_int32     *piminloc)
 {
 l_int32    i, n, iminloc;
 l_float32  val, minval;
@@ -482,9 +482,9 @@ l_float32  val, minval;
  * \return  0 if OK; 1 on error
  */
 l_ok
-numaGetMax(NUMA       *na,
-           l_float32  *pmaxval,
-           l_int32    *pimaxloc)
+numaGetMax(const NUMA  *na,
+           l_float32   *pmaxval,
+           l_int32     *pimaxloc)
 {
 l_int32    i, n, imaxloc;
 l_float32  val, maxval;
@@ -522,8 +522,8 @@ l_float32  val, maxval;
  * \return  0 if OK, 1 on error
  */
 l_ok
-numaGetSum(NUMA       *na,
-           l_float32  *psum)
+numaGetSum(const NUMA  *na,
+           l_float32   *psum)
 {
 l_int32    i, n;
 l_float32  val, sum;
@@ -561,7 +561,7 @@ l_float32  val, sum;
  * </pre>
  */
 NUMA *
-numaGetPartialSums(NUMA  *na)
+numaGetPartialSums(const NUMA  *na)
 {
 l_int32    i, n;
 l_float32  val, sum;
@@ -593,10 +593,10 @@ NUMA      *nasum;
  * \return  0 if OK, 1 on error
  */
 l_ok
-numaGetSumOnInterval(NUMA       *na,
-                     l_int32     first,
-                     l_int32     last,
-                     l_float32  *psum)
+numaGetSumOnInterval(const NUMA  *na,
+                     l_int32      first,
+                     l_int32      last,
+                     l_float32   *psum)
 {
 l_int32    i, n;
 l_float32  val, sum;
@@ -634,8 +634,8 @@ l_float32  val, sum;
  * \return  0 if OK, 1 on error
  */
 l_ok
-numaHasOnlyIntegers(NUMA     *na,
-                    l_int32  *pallints)
+numaHasOnlyIntegers(const NUMA  *na,
+                    l_int32     *pallints)
 {
 l_int32    i, n;
 l_float32  val;
@@ -667,8 +667,8 @@ l_float32  val;
  * \return  0 if OK, 1 on error
  */
 l_ok
-numaGetMean(NUMA       *na,
-            l_float32  *pave)
+numaGetMean(const NUMA  *na,
+            l_float32   *pave)
 {
 l_int32    n;
 l_float32  sum;
@@ -694,8 +694,8 @@ l_float32  sum;
  * \return  0 if OK, 1 on error
  */
 l_ok
-numaGetMeanAbsval(NUMA       *na,
-                  l_float32  *paveabs)
+numaGetMeanAbsval(const NUMA  *na,
+                  l_float32   *paveabs)
 {
 l_int32  n;
 NUMA    *na1;
@@ -723,8 +723,8 @@ NUMA    *na1;
  * \return  nad evenly sampled values from nas, or NULL on error
  */
 NUMA *
-numaSubsample(NUMA    *nas,
-              l_int32  subfactor)
+numaSubsample(const NUMA  *nas,
+              l_int32      subfactor)
 {
 l_int32    i, n;
 l_float32  val;
@@ -833,8 +833,8 @@ numaMakeConstant(l_float32  val,
  *              or NULL on error
  */
 NUMA *
-numaMakeAbsval(NUMA  *nad,
-               NUMA  *nas)
+numaMakeAbsval(NUMA        *nad,
+               const NUMA  *nas)
 {
 l_int32    i, n;
 l_float32  val;
@@ -866,10 +866,10 @@ l_float32  val;
  * \return  nad with added elements at left and right, or NULL on error
  */
 NUMA *
-numaAddBorder(NUMA      *nas,
-              l_int32    left,
-              l_int32    right,
-              l_float32  val)
+numaAddBorder(const NUMA  *nas,
+              l_int32      left,
+              l_int32      right,
+              l_float32    val)
 {
 l_int32     i, n, len;
 l_float32   startx, delx;
@@ -956,9 +956,9 @@ NUMA       *nad;
  * \return  nad with removed elements at left and right, or NULL on error
  */
 NUMA *
-numaRemoveBorder(NUMA      *nas,
-                 l_int32    left,
-                 l_int32    right)
+numaRemoveBorder(const NUMA  *nas,
+                 l_int32      left,
+                 l_int32      right)
 {
 l_int32     i, n, len;
 l_float32   startx, delx;
@@ -995,8 +995,8 @@ NUMA       *nad;
  * \return  0 if OK, 1 on error
  */
 l_ok
-numaCountNonzeroRuns(NUMA     *na,
-                     l_int32  *pcount)
+numaCountNonzeroRuns(const NUMA  *na,
+                     l_int32     *pcount)
 {
 l_int32  n, i, val, count, inrun;
 
@@ -1034,10 +1034,10 @@ l_int32  n, i, val, count, inrun;
  * \return  0 if OK, 1 on error or if no nonzero range is found.
  */
 l_ok
-numaGetNonzeroRange(NUMA      *na,
-                    l_float32  eps,
-                    l_int32   *pfirst,
-                    l_int32   *plast)
+numaGetNonzeroRange(const NUMA  *na,
+                    l_float32    eps,
+                    l_int32     *pfirst,
+                    l_int32     *plast)
 {
 l_int32    n, i, found;
 l_float32  val;
@@ -1548,10 +1548,10 @@ NUMA      *nad;
  * \return  0 if OK, 1 on error
  */
 l_int32
-numaGetSpanValues(NUMA    *na,
-                  l_int32  span,
-                  l_int32 *pstart,
-                  l_int32 *pend)
+numaGetSpanValues(const NUMA  *na,
+                  l_int32      span,
+                  l_int32     *pstart,
+                  l_int32     *pend)
 {
 l_int32  n, nspans;
 
@@ -1583,11 +1583,11 @@ l_int32  n, nspans;
  * \return  0 if OK, 1 on error
  */
 l_int32
-numaGetEdgeValues(NUMA    *na,
-                  l_int32  edge,
-                  l_int32 *pstart,
-                  l_int32 *pend,
-                  l_int32 *psign)
+numaGetEdgeValues(const NUMA  *na,
+                  l_int32      edge,
+                  l_int32     *pstart,
+                  l_int32     *pend,
+                  l_int32     *psign)
 {
 l_int32  n, nedges;
 
@@ -1729,11 +1729,11 @@ l_float32  *fa;
  * </pre>
  */
 l_ok
-numaInterpolateArbxVal(NUMA       *nax,
-                       NUMA       *nay,
-                       l_int32     type,
-                       l_float32   xval,
-                       l_float32  *pyval)
+numaInterpolateArbxVal(const NUMA  *nax,
+                       const NUMA  *nay,
+                       l_int32      type,
+                       l_float32    xval,
+                       l_float32   *pyval)
 {
 l_int32     i, im, nx, ny, i1, i2, i3;
 l_float32   delu, dell, fract, d1, d2, d3;
@@ -2090,10 +2090,10 @@ NUMA       *nasx, *nasy, *nadx = NULL, *nady;
  * </pre>
  */
 l_ok
-numaFitMax(NUMA       *na,
-           l_float32  *pmaxval,
-           NUMA       *naloc,
-           l_float32  *pmaxloc)
+numaFitMax(const NUMA  *na,
+           l_float32   *pmaxval,
+           NUMA        *naloc,
+           l_float32   *pmaxloc)
 {
 l_float32  val;
 l_float32  smaxval;  /* start value of maximum sample, before interpolating */
@@ -2518,7 +2518,7 @@ l_int32  type;
  * </pre>
  */
 l_int32
-numaChooseSortType(NUMA  *nas)
+numaChooseSortType(const NUMA  *nas)
 {
 l_int32    n;
 l_float32  minval, maxval;
@@ -2564,9 +2564,9 @@ l_float32  minval, maxval;
  * </pre>
  */
 NUMA *
-numaSort(NUMA    *naout,
-         NUMA    *nain,
-         l_int32  sortorder)
+numaSort(NUMA        *naout,
+         const NUMA  *nain,
+         l_int32      sortorder)
 {
 l_int32     i, n, gap, j;
 l_float32   tmp;
@@ -2630,8 +2630,8 @@ l_float32  *array;
  * </pre>
  */
 NUMA *
-numaBinSort(NUMA    *nas,
-            l_int32  sortorder)
+numaBinSort(const NUMA  *nas,
+            l_int32      sortorder)
 {
 NUMA  *nat, *nad;
 
@@ -2661,8 +2661,8 @@ NUMA  *nat, *nad;
  *              the input array, or NULL on error
  */
 NUMA *
-numaGetSortIndex(NUMA    *na,
-                 l_int32  sortorder)
+numaGetSortIndex(const NUMA  *na,
+                 l_int32      sortorder)
 {
 l_int32     i, n, gap, j;
 l_float32   tmp;
@@ -2741,8 +2741,8 @@ NUMA       *naisort;
  * </pre>
  */
 NUMA *
-numaGetBinSortIndex(NUMA    *nas,
-                    l_int32  sortorder)
+numaGetBinSortIndex(const NUMA  *nas,
+                    l_int32      sortorder)
 {
 l_int32    i, n, isize, ival, imax;
 l_float32  minsize, size;
@@ -2822,8 +2822,8 @@ L_PTRA    *paindex;
  * \return  nad  sorted, or NULL on error
  */
 NUMA *
-numaSortByIndex(NUMA  *nas,
-                NUMA  *naindex)
+numaSortByIndex(const NUMA  *nas,
+                const NUMA  *naindex)
 {
 l_int32    i, n, ni, index;
 l_float32  val;
@@ -2869,9 +2869,9 @@ NUMA      *nad;
  * </pre>
  */
 l_int32
-numaIsSorted(NUMA     *nas,
-             l_int32   sortorder,
-             l_int32  *psorted)
+numaIsSorted(const NUMA  *nas,
+             l_int32      sortorder,
+             l_int32     *psorted)
 {
 l_int32    i, n;
 l_float32  prevval, val;
@@ -2919,11 +2919,11 @@ l_float32  prevval, val;
  * </pre>
  */
 l_ok
-numaSortPair(NUMA    *nax,
-             NUMA    *nay,
-             l_int32  sortorder,
-             NUMA   **pnasx,
-             NUMA   **pnasy)
+numaSortPair(const NUMA  *nax,
+             const NUMA  *nay,
+             l_int32      sortorder,
+             NUMA       **pnasx,
+             NUMA       **pnasy)
 {
 l_int32  sorted;
 NUMA    *naindex;
@@ -3242,11 +3242,11 @@ NUMA      *naindex, *nad;
  * </pre>
  */
 l_ok
-numaGetRankValue(NUMA       *na,
-                 l_float32   fract,
-                 NUMA       *nasort,
-                 l_int32     usebins,
-                 l_float32  *pval)
+numaGetRankValue(const NUMA  *na,
+                 l_float32    fract,
+                 NUMA        *nasort,
+                 l_int32      usebins,
+                 l_float32   *pval)
 {
 l_int32  n, index;
 NUMA    *nas;
@@ -3293,8 +3293,8 @@ NUMA    *nas;
  * </pre>
  */
 l_ok
-numaGetMedian(NUMA       *na,
-              l_float32  *pval)
+numaGetMedian(const NUMA  *na,
+              l_float32   *pval)
 {
     if (!pval)
         return ERROR_INT("&val not defined", __func__, 1);
@@ -3440,9 +3440,9 @@ NUMA      *nadev;
  * </pre>
  */
 l_ok
-numaGetMode(NUMA       *na,
-            l_float32  *pval,
-            l_int32    *pcount)
+numaGetMode(const NUMA  *na,
+            l_float32   *pval,
+            l_int32     *pcount)
 {
 l_int32     i, n, maxcount, prevcount;
 l_float32   val, maxval, prevval;
