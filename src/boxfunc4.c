@@ -921,10 +921,10 @@ l_int32  n, x1, y1, x2, y2, x3, y3, x4, y4, x, y, xmax, ymax;
  * </pre>
  */
 l_ok
-boxaGetExtent(BOXA     *boxa,
-              l_int32  *pw,
-              l_int32  *ph,
-              BOX     **pbox)
+boxaGetExtent(const BOXA  *boxa,
+              l_int32     *pw,
+              l_int32     *ph,
+              BOX        **pbox)
 {
 l_int32  i, n, x, y, w, h, xmax, ymax, xmin, ymin, found;
 
@@ -985,11 +985,11 @@ l_int32  i, n, x, y, w, h, xmax, ymax, xmin, ymin, found;
  * </pre>
  */
 l_ok
-boxaGetCoverage(BOXA       *boxa,
-                l_int32     wc,
-                l_int32     hc,
-                l_int32     exactflag,
-                l_float32  *pfract)
+boxaGetCoverage(const BOXA  *boxa,
+                l_int32      wc,
+                l_int32      hc,
+                l_int32      exactflag,
+                l_float32   *pfract)
 {
 l_int32  i, n, x, y, w, h, sum;
 BOX     *box, *boxc;
@@ -1243,8 +1243,8 @@ BOX     *box;
  * </pre>
  */
 l_ok
-boxaGetArea(BOXA     *boxa,
-            l_int32  *parea)
+boxaGetArea(const BOXA  *boxa,
+            l_int32     *parea)
 {
 l_int32  i, n, w, h;
 
