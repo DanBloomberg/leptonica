@@ -64,6 +64,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include "allheaders.h"
+#include <string.h>
 
 #define   BMP_FILE             "test1.bmp"
 #define   FILE_1BPP            "feyn.tif"
@@ -657,6 +658,27 @@ part6:
     pixDestroy(&pix4);
     pixDestroy(&pix5);
     pixDestroy(&pix6);
+        /* Test that filelists with filenames starting with "MM" or "II"
+         * are not misdetected as tiff */
+    {
+    l_uint8   fbuf[16];
+    l_int32   fformat, fret;
+
+    lept_stderr("Test findFileFormatBuffer with fake and real tiff headers\n");
+    memset(fbuf, 0, sizeof(fbuf));
+    memcpy(fbuf, "MM11_YP_FMPS_M", 12);
+    fret = findFileFormatBuffer(fbuf, &fformat);
+    regTestCompareValues(rp, 1, fret != 0 && fformat == IFF_UNKNOWN, 0.0);  /* 10 */
+    memcpy(fbuf, "II11_YP_FMPS_M", 12);
+    fret = findFileFormatBuffer(fbuf, &fformat);
+    regTestCompareValues(rp, 1, fret != 0 && fformat == IFF_UNKNOWN, 0.0);  /* 11 */
+    fbuf[0] = 'I'; fbuf[1] = 'I'; fbuf[2] = 42; fbuf[3] = 0;
+    fret = findFileFormatBuffer(fbuf, &fformat);
+    regTestCompareValues(rp, 1, fret == 0 && fformat == IFF_TIFF, 0.0);  /* 12 */
+    fbuf[0] = 'M'; fbuf[1] = 'M'; fbuf[2] = 0; fbuf[3] = 42;
+    fret = findFileFormatBuffer(fbuf, &fformat);
+    regTestCompareValues(rp, 1, fret == 0 && fformat == IFF_TIFF, 0.0);  /* 13 */
+    }
     if (rp->success == FALSE) success = FALSE;
 
     if (success)
