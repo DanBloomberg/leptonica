@@ -696,7 +696,7 @@ pixcmapGetCount(const PIXCMAP  *cmap)
  * \return  free entries, or 0 on error
  */
 l_int32
-pixcmapGetFreeCount(PIXCMAP  *cmap)
+pixcmapGetFreeCount(const PIXCMAP  *cmap)
 {
     if (!cmap)
         return ERROR_INT("cmap not defined", __func__, 0);
@@ -711,7 +711,7 @@ pixcmapGetFreeCount(PIXCMAP  *cmap)
  * \return  depth, or 0 on error
  */
 l_int32
-pixcmapGetDepth(PIXCMAP  *cmap)
+pixcmapGetDepth(const PIXCMAP  *cmap)
 {
     if (!cmap)
         return ERROR_INT("cmap not defined", __func__, 0);
@@ -732,8 +732,8 @@ pixcmapGetDepth(PIXCMAP  *cmap)
  * </pre>
  */
 l_ok
-pixcmapGetMinDepth(PIXCMAP  *cmap,
-                   l_int32  *pmindepth)
+pixcmapGetMinDepth(const PIXCMAP  *cmap,
+                   l_int32        *pmindepth)
 {
 l_int32  ncolors;
 
@@ -787,11 +787,11 @@ pixcmapClear(PIXCMAP  *cmap)
  * \return  0 if OK, 1 if not accessible caller should check
  */
 l_ok
-pixcmapGetColor(PIXCMAP  *cmap,
-                l_int32   index,
-                l_int32  *prval,
-                l_int32  *pgval,
-                l_int32  *pbval)
+pixcmapGetColor(const PIXCMAP  *cmap,
+                l_int32         index,
+                l_int32        *prval,
+                l_int32        *pgval,
+                l_int32        *pbval)
 {
 RGBA_QUAD  *cta;
 
@@ -851,12 +851,12 @@ l_int32  rval, gval, bval;
  * \return  0 if OK, 1 if not accessible caller should check
  */
 l_ok
-pixcmapGetRGBA(PIXCMAP  *cmap,
-               l_int32   index,
-               l_int32  *prval,
-               l_int32  *pgval,
-               l_int32  *pbval,
-               l_int32  *paval)
+pixcmapGetRGBA(const PIXCMAP  *cmap,
+               l_int32         index,
+               l_int32        *prval,
+               l_int32        *pgval,
+               l_int32        *pbval,
+               l_int32        *paval)
 {
 RGBA_QUAD  *cta;
 
@@ -987,11 +987,11 @@ RGBA_QUAD  *cta;
  * \return  0 if found, 1 if not found caller must check
  */
 l_int32
-pixcmapGetIndex(PIXCMAP  *cmap,
-                l_int32   rval,
-                l_int32   gval,
-                l_int32   bval,
-                l_int32  *pindex)
+pixcmapGetIndex(const PIXCMAP  *cmap,
+                l_int32         rval,
+                l_int32         gval,
+                l_int32         bval,
+                l_int32        *pindex)
 {
 l_int32     n, i;
 RGBA_QUAD  *cta;
@@ -1024,8 +1024,8 @@ RGBA_QUAD  *cta;
  * \return  0 if OK, 1 on error
  */
 l_ok
-pixcmapHasColor(PIXCMAP  *cmap,
-                l_int32  *pcolor)
+pixcmapHasColor(const PIXCMAP  *cmap,
+                l_int32        *pcolor)
 {
 l_int32   n, i;
 l_int32  *rmap, *gmap, *bmap;
@@ -1061,8 +1061,8 @@ l_int32  *rmap, *gmap, *bmap;
  * \return  0 if OK, 1 on error
  */
 l_ok
-pixcmapIsOpaque(PIXCMAP  *cmap,
-                l_int32  *popaque)
+pixcmapIsOpaque(const PIXCMAP  *cmap,
+                l_int32        *popaque)
 {
 l_int32     i, n;
 RGBA_QUAD  *cta;
@@ -1163,8 +1163,8 @@ RGBA_QUAD  *cta;
  * \return  0 if OK, 1 on error
  */
 l_ok
-pixcmapIsBlackAndWhite(PIXCMAP  *cmap,
-                       l_int32  *pblackwhite)
+pixcmapIsBlackAndWhite(const PIXCMAP  *cmap,
+                       l_int32        *pblackwhite)
 {
 l_int32     val0, val1, hascolor;
 RGBA_QUAD  *cta;
@@ -1202,8 +1202,8 @@ RGBA_QUAD  *cta;
  * </pre>
  */
 l_ok
-pixcmapCountGrayColors(PIXCMAP  *cmap,
-                       l_int32  *pngray)
+pixcmapCountGrayColors(const PIXCMAP  *cmap,
+                       l_int32        *pngray)
 {
 l_int32   n, i, rval, gval, bval, count;
 l_int32  *array;
@@ -1241,9 +1241,9 @@ l_int32  *array;
  * \return  0 if OK, 1 on error
  */
 l_ok
-pixcmapGetRankIntensity(PIXCMAP    *cmap,
-                        l_float32   rankval,
-                        l_int32    *pindex)
+pixcmapGetRankIntensity(const PIXCMAP  *cmap,
+                        l_float32       rankval,
+                        l_int32        *pindex)
 {
 l_int32  n, i, rval, gval, bval, rankindex;
 NUMA    *na, *nasort;
@@ -1290,11 +1290,11 @@ NUMA    *na, *nasort;
  * </pre>
  */
 l_ok
-pixcmapGetNearestIndex(PIXCMAP  *cmap,
-                       l_int32   rval,
-                       l_int32   gval,
-                       l_int32   bval,
-                       l_int32  *pindex)
+pixcmapGetNearestIndex(const PIXCMAP  *cmap,
+                       l_int32         rval,
+                       l_int32         gval,
+                       l_int32         bval,
+                       l_int32        *pindex)
 {
 l_int32     i, n, delta, dist, mindist;
 RGBA_QUAD  *cta;
@@ -1346,9 +1346,9 @@ RGBA_QUAD  *cta;
  * </pre>
  */
 l_ok
-pixcmapGetNearestGrayIndex(PIXCMAP  *cmap,
-                           l_int32   val,
-                           l_int32  *pindex)
+pixcmapGetNearestGrayIndex(const PIXCMAP  *cmap,
+                           l_int32         val,
+                           l_int32        *pindex)
 {
 l_int32     i, n, dist, mindist;
 RGBA_QUAD  *cta;
@@ -1397,12 +1397,12 @@ RGBA_QUAD  *cta;
  * </pre>
  */
 l_ok
-pixcmapGetDistanceToColor(PIXCMAP  *cmap,
-                          l_int32   index,
-                          l_int32   rval,
-                          l_int32   gval,
-                          l_int32   bval,
-                          l_int32  *pdist)
+pixcmapGetDistanceToColor(const PIXCMAP  *cmap,
+                          l_int32         index,
+                          l_int32         rval,
+                          l_int32         gval,
+                          l_int32         bval,
+                          l_int32        *pdist)
 {
 l_int32     n, delta, dist;
 RGBA_QUAD  *cta;
@@ -1451,12 +1451,12 @@ RGBA_QUAD  *cta;
  * </pre>
  */
 l_ok
-pixcmapGetRangeValues(PIXCMAP  *cmap,
-                      l_int32   select,
-                      l_int32  *pminval,
-                      l_int32  *pmaxval,
-                      l_int32  *pminindex,
-                      l_int32  *pmaxindex)
+pixcmapGetRangeValues(const PIXCMAP  *cmap,
+                      l_int32         select,
+                      l_int32        *pminval,
+                      l_int32        *pmaxval,
+                      l_int32        *pminindex,
+                      l_int32        *pmaxindex)
 {
 l_int32  i, n, imin, imax, minval, maxval, rval, gval, bval, aveval;
 
@@ -1639,10 +1639,10 @@ PIXCMAP  *cmap;
  * </pre>
  */
 PIXCMAP *
-pixcmapColorToGray(PIXCMAP   *cmaps,
-                   l_float32  rwt,
-                   l_float32  gwt,
-                   l_float32  bwt)
+pixcmapColorToGray(const PIXCMAP  *cmaps,
+                   l_float32       rwt,
+                   l_float32       gwt,
+                   l_float32       bwt)
 {
 l_int32    i, n, rval, gval, bval, val;
 l_float32  sum;
