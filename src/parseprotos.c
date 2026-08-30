@@ -174,25 +174,34 @@ SARRAY  *sa, *saout, *satest;
         str = captureProtoSignature(sa, start, stop, charindex);
 
             /* Make sure that the signature found by cpp does not begin with
-             * static, extern or typedef.  We get 'extern' declarations
-             * from header files, and with some versions of cpp running on
-             * #include <sys/stat.h> we get something of the form:
+             * static, extern, typedef or inline.  We get 'extern'
+             * declarations from header files, and with some versions of
+             * cpp running on #include <sys/stat.h> we get something of the
+             * form:
              *    extern ... (( ... )) ... ( ... ) { ...
              * For this, the 1st '(' is the lp, the 2nd ')' is the rp,
              * and there is a lot of garbage between the rp and the lp.
              * It is easiest to simply reject any signature that starts
              * with 'extern'.  Note also that an 'extern' token has been
-             * prepended to each prototype, so the 'static' or
-             * 'extern' keywords we are looking for, if they exist,
-             * would be the second word.  We also have a typedef in
+             * prepended to each prototype, so the 'static', 'extern',
+             * 'inline' or 'typedef' keywords we are looking for, if they
+             * exist, would be the second word.  We also have a typedef in
              * bmpio.c that has the form:
              *    typedef struct __attribute__((....)) { ...} ... ;
              * This is avoided by blacklisting 'typedef' along with 'extern'
-             * and 'static'. */
+             * and 'static'.  Finally, some system headers (e.g., macOS
+             * _stdio.h, math.h and dirent.h) define inline or otherwise
+             * decorated helpers of the form:
+             *    inline __attribute__((__always_inline__)) type name();
+             * These are blacklisted via 'inline' and by rejecting any
+             * second word that begins with '__', which is a reserved
+             * identifier that can never be a function return type. */
         satest = sarrayCreateWordsFromString(str);
         secondword = sarrayGetString(satest, 1, L_NOCOPY);
         if (strcmp(secondword, "static") &&  /* not static */
             strcmp(secondword, "extern") &&  /* not extern */
+            strcmp(secondword, "inline") &&   /* not inline */
+            !(secondword[0] == '_' && secondword[1] == '_') &&  /* not __xxx */
             strcmp(secondword, "typedef")) {  /* not typedef */
             if (prestring) {  /* prepend it to the prototype */
                 newstr = stringJoin(prestring, str);
