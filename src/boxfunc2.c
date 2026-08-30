@@ -1528,11 +1528,11 @@ l_float32  sumw, sumh;
  * </pre>
  */
 l_ok
-boxaaGetExtent(BOXAA    *baa,
-               l_int32  *pw,
-               l_int32  *ph,
-               BOX     **pbox,
-               BOXA    **pboxa)
+boxaaGetExtent(const BOXAA  *baa,
+               l_int32      *pw,
+               l_int32      *ph,
+               BOX         **pbox,
+               BOXA        **pboxa)
 {
 l_int32  i, n, x, y, w, h, xmax, ymax, xmin, ymin, found;
 BOX     *box1;
@@ -1606,9 +1606,9 @@ BOXA    *boxa, *boxa1;
  * </pre>
  */
 BOXA *
-boxaaFlattenToBoxa(BOXAA   *baa,
-                   NUMA   **pnaindex,
-                   l_int32  copyflag)
+boxaaFlattenToBoxa(const BOXAA  *baa,
+                   NUMA        **pnaindex,
+                   l_int32       copyflag)
 {
 l_int32  i, j, m, n;
 BOXA    *boxa, *boxat;

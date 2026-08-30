@@ -148,10 +148,10 @@ BOXA    *boxad;
  * </pre>
  */
 BOXAA *
-boxaaSelectRange(BOXAA   *baas,
-                 l_int32  first,
-                 l_int32  last,
-                 l_int32  copyflag)
+boxaaSelectRange(const BOXAA  *baas,
+                 l_int32       first,
+                 l_int32       last,
+                 l_int32       copyflag)
 {
 l_int32  n, nboxa, i;
 BOXA    *boxa;
@@ -1044,11 +1044,11 @@ PIX     *pixt;
  * \return  0 if OK, 1 on error
  */
 l_ok
-boxaaSizeRange(BOXAA    *baa,
-               l_int32  *pminw,
-               l_int32  *pminh,
-               l_int32  *pmaxw,
-               l_int32  *pmaxh)
+boxaaSizeRange(const BOXAA  *baa,
+               l_int32      *pminw,
+               l_int32      *pminh,
+               l_int32      *pmaxw,
+               l_int32      *pmaxh)
 {
 l_int32  minw, minh, maxw, maxh, minbw, minbh, maxbw, maxbh, i, n;
 BOXA    *boxa;

@@ -1377,7 +1377,7 @@ boxaaGetCount(const BOXAA  *baa)
  * \return  count number of boxes, or 0 if no boxes or on error
  */
 l_int32
-boxaaGetBoxCount(BOXAA  *baa)
+boxaaGetBoxCount(const BOXAA  *baa)
 {
 BOXA    *boxa;
 l_int32  n, sum, i;
