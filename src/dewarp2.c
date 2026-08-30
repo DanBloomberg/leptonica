@@ -67,12 +67,12 @@
 #include "allheaders.h"
 
 static PTA *dewarpGetMeanVerticals(PIX *pixs, l_int32 x, l_int32 y);
-static l_int32 dewarpGetLineEndPoints(l_int32 h, PTAA *ptaa, PTA **pptal,
+static l_int32 dewarpGetLineEndPoints(l_int32 h, const PTAA *ptaa, PTA **pptal,
                                       PTA **pptar);
 static l_int32 dewarpFilterLineEndPoints(L_DEWARP  *dew, PTA *ptal1, PTA *ptar1,
                                          PTA **pptal2, PTA **pptar2);
 static PTA *dewarpRemoveBadEndPoints(l_int32 w, PTA *ptas);
-static l_int32 dewarpIsLineCoverageValid(PTAA *ptaa2, l_int32 h,
+static l_int32 dewarpIsLineCoverageValid(const PTAA *ptaa2, l_int32 h,
                                          l_int32 *pntop, l_int32 *pnbot,
                                          l_int32 *pytop, l_int32 *pybot);
 static l_int32 dewarpLinearLSF(PTA *ptad, l_float32 *pa, l_float32 *pb,
@@ -298,9 +298,9 @@ PTAA    *ptaa1, *ptaa2;
  * </pre>
  */
 l_ok
-dewarpFindVertDisparity(L_DEWARP  *dew,
-                        PTAA      *ptaa,
-                        l_int32    rotflag)
+dewarpFindVertDisparity(L_DEWARP    *dew,
+                        const PTAA  *ptaa,
+                        l_int32      rotflag)
 {
 l_int32     i, j, nlines, npts, nx, ny, sampling;
 l_float32   c0, c1, c2, x, y, midy, val, medval, meddev, minval, maxval;
@@ -560,8 +560,8 @@ FPIX       *fpix;
  * </pre>
  */
 l_ok
-dewarpFindHorizDisparity(L_DEWARP  *dew,
-                         PTAA      *ptaa)
+dewarpFindHorizDisparity(L_DEWARP    *dew,
+                         const PTAA  *ptaa)
 {
 l_int32    i, j, h, nx, ny, sampling, ret, linear_edgefit;
 l_float32  c0, c1, cl0, cl1, cl2, cr0, cr1, cr2;
@@ -1036,10 +1036,10 @@ PTAA      *ptaad;
  * </pre>
  */
 static l_int32
-dewarpGetLineEndPoints(l_int32  h,
-                       PTAA    *ptaa,
-                       PTA    **pptal,
-                       PTA    **pptar)
+dewarpGetLineEndPoints(l_int32      h,
+                       const PTAA  *ptaa,
+                       PTA        **pptal,
+                       PTA        **pptar)
 {
 l_int32    i, n, npt, x, y;
 l_float32  miny, maxy, ratio;
@@ -1274,12 +1274,12 @@ PTA       *ptau1, *ptau2, *ptad1, *ptad2;
  * </pre>
  */
 static l_int32
-dewarpIsLineCoverageValid(PTAA     *ptaa,
-                          l_int32   h,
-                          l_int32  *pntop,
-                          l_int32  *pnbot,
-                          l_int32  *pytop,
-                          l_int32  *pybot)
+dewarpIsLineCoverageValid(const PTAA  *ptaa,
+                          l_int32      h,
+                          l_int32     *pntop,
+                          l_int32     *pnbot,
+                          l_int32     *pytop,
+                          l_int32     *pybot)
 {
 l_int32    i, n, iy, both_halves, ntop, nbot, ytop, ybot, nmin;
 l_float32  y, fraction;

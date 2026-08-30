@@ -1046,7 +1046,7 @@ size_t  oldsize, newsize;
  * \return  count, or 0 if no ptaa
  */
 l_int32
-ptaaGetCount(PTAA  *ptaa)
+ptaaGetCount(const PTAA  *ptaa)
 {
     if (!ptaa)
         return ERROR_INT("ptaa not defined", __func__, 0);
@@ -1064,9 +1064,9 @@ ptaaGetCount(PTAA  *ptaa)
  * \return  pta, or NULL on error
  */
 PTA *
-ptaaGetPta(PTAA    *ptaa,
-           l_int32  index,
-           l_int32  accessflag)
+ptaaGetPta(const PTAA  *ptaa,
+           l_int32      index,
+           l_int32      accessflag)
 {
     if (!ptaa)
         return (PTA *)ERROR_PTR("ptaa not defined", __func__, NULL);
@@ -1093,11 +1093,11 @@ ptaaGetPta(PTAA    *ptaa,
  * \return  0 if OK; 1 on error
  */
 l_ok
-ptaaGetPt(PTAA       *ptaa,
-           l_int32     ipta,
-           l_int32     jpt,
-           l_float32  *px,
-           l_float32  *py)
+ptaaGetPt(const PTAA  *ptaa,
+          l_int32      ipta,
+          l_int32      jpt,
+          l_float32   *px,
+          l_float32   *py)
 {
 PTA  *pta;
 
@@ -1379,7 +1379,7 @@ PTAA  *ptaa;
  */
 l_ok
 ptaaWriteDebug(const char  *filename,
-               PTAA        *ptaa,
+               const PTAA  *ptaa,
                l_int32      type)
 {
     if (LeptDebugOK) {
@@ -1401,7 +1401,7 @@ ptaaWriteDebug(const char  *filename,
  */
 l_ok
 ptaaWrite(const char  *filename,
-          PTAA        *ptaa,
+          const PTAA  *ptaa,
           l_int32      type)
 {
 l_int32  ret;
@@ -1431,9 +1431,9 @@ FILE    *fp;
  * \return  0 if OK; 1 on error
  */
 l_ok
-ptaaWriteStream(FILE    *fp,
-                PTAA    *ptaa,
-                l_int32  type)
+ptaaWriteStream(FILE        *fp,
+                const PTAA  *ptaa,
+                l_int32      type)
 {
 l_int32  i, n;
 PTA     *pta;
@@ -1471,10 +1471,10 @@ PTA     *pta;
  * </pre>
  */
 l_ok
-ptaaWriteMem(l_uint8  **pdata,
-             size_t    *psize,
-             PTAA      *ptaa,
-             l_int32    type)
+ptaaWriteMem(l_uint8    **pdata,
+             size_t      *psize,
+             const PTAA  *ptaa,
+             l_int32      type)
 {
 l_int32  ret;
 FILE    *fp;
