@@ -487,7 +487,7 @@ LEPT_DLL extern l_ok pixcmapSetAlpha ( PIXCMAP *cmap, l_int32 index, l_int32 ava
 LEPT_DLL extern l_int32 pixcmapGetIndex ( const PIXCMAP *cmap, l_int32 rval, l_int32 gval, l_int32 bval, l_int32 *pindex );
 LEPT_DLL extern l_ok pixcmapHasColor ( const PIXCMAP *cmap, l_int32 *pcolor );
 LEPT_DLL extern l_ok pixcmapIsOpaque ( const PIXCMAP *cmap, l_int32 *popaque );
-LEPT_DLL extern l_ok pixcmapNonOpaqueColorsInfo ( PIXCMAP *cmap, l_int32 *pntrans, l_int32 *pmax_trans, l_int32 *pmin_opaque );
+LEPT_DLL extern l_ok pixcmapNonOpaqueColorsInfo ( const PIXCMAP *cmap, l_int32 *pntrans, l_int32 *pmax_trans, l_int32 *pmin_opaque );
 LEPT_DLL extern l_ok pixcmapIsBlackAndWhite ( const PIXCMAP *cmap, l_int32 *pblackwhite );
 LEPT_DLL extern l_ok pixcmapCountGrayColors ( const PIXCMAP *cmap, l_int32 *pngray );
 LEPT_DLL extern l_ok pixcmapGetRankIntensity ( const PIXCMAP *cmap, l_float32 rankval, l_int32 *pindex );
@@ -498,8 +498,8 @@ LEPT_DLL extern l_ok pixcmapGetRangeValues ( const PIXCMAP *cmap, l_int32 select
 LEPT_DLL extern PIXCMAP * pixcmapGrayToFalseColor ( l_float32 gamma );
 LEPT_DLL extern PIXCMAP * pixcmapGrayToColor ( l_uint32 color );
 LEPT_DLL extern PIXCMAP * pixcmapColorToGray ( const PIXCMAP *cmaps, l_float32 rwt, l_float32 gwt, l_float32 bwt );
-LEPT_DLL extern PIXCMAP * pixcmapConvertTo4 ( PIXCMAP *cmaps );
-LEPT_DLL extern PIXCMAP * pixcmapConvertTo8 ( PIXCMAP *cmaps );
+LEPT_DLL extern PIXCMAP * pixcmapConvertTo4 ( const PIXCMAP *cmaps );
+LEPT_DLL extern PIXCMAP * pixcmapConvertTo8 ( const PIXCMAP *cmaps );
 LEPT_DLL extern PIXCMAP * pixcmapRead ( const char *filename );
 LEPT_DLL extern PIXCMAP * pixcmapReadStream ( FILE *fp );
 LEPT_DLL extern PIXCMAP * pixcmapReadMem ( const l_uint8 *data, size_t size );
@@ -531,7 +531,7 @@ LEPT_DLL extern PIX * pixFixedOctcubeQuantGenRGB ( PIX *pixs, l_int32 level );
 LEPT_DLL extern PIX * pixQuantFromCmap ( PIX *pixs, PIXCMAP *cmap, l_int32 mindepth, l_int32 level, l_int32 metric );
 LEPT_DLL extern PIX * pixOctcubeQuantFromCmap ( PIX *pixs, PIXCMAP *cmap, l_int32 mindepth, l_int32 level, l_int32 metric );
 LEPT_DLL extern NUMA * pixOctcubeHistogram ( PIX *pixs, l_int32 level, l_int32 *pncolors );
-LEPT_DLL extern l_int32 * pixcmapToOctcubeLUT ( PIXCMAP *cmap, l_int32 level, l_int32 metric );
+LEPT_DLL extern l_int32 * pixcmapToOctcubeLUT ( const PIXCMAP *cmap, l_int32 level, l_int32 metric );
 LEPT_DLL extern l_ok pixRemoveUnusedColors ( PIX *pixs );
 LEPT_DLL extern l_ok pixNumberOccupiedOctcubes ( PIX *pix, l_int32 level, l_int32 mincount, l_float32 minfract, l_int32 *pncolors );
 LEPT_DLL extern PIX * pixMedianCutQuant ( PIX *pixs, l_int32 ditherflag );

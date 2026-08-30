@@ -3806,9 +3806,9 @@ cleanup_arrays:
  * </pre>
  */
 l_int32 *
-pixcmapToOctcubeLUT(PIXCMAP  *cmap,
-                    l_int32   level,
-                    l_int32   metric)
+pixcmapToOctcubeLUT(const PIXCMAP  *cmap,
+                    l_int32         level,
+                    l_int32         metric)
 {
 l_int32    i, k, size, ncolors, mindist, dist, mincolor, index;
 l_int32    rval, gval, bval;  /* color at center of the octcube */
