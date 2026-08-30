@@ -89,5 +89,5 @@ $(top_builddir)/prog/xtractprotos$(EXEEXT): libleptonica.la
 	$(MAKE) -C $(top_builddir)/prog xtractprotos$(EXEEXT)
 
 allheaders: $(top_builddir)/prog/xtractprotos$(EXEEXT) $(libleptonica_la_SOURCES)
-	cd $(srcdir) && $(abs_top_builddir)/prog/xtractprotos$(EXEEXT) -prestring=LEPT_DLL -protos=inline $(libleptonica_la_SOURCES)
+	cd $(srcdir) && CC='$(CC)' LEPT_CPPFLAGS='$(AM_CPPFLAGS) $(CPPFLAGS) -I$(abs_top_builddir)/src -I$(abs_top_builddir) -DHAVE_CONFIG_H' $(abs_top_builddir)/prog/xtractprotos$(EXEEXT) -prestring=LEPT_DLL -protos=inline $(libleptonica_la_SOURCES)
 

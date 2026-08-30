@@ -51,6 +51,9 @@
  *        the file leptprotos.h, and alltypes.h has
  *           #include "leptprotos.h"
  *
+ *   Extra preprocessor flags (include dirs for generated and third-party
+ *   headers) can be supplied via the environment variable LEPT_CPPFLAGS.
+ *
  *   For constructing allheaders.h, two text files are provided:
  *      allheaders_top.txt
  *      allheaders_bot.txt
@@ -79,9 +82,12 @@
  *   The xtractprotos version number, defined below, is incremented
  *   whenever a new version is made.
  *
- *   Note: this uses cpp to preprocess the input.  (The name of the cpp
- *   tempfile is constructed below.  It has a "." in the tail, which
- *   Cygwin needs to prevent it from appending ".exe" to the filename.)
+ *   Note: this uses the C compiler preprocessor (cc -E, honoring $CC) to
+ *   preprocess the input.  Extra preprocessor flags (e.g., include dirs for
+ *   headers generated into the build tree and for third-party libraries) can
+ *   be supplied via the environment variable LEPT_CPPFLAGS.  (The name of the
+ *   tempfile is constructed below.  It has a "." in the tail, which Cygwin
+ *   needs to prevent it from appending ".exe" to the filename.)
  */
 
 #ifdef HAVE_CONFIG_H
@@ -98,12 +104,15 @@ static const char *version = "1.5";
 int main(int    argc,
          char **argv)
 {
-char     *filein, *str, *tempfile, *prestring, *outprotos, *protostr;
-char      buf[L_BUFSIZE];
-l_int32   i, maxindex, in_line, nflags, protos_added, firstfile, len, ret;
-size_t    nbytes;
-L_BYTEA  *ba, *ba2;
-SARRAY   *sa;
+char        *filein, *str, *tempfile, *prestring, *outprotos, *protostr;
+char         buf[L_BUFSIZE];
+char         cmd[2048];
+const char  *cc;
+const char  *cppflags;
+l_int32      i, maxindex, in_line, nflags, protos_added, firstfile, len, ret;
+size_t       nbytes;
+L_BYTEA     *ba, *ba2;
+SARRAY      *sa;
 
     if (argc == 1) {
         lept_stderr(
@@ -183,6 +192,10 @@ SARRAY   *sa;
 
         /* Then the prototypes */
     firstfile = 1 + nflags;
+    cc = getenv("CC");
+    if (!cc || !*cc) cc = "cc";
+    cppflags = getenv("LEPT_CPPFLAGS");
+    if (!cppflags) cppflags = "";
     protos_added = FALSE;
     if ((tempfile = l_makeTempFilename()) == NULL) {
         lept_stderr("failure to make a writeable temp file\n");
@@ -193,11 +206,12 @@ SARRAY   *sa;
         len = strlen(filein);
         if (filein[len - 1] == 'h')  /* skip .h files */
             continue;
-        snprintf(buf, L_BUFSIZE, "cpp -ansi -DNO_PROTOS %s %s",
-                 filein, tempfile);
-        ret = callSystemDebug(buf);  /* cpp */
+        snprintf(cmd, sizeof(cmd),
+                 "%s -E %s -DNO_PROTOS \"%s\" > \"%s\"",
+                 cc, cppflags, filein, tempfile);
+        ret = callSystemDebug(cmd);
         if (ret) {
-            lept_stderr("cpp failure for %s; continuing\n", filein);
+            lept_stderr("preprocess failure for %s; continuing\n", filein);
             continue;
         }
 
