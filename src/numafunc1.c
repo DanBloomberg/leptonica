@@ -3322,8 +3322,8 @@ numaGetMedian(const NUMA  *na,
  * </pre>
  */
 l_ok
-numaGetBinnedMedian(NUMA     *na,
-                    l_int32  *pval)
+numaGetBinnedMedian(const NUMA  *na,
+                    l_int32     *pval)
 {
 l_int32    ret;
 l_float32  fval;

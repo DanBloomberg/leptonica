@@ -2299,8 +2299,8 @@ FILE    *fp;
  * </pre>
  */
 l_ok
-boxPrintStreamInfo(FILE  *fp,
-                   BOX   *box)
+boxPrintStreamInfo(FILE       *fp,
+                   const BOX  *box)
 {
     if (!box)
         return ERROR_INT("box not defined", __func__, 1);

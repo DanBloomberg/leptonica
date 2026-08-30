@@ -148,11 +148,11 @@ BOXA    *boxad;
  * </pre>
  */
 BOX *
-boxTransform(BOX       *box,
-             l_int32    shiftx,
-             l_int32    shifty,
-             l_float32  scalex,
-             l_float32  scaley)
+boxTransform(const BOX  *box,
+             l_int32     shiftx,
+             l_int32     shifty,
+             l_float32   scalex,
+             l_float32   scaley)
 {
     if (!box)
         return (BOX *)ERROR_PTR("box not defined", __func__, NULL);
@@ -288,15 +288,15 @@ BOXA    *boxad;
  * </pre>
  */
 BOX *
-boxTransformOrdered(BOX       *boxs,
-                    l_int32    shiftx,
-                    l_int32    shifty,
-                    l_float32  scalex,
-                    l_float32  scaley,
-                    l_int32    xcen,
-                    l_int32    ycen,
-                    l_float32  angle,
-                    l_int32    order)
+boxTransformOrdered(const BOX  *boxs,
+                    l_int32     shiftx,
+                    l_int32     shifty,
+                    l_float32   scalex,
+                    l_float32   scaley,
+                    l_int32     xcen,
+                    l_int32     ycen,
+                    l_float32   angle,
+                    l_int32     order)
 {
 l_int32    bx, by, bw, bh, tx, ty, tw, th;
 l_int32    xcent, ycent;  /* transformed center of rotation due to scaling */

@@ -968,11 +968,11 @@ l_float32  start, binsize;
  * </pre>
  */
 SARRAY *
-numaConvertToSarray(NUMA    *na,
-                    l_int32  size1,
-                    l_int32  size2,
-                    l_int32  addzeros,
-                    l_int32  type)
+numaConvertToSarray(const NUMA  *na,
+                    l_int32      size1,
+                    l_int32      size2,
+                    l_int32      addzeros,
+                    l_int32      type)
 {
 char       fmt[32], strbuf[64];
 l_int32    i, n, ival;
