@@ -1698,9 +1698,9 @@ PIXA    *pixad;
  * \return  paa sorted, or NULL on error
  */
 PIXAA *
-pixaSort2dByIndex(PIXA    *pixas,
-                  NUMAA   *naa,
-                  l_int32  copyflag)
+pixaSort2dByIndex(PIXA         *pixas,
+                  const NUMAA  *naa,
+                  l_int32       copyflag)
 {
 l_int32  pixtot, ntot, i, j, n, nn, index;
 BOX     *box;

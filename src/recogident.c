@@ -1729,11 +1729,11 @@ SARRAY    *satext, *sa = NULL, *saout;
  * </pre>
  */
 PIXA *
-showExtractNumbers(PIX     *pixs,
-                   SARRAY  *sa,
-                   BOXAA   *baa,
-                   NUMAA   *naa,
-                   PIX    **ppixdb)
+showExtractNumbers(PIX          *pixs,
+                   SARRAY       *sa,
+                   BOXAA        *baa,
+                   const NUMAA  *naa,
+                   PIX         **ppixdb)
 {
 char       buf[128];
 char      *textstr, *scorestr;

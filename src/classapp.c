@@ -741,16 +741,16 @@ NUMAA   *naa;
  * </pre>
  */
 l_ok
-numaaCompareImagesByBoxes(NUMAA    *naa1,
-                          NUMAA    *naa2,
-                          l_int32   nperline,
-                          l_int32   nreq,
-                          l_int32   maxshiftx,
-                          l_int32   maxshifty,
-                          l_int32   delx,
-                          l_int32   dely,
-                          l_int32  *psame,
-                          l_int32   debugflag)
+numaaCompareImagesByBoxes(const NUMAA  *naa1,
+                          const NUMAA  *naa2,
+                          l_int32       nperline,
+                          l_int32       nreq,
+                          l_int32       maxshiftx,
+                          l_int32       maxshifty,
+                          l_int32       delx,
+                          l_int32       dely,
+                          l_int32      *psame,
+                          l_int32       debugflag)
 {
 l_int32   n1, n2, i, j, nbox, y1, y2, xl1, xl2;
 l_int32   shiftx, shifty, match;

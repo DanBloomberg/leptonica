@@ -3565,10 +3565,10 @@ l_float32  val;
  * </pre>
  */
 l_ok
-numaaJoin(NUMAA   *naad,
-          NUMAA   *naas,
-          l_int32  istart,
-          l_int32  iend)
+numaaJoin(NUMAA        *naad,
+          const NUMAA  *naas,
+          l_int32       istart,
+          l_int32       iend)
 {
 l_int32  n, i;
 NUMA    *na;

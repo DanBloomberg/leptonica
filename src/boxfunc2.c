@@ -1078,8 +1078,8 @@ NUMAA   *naa, *naa1, *naad;
  * \return  baa sorted boxaa, or NULL on error
  */
 BOXAA *
-boxaSort2dByIndex(BOXA   *boxas,
-                  NUMAA  *naa)
+boxaSort2dByIndex(BOXA         *boxas,
+                  const NUMAA  *naa)
 {
 l_int32  ntot, boxtot, i, j, n, nn, index;
 BOX     *box;

@@ -1519,7 +1519,7 @@ size_t  oldsize, newsize;
  * \return  count number of numa, or 0 if no numa or on error
  */
 l_int32
-numaaGetCount(NUMAA  *naa)
+numaaGetCount(const NUMAA  *naa)
 {
     if (!naa)
         return ERROR_INT("naa not defined", __func__, 0);
@@ -1535,8 +1535,8 @@ numaaGetCount(NUMAA  *naa)
  * \return  count of numbers in the referenced numa, or 0 on error.
  */
 l_int32
-numaaGetNumaCount(NUMAA   *naa,
-                  l_int32  index)
+numaaGetNumaCount(const NUMAA  *naa,
+                  l_int32       index)
 {
     if (!naa)
         return ERROR_INT("naa not defined", __func__, 0);
@@ -1554,7 +1554,7 @@ numaaGetNumaCount(NUMAA   *naa,
  *          or 0 if no numbers or on error
  */
 l_int32
-numaaGetNumberCount(NUMAA  *naa)
+numaaGetNumberCount(const NUMAA  *naa)
 {
 NUMA    *na;
 l_int32  n, sum, i;
@@ -1620,9 +1620,9 @@ numaaGetPtrArray(NUMAA  *naa)
  * \return  numa, or NULL on error
  */
 NUMA *
-numaaGetNuma(NUMAA   *naa,
-             l_int32  index,
-             l_int32  accessflag)
+numaaGetNuma(const NUMAA  *naa,
+             l_int32       index,
+             l_int32       accessflag)
 {
     if (!naa)
         return (NUMA *)ERROR_PTR("naa not defined", __func__, NULL);
@@ -1685,11 +1685,11 @@ l_int32  n;
  * \return  0 if OK, 1 on error
  */
 l_ok
-numaaGetValue(NUMAA      *naa,
-              l_int32     i,
-              l_int32     j,
-              l_float32  *pfval,
-              l_int32    *pival)
+numaaGetValue(const NUMAA  *naa,
+              l_int32       i,
+              l_int32       j,
+              l_float32    *pfval,
+              l_int32      *pival)
 {
 l_int32  n;
 NUMA    *na;
@@ -1857,8 +1857,8 @@ NUMAA  *naa;
  * \return  0 if OK, 1 on error
  */
 l_ok
-numaaWrite(const char  *filename,
-           NUMAA       *naa)
+numaaWrite(const char   *filename,
+           const NUMAA  *naa)
 {
 l_int32  ret;
 FILE    *fp;
@@ -1886,8 +1886,8 @@ FILE    *fp;
  * \return  0 if OK, 1 on error
  */
 l_ok
-numaaWriteStream(FILE   *fp,
-                 NUMAA  *naa)
+numaaWriteStream(FILE         *fp,
+                 const NUMAA  *naa)
 {
 l_int32  i, n;
 NUMA    *na;
@@ -1926,9 +1926,9 @@ NUMA    *na;
  * </pre>
  */
 l_ok
-numaaWriteMem(l_uint8  **pdata,
-              size_t    *psize,
-              NUMAA     *naa)
+numaaWriteMem(l_uint8     **pdata,
+              size_t       *psize,
+              const NUMAA  *naa)
 {
 l_int32  ret;
 FILE    *fp;
