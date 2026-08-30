@@ -1292,7 +1292,7 @@ l_int32  i, n, w, h;
  */
 PIX *
 boxaDisplayTiled(BOXA        *boxas,
-                 PIXA        *pixa,
+                 const PIXA  *pixa,
                  l_int32      first,
                  l_int32      last,
                  l_int32      maxwidth,

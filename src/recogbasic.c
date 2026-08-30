@@ -279,12 +279,12 @@ PIXA     *pixa;
  * </pre>
  */
 L_RECOG *
-recogCreateFromPixa(PIXA    *pixa,
-                    l_int32  scalew,
-                    l_int32  scaleh,
-                    l_int32  linew,
-                    l_int32  threshold,
-                    l_int32  maxyshift)
+recogCreateFromPixa(const PIXA  *pixa,
+                    l_int32      scalew,
+                    l_int32      scaleh,
+                    l_int32      linew,
+                    l_int32      threshold,
+                    l_int32      maxyshift)
 {
 L_RECOG  *recog;
 
@@ -323,12 +323,12 @@ L_RECOG  *recog;
  * </pre>
  */
 L_RECOG *
-recogCreateFromPixaNoFinish(PIXA    *pixa,
-                            l_int32  scalew,
-                            l_int32  scaleh,
-                            l_int32  linew,
-                            l_int32  threshold,
-                            l_int32  maxyshift)
+recogCreateFromPixaNoFinish(const PIXA  *pixa,
+                            l_int32      scalew,
+                            l_int32      scaleh,
+                            l_int32      linew,
+                            l_int32      threshold,
+                            l_int32      maxyshift)
 {
 char     *text;
 l_int32   full, n, i, ntext, same, maxd;

@@ -756,7 +756,7 @@ L_COMP_DATA  *cid;
  * </pre>
  */
 l_ok
-pixaConvertToPdf(PIXA        *pixa,
+pixaConvertToPdf(const PIXA  *pixa,
                  l_int32      res,
                  l_float32    scalefactor,
                  l_int32      type,
@@ -808,7 +808,7 @@ size_t    nbytes;
  * </pre>
  */
 l_ok
-pixaConvertToPdfData(PIXA        *pixa,
+pixaConvertToPdfData(const PIXA  *pixa,
                      l_int32      res,
                      l_float32    scalefactor,
                      l_int32      type,

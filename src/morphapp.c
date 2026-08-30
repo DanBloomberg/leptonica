@@ -260,7 +260,7 @@ PIXA    *pixas, *pixad;
  * </pre>
  */
 PIXA *
-pixaMorphSequenceByComponent(PIXA        *pixas,
+pixaMorphSequenceByComponent(const PIXA  *pixas,
                              const char  *sequence,
                              l_int32      minw,
                              l_int32      minh)
@@ -419,7 +419,7 @@ PIXA    *pixam, *pixad;
  */
 PIXA *
 pixaMorphSequenceByRegion(PIX         *pixs,
-                          PIXA        *pixam,
+                          const PIXA  *pixam,
                           const char  *sequence,
                           l_int32      minw,
                           l_int32      minh)
@@ -950,10 +950,10 @@ PIXA    *pixad;
  * </pre>
  */
 PIXA *
-pixaExtendByScaling(PIXA    *pixas,
-                    NUMA    *nasc,
-                    l_int32  type,
-                    l_int32  include)
+pixaExtendByScaling(const PIXA  *pixas,
+                    NUMA        *nasc,
+                    l_int32      type,
+                    l_int32      include)
 {
 l_int32    i, j, n, nsc, w, h, scalew, scaleh;
 l_float32  scalefact;
@@ -1438,7 +1438,7 @@ PIX  *pixg, *pixd;
  * </pre>
  */
 PTA *
-pixaCentroids(PIXA  *pixa)
+pixaCentroids(const PIXA  *pixa)
 {
 l_int32    i, n;
 l_int32   *centtab = NULL;

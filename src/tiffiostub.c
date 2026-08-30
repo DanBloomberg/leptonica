@@ -102,7 +102,7 @@ PIXA * pixaReadMultipageTiff(const char *filename)
 
 /* ----------------------------------------------------------------------*/
 
-l_ok pixaWriteMultipageTiff(const char *filename, PIXA *pixa)
+l_ok pixaWriteMultipageTiff(const char *filename, const PIXA *pixa)
 {
     return ERROR_INT("function not present", __func__, 1);
 }
@@ -211,7 +211,7 @@ PIXA * pixaReadMemMultipageTiff(const l_uint8 *data, size_t size)
 
 /* ----------------------------------------------------------------------*/
 
-l_ok pixaWriteMemMultipageTiff(l_uint8 **pdata, size_t *psize, PIXA *pixa)
+l_ok pixaWriteMemMultipageTiff(l_uint8 **pdata, size_t *psize, const PIXA *pixa)
 {
     return ERROR_INT("function not present", __func__, 1);
 }

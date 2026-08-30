@@ -254,11 +254,11 @@ PIXA      *pixa;
  *               or NULL on error
  */
 SARRAY *
-pixReadBarcodes(PIXA     *pixa,
-                l_int32   format,
-                l_int32   method,
-                SARRAY  **psaw,
-                l_int32   debugflag)
+pixReadBarcodes(const PIXA  *pixa,
+                l_int32      format,
+                l_int32      method,
+                SARRAY     **psaw,
+                l_int32      debugflag)
 {
 char      *barstr, *data;
 char       emptystring[] = "";

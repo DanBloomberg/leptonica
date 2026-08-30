@@ -870,9 +870,9 @@ PIX        *pixt, *pixt1, *pixt2;
  * </pre>
  */
 l_ok
-recogIdentifyPixa(L_RECOG  *recog,
-                  PIXA     *pixa,
-                  PIX     **ppixdb)
+recogIdentifyPixa(L_RECOG     *recog,
+                  const PIXA  *pixa,
+                  PIX        **ppixdb)
 {
 char      *text;
 l_int32    i, n, fail, index, depth;

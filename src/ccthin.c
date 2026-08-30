@@ -69,10 +69,10 @@
  * </pre>
  */
 PIXA *
-pixaThinConnected(PIXA    *pixas,
-                  l_int32  type,
-                  l_int32  connectivity,
-                  l_int32  maxiters)
+pixaThinConnected(const PIXA  *pixas,
+                  l_int32      type,
+                  l_int32      connectivity,
+                  l_int32      maxiters)
 {
 l_int32  i, n, d, same;
 PIX     *pix1, *pix2;

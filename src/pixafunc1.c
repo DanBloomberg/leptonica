@@ -356,11 +356,11 @@ PIXA  *pixad;
  * </pre>
  */
 NUMA *
-pixaMakeSizeIndicator(PIXA     *pixa,
-                      l_int32   width,
-                      l_int32   height,
-                      l_int32   type,
-                      l_int32   relation)
+pixaMakeSizeIndicator(const PIXA  *pixa,
+                      l_int32      width,
+                      l_int32      height,
+                      l_int32      type,
+                      l_int32      relation)
 {
 l_int32  i, n, w, h, ival;
 NUMA    *na;
@@ -1196,9 +1196,9 @@ PIXA    *pixad;
  * </pre>
  */
 l_ok
-pixRemoveWithIndicator(PIX   *pixs,
-                       PIXA  *pixa,
-                       NUMA  *na)
+pixRemoveWithIndicator(PIX         *pixs,
+                       const PIXA  *pixa,
+                       NUMA        *na)
 {
 l_int32  i, n, ival, x, y, w, h;
 BOX     *box;
@@ -1247,9 +1247,9 @@ PIX     *pix;
  * </pre>
  */
 l_ok
-pixAddWithIndicator(PIX   *pixs,
-                    PIXA  *pixa,
-                    NUMA  *na)
+pixAddWithIndicator(PIX         *pixs,
+                    const PIXA  *pixa,
+                    NUMA        *na)
 {
 l_int32  i, n, ival, x, y, w, h;
 BOX     *box;
@@ -1298,7 +1298,7 @@ PIX     *pix;
  * </pre>
  */
 PIXA *
-pixaSelectWithString(PIXA        *pixas,
+pixaSelectWithString(const PIXA  *pixas,
                      const char  *str,
                      l_int32     *perror)
 {
@@ -1367,9 +1367,9 @@ PIXA      *pixad;
  * </pre>
  */
 PIX *
-pixaRenderComponent(PIX     *pixs,
-                    PIXA    *pixa,
-                    l_int32  index)
+pixaRenderComponent(PIX         *pixs,
+                    const PIXA  *pixa,
+                    l_int32      index)
 {
 l_int32  n, x, y, w, h, same, maxd;
 BOX     *box;
@@ -1761,10 +1761,10 @@ PIXAA   *paa;
  * </pre>
  */
 PIXA *
-pixaSelectRange(PIXA    *pixas,
-                l_int32  first,
-                l_int32  last,
-                l_int32  copyflag)
+pixaSelectRange(const PIXA  *pixas,
+                l_int32      first,
+                l_int32      last,
+                l_int32      copyflag)
 {
 l_int32  n, npix, i;
 PIX     *pix;
@@ -2009,9 +2009,9 @@ PIXA    *pixad;
  * </pre>
  */
 PIXA *
-pixaScaleToSizeRel(PIXA    *pixas,
-                   l_int32  delw,
-                   l_int32  delh)
+pixaScaleToSizeRel(const PIXA  *pixas,
+                   l_int32      delw,
+                   l_int32      delh)
 {
 l_int32  n, i;
 PIX     *pix1, *pix2;
@@ -2051,9 +2051,9 @@ PIXA    *pixad;
  * </pre>
  */
 PIXA *
-pixaScale(PIXA      *pixas,
-          l_float32  scalex,
-          l_float32  scaley)
+pixaScale(const PIXA  *pixas,
+          l_float32    scalex,
+          l_float32    scaley)
 {
 l_int32  i, n, nb;
 BOXA    *boxa1, *boxa2;
@@ -2100,9 +2100,9 @@ PIXA    *pixad;
  * </pre>
  */
 PIXA *
-pixaScaleBySampling(PIXA      *pixas,
-                    l_float32  scalex,
-                    l_float32  scaley)
+pixaScaleBySampling(const PIXA  *pixas,
+                    l_float32    scalex,
+                    l_float32    scaley)
 {
 l_int32  i, n, nb;
 BOXA    *boxa1, *boxa2;
@@ -2515,11 +2515,11 @@ PIXA    *pixa;
  * \return  0 if OK, 1 on error
  */
 l_ok
-pixaSizeRange(PIXA     *pixa,
-              l_int32  *pminw,
-              l_int32  *pminh,
-              l_int32  *pmaxw,
-              l_int32  *pmaxh)
+pixaSizeRange(const PIXA  *pixa,
+              l_int32     *pminw,
+              l_int32     *pminh,
+              l_int32     *pmaxw,
+              l_int32     *pmaxh)
 {
 l_int32  minw, minh, maxw, maxh, i, n, w, h;
 PIX     *pix;
@@ -2583,8 +2583,8 @@ PIX     *pix;
  * </pre>
  */
 PIXA *
-pixaClipToPix(PIXA  *pixas,
-              PIX   *pixs)
+pixaClipToPix(const PIXA  *pixas,
+              PIX         *pixs)
 {
 l_int32  i, n;
 BOX     *box;
@@ -2630,9 +2630,9 @@ PIXA    *pixad;
  * </pre>
  */
 l_ok
-pixaClipToForeground(PIXA   *pixas,
-                     PIXA  **ppixad,
-                     BOXA  **pboxa)
+pixaClipToForeground(const PIXA  *pixas,
+                     PIXA       **ppixad,
+                     BOXA       **pboxa)
 {
 l_int32  i, n;
 BOX     *box1;
@@ -2685,8 +2685,8 @@ PIX     *pix1, *pix2;
  * </pre>
  */
 l_ok
-pixaGetRenderingDepth(PIXA     *pixa,
-                      l_int32  *pdepth)
+pixaGetRenderingDepth(const PIXA  *pixa,
+                      l_int32     *pdepth)
 {
 l_int32  hascolor, maxdepth;
 
@@ -2720,8 +2720,8 @@ l_int32  hascolor, maxdepth;
  * \return  0 if OK; 1 on error
  */
 l_ok
-pixaHasColor(PIXA     *pixa,
-             l_int32  *phascolor)
+pixaHasColor(const PIXA  *pixa,
+             l_int32     *phascolor)
 {
 l_int32   i, n, hascolor, d;
 PIX      *pix;
@@ -2759,8 +2759,8 @@ PIXCMAP  *cmap;
  * \return  0 if OK; 1 on error
  */
 l_ok
-pixaAnyColormaps(PIXA     *pixa,
-                 l_int32  *phascmap)
+pixaAnyColormaps(const PIXA  *pixa,
+                 l_int32     *phascmap)
 {
 l_int32   i, n;
 PIX      *pix;
@@ -2796,9 +2796,9 @@ PIXCMAP  *cmap;
  * \return  0 if OK; 1 on error
  */
 l_ok
-pixaGetDepthInfo(PIXA     *pixa,
-                 l_int32  *pmaxdepth,
-                 l_int32  *psame)
+pixaGetDepthInfo(const PIXA  *pixa,
+                 l_int32     *pmaxdepth,
+                 l_int32     *psame)
 {
 l_int32  i, n, d, d0;
 l_int32  maxd, same;  /* depth info */
@@ -2917,8 +2917,8 @@ PIXA    *pixa1, *pixad;
  * </pre>
  */
 PIXA *
-pixaConvertToGivenDepth(PIXA    *pixas,
-                        l_int32  depth)
+pixaConvertToGivenDepth(const PIXA  *pixas,
+                        l_int32      depth)
 {
 l_int32  i, n, maxd;
 BOXA    *boxa;
@@ -2988,11 +2988,11 @@ PIXA    *pixad;
  * </pre>
  */
 l_ok
-pixaEqual(PIXA     *pixa1,
-          PIXA     *pixa2,
-          l_int32   maxdist,
-          NUMA    **pnaindex,
-          l_int32  *psame)
+pixaEqual(const PIXA  *pixa1,
+          const PIXA  *pixa2,
+          l_int32      maxdist,
+          NUMA       **pnaindex,
+          l_int32     *psame)
 {
 l_int32   i, j, n, empty1, empty2, same, sameboxa;
 BOXA     *boxa1, *boxa2;

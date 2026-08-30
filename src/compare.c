@@ -1994,7 +1994,7 @@ l_float32  mse;  /* mean squared error */
  * </pre>
  */
 l_ok
-pixaComparePhotoRegionsByHisto(PIXA        *pixa,
+pixaComparePhotoRegionsByHisto(const PIXA  *pixa,
                                l_float32    minratio,
                                l_float32    textthresh,
                                l_int32      factor,

@@ -188,9 +188,9 @@
  * </pre>
  */
 PIX *
-pixaDisplay(PIXA    *pixa,
-            l_int32  w,
-            l_int32  h)
+pixaDisplay(const PIXA  *pixa,
+            l_int32      w,
+            l_int32      h)
 {
 l_int32  i, n, d, xb, yb, wb, hb, res;
 BOXA    *boxa;
@@ -264,9 +264,9 @@ PIX     *pix1, *pixd;
  * </pre>
  */
 PIX *
-pixaDisplayRandomCmap(PIXA    *pixa,
-                      l_int32  w,
-                      l_int32  h)
+pixaDisplayRandomCmap(const PIXA  *pixa,
+                      l_int32      w,
+                      l_int32      h)
 {
 l_int32   i, n, same, maxd, index, xb, yb, wb, hb, res;
 BOXA     *boxa;
@@ -542,11 +542,11 @@ PIXA    *pixa1;
  * </pre>
  */
 PIX *
-pixaDisplayUnsplit(PIXA     *pixa,
-                   l_int32   nx,
-                   l_int32   ny,
-                   l_int32   borderwidth,
-                   l_uint32  bordercolor)
+pixaDisplayUnsplit(const PIXA  *pixa,
+                   l_int32      nx,
+                   l_int32      ny,
+                   l_int32      borderwidth,
+                   l_uint32     bordercolor)
 {
 l_int32  w, h, d, wt, ht;
 l_int32  i, j, k, x, y, n;
@@ -727,13 +727,13 @@ PIXA    *pixa1;
  * </pre>
  */
 PIX *
-pixaDisplayTiledInRows(PIXA      *pixa,
-                       l_int32    outdepth,
-                       l_int32    maxwidth,
-                       l_float32  scalefactor,
-                       l_int32    background,
-                       l_int32    spacing,
-                       l_int32    border)
+pixaDisplayTiledInRows(const PIXA  *pixa,
+                       l_int32      outdepth,
+                       l_int32      maxwidth,
+                       l_float32    scalefactor,
+                       l_int32      background,
+                       l_int32      spacing,
+                       l_int32      border)
 {
 l_int32   h;  /* cumulative height over all the rows */
 l_int32   w;  /* cumulative height in the current row */
@@ -1022,13 +1022,13 @@ PIXA     *pixa1, *pixa2;
  * </pre>
  */
 PIX *
-pixaDisplayTiledAndScaled(PIXA    *pixa,
-                          l_int32  outdepth,
-                          l_int32  tilewidth,
-                          l_int32  ncols,
-                          l_int32  background,
-                          l_int32  spacing,
-                          l_int32  border)
+pixaDisplayTiledAndScaled(const PIXA  *pixa,
+                          l_int32      outdepth,
+                          l_int32      tilewidth,
+                          l_int32      ncols,
+                          l_int32      background,
+                          l_int32      spacing,
+                          l_int32      border)
 {
 l_int32    x, y, w, h, wd, hd, d, res;
 l_int32    i, n, nrows, maxht, ninrow, irow, bordval;
@@ -1175,13 +1175,13 @@ PIXA      *pixan;
  * </pre>
  */
 PIX *
-pixaDisplayTiledWithText(PIXA      *pixa,
-                         l_int32    maxwidth,
-                         l_float32  scalefactor,
-                         l_int32    spacing,
-                         l_int32    border,
-                         l_int32    fontsize,
-                         l_uint32   textcolor)
+pixaDisplayTiledWithText(const PIXA  *pixa,
+                         l_int32      maxwidth,
+                         l_float32    scalefactor,
+                         l_int32      spacing,
+                         l_int32      border,
+                         l_int32      fontsize,
+                         l_uint32     textcolor)
 {
 char      buf[128];
 char     *textstr;
@@ -1269,13 +1269,13 @@ PIXA     *pixad;
  * </pre>
  */
 PIX *
-pixaDisplayTiledByIndex(PIXA     *pixa,
-                        NUMA     *na,
-                        l_int32   width,
-                        l_int32   spacing,
-                        l_int32   border,
-                        l_int32   fontsize,
-                        l_uint32  textcolor)
+pixaDisplayTiledByIndex(const PIXA  *pixa,
+                        NUMA        *na,
+                        l_int32      width,
+                        l_int32      spacing,
+                        l_int32      border,
+                        l_int32      fontsize,
+                        l_uint32     textcolor)
 {
 char      buf[128];
 char     *textstr;
@@ -1391,17 +1391,17 @@ PIXA      *pixad;
  * </pre>
  */
 PIX *
-pixaDisplayPairTiledInColumns(PIXA      *pixas1,
-                              PIXA      *pixas2,
-                              l_int32    nx,
-                              l_float32  scalefactor,
-                              l_int32    spacing1,
-                              l_int32    spacing2,
-                              l_int32    border1,
-                              l_int32    border2,
-                              l_int32    fontsize,
-                              l_int32    startindex,
-                              SARRAY    *sa)
+pixaDisplayPairTiledInColumns(const PIXA  *pixas1,
+                              const PIXA  *pixas2,
+                              l_int32      nx,
+                              l_float32    scalefactor,
+                              l_int32      spacing1,
+                              l_int32      spacing2,
+                              l_int32      border1,
+                              l_int32      border2,
+                              l_int32      fontsize,
+                              l_int32      startindex,
+                              SARRAY      *sa)
 {
 l_int32  i, n, w, maxd, maxd1, maxd2, text;
 NUMA    *na;
@@ -1750,8 +1750,8 @@ PIXA    *pixa, *pixad;
  * \return  pixad, or NULL on error
  */
 PIXA *
-pixaConvertTo1(PIXA    *pixas,
-               l_int32  thresh)
+pixaConvertTo1(const PIXA  *pixas,
+               l_int32      thresh)
 {
 l_int32  i, n;
 BOXA    *boxa;
@@ -1789,8 +1789,8 @@ PIXA    *pixad;
  * </pre>
  */
 PIXA *
-pixaConvertTo8(PIXA    *pixas,
-               l_int32  cmapflag)
+pixaConvertTo8(const PIXA  *pixas,
+               l_int32      cmapflag)
 {
 l_int32  i, n;
 BOXA    *boxa;
@@ -1828,8 +1828,8 @@ PIXA    *pixad;
  * </pre>
  */
 PIXA *
-pixaConvertTo8Colormap(PIXA    *pixas,
-                       l_int32  dither)
+pixaConvertTo8Colormap(const PIXA  *pixas,
+                       l_int32      dither)
 {
 l_int32  i, n;
 BOXA    *boxa;
@@ -1868,7 +1868,7 @@ PIXA    *pixad;
  * </pre>
  */
 PIXA *
-pixaConvertTo32(PIXA  *pixas)
+pixaConvertTo32(const PIXA  *pixas)
 {
 l_int32  i, n;
 BOXA    *boxa;
@@ -1919,12 +1919,12 @@ PIXA    *pixad;
  * </pre>
  */
 PIXA *
-pixaConstrainedSelect(PIXA    *pixas,
-                      l_int32  first,
-                      l_int32  last,
-                      l_int32  nmax,
-                      l_int32  use_pairs,
-                      l_int32  copyflag)
+pixaConstrainedSelect(const PIXA  *pixas,
+                      l_int32      first,
+                      l_int32      last,
+                      l_int32      nmax,
+                      l_int32      use_pairs,
+                      l_int32      copyflag)
 {
 l_int32  i, n, nselect, index;
 NUMA    *na;
@@ -1985,7 +1985,7 @@ PIXA    *pixad;
  * </pre>
  */
 l_ok
-pixaSelectToPdf(PIXA        *pixas,
+pixaSelectToPdf(const PIXA  *pixas,
                 l_int32      first,
                 l_int32      last,
                 l_int32      res,
@@ -2062,10 +2062,10 @@ PIXA    *pixa1, *pixa2;
  * </pre>
  */
 PIXA *
-pixaMakeFromTiledPixa(PIXA    *pixas,
-                      l_int32  w,
-                      l_int32  h,
-                      l_int32  nsamp)
+pixaMakeFromTiledPixa(const PIXA  *pixas,
+                      l_int32      w,
+                      l_int32      h,
+                      l_int32      nsamp)
 {
 char     buf[8];
 l_int32  ntiles, i;
@@ -2336,13 +2336,13 @@ PIXA    *pixa1, *pixa2, *pixad;
  * </pre>
  */
 l_ok
-pixaSplitIntoFiles(PIXA      *pixas,
-                   l_int32    nsplit,
-                   l_float32  scale,
-                   l_int32    outwidth,
-                   l_int32    write_pixa,
-                   l_int32    write_pix,
-                   l_int32    write_pdf)
+pixaSplitIntoFiles(const PIXA  *pixas,
+                   l_int32      nsplit,
+                   l_float32    scale,
+                   l_int32      outwidth,
+                   l_int32      write_pixa,
+                   l_int32      write_pix,
+                   l_int32      write_pdf)
 {
 char     buf[64];
 l_int32  i, j, index, n, nt;
@@ -2547,14 +2547,14 @@ SARRAY  *sa1, *sa2;
  * </pre>
  */
 PIXA *
-pixaConvertToNUpPixa(PIXA    *pixas,
-                     SARRAY  *sa,
-                     l_int32  nx,
-                     l_int32  ny,
-                     l_int32  tw,
-                     l_int32  spacing,
-                     l_int32  border,
-                     l_int32  fontsize)
+pixaConvertToNUpPixa(const PIXA  *pixas,
+                     SARRAY      *sa,
+                     l_int32      nx,
+                     l_int32      ny,
+                     l_int32      tw,
+                     l_int32      spacing,
+                     l_int32      border,
+                     l_int32      fontsize)
 {
 l_int32    i, j, k, nt, n2, nout, d;
 char      *str;
@@ -2658,8 +2658,8 @@ PIXA      *pixa1, *pixad;
  * </pre>
  */
 l_ok
-pixaCompareInPdf(PIXA        *pixa1,
-                 PIXA        *pixa2,
+pixaCompareInPdf(const PIXA  *pixa1,
+                 const PIXA  *pixa2,
                  l_int32      nx,
                  l_int32      ny,
                  l_int32      tw,

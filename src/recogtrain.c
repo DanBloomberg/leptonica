@@ -171,7 +171,7 @@ static l_int32 recogTemplatesAreOK(L_RECOG *recog, l_int32 minsize,
                                    l_float32 minfract, l_int32 *pok);
 static SARRAY *recogAddMissingClassStrings(L_RECOG  *recog);
 static l_int32 recogCharsetAvailable(l_int32 type);
-static PIX *pixDisplayOutliers(PIXA *pixas, NUMA *nas);
+static PIX *pixDisplayOutliers(const PIXA *pixas, NUMA *nas);
 static PIX *recogDisplayOutlier(L_RECOG *recog, l_int32 iclass, l_int32 jsamp,
                                 l_int32 maxclass, l_float32 maxscore);
 
@@ -649,11 +649,11 @@ PTA       *pta1;
  * </pre>
  */
 l_int32
-pixaAccumulateSamples(PIXA       *pixa,
-                      PTA        *pta,
-                      PIX       **ppixd,
-                      l_float32  *px,
-                      l_float32  *py)
+pixaAccumulateSamples(const PIXA  *pixa,
+                      PTA         *pta,
+                      PIX        **ppixd,
+                      l_float32   *px,
+                      l_float32   *py)
 {
 l_int32    i, n, maxw, maxh, xdiff, ydiff;
 l_int32   *centtab, *sumtab;
@@ -2167,8 +2167,8 @@ PIXA      *pixat, *pixadb;
  * </pre>
  */
 static PIX  *
-pixDisplayOutliers(PIXA  *pixas,
-                   NUMA  *nas)
+pixDisplayOutliers(const PIXA  *pixas,
+                   NUMA        *nas)
 {
 char      *text;
 char       buf[16];
@@ -2274,11 +2274,11 @@ PIXA  *pixa;
  * </pre>
  */
 l_ok
-recogShowMatchesInRange(L_RECOG   *recog,
-                        PIXA      *pixa,
-                        l_float32  minscore,
-                        l_float32  maxscore,
-                        l_int32    display)
+recogShowMatchesInRange(L_RECOG     *recog,
+                        const PIXA  *pixa,
+                        l_float32    minscore,
+                        l_float32    maxscore,
+                        l_int32      display)
 {
 l_int32    i, n, index, depth;
 l_float32  score;

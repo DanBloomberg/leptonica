@@ -81,7 +81,7 @@
  */
 l_ok
 pixaWriteWebPAnim(const char  *filename,
-                  PIXA        *pixa,
+                  const PIXA  *pixa,
                   l_int32      loopcount,
                   l_int32      duration,
                   l_int32      quality,
@@ -126,12 +126,12 @@ FILE    *fp;
  * </pre>
  */
 l_ok
-pixaWriteStreamWebPAnim(FILE    *fp,
-                        PIXA    *pixa,
-                        l_int32  loopcount,
-                        l_int32  duration,
-                        l_int32  quality,
-                        l_int32  lossless)
+pixaWriteStreamWebPAnim(FILE        *fp,
+                        const PIXA  *pixa,
+                        l_int32      loopcount,
+                        l_int32      duration,
+                        l_int32      quality,
+                        l_int32      lossless)
 {
 l_uint8  *filedata;
 size_t    filebytes, nbytes;
@@ -173,13 +173,13 @@ size_t    filebytes, nbytes;
  * </pre>
  */
 l_ok
-pixaWriteMemWebPAnim(l_uint8  **pencdata,
-                     size_t    *pencsize,
-                     PIXA      *pixa,
-                     l_int32    loopcount,
-                     l_int32    duration,
-                     l_int32    quality,
-                     l_int32    lossless)
+pixaWriteMemWebPAnim(l_uint8    **pencdata,
+                     size_t      *pencsize,
+                     const PIXA  *pixa,
+                     l_int32      loopcount,
+                     l_int32      duration,
+                     l_int32      quality,
+                     l_int32      lossless)
 {
 l_int32                 i, n, same, w, h, wpl, ret, ret_webp;
 l_uint8                *data;

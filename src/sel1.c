@@ -2122,8 +2122,8 @@ l_uint32  pixval;
  * </pre>
  */
 SELA *
-selaCreateFromColorPixa(PIXA    *pixa,
-                        SARRAY  *sa)
+selaCreateFromColorPixa(const PIXA  *pixa,
+                        SARRAY      *sa)
 {
 char    *str;
 l_int32  i, n;
