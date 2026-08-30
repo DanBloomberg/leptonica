@@ -2599,6 +2599,8 @@ l_float32  sum;
         }
     }
 
+    if (count == 0)
+        return 0.0;
     return sum / (l_float32)count;
 }
 

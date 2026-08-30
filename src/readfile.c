@@ -521,6 +521,9 @@ PIX     *pix;
 
     case IFF_JP2:
         ret = readHeaderJp2k(filename, &w, &h, &bps, &spp, NULL);
+        if (ret)
+            return ERROR_INT_1("jp2: no header info returned",
+                               filename, __func__, 1);
         break;
 
     case IFF_WEBP:
