@@ -1847,7 +1847,7 @@ l_int32  w, h, count;
  * \return  na of ON pixels in each pix, or NULL on error
  */
 NUMA *
-pixaCountPixels(PIXA  *pixa)
+pixaCountPixels(const PIXA  *pixa)
 {
 l_int32   d, i, n, count;
 l_int32  *tab;

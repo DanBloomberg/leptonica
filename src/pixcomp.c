@@ -714,9 +714,9 @@ PIXAC   *pixac;
  * </pre>
  */
 PIXAC *
-pixacompCreateFromPixa(PIXA    *pixa,
-                       l_int32  comptype,
-                       l_int32  accesstype)
+pixacompCreateFromPixa(const PIXA  *pixa,
+                       l_int32      comptype,
+                       l_int32      accesstype)
 {
 l_int32  i, n;
 BOXA    *boxa;

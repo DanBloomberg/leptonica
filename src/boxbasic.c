@@ -1377,7 +1377,7 @@ boxaaGetCount(const BOXAA  *baa)
  * \return  count number of boxes, or 0 if no boxes or on error
  */
 l_int32
-boxaaGetBoxCount(BOXAA  *baa)
+boxaaGetBoxCount(const BOXAA  *baa)
 {
 BOXA    *boxa;
 l_int32  n, sum, i;
@@ -2299,8 +2299,8 @@ FILE    *fp;
  * </pre>
  */
 l_ok
-boxPrintStreamInfo(FILE  *fp,
-                   BOX   *box)
+boxPrintStreamInfo(FILE       *fp,
+                   const BOX  *box)
 {
     if (!box)
         return ERROR_INT("box not defined", __func__, 1);

@@ -2131,9 +2131,9 @@ NUMA      *nascore, *naave1, *naave2, *nanum1, *nanum2;
  * </pre>
  */
 l_ok
-grayHistogramsToEMD(NUMAA  *naa1,
-                    NUMAA  *naa2,
-                    NUMA  **pnad)
+grayHistogramsToEMD(const NUMAA  *naa1,
+                    const NUMAA  *naa2,
+                    NUMA        **pnad)
 {
 l_int32     i, n, nt;
 l_float32   dist;
@@ -2284,12 +2284,12 @@ NUMA       *na3;
  * </pre>
  */
 l_ok
-grayInterHistogramStats(NUMAA   *naa,
-                        l_int32  wc,
-                        NUMA   **pnam,
-                        NUMA   **pnams,
-                        NUMA   **pnav,
-                        NUMA   **pnarv)
+grayInterHistogramStats(const NUMAA  *naa,
+                        l_int32       wc,
+                        NUMA        **pnam,
+                        NUMA        **pnams,
+                        NUMA        **pnav,
+                        NUMA        **pnarv)
 {
 l_int32      i, j, n, nn;
 l_float32  **arrays;

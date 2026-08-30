@@ -211,10 +211,10 @@ l_int32  n, i, x, y;
  * </pre>
  */
 l_ok
-ptaaJoin(PTAA    *ptaad,
-         PTAA    *ptaas,
-         l_int32  istart,
-         l_int32  iend)
+ptaaJoin(PTAA        *ptaad,
+         const PTAA  *ptaas,
+         l_int32      istart,
+         l_int32      iend)
 {
 l_int32  n, i;
 PTA     *pta;
@@ -2410,12 +2410,12 @@ l_uint32  rpixel, gpixel, bpixel;
  * </pre>
  */
 PIX *
-pixDisplayPtaaPattern(PIX      *pixd,
-                      PIX      *pixs,
-                      PTAA     *ptaa,
-                      PIX      *pixp,
-                      l_int32   cx,
-                      l_int32   cy)
+pixDisplayPtaaPattern(PIX         *pixd,
+                      PIX         *pixs,
+                      const PTAA  *ptaa,
+                      PIX         *pixp,
+                      l_int32      cx,
+                      l_int32      cy)
 {
 l_int32   i, n;
 l_uint32  color;
@@ -2584,8 +2584,8 @@ PTA     *ptat, *ptad;
  *                    in different colors, or NULL on error
  */
 PIX *
-pixDisplayPtaa(PIX   *pixs,
-               PTAA  *ptaa)
+pixDisplayPtaa(PIX         *pixs,
+               const PTAA  *ptaa)
 {
 l_int32    i, j, w, h, npta, npt, x, y, rv, gv, bv;
 l_uint32  *pixela;

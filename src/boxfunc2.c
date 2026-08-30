@@ -148,11 +148,11 @@ BOXA    *boxad;
  * </pre>
  */
 BOX *
-boxTransform(BOX       *box,
-             l_int32    shiftx,
-             l_int32    shifty,
-             l_float32  scalex,
-             l_float32  scaley)
+boxTransform(const BOX  *box,
+             l_int32     shiftx,
+             l_int32     shifty,
+             l_float32   scalex,
+             l_float32   scaley)
 {
     if (!box)
         return (BOX *)ERROR_PTR("box not defined", __func__, NULL);
@@ -288,15 +288,15 @@ BOXA    *boxad;
  * </pre>
  */
 BOX *
-boxTransformOrdered(BOX       *boxs,
-                    l_int32    shiftx,
-                    l_int32    shifty,
-                    l_float32  scalex,
-                    l_float32  scaley,
-                    l_int32    xcen,
-                    l_int32    ycen,
-                    l_float32  angle,
-                    l_int32    order)
+boxTransformOrdered(const BOX  *boxs,
+                    l_int32     shiftx,
+                    l_int32     shifty,
+                    l_float32   scalex,
+                    l_float32   scaley,
+                    l_int32     xcen,
+                    l_int32     ycen,
+                    l_float32   angle,
+                    l_int32     order)
 {
 l_int32    bx, by, bw, bh, tx, ty, tw, th;
 l_int32    xcent, ycent;  /* transformed center of rotation due to scaling */
@@ -1078,8 +1078,8 @@ NUMAA   *naa, *naa1, *naad;
  * \return  baa sorted boxaa, or NULL on error
  */
 BOXAA *
-boxaSort2dByIndex(BOXA   *boxas,
-                  NUMAA  *naa)
+boxaSort2dByIndex(BOXA         *boxas,
+                  const NUMAA  *naa)
 {
 l_int32  ntot, boxtot, i, j, n, nn, index;
 BOX     *box;
@@ -1528,11 +1528,11 @@ l_float32  sumw, sumh;
  * </pre>
  */
 l_ok
-boxaaGetExtent(BOXAA    *baa,
-               l_int32  *pw,
-               l_int32  *ph,
-               BOX     **pbox,
-               BOXA    **pboxa)
+boxaaGetExtent(const BOXAA  *baa,
+               l_int32      *pw,
+               l_int32      *ph,
+               BOX         **pbox,
+               BOXA        **pboxa)
 {
 l_int32  i, n, x, y, w, h, xmax, ymax, xmin, ymin, found;
 BOX     *box1;
@@ -1606,9 +1606,9 @@ BOXA    *boxa, *boxa1;
  * </pre>
  */
 BOXA *
-boxaaFlattenToBoxa(BOXAA   *baa,
-                   NUMA   **pnaindex,
-                   l_int32  copyflag)
+boxaaFlattenToBoxa(const BOXAA  *baa,
+                   NUMA        **pnaindex,
+                   l_int32       copyflag)
 {
 l_int32  i, j, m, n;
 BOXA    *boxa, *boxat;

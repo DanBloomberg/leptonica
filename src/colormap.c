@@ -1118,10 +1118,10 @@ RGBA_QUAD  *cta;
  * </pre>
  */
 l_ok
-pixcmapNonOpaqueColorsInfo(PIXCMAP  *cmap,
-                           l_int32  *pntrans,
-                           l_int32  *pmax_trans,
-                           l_int32  *pmin_opaque)
+pixcmapNonOpaqueColorsInfo(const PIXCMAP  *cmap,
+                           l_int32        *pntrans,
+                           l_int32        *pmax_trans,
+                           l_int32        *pmin_opaque)
 {
 l_int32     i, n, ntrans, max_trans, min_opaque, opaque_found;
 RGBA_QUAD  *cta;
@@ -1694,7 +1694,7 @@ PIXCMAP   *cmapd;
  * </pre>
  */
 PIXCMAP *
-pixcmapConvertTo4(PIXCMAP  *cmaps)
+pixcmapConvertTo4(const PIXCMAP  *cmaps)
 {
 l_int32   i, n, rval, gval, bval;
 PIXCMAP  *cmapd;
@@ -1727,7 +1727,7 @@ PIXCMAP  *cmapd;
  * </pre>
  */
 PIXCMAP *
-pixcmapConvertTo8(PIXCMAP  *cmaps)
+pixcmapConvertTo8(const PIXCMAP  *cmaps)
 {
 l_int32   i, n, depth, rval, gval, bval;
 PIXCMAP  *cmapd;

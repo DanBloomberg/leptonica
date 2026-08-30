@@ -727,10 +727,10 @@ GPLOT  *gplot;
  * </pre>
  */
 l_ok
-gplotSimpleN(NUMAA       *naa,
-             l_int32      outformat,
-             const char  *outroot,
-             const char  *title)
+gplotSimpleN(const NUMAA  *naa,
+             l_int32       outformat,
+             const char   *outroot,
+             const char   *title)
 {
 GPLOT  *gplot;
 
@@ -841,8 +841,8 @@ PIX            *pix;
  * </pre>
  */
 PIX *
-gplotSimplePixN(NUMAA       *naa,
-                const char  *title)
+gplotSimplePixN(const NUMAA  *naa,
+                const char   *title)
 {
 char            buf[64];
 static l_atomic index;
@@ -1003,12 +1003,12 @@ GPLOT  *gplot;
  * </pre>
  */
 GPLOT *
-gplotSimpleXYN(NUMA        *nax,
-               NUMAA       *naay,
-               l_int32      plotstyle,
-               l_int32      outformat,
-               const char  *outroot,
-               const char  *title)
+gplotSimpleXYN(NUMA         *nax,
+               const NUMAA  *naay,
+               l_int32       plotstyle,
+               l_int32       outformat,
+               const char   *outroot,
+               const char   *title)
 {
 l_int32  i, n;
 GPLOT   *gplot;
@@ -1155,13 +1155,13 @@ PIX   *pix;
  * </pre>
  */
 PIX *
-gplotGeneralPixN(NUMA        *nax,
-                 NUMAA       *naay,
-                 l_int32      plotstyle,
-                 const char  *rootname,
-                 const char  *title,
-                 const char  *xlabel,
-                 const char  *ylabel)
+gplotGeneralPixN(NUMA         *nax,
+                 const NUMAA  *naay,
+                 l_int32       plotstyle,
+                 const char   *rootname,
+                 const char   *title,
+                 const char   *xlabel,
+                 const char   *ylabel)
 {
 l_int32  i, n;
 GPLOT   *gplot;

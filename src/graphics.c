@@ -2354,11 +2354,11 @@ PTA     *pta;
  * </pre>
  */
 PIX  *
-pixRenderRandomCmapPtaa(PIX     *pix,
-                        PTAA    *ptaa,
-                        l_int32  polyflag,
-                        l_int32  width,
-                        l_int32  closeflag)
+pixRenderRandomCmapPtaa(PIX         *pix,
+                        const PTAA  *ptaa,
+                        l_int32      polyflag,
+                        l_int32      width,
+                        l_int32      closeflag)
 {
 l_int32   i, n, index, rval, gval, bval;
 PIXCMAP  *cmap;

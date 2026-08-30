@@ -118,7 +118,7 @@ l_ok convertToPSEmbed(const char *filein, const char *fileout, l_int32 level)
 
 /* ----------------------------------------------------------------------*/
 
-l_ok pixaWriteCompressedToPS(PIXA *pixa, const char *fileout,
+l_ok pixaWriteCompressedToPS(const PIXA *pixa, const char *fileout,
                              l_int32 res, l_int32 level)
 {
     return ERROR_INT("function not present", __func__, 1);

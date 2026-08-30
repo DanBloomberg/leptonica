@@ -698,10 +698,10 @@ PIXCMAP  *cmap;
  * </pre>
  */
 PIXA *
-pixaDisplayBoxaa(PIXA    *pixas,
-                 BOXAA   *baa,
-                 l_int32  colorflag,
-                 l_int32  width)
+pixaDisplayBoxaa(const PIXA  *pixas,
+                 BOXAA       *baa,
+                 l_int32      colorflag,
+                 l_int32      width)
 {
 l_int32    i, j, nba, n, nbox, rval, gval, bval;
 l_uint32   color;

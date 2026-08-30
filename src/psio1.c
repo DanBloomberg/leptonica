@@ -926,7 +926,7 @@ PIX     *pix, *pixs;
  * </pre>
  */
 l_ok
-pixaWriteCompressedToPS(PIXA        *pixa,
+pixaWriteCompressedToPS(const PIXA  *pixa,
                         const char  *fileout,
                         l_int32      res,
                         l_int32      level)

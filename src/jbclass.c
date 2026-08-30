@@ -524,10 +524,10 @@ PIXA  *pixas;
  * </pre>
  */
 l_ok
-jbAddPageComponents(JBCLASSER  *classer,
-                    PIX        *pixs,
-                    BOXA       *boxas,
-                    PIXA       *pixas)
+jbAddPageComponents(JBCLASSER   *classer,
+                    PIX         *pixs,
+                    BOXA        *boxas,
+                    const PIXA  *pixas)
 {
 l_int32  n;
 
@@ -582,9 +582,9 @@ l_int32  n;
  * \return  0 if OK; 1 on error
  */
 l_ok
-jbClassifyRankHaus(JBCLASSER  *classer,
-                   BOXA       *boxa,
-                   PIXA       *pixas)
+jbClassifyRankHaus(JBCLASSER   *classer,
+                   BOXA        *boxa,
+                   const PIXA  *pixas)
 {
 l_int32     n, nt, i, wt, ht, iclass, size, found, testval;
 l_int32     npages, area1, area3;
@@ -1020,9 +1020,9 @@ PIX     *pixt;
  * \return  0 if OK; 1 on error
  */
 l_ok
-jbClassifyCorrelation(JBCLASSER  *classer,
-                      BOXA       *boxa,
-                      PIXA       *pixas)
+jbClassifyCorrelation(JBCLASSER   *classer,
+                      BOXA        *boxa,
+                      const PIXA  *pixas)
 {
 l_int32     n, nt, i, iclass, wt, ht, found, area, area1, area2, npages,
             overthreshold;

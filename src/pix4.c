@@ -2989,10 +2989,10 @@ PIXCMAP   *cmap;
  * </pre>
  */
 PIX *
-pixaGetAlignedStats(PIXA     *pixa,
-                    l_int32   type,
-                    l_int32   nbins,
-                    l_int32   thresh)
+pixaGetAlignedStats(const PIXA  *pixa,
+                    l_int32      type,
+                    l_int32      nbins,
+                    l_int32      thresh)
 {
 l_int32     j, n, w, h, d;
 l_float32  *colvect;
@@ -3034,9 +3034,9 @@ PIX        *pixt, *pixd;
  * \return  0 if OK, 1 on error
  */
 l_ok
-pixaExtractColumnFromEachPix(PIXA    *pixa,
-                             l_int32  col,
-                             PIX     *pixd)
+pixaExtractColumnFromEachPix(const PIXA  *pixa,
+                             l_int32      col,
+                             PIX         *pixd)
 {
 l_int32    i, k, n, w, h, ht, val, wplt, wpld;
 l_uint32  *datad, *datat;

@@ -870,9 +870,9 @@ PIX        *pixt, *pixt1, *pixt2;
  * </pre>
  */
 l_ok
-recogIdentifyPixa(L_RECOG  *recog,
-                  PIXA     *pixa,
-                  PIX     **ppixdb)
+recogIdentifyPixa(L_RECOG     *recog,
+                  const PIXA  *pixa,
+                  PIX        **ppixdb)
 {
 char      *text;
 l_int32    i, n, fail, index, depth;
@@ -1729,11 +1729,11 @@ SARRAY    *satext, *sa = NULL, *saout;
  * </pre>
  */
 PIXA *
-showExtractNumbers(PIX     *pixs,
-                   SARRAY  *sa,
-                   BOXAA   *baa,
-                   NUMAA   *naa,
-                   PIX    **ppixdb)
+showExtractNumbers(PIX          *pixs,
+                   SARRAY       *sa,
+                   BOXAA        *baa,
+                   const NUMAA  *naa,
+                   PIX         **ppixdb)
 {
 char       buf[128];
 char      *textstr, *scorestr;

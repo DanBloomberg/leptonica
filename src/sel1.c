@@ -2122,8 +2122,8 @@ l_uint32  pixval;
  * </pre>
  */
 SELA *
-selaCreateFromColorPixa(PIXA    *pixa,
-                        SARRAY  *sa)
+selaCreateFromColorPixa(const PIXA  *pixa,
+                        SARRAY      *sa)
 {
 char    *str;
 l_int32  i, n;
@@ -2172,9 +2172,9 @@ SELA    *sela;
  * </pre>
  */
 PIX *
-selDisplayInPix(SEL     *sel,
-                l_int32  size,
-                l_int32  gthick)
+selDisplayInPix(const SEL  *sel,
+                l_int32     size,
+                l_int32     gthick)
 {
 l_int32  i, j, w, h, sx, sy, cx, cy, type, width;
 l_int32  radius1, radius2, shift1, shift2, x0, y0;

@@ -112,7 +112,7 @@ l_ok convertUnscaledToPdfData(const char *fname, const char *title,
 
 /* ----------------------------------------------------------------------*/
 
-l_ok pixaConvertToPdf(PIXA *pixa, l_int32 res, l_float32 scalefactor,
+l_ok pixaConvertToPdf(const PIXA *pixa, l_int32 res, l_float32 scalefactor,
                       l_int32 type, l_int32 quality,
                       const char *title, const char *fileout)
 {
@@ -121,7 +121,7 @@ l_ok pixaConvertToPdf(PIXA *pixa, l_int32 res, l_float32 scalefactor,
 
 /* ----------------------------------------------------------------------*/
 
-l_ok pixaConvertToPdfData(PIXA *pixa, l_int32 res, l_float32 scalefactor,
+l_ok pixaConvertToPdfData(const PIXA *pixa, l_int32 res, l_float32 scalefactor,
                           l_int32 type, l_int32 quality, const char *title,
                           l_uint8 **pdata, size_t *pnbytes)
 {

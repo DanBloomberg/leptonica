@@ -221,7 +221,7 @@ l_int32  i, len1, len2, len;
  * \return  set using a string hash into a uint64 as the key
  */
 L_ASET *
-l_asetCreateFromSarray(SARRAY  *sa)
+l_asetCreateFromSarray(const SARRAY  *sa)
 {
 char     *str;
 l_int32   i, n;
@@ -423,7 +423,7 @@ SARRAY   *sa_small, *sa_big, *sad;
  * \return      hmap   hashmap, or NULL on error
  */
 L_HASHMAP *
-l_hmapCreateFromSarray(SARRAY  *sa)
+l_hmapCreateFromSarray(const SARRAY  *sa)
 {
 l_int32      i, n;
 l_uint64     key;
