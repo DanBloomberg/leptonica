@@ -2526,7 +2526,7 @@ LEPT_DLL extern SEL * selCreateFromPix ( PIX *pix, l_int32 cy, l_int32 cx, const
 LEPT_DLL extern SEL * selReadFromColorImage ( const char *pathname );
 LEPT_DLL extern SEL * selCreateFromColorPix ( PIX *pixs, const char *selname );
 LEPT_DLL extern SELA * selaCreateFromColorPixa ( const PIXA *pixa, SARRAY *sa );
-LEPT_DLL extern PIX * selDisplayInPix ( SEL *sel, l_int32 size, l_int32 gthick );
+LEPT_DLL extern PIX * selDisplayInPix ( const SEL *sel, l_int32 size, l_int32 gthick );
 LEPT_DLL extern PIX * selaDisplayInPix ( SELA *sela, l_int32 size, l_int32 gthick, l_int32 spacing, l_int32 ncols );
 LEPT_DLL extern SELA * selaAddBasic ( SELA *sela );
 LEPT_DLL extern SELA * selaAddHitMiss ( SELA *sela );
