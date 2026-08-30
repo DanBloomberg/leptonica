@@ -961,8 +961,15 @@ l_int32  *ia1, *ia2, *iasx, *iasy, *index1, *index2;
     iasy = numaGetIArray(nasy);
     index1 = (l_int32 *)LEPT_CALLOC(n1, sizeof(l_int32));  /* watch rows */
     index2 = (l_int32 *)LEPT_CALLOC(n2, sizeof(l_int32));
-    if (!index1 || !index2)
+    if (!index1 || !index2) {
+        LEPT_FREE(ia1);
+        LEPT_FREE(ia2);
+        LEPT_FREE(iasx);
+        LEPT_FREE(iasy);
+        LEPT_FREE(index1);
+        LEPT_FREE(index2);
         return ERROR_INT("calloc fail for array", __func__, 1);
+    }
     for (i = 0; i < nm; i++) {
         if (*psame == 1)
             break;
