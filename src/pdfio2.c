@@ -1011,6 +1011,9 @@ L_COMP_DATA  *cid;
     if (!data)
         return (L_COMP_DATA *)ERROR_PTR("data not defined", __func__, NULL);
 
+    if (ascii85flag != 0 && ascii85flag != 1)
+        return (L_COMP_DATA *)ERROR_PTR("wrong ascii85flags", __func__, NULL);
+
         /* Read the metadata */
     if (readHeaderMemJpeg(data, nbytes, &w, &h, &spp, NULL, NULL)) {
         LEPT_FREE(data);
@@ -1020,7 +1023,7 @@ L_COMP_DATA  *cid;
     readResolutionMemJpeg(data, nbytes, &xres, &yres);
 
         /* Optionally, encode the compressed data */
-    if (ascii85flag == 1) {
+    if (ascii85flag) {
         data85 = encodeAscii85(data, nbytes, &nbytes85);
         LEPT_FREE(data);
         if (!data85)
@@ -1030,7 +1033,7 @@ L_COMP_DATA  *cid;
     }
 
     cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA));
-    if (ascii85flag == 0) {
+    if (!ascii85flag) {
         cid->datacomp = data;
     } else {  /* ascii85 */
         cid->data85 = data85;
@@ -1125,6 +1128,9 @@ FILE         *fp;
     if (!fname)
         return (L_COMP_DATA *)ERROR_PTR("fname not defined", __func__, NULL);
 
+    if (ascii85flag != 0 && ascii85flag != 1)
+        return (L_COMP_DATA *)ERROR_PTR("wrong ascii85flags", __func__, NULL);
+
         /* Make sure this is a single page tiff file */
     if ((fp = fopenReadStream(fname)) == NULL)
         return (L_COMP_DATA *)ERROR_PTR_1("stream not opened",
@@ -1153,7 +1159,7 @@ FILE         *fp;
     }
 
         /* Optionally, encode the compressed data */
-    if (ascii85flag == 1) {
+    if (ascii85flag) {
         data85 = encodeAscii85(datacomp, nbytescomp, &nbytes85);
         LEPT_FREE(datacomp);
         if (!data85)
@@ -1164,7 +1170,7 @@ FILE         *fp;
     }
 
     cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA));
-    if (ascii85flag == 0) {
+    if (!ascii85flag) {
         cid->datacomp = datacomp;
     } else {  /* ascii85 */
         cid->data85 = data85;
@@ -1363,6 +1369,9 @@ PIXCMAP      *cmap;
     if (!pixs)
         return (L_COMP_DATA *)ERROR_PTR("pixs not defined", __func__, NULL);
 
+    if (ascii85flag != 0 && ascii85flag != 1)
+        return (L_COMP_DATA *)ERROR_PTR("wrong ascii85flags", __func__, NULL);
+
         /* Convert the image to one of these 4 types:
          *     1 bpp
          *     8 bpp, no colormap
@@ -1417,7 +1426,7 @@ PIXCMAP      *cmap;
     }
 
         /* Optionally, encode the compressed data */
-    if (ascii85flag == 1) {
+    if (ascii85flag) {
         data85 = encodeAscii85(datacomp, nbytescomp, &nbytes85);
         LEPT_FREE(datacomp);
         if (!data85) {
@@ -1430,7 +1439,7 @@ PIXCMAP      *cmap;
     }
 
     cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA));
-    if (ascii85flag == 0) {
+    if (!ascii85flag) {
         cid->datacomp = datacomp;
     } else {  /* ascii85 */
         cid->data85 = data85;
