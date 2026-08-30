@@ -1200,9 +1200,9 @@ SARRAY  *saout;
  * </pre>
  */
 SARRAY *
-sarraySelectRange(SARRAY  *sain,
-                  l_int32  first,
-                  l_int32  last)
+sarraySelectRange(const SARRAY  *sain,
+                  l_int32        first,
+                  l_int32        last)
 {
 char    *str;
 l_int32  n, i;
