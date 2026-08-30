@@ -1600,11 +1600,13 @@ l_int64  pos, nbytes;
     pos = ftell(fp);          /* initial position */
     if (pos < 0)
         return ERROR_INT("seek position must be > 0", __func__, 0);
-    fseek(fp, 0, SEEK_END);   /* EOF */
+    if (fseek(fp, 0, SEEK_END) != 0)   /* EOF */
+        return ERROR_INT("fseek to end failed", __func__, 0);
     nbytes = ftell(fp);
+    if (fseek(fp, pos, SEEK_SET) != 0)  /* back to initial position */
+        return ERROR_INT("fseek to initial position failed", __func__, 0);
     if (nbytes < 0)
         return ERROR_INT("nbytes is < 0", __func__, 0);
-    fseek(fp, pos, SEEK_SET);        /* back to initial position */
     return nbytes;
 }
 
