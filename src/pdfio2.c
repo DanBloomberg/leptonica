@@ -966,6 +966,13 @@ FILE         *fp;
     }
 
     cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA));
+    if (!cid) {
+        if (ascii85flag)
+            LEPT_FREE(data85);
+        else
+            LEPT_FREE(data);
+        return (L_COMP_DATA *)ERROR_PTR("cid not made", __func__, NULL);
+    }
     if (!ascii85flag) {
         cid->datacomp = data;
     } else {  /* ascii85 */
@@ -1033,6 +1040,13 @@ L_COMP_DATA  *cid;
     }
 
     cid = (L_COMP_DATA *)LEPT_CALLOC(1, sizeof(L_COMP_DATA));
+    if (!cid) {
+        if (ascii85flag)
+            LEPT_FREE(data85);
+        else
+            LEPT_FREE(data);
+        return (L_COMP_DATA *)ERROR_PTR("cid not made", __func__, NULL);
+    }
     if (!ascii85flag) {
         cid->datacomp = data;
     } else {  /* ascii85 */
