@@ -50,6 +50,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	numaDestroy(&return_numa);
 	
 	box1 = boxCreate(150, 130, 1500, 355);
+	pix_pointer_payload = pixCopy(NULL, pixs_payload);
 	return_numa = pixAverageByRow(pix_pointer_payload, box1,
                                       L_WHITE_IS_MAX);
 	boxDestroy(&box1);
@@ -118,7 +119,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	pixDestroy(&return_pix);
 	
 	pix_pointer_payload = pixCopy(NULL, pixs_payload);
-	return_numa = pixVarianceByColumn(pix2, NULL);
+	return_numa = pixVarianceByColumn(pix_pointer_payload, NULL);
 	pixDestroy(&pix_pointer_payload);
 	numaDestroy(&return_numa);
 	
@@ -128,6 +129,7 @@ LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	numaDestroy(&return_numa);
 
 	box1 = boxCreate(150, 130, 1500, 355);
+	pix_pointer_payload = pixCopy(NULL, pixs_payload);
 	pixVarianceInRect(pix_pointer_payload, box1, &l_f);
 	boxDestroy(&box1);
 	pixDestroy(&pix_pointer_payload);
