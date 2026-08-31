@@ -563,6 +563,10 @@ l_uint8  *datain, *dataout;
         size = 1.0f - loc;
 
     datain = l_binaryRead(filein, &inbytes);
+    if (!datain || inbytes == 0) {
+        LEPT_FREE(datain);
+        return ERROR_INT("input file not read or empty", __func__, 1);
+    }
     locb = (l_int32)(loc * inbytes + 0.5);
     locb = L_MIN(locb, inbytes - 1);
     sizeb = (l_int32)(size * inbytes + 0.5);
@@ -625,6 +629,10 @@ l_uint8  *data;
         size = 1.0f - loc;
 
     data = l_binaryRead(filein, &bytes);
+    if (!data || bytes == 0) {
+        LEPT_FREE(data);
+        return ERROR_INT("input file not read or empty", __func__, 1);
+    }
     locb = (l_int32)(loc * bytes + 0.5);
     locb = L_MIN(locb, bytes - 1);
     sizeb = (l_int32)(size * bytes + 0.5);

@@ -651,6 +651,7 @@ PIXAC     *pixac1 = NULL;
                              quality, title, fileout);
         pixacompDestroy(&pixac1);
     }
+    numaDestroy(&na1);
     return 0;
 }
 

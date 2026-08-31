@@ -111,6 +111,7 @@ PIXA      *pixa;
     window = 5;
     norm = 1.0 / window;
     maxvar = 0.0;
+    ymax = 0;
     na1 = numaCreate(0);
     numaSetParameters(na1, ystart, 1);
     for (y = ystart; y <= yend; y++) {
