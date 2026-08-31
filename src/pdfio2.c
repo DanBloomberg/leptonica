@@ -1624,8 +1624,10 @@ l_int32      res, ret;
 l_float32    wpt, hpt;
 L_PDF_DATA  *lpd = NULL;
 
-    if (!pdata || !pnbytes)
+    if (!pdata || !pnbytes) {
+        l_CIDataDestroy(&cid);
         return ERROR_INT("&data and &nbytes not both defined", __func__, 1);
+    }
     *pdata = NULL;
     *pnbytes = 0;
     if (!cid)
@@ -1639,8 +1641,10 @@ L_PDF_DATA  *lpd = NULL;
     hpt = cid->h * 72.f / res;
 
         /* Set up the pdf data struct (lpd) */
-    if ((lpd = pdfdataCreate(title)) == NULL)
+    if ((lpd = pdfdataCreate(title)) == NULL) {
+        l_CIDataDestroy(&cid);
         return ERROR_INT("lpd not made", __func__, 1);
+    }
     ptraAdd(lpd->cida, cid);
     lpd->n++;
     ptaAddPt(lpd->xy, 0, 0);   /* xpt = ypt = 0 */
