@@ -2836,8 +2836,12 @@ l_int32  *tabval, *tab38, *tab14;
     tabval = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     tab38 = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     tab14 = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
-    if (!tabval || !tab38 || !tab14)
+    if (!tabval || !tab38 || !tab14) {
+        LEPT_FREE(tabval);
+        LEPT_FREE(tab38);
+        LEPT_FREE(tab14);
         return ERROR_INT("calloc failure to make small table", __func__, 1);
+    }
     *ptabval = tabval;
     *ptab38 = tab38;
     *ptab14 = tab14;

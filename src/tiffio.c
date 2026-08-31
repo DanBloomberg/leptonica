@@ -271,10 +271,15 @@ lept_seek_proc(thandle_t  cookie,
         break;
     case SEEK_CUR:
         pos = ftell(fp);
+        if (pos < 0)
+            return (tsize_t)-1;
         break;
     case SEEK_END:
-        _fseeki64(fp, 0, SEEK_END);
+        if (_fseeki64(fp, 0, SEEK_END) != 0)
+            return (tsize_t)-1;
         pos = _ftelli64(fp);
+        if (pos < 0)
+            return (tsize_t)-1;
         break;
     }
     pos = (__int64)(pos + offs);
@@ -291,10 +296,15 @@ lept_seek_proc(thandle_t  cookie,
         break;
     case SEEK_CUR:
         pos = ftello(fp);
+        if (pos < 0)
+            return (tsize_t)-1;
         break;
     case SEEK_END:
-        fseeko(fp, 0, SEEK_END);
+        if (fseeko(fp, 0, SEEK_END) != 0)
+            return (tsize_t)-1;
         pos = ftello(fp);
+        if (pos < 0)
+            return (tsize_t)-1;
         break;
     }
     pos = (off64_t)(pos + offs);
@@ -311,10 +321,15 @@ lept_seek_proc(thandle_t  cookie,
         break;
     case SEEK_CUR:
         pos = ftell(fp);
+        if (pos < 0)
+            return (tsize_t)-1;
         break;
     case SEEK_END:
-        fseek(fp, 0, SEEK_END);
+        if (fseek(fp, 0, SEEK_END) != 0)
+            return (tsize_t)-1;
         pos = ftell(fp);
+        if (pos < 0)
+            return (tsize_t)-1;
         break;
     }
     pos = (off_t)(pos + offs);
@@ -343,29 +358,41 @@ lept_size_proc(thandle_t  cookie)
     __int64 pos;
     __int64 size;
     if (!cookie || !fp)
-        return (tsize_t)-1;
+        return (toff_t)-1;
     pos = _ftelli64(fp);
-    _fseeki64(fp, 0, SEEK_END);
+    if (pos < 0 || _fseeki64(fp, 0, SEEK_END) != 0)
+        return (toff_t)-1;
     size = _ftelli64(fp);
-    _fseeki64(fp, pos, SEEK_SET);
+    if (_fseeki64(fp, pos, SEEK_SET) != 0)
+        return (toff_t)-1;
+    if (size < 0)
+        return (toff_t)-1;
 #elif defined(_LARGEFILE64_SOURCE)
     off64_t pos;
     off64_t size;
     if (!fp)
-        return (tsize_t)-1;
+        return (toff_t)-1;
     pos = ftello(fp);
-    fseeko(fp, 0, SEEK_END);
+    if (pos < 0 || fseeko(fp, 0, SEEK_END) != 0)
+        return (toff_t)-1;
     size = ftello(fp);
-    fseeko(fp, pos, SEEK_SET);
+    if (fseeko(fp, pos, SEEK_SET) != 0)
+        return (toff_t)-1;
+    if (size < 0)
+        return (toff_t)-1;
 #else
     off_t pos;
     off_t size;
     if (!cookie || !fp)
-        return (tsize_t)-1;
+        return (toff_t)-1;
     pos = ftell(fp);
-    fseek(fp, 0, SEEK_END);
+    if (pos < 0 || fseek(fp, 0, SEEK_END) != 0)
+        return (toff_t)-1;
     size = ftell(fp);
-    fseek(fp, pos, SEEK_SET);
+    if (fseek(fp, pos, SEEK_SET) != 0)
+        return (toff_t)-1;
+    if (size < 0)
+        return (toff_t)-1;
 #endif
     return (toff_t)size;
 }

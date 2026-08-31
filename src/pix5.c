@@ -2524,7 +2524,7 @@ PTA       *pta;
  * \param[in]    x1, y1   starting pt for line
  * \param[in]    x2, y2   end pt for line
  * \param[in]    factor   sampling; >= 1
- * \return  average of pixel values along line, or NULL on error.
+ * \return  average of pixel values along line, or 0.0 on error.
  *
  * <pre>
  * Notes:
@@ -2534,6 +2534,8 @@ PTA       *pta;
  *          If vertical, y1 must be <= y2.
  *          characterize the intensity smoothness along a line.
  *      (3) Input end points are clipped to the pix.
+ *      (4) If the clipped line lies entirely outside the image, no
+ *          pixels are sampled and 0.0 is returned.
  * </pre>
  */
 l_float32
@@ -2549,14 +2551,14 @@ l_uint32  *data, *line;
 l_float32  sum;
 
     if (!pixs)
-        return ERROR_INT("pixs not defined", __func__, 1);
+        return ERROR_FLOAT("pixs not defined", __func__, 0.0);
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1 && d != 8)
-        return ERROR_INT("d not 1 or 8 bpp", __func__, 1);
+        return ERROR_FLOAT("d not 1 or 8 bpp", __func__, 0.0);
     if (pixGetColormap(pixs))
-        return ERROR_INT("pixs has a colormap", __func__, 1);
+        return ERROR_FLOAT("pixs has a colormap", __func__, 0.0);
     if (x1 > x2 || y1 > y2)
-        return ERROR_INT("x1 > x2 or y1 > y2", __func__, 1);
+        return ERROR_FLOAT("x1 > x2 or y1 > y2", __func__, 0.0);
 
     if (y1 == y2) {
         x1 = L_MAX(0, x1);
@@ -2569,7 +2571,7 @@ l_float32  sum;
         x1 = L_MAX(0, L_MIN(x1, w - 1));
         direction = L_VERTICAL_LINE;
     } else {
-        return ERROR_INT("line neither horiz nor vert", __func__, 1);
+        return ERROR_FLOAT("line neither horiz nor vert", __func__, 0.0);
     }
 
     if (factor < 1) {
@@ -2599,6 +2601,8 @@ l_float32  sum;
         }
     }
 
+    if (count == 0)
+        return 0.0;
     return sum / (l_float32)count;
 }
 

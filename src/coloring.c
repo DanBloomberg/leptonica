@@ -702,8 +702,12 @@ l_uint32  *line, *data;
     rtab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     gtab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     btab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
-    if (!rtab || !gtab || !btab)
+    if (!rtab || !gtab || !btab) {
+        LEPT_FREE(rtab);
+        LEPT_FREE(gtab);
+        LEPT_FREE(btab);
         return (PIX *)ERROR_PTR("calloc fail for tab", __func__, pixd);
+    }
     for (i = 0; i < 256; i++) {
         if (i <= rsval)
             rtab[i] = (i * rdval) / rsval;
