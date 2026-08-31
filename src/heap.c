@@ -481,9 +481,9 @@ l_float32  valp, valcl, valcr;
   ip = 1;  /* index into top of heap: corresponds to array[0] */
   if (lh->direction == L_SORT_INCREASING) {
       while (1) {
-          icl = 2 * ip;
-          if (icl > lh->n)
+          if (ip > lh->n / 2)
              break;
+          icl = 2 * ip;
           valp = *(l_float32 *)(lh->array[ip - 1]);
           valcl = *(l_float32 *)(lh->array[icl - 1]);
           icr = icl + 1;
@@ -506,9 +506,9 @@ l_float32  valp, valcl, valcr;
       }
   } else {  /* lh->direction == L_SORT_DECREASING */
       while (1) {
-          icl = 2 * ip;
-          if (icl > lh->n)
+          if (ip > lh->n / 2)
              break;
+          icl = 2 * ip;
           valp = *(l_float32 *)(lh->array[ip - 1]);
           valcl = *(l_float32 *)(lh->array[icl - 1]);
           icr = icl + 1;
