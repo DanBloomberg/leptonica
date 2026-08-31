@@ -128,6 +128,10 @@
 static const size_t  MaxPtrArraySize = 100000;
 static const size_t  InitialPtrArraySize = 20;      /*!< n'importe quoi */
 
+    /* Max dimensions allowed when reading from file */
+static const l_int32  MaxAllowedWidth = 1000000;
+static const l_int32  MaxAllowedHeight = 1000000;
+
     /* Static functions */
 static l_int32 fpixaExtendArray(FPIXA *fpixa);
 static l_int32 fpixaExtendArrayToSize(FPIXA *fpixa, l_int32 size);
@@ -1411,7 +1415,8 @@ FPIX       *fpix;
         return (FPIX *)ERROR_PTR("invalid fpix version", __func__, NULL);
     if (fscanf(fp, "w = %d, h = %d, nbytes = %d\n", &w, &h, &nbytes) != 3)
         return (FPIX *)ERROR_PTR("read fail for data size", __func__, NULL);
-    if (w <= 0 || h <= 0 || nbytes < 0)
+    if (w <= 0 || h <= 0 || w > MaxAllowedWidth || h > MaxAllowedHeight ||
+        nbytes < 0)
         return (FPIX *)ERROR_PTR("invalid fpix data size", __func__, NULL);
     expected = (l_uint64)w * (l_uint64)h * sizeof(l_float32);
     if (expected != (l_uint64)nbytes) {
@@ -1710,7 +1715,8 @@ DPIX       *dpix;
         return (DPIX *)ERROR_PTR("invalid dpix version", __func__, NULL);
     if (fscanf(fp, "w = %d, h = %d, nbytes = %d\n", &w, &h, &nbytes) != 3)
         return (DPIX *)ERROR_PTR("read fail for data size", __func__, NULL);
-    if (w <= 0 || h <= 0 || nbytes < 0)
+    if (w <= 0 || h <= 0 || w > MaxAllowedWidth || h > MaxAllowedHeight ||
+        nbytes < 0)
         return (DPIX *)ERROR_PTR("invalid dpix data size", __func__, NULL);
     expected = (l_uint64)w * (l_uint64)h * sizeof(l_float64);
     if (expected != (l_uint64)nbytes) {
