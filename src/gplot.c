@@ -1258,7 +1258,7 @@ GPLOT   *gplot;
     sarrayDestroy(&gplot->plotlabels);
     numaDestroy(&gplot->plotstyles);
 
-    ignore = fscanf(fp, "Commandfile name: %s\n", buf);  /* Bufsize - 1 */
+    ignore = fscanf(fp, "Commandfile name: %511s\n", buf);  /* Bufsize - 1 */
     stringReplace(&gplot->cmdname, buf);
     ignore = fscanf(fp, "\nCommandfile data:");
     gplot->cmddata = sarrayReadStream(fp);
@@ -1272,7 +1272,7 @@ GPLOT   *gplot;
     gplot->plotstyles = numaReadStream(fp);
 
     ignore = fscanf(fp, "Number of plots: %d\n", &gplot->nplots);
-    ignore = fscanf(fp, "Output file name: %s\n", buf);
+    ignore = fscanf(fp, "Output file name: %511s\n", buf);  /* Bufsize - 1 */
     stringReplace(&gplot->outname, buf);
     ignore = fscanf(fp, "Axis scaling: %d\n", &gplot->scaling);
 
