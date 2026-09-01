@@ -86,7 +86,10 @@
  *    The pdf output is written to %fileout.  It is advisable (but not
  *    required) to have a '.pdf' extension.
  *
- *    Whenever possible, the images will be deskewed.
+ *    Whenever possible, the images will be deskewed.  We are now using
+ *    adaptive skew finding, so it should do as well as possible.
+ *    If there are any pages that are still significantly skewed, you
+ *    can run the output through cleanpdf again.
  *
  *    As the first step in processing, images are saved in the directory
  *    /tmp/lept/renderpdf/, as RGB at 300 ppi in ppm format.  Each image

@@ -62,7 +62,7 @@ libleptonica_la_SOURCES = adaptmap.c affine.c                        \
  strokes.c sudoku.c textops.c                                   \
  tiffio.c tiffiostub.c                                          \
  utils1.c utils2.c warper.c watershed.c                         \
- webpio.c webpiostub.c webpanimio.c webpanimiostub.c            \
+ webpanimio.c webpanimiostub.c webpio.c webpiostub.c            \
  writefile.c zlibmem.c zlibmemstub.c
 
 pkginclude_HEADERS = allheaders.h alltypes.h                    \

@@ -36,8 +36,7 @@
  *    (page, rotation).
  *
  *    Syntax:
- *       rotateorthpdf filein imres rotstring scalefactor quality
- *                     title fileout
+ *       rotateorthpdf filein rotstring scalefactor quality title fileout
  *
  *    The %rotstring flag determines which, if any, images are rotated cw by
  *    multiples of 90 degrees.  There are 3 modes, and here are examples:
