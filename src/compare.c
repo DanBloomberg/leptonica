@@ -776,9 +776,17 @@ PIXCMAP  *cmap;
 
     pixt = pixAnd(NULL, pix1, pix2);
     pixPaintThroughMask(pixd, pixt, 0, 0, 0x0);  /* black */
-    pixSubtract(pixt, pix1, pix2);
+    if ((pixt = pixSubtract(pixt, pix1, pix2)) == NULL) {
+        pixDestroy(&pixd);
+        pixDestroy(&pixt);
+        return (PIX *)ERROR_PTR("pixSubtract failed", __func__, NULL);
+    }
     pixPaintThroughMask(pixd, pixt, 0, 0, 0xff000000);  /* red */
-    pixSubtract(pixt, pix2, pix1);
+    if ((pixt = pixSubtract(pixt, pix2, pix1)) == NULL) {
+        pixDestroy(&pixd);
+        pixDestroy(&pixt);
+        return (PIX *)ERROR_PTR("pixSubtract failed", __func__, NULL);
+    }
     pixPaintThroughMask(pixd, pixt, 0, 0, 0x00ff0000);  /* green */
     pixDestroy(&pixt);
     return pixd;
