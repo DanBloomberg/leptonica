@@ -1003,6 +1003,9 @@ FILE         *fp;
  *      (1) Set ascii85flag:
  *           ~ 0 for binary data (PDF only)
  *           ~ 1 for ascii85 (5 for 4) encoded binary data (PostScript only)
+ *      (2) The caller transfers ownership of %data to the returned
+ *          cid (via cid->datacomp or cid->data85).  If this function
+ *          fails, %data is freed before returning NULL.
  * </pre>
  */
 L_COMP_DATA *
@@ -1018,8 +1021,10 @@ L_COMP_DATA  *cid;
     if (!data)
         return (L_COMP_DATA *)ERROR_PTR("data not defined", __func__, NULL);
 
-    if (ascii85flag != 0 && ascii85flag != 1)
+    if (ascii85flag != 0 && ascii85flag != 1) {
+        LEPT_FREE(data);
         return (L_COMP_DATA *)ERROR_PTR("wrong ascii85flags", __func__, NULL);
+    }
 
         /* Read the metadata */
     if (readHeaderMemJpeg(data, nbytes, &w, &h, &spp, NULL, NULL)) {

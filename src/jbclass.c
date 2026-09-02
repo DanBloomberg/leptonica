@@ -2542,7 +2542,11 @@ BOX     *box;
     mincount = 0x7fffffff;
     for (i = -1; i <= 1; i++) {
         for (j = -1; j <= 1; j++) {
-            pixCopy(pixr, pixi);
+            if (pixCopy(pixr, pixi) == NULL) {
+                pixDestroy(&pixi);
+                pixDestroy(&pixr);
+                return ERROR_INT("pixCopy failed", __func__, 1);
+            }
             pixRasterop(pixr, j, i, w, h, PIX_SRC ^ PIX_DST, pixt, 0, 0);
             pixCountPixels(pixr, &count, sumtab);
             if (count < mincount) {

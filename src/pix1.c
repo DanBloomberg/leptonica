@@ -1609,15 +1609,10 @@ l_int32  valid;
 l_ok
 pixDestroyColormap(PIX  *pix)
 {
-PIXCMAP  *cmap;
-
     if (!pix)
         return ERROR_INT("pix not defined", __func__, 1);
 
-    if ((cmap = pix->colormap) != NULL) {
-        pixcmapDestroy(&cmap);
-        pix->colormap = NULL;
-    }
+    pixcmapDestroy(&pix->colormap);
     return 0;
 }
 
