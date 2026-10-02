@@ -267,8 +267,8 @@ PIX     *pix;
         return (PIX *)ERROR_PTR("data not read", __func__, NULL);
 
     pix = pixReadMemJp2k(data, size, reduction, box, hint, debug);
-
     LEPT_FREE(data);
+    if (!pix) L_ERROR("pix not read\n", __func__);
     return pix;
 }
 
@@ -282,7 +282,7 @@ pixReadMemJp2kCore(const l_uint8  *bytes,
                    l_int32         debug)
 {
 const char        *opjVersion;
-l_int32            i, j, index, bx, by, bw, bh, val, rval, gval, bval, aval;
+l_int32            i, j, k, index, bx, by, bw, bh, val, rval, gval, bval, aval;
 l_int32            w, h, wpl, bps, spp, xres, yres, reduce, prec, colorspace;
 l_int32            codec;  /* L_J2K_CODEC or L_JP2_CODEC */
 l_uint32           pixel;
@@ -422,6 +422,16 @@ OpjBuffer          buffer;
             L_INFO("colorspace is YUV\n", __func__);
     }
 
+        /* Check the dimensions of each component.
+         * Do not generate a pix if there is any subsampling. */
+    for (k = 1; k < spp; k++) {
+        if (image->comps[k].w != w || image->comps[k].h != h) {
+            opj_image_destroy(image);
+            return (PIX *)ERROR_PTR("jp2k components have unequal sizes",
+                                    __func__, NULL);
+        }
+    }
+    
         /* Convert the image to a pix */
     if (spp == 1)
         pix = pixCreate(w, h, 8);
