@@ -1299,7 +1299,6 @@ SELA    *sela;
 
     if ((sela = selaCreate(n)) == NULL)
         return (SELA *)ERROR_PTR("sela not made", __func__, NULL);
-    sela->nalloc = n;
 
     for (i = 0; i < n; i++) {
         if ((sel = selReadStream(fp)) == NULL) {
