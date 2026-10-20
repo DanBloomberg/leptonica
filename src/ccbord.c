@@ -2407,6 +2407,10 @@ NUMAA    *step;
     LEPT_FREE(datain);
     if (!dataout)
         return (CCBORDA *)ERROR_PTR("dataout not made", __func__, NULL);
+    if (outbytes < 26) {
+        LEPT_FREE(dataout);
+        return (CCBORDA *)ERROR_PTR("dataout too small", __func__, NULL);
+    }
 
     offset = 18;
     memcpy(strbuf, dataout, offset);
@@ -2415,7 +2419,10 @@ NUMAA    *step;
         LEPT_FREE(dataout);
         return (CCBORDA *)ERROR_PTR("file not type ccba", __func__, NULL);
     }
-    sscanf(strbuf, "ccba: %7d cc\n", &ncc);
+    if (sscanf(strbuf, "ccba: %7d cc\n", &ncc) != 1 || ncc < 0) {
+        LEPT_FREE(dataout);
+        return (CCBORDA *)ERROR_PTR("invalid ncc", __func__, NULL);
+    }
 /*    lept_stderr("ncc = %d\n", ncc); */
     if ((ccba = ccbaCreate(NULL, ncc)) == NULL) {
         LEPT_FREE(dataout);
@@ -2434,6 +2441,8 @@ NUMAA    *step;
         ccb = ccbCreate(NULL);
         ccbaAddCcb(ccba, ccb);
 
+        if (offset + 20 > outbytes)
+            goto cleanup_truncated;
         memcpy(&xoff, dataout + offset, 4);
         offset += 4;
         memcpy(&yoff, dataout + offset, 4);
@@ -2454,6 +2463,8 @@ NUMAA    *step;
         ccb->step = step;
 
         for (j = 0; j < nb; j++) {  /* should be nb */
+            if (offset + 8 > outbytes)
+                goto cleanup_truncated;
             memcpy(&startx, dataout + offset, 4);
             offset += 4;
             memcpy(&starty, dataout + offset, 4);
@@ -2464,6 +2475,8 @@ NUMAA    *step;
             numaaAddNuma(step, na, L_INSERT);
 
             while(1) {
+                if (offset >= outbytes)
+                    goto cleanup_truncated;
                 bval = *(dataout + offset);
                 offset++;
                 nib1 = (bval >> 4);
@@ -2481,6 +2494,11 @@ NUMAA    *step;
     }
     LEPT_FREE(dataout);
     return ccba;
+
+cleanup_truncated:
+    LEPT_FREE(dataout);
+    ccbaDestroy(&ccba);
+    return (CCBORDA *)ERROR_PTR("data truncated", __func__, NULL);
 
 #endif  /* !HAVE_LIBZ */
 }
