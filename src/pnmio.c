@@ -325,8 +325,10 @@ l_int32  ch;
         }
     } else {
 
-        if (fscanf(fp, "%d %d\n", &w, &h) != 2)
-            return ERROR_INT("invalid read for w,h", __func__, 1);
+        if (pnmReadNextNumber(fp, &w))
+            return ERROR_INT("invalid read for w", __func__, 1);
+        if (pnmReadNextNumber(fp, &h))
+            return ERROR_INT("invalid read for h", __func__, 1);
         if (w <= 0 || h <= 0 || w > MAX_PNM_WIDTH || h > MAX_PNM_HEIGHT) {
             L_INFO("invalid size: w = %d, h = %d\n", __func__, w, h);
             return 1;
