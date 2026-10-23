@@ -1206,7 +1206,7 @@ GPLOT *
 gplotRead(const char  *filename)
 {
 char     buf[Bufsize];
-char    *rootname, *title, *xlabel, *ylabel, *ignores;
+char    *rootname, *title, *xlabel, *ylabel;
 l_int32  outformat, ret, version, ignore;
 FILE    *fp;
 GPLOT   *gplot;
@@ -1230,18 +1230,38 @@ GPLOT   *gplot;
                                     filename, __func__, NULL);
     }
 
-    ignore = fscanf(fp, "Rootname: %511s\n", buf);  /* Bufsize - 1 */
+    if (fscanf(fp, "Rootname: %511s\n", buf) != 1) {  /* Bufsize - 1 */
+        fclose(fp);
+        return (GPLOT *)ERROR_PTR_1("rootname not read",
+                                    filename, __func__, NULL);
+    }
     rootname = stringNew(buf);
     ignore = fscanf(fp, "Output format: %d\n", &outformat);
-    ignores = fgets(buf, Bufsize, fp);   /* Title: ... */
-    title = stringNew(buf + 7);
-    title[strlen(title) - 1] = '\0';
-    ignores = fgets(buf, Bufsize, fp);   /* X axis label: ... */
-    xlabel = stringNew(buf + 14);
-    xlabel[strlen(xlabel) - 1] = '\0';
-    ignores = fgets(buf, Bufsize, fp);   /* Y axis label: ... */
-    ylabel = stringNew(buf + 14);
-    ylabel[strlen(ylabel) - 1] = '\0';
+
+        /* Each label line must be long enough to hold its prefix
+         * and the trailing newline that is removed below */
+    title = xlabel = ylabel = NULL;
+    if (fgets(buf, Bufsize, fp) && strlen(buf) > 7) {  /* Title: ... */
+        title = stringNew(buf + 7);
+        title[strlen(title) - 1] = '\0';
+    }
+    if (fgets(buf, Bufsize, fp) && strlen(buf) > 14) {  /* X axis label: */
+        xlabel = stringNew(buf + 14);
+        xlabel[strlen(xlabel) - 1] = '\0';
+    }
+    if (fgets(buf, Bufsize, fp) && strlen(buf) > 14) {  /* Y axis label: */
+        ylabel = stringNew(buf + 14);
+        ylabel[strlen(ylabel) - 1] = '\0';
+    }
+    if (!title || !xlabel || !ylabel) {
+        LEPT_FREE(rootname);
+        LEPT_FREE(title);
+        LEPT_FREE(xlabel);
+        LEPT_FREE(ylabel);
+        fclose(fp);
+        return (GPLOT *)ERROR_PTR_1("labels not read",
+                                    filename, __func__, NULL);
+    }
 
     gplot = gplotCreate(rootname, outformat, title, xlabel, ylabel);
     LEPT_FREE(rootname);
