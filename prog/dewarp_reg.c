@@ -37,7 +37,24 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include <string.h>
 #include "allheaders.h"
+
+    /* Serialized dewarpa with maxpage = INT_MAX */
+static const char *bad_dewarpa = {"\nDewarpa Version 4\n"
+    "ndewarp = 1, maxpage = 2147483647\n"
+    "sampling = 30, redfactor = 1, minlines = 15, maxdist = 5\n"
+    "max_linecurv = 180, min_diff_linecurv = 0, max_diff_linecurv = 200\n"
+    "max_edgeslope = 80, max_edgecurv = 50, max_diff_edgecurv = 40\n"
+    "fullmodel = 0\n"
+    "\nDewarp Version 4\n"
+    "pageno = 0\n"
+    "hasref = 0, refpage = 0\n"
+    "sampling = 30, redfactor = 1\n"
+    "nlines = 0, minlines = 15\n"
+    "w = 100, h = 100\n"
+    "nx = 5, ny = 5\n"
+    "vert_dispar = 0, horiz_dispar = 0\n\n"};
 
 l_int32 main(int    argc,
              char **argv)
@@ -45,7 +62,7 @@ l_int32 main(int    argc,
 l_int32       i, n;
 l_float32     a, b, c;
 L_DEWARP     *dew1, *dew2;
-L_DEWARPA    *dewa1, *dewa2;
+L_DEWARPA    *dewa1, *dewa2, *dewa3;
 DPIX         *dpix1, *dpix2, *dpix3;
 FPIX         *fpix1, *fpix2, *fpix3;
 NUMA         *nax, *nafit;
@@ -200,6 +217,11 @@ L_REGPARAMS  *rp;
     fpixDestroy(&fpix3);
     pixDestroy(&pix1);
     pixDestroy(&pixt1);
+
+        /* A dewarpa with an invalid maxpage must be rejected */
+    dewa3 = dewarpaReadMem((const l_uint8 *)bad_dewarpa, strlen(bad_dewarpa));
+    regTestCompareValues(rp, 1, (dewa3 == NULL), 0);  /* 21 */
+    dewarpaDestroy(&dewa3);
 
     dewarpaDestroy(&dewa1);
     dewarpaDestroy(&dewa2);
