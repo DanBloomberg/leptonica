@@ -1363,7 +1363,8 @@ SEL     *sel;
 
     if (fgets(linebuf, sizeof(linebuf), fp) == NULL)
         return (SEL *)ERROR_PTR("error reading into linebuf", __func__, NULL);
-    sscanf(linebuf, "  ------  %200s  ------", selname);
+    if (sscanf(linebuf, "  ------  %200s  ------", selname) != 1)
+        return (SEL *)ERROR_PTR("sel name not read", __func__, NULL);
 
     if (fscanf(fp, "  sy = %d, sx = %d, cy = %d, cx = %d\n",
                &sy, &sx, &cy, &cx) != 4)

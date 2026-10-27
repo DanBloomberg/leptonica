@@ -68,6 +68,16 @@ l_ok cleanTo1bppFilesToPdf(SARRAY *sa, l_int32 res, l_int32 contrast,
     return ERROR_INT("function not present", __func__, 1);
 }
 
+/* ----------------------------------------------------------------------*/
+
+l_ok rotateorthFilesToPdf(SARRAY *sa, const char *rotstring,
+                          l_float32 scalefactor, l_int32 quality,
+                          const char *title, const char *fileout)
+{
+    return ERROR_INT("function not present", __func__, 1);
+}
+
+
 /* --------------------------------------------*/
 #endif  /* !USE_PDFIO */
 /* --------------------------------------------*/
