@@ -628,6 +628,16 @@ NUMA     *na;
         pixrc = pixCloseSafeBrick(NULL, pixr, 1, 35);
         boxac = pixConnComp(pixrc, NULL, 8);
         boxacs = boxaSort(boxac, L_SORT_BY_X, L_SORT_INCREASING, NULL);
+        if (!boxacs || boxaGetCount(boxacs) < 3) {
+             pixDestroy(&pixr);
+             pixDestroy(&pixrc);
+             boxaDestroy(&boxac);
+             boxaDestroy(&boxacs);
+             pixaDestroy(&pixa);
+             boxaDestroy(&boxar);
+             LEPT_FREE(tab);
+             return (PIXA *)ERROR_PTR("chars in row not found", __func__, NULL);
+        }
         if (i == 0) {  /* consolidate the two components of '"' */
             box1 = boxaGetBox(boxacs, 1, L_CLONE);
             box2 = boxaGetBox(boxacs, 2, L_CLONE);
@@ -662,26 +672,38 @@ NUMA     *na;
     LEPT_FREE(tab);
 
     nchars = pixaGetCount(pixa);
-    if (nchars != 95)
+    if (nchars != 95) {
+        pixaDestroy(&pixa);
+        boxaDestroy(&boxar);
         return (PIXA *)ERROR_PTR("95 chars not generated", __func__, NULL);
+    }
 
     *pbl0 = baseline[0];
     *pbl1 = baseline[1];
     *pbl2 = baseline[2];
 
-        /* Fix the space character up; it should have no ON pixels,
+        /* Fix the space character. It should have no ON pixels,
          * and be about twice as wide as the '!' character.    */
     pix1 = pixaGetPix(pixa, 0, L_CLONE);
     width = 2 * pixGetWidth(pix1);
     height = pixGetHeight(pix1);
     pixDestroy(&pix1);
-    pix1 = pixCreate(width, height, 1);
+    if ((pix1 = pixCreate(width, height, 1)) == NULL) {
+        pixaDestroy(&pixa);
+        boxaDestroy(&boxar);
+        return (PIXA *)ERROR_PTR("pix1 not made", __func__, NULL);
+    }
     pixaReplacePix(pixa, 0, pix1, NULL);
 
-        /* Fix up the '\' character; use a LR flip of the '/' char */
+        /* Fix the '\' character. Use a LR flip of the '/' char */
     pix1 = pixaGetPix(pixa, 15, L_CLONE);
     pix2 = pixFlipLR(NULL, pix1);
     pixDestroy(&pix1);
+    if (!pix2) {
+        pixaDestroy(&pixa);
+        boxaDestroy(&boxar);
+        return (PIXA *)ERROR_PTR("pix2 not made", __func__, NULL);
+    }
     pixaReplacePix(pixa, 60, pix2, NULL);
 
 #if DEBUG_CHARS
