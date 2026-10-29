@@ -810,8 +810,8 @@ L_DEWARP  *prevdew;
 
     dew->dewa = dewa;
     pageno = dew->pageno;
-    if (pageno > MaxPtrArraySize)
-        return ERROR_INT("too many pages", __func__, 1);
+    if (pageno < 0 || pageno > MaxPtrArraySize)
+        return ERROR_INT("pageno out of bounds", __func__, 1);
     if (pageno > dewa->maxpage)
         dewa->maxpage = pageno;
     dewa->modelsready = 0;  /* force re-evaluation at application time */
