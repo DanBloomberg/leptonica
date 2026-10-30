@@ -2392,7 +2392,8 @@ SARRAY   *sa;
     trailer_ok = TRUE;
     for (i = 1; i < nobj; i++) {
         l_dnaGetIValue(da, i, &startloc);
-        if ((sscanf((char *)(data + startloc), "%d 0 obj", &objno)) != 1) {
+        if (startloc < 0 || (size_t)startloc >= size ||
+            (sscanf((char *)(data + startloc), "%d 0 obj", &objno)) != 1) {
             L_ERROR("bad trailer for object %d\n", __func__, i);
             trailer_ok = FALSE;
             break;
