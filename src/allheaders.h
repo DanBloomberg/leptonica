@@ -1890,7 +1890,7 @@ LEPT_DLL extern PIX * pixMaxDynamicRangeRGB ( PIX *pixs, l_int32 type );
 LEPT_DLL extern l_uint32 linearScaleRGBVal ( l_uint32 sval, l_float32 factor );
 LEPT_DLL extern l_uint32 logScaleRGBVal ( l_uint32 sval, l_float32 *tab, l_float32 factor );
 LEPT_DLL extern l_float32 * makeLogBase2Tab ( void );
-LEPT_DLL extern l_float32 getLogBase2 ( l_int32 val, l_float32 *logtab );
+LEPT_DLL extern l_float32 getLogBase2 ( l_uint32 val, l_float32 *logtab );
 LEPT_DLL extern PIXC * pixcompCreateFromPix ( PIX *pix, l_int32 comptype );
 LEPT_DLL extern PIXC * pixcompCreateFromString ( l_uint8 *data, size_t size, l_int32 copyflag );
 LEPT_DLL extern PIXC * pixcompCreateFromFile ( const char *filename, l_int32 comptype );
