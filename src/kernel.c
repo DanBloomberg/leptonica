@@ -1030,13 +1030,11 @@ NUMA      *na;
     newstr = stringNew(str);  /* to enforce const-ness of str */
     na = numaCreate(0);
     head = strtokSafe(newstr, seps, &tail);
-    val = atof(head);
-    numaAddNumber(na, val);
-    LEPT_FREE(head);
-    while ((head = strtokSafe(NULL, seps, &tail)) != NULL) {
+    while (head != NULL) {
         val = atof(head);
         numaAddNumber(na, val);
         LEPT_FREE(head);
+        head = strtokSafe(NULL, seps, &tail);
     }
 
     LEPT_FREE(newstr);
