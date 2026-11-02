@@ -252,7 +252,13 @@ PIXCMAP   *cmap;
         /* Handle the colormap */
     cmapBuf = NULL;
     if (ncolors > 0) {
-        if ((cmapBuf = (l_uint8 *)LEPT_CALLOC(ncolors, sizeof(RGBA_QUAD)))
+            /* Allocate for the full colormap (1 << depth entries), because
+             * this buffer replaces the pixcmap array below, whose nalloc is
+             * set to 1 << depth by pixcmapCreate().  Allocating only ncolors
+             * entries would leave the array smaller than nalloc, so a later
+             * pixcmapAddColor() would write past the end of the buffer.
+             * ncolors <= 1 << depth is enforced above. */
+        if ((cmapBuf = (l_uint8 *)LEPT_CALLOC(1 << depth, sizeof(RGBA_QUAD)))
                  == NULL)
             return (PIX *)ERROR_PTR("cmapBuf alloc fail", __func__, NULL );
 
