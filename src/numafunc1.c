@@ -2896,6 +2896,7 @@ l_float32  prevval, val;
         if ((sortorder == L_SORT_INCREASING && val < prevval) ||
             (sortorder == L_SORT_DECREASING && val > prevval))
             return 0;
+        prevval = val;
     }
 
     *psorted = TRUE;
