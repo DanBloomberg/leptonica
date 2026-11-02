@@ -1260,23 +1260,19 @@ NUMA       *nad;
     left = 0.0;
     for (i = 0; i < nsamp; i++) {
         sum = 0.0;
-        right = left + binsize;
-        ileft = (l_int32)left;
-        lfract = 1.0f - left + ileft;
-        if (lfract >= 1.0)  /* on left bin boundary */
-            lfract = 0.0;
+        right = L_MIN(left + binsize, (l_float32)n);
+        ileft = L_MIN((l_int32)left, n - 1);
         iright = (l_int32)right;
-        rfract = right - iright;
-        iright = L_MIN(iright, n - 1);
         if (ileft == iright) {  /* both are within the same original sample */
-            sum += (lfract + rfract - 1.0f) * array[ileft];
+            sum = (right - left) * array[ileft];
         } else {
-            if (lfract > 0.0001)  /* left fraction */
-                sum += lfract * array[ileft];
-            if (rfract > 0.0001)  /* right fraction */
-                sum += rfract * array[iright];
+            lfract = 1.0f - left + ileft;  /* part of sample ileft */
+            rfract = right - iright;  /* part of sample iright */
+            sum = lfract * array[ileft];
             for (j = ileft + 1; j < iright; j++)  /* entire pixels */
                 sum += array[j];
+            if (iright < n)
+                sum += rfract * array[iright];
         }
 
         numaAddNumber(nad, sum);
