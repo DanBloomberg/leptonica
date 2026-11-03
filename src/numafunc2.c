@@ -1115,7 +1115,7 @@ NUMA      *nad;
     nd = (ns + newsize - 1) / newsize;
     if ((nad = numaCreate(nd)) == NULL)
         return (NUMA *)ERROR_PTR("nad not made", __func__, NULL);
-    numaGetParameters(nad, &start, &oldsize);
+    numaGetParameters(nas, &start, &oldsize);
     numaSetParameters(nad, start, oldsize * newsize);
 
     for (i = 0; i < nd; i++) {  /* new bins */
