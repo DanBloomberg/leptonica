@@ -31,6 +31,7 @@
  *     * numa windowed stats
  *     * numa extraction from pix on a line
  *     * pixel averages and variances
+ *     * numa resampling
  */
 
 #ifdef HAVE_CONFIG_H
@@ -56,6 +57,7 @@ l_uint32    *lines, *datas;
 l_float32    sum1, sum2, ave1, ave2, ave3, ave4, diff1, diff2;
 l_float32    var1, var2, var3;
 BOX         *box1, *box2, *box3;
+GPLOT       *gplot1, *gplot2, *gplot3;
 NUMA        *na, *na1, *na2, *na3, *na4;
 PIX         *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pixg, *pixd;
 PIXA        *pixa1;
@@ -477,6 +479,42 @@ L_REGPARAMS  *rp;
     boxDestroy(&box2);
     boxDestroy(&box3);
     pixaDestroy(&pixa1);
+
+    /* -------------------------------------------------------------------*
+     *                       Test numa resampling                         *
+     * -------------------------------------------------------------------*/
+    na1 = numaMakeSequence(3.2, 0.84, 215);
+    na2 = numaUniformSampling(na1, 37);
+    na3 = numaUniformSampling(na1, 221);
+    na4 = numaUniformSampling(na1, 712);
+    gplot1 = gplotCreate("/tmp/lept/numa2/plot1", GPLOT_PNG, "na2", NULL, NULL);
+    gplotAddPlot(gplot1, NULL, na2, GPLOT_IMPULSES, NULL);
+    gplotMakeOutput(gplot1);
+    pix1 = pixRead("/tmp/lept/numa2/plot1.png");
+    regTestWritePixAndCheck(rp, pix1, IFF_PNG);  /* 43*/
+    pixDisplayWithTitle(pix1, 0, 100, NULL, rp->display);
+    gplot2 = gplotCreate("/tmp/lept/numa2/plot2", GPLOT_PNG, "na3", NULL, NULL);
+    gplotAddPlot(gplot2, NULL, na3, GPLOT_IMPULSES, NULL);
+    gplotMakeOutput(gplot2);
+    pix2 = pixRead("/tmp/lept/numa2/plot2.png");
+    regTestWritePixAndCheck(rp, pix2, IFF_PNG);  /* 44*/
+    pixDisplayWithTitle(pix2, 500, 100, NULL, rp->display);
+    gplot3 = gplotCreate("/tmp/lept/numa2/plot3", GPLOT_PNG, "na4", NULL, NULL);
+    gplotAddPlot(gplot3, NULL, na4, GPLOT_IMPULSES, NULL);
+    gplotMakeOutput(gplot3);
+    pix3 = pixRead("/tmp/lept/numa2/plot3.png");
+    regTestWritePixAndCheck(rp, pix3, IFF_PNG);  /* 45*/
+    pixDisplayWithTitle(pix3, 1000, 100, NULL, rp->display);
+    numaDestroy(&na1);
+    numaDestroy(&na2);
+    numaDestroy(&na3);
+    numaDestroy(&na4);
+    pixDestroy(&pix1);
+    pixDestroy(&pix2);
+    pixDestroy(&pix3);
+    gplotDestroy(&gplot1);
+    gplotDestroy(&gplot2);
+    gplotDestroy(&gplot3);
 
     return regTestCleanup(rp);;
 }
