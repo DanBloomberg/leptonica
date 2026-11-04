@@ -996,6 +996,8 @@ PIX       *pixd = NULL;
                                 __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
+    if (hs < 2)
+        return (PIX *)ERROR_PTR("pixs height < 2", __func__, NULL);
     wd = 2 * ws;
     hd = 2 * hs;
     hsm = hs - 1;
@@ -1199,6 +1201,8 @@ PIX       *pixd = NULL;
                                 __func__, NULL);
 
     pixGetDimensions(pixs, &ws, &hs, NULL);
+    if (hs < 2)
+        return (PIX *)ERROR_PTR("pixs height < 2", __func__, NULL);
     wd = 4 * ws;
     hd = 4 * hs;
     hsm = hs - 1;
