@@ -1226,7 +1226,8 @@ pixMaxDynamicRange(PIX     *pixs,
                    l_int32  type)
 {
 l_uint8     dval;
-l_int32     i, j, w, h, d, wpls, wpld, max;
+l_int32     i, j, w, h, d, wpls, wpld;
+l_uint32    max;
 l_uint32   *datas, *datad;
 l_uint32    word, sval;
 l_uint32   *lines, *lined;
@@ -1580,7 +1581,7 @@ l_float32  *tab;
  * \return       logval    log[base2] of %val, or 0 on error
  */
 l_float32
-getLogBase2(l_int32     val,
+getLogBase2(l_uint32    val,
             l_float32  *logtab)
 {
     if (!logtab)
