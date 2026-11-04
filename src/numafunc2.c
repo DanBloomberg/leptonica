@@ -586,7 +586,8 @@ NUMA       *na1, *nad;
     if (width > n)
         L_WARNING("filter wider than input array!\n", __func__);
 
-    na1 = numaAddSpecifiedBorder(nas, wc, wc, L_MIRRORED_BORDER);
+    if ((na1 = numaAddSpecifiedBorder(nas, wc, wc, L_MIRRORED_BORDER)) == NULL)
+        return (NUMA *)ERROR_PTR("na1 not made", __func__, NULL);
     n1 = n + 2 * wc;
     fa1 = numaGetFArray(na1, L_NOCOPY);
     nad = numaMakeConstant(0, n);
@@ -644,7 +645,8 @@ NUMA       *na1, *nad;
     if (width > n)
         L_WARNING("filter wider than input array!\n", __func__);
 
-    na1 = numaAddSpecifiedBorder(nas, wc, wc, L_MIRRORED_BORDER);
+    if ((na1 = numaAddSpecifiedBorder(nas, wc, wc, L_MIRRORED_BORDER)) == NULL)
+        return (NUMA *)ERROR_PTR("na1 not made", __func__, NULL);
     n1 = n + 2 * wc;
     fa1 = numaGetFArray(na1, L_NOCOPY);
     nad = numaMakeConstant(0, n);
