@@ -90,6 +90,7 @@ They are <i>not</i> a complete listing of the modifications.
 <pre>
 
 1.88.0  Not yet released
+        * Clean up and fix all limits when extending arrays (17 files).
         * Split out a static data reading part of pnm stream reader.
         * Fixed integer overflow in sarray to string conversion.
         * New program for selective orthogonal rotation of images in a pdf.
@@ -101,14 +102,16 @@ They are <i>not</i> a complete listing of the modifications.
           starting with "II" or "MM".
         * Check return values from fseek/ftell in file-positioning helpers
         * Source files changed for reasons other than const-ing input ptrs:
-             allheaders.h, bmf.c, boxbasic,c, classapp.c, coloring.c,
-             colorquant1.c, dewarp1.c, fpix1.c, gplot.c grayquant.c, heap.c,
-             kernel.c, morphseq.c, numafunc1.c, numafunc2.c, pageseg.c,
+             allheaders.h, bbuffer.c, bmf.c, boxbasic,c,
+             bytearray.c, ccbord.c, classapp.c, coloring.c,
+             colorquant1.c, dewarp1.c, dnabasic.c fpix1.c,
+             gplot.c grayquant.c, heap.c, kernel.c, morphseq.c,
+             numabasic.c, numafunc1.c, numafunc2.c, pageseg.c,
              pdfapp.c, pdfappstub.c, pdfio2.c, pix1.c,
-             pix2.c, pix3.c, pix5.c, pixarith.c,
-             pnmio.c, readbarcode.c, readfile.c, renderpdf.c,
-             sarray1.c, scale1.c, sel1.c, skew.c, stringcode.c,
-             tiffio.c, utils1.c, utils2.c
+             pix2.c, pix3.c, pix5.c, pixabasic.c, pixarith.c,
+             pixcomp.c, pnmio.c, ptabasic.c, ptra.c, queue.c, readbarcode.c,
+             readfile.c, renderpdf.c, sarray1.c, scale1.c, sel1.c,
+             skew.c, stack.c, stringcode.c, tiffio.c, utils1.c, utils2.c
         * Prog files changed:
              compresspdf.c, findbinding.c, findpattern2_reg.c,
              fpix2_reg.c, ioformats_reg.c, numa2_reg.c, renderfonts.c,

@@ -147,8 +147,8 @@
 #include "allheaders.h"
 
     /* Bounds on sel ptr array size */
-static const l_uint32  MaxPtrArraySize = 10000;
-static const l_int32 InitialPtrArraySize = 50;      /*!< n'importe quoi */
+static const l_uint32 MaxPtrArraySize = 10000;
+static const l_int32 InitialPtrArraySize = 50;  /*!< n'importe quoi */
 
     /* Bounds on kernel size */
 static const l_uint32  MaxKernelSize = 10000;
@@ -558,6 +558,8 @@ SEL     *csel;
         return ERROR_INT("added sel must have name", __func__, 1);
     if (copyflag != L_INSERT && copyflag != L_COPY)
         return ERROR_INT("invalid copyflag", __func__, 1);
+    if (sela->nalloc >= (l_int32)MaxPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("sela at max size; can't extend", __func__, 1);
 
     if (copyflag == L_COPY) {
         if ((csel = selCopy(sel)) == NULL)
@@ -594,6 +596,8 @@ selaExtendArray(SELA  *sela)
 {
     if (!sela)
         return ERROR_INT("sela not defined", __func__, 1);
+    if (sela->nalloc >= (l_int32)MaxPtrArraySize / 2)
+        return ERROR_INT("sela near max size; can't extend", __func__, 1);
 
     if ((sela->sel = (SEL **)reallocNew((void **)&sela->sel,
                               sizeof(SEL *) * sela->nalloc,

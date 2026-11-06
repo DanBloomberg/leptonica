@@ -63,8 +63,8 @@
 #include "allheaders.h"
 
     /* Bounds on initial array size */
-static const l_uint32  MaxPtrArraySize = 100000;
-static const l_int32 InitialPtrArraySize = 20;      /*!< n'importe quoi */
+static const l_uint32 MaxPtrArraySize = 10000000;  /* 10 million */
+static const l_int32 InitialPtrArraySize = 20;     /*!< n'importe quoi */
 
     /* Static function */
 static l_int32 lstackExtendArray(L_STACK *lstack);
@@ -170,6 +170,8 @@ lstackAdd(L_STACK  *lstack,
         return ERROR_INT("lstack not defined", __func__, 1);
     if (!item)
         return ERROR_INT("item not defined", __func__, 1);
+    if (lstack->nalloc >= (l_int32)MaxPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("stack at maximum size; can't extend", __func__, 1);
 
         /* Do we need to extend the array? */
     if (lstack->n >= lstack->nalloc) {
@@ -221,6 +223,8 @@ lstackExtendArray(L_STACK  *lstack)
 {
     if (!lstack)
         return ERROR_INT("lstack not defined", __func__, 1);
+    if (lstack->nalloc >= (l_int32)MaxPtrArraySize / 2)
+        return ERROR_INT("lstack near max size; can't extend", __func__, 1);
 
     if ((lstack->array = (void **)reallocNew((void **)&lstack->array,
                               sizeof(void *) * lstack->nalloc,

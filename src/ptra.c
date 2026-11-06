@@ -124,8 +124,9 @@
 
 #include "allheaders.h"
 
-    /* Bounds on initial array size */
+    /* Bounds on array sizes */
 LEPT_DLL const l_uint32  MaxInitPtraSize = 1000001;
+static const l_uint32  MaxPtrArraySize = 10000000;  /* 10 million */
 static const l_int32 DefaultInitPtraSize = 20;      /*!< n'importe quoi */
 
     /* Static function */
@@ -252,6 +253,8 @@ l_int32  imax;
         return ERROR_INT("pa not defined", __func__, 1);
     if (!item)
         return ERROR_INT("item not defined", __func__, 1);
+    if (pa->nalloc >= (l_int32)MaxPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("array at max size; can't add", __func__, 1);
 
     ptraGetMaxIndex(pa, &imax);
     if (imax >= pa->nalloc - 1 && ptraExtendArray(pa))
@@ -274,6 +277,8 @@ ptraExtendArray(L_PTRA  *pa)
 {
     if (!pa)
         return ERROR_INT("pa not defined", __func__, 1);
+    if (pa->nalloc >= (l_int32)MaxPtrArraySize / 2)
+        return ERROR_INT("array near max size; can't add", __func__, 1);
 
     if ((pa->array = (void **)reallocNew((void **)&pa->array,
                                 sizeof(void *) * pa->nalloc,

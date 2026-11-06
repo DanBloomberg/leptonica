@@ -420,7 +420,7 @@ static l_int32 dewarpaExtendArraysToSize(L_DEWARPA *dewa, l_int32 size);
 
     /* Parameter values used in dewarpaCreate() */
 static const l_int32     InitialPtrArraySize = 20;   /* n'import quoi */
-static const l_int32     MaxPtrArraySize = 10000;
+static const l_int32     MaxPtrArraySize = 10000;    /* max number of pages */
 static const l_int32     DefaultArraySampling = 30;
 static const l_int32     MinArraySampling = 8;
 static const l_int32     DefaultMinLines = 15;
@@ -867,6 +867,10 @@ dewarpaExtendArraysToSize(L_DEWARPA  *dewa,
 {
     if (!dewa)
         return ERROR_INT("dewa not defined", __func__, 1);
+    if (size <= 0)  /* belt & suspenders */
+        return ERROR_INT("size <= 0", __func__, 1);
+    if (size >= MaxPtrArraySize)
+        return ERROR_INT("size > max allowed pages; can't extend", __func__, 1);
 
     if (size > dewa->nalloc) {
         if ((dewa->dewarp = (L_DEWARP **)reallocNew((void **)&dewa->dewarp,

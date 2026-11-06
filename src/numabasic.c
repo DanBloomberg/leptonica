@@ -172,9 +172,9 @@
 #include "array_internal.h"
 
     /* Bounds on initial array size */
-static const l_uint32  MaxFloatArraySize = 100000000;  /* for numa */
-static const l_uint32  MaxPtrArraySize = 1000000;  /* for numaa */
-static const l_int32 InitialArraySize = 50;      /*!< n'importe quoi */
+static const l_uint32 MaxFloatArraySize = 100000000;  /* 100 M for numa */
+static const l_uint32 MaxPtrArraySize = 1000000;      /* 1 M for numaa */
+static const l_int32 InitialArraySize = 50;           /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 numaExtendArray(NUMA  *na);
@@ -496,8 +496,8 @@ size_t  oldsize, newsize;
 
     if (!na)
         return ERROR_INT("na not defined", __func__, 1);
-    if (na->nalloc > MaxFloatArraySize)  /* belt & suspenders */
-        return ERROR_INT("na has too many ptrs", __func__, 1);
+    if (na->nalloc > (l_int32)MaxFloatArraySize / 2)
+        return ERROR_INT("na near max ptrs; can't extend", __func__, 1);
     oldsize = na->nalloc * sizeof(l_float32);
     newsize = 2 * oldsize;
     if (newsize > 4 * MaxFloatArraySize)
@@ -1493,8 +1493,8 @@ size_t  oldsize, newsize;
 
     if (!naa)
         return ERROR_INT("naa not defined", __func__, 1);
-    if (naa->nalloc > MaxPtrArraySize)  /* belt & suspenders */
-        return ERROR_INT("naa has too many ptrs", __func__, 1);
+    if (naa->nalloc >= (l_int32)MaxPtrArraySize / 2)
+        return ERROR_INT("naa near max size; can't extend", __func__, 1);
     oldsize = naa->nalloc * sizeof(NUMA *);
     newsize = 2 * oldsize;
     if (newsize > 8 * MaxPtrArraySize)

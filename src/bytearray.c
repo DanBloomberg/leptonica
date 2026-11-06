@@ -425,8 +425,8 @@ l_byteaExtendArrayToSize(L_BYTEA  *ba,
 {
     if (!ba)
         return ERROR_INT("ba not defined", __func__, 1);
-    if (ba->nalloc > MaxArraySize)  /* belt & suspenders */
-        return ERROR_INT("ba has too many ptrs", __func__, 1);
+    if (ba->nalloc >= (l_int32)MaxArraySize)  /* belt & suspenders */
+        return ERROR_INT("ba ptrs at max size; can't extend", __func__, 1);
     if (size > MaxArraySize)
         return ERROR_INT("size > 1 GB; too large", __func__, 1);
     if (size <= ba->nalloc) {

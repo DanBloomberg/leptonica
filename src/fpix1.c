@@ -758,8 +758,8 @@ size_t  oldsize, newsize;
 
     if (!fpixa)
         return ERROR_INT("fpixa not defined", __func__, 1);
-    if (fpixa->nalloc > MaxPtrArraySize)  /* belt & suspenders */
-        return ERROR_INT("fpixa has too many ptrs", __func__, 1);
+    if (fpixa->nalloc >= (l_int32)MaxPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("fpixa has max ptrs; can't expand", __func__, 1);
     if (size > MaxPtrArraySize)
         return ERROR_INT("size > 100K ptrs; too large", __func__, 1);
     if (size <= fpixa->nalloc) {

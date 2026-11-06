@@ -158,9 +158,9 @@
 #include "array_internal.h"
 
     /* Bounds on initial array size */
-static const l_uint32  MaxDoubleArraySize = 100000000;   /* for dna */
-static const l_uint32  MaxPtrArraySize = 1000000;   /* for dnaa */
-static const l_int32  InitialArraySize = 50;      /*!< n'importe quoi */
+static const l_uint32 MaxDoubleArraySize = 100000000;  /* 100 M for dna */
+static const l_uint32 MaxPtrArraySize = 1000000;       /* 1 M for dnaa */
+static const l_int32 InitialArraySize = 50;            /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 l_dnaExtendArray(L_DNA *da);
@@ -467,7 +467,7 @@ size_t  oldsize, newsize;
 
     if (!da)
         return ERROR_INT("da not defined", __func__, 1);
-    if (da->nalloc > MaxDoubleArraySize)
+    if (da->nalloc >= (l_int32)MaxDoubleArraySize)  /* belt & suspenders */
         return ERROR_INT("da at maximum size; can't extend", __func__, 1);
     oldsize = da->nalloc * sizeof(l_float64);
     if (da->nalloc > MaxDoubleArraySize / 2) {
@@ -1371,8 +1371,8 @@ size_t  oldsize, newsize;
 
     if (!daa)
         return ERROR_INT("daa not defined", __func__, 1);
-    if (daa->nalloc > MaxPtrArraySize)  /* belt & suspenders */
-        return ERROR_INT("daa has too many ptrs", __func__, 1);
+    if (daa->nalloc >= (l_int32)MaxPtrArraySize / 2)  /* belt & suspenders */
+        return ERROR_INT("daa near max size; can't extend", __func__, 1);
     oldsize = daa->nalloc * sizeof(L_DNA *);
     newsize = 2 * oldsize;
     if (newsize > 8 * MaxPtrArraySize)

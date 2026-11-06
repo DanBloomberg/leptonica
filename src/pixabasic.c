@@ -141,9 +141,9 @@
 
     /* Bounds on array sizes */
 static const size_t  MaxInitPtrArraySize = 100000;
-static const size_t  MaxPixaPtrArraySize = 5000000;
-static const size_t  MaxPixaaPtrArraySize = 5000000;
-static const size_t  InitialPtrArraySize = 20;      /*!< n'importe quoi */
+static const size_t  MaxPixaPtrArraySize = 5000000;   /* 5 million */
+static const size_t  MaxPixaaPtrArraySize = 5000000;  /* 5 million */
+static const size_t  InitialPtrArraySize = 20;        /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 pixaExtendArray(PIXA  *pixa);
@@ -572,6 +572,8 @@ pixaExtendArray(PIXA  *pixa)
 {
     if (!pixa)
         return ERROR_INT("pixa not defined", __func__, 1);
+    if (pixa->nalloc >= (l_int32)MaxPixaPtrArraySize / 2)
+        return ERROR_INT("pixa near max ptrs; can't extend", __func__, 1);
 
     return pixaExtendArrayToSize(pixa, 2 * pixa->nalloc);
 }
@@ -599,8 +601,8 @@ size_t  oldsize, newsize;
 
     if (!pixa)
         return ERROR_INT("pixa not defined", __func__, 1);
-    if (pixa->nalloc > MaxPixaPtrArraySize)  /* belt & suspenders */
-        return ERROR_INT("pixa has too many ptrs", __func__, 1);
+    if (pixa->nalloc >= (l_int32)MaxPixaPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("pixa at max ptrs; can't extend", __func__, 1);
     if (size > MaxPixaPtrArraySize)
         return ERROR_INT("size > 5M ptrs; too large", __func__, 1);
     if (size <= pixa->nalloc) {
@@ -1954,8 +1956,8 @@ size_t  oldsize, newsize;
 
     if (!paa)
         return ERROR_INT("paa not defined", __func__, 1);
-    if (paa->nalloc > MaxPixaaPtrArraySize)  /* belt & suspenders */
-        return ERROR_INT("paa has too many ptrs", __func__, 1);
+    if (paa->nalloc >= (l_int32)MaxPixaaPtrArraySize / 2)
+        return ERROR_INT("paa near max ptrs; can't extend", __func__, 1);
     oldsize = paa->nalloc * sizeof(PIXA *);
     newsize = 2 * oldsize;
     if (newsize > 8 * MaxPixaaPtrArraySize) {

@@ -85,8 +85,8 @@
 #include "allheaders.h"
 
     /* Bounds on initial array size */
-static const l_uint32  MaxPtrArraySize = 100000;
-static const l_int32 InitialPtrArraySize = 20;      /*!< n'importe quoi */
+static const l_uint32 MaxPtrArraySize = 1000000;  /* 1M */
+static const l_int32 InitialPtrArraySize = 20;    /*!< n'importe quoi */
 
 #define SWAP_ITEMS(i, j)       { void *tempitem = lh->array[(i)]; \
                                  lh->array[(i)] = lh->array[(j)]; \
@@ -221,6 +221,8 @@ lheapExtendArray(L_HEAP  *lh)
 {
     if (!lh)
         return ERROR_INT("lh not defined", __func__, 1);
+    if (lh->nalloc >= (l_int32)MaxPtrArraySize / 2)
+        return ERROR_INT("heap size near max; can't extend", __func__, 1);
 
     if ((lh->array = (void **)reallocNew((void **)&lh->array,
                                 sizeof(void *) * lh->nalloc,

@@ -69,8 +69,9 @@
 #include <string.h>
 #include "allheaders.h"
 
-static const l_int32  MIN_BUFFER_SIZE = 20;             /* n'importe quoi */
-static const l_int32  INITIAL_BUFFER_ARRAYSIZE = 1024;  /* n'importe quoi */
+static const l_uint32  MaxArraySize = 100000000;        /* 100 million */
+static const l_int32  MinBufferSize = 20;               /* n'importe quoi */
+static const l_int32  InitialBufferArraySize = 1024;    /* n'importe quoi */
 
     /* Static function */
 static l_int32 lqueueExtendArray(L_QUEUE *lq);
@@ -94,8 +95,8 @@ lqueueCreate(l_int32  nalloc)
 {
 L_QUEUE  *lq;
 
-    if (nalloc < MIN_BUFFER_SIZE)
-        nalloc = INITIAL_BUFFER_ARRAYSIZE;
+    if (nalloc < MinBufferSize)
+        nalloc = InitialBufferArraySize;
 
     lq = (L_QUEUE *)LEPT_CALLOC(1, sizeof(L_QUEUE));
     if ((lq->array = (void **)LEPT_CALLOC(nalloc, sizeof(void *))) == NULL) {
@@ -221,6 +222,8 @@ lqueueExtendArray(L_QUEUE  *lq)
 {
     if (!lq)
         return ERROR_INT("lq not defined", __func__, 1);
+    if (lq->nalloc >= (l_int32)MaxArraySize / 2)  /* belt & suspenders */
+        return ERROR_INT("array at max size; can't extend", __func__, 1);
 
     if ((lq->array = (void **)reallocNew((void **)&lq->array,
                                 sizeof(void *) * lq->nalloc,

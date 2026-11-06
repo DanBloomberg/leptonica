@@ -355,6 +355,10 @@ bbufferExtendArray(L_BBUFFER  *bb,
 {
     if (!bb)
         return ERROR_INT("bb not defined", __func__, 1);
+    if (nbytes <= 0)
+        return ERROR_INT("nbytes <= 0", __func__, 1);
+    if (bb->nalloc >= (l_int32)MaxArraySize - nbytes)
+        return ERROR_INT("bb cannot be extended", __func__, 1);
 
     if ((bb->array = (l_uint8 *)reallocNew((void **)&bb->array,
                                 bb->nalloc,

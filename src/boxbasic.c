@@ -138,9 +138,9 @@
 #include "pix_internal.h"
 
     /* Bounds on array sizes */
-static const size_t  MaxBoxaPtrArraySize = 10000000;
-static const size_t  MaxBoxaaPtrArraySize = 1000000;
-static const size_t  InitialPtrArraySize = 20;      /*!< n'importe quoi */
+static const size_t  MaxBoxaPtrArraySize = 10000000;   /* 10 M */
+static const size_t  MaxBoxaaPtrArraySize = 1000000;   /* 1 M */
+static const size_t  InitialPtrArraySize = 20;         /*!< n'importe quoi */
 
 /*---------------------------------------------------------------------*
  *                  Box creation, destruction and copy                 *
@@ -643,8 +643,8 @@ size_t  oldsize, newsize;
 
     if (!boxa)
         return ERROR_INT("boxa not defined", __func__, 1);
-    if (boxa->nalloc > MaxBoxaPtrArraySize)  /* belt & suspenders */
-        return ERROR_INT("boxa has too many ptrs", __func__, 1);
+    if (boxa->nalloc >= (l_int32)MaxBoxaPtrArraySize)  /* belt & suspenders */
+        return ERROR_INT("boxa is at max size; can't extend", __func__, 1);
     if (size > MaxBoxaPtrArraySize)
         return ERROR_INT("size > 10M box ptrs; too large", __func__, 1);
     if (size <= boxa->nalloc) {
@@ -1333,7 +1333,7 @@ size_t  oldsize, newsize;
 
     if (!baa)
         return ERROR_INT("baa not defined", __func__, 1);
-    if (baa->nalloc > MaxBoxaaPtrArraySize)  /* belt & suspenders */
+    if (baa->nalloc >= (l_int32)MaxBoxaaPtrArraySize)  /* belt & suspenders */
         return ERROR_INT("baa has too many ptrs", __func__, 1);
     if (size > MaxBoxaaPtrArraySize)
         return ERROR_INT("size > 1M boxa ptrs; too large", __func__, 1);

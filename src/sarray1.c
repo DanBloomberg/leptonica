@@ -481,8 +481,8 @@ size_t  oldsize, newsize;
 
     if (!sa)
         return ERROR_INT("sa not defined", __func__, 1);
-    if (sa->nalloc >= (l_int32)MaxPtrArraySize)  /* belt & suspenders */
-        return ERROR_INT("sa at maximum ptr size; can't extend", __func__, 1);
+    if (sa->nalloc >= (l_int32)MaxPtrArraySize)
+        return ERROR_INT("sa near maximum ptr size; can't extend", __func__, 1);
     oldsize = sa->nalloc * sizeof(char *);
     if (sa->nalloc > (l_int32)(MaxPtrArraySize / 2)) {
         newsize = MaxPtrArraySize * sizeof(char *);

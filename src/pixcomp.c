@@ -157,8 +157,8 @@
 #include "pix_internal.h"
 
     /* Bounds on pixacomp array size */
-static const l_uint32  MaxPtrArraySize = 1000000;
-static const l_int32  InitialPtrArraySize = 20;      /*!< n'importe quoi */
+static const l_uint32  MaxPtrArraySize = 1000000;   /* 1 million */
+static const l_int32  InitialPtrArraySize = 20;     /*!< n'importe quoi */
 
     /* Bound on size for a compressed data string */
 static const size_t  MaxDataSize = 1000000000;   /* 1 GB */
@@ -943,6 +943,8 @@ l_int32  n;
         return ERROR_INT("pixc not defined", __func__, 1);
     if (copyflag != L_INSERT && copyflag != L_COPY)
         return ERROR_INT("invalid copyflag", __func__, 1);
+    if (pixac->nalloc >= (l_int32)MaxPtrArraySize / 2)  /* belt & suspenders */
+        return ERROR_INT("array near max size; can't extend", __func__, 1);
 
     n = pixac->n;
     if (n >= pixac->nalloc) {
@@ -982,8 +984,8 @@ size_t  oldsize, newsize;
 
     if (!pixac)
         return ERROR_INT("pixac not defined", __func__, 1);
-    if (pixac->nalloc > (l_int32)MaxPtrArraySize)  /* belt & suspenders */
-        return ERROR_INT("pixac has too many ptrs", __func__, 1);
+    if (pixac->nalloc >= (l_int32)MaxPtrArraySize / 2)
+        return ERROR_INT("pixac near max size; can't extend", __func__, 1);
     oldsize = pixac->nalloc * sizeof(PIXC *);
     newsize = 2 * oldsize;
     if (newsize > 8 * MaxPtrArraySize)  /* ptrs for 1M pixcomp */

@@ -256,7 +256,8 @@
 #include "pix_internal.h"
 #include "ccbord_internal.h"
 
-static const l_int32  INITIAL_PTR_ARRAYSIZE = 20;    /* n'import quoi */
+static const l_int32  InitialPtrArraySize = 20;   /* n'import quoi */
+static const l_int32  MaxArraySize = 10000000;    /* 10 M */
 
     /* In ccbaGenerateSinglePath(): don't save holes
      * in c.c. with ridiculously many small holes   */
@@ -322,7 +323,7 @@ ccbaCreate(PIX     *pixs,
 CCBORDA  *ccba;
 
     if (n <= 0)
-        n = INITIAL_PTR_ARRAYSIZE;
+        n = InitialPtrArraySize;
 
     ccba = (CCBORDA *)LEPT_CALLOC(1, sizeof(CCBORDA));
     if (pixs) {
@@ -487,6 +488,8 @@ ccbaExtendArray(CCBORDA  *ccba)
 {
     if (!ccba)
         return ERROR_INT("ccba not defined", __func__, 1);
+    if (ccba->nalloc >= (l_int32)MaxArraySize / 2)
+        return ERROR_INT("ccba near max size; can't extend", __func__, 1);
 
     if ((ccba->ccb = (CCBORD **)reallocNew((void **)&ccba->ccb,
                                 sizeof(CCBORD *) * ccba->nalloc,
