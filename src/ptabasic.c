@@ -99,9 +99,9 @@
 #include "array_internal.h"
 #include "pix_internal.h"
 
-static const l_uint32  MaxArraySize = 100000000;  /* 100 million */
-static const l_uint32  MaxPtrArraySize = 10000000;  /* 10 million */
-static const l_int32 InitialArraySize = 50;      /*!< n'importe quoi */
+static const l_uint32 MaxArraySize = 100000000;    /* 100 million */
+static const l_uint32 MaxPtrArraySize = 10000000;  /* 10 million */
+static const l_int32 InitialArraySize = 50;        /*!< n'importe quoi */
 
     /* Static functions */
 static l_int32 ptaExtendArrays(PTA *pta);
@@ -368,7 +368,7 @@ size_t  oldsize, newsize;
 
     if (!pta)
         return ERROR_INT("pta not defined", __func__, 1);
-    if (pta->nalloc > (l_int32)MaxArraySize)  /* belt & suspenders */
+    if (pta->nalloc >= (l_int32)MaxArraySize)  /* belt & suspenders */
         return ERROR_INT("pta at maximum size; can't extend", __func__, 1);
     oldsize = 4 * pta->nalloc;
     if (pta->nalloc > MaxArraySize / 2) {
