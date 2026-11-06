@@ -70,6 +70,11 @@ www.leptonica.org
   * [tesseract](https://github.com/tesseract-ocr/tesseract/) (optical character recognition)
   * [OpenCV](https://github.com/opencv/opencv) (computer vision library)
   * [jbig2enc](https://github.com/agl/jbig2enc) (encodes multipage binary image documents with jbig2 compression)
+  * [Leptonica.Managed](https://github.com/sensboston/Leptonica.Managed) (fully managed C# implementation of Leptonica for .NET)
+
+## Leptonica.Managed (.NET) ##
+  * [Leptonica.Managed](https://github.com/sensboston/Leptonica.Managed) is a fully managed C# implementation of Leptonica 1.87.0 for .NET 8 and later, available as a [NuGet package](https://www.nuget.org/packages/Leptonica.Managed). It is not a wrapper: every function, including the image codecs, is translated to C#, so no native binaries are needed and the library runs wherever .NET runs (Windows, Linux and macOS, on x64 and ARM64).
+  * The results are the same as those of the C library: Leptonica's regression tests are ported with it and compare its output with golden files produced by the C code. Hot paths use SIMD and multithreading, and some operations can run on a GPU.
 
 ## Major contributors to Leptonica ##
   * Jeff Breidenbach: Jeff has built every Debian distribution for Leptonica. He has also made many improvements to formatted image I/O, including tiff, png and pdf. He is a continuous and practical advocate for simplification.
