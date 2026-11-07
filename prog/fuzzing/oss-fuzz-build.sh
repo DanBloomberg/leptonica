@@ -130,3 +130,9 @@ cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/blend_fuzzer_seed_corpus.
 
 cp $SRC/leptonica/prog/fuzzing/pixa_recog_fuzzer_seed_corpus.zip $OUT/
 cp $SRC/leptonica/prog/fuzzing/barcode_fuzzer_seed_corpus.zip $OUT/
+
+# serial_fuzzer: structured-object serialiser harness with its own seed
+# corpus and dictionary.
+cp $SRC/leptonica/prog/fuzzing/serial_fuzzer_seed_corpus.zip $OUT/
+cp $SRC/leptonica/prog/fuzzing/serial_fuzzer.dict $OUT/
+
