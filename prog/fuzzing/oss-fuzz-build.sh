@@ -130,3 +130,9 @@ cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/blend_fuzzer_seed_corpus.
 
 cp $SRC/leptonica/prog/fuzzing/pixa_recog_fuzzer_seed_corpus.zip $OUT/
 cp $SRC/leptonica/prog/fuzzing/barcode_fuzzer_seed_corpus.zip $OUT/
+
+# formats_fuzzer: image file-format decoder/encoder harness with its own
+# multi-format seed corpus and magic-token dictionary.
+cp $SRC/leptonica/prog/fuzzing/formats_fuzzer_seed_corpus.zip $OUT/
+cp $SRC/leptonica/prog/fuzzing/formats_fuzzer.dict $OUT/
+
