@@ -130,3 +130,33 @@ cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/blend_fuzzer_seed_corpus.
 
 cp $SRC/leptonica/prog/fuzzing/pixa_recog_fuzzer_seed_corpus.zip $OUT/
 cp $SRC/leptonica/prog/fuzzing/barcode_fuzzer_seed_corpus.zip $OUT/
+
+# Structured SPIX seed corpus for the SPIX-decoding harnesses that had no
+# seed corpus (23 fuzzers; depths 1/2/4/8/16/32, sizes 8x8..96x64, with and
+# without colormap). Gives mutation engines valid container headers instead
+# of requiring them to rediscover the spix magic and layout.
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/ccbord_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/ccthin_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/colorfill_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/compare_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/edge_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/fhmtgen_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/finditalic_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/flipdetect_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/fpix2_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/graphics_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/graymorph_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/grayquant_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/jpegiostub_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/kernel_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/mask_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/maze_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/morph_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/morphapp_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/pageseg_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/paintcmap_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/pix1_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/pix3_fuzzer_seed_corpus.zip
+cp $SRC/leptonica/prog/fuzzing/spix_seed_corpus.zip $OUT/pix4_fuzzer_seed_corpus.zip
+
