@@ -14,6 +14,13 @@ file(GLOB src "*.c")
 string(REPLACE "-O3" "-O2" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 
 add_library(leptonica ${src} ${hdr})
+target_include_directories(
+  leptonica
+  PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+    "$<INSTALL_INTERFACE:include>"
+    "$<INSTALL_INTERFACE:include/leptonica>")
 set_target_properties(
   leptonica
   PROPERTIES

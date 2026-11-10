@@ -334,9 +334,6 @@ message(STATUS)
 
 add_definitions(-DHAVE_CONFIG_H)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/src)
-
 if(BUILD_PROG)
   add_subdirectory(prog)
 endif()
