@@ -1511,7 +1511,7 @@ char  *str;
     if (!pix)
         return (l_uint8 *)ERROR_PTR("pix not defined", __func__, NULL);
     str = pixGetText(pix);
-    return decodeAscii85WithComp(str, strlen(str), psize);
+    return decodeAscii85WithComp(str, 0, psize);
 }
 
 

@@ -103,5 +103,13 @@ L_REGPARAMS  *rp;
     lept_free(bina);
     lept_free(bina2);
 
+        /* Test retrieving compressed text when there is none */
+    pix1 = pixCreate(1, 1, 1);
+    nbytes2 = 1;
+    bina2 = pixGetTextCompNew(pix1, &nbytes2);
+    regTestCompareValues(rp, 1, bina2 == NULL, 0.0);  /* 5 */
+    regTestCompareValues(rp, 0, nbytes2, 0.0);  /* 6 */
+    pixDestroy(&pix1);
+
     return regTestCleanup(rp);
 }
