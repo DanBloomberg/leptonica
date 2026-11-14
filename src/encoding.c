@@ -491,8 +491,9 @@ l_uint32    oword;
     if (insize <= 0)
         return (l_uint8 *)ERROR_PTR("insize not > 0", __func__, NULL);
 
-        /* Accumulate results in outa */
-    maxsize = (l_int32)(80. + (insize * 4. / 5.));  /* plenty big */
+        /* Accumulate results in outa.  Each 'z' input char expands
+         * to 4 output bytes, so allocate for that worst case. */
+    maxsize = (l_int32)(80. + (insize * 4.));
     if ((outa = (l_uint8 *)LEPT_CALLOC(maxsize, sizeof(l_uint8))) == NULL)
         return (l_uint8 *)ERROR_PTR("outa not made", __func__, NULL);
 
