@@ -1500,6 +1500,7 @@ pixCopyText(PIX        *pixd,
  *      (2) This retrieves the string and performs ascii85 decoding
  *          followed by decompression on it.  The returned binary data
  *          is owned by the caller and must be freed.
+ *      (3) This returns NULL if str == NULL.
  * </pre>
  */
 l_uint8 *

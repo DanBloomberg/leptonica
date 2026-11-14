@@ -106,7 +106,10 @@ L_REGPARAMS  *rp;
         /* Test retrieving compressed text when there is none */
     pix1 = pixCreate(1, 1, 1);
     nbytes2 = 1;
+    lept_stderr("******************************************************\n");
+    lept_stderr("* Testing error checking: ignore 'not defined' error *\n");
     bina2 = pixGetTextCompNew(pix1, &nbytes2);
+    lept_stderr("******************************************************\n");
     regTestCompareValues(rp, 1, bina2 == NULL, 0.0);  /* 5 */
     regTestCompareValues(rp, 0, nbytes2, 0.0);  /* 6 */
     pixDestroy(&pix1);
