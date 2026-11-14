@@ -44,8 +44,9 @@ int main(int    argc,
 char          label[512];
 l_int32       rval, gval, bval, w, h, i, j, rwhite, gwhite, bwhite, count;
 l_uint32      pixel;
+l_float32     sum;
 GPLOT        *gplot1, *gplot2;
-NUMA         *naseq, *na;
+NUMA         *naseq, *na, *nahue, *nacomponent;
 NUMAA        *naa1, *naa2;
 PIX          *pixs, *pix0, *pix1, *pix2, *pix3;
 PIX          *pixr, *pixg, *pixb;  /* for color content extraction */
@@ -203,6 +204,40 @@ L_REGPARAMS  *rp;
         L_INFO("Output pdf: /tmp/lept/regout/colorspace.pdf\n", rp->testname);
     }
     pixaDestroy(&pixa);
+
+        /* Hue 240 maps to 0; values above 240 are ignored */
+    pix0 = pixCreate(3, 1, 32);
+    composeRGBPixel(239, 17, 23, &pixel);
+    pixSetPixel(pix0, 0, 0, pixel);
+    composeRGBPixel(240, 31, 47, &pixel);
+    pixSetPixel(pix0, 1, 0, pixel);
+    composeRGBPixel(255, 83, 97, &pixel);
+    pixSetPixel(pix0, 2, 0, pixel);
+    pix1 = pixMakeHistoHS(pix0, 1, &nahue, &nacomponent);
+    numaGetSum(nahue, &sum);
+    regTestCompareValues(rp, 2.0, sum, 0.0);  /* 12 */
+    numaGetSum(nacomponent, &sum);
+    regTestCompareValues(rp, 2.0, sum, 0.0);  /* 13 */
+    pixGetPixel(pix1, 17, 239, &pixel);
+    regTestCompareValues(rp, 1, pixel, 0.0);  /* 14 */
+    pixGetPixel(pix1, 31, 0, &pixel);
+    regTestCompareValues(rp, 1, pixel, 0.0);  /* 15 */
+    pixDestroy(&pix1);
+    numaDestroy(&nahue);
+    numaDestroy(&nacomponent);
+    pix2 = pixMakeHistoHV(pix0, 1, &nahue, &nacomponent);
+    numaGetSum(nahue, &sum);
+    regTestCompareValues(rp, 2.0, sum, 0.0);  /* 16 */
+    numaGetSum(nacomponent, &sum);
+    regTestCompareValues(rp, 2.0, sum, 0.0);  /* 17 */
+    pixGetPixel(pix2, 23, 239, &pixel);
+    regTestCompareValues(rp, 1, pixel, 0.0);  /* 18 */
+    pixGetPixel(pix2, 47, 0, &pixel);
+    regTestCompareValues(rp, 1, pixel, 0.0);  /* 19 */
+    pixDestroy(&pix0);
+    pixDestroy(&pix2);
+    numaDestroy(&nahue);
+    numaDestroy(&nacomponent);
 
     return regTestCleanup(rp);
 }

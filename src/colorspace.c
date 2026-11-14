@@ -966,6 +966,7 @@ PIX       *pixt, *pixd;
  *          The dimensions of pixd are w = 256, h = 240, and the depth
  *          is 32 bpp.  The value at each point is simply the number
  *          of pixels found at that value of hue and saturation.
+ *      (3) Hue 240 is equivalent to 0; values above 240 are ignored.
  * </pre>
  */
 PIX *
@@ -1014,13 +1015,14 @@ PIX       *pixt, *pixd;
         for (j = 0; j < w; j++) {
             pixel = linet[j];
             hval = (pixel >> L_RED_SHIFT) & 0xff;
-
+            if (hval == 240) {
+                hval = 0;
+            } else if (hval > 240) {
 #if  DEBUG_HISTO
-            if (hval > 239) {
                 lept_stderr("hval = %d for (%d,%d)\n", hval, i, j);
+#endif  /* DEBUG_HISTO */
                 continue;
             }
-#endif  /* DEBUG_HISTO */
 
             sval = (pixel >> L_GREEN_SHIFT) & 0xff;
             if (pnahue)
@@ -1055,6 +1057,7 @@ PIX       *pixt, *pixd;
  *          The dimensions of %pixd are w = 256, h = 240, and the depth
  *          is 32 bpp.  The value at each point is simply the number
  *          of pixels found at that value of hue and intensity.
+ *      (3) Hue 240 is equivalent to 0; values above 240 are ignored.
  * </pre>
  */
 PIX *
@@ -1103,6 +1106,14 @@ PIX       *pixt, *pixd;
         for (j = 0; j < w; j++) {
             pixel = linet[j];
             hval = (pixel >> L_RED_SHIFT) & 0xff;
+            if (hval == 240) {
+                hval = 0;
+            } else if (hval > 240) {
+#if  DEBUG_HISTO
+                lept_stderr("hval = %d for (%d,%d)\n", hval, i, j);
+#endif  /* DEBUG_HISTO */
+                continue;
+            }
             vval = (pixel >> L_BLUE_SHIFT) & 0xff;
             if (pnahue)
                 numaShiftValue(nahue, hval, 1.0);
