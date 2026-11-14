@@ -94,9 +94,9 @@ static l_int32 evalColorfillData(L_COLORFILL *cf, l_int32 debug);
  * \brief   l_colorfillCreate()
  *
  * \param[in]    pixs   input RGB image
- * \param[in]    nx     requested number of tiles in each row
- * \param[in]    ny     requested number of tiles in each column
- * \return  boxa, or NULL on error
+ * \param[in]    nx     requested number of tiles in each row; >= 1
+ * \param[in]    ny     requested number of tiles in each column; >= 1
+ * \return  l_colorfill, or NULL on error
  *
  * <pre>
  * Notes:
@@ -117,6 +117,9 @@ L_COLORFILL  *cf;
         return (L_COLORFILL *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 32)
         return (L_COLORFILL *)ERROR_PTR("pixs not 32 bpp", __func__, NULL);
+    if (nx < 1 || ny < 1)
+        return (L_COLORFILL *)ERROR_PTR(
+            "nx and ny must be >= 1", __func__, NULL);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     tw = w / nx;
