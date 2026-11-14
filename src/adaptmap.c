@@ -1245,7 +1245,7 @@ PIX       *pixmr, *pixmg, *pixmb;
  * \param[in]    pixs        8 bpp grayscale; not cmapped
  * \param[in]    pixim       [optional] 1 bpp 'image' mask; can be null; it
  *                           should not have all foreground pixels
- * \param[in]    reduction   factor at which closing is performed
+ * \param[in]    reduction   factor at which closing is performed; >= 1
  * \param[in]    size        of square Sel for the closing; use an odd number
  * \param[out]   ppixm       grayscale map
  * \return  0 if OK, 1 on error
@@ -1270,6 +1270,8 @@ PIX       *pixm, *pix1, *pix2, *pix3, *pixims;
         return ERROR_INT("pixs is colormapped", __func__, 1);
     if (pixim && pixGetDepth(pixim) != 1)
         return ERROR_INT("pixim not 1 bpp", __func__, 1);
+    if (reduction < 1)
+        return ERROR_INT("reduction must be >= 1", __func__, 1);
 
         /* Evaluate the mask pixim and make sure it is not all foreground. */
     fgpixels = 0;  /* boolean for existence of fg mask pixels */
@@ -1332,7 +1334,7 @@ PIX       *pixm, *pix1, *pix2, *pix3, *pixims;
  * \param[in]    pixs        32 bpp rgb
  * \param[in]    pixim       [optional] 1 bpp 'image' mask; can be null; it
  *                           should not have all foreground pixels
- * \param[in]    reduction   factor at which closing is performed
+ * \param[in]    reduction   factor at which closing is performed; >= 1
  * \param[in]    size        of square Sel for the closing; use an odd number
  * \param[out]   ppixmr      red component map
  * \param[out]   ppixmg      green component map
@@ -1361,6 +1363,8 @@ PIX       *pixm, *pixmr, *pixmg, *pixmb, *pix1, *pix2, *pix3, *pixims;
         return ERROR_INT("pixs not 32 bpp", __func__, 1);
     if (pixim && pixGetDepth(pixim) != 1)
         return ERROR_INT("pixim not 1 bpp", __func__, 1);
+    if (reduction < 1)
+        return ERROR_INT("reduction must be >= 1", __func__, 1);
 
         /* Evaluate the mask pixim and make sure it is not all foreground. */
     fgpixels = 0;  /* boolean for existence of fg mask pixels */
