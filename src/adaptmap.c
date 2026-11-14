@@ -248,7 +248,8 @@ PIX     *pixd;
  *
  * \param[in]    pixs     8 bpp grayscale or 32 bpp rgb
  * \param[in]    pixim    [optional] 1 bpp 'image' mask; can be null
- * \param[in]    pixg     [optional] 8 bpp grayscale version; can be null
+ * \param[in]    pixg     [optional] 8 bpp grayscale version of %pixs;
+ *                        can be null
  * \return  pixd 8 bpp or 32 bpp rgb, or NULL on error
  *
  * <pre>
@@ -277,7 +278,8 @@ pixBackgroundNormSimple(PIX  *pixs,
  *
  * \param[in]    pixs        8 bpp grayscale or 32 bpp rgb
  * \param[in]    pixim       [optional] 1 bpp 'image' mask; can be null
- * \param[in]    pixg        [optional] 8 bpp grayscale version; can be null
+ * \param[in]    pixg        [optional] 8 bpp grayscale version of %pixs;
+ *                           can be null
  * \param[in]    sx, sy      tile size in pixels
  * \param[in]    thresh      threshold for determining foreground
  * \param[in]    mincount    min threshold on counts in a tile
@@ -355,6 +357,12 @@ PIX     *pixmr, *pixmg, *pixmb, *pixmri, *pixmgi, *pixmbi;
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
         return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", __func__, NULL);
+    if (d == 32 && pixg && pixGetDepth(pixg) != 8)
+        return (PIX *)ERROR_PTR("pixg not 8 bpp", __func__, NULL);
+    if (d == 32 && pixg &&
+        (pixGetWidth(pixg) != pixGetWidth(pixs) ||
+         pixGetHeight(pixg) != pixGetHeight(pixs)))
+        return (PIX *)ERROR_PTR("pixs and pixg sizes differ", __func__, NULL);
     if (sx < 4 || sy < 4)
         return (PIX *)ERROR_PTR("sx and sy must be >= 4", __func__, NULL);
     if (mincount > sx * sy) {
@@ -633,7 +641,8 @@ PIX     *pixm;
  *
  * \param[in]    pixs       32 bpp rgb
  * \param[in]    pixim      [optional] 1 bpp 'image' mask; can be null
- * \param[in]    pixg       [optional] 8 bpp grayscale version; can be null
+ * \param[in]    pixg       [optional] 8 bpp grayscale version of %pixs;
+ *                          can be null
  * \param[in]    sx, sy     tile size in pixels
  * \param[in]    thresh     threshold for determining foreground
  * \param[in]    mincount   min threshold on counts in a tile
@@ -678,6 +687,11 @@ PIX     *pixmr, *pixmg, *pixmb;
         return ERROR_INT("pixs not defined", __func__, 1);
     if (pixGetDepth(pixs) != 32)
         return ERROR_INT("pixs not 32 bpp", __func__, 1);
+    if (pixg && pixGetDepth(pixg) != 8)
+        return ERROR_INT("pixg not 8 bpp", __func__, 1);
+    if (pixg && (pixGetWidth(pixg) != pixGetWidth(pixs) ||
+                 pixGetHeight(pixg) != pixGetHeight(pixs)))
+        return ERROR_INT("pixs and pixg sizes differ", __func__, 1);
     if (pixim && pixGetDepth(pixim) != 1)
         return ERROR_INT("pixim not 1 bpp", __func__, 1);
     if (sx < 4 || sy < 4)
@@ -1050,7 +1064,8 @@ PIX       *pixd, *piximi, *pixb, *pixf, *pixims;
  * \param[in]    pixs       32 bpp rgb
  * \param[in]    pixim      [optional] 1 bpp 'image' mask; can be null; it
  *                          should not have all foreground pixels
- * \param[in]    pixg       [optional] 8 bpp grayscale version; can be null
+ * \param[in]    pixg       [optional] 8 bpp grayscale version of %pixs;
+ *                          can be null
  * \param[in]    sx, sy     tile size in pixels
  * \param[in]    thresh     threshold for determining foreground
  * \param[in]    mincount   min threshold on counts in a tile
@@ -1098,6 +1113,11 @@ PIX       *pixmr, *pixmg, *pixmb;
         return ERROR_INT("pixs not 32 bpp", __func__, 1);
     if (pixim && pixGetDepth(pixim) != 1)
         return ERROR_INT("pixim not 1 bpp", __func__, 1);
+    if (pixg && pixGetDepth(pixg) != 8)
+        return ERROR_INT("pixg not 8 bpp", __func__, 1);
+    if (pixg && (pixGetWidth(pixg) != pixGetWidth(pixs) ||
+                 pixGetHeight(pixg) != pixGetHeight(pixs)))
+        return ERROR_INT("pixs and pixg sizes differ", __func__, 1);
     if (sx < 4 || sy < 4)
         return ERROR_INT("sx and sy must be >= 4", __func__, 1);
     if (mincount > sx * sy) {
