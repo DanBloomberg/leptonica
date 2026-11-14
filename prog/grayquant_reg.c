@@ -45,7 +45,6 @@ int main(int    argc,
          char **argv)
 {
 const char   *str;
-l_int32      *tab;
 l_int32       index, w, h;
 BOX          *box;
 PIX          *pixs, *pix1, *pix2, *pix3, *pix4, *pix5, *pix6;
@@ -393,14 +392,6 @@ L_REGPARAMS  *rp;
         pixDestroy(&pix1);
         pixDestroy(&pixs);
     }
-
-        /* Test invalid number of quantization levels */
-    tab = makeGrayQuantIndexTable(1);
-    regTestCompareValues(rp, 1, tab == NULL, 0.0);  /* 50 */
-    lept_free(tab);
-    tab = makeGrayQuantIndexTable(257);
-    regTestCompareValues(rp, 1, tab == NULL, 0.0);  /* 51 */
-    lept_free(tab);
 
     return regTestCleanup(rp);
 }

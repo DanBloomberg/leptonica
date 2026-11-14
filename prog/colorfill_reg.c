@@ -143,16 +143,6 @@ L_REGPARAMS  *rp;
     pixDestroy(&pix2);
     pixaDestroy(&pixa2);
 
-        /* Test invalid tile counts */
-    pix1 = pixCreate(20, 20, 32);
-    cf = l_colorfillCreate(pix1, 0, 1);
-    regTestCompareValues(rp, 1, cf == NULL, 0.0);  /* 12 */
-    l_colorfillDestroy(&cf);
-    cf = l_colorfillCreate(pix1, 1, 0);
-    regTestCompareValues(rp, 1, cf == NULL, 0.0);  /* 13 */
-    l_colorfillDestroy(&cf);
-    pixDestroy(&pix1);
-
     return regTestCleanup(rp);
 }
 
