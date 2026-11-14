@@ -3291,6 +3291,8 @@ size_t  len;
         return ERROR_INT("invalid flag", __func__, 1);
 
     len = strlen(path);
+    if (len == 0)
+        return 0;
     lastchar = path[len - 1];
     if (flag == L_ADD_TRAIL_SLASH && lastchar != '/' && len < nbytes - 2) {
         path[len] = '/';
