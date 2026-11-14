@@ -44,8 +44,8 @@ l_int32 main(int    argc,
 //char         *fname[64];
 char          fname[] = "/tmp/lept/colorcontent/maskgen.pdf";
 l_uint32     *colors;
-l_int32       ncolors, w, h;
-l_float32     fcolor;
+l_int32       ncolors, w, h, ret;
+l_float32     fcolor, pixfract, colorfract;
 PIX          *pix1, *pix2, *pix3, *pix4, *pix5, *pix6, *pix7, *pix8;
 PIXA         *pixa1;
 L_REGPARAMS  *rp;
@@ -167,6 +167,16 @@ L_REGPARAMS  *rp;
         pixDestroy(&pix8);
     }
     pixaDestroy(&pixa1);
+
+        /* Test invalid subsampling factor */
+    pix1 = pixCreate(1, 1, 32);
+    pixfract = colorfract = 1.0;
+    ret = pixColorFraction(pix1, 20, 244, 60, 0,
+                           &pixfract, &colorfract);
+    regTestCompareValues(rp, 1, ret, 0.0);  /* 19 */
+    regTestCompareValues(rp, 0.0, pixfract, 0.0);  /* 20 */
+    regTestCompareValues(rp, 0.0, colorfract, 0.0);  /* 21 */
+    pixDestroy(&pix1);
 
     return regTestCleanup(rp);
 }

@@ -447,10 +447,10 @@ PIX       *pix1, *pixd;
  * \param[in]    diffthresh    thresh for the maximum difference between
  *                             component values; below this the pixel is not
  *                             considered to have sufficient color; typ. 60.
- * \param[in]    factor        subsampling factor
+ * \param[in]    factor        subsampling factor; >= 1
  * \param[out]   ppixfract     [optional] fraction of pixels in intermediate
  *                             brightness range that were considered
- *                             for color content
+ *                             for color content; 0.0 on error
  * \param[out]   pcolorfract   [optional] fraction of pixels that meet the
  *                             criterion for sufficient color; 0.0 on error
  * \return  0 if OK, 1 on error
@@ -510,6 +510,8 @@ l_uint32  *data, *line;
                          __func__, 1);
     if (!pixs || pixGetDepth(pixs) != 32)
         return ERROR_INT("pixs not defined or not 32 bpp", __func__, 1);
+    if (factor < 1)
+        return ERROR_INT("factor must be >= 1", __func__, 1);
 
     pixGetDimensions(pixs, &w, &h, NULL);
     data = pixGetData(pixs);
