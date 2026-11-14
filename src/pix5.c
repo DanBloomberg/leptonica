@@ -2134,7 +2134,7 @@ BOX     *boxt, *boxd;
     if (lowthresh < 1 || highthresh < 1 ||
         lowthresh > highthresh || maxwidth < 1)
         return ERROR_INT("invalid thresholds", __func__, 1);
-    factor = L_MIN(1, factor);
+    factor = L_MAX(1, factor);
 
     if (lowthresh == 1 && highthresh == 1)
         return pixClipBoxToForeground(pixs, boxs, ppixd, pboxd);
@@ -2262,7 +2262,7 @@ BOX       *boxt;
     if (lowthresh < 1 || highthresh < 1 ||
         lowthresh > highthresh || maxwidth < 1)
         return ERROR_INT("invalid thresholds", __func__, 1);
-    factor = L_MIN(1, factor);
+    factor = L_MAX(1, factor);
 
         /* Clip box to pixs if it exists */
     pixGetDimensions(pixs, &bw, &bh, NULL);
