@@ -1822,6 +1822,10 @@ makeGrayQuantIndexTable(l_int32  nlevels)
 l_int32  *tab;
 l_int32   i, j, thresh;
 
+    if (nlevels < 2 || nlevels > 256)
+        return (l_int32 *)ERROR_PTR(
+            "nlevels not in [2,...,256]", __func__, NULL);
+
     tab = (l_int32 *)LEPT_CALLOC(256, sizeof(l_int32));
     for (i = 0; i < 256; i++) {
         for (j = 0; j < nlevels; j++) {
