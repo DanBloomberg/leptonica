@@ -248,7 +248,8 @@ PIX     *pixd;
  *
  * \param[in]    pixs     8 bpp grayscale or 32 bpp rgb
  * \param[in]    pixim    [optional] 1 bpp 'image' mask; can be null
- * \param[in]    pixg     [optional] 8 bpp grayscale version; can be null
+ * \param[in]    pixg     [optional] 8 bpp grayscale version of %pixs;
+ *                        can be null
  * \return  pixd 8 bpp or 32 bpp rgb, or NULL on error
  *
  * <pre>
@@ -277,7 +278,8 @@ pixBackgroundNormSimple(PIX  *pixs,
  *
  * \param[in]    pixs        8 bpp grayscale or 32 bpp rgb
  * \param[in]    pixim       [optional] 1 bpp 'image' mask; can be null
- * \param[in]    pixg        [optional] 8 bpp grayscale version; can be null
+ * \param[in]    pixg        [optional] 8 bpp grayscale version of %pixs;
+ *                           can be null
  * \param[in]    sx, sy      tile size in pixels
  * \param[in]    thresh      threshold for determining foreground
  * \param[in]    mincount    min threshold on counts in a tile
@@ -355,6 +357,12 @@ PIX     *pixmr, *pixmg, *pixmb, *pixmri, *pixmgi, *pixmbi;
     d = pixGetDepth(pixs);
     if (d != 8 && d != 32)
         return (PIX *)ERROR_PTR("pixs not 8 or 32 bpp", __func__, NULL);
+    if (d == 32 && pixg && pixGetDepth(pixg) != 8)
+        return (PIX *)ERROR_PTR("pixg not 8 bpp", __func__, NULL);
+    if (d == 32 && pixg &&
+        (pixGetWidth(pixg) != pixGetWidth(pixs) ||
+         pixGetHeight(pixg) != pixGetHeight(pixs)))
+        return (PIX *)ERROR_PTR("pixs and pixg sizes differ", __func__, NULL);
     if (sx < 4 || sy < 4)
         return (PIX *)ERROR_PTR("sx and sy must be >= 4", __func__, NULL);
     if (mincount > sx * sy) {
@@ -633,7 +641,8 @@ PIX     *pixm;
  *
  * \param[in]    pixs       32 bpp rgb
  * \param[in]    pixim      [optional] 1 bpp 'image' mask; can be null
- * \param[in]    pixg       [optional] 8 bpp grayscale version; can be null
+ * \param[in]    pixg       [optional] 8 bpp grayscale version of %pixs;
+ *                          can be null
  * \param[in]    sx, sy     tile size in pixels
  * \param[in]    thresh     threshold for determining foreground
  * \param[in]    mincount   min threshold on counts in a tile
@@ -678,6 +687,11 @@ PIX     *pixmr, *pixmg, *pixmb;
         return ERROR_INT("pixs not defined", __func__, 1);
     if (pixGetDepth(pixs) != 32)
         return ERROR_INT("pixs not 32 bpp", __func__, 1);
+    if (pixg && pixGetDepth(pixg) != 8)
+        return ERROR_INT("pixg not 8 bpp", __func__, 1);
+    if (pixg && (pixGetWidth(pixg) != pixGetWidth(pixs) ||
+                 pixGetHeight(pixg) != pixGetHeight(pixs)))
+        return ERROR_INT("pixs and pixg sizes differ", __func__, 1);
     if (pixim && pixGetDepth(pixim) != 1)
         return ERROR_INT("pixim not 1 bpp", __func__, 1);
     if (sx < 4 || sy < 4)
@@ -1050,7 +1064,8 @@ PIX       *pixd, *piximi, *pixb, *pixf, *pixims;
  * \param[in]    pixs       32 bpp rgb
  * \param[in]    pixim      [optional] 1 bpp 'image' mask; can be null; it
  *                          should not have all foreground pixels
- * \param[in]    pixg       [optional] 8 bpp grayscale version; can be null
+ * \param[in]    pixg       [optional] 8 bpp grayscale version of %pixs;
+ *                          can be null
  * \param[in]    sx, sy     tile size in pixels
  * \param[in]    thresh     threshold for determining foreground
  * \param[in]    mincount   min threshold on counts in a tile
@@ -1098,6 +1113,11 @@ PIX       *pixmr, *pixmg, *pixmb;
         return ERROR_INT("pixs not 32 bpp", __func__, 1);
     if (pixim && pixGetDepth(pixim) != 1)
         return ERROR_INT("pixim not 1 bpp", __func__, 1);
+    if (pixg && pixGetDepth(pixg) != 8)
+        return ERROR_INT("pixg not 8 bpp", __func__, 1);
+    if (pixg && (pixGetWidth(pixg) != pixGetWidth(pixs) ||
+                 pixGetHeight(pixg) != pixGetHeight(pixs)))
+        return ERROR_INT("pixs and pixg sizes differ", __func__, 1);
     if (sx < 4 || sy < 4)
         return ERROR_INT("sx and sy must be >= 4", __func__, 1);
     if (mincount > sx * sy) {
@@ -1245,7 +1265,7 @@ PIX       *pixmr, *pixmg, *pixmb;
  * \param[in]    pixs        8 bpp grayscale; not cmapped
  * \param[in]    pixim       [optional] 1 bpp 'image' mask; can be null; it
  *                           should not have all foreground pixels
- * \param[in]    reduction   factor at which closing is performed
+ * \param[in]    reduction   factor at which closing is performed; >= 1
  * \param[in]    size        of square Sel for the closing; use an odd number
  * \param[out]   ppixm       grayscale map
  * \return  0 if OK, 1 on error
@@ -1270,6 +1290,8 @@ PIX       *pixm, *pix1, *pix2, *pix3, *pixims;
         return ERROR_INT("pixs is colormapped", __func__, 1);
     if (pixim && pixGetDepth(pixim) != 1)
         return ERROR_INT("pixim not 1 bpp", __func__, 1);
+    if (reduction < 1)
+        return ERROR_INT("reduction must be >= 1", __func__, 1);
 
         /* Evaluate the mask pixim and make sure it is not all foreground. */
     fgpixels = 0;  /* boolean for existence of fg mask pixels */
@@ -1332,7 +1354,7 @@ PIX       *pixm, *pix1, *pix2, *pix3, *pixims;
  * \param[in]    pixs        32 bpp rgb
  * \param[in]    pixim       [optional] 1 bpp 'image' mask; can be null; it
  *                           should not have all foreground pixels
- * \param[in]    reduction   factor at which closing is performed
+ * \param[in]    reduction   factor at which closing is performed; >= 1
  * \param[in]    size        of square Sel for the closing; use an odd number
  * \param[out]   ppixmr      red component map
  * \param[out]   ppixmg      green component map
@@ -1361,6 +1383,8 @@ PIX       *pixm, *pixmr, *pixmg, *pixmb, *pix1, *pix2, *pix3, *pixims;
         return ERROR_INT("pixs not 32 bpp", __func__, 1);
     if (pixim && pixGetDepth(pixim) != 1)
         return ERROR_INT("pixim not 1 bpp", __func__, 1);
+    if (reduction < 1)
+        return ERROR_INT("reduction must be >= 1", __func__, 1);
 
         /* Evaluate the mask pixim and make sure it is not all foreground. */
     fgpixels = 0;  /* boolean for existence of fg mask pixels */

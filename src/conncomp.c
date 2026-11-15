@@ -442,7 +442,7 @@ L_STACK  *stack, *auxstack;
  * \brief   nextOnPixelInRaster()
  *
  * \param[in]    pixs             1 bpp
- * \param[in]    xstart, ystart   starting point for search
+ * \param[in]    xstart, ystart   starting point for search; within %pixs
  * \param[out]   px, py           coord value of next ON pixel
  * \return  1 if a pixel is found; 0 otherwise or on error
  */
@@ -461,6 +461,8 @@ l_uint32  *data;
     pixGetDimensions(pixs, &w, &h, &d);
     if (d != 1)
         return ERROR_INT("pixs not 1 bpp", __func__, 0);
+    if (xstart < 0 || xstart >= w || ystart < 0 || ystart >= h)
+        return ERROR_INT("invalid start point", __func__, 0);
 
     wpl = pixGetWpl(pixs);
     data = pixGetData(pixs);

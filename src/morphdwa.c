@@ -1556,7 +1556,7 @@ l_int32  n, extra, fact1, fact2;
 
     if (size <= 63) {
         n = 0;
-        extra = L_MIN(1, size);
+        extra = L_MAX(1, size);
     } else {  /* size > 63 */
         n = 1 + (l_int32)((size - 63) / 62);
         extra = size - 63 - (n - 1) * 62 + 1;

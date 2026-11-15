@@ -1714,7 +1714,7 @@ BOX     *box;
  * \brief   boxaEncapsulateAligned()
  *
  * \param[in]    boxa
- * \param[in]    num        number put into each boxa in the baa
+ * \param[in]    num        number put into each boxa in the baa; > 0
  * \param[in]    copyflag   L_COPY or L_CLONE
  * \return  baa, or NULL on error
  *
@@ -1737,6 +1737,8 @@ BOXAA   *baa;
 
     if (!boxa)
         return (BOXAA *)ERROR_PTR("boxa not defined", __func__, NULL);
+    if (num < 1)
+        return (BOXAA *)ERROR_PTR("num must be > 0", __func__, NULL);
     if (copyflag != L_COPY && copyflag != L_CLONE)
         return (BOXAA *)ERROR_PTR("invalid copyflag", __func__, NULL);
 

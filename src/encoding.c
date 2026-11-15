@@ -645,7 +645,8 @@ l_uint8  *data1, *outdata;
  * \param[in]    inarray     base64 encoded string with newlines
  * \param[in]    insize      number of bytes in input array
  * \param[in]    leadspace   number of spaces in each line before the data
- * \param[in]    linechars   number of bytes of data in each line; multiple of 4
+ * \param[in]    linechars   number of bytes of data in each line; positive
+ *                            multiple of 4
  * \param[in]    addquotes   1 to add quotes to each line of data; 0 to skip
  * \param[out]   poutsize    number of bytes in output char array
  * \return  outarray ascii
@@ -680,8 +681,9 @@ l_int32  i, j, flatindex, flatsize, outindex, nlines, linewithpad, linecount;
         return (char *)ERROR_PTR("insize not > 0", __func__, NULL);
     if (leadspace < 0)
         return (char *)ERROR_PTR("leadspace must be >= 0", __func__, NULL);
-    if (linechars % 4)
-        return (char *)ERROR_PTR("linechars % 4 must be 0", __func__, NULL);
+    if (linechars <= 0 || linechars % 4)
+        return (char *)ERROR_PTR(
+            "linechars must be a positive multiple of 4", __func__, NULL);
 
         /* Remove all white space */
     if ((flata = (char *)LEPT_CALLOC(insize, sizeof(char))) == NULL)

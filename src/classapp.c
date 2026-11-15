@@ -399,8 +399,9 @@ PIXAA   *paa;
         return ERROR_INT("pixs not defined", __func__, 1);
 
         /* Get the bounding boxes of the words from the word mask. */
-    pixWordBoxesByDilation(pixs, minwidth, minheight, maxwidth, maxheight,
-                           &boxa1, NULL, NULL);
+    if (pixWordBoxesByDilation(pixs, minwidth, minheight,
+                               maxwidth, maxheight, &boxa1, NULL, NULL))
+        return ERROR_INT("word boxes not made", __func__, 1);
 
         /* Generate a pixa of the word images */
     pixa1 = pixaCreateFromBoxa(pixs, boxa1, 0, 0, NULL);
@@ -469,8 +470,9 @@ NUMA    *nai;
         return ERROR_INT("pixs not defined", __func__, 1);
 
         /* Get the bounding boxes of the words from the word mask. */
-    pixWordBoxesByDilation(pixs, minwidth, minheight, maxwidth, maxheight,
-                           &boxa1, NULL, NULL);
+    if (pixWordBoxesByDilation(pixs, minwidth, minheight,
+                               maxwidth, maxheight, &boxa1, NULL, NULL))
+        return ERROR_INT("word boxes not made", __func__, 1);
 
         /* 2D sort the bounding boxes of these words. */
     baa = boxaSort2d(boxa1, NULL, 3, -5, 5);

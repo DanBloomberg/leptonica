@@ -3291,6 +3291,8 @@ size_t  len;
         return ERROR_INT("invalid flag", __func__, 1);
 
     len = strlen(path);
+    if (len == 0)
+        return 0;
     lastchar = path[len - 1];
     if (flag == L_ADD_TRAIL_SLASH && lastchar != '/' && len < nbytes - 2) {
         path[len] = '/';
@@ -3365,8 +3367,8 @@ char  dirname[240];
  * \brief   extractNumberFromFilename()
  *
  * \param[in]    fname
- * \param[in]    numpre    number of characters before the digits to be found
- * \param[in]    numpost   number of characters after the digits to be found
+ * \param[in]    numpre    number of characters before the digits; >= 0
+ * \param[in]    numpost   number of characters after the digits; >= 0
  * \return  num number embedded in the filename; -1 on error or if
  *                   not found
  *
@@ -3389,13 +3391,15 @@ l_int32  len, nret, num;
 
     if (!fname)
         return ERROR_INT("fname not defined", __func__, -1);
+    if (numpre < 0 || numpost < 0)
+        return ERROR_INT("numpre and numpost must be >= 0", __func__, -1);
 
     splitPathAtDirectory(fname, NULL, &tail);
     splitPathAtExtension(tail, &basename, NULL);
     LEPT_FREE(tail);
 
     len = strlen(basename);
-    if (numpre + numpost > len - 1) {
+    if (numpre >= len || numpost >= len - numpre) {
         LEPT_FREE(basename);
         return ERROR_INT("numpre + numpost too big", __func__, -1);
     }
