@@ -2334,7 +2334,8 @@ parseTrailerPdf(L_BYTEA  *bas,
 char     *str;
 l_uint8   nl = '\n';
 l_uint8  *data;
-l_int32   i, j, start, startloc, xrefloc, found, loc, nobj, objno, trailer_ok;
+l_int32   i, j, n, start, startloc, xrefloc, found, loc, prevloc, nobj, objno;
+l_int32   trailer_ok;
 size_t    size;
 L_DNA    *da, *daobj, *daxref;
 SARRAY   *sa;
@@ -2420,6 +2421,23 @@ SARRAY   *sa;
         l_dnaAddNumber(da, loc);
         l_dnaDestroy(&daobj);
         l_dnaDestroy(&daxref);
+    }
+
+        /* The caller uses the first 4 locations and takes the difference
+         * of adjacent locations as the object sizes, so they must be
+         * in order and within the data. */
+    if ((n = l_dnaGetCount(da)) < 4) {
+        l_dnaDestroy(pda);
+        return ERROR_INT("too few object locations", __func__, 1);
+    }
+    prevloc = 0;
+    for (i = 0; i < n; i++) {
+        l_dnaGetIValue(da, i, &loc);
+        if (loc < prevloc || (size_t)loc >= size) {
+            l_dnaDestroy(pda);
+            return ERROR_INT("invalid object locations", __func__, 1);
+        }
+        prevloc = loc;
     }
 
     return 0;
