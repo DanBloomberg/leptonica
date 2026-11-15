@@ -2544,6 +2544,10 @@ L_DNA    *da_match;
     nrepl = l_dnaGetCount(da_match);
     matches = l_dnaGetIArray(da_match);
     for (i = 0; i < nrepl; i++) {
+            /* A match must lie beyond 'start'.  It doesn't if the
+             * object begins with something like "01 0 R" */
+        if (matches[i] <= start)
+            continue;
             /* Find the first space before the object number */
         for (j = matches[i] - 1; j > 0; j--) {
             if (datas[j] == space)
