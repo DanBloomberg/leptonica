@@ -3270,11 +3270,11 @@ size_t   pathlen;
  * \param[in]    path     preallocated on stack or heap and passed in
  * \param[in]    nbytes   size of %path array, in bytes
  * \param[in]    flag     L_ADD_TRAIL_SLASH or L_REMOVE_TRAIL_SLASH
- * \return  0 if OK, 1 on error
+ * \return  0 if OK or the path is empty, 1 on error
  *
  * <pre>
  * Notes:
- *      (1) This carries out the requested action if necessary.
+ *      (1) This modifies the input path string if necessary.
  * </pre>
  */
 l_ok
@@ -3290,9 +3290,7 @@ size_t  len;
     if (flag != L_ADD_TRAIL_SLASH && flag != L_REMOVE_TRAIL_SLASH)
         return ERROR_INT("invalid flag", __func__, 1);
 
-    len = strlen(path);
-    if (len == 0)
-        return 0;
+    if ((len = strlen(path)) == 0) return 0;
     lastchar = path[len - 1];
     if (flag == L_ADD_TRAIL_SLASH && lastchar != '/' && len < nbytes - 2) {
         path[len] = '/';
