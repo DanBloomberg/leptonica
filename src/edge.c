@@ -191,9 +191,9 @@ PIX       *pixt, *pixd;
  *          the result using pixThresholdToBinary().  If the high
  *          edge values are to be fg (1), invert after running
  *          pixThresholdToBinary().
- *      (3) This runs at about 60 Mpix/sec on a 3 GHz processor.
- *          It is about 30% faster than Sobel, and the results are
- *          similar.
+ *      (3) Require h > 1 to find horiz edge, and w > 1 to vind vertcal edge.
+ *      (4) This is slightly faster than the Sobel edge filter, and the
+ *          results are similar.
  * </pre>
  */
 PIX *
@@ -212,6 +212,10 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("pixs not 8 bpp", __func__, NULL);
     if (orientflag != L_HORIZONTAL_EDGES && orientflag != L_VERTICAL_EDGES)
         return (PIX *)ERROR_PTR("invalid orientflag", __func__, NULL);
+    if (orientflag == L_VERTICAL_EDGES && w < 2)
+        return (PIX *)ERROR_PTR("no vert edges for w < 2", __func__, NULL);
+    if (orientflag == L_HORIZONTAL_EDGES && h < 2)
+        return (PIX *)ERROR_PTR("no horiz edges for h < 2", __func__, NULL);
 
     pixd = pixCreateTemplate(pixs);
     datas = pixGetData(pixs);
