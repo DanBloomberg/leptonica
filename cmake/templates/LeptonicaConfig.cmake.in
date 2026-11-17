@@ -7,7 +7,6 @@
 #    In your CMakeLists.txt, add these lines:
 #
 #    find_package(Leptonica REQUIRED)
-#    include_directories(${Leptonica_INCLUDE_DIRS})
 #    target_link_libraries(MY_TARGET_NAME ${Leptonica_LIBRARIES})
 #
 #    This file will define the following variables:
