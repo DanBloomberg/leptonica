@@ -879,7 +879,7 @@ PIXA     *pixan;
  * \brief   pixaDisplayTiledInColumns()
  *
  * \param[in]    pixas
- * \param[in]    nx           number of columns in output image
+ * \param[in]    nx           number of columns in output image; > 0
  * \param[in]    scalefactor  applied to every pix; use 1.0 for no scaling
  * \param[in]    spacing      between images, and on outside; can be < 0
  * \param[in]    border       width of black border added to each image;
@@ -925,6 +925,8 @@ PIXA     *pixa1, *pixa2;
 
     if (!pixas)
         return (PIX *)ERROR_PTR("pixas not defined", __func__, NULL);
+    if (nx <= 0)
+        return (PIX *)ERROR_PTR("nx must be > 0", __func__, NULL);
     border = L_MAX(border, 0);
     if (scalefactor <= 0.0) scalefactor = 1.0;
     if ((n = pixaGetCount(pixas)) == 0)
