@@ -138,6 +138,7 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include <limits.h>
 #include <math.h>
 #include "allheaders.h"
 
@@ -3138,8 +3139,9 @@ l_float32  bestwidth, bestshift, bestscore;
  * \brief   numaEvalHaarSum()
  *
  * \param[in]    nas         numa of non-negative signal values
- * \param[in]    width       distance between +1 and -1 in convolution comb
- * \param[in]    shift       phase of the comb: location of first +1
+ * \param[in]    width       finite distance > 0 between +1 and -1
+ *                            in convolution comb
+ * \param[in]    shift       finite phase >= 0: location of first +1
  * \param[in]    relweight   relative weight of (-1 comb) / (+1 comb)
  *                           contributions to the 'convolution'.  In effect,
  *                           the convolution kernel is a comb consisting of
@@ -3175,17 +3177,27 @@ numaEvalHaarSum(NUMA       *nas,
 {
 l_int32    i, n, nsamp, index;
 l_float32  score, weight, val;
+l_float64  dsamp;
 
     if (!pscore)
         return ERROR_INT("&score not defined", __func__, 1);
     *pscore = 0.0;
     if (!nas)
         return ERROR_INT("nas not defined", __func__, 1);
+    if (!isfinite(width) || width <= 0.0)
+        return ERROR_INT("width must be finite and > 0", __func__, 1);
+    if (!isfinite(shift) || shift < 0.0)
+        return ERROR_INT("shift must be finite and >= 0", __func__, 1);
     if ((n = numaGetCount(nas)) < 2 * width)
         return ERROR_INT("nas size too small", __func__, 1);
+    if (shift >= n)
+        return 0;
+    dsamp = ((l_float64)n - shift) / width;
+    if (dsamp > INT_MAX)
+        return ERROR_INT("width too small", __func__, 1);
 
     score = 0.0;
-    nsamp = (l_int32)((n - shift) / width);
+    nsamp = (l_int32)dsamp;
     for (i = 0; i < nsamp; i++) {
         index = (l_int32)(shift + i * width);
         weight = (i % 2) ? 1.0f : -1.0f * relweight;
