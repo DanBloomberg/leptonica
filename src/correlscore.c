@@ -164,6 +164,12 @@ l_uint32  *row1, *row2;
     if (delh > maxdiffh)
         return 0;
 
+        /* Non-finite or non-overlapping shifts have a zero score.  Reject
+         * them before rounding to avoid an out-of-range conversion. */
+    if (!isfinite(delx) || !isfinite(dely) ||
+        delx <= -wt || delx >= wi || dely <= -ht || dely >= hi)
+        return 0;
+
         /* Round difference to nearest integer */
     if (delx >= 0)
         idelx = (l_int32)(delx + 0.5);
@@ -458,6 +464,12 @@ l_int32    threshold;
         return FALSE;
     delh = L_ABS(hi - ht);
     if (delh > maxdiffh)
+        return FALSE;
+
+        /* Non-finite or non-overlapping shifts cannot match.  Reject them
+         * before rounding to avoid an out-of-range conversion. */
+    if (!isfinite(delx) || !isfinite(dely) ||
+        delx <= -wt || delx >= wi || dely <= -ht || dely >= hi)
         return FALSE;
 
         /* Round difference to nearest integer */
@@ -763,6 +775,12 @@ PIX     *pixt;
         return 0;
     delh = L_ABS(hi - ht);
     if (delh > maxdiffh)
+        return 0;
+
+        /* Non-finite or non-overlapping shifts have a zero score.  Reject
+         * them before rounding to avoid an out-of-range conversion. */
+    if (!isfinite(delx) || !isfinite(dely) ||
+        delx <= -wt || delx >= wi || dely <= -ht || dely >= hi)
         return 0;
 
         /* Round difference to nearest integer */
