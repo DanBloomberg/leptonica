@@ -360,7 +360,8 @@ pixRasteropHip(PIX     *pixd,
                l_int32  hshift,
                l_int32  incolor)
 {
-l_int32   w, h, d, index, op;
+l_int32   w, h, d, index, op, fillwidth, x;
+l_int64   absshift;
 PIX      *pixt;
 PIXCMAP  *cmap;
 
@@ -376,6 +377,9 @@ PIXCMAP  *cmap;
 
     pixGetDimensions(pixd, &w, &h, &d);
     rasteropHipLow(pixGetData(pixd), h, d, pixGetWpl(pixd), by, bh, hshift);
+    absshift = (hshift < 0) ? -(l_int64)hshift : hshift;
+    fillwidth = (l_int32)L_MIN(absshift, w);
+    x = (hshift > 0) ? 0 : w - fillwidth;
 
     cmap = pixGetColormap(pixd);
     if (!cmap) {
@@ -386,10 +390,7 @@ PIXCMAP  *cmap;
             op = PIX_CLR;
 
             /* Set the pixels brought in at left or right */
-        if (hshift > 0)
-            pixRasterop(pixd, 0, by, hshift, bh, op, NULL, 0, 0);
-        else  /* hshift < 0 */
-            pixRasterop(pixd, w + hshift, by, -hshift, bh, op, NULL, 0, 0);
+        pixRasterop(pixd, x, by, fillwidth, bh, op, NULL, 0, 0);
         return 0;
     }
 
@@ -398,12 +399,9 @@ PIXCMAP  *cmap;
         pixcmapGetRankIntensity(cmap, 0.0, &index);
     else  /* white */
         pixcmapGetRankIntensity(cmap, 1.0, &index);
-    pixt = pixCreate(L_ABS(hshift), bh, d);
+    pixt = pixCreate(fillwidth, bh, d);
     pixSetAllArbitrary(pixt, index);
-    if (hshift > 0)
-        pixRasterop(pixd, 0, by, hshift, bh, PIX_SRC, pixt, 0, 0);
-    else  /* hshift < 0 */
-        pixRasterop(pixd, w + hshift, by, -hshift, bh, PIX_SRC, pixt, 0, 0);
+    pixRasterop(pixd, x, by, fillwidth, bh, PIX_SRC, pixt, 0, 0);
     pixDestroy(&pixt);
     return 0;
 }
