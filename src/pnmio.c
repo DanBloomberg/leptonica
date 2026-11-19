@@ -1441,7 +1441,7 @@ l_int32   i, c, foundws;
             return ERROR_INT("end of file reached", __func__, 1);
         if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
             foundws = TRUE;
-            buf[i] = '\n';
+            buf[i] = '\0';
             break;
         }
         if (!isdigit(c))
