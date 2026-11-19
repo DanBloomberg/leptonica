@@ -1394,7 +1394,11 @@ L_BBUFFER  *bb;
         navail = bb->nalloc - bb->n;
         if (navail < 4096) {
              nadd = L_MAX(bb->nalloc, 4096);
-             bbufferExtendArray(bb, nadd);
+             if (bbufferExtendArray(bb, nadd)) {
+                 bbufferDestroy(&bb);
+                 return (l_uint8 *)ERROR_PTR("bb not extended",
+                                             __func__, NULL);
+             }
         }
         nread = fread((void *)(bb->array + bb->n), 1, 4096, fp);
         bb->n += nread;
