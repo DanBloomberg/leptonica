@@ -307,13 +307,6 @@ int              giferr;
     }
     pixSetInputFormat(pixd, IFF_GIF);
     pixSetColormap(pixd, cmap);
-    pixcmapIsValid(cmap, pixd, &valid);
-    if (!valid) {
-        DGifCloseFile(gif, &giferr);
-        pixDestroy(&pixd);
-        pixcmapDestroy(&cmap);
-        return (PIX *)ERROR_PTR("colormap is invalid", __func__, NULL);
-    }
 
     wpl = pixGetWpl(pixd);
     data = pixGetData(pixd);
@@ -334,6 +327,14 @@ int              giferr;
             for (j = 0; j < w; j++)
                 SET_DATA_BYTE(line, j, si.RasterBits[i * w + j]);
         }
+    }
+
+        /* Verify that the pixel values do not exceed the colormap */
+    pixcmapIsValid(cmap, pixd, &valid);
+    if (!valid) {
+        DGifCloseFile(gif, &giferr);
+        pixDestroy(&pixd);
+        return (PIX *)ERROR_PTR("colormap is invalid", __func__, NULL);
     }
 
     /* Versions before 5.0 required un-interlacing to restore
