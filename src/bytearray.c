@@ -187,6 +187,10 @@ L_BYTEA  *ba;
 
     if ((data = l_binaryReadStream(fp, &nbytes)) == NULL)
         return (L_BYTEA *)ERROR_PTR("data not read", __func__, NULL);
+    if (nbytes > MaxArraySize) {
+        LEPT_FREE(data);
+        return (L_BYTEA *)ERROR_PTR("stream too large", __func__, NULL);
+    }
     if ((ba = l_byteaCreate(nbytes)) == NULL) {
         LEPT_FREE(data);
         return (L_BYTEA *)ERROR_PTR("ba not made", __func__, NULL);
