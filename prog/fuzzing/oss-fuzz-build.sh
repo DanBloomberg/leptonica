@@ -130,3 +130,9 @@ cp $SRC/leptonica/prog/fuzzing/general_corpus.zip $OUT/blend_fuzzer_seed_corpus.
 
 cp $SRC/leptonica/prog/fuzzing/pixa_recog_fuzzer_seed_corpus.zip $OUT/
 cp $SRC/leptonica/prog/fuzzing/barcode_fuzzer_seed_corpus.zip $OUT/
+
+# pixcomp_fuzzer: compressed-image container (PIXC/PIXAC) harness with its
+# own seed corpus and dictionary.
+cp $SRC/leptonica/prog/fuzzing/pixcomp_fuzzer_seed_corpus.zip $OUT/
+cp $SRC/leptonica/prog/fuzzing/pixcomp_fuzzer.dict $OUT/
+
