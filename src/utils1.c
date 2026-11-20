@@ -117,6 +117,7 @@
 #endif  /* _WIN32 */
 
 #include <time.h>
+#include <string.h>
 #include "allheaders.h"
 #include <math.h>
 
@@ -926,7 +927,9 @@ l_hashPtToUint64(l_int32    x,
  * <pre>
  * Notes:
  *      (1) This is a simple hash for using hashmaps with 64-bit float data.
- *      (2) The resulting hash is called a "key" in a lookup operation.
+ *      (2) The hash preserves the IEEE representation, except that -0.0 is
+ *          mapped to +0.0 because they compare equal.
+ *      (3) The resulting hash is called a "key" in a lookup operation.
  *          The bucket for %val in a hashmap is then found by taking the mod
  *          of the hash key with the number of buckets (which is prime).
  * </pre>
@@ -937,8 +940,9 @@ l_hashFloat64ToUint64(l_float64  val,
 {
     if (!phash)
         return ERROR_INT("&hash not defined", __func__, 1);
-    val = (val >= 0.0) ? 847019.66701 * val : -217324.91613 * val;
-    *phash = (l_uint64)val;
+    if (val == 0.0)
+        val = 0.0;  /* canonicalize -0.0 */
+    memcpy(phash, &val, sizeof(val));
     return 0;
 }
 

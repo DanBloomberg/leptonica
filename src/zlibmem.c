@@ -242,8 +242,11 @@ z_stream    z;
 #endif  /* DEBUG */
             z.avail_in = nbytes;
         }
-        if (z.avail_in == 0)
+        if (z.avail_in == 0) {
+            L_ERROR("compressed data ended before stream end\n", __func__);
+            success = FALSE;
             break;
+        }
         status = inflate(&z, Z_SYNC_FLUSH);
 #if DEBUG
         lept_stderr(" status is %d, bytesleft = %d, totalout = %d\n",
@@ -258,6 +261,13 @@ z_stream    z;
         }
         z.next_out = bufferout;
         z.avail_out = L_BUF_SIZE;
+        if (status == Z_STREAM_END)
+            break;
+        if (status != Z_OK) {
+            L_ERROR("inflate failed with status %d\n", __func__, status);
+            success = FALSE;
+            break;
+        }
     }
 
     inflateEnd(&z);

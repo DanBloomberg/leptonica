@@ -692,7 +692,7 @@ PIX       *pixsb, *pixacc, *pixd;
  *
  * \param[in]    pix      8 or 32 bpp; or 2, 4 or 8 bpp with colormap
  * \param[in]    wc, hc   half width/height of convolution kernel
- * \param[in]    nx, ny   subdivision into tiles
+ * \param[in]    nx, ny   subdivision into tiles; both > 0
  * \return  pixd, or NULL on error
  *
  * <pre>
@@ -732,6 +732,8 @@ PIXTILING  *pt;
 
     if (!pix)
         return (PIX *)ERROR_PTR("pix not defined", __func__, NULL);
+    if (nx <= 0 || ny <= 0)
+        return (PIX *)ERROR_PTR("nx and ny must be > 0", __func__, NULL);
     if (wc <= 0 || hc <= 0)   /* no-op */
         return pixCopy(NULL, pix);
     if (nx <= 1 && ny <= 1)

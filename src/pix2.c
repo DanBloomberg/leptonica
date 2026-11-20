@@ -2697,9 +2697,9 @@ l_int32    wpls, wpld;
 l_uint32  *lines, *lined;
 l_uint32  *datas, *datad;
 
-    if (!pixd && pixGetDepth(pixd) != 32)
+    if (!pixd || pixGetDepth(pixd) != 32)
         return ERROR_INT("pixd not defined or not 32 bpp", __func__, 1);
-    if (!pixs && pixGetDepth(pixs) != 32)
+    if (!pixs || pixGetDepth(pixs) != 32)
         return ERROR_INT("pixs not defined or not 32 bpp", __func__, 1);
     if (comp != COLOR_RED && comp != COLOR_GREEN &&
         comp != COLOR_BLUE && comp != L_ALPHA_CHANNEL)

@@ -384,10 +384,10 @@ L_QUEUE   *lq;
 /*!
  * \brief   makeColorfillTestData()
  *
- * \param[in]       w         width of generated pix
- * \param[in]       h         height of generated pix
- * \param[in]       nseeds    number of regions
- * \param[in]       range     of color component values
+ * \param[in]       w         width of generated pix; > 0
+ * \param[in]       h         height of generated pix; > 0
+ * \param[in]       nseeds    number of regions; in [1, 255]
+ * \param[in]       range     of color component values; in [1, 256]
  * \return  pixa   various pix with filled regions of random color,
  *                 or NULL on error
  *
@@ -417,6 +417,13 @@ PIX       *pix1, *pix2, *pix3, *pix4;
 PIXA      *pixa;
 PTA       *pta;
 PIXCMAP   *cmap;
+
+    if (w <= 0 || h <= 0)
+        return (PIXA *)ERROR_PTR("w and h must be > 0", __func__, NULL);
+    if (nseeds < 1 || nseeds > 255)
+        return (PIXA *)ERROR_PTR("nseeds not in [1, 255]", __func__, NULL);
+    if (range < 1 || range > 256)
+        return (PIXA *)ERROR_PTR("range not in [1, 256]", __func__, NULL);
 
         /* Generate data for seeds */
     pta = ptaCreate(nseeds);  /* for seed locations */

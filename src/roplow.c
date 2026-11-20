@@ -2392,6 +2392,7 @@ rasteropHipLow(l_uint32  *data,
                l_int32    shift)
 {
 l_int32    i;
+l_int64    bitshift;
 l_uint32  *line;
 
         /* clip band if necessary */
@@ -2405,9 +2406,18 @@ l_uint32  *line;
     if (y + h > pixh)
         h = pixh - y;   /* clip to y + h = pixh */
 
+    bitshift = (l_int64)shift * depth;
+    if (bitshift >= 32LL * wpl || -bitshift >= 32LL * wpl) {
+        for (i = y; i < y + h; i++) {
+            line = data + i * wpl;
+            memset(line, 0, sizeof(l_uint32) * (size_t)wpl);
+        }
+        return;
+    }
+
     for (i = y; i < y + h; i++) {
         line = data + i * wpl;
-        shiftDataHorizontalLow(line, wpl, line, wpl, shift * depth);
+        shiftDataHorizontalLow(line, wpl, line, wpl, (l_int32)bitshift);
     }
 }
 
@@ -2443,6 +2453,15 @@ l_uint32  *lined, *lines;
 
     lined = datad;
     lines = datas;
+
+        /* If the shift moves all source pixels outside the destination,
+         * clear the destination without forming pointers outside either
+         * line. */
+    if ((l_int64)shift >= 32LL * wpld ||
+        -(l_int64)shift >= 32LL * wpls) {
+        memset(datad, 0, sizeof(l_uint32) * (size_t)wpld);
+        return;
+    }
 
     if (shift >= 0) {   /* src shift to right; data flows to
                          * right, starting at right edge and
