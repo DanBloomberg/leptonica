@@ -637,7 +637,7 @@ boxaApplyDisparity(L_DEWARP  *dew,
                    l_int32    direction,
                    l_int32    mapdir)
 {
-l_int32     x, y, w, h, ib, ip, nbox, wpl;
+l_int32     x, y, xs, ys, w, h, ib, ip, nbox, wpl;
 l_float32   xn, yn;
 l_float32  *data, *line;
 BOX        *boxs, *boxd;
@@ -671,19 +671,24 @@ PTA        *ptas, *ptad;
         ptad = ptaCreate(4);
         for (ip = 0; ip < 4; ip++) {
             ptaGetIPt(ptas, ip, &x, &y);
-            line = data + y * wpl;
+                /* A box corner can fall outside the disparity array, which
+                 * is sized to the reference image.  Read the disparity at
+                 * the nearest in-bounds location instead of past the array. */
+            xs = L_MIN(L_MAX(x, 0), w - 1);
+            ys = L_MIN(L_MAX(y, 0), h - 1);
+            line = data + ys * wpl;
             if (direction == L_VERT) {
                 if (mapdir == 0)
-                    yn = y - line[x];
+                    yn = y - line[xs];
                 else
-                    yn = y + line[x];
+                    yn = y + line[xs];
                 yn = L_MAX(0, yn);
                 ptaAddPt(ptad, x, yn);
             } else {  /* direction == L_HORIZ */
                 if (mapdir == 0)
-                    xn = x - line[x];
+                    xn = x - line[xs];
                 else
-                    xn = x + line[x];
+                    xn = x + line[xs];
                 xn = L_MAX(0, xn);
                 ptaAddPt(ptad, xn, y);
             }
