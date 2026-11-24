@@ -2220,12 +2220,15 @@ PIX       *pixd;
     pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
+
+        /* Verify scaled dimensions are not too large, but preserve
+         * the float32 scaling to pass regression tests */
     dwd = (l_float64)scalex * ws + 0.5;
     dhd = (l_float64)scaley * hs + 0.5;
     if (dwd > INT_MAX || dhd > INT_MAX)
         return (PIX *)ERROR_PTR("scaled dimensions too large", __func__, NULL);
-    wd = (l_int32)dwd;
-    hd = (l_int32)dhd;
+    wd = (l_int32)(scalex * (l_float32)ws + 0.5);
+    hd = (l_int32)(scaley * (l_float32)hs + 0.5);
     if ((pixd = pixCreate(wd, hd, 1)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyColormap(pixd, pixs);

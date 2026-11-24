@@ -929,7 +929,9 @@ l_hashPtToUint64(l_int32    x,
  *      (1) This is a simple hash for using hashmaps with 64-bit float data.
  *      (2) The hash preserves the IEEE representation, except that -0.0 is
  *          mapped to +0.0 because they compare equal.
- *      (3) The resulting hash is called a "key" in a lookup operation.
+ *      (3) The hashing can be augmented with a sequence of shift/xor and
+ *          multiplications (e.g., SplitMix64), but this is good enough.
+ *      (4) The resulting hash is called a "key" in a lookup operation.
  *          The bucket for %val in a hashmap is then found by taking the mod
  *          of the hash key with the number of buckets (which is prime).
  * </pre>
