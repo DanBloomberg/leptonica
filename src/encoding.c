@@ -696,6 +696,10 @@ l_int32  i, j, flatindex, flatsize, outindex, nlines, linewithpad, linecount;
 
         /* Generate output string */
     flatsize = flatindex;
+    if (flatsize == 0) {
+        LEPT_FREE(flata);
+        return (char *)ERROR_PTR("no base64 data", __func__, NULL);
+    }
     nlines = (flatsize + linechars - 1) / linechars;
     linewithpad = leadspace + linechars + 1;  /* including newline */
     if (addquotes) linewithpad += 2;

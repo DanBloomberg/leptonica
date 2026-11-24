@@ -859,6 +859,12 @@ PIX     *pixt;
     if (delh > maxdiffh)
         return FALSE;
 
+        /* Non-finite or non-overlapping shifts cannot match.  Reject them
+         * before rounding to avoid an out-of-range float-to-int conversion. */
+    if (!isfinite(delx) || !isfinite(dely) ||
+        delx <= -wt || delx >= wi || dely <= -ht || dely >= hi)
+        return FALSE;
+
         /* Round difference in centroid location to nearest integer;
          * use this as a shift when doing the matching. */
     if (delx >= 0)
@@ -960,6 +966,12 @@ PIX     *pixt;
         return FALSE;
     delh = L_ABS(hi - ht);
     if (delh > maxdiffh)
+        return FALSE;
+
+        /* Non-finite or non-overlapping shifts cannot match.  Reject them
+         * before rounding to avoid an out-of-range float-to-int conversion. */
+    if (!isfinite(delx) || !isfinite(dely) ||
+        delx <= -wt || delx >= wi || dely <= -ht || dely >= hi)
         return FALSE;
 
         /* Upper bounds in remaining pixels for allowable match */
@@ -2249,6 +2261,12 @@ PTA       *ptac, *ptact, *ptaul;
         ptaGetPt(ptact, iclass, &x2, &y2);
         delx = x2 - x1;
         dely = y2 - y1;
+        if (!isfinite(delx) || !isfinite(dely) ||
+            fabsf(delx) > pixGetWidth(pixs) ||
+            fabsf(dely) > pixGetHeight(pixs)) {
+            LEPT_FREE(sumtab);
+            return ERROR_INT("invalid centroid delta", __func__, 1);
+        }
         if (delx >= 0)
             idelx = (l_int32)(delx + 0.5);
         else

@@ -117,6 +117,8 @@
 #include <config_auto.h>
 #endif  /* HAVE_CONFIG_H */
 
+#include <limits.h>
+#include <math.h>
 #include <string.h>
 #include "allheaders.h"
 
@@ -2175,8 +2177,8 @@ pixScaleBinary(PIX       *pixs,
  * \brief   pixScaleBinaryWithShift()
  *
  * \param[in]    pixs      1 bpp
- * \param[in]    scalex    must be > 0.0
- * \param[in]    scaley    must be > 0.0
+ * \param[in]    scalex    must be finite and > 0.0
+ * \param[in]    scaley    must be finite and > 0.0
  * \param[in]    shiftx    0.5 for default; 0.0 to mihimize edge effects
  * \param[in]    shifty    0.5 for default; 0.0 to mihimize edge effects
  * \return  pixd, or NULL on error
@@ -2196,6 +2198,7 @@ pixScaleBinaryWithShift(PIX       *pixs,
                         l_float32  shifty)
 {
 l_int32    ws, hs, wpls, wd, hd, wpld;
+l_float64  dwd, dhd;
 l_uint32  *datas, *datad;
 PIX       *pixd;
 
@@ -2203,8 +2206,10 @@ PIX       *pixd;
         return (PIX *)ERROR_PTR("pixs not defined", __func__, NULL);
     if (pixGetDepth(pixs) != 1)
         return (PIX *)ERROR_PTR("pixs must be 1 bpp", __func__, NULL);
-    if (scalex <= 0.0 || scaley <= 0.0)
-        return (PIX *)ERROR_PTR("scale factor <= 0", __func__, NULL);
+    if (!isfinite(scalex) || !isfinite(scaley) ||
+        scalex <= 0.0 || scaley <= 0.0)
+        return (PIX *)ERROR_PTR(
+            "scale factors must be finite and > 0", __func__, NULL);
     if (scalex == 1.0 && scaley == 1.0)
         return pixCopy(NULL, pixs);
     if (shiftx != 0.0 && shiftx != 0.5)
@@ -2215,8 +2220,12 @@ PIX       *pixd;
     pixGetDimensions(pixs, &ws, &hs, NULL);
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
-    wd = (l_int32)(scalex * (l_float32)ws + 0.5);
-    hd = (l_int32)(scaley * (l_float32)hs + 0.5);
+    dwd = (l_float64)scalex * ws + 0.5;
+    dhd = (l_float64)scaley * hs + 0.5;
+    if (dwd > INT_MAX || dhd > INT_MAX)
+        return (PIX *)ERROR_PTR("scaled dimensions too large", __func__, NULL);
+    wd = (l_int32)dwd;
+    hd = (l_int32)dhd;
     if ((pixd = pixCreate(wd, hd, 1)) == NULL)
         return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
     pixCopyColormap(pixd, pixs);
