@@ -137,7 +137,7 @@ l_uint8   *cmapBuf, *fdata, *data, *bmpih_b;
 l_int16    bftype, depth, d;
 l_int32    offset, width, height, height_neg, xres, yres, spp;
 l_int32    compression, imagebytes, fdatabytes, cmapbytes, ncolors, maxcolors;
-l_int32    fdatabpl, extrabytes, filebpp, pixWpl, pixBpl, i, j, k;
+l_int32    fdatabpl, extrabytes, filebpp, pixWpl, pixBpl, i, j, k, valid;
 l_uint32   ihbytes;
 l_uint32  *line, *pixdata, *pword;
 l_int64    npixels;
@@ -383,6 +383,15 @@ PIXCMAP   *cmap;
     pixEndianByteSwap(pix);
     if (height_neg)
         pixFlipTB(pix, pix);
+
+        /* Verify that the pixel values do not exceed the colormap */
+    if (cmap) {
+        pixcmapIsValid(cmap, pix, &valid);
+        if (!valid) {
+            pixDestroy(&pix);
+            return (PIX *)ERROR_PTR("colormap is invalid", __func__, NULL);
+        }
+    }
 
         /* ----------------------------------------------
          * We do not use 1 bpp pix with colormaps in leptonica.
