@@ -900,22 +900,34 @@ fpixScaleByInteger(FPIX    *fpixs,
                    l_int32  factor)
 {
 l_int32     i, j, k, m, ws, hs, wd, hd, wpls, wpld;
+l_int64     wd64, hd64;
 l_float32   val0, val1, val2, val3;
 l_float32  *datas, *datad, *lines, *lined, *fract;
 FPIX       *fpixd;
 
     if (!fpixs)
         return (FPIX *)ERROR_PTR("fpixs not defined", __func__, NULL);
+    if (factor < 1)
+        return (FPIX *)ERROR_PTR("factor < 1", __func__, NULL);
 
     fpixGetDimensions(fpixs, &ws, &hs);
-    wd = factor * (ws - 1) + 1;
-    hd = factor * (hs - 1) + 1;
-    fpixd = fpixCreate(wd, hd);
+    wd64 = (l_int64)factor * (ws - 1) + 1;
+    hd64 = (l_int64)factor * (hs - 1) + 1;
+    if (wd64 >= (1LL << 29) || hd64 >= (1LL << 29))
+        return (FPIX *)ERROR_PTR("fpixd too large", __func__, NULL);
+    wd = (l_int32)wd64;
+    hd = (l_int32)hd64;
+    if ((fpixd = fpixCreate(wd, hd)) == NULL)
+        return (FPIX *)ERROR_PTR("fpixd not made", __func__, NULL);
     datas = fpixGetData(fpixs);
     datad = fpixGetData(fpixd);
     wpls = fpixGetWpl(fpixs);
     wpld = fpixGetWpl(fpixd);
     fract = (l_float32 *)LEPT_CALLOC(factor, sizeof(l_float32));
+    if (!fract) {
+        fpixDestroy(&fpixd);
+        return (FPIX *)ERROR_PTR("fract not made", __func__, NULL);
+    }
     for (i = 0; i < factor; i++)
         fract[i] = i / (l_float32)factor;
     for (i = 0; i < hs - 1; i++) {
@@ -990,22 +1002,34 @@ dpixScaleByInteger(DPIX    *dpixs,
                    l_int32  factor)
 {
 l_int32     i, j, k, m, ws, hs, wd, hd, wpls, wpld;
+l_int64     wd64, hd64;
 l_float64   val0, val1, val2, val3;
 l_float64  *datas, *datad, *lines, *lined, *fract;
 DPIX       *dpixd;
 
     if (!dpixs)
         return (DPIX *)ERROR_PTR("dpixs not defined", __func__, NULL);
+    if (factor < 1)
+        return (DPIX *)ERROR_PTR("factor < 1", __func__, NULL);
 
     dpixGetDimensions(dpixs, &ws, &hs);
-    wd = factor * (ws - 1) + 1;
-    hd = factor * (hs - 1) + 1;
-    dpixd = dpixCreate(wd, hd);
+    wd64 = (l_int64)factor * (ws - 1) + 1;
+    hd64 = (l_int64)factor * (hs - 1) + 1;
+    if (wd64 >= (1LL << 29) || hd64 >= (1LL << 29))
+        return (DPIX *)ERROR_PTR("dpixd too large", __func__, NULL);
+    wd = (l_int32)wd64;
+    hd = (l_int32)hd64;
+    if ((dpixd = dpixCreate(wd, hd)) == NULL)
+        return (DPIX *)ERROR_PTR("dpixd not made", __func__, NULL);
     datas = dpixGetData(dpixs);
     datad = dpixGetData(dpixd);
     wpls = dpixGetWpl(dpixs);
     wpld = dpixGetWpl(dpixd);
     fract = (l_float64 *)LEPT_CALLOC(factor, sizeof(l_float64));
+    if (!fract) {
+        dpixDestroy(&dpixd);
+        return (DPIX *)ERROR_PTR("fract not made", __func__, NULL);
+    }
     for (i = 0; i < factor; i++)
         fract[i] = i / (l_float64)factor;
     for (i = 0; i < hs - 1; i++) {
