@@ -2073,7 +2073,10 @@ PIX       *pixs, *pixd;
     hd = pixGetHeight(pixs) / 2;
     datas = pixGetData(pixs);
     wpls = pixGetWpl(pixs);
-    pixd = pixCreate(wd, hd, d);
+    if ((pixd = pixCreate(wd, hd, d)) == NULL) {
+        pixDestroy(&pixs);
+        return (PIX *)ERROR_PTR("pixd not made", __func__, NULL);
+    }
     datad = pixGetData(pixd);
     wpld = pixGetWpl(pixd);
     pixCopyInputFormat(pixd, pixs);

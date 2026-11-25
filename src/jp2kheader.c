@@ -174,7 +174,7 @@ readHeaderMemJp2k(const l_uint8  *data,
                   l_int32        *pspp,
                   l_int32        *pcodec)
 {
-l_int32  format, val, w, h, bps, spp, loc, found, index, codec;
+l_int32  format, w, h, bps, spp, loc, found, index, codec;
 l_uint8  ihdr[4] = {0x69, 0x68, 0x64, 0x72};  /* 'ihdr' */
 
     if (pw) *pw = 0;
@@ -207,25 +207,25 @@ l_uint8  ihdr[4] = {0x69, 0x68, 0x64, 0x72};  /* 'ihdr' */
     }
     if (pcodec) *pcodec = codec;
 
+        /* The header fields are big-endian and can be at any byte offset
+         * in the buffer, so assemble them from individual bytes. */
     if (codec == L_JP2_CODEC) {
         if (size < index + 4 * 3)
             return ERROR_INT("header size is too small", __func__, 1);
-        val = *(l_uint32 *)(data + index);
-        h = convertOnLittleEnd32(val);
-        val = *(l_uint32 *)(data + index + 4);
-        w = convertOnLittleEnd32(val);
-        val = *(l_uint16 *)(data + index + 8);
-        spp = convertOnLittleEnd16(val);
+        h = ((l_uint32)data[index] << 24) | (data[index + 1] << 16) |
+            (data[index + 2] << 8) | data[index + 3];
+        w = ((l_uint32)data[index + 4] << 24) | (data[index + 5] << 16) |
+            (data[index + 6] << 8) | data[index + 7];
+        spp = (data[index + 8] << 8) | data[index + 9];
         bps = *(data + index + 10) + 1;
     } else {  /* codec == L_J2K_CODEC */
         if (size < index + 4 * 9)
             return ERROR_INT("header size is too small", __func__, 1);
-        val = *(l_uint32 *)(data + index);
-        w = convertOnLittleEnd32(val);
-        val = *(l_uint32 *)(data + index + 4);
-        h = convertOnLittleEnd32(val);
-        val = *(l_uint16 *)(data + index + 32);
-        spp = convertOnLittleEnd16(val);
+        w = ((l_uint32)data[index] << 24) | (data[index + 1] << 16) |
+            (data[index + 2] << 8) | data[index + 3];
+        h = ((l_uint32)data[index + 4] << 24) | (data[index + 5] << 16) |
+            (data[index + 6] << 8) | data[index + 7];
+        spp = (data[index + 32] << 8) | data[index + 33];
         bps = *(data + index + 34) + 1;
     }
 #if  DEBUG_CODEC
