@@ -2484,6 +2484,9 @@ NUMAA    *step;
                 offset++;
                 nib1 = (bval >> 4);
                 nib2 = bval & 0xf;
+                    /* Valid step directions are 0 - 7; 8 ends the chain */
+                if (nib1 > 8 || (nib1 != 8 && nib2 > 8))
+                    goto cleanup_invalid;
                 if (nib1 != 8)
                     numaAddNumber(na, nib1);
                 else
@@ -2502,6 +2505,11 @@ cleanup_truncated:
     LEPT_FREE(dataout);
     ccbaDestroy(&ccba);
     return (CCBORDA *)ERROR_PTR("data truncated", __func__, NULL);
+
+cleanup_invalid:
+    LEPT_FREE(dataout);
+    ccbaDestroy(&ccba);
+    return (CCBORDA *)ERROR_PTR("invalid step direction", __func__, NULL);
 
 #endif  /* !HAVE_LIBZ */
 }
